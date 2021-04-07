@@ -46,8 +46,7 @@ PosixSemaphore::PosixSemaphore(uint value) {
 }
 
 PosixSemaphore::~PosixSemaphore() {
-  int ret = sem_destroy(&_semaphore);
-  assert_with_errno(ret == 0, "sem_destroy failed");
+  sem_destroy(&_semaphore);
 }
 
 void PosixSemaphore::signal(uint count) {

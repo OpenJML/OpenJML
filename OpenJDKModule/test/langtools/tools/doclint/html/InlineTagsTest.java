@@ -23,12 +23,12 @@
 
 /*
  * @test
- * @bug 8006251 8247957
+ * @bug 8006251
  * @summary test inline tags
  * @library ..
  * @modules jdk.javadoc/jdk.javadoc.internal.doclint
  * @build DocLintTester
- * @run main DocLintTester -Xmsgs -ref InlineTagTest.out InlineTagsTest.java
+ * @run main DocLintTester -Xmsgs InlineTagsTest.java
  */
 
 /** */

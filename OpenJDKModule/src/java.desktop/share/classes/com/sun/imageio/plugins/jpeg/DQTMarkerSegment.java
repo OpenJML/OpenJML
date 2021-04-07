@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2014, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -87,7 +87,9 @@ class DQTMarkerSegment extends MarkerSegment {
     protected Object clone() {
         DQTMarkerSegment newGuy = (DQTMarkerSegment) super.clone();
         newGuy.tables = new ArrayList<>(tables.size());
-        for (Qtable table : tables) {
+        Iterator<Qtable> iter = tables.iterator();
+        while (iter.hasNext()) {
+            Qtable table = iter.next();
             newGuy.tables.add((Qtable) table.clone());
         }
         return newGuy;

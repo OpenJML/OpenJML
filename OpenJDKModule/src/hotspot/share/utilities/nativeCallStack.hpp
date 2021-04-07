@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -56,18 +56,16 @@ class MemTracker;
 class NativeCallStack : public StackObj {
 private:
   address       _stack[NMT_TrackingStackDepth];
-  static const NativeCallStack _empty_stack;
-public:
-  // Default ctor creates an empty stack.
-  // (it may make sense to remove this altogether but its used in a few places).
-  NativeCallStack() {
-    memset(_stack, 0, sizeof(_stack));
-  }
+  unsigned int  _hash_value;
 
-  NativeCallStack(int toSkip);
+public:
+  NativeCallStack(int toSkip = 0, bool fillStack = false);
   NativeCallStack(address* pc, int frameCount);
 
-  static inline const NativeCallStack& empty_stack() { return _empty_stack; }
+  static inline const NativeCallStack& empty_stack() {
+    static const NativeCallStack EMPTY_STACK(0, false);
+    return EMPTY_STACK;
+  }
 
   // if it is an empty stack
   inline bool is_empty() const {
@@ -82,6 +80,9 @@ public:
   }
 
   inline bool equals(const NativeCallStack& other) const {
+    // compare hash values
+    if (hash() != other.hash()) return false;
+    // compare each frame
     return compare(other) == 0;
   }
 
@@ -90,14 +91,8 @@ public:
     return _stack[index];
   }
 
-  // Helper; calculates a hash value over the stack frames in this stack
-  unsigned int calculate_hash() const {
-    uintptr_t hash = 0;
-    for (int i = 0; i < NMT_TrackingStackDepth; i++) {
-      hash += (uintptr_t)_stack[i];
-    }
-    return hash;
-  }
+  // Hash code. Any better algorithm?
+  unsigned int hash() const;
 
   void print_on(outputStream* out) const;
   void print_on(outputStream* out, int indent) const;

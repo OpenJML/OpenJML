@@ -36,11 +36,11 @@ import java.util.stream.Stream;
  */
 class MaskCommentsAndModifiers {
 
-    private static final Set<String> IGNORED_MODIFIERS =
+    private final static Set<String> IGNORED_MODIFIERS =
             Stream.of( "public", "protected", "private", "static" )
                     .collect( Collectors.toSet() );
 
-    private static final Set<String> ALL_MODIFIERS =
+    private final static Set<String> ALL_MODIFIERS =
             Stream.of(
                     "public", "protected", "private",
                     "static", "abstract", "final",

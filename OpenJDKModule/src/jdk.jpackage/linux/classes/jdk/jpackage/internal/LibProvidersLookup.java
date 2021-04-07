@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -43,7 +43,7 @@ import java.util.stream.Stream;
 /**
  * Builds list of packages providing dynamic libraries for the given set of files.
  */
-public final class LibProvidersLookup {
+final public class LibProvidersLookup {
     static boolean supported() {
         return (new ToolValidator(TOOL_LDD).validate() == null);
     }
@@ -81,7 +81,7 @@ public final class LibProvidersLookup {
                 List<String> packageNames = Collections.emptyList();
                 return packageNames;
             }
-        }).flatMap(List::stream).sorted().distinct().toList();
+        }).flatMap(List::stream).sorted().distinct().collect(Collectors.toList());
 
         return neededPackages;
     }

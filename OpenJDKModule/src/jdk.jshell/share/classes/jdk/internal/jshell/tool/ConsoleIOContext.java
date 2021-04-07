@@ -247,8 +247,8 @@ class ConsoleIOContext extends IOContext {
     public Iterable<String> history(boolean currentSession) {
         return StreamSupport.stream(getHistory().spliterator(), false)
                             .filter(entry -> !currentSession || !historyLoad.equals(entry.time()))
-                            .map(History.Entry::line)
-                            .toList();
+                            .map(entry -> entry.line())
+                            .collect(Collectors.toList());
     }
 
     @Override
@@ -263,7 +263,7 @@ class ConsoleIOContext extends IOContext {
             StreamSupport.stream(in.getHistory().spliterator(), false)
                          .map(History.Entry::line)
                          .flatMap(this::toSplitEntries)
-                         .toList();
+                         .collect(Collectors.toList());
         if (!savedHistory.isEmpty()) {
             int len = (int) Math.ceil(Math.log10(savedHistory.size()+1));
             String format = HISTORY_LINE_PREFIX + "%0" + len + "d";
@@ -354,7 +354,7 @@ class ConsoleIOContext extends IOContext {
                     doc = repl.analysis.documentation(prefix + text, cursor + prefix.length(), false)
                                        .stream()
                                        .map(Documentation::signature)
-                                       .toList();
+                                       .collect(Collectors.toList());
                 }
                 long smartCount = suggestions.stream().filter(Suggestion::matchesType).count();
                 boolean hasSmart = smartCount > 0 && smartCount <= /*in.getAutoprintThreshold()*/AUTOPRINT_THRESHOLD;
@@ -589,7 +589,7 @@ class ConsoleIOContext extends IOContext {
 
         @Override
         public Result perform(String text, int cursor) throws IOException {
-            List<? extends CharSequence> toShow;
+            List<CharSequence> toShow;
 
             if (showSmart) {
                 toShow =
@@ -597,13 +597,13 @@ class ConsoleIOContext extends IOContext {
                                .filter(Suggestion::matchesType)
                                .map(Suggestion::continuation)
                                .distinct()
-                               .toList();
+                               .collect(Collectors.toList());
             } else {
                 toShow =
                     suggestions.stream()
                                .map(Suggestion::continuation)
                                .distinct()
-                               .toList();
+                               .collect(Collectors.toList());
             }
 
             if (toShow.isEmpty()) {
@@ -658,7 +658,7 @@ class ConsoleIOContext extends IOContext {
                     suggestions.stream()
                                .map(Suggestion::continuation)
                                .distinct()
-                               .toList();
+                               .collect(Collectors.toList());
 
             Optional<String> prefix =
                     candidates.stream()
@@ -792,7 +792,7 @@ class ConsoleIOContext extends IOContext {
             List<String> doc = repl.analysis.documentation(prefix + text, cursor + prefix.length(), true)
                                             .stream()
                                             .map(convertor)
-                                            .toList();
+                                            .collect(Collectors.toList());
             return doPrintFullDocumentation(todo, doc, false);
         }
 

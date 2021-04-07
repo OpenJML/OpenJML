@@ -75,7 +75,7 @@ import javax.naming.NamingException;
  * @author Rosanna Lee
  */
 
-public final class Pool {
+final public class Pool {
 
     static final boolean debug = com.sun.jndi.ldap.LdapPoolManager.debug;
 
@@ -87,10 +87,10 @@ public final class Pool {
     private static final Collection<Reference<ConnectionsRef>> weakRefs =
         Collections.synchronizedList(new LinkedList<Reference<ConnectionsRef>>());
 
-    private final int maxSize;    // max num of identical conn per pool
-    private final int prefSize;   // preferred num of identical conn per pool
-    private final int initSize;   // initial number of identical conn to create
-    private final Map<Object, ConnectionsRef> map;
+    final private int maxSize;    // max num of identical conn per pool
+    final private int prefSize;   // preferred num of identical conn per pool
+    final private int initSize;   // initial number of identical conn to create
+    final private Map<Object, ConnectionsRef> map;
 
     public Pool(int initSize, int prefSize, int maxSize) {
         map = new WeakHashMap<>();

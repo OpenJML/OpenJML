@@ -33,5 +33,5 @@ import com.sun.jndi.url.ldap.*;
  * @author Vincent Ryan
  */
 
-public final class ldapsURLContextFactory extends ldapURLContextFactory {
+final public class ldapsURLContextFactory extends ldapURLContextFactory {
 }

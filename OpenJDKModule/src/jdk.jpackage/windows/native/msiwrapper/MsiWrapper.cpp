@@ -26,34 +26,17 @@
 #include <algorithm>
 #include <windows.h>
 
-#include "WinApp.h"
-#include "Guid.h"
 #include "SysInfo.h"
-#include "MsiUtils.h"
 #include "FileUtils.h"
 #include "WinFileUtils.h"
 #include "Executor.h"
 #include "Resources.h"
+#include "WinErrorHandling.h"
 
 
-namespace {
-int exitCode = -1;
-
-void launchApp() {
-    const auto cmdline = SysInfo::getCommandArgs();
-    if (std::find(cmdline.begin(), cmdline.end(), L"uninstall") != cmdline.end()) {
-        // This is uninstall request.
-
-        // Get product code of the product to uninstall.
-        const auto productCodeUtf8 = Resource(L"product_code", RT_RCDATA).binary();
-        const Guid productCode = Guid(std::string(
-                (const char*)productCodeUtf8.data(), productCodeUtf8.size()));
-
-        // Uninstall product.
-        msi::uninstall().setProductCode(productCode)();
-        exitCode = 0;
-        return;
-    }
+int __stdcall WinMain(HINSTANCE, HINSTANCE, LPSTR lpCmdLine, int nShowCmd)
+{
+    JP_TRY;
 
     // Create temporary directory where to extract msi file.
     const auto tempMsiDir = FileUtils::createTempDirectory();
@@ -77,12 +60,9 @@ void launchApp() {
     });
 
     // Install msi file.
-    exitCode = msiExecutor.execAndWaitForExit();
-}
-} // namespace
+    return msiExecutor.execAndWaitForExit();
 
+    JP_CATCH_ALL;
 
-int __stdcall WinMain(HINSTANCE, HINSTANCE, LPSTR lpCmdLine, int nShowCmd) {
-    app::wlaunch(std::nothrow, launchApp);
-    return exitCode;
+    return -1;
 }

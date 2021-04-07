@@ -88,7 +88,7 @@ public abstract class EventSettings {
      *
      * @return event settings object for further configuration, not {@code null}
      */
-    public final EventSettings withStackTrace() {
+    final public EventSettings withStackTrace() {
         return with(StackTrace.NAME, "true");
     }
 
@@ -99,7 +99,7 @@ public abstract class EventSettings {
      *
      * @return event settings object for further configuration, not {@code null}
      */
-    public final EventSettings withoutStackTrace() {
+    final public EventSettings withoutStackTrace() {
         return with(StackTrace.NAME, "false");
     }
 
@@ -111,7 +111,7 @@ public abstract class EventSettings {
      *
      * @return event settings object for further configuration, not {@code null}
      */
-    public final EventSettings withoutThreshold() {
+    final public EventSettings withoutThreshold() {
         return with(Threshold.NAME, "0 s");
     }
 
@@ -122,7 +122,7 @@ public abstract class EventSettings {
      *
      * @return event settings object for further configuration, not {@code null}
      */
-    public final EventSettings withPeriod(Duration duration) {
+    final public EventSettings withPeriod(Duration duration) {
         return with(Period.NAME, duration.toNanos() + " ns");
     }
 
@@ -133,7 +133,7 @@ public abstract class EventSettings {
      *
      * @return event settings object for further configuration, not {@code null}
      */
-    public final EventSettings withThreshold(Duration duration) {
+    final public EventSettings withThreshold(Duration duration) {
         if (duration == null) {
             return with(Threshold.NAME, "0 ns");
         } else {
@@ -151,7 +151,7 @@ public abstract class EventSettings {
      *
      * @return event settings object for further configuration, not {@code null}
      */
-    public abstract EventSettings with(String name, String value);
+    abstract public EventSettings with(String name, String value);
 
     /**
      * Creates a settings {@code Map} for the event that is associated with this

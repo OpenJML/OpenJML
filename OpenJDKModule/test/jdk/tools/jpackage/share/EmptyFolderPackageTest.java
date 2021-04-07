@@ -39,7 +39,6 @@ import jdk.jpackage.test.TKit;
  * @key jpackagePlatformPackage
  * @build EmptyFolderBase
  * @build jdk.jpackage.test.*
- * @build EmptyFolderPackageTest
  * @modules jdk.jpackage/jdk.jpackage.internal
  * @run main/othervm/timeout=720 -Xmx512m EmptyFolderPackageTest
  */

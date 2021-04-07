@@ -1894,9 +1894,17 @@ void C2_MacroAssembler::reduce8L(int opcode, Register dst, Register src1, XMMReg
 }
 
 void C2_MacroAssembler::genmask(Register dst, Register len, Register temp) {
-  assert(ArrayCopyPartialInlineSize <= 64,"");
-  mov64(dst, -1L);
-  bzhiq(dst, dst, len);
+  if (ArrayCopyPartialInlineSize <= 32) {
+    mov64(dst, 1);
+    shlxq(dst, dst, len);
+    decq(dst);
+  } else {
+    mov64(dst, -1);
+    movq(temp, len);
+    negptr(temp);
+    addptr(temp, 64);
+    shrxq(dst, dst, temp);
+  }
 }
 #endif // _LP64
 

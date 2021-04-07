@@ -25,11 +25,8 @@ package com.sun.org.apache.xml.internal.security.keys.storage.implementations;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import com.sun.org.apache.xml.internal.security.keys.storage.StorageResolverException;
@@ -41,11 +38,8 @@ import com.sun.org.apache.xml.internal.security.keys.storage.StorageResolverSpi;
  */
 public class KeyStoreResolver extends StorageResolverSpi {
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(KeyStoreResolver.class);
-
     /** Field keyStore */
-    private final KeyStore keyStore;
+    private KeyStore keyStore;
 
     /**
      * Constructor KeyStoreResolver
@@ -73,9 +67,14 @@ public class KeyStoreResolver extends StorageResolverSpi {
      */
     static class KeyStoreIterator implements Iterator<Certificate> {
 
-        private final List<Certificate> certs;
+        /** Field keyStore */
+        KeyStore keyStore = null;
 
-        private int i;
+        /** Field aliases */
+        Enumeration<String> aliases = null;
+
+        /** Field nextCert */
+        Certificate nextCert = null;
 
         /**
          * Constructor KeyStoreIterator
@@ -83,37 +82,45 @@ public class KeyStoreResolver extends StorageResolverSpi {
          * @param keyStore
          */
         public KeyStoreIterator(KeyStore keyStore) {
-
-            List<Certificate> tmpCerts = new ArrayList<>();
             try {
-                Enumeration<String> aliases = keyStore.aliases();
-                while (aliases.hasMoreElements()) {
-                    String alias = aliases.nextElement();
-                    Certificate cert = keyStore.getCertificate(alias);
-                    if (cert != null) {
-                        tmpCerts.add(cert);
-                    }
-                }
+                this.keyStore = keyStore;
+                this.aliases = this.keyStore.aliases();
             } catch (KeyStoreException ex) {
-                LOG.debug("Error reading certificates: {}", ex.getMessage());
+                // empty Enumeration
+                this.aliases = new Enumeration<String>() {
+                    public boolean hasMoreElements() {
+                        return false;
+                    }
+                    public String nextElement() {
+                        return null;
+                    }
+                };
             }
-
-            certs = Collections.unmodifiableList(tmpCerts);
-            this.i = 0;
         }
 
         /** {@inheritDoc} */
         public boolean hasNext() {
-            return this.i < this.certs.size();
+            if (nextCert == null) {
+                nextCert = findNextCert();
+            }
+
+            return nextCert != null;
         }
 
         /** {@inheritDoc} */
         public Certificate next() {
-            if (hasNext()) {
-                return this.certs.get(this.i++);
+            if (nextCert == null) {
+                // maybe caller did not call hasNext()
+                nextCert = findNextCert();
+
+                if (nextCert == null) {
+                    throw new NoSuchElementException();
+                }
             }
 
-            throw new NoSuchElementException();
+            Certificate ret = nextCert;
+            nextCert = null;
+            return ret;
         }
 
         /**
@@ -121,6 +128,24 @@ public class KeyStoreResolver extends StorageResolverSpi {
          */
         public void remove() {
             throw new UnsupportedOperationException("Can't remove keys from KeyStore");
+        }
+
+        // Find the next entry that contains a certificate and return it.
+        // In particular, this skips over entries containing symmetric keys.
+        private Certificate findNextCert() {
+            while (this.aliases.hasMoreElements()) {
+                String alias = this.aliases.nextElement();
+                try {
+                    Certificate cert = this.keyStore.getCertificate(alias);
+                    if (cert != null) {
+                        return cert;
+                    }
+                } catch (KeyStoreException ex) {
+                    return null;
+                }
+            }
+
+            return null;
         }
 
     }

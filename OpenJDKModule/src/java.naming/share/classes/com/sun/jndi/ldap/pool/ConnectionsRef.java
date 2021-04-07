@@ -46,7 +46,7 @@ package com.sun.jndi.ldap.pool;
  * when they are returned to the pool.
  */
 final class ConnectionsRef {
-    private final Connections conns;
+    final private Connections conns;
 
     ConnectionsRef(Connections conns) {
         this.conns = conns;

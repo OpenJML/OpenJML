@@ -21,7 +21,10 @@
  * under the License.
  */
 /*
- * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2019, Oracle and/or its affiliates. All rights reserved.
+ */
+/*
+ * $Id: DOMXMLObject.java 1854026 2019-02-21 09:30:01Z coheigea $
  */
 package org.jcp.xml.dsig.internal.dom;
 
@@ -166,7 +169,7 @@ public final class DOMXMLObject extends DOMStructure implements XMLObject {
         throws MarshalException {
         Document ownerDoc = DOMUtils.getOwnerDocument(parent);
 
-        Element objElem = objectElem;
+        Element objElem = objectElem != null ? objectElem : null;
         if (objElem == null) {
             objElem = DOMUtils.createElement(ownerDoc, "Object",
                                              XMLSignature.XMLNS, dsPrefix);
@@ -213,7 +216,7 @@ public final class DOMXMLObject extends DOMStructure implements XMLObject {
                               : mimeType.equals(oxo.getMimeType());
 
         return idsEqual && encodingsEqual && mimeTypesEqual &&
-                equalsContent(content, oxo.getContent());
+                equalsContent(oxo.getContent());
     }
 
     @Override
@@ -233,4 +236,29 @@ public final class DOMXMLObject extends DOMStructure implements XMLObject {
         return result;
     }
 
+    private boolean equalsContent(List<XMLStructure> otherContent) {
+        if (content.size() != otherContent.size()) {
+            return false;
+        }
+        for (int i = 0, osize = otherContent.size(); i < osize; i++) {
+            XMLStructure oxs = otherContent.get(i);
+            XMLStructure xs = content.get(i);
+            if (oxs instanceof javax.xml.crypto.dom.DOMStructure) {
+                if (!(xs instanceof javax.xml.crypto.dom.DOMStructure)) {
+                    return false;
+                }
+                Node onode = ((javax.xml.crypto.dom.DOMStructure)oxs).getNode();
+                Node node = ((javax.xml.crypto.dom.DOMStructure)xs).getNode();
+                if (!DOMUtils.nodesEqual(node, onode)) {
+                    return false;
+                }
+            } else {
+                if (!(xs.equals(oxs))) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
 }

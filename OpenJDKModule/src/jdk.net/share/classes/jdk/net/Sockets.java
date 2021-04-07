@@ -78,7 +78,6 @@ public class Sockets {
      * @param name The socket option
      * @param value The value of the socket option. May be null for some
      *              options.
-     * @param <T> The type of the socket option
      *
      * @throws UnsupportedOperationException if the socket does not support
      *         the option.
@@ -108,7 +107,6 @@ public class Sockets {
      *
      * @param s the socket
      * @param name The socket option
-     * @param <T> The type of the socket option
      *
      * @return The value of the socket option.
      *
@@ -137,8 +135,7 @@ public class Sockets {
      *
      * @param s the socket
      * @param name The socket option
-     * @param value The value of the socket option
-     * @param <T> The type of the socket option
+     * @param value The value of the socket option.
      *
      * @throws UnsupportedOperationException if the socket does not support
      *         the option.
@@ -168,7 +165,6 @@ public class Sockets {
      *
      * @param s the socket
      * @param name The socket option
-     * @param <T> The type of the socket option
      *
      * @return The value of the socket option.
      *
@@ -198,8 +194,7 @@ public class Sockets {
      *
      * @param s the socket
      * @param name The socket option
-     * @param value The value of the socket option
-     * @param <T> The type of the socket option
+     * @param value The value of the socket option.
      *
      * @throws UnsupportedOperationException if the socket does not support
      *         the option.
@@ -230,7 +225,6 @@ public class Sockets {
      *
      * @param s the socket
      * @param name The socket option
-     * @param <T> The type of the socket option
      *
      * @return The value of the socket option.
      *
@@ -260,8 +254,6 @@ public class Sockets {
      * non standard extended options.
      *
      * @param socketType the type of java.net socket
-     *
-     * @return A set of socket options
      *
      * @throws IllegalArgumentException if socketType is not a valid
      *         socket type from the java.net package.

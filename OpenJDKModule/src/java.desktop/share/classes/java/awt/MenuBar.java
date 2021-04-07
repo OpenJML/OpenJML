@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1995, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,7 +30,6 @@ import java.awt.peer.MenuBarPeer;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serial;
 import java.util.Enumeration;
 import java.util.EventListener;
 import java.util.Vector;
@@ -119,10 +118,9 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
     private static final String base = "menubar";
     private static int nameCounter = 0;
 
-    /**
-     * Use serialVersionUID from JDK 1.1 for interoperability.
+    /*
+     * JDK 1.1 serialVersionUID
      */
-     @Serial
      private static final long serialVersionUID = -4930327919388951260L;
 
     /**
@@ -434,7 +432,6 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
      * @see AWTEventMulticaster#save(ObjectOutputStream, String, EventListener)
      * @see #readObject(java.io.ObjectInputStream)
      */
-    @Serial
     private void writeObject(java.io.ObjectOutputStream s)
       throws java.io.IOException
     {
@@ -454,7 +451,6 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
      * @see java.awt.GraphicsEnvironment#isHeadless
      * @see #writeObject(java.io.ObjectOutputStream)
      */
-    @Serial
     private void readObject(ObjectInputStream s)
       throws ClassNotFoundException, IOException, HeadlessException
     {
@@ -513,10 +509,9 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
      */
     protected class AccessibleAWTMenuBar extends AccessibleAWTMenuComponent
     {
-        /**
-         * Use serialVersionUID from JDK 1.3 for interoperability.
+        /*
+         * JDK 1.3 serialVersionUID
          */
-        @Serial
         private static final long serialVersionUID = -8577604491830083815L;
 
         /**

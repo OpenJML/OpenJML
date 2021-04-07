@@ -26,9 +26,7 @@
 
 #include "gc/shared/barrierSetNMethod.hpp"
 #include "gc/shenandoah/shenandoahAsserts.hpp"
-#include "gc/shenandoah/shenandoahBarrierSet.hpp"
 #include "gc/shenandoah/shenandoahClosures.hpp"
-#include "gc/shenandoah/shenandoahEvacOOMHandler.inline.hpp"
 #include "gc/shenandoah/shenandoahHeap.inline.hpp"
 #include "gc/shenandoah/shenandoahNMethod.inline.hpp"
 #include "oops/compressedOops.inline.hpp"
@@ -66,54 +64,33 @@ BoolObjectClosure* ShenandoahIsAliveSelector::is_alive_closure() {
          reinterpret_cast<BoolObjectClosure*>(&_alive_cl);
 }
 
-ShenandoahKeepAliveClosure::ShenandoahKeepAliveClosure() :
-  _bs(static_cast<ShenandoahBarrierSet*>(BarrierSet::barrier_set())) {
-}
-
-void ShenandoahKeepAliveClosure::do_oop(oop* p) {
-  do_oop_work(p);
-}
-
-void ShenandoahKeepAliveClosure::do_oop(narrowOop* p) {
-  do_oop_work(p);
-}
-
-template <typename T>
-void ShenandoahKeepAliveClosure::do_oop_work(T* p) {
-  assert(ShenandoahHeap::heap()->is_concurrent_mark_in_progress(), "Only for concurrent marking phase");
-  assert(!ShenandoahHeap::heap()->has_forwarded_objects(), "Not expected");
-
-  T o = RawAccess<>::oop_load(p);
-  if (!CompressedOops::is_null(o)) {
-    oop obj = CompressedOops::decode_not_null(o);
-    _bs->enqueue(obj);
-  }
-}
-
 ShenandoahUpdateRefsClosure::ShenandoahUpdateRefsClosure() :
   _heap(ShenandoahHeap::heap()) {
 }
 
 template <class T>
 void ShenandoahUpdateRefsClosure::do_oop_work(T* p) {
-  _heap->update_with_forwarded(p);
+  T o = RawAccess<>::oop_load(p);
+  if (!CompressedOops::is_null(o)) {
+    oop obj = CompressedOops::decode_not_null(o);
+    _heap->update_with_forwarded_not_null(p, obj);
+  }
 }
 
 void ShenandoahUpdateRefsClosure::do_oop(oop* p)       { do_oop_work(p); }
 void ShenandoahUpdateRefsClosure::do_oop(narrowOop* p) { do_oop_work(p); }
 
 template <DecoratorSet MO>
-ShenandoahEvacuateUpdateMetadataClosure<MO>::ShenandoahEvacuateUpdateMetadataClosure() :
+ShenandoahEvacuateUpdateRootsClosure<MO>::ShenandoahEvacuateUpdateRootsClosure() :
   _heap(ShenandoahHeap::heap()), _thread(Thread::current()) {
 }
 
 template <DecoratorSet MO>
 template <class T>
-void ShenandoahEvacuateUpdateMetadataClosure<MO>::do_oop_work(T* p) {
+void ShenandoahEvacuateUpdateRootsClosure<MO>::do_oop_work(T* p) {
   assert(_heap->is_concurrent_weak_root_in_progress() ||
          _heap->is_concurrent_strong_root_in_progress(),
          "Only do this in root processing phase");
-  assert(_thread == Thread::current(), "Wrong thread");
 
   T o = RawAccess<>::oop_load(p);
   if (! CompressedOops::is_null(o)) {
@@ -130,64 +107,41 @@ void ShenandoahEvacuateUpdateMetadataClosure<MO>::do_oop_work(T* p) {
   }
 }
 template <DecoratorSet MO>
-void ShenandoahEvacuateUpdateMetadataClosure<MO>::do_oop(oop* p) {
+void ShenandoahEvacuateUpdateRootsClosure<MO>::do_oop(oop* p) {
   do_oop_work(p);
 }
 
 template <DecoratorSet MO>
-void ShenandoahEvacuateUpdateMetadataClosure<MO>::do_oop(narrowOop* p) {
+void ShenandoahEvacuateUpdateRootsClosure<MO>::do_oop(narrowOop* p) {
   do_oop_work(p);
 }
 
-ShenandoahEvacuateUpdateRootsClosure::ShenandoahEvacuateUpdateRootsClosure() :
-  _heap(ShenandoahHeap::heap()) {
+ShenandoahEvacUpdateOopStorageRootsClosure::ShenandoahEvacUpdateOopStorageRootsClosure() :
+  _heap(ShenandoahHeap::heap()), _thread(Thread::current()) {
 }
 
-template <typename T>
-void ShenandoahEvacuateUpdateRootsClosure::do_oop_work(T* p, Thread* t) {
+void ShenandoahEvacUpdateOopStorageRootsClosure::do_oop(oop* p) {
   assert(_heap->is_concurrent_weak_root_in_progress() ||
          _heap->is_concurrent_strong_root_in_progress(),
          "Only do this in root processing phase");
-  assert(t == Thread::current(), "Wrong thread");
 
-  T o = RawAccess<>::oop_load(p);
-  if (!CompressedOops::is_null(o)) {
-    oop obj = CompressedOops::decode_not_null(o);
+  oop obj = RawAccess<>::oop_load(p);
+  if (! CompressedOops::is_null(obj)) {
     if (_heap->in_collection_set(obj)) {
       assert(_heap->is_evacuation_in_progress(), "Only do this when evacuation is in progress");
       shenandoah_assert_marked(p, obj);
       oop resolved = ShenandoahBarrierSet::resolve_forwarded_not_null(obj);
       if (resolved == obj) {
-        resolved = _heap->evacuate_object(obj, t);
+        resolved = _heap->evacuate_object(obj, _thread);
       }
-      _heap->cas_oop(resolved, p, o);
+
+      Atomic::cmpxchg(p, obj, resolved);
     }
   }
 }
 
-void ShenandoahEvacuateUpdateRootsClosure::do_oop(oop* p) {
-  ShenandoahEvacOOMScope scope;
-  do_oop_work(p, Thread::current());
-}
-
-void ShenandoahEvacuateUpdateRootsClosure::do_oop(narrowOop* p) {
-  ShenandoahEvacOOMScope scope;
-  do_oop_work(p, Thread::current());
-}
-
-ShenandoahContextEvacuateUpdateRootsClosure::ShenandoahContextEvacuateUpdateRootsClosure() :
-  ShenandoahEvacuateUpdateRootsClosure(),
-  _thread(Thread::current()) {
-}
-
-void ShenandoahContextEvacuateUpdateRootsClosure::do_oop(oop* p) {
-  ShenandoahEvacOOMScope scope;
-  do_oop_work(p, _thread);
-}
-
-void ShenandoahContextEvacuateUpdateRootsClosure::do_oop(narrowOop* p) {
-  ShenandoahEvacOOMScope scope;
-  do_oop_work(p, _thread);
+void ShenandoahEvacUpdateOopStorageRootsClosure::do_oop(narrowOop* p) {
+  ShouldNotReachHere();
 }
 
 template <bool CONCURRENT, typename IsAlive, typename KeepAlive>
@@ -231,6 +185,13 @@ void ShenandoahCodeBlobAndDisarmClosure::do_code_blob(CodeBlob* cb) {
     CodeBlobToOopClosure::do_code_blob(cb);
     _bs->disarm(nm);
   }
+}
+
+ShenandoahRendezvousClosure::ShenandoahRendezvousClosure() :
+  HandshakeClosure("ShenandoahRendezvous") {
+}
+
+void ShenandoahRendezvousClosure::do_thread(Thread* thread) {
 }
 
 #ifdef ASSERT

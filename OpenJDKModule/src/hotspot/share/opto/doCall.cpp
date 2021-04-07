@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,7 +25,6 @@
 #include "precompiled.hpp"
 #include "ci/ciCallSite.hpp"
 #include "ci/ciMethodHandle.hpp"
-#include "ci/ciSymbols.hpp"
 #include "classfile/vmSymbols.hpp"
 #include "compiler/compileBroker.hpp"
 #include "compiler/compileLog.hpp"
@@ -40,6 +39,7 @@
 #include "opto/runtime.hpp"
 #include "opto/subnode.hpp"
 #include "prims/methodHandles.hpp"
+#include "prims/nativeLookup.hpp"
 #include "runtime/sharedRuntime.hpp"
 
 void trace_type_profile(Compile* C, ciMethod *method, int depth, int bci, ciMethod *prof_method, ciKlass *prof_klass, int site_count, int receiver_count) {
@@ -1120,7 +1120,7 @@ ciMethod* Compile::optimize_inlining(ciMethod* caller, ciInstanceKlass* klass,
     // finalize() call on array is not allowed.
     if (receiver_type->isa_aryptr() &&
         callee->holder() == env()->Object_klass() &&
-        callee->name() != ciSymbols::finalize_method_name()) {
+        callee->name() != ciSymbol::finalize_method_name()) {
       return callee;
     }
 

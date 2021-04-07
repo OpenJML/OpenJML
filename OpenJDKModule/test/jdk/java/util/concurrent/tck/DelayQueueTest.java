@@ -150,9 +150,9 @@ public class DelayQueueTest extends JSR166TestCase {
         for (int i = (n & 1); i < n; i += 2)
             assertTrue(q.offer(new PDelay(i)));
         assertFalse(q.isEmpty());
-        mustEqual(Integer.MAX_VALUE, q.remainingCapacity());
-        mustEqual(n, q.size());
-        mustEqual(new PDelay(0), q.peek());
+        assertEquals(Integer.MAX_VALUE, q.remainingCapacity());
+        assertEquals(n, q.size());
+        assertEquals(new PDelay(0), q.peek());
         return q;
     }
 
@@ -160,7 +160,7 @@ public class DelayQueueTest extends JSR166TestCase {
      * A new queue has unbounded capacity
      */
     public void testConstructor1() {
-        mustEqual(Integer.MAX_VALUE, new DelayQueue<PDelay>().remainingCapacity());
+        assertEquals(Integer.MAX_VALUE, new DelayQueue().remainingCapacity());
     }
 
     /**
@@ -168,7 +168,7 @@ public class DelayQueueTest extends JSR166TestCase {
      */
     public void testConstructor3() {
         try {
-            new DelayQueue<PDelay>(null);
+            new DelayQueue(null);
             shouldThrow();
         } catch (NullPointerException success) {}
     }
@@ -178,7 +178,7 @@ public class DelayQueueTest extends JSR166TestCase {
      */
     public void testConstructor4() {
         try {
-            new DelayQueue<PDelay>(Arrays.asList(new PDelay[SIZE]));
+            new DelayQueue(Arrays.asList(new PDelay[SIZE]));
             shouldThrow();
         } catch (NullPointerException success) {}
     }
@@ -191,7 +191,7 @@ public class DelayQueueTest extends JSR166TestCase {
         for (int i = 0; i < SIZE - 1; ++i)
             a[i] = new PDelay(i);
         try {
-            new DelayQueue<PDelay>(Arrays.asList(a));
+            new DelayQueue(Arrays.asList(a));
             shouldThrow();
         } catch (NullPointerException success) {}
     }
@@ -200,21 +200,21 @@ public class DelayQueueTest extends JSR166TestCase {
      * Queue contains all elements of collection used to initialize
      */
     public void testConstructor6() {
-        PDelay[] items = new PDelay[SIZE];
+        PDelay[] ints = new PDelay[SIZE];
         for (int i = 0; i < SIZE; ++i)
-            items[i] = new PDelay(i);
-        DelayQueue<PDelay> q = new DelayQueue<>(Arrays.asList(items));
+            ints[i] = new PDelay(i);
+        DelayQueue q = new DelayQueue(Arrays.asList(ints));
         for (int i = 0; i < SIZE; ++i)
-            mustEqual(items[i], q.poll());
+            assertEquals(ints[i], q.poll());
     }
 
     /**
      * isEmpty is true before add, false after
      */
     public void testEmpty() {
-        DelayQueue<PDelay> q = new DelayQueue<>();
+        DelayQueue q = new DelayQueue();
         assertTrue(q.isEmpty());
-        mustEqual(Integer.MAX_VALUE, q.remainingCapacity());
+        assertEquals(Integer.MAX_VALUE, q.remainingCapacity());
         q.add(new PDelay(1));
         assertFalse(q.isEmpty());
         q.add(new PDelay(2));
@@ -227,15 +227,15 @@ public class DelayQueueTest extends JSR166TestCase {
      * remainingCapacity() always returns Integer.MAX_VALUE
      */
     public void testRemainingCapacity() {
-        BlockingQueue<PDelay> q = populatedQueue(SIZE);
+        BlockingQueue q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(Integer.MAX_VALUE, q.remainingCapacity());
-            mustEqual(SIZE - i, q.size());
+            assertEquals(Integer.MAX_VALUE, q.remainingCapacity());
+            assertEquals(SIZE - i, q.size());
             assertTrue(q.remove() instanceof PDelay);
         }
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(Integer.MAX_VALUE, q.remainingCapacity());
-            mustEqual(i, q.size());
+            assertEquals(Integer.MAX_VALUE, q.remainingCapacity());
+            assertEquals(i, q.size());
             assertTrue(q.add(new PDelay(i)));
         }
     }
@@ -244,7 +244,7 @@ public class DelayQueueTest extends JSR166TestCase {
      * offer non-null succeeds
      */
     public void testOffer() {
-        DelayQueue<PDelay> q = new DelayQueue<>();
+        DelayQueue q = new DelayQueue();
         assertTrue(q.offer(new PDelay(0)));
         assertTrue(q.offer(new PDelay(1)));
     }
@@ -253,9 +253,9 @@ public class DelayQueueTest extends JSR166TestCase {
      * add succeeds
      */
     public void testAdd() {
-        DelayQueue<PDelay> q = new DelayQueue<>();
+        DelayQueue q = new DelayQueue();
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(i, q.size());
+            assertEquals(i, q.size());
             assertTrue(q.add(new PDelay(i)));
         }
     }
@@ -264,7 +264,7 @@ public class DelayQueueTest extends JSR166TestCase {
      * addAll(this) throws IllegalArgumentException
      */
     public void testAddAllSelf() {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
+        DelayQueue q = populatedQueue(SIZE);
         try {
             q.addAll(q);
             shouldThrow();
@@ -276,7 +276,7 @@ public class DelayQueueTest extends JSR166TestCase {
      * possibly adding some elements
      */
     public void testAddAll3() {
-        DelayQueue<PDelay> q = new DelayQueue<>();
+        DelayQueue q = new DelayQueue();
         PDelay[] a = new PDelay[SIZE];
         for (int i = 0; i < SIZE - 1; ++i)
             a[i] = new PDelay(i);
@@ -291,34 +291,34 @@ public class DelayQueueTest extends JSR166TestCase {
      */
     public void testAddAll5() {
         PDelay[] empty = new PDelay[0];
-        PDelay[] items = new PDelay[SIZE];
+        PDelay[] ints = new PDelay[SIZE];
         for (int i = SIZE - 1; i >= 0; --i)
-            items[i] = new PDelay(i);
-        DelayQueue<PDelay> q = new DelayQueue<>();
+            ints[i] = new PDelay(i);
+        DelayQueue q = new DelayQueue();
         assertFalse(q.addAll(Arrays.asList(empty)));
-        assertTrue(q.addAll(Arrays.asList(items)));
+        assertTrue(q.addAll(Arrays.asList(ints)));
         for (int i = 0; i < SIZE; ++i)
-            mustEqual(items[i], q.poll());
+            assertEquals(ints[i], q.poll());
     }
 
     /**
      * all elements successfully put are contained
      */
     public void testPut() {
-        DelayQueue<PDelay> q = new DelayQueue<>();
+        DelayQueue q = new DelayQueue();
         for (int i = 0; i < SIZE; ++i) {
             PDelay x = new PDelay(i);
             q.put(x);
             assertTrue(q.contains(x));
         }
-        mustEqual(SIZE, q.size());
+        assertEquals(SIZE, q.size());
     }
 
     /**
      * put doesn't block waiting for take
      */
     public void testPutWithTake() throws InterruptedException {
-        final DelayQueue<PDelay> q = new DelayQueue<>();
+        final DelayQueue q = new DelayQueue();
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
                 q.put(new PDelay(0));
@@ -328,14 +328,14 @@ public class DelayQueueTest extends JSR166TestCase {
             }});
 
         awaitTermination(t);
-        mustEqual(4, q.size());
+        assertEquals(4, q.size());
     }
 
     /**
      * Queue is unbounded, so timed offer never times out
      */
     public void testTimedOffer() throws InterruptedException {
-        final DelayQueue<PDelay> q = new DelayQueue<>();
+        final DelayQueue q = new DelayQueue();
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
                 q.put(new PDelay(0));
@@ -351,9 +351,9 @@ public class DelayQueueTest extends JSR166TestCase {
      * take retrieves elements in priority order
      */
     public void testTake() throws InterruptedException {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
+        DelayQueue q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(new PDelay(i), q.take());
+            assertEquals(new PDelay(i), q.take());
         }
     }
 
@@ -361,12 +361,12 @@ public class DelayQueueTest extends JSR166TestCase {
      * Take removes existing elements until empty, then blocks interruptibly
      */
     public void testBlockingTake() throws InterruptedException {
-        final DelayQueue<PDelay> q = populatedQueue(SIZE);
+        final DelayQueue q = populatedQueue(SIZE);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
                 for (int i = 0; i < SIZE; i++)
-                    mustEqual(new PDelay(i), q.take());
+                    assertEquals(new PDelay(i), ((PDelay)q.take()));
 
                 Thread.currentThread().interrupt();
                 try {
@@ -393,9 +393,9 @@ public class DelayQueueTest extends JSR166TestCase {
      * poll succeeds unless empty
      */
     public void testPoll() {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
+        DelayQueue q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(new PDelay(i), q.poll());
+            assertEquals(new PDelay(i), q.poll());
         }
         assertNull(q.poll());
     }
@@ -404,9 +404,9 @@ public class DelayQueueTest extends JSR166TestCase {
      * timed poll with zero timeout succeeds when non-empty, else times out
      */
     public void testTimedPoll0() throws InterruptedException {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
+        DelayQueue q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(new PDelay(i), q.poll(0, MILLISECONDS));
+            assertEquals(new PDelay(i), q.poll(0, MILLISECONDS));
         }
         assertNull(q.poll(0, MILLISECONDS));
     }
@@ -415,10 +415,10 @@ public class DelayQueueTest extends JSR166TestCase {
      * timed poll with nonzero timeout succeeds when non-empty, else times out
      */
     public void testTimedPoll() throws InterruptedException {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
+        DelayQueue q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
             long startTime = System.nanoTime();
-            mustEqual(new PDelay(i), q.poll(LONG_DELAY_MS, MILLISECONDS));
+            assertEquals(new PDelay(i), q.poll(LONG_DELAY_MS, MILLISECONDS));
             assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
         }
         long startTime = System.nanoTime();
@@ -433,12 +433,12 @@ public class DelayQueueTest extends JSR166TestCase {
      */
     public void testInterruptedTimedPoll() throws InterruptedException {
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
-        final DelayQueue<PDelay> q = populatedQueue(SIZE);
+        final DelayQueue q = populatedQueue(SIZE);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
                 for (int i = 0; i < SIZE; i++)
-                    mustEqual(new PDelay(i),
-                              q.poll(LONG_DELAY_MS, MILLISECONDS));
+                    assertEquals(new PDelay(i),
+                                 ((PDelay)q.poll(LONG_DELAY_MS, MILLISECONDS)));
 
                 Thread.currentThread().interrupt();
                 try {
@@ -466,10 +466,10 @@ public class DelayQueueTest extends JSR166TestCase {
      * peek returns next element, or null if empty
      */
     public void testPeek() {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
+        DelayQueue q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(new PDelay(i), q.peek());
-            mustEqual(new PDelay(i), q.poll());
+            assertEquals(new PDelay(i), q.peek());
+            assertEquals(new PDelay(i), q.poll());
             if (q.isEmpty())
                 assertNull(q.peek());
             else
@@ -482,9 +482,9 @@ public class DelayQueueTest extends JSR166TestCase {
      * element returns next element, or throws NSEE if empty
      */
     public void testElement() {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
+        DelayQueue q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(new PDelay(i), q.element());
+            assertEquals(new PDelay(i), q.element());
             q.poll();
         }
         try {
@@ -497,9 +497,9 @@ public class DelayQueueTest extends JSR166TestCase {
      * remove removes next element, or throws NSEE if empty
      */
     public void testRemove() {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
+        DelayQueue q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(new PDelay(i), q.remove());
+            assertEquals(new PDelay(i), q.remove());
         }
         try {
             q.remove();
@@ -511,7 +511,7 @@ public class DelayQueueTest extends JSR166TestCase {
      * contains(x) reports true when elements added but not yet removed
      */
     public void testContains() {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
+        DelayQueue q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
             assertTrue(q.contains(new PDelay(i)));
             q.poll();
@@ -523,11 +523,11 @@ public class DelayQueueTest extends JSR166TestCase {
      * clear removes all elements
      */
     public void testClear() {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
+        DelayQueue q = populatedQueue(SIZE);
         q.clear();
         assertTrue(q.isEmpty());
-        mustEqual(0, q.size());
-        mustEqual(Integer.MAX_VALUE, q.remainingCapacity());
+        assertEquals(0, q.size());
+        assertEquals(Integer.MAX_VALUE, q.remainingCapacity());
         PDelay x = new PDelay(1);
         q.add(x);
         assertFalse(q.isEmpty());
@@ -540,8 +540,8 @@ public class DelayQueueTest extends JSR166TestCase {
      * containsAll(c) is true when c contains a subset of elements
      */
     public void testContainsAll() {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
-        DelayQueue<PDelay> p = new DelayQueue<>();
+        DelayQueue q = populatedQueue(SIZE);
+        DelayQueue p = new DelayQueue();
         for (int i = 0; i < SIZE; ++i) {
             assertTrue(q.containsAll(p));
             assertFalse(p.containsAll(q));
@@ -554,8 +554,8 @@ public class DelayQueueTest extends JSR166TestCase {
      * retainAll(c) retains only those elements of c and reports true if changed
      */
     public void testRetainAll() {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
-        DelayQueue<PDelay> p = populatedQueue(SIZE);
+        DelayQueue q = populatedQueue(SIZE);
+        DelayQueue p = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
             boolean changed = q.retainAll(p);
             if (i == 0)
@@ -564,7 +564,7 @@ public class DelayQueueTest extends JSR166TestCase {
                 assertTrue(changed);
 
             assertTrue(q.containsAll(p));
-            mustEqual(SIZE - i, q.size());
+            assertEquals(SIZE - i, q.size());
             p.remove();
         }
     }
@@ -574,12 +574,13 @@ public class DelayQueueTest extends JSR166TestCase {
      */
     public void testRemoveAll() {
         for (int i = 1; i < SIZE; ++i) {
-            DelayQueue<PDelay> q = populatedQueue(SIZE);
-            DelayQueue<PDelay> p = populatedQueue(i);
+            DelayQueue q = populatedQueue(SIZE);
+            DelayQueue p = populatedQueue(i);
             assertTrue(q.removeAll(p));
-            mustEqual(SIZE - i, q.size());
+            assertEquals(SIZE - i, q.size());
             for (int j = 0; j < i; ++j) {
-                assertFalse(q.contains(p.remove()));
+                PDelay x = (PDelay)(p.remove());
+                assertFalse(q.contains(x));
             }
         }
     }
@@ -588,7 +589,7 @@ public class DelayQueueTest extends JSR166TestCase {
      * toArray contains all elements
      */
     public void testToArray() throws InterruptedException {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
+        DelayQueue q = populatedQueue(SIZE);
         Object[] a = q.toArray();
         assertSame(Object[].class, a.getClass());
         Arrays.sort(a);
@@ -602,11 +603,11 @@ public class DelayQueueTest extends JSR166TestCase {
      */
     public void testToArray2() {
         DelayQueue<PDelay> q = populatedQueue(SIZE);
-        PDelay[] items = new PDelay[SIZE];
-        PDelay[] array = q.toArray(items);
-        assertSame(items, array);
-        Arrays.sort(items);
-        for (PDelay o : items)
+        PDelay[] ints = new PDelay[SIZE];
+        PDelay[] array = q.toArray(ints);
+        assertSame(ints, array);
+        Arrays.sort(ints);
+        for (PDelay o : ints)
             assertSame(o, q.remove());
         assertTrue(q.isEmpty());
     }
@@ -614,9 +615,8 @@ public class DelayQueueTest extends JSR166TestCase {
     /**
      * toArray(incompatible array type) throws ArrayStoreException
      */
-    @SuppressWarnings("CollectionToArraySafeParameter")
-    public void testToArray_incompatibleArrayType() {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
+    public void testToArray1_BadArg() {
+        DelayQueue q = populatedQueue(SIZE);
         try {
             q.toArray(new String[10]);
             shouldThrow();
@@ -627,14 +627,14 @@ public class DelayQueueTest extends JSR166TestCase {
      * iterator iterates through all elements
      */
     public void testIterator() {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
+        DelayQueue q = populatedQueue(SIZE);
         int i = 0;
-        Iterator<PDelay> it = q.iterator();
+        Iterator it = q.iterator();
         while (it.hasNext()) {
             assertTrue(q.contains(it.next()));
             ++i;
         }
-        mustEqual(i, SIZE);
+        assertEquals(i, SIZE);
         assertIteratorExhausted(it);
     }
 
@@ -642,23 +642,23 @@ public class DelayQueueTest extends JSR166TestCase {
      * iterator of empty collection has no elements
      */
     public void testEmptyIterator() {
-        assertIteratorExhausted(new DelayQueue<PDelay>().iterator());
+        assertIteratorExhausted(new DelayQueue().iterator());
     }
 
     /**
      * iterator.remove removes current element
      */
     public void testIteratorRemove() {
-        final DelayQueue<PDelay> q = new DelayQueue<>();
+        final DelayQueue q = new DelayQueue();
         q.add(new PDelay(2));
         q.add(new PDelay(1));
         q.add(new PDelay(3));
-        Iterator<PDelay> it = q.iterator();
+        Iterator it = q.iterator();
         it.next();
         it.remove();
         it = q.iterator();
-        mustEqual(new PDelay(2), it.next());
-        mustEqual(new PDelay(3), it.next());
+        assertEquals(new PDelay(2), it.next());
+        assertEquals(new PDelay(3), it.next());
         assertFalse(it.hasNext());
     }
 
@@ -666,7 +666,7 @@ public class DelayQueueTest extends JSR166TestCase {
      * toString contains toStrings of elements
      */
     public void testToString() {
-        DelayQueue<PDelay> q = populatedQueue(SIZE);
+        DelayQueue q = populatedQueue(SIZE);
         String s = q.toString();
         for (Object e : q)
             assertTrue(s.contains(e.toString()));
@@ -676,7 +676,7 @@ public class DelayQueueTest extends JSR166TestCase {
      * timed poll transfers elements across Executor tasks
      */
     public void testPollInExecutor() {
-        final DelayQueue<PDelay> q = new DelayQueue<>();
+        final DelayQueue q = new DelayQueue();
         final CheckedBarrier threadsStarted = new CheckedBarrier(2);
         final ExecutorService executor = Executors.newFixedThreadPool(2);
         try (PoolCleaner cleaner = cleaner(executor)) {
@@ -720,7 +720,7 @@ public class DelayQueueTest extends JSR166TestCase {
      * peek of a non-empty queue returns non-null even if not expired
      */
     public void testPeekDelayed() {
-        DelayQueue<NanoDelay> q = new DelayQueue<>();
+        DelayQueue q = new DelayQueue();
         q.add(new NanoDelay(Long.MAX_VALUE));
         assertNotNull(q.peek());
     }
@@ -729,7 +729,7 @@ public class DelayQueueTest extends JSR166TestCase {
      * poll of a non-empty queue returns null if no expired elements.
      */
     public void testPollDelayed() {
-        DelayQueue<NanoDelay> q = new DelayQueue<>();
+        DelayQueue q = new DelayQueue();
         q.add(new NanoDelay(Long.MAX_VALUE));
         assertNull(q.poll());
     }
@@ -738,7 +738,7 @@ public class DelayQueueTest extends JSR166TestCase {
      * timed poll of a non-empty queue returns null if no expired elements.
      */
     public void testTimedPollDelayed() throws InterruptedException {
-        DelayQueue<NanoDelay> q = new DelayQueue<>();
+        DelayQueue q = new DelayQueue();
         q.add(new NanoDelay(LONG_DELAY_MS * 1000000L));
         long startTime = System.nanoTime();
         assertNull(q.poll(timeoutMillis(), MILLISECONDS));
@@ -749,17 +749,17 @@ public class DelayQueueTest extends JSR166TestCase {
      * drainTo(c) empties queue into another collection c
      */
     public void testDrainTo() {
-        DelayQueue<PDelay> q = new DelayQueue<>();
+        DelayQueue q = new DelayQueue();
         PDelay[] elems = new PDelay[SIZE];
         for (int i = 0; i < SIZE; ++i) {
             elems[i] = new PDelay(i);
             q.add(elems[i]);
         }
-        ArrayList<PDelay> l = new ArrayList<>();
+        ArrayList l = new ArrayList();
         q.drainTo(l);
-        mustEqual(0, q.size());
+        assertEquals(0, q.size());
         for (int i = 0; i < SIZE; ++i)
-            mustEqual(elems[i], l.get(i));
+            assertEquals(elems[i], l.get(i));
         q.add(elems[0]);
         q.add(elems[1]);
         assertFalse(q.isEmpty());
@@ -767,24 +767,24 @@ public class DelayQueueTest extends JSR166TestCase {
         assertTrue(q.contains(elems[1]));
         l.clear();
         q.drainTo(l);
-        mustEqual(0, q.size());
-        mustEqual(2, l.size());
+        assertEquals(0, q.size());
+        assertEquals(2, l.size());
         for (int i = 0; i < 2; ++i)
-            mustEqual(elems[i], l.get(i));
+            assertEquals(elems[i], l.get(i));
     }
 
     /**
      * drainTo empties queue
      */
     public void testDrainToWithActivePut() throws InterruptedException {
-        final DelayQueue<PDelay> q = populatedQueue(SIZE);
+        final DelayQueue q = populatedQueue(SIZE);
         Thread t = new Thread(new CheckedRunnable() {
             public void realRun() {
                 q.put(new PDelay(SIZE + 1));
             }});
 
         t.start();
-        ArrayList<PDelay> l = new ArrayList<>();
+        ArrayList l = new ArrayList();
         q.drainTo(l);
         assertTrue(l.size() >= SIZE);
         t.join();
@@ -796,12 +796,12 @@ public class DelayQueueTest extends JSR166TestCase {
      */
     public void testDrainToN() {
         for (int i = 0; i < SIZE + 2; ++i) {
-            DelayQueue<PDelay> q = populatedQueue(SIZE);
-            ArrayList<PDelay> l = new ArrayList<>();
+            DelayQueue q = populatedQueue(SIZE);
+            ArrayList l = new ArrayList();
             q.drainTo(l, i);
             int k = (i < SIZE) ? i : SIZE;
-            mustEqual(SIZE - k, q.size());
-            mustEqual(k, l.size());
+            assertEquals(SIZE - k, q.size());
+            assertEquals(k, l.size());
         }
     }
 

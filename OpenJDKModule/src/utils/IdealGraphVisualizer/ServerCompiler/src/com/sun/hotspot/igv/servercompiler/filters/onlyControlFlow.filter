@@ -1,27 +1,24 @@
-// Remove all nodes except control, mixed, and nodes of 'bottom' type that are
-// successors of control nodes (typically 'Halt', 'Return', etc.).
-
 var f = new RemoveFilter("Show only control flow");
 f.addRule(
   new RemoveFilter.RemoveRule(
     new InvertSelector(
       new OrSelector(
-        new MatcherSelector(
-          new Properties.RegexpPropertyMatcher("category", "control|mixed")
-        ),
-        new AndSelector(
+        new OrSelector(
           new SuccessorSelector(
             new MatcherSelector(
-              new Properties.RegexpPropertyMatcher("type", "control")
+              new Properties.StringPropertyMatcher("type", "control")
             )
           ),
-          new MatcherSelector(
-            new Properties.RegexpPropertyMatcher("type", "bottom")
+	  new MatcherSelector(
+            new Properties.StringPropertyMatcher("type", "control")
           )
+        ),
+	new MatcherSelector(
+          new Properties.StringPropertyMatcher("name", "Start")
         )
       )
-    ),
-    false
+    ), false
   )
 );
+f.addRule(new RemoveFilter.RemoveRule(new MatcherSelector(new Properties.RegexpPropertyMatcher("name", "Phi|Store."))));
 f.apply(graph);

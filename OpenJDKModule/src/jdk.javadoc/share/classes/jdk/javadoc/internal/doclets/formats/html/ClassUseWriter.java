@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,6 +25,8 @@
 
 package jdk.javadoc.internal.doclets.formats.html;
 
+import jdk.javadoc.internal.doclets.formats.html.markup.Table;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,7 +46,7 @@ import jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle;
 import jdk.javadoc.internal.doclets.formats.html.markup.TagName;
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlTree;
 import jdk.javadoc.internal.doclets.formats.html.Navigation.PageMode;
-import jdk.javadoc.internal.doclets.formats.html.markup.Text;
+import jdk.javadoc.internal.doclets.formats.html.markup.StringContent;
 import jdk.javadoc.internal.doclets.toolkit.Content;
 import jdk.javadoc.internal.doclets.toolkit.util.ClassTree;
 import jdk.javadoc.internal.doclets.toolkit.util.ClassUseMapper;
@@ -252,8 +254,8 @@ public class ClassUseWriter extends SubWriterHolderWriter {
     protected void addPackageList(Content contentTree) {
         Content caption = contents.getContent(
                 "doclet.ClassUse_Packages.that.use.0",
-                getLink(new HtmlLinkInfo(configuration,
-                        HtmlLinkInfo.Kind.CLASS_USE_HEADER, typeElement)));
+                getLink(new LinkInfoImpl(configuration,
+                        LinkInfoImpl.Kind.CLASS_USE_HEADER, typeElement)));
         Table table = new Table(HtmlStyle.summaryTable)
                 .setCaption(caption)
                 .setHeader(getPackageTableHeader())
@@ -277,8 +279,8 @@ public class ClassUseWriter extends SubWriterHolderWriter {
         }
         Content caption = contents.getContent(
                 "doclet.ClassUse_PackageAnnotation",
-                getLink(new HtmlLinkInfo(configuration,
-                        HtmlLinkInfo.Kind.CLASS_USE_HEADER, typeElement)));
+                getLink(new LinkInfoImpl(configuration,
+                        LinkInfoImpl.Kind.CLASS_USE_HEADER, typeElement)));
 
         Table table = new Table(HtmlStyle.summaryTable)
                 .setCaption(caption)
@@ -287,7 +289,7 @@ public class ClassUseWriter extends SubWriterHolderWriter {
         for (PackageElement pkg : pkgToPackageAnnotations) {
             Content summary = new ContentBuilder();
             addSummaryComment(pkg, summary);
-            table.addRow(getPackageLink(pkg, getLocalizedPackageName(pkg)), summary);
+            table.addRow(getPackageLink(pkg), summary);
         }
         contentTree.add(table);
     }
@@ -301,12 +303,11 @@ public class ClassUseWriter extends SubWriterHolderWriter {
         HtmlTree ul = new HtmlTree(TagName.UL);
         ul.setStyle(HtmlStyle.blockList);
         for (PackageElement pkg : pkgSet) {
-            HtmlTree htmlTree = HtmlTree.SECTION(HtmlStyle.detail)
-                    .setId(htmlIds.forPackage(pkg));
+            HtmlTree htmlTree = HtmlTree.SECTION(HtmlStyle.detail).setId(getPackageAnchorName(pkg));
             Content link = contents.getContent("doclet.ClassUse_Uses.of.0.in.1",
-                    getLink(new HtmlLinkInfo(configuration, HtmlLinkInfo.Kind.CLASS_USE_HEADER,
+                    getLink(new LinkInfoImpl(configuration, LinkInfoImpl.Kind.CLASS_USE_HEADER,
                             typeElement)),
-                    getPackageLink(pkg, getLocalizedPackageName(pkg)));
+                    getPackageLink(pkg, utils.getPackageName(pkg)));
             Content heading = HtmlTree.HEADING(Headings.TypeUse.SUMMARY_HEADING, link);
             htmlTree.add(heading);
             addClassUse(pkg, htmlTree);
@@ -324,7 +325,7 @@ public class ClassUseWriter extends SubWriterHolderWriter {
      */
     protected void addPackageUse(PackageElement pkg, Table table) {
         Content pkgLink =
-                links.createLink(htmlIds.forPackage(pkg), getLocalizedPackageName(pkg));
+                links.createLink(getPackageAnchorName(pkg), new StringContent(utils.getPackageName(pkg)));
         Content summary = new ContentBuilder();
         addSummaryComment(pkg, summary);
         table.addRow(pkgLink, summary);
@@ -337,9 +338,9 @@ public class ClassUseWriter extends SubWriterHolderWriter {
      * @param contentTree the content tree to which the class use information will be added
      */
     protected void addClassUse(PackageElement pkg, Content contentTree) {
-        Content classLink = getLink(new HtmlLinkInfo(configuration,
-            HtmlLinkInfo.Kind.CLASS_USE_HEADER, typeElement));
-        Content pkgLink = getPackageLink(pkg, getLocalizedPackageName(pkg));
+        Content classLink = getLink(new LinkInfoImpl(configuration,
+            LinkInfoImpl.Kind.CLASS_USE_HEADER, typeElement));
+        Content pkgLink = getPackageLink(pkg, utils.getPackageName(pkg));
         classSubWriter.addUseInfo(pkgToClassAnnotations.get(pkg),
                 contents.getContent("doclet.ClassUse_Annotation", classLink,
                 pkgLink), contentTree);
@@ -437,10 +438,9 @@ public class ClassUseWriter extends SubWriterHolderWriter {
     protected Navigation getNavBar(PageMode pageMode, Element element) {
         Content mdleLinkContent = getModuleLink(utils.elementUtils.getModuleOf(typeElement),
                 contents.moduleLabel);
-        Content classLinkContent = getLink(new HtmlLinkInfo(
-                configuration, HtmlLinkInfo.Kind.CLASS_USE_HEADER, typeElement)
-                .label(resources.getText("doclet.Class"))
-                .skipPreview(true));
+        Content classLinkContent = getLink(new LinkInfoImpl(
+                configuration, LinkInfoImpl.Kind.CLASS_USE_HEADER, typeElement)
+                .label(resources.getText("doclet.Class")));
         return super.getNavBar(pageMode, element)
                 .setNavLinkModule(mdleLinkContent)
                 .setNavLinkClass(classLinkContent);

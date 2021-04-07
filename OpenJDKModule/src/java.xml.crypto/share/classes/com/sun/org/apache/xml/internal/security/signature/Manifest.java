@@ -33,21 +33,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.parsers.ParserConfigurationException;
+
 import com.sun.org.apache.xml.internal.security.c14n.CanonicalizationException;
 import com.sun.org.apache.xml.internal.security.c14n.InvalidCanonicalizerException;
 import com.sun.org.apache.xml.internal.security.exceptions.XMLSecurityException;
-import com.sun.org.apache.xml.internal.security.parser.XMLParserException;
 import com.sun.org.apache.xml.internal.security.transforms.Transforms;
 import com.sun.org.apache.xml.internal.security.utils.Constants;
 import com.sun.org.apache.xml.internal.security.utils.I18n;
 import com.sun.org.apache.xml.internal.security.utils.SignatureElementProxy;
 import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
+import com.sun.org.apache.xml.internal.security.utils.resolver.ResourceResolver;
 import com.sun.org.apache.xml.internal.security.utils.resolver.ResourceResolverSpi;
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 /**
  * Handles {@code &lt;ds:Manifest&gt;} elements.
@@ -79,7 +82,7 @@ public class Manifest extends SignatureElementProxy {
     private Map<String, String> resolverProperties;
 
     /** Field perManifestResolvers */
-    private List<ResourceResolverSpi> perManifestResolvers;
+    private List<ResourceResolver> perManifestResolvers;
 
     private boolean secureValidation;
 
@@ -134,14 +137,14 @@ public class Manifest extends SignatureElementProxy {
         int le = this.referencesEl.length;
         if (le == 0) {
             // At least one Reference must be present. Bad.
-            Object[] exArgs = { Constants._TAG_REFERENCE, Constants._TAG_MANIFEST };
+            Object exArgs[] = { Constants._TAG_REFERENCE, Constants._TAG_MANIFEST };
 
             throw new DOMException(DOMException.WRONG_DOCUMENT_ERR,
                                    I18n.translate("xml.WrongContent", exArgs));
         }
 
         if (secureValidation && le > referenceCount) {
-            Object[] exArgs = { le, referenceCount };
+            Object exArgs[] = { le, referenceCount };
 
             throw new XMLSecurityException("signature.tooManyReferences", exArgs);
         }
@@ -317,13 +320,13 @@ public class Manifest extends SignatureElementProxy {
                 );
         }
         LOG.debug("verify {} References", referencesEl.length);
-        LOG.debug("I am {} requested to follow nested Manifests", followManifests
-            ? "" : "not");
+        LOG.debug("I am {} requested to follow nested Manifests", (followManifests
+            ? "" : "not"));
         if (referencesEl.length == 0) {
             throw new XMLSecurityException("empty", new Object[]{"References are empty"});
         }
         if (secureValidation && referencesEl.length > referenceCount) {
-            Object[] exArgs = { referencesEl.length, referenceCount };
+            Object exArgs[] = { referencesEl.length, referenceCount };
 
             throw new XMLSecurityException("signature.tooManyReferences", exArgs);
         }
@@ -402,14 +405,16 @@ public class Manifest extends SignatureElementProxy {
                         manifestReferences = referencedManifest.getVerificationResults();
                     } catch (IOException ex) {
                         throw new ReferenceNotInitializedException(ex);
-                    } catch (XMLParserException ex) {
+                    } catch (ParserConfigurationException ex) {
+                        throw new ReferenceNotInitializedException(ex);
+                    } catch (SAXException ex) {
                         throw new ReferenceNotInitializedException(ex);
                     }
                 }
 
                 verificationResults.add(new VerifiedReference(currentRefVerified, currentRef.getURI(), manifestReferences));
             } catch (ReferenceNotInitializedException ex) {
-                Object[] exArgs = { currentRef.getURI() };
+                Object exArgs[] = { currentRef.getURI() };
 
                 throw new MissingResourceFailureException(
                     ex, currentRef, "signature.Verification.Reference.NoInput", exArgs
@@ -431,7 +436,7 @@ public class Manifest extends SignatureElementProxy {
      */
     public boolean getVerificationResult(int index) throws XMLSecurityException {
         if (index < 0 || index > this.getLength() - 1) {
-            Object[] exArgs = { Integer.toString(index), Integer.toString(this.getLength()) };
+            Object exArgs[] = { Integer.toString(index), Integer.toString(this.getLength()) };
             Exception e =
                 new IndexOutOfBoundsException(
                     I18n.translate("signature.Verification.IndexOutOfBounds", exArgs)
@@ -448,7 +453,7 @@ public class Manifest extends SignatureElementProxy {
             }
         }
 
-        return verificationResults.get(index).isValid();
+        return ((ArrayList<VerifiedReference>)verificationResults).get(index).isValid();
     }
 
     /**
@@ -465,10 +470,10 @@ public class Manifest extends SignatureElementProxy {
      * Adds Resource Resolver for retrieving resources at specified {@code URI} attribute
      * in {@code reference} element
      *
-     * @param resolver {@link ResourceResolverSpi} can provide the implementation subclass of
+     * @param resolver {@link ResourceResolver} can provide the implementation subclass of
      * {@link ResourceResolverSpi} for retrieving resource.
      */
-    public void addResourceResolver(ResourceResolverSpi resolver) {
+    public void addResourceResolver(ResourceResolver resolver) {
         if (resolver == null) {
             return;
         }
@@ -479,10 +484,27 @@ public class Manifest extends SignatureElementProxy {
     }
 
     /**
+     * Adds Resource Resolver for retrieving resources at specified {@code URI} attribute
+     * in {@code reference} element
+     *
+     * @param resolverSpi the implementation subclass of {@link ResourceResolverSpi} for
+     * retrieving the resource.
+     */
+    public void addResourceResolver(ResourceResolverSpi resolverSpi) {
+        if (resolverSpi == null) {
+            return;
+        }
+        if (perManifestResolvers == null) {
+            perManifestResolvers = new ArrayList<>();
+        }
+        perManifestResolvers.add(new ResourceResolver(resolverSpi));
+    }
+
+    /**
      * Get the Per-Manifest Resolver List
      * @return the per-manifest Resolver List
      */
-    public List<ResourceResolverSpi> getPerManifestResolvers() {
+    public List<ResourceResolver> getPerManifestResolvers() {
         return perManifestResolvers;
     }
 

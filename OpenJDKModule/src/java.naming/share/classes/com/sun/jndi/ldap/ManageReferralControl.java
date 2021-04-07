@@ -36,7 +36,7 @@ import java.io.IOException;
  *
  * @author Vincent Ryan
  */
-public final class ManageReferralControl extends BasicControl {
+final public class ManageReferralControl extends BasicControl {
 
     /**
      * The manage referral control's assigned object identifier

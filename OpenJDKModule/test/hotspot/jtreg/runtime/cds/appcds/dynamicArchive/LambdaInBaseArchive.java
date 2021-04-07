@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -31,14 +31,15 @@
  * @library /test/lib /test/hotspot/jtreg/runtime/cds/appcds /test/hotspot/jtreg/runtime/cds/appcds/dynamicArchive/test-classes
  * @build LambHello
  * @build sun.hotspot.WhiteBox
- * @run driver jdk.test.lib.helpers.ClassFileInstaller -jar lambhello.jar LambHello
- * @run driver jdk.test.lib.helpers.ClassFileInstaller sun.hotspot.WhiteBox
+ * @run driver ClassFileInstaller -jar lambhello.jar LambHello
+ * @run driver ClassFileInstaller sun.hotspot.WhiteBox
  * @run main/othervm -XX:+UnlockDiagnosticVMOptions -XX:+WhiteBoxAPI -Xbootclasspath/a:. LambdaInBaseArchive
  */
 
 import jdk.test.lib.cds.CDSOptions;
 import jdk.test.lib.cds.CDSTestUtils;
-import jdk.test.lib.helpers.ClassFileInstaller;
+import jdk.test.lib.process.OutputAnalyzer;
+import jdk.test.lib.process.ProcessTools;
 
 public class LambdaInBaseArchive extends DynamicArchiveTestBase {
     public static void main(String[] args) throws Exception {
@@ -53,7 +54,12 @@ public class LambdaInBaseArchive extends DynamicArchiveTestBase {
 
     static void createBaseArchive() throws Exception {
         // dump class list
-        CDSTestUtils.dumpClassList(classList, "-cp", appJar, mainClass);
+        ProcessBuilder pb = ProcessTools.createTestJvm(
+            "-XX:DumpLoadedClassList=" + classList,
+            "-cp", appJar,
+            mainClass);
+        OutputAnalyzer output = TestCommon.executeAndLog(pb, "dumpClassList");
+        output.shouldHaveExitValue(0);
 
         // create archive with the class list
         CDSOptions opts = (new CDSOptions())
@@ -75,7 +81,8 @@ public class LambdaInBaseArchive extends DynamicArchiveTestBase {
              "-Xlog:class+load,cds,cds+dynamic=debug",
              "-cp", appJar, mainClass)
             .assertNormalExit(output -> {
-                    output.shouldContain("Written dynamic archive 0x");
+                    output.shouldContain("Buffer-space to target-space delta")
+                           .shouldContain("Written dynamic archive 0x");
                 });
 
         run2(baseArchiveName, topArchiveName,

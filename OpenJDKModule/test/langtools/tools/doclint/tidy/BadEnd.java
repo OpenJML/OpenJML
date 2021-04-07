@@ -1,6 +1,6 @@
 /*
  * @test /nodynamiccopyright/
- * @bug 8004832 8247957
+ * @bug 8004832
  * @summary Add new doclint package
  * @library ..
  * @modules jdk.javadoc/jdk.javadoc.internal.doclint
@@ -11,7 +11,7 @@
 // tidy: Warning: <.*> is probably intended as </.*>
 
 /**
- * <a id="here"> text <a>
+ * <a name="here"> text <a>
  * <code> text <code>
  */
 public class BadEnd { }

@@ -4076,13 +4076,17 @@ public class Types {
             return buf.toList();
         }
 
-        private Type arraySuperType;
+        private Type arraySuperType = null;
         private Type arraySuperType() {
             // initialized lazily to avoid problems during compiler startup
             if (arraySuperType == null) {
-                // JLS 10.8: all arrays implement Cloneable and Serializable.
-                arraySuperType = makeIntersectionType(List.of(syms.serializableType,
-                        syms.cloneableType), true);
+                synchronized (this) {
+                    if (arraySuperType == null) {
+                        // JLS 10.8: all arrays implement Cloneable and Serializable.
+                        arraySuperType = makeIntersectionType(List.of(syms.serializableType,
+                                syms.cloneableType), true);
+                    }
+                }
             }
             return arraySuperType;
         }

@@ -28,7 +28,6 @@
 
 #include "asm/assembler.inline.hpp"
 #include "oops/compressedOops.hpp"
-#include "runtime/vm_version.hpp"
 #include "utilities/powerOfTwo.hpp"
 
 // MacroAssembler extends Assembler by frequently used macros.
@@ -475,8 +474,8 @@ public:
   void push(RegSet regs, Register stack) { if (regs.bits()) push(regs.bits(), stack); }
   void pop(RegSet regs, Register stack) { if (regs.bits()) pop(regs.bits(), stack); }
 
-  void push_fp(FloatRegSet regs, Register stack) { if (regs.bits()) push_fp(regs.bits(), stack); }
-  void pop_fp(FloatRegSet regs, Register stack) { if (regs.bits()) pop_fp(regs.bits(), stack); }
+  void push_fp(RegSet regs, Register stack) { if (regs.bits()) push_fp(regs.bits(), stack); }
+  void pop_fp(RegSet regs, Register stack) { if (regs.bits()) pop_fp(regs.bits(), stack); }
 
   static RegSet call_clobbered_registers();
 
@@ -527,7 +526,6 @@ public:
   void mov(FloatRegister Vd, SIMD_Arrangement T, FloatRegister Vn) {
     orr(Vd, T, Vn, Vn);
   }
-
 
 public:
 
@@ -1041,8 +1039,6 @@ public:
 
   void atomic_xchg(Register prev, Register newv, Register addr);
   void atomic_xchgw(Register prev, Register newv, Register addr);
-  void atomic_xchgl(Register prev, Register newv, Register addr);
-  void atomic_xchglw(Register prev, Register newv, Register addr);
   void atomic_xchgal(Register prev, Register newv, Register addr);
   void atomic_xchgalw(Register prev, Register newv, Register addr);
 

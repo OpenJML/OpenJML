@@ -33,7 +33,7 @@ import jdk.internal.ref.CleanerFactory;
  * A light-weight buffer in native memory.
  */
 
-class NativeBuffer implements AutoCloseable {
+class NativeBuffer {
     private static final Unsafe unsafe = Unsafe.getUnsafe();
 
     private final long address;
@@ -59,11 +59,6 @@ class NativeBuffer implements AutoCloseable {
         this.size = size;
         this.cleanable = CleanerFactory.cleaner()
                                        .register(this, new Deallocator(address));
-    }
-
-    @Override
-    public void close() {
-        release();
     }
 
     void release() {

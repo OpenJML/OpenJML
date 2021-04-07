@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Red Hat, Inc. All rights reserved.
+ * Copyright (c) 2019, 2020, Red Hat, Inc. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,8 +27,8 @@
 
 #include "gc/shared/parallelCleaning.hpp"
 #include "gc/shared/weakProcessor.hpp"
+#include "gc/shared/weakProcessorPhaseTimes.hpp"
 #include "gc/shared/workgroup.hpp"
-#include "gc/shenandoah/shenandoahPhaseTimings.hpp"
 #include "gc/shenandoah/shenandoahRootProcessor.inline.hpp"
 #include "memory/iterator.hpp"
 
@@ -36,11 +36,10 @@
 template <typename IsAlive, typename KeepAlive>
 class ShenandoahParallelWeakRootsCleaningTask : public AbstractGangTask {
 protected:
-  ShenandoahPhaseTimings::Phase const _phase;
-  WeakProcessor::Task                 _weak_processing_task;
-  ShenandoahStringDedupRoots          _dedup_roots;
-  IsAlive*                            _is_alive;
-  KeepAlive*                          _keep_alive;
+  ShenandoahPhaseTimings::Phase _phase;
+  WeakProcessor::Task       _weak_processing_task;
+  IsAlive*                  _is_alive;
+  KeepAlive*                _keep_alive;
 
 public:
   ShenandoahParallelWeakRootsCleaningTask(ShenandoahPhaseTimings::Phase phase,
@@ -55,13 +54,11 @@ public:
 // Perform class unloading at a pause
 class ShenandoahClassUnloadingTask : public AbstractGangTask {
 private:
-  ShenandoahPhaseTimings::Phase const _phase;
-  bool                                _unloading_occurred;
-  CodeCacheUnloadingTask              _code_cache_task;
-  KlassCleaningTask                   _klass_cleaning_task;
+  bool                            _unloading_occurred;
+  CodeCacheUnloadingTask          _code_cache_task;
+  KlassCleaningTask               _klass_cleaning_task;
 public:
-  ShenandoahClassUnloadingTask(ShenandoahPhaseTimings::Phase phase,
-                               BoolObjectClosure* is_alive,
+  ShenandoahClassUnloadingTask(BoolObjectClosure* is_alive,
                                uint num_workers,
                                bool unloading_occurred);
 

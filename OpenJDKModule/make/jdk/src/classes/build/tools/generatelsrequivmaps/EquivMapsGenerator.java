@@ -132,7 +132,7 @@ public class EquivMapsGenerator {
                     + " A region/variant subtag \"" + preferred
                     + "\" is registered for more than one subtags.");
             }
-        } else { // language, extlang, legacy, and redundant
+        } else { // language, extlang, grandfathered, and redundant
             if (!initialLanguageMap.containsKey(preferred)) {
                 sb = new StringBuilder(preferred);
                 sb.append(',');

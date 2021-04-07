@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2015, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,6 +25,7 @@
 
 package com.sun.imageio.plugins.common;
 
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Transparency;
 import java.awt.color.ColorSpace;
@@ -46,9 +47,10 @@ import java.awt.image.RenderedImage;
 import java.awt.image.SampleModel;
 import java.awt.image.SinglePixelPackedSampleModel;
 import java.awt.image.WritableRaster;
+import java.util.Arrays;
 import java.util.Iterator;
-
 import javax.imageio.IIOException;
+import javax.imageio.IIOImage;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageTypeSpecifier;
 import javax.imageio.ImageWriter;
@@ -1160,17 +1162,30 @@ public class ImageUtil {
     }
 
     /**
-     * Returns {@code true} if the given {@code ColorSpace} object is an
-     * instance of {@code ICC_ColorSpace} but is not one of the standard
-     * {@code ColorSpace}s returned by {@code ColorSpace.getInstance()}.
+     * Returns <code>true</code> if the given <code>ColorSpace</code> object is
+     * an instance of <code>ICC_ColorSpace</code> but is not one of the standard
+     * <code>ColorSpace</code>s returned by <code>ColorSpace.getInstance()</code>.
      *
-     * @param  cs the {@code ColorSpace} to test
+     * @param cs The <code>ColorSpace</code> to test.
      */
     public static boolean isNonStandardICCColorSpace(ColorSpace cs) {
-        return cs instanceof ICC_ColorSpace && !cs.isCS_sRGB()
-                && !cs.equals(ColorSpace.getInstance(ColorSpace.CS_LINEAR_RGB))
-                && !cs.equals(ColorSpace.getInstance(ColorSpace.CS_GRAY))
-                && !cs.equals(ColorSpace.getInstance(ColorSpace.CS_CIEXYZ))
-                && !cs.equals(ColorSpace.getInstance(ColorSpace.CS_PYCC));
+        boolean retval = false;
+
+        try {
+            // Check the standard ColorSpaces in decreasing order of
+            // likelihood except check CS_PYCC last as in some JREs
+            // PYCC.pf used not to be installed.
+            retval =
+                (cs instanceof ICC_ColorSpace) &&
+                !(cs.isCS_sRGB() ||
+                  cs.equals(ColorSpace.getInstance(ColorSpace.CS_LINEAR_RGB)) ||
+                  cs.equals(ColorSpace.getInstance(ColorSpace.CS_GRAY)) ||
+                  cs.equals(ColorSpace.getInstance(ColorSpace.CS_CIEXYZ)) ||
+                  cs.equals(ColorSpace.getInstance(ColorSpace.CS_PYCC)));
+        } catch(IllegalArgumentException e) {
+            // PYCC.pf not installed: ignore it - 'retval' is still 'false'.
+        }
+
+        return retval;
     }
 }

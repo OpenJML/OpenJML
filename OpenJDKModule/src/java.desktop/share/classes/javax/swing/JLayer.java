@@ -36,7 +36,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.Serial;
 import java.util.ArrayList;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -688,7 +687,6 @@ public final class JLayer<V extends Component>
         return 1;
     }
 
-    @Serial
     @SuppressWarnings("unchecked")
     private void readObject(ObjectInputStream s)
             throws IOException, ClassNotFoundException {

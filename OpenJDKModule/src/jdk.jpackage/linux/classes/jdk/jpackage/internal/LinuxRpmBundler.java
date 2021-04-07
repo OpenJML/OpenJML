@@ -110,11 +110,11 @@ public class LinuxRpmBundler extends LinuxPackageBundler {
             params -> null,
             (s, p) -> s);
 
-    private static final String DEFAULT_SPEC_TEMPLATE = "template.spec";
+    private final static String DEFAULT_SPEC_TEMPLATE = "template.spec";
 
-    public static final String TOOL_RPM = "rpm";
-    public static final String TOOL_RPMBUILD = "rpmbuild";
-    public static final DottedVersion TOOL_RPMBUILD_MIN_VERSION = DottedVersion.lazy(
+    public final static String TOOL_RPM = "rpm";
+    public final static String TOOL_RPMBUILD = "rpmbuild";
+    public final static DottedVersion TOOL_RPMBUILD_MIN_VERSION = DottedVersion.lazy(
             "4.10");
 
     public LinuxRpmBundler() {

@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -39,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
-import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
@@ -97,12 +98,7 @@ public class TagletManager {
     public static final char SIMPLE_TAGLET_OPT_SEPARATOR = ':';
 
     /**
-     * All taglets, keyed either by their {@link Taglet#getName() name},
-     * or by an alias.
-     *
-     * In general, taglets do <i>not</i> provide aliases;
-     * the one instance that does is {@code ThrowsTaglet}, which handles
-     * both {@code @throws} tags and {@code @exception} tags.
+     * All taglets, keyed by their {@link Taglet#getName() name}.
      */
     private final LinkedHashMap<String, Taglet> allTaglets;
 
@@ -581,15 +577,17 @@ public class TagletManager {
 
         inlineTags = new LinkedHashMap<>();
 
-        allTaglets.forEach((name, t) -> {
+        for (Taglet t : allTaglets.values()) {
             if (t.isInlineTag()) {
                 inlineTags.put(t.getName(), t);
             }
 
-            if (t.isBlockTag() && t.getName().equals(name)) {
-                t.getAllowedLocations().forEach(l -> blockTagletsByLocation.get(l).add(t));
+            if (t.isBlockTag()) {
+                for (Location l : t.getAllowedLocations()) {
+                    blockTagletsByLocation.get(l).add(t);
+                }
             }
-        });
+        }
 
         // init the serialized form tags for the serialized form page
         serializedFormTags = new ArrayList<>();
@@ -614,7 +612,10 @@ public class TagletManager {
 
         addStandardTaglet(new ParamTaglet());
         addStandardTaglet(new ReturnTaglet());
-        addStandardTaglet(new ThrowsTaglet(), EXCEPTION);
+        addStandardTaglet(new ThrowsTaglet());
+        addStandardTaglet(
+                new SimpleTaglet(EXCEPTION, null,
+                    EnumSet.of(Location.METHOD, Location.CONSTRUCTOR)));
         addStandardTaglet(
                 new SimpleTaglet(SINCE, resources.getText("doclet.Since"),
                     EnumSet.allOf(Location.class), !nosince));
@@ -682,14 +683,6 @@ public class TagletManager {
         standardTagsLowercase.add(Utils.toLowerCase(name));
     }
 
-    private void addStandardTaglet(Taglet taglet, DocTree.Kind alias) {
-        addStandardTaglet(taglet);
-        String name = alias.tagName;
-        allTaglets.put(name, taglet);
-        standardTags.add(name);
-        standardTagsLowercase.add(Utils.toLowerCase(name));
-    }
-
     public boolean isKnownCustomTag(String tagName) {
         return allTaglets.containsKey(tagName);
     }
@@ -736,11 +729,12 @@ public class TagletManager {
      * a need for a corresponding update to the spec.
      */
     private void showTaglets(PrintStream out) {
-        Map<String, Taglet> taglets = new TreeMap<>(allTaglets);
+        Set<Taglet> taglets = new TreeSet<>(Comparator.comparing(Taglet::getName));
+        taglets.addAll(allTaglets.values());
 
-        taglets.forEach((n, t) -> {
+        for (Taglet t : taglets) {
             // give preference to simpler block form if a tag can be either
-            String name = t.isBlockTag() ? "@" + n : "{@" + n + "}";
+            String name = t.isBlockTag() ? "@" + t.getName() : "{@" + t.getName() + "}";
             out.println(String.format("%20s", name) + ": "
                     + format(t.isBlockTag(), "block")+ " "
                     + format(t.inOverview(), "overview") + " "
@@ -752,7 +746,7 @@ public class TagletManager {
                     + format(t.inField(), "field") + " "
                     + format(t.isInlineTag(), "inline")+ " "
                     + format((t instanceof SimpleTaglet) && !((SimpleTaglet) t).enabled, "disabled"));
-        });
+        }
     }
 
     private String format(boolean b, String s) {

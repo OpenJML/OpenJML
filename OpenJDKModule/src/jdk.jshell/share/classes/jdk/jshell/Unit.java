@@ -42,6 +42,7 @@ import jdk.jshell.spi.ExecutionControl.ClassBytecodes;
 import jdk.jshell.spi.ExecutionControl.ClassInstallException;
 import jdk.jshell.spi.ExecutionControl.EngineTerminationException;
 import jdk.jshell.spi.ExecutionControl.NotImplementedException;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static jdk.internal.jshell.debug.InternalDebugControl.DBG_EVNT;
 import static jdk.internal.jshell.debug.InternalDebugControl.DBG_GEN;
@@ -157,7 +158,7 @@ final class Unit {
                 units = plusUnfiltered.stream()
                         .filter(u -> u.snippet().kind() == Kind.METHOD &&
                                  ((MethodSnippet) u.snippet()).name().equals(name))
-                        .toList();
+                        .collect(toList());
             } else {
                 units = Collections.singletonList(this);
             }
@@ -169,15 +170,15 @@ final class Unit {
             Collection<Snippet> plus = plusUnfiltered.stream()
                     .filter(u -> !units.contains(u))
                     .map(Unit::snippet)
-                    .toList();
+                    .collect(toList());
             // Snippets to wrap in an outer
             List<Snippet> snippets = units.stream()
                     .map(Unit::snippet)
-                    .toList();
+                    .collect(toList());
             // Snippet wraps to wrap in an outer
             List<Wrap> wraps = units.stream()
                     .map(u -> u.activeGuts)
-                    .toList();
+                    .collect(toList());
             // Set the outer wrap for this snippet
             si.setOuterWrap(state.outerMap.wrapInClass(except, plus, snippets, wraps));
             state.debug(DBG_WRAP, "++setWrap() %s\n%s\n",
@@ -419,7 +420,7 @@ final class Unit {
                         && sn.status().isActive()
                         && sn.name().equals(msi.name())
                         && qpt.equals(sn.qualifiedParameterTypes()))
-                .toList();
+                .collect(toList());
 
         // Look through all methods for a method of the same name, with the
         // same computed qualified parameter types

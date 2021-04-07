@@ -22,6 +22,8 @@
  */
 package com.sun.org.apache.xml.internal.security.c14n;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -36,14 +38,17 @@ import com.sun.org.apache.xml.internal.security.c14n.implementations.Canonicaliz
 import com.sun.org.apache.xml.internal.security.c14n.implementations.Canonicalizer20010315WithComments;
 import com.sun.org.apache.xml.internal.security.c14n.implementations.CanonicalizerPhysical;
 import com.sun.org.apache.xml.internal.security.exceptions.AlgorithmAlreadyRegisteredException;
-import com.sun.org.apache.xml.internal.security.parser.XMLParserException;
 import com.sun.org.apache.xml.internal.security.utils.JavaUtils;
+import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 /**
  *
  */
-public final class Canonicalizer {
+public class Canonicalizer {
 
     /** The output encoding of canonicalized data */
     public static final String ENCODING = StandardCharsets.UTF_8.name();
@@ -92,9 +97,10 @@ public final class Canonicalizer {
         "http://santuario.apache.org/c14n/physical";
 
     private static Map<String, Class<? extends CanonicalizerSpi>> canonicalizerHash =
-        new ConcurrentHashMap<>();
+        new ConcurrentHashMap<String, Class<? extends CanonicalizerSpi>>();
 
     private final CanonicalizerSpi canonicalizerSpi;
+    private boolean secureValidation;
 
     /**
      * Constructor Canonicalizer
@@ -106,9 +112,13 @@ public final class Canonicalizer {
         try {
             Class<? extends CanonicalizerSpi> implementingClass =
                 canonicalizerHash.get(algorithmURI);
-            canonicalizerSpi = JavaUtils.newInstanceWithEmptyConstructor(implementingClass);
+
+            @SuppressWarnings("deprecation")
+            CanonicalizerSpi tmp = implementingClass.newInstance();
+            canonicalizerSpi = tmp;
+            canonicalizerSpi.reset = true;
         } catch (Exception e) {
-            Object[] exArgs = { algorithmURI };
+            Object exArgs[] = { algorithmURI };
             throw new InvalidCanonicalizerException(
                 e, "signature.Canonicalizer.UnknownCanonicalizer", exArgs
             );
@@ -145,7 +155,7 @@ public final class Canonicalizer {
             canonicalizerHash.get(algorithmURI);
 
         if (registeredClass != null)  {
-            Object[] exArgs = { algorithmURI, registeredClass };
+            Object exArgs[] = { algorithmURI, registeredClass };
             throw new AlgorithmAlreadyRegisteredException("algorithm.alreadyRegistered", exArgs);
         }
 
@@ -171,7 +181,7 @@ public final class Canonicalizer {
         Class<? extends CanonicalizerSpi> registeredClass = canonicalizerHash.get(algorithmURI);
 
         if (registeredClass != null)  {
-            Object[] exArgs = { algorithmURI, registeredClass };
+            Object exArgs[] = { algorithmURI, registeredClass };
             throw new AlgorithmAlreadyRegisteredException("algorithm.alreadyRegistered", exArgs);
         }
 
@@ -213,32 +223,72 @@ public final class Canonicalizer {
     }
 
     /**
+     * Method getURI
+     *
+     * @return the URI defined for this c14n instance.
+     */
+    public final String getURI() {
+        return canonicalizerSpi.engineGetURI();
+    }
+
+    /**
+     * Method getIncludeComments
+     *
+     * @return true if the c14n respect the comments.
+     */
+    public boolean getIncludeComments() {
+        return canonicalizerSpi.engineGetIncludeComments();
+    }
+
+    /**
      * This method tries to canonicalize the given bytes. It's possible to even
      * canonicalize non-wellformed sequences if they are well-formed after being
      * wrapped with a {@code &gt;a&lt;...&gt;/a&lt;}.
      *
      * @param inputBytes
-     * @param writer OutputStream to write the canonicalization result
-     * @param secureValidation Whether secure validation is enabled
+     * @return the result of the canonicalization.
      * @throws CanonicalizationException
      * @throws java.io.IOException
-     * @throws XMLParserException
+     * @throws javax.xml.parsers.ParserConfigurationException
+     * @throws org.xml.sax.SAXException
      */
-    public void canonicalize(byte[] inputBytes, OutputStream writer, boolean secureValidation)
-        throws XMLParserException, java.io.IOException, CanonicalizationException {
-        canonicalizerSpi.engineCanonicalize(inputBytes, writer, secureValidation);
+    public byte[] canonicalize(byte[] inputBytes)
+        throws javax.xml.parsers.ParserConfigurationException,
+        java.io.IOException, org.xml.sax.SAXException, CanonicalizationException {
+        Document document = null;
+        try (InputStream bais = new ByteArrayInputStream(inputBytes)) {
+            InputSource in = new InputSource(bais);
+
+            /*
+             * Text from the spec:
+             *
+             * The input octet stream MUST contain a well-formed XML document,
+             * but the input need not be validated. However, the attribute
+             * value normalization and entity reference resolution MUST be
+             * performed in accordance with the behaviors of a validating
+             * XML processor. As well, nodes for default attributes (declared
+             * in the ATTLIST with an AttValue but not specified) are created
+             * in each element. Thus, the declarations in the document type
+             * declaration are used to help create the canonical form, even
+             * though the document type declaration is not retained in the
+             * canonical form.
+             */
+            document = XMLUtils.read(in, secureValidation);
+        }
+        return this.canonicalizeSubtree(document);
     }
 
     /**
      * Canonicalizes the subtree rooted by {@code node}.
      *
      * @param node The node to canonicalize
-     * @param writer OutputStream to write the canonicalization result
+     * @return the result of the c14n.
      *
      * @throws CanonicalizationException
      */
-    public void canonicalizeSubtree(Node node, OutputStream writer) throws CanonicalizationException {
-        canonicalizerSpi.engineCanonicalizeSubTree(node, writer);
+    public byte[] canonicalizeSubtree(Node node) throws CanonicalizationException {
+        canonicalizerSpi.secureValidation = secureValidation;
+        return canonicalizerSpi.engineCanonicalizeSubTree(node);
     }
 
     /**
@@ -246,12 +296,13 @@ public final class Canonicalizer {
      *
      * @param node
      * @param inclusiveNamespaces
-     * @param writer OutputStream to write the canonicalization result
+     * @return the result of the c14n.
      * @throws CanonicalizationException
      */
-    public void canonicalizeSubtree(Node node, String inclusiveNamespaces, OutputStream writer)
+    public byte[] canonicalizeSubtree(Node node, String inclusiveNamespaces)
         throws CanonicalizationException {
-        canonicalizerSpi.engineCanonicalizeSubTree(node, inclusiveNamespaces, writer);
+        canonicalizerSpi.secureValidation = secureValidation;
+        return canonicalizerSpi.engineCanonicalizeSubTree(node, inclusiveNamespaces);
     }
 
     /**
@@ -259,25 +310,57 @@ public final class Canonicalizer {
      *
      * @param node
      * @param inclusiveNamespaces
-     * @param writer OutputStream to write the canonicalization result
+     * @return the result of the c14n.
      * @throws CanonicalizationException
      */
-    public void canonicalizeSubtree(Node node, String inclusiveNamespaces,
-                                    boolean propagateDefaultNamespace, OutputStream writer)
+    public byte[] canonicalizeSubtree(Node node, String inclusiveNamespaces, boolean propagateDefaultNamespace)
             throws CanonicalizationException {
-        canonicalizerSpi.engineCanonicalizeSubTree(node, inclusiveNamespaces, propagateDefaultNamespace, writer);
+        canonicalizerSpi.secureValidation = secureValidation;
+        return canonicalizerSpi.engineCanonicalizeSubTree(node, inclusiveNamespaces, propagateDefaultNamespace);
+    }
+
+    /**
+     * Canonicalizes an XPath node set. The {@code xpathNodeSet} is treated
+     * as a list of XPath nodes, not as a list of subtrees.
+     *
+     * @param xpathNodeSet
+     * @return the result of the c14n.
+     * @throws CanonicalizationException
+     */
+    public byte[] canonicalizeXPathNodeSet(NodeList xpathNodeSet)
+        throws CanonicalizationException {
+        canonicalizerSpi.secureValidation = secureValidation;
+        return canonicalizerSpi.engineCanonicalizeXPathNodeSet(xpathNodeSet);
+    }
+
+    /**
+     * Canonicalizes an XPath node set. The {@code xpathNodeSet} is treated
+     * as a list of XPath nodes, not as a list of subtrees.
+     *
+     * @param xpathNodeSet
+     * @param inclusiveNamespaces
+     * @return the result of the c14n.
+     * @throws CanonicalizationException
+     */
+    public byte[] canonicalizeXPathNodeSet(
+        NodeList xpathNodeSet, String inclusiveNamespaces
+    ) throws CanonicalizationException {
+        canonicalizerSpi.secureValidation = secureValidation;
+        return
+            canonicalizerSpi.engineCanonicalizeXPathNodeSet(xpathNodeSet, inclusiveNamespaces);
     }
 
     /**
      * Canonicalizes an XPath node set.
      *
      * @param xpathNodeSet
-     * @param writer OutputStream to write the canonicalization result
+     * @return the result of the c14n.
      * @throws CanonicalizationException
      */
-    public void canonicalizeXPathNodeSet(Set<Node> xpathNodeSet, OutputStream writer)
+    public byte[] canonicalizeXPathNodeSet(Set<Node> xpathNodeSet)
         throws CanonicalizationException {
-        canonicalizerSpi.engineCanonicalizeXPathNodeSet(xpathNodeSet, writer);
+        canonicalizerSpi.secureValidation = secureValidation;
+        return canonicalizerSpi.engineCanonicalizeXPathNodeSet(xpathNodeSet);
     }
 
     /**
@@ -285,13 +368,48 @@ public final class Canonicalizer {
      *
      * @param xpathNodeSet
      * @param inclusiveNamespaces
-     * @param writer OutputStream to write the canonicalization result
+     * @return the result of the c14n.
      * @throws CanonicalizationException
      */
-    public void canonicalizeXPathNodeSet(
-        Set<Node> xpathNodeSet, String inclusiveNamespaces, OutputStream writer
+    public byte[] canonicalizeXPathNodeSet(
+        Set<Node> xpathNodeSet, String inclusiveNamespaces
     ) throws CanonicalizationException {
-        canonicalizerSpi.engineCanonicalizeXPathNodeSet(xpathNodeSet, inclusiveNamespaces, writer);
+        canonicalizerSpi.secureValidation = secureValidation;
+        return
+            canonicalizerSpi.engineCanonicalizeXPathNodeSet(xpathNodeSet, inclusiveNamespaces);
+    }
+
+    /**
+     * Sets the writer where the canonicalization ends.  ByteArrayOutputStream
+     * if none is set.
+     * @param os
+     */
+    public void setWriter(OutputStream os) {
+        canonicalizerSpi.setWriter(os);
+    }
+
+    /**
+     * Returns the name of the implementing {@link CanonicalizerSpi} class
+     *
+     * @return the name of the implementing {@link CanonicalizerSpi} class
+     */
+    public String getImplementingCanonicalizerClass() {
+        return canonicalizerSpi.getClass().getName();
+    }
+
+    /**
+     * Set the canonicalizer behaviour to not reset.
+     */
+    public void notReset() {
+        canonicalizerSpi.reset = false;
+    }
+
+    public boolean isSecureValidation() {
+        return secureValidation;
+    }
+
+    public void setSecureValidation(boolean secureValidation) {
+        this.secureValidation = secureValidation;
     }
 
 }

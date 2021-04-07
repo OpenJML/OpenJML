@@ -23,6 +23,8 @@
  * questions.
  */
 
+#import <JavaNativeFoundation/JavaNativeFoundation.h>
+
 #import "java_awt_Font.h"
 #import "sun_awt_PlatformFont.h"
 #import "sun_awt_FontDescriptor.h"
@@ -32,7 +34,6 @@
 #import "AWTFont.h"
 #import "AWTStrike.h"
 #import "CoreTextSupport.h"
-#import "JNIUtilities.h"
 
 @implementation AWTFont
 
@@ -121,12 +122,11 @@ static NSString* uiBoldName = nil;
         return nil;
     }
 
-    DECLARE_CLASS_RETURN(jc_Font, "java/awt/Font", nil);
+    static JNF_CLASS_CACHE(jc_Font, "java/awt/Font");
 
     // obtain the Font2D
-    DECLARE_METHOD_RETURN(jm_Font_getFont2D, jc_Font, "getFont2D", "()Lsun/font/Font2D;", nil);
-    jobject font2d = (*env)->CallObjectMethod(env, javaFont, jm_Font_getFont2D);
-    CHECK_EXCEPTION();
+    static JNF_MEMBER_CACHE(jm_Font_getFont2D, jc_Font, "getFont2D", "()Lsun/font/Font2D;");
+    jobject font2d = JNFCallObjectMethod(env, javaFont, jm_Font_getFont2D);
     if (font2d == NULL) {
 #ifdef DEBUG
         NSLog(@"nil font2d");
@@ -136,28 +136,27 @@ static NSString* uiBoldName = nil;
 
     // if it's not a CFont, it's likely one of TTF or OTF fonts
     // from the Sun rendering loops
-    DECLARE_CLASS_RETURN(jc_CFont, "sun/font/CFont", nil);
-    if (!(*env)->IsInstanceOf(env, font2d, jc_CFont)) {
+    static JNF_CLASS_CACHE(jc_CFont, "sun/font/CFont");
+    if (!JNFIsInstanceOf(env, font2d, &jc_CFont)) {
 #ifdef DEBUG
         NSLog(@"font2d !instanceof CFont");
 #endif
         return nil;
     }
 
-    DECLARE_METHOD_RETURN(jm_CFont_getFontStrike, jc_CFont, "getStrike", "(Ljava/awt/Font;)Lsun/font/FontStrike;", nil);
-    jobject fontStrike = (*env)->CallObjectMethod(env, font2d, jm_CFont_getFontStrike, javaFont);
-    CHECK_EXCEPTION();
-    DECLARE_CLASS_RETURN(jc_CStrike, "sun/font/CStrike", nil);
-    if (!(*env)->IsInstanceOf(env, fontStrike, jc_CStrike)) {
+    static JNF_MEMBER_CACHE(jm_CFont_getFontStrike, jc_CFont, "getStrike", "(Ljava/awt/Font;)Lsun/font/FontStrike;");
+    jobject fontStrike = JNFCallObjectMethod(env, font2d, jm_CFont_getFontStrike, javaFont);
+
+    static JNF_CLASS_CACHE(jc_CStrike, "sun/font/CStrike");
+    if (!JNFIsInstanceOf(env, fontStrike, &jc_CStrike)) {
 #ifdef DEBUG
         NSLog(@"fontStrike !instanceof CStrike");
 #endif
         return nil;
     }
 
-    DECLARE_METHOD_RETURN(jm_CStrike_nativeStrikePtr, jc_CStrike, "getNativeStrikePtr", "()J", nil);
-    jlong awtStrikePtr = (*env)->CallLongMethod(env, fontStrike, jm_CStrike_nativeStrikePtr);
-    CHECK_EXCEPTION();
+    static JNF_MEMBER_CACHE(jm_CStrike_nativeStrikePtr, jc_CStrike, "getNativeStrikePtr", "()J");
+    jlong awtStrikePtr = JNFCallLongMethod(env, fontStrike, jm_CStrike_nativeStrikePtr);
     if (awtStrikePtr == 0L) {
 #ifdef DEBUG
         NSLog(@"nil nativeFontPtr from CFont");
@@ -286,6 +285,71 @@ static OSStatus CreateFSRef(FSRef *myFSRefPtr, NSString *inPath)
                          myFSRefPtr, NULL);
 }
 
+// /*
+//  * Class:     sun_font_CFontManager
+//  * Method:    loadFileFont
+//  * Signature: (Ljava/lang/String;)Lsun/font/Font2D;
+//  */
+// JNIEXPORT /* sun.font.CFont */ jobject JNICALL
+// Java_sun_font_CFontManager_loadFileFont
+//     (JNIEnv *env, jclass obj, jstring fontpath)
+// {
+//     jobject result = NULL;
+//
+// JNF_COCOA_ENTER(env);
+//
+//     NSString *nsFilePath = JNFJavaToNSString(env, fontpath);
+//     jstring javaFontName = NULL;
+//
+//     //
+//     // Note: This API uses ATS and can therefore return Carbon error codes.
+//     // These codes can be found at:
+//     // http://developer.apple.com/techpubs/macosx/Carbon/Files/FileManager/File_Manager/ResultCodes/ResultCodes.html
+//     //
+//
+//     FSRef iFile;
+//     OSStatus status = CreateFSRef(&iFile, nsFilePath);
+//
+//     if (status == noErr) {
+//         ATSFontContainerRef oContainer;
+//         status = ATSFontActivateFromFileReference(&iFile, kATSFontContextLocal,
+//                                                   kATSFontFormatUnspecified,
+//                                                   NULL,
+//                                                   kATSOptionFlagsUseDataFork,
+//                                                   &oContainer);
+//         if (status == noErr) {
+//             ATSFontRef ioArray[1];
+//             ItemCount oCount;
+//             status = ATSFontFindFromContainer(oContainer,
+//                                               kATSOptionFlagsUseDataFork,
+//                                               1, ioArray, &oCount);
+//
+//             if (status == noErr) {
+//                 CFStringRef oName;
+//                 status = ATSFontGetPostScriptName(ioArray[0],
+//                                                   kATSOptionFlagsUseDataFork,
+//                                                   &oName);
+//                 if (status == noErr) {
+//                     javaFontName = JNFNSToJavaString(env, (NSString *)oName);
+//                     CFRelease(oName);
+//                 }
+//             }
+//         }
+//     }
+//
+//     if (javaFontName != NULL) {
+//         // create the CFont!
+//         static JNF_CLASS_CACHE(sjc_CFont, "sun/font/CFont");
+//         static JNF_CTOR_CACHE(sjf_CFont_ctor,
+//                               sjc_CFont, "(Ljava/lang/String;)V");
+//         result = JNFNewObject(env, sjf_CFont_ctor, javaFontName);
+//     }
+//
+// JNF_COCOA_EXIT(env);
+//
+//     return result;
+// }
+
 /*
  * Class:     sun_font_CFontManager
  * Method:    loadNativeFonts
@@ -295,12 +359,15 @@ JNIEXPORT void JNICALL
 Java_sun_font_CFontManager_loadNativeFonts
     (JNIEnv *env, jobject jthis)
 {
-    DECLARE_CLASS(jc_CFontManager, "sun/font/CFontManager");
-    DECLARE_METHOD(jm_registerFont, jc_CFontManager, "registerFont", "(Ljava/lang/String;Ljava/lang/String;)V");
+    static JNF_CLASS_CACHE(jc_CFontManager,
+                           "sun/font/CFontManager");
+    static JNF_MEMBER_CACHE(jm_registerFont, jc_CFontManager,
+                            "registerFont",
+                            "(Ljava/lang/String;Ljava/lang/String;)V");
 
     jint num = 0;
 
-JNI_COCOA_ENTER(env);
+JNF_COCOA_ENTER(env);
 
     NSArray *filteredFonts = GetFilteredFonts();
     num = (jint)[filteredFonts count];
@@ -308,17 +375,17 @@ JNI_COCOA_ENTER(env);
     jint i;
     for (i = 0; i < num; i++) {
         NSString *fontname = [filteredFonts objectAtIndex:i];
-        jobject jFontName = NSStringToJavaString(env, fontname);
+        jobject jFontName = JNFNSToJavaString(env, fontname);
         jobject jFontFamilyName =
-            NSStringToJavaString(env, GetFamilyNameForFontName(fontname));
+            JNFNSToJavaString(env, GetFamilyNameForFontName(fontname));
 
-        (*env)->CallVoidMethod(env, jthis, jm_registerFont, jFontName, jFontFamilyName);
-        CHECK_EXCEPTION();
+        JNFCallVoidMethod(env, jthis,
+                          jm_registerFont, jFontName, jFontFamilyName);
         (*env)->DeleteLocalRef(env, jFontName);
         (*env)->DeleteLocalRef(env, jFontFamilyName);
     }
 
-JNI_COCOA_EXIT(env);
+JNF_COCOA_EXIT(env);
 }
 
 /*
@@ -330,9 +397,9 @@ JNIEXPORT void JNICALL
 Java_sun_font_CFontManager_loadNativeDirFonts
 (JNIEnv *env, jclass clz, jstring filename)
 {
-JNI_COCOA_ENTER(env);
+JNF_COCOA_ENTER(env);
 
-    NSString *path = JavaStringToNSString(env, filename);
+    NSString *path = JNFJavaToNSString(env, filename);
     NSURL *url = [NSURL fileURLWithPath:(NSString *)path];
     bool res = CTFontManagerRegisterFontsForURL((CFURLRef)url, kCTFontManagerScopeProcess, nil);
 #ifdef DEBUG
@@ -340,7 +407,7 @@ JNI_COCOA_ENTER(env);
     NSLog(@"url is : %@", (NSString*)url);
     printf("res is %d\n", res);
 #endif
-JNI_COCOA_EXIT(env);
+JNF_COCOA_EXIT(env);
 }
 
 #pragma mark --- sun.font.CFont JNI ---
@@ -370,7 +437,7 @@ Java_sun_font_CFont_getTableBytesNative
      jlong awtFontPtr, jint jtag)
 {
     jbyteArray jbytes = NULL;
-JNI_COCOA_ENTER(env);
+JNF_COCOA_ENTER(env);
 
     CTFontTableTag tag = (CTFontTableTag)jtag;
     int i, found = 0;
@@ -412,7 +479,7 @@ JNI_COCOA_ENTER(env);
                                (jbyte*)tableBytes);
     CFRelease(table);
 
-JNI_COCOA_EXIT(env);
+JNF_COCOA_EXIT(env);
 
     return jbytes;
 }
@@ -429,17 +496,17 @@ Java_sun_font_CFont_createNativeFont
 {
     AWTFont *awtFont = nil;
 
-JNI_COCOA_ENTER(env);
+JNF_COCOA_ENTER(env);
 
     awtFont =
-        [AWTFont awtFontForName:JavaStringToNSString(env, nativeFontName)
+        [AWTFont awtFontForName:JNFJavaToNSString(env, nativeFontName)
          style:style]; // autoreleased
 
     if (awtFont) {
         CFRetain(awtFont); // GC
     }
 
-JNI_COCOA_EXIT(env);
+JNF_COCOA_EXIT(env);
 
     return ptr_to_jlong(awtFont);
 }
@@ -454,7 +521,7 @@ Java_sun_font_CFont_getWidthNative
     (JNIEnv *env, jobject cfont, jlong awtFontPtr)
 {
     float widthVal;
-JNI_COCOA_ENTER(env);
+JNF_COCOA_ENTER(env);
 
     AWTFont *awtFont = (AWTFont *)jlong_to_ptr(awtFontPtr);
     NSFont* nsFont = awtFont->fFont;
@@ -463,7 +530,7 @@ JNI_COCOA_ENTER(env);
     NSNumber *width = [fontTraits objectForKey : NSFontWidthTrait];
     widthVal = (float)[width floatValue];
 
-JNI_COCOA_EXIT(env);
+JNF_COCOA_EXIT(env);
    return (jfloat)widthVal;
 }
 
@@ -477,7 +544,7 @@ Java_sun_font_CFont_getWeightNative
     (JNIEnv *env, jobject cfont, jlong awtFontPtr)
 {
     float weightVal;
-JNI_COCOA_ENTER(env);
+JNF_COCOA_ENTER(env);
 
     AWTFont *awtFont = (AWTFont *)jlong_to_ptr(awtFontPtr);
     NSFont* nsFont = awtFont->fFont;
@@ -486,7 +553,7 @@ JNI_COCOA_ENTER(env);
     NSNumber *weight = [fontTraits objectForKey : NSFontWeightTrait];
     weightVal = (float)[weight floatValue];
 
-JNI_COCOA_EXIT(env);
+JNF_COCOA_EXIT(env);
    return (jfloat)weightVal;
 }
 
@@ -499,13 +566,13 @@ JNIEXPORT void JNICALL
 Java_sun_font_CFont_disposeNativeFont
     (JNIEnv *env, jclass clazz, jlong awtFontPtr)
 {
-JNI_COCOA_ENTER(env);
+JNF_COCOA_ENTER(env);
 
     if (awtFontPtr) {
         CFRelease((AWTFont *)jlong_to_ptr(awtFontPtr)); // GC
     }
 
-JNI_COCOA_EXIT(env);
+JNF_COCOA_EXIT(env);
 }
 
 
@@ -544,7 +611,6 @@ JNIEXPORT void JNICALL
 Java_sun_font_CFont_getCascadeList
     (JNIEnv *env, jclass cls, jlong awtFontPtr, jobject arrayListOfString)
 {
-JNI_COCOA_ENTER(env);
     jclass alc = (*env)->FindClass(env, "java/util/ArrayList");
     if (alc == NULL) return;
     jmethodID addMID = (*env)->GetMethodID(env, alc, "add", "(Ljava/lang/Object;)Z");
@@ -554,15 +620,13 @@ JNI_COCOA_ENTER(env);
     AWTFont *awtFont = (AWTFont *)jlong_to_ptr(awtFontPtr);
     NSFont* nsFont = awtFont->fFont;
     CTFontRef font = (CTFontRef)nsFont;
+    CFStringRef base = CTFontCopyFullName(font);
     CFArrayRef codes = CFLocaleCopyISOLanguageCodes();
 
 #ifdef DEBUG
-    CFStringRef base = CTFontCopyFullName(font);
     NSLog(@"BaseFont is : %@", (NSString*)base);
-    CFRelease(base);
 #endif
     CFArrayRef fds = CTFontCopyDefaultCascadeListForLanguages(font, codes);
-    CFRelease(codes);
     CFIndex cnt = CFArrayGetCount(fds);
     for (i=0; i<cnt; i++) {
         CTFontDescriptorRef ref = CFArrayGetValueAtIndex(fds, i);
@@ -571,15 +635,8 @@ JNI_COCOA_ENTER(env);
 #ifdef DEBUG
         NSLog(@"Font is : %@", (NSString*)fontname);
 #endif
-        jstring jFontName = (jstring)NSStringToJavaString(env, fontname);
-        CFRelease(fontname);
+        jstring jFontName = (jstring)JNFNSToJavaString(env, fontname);
         (*env)->CallBooleanMethod(env, arrayListOfString, addMID, jFontName);
-        if ((*env)->ExceptionOccurred(env)) {
-            CFRelease(fds);
-            return;
-        }
         (*env)->DeleteLocalRef(env, jFontName);
     }
-    CFRelease(fds);
-JNI_COCOA_EXIT(env);
 }

@@ -52,7 +52,7 @@ extern "C" {
 - (void) setTooltip:(NSString *)tooltip;
 - (NSStatusItem *)theItem;
 - (jobject) peer;
-- (void) setImage:(NSImage *) imagePtr sizing:(BOOL)autosize template:(BOOL)isTemplate;
+- (void) setImage:(NSImage *) imagePtr sizing:(BOOL)autosize;
 - (NSPoint) getLocationOnScreen;
 - (void) deliverJavaMouseEvent:(NSEvent*) event;
 
@@ -61,14 +61,16 @@ extern "C" {
 //==================================================================================
 /*
  * AWTTrayIconView */
-@interface AWTTrayIconView : NSStatusBarButton <NSMenuDelegate> {
+@interface AWTTrayIconView : NSView <NSMenuDelegate> {
 @public
     AWTTrayIcon *trayIcon;
+    NSImage* image;
     NSTrackingArea *trackingArea;
     BOOL isHighlighted;
 }
 -(id)initWithTrayIcon:(AWTTrayIcon *)theTrayIcon;
 -(void)setHighlighted:(BOOL)aFlag;
+-(void)setImage:(NSImage*)anImage;
 -(void)setTrayIcon:(AWTTrayIcon*)theTrayIcon;
 -(void)addTrackingArea;
 

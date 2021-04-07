@@ -80,9 +80,9 @@ abstract class SystemImage {
 
     static final String RUNTIME_HOME;
     // "modules" jimage file Path
-    static final Path moduleImageFile;
+    final static Path moduleImageFile;
     // "modules" jimage exists or not?
-    static final boolean modulesImageExists;
+    final static boolean modulesImageExists;
     // <JAVA_HOME>/modules directory Path
     static final Path explodedModulesDir;
 

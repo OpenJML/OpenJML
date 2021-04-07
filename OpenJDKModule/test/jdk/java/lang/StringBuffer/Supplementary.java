@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2010, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,8 +27,6 @@
  * @bug 4533872 4915683 4985217 5017280 6937112
  * @summary Unit tests for supplementary character support (JSR-204)
  */
-
-import java.util.HexFormat;
 
 public class Supplementary {
 
@@ -403,13 +401,15 @@ public class Supplementary {
     }
 
     private static String toHexString(String s) {
-        HexFormat format = HexFormat.of();
-        StringBuilder sb = new StringBuilder();
+        StringBuffer sb = new StringBuffer();
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
 
             sb.append(" 0x");
-            sb.append(format.toHexDigits(c));
+            if (c < 0x10) sb.append('0');
+            if (c < 0x100) sb.append('0');
+            if (c < 0x1000) sb.append('0');
+            sb.append(Integer.toHexString(c));
         }
         sb.append(' ');
         return sb.toString();

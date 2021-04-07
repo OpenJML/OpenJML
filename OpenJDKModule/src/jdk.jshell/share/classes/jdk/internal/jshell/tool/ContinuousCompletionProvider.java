@@ -30,6 +30,7 @@ import static java.util.Comparator.comparing;
 import java.util.Map;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
+import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
 import jdk.internal.jshell.tool.JShellTool.CompletionProvider;
 import jdk.jshell.SourceCodeAnalysis;
@@ -78,7 +79,7 @@ class ContinuousCompletionProvider implements CompletionProvider {
             List<CompletionProvider> candidates = wordCompletionProvider.entrySet().stream()
                     .filter(e -> matcher.test(e.getKey(), word))
                     .map(Map.Entry::getValue)
-                    .toList();
+                    .collect(toList());
             if (candidates.size() == 1) {
                 result = candidates.get(0).completionSuggestions(rest, cursor - space - 1, anchor).stream();
             } else {
@@ -88,7 +89,7 @@ class ContinuousCompletionProvider implements CompletionProvider {
         }
 
         return result.sorted(comparing(Suggestion::continuation))
-                     .toList();
+                     .collect(toList());
     }
 
 }

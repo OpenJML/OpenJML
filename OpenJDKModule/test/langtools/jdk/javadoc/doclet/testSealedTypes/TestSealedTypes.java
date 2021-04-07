@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -60,9 +60,8 @@ public class TestSealedTypes extends JavadocTester {
 
         checkOutput("p/A.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public sealed<sup><a href="#\
-                    preview-p.A">PREVIEW</a></sup> class </span><span class="element-name type-name-\
-                    label">A</span>""");
+                    <div class="type-signature"><span class="modifiers">public sealed class </span><\
+                    span class="element-name type-name-label">A</span>""");
     }
 
     @Test
@@ -79,9 +78,8 @@ public class TestSealedTypes extends JavadocTester {
 
         checkOutput("p/A.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public sealed<sup><a href="#\
-                    preview-p.A">PREVIEW</a></sup> interface </span><span class="element-name type-n\
-                    ame-label">A</span>""");
+                    <div class="type-signature"><span class="modifiers">public sealed interface </sp\
+                    an><span class="element-name type-name-label">A</span>""");
     }
 
     @Test
@@ -99,15 +97,13 @@ public class TestSealedTypes extends JavadocTester {
 
         checkOutput("p/A.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public sealed<sup><a href="#\
-                    preview-p.A">PREVIEW</a></sup> class </span><span class="element-name type-name-\
-                    label">A</span>""");
+                    <div class="type-signature"><span class="modifiers">public sealed class </span><\
+                    span class="element-name type-name-label">A</span>""");
 
         checkOutput("p/B.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public non-sealed<sup><a hre\
-                    f="#preview-p.B">PREVIEW</a></sup> class </span><span class="element-name type-n\
-                    ame-label">B</span>""");
+                    <div class="type-signature"><span class="modifiers">public non-sealed class </span><\
+                    span class="element-name type-name-label">B</span>""");
     }
 
     @Test
@@ -125,15 +121,13 @@ public class TestSealedTypes extends JavadocTester {
 
         checkOutput("p/A.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public sealed<sup><a href="#\
-                    preview-p.A">PREVIEW</a></sup> interface </span><span class="element-name type-n\
-                    ame-label">A</span>""");
+                    <div class="type-signature"><span class="modifiers">public sealed interface </span><\
+                    span class="element-name type-name-label">A</span>""");
 
         checkOutput("p/B.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public non-sealed<sup><a hre\
-                    f="#preview-p.B">PREVIEW</a></sup> interface </span><span class="element-name ty\
-                    pe-name-label">B</span>""");
+                    <div class="type-signature"><span class="modifiers">public non-sealed interface </span><\
+                    span class="element-name type-name-label">B</span>""");
     }
 
     @Test
@@ -151,15 +145,13 @@ public class TestSealedTypes extends JavadocTester {
 
         checkOutput("p/A.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public sealed<sup><a href="#\
-                    preview-p.A">PREVIEW</a></sup> class </span><span class="element-name type-name-\
-                    label">A</span>""");
+                    <div class="type-signature"><span class="modifiers">public sealed class </span><\
+                    span class="element-name type-name-label">A</span>""");
 
         checkOutput("p/B.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public abstract sealed<sup><\
-                    a href="#preview-p.B">PREVIEW</a></sup> class </span><span class="element-name t\
-                    ype-name-label">B</span>""");
+                    <div class="type-signature"><span class="modifiers">public abstract sealed class\
+                     </span><span class="element-name type-name-label">B</span>""");
     }
 
     @Test
@@ -177,15 +169,13 @@ public class TestSealedTypes extends JavadocTester {
 
         checkOutput("p/A.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public sealed<sup><a href="#\
-                    preview-p.A">PREVIEW</a></sup> interface </span><span class="element-name type-n\
-                    ame-label">A</span>""");
+                    <div class="type-signature"><span class="modifiers">public sealed interface </sp\
+                    an><span class="element-name type-name-label">A</span>""");
 
         checkOutput("p/B.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public sealed<sup><a href="#\
-                    preview-p.B">PREVIEW</a></sup> interface </span><span class="element-name type-n\
-                    ame-label">B</span>""");
+                    <div class="type-signature"><span class="modifiers">public sealed interface </sp\
+                    an><span class="element-name type-name-label">B</span>""");
     }
 
     @Test
@@ -204,13 +194,10 @@ public class TestSealedTypes extends JavadocTester {
 
         checkOutput("p/A.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public sealed<sup><a href="#\
-                    preview-p.A">PREVIEW</a></sup> class </span><span class="element-name type-name-\
-                    label">A</span>
+                    <div class="type-signature"><span class="modifiers">public sealed class </span><\
+                    span class="element-name type-name-label">A</span>
                     <span class="extends-implements">extends java.lang.Object</span>
-                    <span class="permits">permits<sup><a href="#preview-p.A">PREVIEW</a></sup> <a hr\
-                    ef="B.html" title="class in p">B</a><sup><a href="B.html#preview-p.B">PREVIEW</a\
-                    ></sup></span></div>""");
+                    <span class="permits">permits <a href="B.html" title="class in p">B</a></span></div>""");
     }
 
     @Test
@@ -231,15 +218,12 @@ public class TestSealedTypes extends JavadocTester {
 
         checkOutput("p/A.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public sealed<sup><a href="#\
-                    preview-p.A">PREVIEW</a></sup> class </span><span class="element-name type-name-\
-                    label">A</span>
+                    <div class="type-signature"><span class="modifiers">public sealed class </span><\
+                    span class="element-name type-name-label">A</span>
                     <span class="extends-implements">extends java.lang.Object</span>
-                    <span class="permits">permits<sup><a href="#preview-p.A">PREVIEW</a></sup> <a hr\
-                    ef="B.html" title="class in p">B</a><sup><a href="B.html#preview-p.B">PREVIEW</a\
-                    ></sup>, <a href="C.html" title="class in p">C</a><sup><a href="C.html#preview-p\
-                    .C">PREVIEW</a></sup>, <a href="D.html" title="class in p">D</a><sup><a href="D.\
-                    html#preview-p.D">PREVIEW</a></sup></span></div>""");
+                    <span class="permits">permits <a href="B.html" title="class in p">B</a>, <a href\
+                    ="C.html" title="class in p">C</a>, <a href="D.html" title="class in p">D</a></s\
+                    pan></div>""");
     }
 
     @Test
@@ -260,15 +244,12 @@ public class TestSealedTypes extends JavadocTester {
 
         checkOutput("p/A.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public sealed<sup><a href="#\
-                    preview-p.A">PREVIEW</a></sup> class </span><span class="element-name type-name-\
-                    label">A</span>
+                    <div class="type-signature"><span class="modifiers">public sealed class </span><\
+                    span class="element-name type-name-label">A</span>
                     <span class="extends-implements">extends java.lang.Object</span>
-                    <span class="permits">permits<sup><a href="#preview-p.A">PREVIEW</a></sup> <a hr\
-                    ef="B.html" title="class in p">B</a><sup><a href="B.html#preview-p.B">PREVIEW</a\
-                    ></sup>, <a href="C.html" title="class in p">C</a><sup><a href="C.html#preview-p\
-                    .C">PREVIEW</a></sup> <span class="permits-note">(not exhaustive)</span></span><\
-                    /div>""");
+                    <span class="permits">permits <a href="B.html" title="class in p">B</a>, <a href\
+                    ="C.html" title="class in p">C</a> <span class="permits-note">(not exhaustive)</\
+                    span></span></div>""");
     }
 
     // @Test // javac incorrectly rejects the source
@@ -290,14 +271,12 @@ public class TestSealedTypes extends JavadocTester {
 
         checkOutput("p/A.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public sealed<sup><a href="#\
-                    preview">PREVIEW</a></sup> class </span><span class="element-name type-name-labe\
-                    l">A</span>
+                    <div class="type-signature"><span class="modifiers">public sealed class </span><\
+                    span class="element-name type-name-label">A</span>
                     <span class="extends-implements">extends java.lang.Object</span>
-                    <span class="permits">permits<sup><a href="#preview">PREVIEW</a></sup> <a href="\
-                    A.B.html" title="class in p">A.B</a><sup><a href="B.html#preview">PREVIEW</a></s\
-                    up>, <a href="A.C.html" title="class in p">A.C</a><sup><a href="C.html#preview">\
-                    PREVIEW</a></sup>, <a href="A.D.html" title="class in p">A.D</a></span></div>""");
+                    <span class="permits">permits <a href="A.B.html" title="class in p">A.B</a>, <a \
+                    href="A.C.html" title="class in p">A.C</a>, <a href="A.D.html" title="class in p\
+                    ">A.D</a></span></div>""");
     }
 
     @Test
@@ -320,14 +299,12 @@ public class TestSealedTypes extends JavadocTester {
 
         checkOutput("p/A.html", true,
                 """
-                <div class="type-signature"><span class="modifiers">public sealed<sup><a href="#prev\
-                iew-p.A">PREVIEW</a></sup> class </span><span class="element-name type-name-label">A\
-                </span>
+                <div class="type-signature"><span class="modifiers">public sealed class </span><span\
+                 class="element-name type-name-label">A</span>
                 <span class="extends-implements">extends java.lang.Object</span>
-                <span class="permits">permits<sup><a href="#preview-p.A">PREVIEW</a></sup> <a href="\
-                B.html" title="class in p">B</a><sup><a href="B.html#preview-p.B">PREVIEW</a></sup>,\
-                 <a href="C.html" title="class in p">C</a><sup><a href="C.html#preview-p.C">PREVIEW<\
-                /a></sup> <span class="permits-note">(not exhaustive)</span></span></div>""");
+                <span class="permits">permits <a href="B.html" title="class in p">B</a>, <a href="C.\
+                html" title="class in p">C</a> <span class="permits-note">(not exhaustive)</span></s\
+                pan></div>""");
     }
 
     @Test
@@ -349,15 +326,12 @@ public class TestSealedTypes extends JavadocTester {
 
         checkOutput("p/A.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public sealed<sup><a href="#\
-                    preview-p.A">PREVIEW</a></sup> class </span><span class="element-name type-name-\
-                    label">A</span>
+                    <div class="type-signature"><span class="modifiers">public sealed class </span><\
+                    span class="element-name type-name-label">A</span>
                     <span class="extends-implements">extends java.lang.Object</span>
-                    <span class="permits">permits<sup><a href="#preview-p.A">PREVIEW</a></sup> <a hr\
-                    ef="B.html" title="class in p">B</a><sup><a href="B.html#preview-p.B">PREVIEW</a\
-                    ></sup>, <a href="C.html" title="class in p">C</a><sup><a href="C.html#preview-p\
-                    .C">PREVIEW</a></sup>, <a href="D.html" title="class in p">D</a><sup><a href="D.\
-                    html#preview-p.D">PREVIEW</a></sup></span></div>""");
+                    <span class="permits">permits <a href="B.html" title="class in p">B</a>, <a href\
+                    ="C.html" title="class in p">C</a>, <a href="D.html" title="class in p">D</a></s\
+                    pan></div>""");
     }
 
     @Test
@@ -379,14 +353,11 @@ public class TestSealedTypes extends JavadocTester {
 
         checkOutput("p/A.html", true,
                 """
-                    <div class="type-signature"><span class="modifiers">public sealed<sup><a href="#\
-                    preview-p.A">PREVIEW</a></sup> class </span><span class="element-name type-name-\
-                    label">A</span>
+                    <div class="type-signature"><span class="modifiers">public sealed class </span><\
+                    span class="element-name type-name-label">A</span>
                     <span class="extends-implements">extends java.lang.Object</span>
-                    <span class="permits">permits<sup><a href="#preview-p.A">PREVIEW</a></sup> <a hr\
-                    ef="A.B.html" title="class in p">A.B</a><sup><a href="A.B.html#preview-p.A.B">PR\
-                    EVIEW</a></sup>, <a href="A.C.html" title="class in p">A.C</a><sup><a href="A.C.\
-                    html#preview-p.A.C">PREVIEW</a></sup>, <a href="A.D.html" title="class in p">A.D\
-                    </a><sup><a href="A.D.html#preview-p.A.D">PREVIEW</a></sup></span></div>""");
+                    <span class="permits">permits <a href="A.B.html" title="class in p">A.B</a>, <a \
+                    href="A.C.html" title="class in p">A.C</a>, <a href="A.D.html" title="class in p\
+                    ">A.D</a></span></div>""");
     }
 }

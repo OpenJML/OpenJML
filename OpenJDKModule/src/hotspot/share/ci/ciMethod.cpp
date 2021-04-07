@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -32,8 +32,8 @@
 #include "ci/ciStreams.hpp"
 #include "ci/ciSymbol.hpp"
 #include "ci/ciReplay.hpp"
-#include "ci/ciSymbols.hpp"
 #include "ci/ciUtilities.inline.hpp"
+#include "classfile/systemDictionary.hpp"
 #include "compiler/abstractCompiler.hpp"
 #include "compiler/methodLiveness.hpp"
 #include "interpreter/interpreter.hpp"
@@ -45,6 +45,7 @@
 #include "oops/method.inline.hpp"
 #include "oops/oop.inline.hpp"
 #include "prims/methodHandles.hpp"
+#include "prims/nativeLookup.hpp"
 #include "runtime/deoptimization.hpp"
 #include "runtime/handles.inline.hpp"
 #include "utilities/bitMap.inline.hpp"
@@ -137,7 +138,7 @@ ciMethod::ciMethod(const methodHandle& h_m, ciInstanceKlass* holder) :
   _method_data = NULL;
   _nmethod_age = h_m->nmethod_age();
   // Take a snapshot of these values, so they will be commensurate with the MDO.
-  if (ProfileInterpreter || CompilerConfig::is_c1_profiling()) {
+  if (ProfileInterpreter || TieredCompilation) {
     int invcnt = h_m->interpreter_invocation_count();
     // if the value overflowed report it as max int
     _interpreter_invocation_count = invcnt < 0 ? max_jint : invcnt ;
@@ -298,7 +299,7 @@ bool ciMethod::has_balanced_monitors() {
   }
 
   {
-    ExceptionMark em(THREAD);
+    EXCEPTION_MARK;
     ResourceMark rm(THREAD);
     GeneratePairingInfo gpi(method);
     gpi.compute_map(CATCH);
@@ -473,13 +474,15 @@ ciCallProfile ciMethod::call_profile_at_bci(int bci) {
           morphism++;
         }
         int epsilon = 0;
-        // For a call, it is assumed that either the type of the receiver(s)
-        // is recorded or an associated counter is incremented, but not both. With
-        // tiered compilation, however, both can happen due to the interpreter and
-        // C1 profiling invocations differently. Address that inconsistency here.
-        if (morphism == 1 && count > 0) {
-          epsilon = count;
-          count = 0;
+        if (TieredCompilation) {
+          // For a call, it is assumed that either the type of the receiver(s)
+          // is recorded or an associated counter is incremented, but not both. With
+          // tiered compilation, however, both can happen due to the interpreter and
+          // C1 profiling invocations differently. Address that inconsistency here.
+          if (morphism == 1 && count > 0) {
+            epsilon = count;
+            count = 0;
+          }
         }
         for (uint i = 0; i < call->row_limit(); i++) {
           ciKlass* receiver = call->receiver(i);
@@ -873,8 +876,14 @@ int ciMethod::scale_count(int count, float prof_factor) {
   if (count > 0 && method_data() != NULL) {
     int counter_life;
     int method_life = interpreter_invocation_count();
-    // In tiered the MDO's life is measured directly, so just use the snapshotted counters
-    counter_life = MAX2(method_data()->invocation_count(), method_data()->backedge_count());
+    if (TieredCompilation) {
+      // In tiered the MDO's life is measured directly, so just use the snapshotted counters
+      counter_life = MAX2(method_data()->invocation_count(), method_data()->backedge_count());
+    } else {
+      int current_mileage = method_data()->current_mileage();
+      int creation_mileage = method_data()->creation_mileage();
+      counter_life = current_mileage - creation_mileage;
+    }
 
     // counter_life due to backedge_counter could be > method_life
     if (counter_life > method_life)
@@ -933,7 +942,7 @@ bool ciMethod::is_compiled_lambda_form() const {
 // ciMethod::is_object_initializer
 //
 bool ciMethod::is_object_initializer() const {
-   return name() == ciSymbols::object_initializer_name();
+   return name() == ciSymbol::object_initializer_name();
 }
 
 // ------------------------------------------------------------------
@@ -965,7 +974,8 @@ bool ciMethod::ensure_method_data(const methodHandle& h_m) {
   }
   if (h_m()->method_data() != NULL) {
     _method_data = CURRENT_ENV->get_method_data(h_m()->method_data());
-    return _method_data->load_data();
+    _method_data->load_data();
+    return true;
   } else {
     _method_data = CURRENT_ENV->get_empty_methodData();
     return false;
@@ -1141,7 +1151,7 @@ bool ciMethod::was_executed_more_than(int times) {
 bool ciMethod::has_unloaded_classes_in_signature() {
   VM_ENTRY_MARK;
   {
-    ExceptionMark em(THREAD);
+    EXCEPTION_MARK;
     methodHandle m(THREAD, get_Method());
     bool has_unloaded = Method::has_unloaded_classes_in_signature(m, thread);
     if( HAS_PENDING_EXCEPTION ) {
@@ -1168,7 +1178,7 @@ bool ciMethod::check_call(int refinfo_index, bool is_static) const {
   // FIXME: Remove this method and resolve_method_statically; refactor to use the other LinkResolver entry points.
   VM_ENTRY_MARK;
   {
-    ExceptionMark em(THREAD);
+    EXCEPTION_MARK;
     HandleMark hm(THREAD);
     constantPoolHandle pool (THREAD, get_Method()->constants());
     Bytecodes::Code code = (is_static ? Bytecodes::_invokestatic : Bytecodes::_invokevirtual);

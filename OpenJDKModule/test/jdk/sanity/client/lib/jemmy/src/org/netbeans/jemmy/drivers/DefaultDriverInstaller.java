@@ -24,6 +24,8 @@
  */
 package org.netbeans.jemmy.drivers;
 
+import javax.swing.UIManager;
+
 import org.netbeans.jemmy.ClassReference;
 import org.netbeans.jemmy.JemmyException;
 import org.netbeans.jemmy.JemmyProperties;
@@ -39,7 +41,7 @@ import org.netbeans.jemmy.drivers.lists.ListKeyboardDriver;
 import org.netbeans.jemmy.drivers.menus.DefaultJMenuDriver;
 import org.netbeans.jemmy.drivers.menus.QueueJMenuDriver;
 import org.netbeans.jemmy.drivers.scrolling.JScrollBarDriver;
-import org.netbeans.jemmy.drivers.scrolling.JSliderDriver;
+import org.netbeans.jemmy.drivers.scrolling.KeyboardJSliderScrollDriver;
 import org.netbeans.jemmy.drivers.scrolling.JSplitPaneDriver;
 import org.netbeans.jemmy.drivers.scrolling.ScrollPaneDriver;
 import org.netbeans.jemmy.drivers.scrolling.ScrollbarDriver;
@@ -108,7 +110,7 @@ public class DefaultDriverInstaller extends ArrayDriverInstaller {
                     new ScrollPaneDriver(),
                     new JScrollBarDriver(),
                     new JSplitPaneDriver(),
-                    new JSliderDriver(),
+                    new KeyboardJSliderScrollDriver(),
                     createSpinnerDriver(),
                     new ButtonMouseDriver(),
                     new JTabMouseDriver(),

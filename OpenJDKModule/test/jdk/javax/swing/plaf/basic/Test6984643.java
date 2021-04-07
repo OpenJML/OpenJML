@@ -55,7 +55,7 @@ public class Test6984643 {
             }
         });
 
-        SwingUtilities.invokeAndWait(new Runnable() {
+        SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 new JFileChooser();
             }

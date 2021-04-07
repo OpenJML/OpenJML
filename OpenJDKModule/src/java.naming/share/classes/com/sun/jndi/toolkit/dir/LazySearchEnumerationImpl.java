@@ -47,7 +47,7 @@ import javax.naming.spi.DirectoryManager;
 import java.util.NoSuchElementException;
 import java.util.Hashtable;
 
-public final class LazySearchEnumerationImpl
+final public class LazySearchEnumerationImpl
         implements NamingEnumeration<SearchResult> {
     private NamingEnumeration<Binding> candidates;
     private SearchResult nextMatch = null;

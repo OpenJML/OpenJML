@@ -452,7 +452,7 @@ final class CryptoPolicyParser {
             break;
         default:
             throw new ParsingException(st.lineno(), expect,
-                               String.valueOf((char)lookahead));
+                               new String(new char[] {(char)lookahead}));
         }
         return value;
     }

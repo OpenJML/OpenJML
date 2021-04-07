@@ -337,8 +337,9 @@ class LambdaFormEditor {
             k = m.get(key);
         } else if (c == null) {
             return null;
-        } else if (c instanceof Transform t) {
+        } else if (c instanceof Transform) {
             // one-element cache avoids overhead of an array
+            Transform t = (Transform)c;
             if (t.equals(key))  k = t;
         } else {
             Transform[] ta = (Transform[])c;
@@ -388,7 +389,8 @@ class LambdaFormEditor {
                     return form;
                 }
                 Transform[] ta;
-                if (c instanceof Transform k) {
+                if (c instanceof Transform) {
+                    Transform k = (Transform)c;
                     if (k.equals(key)) {
                         LambdaForm result = k.get();
                         if (result == null) {

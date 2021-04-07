@@ -1,3 +1,2 @@
-/* /nodynamiccopyright/ */
 @Deprecated
 package test;

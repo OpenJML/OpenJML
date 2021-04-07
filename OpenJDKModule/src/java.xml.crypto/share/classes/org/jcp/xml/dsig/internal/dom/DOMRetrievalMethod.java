@@ -21,7 +21,7 @@
  * under the License.
  */
 /*
- * Copyright (c) 2005, 2016, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2019, Oracle and/or its affiliates. All rights reserved.
  */
 /*
  * ===========================================================================
@@ -29,6 +29,9 @@
  * (C) Copyright IBM Corp. 2003 All Rights Reserved.
  *
  * ===========================================================================
+ */
+/*
+ * $Id: DOMRetrievalMethod.java 1862080 2019-06-25 16:50:17Z coheigea $
  */
 package org.jcp.xml.dsig.internal.dom;
 
@@ -109,7 +112,7 @@ public final class DOMRetrievalMethod extends DOMStructure
             }
         }
         this.uri = uri;
-        if (!uri.isEmpty()) {
+        if (!uri.equals("")) {
             try {
                 new URI(uri);
             } catch (URISyntaxException e) {
@@ -276,7 +279,7 @@ public final class DOMRetrievalMethod extends DOMStructure
         try (InputStream is = new ByteArrayInputStream(data.getXMLSignatureInput().getBytes())) {
             Document doc = XMLUtils.read(is, secVal);
             Element kiElem = doc.getDocumentElement();
-            if ("X509Data".equals(kiElem.getLocalName())
+            if (kiElem.getLocalName().equals("X509Data")
                 && XMLSignature.XMLNS.equals(kiElem.getNamespaceURI())) {
                 return new DOMX509Data(kiElem);
             } else {

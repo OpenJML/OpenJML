@@ -23,7 +23,6 @@
  */
 
 #include "precompiled.hpp"
-#include "ci/ciSymbols.hpp"
 #include "classfile/vmSymbols.hpp"
 #include "opto/library_call.hpp"
 #include "opto/runtime.hpp"
@@ -41,14 +40,14 @@ static bool check_vbox(const TypeInstPtr* vbox_type) {
   ciInstanceKlass* ik = vbox_type->klass()->as_instance_klass();
   assert(is_vector(ik), "not a vector");
 
-  ciField* fd1 = ik->get_field_by_name(ciSymbols::ETYPE_name(), ciSymbols::class_signature(), /* is_static */ true);
+  ciField* fd1 = ik->get_field_by_name(ciSymbol::ETYPE_name(), ciSymbol::class_signature(), /* is_static */ true);
   assert(fd1 != NULL, "element type info is missing");
 
   ciConstant val1 = fd1->constant_value();
   BasicType elem_bt = val1.as_object()->as_instance()->java_mirror_type()->basic_type();
   assert(is_java_primitive(elem_bt), "element type info is missing");
 
-  ciField* fd2 = ik->get_field_by_name(ciSymbols::VLENGTH_name(), ciSymbols::int_signature(), /* is_static */ true);
+  ciField* fd2 = ik->get_field_by_name(ciSymbol::VLENGTH_name(), ciSymbol::int_signature(), /* is_static */ true);
   assert(fd2 != NULL, "vector length info is missing");
 
   ciConstant val2 = fd2->constant_value();
@@ -368,7 +367,7 @@ bool LibraryCallKit::inline_vector_shuffle_iota() {
     Node* bcast_step     = gvn().transform(VectorNode::scalar2vector(step, num_elem, type_bt));
     res = gvn().transform(VectorNode::make(Op_MulI, res, bcast_step, num_elem, elem_bt));
   } else if (step_val->get_con() > 1) {
-    Node* cnt = gvn().makecon(TypeInt::make(log2i_exact(step_val->get_con())));
+    Node* cnt = gvn().makecon(TypeInt::make(log2_int(step_val->get_con())));
     res = gvn().transform(VectorNode::make(Op_LShiftVB, res, cnt, vt));
   }
 
@@ -609,12 +608,8 @@ bool LibraryCallKit::inline_vector_mem_operation(bool is_store) {
   Node* base = argument(3);
   Node* offset = ConvL2X(argument(4));
   DecoratorSet decorators = C2_UNSAFE_ACCESS;
-
-  // Save state and restore on bailout
-  uint old_sp = sp();
-  SafePointNode* old_map = clone_map();
-
   Node* addr = make_unsafe_address(base, offset, decorators, (is_mask ? T_BOOLEAN : elem_bt), true);
+
   // Can base be NULL? Otherwise, always on-heap access.
   bool can_access_non_heap = TypePtr::NULL_PTR->higher_equal(gvn().type(base));
 
@@ -626,8 +621,6 @@ bool LibraryCallKit::inline_vector_mem_operation(bool is_store) {
   // Handle loading masks.
   // If there is no consistency between array and vector element types, it must be special byte array case or loading masks
   if (arr_type != NULL && !using_byte_array && elem_bt != arr_type->elem()->array_element_basic_type() && !is_mask) {
-    set_map(old_map);
-    set_sp(old_sp);
     return false;
   }
   // Since we are using byte array, we need to double check that the byte operations are supported by backend.
@@ -640,8 +633,6 @@ bool LibraryCallKit::inline_vector_mem_operation(bool is_store) {
                       is_store, is_store ? "store" : "load",
                       byte_num_elem, type2name(elem_bt));
       }
-      set_map(old_map);
-      set_sp(old_sp);
       return false; // not supported
     }
   }
@@ -652,20 +643,14 @@ bool LibraryCallKit::inline_vector_mem_operation(bool is_store) {
                       is_store, is_store ? "store" : "load",
                       num_elem);
       }
-      set_map(old_map);
-      set_sp(old_sp);
       return false; // not supported
     }
     if (!is_store) {
       if (!arch_supports_vector(Op_LoadVector, num_elem, elem_bt, VecMaskUseLoad)) {
-        set_map(old_map);
-        set_sp(old_sp);
         return false; // not supported
       }
     } else {
       if (!arch_supports_vector(Op_StoreVector, num_elem, elem_bt, VecMaskUseStore)) {
-        set_map(old_map);
-        set_sp(old_sp);
         return false; // not supported
       }
     }
@@ -680,8 +665,6 @@ bool LibraryCallKit::inline_vector_mem_operation(bool is_store) {
   if (is_store) {
     Node* val = unbox_vector(argument(6), vbox_type, elem_bt, num_elem);
     if (val == NULL) {
-      set_map(old_map);
-      set_sp(old_sp);
       return false; // operand unboxing failed
     }
     set_all_memory(reset_memory());
@@ -717,8 +700,6 @@ bool LibraryCallKit::inline_vector_mem_operation(bool is_store) {
     Node* box = box_vector(vload, vbox_type, elem_bt, num_elem);
     set_result(box);
   }
-
-  old_map->destruct(&_gvn);
 
   if (can_access_non_heap) {
     insert_mem_bar(Op_MemBarCPUOrder);
@@ -797,11 +778,6 @@ bool LibraryCallKit::inline_vector_gather_scatter(bool is_scatter) {
 
   Node* base = argument(4);
   Node* offset = ConvL2X(argument(5));
-
-  // Save state and restore on bailout
-  uint old_sp = sp();
-  SafePointNode* old_map = clone_map();
-
   Node* addr = make_unsafe_address(base, offset, C2_UNSAFE_ACCESS, elem_bt, true);
 
   const TypePtr *addr_type = gvn().type(addr)->isa_ptr();
@@ -809,8 +785,6 @@ bool LibraryCallKit::inline_vector_gather_scatter(bool is_scatter) {
 
   // The array must be consistent with vector type
   if (arr_type == NULL || (arr_type != NULL && elem_bt != arr_type->elem()->array_element_basic_type())) {
-    set_map(old_map);
-    set_sp(old_sp);
     return false;
   }
   ciKlass* vbox_klass = vector_klass->const_oop()->as_instance()->java_lang_Class_klass();
@@ -819,8 +793,6 @@ bool LibraryCallKit::inline_vector_gather_scatter(bool is_scatter) {
   ciKlass* vbox_idx_klass = vector_idx_klass->const_oop()->as_instance()->java_lang_Class_klass();
 
   if (vbox_idx_klass == NULL) {
-    set_map(old_map);
-    set_sp(old_sp);
     return false;
   }
 
@@ -828,16 +800,12 @@ bool LibraryCallKit::inline_vector_gather_scatter(bool is_scatter) {
 
   Node* index_vect = unbox_vector(argument(7), vbox_idx_type, T_INT, num_elem);
   if (index_vect == NULL) {
-    set_map(old_map);
-    set_sp(old_sp);
     return false;
   }
   const TypeVect* vector_type = TypeVect::make(elem_bt, num_elem);
   if (is_scatter) {
     Node* val = unbox_vector(argument(8), vbox_type, elem_bt, num_elem);
     if (val == NULL) {
-      set_map(old_map);
-      set_sp(old_sp);
       return false; // operand unboxing failed
     }
     set_all_memory(reset_memory());
@@ -850,8 +818,6 @@ bool LibraryCallKit::inline_vector_gather_scatter(bool is_scatter) {
     Node* box = box_vector(vload, vbox_type, elem_bt, num_elem);
     set_result(box);
   }
-
-  old_map->destruct(&_gvn);
 
   C->set_max_vector_size(MAX2(C->max_vector_size(), (uint)(num_elem * type2aelembytes(elem_bt))));
   return true;

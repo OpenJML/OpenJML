@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,15 +27,18 @@ package jdk.javadoc.internal.doclets.formats.html;
 
 import java.util.List;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.SimpleTypeVisitor14;
+import javax.lang.model.type.TypeVariable;
+import javax.lang.model.util.SimpleTypeVisitor9;
 
 import jdk.javadoc.internal.doclets.formats.html.markup.ContentBuilder;
 import jdk.javadoc.internal.doclets.formats.html.markup.Entity;
@@ -44,12 +47,11 @@ import jdk.javadoc.internal.doclets.formats.html.markup.HtmlTree;
 import jdk.javadoc.internal.doclets.toolkit.Content;
 import jdk.javadoc.internal.doclets.toolkit.util.DocletConstants;
 
-import static jdk.javadoc.internal.doclets.formats.html.HtmlLinkInfo.Kind.EXECUTABLE_MEMBER_PARAM;
-import static jdk.javadoc.internal.doclets.formats.html.HtmlLinkInfo.Kind.MEMBER;
-import static jdk.javadoc.internal.doclets.formats.html.HtmlLinkInfo.Kind.MEMBER_DEPRECATED_PREVIEW;
-import static jdk.javadoc.internal.doclets.formats.html.HtmlLinkInfo.Kind.MEMBER_TYPE_PARAMS;
-import static jdk.javadoc.internal.doclets.formats.html.HtmlLinkInfo.Kind.RECEIVER_TYPE;
-import static jdk.javadoc.internal.doclets.formats.html.HtmlLinkInfo.Kind.THROWS_TYPE;
+import static jdk.javadoc.internal.doclets.formats.html.LinkInfoImpl.Kind.EXECUTABLE_MEMBER_PARAM;
+import static jdk.javadoc.internal.doclets.formats.html.LinkInfoImpl.Kind.MEMBER;
+import static jdk.javadoc.internal.doclets.formats.html.LinkInfoImpl.Kind.MEMBER_TYPE_PARAMS;
+import static jdk.javadoc.internal.doclets.formats.html.LinkInfoImpl.Kind.RECEIVER_TYPE;
+import static jdk.javadoc.internal.doclets.formats.html.LinkInfoImpl.Kind.THROWS_TYPE;
 
 /**
  * Print method and constructor info.
@@ -77,26 +79,25 @@ public abstract class AbstractExecutableMemberWriter extends AbstractMemberWrite
      * @return the type parameters.
      */
     protected Content getTypeParameters(ExecutableElement member) {
-        HtmlLinkInfo linkInfo = new HtmlLinkInfo(configuration, MEMBER_TYPE_PARAMS, member);
+        LinkInfoImpl linkInfo = new LinkInfoImpl(configuration, MEMBER_TYPE_PARAMS, member);
         return writer.getTypeParameterLinks(linkInfo);
     }
 
     @Override
-    protected Content getSummaryLink(Element member) {
-        Content content = new ContentBuilder();
-        content.add(utils.getFullyQualifiedName(member));
+    protected Content getDeprecatedLink(Element member) {
+        Content deprecatedLinkContent = new ContentBuilder();
+        deprecatedLinkContent.add(utils.getFullyQualifiedName(member));
         if (!utils.isConstructor(member)) {
-            content.add(".");
-            content.add(member.getSimpleName());
+            deprecatedLinkContent.add(".");
+            deprecatedLinkContent.add(member.getSimpleName());
         }
         String signature = utils.flatSignature((ExecutableElement) member, typeElement);
         if (signature.length() > 2) {
-            content.add(Entity.ZERO_WIDTH_SPACE);
+            deprecatedLinkContent.add(Entity.ZERO_WIDTH_SPACE);
         }
-        content.add(signature);
+        deprecatedLinkContent.add(signature);
 
-        return writer.getDocLink(MEMBER_DEPRECATED_PREVIEW, utils.getEnclosingTypeElement(member),
-                member, content, null, false);
+        return writer.getDocLink(MEMBER, utils.getEnclosingTypeElement(member), member, deprecatedLinkContent);
     }
 
     /**
@@ -108,10 +109,11 @@ public abstract class AbstractExecutableMemberWriter extends AbstractMemberWrite
      * @param tdSummary the content tree to which the link will be added
      */
     @Override
-    protected void addSummaryLink(HtmlLinkInfo.Kind context, TypeElement te, Element member,
-                                  Content tdSummary) {
+    protected void addSummaryLink(LinkInfoImpl.Kind context, TypeElement te, Element member,
+            Content tdSummary) {
         ExecutableElement ee = (ExecutableElement)member;
-        Content memberLink = writer.getDocLink(context, te, ee, name(ee), HtmlStyle.memberNameLink);
+        Content memberLink = HtmlTree.SPAN(HtmlStyle.memberNameLink,
+                writer.getDocLink(context, te, ee, name(ee), false));
         Content code = HtmlTree.CODE(memberLink);
         addParameters(ee, code);
         tdSummary.add(code);
@@ -126,7 +128,7 @@ public abstract class AbstractExecutableMemberWriter extends AbstractMemberWrite
      */
     @Override
     protected void addInheritedSummaryLink(TypeElement te, Element member, Content linksTree) {
-        linksTree.add(writer.getDocLink(MEMBER, te, member, name(member)));
+        linksTree.add(writer.getDocLink(MEMBER, te, member, name(member), false));
     }
 
     /**
@@ -139,7 +141,7 @@ public abstract class AbstractExecutableMemberWriter extends AbstractMemberWrite
      */
     protected void addParam(ExecutableElement member, VariableElement param, TypeMirror paramType,
             boolean isVarArg, Content tree) {
-        Content link = writer.getLink(new HtmlLinkInfo(configuration, EXECUTABLE_MEMBER_PARAM,
+        Content link = writer.getLink(new LinkInfoImpl(configuration, EXECUTABLE_MEMBER_PARAM,
                 paramType).varargs(isVarArg));
         tree.add(link);
         if(name(param).length() > 0) {
@@ -149,56 +151,24 @@ public abstract class AbstractExecutableMemberWriter extends AbstractMemberWrite
     }
 
     /**
-     * Add the receiver information.
-     *
-     * <p>Note: receivers can only have type-use annotations.</p>
+     * Add the receiver annotations information.
      *
      * @param member the member to write receiver annotations for.
      * @param rcvrType the receiver type.
+     * @param annotationMirrors list of annotation descriptions.
      * @param tree the content tree to which the information will be added.
      */
-    protected void addReceiver(ExecutableElement member, TypeMirror rcvrType, Content tree) {
-        var info = new HtmlLinkInfo(configuration, RECEIVER_TYPE, rcvrType);
-        info.linkToSelf = false;
-        tree.add(writer.getLink(info));
+    protected void addReceiverAnnotations(ExecutableElement member, TypeMirror rcvrType,
+            List<? extends AnnotationMirror> annotationMirrors, Content tree) {
+        tree.add(writer.getAnnotationInfo(member.getReceiverType().getAnnotationMirrors(), false));
         tree.add(Entity.NO_BREAK_SPACE);
-        if (member.getKind() == ElementKind.CONSTRUCTOR) {
-            tree.add(utils.getTypeName(rcvrType, false));
-            tree.add(".");
-        }
+        tree.add(utils.getTypeName(rcvrType, false));
+        LinkInfoImpl linkInfo = new LinkInfoImpl(configuration, RECEIVER_TYPE, rcvrType);
+        tree.add(writer.getTypeParameterLinks(linkInfo));
+        tree.add(Entity.NO_BREAK_SPACE);
         tree.add("this");
     }
 
-    /**
-     * Returns {@code true} if a receiver type is annotated anywhere in its type for
-     * inclusion in member details.
-     *
-     * @param receiverType the receiver type.
-     * @return {@code true} if the receiver is annotated
-     */
-    protected boolean isAnnotatedReceiver(TypeMirror receiverType) {
-        return new SimpleTypeVisitor14<Boolean, Void>() {
-            @Override
-            protected Boolean defaultAction(TypeMirror e, Void unused) {
-                return utils.isAnnotated(e);
-            }
-
-            @Override
-            public Boolean visitDeclared(DeclaredType t, Void unused) {
-                if (super.visitDeclared(t, unused) || visit(t.getEnclosingType())) {
-                    return true;
-                }
-
-                for (var e : t.getTypeArguments()) {
-                    if (visit(e)) {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-        }.visit(receiverType);
-    }
 
     /**
      * Add all the parameters for the executable member.
@@ -228,8 +198,9 @@ public abstract class AbstractExecutableMemberWriter extends AbstractMemberWrite
         String sep = "";
         List<? extends VariableElement> parameters = member.getParameters();
         TypeMirror rcvrType = member.getReceiverType();
-        if (includeAnnotations && rcvrType != null && isAnnotatedReceiver(rcvrType)) {
-            addReceiver(member, rcvrType, paramTree);
+        if (includeAnnotations && rcvrType != null && utils.isAnnotated(rcvrType)) {
+            List<? extends AnnotationMirror> annotationMirrors = rcvrType.getAnnotationMirrors();
+            addReceiverAnnotations(member, rcvrType, annotationMirrors, paramTree);
             sep = "," + DocletConstants.NL + " ";
         }
         int paramstart;
@@ -289,7 +260,7 @@ public abstract class AbstractExecutableMemberWriter extends AbstractMemberWrite
                 htmlTree.add(",");
                 htmlTree.add(DocletConstants.NL);
             }
-            Content link = writer.getLink(new HtmlLinkInfo(configuration, THROWS_TYPE, t));
+            Content link = writer.getLink(new LinkInfoImpl(configuration, THROWS_TYPE, t));
             htmlTree.add(link);
         }
         return htmlTree;
@@ -309,5 +280,62 @@ public abstract class AbstractExecutableMemberWriter extends AbstractMemberWrite
             }
         }
         return null;
+    }
+
+    /**
+     * For backward compatibility, include an anchor using the erasures of the
+     * parameters.  NOTE:  We won't need this method anymore after we fix
+     * see tags so that they use the type instead of the erasure.
+     *
+     * @param executableElement the ExecutableElement to anchor to.
+     * @return the 1.4.x style anchor for the executable element.
+     */
+    protected String getErasureAnchor(ExecutableElement executableElement) {
+        final StringBuilder buf = new StringBuilder(executableElement.getSimpleName());
+        buf.append("(");
+        List<? extends VariableElement> parameters = executableElement.getParameters();
+        boolean foundTypeVariable = false;
+        for (int i = 0; i < parameters.size(); i++) {
+            if (i > 0) {
+                buf.append(",");
+            }
+            TypeMirror t = parameters.get(i).asType();
+            SimpleTypeVisitor9<Boolean, Void> stv = new SimpleTypeVisitor9<>() {
+                boolean foundTypeVariable = false;
+
+                @Override
+                public Boolean visitArray(ArrayType t, Void p) {
+                    visit(t.getComponentType());
+                    buf.append(utils.getDimension(t));
+                    return foundTypeVariable;
+                }
+
+                @Override
+                public Boolean visitTypeVariable(TypeVariable t, Void p) {
+                    buf.append(utils.asTypeElement(t).getQualifiedName());
+                    foundTypeVariable = true;
+                    return foundTypeVariable;
+                }
+
+                @Override
+                public Boolean visitDeclared(DeclaredType t, Void p) {
+                    buf.append(utils.getQualifiedTypeName(t));
+                    return foundTypeVariable;
+                }
+
+                @Override
+                protected Boolean defaultAction(TypeMirror e, Void p) {
+                    buf.append(e);
+                    return foundTypeVariable;
+                }
+            };
+
+            boolean isTypeVariable = stv.visit(t);
+            if (!foundTypeVariable) {
+                foundTypeVariable = isTypeVariable;
+            }
+        }
+        buf.append(")");
+        return foundTypeVariable ? writer.links.getName(buf.toString()) : null;
     }
 }

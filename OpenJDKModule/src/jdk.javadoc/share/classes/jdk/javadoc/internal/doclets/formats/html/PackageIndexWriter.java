@@ -25,6 +25,8 @@
 
 package jdk.javadoc.internal.doclets.formats.html;
 
+import jdk.javadoc.internal.doclets.formats.html.markup.Table;
+
 import java.util.*;
 
 import javax.lang.model.element.PackageElement;
@@ -92,7 +94,7 @@ public class PackageIndexWriter extends AbstractOverviewIndexWriter {
             Table table =  new Table(HtmlStyle.summaryTable)
                     .setHeader(getPackageTableHeader())
                     .setColumnStyles(HtmlStyle.colFirst, HtmlStyle.colLast)
-                    .setId(HtmlIds.ALL_PACKAGES_TABLE)
+                    .setId("all-packages-table")
                     .setDefaultTab(resources.getText("doclet.All_Packages"));
 
             // add the tabs in command-line order
@@ -106,7 +108,7 @@ public class PackageIndexWriter extends AbstractOverviewIndexWriter {
             for (PackageElement pkg : configuration.packages) {
                 if (!pkg.isUnnamed()) {
                     if (!(options.noDeprecated() && utils.isDeprecated(pkg))) {
-                        Content packageLinkContent = getPackageLink(pkg, getLocalizedPackageName(pkg));
+                        Content packageLinkContent = getPackageLink(pkg, getPackageName(pkg));
                         Content summaryContent = new ContentBuilder();
                         addSummaryComment(pkg, summaryContent);
                         table.addRow(pkg, packageLinkContent, summaryContent);

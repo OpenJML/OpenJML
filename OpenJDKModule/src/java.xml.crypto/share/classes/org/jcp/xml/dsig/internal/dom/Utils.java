@@ -21,7 +21,10 @@
  * under the License.
  */
 /*
- * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2018, Oracle and/or its affiliates. All rights reserved.
+ */
+/*
+ * $Id: Utils.java 1788465 2017-03-24 15:10:51Z coheigea $
  */
 package org.jcp.xml.dsig.internal.dom;
 
@@ -91,7 +94,7 @@ public final class Utils {
             return null;
         }
         String id = uri.substring(1);
-        if (id.startsWith("xpointer(id(")) {
+        if (id != null && id.startsWith("xpointer(id(")) {
             int i1 = id.indexOf('\'');
             int i2 = id.indexOf('\'', i1+1);
             id = id.substring(i1+1, i2);
@@ -115,6 +118,6 @@ public final class Utils {
 
     private static boolean getBoolean(XMLCryptoContext xc, String name) {
         Boolean value = (Boolean)xc.getProperty(name);
-        return value != null && value;
+        return value != null && value.booleanValue();
     }
 }

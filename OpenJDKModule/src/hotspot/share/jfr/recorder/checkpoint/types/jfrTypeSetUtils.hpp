@@ -58,17 +58,9 @@ class JfrArtifactClosure {
 template <typename T, typename Callback>
 class JfrArtifactCallbackHost : public JfrArtifactClosure {
  private:
-  JfrArtifactClosure** _subsystem_callback_loc;
   Callback* _callback;
  public:
-  JfrArtifactCallbackHost(JfrArtifactClosure** subsystem_callback_loc, Callback* callback) :
-          _subsystem_callback_loc(subsystem_callback_loc), _callback(callback) {
-    assert(*_subsystem_callback_loc == NULL, "Subsystem callback should not be set yet");
-    *_subsystem_callback_loc = this;
-  }
-  ~JfrArtifactCallbackHost() {
-    *_subsystem_callback_loc = NULL;
-  }
+  JfrArtifactCallbackHost(Callback* callback) : _callback(callback) {}
   void do_artifact(const void* artifact) {
     (*_callback)(reinterpret_cast<T const&>(artifact));
   }

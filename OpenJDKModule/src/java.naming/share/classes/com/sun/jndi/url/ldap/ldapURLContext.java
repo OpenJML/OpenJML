@@ -39,7 +39,7 @@ import com.sun.jndi.ldap.LdapURL;
  * @author Scott Seligman
  */
 
-public final class ldapURLContext
+final public class ldapURLContext
         extends com.sun.jndi.toolkit.url.GenericURLDirContext {
 
     ldapURLContext(Hashtable<?,?> env) {

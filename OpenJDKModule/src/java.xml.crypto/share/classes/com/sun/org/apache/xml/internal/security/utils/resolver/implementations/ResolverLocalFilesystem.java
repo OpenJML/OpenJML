@@ -43,6 +43,11 @@ public class ResolverLocalFilesystem extends ResourceResolverSpi {
     private static final com.sun.org.slf4j.internal.Logger LOG =
         com.sun.org.slf4j.internal.LoggerFactory.getLogger(ResolverLocalFilesystem.class);
 
+    @Override
+    public boolean engineIsThreadSafe() {
+        return true;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -110,7 +115,7 @@ public class ResolverLocalFilesystem extends ResourceResolverSpi {
             return false;
         }
 
-        if (context.uriToResolve.isEmpty() || context.uriToResolve.charAt(0) == '#' ||
+        if (context.uriToResolve.equals("") || context.uriToResolve.charAt(0) == '#' ||
             context.uriToResolve.startsWith("http:")) {
             return false;
         }
@@ -141,7 +146,9 @@ public class ResolverLocalFilesystem extends ResourceResolverSpi {
 
         // if the URI contains a fragment, ignore it
         if (newUri.getFragment() != null) {
-            return new URI(newUri.getScheme(), newUri.getSchemeSpecificPart(), null);
+            URI uriNewNoFrag =
+                new URI(newUri.getScheme(), newUri.getSchemeSpecificPart(), null);
+            return uriNewNoFrag;
         }
         return newUri;
     }

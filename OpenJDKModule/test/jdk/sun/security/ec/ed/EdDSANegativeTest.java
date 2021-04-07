@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -34,13 +34,14 @@ import java.security.interfaces.EdECPrivateKey;
 import java.security.interfaces.EdECPublicKey;
 import java.security.spec.EdDSAParameterSpec;
 import java.util.Arrays;
-import java.util.HexFormat;
+import jdk.test.lib.Convert;
 
 /*
  * @test
  * @bug 8209632
  * @summary Negative cases for EDDSA.
  * @library /test/lib
+ * @build jdk.test.lib.Convert
  * @run main EdDSANegativeTest
  */
 public class EdDSANegativeTest {
@@ -137,7 +138,7 @@ public class EdDSANegativeTest {
             new byte[255], new byte[500]}) {
                 System.out.printf("Testing signature for name: %s, algorithm "
                         + "spec: (prehash:%s, context:%s)%n", name, preHash,
-                        HexFormat.of().withUpperCase().formatHex(context));
+                        Convert.byteArrayToHexString(context));
                 try {
                     verify(sig, kp.getPublic(), MSG,
                             new EdDSAParameterSpec(preHash, context),
@@ -218,8 +219,8 @@ public class EdDSANegativeTest {
                 throw new RuntimeException(String.format("Signature verification"
                         + " success with different param context(actual:%s, "
                         + "expected:%s), Prehash(actual:%s, expected:%s)",
-                        HexFormat.of().withUpperCase().formatHex(context),
-                        HexFormat.of().withUpperCase().formatHex(initContext),
+                        Convert.byteArrayToHexString(context),
+                        Convert.byteArrayToHexString(initContext),
                         preHash, initPreHash));
             } else {
                 System.out.println("Atleast a case matched");
@@ -252,8 +253,8 @@ public class EdDSANegativeTest {
         boolean equals = Arrays.equals(actual, expected);
         if (!equals) {
             throw new RuntimeException(String.format("Actual array: %s, "
-                    + "Expected array:%s", HexFormat.of().withUpperCase().formatHex(actual),
-                    HexFormat.of().withUpperCase().formatHex(expected)));
+                    + "Expected array:%s", Convert.byteArrayToHexString(actual),
+                    Convert.byteArrayToHexString(expected)));
         }
         return equals;
     }

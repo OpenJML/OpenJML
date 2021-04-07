@@ -1720,53 +1720,53 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
     // Method IDs for doOperation
     //---------------------------
 
-    private static final int
+    private final static int
         ADD_NOTIFICATION_LISTENERS                              = 1;
-    private static final int
+    private final static int
         ADD_NOTIFICATION_LISTENER_OBJECTNAME                    = 2;
-    private static final int
+    private final static int
         CREATE_MBEAN                                            = 3;
-    private static final int
+    private final static int
         CREATE_MBEAN_PARAMS                                     = 4;
-    private static final int
+    private final static int
         CREATE_MBEAN_LOADER                                     = 5;
-    private static final int
+    private final static int
         CREATE_MBEAN_LOADER_PARAMS                              = 6;
-    private static final int
+    private final static int
         GET_ATTRIBUTE                                           = 7;
-    private static final int
+    private final static int
         GET_ATTRIBUTES                                          = 8;
-    private static final int
+    private final static int
         GET_DEFAULT_DOMAIN                                      = 9;
-    private static final int
+    private final static int
         GET_DOMAINS                                             = 10;
-    private static final int
+    private final static int
         GET_MBEAN_COUNT                                         = 11;
-    private static final int
+    private final static int
         GET_MBEAN_INFO                                          = 12;
-    private static final int
+    private final static int
         GET_OBJECT_INSTANCE                                     = 13;
-    private static final int
+    private final static int
         INVOKE                                                  = 14;
-    private static final int
+    private final static int
         IS_INSTANCE_OF                                          = 15;
-    private static final int
+    private final static int
         IS_REGISTERED                                           = 16;
-    private static final int
+    private final static int
         QUERY_MBEANS                                            = 17;
-    private static final int
+    private final static int
         QUERY_NAMES                                             = 18;
-    private static final int
+    private final static int
         REMOVE_NOTIFICATION_LISTENER                            = 19;
-    private static final int
+    private final static int
         REMOVE_NOTIFICATION_LISTENER_OBJECTNAME                 = 20;
-    private static final int
+    private final static int
         REMOVE_NOTIFICATION_LISTENER_OBJECTNAME_FILTER_HANDBACK = 21;
-    private static final int
+    private final static int
         SET_ATTRIBUTE                                           = 22;
-    private static final int
+    private final static int
         SET_ATTRIBUTES                                          = 23;
-    private static final int
+    private final static int
         UNREGISTER_MBEAN                                        = 24;
 
     // SERVER NOTIFICATION
@@ -1794,7 +1794,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
 
     private static final class CombinedClassLoader extends ClassLoader {
 
-        private static final class ClassLoaderWrapper extends ClassLoader {
+        private final static class ClassLoaderWrapper extends ClassLoader {
             ClassLoaderWrapper(ClassLoader cl) {
                 super(cl);
             }

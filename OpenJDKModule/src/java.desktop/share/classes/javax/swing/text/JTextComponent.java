@@ -3807,7 +3807,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 
     // --- serialization ---------------------------------------------
 
-    @Serial
     private void readObject(ObjectInputStream s)
         throws IOException, ClassNotFoundException
     {

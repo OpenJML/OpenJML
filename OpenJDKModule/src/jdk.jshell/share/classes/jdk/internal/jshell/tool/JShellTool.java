@@ -121,6 +121,7 @@ import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static jdk.jshell.Snippet.SubKind.TEMP_VAR_EXPRESSION_SUBKIND;
 import static jdk.jshell.Snippet.SubKind.VAR_VALUE_SUBKIND;
 import static java.util.stream.Collectors.toMap;
@@ -406,7 +407,7 @@ public class JShellTool implements MessageHandler {
             if (failed) {
                 return Collections.emptyList();
             } else {
-                return result.toList();
+                return result.collect(toList());
             }
         }
 
@@ -457,7 +458,7 @@ public class JShellTool implements MessageHandler {
             addOptions(OptionKind.ADD_MODULES, options.valuesOf(argAddModules));
             addOptions(OptionKind.ADD_EXPORTS, options.valuesOf(argAddExports).stream()
                     .map(mp -> mp.contains("=") ? mp : mp + "=ALL-UNNAMED")
-                    .toList()
+                    .collect(toList())
             );
             if (options.has(argEnablePreview)) {
                 opts.addAll(OptionKind.ENABLE_PREVIEW, List.of(
@@ -485,7 +486,7 @@ public class JShellTool implements MessageHandler {
                 if (kind.passFlag) {
                     vals = vals.stream()
                             .flatMap(mp -> Stream.of(kind.optionFlag, mp))
-                            .toList();
+                            .collect(toList());
                 }
                 opts.addAll(kind, vals);
             }
@@ -1164,11 +1165,7 @@ public class JShellTool implements MessageHandler {
     //where
     private void startUpRun(String start) {
         try (IOContext suin = new ScannerIOContext(new StringReader(start))) {
-            while (run(suin)) {
-                if (!live) {
-                    resetState();
-                }
-            }
+            run(suin);
         } catch (Exception ex) {
             errormsg("jshell.err.startup.unexpected.exception", ex);
             ex.printStackTrace(cmderr);
@@ -1190,10 +1187,8 @@ public class JShellTool implements MessageHandler {
      * Main loop
      *
      * @param in the line input/editing context
-     * @return true iff something remains in the input after this method finishes
-     *              (e.g. due to live == false).
      */
-    private boolean run(IOContext in) {
+    private void run(IOContext in) {
         IOContext oldInput = input;
         input = in;
         try {
@@ -1207,13 +1202,11 @@ public class JShellTool implements MessageHandler {
             }
         } catch (EOFException ex) {
             // Just exit loop
-            return false;
         } catch (IOException ex) {
             errormsg("jshell.err.unexpected.exception", ex);
         } finally {
             input = oldInput;
         }
-        return true;
     }
 
     /**
@@ -1597,8 +1590,8 @@ public class JShellTool implements MessageHandler {
                                 ? Stream.of(String.valueOf(k.id()) + " ", ((DeclarationSnippet) k).name() + " ")
                                 : Stream.of(String.valueOf(k.id()) + " "))
                         .filter(k -> k.startsWith(argPrefix))
-                        .<Suggestion>map(ArgSuggestion::new)
-                        .toList();
+                        .map(ArgSuggestion::new)
+                        .collect(Collectors.toList());
         };
     }
 
@@ -1666,8 +1659,8 @@ public class JShellTool implements MessageHandler {
                 String flag = ovm.group("flag");
                 List<CompletionProvider> ps = ARG_OPTIONS.entrySet().stream()
                         .filter(es -> es.getKey().startsWith(flag))
-                        .map(Map.Entry::getValue)
-                        .toList();
+                        .map(es -> es.getValue())
+                        .collect(toList());
                 if (ps.size() == 1) {
                     int pastSpace = ovm.start("val");
                     List<Suggestion> result = ps.get(0).completionSuggestions(
@@ -1683,7 +1676,7 @@ public class JShellTool implements MessageHandler {
                         om.group("flag"), cursor - pastSpace, anchor);
                 if (!om.group("dd").isEmpty()) {
                     result = result.stream()
-                            .<Suggestion>map(sug -> new Suggestion() {
+                            .map(sug -> new Suggestion() {
                                 @Override
                                 public String continuation() {
                                     return "-" + sug.continuation();
@@ -1694,7 +1687,7 @@ public class JShellTool implements MessageHandler {
                                     return false;
                                 }
                             })
-                            .toList();
+                            .collect(toList());
                     --pastSpace;
                 }
                 anchor[0] += pastSpace;
@@ -1927,7 +1920,7 @@ public class JShellTool implements MessageHandler {
         String prefix = space != (-1) ? stripped.substring(0, space) : stripped;
         List<String> result = new ArrayList<>();
 
-        List<? extends Entry<String, String>> toShow;
+        List<Entry<String, String>> toShow;
 
         if (SET_SUB.matcher(stripped).matches()) {
             String setSubcommand = stripped.replaceFirst("/?set ([^ ]*)($| .*)", "$1");
@@ -1935,7 +1928,7 @@ public class JShellTool implements MessageHandler {
                 Arrays.stream(SET_SUBCOMMANDS)
                        .filter(s -> s.startsWith(setSubcommand))
                         .map(s -> new SimpleEntry<>("/set " + s, "help.set." + s))
-                        .toList();
+                        .collect(toList());
         } else if (RERUN_ID.matcher(stripped).matches()) {
             toShow =
                 singletonList(new SimpleEntry<>("/<id>", "help.rerun"));
@@ -1952,7 +1945,7 @@ public class JShellTool implements MessageHandler {
                                   || (inHelp && c.kind == CommandKind.HELP_SUBJECT))
                         .sorted((c1, c2) -> c1.command.compareTo(c2.command))
                         .map(c -> new SimpleEntry<>(c.command, c.helpKey))
-                        .toList();
+                        .collect(toList());
         }
 
         if (toShow.size() == 1 && !inHelp) {
@@ -2374,7 +2367,7 @@ public class JShellTool implements MessageHandler {
                     Snippet sn = e.snippet();
 
                     // Show any diagnostics
-                    List<Diag> diagnostics = state.diagnostics(sn).toList();
+                    List<Diag> diagnostics = state.diagnostics(sn).collect(toList());
                     String source = sn.source();
                     displayDiagnostics(source, diagnostics);
 
@@ -2776,7 +2769,7 @@ public class JShellTool implements MessageHandler {
             if (allIds == null) {
                 allSnippets = snippetSupplier.get()
                         .sorted((a, b) -> order(a) - order(b))
-                        .toList();
+                        .collect(toList());
                 allIds = allSnippets.stream()
                         .map(sn -> sn.id())
                         .toArray(n -> new String[n]);
@@ -3401,7 +3394,7 @@ public class JShellTool implements MessageHandler {
     }
 
     private boolean cmdUseHistoryEntry(int index) {
-        List<Snippet> keys = state.snippets().toList();
+        List<Snippet> keys = state.snippets().collect(toList());
         if (index < 0)
             index += keys.size();
         else
@@ -3462,7 +3455,7 @@ public class JShellTool implements MessageHandler {
     List<Diag> errorsOnly(List<Diag> diagnostics) {
         return diagnostics.stream()
                 .filter(Diag::isError)
-                .toList();
+                .collect(toList());
     }
 
     /**
@@ -3640,7 +3633,7 @@ public class JShellTool implements MessageHandler {
             debug("Event with null key: %s", ste);
             return false;
         }
-        List<Diag> diagnostics = state.diagnostics(sn).toList();
+        List<Diag> diagnostics = state.diagnostics(sn).collect(toList());
         String source = sn.source();
         if (ste.causeSnippet() == null) {
             // main event
@@ -3749,7 +3742,7 @@ public class JShellTool implements MessageHandler {
     }
 
     void printSnippetStatus(DeclarationSnippet sn, boolean resolve) {
-        List<Diag> otherErrors = errorsOnly(state.diagnostics(sn).toList());
+        List<Diag> otherErrors = errorsOnly(state.diagnostics(sn).collect(toList()));
         new DisplayEvent(sn, state.status(sn), resolve, otherErrors)
                 .displayDeclarationAndValue();
     }
@@ -3818,7 +3811,7 @@ public class JShellTool implements MessageHandler {
         }
 
         private String unresolved(DeclarationSnippet key) {
-            List<String> unr = state.unresolvedDependencies(key).toList();
+            List<String> unr = state.unresolvedDependencies(key).collect(toList());
             StringBuilder sb = new StringBuilder();
             int fromLast = unr.size();
             if (fromLast > 0) {

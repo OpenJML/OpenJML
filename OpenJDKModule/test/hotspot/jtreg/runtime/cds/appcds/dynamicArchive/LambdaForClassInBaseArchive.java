@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -31,16 +31,15 @@
  * @requires vm.cds
  * @library /test/lib /test/hotspot/jtreg/runtime/cds/appcds /test/hotspot/jtreg/runtime/cds/appcds/dynamicArchive/test-classes
  * @build SimpleApp sun.hotspot.WhiteBox
- * @run driver jdk.test.lib.helpers.ClassFileInstaller -jar simpleApp.jar SimpleApp MyClass MyInterface
- * @run driver jdk.test.lib.helpers.ClassFileInstaller sun.hotspot.WhiteBox
+ * @run driver ClassFileInstaller -jar simpleApp.jar SimpleApp MyClass MyInterface
+ * @run driver ClassFileInstaller sun.hotspot.WhiteBox
  * @run main/othervm -XX:+UnlockDiagnosticVMOptions -XX:+WhiteBoxAPI -Xbootclasspath/a:. LambdaForClassInBaseArchive
  */
 
 import java.io.File;
-import jdk.test.lib.cds.CDSOptions;
 import jdk.test.lib.cds.CDSTestUtils;
 import jdk.test.lib.process.OutputAnalyzer;
-import jdk.test.lib.helpers.ClassFileInstaller;
+import jdk.test.lib.process.ProcessTools;
 
 public class LambdaForClassInBaseArchive extends DynamicArchiveTestBase {
     static final String classList = CDSTestUtils.getOutputFileName("classlist");
@@ -59,7 +58,13 @@ public class LambdaForClassInBaseArchive extends DynamicArchiveTestBase {
     private static void doTestCustomBase(String baseArchiveName, String topArchiveName) throws Exception {
         String appJar = ClassFileInstaller.getJarPath("simpleApp.jar");
         // dump class list by running the SimpleApp
-        CDSTestUtils.dumpClassList(classList, "-cp", appJar, appClass);
+        ProcessBuilder pb = ProcessTools.createJavaProcessBuilder(
+            "-XX:DumpLoadedClassList=" + classList,
+            "-cp",
+            appJar,
+            appClass);
+        OutputAnalyzer output = TestCommon.executeAndLog(pb, "dumpClassList");
+        TestCommon.checkExecReturn(output, 0, true);
 
         // create a custom base archive based on the class list
         TestCommon.dumpBaseArchive(baseArchiveName,
@@ -76,7 +81,7 @@ public class LambdaForClassInBaseArchive extends DynamicArchiveTestBase {
               appClass, "lambda")
             .assertNormalExit(out -> {
                     out.shouldHaveExitValue(0)
-                       .shouldMatch("Archiving hidden SimpleApp[$][$]Lambda[$][\\d+]*");
+                       .shouldContain("Archiving hidden SimpleApp$$Lambda$1");
                 });
 
         // Run with both base and dynamic archives. The SimpleApp class

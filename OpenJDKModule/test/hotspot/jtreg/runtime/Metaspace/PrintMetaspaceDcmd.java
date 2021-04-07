@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, 2020, Oracle and/or its affiliates. All rights reserved.
  * Copyright (c) 2018, SAP and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -33,7 +33,7 @@ import jdk.test.lib.JDKToolFinder;
  * @library /test/lib
  * @modules java.base/jdk.internal.misc
  *          java.management
- * @run main/othervm -Dwith-compressed-class-space -XX:MaxMetaspaceSize=201M -Xmx100M -XX:+UseCompressedOops -XX:+UseCompressedClassPointers PrintMetaspaceDcmd
+ * @run main/othervm -XX:MaxMetaspaceSize=201M -Xmx100M -XX:+UseCompressedOops -XX:+UseCompressedClassPointers PrintMetaspaceDcmd with-compressed-class-space
  */
 
 /*
@@ -43,7 +43,7 @@ import jdk.test.lib.JDKToolFinder;
  * @library /test/lib
  * @modules java.base/jdk.internal.misc
  *          java.management
- * @run main/othervm -Dwith-compressed-class-space -XX:MaxMetaspaceSize=201M -Xmx100M -XX:+UseCompressedOops -XX:+UseCompressedClassPointers -XX:MetaspaceReclaimPolicy=none PrintMetaspaceDcmd
+ * @run main/othervm -XX:MaxMetaspaceSize=201M -Xmx100M -XX:+UseCompressedOops -XX:+UseCompressedClassPointers -XX:MetaspaceReclaimPolicy=none PrintMetaspaceDcmd with-compressed-class-space
  */
 
 /*
@@ -53,7 +53,7 @@ import jdk.test.lib.JDKToolFinder;
  * @library /test/lib
  * @modules java.base/jdk.internal.misc
  *          java.management
- * @run main/othervm -Dwith-compressed-class-space -XX:MaxMetaspaceSize=201M -Xmx100M -XX:+UseCompressedOops -XX:+UseCompressedClassPointers -XX:MetaspaceReclaimPolicy=aggressive PrintMetaspaceDcmd
+ * @run main/othervm -XX:MaxMetaspaceSize=201M -Xmx100M -XX:+UseCompressedOops -XX:+UseCompressedClassPointers -XX:MetaspaceReclaimPolicy=aggressive PrintMetaspaceDcmd with-compressed-class-space
  */
 
 /*
@@ -64,7 +64,7 @@ import jdk.test.lib.JDKToolFinder;
  * @library /test/lib
  * @modules java.base/jdk.internal.misc
  *          java.management
- * @run main/othervm -Dwith-compressed-class-space -XX:MaxMetaspaceSize=201M -Xmx100M -XX:+UseCompressedOops -XX:+UseCompressedClassPointers -XX:+UnlockDiagnosticVMOptions -XX:+MetaspaceGuardAllocations PrintMetaspaceDcmd
+ * @run main/othervm -XX:MaxMetaspaceSize=201M -Xmx100M -XX:+UseCompressedOops -XX:+UseCompressedClassPointers -XX:+UnlockDiagnosticVMOptions -XX:+MetaspaceGuardAllocations PrintMetaspaceDcmd with-compressed-class-space
  */
 
 /*
@@ -74,17 +74,7 @@ import jdk.test.lib.JDKToolFinder;
  * @library /test/lib
  * @modules java.base/jdk.internal.misc
  *          java.management
- * @run main/othervm -Dwithout-compressed-class-space -XX:MaxMetaspaceSize=201M -Xmx100M -XX:-UseCompressedOops -XX:-UseCompressedClassPointers PrintMetaspaceDcmd
- */
-
- /*
- * @test id=test-nospecified
- * @summary Test the VM.metaspace command
- * @requires vm.bits == "64"
- * @library /test/lib
- * @modules java.base/jdk.internal.misc
- *          java.management
- * @run main/othervm -Dno-specified-flag -Xmx100M -XX:-UseCompressedOops -XX:-UseCompressedClassPointers PrintMetaspaceDcmd
+ * @run main/othervm -XX:MaxMetaspaceSize=201M -Xmx100M -XX:-UseCompressedOops -XX:-UseCompressedClassPointers PrintMetaspaceDcmd without-compressed-class-space
  */
 
 /*
@@ -94,24 +84,12 @@ import jdk.test.lib.JDKToolFinder;
  * @library /test/lib
  * @modules java.base/jdk.internal.misc
  *          java.management
- * @run main/othervm -Dwithout-compressed-class-space -XX:MaxMetaspaceSize=201M -Xmx100M PrintMetaspaceDcmd
+ * @run main/othervm -XX:MaxMetaspaceSize=201M -Xmx100M PrintMetaspaceDcmd without-compressed-class-space
  */
 
 public class PrintMetaspaceDcmd {
 
-    private static void doTheNoSpecifiedPropTest() throws Exception {
-        ProcessBuilder pb = new ProcessBuilder();
-        OutputAnalyzer output;
-        // Grab my own PID
-        String pid = Long.toString(ProcessTools.getProcessId());
-
-        pb.command(new String[] { JDKToolFinder.getJDKTool("jcmd"), pid, "VM.metaspace", "basic"});
-        output = new OutputAnalyzer(pb.start());
-        output.shouldHaveExitValue(0);
-        output.shouldMatch("MaxMetaspaceSize: unlimited");
-    }
-
-    private static void doTheCCSPropTest(boolean usesCompressedClassSpace) throws Exception {
+    private static void doTheTest(boolean usesCompressedClassSpace) throws Exception {
         ProcessBuilder pb = new ProcessBuilder();
         OutputAnalyzer output;
         // Grab my own PID
@@ -186,14 +164,14 @@ public class PrintMetaspaceDcmd {
     }
 
     public static void main(String args[]) throws Exception {
-        if (System.getProperty("no-specified-flag") != null) {
-            doTheNoSpecifiedPropTest();
-        } else if (System.getProperty("with-compressed-class-space") != null) {
-            doTheCCSPropTest(true);
-        } else if (System.getProperty("without-compressed-class-space") != null) {
-            doTheCCSPropTest(false);
+        boolean testForCompressedClassSpace = false;
+        if (args[0].equals("with-compressed-class-space")) {
+            testForCompressedClassSpace = true;
+        } else if (args[0].equals("without-compressed-class-space")) {
+            testForCompressedClassSpace = false;
         } else {
-            throw new IllegalArgumentException("Unrecognized running mode");
+            throw new IllegalArgumentException("Invalid argument: " + args[0]);
         }
+        doTheTest(testForCompressedClassSpace);
     }
 }

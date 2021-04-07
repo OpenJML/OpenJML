@@ -26,7 +26,6 @@
 #ifndef JNIUTILS_H
 #define JNIUTILS_H
 
-#include <memory>
 #include "jni.h"
 #include "tstrings.h"
 

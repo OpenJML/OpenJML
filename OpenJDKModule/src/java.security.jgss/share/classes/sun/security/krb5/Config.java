@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -167,16 +167,17 @@ public class Config {
 
         String osVersion = GetPropertyAction.privilegedGetProperty("os.version");
         String[] fragments = osVersion.split("\\.");
+
+        // sanity check the "10." part of the version
+        if (!fragments[0].equals("10")) return false;
         if (fragments.length < 2) return false;
 
-        // check if Mac OS X 10.7(.y) or higher
+        // check if Mac OS X 10.7(.y)
         try {
-            int majorVers = Integer.parseInt(fragments[0]);
             int minorVers = Integer.parseInt(fragments[1]);
-            if (majorVers > 10) return true;
-            if (majorVers == 10 && minorVers >= 7) return true;
+            if (minorVers >= 7) return true;
         } catch (NumberFormatException e) {
-            // were not integers
+            // was not an integer
         }
 
         return false;
@@ -1329,7 +1330,7 @@ public class Config {
     /**
      * Locate KDC using DNS
      *
-     * @param realm the realm for which the primary KDC is desired
+     * @param realm the realm for which the master KDC is desired
      * @return the KDC
      */
     private String getKDCFromDNS(String realm) throws KrbException {

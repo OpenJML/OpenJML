@@ -24,7 +24,6 @@
  */
 package jdk.jshell.execution;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -342,8 +341,6 @@ public class StreamingExecutionControl implements ExecutionControl {
                     throw new EngineTerminationException("Bad remote result code: " + status);
                 }
             }
-        } catch (EOFException ex) {
-            throw new EngineTerminationException("Terminated.");
         } catch (IOException | ClassNotFoundException ex) {
             ex.printStackTrace();
             throw new EngineTerminationException(ex.toString());

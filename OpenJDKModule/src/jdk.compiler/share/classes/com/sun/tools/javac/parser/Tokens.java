@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,14 +25,17 @@
 
 package com.sun.tools.javac.parser;
 
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 
 import com.sun.tools.javac.api.Formattable;
 import com.sun.tools.javac.api.Messages;
 import com.sun.tools.javac.parser.Tokens.Token.Tag;
-import com.sun.tools.javac.util.*;
+import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Filter;
+import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Names;
 
 /** A class that defines codes/utilities for Java source tokens
  *  returned from lexical analysis.
@@ -49,7 +52,15 @@ public class Tokens {
     /**
      * Keyword array. Maps name indices to Token.
      */
-    private Map<String, TokenKind> keywords = new HashMap<>();
+    private final TokenKind[] key;
+
+    /**  The number of the last entered keyword.
+     */
+    private int maxKey = 0;
+
+    /** The names of all tokens.
+     */
+    private Name[] tokenName = new Name[TokenKind.values().length];
 
     public static final Context.Key<Tokens> tokensKey = new Context.Key<>();
 
@@ -64,11 +75,24 @@ public class Tokens {
         context.put(tokensKey, this);
         names = Names.instance(context);
         for (TokenKind t : TokenKind.values()) {
-            if (t.name != null) {
-                names.fromString(t.name);
-                keywords.put(t.name, t);
-            }
+            if (t.name != null)
+                enterKeyword(t.name, t);
+            else
+                tokenName[t.ordinal()] = null;
         }
+
+        key = new TokenKind[maxKey+1];
+        for (int i = 0; i <= maxKey; i++) key[i] = TokenKind.IDENTIFIER;
+        for (TokenKind t : TokenKind.values()) {
+            if (t.name != null)
+                key[tokenName[t.ordinal()].getIndex()] = t;
+        }
+    }
+
+    private void enterKeyword(String s, TokenKind token) {
+        Name n = names.fromString(s);
+        tokenName[token.ordinal()] = n;
+        if (n.getIndex() > maxKey) maxKey = n.getIndex();
     }
 
     /**
@@ -77,13 +101,11 @@ public class Tokens {
      * identifier token is returned.
      */
     TokenKind lookupKind(Name name) {
-        TokenKind t = keywords.get(name.toString());
-        return (t != null) ? t : TokenKind.IDENTIFIER;
+        return (name.getIndex() > maxKey) ? TokenKind.IDENTIFIER : key[name.getIndex()];
     }
 
     TokenKind lookupKind(String name) {
-        TokenKind t = keywords.get(name);
-        return (t != null) ? t : TokenKind.IDENTIFIER;
+        return lookupKind(names.fromString(name));
     }
 
     /**

@@ -27,6 +27,7 @@
 
 #include "ci/ciClassList.hpp"
 #include "memory/allocation.hpp"
+#include "runtime/jniHandles.hpp"
 
 // ciBaseObject
 //

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1995, 2017, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,7 +27,6 @@ package java.awt;
 
 import java.awt.geom.Rectangle2D;
 import java.beans.Transient;
-import java.io.Serial;
 
 /**
  * A {@code Rectangle} specifies an area in a coordinate space that is
@@ -159,10 +158,9 @@ public class Rectangle extends Rectangle2D
      */
     public int height;
 
-    /**
-     * Use serialVersionUID from JDK 1.1 for interoperability.
+    /*
+     * JDK 1.1 serialVersionUID
      */
-     @Serial
      private static final long serialVersionUID = -4345857070255674764L;
 
     /**

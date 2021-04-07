@@ -101,10 +101,6 @@ class AccessibleMembersLookup {
         return innerClasses.values().toArray(new Class<?>[0]);
     }
 
-    Method getAccessibleMethod(final Method m) {
-        return methods.get(new MethodSignature(m));
-    }
-
     /**
      * A helper class that represents a method signature - name and argument types.
      */

@@ -26,6 +26,7 @@
 package jdk.jfr;
 
 import java.lang.annotation.Annotation;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -195,7 +196,7 @@ public final class SettingDescriptor {
      * @return a list of annotations, not {@code null}
      */
     public List<AnnotationElement> getAnnotationElements() {
-        return annotationConstruct.getUnmodifiableAnnotationElements();
+        return Collections.unmodifiableList(annotationConstruct.getUnmodifiableAnnotationElements());
     }
 
     /**

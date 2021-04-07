@@ -1433,10 +1433,9 @@ public abstract class SunFontManager implements FontSupport, FontManagerForSGE {
         public String boldFileName;
         public String italicFileName;
         public String boldItalicFileName;
-        boolean failed;
     }
 
-    static volatile HashMap<String, FamilyDescription> platformFontMap;
+    static HashMap<String, FamilyDescription> platformFontMap;
 
     /**
      * default implementation does nothing.
@@ -1446,10 +1445,8 @@ public abstract class SunFontManager implements FontSupport, FontManagerForSGE {
     }
 
     Font2D findFontFromPlatformMap(String lcName, int style) {
-        HashMap<String, FamilyDescription> platformFontMap = SunFontManager.platformFontMap;
         if (platformFontMap == null) {
             platformFontMap = populateHardcodedFileNameMap();
-            SunFontManager.platformFontMap = platformFontMap;
         }
 
         if (platformFontMap == null || platformFontMap.size() == 0) {
@@ -1463,7 +1460,7 @@ public abstract class SunFontManager implements FontSupport, FontManagerForSGE {
         }
 
         FamilyDescription fd = platformFontMap.get(firstWord);
-        if (fd == null || fd.failed) {
+        if (fd == null) {
             return null;
         }
         /* Once we've established that its at least the first word,
@@ -1530,7 +1527,7 @@ public abstract class SunFontManager implements FontSupport, FontManagerForSGE {
             if (FontUtilities.isLogging()) {
                 FontUtilities.logInfo("Hardcoded file missing looking for " + lcName);
             }
-            fd.failed = true;
+            platformFontMap.remove(firstWord);
             return null;
         }
 
@@ -1557,7 +1554,7 @@ public abstract class SunFontManager implements FontSupport, FontManagerForSGE {
             if (FontUtilities.isLogging()) {
                 FontUtilities.logInfo("Hardcoded file missing looking for " + lcName);
             }
-            fd.failed = true;
+            platformFontMap.remove(firstWord);
             return null;
         }
 

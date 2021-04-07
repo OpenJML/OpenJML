@@ -271,7 +271,7 @@ final class DTLSOutputRecord extends OutputRecord implements DTLSRecord {
 
         if (SSLLogger.isOn && SSLLogger.isOn("record")) {
             SSLLogger.fine(
-                    "WRITE: " + protocolVersion.name + " " +
+                    "WRITE: " + protocolVersion + " " +
                     ContentType.APPLICATION_DATA.name +
                     ", length = " + destination.remaining());
         }
@@ -499,7 +499,7 @@ final class DTLSOutputRecord extends OutputRecord implements DTLSRecord {
 
             if (SSLLogger.isOn && SSLLogger.isOn("record")) {
                 SSLLogger.fine(
-                        "WRITE: " + protocolVersion.name + " " +
+                        "WRITE: " + protocolVersion + " " +
                         ContentType.nameOf(memo.contentType) +
                         ", length = " + dstBuf.remaining());
             }

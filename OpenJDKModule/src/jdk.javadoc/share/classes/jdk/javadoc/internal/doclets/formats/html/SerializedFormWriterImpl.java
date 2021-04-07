@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -29,12 +29,13 @@ import java.util.Set;
 
 import javax.lang.model.element.TypeElement;
 
+import jdk.javadoc.internal.doclets.formats.html.markup.ContentBuilder;
 import jdk.javadoc.internal.doclets.formats.html.markup.Entity;
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle;
 import jdk.javadoc.internal.doclets.formats.html.markup.TagName;
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlTree;
 import jdk.javadoc.internal.doclets.formats.html.Navigation.PageMode;
-import jdk.javadoc.internal.doclets.formats.html.markup.Text;
+import jdk.javadoc.internal.doclets.formats.html.markup.StringContent;
 import jdk.javadoc.internal.doclets.toolkit.Content;
 import jdk.javadoc.internal.doclets.toolkit.SerializedFormWriter;
 import jdk.javadoc.internal.doclets.toolkit.util.DocFileIOException;
@@ -72,7 +73,7 @@ public class SerializedFormWriterImpl extends SubWriterHolderWriter
     @Override
     public Content getHeader(String header) {
         HtmlTree bodyTree = getBody(getWindowTitle(header));
-        Content h1Content = Text.of(header);
+        Content h1Content = new StringContent(header);
         Content heading = HtmlTree.HEADING_TITLE(Headings.PAGE_TITLE_HEADING,
                 HtmlStyle.title, h1Content);
         Content div = HtmlTree.DIV(HtmlStyle.header, heading);
@@ -137,8 +138,7 @@ public class SerializedFormWriterImpl extends SubWriterHolderWriter
      * @return true if the class, that is being processed, is generated and is visible.
      */
     public boolean isVisibleClass(TypeElement typeElement) {
-        return visibleClasses.contains(typeElement) && configuration.isGeneratedDoc(typeElement)
-                && !utils.hasHiddenTag(typeElement);
+        return visibleClasses.contains(typeElement) && configuration.isGeneratedDoc(typeElement);
     }
 
     /**
@@ -150,13 +150,13 @@ public class SerializedFormWriterImpl extends SubWriterHolderWriter
     @Override
     public Content getClassHeader(TypeElement typeElement) {
         Content classLink = (isVisibleClass(typeElement))
-                ? getLink(new HtmlLinkInfo(configuration, HtmlLinkInfo.Kind.DEFAULT, typeElement)
+                ? getLink(new LinkInfoImpl(configuration, LinkInfoImpl.Kind.DEFAULT, typeElement)
                         .label(configuration.getClassName(typeElement)))
-                : Text.of(utils.getFullyQualifiedName(typeElement));
+                : new StringContent(utils.getFullyQualifiedName(typeElement));
         Content section = HtmlTree.SECTION(HtmlStyle.serializedClassDetails)
-                .setId(htmlIds.forClass(typeElement));
+                .setId(utils.getFullyQualifiedName(typeElement));
         Content superClassLink = typeElement.getSuperclass() != null
-                ? getLink(new HtmlLinkInfo(configuration, HtmlLinkInfo.Kind.SERIALIZED_FORM,
+                ? getLink(new LinkInfoImpl(configuration, LinkInfoImpl.Kind.SERIALIZED_FORM,
                         typeElement.getSuperclass()))
                 : null;
 
@@ -194,9 +194,9 @@ public class SerializedFormWriterImpl extends SubWriterHolderWriter
                                  String serialUID,
                                  Content serialUidTree)
     {
-        Content headerContent = Text.of(header);
+        Content headerContent = new StringContent(header);
         serialUidTree.add(HtmlTree.DT(headerContent));
-        Content serialContent = Text.of(serialUID);
+        Content serialContent = new StringContent(serialUID);
         serialUidTree.add(HtmlTree.DD(serialContent));
     }
 

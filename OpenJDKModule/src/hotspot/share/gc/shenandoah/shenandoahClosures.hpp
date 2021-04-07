@@ -28,7 +28,6 @@
 #include "oops/accessDecorators.hpp"
 #include "runtime/handshake.hpp"
 
-class ShenandoahBarrierSet;
 class ShenandoahHeap;
 class ShenandoahMarkingContext;
 class ShenandoahHeapRegionSet;
@@ -58,18 +57,6 @@ public:
   inline BoolObjectClosure* is_alive_closure();
 };
 
-class ShenandoahKeepAliveClosure : public OopClosure {
-private:
-  ShenandoahBarrierSet* const _bs;
-public:
-  inline ShenandoahKeepAliveClosure();
-  inline void do_oop(oop* p);
-  inline void do_oop(narrowOop* p);
-private:
-  template <typename T>
-  void do_oop_work(T* p);
-};
-
 class ShenandoahUpdateRefsClosure: public OopClosure {
 private:
   ShenandoahHeap* _heap;
@@ -83,12 +70,12 @@ private:
 };
 
 template <DecoratorSet MO = MO_UNORDERED>
-class ShenandoahEvacuateUpdateMetadataClosure: public BasicOopIterateClosure {
+class ShenandoahEvacuateUpdateRootsClosure: public BasicOopIterateClosure {
 private:
-  ShenandoahHeap* const _heap;
-  Thread* const         _thread;
+  ShenandoahHeap* _heap;
+  Thread* _thread;
 public:
-  inline ShenandoahEvacuateUpdateMetadataClosure();
+  inline ShenandoahEvacuateUpdateRootsClosure();
   inline void do_oop(oop* p);
   inline void do_oop(narrowOop* p);
 
@@ -97,24 +84,12 @@ private:
   inline void do_oop_work(T* p);
 };
 
-// Context free version, cannot cache calling thread
-class ShenandoahEvacuateUpdateRootsClosure : public BasicOopIterateClosure {
+class ShenandoahEvacUpdateOopStorageRootsClosure : public BasicOopIterateClosure {
 private:
-  ShenandoahHeap* const _heap;
+  ShenandoahHeap* _heap;
+  Thread* _thread;
 public:
-  inline ShenandoahEvacuateUpdateRootsClosure();
-  inline void do_oop(oop* p);
-  inline void do_oop(narrowOop* p);
-protected:
-  template <typename T>
-  inline void do_oop_work(T* p, Thread* thr);
-};
-
-class ShenandoahContextEvacuateUpdateRootsClosure : public ShenandoahEvacuateUpdateRootsClosure {
-private:
-  Thread* const _thread;
-public:
-  inline ShenandoahContextEvacuateUpdateRootsClosure();
+  inline ShenandoahEvacUpdateOopStorageRootsClosure();
   inline void do_oop(oop* p);
   inline void do_oop(narrowOop* p);
 };
@@ -138,6 +113,12 @@ private:
 public:
   inline ShenandoahCodeBlobAndDisarmClosure(OopClosure* cl);
   inline void do_code_blob(CodeBlob* cb);
+};
+
+class ShenandoahRendezvousClosure : public HandshakeClosure {
+public:
+  inline ShenandoahRendezvousClosure();
+  inline void do_thread(Thread* thread);
 };
 
 #ifdef ASSERT

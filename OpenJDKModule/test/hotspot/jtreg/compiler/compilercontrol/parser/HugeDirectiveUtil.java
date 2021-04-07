@@ -36,8 +36,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import static compiler.compilercontrol.share.IntrinsicCommand.VALID_INTRINSIC_SAMPLES;
-
 /**
  * Creates a huge directive file
  */
@@ -84,11 +82,8 @@ public final class HugeDirectiveUtil {
             file.emitCompiler(Utils.getRandomElement(
                     Scenario.Compiler.values()));
             // add option inside the compiler block
-            DirectiveWriter.Option option = Utils.getRandomElement(DirectiveWriter.Option.values());
-            file.option(option,
-                    option != DirectiveWriter.Option.INTRINSIC
-                    ? random.nextBoolean()
-                    : "\"" + Utils.getRandomElement(VALID_INTRINSIC_SAMPLES) + "\"");
+            file.option(Utils.getRandomElement(DirectiveWriter.Option.values()),
+                    random.nextBoolean());
             file.end(); // ends compiler block
 
             // add standalone option, enable can't be used standalone

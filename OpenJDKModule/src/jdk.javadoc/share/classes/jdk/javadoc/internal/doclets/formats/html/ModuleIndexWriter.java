@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,15 +25,16 @@
 
 package jdk.javadoc.internal.doclets.formats.html;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
+import jdk.javadoc.internal.doclets.formats.html.markup.Table;
+import jdk.javadoc.internal.doclets.formats.html.markup.TableHeader;
+
+import java.util.*;
 
 import javax.lang.model.element.ModuleElement;
 
 import jdk.javadoc.internal.doclets.formats.html.markup.ContentBuilder;
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle;
-import jdk.javadoc.internal.doclets.formats.html.markup.Text;
+import jdk.javadoc.internal.doclets.formats.html.markup.StringContent;
 import jdk.javadoc.internal.doclets.toolkit.Content;
 import jdk.javadoc.internal.doclets.toolkit.util.DocFileIOException;
 import jdk.javadoc.internal.doclets.toolkit.util.DocPath;
@@ -92,7 +93,7 @@ public class ModuleIndexWriter extends AbstractOverviewIndexWriter {
             Table table =  new Table(HtmlStyle.summaryTable)
                     .setHeader(tableHeader)
                     .setColumnStyles(HtmlStyle.colFirst, HtmlStyle.colLast)
-                    .setId(HtmlIds.ALL_MODULES_TABLE)
+                    .setId("all-modules-table")
                     .setDefaultTab(resources.getText("doclet.All_Modules"));
 
             // add the tabs in command-line order
@@ -106,9 +107,8 @@ public class ModuleIndexWriter extends AbstractOverviewIndexWriter {
             for (ModuleElement mdle : modules) {
                 if (!mdle.isUnnamed()) {
                     if (!(options.noDeprecated() && utils.isDeprecated(mdle))) {
-                        Content moduleLinkContent = getModuleLink(mdle, Text.of(mdle.getQualifiedName().toString()));
+                        Content moduleLinkContent = getModuleLink(mdle, new StringContent(mdle.getQualifiedName().toString()));
                         Content summaryContent = new ContentBuilder();
-                        addPreviewSummary(mdle, summaryContent);
                         addSummaryComment(mdle, summaryContent);
                         table.addRow(mdle, moduleLinkContent, summaryContent);
                     }

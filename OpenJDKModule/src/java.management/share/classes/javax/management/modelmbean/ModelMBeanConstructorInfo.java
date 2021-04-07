@@ -151,7 +151,7 @@ public class ModelMBeanConstructorInfo
          */
         private Descriptor consDescriptor = validDescriptor(null);
 
-        private static final String currClass = "ModelMBeanConstructorInfo";
+        private final static String currClass = "ModelMBeanConstructorInfo";
 
 
         /**

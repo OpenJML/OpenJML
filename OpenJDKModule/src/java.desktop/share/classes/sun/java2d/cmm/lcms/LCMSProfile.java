@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,63 +25,85 @@
 
 package sun.java2d.cmm.lcms;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.StampedLock;
-
+import java.awt.color.CMMException;
+import java.util.Arrays;
+import java.util.HashMap;
 import sun.java2d.cmm.Profile;
 
 final class LCMSProfile extends Profile {
+    private final TagCache tagCache;
 
     private final Object disposerReferent;
-    private final Map<Integer, byte[]> tags = new ConcurrentHashMap<>();
-    private final StampedLock lock = new StampedLock();
 
     LCMSProfile(long ptr, Object ref) {
         super(ptr);
+
         disposerReferent = ref;
+
+        tagCache = new TagCache(this);
     }
 
     long getLcmsPtr() {
-        return getNativePtr();
+        return this.getNativePtr();
     }
 
-    byte[] getProfileData() {
-        long stamp = lock.readLock();
-        try {
-            return LCMS.getProfileDataNative(getNativePtr());
-        } finally {
-            lock.unlockRead(stamp);
+    TagData getTag(int sig) {
+        return tagCache.getTag(sig);
+    }
+
+    void clearTagCache() {
+        tagCache.clear();
+    }
+
+    static class TagCache  {
+        final LCMSProfile profile;
+        private HashMap<Integer, TagData> tags;
+
+        TagCache(LCMSProfile p) {
+            profile = p;
+            tags = new HashMap<>();
         }
-    }
 
-    byte[] getTag(int sig) {
-        byte[] t = tags.get(sig);
-        if (t != null) {
+        TagData getTag(int sig) {
+            TagData t = tags.get(sig);
+            if (t == null) {
+                byte[] tagData = LCMS.getTagNative(profile.getNativePtr(), sig);
+                if (tagData != null) {
+                    t = new TagData(sig, tagData);
+                    tags.put(sig, t);
+                }
+            }
             return t;
         }
-        long stamp = lock.readLock();
-        try {
-            return tags.computeIfAbsent(sig, (key) -> {
-                return LCMS.getTagNative(getNativePtr(), key);
-            });
-        } finally {
-            lock.unlockRead(stamp);
+
+        void clear() {
+            tags.clear();
         }
     }
 
-    void setTag(int tagSignature, byte[] data) {
-        long stamp = lock.writeLock();
-        try {
-            tags.clear();
-            // Now we are going to update the profile with new tag data
-            // In some cases, we may change the pointer to the native profile.
-            //
-            // If we fail to write tag data for any reason, the old pointer
-            // should be used.
-            LCMS.setTagDataNative(getNativePtr(), tagSignature, data);
-        } finally {
-            lock.unlockWrite(stamp);
+    static class TagData {
+        private int signature;
+        private byte[] data;
+
+        TagData(int sig, byte[] data) {
+            this.signature = sig;
+            this.data = data;
+        }
+
+        int getSize() {
+            return data.length;
+        }
+
+        byte[] getData() {
+            return Arrays.copyOf(data, data.length);
+        }
+
+        void copyDataTo(byte[] dst) {
+            System.arraycopy(data, 0, dst, 0, data.length);
+        }
+
+        int getSignature() {
+            return signature;
         }
     }
 }

@@ -42,16 +42,12 @@ public class TestWrongBarrierDisable {
                 "ShenandoahSATBBarrier",
                 "ShenandoahCASBarrier",
                 "ShenandoahCloneBarrier",
-                "ShenandoahNMethodBarrier",
-                "ShenandoahStackWatermarkBarrier",
         };
         String[] iu = {
                 "ShenandoahLoadRefBarrier",
-                "ShenandoahIUBarrier",
+                "ShenandoahStoreValEnqueueBarrier",
                 "ShenandoahCASBarrier",
                 "ShenandoahCloneBarrier",
-                "ShenandoahNMethodBarrier",
-                "ShenandoahStackWatermarkBarrier",
         };
 
         shouldFailAll("-XX:ShenandoahGCHeuristics=adaptive",   concurrent);

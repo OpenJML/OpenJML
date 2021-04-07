@@ -52,6 +52,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
 import javax.lang.model.util.Elements;
 import javax.tools.FileObject;
@@ -68,7 +70,6 @@ import com.sun.tools.javac.code.ClassFinder;
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.code.Symbol.ModuleSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
@@ -103,7 +104,7 @@ class TaskFactory {
     private final MemoryFileManager fileManager;
     private final JShell state;
     private String classpath = System.getProperty("java.class.path");
-    private static final Version INITIAL_SUPPORTED_VER = Version.parse("9");
+    private final static Version INITIAL_SUPPORTED_VER = Version.parse("9");
 
     TaskFactory(JShell state) {
         this.state = state;
@@ -199,7 +200,7 @@ class TaskFactory {
             allOptions.addAll(state.extraCompilerOptions);
             Iterable<? extends JavaFileObject> compilationUnits = inputs
                             .map(in -> sh.sourceToFileObject(fileManager, in))
-                            .toList();
+                            .collect(Collectors.toList());
             DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
             state.debug(DBG_FMGR, "Task (%s %s) Options: %s\n", this, compilationUnits, allOptions);
             return javacTaskPool.getTask(null, fileManager, diagnostics, allOptions, null,
@@ -214,13 +215,11 @@ class TaskFactory {
                      //additional cleanup: purge the REPL package:
                      Symtab syms = Symtab.instance(context);
                      Names names = Names.instance(context);
-                     ModuleSymbol replModule = syms.java_base == syms.noModule ? syms.noModule
-                                                                               : syms.unnamedModule;
-                     PackageSymbol repl = syms.getPackage(replModule, names.fromString(Util.REPL_PACKAGE));
+                     PackageSymbol repl = syms.getPackage(syms.unnamedModule, names.fromString(Util.REPL_PACKAGE));
                      if (repl != null) {
                          for (ClassSymbol clazz : syms.getAllClasses()) {
                              if (clazz.packge() == repl) {
-                                 syms.removeClass(replModule, clazz.flatName());
+                                 syms.removeClass(syms.unnamedModule, clazz.flatName());
                              }
                          }
                          repl.members_field = null;
@@ -349,7 +348,7 @@ class TaskFactory {
                         List<? extends ImportTree> imps = cut.getImports();
                         return (!imps.isEmpty() ? imps : cut.getTypeDecls()).stream();
                     })
-                    .toList();
+                    .collect(toList());
         }
 
         private Iterable<? extends CompilationUnitTree> parse() {

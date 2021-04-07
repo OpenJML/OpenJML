@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,8 +25,6 @@
 
 package java.beans;
 
-import java.io.Serial;
-
 /**
  * An "IndexedPropertyChange" event gets delivered whenever a component that
  * conforms to the JavaBeans specification (a "bean") changes a bound
@@ -45,10 +43,6 @@ import java.io.Serial;
  */
 public class IndexedPropertyChangeEvent extends PropertyChangeEvent {
 
-    /**
-     * Use serialVersionUID from JDK 1.7 for interoperability.
-     */
-    @Serial
     private static final long serialVersionUID = -320227448495806870L;
 
     /**

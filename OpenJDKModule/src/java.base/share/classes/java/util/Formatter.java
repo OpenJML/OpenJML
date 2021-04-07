@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -50,6 +50,7 @@ import java.text.NumberFormat;
 import java.text.spi.NumberFormatProvider;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Objects;
 
 import java.time.DateTimeException;
 import java.time.Instant;
@@ -1831,7 +1832,7 @@ import sun.util.locale.provider.ResourceBundleBasedAdapter;
  *
  * <p> The {@code '-'} flag defined for <a href="#dFlags">General
  * conversions</a> applies.  If any other flags are provided, then a
- * {@link IllegalFormatFlagsException } will be thrown.
+ * {@link FormatFlagsConversionMismatchException} will be thrown.
  *
  * <p> The precision is not applicable.  If the precision is specified an
  * {@link IllegalFormatPrecisionException} will be thrown.
@@ -1933,9 +1934,12 @@ public final class Formatter implements Closeable, Flushable {
 
     private IOException lastException;
 
-    // Non-character value used to mark zero as uninitialized
-    private static final char ZERO_SENTINEL = '\uFFFE';
-    private char zero = ZERO_SENTINEL;
+    private final char zero;
+    private static double scaleUp;
+
+    // 1 (sign) + 19 (max # sig digits) + 1 ('.') + 1 ('e') + 1 (sign)
+    // + 3 (max # exp digits) + 4 (error) = 30
+    private static final int MAX_FD_CHARS = 30;
 
     /**
      * Returns a charset object for the given charset name.
@@ -1965,6 +1969,7 @@ public final class Formatter implements Closeable, Flushable {
     private Formatter(Locale l, Appendable a) {
         this.a = a;
         this.l = l;
+        this.zero = getZero(l);
     }
 
     private Formatter(Charset charset, Locale l, File file)
@@ -2443,18 +2448,13 @@ public final class Formatter implements Closeable, Flushable {
         this(l, new BufferedWriter(new OutputStreamWriter(os, charset)));
     }
 
-    private char zero() {
-        char zero = this.zero;
-        if (zero == ZERO_SENTINEL) {
-            if ((l != null) && !l.equals(Locale.US)) {
-                DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance(l);
-                zero = dfs.getZeroDigit();
-            } else {
-                zero = '0';
-            }
-            this.zero = zero;
+    private static char getZero(Locale l) {
+        if ((l != null) && !l.equals(Locale.US)) {
+            DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance(l);
+            return dfs.getZeroDigit();
+        } else {
+            return '0';
         }
-        return zero;
     }
 
     /**
@@ -2669,8 +2669,7 @@ public final class Formatter implements Closeable, Flushable {
         int lasto = -1;
 
         List<FormatString> fsa = parse(format);
-        for (int i = 0; i < fsa.size(); i++) {
-            var fs = fsa.get(i);
+        for (FormatString fs : fsa) {
             int index = fs.index();
             try {
                 switch (index) {
@@ -2707,52 +2706,48 @@ public final class Formatter implements Closeable, Flushable {
     private static final String formatSpecifier
         = "%(\\d+\\$)?([-#+ 0,(\\<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])";
 
-    private static final Pattern fsPattern = Pattern.compile(formatSpecifier);
+    private static Pattern fsPattern = Pattern.compile(formatSpecifier);
 
     /**
      * Finds format specifiers in the format string.
      */
     private List<FormatString> parse(String s) {
         ArrayList<FormatString> al = new ArrayList<>();
-        int i = 0;
-        int max = s.length();
-        Matcher m = null; // create if needed
-        while (i < max) {
-            int n = s.indexOf('%', i);
-            if (n < 0) {
-                // No more format specifiers, but since
-                // i < max there's some trailing text
-                al.add(new FixedString(s, i, max));
-                break;
-            }
-            if (i != n) {
-                // Previous characters were fixed text
-                al.add(new FixedString(s, i, n));
-            }
-            i = n + 1;
-            if (i >= max) {
-                // Trailing %
-                throw new UnknownFormatConversionException("%");
-            }
-            char c = s.charAt(i);
-            if (Conversion.isValid(c)) {
-                al.add(new FormatSpecifier(c));
-                i++;
+        Matcher m = fsPattern.matcher(s);
+        for (int i = 0, len = s.length(); i < len; ) {
+            if (m.find(i)) {
+                // Anything between the start of the string and the beginning
+                // of the format specifier is either fixed text or contains
+                // an invalid format string.
+                if (m.start() != i) {
+                    // Make sure we didn't miss any invalid format specifiers
+                    checkText(s, i, m.start());
+                    // Assume previous characters were fixed text
+                    al.add(new FixedString(s, i, m.start()));
+                }
+
+                al.add(new FormatSpecifier(s, m));
+                i = m.end();
             } else {
-                if (m == null) {
-                    m = fsPattern.matcher(s);
-                }
-                // We have already parsed a '%' at n, so we either have a
-                // match or the specifier at n is invalid
-                if (m.find(n) && m.start() == n) {
-                    al.add(new FormatSpecifier(s, m));
-                    i = m.end();
-                } else {
-                    throw new UnknownFormatConversionException(String.valueOf(c));
-                }
+                // No more valid format specifiers.  Check for possible invalid
+                // format specifiers.
+                checkText(s, i, len);
+                // The rest of the string is fixed text
+                al.add(new FixedString(s, i, s.length()));
+                break;
             }
         }
         return al;
+    }
+
+    private static void checkText(String s, int start, int end) {
+        for (int i = start; i < end; i++) {
+            // Any '%' found in the region starts an invalid format specifier.
+            if (s.charAt(i) == '%') {
+                char c = (i == end - 1) ? '%' : s.charAt(i + 1);
+                throw new UnknownFormatConversionException(String.valueOf(c));
+            }
+        }
     }
 
     private interface FormatString {
@@ -2762,9 +2757,9 @@ public final class Formatter implements Closeable, Flushable {
     }
 
     private class FixedString implements FormatString {
-        private final String s;
-        private final int start;
-        private final int end;
+        private String s;
+        private int start;
+        private int end;
         FixedString(String s, int start, int end) {
             this.s = s;
             this.start = start;
@@ -2792,15 +2787,14 @@ public final class Formatter implements Closeable, Flushable {
     };
 
     private class FormatSpecifier implements FormatString {
-
-        private int index = 0;
+        private int index = -1;
         private Flags f = Flags.NONE;
-        private int width = -1;
-        private int precision = -1;
+        private int width;
+        private int precision;
         private boolean dt = false;
         private char c;
 
-        private void index(String s, int start, int end) {
+        private int index(String s, int start, int end) {
             if (start >= 0) {
                 try {
                     // skip the trailing '$'
@@ -2811,20 +2805,25 @@ public final class Formatter implements Closeable, Flushable {
                 } catch (NumberFormatException x) {
                     throw new IllegalFormatArgumentIndexException(Integer.MIN_VALUE);
                 }
+            } else {
+                index = 0;
             }
+            return index;
         }
 
         public int index() {
             return index;
         }
 
-        private void flags(String s, int start, int end) {
+        private Flags flags(String s, int start, int end) {
             f = Flags.parse(s, start, end);
             if (f.contains(Flags.PREVIOUS))
                 index = -1;
+            return f;
         }
 
-        private void width(String s, int start, int end) {
+        private int width(String s, int start, int end) {
+            width = -1;
             if (start >= 0) {
                 try {
                     width = Integer.parseInt(s, start, end, 10);
@@ -2834,9 +2833,11 @@ public final class Formatter implements Closeable, Flushable {
                     throw new IllegalFormatWidthException(Integer.MIN_VALUE);
                 }
             }
+            return width;
         }
 
-        private void precision(String s, int start, int end) {
+        private int precision(String s, int start, int end) {
+            precision = -1;
             if (start >= 0) {
                 try {
                     // skip the leading '.'
@@ -2847,9 +2848,10 @@ public final class Formatter implements Closeable, Flushable {
                     throw new IllegalFormatPrecisionException(Integer.MIN_VALUE);
                 }
             }
+            return precision;
         }
 
-        private void conversion(char conv) {
+        private char conversion(char conv) {
             c = conv;
             if (!dt) {
                 if (!Conversion.isValid(c)) {
@@ -2863,17 +2865,7 @@ public final class Formatter implements Closeable, Flushable {
                     index = -2;
                 }
             }
-        }
-
-        FormatSpecifier(char conv) {
-            c = conv;
-            if (Character.isUpperCase(conv)) {
-                f = Flags.UPPERCASE;
-                c = Character.toLowerCase(conv);
-            }
-            if (Conversion.isText(conv)) {
-                index = -2;
-            }
+            return c;
         }
 
         FormatSpecifier(String s, Matcher m) {
@@ -2925,6 +2917,7 @@ public final class Formatter implements Closeable, Flushable {
                 printFloat(arg, l);
                 break;
             case Conversion.CHARACTER:
+            case Conversion.CHARACTER_UPPER:
                 printCharacter(arg, l);
                 break;
             case Conversion.BOOLEAN:
@@ -3019,19 +3012,19 @@ public final class Formatter implements Closeable, Flushable {
             if (arg instanceof Character) {
                 s = ((Character)arg).toString();
             } else if (arg instanceof Byte) {
-                byte i = (Byte) arg;
+                byte i = ((Byte)arg).byteValue();
                 if (Character.isValidCodePoint(i))
                     s = new String(Character.toChars(i));
                 else
                     throw new IllegalFormatCodePointException(i);
             } else if (arg instanceof Short) {
-                short i = (Short) arg;
+                short i = ((Short)arg).shortValue();
                 if (Character.isValidCodePoint(i))
                     s = new String(Character.toChars(i));
                 else
                     throw new IllegalFormatCodePointException(i);
             } else if (arg instanceof Integer) {
-                int i = (Integer) arg;
+                int i = ((Integer)arg).intValue();
                 if (Character.isValidCodePoint(i))
                     s = new String(Character.toChars(i));
                 else
@@ -3089,10 +3082,9 @@ public final class Formatter implements Closeable, Flushable {
                     Locale.getDefault(Locale.Category.FORMAT)));
         }
 
-        private void appendJustified(Appendable a, CharSequence cs) throws IOException {
+        private Appendable appendJustified(Appendable a, CharSequence cs) throws IOException {
              if (width == -1) {
-                 a.append(cs);
-                 return;
+                 return a.append(cs);
              }
              boolean padRight = f.contains(Flags.LEFT_JUSTIFY);
              int sp = width - cs.length();
@@ -3105,6 +3097,7 @@ public final class Formatter implements Closeable, Flushable {
              if (!padRight) {
                  a.append(cs);
              }
+             return a;
         }
 
         public String toString() {
@@ -3236,6 +3229,7 @@ public final class Formatter implements Closeable, Flushable {
                 && (c == Conversion.OCTAL_INTEGER
                     || c == Conversion.HEXADECIMAL_INTEGER)) {
                 v += (1L << 8);
+                assert v >= 0 : v;
             }
             print(v, l);
         }
@@ -3554,12 +3548,7 @@ public final class Formatter implements Closeable, Flushable {
                 sb.append(upper ? "0X" : "0x");
 
                 if (f.contains(Flags.ZERO_PAD)) {
-                    int leadingCharacters = 2;
-                    if(f.contains(Flags.LEADING_SPACE) ||
-                            f.contains(Flags.PLUS) || neg) {
-                        leadingCharacters = 3;
-                    }
-                    trailingZeros(sb, width - s.length() - leadingCharacters);
+                    trailingZeros(sb, width - s.length() - 2);
                 }
 
                 int idx = s.indexOf('p');
@@ -3628,7 +3617,7 @@ public final class Formatter implements Closeable, Flushable {
                 // If this is subnormal input so normalize (could be faster to
                 // do as integer operation).
                 if (subnormal) {
-                    double scaleUp = Math.scalb(1.0, 54);
+                    scaleUp = Math.scalb(1.0, 54);
                     d *= scaleUp;
                     // Calculate the exponent.  This is not just exponent + 54
                     // since the former is not the normalized exponent.
@@ -4461,7 +4450,7 @@ public final class Formatter implements Closeable, Flushable {
                 DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance(l);
                 return dfs.getZeroDigit();
             }
-            return zero();
+            return zero;
         }
 
         private StringBuilder localizedMagnitude(StringBuilder sb,
@@ -4640,17 +4629,18 @@ public final class Formatter implements Closeable, Flushable {
 
         // parse those flags which may be provided by users
         private static Flags parse(char c) {
-            return switch (c) {
-                case '-' -> LEFT_JUSTIFY;
-                case '#' -> ALTERNATE;
-                case '+' -> PLUS;
-                case ' ' -> LEADING_SPACE;
-                case '0' -> ZERO_PAD;
-                case ',' -> GROUP;
-                case '(' -> PARENTHESES;
-                case '<' -> PREVIOUS;
-                default -> throw new UnknownFormatFlagsException(String.valueOf(c));
-            };
+            switch (c) {
+            case '-': return LEFT_JUSTIFY;
+            case '#': return ALTERNATE;
+            case '+': return PLUS;
+            case ' ': return LEADING_SPACE;
+            case '0': return ZERO_PAD;
+            case ',': return GROUP;
+            case '(': return PARENTHESES;
+            case '<': return PREVIOUS;
+            default:
+                throw new UnknownFormatFlagsException(String.valueOf(c));
+            }
         }
 
         // Returns a string representation of the current {@code Flags}.
@@ -4716,85 +4706,74 @@ public final class Formatter implements Closeable, Flushable {
         static final char PERCENT_SIGN        = '%';
 
         static boolean isValid(char c) {
-            return switch (c) {
-                case BOOLEAN,
-                     BOOLEAN_UPPER,
-                     STRING,
-                     STRING_UPPER,
-                     HASHCODE,
-                     HASHCODE_UPPER,
-                     CHARACTER,
-                     CHARACTER_UPPER,
-                     DECIMAL_INTEGER,
-                     OCTAL_INTEGER,
-                     HEXADECIMAL_INTEGER,
-                     HEXADECIMAL_INTEGER_UPPER,
-                     SCIENTIFIC,
-                     SCIENTIFIC_UPPER,
-                     GENERAL,
-                     GENERAL_UPPER,
-                     DECIMAL_FLOAT,
-                     HEXADECIMAL_FLOAT,
-                     HEXADECIMAL_FLOAT_UPPER,
-                     LINE_SEPARATOR,
-                     PERCENT_SIGN -> true;
-                default -> false;
-            };
+            return (isGeneral(c) || isInteger(c) || isFloat(c) || isText(c)
+                    || c == 't' || isCharacter(c));
         }
 
         // Returns true iff the Conversion is applicable to all objects.
         static boolean isGeneral(char c) {
-            return switch (c) {
-                case BOOLEAN,
-                     BOOLEAN_UPPER,
-                     STRING,
-                     STRING_UPPER,
-                     HASHCODE,
-                     HASHCODE_UPPER -> true;
-                default -> false;
-            };
+            switch (c) {
+            case BOOLEAN:
+            case BOOLEAN_UPPER:
+            case STRING:
+            case STRING_UPPER:
+            case HASHCODE:
+            case HASHCODE_UPPER:
+                return true;
+            default:
+                return false;
+            }
         }
 
         // Returns true iff the Conversion is applicable to character.
         static boolean isCharacter(char c) {
-            return switch (c) {
-                case CHARACTER,
-                     CHARACTER_UPPER -> true;
-                default -> false;
-            };
+            switch (c) {
+            case CHARACTER:
+            case CHARACTER_UPPER:
+                return true;
+            default:
+                return false;
+            }
         }
 
         // Returns true iff the Conversion is an integer type.
         static boolean isInteger(char c) {
-            return switch (c) {
-                case DECIMAL_INTEGER,
-                     OCTAL_INTEGER,
-                     HEXADECIMAL_INTEGER,
-                     HEXADECIMAL_INTEGER_UPPER -> true;
-                default -> false;
-            };
+            switch (c) {
+            case DECIMAL_INTEGER:
+            case OCTAL_INTEGER:
+            case HEXADECIMAL_INTEGER:
+            case HEXADECIMAL_INTEGER_UPPER:
+                return true;
+            default:
+                return false;
+            }
         }
 
         // Returns true iff the Conversion is a floating-point type.
         static boolean isFloat(char c) {
-            return switch (c) {
-                case SCIENTIFIC,
-                     SCIENTIFIC_UPPER,
-                     GENERAL,
-                     GENERAL_UPPER,
-                     DECIMAL_FLOAT,
-                     HEXADECIMAL_FLOAT,
-                     HEXADECIMAL_FLOAT_UPPER -> true;
-                default -> false;
-            };
+            switch (c) {
+            case SCIENTIFIC:
+            case SCIENTIFIC_UPPER:
+            case GENERAL:
+            case GENERAL_UPPER:
+            case DECIMAL_FLOAT:
+            case HEXADECIMAL_FLOAT:
+            case HEXADECIMAL_FLOAT_UPPER:
+                return true;
+            default:
+                return false;
+            }
         }
 
         // Returns true iff the Conversion does not require an argument
         static boolean isText(char c) {
-            return switch (c) {
-                case LINE_SEPARATOR, PERCENT_SIGN -> true;
-                default -> false;
-            };
+            switch (c) {
+            case LINE_SEPARATOR:
+            case PERCENT_SIGN:
+                return true;
+            default:
+                return false;
+            }
         }
     }
 
@@ -4822,19 +4801,28 @@ public final class Formatter implements Closeable, Flushable {
         static final char CENTURY               = 'C'; // (00 - 99)
         static final char DAY_OF_MONTH_0        = 'd'; // (01 - 31)
         static final char DAY_OF_MONTH          = 'e'; // (1 - 31) -- like d
+// *    static final char ISO_WEEK_OF_YEAR_2    = 'g'; // cross %y %V
+// *    static final char ISO_WEEK_OF_YEAR_4    = 'G'; // cross %Y %V
         static final char NAME_OF_MONTH_ABBREV_X  = 'h'; // -- same b
         static final char DAY_OF_YEAR           = 'j'; // (001 - 366)
         static final char MONTH                 = 'm'; // (01 - 12)
+// *    static final char DAY_OF_WEEK_1         = 'u'; // (1 - 7) Monday
+// *    static final char WEEK_OF_YEAR_SUNDAY   = 'U'; // (0 - 53) Sunday+
+// *    static final char WEEK_OF_YEAR_MONDAY_01 = 'V'; // (01 - 53) Monday+
+// *    static final char DAY_OF_WEEK_0         = 'w'; // (0 - 6) Sunday
+// *    static final char WEEK_OF_YEAR_MONDAY   = 'W'; // (00 - 53) Monday
         static final char YEAR_2                = 'y'; // (00 - 99)
         static final char YEAR_4                = 'Y'; // (0000 - 9999)
 
         // Composites
         static final char TIME_12_HOUR  = 'r'; // (hh:mm:ss [AP]M)
         static final char TIME_24_HOUR  = 'R'; // (hh:mm same as %H:%M)
+// *    static final char LOCALE_TIME   = 'X'; // (%H:%M:%S) - parse format?
         static final char DATE_TIME             = 'c';
                                             // (Sat Nov 04 12:02:33 EST 1999)
         static final char DATE                  = 'D'; // (mm/dd/yy)
         static final char ISO_STANDARD_DATE     = 'F'; // (%Y-%m-%d)
+// *    static final char LOCALE_DATE           = 'x'; // (mm/dd/yy)
 
         static boolean isValid(char c) {
             switch (c) {
@@ -4861,18 +4849,27 @@ public final class Formatter implements Closeable, Flushable {
             case CENTURY:
             case DAY_OF_MONTH_0:
             case DAY_OF_MONTH:
+// *        case ISO_WEEK_OF_YEAR_2:
+// *        case ISO_WEEK_OF_YEAR_4:
             case NAME_OF_MONTH_ABBREV_X:
             case DAY_OF_YEAR:
             case MONTH:
+// *        case DAY_OF_WEEK_1:
+// *        case WEEK_OF_YEAR_SUNDAY:
+// *        case WEEK_OF_YEAR_MONDAY_01:
+// *        case DAY_OF_WEEK_0:
+// *        case WEEK_OF_YEAR_MONDAY:
             case YEAR_2:
             case YEAR_4:
 
             // Composites
             case TIME_12_HOUR:
             case TIME_24_HOUR:
+// *        case LOCALE_TIME:
             case DATE_TIME:
             case DATE:
             case ISO_STANDARD_DATE:
+// *        case LOCALE_DATE:
                 return true;
             default:
                 return false;

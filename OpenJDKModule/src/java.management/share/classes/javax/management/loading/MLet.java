@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2017, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -45,7 +45,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLStreamHandlerFactory;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
@@ -1145,8 +1144,19 @@ public class MLet extends java.net.URLClassLoader
                                                       libname + ".", null)
                                       .toFile();
                      file.deleteOnExit();
-                     Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                     return file.getAbsolutePath();
+                     FileOutputStream fileOutput = new FileOutputStream(file);
+                     try {
+                         byte[] buf = new byte[4096];
+                         int n;
+                         while ((n = is.read(buf)) >= 0) {
+                            fileOutput.write(buf, 0, n);
+                         }
+                     } finally {
+                         fileOutput.close();
+                     }
+                     if (file.exists()) {
+                         return file.getAbsolutePath();
+                     }
                  } finally {
                      is.close();
                  }

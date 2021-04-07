@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -72,16 +72,16 @@ class LogMessageBuffer;
 // Log class for more advanced logging scenarios.
 // Has printf-style member functions for each log level (trace(), debug(), etc).
 //
-// The (trace(), debug(), etc) functions can also be used along with the LogStream
-// class to obtain an outputStream object, to be passed to various printing
-// functions that accept an outputStream:
+// Also has outputStream compatible API for the different log-levels.
+// The streams are resource allocated when requested and are accessed through
+// calls to <level>_stream() functions (trace_stream(), debug_stream(), etc).
 //
 // Example usage:
-//   Log(codecache, sweep) log;
+//   Log(logging) log;
 //   if (log.is_debug()) {
+//     ...
 //     log.debug("result = %d", result).trace(" tracing info");
-//     LogStream ls(log.debug());
-//     CodeCache::print_summary(&ls, false);
+//     obj->print_on(log.debug_stream());
 //   }
 //
 #define Log(...)  LogImpl<LOG_TAGS(__VA_ARGS__)>
@@ -93,11 +93,13 @@ class LogMessageBuffer;
 // so that redundant specification of tags or levels can be avoided.
 //
 // Example usage:
-//   LogTarget(Debug, codecache, sweep) out;
+//   LogTarget(Debug, gc) out;
 //   if (out.is_enabled()) {
-//     out.print("result = %d", result);
-//     LogStream ls(out);
-//     CodeCache::print_summary(&ls, false);
+//     ...
+//     out.print("Worker: %u", i);
+//     out.print(" data: %d", x);
+//     ...
+//     print_stats(out.stream());
 //   }
 //
 #define LogTarget(level, ...) LogTargetImpl<LogLevel::level, LOG_TAGS(__VA_ARGS__)>

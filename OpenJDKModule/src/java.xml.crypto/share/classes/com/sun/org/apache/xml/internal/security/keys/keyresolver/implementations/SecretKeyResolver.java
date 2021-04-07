@@ -44,8 +44,8 @@ public class SecretKeyResolver extends KeyResolverSpi
     private static final com.sun.org.slf4j.internal.Logger LOG =
         com.sun.org.slf4j.internal.LoggerFactory.getLogger(SecretKeyResolver.class);
 
-    private final KeyStore keyStore;
-    private final char[] password;
+    private KeyStore keyStore;
+    private char[] password;
 
     /**
      * Constructor.
@@ -55,32 +55,59 @@ public class SecretKeyResolver extends KeyResolverSpi
         this.password = password;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected boolean engineCanResolve(Element element, String baseURI, StorageResolver storage) {
+    /**
+     * This method returns whether the KeyResolverSpi is able to perform the requested action.
+     *
+     * @param element
+     * @param baseURI
+     * @param storage
+     * @return whether the KeyResolverSpi is able to perform the requested action.
+     */
+    public boolean engineCanResolve(Element element, String baseURI, StorageResolver storage) {
         return XMLUtils.elementIsInSignatureSpace(element, Constants._TAG_KEYNAME);
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected PublicKey engineResolvePublicKey(
-        Element element, String baseURI, StorageResolver storage, boolean secureValidation
+    /**
+     * Method engineLookupAndResolvePublicKey
+     *
+     * @param element
+     * @param baseURI
+     * @param storage
+     * @return null if no {@link PublicKey} could be obtained
+     * @throws KeyResolverException
+     */
+    public PublicKey engineLookupAndResolvePublicKey(
+        Element element, String baseURI, StorageResolver storage
     ) throws KeyResolverException {
         return null;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected X509Certificate engineResolveX509Certificate(
-        Element element, String baseURI, StorageResolver storage, boolean secureValidation
+    /**
+     * Method engineResolveX509Certificate
+     * {@inheritDoc}
+     * @param element
+     * @param baseURI
+     * @param storage
+     * @throws KeyResolverException
+     */
+    public X509Certificate engineLookupResolveX509Certificate(
+        Element element, String baseURI, StorageResolver storage
     ) throws KeyResolverException {
         return null;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected SecretKey engineResolveSecretKey(
-        Element element, String baseURI, StorageResolver storage, boolean secureValidation
+    /**
+     * Method engineResolveSecretKey
+     *
+     * @param element
+     * @param baseURI
+     * @param storage
+     * @return resolved SecretKey key or null if no {@link SecretKey} could be obtained
+     *
+     * @throws KeyResolverException
+     */
+    public SecretKey engineResolveSecretKey(
+        Element element, String baseURI, StorageResolver storage
     ) throws KeyResolverException {
         LOG.debug("Can I resolve {}?", element.getTagName());
 
@@ -100,11 +127,18 @@ public class SecretKeyResolver extends KeyResolverSpi
         return null;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected PrivateKey engineResolvePrivateKey(
-        Element element, String baseURI, StorageResolver storage, boolean secureValidation
-    ) {
+    /**
+     * Method engineResolvePrivateKey
+     * {@inheritDoc}
+     * @param element
+     * @param baseURI
+     * @param storage
+     * @return resolved PrivateKey key or null if no {@link PrivateKey} could be obtained
+     * @throws KeyResolverException
+     */
+    public PrivateKey engineLookupAndResolvePrivateKey(
+        Element element, String baseURI, StorageResolver storage
+    ) throws KeyResolverException {
         return null;
     }
 }

@@ -135,7 +135,9 @@ public class TIFFIFD extends TIFFDirectory {
     }
 
     public static TIFFTag getTag(int tagNumber, List<TIFFTagSet> tagSets) {
-        for (TIFFTagSet tagSet : tagSets) {
+        Iterator<TIFFTagSet> iter = tagSets.iterator();
+        while (iter.hasNext()) {
+            TIFFTagSet tagSet = iter.next();
             TIFFTag tag = tagSet.getTag(tagNumber);
             if (tag != null) {
                 return tag;
@@ -146,7 +148,9 @@ public class TIFFIFD extends TIFFDirectory {
     }
 
     public static TIFFTag getTag(String tagName, List<TIFFTagSet> tagSets) {
-        for (TIFFTagSet tagSet : tagSets) {
+        Iterator<TIFFTagSet> iter = tagSets.iterator();
+        while (iter.hasNext()) {
+            TIFFTagSet tagSet = iter.next();
             TIFFTag tag = tagSet.getTag(tagName);
             if (tag != null) {
                 return tag;

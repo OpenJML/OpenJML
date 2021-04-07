@@ -465,7 +465,7 @@ public class NumberFormatter extends InternationalFormatter {
         }
         else {
             string = getReplaceString(offset, replaceLength,
-                                      String.valueOf(aChar));
+                                      new String(new char[] { aChar }));
         }
         return stringToValue(string);
     }

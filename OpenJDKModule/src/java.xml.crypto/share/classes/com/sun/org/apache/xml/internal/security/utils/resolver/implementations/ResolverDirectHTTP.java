@@ -26,14 +26,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URISyntaxException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Map;
 
 import com.sun.org.apache.xml.internal.security.signature.XMLSignatureInput;
 import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
@@ -67,7 +66,7 @@ public class ResolverDirectHTTP extends ResourceResolverSpi {
         com.sun.org.slf4j.internal.LoggerFactory.getLogger(ResolverDirectHTTP.class);
 
     /** Field properties[] */
-    private static final String[] properties = {
+    private static final String properties[] = {
                                                  "http.proxy.host", "http.proxy.port",
                                                  "http.proxy.username", "http.proxy.password",
                                                  "http.basic.username", "http.basic.password"
@@ -91,15 +90,9 @@ public class ResolverDirectHTTP extends ResourceResolverSpi {
     /** Field HttpProxyPass */
     private static final int HttpBasicPass = 5;
 
-    private final Map<String, String> resolverProperties;
-
-    public ResolverDirectHTTP() {
-        resolverProperties = Collections.emptyMap();
-    }
-
-    public ResolverDirectHTTP(Map<String, String> resolverProperties) {
-        this.resolverProperties =
-            Collections.unmodifiableMap(resolverProperties != null ? resolverProperties : Collections.emptyMap());
+    @Override
+    public boolean engineIsThreadSafe() {
+        return true;
     }
 
     /**
@@ -113,7 +106,7 @@ public class ResolverDirectHTTP extends ResourceResolverSpi {
             // calculate new URI
             URI uriNew = getNewURI(context.uriToResolve, context.baseUri);
             URL url = uriNew.toURL();
-            URLConnection urlConnection = openConnection(url, context);
+            URLConnection urlConnection = openConnection(url);
 
             // check if Basic authentication is required
             String auth = urlConnection.getHeaderField("WWW-Authenticate");
@@ -121,12 +114,12 @@ public class ResolverDirectHTTP extends ResourceResolverSpi {
             if (auth != null && auth.startsWith("Basic")) {
                 // do http basic authentication
                 String user =
-                    getProperty(context, ResolverDirectHTTP.properties[ResolverDirectHTTP.HttpBasicUser]);
+                    engineGetProperty(ResolverDirectHTTP.properties[ResolverDirectHTTP.HttpBasicUser]);
                 String pass =
-                    getProperty(context, ResolverDirectHTTP.properties[ResolverDirectHTTP.HttpBasicPass]);
+                    engineGetProperty(ResolverDirectHTTP.properties[ResolverDirectHTTP.HttpBasicPass]);
 
                 if (user != null && pass != null) {
-                    urlConnection = openConnection(url, context);
+                    urlConnection = openConnection(url);
 
                     String password = user + ":" + pass;
                     String encodedPassword = XMLUtils.encodeToString(password.getBytes(StandardCharsets.ISO_8859_1));
@@ -160,21 +153,27 @@ public class ResolverDirectHTTP extends ResourceResolverSpi {
                 return result;
             }
 
-        } catch (URISyntaxException | IOException | IllegalArgumentException ex) {
+        } catch (URISyntaxException ex) {
             throw new ResourceResolverException(ex, context.uriToResolve, context.baseUri, "generic.EmptyMessage");
+        } catch (MalformedURLException ex) {
+            throw new ResourceResolverException(ex, context.uriToResolve, context.baseUri, "generic.EmptyMessage");
+        } catch (IOException ex) {
+            throw new ResourceResolverException(ex, context.uriToResolve, context.baseUri, "generic.EmptyMessage");
+        } catch (IllegalArgumentException e) {
+            throw new ResourceResolverException(e, context.uriToResolve, context.baseUri, "generic.EmptyMessage");
         }
     }
 
-    private URLConnection openConnection(URL url, ResourceResolverContext context) throws IOException {
+    private URLConnection openConnection(URL url) throws IOException {
 
         String proxyHostProp =
-            getProperty(context, ResolverDirectHTTP.properties[ResolverDirectHTTP.HttpProxyHost]);
+                engineGetProperty(ResolverDirectHTTP.properties[ResolverDirectHTTP.HttpProxyHost]);
         String proxyPortProp =
-            getProperty(context, ResolverDirectHTTP.properties[ResolverDirectHTTP.HttpProxyPort]);
+                engineGetProperty(ResolverDirectHTTP.properties[ResolverDirectHTTP.HttpProxyPort]);
         String proxyUser =
-            getProperty(context, ResolverDirectHTTP.properties[ResolverDirectHTTP.HttpProxyUser]);
+                engineGetProperty(ResolverDirectHTTP.properties[ResolverDirectHTTP.HttpProxyUser]);
         String proxyPass =
-            getProperty(context, ResolverDirectHTTP.properties[ResolverDirectHTTP.HttpProxyPass]);
+                engineGetProperty(ResolverDirectHTTP.properties[ResolverDirectHTTP.HttpProxyPass]);
 
         Proxy proxy = null;
         if (proxyHostProp != null && proxyPortProp != null) {
@@ -211,7 +210,7 @@ public class ResolverDirectHTTP extends ResourceResolverSpi {
             return false;
         }
 
-        if (context.uriToResolve.isEmpty() || context.uriToResolve.charAt(0) == '#') {
+        if (context.uriToResolve.equals("") || context.uriToResolve.charAt(0) == '#') {
             LOG.debug("quick fail for empty URIs and local ones");
             return false;
         }
@@ -229,6 +228,13 @@ public class ResolverDirectHTTP extends ResourceResolverSpi {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public String[] engineGetPropertyKeys() {
+        return ResolverDirectHTTP.properties.clone();
+    }
+
     private static URI getNewURI(String uri, String baseURI) throws URISyntaxException {
         URI newUri = null;
         if (baseURI == null || "".equals(baseURI)) {
@@ -239,19 +245,11 @@ public class ResolverDirectHTTP extends ResourceResolverSpi {
 
         // if the URI contains a fragment, ignore it
         if (newUri.getFragment() != null) {
-            return new URI(newUri.getScheme(), newUri.getSchemeSpecificPart(), null);
+            URI uriNewNoFrag =
+                new URI(newUri.getScheme(), newUri.getSchemeSpecificPart(), null);
+            return uriNewNoFrag;
         }
         return newUri;
-    }
-
-    private String getProperty(ResourceResolverContext context, String propertyName) {
-        // First check the properties defined on this Resolver.
-        if (resolverProperties.containsKey(propertyName)) {
-            return resolverProperties.get(propertyName);
-        }
-
-        // Otherwise defer to the passed in properties
-        return context.getProperties().get(propertyName);
     }
 
 }

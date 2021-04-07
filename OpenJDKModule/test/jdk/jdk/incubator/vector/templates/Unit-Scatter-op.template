@@ -10,6 +10,6 @@
     @Test(dataProvider = "$type$UnaryOpIndexProvider")
     static void [[TEST]]$vectorteststype$(IntFunction<$type$[]> fa, BiFunction<Integer,Integer,int[]> fs) {
 [[KERNEL]]
-        assertArraysEquals(r, a, b, $vectorteststype$::[[TEST]]);
+        assertArraysEquals(a, b, r, $vectorteststype$::[[TEST]]);
     }
 

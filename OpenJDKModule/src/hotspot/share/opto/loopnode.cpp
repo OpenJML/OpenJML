@@ -543,7 +543,7 @@ void PhaseIdealLoop::long_loop_replace_long_iv(Node* iv_to_replace, Node* inner_
     }
 #endif
     _igvn.rehash_node_delayed(u);
-    int nb = u->replace_edge(iv_to_replace, iv_replacement, &_igvn);
+    int nb = u->replace_edge(iv_to_replace, iv_replacement);
     i -= nb;
   }
 }
@@ -569,7 +569,7 @@ void PhaseIdealLoop::add_empty_predicate(Deoptimization::DeoptReason reason, Nod
     const TypePtr* no_memory_effects = NULL;
     JVMState* jvms = sfpt->jvms();
     CallNode* unc = new CallStaticJavaNode(OptoRuntime::uncommon_trap_Type(), call_addr, "uncommon_trap",
-                                           no_memory_effects);
+                                           jvms->bci(), no_memory_effects);
 
     Node* mem = NULL;
     Node* i_o = NULL;
@@ -764,7 +764,7 @@ SafePointNode* PhaseIdealLoop::find_safepoint(Node* back_control, Node* x, Ideal
 bool PhaseIdealLoop::transform_long_counted_loop(IdealLoopTree* loop, Node_List &old_new) {
   Node* x = loop->_head;
   // Only for inner loops
-  if (loop->_child != NULL || !x->is_LongCountedLoop() || x->as_Loop()->is_transformed_long_outer_loop()) {
+  if (loop->_child != NULL || !x->is_LongCountedLoop()) {
     return false;
   }
 
@@ -812,8 +812,7 @@ bool PhaseIdealLoop::transform_long_counted_loop(IdealLoopTree* loop, Node_List 
     return false;
   }
 
-  // May not have gone thru igvn yet so don't use _igvn.type(phi) (PhaseIdealLoop::is_counted_loop() sets the iv phi's type)
-  const TypeLong* phi_t = phi->bottom_type()->is_long();
+  const TypeLong* phi_t = _igvn.type(phi)->is_long();
   assert(phi_t->_hi >= phi_t->_lo, "dead phi?");
   iters_limit = (int)MIN2((julong)iters_limit, (julong)(phi_t->_hi - phi_t->_lo));
 
@@ -833,8 +832,8 @@ bool PhaseIdealLoop::transform_long_counted_loop(IdealLoopTree* loop, Node_List 
   Node* outer_exit_test = new IfNode(exit_test->in(0), exit_test->in(1), exit_test->_prob, exit_test->_fcnt);
   Node* inner_exit_branch = exit_branch->clone();
 
-  LoopNode* outer_head = new LoopNode(entry_control, outer_back_branch);
-  IdealLoopTree* outer_ilt = insert_outer_loop(loop, outer_head, outer_back_branch);
+  Node* outer_head = new LoopNode(entry_control, outer_back_branch);
+  IdealLoopTree* outer_ilt = insert_outer_loop(loop, outer_head->as_Loop(), outer_back_branch);
 
   const bool body_populated = true;
   register_control(outer_head, outer_ilt, entry_control, body_populated);
@@ -1006,8 +1005,7 @@ bool PhaseIdealLoop::transform_long_counted_loop(IdealLoopTree* loop, Node_List 
   Atomic::inc(&_long_loop_nests);
 #endif
 
-  inner_head->mark_transformed_long_inner_loop();
-  outer_head->mark_transformed_long_outer_loop();
+  inner_head->mark_transformed_long_loop();
 
   return true;
 }
@@ -1172,7 +1170,7 @@ bool PhaseIdealLoop::convert_to_long_loop(Node* cmp, Node* phi, IdealLoopTree* l
         set_subtree_ctrl(m, false);
       }
       _igvn.rehash_node_delayed(u);
-      int nb = u->replace_edge(n, m, &_igvn);
+      int nb = u->replace_edge(n, m);
       --i, imax -= nb;
     }
   }
@@ -1391,7 +1389,7 @@ bool PhaseIdealLoop::is_counted_loop(Node* x, IdealLoopTree*&loop, BasicType iv_
     if (sov < 0) {
       return false;  // Bailout: integer overflow is certain.
     }
-    assert(!x->as_Loop()->is_transformed_long_inner_loop(), "long loop was transformed");
+    assert(!x->as_Loop()->is_transformed_long_loop(), "long loop was transformed");
     // Generate loop's limit check.
     // Loop limit check predicate should be near the loop.
     ProjNode *limit_check_proj = find_predicate_insertion_point(init_control, Deoptimization::Reason_loop_limit_check);
@@ -1481,7 +1479,7 @@ bool PhaseIdealLoop::is_counted_loop(Node* x, IdealLoopTree*&loop, BasicType iv_
 
 #ifdef ASSERT
   if (iv_bt == T_INT &&
-      !x->as_Loop()->is_transformed_long_inner_loop() &&
+      !x->as_Loop()->is_transformed_long_loop() &&
       StressLongCountedLoop > 0 &&
       trunc1 == NULL &&
       convert_to_long_loop(cmp, phi, loop)) {
@@ -1676,13 +1674,10 @@ bool PhaseIdealLoop::is_counted_loop(Node* x, IdealLoopTree*&loop, BasicType iv_
   }
 
 #ifndef PRODUCT
-  if (x->as_Loop()->is_transformed_long_inner_loop()) {
+  if (x->as_Loop()->is_transformed_long_loop()) {
     Atomic::inc(&_long_loop_counted_loops);
   }
 #endif
-  if (iv_bt == T_LONG && x->as_Loop()->is_transformed_long_outer_loop()) {
-    l->mark_transformed_long_outer_loop();
-  }
 
   return true;
 }
@@ -1807,7 +1802,7 @@ void LoopNode::verify_strip_mined(int expect_skeleton) const {
           for (DUIterator_Fast jmax, j = be->fast_outs(jmax); j < jmax; j++) {
             Node* n = be->fast_out(j);
             if (n->is_Load()) {
-              assert(n->in(0) == be || n->find_prec_edge(be) > 0, "should be on the backedge");
+              assert(n->in(0) == be, "should be on the backedge");
               do {
                 n = n->raw_out(0);
               } while (!n->is_Phi());
@@ -3318,7 +3313,7 @@ void IdealLoopTree::counted_loop( PhaseIdealLoop *phase ) {
              phase->is_counted_loop(_head, loop, T_LONG)) {
     remove_safepoints(phase, true);
   } else {
-    assert(!_head->is_Loop() || !_head->as_Loop()->is_transformed_long_inner_loop(), "transformation to counted loop should not fail");
+    assert(!_head->is_Loop() || !_head->as_Loop()->is_transformed_long_loop(), "transformation to counted loop should not fail");
     if (_parent != NULL && !_irreducible) {
       // Not a counted loop. Keep one safepoint.
       bool keep_one_sfpt = true;
@@ -3538,7 +3533,8 @@ void PhaseIdealLoop::log_loop_tree() {
 //---------------------collect_potentially_useful_predicates-----------------------
 // Helper function to collect potentially useful predicates to prevent them from
 // being eliminated by PhaseIdealLoop::eliminate_useless_predicates
-void PhaseIdealLoop::collect_potentially_useful_predicates(IdealLoopTree* loop, Unique_Node_List &useful_predicates) {
+void PhaseIdealLoop::collect_potentially_useful_predicates(
+                         IdealLoopTree * loop, Unique_Node_List &useful_predicates) {
   if (loop->_child) { // child
     collect_potentially_useful_predicates(loop->_child, useful_predicates);
   }
@@ -3549,28 +3545,22 @@ void PhaseIdealLoop::collect_potentially_useful_predicates(IdealLoopTree* loop, 
       !loop->tail()->is_top()) {
     LoopNode* lpn = loop->_head->as_Loop();
     Node* entry = lpn->in(LoopNode::EntryControl);
-
-    Node* predicate = find_predicate_insertion_point(entry, Deoptimization::Reason_loop_limit_check);
-    if (predicate != NULL) { // right pattern that can be used by loop predication
+    Node* predicate_proj = find_predicate(entry); // loop_limit_check first
+    if (predicate_proj != NULL) { // right pattern that can be used by loop predication
       assert(entry->in(0)->in(1)->in(1)->Opcode() == Op_Opaque1, "must be");
       useful_predicates.push(entry->in(0)->in(1)->in(1)); // good one
       entry = skip_loop_predicates(entry);
     }
     if (UseProfiledLoopPredicate) {
-      predicate = find_predicate_insertion_point(entry, Deoptimization::Reason_profile_predicate);
-      if (predicate != NULL) { // right pattern that can be used by loop predication
+      predicate_proj = find_predicate(entry); // Predicate
+      if (predicate_proj != NULL) {
         useful_predicates.push(entry->in(0)->in(1)->in(1)); // good one
-        get_skeleton_predicates(entry, useful_predicates, true);
         entry = skip_loop_predicates(entry);
       }
     }
-
-    if (UseLoopPredicate) {
-      predicate = find_predicate_insertion_point(entry, Deoptimization::Reason_predicate);
-      if (predicate != NULL) { // right pattern that can be used by loop predication
-        useful_predicates.push(entry->in(0)->in(1)->in(1)); // good one
-        get_skeleton_predicates(entry, useful_predicates, true);
-      }
+    predicate_proj = find_predicate(entry); // Predicate
+    if (predicate_proj != NULL) {
+      useful_predicates.push(entry->in(0)->in(1)->in(1)); // good one
     }
   }
 
@@ -3584,9 +3574,8 @@ void PhaseIdealLoop::collect_potentially_useful_predicates(IdealLoopTree* loop, 
 // Note: it will also eliminates loop limits check predicate since it also uses
 // Opaque1 node (see Parse::add_predicate()).
 void PhaseIdealLoop::eliminate_useless_predicates() {
-  if (C->predicate_count() == 0 && C->skeleton_predicate_count() == 0) {
+  if (C->predicate_count() == 0)
     return; // no predicate left
-  }
 
   Unique_Node_List useful_predicates; // to store useful predicates
   if (C->has_loops()) {
@@ -3594,19 +3583,11 @@ void PhaseIdealLoop::eliminate_useless_predicates() {
   }
 
   for (int i = C->predicate_count(); i > 0; i--) {
-     Node* n = C->predicate_opaque1_node(i - 1);
+     Node * n = C->predicate_opaque1_node(i-1);
      assert(n->Opcode() == Op_Opaque1, "must be");
      if (!useful_predicates.member(n)) { // not in the useful list
        _igvn.replace_node(n, n->in(1));
      }
-  }
-
-  for (int i = C->skeleton_predicate_count(); i > 0; i--) {
-    Node* n = C->skeleton_predicate_opaque4_node(i - 1);
-    assert(n->Opcode() == Op_Opaque4, "must be");
-    if (!useful_predicates.member(n)) { // not in the useful list
-      _igvn.replace_node(n, n->in(2));
-    }
   }
 }
 
@@ -5042,8 +5023,7 @@ Node *PhaseIdealLoop::get_late_ctrl( Node *n, Node *early ) {
             for (uint j = 1; j < s->req(); j++) {
               Node* in = s->in(j);
               Node* r_in = r->in(j);
-              // We can't reach any node from a Phi because we don't enqueue Phi's uses above
-              if (((worklist.member(in) && !in->is_Phi()) || in == mem) && is_dominator(early, r_in)) {
+              if ((worklist.member(in) || in == mem) && is_dominator(early, r_in)) {
                 LCA = dom_lca_for_get_late_ctrl(LCA, r_in, n);
               }
             }
@@ -5307,7 +5287,7 @@ void PhaseIdealLoop::build_loop_late_post_work(Node *n, bool pinned) {
     case Op_HasNegatives:
       pinned = false;
     }
-    if (n->is_CMove() || n->is_ConstraintCast()) {
+    if (n->is_CMove()) {
       pinned = false;
     }
     if( pinned ) {

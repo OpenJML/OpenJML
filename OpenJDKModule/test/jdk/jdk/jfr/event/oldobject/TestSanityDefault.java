@@ -4,7 +4,9 @@
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -35,6 +37,7 @@ import jdk.test.lib.jfr.Events;
  * @test
  * @key jfr
  * @requires vm.hasJFR
+ * @requires vm.gc == "null"
  * @library /test/lib /test/jdk
  * @summary Purpose of this test is to run leak profiler without command line tweaks or WhiteBox hacks until we succeed
  * @run main/othervm jdk.jfr.event.oldobject.TestSanityDefault

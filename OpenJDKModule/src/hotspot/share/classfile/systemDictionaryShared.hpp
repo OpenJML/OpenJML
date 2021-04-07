@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,7 +25,6 @@
 #ifndef SHARE_CLASSFILE_SYSTEMDICTIONARYSHARED_HPP
 #define SHARE_CLASSFILE_SYSTEMDICTIONARYSHARED_HPP
 
-#include "classfile/classLoaderData.hpp"
 #include "classfile/packageEntry.hpp"
 #include "classfile/systemDictionary.hpp"
 #include "memory/filemap.hpp"
@@ -136,7 +135,7 @@ private:
                                                TRAPS);
   static Handle get_package_name(Symbol*  class_name, TRAPS);
 
-  static PackageEntry* get_package_entry_from_class(InstanceKlass* ik, Handle class_loader);
+  static PackageEntry* get_package_entry_from_class_name(Handle class_loader, Symbol* class_name);
 
 
   // Package handling:
@@ -246,9 +245,13 @@ public:
   // Check if sharing is supported for the class loader.
   static bool is_sharing_possible(ClassLoaderData* loader_data);
 
-  static bool add_unregistered_class(Thread* current, InstanceKlass* k);
-  static InstanceKlass* lookup_super_for_unregistered_class(Symbol* class_name,
-                                                            Symbol* super_name,  bool is_superclass);
+  static bool add_unregistered_class(InstanceKlass* k, TRAPS);
+  static InstanceKlass* dump_time_resolve_super_or_fail(Symbol* child_name,
+                                                Symbol* class_name,
+                                                Handle class_loader,
+                                                Handle protection_domain,
+                                                bool is_superclass,
+                                                TRAPS);
 
   static void init_dumptime_info(InstanceKlass* k) NOT_CDS_RETURN;
   static void remove_dumptime_info(InstanceKlass* k) NOT_CDS_RETURN;
@@ -297,9 +300,9 @@ public:
   static InstanceKlass* get_shared_nest_host(InstanceKlass* lambda_ik) NOT_CDS_RETURN_(NULL);
   static InstanceKlass* prepare_shared_lambda_proxy_class(InstanceKlass* lambda_ik,
                                                           InstanceKlass* caller_ik, TRAPS) NOT_CDS_RETURN_(NULL);
-  static bool check_linking_constraints(Thread* current, InstanceKlass* klass) NOT_CDS_RETURN_(false);
+  static bool check_linking_constraints(InstanceKlass* klass, TRAPS) NOT_CDS_RETURN_(false);
   static void record_linking_constraint(Symbol* name, InstanceKlass* klass,
-                                     Handle loader1, Handle loader2) NOT_CDS_RETURN;
+                                     Handle loader1, Handle loader2, TRAPS) NOT_CDS_RETURN;
   static bool is_builtin(InstanceKlass* k) {
     return (k->shared_classpath_index() != UNREGISTERED_INDEX);
   }
@@ -313,10 +316,9 @@ public:
   static void adjust_lambda_proxy_class_dictionary();
   static void serialize_dictionary_headers(class SerializeClosure* soc,
                                            bool is_static_archive = true);
-  static void serialize_vm_classes(class SerializeClosure* soc);
+  static void serialize_well_known_klasses(class SerializeClosure* soc);
   static void print() { return print_on(tty); }
   static void print_on(outputStream* st) NOT_CDS_RETURN;
-  static void print_shared_archive(outputStream* st, bool is_static = true) NOT_CDS_RETURN;
   static void print_table_statistics(outputStream* st) NOT_CDS_RETURN;
   static bool empty_dumptime_table() NOT_CDS_RETURN_(true);
   static void start_dumping() NOT_CDS_RETURN;
@@ -339,14 +341,11 @@ public:
 #endif
 
   template <typename T>
-  static unsigned int hash_for_shared_dictionary_quick(T* ptr) {
-    assert(MetaspaceObj::is_shared((const MetaspaceObj*)ptr), "must be");
+  static unsigned int hash_for_shared_dictionary(T* ptr) {
     assert(ptr > (T*)SharedBaseAddress, "must be");
-    uintx offset = uintx(ptr) - uintx(SharedBaseAddress);
-    return primitive_hash<uintx>(offset);
+    address p = address(ptr) - SharedBaseAddress;
+    return primitive_hash<address>(p);
   }
-
-  static unsigned int hash_for_shared_dictionary(address ptr);
 
 #if INCLUDE_CDS_JAVA_HEAP
 private:

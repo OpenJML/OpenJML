@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -68,13 +68,6 @@ public interface OutputBuffer {
    */
   public String getStderr();
   public int getExitValue();
-
-  /**
-   * Returns the pid if available
-   *
-   * @return pid
-   */
-  public long pid();
 
   public static OutputBuffer of(Process p, Charset cs) {
     return new LazyOutputBuffer(p, cs);
@@ -164,11 +157,6 @@ public interface OutputBuffer {
         throw new OutputBufferException(e);
       }
     }
-
-    @Override
-    public long pid() {
-      return p.pid();
-    }
   }
 
   class EagerOutputBuffer implements OutputBuffer {
@@ -195,11 +183,6 @@ public interface OutputBuffer {
     @Override
     public int getExitValue() {
       return exitValue;
-    }
-
-    @Override
-    public long pid() {
-      throw new RuntimeException("no process");
     }
   }
 }

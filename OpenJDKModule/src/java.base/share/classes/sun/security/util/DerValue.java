@@ -170,7 +170,7 @@ public class DerValue {
     private final boolean allowBER;
 
     // Unsafe. Legacy. Never null.
-    public final DerInputStream data;
+    final public DerInputStream data;
 
     /*
      * These values are the high order bits for the other kinds of tags.

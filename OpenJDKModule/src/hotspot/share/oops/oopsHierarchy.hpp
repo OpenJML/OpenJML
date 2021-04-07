@@ -86,9 +86,9 @@ class oop {
   }
 
 public:
-  oop()             : _o(nullptr) { register_if_checking(); }
-  oop(const oop& o) : _o(o._o)    { register_if_checking(); }
-  oop(oopDesc* o)   : _o(o)       { register_if_checking(); }
+  oop()              : _o(NULL)        { register_if_checking(); }
+  oop(const oop& o)  : _o(o._o)        { register_if_checking(); }
+  oop(const void* p) : _o((oopDesc*)p) { register_if_checking(); }
   ~oop() {
     if (CheckUnhandledOops) unregister_oop();
   }
@@ -98,12 +98,11 @@ public:
   operator oopDesc* () const           { return _o; }
 
   bool operator==(const oop& o) const  { return _o == o._o; }
+  bool operator==(void *p) const       { return _o == p; }
   bool operator!=(const oop& o) const  { return _o != o._o; }
+  bool operator!=(void *p) const       { return _o != p; }
 
-  bool operator==(nullptr_t) const     { return _o == nullptr; }
-  bool operator!=(nullptr_t) const     { return _o != nullptr; }
-
-  oop& operator=(const oop& o)         { _o = o._o; return *this; }
+  oop& operator=(const oop& o)        { _o = o._o; return *this; }
 };
 
 template<>
@@ -122,7 +121,7 @@ struct PrimitiveConversions::Translate<oop> : public TrueType {
        type##Oop() : oop() {}                                              \
        type##Oop(const type##Oop& o) : oop(o) {}                           \
        type##Oop(const oop& o) : oop(o) {}                                 \
-       type##Oop(type##OopDesc* o) : oop((oopDesc*)o) {}                   \
+       type##Oop(const void* p) : oop(p) {}                                \
        operator type##OopDesc* () const { return (type##OopDesc*)obj(); }  \
        type##OopDesc* operator->() const {                                 \
             return (type##OopDesc*)obj();                                  \
@@ -149,11 +148,13 @@ DEF_OOP(typeArray);
 
 #endif // CHECK_UNHANDLED_OOPS
 
-// Cast functions to convert to and from oops.
-template <typename T> inline oop cast_to_oop(T value) {
-  return (oopDesc*)value;
+// For CHECK_UNHANDLED_OOPS, it is ambiguous C++ behavior to have the oop
+// structure contain explicit user defined conversions of both numerical
+// and pointer type. Define inline methods to provide the numerical conversions.
+template <class T> inline oop cast_to_oop(T value) {
+  return (oop)(CHECK_UNHANDLED_OOPS_ONLY((void *))(value));
 }
-template <typename T> inline T cast_from_oop(oop o) {
+template <class T> inline T cast_from_oop(oop o) {
   return (T)(CHECK_UNHANDLED_OOPS_ONLY((oopDesc*))o);
 }
 

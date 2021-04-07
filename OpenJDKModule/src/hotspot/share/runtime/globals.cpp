@@ -23,7 +23,20 @@
  */
 
 #include "precompiled.hpp"
-#include "runtime/flags/allFlags.hpp"
+#include "jfr/jfrEvents.hpp"
+#include "jvm.h"
+#include "memory/allocation.inline.hpp"
+#include "oops/oop.inline.hpp"
+#include "runtime/arguments.hpp"
+#include "runtime/globals.hpp"
+#include "runtime/globals_extension.hpp"
+#include "runtime/globals_shared.hpp"
+#include "runtime/os.hpp"
+#include "runtime/sharedRuntime.hpp"
+#include "utilities/defaultStream.hpp"
+#include "utilities/macros.hpp"
+#include "utilities/ostream.hpp"
+#include "utilities/stringUtils.hpp"
 
 // Implementation macros
 #define MATERIALIZE_PRODUCT_FLAG(type, name, value, ...)      type name = value;

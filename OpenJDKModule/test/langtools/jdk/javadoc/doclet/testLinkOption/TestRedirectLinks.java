@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2002, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -43,12 +43,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyStore;
-import java.time.Duration;
-import java.time.Instant;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -87,31 +84,9 @@ public class TestRedirectLinks extends JavadocTester {
      */
     @Test
     public void testRedirects() throws Exception {
-        // This test relies on access to an external resource, which may or may not be
-        // reliably available, depending on the host system configuration and other
-        // networking issues. Therefore, it is disabled by default, unless the system
-        // property "javadoc.dev" is set "true".
-        String property = "javadoc.dev";
-        if (!Boolean.getBoolean(property)) {
-            out.println("Test case disabled by default; "
-                    + "set system property \"" + property + "\" to true to enable it.");
-            return;
-        }
-
-        // test to see if access to external URLs is available, and that the URL uses a redirect
-
+        // first, test to see if access to external URLs is available
         URL testURL = new URL("http://docs.oracle.com/en/java/javase/11/docs/api/element-list");
-        String testURLHost = testURL.getHost();
-        try {
-            InetAddress testAddr = InetAddress.getByName(testURLHost);
-            out.println("Found " + testURLHost + ": " + testAddr);
-        } catch (UnknownHostException e) {
-            out.println("Setup failed (" + testURLHost + " not found); this test skipped");
-            return;
-        }
-
         boolean haveRedirectURL = false;
-        Instant start = Instant.now();
         try {
             URLConnection conn = testURL.openConnection();
             conn.connect();
@@ -132,12 +107,10 @@ public class TestRedirectLinks extends JavadocTester {
             }
         } catch (Exception e) {
             out.println("Exception occurred: " + e);
-            Instant now = Instant.now();
-            out.println("Attempt took " + Duration.between(start, now).toSeconds() + " seconds");
         }
 
         if (!haveRedirectURL) {
-            out.println("Setup failed (no redirect URL); this test skipped");
+            out.println("Setup failed; this test skipped");
             return;
         }
 
@@ -146,7 +119,6 @@ public class TestRedirectLinks extends JavadocTester {
         javadoc("-d", outRedirect,
                 "-sourcepath", testSrc,
                 "-link", apiURL,
-                "-Xdoclint:none",
                 "pkg");
         checkExit(Exit.OK);
         checkOutput("pkg/B.html", true,
@@ -185,19 +157,16 @@ public class TestRedirectLinks extends JavadocTester {
         new JavacTask(tb)
                 .outdir(libModules)
                 .options("--module-source-path", libSrc.toString(),
-                        "--module", "mA,mB",
-                        "-Xdoclint:none")
+                        "--module", "mA,mB")
                 .run()
                 .writeAll();
 
         javadoc("-d", libApi.toString(),
                 "--module-source-path", libSrc.toString(),
-                "--module", "mA,mB",
-                "-Xdoclint:none" );
+                "--module", "mA,mB" );
 
         // start web servers
-        // use loopback address to avoid any issues if proxy is in use
-        InetAddress localHost = InetAddress.getLoopbackAddress();
+        InetAddress localHost = InetAddress.getLocalHost();
         try {
             oldServer = HttpServer.create(new InetSocketAddress(localHost, 0), 0);
             String oldURL = "http:/" + oldServer.getAddress();
@@ -232,8 +201,7 @@ public class TestRedirectLinks extends JavadocTester {
                         "--module-source-path", src.toString(),
                         "--module-path", libModules.toString(),
                         "-link", "http:/" + oldServer.getAddress(),
-                        "--module", "mC",
-                        "-Xdoclint:none");
+                        "--module", "mC" );
 
             } finally {
                 HttpsURLConnection.setDefaultHostnameVerifier(prevHostNameVerifier);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -162,9 +162,6 @@ public final class URLPermission extends Permission {
     private transient Authority authority;
 
     // serialized field
-    /**
-     * The actions string
-     */
     private String actions;
 
     /**
@@ -298,9 +295,11 @@ public final class URLPermission extends Permission {
      * </table>
      */
     public boolean implies(Permission p) {
-        if (! (p instanceof URLPermission that)) {
+        if (! (p instanceof URLPermission)) {
             return false;
         }
+
+        URLPermission that = (URLPermission)p;
 
         if (this.methods.isEmpty() && !that.methods.isEmpty()) {
             return false;
@@ -372,9 +371,10 @@ public final class URLPermission extends Permission {
      * and p's url equals this's url.  Returns false otherwise.
      */
     public boolean equals(Object p) {
-        if (!(p instanceof URLPermission that)) {
+        if (!(p instanceof URLPermission)) {
             return false;
         }
+        URLPermission that = (URLPermission)p;
         if (!this.scheme.equals(that.scheme)) {
             return false;
         }
@@ -504,11 +504,7 @@ public final class URLPermission extends Permission {
     }
 
     /**
-     * Restores the state of this object from stream.
-     *
-     * @param  s the {@code ObjectInputStream} from which data is read
-     * @throws IOException if an I/O error occurs
-     * @throws ClassNotFoundException if a serialized class cannot be loaded
+     * restore the state of this object from stream
      */
     @java.io.Serial
     private void readObject(ObjectInputStream s)

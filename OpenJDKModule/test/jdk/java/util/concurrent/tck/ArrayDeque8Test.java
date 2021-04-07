@@ -52,23 +52,23 @@ public class ArrayDeque8Test extends JSR166TestCase {
      */
     public void testSpliterator_getComparator() {
         assertThrows(IllegalStateException.class,
-                     () -> new ArrayDeque<Item>().spliterator().getComparator());
+                     () -> new ArrayDeque().spliterator().getComparator());
     }
 
     /**
      * Spliterator characteristics are as advertised
      */
     public void testSpliterator_characteristics() {
-        ArrayDeque<Item> q = new ArrayDeque<>();
-        Spliterator<Item> s = q.spliterator();
+        ArrayDeque q = new ArrayDeque();
+        Spliterator s = q.spliterator();
         int characteristics = s.characteristics();
         int required = Spliterator.NONNULL
             | Spliterator.ORDERED
             | Spliterator.SIZED
             | Spliterator.SUBSIZED;
-        mustEqual(required, characteristics & required);
+        assertEquals(required, characteristics & required);
         assertTrue(s.hasCharacteristics(required));
-        mustEqual(0, characteristics
+        assertEquals(0, characteristics
                      & (Spliterator.CONCURRENT
                         | Spliterator.DISTINCT
                         | Spliterator.IMMUTABLE
@@ -85,32 +85,32 @@ public class ArrayDeque8Test extends JSR166TestCase {
                && Runtime.getRuntime().maxMemory() > 24L * (1 << 30)))
             return;
 
-        final Item e = fortytwo;
+        final Integer e = 42;
         final int maxArraySize = Integer.MAX_VALUE - 8;
 
         assertThrows(OutOfMemoryError.class,
-                     () -> new ArrayDeque<Item>(Integer.MAX_VALUE));
+                     () -> new ArrayDeque(Integer.MAX_VALUE));
 
         {
-            ArrayDeque<Object> q = new ArrayDeque<>(maxArraySize - 1);
-            mustEqual(0, q.size());
+            ArrayDeque q = new ArrayDeque(maxArraySize - 1);
+            assertEquals(0, q.size());
             assertTrue(q.isEmpty());
             q = null;
         }
 
         {
-            ArrayDeque<Object> q = new ArrayDeque<>();
+            ArrayDeque q = new ArrayDeque();
             assertTrue(q.addAll(Collections.nCopies(maxArraySize - 3, e)));
-            mustEqual(e, q.peekFirst());
-            mustEqual(e, q.peekLast());
-            mustEqual(maxArraySize - 3, q.size());
-            q.addFirst(zero);
-            q.addLast(one);
-            mustEqual(zero, q.peekFirst());
-            mustEqual(one, q.peekLast());
-            mustEqual(maxArraySize - 1, q.size());
+            assertEquals(e, q.peekFirst());
+            assertEquals(e, q.peekLast());
+            assertEquals(maxArraySize - 3, q.size());
+            q.addFirst((Integer) 0);
+            q.addLast((Integer) 1);
+            assertEquals((Integer) 0, q.peekFirst());
+            assertEquals((Integer) 1, q.peekLast());
+            assertEquals(maxArraySize - 1, q.size());
 
-            ArrayDeque<Object> smallish = new ArrayDeque<>(
+            ArrayDeque smallish = new ArrayDeque(
                 Collections.nCopies(Integer.MAX_VALUE - q.size() + 1, e));
             assertThrows(
                 IllegalStateException.class,

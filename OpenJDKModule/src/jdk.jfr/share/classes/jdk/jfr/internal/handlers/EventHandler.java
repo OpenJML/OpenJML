@@ -52,7 +52,7 @@ public abstract class EventHandler {
         platformEventType.setRegistered(registered);
     }
 
-    protected final StringPool createStringFieldWriter() {
+    final protected StringPool createStringFieldWriter() {
         return new StringPool();
     }
 

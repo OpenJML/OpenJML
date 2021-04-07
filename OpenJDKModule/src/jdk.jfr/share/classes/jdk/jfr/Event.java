@@ -86,7 +86,7 @@ package jdk.jfr;
 @Enabled(true)
 @StackTrace(true)
 @Registered(true)
-public abstract class Event extends jdk.internal.event.Event {
+abstract public class Event extends jdk.internal.event.Event {
     /**
      * Sole constructor, for invocation by subclass constructors, typically
      * implicit.
@@ -97,8 +97,7 @@ public abstract class Event extends jdk.internal.event.Event {
     /**
      * Starts the timing of this event.
      */
-    @Override
-    public final void begin() {
+    final public void begin() {
     }
 
     /**
@@ -106,8 +105,7 @@ public abstract class Event extends jdk.internal.event.Event {
      *
      * The {@code end} method must be invoked after the {@code begin} method.
      */
-    @Override
-    public final void end() {
+    final public void end() {
     }
 
     /**
@@ -118,8 +116,7 @@ public abstract class Event extends jdk.internal.event.Event {
      * not end with an explicit invocation of the {@code end} method, then the event
      * ends when the {@code commit} method is invoked.
      */
-    @Override
-    public final void commit() {
+    final public void commit() {
     }
 
     /**
@@ -129,8 +126,7 @@ public abstract class Event extends jdk.internal.event.Event {
      *
      * @return {@code true} if event is enabled, {@code false} otherwise
      */
-    @Override
-    public final boolean isEnabled() {
+    final public boolean isEnabled() {
         return false;
     }
 
@@ -143,8 +139,7 @@ public abstract class Event extends jdk.internal.event.Event {
      * @return {@code true} if the event can be written to the Flight Recorder
      *         system, {@code false} otherwise
      */
-    @Override
-    public final boolean shouldCommit() {
+    final public boolean shouldCommit() {
         return false;
     }
 
@@ -169,7 +164,6 @@ public abstract class Event extends jdk.internal.event.Event {
      * @see EventType#getFields()
      * @see EventFactory
      */
-    @Override
-    public final void set(int index, Object value) {
+    final public void set(int index, Object value) {
     }
 }

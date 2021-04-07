@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -24,7 +24,6 @@
 
 #include "precompiled.hpp"
 #include "classfile/altHashing.hpp"
-#include "classfile/classLoaderData.hpp"
 #include "classfile/compactHashtable.hpp"
 #include "classfile/javaClasses.hpp"
 #include "classfile/symbolTable.hpp"
@@ -32,6 +31,7 @@
 #include "memory/archiveBuilder.hpp"
 #include "memory/dynamicArchive.hpp"
 #include "memory/metaspaceClosure.hpp"
+#include "memory/metaspaceShared.hpp"
 #include "memory/resourceArea.hpp"
 #include "oops/oop.inline.hpp"
 #include "runtime/atomic.hpp"
@@ -275,13 +275,6 @@ void SymbolTable::symbols_do(SymbolClosure *cl) {
   _local_table->do_safepoint_scan(sd);
 }
 
-// Call function for all symbols in shared table. Used by -XX:+PrintSharedArchiveAndExit
-void SymbolTable::shared_symbols_do(SymbolClosure *cl) {
-  SharedSymbolIterator iter(cl);
-  _shared_table.iterate(&iter);
-  _dynamic_shared_table.iterate(&iter);
-}
-
 Symbol* SymbolTable::lookup_dynamic(const char* name,
                                     int len, unsigned int hash) {
   Symbol* sym = do_lookup(name, len, hash);
@@ -355,6 +348,7 @@ Symbol* SymbolTable::new_symbol(const Symbol* sym, int begin, int end) {
 
 class SymbolTableLookup : StackObj {
 private:
+  Thread* _thread;
   uintx _hash;
   int _len;
   const char* _str;
@@ -591,7 +585,6 @@ void SymbolTable::dump(outputStream* st, bool verbose) {
 #if INCLUDE_CDS
 void SymbolTable::copy_shared_symbol_table(GrowableArray<Symbol*>* symbols,
                                            CompactHashtableWriter* writer) {
-  ArchiveBuilder* builder = ArchiveBuilder::current();
   int len = symbols->length();
   for (int i = 0; i < len; i++) {
     Symbol* sym = ArchiveBuilder::get_relocated_symbol(symbols->at(i));
@@ -599,7 +592,10 @@ void SymbolTable::copy_shared_symbol_table(GrowableArray<Symbol*>* symbols,
     assert(fixed_hash == hash_symbol((const char*)sym->bytes(), sym->utf8_length(), false),
            "must not rehash during dumping");
     sym->set_permanent();
-    writer->add(fixed_hash, builder->buffer_to_offset_u4((address)sym));
+    if (DynamicDumpSharedSpaces) {
+      sym = DynamicArchive::buffer_to_target(sym);
+    }
+    writer->add(fixed_hash, MetaspaceShared::object_delta_u4(sym));
   }
 }
 
@@ -608,11 +604,21 @@ size_t SymbolTable::estimate_size_for_archive() {
 }
 
 void SymbolTable::write_to_archive(GrowableArray<Symbol*>* symbols) {
-  CompactHashtableWriter writer(int(_items_count), ArchiveBuilder::symbol_stats());
+  CompactHashtableWriter writer(int(_items_count),
+                                &MetaspaceShared::stats()->symbol);
   copy_shared_symbol_table(symbols, &writer);
   if (!DynamicDumpSharedSpaces) {
     _shared_table.reset();
     writer.dump(&_shared_table, "symbol");
+
+    // Verify the written shared table is correct -- at this point,
+    // vmSymbols has already been relocated to point to the archived
+    // version of the Symbols.
+    Symbol* sym = vmSymbols::java_lang_Object();
+    const char* name = (const char*)sym->bytes();
+    int len = sym->utf8_length();
+    unsigned int hash = hash_symbol(name, len, _alt_hash);
+    assert(sym == _shared_table.lookup(name, hash, len), "sanity");
   } else {
     _dynamic_shared_table.reset();
     writer.dump(&_dynamic_shared_table, "symbol");

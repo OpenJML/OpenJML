@@ -81,7 +81,7 @@ public class TestSeeTag extends JavadocTester {
                     <dl class="notes">
                     <dt>See Also:</dt>
                     <dd><code>Object</code>,\s
-                    <code>Foo&lt;String&gt;</code></dd>
+                    <code>Foo<String></code></dd>
                     </dl>""");
     }
 }

@@ -35,6 +35,8 @@ import jdk.jfr.internal.LongMap;
 import jdk.jfr.internal.MetadataDescriptor;
 import jdk.jfr.internal.PrivateAccess;
 import jdk.jfr.internal.Type;
+import jdk.jfr.internal.consumer.Parser;
+import jdk.jfr.internal.consumer.RecordingInput;
 
 /**
  * Class that create parsers suitable for reading events and constant pools
@@ -286,7 +288,7 @@ final class ParserFactory {
         }
     }
 
-    private static final class ArrayParser extends Parser {
+    private final static class ArrayParser extends Parser {
         private final Parser elementParser;
 
         public ArrayParser(Parser elementParser) {
@@ -312,7 +314,7 @@ final class ParserFactory {
         }
     }
 
-    private static final class CompositeParser extends Parser {
+    private final static class CompositeParser extends Parser {
         private final Parser[] parsers;
 
         public CompositeParser(Parser[] valueParsers) {

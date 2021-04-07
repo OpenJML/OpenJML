@@ -147,10 +147,12 @@ final class MemberName implements Member, Cloneable {
 
         // type is not a MethodType yet.  Convert it thread-safely.
         synchronized (this) {
-            if (type instanceof String sig) {
+            if (type instanceof String) {
+                String sig = (String) type;
                 MethodType res = MethodType.fromDescriptor(sig, getClassLoader());
                 type = res;
-            } else if (type instanceof Object[] typeInfo) {
+            } else if (type instanceof Object[]) {
+                Object[] typeInfo = (Object[]) type;
                 Class<?>[] ptypes = (Class<?>[]) typeInfo[1];
                 Class<?> rtype = (Class<?>) typeInfo[0];
                 MethodType res = MethodType.makeImpl(rtype, ptypes, true);
@@ -233,7 +235,8 @@ final class MemberName implements Member, Cloneable {
 
         // type is not a Class yet.  Convert it thread-safely.
         synchronized (this) {
-            if (type instanceof String sig) {
+            if (type instanceof String) {
+                String sig = (String) type;
                 MethodType mtype = MethodType.fromDescriptor("()"+sig, getClassLoader());
                 Class<?> res = mtype.returnType();
                 type = res;
@@ -935,7 +938,8 @@ final class MemberName implements Member, Cloneable {
             } else {
                 Module m;
                 Class<?> plc;
-                if (from instanceof MethodHandles.Lookup lookup) {
+                if (from instanceof MethodHandles.Lookup) {
+                    MethodHandles.Lookup lookup = (MethodHandles.Lookup)from;
                     from = lookup.lookupClass();
                     m = lookup.lookupClass().getModule();
                     plc = lookup.previousLookupClass();

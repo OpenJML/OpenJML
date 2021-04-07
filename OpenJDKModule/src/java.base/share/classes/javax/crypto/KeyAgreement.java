@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -52,9 +52,7 @@ import sun.security.jca.GetInstance.Instance;
  * with two other parties, {@code doPhase} needs to be called twice,
  * the first time setting the {@code lastPhase} flag to
  * {@code false}, and the second time setting it to {@code true}.
- * There may be any number of parties involved in a key exchange.  However,
- * support for key exchanges with more than two parties is implementation
- * specific or as specified by the standard key agreement algorithm.
+ * There may be any number of parties involved in a key exchange.
  *
  * <p> Every implementation of the Java platform is required to support the
  * following standard {@code KeyAgreement} algorithm:
@@ -448,7 +446,7 @@ public class KeyAgreement {
      * has an incompatible algorithm type.
      */
     public final void init(Key key) throws InvalidKeyException {
-        init(key, JCAUtil.getDefSecureRandom());
+        init(key, JCAUtil.getSecureRandom());
     }
 
     /**
@@ -516,7 +514,7 @@ public class KeyAgreement {
     public final void init(Key key, AlgorithmParameterSpec params)
         throws InvalidKeyException, InvalidAlgorithmParameterException
     {
-        init(key, params, JCAUtil.getDefSecureRandom());
+        init(key, params, JCAUtil.getSecureRandom());
     }
 
     private String getProviderName() {

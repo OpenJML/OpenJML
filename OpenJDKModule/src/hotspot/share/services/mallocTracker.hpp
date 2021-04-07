@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -43,8 +43,8 @@ class MemoryCounter {
   volatile size_t   _count;
   volatile size_t   _size;
 
-  DEBUG_ONLY(volatile size_t   _peak_count;)
-  DEBUG_ONLY(volatile size_t   _peak_size; )
+  DEBUG_ONLY(size_t   _peak_count;)
+  DEBUG_ONLY(size_t   _peak_size; )
 
  public:
   MemoryCounter() : _count(0), _size(0) {
@@ -53,40 +53,36 @@ class MemoryCounter {
   }
 
   inline void allocate(size_t sz) {
-    size_t cnt = Atomic::add(&_count, size_t(1), memory_order_relaxed);
+    Atomic::inc(&_count);
     if (sz > 0) {
-      size_t sum = Atomic::add(&_size, sz, memory_order_relaxed);
-      DEBUG_ONLY(update_peak_size(sum);)
+      Atomic::add(&_size, sz);
+      DEBUG_ONLY(_peak_size = MAX2(_peak_size, _size));
     }
-    DEBUG_ONLY(update_peak_count(cnt);)
+    DEBUG_ONLY(_peak_count = MAX2(_peak_count, _count);)
   }
 
   inline void deallocate(size_t sz) {
-    assert(count() > 0, "Nothing allocated yet");
-    assert(size() >= sz, "deallocation > allocated");
-    Atomic::dec(&_count, memory_order_relaxed);
+    assert(_count > 0, "Nothing allocated yet");
+    assert(_size >= sz, "deallocation > allocated");
+    Atomic::dec(&_count);
     if (sz > 0) {
-      Atomic::sub(&_size, sz, memory_order_relaxed);
+      Atomic::sub(&_size, sz);
     }
   }
 
   inline void resize(ssize_t sz) {
     if (sz != 0) {
-      assert(sz >= 0 || size() >= size_t(-sz), "Must be");
-      size_t sum = Atomic::add(&_size, size_t(sz), memory_order_relaxed);
-      DEBUG_ONLY(update_peak_size(sum);)
+      assert(sz >= 0 || _size >= size_t(-sz), "Must be");
+      Atomic::add(&_size, size_t(sz));
+      DEBUG_ONLY(_peak_size = MAX2(_size, _peak_size);)
     }
   }
 
-  inline size_t count() const { return Atomic::load(&_count); }
-  inline size_t size()  const { return Atomic::load(&_size);  }
+  inline size_t count() const { return _count; }
+  inline size_t size()  const { return _size;  }
+  DEBUG_ONLY(inline size_t peak_count() const { return _peak_count; })
+  DEBUG_ONLY(inline size_t peak_size()  const { return _peak_size; })
 
-#ifdef ASSERT
-  void update_peak_count(size_t cnt);
-  void update_peak_size(size_t sz);
-  size_t peak_count() const;
-  size_t peak_size()  const;
-#endif // ASSERT
 };
 
 /*

@@ -32,7 +32,7 @@ import jdk.internal.util.ArraysSupport;
  */
 final class BufferMismatch {
 
-    static final ScopedMemoryAccess SCOPED_MEMORY_ACCESS = ScopedMemoryAccess.getScopedMemoryAccess();
+    final static ScopedMemoryAccess SCOPED_MEMORY_ACCESS = ScopedMemoryAccess.getScopedMemoryAccess();
 
     static int mismatch(ByteBuffer a, int aOff, ByteBuffer b, int bOff, int length) {
         int i = 0;

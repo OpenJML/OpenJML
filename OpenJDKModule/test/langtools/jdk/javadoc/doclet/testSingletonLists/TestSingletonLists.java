@@ -231,11 +231,7 @@ public class TestSingletonLists extends JavadocTester {
         private int regionErrors;
         private String fileName;
         private boolean inheritanceClass;
-        private List<String> excludeFiles = List.of(
-                "overview-tree.html",
-                "package-tree.html",
-                "module-summary.html",
-                "help-doc.html");
+        private List<String> excludeFiles = List.of("overview-tree.html","package-tree.html","module-summary.html");
 
         ListChecker(PrintStream out, Function<Path,String> fileReader) {
             super(out, fileReader);

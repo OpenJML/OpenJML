@@ -291,7 +291,7 @@ public final class SystemModulesPlugin extends AbstractPlugin {
                 .collect(Collectors.toSet());
         return moduleInfos.stream()
                 .filter(mi -> names.contains(mi.moduleName()))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -64,13 +64,13 @@ public class ContentBuilder extends Content {
         if (text.length() > 0) {
             ensureMutableContents();
             Content c = contents.isEmpty() ? null : contents.get(contents.size() - 1);
-            TextBuilder tb;
-            if (c != null && c instanceof TextBuilder) {
-                tb = (TextBuilder) c;
+            StringContent sc;
+            if (c != null && c instanceof StringContent) {
+                sc = (StringContent) c;
             } else {
-                contents.add(tb = new TextBuilder());
+                contents.add(sc = new StringContent());
             }
-            tb.add(text);
+            sc.add(text);
         }
         return this;
     }

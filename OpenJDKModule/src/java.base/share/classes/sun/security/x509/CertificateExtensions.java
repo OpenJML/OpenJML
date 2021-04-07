@@ -115,7 +115,7 @@ public class CertificateExtensions implements CertAttrSet<Extension> {
                         throw new IOException("Duplicate extensions not allowed");
                     }
         } catch (InvocationTargetException invk) {
-            Throwable e = invk.getCause();
+            Throwable e = invk.getTargetException();
             if (ext.isCritical() == false) {
                 // ignore errors parsing non-critical extensions
                 if (unparseableExtensions == null) {

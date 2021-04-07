@@ -23,6 +23,4 @@
 grant {
     // No permission
     permission java.io.FilePermission "sock", "delete";
-
-    permission java.lang.RuntimePermission "setSecurityManager";
 };

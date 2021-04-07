@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,7 +25,6 @@
 #define SHARE_JVMCI_JVMCICOMPILER_HPP
 
 #include "compiler/abstractCompiler.hpp"
-#include "compiler/compiler_globals.hpp"
 #include "runtime/atomic.hpp"
 
 class JVMCICompiler : public AbstractCompiler {
@@ -49,11 +48,7 @@ private:
 
   static JVMCICompiler* _instance;
 
-  // Code installation timer for CompileBroker compilations
   static elapsedTimer _codeInstallTimer;
-
-  // Code installation timer for non-CompileBroker compilations
-  static elapsedTimer _hostedCodeInstallTimer;
 
   /**
    * Exits the VM due to an unexpected exception.
@@ -63,9 +58,20 @@ private:
 public:
   JVMCICompiler();
 
-  static JVMCICompiler* instance(bool require_non_null, TRAPS);
+  static JVMCICompiler* instance(bool require_non_null, TRAPS) {
+    if (!EnableJVMCI) {
+      THROW_MSG_NULL(vmSymbols::java_lang_InternalError(), "JVMCI is not enabled")
+    }
+    if (_instance == NULL && require_non_null) {
+      THROW_MSG_NULL(vmSymbols::java_lang_InternalError(), "The JVMCI compiler instance has not been created");
+    }
+    return _instance;
+  }
 
   virtual const char* name() { return UseJVMCINativeLibrary ? "JVMCI-native" : "JVMCI"; }
+
+  virtual bool supports_native()                 { return true; }
+  virtual bool supports_osr   ()                 { return true; }
 
   bool is_jvmci()                                { return true; }
   bool is_c1   ()                                { return false; }
@@ -108,16 +114,10 @@ public:
   int global_compilation_ticks() const { return _global_compilation_ticks; }
   void inc_global_compilation_ticks();
 
-  // Print timers related to non-CompileBroker compilations
-  static void print_hosted_timers();
+  // Print compilation timers and statistics
+  static void print_compilation_timers();
 
-  static elapsedTimer* codeInstallTimer(bool hosted) {
-    if (!hosted) {
-      return &_codeInstallTimer;
-    } else {
-      return &_hostedCodeInstallTimer;
-    }
-  }
+  static elapsedTimer* codeInstallTimer() { return &_codeInstallTimer; }
 };
 
 #endif // SHARE_JVMCI_JVMCICOMPILER_HPP

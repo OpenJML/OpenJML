@@ -1485,7 +1485,7 @@ public class Activation implements Serializable {
             try {
                 execPolicyMethod.invoke(execPolicy, desc, cmd);
             } catch (InvocationTargetException e) {
-                Throwable targetException = e.getCause();
+                Throwable targetException = e.getTargetException();
                 if (targetException instanceof SecurityException) {
                     throw (SecurityException) targetException;
                 } else {

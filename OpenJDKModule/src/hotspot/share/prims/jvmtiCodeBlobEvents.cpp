@@ -35,7 +35,6 @@
 #include "prims/jvmtiThreadState.inline.hpp"
 #include "runtime/handles.inline.hpp"
 #include "runtime/safepointVerifiers.hpp"
-#include "runtime/stubCodeGenerator.hpp"
 #include "runtime/vmThread.hpp"
 
 // Support class to collect a list of the non-nmethod CodeBlobs in

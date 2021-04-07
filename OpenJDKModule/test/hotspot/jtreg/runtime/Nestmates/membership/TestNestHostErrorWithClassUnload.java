@@ -28,7 +28,7 @@
  *          successfully but fail validation. This tests a specific, otherwise
  *          untested, code path in ResolutionErrorTable::free_entry.
  *
- * @library /test/lib
+ * @library /runtime/testlibrary
  * @compile TestNestHostErrorWithClassUnload.java
  *          Helper.java
  *          PackagedNestHost.java
@@ -61,8 +61,6 @@
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-
-import jdk.test.lib.classloader.ClassUnloadCommon;
 
 public class TestNestHostErrorWithClassUnload {
 

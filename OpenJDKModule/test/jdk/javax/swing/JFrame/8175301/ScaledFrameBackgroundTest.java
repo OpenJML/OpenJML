@@ -44,7 +44,7 @@ public class ScaledFrameBackgroundTest {
     public static void main(String[] args) throws Exception {
         try {
             Robot robot = new Robot();
-            robot.setAutoDelay(100);
+            robot.setAutoDelay(50);
 
             SwingUtilities.invokeAndWait(() -> {
                 frame = new JFrame();
@@ -54,11 +54,10 @@ public class ScaledFrameBackgroundTest {
                 panel.setBackground(BACKGROUND);
                 frame.getContentPane().add(panel);
                 frame.setVisible(true);
-                frame.setLocationRelativeTo(null);
             });
 
             robot.waitForIdle();
-            robot.delay(1000);
+            Thread.sleep(200);
 
             Rectangle[] rects = new Rectangle[1];
             SwingUtilities.invokeAndWait(() -> {
@@ -82,7 +81,7 @@ public class ScaledFrameBackgroundTest {
             color = robot.getPixelColor(x, y);
 
             if (!BACKGROUND.equals(color)) {
-                throw new RuntimeException("Wrong backgound color!!");
+                throw new RuntimeException("Wrong backgound color!");
             }
         } finally {
             if (frame != null) SwingUtilities.invokeAndWait(() -> frame.dispose());

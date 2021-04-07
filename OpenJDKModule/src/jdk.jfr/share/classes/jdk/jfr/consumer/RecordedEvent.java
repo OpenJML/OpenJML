@@ -120,7 +120,6 @@ public final class RecordedEvent extends RecordedObject {
         return objectContext.fields;
     }
 
-    @Override
     final Object objectAt(int index) {
         if (index == 0) {
             return startTimeTicks;

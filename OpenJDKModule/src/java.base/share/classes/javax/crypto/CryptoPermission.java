@@ -39,7 +39,7 @@ import javax.crypto.spec.*;
  * CryptoPermission object is used to represent
  * the ability of an application/applet to use certain
  * algorithms with certain key sizes and other
- * restrictions in certain environments.
+ * restrictions in certain environments. <p>
  *
  * @see java.security.Permission
  *

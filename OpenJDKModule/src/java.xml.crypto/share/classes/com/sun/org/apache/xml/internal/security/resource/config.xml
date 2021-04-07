@@ -250,8 +250,8 @@
                     RequiredKey="RSA"
                     JCEName="SHA1withRSA"/>
 
-         <Algorithm URI="http://www.w3.org/2001/04/xmldsig-more#rsa-sha224"
-                    Description="RSA Signature with SHA-224 message digest"
+         <Algorithm URI="http://www.w3.org/2001/04/xmldsig-more#rsa-sha2224"
+                    Description="RSA Signature with SHA-2224 message digest"
                     AlgorithmClass="Signature"
                     RequirementLevel="OPTIONAL"
                     SpecificationURL="http://www.ietf.org/rfc/rfc4051.txt"
@@ -326,7 +326,6 @@
                     AlgorithmClass="Signature"
                     RequirementLevel="OPTIONAL"
                     SpecificationURL="http://www.ietf.org/rfc/rfc4051.txt"
-                    RequiredKey="EC"
                     JCEName="SHA1withECDSA"/>
 
          <Algorithm URI="http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha224"
@@ -358,7 +357,6 @@
                     AlgorithmClass="Signature"
                     RequirementLevel="OPTIONAL"
                     SpecificationURL="http://www.ietf.org/rfc/rfc4051.txt"
-                    RequiredKey="EC"
                     JCEName="SHA512withECDSA"/>
                     
          <Algorithm URI="http://www.w3.org/2007/05/xmldsig-more#ecdsa-ripemd160"
@@ -376,7 +374,6 @@
                     RequirementLevel="NOT RECOMMENDED"
                     SpecificationURL="http://www.ietf.org/rfc/rfc4051.txt"
                     KeyLength="0"
-                    RequiredKey=""
                     JCEName="HmacMD5"/>
 
          <Algorithm URI="http://www.w3.org/2001/04/xmldsig-more#hmac-ripemd160"
@@ -385,7 +382,6 @@
                     RequirementLevel="OPTIONAL"
                     SpecificationURL="http://www.ietf.org/rfc/rfc4051.txt"
                     KeyLength="0"
-                    RequiredKey=""
                     JCEName="HMACRIPEMD160"/>
 
          <Algorithm URI="http://www.w3.org/2000/09/xmldsig#hmac-sha1"
@@ -393,7 +389,6 @@
                     AlgorithmClass="Mac"
                     RequirementLevel="REQUIRED"
                     KeyLength="0"
-                    RequiredKey=""
                     JCEName="HmacSHA1"/>
                     
          <Algorithm URI="http://www.w3.org/2001/04/xmldsig-more#hmac-sha224"
@@ -402,7 +397,6 @@
                     RequirementLevel="OPTIONAL"
                     SpecificationURL="http://www.ietf.org/rfc/rfc4051.txt"
                     KeyLength="0"
-                    RequiredKey=""
                     JCEName="HmacSHA224"/>
 
          <Algorithm URI="http://www.w3.org/2001/04/xmldsig-more#hmac-sha256"
@@ -411,7 +405,6 @@
                     RequirementLevel="OPTIONAL"
                     SpecificationURL="http://www.ietf.org/rfc/rfc4051.txt"
                     KeyLength="0"
-                    RequiredKey=""
                     JCEName="HmacSHA256"/>
 
          <Algorithm URI="http://www.w3.org/2001/04/xmldsig-more#hmac-sha384"
@@ -420,7 +413,6 @@
                     RequirementLevel="OPTIONAL"
                     SpecificationURL="http://www.ietf.org/rfc/rfc4051.txt"
                     KeyLength="0"
-                    RequiredKey=""
                     JCEName="HmacSHA384"/>
 
          <Algorithm URI="http://www.w3.org/2001/04/xmldsig-more#hmac-sha512"
@@ -429,7 +421,6 @@
                     RequirementLevel="OPTIONAL"
                     SpecificationURL="http://www.ietf.org/rfc/rfc4051.txt"
                     KeyLength="0"
-                    RequiredKey=""
                     JCEName="HmacSHA512"/>
 
          <!-- Block encryption Algorithms -->
@@ -556,9 +547,7 @@
          <Algorithm URI="http://www.w3.org/2001/04/xmlenc#dh"
                     Description="Key Agreement Diffie-Hellman"
                     AlgorithmClass="KeyAgreement"
-                    RequirementLevel="OPTIONAL"
-                    RequiredKey="DH"
-                    JCEName="DH"/>
+                    RequirementLevel="OPTIONAL"/>
 
          <Algorithm URI="http://www.w3.org/2001/04/xmlenc#kw-tripledes"
                     Description="Symmetric Key Wrap using Triple DES"

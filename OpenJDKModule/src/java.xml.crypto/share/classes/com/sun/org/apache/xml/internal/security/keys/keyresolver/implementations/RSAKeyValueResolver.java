@@ -22,7 +22,6 @@
  */
 package com.sun.org.apache.xml.internal.security.keys.keyresolver.implementations;
 
-import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 
@@ -40,17 +39,10 @@ public class RSAKeyValueResolver extends KeyResolverSpi {
     private static final com.sun.org.slf4j.internal.Logger LOG =
         com.sun.org.slf4j.internal.LoggerFactory.getLogger(RSAKeyValueResolver.class);
 
-    /** {@inheritDoc} */
-    @Override
-    protected boolean engineCanResolve(Element element, String baseURI, StorageResolver storage) {
-        return XMLUtils.elementIsInSignatureSpace(element, Constants._TAG_KEYVALUE)
-            || XMLUtils.elementIsInSignatureSpace(element, Constants._TAG_RSAKEYVALUE);
-    }
 
     /** {@inheritDoc} */
-    @Override
-    protected PublicKey engineResolvePublicKey(
-        Element element, String baseURI, StorageResolver storage, boolean secureValidation
+    public PublicKey engineLookupAndResolvePublicKey(
+        Element element, String baseURI, StorageResolver storage
     ) {
         if (element == null) {
             return null;
@@ -85,25 +77,15 @@ public class RSAKeyValueResolver extends KeyResolverSpi {
     }
 
     /** {@inheritDoc} */
-    @Override
-    protected X509Certificate engineResolveX509Certificate(
-        Element element, String baseURI, StorageResolver storage, boolean secureValidation
+    public X509Certificate engineLookupResolveX509Certificate(
+        Element element, String baseURI, StorageResolver storage
     ) {
         return null;
     }
 
     /** {@inheritDoc} */
-    @Override
-    protected javax.crypto.SecretKey engineResolveSecretKey(
-        Element element, String baseURI, StorageResolver storage, boolean secureValidation
-    ) {
-        return null;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected PrivateKey engineResolvePrivateKey(
-        Element element, String baseURI, StorageResolver storage, boolean secureValidation
+    public javax.crypto.SecretKey engineLookupAndResolveSecretKey(
+        Element element, String baseURI, StorageResolver storage
     ) {
         return null;
     }

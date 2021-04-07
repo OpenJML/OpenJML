@@ -27,6 +27,8 @@
 
 #include "ci/ciBaseObject.hpp"
 #include "ci/ciObject.hpp"
+#include "ci/ciObjectFactory.hpp"
+#include "classfile/vmSymbols.hpp"
 #include "oops/symbol.hpp"
 #include "utilities/vmEnums.hpp"
 
@@ -48,10 +50,9 @@ class ciSymbol : public ciBaseObject {
 
 private:
   const vmSymbolID _sid;
+  DEBUG_ONLY( bool sid_ok() { return vmSymbols::find_sid(get_symbol()) == _sid; } )
 
-  ciSymbol(Symbol* s, vmSymbolID sid);
-
-  DEBUG_ONLY(bool sid_ok();)
+  ciSymbol(Symbol* s, vmSymbolID sid = vmSymbolID::NO_SID);
 
   Symbol* get_symbol() const { return _symbol; }
 
@@ -66,7 +67,7 @@ private:
   static ciSymbol* make_impl(const char* s);
 
 public:
-  // The enumeration ID from vmSymbols, or vmSymbolID::NO_SID if none.
+  // The enumeration ID from vmSymbols, or vmSymbols::NO_SID if none.
   vmSymbolID sid() const { return _sid; }
 
   // The text of the symbol as a null-terminated utf8 string.
@@ -95,6 +96,11 @@ public:
   // Consider adding to vmSymbols.hpp instead of using this constructor.
   // (Your code will be less subject to typographical bugs.)
   static ciSymbol* make(const char* s);
+
+#define CI_SYMBOL_DECLARE(name, ignore_def) \
+  static ciSymbol* name() { return ciObjectFactory::vm_symbol_at(VM_SYMBOL_ENUM_NAME(name)); }
+  VM_SYMBOLS_DO(CI_SYMBOL_DECLARE, CI_SYMBOL_DECLARE)
+#undef CI_SYMBOL_DECLARE
 
   void print() {
     _symbol->print();

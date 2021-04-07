@@ -29,9 +29,10 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.xml.parsers.ParserConfigurationException;
+
 import com.sun.org.apache.xml.internal.security.c14n.CanonicalizationException;
 import com.sun.org.apache.xml.internal.security.c14n.helper.C14nHelper;
-import com.sun.org.apache.xml.internal.security.parser.XMLParserException;
 import com.sun.org.apache.xml.internal.security.signature.XMLSignatureInput;
 import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
 import org.w3c.dom.Attr;
@@ -40,6 +41,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 /**
  * Implements <A HREF="http://www.w3.org/TR/2001/REC-xml-c14n-20010315">Canonical
@@ -80,10 +82,10 @@ public abstract class Canonicalizer20010315 extends CanonicalizerBase {
      *
      * @param xpathNodeSet
      * @param inclusiveNamespaces
-     * @param writer OutputStream to write the canonicalization result
+     * @return none it always fails
      * @throws CanonicalizationException always
      */
-    public void engineCanonicalizeXPathNodeSet(Set<Node> xpathNodeSet, String inclusiveNamespaces, OutputStream writer)
+    public byte[] engineCanonicalizeXPathNodeSet(Set<Node> xpathNodeSet, String inclusiveNamespaces)
         throws CanonicalizationException {
 
         /** $todo$ well, should we throw UnsupportedOperationException ? */
@@ -95,10 +97,10 @@ public abstract class Canonicalizer20010315 extends CanonicalizerBase {
      *
      * @param rootNode
      * @param inclusiveNamespaces
-     * @param writer OutputStream to write the canonicalization result
+     * @return none it always fails
      * @throws CanonicalizationException
      */
-    public void engineCanonicalizeSubTree(Node rootNode, String inclusiveNamespaces, OutputStream writer)
+    public byte[] engineCanonicalizeSubTree(Node rootNode, String inclusiveNamespaces)
         throws CanonicalizationException {
 
         /** $todo$ well, should we throw UnsupportedOperationException ? */
@@ -110,11 +112,11 @@ public abstract class Canonicalizer20010315 extends CanonicalizerBase {
      *
      * @param rootNode
      * @param inclusiveNamespaces
-     * @param writer OutputStream to write the canonicalization result
+     * @return none it always fails
      * @throws CanonicalizationException
      */
-    public void engineCanonicalizeSubTree(
-            Node rootNode, String inclusiveNamespaces, boolean propagateDefaultNamespace, OutputStream writer)
+    public byte[] engineCanonicalizeSubTree(
+            Node rootNode, String inclusiveNamespaces, boolean propagateDefaultNamespace)
             throws CanonicalizationException {
 
         /** $todo$ well, should we throw UnsupportedOperationException ? */
@@ -124,8 +126,8 @@ public abstract class Canonicalizer20010315 extends CanonicalizerBase {
     /**
      * Output the Attr[]s for the given element.
      * <br>
-     * The code of this method is a copy of
-     * {@link #outputAttributes(Element, NameSpaceSymbTable, Map)},
+     * The code of this method is a copy of {@link #outputAttributes(Element,
+     * NameSpaceSymbTable, Map<String, byte[]>)},
      * whereas it takes into account that subtree-c14n is -- well -- subtree-based.
      * So if the element in question isRoot of c14n, it's parent is not in the
      * node set, as well as all other ancestors.
@@ -133,18 +135,17 @@ public abstract class Canonicalizer20010315 extends CanonicalizerBase {
      * @param element
      * @param ns
      * @param cache
-     * @param writer OutputStream to write the canonicalization result
      * @throws CanonicalizationException, DOMException, IOException
      */
     @Override
     protected void outputAttributesSubtree(Element element, NameSpaceSymbTable ns,
-                                           Map<String, byte[]> cache, OutputStream writer)
+                                           Map<String, byte[]> cache)
         throws CanonicalizationException, DOMException, IOException {
         if (!element.hasAttributes() && !firstCall) {
             return;
         }
         // result will contain the attrs which have to be output
-        SortedSet<Attr> result = new TreeSet<>(COMPARE);
+        SortedSet<Attr> result = new TreeSet<Attr>(COMPARE);
 
         if (element.hasAttributes()) {
             NamedNodeMap attrs = element.getAttributes();
@@ -167,7 +168,7 @@ public abstract class Canonicalizer20010315 extends CanonicalizerBase {
                         //Render the ns definition
                         result.add((Attr)n);
                         if (C14nHelper.namespaceIsRelative(attribute)) {
-                            Object[] exArgs = { element.getTagName(), NName, attribute.getNodeValue() };
+                            Object exArgs[] = { element.getTagName(), NName, attribute.getNodeValue() };
                             throw new CanonicalizationException(
                                 "c14n.Canonicalizer.RelativeNamespace", exArgs
                             );
@@ -186,6 +187,7 @@ public abstract class Canonicalizer20010315 extends CanonicalizerBase {
             firstCall = false;
         }
 
+        OutputStream writer = getWriter();
         //we output all Attrs which are available
         for (Attr attr : result) {
             outputAttrToWriter(attr.getNodeName(), attr.getNodeValue(), writer, cache);
@@ -202,17 +204,16 @@ public abstract class Canonicalizer20010315 extends CanonicalizerBase {
      * @param element
      * @param ns
      * @param cache
-     * @param writer OutputStream to write the canonicalization result
      * @throws CanonicalizationException, DOMException, IOException
      */
     @Override
     protected void outputAttributes(Element element, NameSpaceSymbTable ns,
-                                    Map<String, byte[]> cache, OutputStream writer)
+                                    Map<String, byte[]> cache)
         throws CanonicalizationException, DOMException, IOException {
         // result will contain the attrs which have to be output
         xmlattrStack.push(ns.getLevel());
         boolean isRealVisible = isVisibleDO(element, ns.getLevel()) == 1;
-        SortedSet<Attr> result = new TreeSet<>(COMPARE);
+        SortedSet<Attr> result = new TreeSet<Attr>(COMPARE);
 
         if (element.hasAttributes()) {
             NamedNodeMap attrs = element.getAttributes();
@@ -252,7 +253,7 @@ public abstract class Canonicalizer20010315 extends CanonicalizerBase {
                             if (n != null) {
                                 result.add((Attr)n);
                                 if (C14nHelper.namespaceIsRelative(attribute)) {
-                                    Object[] exArgs = { element.getTagName(), NName, attribute.getNodeValue() };
+                                    Object exArgs[] = { element.getTagName(), NName, attribute.getNodeValue() };
                                     throw new CanonicalizationException(
                                         "c14n.Canonicalizer.RelativeNamespace", exArgs
                                     );
@@ -291,6 +292,7 @@ public abstract class Canonicalizer20010315 extends CanonicalizerBase {
             ns.getUnrenderedNodes(result);
         }
 
+        OutputStream writer = getWriter();
         //we output all Attrs which are available
         for (Attr attr : result) {
             outputAttrToWriter(attr.getNodeName(), attr.getNodeValue(), writer, cache);
@@ -298,7 +300,7 @@ public abstract class Canonicalizer20010315 extends CanonicalizerBase {
     }
 
     protected void circumventBugIfNeeded(XMLSignatureInput input)
-        throws XMLParserException, IOException {
+        throws CanonicalizationException, ParserConfigurationException, IOException, SAXException {
         if (!input.isNeedsToBeExpanded()) {
             return;
         }
@@ -337,7 +339,7 @@ public abstract class Canonicalizer20010315 extends CanonicalizerBase {
             String NName = e.getPrefix();
             String NValue = e.getNamespaceURI();
             String Name;
-            if (NName == null || NName.isEmpty()) {
+            if (NName == null || NName.equals("")) {
                 NName = "xmlns";
                 Name = "xmlns";
             } else {

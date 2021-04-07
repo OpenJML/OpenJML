@@ -61,5 +61,5 @@ oop ZObjArrayAllocator::finish(HeapWord* mem) const {
 
   ZThreadLocalData::clear_invisible_root(_thread);
 
-  return cast_to_oop(mem);
+  return oop(mem);
 }

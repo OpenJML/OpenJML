@@ -55,9 +55,9 @@ public class AppImageFile {
     private final String launcherName;
     private final List<String> addLauncherNames;
 
-    private static final String FILENAME = ".jpackage.xml";
+    private final static String FILENAME = ".jpackage.xml";
 
-    private static final Map<Platform, String> PLATFORM_LABELS = Map.of(
+    private final static Map<Platform, String> PLATFORM_LABELS = Map.of(
             Platform.LINUX, "linux", Platform.WINDOWS, "windows", Platform.MAC,
             "macOS");
 

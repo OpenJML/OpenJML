@@ -45,7 +45,6 @@ import jdk.jpackage.test.TKit;
  * @library ../helpers
  * @key jpackagePlatformPackage
  * @build jdk.jpackage.test.*
- * @build ReleaseTest
  * @requires (os.family == "linux")
  * @modules jdk.jpackage/jdk.jpackage.internal
  * @run main/othervm/timeout=360 -Xmx512m ReleaseTest

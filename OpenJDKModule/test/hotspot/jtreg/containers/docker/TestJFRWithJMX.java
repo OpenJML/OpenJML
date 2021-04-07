@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -54,7 +54,6 @@ import jdk.management.jfr.FlightRecorderMXBean;
 
 import jdk.test.lib.Asserts;
 import jdk.test.lib.Container;
-import jdk.test.lib.Platform;
 import jdk.test.lib.Utils;
 import jdk.test.lib.containers.docker.Common;
 import jdk.test.lib.containers.docker.DockerRunOptions;
@@ -74,10 +73,6 @@ public class TestJFRWithJMX {
     public static void main(String[] args) throws Exception {
         if (!DockerTestUtils.canTestDocker()) {
             throw new SkippedException("Docker is not supported on this host");
-        }
-
-        if (isPodman() & !Platform.isRoot()) {
-            throw new SkippedException("test cannot be run under rootless podman configuration");
         }
 
         DockerTestUtils.buildJdkDockerImage(imageName, "Dockerfile-BasicTest", "jdk-docker");
@@ -219,12 +214,5 @@ public class TestJFRWithJMX {
                 bos.write(data);
             }
         }
-    }
-
-    static boolean isPodman() {
-        String[] parts = Container.ENGINE_COMMAND
-            .toLowerCase()
-            .split(File.pathSeparator);
-        return "podman".equals(parts[parts.length - 1]);
     }
 }

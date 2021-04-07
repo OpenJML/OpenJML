@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1995, 2020, Oracle and/or its affiliates. All rights reserved.
  * Copyright (c) 2019, Azul Systems, Inc. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -816,14 +816,12 @@ public class Runtime {
      * @since  9
      */
     public static Version version() {
-        var v = version;
-        if (v == null) {
-            v = new Version(VersionProps.versionNumbers(),
+        if (version == null) {
+            version = new Version(VersionProps.versionNumbers(),
                     VersionProps.pre(), VersionProps.build(),
                     VersionProps.optional());
-            version = v;
         }
-        return v;
+        return version;
     }
 
     /**
@@ -1427,8 +1425,11 @@ public class Runtime {
         public boolean equalsIgnoreOptional(Object obj) {
             if (this == obj)
                 return true;
-            return (obj instanceof Version that)
-                && (this.version().equals(that.version())
+            if (!(obj instanceof Version))
+                return false;
+
+            Version that = (Version)obj;
+            return (this.version().equals(that.version())
                 && this.pre().equals(that.pre())
                 && this.build().equals(that.build()));
         }

@@ -24,7 +24,6 @@
  */
 package javax.swing.text;
 
-import java.io.Serial;
 import java.util.Arrays;
 import java.util.Vector;
 import java.io.IOException;
@@ -699,7 +698,6 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 
     // --- serialization -------------------------------------
 
-    @Serial
     private void readObject(ObjectInputStream s)
       throws ClassNotFoundException, IOException {
         s.defaultReadObject();
