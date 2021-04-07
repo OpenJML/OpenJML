@@ -1019,8 +1019,8 @@ public class EventQueue {
     }
 
     private class FwSecondaryLoopWrapper implements SecondaryLoop {
-        private final SecondaryLoop loop;
-        private final EventFilter filter;
+        final private SecondaryLoop loop;
+        final private EventFilter filter;
 
         public FwSecondaryLoopWrapper(SecondaryLoop loop, EventFilter filter) {
             this.loop = loop;

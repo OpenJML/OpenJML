@@ -30,7 +30,7 @@
 #include "classfile/javaClasses.inline.hpp"
 #include "classfile/metadataOnStackMark.hpp"
 #include "classfile/symbolTable.hpp"
-#include "classfile/klassFactory.hpp"
+#include "classfile/systemDictionary.hpp"
 #include "classfile/verifier.hpp"
 #include "classfile/vmClasses.hpp"
 #include "classfile/vmSymbols.hpp"
@@ -236,7 +236,7 @@ bool VM_RedefineClasses::doit_prologue() {
 }
 
 void VM_RedefineClasses::doit() {
-  Thread* current = Thread::current();
+  Thread *thread = Thread::current();
 
 #if INCLUDE_CDS
   if (UseSharedSpaces) {
@@ -255,11 +255,11 @@ void VM_RedefineClasses::doit() {
   // Mark methods seen on stack and everywhere else so old methods are not
   // cleaned up if they're on the stack.
   MetadataOnStackMark md_on_stack(/*walk_all_metadata*/true, /*redefinition_walk*/true);
-  HandleMark hm(current);   // make sure any handles created are deleted
-                            // before the stack walk again.
+  HandleMark hm(thread);   // make sure any handles created are deleted
+                           // before the stack walk again.
 
   for (int i = 0; i < _class_count; i++) {
-    redefine_single_class(current, _class_defs[i].klass, _scratch_classes[i]);
+    redefine_single_class(_class_defs[i].klass, _scratch_classes[i], thread);
   }
 
   // Flush all compiled code that depends on the classes redefined.
@@ -269,7 +269,7 @@ void VM_RedefineClasses::doit() {
   // that reference methods of the evolved classes.
   // Have to do this after all classes are redefined and all methods that
   // are redefined are marked as old.
-  AdjustAndCleanMetadata adjust_and_clean_metadata(current);
+  AdjustAndCleanMetadata adjust_and_clean_metadata(thread);
   ClassLoaderDataGraph::classes_do(&adjust_and_clean_metadata);
 
   // JSR-292 support
@@ -288,7 +288,7 @@ void VM_RedefineClasses::doit() {
   if (log_is_enabled(Trace, redefine, class, obsolete, metadata)) {
 #endif
     log_trace(redefine, class, obsolete, metadata)("calling check_class");
-    CheckClass check_class(current);
+    CheckClass check_class(thread);
     ClassLoaderDataGraph::classes_do(&check_class);
 #ifdef PRODUCT
   }
@@ -1367,6 +1367,7 @@ jvmtiError VM_RedefineClasses::load_new_class_versions() {
     // constant pools
     HandleMark hm(current);
     InstanceKlass* the_class = get_ik(_class_defs[i].klass);
+    Symbol*  the_class_sym = the_class->name();
 
     log_debug(redefine, class, load)
       ("loading name=%s kind=%d (avail_mem=" UINT64_FORMAT "K)",
@@ -1377,6 +1378,9 @@ jvmtiError VM_RedefineClasses::load_new_class_versions() {
                        "__VM_RedefineClasses__",
                        ClassFileStream::verify);
 
+    // Parse the stream.
+    Handle the_class_loader(current, the_class->class_loader());
+    Handle protection_domain(current, the_class->protection_domain());
     // Set redefined class handle in JvmtiThreadState class.
     // This redefined class is sent to agent event handler for class file
     // load hook event.
@@ -1384,16 +1388,13 @@ jvmtiError VM_RedefineClasses::load_new_class_versions() {
 
     Thread* THREAD = current;  // for exception processing
     ExceptionMark em(THREAD);
-    Handle protection_domain(THREAD, the_class->protection_domain());
     ClassLoadInfo cl_info(protection_domain);
-    // Parse and create a class from the bytes, but this class isn't added
-    // to the dictionary, so do not call resolve_from_stream.
-    InstanceKlass* scratch_class = KlassFactory::create_from_stream(&st,
-                                                      the_class->name(),
-                                                      the_class->class_loader_data(),
+    InstanceKlass* scratch_class = SystemDictionary::parse_stream(
+                                                      the_class_sym,
+                                                      the_class_loader,
+                                                      &st,
                                                       cl_info,
                                                       THREAD);
-
     // Clear class_being_redefined just to be sure.
     state->clear_class_being_redefined();
 
@@ -1406,7 +1407,7 @@ jvmtiError VM_RedefineClasses::load_new_class_versions() {
 
     if (HAS_PENDING_EXCEPTION) {
       Symbol* ex_name = PENDING_EXCEPTION->klass()->name();
-      log_info(redefine, class, load, exceptions)("create_from_stream exception: '%s'", ex_name->as_C_string());
+      log_info(redefine, class, load, exceptions)("parse_stream exception: '%s'", ex_name->as_C_string());
       CLEAR_PENDING_EXCEPTION;
 
       if (ex_name == vmSymbols::java_lang_UnsupportedClassVersionError()) {
@@ -3784,14 +3785,14 @@ void VM_RedefineClasses::AdjustAndCleanMetadata::do_klass(Klass* k) {
   }
 }
 
-void VM_RedefineClasses::update_jmethod_ids() {
+void VM_RedefineClasses::update_jmethod_ids(Thread* thread) {
   for (int j = 0; j < _matching_methods_length; ++j) {
     Method* old_method = _matching_old_methods[j];
     jmethodID jmid = old_method->find_jmethod_id_or_null();
     if (jmid != NULL) {
       // There is a jmethodID, change it to point to the new method
-      Method* new_method = _matching_new_methods[j];
-      Method::change_method_associated_with_jmethod_id(jmid, new_method);
+      methodHandle new_method_h(thread, _matching_new_methods[j]);
+      Method::change_method_associated_with_jmethod_id(jmid, new_method_h());
       assert(Method::resolve_jmethod_id(jmid) == _matching_new_methods[j],
              "should be replaced");
     }
@@ -4203,10 +4204,10 @@ void VM_RedefineClasses::swap_annotations(InstanceKlass* the_class,
 //      a helper method to be specified. The interesting parameters
 //      that we would like to pass to the helper method are saved in
 //      static global fields in the VM operation.
-void VM_RedefineClasses::redefine_single_class(Thread* current, jclass the_jclass,
-                                               InstanceKlass* scratch_class) {
+void VM_RedefineClasses::redefine_single_class(jclass the_jclass,
+       InstanceKlass* scratch_class, TRAPS) {
 
-  HandleMark hm(current);   // make sure handles from this call are freed
+  HandleMark hm(THREAD);   // make sure handles from this call are freed
 
   if (log_is_enabled(Info, redefine, class, timer)) {
     _timer_rsc_phase1.start();
@@ -4228,7 +4229,7 @@ void VM_RedefineClasses::redefine_single_class(Thread* current, jclass the_jclas
   _new_methods = scratch_class->methods();
   _the_class = the_class;
   compute_added_deleted_matching_methods();
-  update_jmethod_ids();
+  update_jmethod_ids(THREAD);
 
   _any_class_has_resolved_methods = the_class->has_resolved_methods() || _any_class_has_resolved_methods;
 
@@ -4369,8 +4370,9 @@ void VM_RedefineClasses::redefine_single_class(Thread* current, jclass the_jclas
   // compare_and_normalize_class_versions has already checked:
   //  - classloaders unchanged, signatures unchanged
   //  - all instanceKlasses for redefined classes reused & contents updated
-  the_class->vtable().initialize_vtable();
-  the_class->itable().initialize_itable();
+  the_class->vtable().initialize_vtable(false, THREAD);
+  the_class->itable().initialize_itable(false, THREAD);
+  assert(!HAS_PENDING_EXCEPTION || (THREAD->pending_exception()->is_a(vmClasses::ThreadDeath_klass())), "redefine exception");
 
   // Leave arrays of jmethodIDs and itable index cache unchanged
 
@@ -4416,7 +4418,7 @@ void VM_RedefineClasses::redefine_single_class(Thread* current, jclass the_jclas
   if (!the_class->should_be_initialized()) {
     // Class was already initialized, so AOT has only seen the original version.
     // We need to let AOT look at it again.
-    AOTLoader::load_for_klass(the_class, current);
+    AOTLoader::load_for_klass(the_class, THREAD);
   }
 
   // keep track of previous versions of this class
@@ -4444,13 +4446,13 @@ void VM_RedefineClasses::redefine_single_class(Thread* current, jclass the_jclas
   }
 
   {
-    ResourceMark rm(current);
+    ResourceMark rm(THREAD);
     // increment the classRedefinedCount field in the_class and in any
     // direct and indirect subclasses of the_class
     log_info(redefine, class, load)
       ("redefined name=%s, count=%d (avail_mem=" UINT64_FORMAT "K)",
        the_class->external_name(), java_lang_Class::classRedefinedCount(the_class->java_mirror()), os::available_memory() >> 10);
-    Events::log_redefinition(current, "redefined class name=%s, count=%d",
+    Events::log_redefinition(THREAD, "redefined class name=%s, count=%d",
                              the_class->external_name(),
                              java_lang_Class::classRedefinedCount(the_class->java_mirror()));
 

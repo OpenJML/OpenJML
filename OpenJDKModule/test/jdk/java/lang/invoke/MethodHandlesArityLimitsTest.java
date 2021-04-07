@@ -113,7 +113,7 @@ public class MethodHandlesArityLimitsTest {
            asList.asType(MethodType.genericMethodType(254));//does not throw IAE or WMTE
         }
         catch(WrongMethodTypeException wmte) {
-           throw new AssertionError("Unexpected WrongMethodTypeException thrown", wmte);
+           Assert.fail("Unexpected WrongMethodTypeException thrown");
         }
         asList.asType(MethodType.genericMethodType(255));//throws WMTE
     }

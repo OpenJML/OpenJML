@@ -39,6 +39,8 @@
  *
  */
 
+import java.util.Random;
+
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.NotCompliantMBeanException;
@@ -115,12 +117,12 @@ public class NotCompliantCauseTest {
     }
 
     public interface NotCompliantMXBean {
-        Object returnObject();
+        Random returnRandom();
     }
 
     public static class NotCompliant implements NotCompliantMXBean {
-        public Object returnObject() {
-            return new Object();
+        public Random returnRandom() {
+            return new Random();
         }
     }
 

@@ -42,7 +42,7 @@ import java.net.URI;
  *
  * @see DesktopPeer
  */
-public final class CDesktopPeer implements DesktopPeer {
+final public class CDesktopPeer implements DesktopPeer {
 
     @Override
     public boolean isSupported(Action action) {

@@ -658,13 +658,4 @@ void FileWriter::finalize() {
     cleaner.cancel();
 }
 
-tstring stripExeSuffix(const tstring& path) {
-    // for windows - there is a ".exe" suffix to remove
-    const tstring::size_type pos = path.rfind(_T(".exe"));
-    if (pos == tstring::npos) {
-        return path;
-    }
-    return path.substr(0, pos);
-}
-
 } //  namespace FileUtils

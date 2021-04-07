@@ -66,12 +66,11 @@ public class SubpackageTest extends ModuleTestBase {
 
         Path src = base.resolve("src");
         tb.writeJavaFiles(src,
-            """
-                package p.q;
-                import p.E;
-                class Test {
-                  void m() { throw new E(); }
-                }""");
+            "package p.q;\n"
+            + "import p.E;\n"
+            + "class Test {\n"
+            + "  void m() { throw new E(); }\n"
+            + "}");
         Path classes = base.resolve("classes");
         Files.createDirectories(classes);
 
@@ -96,18 +95,17 @@ public class SubpackageTest extends ModuleTestBase {
                 "module mpqr { exports p.q.r; }",
                 "package p.q.r; public class C3 { }");
         tb.writeJavaFiles(src.resolve("m"),
-                """
-                    module m {  requires mp;
-                      requires mpq;
-                      requires mpqr;
-                    }""",
-                """
-                    package x;
-                    class C {
-                      p.C1 c1;
-                      p.q.C2 c2;
-                      p.q.r.C3 c3;
-                    }""");
+                "module m {"
+                + "  requires mp;\n"
+                + "  requires mpq;\n"
+                + "  requires mpqr;\n"
+                + "}",
+                "package x;\n"
+                + "class C {\n"
+                + "  p.C1 c1;\n"
+                + "  p.q.C2 c2;\n"
+                + "  p.q.r.C3 c3;\n"
+                + "}");
         Path modules = base.resolve("modules");
         Files.createDirectories(modules);
 

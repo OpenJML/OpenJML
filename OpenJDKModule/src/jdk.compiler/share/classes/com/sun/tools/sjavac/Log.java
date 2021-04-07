@@ -84,31 +84,31 @@ public class Log {
         get().level = l;
     }
 
-    public static void trace(String msg) {
+    static public void trace(String msg) {
         log(Level.TRACE, msg);
     }
 
-    public static void debug(String msg) {
+    static public void debug(String msg) {
         log(Level.DEBUG, msg);
     }
 
-    public static void info(String msg) {
+    static public void info(String msg) {
         log(Level.INFO, msg);
     }
 
-    public static void warn(String msg) {
+    static public void warn(String msg) {
         log(Level.WARN, msg);
     }
 
-    public static void error(String msg) {
+    static public void error(String msg) {
         log(Level.ERROR, msg);
     }
 
-    public static void error(Throwable t) {
+    static public void error(Throwable t) {
         log(Level.ERROR, t);
     }
 
-    public static void log(Level l, String msg) {
+    static public void log(Level l, String msg) {
         get().printLogMsg(l, msg);
     }
 
@@ -122,7 +122,7 @@ public class Log {
         log(l, sw.toString());
     }
 
-    public static boolean isDebugging() {
+    static public boolean isDebugging() {
         return get().isLevelLogged(Level.DEBUG);
     }
 

@@ -463,6 +463,7 @@ public class JList<E> extends JComponent implements Scrollable, Accessible
         this.dataModel = dataModel;
         selectionModel = createSelectionModel();
         setAutoscrolls(true);
+        setOpaque(true);
         updateUI();
     }
 

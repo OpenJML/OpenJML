@@ -30,8 +30,6 @@
 #include "ci/ciReplay.hpp"
 #include "classfile/altHashing.hpp"
 #include "classfile/classFileStream.hpp"
-#include "classfile/classLoader.hpp"
-#include "classfile/classLoadInfo.hpp"
 #include "classfile/javaClasses.hpp"
 #include "classfile/javaClasses.inline.hpp"
 #include "classfile/javaThreadStatus.hpp"
@@ -285,11 +283,10 @@ JNI_ENTRY(jclass, jni_DefineClass(JNIEnv *env, const char *name, jobject loaderR
   ResourceMark rm(THREAD);
   ClassFileStream st((u1*)buf, bufLen, NULL, ClassFileStream::verify);
   Handle class_loader (THREAD, JNIHandles::resolve(loaderRef));
-  Handle protection_domain;
-  ClassLoadInfo cl_info(protection_domain);
-  Klass* k = SystemDictionary::resolve_from_stream(&st, class_name,
+  Klass* k = SystemDictionary::resolve_from_stream(class_name,
                                                    class_loader,
-                                                   cl_info,
+                                                   Handle(),
+                                                   &st,
                                                    CHECK_NULL);
 
   if (log_is_enabled(Debug, class, resolve)) {

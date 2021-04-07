@@ -315,7 +315,6 @@ class LambdaForm {
         PUT_DOUBLE_VOLATILE("putDoubleVolatile"),
         TRY_FINALLY("tryFinally"),
         COLLECT("collect"),
-        COLLECTOR("collector"),
         CONVERT("convert"),
         SPREAD("spread"),
         LOOP("loop"),

@@ -55,7 +55,7 @@ public final class DialogOwner implements PrintRequestAttribute {
          }
     }
 
-    private static Accessor accessor = new Accessor();
+    static private Accessor accessor = new Accessor();
     static {
              DialogOwnerAccessor.setAccessor(accessor);
     }

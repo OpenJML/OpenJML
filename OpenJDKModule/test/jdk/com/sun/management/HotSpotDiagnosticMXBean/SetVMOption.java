@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2015, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -29,7 +29,6 @@
  * @author  Mandy Chung
  * @author  Jaroslav Bachorik
  *
- * @library /test/lib
  * @run main/othervm -XX:+HeapDumpOnOutOfMemoryError SetVMOption
  */
 
@@ -38,7 +37,6 @@ import java.util.*;
 import com.sun.management.HotSpotDiagnosticMXBean;
 import com.sun.management.VMOption;
 import com.sun.management.VMOption.Origin;
-import jdk.test.lib.Platform;
 
 public class SetVMOption {
     private static final String HEAP_DUMP_ON_OOM = "HeapDumpOnOutOfMemoryError";
@@ -96,23 +94,6 @@ public class SetVMOption {
                 option.isWriteable() + " expected: " + o.isWriteable());
         }
 
-
-        // Today we don't have any manageable flags of the string type in the product build,
-        // so we can only test DummyManageableStringFlag in the debug build.
-        if (Platform.isDebugBuild()) {
-            String optionName = "DummyManageableStringFlag";
-            String toValue = "DummyManageableStringFlag_Is_Set_To_Hello";
-
-            mbean.setVMOption(optionName, toValue);
-
-            VMOption stringOption = findOption(optionName);
-            Object newValue = stringOption.getValue();
-            if (!toValue.equals(newValue)) {
-                throw new RuntimeException("Unmatched value: " +
-                                           newValue + " expected: " + toValue);
-            }
-        }
-
         // check if ManagementServer is not writeable
         List<VMOption> options = mbean.getDiagnosticOptions();
         VMOption mgmtServerOption = null;
@@ -142,22 +123,18 @@ public class SetVMOption {
     }
 
     public static VMOption findHeapDumpOnOomOption() {
-        return findOption(HEAP_DUMP_ON_OOM);
-    }
-
-    private static VMOption findOption(String optionName) {
         List<VMOption> options = mbean.getDiagnosticOptions();
-        VMOption found = null;
+        VMOption gcDetails = null;
         for (VMOption o : options) {
-            if (o.getName().equals(optionName)) {
-                 found = o;
+            if (o.getName().equals(HEAP_DUMP_ON_OOM)) {
+                 gcDetails = o;
                  break;
             }
         }
-        if (found == null) {
-            throw new RuntimeException("VM option " + optionName +
+        if (gcDetails == null) {
+            throw new RuntimeException("VM option " + HEAP_DUMP_ON_OOM +
                 " not found");
         }
-        return found;
+        return gcDetails;
     }
 }

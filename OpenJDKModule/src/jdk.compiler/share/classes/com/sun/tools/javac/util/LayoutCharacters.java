@@ -37,37 +37,37 @@ public interface LayoutCharacters {
 
     /** Tabulator column increment.
      */
-    static final int TabInc = 8;
+    final static int TabInc = 8;
 
     /** Standard indentation for subdiagnostics
      */
-    static final int DiagInc = 4;
+    final static int DiagInc = 4;
 
     /** Standard indentation for additional diagnostic lines
      */
-    static final int DetailsInc = 2;
+    final static int DetailsInc = 2;
 
     /** Tabulator character.
      */
-    static final byte TAB   = 0x9;
+    final static byte TAB   = 0x9;
 
     /** Line feed character.
      */
-    static final byte LF    = 0xA;
+    final static byte LF    = 0xA;
 
     /** Form feed character.
      */
-    static final byte FF    = 0xC;
+    final static byte FF    = 0xC;
 
     /** Carriage return character.
      */
-    static final byte CR    = 0xD;
+    final static byte CR    = 0xD;
 
     /** End of input character.  Used as a sentinel to denote the
      *  character one beyond the last defined character in a
      *  source file.
      */
-    static final byte EOI   = 0x1A;
+    final static byte EOI   = 0x1A;
 
     /** Bump column to the next tab.
      */

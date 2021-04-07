@@ -602,7 +602,7 @@ public abstract class FileSystemView {
      * possibly empty if there are no appropriate permissions.
      * @since 12
      */
-    public final File[] getChooserShortcutPanelFiles() {
+    final public File[] getChooserShortcutPanelFiles() {
         return (File[]) ShellFolder.get("fileChooserShortcutPanelFolders");
     }
 

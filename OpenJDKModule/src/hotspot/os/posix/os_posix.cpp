@@ -39,7 +39,6 @@
 #include "runtime/sharedRuntime.hpp"
 #include "services/attachListener.hpp"
 #include "services/memTracker.hpp"
-#include "runtime/arguments.hpp"
 #include "runtime/atomic.hpp"
 #include "runtime/java.hpp"
 #include "runtime/orderAccess.hpp"

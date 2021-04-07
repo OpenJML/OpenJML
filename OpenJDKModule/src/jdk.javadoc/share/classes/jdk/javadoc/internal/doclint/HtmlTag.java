@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -40,18 +40,20 @@ import static jdk.javadoc.internal.doclint.HtmlTag.Attr.*;
 /**
  * Enum representing HTML tags.
  *
- * The intent of this class is to embody the semantics of the current HTML standard,
+ * The intent of this class is to embody the semantics of W3C HTML 4.01
  * to the extent supported/used by javadoc.
+ * In time, we may wish to transition javadoc and doclint to using HTML 5.
  *
- * This class is derivative of {@link jdk.javadoc.internal.doclets.formats.html.markup.TagName}.
+ * This is derivative of com.sun.tools.doclets.formats.html.markup.HtmlTag.
  * Eventually, these two should be merged back together, and possibly made
  * public.
  *
- * @see <a href="https://html.spec.whatwg.org/multipage/">HTML Living Standard</a>
- * @see <a href="http://www.w3.org/TR/html5/">HTML 5 Specification</a>
  * @see <a href="http://www.w3.org/TR/REC-html40/">HTML 4.01 Specification</a>
- * @see <a href="http://www.w3.org/TR/wai-aria/">WAI-ARIA Specification</a>
+ * @see <a href="http://www.w3.org/TR/html5/">HTML 5 Specification</a>
+ * @see <a href="http://www.w3.org/TR/wai-aria/ ">WAI-ARIA Specification</a>
  * @see <a href="http://www.w3.org/TR/aria-in-html/#recommendations-table">WAI-ARIA Recommendations Table</a>
+ * @author Bhavesh Patel
+ * @author Jonathan Gibbons (revised)
  */
 public enum HtmlTag {
     A(BlockType.INLINE, EndKind.REQUIRED,
@@ -399,7 +401,7 @@ public enum HtmlTag {
     /**
      * Enum representing the supportability of HTML element.
      */
-    public enum ElemKind {
+    public static enum ElemKind {
         OK,
         INVALID,
         OBSOLETE,
@@ -409,7 +411,7 @@ public enum HtmlTag {
     /**
      * Enum representing the type of HTML element.
      */
-    public enum BlockType {
+    public static enum BlockType {
         BLOCK,
         INLINE,
         LIST_ITEM,
@@ -420,20 +422,20 @@ public enum HtmlTag {
     /**
      * Enum representing HTML end tag requirement.
      */
-    public enum EndKind {
+    public static enum EndKind {
         NONE,
         OPTIONAL,
         REQUIRED
     }
 
-    public enum Flag {
+    public static enum Flag {
         ACCEPTS_BLOCK,
         ACCEPTS_INLINE,
         EXPECT_CONTENT,
         NO_NEST
     }
 
-    public enum Attr {
+    public static enum Attr {
         ABBR,
         ALIGN,
         ALINK,
@@ -530,7 +532,7 @@ public enum HtmlTag {
         }
     }
 
-    public enum AttrKind {
+    public static enum AttrKind {
         OK,
         INVALID,
         OBSOLETE,

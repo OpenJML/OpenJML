@@ -1415,12 +1415,11 @@ instruct anytrue_in_mask$1B`'(iRegINoSp dst, vec$2 src1, vec$2 src2, vec$2 tmp, 
   match(Set dst (VectorTest src1 src2 ));
   ins_cost(INSN_COST);
   effect(TEMP tmp, KILL cr);
-  format %{ "addv  $tmp, T$1B, $src1\n\t"
+  format %{ "addv  $tmp, T$1B, $src1\t# src1 and src2 are the same\n\t"
             "umov  $dst, $tmp, B, 0\n\t"
             "cmp   $dst, 0\n\t"
-            "cset  $dst\t# anytrue $1B" %}
+            "cset  $dst" %}
   ins_encode %{
-    // No need to use src2.
     __ addv(as_FloatRegister($tmp$$reg), __ T$1B, as_FloatRegister($src1$$reg));
     __ umov($dst$$Register, as_FloatRegister($tmp$$reg), __ B, 0);
     __ cmpw($dst$$Register, zr);
@@ -1439,15 +1438,19 @@ instruct alltrue_in_mask$1B`'(iRegINoSp dst, vec$2 src1, vec$2 src2, vec$2 tmp, 
   match(Set dst (VectorTest src1 src2 ));
   ins_cost(INSN_COST);
   effect(TEMP tmp, KILL cr);
-  format %{ "uminv $tmp, T$1B, $src1\n\t"
+  format %{ "andr  $tmp, T$1B, $src1, $src2\t# src2 is maskAllTrue\n\t"
+            "notr  $tmp, T$1B, $tmp\n\t"
+            "addv  $tmp, T$1B, $tmp\n\t"
             "umov  $dst, $tmp, B, 0\n\t"
-            "cmp   $dst, 0xff\n\t"
-            "cset  $dst\t# alltrue $1B" %}
+            "cmp   $dst, 0\n\t"
+            "cset  $dst" %}
   ins_encode %{
-    // No need to use src2.
-    __ uminv(as_FloatRegister($tmp$$reg), __ T$1B, as_FloatRegister($src1$$reg));
+    __ andr(as_FloatRegister($tmp$$reg), __ T$1B,
+            as_FloatRegister($src1$$reg), as_FloatRegister($src2$$reg));
+    __ notr(as_FloatRegister($tmp$$reg), __ T$1B, as_FloatRegister($tmp$$reg));
+    __ addv(as_FloatRegister($tmp$$reg), __ T$1B, as_FloatRegister($tmp$$reg));
     __ umov($dst$$Register, as_FloatRegister($tmp$$reg), __ B, 0);
-    __ cmpw($dst$$Register, 0xff);
+    __ cmpw($dst$$Register, zr);
     __ csetw($dst$$Register, Assembler::EQ);
   %}
   ins_pipe(pipe_slow);

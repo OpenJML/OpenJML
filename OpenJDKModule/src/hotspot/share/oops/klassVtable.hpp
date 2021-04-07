@@ -48,8 +48,6 @@ class klassVtable {
   int          _verify_count;     // to make verify faster
 #endif
 
-  void check_constraints(GrowableArray<InstanceKlass*>* supers, TRAPS);
-
  public:
   klassVtable(Klass* klass, void* base, int length) : _klass(klass) {
     _tableOffset = (address)base - (address)klass; _length = length;
@@ -65,9 +63,7 @@ class klassVtable {
   // searching; all methods return -1 if not found
   int index_of_miranda(Symbol* name, Symbol* signature);
 
-  // initialize vtable of a new klass
-  void initialize_vtable(GrowableArray<InstanceKlass*>* supers = NULL);
-  void initialize_vtable_and_check_constraints(TRAPS);
+  void initialize_vtable(bool checkconstraints, TRAPS);   // initialize vtable of a new klass
 
   // computes vtable length (in words) and the number of miranda methods
   static void compute_vtable_size_and_num_mirandas(int* vtable_length,
@@ -119,11 +115,10 @@ class klassVtable {
                                      AccessFlags access_flags,
                                      u2 major_version);
 
-  bool update_inherited_vtable(Thread* current,
-                               const methodHandle& target_method,
+  bool update_inherited_vtable(const methodHandle& target_method,
                                int super_vtable_len,
                                int default_index,
-                               GrowableArray<InstanceKlass*>* supers);
+                               bool checkconstraints, TRAPS);
  InstanceKlass* find_transitive_override(InstanceKlass* initialsuper,
                                          const methodHandle& target_method, int vtable_index,
                                          Handle target_loader, Symbol* target_classname);
@@ -283,9 +278,7 @@ class klassItable {
   int                  _size_offset_table; // size of offset table (in itableOffset entries)
   int                  _size_method_table; // size of methodtable (in itableMethodEntry entries)
 
-  void initialize_itable_for_interface(int method_table_offset, InstanceKlass* interf_h,
-                                       GrowableArray<Method*>* supers, int start_offset);
-  void check_constraints(GrowableArray<Method*>* supers, TRAPS);
+  void initialize_itable_for_interface(int method_table_offset, InstanceKlass* interf_h, bool checkconstraints, TRAPS);
  public:
   klassItable(InstanceKlass* klass);
 
@@ -298,8 +291,7 @@ class klassItable {
   int size_offset_table()                { return _size_offset_table; }
 
   // Initialization
-  void initialize_itable_and_check_constraints(TRAPS);
-  void initialize_itable(GrowableArray<Method*>* supers = NULL);
+  void initialize_itable(bool checkconstraints, TRAPS);
 
 #if INCLUDE_JVMTI
   // RedefineClasses() API support:
@@ -314,7 +306,7 @@ class klassItable {
 #endif // INCLUDE_JVMTI
 
   // Setup of itable
-  static int assign_itable_indices_for_interface(InstanceKlass* klass);
+  static int assign_itable_indices_for_interface(Thread* current, InstanceKlass* klass);
   static int method_count_for_interface(InstanceKlass* klass);
   static int compute_itable_size(Array<InstanceKlass*>* transitive_interfaces);
   static void setup_itable_offset_table(InstanceKlass* klass);

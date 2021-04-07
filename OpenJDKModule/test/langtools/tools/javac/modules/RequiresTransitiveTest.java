@@ -51,12 +51,10 @@ public class RequiresTransitiveTest extends ModuleTestBase {
         Path src = base.resolve("src");
         tb.writeJavaFiles(src,
                 "module m { requires java.se; }",
-                // use class in java.se
-                """
-                    import java.awt.Frame;
-                    class Test {
-                        Frame f;
-                    }""");
+                "import java.awt.Frame;\n"  // in java.se
+                + "class Test {\n"
+                + "    Frame f;\n"
+                + "}");
         Path classes = base.resolve("classes");
         Files.createDirectories(classes);
 
@@ -72,12 +70,10 @@ public class RequiresTransitiveTest extends ModuleTestBase {
         Path src = base.resolve("src");
         tb.writeJavaFiles(src,
                 "module m { requires java.se; }",
-                // use class not in java.se (in jdk.compiler)
-                """
-                    import com.sun.source.tree.Tree;
-                    class Test {
-                        Tree t;
-                    }""");
+                "import com.sun.source.tree.Tree;\n" // not in java.se (in jdk.compiler)
+                + "class Test {\n"
+                + "    Tree t;\n"
+                + "}");
         Path classes = base.resolve("classes");
         Files.createDirectories(classes);
 
@@ -148,76 +144,55 @@ public class RequiresTransitiveTest extends ModuleTestBase {
         Path src_m1 = src.resolve("m1x");
         tb.writeJavaFiles(src_m1,
                 "module m1x { requires m2x; }",
-                """
-                    package p1;
-                    import p2.C2;
-                    import p3.C3;
-                    import p4.C4;
-                    """
+                "package p1;\n"
+                + "import p2.C2;\n"
+                + "import p3.C3;\n"
+                + "import p4.C4;\n"
                 + m1_extraImports
-                + """
-                    class C1 {
-                      C2 c2; C3 c3; C4 c4;
-                    """
+                + "class C1 {\n"
+                + "  C2 c2; C3 c3; C4 c4;\n"
                 + m1_extraUses
                 + "}\n");
 
         Path src_m2 = src.resolve("m2x");
         tb.writeJavaFiles(src_m2,
-                """
-                    module m2x {
-                      requires transitive m3x;
-                      requires        m6x;
-                      exports p2;
-                    }""",
-                """
-                    package p2;
-                    public class C2 { }
-                    """);
+                "module m2x {\n"
+                + "  requires transitive m3x;\n"
+                + "  requires        m6x;\n"
+                + "  exports p2;\n"
+                + "}",
+                "package p2;\n"
+                + "public class C2 { }\n");
 
         Path src_m3 = src.resolve("m3x");
         tb.writeJavaFiles(src_m3,
-                """
-                    module m3x { requires transitive m4x; exports p3; }
-                    """,
-                """
-                    package p3;
-                    public class C3 { }
-                    """);
+                "module m3x { requires transitive m4x; exports p3; }",
+                "package p3;\n"
+                + "public class C3 { }\n");
 
         Path src_m4 = src.resolve("m4x");
         tb.writeJavaFiles(src_m4,
-                """
-                    module m4x { requires m5x; exports p4; }
-                    """,
-                """
-                    package p4;
-                    public class C4 { }
-                    """);
+                "module m4x { requires m5x; exports p4; }",
+                "package p4;\n"
+                + "public class C4 { }\n");
 
         Path src_m5 = src.resolve("m5x");
         tb.writeJavaFiles(src_m5,
-                """
-                    module m5x { exports p5; }
-                    """,
-                """
-                    package p5;
-                    public class C5 { }
-                    """);
+                "module m5x { exports p5; }",
+                "package p5;\n"
+                + "public class C5 { }\n");
 
         Path src_m6 = src.resolve("m6x");
         tb.writeJavaFiles(src_m6,
                 "module m6x { requires transitive m7x; exports p6; }",
-                """
-                    package p6;
-                    public class C6 { }""");
+                "package p6;\n"
+                + "public class C6 { }\n");
 
         Path src_m7 = src.resolve("m7x");
         tb.writeJavaFiles(src_m7,
                 "module m7x { exports p7; }",
-                """
-                    package p7;
-                    public class C7 { }""");
+                "package p7;\n"
+                + "public class C7 { }\n");
 
         return src;
     }

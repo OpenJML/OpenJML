@@ -275,11 +275,19 @@ class SourceCodeAnalysisImpl extends SourceCodeAnalysis {
         if (code.trim().isEmpty()) { //TODO: comment handling
             code += ";";
         }
-        OuterWrap codeWrap = switch (guessKind(code)) {
-            case IMPORT -> proc.outerMap.wrapImport(Wrap.simpleWrap(code + "any.any"), null);
-            case CLASS, METHOD -> proc.outerMap.wrapInTrialClass(Wrap.classMemberWrap(code));
-            default -> proc.outerMap.wrapInTrialClass(Wrap.methodWrap(code));
-        };
+        OuterWrap codeWrap;
+        switch (guessKind(code)) {
+            case IMPORT:
+                codeWrap = proc.outerMap.wrapImport(Wrap.simpleWrap(code + "any.any"), null);
+                break;
+            case CLASS:
+            case METHOD:
+                codeWrap = proc.outerMap.wrapInTrialClass(Wrap.classMemberWrap(code));
+                break;
+            default:
+                codeWrap = proc.outerMap.wrapInTrialClass(Wrap.methodWrap(code));
+                break;
+        }
         String requiredPrefix = identifier;
         return computeSuggestions(codeWrap, cursor, anchor).stream()
                 .filter(s -> s.continuation().startsWith(requiredPrefix) && !s.continuation().equals(REPL_DOESNOTMATTER_CLASS_NAME))
@@ -494,14 +502,23 @@ class SourceCodeAnalysisImpl extends SourceCodeAnalysis {
                         addScopeElements(at, scope, IDENTITY, accept, smartFilter, result);
 
                         Tree parent = tp.getParentPath().getLeaf();
-                        accept = switch (parent.getKind()) {
-                            case VARIABLE -> ((VariableTree) parent).getType() == tp.getLeaf() ?
-                                             IS_VOID.negate() :
-                                             TRUE;
-                            case PARAMETERIZED_TYPE -> FALSE; // TODO: JEP 218: Generics over Primitive Types
-                            case TYPE_PARAMETER, CLASS, INTERFACE, ENUM -> FALSE;
-                            default -> TRUE;
-                        };
+                        switch (parent.getKind()) {
+                            case VARIABLE:
+                                accept = ((VariableTree)parent).getType() == tp.getLeaf() ?
+                                        IS_VOID.negate() :
+                                        TRUE;
+                                break;
+                            case PARAMETERIZED_TYPE: // TODO: JEP 218: Generics over Primitive Types
+                            case TYPE_PARAMETER:
+                            case CLASS:
+                            case INTERFACE:
+                            case ENUM:
+                                accept = FALSE;
+                                break;
+                            default:
+                                accept = TRUE;
+                                break;
+                        }
                         addElements(primitivesOrVoid(at), accept, smartFilter, result);
                         break;
                     }
@@ -1086,12 +1103,15 @@ class SourceCodeAnalysisImpl extends SourceCodeAnalysis {
 
     private TypeMirror resultTypeOf(Element el) {
         //TODO: should reflect the type of site!
-        return switch (el.getKind()) {
-            case METHOD -> ((ExecutableElement) el).getReturnType();
-            // TODO: INSTANCE_INIT and STATIC_INIT should be filtered out
-            case CONSTRUCTOR, INSTANCE_INIT, STATIC_INIT -> el.getEnclosingElement().asType();
-            default -> el.asType();
-        };
+        switch (el.getKind()) {
+            case METHOD:
+                return ((ExecutableElement) el).getReturnType();
+            case CONSTRUCTOR:
+            case INSTANCE_INIT: case STATIC_INIT: //TODO: should be filtered out
+                return el.getEnclosingElement().asType();
+            default:
+                return el.asType();
+        }
     }
 
     private void addScopeElements(AnalyzeTask at, Scope scope, Function<Element, Iterable<? extends Element>> elementConvertor, Predicate<Element> filter, Predicate<Element> smartFilter, List<Suggestion> result) {

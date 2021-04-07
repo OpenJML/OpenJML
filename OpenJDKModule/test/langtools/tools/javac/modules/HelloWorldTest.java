@@ -47,12 +47,11 @@ public class HelloWorldTest extends ModuleTestBase {
     }
 
     public static final String HELLO_WORLD =
-          """
-              class HelloWorld {
-                  public static void main(String... args) {
-                      System.out.println("Hello World!");
-                  }
-              }""";
+          "class HelloWorld {\n"
+        + "    public static void main(String... args) {\n"
+        + "        System.out.println(\"Hello World!\");\n"
+        + "    }\n"
+        + "}";
 
     public static final String PKG_HELLO_WORLD =
           "package p;\n"

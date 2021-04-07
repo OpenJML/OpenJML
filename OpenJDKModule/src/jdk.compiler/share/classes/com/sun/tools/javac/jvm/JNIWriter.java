@@ -137,7 +137,7 @@ public class JNIWriter {
     static boolean isNative(Symbol s) {
         return hasFlag(s, Flags.NATIVE);
     }
-    private static boolean hasFlag(Symbol m, int flag) {
+    static private boolean hasFlag(Symbol m, int flag) {
         return (m.flags() & flag) != 0;
     }
 
