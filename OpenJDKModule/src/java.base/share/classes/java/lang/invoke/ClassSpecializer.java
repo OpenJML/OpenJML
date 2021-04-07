@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -46,6 +46,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
+import static java.lang.invoke.GenerateJLIClassesHelper.traceSpeciesType;
 import static java.lang.invoke.LambdaForm.*;
 import static java.lang.invoke.MethodHandleNatives.Constants.REF_getStatic;
 import static java.lang.invoke.MethodHandleNatives.Constants.REF_putStatic;
@@ -475,10 +476,8 @@ abstract class ClassSpecializer<T,K,S extends ClassSpecializer<T,K,S>.SpeciesDat
             Class<?> salvage = null;
             try {
                 salvage = BootLoader.loadClassOrNull(className);
-            } catch (Error ex) {
-                // ignore
-            } finally {
                 traceSpeciesType(className, salvage);
+            } catch (Error ex) {
             }
             final Class<? extends T> speciesCode;
             if (salvage != null) {
@@ -489,6 +488,7 @@ abstract class ClassSpecializer<T,K,S extends ClassSpecializer<T,K,S>.SpeciesDat
                 // Not pregenerated, generate the class
                 try {
                     speciesCode = generateConcreteSpeciesCode(className, speciesData);
+                    traceSpeciesType(className, salvage);
                     // This operation causes a lot of churn:
                     linkSpeciesDataToCode(speciesData, speciesCode);
                     // This operation commits the relation, but causes little churn:

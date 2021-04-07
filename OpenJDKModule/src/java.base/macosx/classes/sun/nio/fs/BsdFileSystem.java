@@ -56,8 +56,6 @@ class BsdFileSystem extends UnixFileSystem {
         private static Set<String> supportedFileAttributeViews() {
             Set<String> result = new HashSet<String>();
             result.addAll(standardFileAttributeViews());
-            // additional BSD-specific views
-            result.add("user");
             return Collections.unmodifiableSet(result);
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2006, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,7 +26,6 @@
 package java.awt.geom;
 
 import java.awt.Shape;
-import java.io.Serial;
 
 /**
  * The {@code GeneralPath} class represents a geometric path
@@ -66,8 +65,6 @@ public final class GeneralPath extends Path2D.Float {
      * path to be defined.
      *
      * @param rule the winding rule
-     * @throws IllegalArgumentException if {@code rule} is not either
-     *         {@link #WIND_EVEN_ODD} or {@link #WIND_NON_ZERO}
      * @see #WIND_EVEN_ODD
      * @see #WIND_NON_ZERO
      * @since 1.2
@@ -87,10 +84,6 @@ public final class GeneralPath extends Path2D.Float {
      * @param rule the winding rule
      * @param initialCapacity the estimate for the number of path segments
      *                        in the path
-     * @throws IllegalArgumentException if {@code rule} is not either
-     *         {@link #WIND_EVEN_ODD} or {@link #WIND_NON_ZERO}
-     * @throws NegativeArraySizeException if {@code initialCapacity} is
-     *         negative
      * @see #WIND_EVEN_ODD
      * @see #WIND_NON_ZERO
      * @since 1.2
@@ -106,7 +99,6 @@ public final class GeneralPath extends Path2D.Float {
      * taken from the specified {@code Shape} object.
      *
      * @param s the specified {@code Shape} object
-     * @throws NullPointerException if {@code s} is {@code null}
      * @since 1.2
      */
     public GeneralPath(Shape s) {
@@ -128,9 +120,8 @@ public final class GeneralPath extends Path2D.Float {
         this.numCoords = numCoords;
     }
 
-    /**
-     * Use serialVersionUID from JDK 1.6 for interoperability.
+    /*
+     * JDK 1.6 serialVersionUID
      */
-    @Serial
     private static final long serialVersionUID = -8327096662768731142L;
 }

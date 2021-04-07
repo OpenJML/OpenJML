@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,7 +27,6 @@
 #include "classfile/defaultMethods.hpp"
 #include "classfile/symbolTable.hpp"
 #include "classfile/systemDictionary.hpp"
-#include "classfile/vmClasses.hpp"
 #include "classfile/vmSymbols.hpp"
 #include "logging/log.hpp"
 #include "logging/logStream.hpp"
@@ -141,7 +140,7 @@ class HierarchyVisitor : StackObj {
   bool has_more_nodes() const { return _path.length() > 0; }
   void push(InstanceKlass* cls, ALGO* algo) {
     assert(cls != NULL, "Requires a valid instance class");
-    if (cls == vmClasses::Object_klass()) {
+    if (cls == SystemDictionary::Object_klass()) {
       _visited_Object = true;
     }
     void* data = algo->new_node_data();
@@ -818,7 +817,7 @@ static void create_default_methods( InstanceKlass* klass,
 void DefaultMethods::generate_default_methods(
     InstanceKlass* klass, const GrowableArray<Method*>* mirandas, TRAPS) {
   assert(klass != NULL, "invariant");
-  assert(klass != vmClasses::Object_klass(), "Shouldn't be called for Object");
+  assert(klass != SystemDictionary::Object_klass(), "Shouldn't be called for Object");
 
   // This resource mark is the bound for all memory allocation that takes
   // place during default method processing.  After this goes out of scope,

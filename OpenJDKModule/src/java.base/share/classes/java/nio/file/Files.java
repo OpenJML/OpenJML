@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -4121,11 +4121,9 @@ public final class Files {
             // FileChannel.size() may in certain circumstances return zero
             // for a non-zero length file so disallow this case.
             if (length > 0 && length <= Integer.MAX_VALUE) {
-                FileChannelLinesSpliterator fcls =
-                    new FileChannelLinesSpliterator(fc, cs, 0, (int) length);
-                return StreamSupport.stream(fcls, false)
-                        .onClose(Files.asUncheckedRunnable(fc))
-                        .onClose(() -> fcls.close());
+                Spliterator<String> s = new FileChannelLinesSpliterator(fc, cs, 0, (int) length);
+                return StreamSupport.stream(s, false)
+                        .onClose(Files.asUncheckedRunnable(fc));
             }
         } catch (Error|RuntimeException|IOException e) {
             try {

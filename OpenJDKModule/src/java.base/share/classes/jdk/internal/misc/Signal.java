@@ -95,17 +95,18 @@ public final class Signal {
     /**
      * Compares the equality of two <code>Signal</code> objects.
      *
-     * @param obj the object to compare with.
+     * @param other the object to compare with.
      * @return whether two <code>Signal</code> objects are equal.
      */
-    public boolean equals(Object obj) {
-        if (this == obj) {
+    public boolean equals(Object other) {
+        if (this == other) {
             return true;
         }
-        if (obj instanceof Signal other) {
-            return name.equals(other.name) && (number == other.number);
+        if (other == null || !(other instanceof Signal)) {
+            return false;
         }
-        return false;
+        Signal other1 = (Signal)other;
+        return name.equals(other1.name) && (number == other1.number);
     }
 
     /**

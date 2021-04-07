@@ -45,7 +45,17 @@ import jdk.javadoc.internal.doclets.toolkit.util.DocletConstants;
  */
 public class HtmlDocument {
     private final DocType docType = DocType.HTML5;
-    private final Content docContent;
+    private final List<Content> docContent;
+
+    /**
+     * Constructor to construct an HTML document.
+     *
+     * @param docComment comment for the document
+     * @param htmlTree HTML tree of the document
+     */
+    public HtmlDocument(Content docComment, Content htmlTree) {
+        docContent = Arrays.asList(docComment, htmlTree);
+    }
 
     /**
      * Constructor to construct an HTML document.
@@ -53,7 +63,7 @@ public class HtmlDocument {
      * @param htmlTree HTML tree of the document
      */
     public HtmlDocument(Content htmlTree) {
-        docContent = htmlTree;
+        docContent = Collections.singletonList(htmlTree);
     }
 
     /**
@@ -83,6 +93,9 @@ public class HtmlDocument {
     private void write(Writer writer) throws IOException {
         writer.write(docType.text);
         writer.write(DocletConstants.NL);
-        docContent.write(writer, true);
+        boolean atNewline = true;
+        for (Content c : docContent) {
+            atNewline = c.write(writer, atNewline);
+        }
     }
 }

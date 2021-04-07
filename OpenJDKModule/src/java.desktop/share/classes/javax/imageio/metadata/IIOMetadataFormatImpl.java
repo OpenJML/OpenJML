@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2014, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -409,7 +409,9 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
     protected void removeElement(String elementName) {
         Element element = getElement(elementName, false);
         if (element != null) {
-            for (String parentName : element.parentList) {
+            Iterator<String> iter = element.parentList.iterator();
+            while (iter.hasNext()) {
+                String parentName = iter.next();
                 Element parent = getElement(parentName, false);
                 if (parent != null) {
                     parent.childList.remove(elementName);
@@ -513,7 +515,9 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
         if (enumeratedValues.size() == 0) {
             throw new IllegalArgumentException("enumeratedValues is empty!");
         }
-        for (Object o : enumeratedValues) {
+        Iterator<String> iter = enumeratedValues.iterator();
+        while (iter.hasNext()) {
+            Object o = iter.next();
             if (o == null) {
                 throw new IllegalArgumentException
                     ("enumeratedValues contains a null!");
@@ -790,7 +794,9 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
         if (enumeratedValues.size() == 0) {
             throw new IllegalArgumentException("enumeratedValues is empty!");
         }
-        for (Object o : enumeratedValues) {
+        Iterator<? extends T> iter = enumeratedValues.iterator();
+        while (iter.hasNext()) {
+            Object o = iter.next();
             if (o == null) {
                 throw new IllegalArgumentException("enumeratedValues contains a null!");
             }

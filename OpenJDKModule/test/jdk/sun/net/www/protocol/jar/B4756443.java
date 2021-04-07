@@ -26,11 +26,8 @@
  * @bug 4756443
  * @summary REGRESSION: NPE in JarURLConnection.getLastModified after setUseCache(false)
  */
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.io.*;
+import java.net.*;
 
 public class B4756443 {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,7 +25,6 @@
 
 package java.awt.geom;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -133,10 +132,9 @@ public abstract class Point2D implements Cloneable {
             return "Point2D.Float["+x+", "+y+"]";
         }
 
-        /**
-         * Use serialVersionUID from JDK 1.6 for interoperability.
+        /*
+         * JDK 1.6 serialVersionUID
          */
-        @Serial
         private static final long serialVersionUID = -2870572449815403710L;
     }
 
@@ -218,10 +216,9 @@ public abstract class Point2D implements Cloneable {
             return "Point2D.Double["+x+", "+y+"]";
         }
 
-        /**
-         * Use serialVersionUID from JDK 1.6 for interoperability.
+        /*
+         * JDK 1.6 serialVersionUID
          */
-        @Serial
         private static final long serialVersionUID = 6150783262733311327L;
     }
 

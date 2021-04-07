@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -35,7 +35,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
-import javax.lang.model.util.SimpleTypeVisitor14;
+import javax.lang.model.util.SimpleTypeVisitor9;
 
 import jdk.javadoc.internal.doclets.toolkit.Content;
 import jdk.javadoc.internal.doclets.toolkit.util.Utils;
@@ -56,7 +56,7 @@ public abstract class LinkFactory {
     }
 
     /**
-     * Returns an empty instance of a content object.
+     * Return an empty instance of a content object.
      *
      * @return an empty instance of a content object.
      */
@@ -70,9 +70,11 @@ public abstract class LinkFactory {
      */
     public Content getLink(LinkInfo linkInfo) {
         if (linkInfo.type != null) {
-            SimpleTypeVisitor14<Content, LinkInfo> linkVisitor = new SimpleTypeVisitor14<>() {
+            SimpleTypeVisitor9<Content, LinkInfo> linkVisitor =
+                    new SimpleTypeVisitor9<Content, LinkInfo>() {
 
-                final Content link = newContent();
+                TypeMirror componentType = utils.getComponentType(linkInfo.type);
+                Content link = newContent();
 
                 // handles primitives, no types and error types
                 @Override
@@ -106,6 +108,7 @@ public abstract class LinkFactory {
 
                 @Override
                 public Content visitWildcard(WildcardType type, LinkInfo linkInfo) {
+                    linkInfo.isTypeBound = true;
                     link.add(getTypeAnnotationLinks(linkInfo));
                     link.add("?");
                     TypeMirror extendsBound = type.getExtendsBound();
@@ -126,16 +129,16 @@ public abstract class LinkFactory {
                 @Override
                 public Content visitTypeVariable(TypeVariable type, LinkInfo linkInfo) {
                     link.add(getTypeAnnotationLinks(linkInfo));
+                    linkInfo.isTypeBound = true;
                     TypeVariable typevariable = (utils.isArrayType(type))
-                            ? (TypeVariable) utils.getComponentType(type)
+                            ? (TypeVariable) componentType
                             : type;
                     Element owner = typevariable.asElement().getEnclosingElement();
-                    if (!linkInfo.excludeTypeParameterLinks && utils.isTypeElement(owner)) {
+                    if ((!linkInfo.excludeTypeParameterLinks) && utils.isTypeElement(owner)) {
                         linkInfo.typeElement = (TypeElement) owner;
                         Content label = newContent();
                         label.add(utils.getTypeName(type, false));
                         linkInfo.label = label;
-                        linkInfo.skipPreview = true;
                         link.add(getClassLink(linkInfo));
                     } else {
                         // No need to link method type parameters.
@@ -166,11 +169,20 @@ public abstract class LinkFactory {
 
                 @Override
                 public Content visitDeclared(DeclaredType type, LinkInfo linkInfo) {
-                    link.add(getTypeAnnotationLinks(linkInfo));
-                    linkInfo.typeElement = utils.asTypeElement(type);
-                    link.add(getClassLink(linkInfo));
-                    if (linkInfo.includeTypeParameterLinks()) {
+                    if (linkInfo.isTypeBound && linkInfo.excludeTypeBoundsLinks) {
+                        // Since we are excluding type parameter links, we should not
+                        // be linking to the type bound.
+                        link.add(utils.getTypeName(type, false));
                         link.add(getTypeParameterLinks(linkInfo));
+                        return link;
+                    } else {
+                        link = newContent();
+                        link.add(getTypeAnnotationLinks(linkInfo));
+                        linkInfo.typeElement = utils.asTypeElement(type);
+                        link.add(getClassLink(linkInfo));
+                        if (linkInfo.includeTypeAsSepLink) {
+                            link.add(getTypeParameterLinks(linkInfo, false));
+                        }
                     }
                     return link;
                 }
@@ -179,8 +191,8 @@ public abstract class LinkFactory {
         } else if (linkInfo.typeElement != null) {
             Content link = newContent();
             link.add(getClassLink(linkInfo));
-            if (linkInfo.includeTypeParameterLinks()) {
-                link.add(getTypeParameterLinks(linkInfo));
+            if (linkInfo.includeTypeAsSepLink) {
+                link.add(getTypeParameterLinks(linkInfo, false));
             }
             return link;
         } else {
@@ -192,13 +204,13 @@ public abstract class LinkFactory {
         linkInfo.typeElement = null;
         linkInfo.label = null;
         linkInfo.type = bound;
-        linkInfo.skipPreview = false;
     }
 
     /**
      * Returns a link to the given class.
      *
      * @param linkInfo the information about the link to construct
+     *
      * @return the link for the given class.
      */
     protected abstract Content getClassLink(LinkInfo linkInfo);
@@ -206,16 +218,22 @@ public abstract class LinkFactory {
     /**
      * Returns links to the type parameters.
      *
-     * @param linkInfo the information about the link to construct
+     * @param linkInfo     the information about the link to construct
+     * @param isClassLabel true if this is a class label, or false if it is
+     *                     the type parameters portion of the link
      * @return the links to the type parameters
      */
-    protected abstract Content getTypeParameterLinks(LinkInfo linkInfo);
+    protected abstract Content getTypeParameterLinks(LinkInfo linkInfo, boolean isClassLabel);
 
     /**
-     * Returns links to the type annotations.
+     * Returns links to the type parameters.
      *
-     * @param linkInfo the information about the link to construct
-     * @return the links to the type annotations
+     * @param linkInfo     the information about the link to construct
+     * @return the links to the type parameters.
      */
+    public Content getTypeParameterLinks(LinkInfo linkInfo) {
+        return getTypeParameterLinks(linkInfo, true);
+    }
+
     public abstract Content getTypeAnnotationLinks(LinkInfo linkInfo);
 }

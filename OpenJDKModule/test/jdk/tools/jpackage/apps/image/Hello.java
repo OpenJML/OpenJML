@@ -154,12 +154,6 @@ public class Hello implements OpenFilesHandler {
 
         trace("Environment supports a display");
 
-        if (!Desktop.isDesktopSupported()) {
-            return null;
-        }
-
-        trace("Environment supports a desktop");
-
         try {
             // Disable JAB.
             // Needed to suppress error:

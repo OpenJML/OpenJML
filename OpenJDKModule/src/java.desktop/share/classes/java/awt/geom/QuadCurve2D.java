@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,10 +25,10 @@
 
 package java.awt.geom;
 
-import java.awt.Rectangle;
 import java.awt.Shape;
-import java.io.Serial;
+import java.awt.Rectangle;
 import java.io.Serializable;
+import sun.awt.geom.Curve;
 
 /**
  * The {@code QuadCurve2D} class defines a quadratic parametric curve
@@ -251,10 +251,9 @@ public abstract class QuadCurve2D implements Shape, Cloneable {
                                          right - left, bottom - top);
         }
 
-        /**
-         * Use serialVersionUID from JDK 1.6 for interoperability.
+        /*
+         * JDK 1.6 serialVersionUID
          */
-        @Serial
         private static final long serialVersionUID = -8511188402130719609L;
     }
 
@@ -441,10 +440,9 @@ public abstract class QuadCurve2D implements Shape, Cloneable {
                                           right - left, bottom - top);
         }
 
-        /**
-         * Use serialVersionUID from JDK 1.6 for interoperability.
+        /*
+         * JDK 1.6 serialVersionUID
          */
-        @Serial
         private static final long serialVersionUID = 4217149928428559721L;
     }
 

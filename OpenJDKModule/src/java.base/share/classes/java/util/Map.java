@@ -1109,17 +1109,23 @@ public interface Map<K, V> {
      *
      * @implSpec
      * The default implementation is equivalent to performing the following
-     * steps for this {@code map}:
+     * steps for this {@code map}, then returning the current value or
+     * {@code null} if absent:
      *
      * <pre> {@code
      * V oldValue = map.get(key);
      * V newValue = remappingFunction.apply(key, oldValue);
-     * if (newValue != null) {
-     *     map.put(key, newValue);
-     * } else if (oldValue != null || map.containsKey(key)) {
-     *     map.remove(key);
+     * if (oldValue != null) {
+     *    if (newValue != null)
+     *       map.put(key, newValue);
+     *    else
+     *       map.remove(key);
+     * } else {
+     *    if (newValue != null)
+     *       map.put(key, newValue);
+     *    else
+     *       return null;
      * }
-     * return newValue;
      * }</pre>
      *
      * <p>The default implementation makes no guarantees about detecting if the

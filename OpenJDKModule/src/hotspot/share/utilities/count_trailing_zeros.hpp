@@ -25,17 +25,13 @@
 #ifndef SHARE_UTILITIES_COUNT_TRAILING_ZEROS_HPP
 #define SHARE_UTILITIES_COUNT_TRAILING_ZEROS_HPP
 
-#include "metaprogramming/enableIf.hpp"
 #include "utilities/debug.hpp"
 #include "utilities/globalDefinitions.hpp"
 
-// unsigned count_trailing_zeros(T x)
-
+// unsigned count_trailing_zeros(uintx x)
 // Return the number of trailing zeros in x, e.g. the zero-based index
 // of the least significant set bit in x.
 // Precondition: x != 0.
-
-// We implement and support variants for 8, 16, 32 and 64 bit integral types.
 
 // Dispatch on toolchain to select implementation.
 
@@ -44,12 +40,10 @@
  *****************************************************************************/
 #if defined(TARGET_COMPILER_gcc)
 
-inline unsigned count_trailing_zeros_32(uint32_t x) {
-  return __builtin_ctz(x);
-}
-
-inline unsigned count_trailing_zeros_64(uint64_t x) {
-  return __builtin_ctzll(x);
+inline unsigned count_trailing_zeros(uintx x) {
+  STATIC_ASSERT(sizeof(unsigned long) == sizeof(uintx));
+  assert(x != 0, "precondition");
+  return __builtin_ctzl(x);
 }
 
 /*****************************************************************************
@@ -59,27 +53,19 @@ inline unsigned count_trailing_zeros_64(uint64_t x) {
 
 #include <intrin.h>
 
-#pragma intrinsic(_BitScanForward)
 #ifdef _LP64
 #pragma intrinsic(_BitScanForward64)
+#else
+#pragma intrinsic(_BitScanForward)
 #endif
 
-inline unsigned count_trailing_zeros_32(uint32_t x) {
-  unsigned long index;
-  _BitScanForward(&index, x);
-  return index;
-}
-
-inline unsigned count_trailing_zeros_64(uint64_t x) {
+inline unsigned count_trailing_zeros(uintx x) {
+  assert(x != 0, "precondition");
   unsigned long index;
 #ifdef _LP64
   _BitScanForward64(&index, x);
 #else
-  if (_BitScanForward(&index, static_cast<uint32_t>(x)) == 0) {
-    // no bit found? If so, try the upper dword. Otherwise index already contains the result
-    _BitScanForward(&index, static_cast<uint32_t>(x >> 32));
-    index += 32;
-  }
+  _BitScanForward(&index, x);
 #endif
   return index;
 }
@@ -91,12 +77,13 @@ inline unsigned count_trailing_zeros_64(uint64_t x) {
 
 #include <builtins.h>
 
-inline unsigned count_trailing_zeros_32(uint32_t x) {
-  return __cnttz4(x);
-}
-
-inline unsigned count_trailing_zeros_64(uint64_t x) {
+inline unsigned count_trailing_zeros(uintx x) {
+  assert(x != 0, "precondition");
+#ifdef _LP64
   return __cnttz8(x);
+#else
+  return __cnttz4(x);
+#endif
 }
 
 /*****************************************************************************
@@ -106,16 +93,5 @@ inline unsigned count_trailing_zeros_64(uint64_t x) {
 #error Unknown TARGET_COMPILER
 
 #endif // Toolchain dispatch
-
-template<typename T,
-         ENABLE_IF(std::is_integral<T>::value),
-         ENABLE_IF(sizeof(T) <= sizeof(uint64_t))>
-inline unsigned count_trailing_zeros(T x) {
-  assert(x != 0, "precondition");
-  return (sizeof(x) <= sizeof(uint32_t)) ?
-         count_trailing_zeros_32(static_cast<uint32_t>(x)) :
-         count_trailing_zeros_64(x);
-}
-
 
 #endif // SHARE_UTILITIES_COUNT_TRAILING_ZEROS_HPP

@@ -95,19 +95,17 @@ public class CompressorPluginTest {
 
         // compress level 0 == no compression
         Properties options0 = new Properties();
-        DefaultCompressPlugin compressPlugin = new DefaultCompressPlugin();
-        options0.setProperty(compressPlugin.getName(),
-                DefaultCompressPlugin.LEVEL_0);
-        checkCompress(classes, compressPlugin,
+        options0.setProperty(DefaultCompressPlugin.NAME,
+                "0");
+        checkCompress(classes, new DefaultCompressPlugin(),
                 options0,
                 new ResourceDecompressorFactory[]{
                 });
 
         // compress level 1 == String sharing
         Properties options1 = new Properties();
-        compressPlugin = new DefaultCompressPlugin();
-        options1.setProperty(compressPlugin.getName(), DefaultCompressPlugin.LEVEL_1);
-        checkCompress(classes, compressPlugin,
+        options1.setProperty(DefaultCompressPlugin.NAME, "1");
+        checkCompress(classes, new DefaultCompressPlugin(),
                 options1,
                 new ResourceDecompressorFactory[]{
                     new StringSharingDecompressorFactory()
@@ -116,9 +114,8 @@ public class CompressorPluginTest {
         // compress level 1 == String sharing + filter
         options1.setProperty(DefaultCompressPlugin.FILTER,
                 "**Exception.class");
-        compressPlugin = new DefaultCompressPlugin();
-        options1.setProperty(compressPlugin.getName(), DefaultCompressPlugin.LEVEL_1);
-        checkCompress(classes, compressPlugin,
+        options1.setProperty(DefaultCompressPlugin.NAME, "1");
+        checkCompress(classes, new DefaultCompressPlugin(),
                 options1,
                 new ResourceDecompressorFactory[]{
                     new StringSharingDecompressorFactory()
@@ -128,9 +125,8 @@ public class CompressorPluginTest {
         Properties options2 = new Properties();
         options2.setProperty(DefaultCompressPlugin.FILTER,
                 "**Exception.class");
-        compressPlugin = new DefaultCompressPlugin();
-        options2.setProperty(compressPlugin.getName(), DefaultCompressPlugin.LEVEL_2);
-        checkCompress(classes, compressPlugin,
+        options2.setProperty(DefaultCompressPlugin.NAME, "2");
+        checkCompress(classes, new DefaultCompressPlugin(),
                 options2,
                 new ResourceDecompressorFactory[]{
                     new ZipDecompressorFactory()
@@ -139,9 +135,8 @@ public class CompressorPluginTest {
         // compress level 2 == ZIP + filter
         options2.setProperty(DefaultCompressPlugin.FILTER,
                 "**Exception.class");
-        compressPlugin = new DefaultCompressPlugin();
-        options2.setProperty(compressPlugin.getName(), DefaultCompressPlugin.LEVEL_2);
-        checkCompress(classes, compressPlugin,
+        options2.setProperty(DefaultCompressPlugin.NAME, "2");
+        checkCompress(classes, new DefaultCompressPlugin(),
                 options2,
                 new ResourceDecompressorFactory[]{
                     new ZipDecompressorFactory(),

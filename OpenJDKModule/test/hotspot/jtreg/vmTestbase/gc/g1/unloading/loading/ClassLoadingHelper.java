@@ -290,9 +290,7 @@ public class ClassLoadingHelper {
             if (!wb.isMethodCompilable(m, configuration.getCompilationLevel())) {
               continue;
             }
-            if (!wb.enqueueMethodForCompilation(m, configuration.getCompilationLevel())) {
-                throw new RuntimeException("Method could not be enqueued for compilation at level " + configuration.getCompilationLevel());
-            }
+            wb.enqueueMethodForCompilation(m, configuration.getCompilationLevel());
             while (!wb.isMethodCompiled(m) && executionController.continueExecution()) {
                 sleep(50);
                 try {

@@ -191,7 +191,7 @@ public final class EventWriter {
         }
     }
 
-    public void reset() {
+    private void reset() {
         currentPosition = startPosition;
         if (flushOnEnd) {
             flushOnEnd = flush();

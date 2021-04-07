@@ -27,7 +27,6 @@
 #include "code/debugInfoRec.hpp"
 #include "code/pcDesc.hpp"
 #include "code/scopeDesc.hpp"
-#include "compiler/compiler_globals.hpp"
 #include "memory/resourceArea.hpp"
 #include "oops/oop.inline.hpp"
 #include "runtime/handles.inline.hpp"

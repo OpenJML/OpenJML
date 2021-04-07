@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2017, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,7 +27,6 @@ package sun.security.util;
 
 import java.io.PrintStream;
 import java.math.BigInteger;
-import java.util.HexFormat;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.Locale;
@@ -319,11 +318,22 @@ public class Debug {
         return null;
     }
 
+    private static final char[] hexDigits = "0123456789abcdef".toCharArray();
+
     public static String toString(byte[] b) {
         if (b == null) {
             return "(null)";
         }
-        return HexFormat.ofDelimiter(":").formatHex(b);
+        StringBuilder sb = new StringBuilder(b.length * 3);
+        for (int i = 0; i < b.length; i++) {
+            int k = b[i] & 0xff;
+            if (i != 0) {
+                sb.append(':');
+            }
+            sb.append(hexDigits[k >>> 4]);
+            sb.append(hexDigits[k & 0xf]);
+        }
+        return sb.toString();
     }
 
 }

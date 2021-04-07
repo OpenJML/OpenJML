@@ -27,8 +27,9 @@
 #import "java_awt_event_KeyEvent.h"
 #import "LWCToolkit.h"
 
-#import "JNIUtilities.h"
+#import "jni_util.h"
 
+#import <JavaNativeFoundation/JavaNativeFoundation.h>
 #import <sys/time.h>
 #import <Carbon/Carbon.h>
 
@@ -667,11 +668,11 @@ Java_sun_lwawt_macosx_NSEvent_nsToJavaModifiers
 {
     jint jmodifiers = 0;
 
-JNI_COCOA_ENTER(env);
+JNF_COCOA_ENTER(env);
 
     jmodifiers = GetJavaMouseModifiers(modifierFlags);
 
-JNI_COCOA_EXIT(env);
+JNF_COCOA_EXIT(env);
 
     return jmodifiers;
 }
@@ -687,7 +688,7 @@ Java_sun_lwawt_macosx_NSEvent_nsToJavaKeyInfo
 {
     BOOL postsTyped = NO;
 
-JNI_COCOA_ENTER(env);
+JNF_COCOA_ENTER(env);
 
     jboolean copy = JNI_FALSE;
     jint *data = (*env)->GetIntArrayElements(env, inData, &copy);
@@ -715,7 +716,7 @@ JNI_COCOA_ENTER(env);
 
     (*env)->ReleaseIntArrayElements(env, inData, data, 0);
 
-JNI_COCOA_EXIT(env);
+JNF_COCOA_EXIT(env);
 
     return postsTyped;
 }
@@ -729,7 +730,7 @@ JNIEXPORT void JNICALL
 Java_sun_lwawt_macosx_NSEvent_nsKeyModifiersToJavaKeyInfo
 (JNIEnv *env, jclass cls, jintArray inData, jintArray outData)
 {
-JNI_COCOA_ENTER(env);
+JNF_COCOA_ENTER(env);
 
     jboolean copy = JNI_FALSE;
     jint *data = (*env)->GetIntArrayElements(env, inData, &copy);
@@ -756,7 +757,7 @@ JNI_COCOA_ENTER(env);
 
     (*env)->ReleaseIntArrayElements(env, inData, data, 0);
 
-JNI_COCOA_EXIT(env);
+JNF_COCOA_EXIT(env);
 }
 
 /*
@@ -770,11 +771,11 @@ Java_sun_lwawt_macosx_NSEvent_nsToJavaChar
 {
     jchar javaChar = 0;
 
-JNI_COCOA_ENTER(env);
+JNF_COCOA_ENTER(env);
 
     javaChar = NsCharToJavaChar(nsChar, modifierFlags, spaceKeyTyped);
 
-JNI_COCOA_EXIT(env);
+JNF_COCOA_EXIT(env);
 
     return javaChar;
 }

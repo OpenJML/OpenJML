@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -38,7 +38,6 @@
 #include "classfile/symbolTable.hpp"
 #include "classfile/systemDictionary.hpp"
 #include "classfile/systemDictionaryShared.hpp"
-#include "classfile/vmClasses.hpp"
 #include "classfile/vmSymbols.hpp"
 #include "compiler/compileBroker.hpp"
 #include "interpreter/bytecodeStream.hpp"
@@ -66,7 +65,6 @@
 #include "runtime/java.hpp"
 #include "runtime/javaCalls.hpp"
 #include "runtime/os.inline.hpp"
-#include "runtime/perfData.hpp"
 #include "runtime/threadCritical.hpp"
 #include "runtime/timer.hpp"
 #include "runtime/vm_version.hpp"
@@ -133,14 +131,18 @@ PerfCounter*    ClassLoader::_perf_define_appclass_time = NULL;
 PerfCounter*    ClassLoader::_perf_define_appclass_selftime = NULL;
 PerfCounter*    ClassLoader::_perf_app_classfile_bytes_read = NULL;
 PerfCounter*    ClassLoader::_perf_sys_classfile_bytes_read = NULL;
+PerfCounter*    ClassLoader::_sync_systemLoaderLockContentionRate = NULL;
+PerfCounter*    ClassLoader::_sync_nonSystemLoaderLockContentionRate = NULL;
+PerfCounter*    ClassLoader::_sync_JVMFindLoadedClassLockFreeCounter = NULL;
+PerfCounter*    ClassLoader::_sync_JVMDefineClassLockFreeCounter = NULL;
+PerfCounter*    ClassLoader::_sync_JNIDefineClassLockFreeCounter = NULL;
 PerfCounter*    ClassLoader::_unsafe_defineClassCallCounter = NULL;
 
 GrowableArray<ModuleClassPathList*>* ClassLoader::_patch_mod_entries = NULL;
 GrowableArray<ModuleClassPathList*>* ClassLoader::_exploded_entries = NULL;
 ClassPathEntry* ClassLoader::_jrt_entry = NULL;
-
-ClassPathEntry* volatile ClassLoader::_first_append_entry_list = NULL;
-ClassPathEntry* volatile ClassLoader::_last_append_entry  = NULL;
+ClassPathEntry* ClassLoader::_first_append_entry = NULL;
+ClassPathEntry* ClassLoader::_last_append_entry  = NULL;
 #if INCLUDE_CDS
 ClassPathEntry* ClassLoader::_app_classpath_entries = NULL;
 ClassPathEntry* ClassLoader::_last_app_classpath_entry = NULL;
@@ -287,7 +289,7 @@ ClassPathZipEntry::~ClassPathZipEntry() {
 
 u1* ClassPathZipEntry::open_entry(const char* name, jint* filesize, bool nul_terminate, TRAPS) {
     // enable call to C land
-  JavaThread* thread = THREAD->as_Java_thread();
+  JavaThread* thread = JavaThread::current();
   ThreadToNativeFromVM ttn(thread);
   // check whether zip archive contains name
   jint name_len;
@@ -501,7 +503,7 @@ void ClassLoader::trace_class_path(const char* msg, const char* name) {
   }
 }
 
-void ClassLoader::setup_bootstrap_search_path(TRAPS) {
+void ClassLoader::setup_bootstrap_search_path() {
   const char* sys_class_path = Arguments::get_sysclasspath();
   assert(sys_class_path != NULL, "System boot class path must not be NULL");
   if (PrintSharedArchiveAndExit) {
@@ -510,11 +512,11 @@ void ClassLoader::setup_bootstrap_search_path(TRAPS) {
   } else {
     trace_class_path("bootstrap loader class path=", sys_class_path);
   }
-  setup_bootstrap_search_path_impl(sys_class_path, CHECK);
+  setup_boot_search_path(sys_class_path);
 }
 
 #if INCLUDE_CDS
-void ClassLoader::setup_app_search_path(const char *class_path, TRAPS) {
+void ClassLoader::setup_app_search_path(const char *class_path) {
   Arguments::assert_is_dumping_archive();
 
   ResourceMark rm;
@@ -522,7 +524,7 @@ void ClassLoader::setup_app_search_path(const char *class_path, TRAPS) {
 
   while (cp_stream.has_next()) {
     const char* path = cp_stream.get_next();
-    update_class_path_entry_list(path, false, false, false, CHECK);
+    update_class_path_entry_list(path, false, false, false);
   }
 }
 
@@ -542,7 +544,7 @@ void ClassLoader::add_to_module_path_entries(const char* path,
 }
 
 // Add a module path to the _module_path_entries list.
-void ClassLoader::setup_module_search_path(const char* path, TRAPS) {
+void ClassLoader::update_module_path_entry_list(const char *path, TRAPS) {
   Arguments::assert_is_dumping_archive();
   struct stat st;
   if (os::stat(path, &st) != 0) {
@@ -560,6 +562,10 @@ void ClassLoader::setup_module_search_path(const char* path, TRAPS) {
 
   add_to_module_path_entries(path, new_entry);
   return;
+}
+
+void ClassLoader::setup_module_search_path(const char* path, TRAPS) {
+  update_module_path_entry_list(path, THREAD);
 }
 
 #endif // INCLUDE_CDS
@@ -628,7 +634,8 @@ bool ClassLoader::is_in_patch_mod_entries(Symbol* module_name) {
 }
 
 // Set up the _jrt_entry if present and boot append path
-void ClassLoader::setup_bootstrap_search_path_impl(const char *class_path, TRAPS) {
+void ClassLoader::setup_boot_search_path(const char *class_path) {
+  EXCEPTION_MARK;
   ResourceMark rm(THREAD);
   ClasspathStream cp_stream(class_path);
   bool set_base_piece = true;
@@ -670,7 +677,7 @@ void ClassLoader::setup_bootstrap_search_path_impl(const char *class_path, TRAPS
     } else {
       // Every entry on the system boot class path after the initial base piece,
       // which is set by os::set_boot_path(), is considered an appended entry.
-      update_class_path_entry_list(path, false, true, false, CHECK);
+      update_class_path_entry_list(path, false, true, false);
     }
   }
 }
@@ -725,7 +732,7 @@ ClassPathEntry* ClassLoader::create_class_path_entry(const char *path, const str
                                                      bool is_boot_append,
                                                      bool from_class_path_attr,
                                                      TRAPS) {
-  JavaThread* thread = THREAD->as_Java_thread();
+  JavaThread* thread = JavaThread::current();
   ClassPathEntry* new_entry = NULL;
   if ((st->st_mode & S_IFMT) == S_IFREG) {
     ResourceMark rm(thread);
@@ -803,7 +810,7 @@ ClassPathZipEntry* ClassLoader::create_class_path_zip_entry(const char *path, bo
 
 // returns true if entry already on class path
 bool ClassLoader::contains_append_entry(const char* name) {
-  ClassPathEntry* e = first_append_entry();
+  ClassPathEntry* e = _first_append_entry;
   while (e != NULL) {
     // assume zip entries have been canonicalized
     if (strcmp(name, e->name()) == 0) {
@@ -814,14 +821,11 @@ bool ClassLoader::contains_append_entry(const char* name) {
   return false;
 }
 
-// The boot append entries are added with a lock, and read lock free.
 void ClassLoader::add_to_boot_append_entries(ClassPathEntry *new_entry) {
   if (new_entry != NULL) {
-    MutexLocker ml(Bootclasspath_lock, Mutex::_no_safepoint_check_flag);
     if (_last_append_entry == NULL) {
-      _last_append_entry = new_entry;
-      assert(first_append_entry() == NULL, "boot loader's append class path entry list not empty");
-      Atomic::release_store(&_first_append_entry_list, new_entry);
+      assert(_first_append_entry == NULL, "boot loader's append class path entry list not empty");
+      _first_append_entry = _last_append_entry = new_entry;
     } else {
       _last_append_entry->set_next(new_entry);
       _last_append_entry = new_entry;
@@ -837,8 +841,7 @@ void ClassLoader::add_to_boot_append_entries(ClassPathEntry *new_entry) {
 // jdk/internal/loader/ClassLoaders$AppClassLoader instance.
 void ClassLoader::add_to_app_classpath_entries(const char* path,
                                                ClassPathEntry* entry,
-                                               bool check_for_duplicates,
-                                               TRAPS) {
+                                               bool check_for_duplicates) {
 #if INCLUDE_CDS
   assert(entry != NULL, "ClassPathEntry should not be NULL");
   ClassPathEntry* e = _app_classpath_entries;
@@ -862,7 +865,7 @@ void ClassLoader::add_to_app_classpath_entries(const char* path,
   }
 
   if (entry->is_jar_file()) {
-    ClassLoaderExt::process_jar_manifest(entry, check_for_duplicates, CHECK);
+    ClassLoaderExt::process_jar_manifest(entry, check_for_duplicates);
   }
 #endif
 }
@@ -872,12 +875,13 @@ bool ClassLoader::update_class_path_entry_list(const char *path,
                                                bool check_for_duplicates,
                                                bool is_boot_append,
                                                bool from_class_path_attr,
-                                               TRAPS) {
+                                               bool throw_exception) {
   struct stat st;
   if (os::stat(path, &st) == 0) {
     // File or directory found
     ClassPathEntry* new_entry = NULL;
-    new_entry = create_class_path_entry(path, &st, /*throw_exception=*/true, is_boot_append, from_class_path_attr, CHECK_false);
+    Thread* THREAD = Thread::current();
+    new_entry = create_class_path_entry(path, &st, throw_exception, is_boot_append, from_class_path_attr, CHECK_(false));
     if (new_entry == NULL) {
       return false;
     }
@@ -887,7 +891,7 @@ bool ClassLoader::update_class_path_entry_list(const char *path,
     if (is_boot_append) {
       add_to_boot_append_entries(new_entry);
     } else {
-      add_to_app_classpath_entries(path, new_entry, check_for_duplicates, CHECK_false);
+      add_to_app_classpath_entries(path, new_entry, check_for_duplicates);
     }
     return true;
   } else {
@@ -935,7 +939,7 @@ void ClassLoader::print_bootclasspath() {
   }
 
   // appended entries
-  e = first_append_entry();
+  e = _first_append_entry;
   while (e != NULL) {
     tty->print("%s ;", e->name());
     e = e->next();
@@ -1067,7 +1071,7 @@ objArrayOop ClassLoader::get_system_packages(TRAPS) {
 
 
   // Allocate objArray and fill with java.lang.String
-  objArrayOop r = oopFactory::new_objArray(vmClasses::String_klass(),
+  objArrayOop r = oopFactory::new_objArray(SystemDictionary::String_klass(),
                                            loaded_class_pkgs->length(), CHECK_NULL);
   objArrayHandle result(THREAD, r);
   for (int x = 0; x < loaded_class_pkgs->length(); x++) {
@@ -1243,7 +1247,7 @@ InstanceKlass* ClassLoader::load_class(Symbol* name, bool search_append_only, TR
     assert(classpath_index == 0, "The classpath_index has been incremented incorrectly");
     classpath_index = 1;
 
-    e = first_append_entry();
+    e = _first_append_entry;
     while (e != NULL) {
       stream = e->open_stream(file_name, CHECK_NULL);
       if (NULL != stream) {
@@ -1276,7 +1280,7 @@ InstanceKlass* ClassLoader::load_class(Symbol* name, bool search_append_only, TR
     return NULL;
   }
 
-  result->set_classpath_index(classpath_index);
+  result->set_classpath_index(classpath_index, THREAD);
   return result;
 }
 
@@ -1408,16 +1412,18 @@ void ClassLoader::record_result(InstanceKlass* ik, const ClassFileStream* stream
                                                          ik->name()->utf8_length());
   assert(file_name != NULL, "invariant");
 
-  ClassLoaderExt::record_result(classpath_index, ik, CHECK);
+  ClassLoaderExt::record_result(classpath_index, ik, THREAD);
 }
 #endif // INCLUDE_CDS
 
 // Initialize the class loader's access to methods in libzip.  Parse and
 // process the boot classpath into a list ClassPathEntry objects.  Once
 // this list has been created, it must not change order (see class PackageInfo)
-// it can be appended to and is by jvmti.
+// it can be appended to and is by jvmti and the kernel vm.
 
-void ClassLoader::initialize(TRAPS) {
+void ClassLoader::initialize() {
+  EXCEPTION_MARK;
+
   if (UsePerfData) {
     // jvmstat performance counters
     NEWPERFTICKCOUNTER(_perf_accumulated_time, SUN_CLS, "time");
@@ -1443,13 +1449,31 @@ void ClassLoader::initialize(TRAPS) {
     NEWPERFBYTECOUNTER(_perf_app_classfile_bytes_read, SUN_CLS, "appClassBytes");
     NEWPERFBYTECOUNTER(_perf_sys_classfile_bytes_read, SUN_CLS, "sysClassBytes");
 
-    NEWPERFEVENTCOUNTER(_unsafe_defineClassCallCounter, SUN_CLS, "unsafeDefineClassCalls");
+
+    // The following performance counters are added for measuring the impact
+    // of the bug fix of 6365597. They are mainly focused on finding out
+    // the behavior of system & user-defined classloader lock, whether
+    // ClassLoader.loadClass/findClass is being called synchronized or not.
+    NEWPERFEVENTCOUNTER(_sync_systemLoaderLockContentionRate, SUN_CLS,
+                        "systemLoaderLockContentionRate");
+    NEWPERFEVENTCOUNTER(_sync_nonSystemLoaderLockContentionRate, SUN_CLS,
+                        "nonSystemLoaderLockContentionRate");
+    NEWPERFEVENTCOUNTER(_sync_JVMFindLoadedClassLockFreeCounter, SUN_CLS,
+                        "jvmFindLoadedClassNoLockCalls");
+    NEWPERFEVENTCOUNTER(_sync_JVMDefineClassLockFreeCounter, SUN_CLS,
+                        "jvmDefineClassNoLockCalls");
+
+    NEWPERFEVENTCOUNTER(_sync_JNIDefineClassLockFreeCounter, SUN_CLS,
+                        "jniDefineClassNoLockCalls");
+
+    NEWPERFEVENTCOUNTER(_unsafe_defineClassCallCounter, SUN_CLS,
+                        "unsafeDefineClassCalls");
   }
 
   // lookup java library entry points
   load_java_library();
   // jimage library entry points are loaded below, in lookup_vm_options
-  setup_bootstrap_search_path(CHECK);
+  setup_bootstrap_search_path();
 }
 
 char* lookup_vm_resource(JImageFile *jimage, const char *jimage_version, const char *path) {
@@ -1486,16 +1510,16 @@ char* ClassLoader::lookup_vm_options() {
 }
 
 #if INCLUDE_CDS
-void ClassLoader::initialize_shared_path(TRAPS) {
+void ClassLoader::initialize_shared_path() {
   if (Arguments::is_dumping_archive()) {
-    ClassLoaderExt::setup_search_paths(CHECK);
+    ClassLoaderExt::setup_search_paths();
   }
 }
 
 void ClassLoader::initialize_module_path(TRAPS) {
   if (Arguments::is_dumping_archive()) {
-    ClassLoaderExt::setup_module_paths(CHECK);
-    FileMapInfo::allocate_shared_path_table(CHECK);
+    ClassLoaderExt::setup_module_paths(THREAD);
+    FileMapInfo::allocate_shared_path_table();
   }
 }
 
@@ -1551,11 +1575,7 @@ int ClassLoader::compute_Object_vtable() {
 
 
 void classLoader_init1() {
-  EXCEPTION_MARK;
-  ClassLoader::initialize(THREAD);
-  if (HAS_PENDING_EXCEPTION) {
-    vm_exit_during_initialization("ClassLoader::initialize() failed unexpectedly");
-  }
+  ClassLoader::initialize();
 }
 
 // Complete the ClassPathEntry setup for the boot loader

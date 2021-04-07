@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2016, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -98,9 +98,9 @@ public class TransformerAgent {
     static Integer incrCounter(String className) {
         Integer i = counterMap.get(className);
         if (i == null) {
-            i = Integer.valueOf(1);
+            i = new Integer(1);
         } else {
-            i = Integer.valueOf(i.intValue() + 1);
+            i = new Integer(i.intValue() + 1);
         }
         counterMap.put(className, i);
         return i;

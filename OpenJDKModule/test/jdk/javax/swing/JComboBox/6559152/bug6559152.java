@@ -27,59 +27,39 @@
  * @bug 6559152
  * @summary Checks that you can select an item in JComboBox with keyboard
  *          when it is a JTable cell editor.
+ * @author Mikhail Lapshin
+ * @library /lib/client
+ * @build ExtendedRobot
  * @run main bug6559152
  */
 
-import javax.swing.DefaultCellEditor;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JComboBox;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.JTable;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.awt.event.InputEvent;
-import java.awt.Robot;
 
 public class bug6559152 {
-    private static JFrame frame;
-    private static JComboBox cb;
-    private static Robot robot;
-    private static Point p = null;
+    private JFrame frame;
+    private JComboBox cb;
+    private ExtendedRobot robot;
 
     public static void main(String[] args) throws Exception {
-        robot = new Robot();
-        robot.setAutoDelay(100);
+        final bug6559152 test = new bug6559152();
         try {
-            SwingUtilities.invokeAndWait(() -> setupUI());
-            blockTillDisplayed(cb);
-            robot.waitForIdle();
-            robot.delay(1000);
-            test();
-        } finally {
-            if (frame != null) {
-                SwingUtilities.invokeAndWait(() -> frame.dispose());
-            }
-        }
-    }
-
-    static void blockTillDisplayed(JComponent comp) throws Exception {
-        while (p == null) {
-            try {
-                SwingUtilities.invokeAndWait(() -> {
-                    p = comp.getLocationOnScreen();
-                });
-            } catch (IllegalStateException e) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ie) {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    test.setupUI();
                 }
+            });
+            test.test();
+        } finally {
+            if (test.frame != null) {
+                test.frame.dispose();
             }
         }
     }
 
-    private static void setupUI() {
+    private void setupUI() {
         frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -96,29 +76,23 @@ public class bug6559152 {
         frame.setVisible(true);
     }
 
-    private static void test() throws Exception {
-        robot.mouseMove(p.x, p.y);
-        robot.waitForIdle();
-        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    private void test() throws Exception {
+        robot = new ExtendedRobot();
         robot.waitForIdle();
         testImpl();
+        robot.waitForIdle();
         checkResult();
     }
 
-    private static void testImpl() throws Exception {
-        robot.keyPress(KeyEvent.VK_DOWN);
-        robot.keyRelease(KeyEvent.VK_DOWN);
+    private void testImpl() throws Exception {
+        robot.type(KeyEvent.VK_DOWN);
         robot.waitForIdle();
-        robot.keyPress(KeyEvent.VK_DOWN);
-        robot.keyRelease(KeyEvent.VK_DOWN);
+        robot.type(KeyEvent.VK_DOWN);
         robot.waitForIdle();
-        robot.keyPress(KeyEvent.VK_ENTER);
-        robot.keyRelease(KeyEvent.VK_ENTER);
-        robot.waitForIdle();
+        robot.type(KeyEvent.VK_ENTER);
     }
 
-    private static void checkResult() {
+    private void checkResult() {
         if (cb.getSelectedItem().equals("two")) {
             System.out.println("Test passed");
         } else {

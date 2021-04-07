@@ -1,5 +1,5 @@
 /*
- * @test /nodynamiccopyright/
+ * @test /nodymaticcopyright/
  * @bug 8206986
  * @summary Verify reasonable errors are produced when neither ':' nor '->'
  *          is found are the expression of a case

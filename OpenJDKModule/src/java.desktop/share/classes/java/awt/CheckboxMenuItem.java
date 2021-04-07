@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1995, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -32,7 +32,6 @@ import java.awt.peer.CheckboxMenuItemPeer;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serial;
 import java.util.EventListener;
 
 import javax.accessibility.Accessible;
@@ -101,10 +100,9 @@ public class CheckboxMenuItem extends MenuItem implements ItemSelectable, Access
     private static final String base = "chkmenuitem";
     private static int nameCounter = 0;
 
-    /**
-     * Use serialVersionUID from JDK 1.1 for interoperability.
+    /*
+     * JDK 1.1 serialVersionUID
      */
-     @Serial
      private static final long serialVersionUID = 6190621106981774043L;
 
     /**
@@ -455,7 +453,6 @@ public class CheckboxMenuItem extends MenuItem implements ItemSelectable, Access
      * @see java.awt.Component#itemListenerK
      * @see #readObject(ObjectInputStream)
      */
-    @Serial
     private void writeObject(ObjectOutputStream s)
       throws java.io.IOException
     {
@@ -480,7 +477,6 @@ public class CheckboxMenuItem extends MenuItem implements ItemSelectable, Access
      * @see #addActionListener(ActionListener)
      * @see #writeObject(ObjectOutputStream)
      */
-    @Serial
     private void readObject(ObjectInputStream s)
       throws ClassNotFoundException, IOException
     {
@@ -540,10 +536,9 @@ public class CheckboxMenuItem extends MenuItem implements ItemSelectable, Access
     protected class AccessibleAWTCheckboxMenuItem extends AccessibleAWTMenuItem
         implements AccessibleAction, AccessibleValue
     {
-        /**
-         * Use serialVersionUID from JDK 1.3 for interoperability.
+        /*
+         * JDK 1.3 serialVersionUID
          */
-        @Serial
         private static final long serialVersionUID = -1122642964303476L;
 
         /**

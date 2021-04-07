@@ -41,6 +41,8 @@ import jdk.javadoc.internal.doclets.formats.html.markup.TagName;
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlTree;
 import jdk.javadoc.internal.doclets.formats.html.Navigation.PageMode;
 import jdk.javadoc.internal.doclets.formats.html.markup.StringContent;
+import jdk.javadoc.internal.doclets.formats.html.markup.Table;
+import jdk.javadoc.internal.doclets.formats.html.markup.TableHeader;
 import jdk.javadoc.internal.doclets.toolkit.Content;
 import jdk.javadoc.internal.doclets.toolkit.util.ClassUseMapper;
 import jdk.javadoc.internal.doclets.toolkit.util.DocFileIOException;
@@ -160,7 +162,7 @@ public class PackageUseWriter extends SubWriterHolderWriter {
                 .setColumnStyles(HtmlStyle.colFirst, HtmlStyle.colLast);
         for (String pkgname: usingPackageToUsedClasses.keySet()) {
             PackageElement pkg = utils.elementUtils.getPackageElement(pkgname);
-            Content packageLink = links.createLink(htmlIds.forPackage(pkg),
+            Content packageLink = links.createLink(getPackageAnchorName(pkg),
                     new StringContent(utils.getPackageName(pkg)));
             Content summary = new ContentBuilder();
             if (pkg != null && !pkg.isUnnamed()) {
@@ -186,7 +188,7 @@ public class PackageUseWriter extends SubWriterHolderWriter {
         for (String packageName : usingPackageToUsedClasses.keySet()) {
             PackageElement usingPackage = utils.elementUtils.getPackageElement(packageName);
             HtmlTree section = HtmlTree.SECTION(HtmlStyle.detail)
-                    .setId(htmlIds.forPackage(usingPackage));
+                    .setId(getPackageAnchorName(usingPackage));
             Content caption = contents.getContent(
                     "doclet.ClassUse_Classes.in.0.used.by.1",
                     getPackageLink(packageElement, utils.getPackageName(packageElement)),
@@ -199,7 +201,7 @@ public class PackageUseWriter extends SubWriterHolderWriter {
                 DocPath dp = pathString(te,
                         DocPaths.CLASS_USE.resolve(docPaths.forName(te)));
                 Content stringContent = new StringContent(utils.getSimpleName(te));
-                Content typeContent = links.createLink(dp.fragment(htmlIds.forPackage(usingPackage).name()),
+                Content typeContent = links.createLink(dp.fragment(getPackageAnchorName(usingPackage)),
                         stringContent);
                 Content summary = new ContentBuilder();
                 addIndexComment(te, summary);

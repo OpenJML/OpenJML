@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,8 +25,7 @@
 
 package java.awt;
 
-import java.io.Serial;
-import java.io.Serializable;
+import java.io.*;
 
 /**
  * The {@code GraphicsConfigTemplate} class is used to obtain a valid
@@ -43,11 +42,9 @@ import java.io.Serializable;
  * @since       1.2
  */
 public abstract class GraphicsConfigTemplate implements Serializable {
-
-    /**
-     * Use serialVersionUID from JDK 1.6 for interoperability.
+    /*
+     * serialVersionUID
      */
-    @Serial
     private static final long serialVersionUID = -8061369279557787079L;
 
     /**

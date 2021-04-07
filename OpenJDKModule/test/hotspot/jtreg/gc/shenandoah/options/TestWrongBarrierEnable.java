@@ -38,7 +38,7 @@ public class TestWrongBarrierEnable {
 
     public static void main(String[] args) throws Exception {
         String[] concurrent = {
-                "ShenandoahIUBarrier",
+                "ShenandoahStoreValEnqueueBarrier",
         };
         String[] iu = {
                 "ShenandoahSATBBarrier",

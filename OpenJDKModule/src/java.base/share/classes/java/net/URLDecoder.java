@@ -84,7 +84,8 @@ public class URLDecoder {
     /**
      * Do not call.
      */
-    private URLDecoder() {}
+    @Deprecated(since="16", forRemoval=true)
+    public URLDecoder() {}
 
     // The platform default encoding
     static String dfltEncName = URLEncoder.dfltEncName;

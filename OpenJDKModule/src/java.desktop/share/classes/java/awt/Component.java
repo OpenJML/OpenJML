@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1995, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -67,7 +67,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.io.Serial;
 import java.io.Serializable;
 import java.security.AccessControlContext;
 import java.security.AccessController;
@@ -672,10 +671,9 @@ public abstract class Component implements ImageObserver, MenuContainer,
      */
     public static final float RIGHT_ALIGNMENT = 1.0f;
 
-    /**
-     * Use serialVersionUID from JDK 1.1 for interoperability.
+    /*
+     * JDK 1.1 serialVersionUID
      */
-    @Serial
     private static final long serialVersionUID = -7644114512714619750L;
 
     /**
@@ -8947,7 +8945,6 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @see #mouseWheelListenerK
      * @see #readObject(ObjectInputStream)
      */
-    @Serial
     private void writeObject(ObjectOutputStream s)
       throws IOException
     {
@@ -8987,7 +8984,6 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @throws IOException if an I/O error occurs
      * @see #writeObject(ObjectOutputStream)
      */
-    @Serial
     private void readObject(ObjectInputStream s)
       throws ClassNotFoundException, IOException
     {
@@ -9314,10 +9310,6 @@ public abstract class Component implements ImageObserver, MenuContainer,
     protected abstract class AccessibleAWTComponent extends AccessibleContext
         implements Serializable, AccessibleComponent {
 
-        /**
-         * Use serialVersionUID from JDK 1.3 for interoperability.
-         */
-        @Serial
         private static final long serialVersionUID = 642321655757800191L;
 
         /**
@@ -9354,11 +9346,6 @@ public abstract class Component implements ImageObserver, MenuContainer,
          * @since 1.3
          */
         protected class AccessibleAWTComponentHandler implements ComponentListener, Serializable {
-
-            /**
-             * Use serialVersionUID from JDK 1.3 for interoperability.
-             */
-            @Serial
             private static final long serialVersionUID = -1009684107426231869L;
 
             /**
@@ -9396,11 +9383,6 @@ public abstract class Component implements ImageObserver, MenuContainer,
          * @since 1.3
          */
         protected class AccessibleAWTFocusHandler implements FocusListener, Serializable {
-
-            /**
-             * Use serialVersionUID from JDK 1.3 for interoperability.
-             */
-            @Serial
             private static final long serialVersionUID = 3150908257351582233L;
 
             /**

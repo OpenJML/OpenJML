@@ -92,86 +92,86 @@ public class TestAnchorNames extends JavadocTester {
         // Test some fields
         checkOutput("pkg1/RegClass.html", true,
                 "<section class=\"detail\" id=\"_\">",
-                "<a href=\"#_\" class=\"member-name-link\">",
+                "<a href=\"#_\">",
                 "<section class=\"detail\" id=\"_$\">",
-                "<a href=\"#_$\" class=\"member-name-link\">",
+                "<a href=\"#_$\">",
                 "<section class=\"detail\" id=\"$_\">",
-                "<a href=\"#$_\" class=\"member-name-link\">",
+                "<a href=\"#$_\">",
                 """
                     <section class="detail" id="$field">""",
-                "<a href=\"#$field\" class=\"member-name-link\">",
+                "<a href=\"#$field\">",
                 """
                     <section class="detail" id="fieldInCla$$">""",
-                "<a href=\"#fieldInCla$$\" class=\"member-name-link\">",
+                "<a href=\"#fieldInCla$$\">",
                 """
                     <section class="detail" id="S_$$$$$INT">""",
-                "<a href=\"#S_$$$$$INT\" class=\"member-name-link\">",
+                "<a href=\"#S_$$$$$INT\">",
                 """
                     <section class="detail" id="method$$">""",
-                "<a href=\"#method$$\" class=\"member-name-link\">");
+                "<a href=\"#method$$\">");
 
         checkOutput("pkg1/DeprMemClass.html", true,
                 """
                     <section class="detail" id="_field_In_Class">""",
-                "<a href=\"#_field_In_Class\" class=\"member-name-link\">");
+                "<a href=\"#_field_In_Class\">");
 
         // Test constructor
         checkOutput("pkg1/RegClass.html", true,
                 """
                     <section class="detail" id="&lt;init&gt;(java.lang.String,int)">""",
                 """
-                    <a href="#%3Cinit%3E(java.lang.String,int)" class="member-name-link">""");
+                    <a href="#%3Cinit%3E(java.lang.String,int)">""");
 
         // Test some methods
         checkOutput("pkg1/RegClass.html", true,
                 """
                     <section class="detail" id="_methodInClass(java.lang.String)">""",
                 """
-                    <a href="#_methodInClass(java.lang.String)" class="member-name-link">""",
+                    <a href="#_methodInClass(java.lang.String)">""",
                 """
                     <section class="detail" id="method()">""",
-                "<a href=\"#method()\" class=\"member-name-link\">",
+                "<a href=\"#method()\">",
                 """
                     <section class="detail" id="foo(java.util.Map)">""",
-                "<a href=\"#foo(java.util.Map)\" class=\"member-name-link\">",
+                "<a href=\"#foo(java.util.Map)\">",
                 """
                     <section class="detail" id="methodInCla$s(java.lang.String[])">""",
                 """
-                    <a href="#methodInCla$s(java.lang.String%5B%5D)" class="member-name-link">""",
+                    <a href="#methodInCla$s(java.lang.String%5B%5D)">""",
                 """
                     <section class="detail" id="_methodInClas$(java.lang.String,int)">""",
                 """
-                    <a href="#_methodInClas$(java.lang.String,int)" class="member-name-link">""",
+                    <a href="#_methodInClas$(java.lang.String,int)">""",
                 """
                     <section class="detail" id="methodD(pkg1.RegClass.$A)">""",
                 """
-                    <a href="#methodD(pkg1.RegClass.$A)" class="member-name-link">""",
+                    <a href="#methodD(pkg1.RegClass.$A)">""",
                 """
                     <section class="detail" id="methodD(pkg1.RegClass.D[])">""",
                 """
-                    <a href="#methodD(pkg1.RegClass.D%5B%5D)" class="member-name-link">""");
+                    <a href="#methodD(pkg1.RegClass.D%5B%5D)">""");
 
         checkOutput("pkg1/DeprMemClass.html", true,
                 """
                     <section class="detail" id="$method_In_Class()">""",
-                "<a href=\"#$method_In_Class()\" class=\"member-name-link\">");
+                "<a href=\"#$method_In_Class()\">");
 
         // Test enum
         checkOutput("pkg1/RegClass.Te$t_Enum.html", true,
                 """
                     <section class="detail" id="$FLD2">""",
-                "<a href=\"#$FLD2\" class=\"member-name-link\">");
+                "<a href=\"#$FLD2\">");
 
         // Test nested class
         checkOutput("pkg1/RegClass._NestedClas$.html", true,
                 """
                     <section class="detail" id="&lt;init&gt;()">""",
-                "<a href=\"#%3Cinit%3E()\" class=\"member-name-link\">");
+                "<a href=\"#%3Cinit%3E()\">");
 
         // Test class use page
         checkOutput("pkg1/class-use/DeprMemClass.html", true,
                 """
-                    <a href="../RegClass.html#d____mc" class="member-name-link">""");
+                    <a href="../RegClass.html#d____mc">""");
 
         // Test deprecated list page
         checkOutput("deprecated-list.html", true,

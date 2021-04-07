@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -75,7 +75,6 @@ public class Log extends FinalizableObject {
      *
      * @deprecated  Tests should not use this field directly.
      */
-    @Deprecated
     protected PrintStream out = null;
 
     /**
@@ -186,7 +185,6 @@ public class Log extends FinalizableObject {
      *
      * @deprecated  Extending test class with Log is obsolete.
      */
-    @Deprecated
     protected Log() {
         // install finalizer to print errors summary at exit
         Finalizer finalizer = new Finalizer(this);
@@ -313,7 +311,6 @@ public class Log extends FinalizableObject {
      *              <code>display()</code> and <code>complain()</code>
      *              are enough for testing purposes.
      */
-    @Deprecated
     public synchronized void println(String message) {
         doPrint(message);
         if (!verbose() && isVerboseOnErrorEnabled()) {
@@ -330,7 +327,6 @@ public class Log extends FinalizableObject {
      *              <code>display()</code> and <code>complain()</code>
      *              are enough for testing purposes.
      */
-    @Deprecated
     public synchronized void comment(String message) {
         if (!verbose()) {
             doPrint(message);
@@ -468,7 +464,6 @@ public class Log extends FinalizableObject {
      *
      * @deprecated  This method is obsolete.
      */
-    @Deprecated
     protected synchronized void logTo(PrintStream stream) {
         finalize(); // flush older log stream
         out = stream;

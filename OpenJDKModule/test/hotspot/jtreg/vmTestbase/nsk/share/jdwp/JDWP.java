@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -810,38 +810,38 @@ public class JDWP {
             switch (tag) {
                 case JDWP.Tag.BYTE: {
                     byte castedValue = packet.getByte();
-                    value = Byte.valueOf(castedValue);
+                    value = new Byte(castedValue);
                 } break;
                 case JDWP.Tag.CHAR: {
                     char castedValue = packet.getChar();
-                    value = Character.valueOf(castedValue);
+                    value = new Character(castedValue);
                 } break;
                 case JDWP.Tag.FLOAT: {
                     float castedValue = packet.getFloat();
-                    value = Float.valueOf(castedValue);
+                    value = new Float(castedValue);
                 } break;
                 case JDWP.Tag.DOUBLE: {
                     double castedValue = packet.getDouble();
-                    value = Double.valueOf(castedValue);
+                    value = new Double(castedValue);
                 } break;
                 case JDWP.Tag.INT: {
                     int castedValue = packet.getInt();
-                    value = Integer.valueOf(castedValue);
+                    value = new Integer(castedValue);
                 } break;
                 case JDWP.Tag.SHORT: {
                     short castedValue = packet.getShort();
-                    value = Short.valueOf(castedValue);
+                    value = new Short(castedValue);
                 } break;
                 case JDWP.Tag.BOOLEAN: {
                     byte castedValue = packet.getByte();
-                    value = Boolean.valueOf(castedValue != 0);
+                    value = new Boolean(castedValue != 0);
                 } break;
                 case JDWP.Tag.LONG: {
                     long castedValue = packet.getLong();
-                    value = Long.valueOf(castedValue);
+                    value = new Long(castedValue);
                 } break;
                 case JDWP.Tag.VOID: {
-                    value = Long.valueOf(0);
+                    value = new Long(0);
                 } break;
                 case JDWP.Tag.ARRAY:
                 case JDWP.Tag.OBJECT:
@@ -851,7 +851,7 @@ public class JDWP {
                 case JDWP.Tag.CLASS_LOADER:
                 case JDWP.Tag.CLASS_OBJECT: {
                     long castedValue = packet.getObjectID();
-                    value = Long.valueOf(castedValue);
+                    value = new Long(castedValue);
                 } break;
                 default: {
                     throw new Failure("Unknown tag found while reading value from packet: " + tag);

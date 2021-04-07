@@ -1445,7 +1445,7 @@ public final class Main {
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
         boolean canRead = false;
-        StringBuilder sb = new StringBuilder();
+        StringBuffer sb = new StringBuffer();
         while (true) {
             String s = reader.readLine();
             if (s == null) break;
@@ -2624,7 +2624,7 @@ public final class Main {
             throws Exception {
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-        StringBuilder sb = new StringBuilder();
+        StringBuffer sb = new StringBuffer();
         boolean started = false;
         while (true) {
             String s = reader.readLine();
@@ -3535,6 +3535,33 @@ public final class Main {
     }
 
     /**
+     * Converts a byte to hex digit and writes to the supplied buffer
+     */
+    private void byte2hex(byte b, StringBuffer buf) {
+        char[] hexChars = { '0', '1', '2', '3', '4', '5', '6', '7', '8',
+                            '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+        int high = ((b & 0xf0) >> 4);
+        int low = (b & 0x0f);
+        buf.append(hexChars[high]);
+        buf.append(hexChars[low]);
+    }
+
+    /**
+     * Converts a byte array to hex string
+     */
+    private String toHexString(byte[] block) {
+        StringBuffer buf = new StringBuffer();
+        int len = block.length;
+        for (int i = 0; i < len; i++) {
+             byte2hex(block[i], buf);
+             if (i < len-1) {
+                 buf.append(":");
+             }
+        }
+        return buf.toString();
+    }
+
+    /**
      * Recovers (private) key associated with given alias.
      *
      * @return an array of objects, where the 1st element in the array is the
@@ -3663,7 +3690,7 @@ public final class Main {
         byte[] encCertInfo = cert.getEncoded();
         MessageDigest md = MessageDigest.getInstance(mdAlg);
         byte[] digest = md.digest(encCertInfo);
-        return HexFormat.ofDelimiter(":").withUpperCase().formatHex(digest);
+        return toHexString(digest);
     }
 
     /**
@@ -4580,16 +4607,21 @@ public final class Main {
                         break;
                     case -1:
                         ObjectIdentifier oid = ObjectIdentifier.of(name);
-                        HexFormat hexFmt = HexFormat.of();
                         byte[] data = null;
                         if (value != null) {
                             data = new byte[value.length() / 2 + 1];
                             int pos = 0;
                             for (char c: value.toCharArray()) {
-                                if (!hexFmt.isHexDigit(c)) {
+                                int hex;
+                                if (c >= '0' && c <= '9') {
+                                    hex = c - '0' ;
+                                } else if (c >= 'A' && c <= 'F') {
+                                    hex = c - 'A' + 10;
+                                } else if (c >= 'a' && c <= 'f') {
+                                    hex = c - 'a' + 10;
+                                } else {
                                     continue;
                                 }
-                                int hex = hexFmt.fromHexDigit(c);
                                 if (pos % 2 == 0) {
                                     data[pos/2] = (byte)(hex << 4);
                                 } else {

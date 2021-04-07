@@ -26,7 +26,6 @@
 #include "precompiled.hpp"
 #include "assembler_zero.inline.hpp"
 #include "memory/resourceArea.hpp"
-#include "runtime/arguments.hpp"
 #include "runtime/globals_extension.hpp"
 #include "runtime/java.hpp"
 #include "runtime/stubCodeGenerator.hpp"
@@ -44,7 +43,4 @@ void VM_Version::initialize() {
     warning("Prefetching is not available for a Zero VM");
   }
   FLAG_SET_DEFAULT(AllocatePrefetchDistance, 0);
-
-  // Not implemented
-  UNSUPPORTED_OPTION(CriticalJNINatives);
 }

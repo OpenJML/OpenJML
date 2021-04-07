@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2020, Oracle and/or its affiliates. All rights reserved.
  */
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -20,7 +20,6 @@
 
 package com.sun.org.apache.xml.internal.serializer;
 
-import com.sun.org.apache.xml.internal.serializer.dom3.DOMConstants;
 import com.sun.org.apache.xml.internal.serializer.utils.MsgKey;
 import com.sun.org.apache.xml.internal.serializer.utils.Utils;
 import com.sun.org.apache.xml.internal.serializer.utils.WrappedRuntimeException;
@@ -52,7 +51,7 @@ import org.xml.sax.SAXException;
  * serializers (xml, html, text ...) that write output to a stream.
  *
  * @xsl.usage internal
- * @LastModified: Jan 2021
+ * @LastModified: June 2020
  */
 abstract public class ToStream extends SerializerBase {
 
@@ -493,10 +492,8 @@ abstract public class ToStream extends SerializerBase {
                 if (OutputPropertiesFactory.S_KEY_INDENT_AMOUNT.equals(name)) {
                     setIndentAmount(Integer.parseInt(val));
                 } else if (OutputKeys.INDENT.equals(name)) {
-                    m_doIndent = val.endsWith("yes");
-                } else if ((DOMConstants.S_JDK_PROPERTIES_NS + DOMConstants.S_IS_STANDALONE)
-                        .equals(name)) {
-                    m_isStandalone = val.endsWith("yes");
+                    boolean b = val.endsWith("yes") ? true : false;
+                    m_doIndent = b;
                 }
 
                 break;

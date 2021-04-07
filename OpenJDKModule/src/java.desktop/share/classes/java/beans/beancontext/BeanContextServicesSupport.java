@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -28,7 +28,6 @@ package java.beans.beancontext;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,11 +56,6 @@ import java.util.TooManyListenersException;
 
 public class      BeanContextServicesSupport extends BeanContextSupport
        implements BeanContextServices {
-
-    /**
-     * Use serialVersionUID from JDK 1.7 for interoperability.
-     */
-    @Serial
     private static final long serialVersionUID = -8494482757288719206L;
 
     /**
@@ -159,10 +153,6 @@ public class      BeanContextServicesSupport extends BeanContextSupport
 
     protected class BCSSChild extends BeanContextSupport.BCSChild  {
 
-        /**
-         * Use serialVersionUID from JDK 1.7 for interoperability.
-         */
-        @Serial
         private static final long serialVersionUID = -3263851306889194873L;
 
         /*
@@ -521,7 +511,12 @@ public class      BeanContextServicesSupport extends BeanContextSupport
         void revokeAllDelegatedServicesNow() {
             if (serviceClasses == null) return;
 
-            for (BCSSCServiceClassRef serviceClassRef : new HashSet<>(serviceClasses.values())) {
+            Iterator<BCSSCServiceClassRef> serviceClassRefs  =
+                new HashSet<>(serviceClasses.values()).iterator();
+
+            while (serviceClassRefs.hasNext()) {
+                BCSSCServiceClassRef serviceClassRef = serviceClassRefs.next();
+
                 if (!serviceClassRef.isDelegated()) continue;
 
                 Iterator<Map.Entry<Object, BeanContextServiceRevokedListener>> i = serviceClassRef.cloneOfEntries();
@@ -598,11 +593,6 @@ public class      BeanContextServicesSupport extends BeanContextSupport
          */
 
         protected static class BCSSServiceProvider implements Serializable {
-
-            /**
-             * Use serialVersionUID from JDK 1.7 for interoperability.
-             */
-            @Serial
             private static final long serialVersionUID = 861278251667444782L;
 
             BCSSServiceProvider(Class<?> sc, BeanContextServiceProvider bcsp) {
@@ -712,7 +702,11 @@ public class      BeanContextServicesSupport extends BeanContextSupport
                 fireServiceAdded(bcssae);
 
                 synchronized(children) {
-                    for (Object c : children.keySet()) {
+                    Iterator<Object> i = children.keySet().iterator();
+
+                    while (i.hasNext()) {
+                        Object c = i.next();
+
                         if (c instanceof BeanContextServices) {
                             ((BeanContextServicesListener)c).serviceAvailable(bcssae);
                         }
@@ -1216,7 +1210,6 @@ public class      BeanContextServicesSupport extends BeanContextSupport
      * @param  oos the {@code ObjectOutputStream} to write
      * @throws IOException if an I/O error occurs
      */
-    @Serial
     private synchronized void writeObject(ObjectOutputStream oos) throws IOException {
         oos.defaultWriteObject();
 
@@ -1231,7 +1224,6 @@ public class      BeanContextServicesSupport extends BeanContextSupport
      *         not be found
      * @throws IOException if an I/O error occurs
      */
-    @Serial
     private synchronized void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 
         ois.defaultReadObject();

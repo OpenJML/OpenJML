@@ -45,20 +45,20 @@ public class ThreadLocalTest extends JSR166TestCase {
         return new TestSuite(ThreadLocalTest.class);
     }
 
-    static ThreadLocal<Item> tl = new ThreadLocal<>() {
-            public Item initialValue() {
+    static ThreadLocal<Integer> tl = new ThreadLocal<Integer>() {
+            public Integer initialValue() {
                 return one;
             }
         };
 
-    static InheritableThreadLocal<Item> itl =
-        new InheritableThreadLocal<>() {
-            protected Item initialValue() {
+    static InheritableThreadLocal<Integer> itl =
+        new InheritableThreadLocal<Integer>() {
+            protected Integer initialValue() {
                 return zero;
             }
 
-            protected Item childValue(Item parentValue) {
-                return new Item(parentValue.intValue() + 1);
+            protected Integer childValue(Integer parentValue) {
+                return new Integer(parentValue.intValue() + 1);
             }
         };
 

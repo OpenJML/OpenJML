@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -23,7 +23,6 @@
  */
 
 #include "precompiled.hpp"
-#include "jvm_io.h"
 #include "asm/macroAssembler.hpp"
 #include "asm/macroAssembler.inline.hpp"
 #include "ci/ciReplay.hpp"
@@ -235,7 +234,8 @@ void Compile::print_intrinsic_statistics() {
   if (total == 0)  total = 1;  // avoid div0 in case of no successes
   #define PRINT_STAT_LINE(name, c, f) \
     tty->print_cr("  %4d (%4.1f%%) %s (%s)", (int)(c), ((c) * 100.0) / total, name, f);
-  for (auto id : EnumRange<vmIntrinsicID>{}) {
+  for (vmIntrinsicsIterator it = vmIntrinsicsRange.begin(); it != vmIntrinsicsRange.end(); ++it) {
+    vmIntrinsicID id = *it;
     int   flags = _intrinsic_hist_flags[as_int(id)];
     juint count = _intrinsic_hist_count[as_int(id)];
     if ((flags | count) != 0) {
@@ -391,9 +391,6 @@ void Compile::remove_useless_node(Node* dead) {
   if (dead->is_expensive()) {
     remove_expensive_node(dead);
   }
-  if (dead->Opcode() == Op_Opaque4) {
-    remove_skeleton_predicate_opaq(dead);
-  }
   if (dead->for_post_loop_opts_igvn()) {
     remove_from_post_loop_opts_igvn(dead);
   }
@@ -507,7 +504,7 @@ void Compile::print_compile_messages() {
     tty->print_cr("** Bailout: Recompile without boxing elimination       **");
     tty->print_cr("*********************************************************");
   }
-  if (env()->break_at_compile()) {
+  if (C->directive()->BreakAtCompileOption) {
     // Open the debugger when compiling this method.
     tty->print("### Breaking when compiling: ");
     method()->print_short_name();
@@ -569,7 +566,6 @@ Compile::Compile( ciEnv* ci_env, ciMethod* target, int osr_bci,
                   _intrinsics        (comp_arena(), 0, 0, NULL),
                   _macro_nodes       (comp_arena(), 8, 0, NULL),
                   _predicate_opaqs   (comp_arena(), 8, 0, NULL),
-                  _skeleton_predicate_opaqs (comp_arena(), 8, 0, NULL),
                   _expensive_nodes   (comp_arena(), 8, 0, NULL),
                   _for_post_loop_igvn(comp_arena(), 8, 0, NULL),
                   _congraph(NULL),
@@ -772,13 +768,15 @@ Compile::Compile( ciEnv* ci_env, ciMethod* target, int osr_bci,
   if (failing())  return;
   NOT_PRODUCT( verify_graph_edges(); )
 
-  // If any phase is randomized for stress testing, seed random number
-  // generation and log the seed for repeatability.
-  if (StressLCM || StressGCM || StressIGVN || StressCCP) {
+  // If LCM, GCM, or IGVN are randomized for stress testing, seed
+  // random number generation and log the seed for repeatability.
+  if (StressLCM || StressGCM || StressIGVN) {
     _stress_seed = FLAG_IS_DEFAULT(StressSeed) ?
       static_cast<uint>(Ticks::now().nanoseconds()) : StressSeed;
     if (_log != NULL) {
       _log->elem("stress_test seed='%u'", _stress_seed);
+    } else if (FLAG_IS_DEFAULT(StressSeed)) {
+      tty->print_cr("Warning:  set +LogCompilation to log the seed.");
     }
   }
 
@@ -2111,7 +2109,7 @@ void Compile::Optimize() {
   TracePhase tp("optimizer", &timers[_t_optimizer]);
 
 #ifndef PRODUCT
-  if (env()->break_at_compile()) {
+  if (_directive->BreakAtCompileOption) {
     BREAKPOINT;
   }
 
@@ -2759,7 +2757,7 @@ void Compile::Code_Gen() {
 
     print_method(PHASE_GLOBAL_CODE_MOTION, 2);
     NOT_PRODUCT( verify_graph_edges(); )
-    cfg.verify();
+    debug_only( cfg.verify(); )
   }
 
   PhaseChaitin regalloc(unique(), cfg, matcher, false);
@@ -4196,7 +4194,12 @@ void Compile::print_inlining_init() {
     // print_inlining_init is actually called several times.
     print_inlining_stream_free();
     _print_inlining_stream = new stringStream();
-    _print_inlining_list = new (comp_arena())GrowableArray<PrintInliningBuffer*>(comp_arena(), 1, 1, new PrintInliningBuffer());
+    // Watch out: The memory initialized by the constructor call PrintInliningBuffer()
+    // will be copied into the only initial element. The default destructor of
+    // PrintInliningBuffer will be called when leaving the scope here. If it
+    // would destuct the  enclosed stringStream _print_inlining_list[0]->_ss
+    // would be destructed, too!
+    _print_inlining_list = new (comp_arena())GrowableArray<PrintInliningBuffer>(comp_arena(), 1, 1, PrintInliningBuffer());
   }
 }
 
@@ -4216,32 +4219,32 @@ void Compile::print_inlining_commit() {
   assert(print_inlining() || print_intrinsics(), "PrintInlining off?");
   // Transfer the message from _print_inlining_stream to the current
   // _print_inlining_list buffer and clear _print_inlining_stream.
-  _print_inlining_list->at(_print_inlining_idx)->ss()->write(_print_inlining_stream->base(), _print_inlining_stream->size());
+  _print_inlining_list->at(_print_inlining_idx).ss()->write(_print_inlining_stream->base(), _print_inlining_stream->size());
   print_inlining_reset();
 }
 
 void Compile::print_inlining_push() {
   // Add new buffer to the _print_inlining_list at current position
   _print_inlining_idx++;
-  _print_inlining_list->insert_before(_print_inlining_idx, new PrintInliningBuffer());
+  _print_inlining_list->insert_before(_print_inlining_idx, PrintInliningBuffer());
 }
 
-Compile::PrintInliningBuffer* Compile::print_inlining_current() {
+Compile::PrintInliningBuffer& Compile::print_inlining_current() {
   return _print_inlining_list->at(_print_inlining_idx);
 }
 
 void Compile::print_inlining_update(CallGenerator* cg) {
   if (print_inlining() || print_intrinsics()) {
     if (cg->is_late_inline()) {
-      if (print_inlining_current()->cg() != cg &&
-          (print_inlining_current()->cg() != NULL ||
-           print_inlining_current()->ss()->size() != 0)) {
+      if (print_inlining_current().cg() != cg &&
+          (print_inlining_current().cg() != NULL ||
+           print_inlining_current().ss()->size() != 0)) {
         print_inlining_push();
       }
       print_inlining_commit();
-      print_inlining_current()->set_cg(cg);
+      print_inlining_current().set_cg(cg);
     } else {
-      if (print_inlining_current()->cg() != NULL) {
+      if (print_inlining_current().cg() != NULL) {
         print_inlining_push();
       }
       print_inlining_commit();
@@ -4254,7 +4257,7 @@ void Compile::print_inlining_move_to(CallGenerator* cg) {
   // corresponding inlining buffer so that we can update it.
   if (print_inlining() || print_intrinsics()) {
     for (int i = 0; i < _print_inlining_list->length(); i++) {
-      if (_print_inlining_list->at(i)->cg() == cg) {
+      if (_print_inlining_list->adr_at(i)->cg() == cg) {
         _print_inlining_idx = i;
         return;
       }
@@ -4266,11 +4269,11 @@ void Compile::print_inlining_move_to(CallGenerator* cg) {
 void Compile::print_inlining_update_delayed(CallGenerator* cg) {
   if (print_inlining() || print_intrinsics()) {
     assert(_print_inlining_stream->size() > 0, "missing inlining msg");
-    assert(print_inlining_current()->cg() == cg, "wrong entry");
+    assert(print_inlining_current().cg() == cg, "wrong entry");
     // replace message with new message
-    _print_inlining_list->at_put(_print_inlining_idx, new PrintInliningBuffer());
+    _print_inlining_list->at_put(_print_inlining_idx, PrintInliningBuffer());
     print_inlining_commit();
-    print_inlining_current()->set_cg(cg);
+    print_inlining_current().set_cg(cg);
   }
 }
 
@@ -4285,10 +4288,8 @@ void Compile::process_print_inlining() {
     stringStream ss;
     assert(_print_inlining_list != NULL, "process_print_inlining should be called only once.");
     for (int i = 0; i < _print_inlining_list->length(); i++) {
-      PrintInliningBuffer* pib = _print_inlining_list->at(i);
-      ss.print("%s", pib->ss()->as_string());
-      delete pib;
-      DEBUG_ONLY(_print_inlining_list->at_put(i, NULL));
+      ss.print("%s", _print_inlining_list->adr_at(i)->ss()->as_string());
+      _print_inlining_list->at(i).freeStream();
     }
     // Reset _print_inlining_list, it only contains destructed objects.
     // It is on the arena, so it will be freed when the arena is reset.

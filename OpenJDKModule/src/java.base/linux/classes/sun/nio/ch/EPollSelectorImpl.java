@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -58,8 +58,9 @@ class EPollSelectorImpl extends SelectorImpl {
     // address of poll array when polling with epoll_wait
     private final long pollArrayAddress;
 
-    // eventfd object used for interrupt
-    private final EventFD eventfd;
+    // file descriptors used for interrupt
+    private final int fd0;
+    private final int fd1;
 
     // maps file descriptor to selection key, synchronize on selector
     private final Map<Integer, SelectionKeyImpl> fdToKey = new HashMap<>();
@@ -79,16 +80,17 @@ class EPollSelectorImpl extends SelectorImpl {
         this.pollArrayAddress = EPoll.allocatePollArray(NUM_EPOLLEVENTS);
 
         try {
-            this.eventfd = new EventFD();
-            IOUtil.configureBlocking(IOUtil.newFD(eventfd.efd()), false);
+            long fds = IOUtil.makePipe(false);
+            this.fd0 = (int) (fds >>> 32);
+            this.fd1 = (int) fds;
         } catch (IOException ioe) {
             EPoll.freePollArray(pollArrayAddress);
             FileDispatcherImpl.closeIntFD(epfd);
             throw ioe;
         }
 
-        // register the eventfd object for wakeups
-        EPoll.ctl(epfd, EPOLL_CTL_ADD, eventfd.efd(), EPOLLIN);
+        // register one end of the socket pair for wakeups
+        EPoll.ctl(epfd, EPOLL_CTL_ADD, fd0, EPOLLIN);
     }
 
     private void ensureOpen() {
@@ -186,7 +188,7 @@ class EPollSelectorImpl extends SelectorImpl {
         for (int i=0; i<numEntries; i++) {
             long event = EPoll.getEvent(pollArrayAddress, i);
             int fd = EPoll.getDescriptor(event);
-            if (fd == eventfd.efd()) {
+            if (fd == fd0) {
                 interrupted = true;
             } else {
                 SelectionKeyImpl ski = fdToKey.get(fd);
@@ -216,7 +218,8 @@ class EPollSelectorImpl extends SelectorImpl {
         FileDispatcherImpl.closeIntFD(epfd);
         EPoll.freePollArray(pollArrayAddress);
 
-        eventfd.close();
+        FileDispatcherImpl.closeIntFD(fd0);
+        FileDispatcherImpl.closeIntFD(fd1);
     }
 
     @Override
@@ -248,7 +251,7 @@ class EPollSelectorImpl extends SelectorImpl {
         synchronized (interruptLock) {
             if (!interruptTriggered) {
                 try {
-                    eventfd.set();
+                    IOUtil.write1(fd1, (byte)0);
                 } catch (IOException ioe) {
                     throw new InternalError(ioe);
                 }
@@ -260,7 +263,7 @@ class EPollSelectorImpl extends SelectorImpl {
 
     private void clearInterrupt() throws IOException {
         synchronized (interruptLock) {
-            eventfd.reset();
+            IOUtil.drain(fd0);
             interruptTriggered = false;
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2021, Red Hat, Inc. All rights reserved.
+ * Copyright (c) 2018, 2019, Red Hat, Inc. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -31,16 +31,16 @@
 
 class ShenandoahBarrierSetC2State : public ResourceObj {
 private:
-  GrowableArray<ShenandoahIUBarrierNode*>* _iu_barriers;
+  GrowableArray<ShenandoahEnqueueBarrierNode*>* _enqueue_barriers;
   GrowableArray<ShenandoahLoadReferenceBarrierNode*>* _load_reference_barriers;
 
 public:
   ShenandoahBarrierSetC2State(Arena* comp_arena);
 
-  int iu_barriers_count() const;
-  ShenandoahIUBarrierNode* iu_barrier(int idx) const;
-  void add_iu_barrier(ShenandoahIUBarrierNode* n);
-  void remove_iu_barrier(ShenandoahIUBarrierNode * n);
+  int enqueue_barriers_count() const;
+  ShenandoahEnqueueBarrierNode* enqueue_barrier(int idx) const;
+  void add_enqueue_barrier(ShenandoahEnqueueBarrierNode* n);
+  void remove_enqueue_barrier(ShenandoahEnqueueBarrierNode * n);
 
   int load_reference_barriers_count() const;
   ShenandoahLoadReferenceBarrierNode* load_reference_barrier(int idx) const;
@@ -73,7 +73,8 @@ private:
                                     Node* pre_val,
                                     BasicType bt) const;
 
-  Node* shenandoah_iu_barrier(GraphKit* kit, Node* obj) const;
+  Node* shenandoah_enqueue_barrier(GraphKit* kit, Node* val) const;
+  Node* shenandoah_storeval_barrier(GraphKit* kit, Node* obj) const;
 
   void insert_pre_barrier(GraphKit* kit, Node* base_oop, Node* offset,
                           Node* pre_val, bool need_mem_bar) const;

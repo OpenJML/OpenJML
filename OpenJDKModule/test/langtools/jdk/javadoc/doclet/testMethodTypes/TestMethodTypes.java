@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -71,9 +71,7 @@ public class TestMethodTypes extends JavadocTester {
                      onclick="show('method-summary-table', 'method-summary-table-tab6', 3)" class="t\
                     able-tab">Deprecated Methods</button>\
                     </div>""",
-                """
-                    <div class="col-first even-row-color method-summary-table method-summary-table-t\
-                    ab2 method-summary-table-tab4">""");
+                "<div class=\"col-first even-row-color method-summary-table-tab2 method-summary-table-tab4 method-summary-table\">");
 
         checkOutput("pkg1/B.html", true,
                 """
@@ -124,9 +122,7 @@ public class TestMethodTypes extends JavadocTester {
                      onclick="show('method-summary-table', 'method-summary-table-tab6', 3)" class="t\
                     able-tab">Deprecated Methods</button>\
                     </div>""",
-                """
-                    <div class="col-first even-row-color method-summary-table method-summary-table-t\
-                    ab2 method-summary-table-tab4 method-summary-table-tab6">""");
+                "<div class=\"col-first even-row-color method-summary-table-tab2 method-summary-table-tab6 method-summary-table-tab4 method-summary-table\">");
 
         checkOutput("pkg1/A.html", false,
                 "<div class=\"caption\"><span>Methods</span></div>");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -23,7 +23,6 @@
  */
 
 #include "precompiled.hpp"
-#include "classfile/classLoaderData.hpp"
 #include "classfile/moduleEntry.hpp"
 #include "classfile/packageEntry.hpp"
 #include "classfile/vmSymbols.hpp"
@@ -222,11 +221,8 @@ PackageEntry* PackageEntry::allocate_archived_entry() const {
 
 PackageEntry* PackageEntry::get_archived_entry(PackageEntry* orig_entry) {
   PackageEntry** ptr = _archived_packages_entries->get(orig_entry);
-  if (ptr != NULL) {
-    return *ptr;
-  } else {
-    return NULL;
-  }
+  assert(ptr != NULL && *ptr != NULL, "must have been allocated");
+  return *ptr;
 }
 
 void PackageEntry::iterate_symbols(MetaspaceClosure* closure) {

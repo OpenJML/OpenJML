@@ -23,7 +23,7 @@
 
 /*
  * @test
- * @bug 4638136 7198273 8025633 8081854 8182765 8258659
+ * @bug 4638136 7198273 8025633 8081854 8182765
  * @summary  Add ability to skip over nav bar for accessibility
  * @library ../../lib
  * @modules jdk.javadoc/jdk.javadoc.internal.tool
@@ -54,6 +54,8 @@ public class AccessSkipNav extends JavadocTester {
                     <a href="#skip.navbar.top" title="Skip navigation links">Skip navigation links</a>""",
                 // Top navbar <span id>
                 """
-                    <span class="skip-nav" id="skip.navbar.top"></span>""");
+                    <span class="skip-nav" id="skip.navbar.top">
+                    <!--   -->
+                    </span>""");
     }
 }

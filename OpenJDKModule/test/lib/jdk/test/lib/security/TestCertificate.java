@@ -122,8 +122,6 @@ public enum TestCertificate {
         "J2GyCaJINsyaI/I2\n" +
         "-----END CERTIFICATE-----");
 
-    private static final CertificateFactory CERTIFICATE_FACTORY = getCertificateFactory();
-
     public String serialNumber;
     public String algorithm;
     public String subject;
@@ -145,35 +143,22 @@ public enum TestCertificate {
         this.keyLength = 2048;
     }
 
-    private static CertificateFactory getCertificateFactory() {
-        try {
-            return CertificateFactory.getInstance("X.509");
-        } catch (CertificateException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public X509Certificate certificate() throws CertificateException {
+    public X509Certificate generate(CertificateFactory cf) throws CertificateException {
         ByteArrayInputStream is = new ByteArrayInputStream(encoded.getBytes());
-        return (X509Certificate) CERTIFICATE_FACTORY.generateCertificate(is);
+        return (X509Certificate) cf.generateCertificate(is);
     }
 
-    public static void generateChain(boolean selfSignedTest, boolean trustAnchorCert) throws Exception {
+    public static void generateChain(boolean selfSignedTest) throws Exception {
         // Do path validation as if it is always Tue, 06 Sep 2016 22:12:21 GMT
         // This value is within the lifetimes of all certificates.
         Date testDate = new Date(1473199941000L);
 
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
-        X509Certificate c1 = TestCertificate.ONE.certificate();
-        X509Certificate c2 = TestCertificate.TWO.certificate();
-        X509Certificate ca = TestCertificate.ROOT_CA.certificate();
+        X509Certificate c1 = TestCertificate.ONE.generate(cf);
+        X509Certificate c2 = TestCertificate.TWO.generate(cf);
+        X509Certificate ca = TestCertificate.ROOT_CA.generate(cf);
 
-        TrustAnchor ta;
-        if (trustAnchorCert) {
-            ta = new TrustAnchor(ca, null);
-        } else {
-            ta = new TrustAnchor(ca.getIssuerX500Principal(), ca.getPublicKey(), null);
-        }
+        TrustAnchor ta = new TrustAnchor(ca, null);
         CertPathValidator validator = CertPathValidator.getInstance("PKIX");
 
         PKIXParameters params = new PKIXParameters(Collections.singleton(ta));

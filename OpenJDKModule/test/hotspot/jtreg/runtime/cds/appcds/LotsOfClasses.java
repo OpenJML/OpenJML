@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,6 +26,7 @@ import java.util.ArrayList;
 
 import jdk.test.lib.cds.CDSTestUtils;
 import jdk.test.lib.cds.CDSOptions;
+import jdk.test.lib.process.OutputAnalyzer;
 
 /*
  * @test
@@ -51,6 +52,7 @@ public class LotsOfClasses {
         opts.addSuffix("-Xlog:gc+region+cds");
         opts.addSuffix("-Xlog:cds=debug");  // test detailed metadata info printing
 
-        CDSTestUtils.createArchiveAndCheck(opts);
+        OutputAnalyzer out = CDSTestUtils.createArchive(opts);
+        CDSTestUtils.checkDump(out);
     }
 }

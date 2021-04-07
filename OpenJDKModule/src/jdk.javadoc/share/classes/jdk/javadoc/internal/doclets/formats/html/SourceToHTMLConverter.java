@@ -37,7 +37,6 @@ import javax.tools.FileObject;
 
 import jdk.javadoc.doclet.DocletEnvironment;
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlDocument;
-import jdk.javadoc.internal.doclets.formats.html.markup.HtmlId;
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle;
 import jdk.javadoc.internal.doclets.formats.html.markup.TagName;
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlTree;
@@ -313,7 +312,7 @@ public class SourceToHTMLConverter {
     private void addLine(Content pre, String line, int currentLineNo) {
         if (line != null) {
             Content anchor = HtmlTree.SPAN_ID(
-                    HtmlIds.forLine(currentLineNo),
+                    "line." + Integer.toString(currentLineNo),
                     new StringContent(utils.replaceTabs(line)));
             pre.add(anchor);
             pre.add(NEW_LINE);

@@ -272,8 +272,9 @@ class SocksSocketImpl extends DelegatingSocketImpl implements SocksConsts {
         }
 
         SecurityManager security = System.getSecurityManager();
-        if (!(endpoint instanceof InetSocketAddress epoint))
+        if (endpoint == null || !(endpoint instanceof InetSocketAddress))
             throw new IllegalArgumentException("Unsupported address type");
+        InetSocketAddress epoint = (InetSocketAddress) endpoint;
         if (security != null) {
             if (epoint.isUnresolved())
                 security.checkConnect(epoint.getHostName(),

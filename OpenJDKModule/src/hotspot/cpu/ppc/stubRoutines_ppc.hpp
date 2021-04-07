@@ -46,16 +46,6 @@ enum platform_dependent_constants {
 #define CRC32_UNROLL_FACTOR 2048
 #define CRC32_UNROLL_FACTOR2 8
 
-class ppc {
-  friend class StubGenerator;
-
- private:
-  static address _nmethod_entry_barrier;
-
- public:
-  static address nmethod_entry_barrier();
-
-  static address generate_crc_constants(juint reverse_poly);
-};
+static address generate_crc_constants(juint reverse_poly);
 
 #endif // CPU_PPC_STUBROUTINES_PPC_HPP

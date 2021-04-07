@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -119,8 +119,9 @@ public class InetSocketAddress
 
         @Override
         public final boolean equals(Object obj) {
-            if (!(obj instanceof InetSocketAddressHolder that))
+            if (obj == null || !(obj instanceof InetSocketAddressHolder))
                 return false;
+            InetSocketAddressHolder that = (InetSocketAddressHolder)obj;
             boolean sameIP;
             if (addr != null)
                 sameIP = addr.equals(that.addr);
@@ -373,18 +374,11 @@ public class InetSocketAddress
 
     /**
      * Constructs a string representation of this InetSocketAddress.
-     * This string is constructed by calling {@link InetAddress#toString()}
-     * on the InetAddress and concatenating the port number (with a colon).
-     * <p>
-     * If the address is an IPv6 address, the IPv6 literal is enclosed in
-     * square brackets, for example: {@code "localhost/[0:0:0:0:0:0:0:1]:80"}.
+     * This String is constructed by calling toString() on the InetAddress
+     * and concatenating the port number (with a colon). If the address
+     * is an IPv6 address, the IPv6 literal is enclosed in square brackets.
      * If the address is {@linkplain #isUnresolved() unresolved},
-     * {@code <unresolved>} is displayed in place of the address literal, for
-     * example {@code "foo/<unresolved>:80"}.
-     * <p>
-     * To retrieve a string representation of the hostname or the address, use
-     * {@link #getHostString()}, rather than parsing the string returned by this
-     * {@link #toString()} method.
+     * {@code <unresolved>} is displayed in place of the address literal.
      *
      * @return  a string representation of this object.
      */
@@ -415,10 +409,9 @@ public class InetSocketAddress
      */
     @Override
     public final boolean equals(Object obj) {
-        if (obj instanceof InetSocketAddress addr) {
-            return holder.equals(addr.holder);
-        }
-        return false;
+        if (obj == null || !(obj instanceof InetSocketAddress))
+            return false;
+        return holder.equals(((InetSocketAddress) obj).holder);
     }
 
     /**

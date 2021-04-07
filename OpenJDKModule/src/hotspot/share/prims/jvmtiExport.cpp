@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,8 +25,7 @@
 #include "precompiled.hpp"
 #include "classfile/javaClasses.inline.hpp"
 #include "classfile/moduleEntry.hpp"
-#include "classfile/vmClasses.hpp"
-#include "classfile/vmSymbols.hpp"
+#include "classfile/systemDictionary.hpp"
 #include "code/nmethod.hpp"
 #include "code/pcDesc.hpp"
 #include "code/scopeDesc.hpp"
@@ -62,13 +61,11 @@
 #include "runtime/objectMonitor.hpp"
 #include "runtime/objectMonitor.inline.hpp"
 #include "runtime/os.inline.hpp"
-#include "runtime/osThread.hpp"
 #include "runtime/safepointVerifiers.hpp"
 #include "runtime/serviceThread.hpp"
 #include "runtime/thread.inline.hpp"
 #include "runtime/threadSMR.hpp"
 #include "runtime/vframe.inline.hpp"
-#include "runtime/vm_version.hpp"
 #include "utilities/macros.hpp"
 
 #ifdef JVMTI_TRACE
@@ -430,7 +427,7 @@ JvmtiExport::add_default_read_edges(Handle h_module, TRAPS) {
   // Invoke the transformedByAgent method
   JavaValue result(T_VOID);
   JavaCalls::call_static(&result,
-                         vmClasses::module_Modules_klass(),
+                         SystemDictionary::module_Modules_klass(),
                          vmSymbols::transformedByAgent_name(),
                          vmSymbols::transformedByAgent_signature(),
                          h_module,
@@ -457,7 +454,7 @@ JvmtiExport::add_module_reads(Handle module, Handle to_module, TRAPS) {
   // Invoke the addReads method
   JavaValue result(T_VOID);
   JavaCalls::call_static(&result,
-                         vmClasses::module_Modules_klass(),
+                         SystemDictionary::module_Modules_klass(),
                          vmSymbols::addReads_name(),
                          vmSymbols::addReads_signature(),
                          module,
@@ -487,7 +484,7 @@ JvmtiExport::add_module_exports(Handle module, Handle pkg_name, Handle to_module
   // Invoke the addExports method
   JavaValue result(T_VOID);
   JavaCalls::call_static(&result,
-                         vmClasses::module_Modules_klass(),
+                         SystemDictionary::module_Modules_klass(),
                          vmSymbols::addExports_name(),
                          vmSymbols::addExports_signature(),
                          module,
@@ -522,7 +519,7 @@ JvmtiExport::add_module_opens(Handle module, Handle pkg_name, Handle to_module, 
   // Invoke the addOpens method
   JavaValue result(T_VOID);
   JavaCalls::call_static(&result,
-                         vmClasses::module_Modules_klass(),
+                         SystemDictionary::module_Modules_klass(),
                          vmSymbols::addOpens_name(),
                          vmSymbols::addExports_signature(),
                          module,
@@ -556,7 +553,7 @@ JvmtiExport::add_module_uses(Handle module, Handle service, TRAPS) {
   // Invoke the addUses method
   JavaValue result(T_VOID);
   JavaCalls::call_static(&result,
-                         vmClasses::module_Modules_klass(),
+                         SystemDictionary::module_Modules_klass(),
                          vmSymbols::addUses_name(),
                          vmSymbols::addUses_signature(),
                          module,
@@ -586,7 +583,7 @@ JvmtiExport::add_module_provides(Handle module, Handle service, Handle impl_clas
   // Invoke the addProvides method
   JavaValue result(T_VOID);
   JavaCalls::call_static(&result,
-                         vmClasses::module_Modules_klass(),
+                         SystemDictionary::module_Modules_klass(),
                          vmSymbols::addProvides_name(),
                          vmSymbols::addProvides_signature(),
                          module,
@@ -786,7 +783,7 @@ JvmtiExport::cv_external_thread_to_JavaThread(ThreadsList * t_list,
   }
   // Looks like an oop at this point.
 
-  if (!thread_oop->is_a(vmClasses::Thread_klass())) {
+  if (!thread_oop->is_a(SystemDictionary::Thread_klass())) {
     // The oop is not a java.lang.Thread.
     return JVMTI_ERROR_INVALID_THREAD;
   }
@@ -835,7 +832,7 @@ JvmtiExport::cv_oop_to_JavaThread(ThreadsList * t_list, oop thread_oop,
   assert(thread_oop != NULL, "must have an oop");
   assert(jt_pp != NULL, "must have a return JavaThread pointer");
 
-  if (!thread_oop->is_a(vmClasses::Thread_klass())) {
+  if (!thread_oop->is_a(SystemDictionary::Thread_klass())) {
     // The oop is not a java.lang.Thread.
     return JVMTI_ERROR_INVALID_THREAD;
   }
@@ -1075,7 +1072,7 @@ static inline Klass* oop_to_klass(oop obj) {
   Klass* k = obj->klass();
 
   // if the object is a java.lang.Class then return the java mirror
-  if (k == vmClasses::Class_klass()) {
+  if (k == SystemDictionary::Class_klass()) {
     if (!java_lang_Class::is_primitive(obj)) {
       k = java_lang_Class::as_Klass(obj);
       assert(k != NULL, "class for non-primitive mirror must exist");
@@ -1506,9 +1503,6 @@ void JvmtiExport::post_resource_exhausted(jint resource_exhausted_flags, const c
 
   JavaThread *thread  = JavaThread::current();
 
-  log_error(jvmti)("Posting Resource Exhausted event: %s",
-                   description != nullptr ? description : "unknown");
-
   // JDK-8213834: handlers of ResourceExhausted may attempt some analysis
   // which often requires running java.
   // This will cause problems on threads not able to run java, e.g. compiler
@@ -1878,7 +1872,24 @@ void JvmtiExport::notice_unwind_due_to_exception(JavaThread *thread, Method* met
 oop JvmtiExport::jni_GetField_probe(JavaThread *thread, jobject jobj, oop obj,
                                     Klass* klass, jfieldID fieldID, bool is_static) {
   if (*((int *)get_field_access_count_addr()) > 0 && thread->has_last_Java_frame()) {
-    // At least one field access watch is set so we have more work to do.
+    // At least one field access watch is set so we have more work
+    // to do. This wrapper is used by entry points that allow us
+    // to create handles in post_field_access_by_jni().
+    post_field_access_by_jni(thread, obj, klass, fieldID, is_static);
+    // event posting can block so refetch oop if we were passed a jobj
+    if (jobj != NULL) return JNIHandles::resolve_non_null(jobj);
+  }
+  return obj;
+}
+
+oop JvmtiExport::jni_GetField_probe_nh(JavaThread *thread, jobject jobj, oop obj,
+                                       Klass* klass, jfieldID fieldID, bool is_static) {
+  if (*((int *)get_field_access_count_addr()) > 0 && thread->has_last_Java_frame()) {
+    // At least one field access watch is set so we have more work
+    // to do. This wrapper is used by "quick" entry points that don't
+    // allow us to create handles in post_field_access_by_jni(). We
+    // override that with a ResetNoHandleMark.
+    ResetNoHandleMark rnhm;
     post_field_access_by_jni(thread, obj, klass, fieldID, is_static);
     // event posting can block so refetch oop if we were passed a jobj
     if (jobj != NULL) return JNIHandles::resolve_non_null(jobj);
@@ -1955,7 +1966,25 @@ oop JvmtiExport::jni_SetField_probe(JavaThread *thread, jobject jobj, oop obj,
                                     Klass* klass, jfieldID fieldID, bool is_static,
                                     char sig_type, jvalue *value) {
   if (*((int *)get_field_modification_count_addr()) > 0 && thread->has_last_Java_frame()) {
-    // At least one field modification watch is set so we have more work to do.
+    // At least one field modification watch is set so we have more work
+    // to do. This wrapper is used by entry points that allow us
+    // to create handles in post_field_modification_by_jni().
+    post_field_modification_by_jni(thread, obj, klass, fieldID, is_static, sig_type, value);
+    // event posting can block so refetch oop if we were passed a jobj
+    if (jobj != NULL) return JNIHandles::resolve_non_null(jobj);
+  }
+  return obj;
+}
+
+oop JvmtiExport::jni_SetField_probe_nh(JavaThread *thread, jobject jobj, oop obj,
+                                       Klass* klass, jfieldID fieldID, bool is_static,
+                                       char sig_type, jvalue *value) {
+  if (*((int *)get_field_modification_count_addr()) > 0 && thread->has_last_Java_frame()) {
+    // At least one field modification watch is set so we have more work
+    // to do. This wrapper is used by "quick" entry points that don't
+    // allow us to create handles in post_field_modification_by_jni(). We
+    // override that with a ResetNoHandleMark.
+    ResetNoHandleMark rnhm;
     post_field_modification_by_jni(thread, obj, klass, fieldID, is_static, sig_type, value);
     // event posting can block so refetch oop if we were passed a jobj
     if (jobj != NULL) return JNIHandles::resolve_non_null(jobj);
@@ -2313,7 +2342,7 @@ void JvmtiExport::record_vm_internal_object_allocation(oop obj) {
       if (collector != NULL && collector->is_enabled()) {
         // Don't record classes as these will be notified via the ClassLoad
         // event.
-        if (obj->klass() != vmClasses::Class_klass()) {
+        if (obj->klass() != SystemDictionary::Class_klass()) {
           collector->record_allocation(obj);
         }
       }
@@ -2705,9 +2734,6 @@ jint JvmtiExport::load_agent_library(const char *agent, const char *absParam,
       if (result == JNI_OK) {
         Arguments::add_loaded_agent(agent_lib);
       } else {
-        if (!agent_lib->is_static_lib()) {
-          os::dll_unload(library);
-        }
         delete agent_lib;
       }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -36,6 +36,8 @@ import jdk.javadoc.internal.doclets.formats.html.markup.Entity;
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle;
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlTree;
 import jdk.javadoc.internal.doclets.formats.html.markup.StringContent;
+import jdk.javadoc.internal.doclets.formats.html.markup.Table;
+import jdk.javadoc.internal.doclets.formats.html.markup.TableHeader;
 import jdk.javadoc.internal.doclets.toolkit.Content;
 import jdk.javadoc.internal.doclets.toolkit.MemberSummaryWriter;
 
@@ -70,7 +72,7 @@ public class NestedClassWriterImpl extends AbstractMemberWriter
     @Override
     public void addSummary(Content summariesList, Content content) {
         writer.addSummary(HtmlStyle.nestedClassSummary,
-                HtmlIds.NESTED_CLASS_SUMMARY, summariesList, content);
+                SectionName.NESTED_CLASS_SUMMARY, summariesList, content);
     }
 
     @Override
@@ -101,7 +103,8 @@ public class NestedClassWriterImpl extends AbstractMemberWriter
 
     @Override
     public void addInheritedSummaryLabel(TypeElement typeElement, Content inheritedTree) {
-        Content classLink = writer.getPreQualifiedClassLink(HtmlLinkInfo.Kind.MEMBER, typeElement);
+        Content classLink = writer.getPreQualifiedClassLink(
+                LinkInfoImpl.Kind.MEMBER, typeElement, false);
         Content label;
         if (options.summarizeOverriddenMethods()) {
             label = new StringContent(utils.isInterface(typeElement)
@@ -113,17 +116,18 @@ public class NestedClassWriterImpl extends AbstractMemberWriter
                     : resources.getText("doclet.Nested_Classes_Interfaces_Inherited_From_Class"));
         }
         HtmlTree labelHeading = HtmlTree.HEADING(Headings.TypeDeclaration.SUMMARY_HEADING, label);
-        labelHeading.setId(htmlIds.forInheritedClasses(typeElement));
+        labelHeading.setId(SectionName.NESTED_CLASSES_INHERITANCE.getName()
+                + links.getName(utils.getFullyQualifiedName(typeElement)));
         labelHeading.add(Entity.NO_BREAK_SPACE);
         labelHeading.add(classLink);
         inheritedTree.add(labelHeading);
     }
 
     @Override
-    protected void addSummaryLink(HtmlLinkInfo.Kind context, TypeElement typeElement, Element member,
-                                  Content tdSummary) {
-        Content memberLink = writer.getLink(new HtmlLinkInfo(configuration, context, (TypeElement)member)
-                .style(HtmlStyle.typeNameLink));
+    protected void addSummaryLink(LinkInfoImpl.Kind context, TypeElement typeElement, Element member,
+            Content tdSummary) {
+        Content memberLink = HtmlTree.SPAN(HtmlStyle.memberNameLink,
+                writer.getLink(new LinkInfoImpl(configuration, context, (TypeElement)member)));
         Content code = HtmlTree.CODE(memberLink);
         tdSummary.add(code);
     }
@@ -131,7 +135,7 @@ public class NestedClassWriterImpl extends AbstractMemberWriter
     @Override
     protected void addInheritedSummaryLink(TypeElement typeElement, Element member, Content linksTree) {
         linksTree.add(
-                writer.getLink(new HtmlLinkInfo(configuration, HtmlLinkInfo.Kind.MEMBER,
+                writer.getLink(new LinkInfoImpl(configuration, LinkInfoImpl.Kind.MEMBER,
                         (TypeElement)member)));
     }
 
@@ -141,7 +145,7 @@ public class NestedClassWriterImpl extends AbstractMemberWriter
     }
 
     @Override
-    protected Content getSummaryLink(Element member) {
-        return writer.getQualifiedClassLink(HtmlLinkInfo.Kind.MEMBER_DEPRECATED_PREVIEW, member);
+    protected Content getDeprecatedLink(Element member) {
+        return writer.getQualifiedClassLink(LinkInfoImpl.Kind.MEMBER, member);
     }
 }

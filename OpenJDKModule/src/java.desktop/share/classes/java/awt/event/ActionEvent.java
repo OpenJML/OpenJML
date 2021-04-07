@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,7 +26,6 @@
 package java.awt.event;
 
 import java.awt.AWTEvent;
-import java.io.Serial;
 import java.lang.annotation.Native;
 
 /**
@@ -131,10 +130,9 @@ public class ActionEvent extends AWTEvent {
      */
     int modifiers;
 
-    /**
-     * Use serialVersionUID from JDK 1.1 for interoperability.
+    /*
+     * JDK 1.1 serialVersionUID
      */
-    @Serial
     private static final long serialVersionUID = -7671078796273832149L;
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,7 +30,6 @@
  * @run driver DumpSharedDictionary
  */
 
-import jdk.test.lib.cds.CDSOptions;
 import jdk.test.lib.cds.CDSTestUtils;
 import jdk.test.lib.process.ProcessTools;
 import jdk.test.lib.process.OutputAnalyzer;
@@ -41,19 +40,24 @@ public class DumpSharedDictionary {
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             // Start this process
-            CDSOptions opts = (new CDSOptions())
-                .setArchiveName("./DumpSharedDictionary.jsa");
-            CDSTestUtils.createArchiveAndCheck(opts);
+            ProcessBuilder pb = ProcessTools.createJavaProcessBuilder(
+                "-XX:SharedArchiveFile=./DumpSharedDictionary.jsa",
+                "-Xshare:dump");
+
+            OutputAnalyzer out = CDSTestUtils.executeAndLog(pb, "dump");
+            out.shouldHaveExitValue(0);
 
             String testjdkPath = System.getProperty("test.jdk");
 
-            opts = (new CDSOptions())
-                .setUseVersion(false)
-                .addSuffix("-XX:SharedArchiveFile=./DumpSharedDictionary.jsa",
-                           "-Dtest.jdk=" + testjdkPath,
-                           "DumpSharedDictionary", "test");
-            CDSTestUtils.run(opts)
-                        .assertNormalExit();
+            pb = ProcessTools.createJavaProcessBuilder(
+                    "-XX:SharedArchiveFile=./DumpSharedDictionary.jsa",
+                    "-Dtest.jdk=" + testjdkPath,
+                    "-Xshare:on", "DumpSharedDictionary", "test");
+
+            out = CDSTestUtils.executeAndLog(pb, "exec");
+            if (!CDSTestUtils.isUnableToMap(out)) {
+                out.shouldHaveExitValue(0);
+            }
         } else {
             // Grab my own PID
             String pid = Long.toString(ProcessTools.getProcessId());

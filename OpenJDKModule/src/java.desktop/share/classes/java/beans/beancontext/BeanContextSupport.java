@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serial;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
@@ -65,11 +64,8 @@ public class      BeanContextSupport extends BeanContextChildSupport
                   PropertyChangeListener,
                   VetoableChangeListener {
 
-    /**
-     * Use serialVersionUID from JDK 1.3 for interoperability.
-     */
-    @Serial
-    private static final long serialVersionUID = -4879613978649577204L;
+    // Fix for bug 4282900 to pass JCK regression test
+    static final long serialVersionUID = -4879613978649577204L;
 
     /**
      *
@@ -306,10 +302,6 @@ public class      BeanContextSupport extends BeanContextChildSupport
 
     protected class BCSChild implements Serializable {
 
-    /**
-     * Use serialVersionUID from JDK 1.7 for interoperability.
-     */
-    @Serial
     private static final long serialVersionUID = -5815286101609939109L;
 
         BCSChild(Object bcc, Object peer) {
@@ -574,8 +566,9 @@ public class      BeanContextSupport extends BeanContextChildSupport
     @SuppressWarnings("rawtypes")
     public boolean containsAll(Collection c) {
         synchronized(children) {
-            for (Object o : c)
-                if(!contains(o))
+            Iterator<?> i = c.iterator();
+            while (i.hasNext())
+                if(!contains(i.next()))
                     return false;
 
             return true;
@@ -1002,7 +995,6 @@ public class      BeanContextSupport extends BeanContextChildSupport
      * @param  oos the {@code ObjectOutputStream} to write
      * @throws IOException if an I/O error occurs
      */
-    @Serial
     private synchronized void writeObject(ObjectOutputStream oos) throws IOException {
         serializing = true;
 
@@ -1074,7 +1066,6 @@ public class      BeanContextSupport extends BeanContextChildSupport
      *         not be found
      * @throws IOException if an I/O error occurs
      */
-    @Serial
     private synchronized void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 
         synchronized(BeanContext.globalHierarchyLock) {

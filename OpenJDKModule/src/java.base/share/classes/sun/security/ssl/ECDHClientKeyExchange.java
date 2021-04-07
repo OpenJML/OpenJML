@@ -367,6 +367,7 @@ final class ECDHClientKeyExchange {
 
             SSLCredentials sslCredentials = null;
             NamedGroup ng = null;
+            PublicKey publicKey = null;
 
             // Find a good EC/XEC credential to use, determine the
             // NamedGroup to use for creating Possessions/Credentials/Keys.
@@ -374,6 +375,7 @@ final class ECDHClientKeyExchange {
                 if (cd instanceof NamedGroupCredentials) {
                     NamedGroupCredentials creds = (NamedGroupCredentials)cd;
                     ng = creds.getNamedGroup();
+                    publicKey = creds.getPublicKey();
                     sslCredentials = cd;
                     break;
                 }

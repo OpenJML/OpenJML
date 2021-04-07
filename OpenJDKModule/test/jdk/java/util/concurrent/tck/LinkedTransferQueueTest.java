@@ -66,7 +66,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
         class Implementation implements CollectionImplementation {
             public Class<?> klazz() { return LinkedTransferQueue.class; }
             public Collection emptyCollection() { return new LinkedTransferQueue(); }
-            public Object makeElement(int i) { return JSR166TestCase.itemFor(i); }
+            public Object makeElement(int i) { return i; }
             public boolean isConcurrent() { return true; }
             public boolean permitsNulls() { return false; }
         }
@@ -80,7 +80,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * being true
      */
     public void testConstructor1() {
-        mustEqual(0, new LinkedTransferQueue().size());
+        assertEquals(0, new LinkedTransferQueue().size());
         assertTrue(new LinkedTransferQueue().isEmpty());
     }
 
@@ -100,7 +100,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * NullPointerException
      */
     public void testConstructor3() {
-        Collection<Item> elements = Arrays.asList(new Item[SIZE]);
+        Collection<Integer> elements = Arrays.asList(new Integer[SIZE]);
         try {
             new LinkedTransferQueue(elements);
             shouldThrow();
@@ -112,9 +112,10 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * throws NullPointerException
      */
     public void testConstructor4() {
-        Item[] items = new Item[2];
-        items[0] = zero;
-        Collection<Item> elements = Arrays.asList(items);
+        Integer[] ints = new Integer[SIZE];
+        for (int i = 0; i < SIZE - 1; ++i)
+            ints[i] = i;
+        Collection<Integer> elements = Arrays.asList(ints);
         try {
             new LinkedTransferQueue(elements);
             shouldThrow();
@@ -125,11 +126,15 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * Queue contains all elements of the collection it is initialized by
      */
     public void testConstructor5() {
-        Item[] items = defaultItems;
-        List<Item> intList = Arrays.asList(items);
-        LinkedTransferQueue<Item> q = new LinkedTransferQueue<>(intList);
-        mustEqual(q.size(), intList.size());
-        mustEqual(q.toString(), intList.toString());
+        Integer[] ints = new Integer[SIZE];
+        for (int i = 0; i < SIZE; ++i) {
+            ints[i] = i;
+        }
+        List intList = Arrays.asList(ints);
+        LinkedTransferQueue q
+            = new LinkedTransferQueue(intList);
+        assertEquals(q.size(), intList.size());
+        assertEquals(q.toString(), intList.toString());
         assertTrue(Arrays.equals(q.toArray(),
                                      intList.toArray()));
         assertTrue(Arrays.equals(q.toArray(new Object[0]),
@@ -137,7 +142,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
         assertTrue(Arrays.equals(q.toArray(new Object[SIZE]),
                                  intList.toArray(new Object[SIZE])));
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(items[i], q.poll());
+            assertEquals(ints[i], q.poll());
         }
     }
 
@@ -145,16 +150,16 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * remainingCapacity() always returns Integer.MAX_VALUE
      */
     public void testRemainingCapacity() {
-        BlockingQueue<Item> q = populatedQueue(SIZE);
+        BlockingQueue q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(Integer.MAX_VALUE, q.remainingCapacity());
-            mustEqual(SIZE - i, q.size());
-            mustEqual(i, q.remove());
+            assertEquals(Integer.MAX_VALUE, q.remainingCapacity());
+            assertEquals(SIZE - i, q.size());
+            assertEquals(i, q.remove());
         }
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(Integer.MAX_VALUE, q.remainingCapacity());
-            mustEqual(i, q.size());
-            mustAdd(q, i);
+            assertEquals(Integer.MAX_VALUE, q.remainingCapacity());
+            assertEquals(i, q.size());
+            assertTrue(q.add(i));
         }
     }
 
@@ -162,7 +167,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * addAll(this) throws IllegalArgumentException
      */
     public void testAddAllSelf() {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
+        LinkedTransferQueue q = populatedQueue(SIZE);
         try {
             q.addAll(q);
             shouldThrow();
@@ -174,10 +179,12 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * NullPointerException after possibly adding some elements
      */
     public void testAddAll3() {
-        LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
-        Item[] items = new Item[2]; items[0] = zero;
+        LinkedTransferQueue q = new LinkedTransferQueue();
+        Integer[] ints = new Integer[SIZE];
+        for (int i = 0; i < SIZE - 1; ++i)
+            ints[i] = i;
         try {
-            q.addAll(Arrays.asList(items));
+            q.addAll(Arrays.asList(ints));
             shouldThrow();
         } catch (NullPointerException success) {}
     }
@@ -186,13 +193,16 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * Queue contains all elements, in traversal order, of successful addAll
      */
     public void testAddAll5() {
-        Item[] empty = new Item[0];
-        Item[] items = defaultItems;
+        Integer[] empty = new Integer[0];
+        Integer[] ints = new Integer[SIZE];
+        for (int i = 0; i < SIZE; ++i) {
+            ints[i] = i;
+        }
         LinkedTransferQueue q = new LinkedTransferQueue();
         assertFalse(q.addAll(Arrays.asList(empty)));
-        assertTrue(q.addAll(Arrays.asList(items)));
+        assertTrue(q.addAll(Arrays.asList(ints)));
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(items[i], q.poll());
+            assertEquals(ints[i], q.poll());
         }
     }
 
@@ -200,12 +210,11 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * all elements successfully put are contained
      */
     public void testPut() {
-        LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
-        Item[] items = defaultItems;
+        LinkedTransferQueue<Integer> q = new LinkedTransferQueue<>();
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(i, q.size());
-            q.put(items[i]);
-            mustContain(q, items[i]);
+            assertEquals(i, q.size());
+            q.put(i);
+            assertTrue(q.contains(i));
         }
     }
 
@@ -213,9 +222,9 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * take retrieves elements in FIFO order
      */
     public void testTake() throws InterruptedException {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
+        LinkedTransferQueue<Integer> q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(i, q.take());
+            assertEquals(i, (int) q.take());
         }
     }
 
@@ -223,11 +232,11 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * take removes existing elements until empty, then blocks interruptibly
      */
     public void testBlockingTake() throws InterruptedException {
-        final BlockingQueue<Item> q = populatedQueue(SIZE);
+        final BlockingQueue q = populatedQueue(SIZE);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
-                for (int i = 0; i < SIZE; i++) mustEqual(i, q.take());
+                for (int i = 0; i < SIZE; i++) assertEquals(i, q.take());
 
                 Thread.currentThread().interrupt();
                 try {
@@ -254,9 +263,9 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * poll succeeds unless empty
      */
     public void testPoll() throws InterruptedException {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
+        LinkedTransferQueue<Integer> q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(i, q.poll());
+            assertEquals(i, (int) q.poll());
         }
         assertNull(q.poll());
         checkEmpty(q);
@@ -266,9 +275,9 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * timed poll with zero timeout succeeds when non-empty, else times out
      */
     public void testTimedPoll0() throws InterruptedException {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
+        LinkedTransferQueue<Integer> q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(i, q.poll(0, MILLISECONDS));
+            assertEquals(i, (int) q.poll(0, MILLISECONDS));
         }
         assertNull(q.poll(0, MILLISECONDS));
         checkEmpty(q);
@@ -278,10 +287,10 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * timed poll with nonzero timeout succeeds when non-empty, else times out
      */
     public void testTimedPoll() throws InterruptedException {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
+        LinkedTransferQueue<Integer> q = populatedQueue(SIZE);
         long startTime = System.nanoTime();
         for (int i = 0; i < SIZE; ++i)
-            mustEqual(i, q.poll(LONG_DELAY_MS, MILLISECONDS));
+            assertEquals(i, (int) q.poll(LONG_DELAY_MS, MILLISECONDS));
         assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
 
         startTime = System.nanoTime();
@@ -295,12 +304,12 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * returning timeout status
      */
     public void testInterruptedTimedPoll() throws InterruptedException {
-        final BlockingQueue<Item> q = populatedQueue(SIZE);
+        final BlockingQueue<Integer> q = populatedQueue(SIZE);
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
                 for (int i = 0; i < SIZE; i++)
-                    mustEqual(i, q.poll(LONG_DELAY_MS, MILLISECONDS));
+                    assertEquals(i, (int) q.poll(LONG_DELAY_MS, MILLISECONDS));
 
                 Thread.currentThread().interrupt();
                 try {
@@ -329,12 +338,12 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * instead of returning timeout status
      */
     public void testTimedPollAfterInterrupt() throws InterruptedException {
-        final BlockingQueue<Item> q = populatedQueue(SIZE);
+        final BlockingQueue<Integer> q = populatedQueue(SIZE);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
                 Thread.currentThread().interrupt();
                 for (int i = 0; i < SIZE; ++i)
-                    mustEqual(i, q.poll(randomTimeout(), randomTimeUnit()));
+                    assertEquals(i, (int) q.poll(randomTimeout(), randomTimeUnit()));
                 try {
                     q.poll(randomTimeout(), randomTimeUnit());
                     shouldThrow();
@@ -350,12 +359,12 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * peek returns next element, or null if empty
      */
     public void testPeek() throws InterruptedException {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
+        LinkedTransferQueue<Integer> q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(i, q.peek());
-            mustEqual(i, q.poll());
+            assertEquals(i, (int) q.peek());
+            assertEquals(i, (int) q.poll());
             assertTrue(q.peek() == null ||
-                       i != q.peek().value);
+                       i != (int) q.peek());
         }
         assertNull(q.peek());
         checkEmpty(q);
@@ -365,10 +374,10 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * element returns next element, or throws NoSuchElementException if empty
      */
     public void testElement() throws InterruptedException {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
+        LinkedTransferQueue<Integer> q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(i, q.element());
-            mustEqual(i, q.poll());
+            assertEquals(i, (int) q.element());
+            assertEquals(i, (int) q.poll());
         }
         try {
             q.element();
@@ -381,9 +390,9 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * remove removes next element, or throws NoSuchElementException if empty
      */
     public void testRemove() throws InterruptedException {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
+        LinkedTransferQueue<Integer> q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(i, q.remove());
+            assertEquals(i, (int) q.remove());
         }
         try {
             q.remove();
@@ -396,24 +405,24 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * An add following remove(x) succeeds
      */
     public void testRemoveElementAndAdd() throws InterruptedException {
-        LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
-        mustAdd(q, one);
-        mustAdd(q, two);
-        mustRemove(q, one);
-        mustRemove(q, two);
-        mustAdd(q, three);
-        mustEqual(q.take(), three);
+        LinkedTransferQueue q = new LinkedTransferQueue();
+        assertTrue(q.add(one));
+        assertTrue(q.add(two));
+        assertTrue(q.remove(one));
+        assertTrue(q.remove(two));
+        assertTrue(q.add(three));
+        assertSame(q.take(), three);
     }
 
     /**
      * contains(x) reports true when elements added but not yet removed
      */
     public void testContains() {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
+        LinkedTransferQueue<Integer> q = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
-            mustContain(q, i);
-            mustEqual(i, q.poll());
-            mustNotContain(q, i);
+            assertTrue(q.contains(i));
+            assertEquals(i, (int) q.poll());
+            assertFalse(q.contains(i));
         }
     }
 
@@ -421,14 +430,14 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * clear removes all elements
      */
     public void testClear() throws InterruptedException {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
+        LinkedTransferQueue q = populatedQueue(SIZE);
         q.clear();
         checkEmpty(q);
-        mustEqual(Integer.MAX_VALUE, q.remainingCapacity());
+        assertEquals(Integer.MAX_VALUE, q.remainingCapacity());
         q.add(one);
         assertFalse(q.isEmpty());
-        mustEqual(1, q.size());
-        mustContain(q, one);
+        assertEquals(1, q.size());
+        assertTrue(q.contains(one));
         q.clear();
         checkEmpty(q);
     }
@@ -437,12 +446,12 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * containsAll(c) is true when c contains a subset of elements
      */
     public void testContainsAll() {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
-        LinkedTransferQueue<Item> p = new LinkedTransferQueue<>();
+        LinkedTransferQueue<Integer> q = populatedQueue(SIZE);
+        LinkedTransferQueue<Integer> p = new LinkedTransferQueue<>();
         for (int i = 0; i < SIZE; ++i) {
             assertTrue(q.containsAll(p));
             assertFalse(p.containsAll(q));
-            mustAdd(p, i);
+            p.add(i);
         }
         assertTrue(p.containsAll(q));
     }
@@ -452,8 +461,8 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * if changed
      */
     public void testRetainAll() {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
-        LinkedTransferQueue<Item> p = populatedQueue(SIZE);
+        LinkedTransferQueue q = populatedQueue(SIZE);
+        LinkedTransferQueue p = populatedQueue(SIZE);
         for (int i = 0; i < SIZE; ++i) {
             boolean changed = q.retainAll(p);
             if (i == 0) {
@@ -462,7 +471,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
                 assertTrue(changed);
             }
             assertTrue(q.containsAll(p));
-            mustEqual(SIZE - i, q.size());
+            assertEquals(SIZE - i, q.size());
             p.remove();
         }
     }
@@ -473,12 +482,12 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      */
     public void testRemoveAll() {
         for (int i = 1; i < SIZE; ++i) {
-            LinkedTransferQueue<Item> q = populatedQueue(SIZE);
-            LinkedTransferQueue<Item> p = populatedQueue(i);
+            LinkedTransferQueue q = populatedQueue(SIZE);
+            LinkedTransferQueue p = populatedQueue(i);
             assertTrue(q.removeAll(p));
-            mustEqual(SIZE - i, q.size());
+            assertEquals(SIZE - i, q.size());
             for (int j = 0; j < i; ++j) {
-                mustNotContain(q, p.remove());
+                assertFalse(q.contains(p.remove()));
             }
         }
     }
@@ -487,7 +496,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * toArray() contains all elements in FIFO order
      */
     public void testToArray() {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
+        LinkedTransferQueue q = populatedQueue(SIZE);
         Object[] a = q.toArray();
         assertSame(Object[].class, a.getClass());
         for (Object o : a)
@@ -499,11 +508,11 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * toArray(a) contains all elements in FIFO order
      */
     public void testToArray2() {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
-        Item[] items = new Item[SIZE];
-        Item[] array = q.toArray(items);
-        assertSame(items, array);
-        for (Item o : items)
+        LinkedTransferQueue<Integer> q = populatedQueue(SIZE);
+        Integer[] ints = new Integer[SIZE];
+        Integer[] array = q.toArray(ints);
+        assertSame(ints, array);
+        for (Integer o : ints)
             assertSame(o, q.poll());
         assertTrue(q.isEmpty());
     }
@@ -511,9 +520,8 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
     /**
      * toArray(incompatible array type) throws ArrayStoreException
      */
-    @SuppressWarnings("CollectionToArraySafeParameter")
-    public void testToArray_incompatibleArrayType() {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
+    public void testToArray1_BadArg() {
+        LinkedTransferQueue q = populatedQueue(SIZE);
         try {
             q.toArray(new String[10]);
             shouldThrow();
@@ -524,18 +532,18 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * iterator iterates through all elements
      */
     public void testIterator() throws InterruptedException {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
-        Iterator<? extends Item> it = q.iterator();
+        LinkedTransferQueue q = populatedQueue(SIZE);
+        Iterator it = q.iterator();
         int i;
         for (i = 0; it.hasNext(); i++)
-            mustContain(q, it.next());
-        mustEqual(i, SIZE);
+            assertTrue(q.contains(it.next()));
+        assertEquals(i, SIZE);
         assertIteratorExhausted(it);
 
         it = q.iterator();
         for (i = 0; it.hasNext(); i++)
-            mustEqual(it.next(), q.take());
-        mustEqual(i, SIZE);
+            assertEquals(it.next(), q.take());
+        assertEquals(i, SIZE);
         assertIteratorExhausted(it);
     }
 
@@ -550,12 +558,12 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * iterator.remove() removes current element
      */
     public void testIteratorRemove() {
-        final LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue q = new LinkedTransferQueue();
         q.add(two);
         q.add(one);
         q.add(three);
 
-        Iterator<? extends Item> it = q.iterator();
+        Iterator it = q.iterator();
         it.next();
         it.remove();
 
@@ -569,39 +577,39 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * iterator ordering is FIFO
      */
     public void testIteratorOrdering() {
-        final LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
-        mustEqual(Integer.MAX_VALUE, q.remainingCapacity());
+        final LinkedTransferQueue<Integer> q = new LinkedTransferQueue<>();
+        assertEquals(Integer.MAX_VALUE, q.remainingCapacity());
         q.add(one);
         q.add(two);
         q.add(three);
-        mustEqual(Integer.MAX_VALUE, q.remainingCapacity());
+        assertEquals(Integer.MAX_VALUE, q.remainingCapacity());
         int k = 0;
-        for (Item n : q) {
-            mustEqual(++k, n);
+        for (Integer n : q) {
+            assertEquals(++k, (int) n);
         }
-        mustEqual(3, k);
+        assertEquals(3, k);
     }
 
     /**
      * Modifications do not cause iterators to fail
      */
     public void testWeaklyConsistentIteration() {
-        final LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue q = new LinkedTransferQueue();
         q.add(one);
         q.add(two);
         q.add(three);
-        for (Iterator<? extends Item> it = q.iterator(); it.hasNext();) {
+        for (Iterator it = q.iterator(); it.hasNext();) {
             q.remove();
             it.next();
         }
-        mustEqual(0, q.size());
+        assertEquals(0, q.size());
     }
 
     /**
      * toString contains toStrings of elements
      */
     public void testToString() {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
+        LinkedTransferQueue q = populatedQueue(SIZE);
         String s = q.toString();
         for (int i = 0; i < SIZE; ++i) {
             assertTrue(s.contains(String.valueOf(i)));
@@ -612,7 +620,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * offer transfers elements across Executor tasks
      */
     public void testOfferInExecutor() {
-        final LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue q = new LinkedTransferQueue();
         final CheckedBarrier threadsStarted = new CheckedBarrier(2);
         final ExecutorService executor = Executors.newFixedThreadPool(2);
         try (PoolCleaner cleaner = cleaner(executor)) {
@@ -638,7 +646,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * timed poll retrieves elements across Executor threads
      */
     public void testPollInExecutor() {
-        final LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue q = new LinkedTransferQueue();
         final CheckedBarrier threadsStarted = new CheckedBarrier(2);
         final ExecutorService executor = Executors.newFixedThreadPool(2);
         try (PoolCleaner cleaner = cleaner(executor)) {
@@ -665,16 +673,16 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * A deserialized/reserialized queue has same elements in same order
      */
     public void testSerialization() throws Exception {
-        Queue<Item> x = populatedQueue(SIZE);
-        Queue<Item> y = serialClone(x);
+        Queue x = populatedQueue(SIZE);
+        Queue y = serialClone(x);
 
         assertNotSame(y, x);
-        mustEqual(x.size(), y.size());
-        mustEqual(x.toString(), y.toString());
+        assertEquals(x.size(), y.size());
+        assertEquals(x.toString(), y.toString());
         assertTrue(Arrays.equals(x.toArray(), y.toArray()));
         while (!x.isEmpty()) {
             assertFalse(y.isEmpty());
-            mustEqual(x.remove(), y.remove());
+            assertEquals(x.remove(), y.remove());
         }
         assertTrue(y.isEmpty());
     }
@@ -683,25 +691,25 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * drainTo(c) empties queue into another collection c
      */
     public void testDrainTo() {
-        LinkedTransferQueue<Item> q = populatedQueue(SIZE);
+        LinkedTransferQueue q = populatedQueue(SIZE);
         ArrayList l = new ArrayList();
         q.drainTo(l);
-        mustEqual(0, q.size());
-        mustEqual(SIZE, l.size());
+        assertEquals(0, q.size());
+        assertEquals(SIZE, l.size());
         for (int i = 0; i < SIZE; ++i) {
-            mustEqual(i, l.get(i));
+            assertEquals(i, l.get(i));
         }
         q.add(zero);
         q.add(one);
         assertFalse(q.isEmpty());
-        mustContain(q, zero);
-        mustContain(q, one);
+        assertTrue(q.contains(zero));
+        assertTrue(q.contains(one));
         l.clear();
         q.drainTo(l);
-        mustEqual(0, q.size());
-        mustEqual(2, l.size());
+        assertEquals(0, q.size());
+        assertEquals(2, l.size());
         for (int i = 0; i < 2; ++i) {
-            mustEqual(i, l.get(i));
+            assertEquals(i, l.get(i));
         }
     }
 
@@ -709,16 +717,16 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * drainTo(c) empties full queue, unblocking a waiting put.
      */
     public void testDrainToWithActivePut() throws InterruptedException {
-        final LinkedTransferQueue<Item> q = populatedQueue(SIZE);
+        final LinkedTransferQueue q = populatedQueue(SIZE);
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
-                q.put(new Item(SIZE + 1));
+                q.put(SIZE + 1);
             }});
         ArrayList l = new ArrayList();
         q.drainTo(l);
         assertTrue(l.size() >= SIZE);
         for (int i = 0; i < SIZE; ++i)
-            mustEqual(i, l.get(i));
+            assertEquals(i, l.get(i));
         awaitTermination(t);
         assertTrue(q.size() + l.size() >= SIZE);
     }
@@ -727,18 +735,18 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * drainTo(c, n) empties first min(n, size) elements of queue into c
      */
     public void testDrainToN() {
-        LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
+        LinkedTransferQueue q = new LinkedTransferQueue();
         for (int i = 0; i < SIZE + 2; ++i) {
             for (int j = 0; j < SIZE; j++) {
-                mustOffer(q, j);
+                assertTrue(q.offer(j));
             }
             ArrayList l = new ArrayList();
             q.drainTo(l, i);
             int k = (i < SIZE) ? i : SIZE;
-            mustEqual(k, l.size());
-            mustEqual(SIZE - k, q.size());
+            assertEquals(k, l.size());
+            assertEquals(SIZE - k, q.size());
             for (int j = 0; j < k; ++j)
-                mustEqual(j, l.get(j));
+                assertEquals(j, l.get(j));
             do {} while (q.poll() != null);
         }
     }
@@ -748,8 +756,8 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * offer(e) decrements the waiting consumer count
      */
     public void testWaitingConsumer() throws InterruptedException {
-        final LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
-        mustEqual(0, q.getWaitingConsumerCount());
+        final LinkedTransferQueue q = new LinkedTransferQueue();
+        assertEquals(0, q.getWaitingConsumerCount());
         assertFalse(q.hasWaitingConsumer());
         final CountDownLatch threadStarted = new CountDownLatch(1);
 
@@ -758,20 +766,20 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
                 threadStarted.countDown();
                 long startTime = System.nanoTime();
                 assertSame(one, q.poll(LONG_DELAY_MS, MILLISECONDS));
-                mustEqual(0, q.getWaitingConsumerCount());
+                assertEquals(0, q.getWaitingConsumerCount());
                 assertFalse(q.hasWaitingConsumer());
                 assertTrue(millisElapsedSince(startTime) < LONG_DELAY_MS);
             }});
 
         threadStarted.await();
-        Callable<Boolean> oneConsumer = new Callable<>() {
-            public Boolean call() {
+        Callable<Boolean> oneConsumer
+            = new Callable<Boolean>() { public Boolean call() {
                 return q.hasWaitingConsumer()
                 && q.getWaitingConsumerCount() == 1; }};
         waitForThreadToEnterWaitState(t, oneConsumer);
 
         assertTrue(q.offer(one));
-        mustEqual(0, q.getWaitingConsumerCount());
+        assertEquals(0, q.getWaitingConsumerCount());
         assertFalse(q.hasWaitingConsumer());
 
         awaitTermination(t);
@@ -782,7 +790,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      */
     public void testTransfer1() throws InterruptedException {
         try {
-            LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
+            LinkedTransferQueue q = new LinkedTransferQueue();
             q.transfer(null);
             shouldThrow();
         } catch (NullPointerException success) {}
@@ -793,7 +801,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * is returned by the associated poll.
      */
     public void testTransfer2() throws InterruptedException {
-        final LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue<Integer> q = new LinkedTransferQueue<>();
         final CountDownLatch threadStarted = new CountDownLatch(1);
 
         Thread t = newStartedThread(new CheckedRunnable() {
@@ -804,8 +812,8 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
             }});
 
         threadStarted.await();
-        Callable<Boolean> oneElement = new Callable<>() {
-            public Boolean call() {
+        Callable<Boolean> oneElement
+            = new Callable<Boolean>() { public Boolean call() {
                 return !q.isEmpty() && q.size() == 1; }};
         waitForThreadToEnterWaitState(t, oneElement);
 
@@ -818,13 +826,13 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * transfer waits until a poll occurs, and then transfers in fifo order
      */
     public void testTransfer3() throws InterruptedException {
-        final LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue<Integer> q = new LinkedTransferQueue<>();
 
         Thread first = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
                 q.transfer(four);
-                mustNotContain(q, four);
-                mustEqual(1, q.size());
+                assertFalse(q.contains(four));
+                assertEquals(1, q.size());
             }});
 
         Thread interruptedThread = newStartedThread(
@@ -837,10 +845,10 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
 
         while (q.size() < 2)
             Thread.yield();
-        mustEqual(2, q.size());
+        assertEquals(2, q.size());
         assertSame(four, q.poll());
         first.join();
-        mustEqual(1, q.size());
+        assertEquals(1, q.size());
         interruptedThread.interrupt();
         interruptedThread.join();
         checkEmpty(q);
@@ -851,19 +859,19 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * thread returns the element
      */
     public void testTransfer4() throws InterruptedException {
-        final LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue q = new LinkedTransferQueue();
 
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
                 q.transfer(four);
-                mustNotContain(q, four);
+                assertFalse(q.contains(four));
                 assertSame(three, q.poll());
             }});
 
         while (q.isEmpty())
             Thread.yield();
         assertFalse(q.isEmpty());
-        mustEqual(1, q.size());
+        assertEquals(1, q.size());
         assertTrue(q.offer(three));
         assertSame(four, q.poll());
         awaitTermination(t);
@@ -874,7 +882,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * is returned by the associated take.
      */
     public void testTransfer5() throws InterruptedException {
-        final LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue<Integer> q = new LinkedTransferQueue<>();
 
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
@@ -885,7 +893,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
         while (q.isEmpty())
             Thread.yield();
         assertFalse(q.isEmpty());
-        mustEqual(1, q.size());
+        assertEquals(1, q.size());
         assertSame(four, q.take());
         checkEmpty(q);
         awaitTermination(t);
@@ -895,7 +903,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * tryTransfer(null) throws NullPointerException
      */
     public void testTryTransfer1() {
-        final LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue q = new LinkedTransferQueue();
         try {
             q.tryTransfer(null);
             shouldThrow();
@@ -907,7 +915,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * consumers waiting to poll or take.
      */
     public void testTryTransfer2() throws InterruptedException {
-        final LinkedTransferQueue<Object> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue q = new LinkedTransferQueue();
         assertFalse(q.tryTransfer(new Object()));
         assertFalse(q.hasWaitingConsumer());
         checkEmpty(q);
@@ -919,7 +927,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      */
     public void testTryTransfer3() throws InterruptedException {
         final Object hotPotato = new Object();
-        final LinkedTransferQueue<Object> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue q = new LinkedTransferQueue();
 
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
@@ -943,7 +951,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      */
     public void testTryTransfer4() throws InterruptedException {
         final Object hotPotato = new Object();
-        final LinkedTransferQueue<Object> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue q = new LinkedTransferQueue();
 
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() {
@@ -963,7 +971,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * tryTransfer blocks interruptibly if no takers
      */
     public void testTryTransfer5() throws InterruptedException {
-        final LinkedTransferQueue<Object> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue q = new LinkedTransferQueue();
         final CountDownLatch pleaseInterrupt = new CountDownLatch(1);
         assertTrue(q.isEmpty());
 
@@ -995,7 +1003,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * tryTransfer gives up after the timeout and returns false
      */
     public void testTryTransfer6() throws InterruptedException {
-        final LinkedTransferQueue<Object> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue q = new LinkedTransferQueue();
 
         Thread t = newStartedThread(new CheckedRunnable() {
             public void realRun() throws InterruptedException {
@@ -1015,7 +1023,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * before transfering to a poll or take
      */
     public void testTryTransfer7() throws InterruptedException {
-        final LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue q = new LinkedTransferQueue();
         assertTrue(q.offer(four));
 
         Thread t = newStartedThread(new CheckedRunnable() {
@@ -1028,7 +1036,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
 
         while (q.size() != 2)
             Thread.yield();
-        mustEqual(2, q.size());
+        assertEquals(2, q.size());
         assertSame(four, q.poll());
         assertSame(five, q.poll());
         checkEmpty(q);
@@ -1040,25 +1048,25 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      * returning false not enqueueing and the successive poll is null
      */
     public void testTryTransfer8() throws InterruptedException {
-        final LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
+        final LinkedTransferQueue q = new LinkedTransferQueue();
         assertTrue(q.offer(four));
-        mustEqual(1, q.size());
+        assertEquals(1, q.size());
         long startTime = System.nanoTime();
         assertFalse(q.tryTransfer(five, timeoutMillis(), MILLISECONDS));
         assertTrue(millisElapsedSince(startTime) >= timeoutMillis());
-        mustEqual(1, q.size());
+        assertEquals(1, q.size());
         assertSame(four, q.poll());
         assertNull(q.poll());
         checkEmpty(q);
     }
 
-    private LinkedTransferQueue<Item> populatedQueue(int n) {
-        LinkedTransferQueue<Item> q = new LinkedTransferQueue<>();
+    private LinkedTransferQueue<Integer> populatedQueue(int n) {
+        LinkedTransferQueue<Integer> q = new LinkedTransferQueue<>();
         checkEmpty(q);
         for (int i = 0; i < n; i++) {
-            mustEqual(i, q.size());
-            mustOffer(q, i);
-            mustEqual(Integer.MAX_VALUE, q.remainingCapacity());
+            assertEquals(i, q.size());
+            assertTrue(q.offer(i));
+            assertEquals(Integer.MAX_VALUE, q.remainingCapacity());
         }
         assertFalse(q.isEmpty());
         return q;
@@ -1069,7 +1077,7 @@ public class LinkedTransferQueueTest extends JSR166TestCase {
      */
     public void testNeverContainsNull() {
         Collection<?>[] qs = {
-            new LinkedTransferQueue<>(),
+            new LinkedTransferQueue<Object>(),
             populatedQueue(2),
         };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -24,8 +24,8 @@
 #ifndef SHARE_JVMCI_JVMCI_HPP
 #define SHARE_JVMCI_JVMCI_HPP
 
-#include "compiler/compiler_globals.hpp"
 #include "compiler/compilerDefinitions.hpp"
+#include "utilities/events.hpp"
 #include "utilities/exceptions.hpp"
 
 class BoolObjectClosure;
@@ -37,11 +37,6 @@ class Metadata;
 class MetadataHandleBlock;
 class OopClosure;
 class OopStorage;
-
-template <size_t>
-class FormatStringEventLog;
-
-typedef FormatStringEventLog<256> StringEventLog;
 
 struct _jmetadata;
 typedef struct _jmetadata *jmetadata;

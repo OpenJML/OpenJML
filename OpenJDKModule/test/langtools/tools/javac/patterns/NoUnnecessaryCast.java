@@ -67,9 +67,11 @@ public class NoUnnecessaryCast {
                               .get();
         String expectedInstructions = """
                                       aload_1
+                                      astore_3
+                                      aload_3
                                       instanceof
                                       ifeq
-                                      aload_1
+                                      aload_3
                                       checkcast
                                       astore_2
                                       aload_2

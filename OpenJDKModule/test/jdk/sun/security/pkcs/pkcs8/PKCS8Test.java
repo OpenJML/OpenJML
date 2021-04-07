@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -37,10 +37,8 @@
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.HexFormat;
 
-import jdk.test.lib.hexdump.ASN1Formatter;
-import jdk.test.lib.hexdump.HexPrinter;
+import jdk.test.lib.Utils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import sun.security.pkcs.PKCS8Key;
@@ -54,7 +52,7 @@ public class PKCS8Test {
             "\tp:     02\n\tq:     03\n\tg:     04\n";
     static final String ALGORITHM = "DSA";
 
-    static final byte[] EXPECTED = HexFormat.of().parseHex(
+    static final byte[] EXPECTED = Utils.toByteArray(
             "301e" + // SEQUENCE
                 "020100" +  // Version int 0
                 "3014" +    // PrivateKeyAlgorithmIdentifier
@@ -72,9 +70,7 @@ public class PKCS8Test {
                 BigInteger.valueOf(4)).getEncoded();
 
         Assert.assertTrue(Arrays.equals(encodedKey, EXPECTED),
-                HexPrinter.simple()
-                        .formatter(ASN1Formatter.formatter())
-                        .toString(encodedKey));
+                Utils.toHexString(encodedKey));
 
         PKCS8Key decodedKey = (PKCS8Key)PKCS8Key.parseKey(
                 new DerValue(encodedKey));
@@ -86,9 +82,7 @@ public class PKCS8Test {
 
         byte[] encodedOutput = decodedKey.getEncoded();
         Assert.assertTrue(Arrays.equals(encodedOutput, EXPECTED),
-                HexPrinter.simple()
-                        .formatter(ASN1Formatter.formatter())
-                        .toString(encodedOutput));
+                Utils.toHexString(encodedOutput));
 
         // Test additional fields
         enlarge(0, "8000");    // attributes
@@ -112,7 +106,7 @@ public class PKCS8Test {
         byte[] original = EXPECTED.clone();
         int length = original.length;
         for (String field : fields) {   // append fields
-            byte[] add = HexFormat.of().parseHex(field);
+            byte[] add = Utils.toByteArray(field);
             original = Arrays.copyOf(original, length + add.length);
             System.arraycopy(add, 0, original, length, add.length);
             length += add.length;

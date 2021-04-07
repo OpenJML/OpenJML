@@ -27,7 +27,6 @@
 
 #include "gc/shared/plab.hpp"
 #include "gc/shared/gcThreadLocalData.hpp"
-#include "gc/shared/gc_globals.hpp"
 #include "gc/shenandoah/shenandoahBarrierSet.hpp"
 #include "gc/shenandoah/shenandoahCodeRoots.hpp"
 #include "gc/shenandoah/shenandoahSATBMarkQueueSet.hpp"
@@ -44,10 +43,11 @@ private:
   // Evacuation OOM state
   uint8_t                 _oom_scope_nesting_level;
   bool                    _oom_during_evac;
-  SATBMarkQueue           _satb_mark_queue;
+  ShenandoahSATBMarkQueue _satb_mark_queue;
   PLAB* _gclab;
   size_t _gclab_size;
   uint  _worker_id;
+  bool _force_satb_flush;
   int  _disarmed_value;
   double _paced_time;
 
@@ -59,6 +59,7 @@ private:
     _gclab(NULL),
     _gclab_size(0),
     _worker_id(INVALID_WORKER_ID),
+    _force_satb_flush(false),
     _disarmed_value(0),
     _paced_time(0) {
 
@@ -111,6 +112,14 @@ public:
   static uint worker_id(Thread* thread) {
     assert(thread->is_Worker_thread(), "Must be a worker thread");
     return data(thread)->_worker_id;
+  }
+
+  static void set_force_satb_flush(Thread* thread, bool v) {
+    data(thread)->_force_satb_flush = v;
+  }
+
+  static bool is_force_satb_flush(Thread* thread) {
+    return data(thread)->_force_satb_flush;
   }
 
   static void initialize_gclab(Thread* thread) {

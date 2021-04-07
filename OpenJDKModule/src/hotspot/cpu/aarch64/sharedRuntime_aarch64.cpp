@@ -39,14 +39,10 @@
 #include "oops/compiledICHolder.hpp"
 #include "oops/klass.inline.hpp"
 #include "prims/methodHandles.hpp"
-#include "runtime/jniHandles.hpp"
 #include "runtime/safepointMechanism.hpp"
 #include "runtime/sharedRuntime.hpp"
-#include "runtime/signature.hpp"
-#include "runtime/stubRoutines.hpp"
 #include "runtime/vframeArray.hpp"
 #include "utilities/align.hpp"
-#include "utilities/formatBuffer.hpp"
 #include "vmreg_aarch64.inline.hpp"
 #ifdef COMPILER1
 #include "c1/c1_Runtime1.hpp"
@@ -85,24 +81,26 @@ class SimpleRuntimeFrame {
 
 // FIXME -- this is used by C1
 class RegisterSaver {
-  const bool _save_vectors;
  public:
-  RegisterSaver(bool save_vectors) : _save_vectors(save_vectors) {}
-
-  OopMap* save_live_registers(MacroAssembler* masm, int additional_frame_words, int* total_frame_words);
-  void restore_live_registers(MacroAssembler* masm);
+  static OopMap* save_live_registers(MacroAssembler* masm, int additional_frame_words, int* total_frame_words, bool save_vectors = false);
+  static void restore_live_registers(MacroAssembler* masm, bool restore_vectors = false);
 
   // Offsets into the register save area
   // Used by deoptimization when it is managing result register
   // values on its own
 
-  int reg_offset_in_bytes(Register r);
-  int r0_offset_in_bytes()    { return reg_offset_in_bytes(r0); }
-  int rscratch1_offset_in_bytes()    { return reg_offset_in_bytes(rscratch1); }
-  int v0_offset_in_bytes(void)   { return 0; }
+  static int r0_offset_in_bytes(void)    { return (32 + r0->encoding()) * wordSize; }
+  static int reg_offset_in_bytes(Register r)    { return r0_offset_in_bytes() + r->encoding() * wordSize; }
+  static int rmethod_offset_in_bytes(void)    { return reg_offset_in_bytes(rmethod); }
+  static int rscratch1_offset_in_bytes(void)    { return (32 + rscratch1->encoding()) * wordSize; }
+  static int v0_offset_in_bytes(void)   { return 0; }
+  static int return_offset_in_bytes(void) { return (32 /* floats*/ + 31 /* gregs*/) * wordSize; }
 
-  // Capture info about frame layout
-  // Note this is only correct when not saving full vectors.
+  // During deoptimization only the result registers need to be restored,
+  // all the other values have already been extracted.
+  static void restore_result_registers(MacroAssembler* masm);
+
+    // Capture info about frame layout
   enum layout {
                 fpu_state_off = 0,
                 fpu_state_end = fpu_state_off + FPUStateSizeInWords - 1,
@@ -117,31 +115,7 @@ class RegisterSaver {
 
 };
 
-int RegisterSaver::reg_offset_in_bytes(Register r) {
-  // The integer registers are located above the floating point
-  // registers in the stack frame pushed by save_live_registers() so the
-  // offset depends on whether we are saving full vectors, and whether
-  // those vectors are NEON or SVE.
-
-  int slots_per_vect = FloatRegisterImpl::save_slots_per_register;
-
-#if COMPILER2_OR_JVMCI
-  if (_save_vectors) {
-    slots_per_vect = FloatRegisterImpl::slots_per_neon_register;
-
-#ifdef COMPILER2
-    if (Matcher::supports_scalable_vector()) {
-      slots_per_vect = Matcher::scalable_vector_reg_size(T_FLOAT);
-    }
-#endif
-  }
-#endif
-
-  int r0_offset = (slots_per_vect * FloatRegisterImpl::number_of_registers) * BytesPerInt;
-  return r0_offset + r->encoding() * wordSize;
-}
-
-OopMap* RegisterSaver::save_live_registers(MacroAssembler* masm, int additional_frame_words, int* total_frame_words) {
+OopMap* RegisterSaver::save_live_registers(MacroAssembler* masm, int additional_frame_words, int* total_frame_words, bool save_vectors) {
   bool use_sve = false;
   int sve_vector_size_in_bytes = 0;
   int sve_vector_size_in_slots = 0;
@@ -153,7 +127,7 @@ OopMap* RegisterSaver::save_live_registers(MacroAssembler* masm, int additional_
 #endif
 
 #if COMPILER2_OR_JVMCI
-  if (_save_vectors) {
+  if (save_vectors) {
     int vect_words = 0;
     int extra_save_slots_per_register = 0;
     // Save upper half of vector registers
@@ -167,7 +141,7 @@ OopMap* RegisterSaver::save_live_registers(MacroAssembler* masm, int additional_
     additional_frame_words += vect_words;
   }
 #else
-  assert(!_save_vectors, "vectors are generated only by C2 and JVMCI");
+  assert(!save_vectors, "vectors are generated only by C2 and JVMCI");
 #endif
 
   int frame_size_in_bytes = align_up(additional_frame_words * wordSize +
@@ -182,7 +156,7 @@ OopMap* RegisterSaver::save_live_registers(MacroAssembler* masm, int additional_
 
   // Save Integer and Float registers.
   __ enter();
-  __ push_CPU_state(_save_vectors, use_sve, sve_vector_size_in_bytes);
+  __ push_CPU_state(save_vectors, use_sve, sve_vector_size_in_bytes);
 
   // Set an oopmap for the call site.  This oopmap will map all
   // oop-registers and debug-info registers as callee-saved.  This
@@ -207,7 +181,7 @@ OopMap* RegisterSaver::save_live_registers(MacroAssembler* masm, int additional_
   for (int i = 0; i < FloatRegisterImpl::number_of_registers; i++) {
     FloatRegister r = as_FloatRegister(i);
     int sp_offset = 0;
-    if (_save_vectors) {
+    if (save_vectors) {
       sp_offset = use_sve ? (sve_vector_size_in_slots * i) :
                             (FloatRegisterImpl::slots_per_neon_register * i);
     } else {
@@ -220,18 +194,35 @@ OopMap* RegisterSaver::save_live_registers(MacroAssembler* masm, int additional_
   return oop_map;
 }
 
-void RegisterSaver::restore_live_registers(MacroAssembler* masm) {
+void RegisterSaver::restore_live_registers(MacroAssembler* masm, bool restore_vectors) {
 #ifdef COMPILER2
-  __ pop_CPU_state(_save_vectors, Matcher::supports_scalable_vector(),
+  __ pop_CPU_state(restore_vectors, Matcher::supports_scalable_vector(),
                    Matcher::scalable_vector_reg_size(T_BYTE));
 #else
 #if !INCLUDE_JVMCI
-  assert(!_save_vectors, "vectors are generated only by C2 and JVMCI");
+  assert(!restore_vectors, "vectors are generated only by C2 and JVMCI");
 #endif
-  __ pop_CPU_state(_save_vectors);
+  __ pop_CPU_state(restore_vectors);
 #endif
   __ leave();
 
+}
+
+void RegisterSaver::restore_result_registers(MacroAssembler* masm) {
+
+  // Just restore result register. Only used by deoptimization. By
+  // now any callee save register that needs to be restored to a c2
+  // caller of the deoptee has been extracted into the vframeArray
+  // and will be stuffed into the c2i adapter we create for later
+  // restoration so only result registers need to be restored here.
+
+  // Restore fp result register
+  __ ldrd(v0, Address(sp, v0_offset_in_bytes()));
+  // Restore integer result register
+  __ ldr(r0, Address(sp, r0_offset_in_bytes()));
+
+  // Pop all of the register save are off the stack
+  __ add(sp, sp, align_up(return_offset_in_bytes(), 16));
 }
 
 // Is vector's size (in bytes) bigger than a size saved by default?
@@ -1507,7 +1498,11 @@ nmethod* SharedRuntime::generate_native_wrapper(MacroAssembler* masm,
   }
 
   // Generate stack overflow check
-  __ bang_stack_with_offset(checked_cast<int>(StackOverflow::stack_shadow_zone_size()));
+  if (UseStackBanging) {
+    __ bang_stack_with_offset(checked_cast<int>(StackOverflow::stack_shadow_zone_size()));
+  } else {
+    Unimplemented();
+  }
 
   // Generate a new frame for the wrapper.
   __ enter();
@@ -1859,7 +1854,10 @@ nmethod* SharedRuntime::generate_native_wrapper(MacroAssembler* masm,
   // Force this write out before the read below
   __ dmb(Assembler::ISH);
 
-  __ verify_sve_vector_length();
+  if (UseSVE > 0) {
+    // Make sure that jni code does not change SVE vector length.
+    __ verify_sve_vector_length();
+  }
 
   // Check for safepoint operation in progress and/or pending suspend requests.
   {
@@ -2169,7 +2167,6 @@ void SharedRuntime::generate_deopt_blob() {
   int frame_size_in_words;
   OopMap* map = NULL;
   OopMapSet *oop_maps = new OopMapSet();
-  RegisterSaver reg_save(COMPILER2_OR_JVMCI != 0);
 
   // -------------
   // This code enters when returning to a de-optimized nmethod.  A return
@@ -2207,7 +2204,7 @@ void SharedRuntime::generate_deopt_blob() {
   // Prolog for non exception case!
 
   // Save everything in sight.
-  map = reg_save.save_live_registers(masm, 0, &frame_size_in_words);
+  map = RegisterSaver::save_live_registers(masm, 0, &frame_size_in_words);
 
   // Normal deoptimization.  Save exec mode for unpack_frames.
   __ movw(rcpool, Deoptimization::Unpack_deopt); // callee-saved
@@ -2225,7 +2222,7 @@ void SharedRuntime::generate_deopt_blob() {
   // return address is the pc describes what bci to do re-execute at
 
   // No need to update map as each call to save_live_registers will produce identical oopmap
-  (void) reg_save.save_live_registers(masm, 0, &frame_size_in_words);
+  (void) RegisterSaver::save_live_registers(masm, 0, &frame_size_in_words);
 
   __ movw(rcpool, Deoptimization::Unpack_reexecute); // callee-saved
   __ b(cont);
@@ -2244,7 +2241,7 @@ void SharedRuntime::generate_deopt_blob() {
     uncommon_trap_offset = __ pc() - start;
 
     // Save everything in sight.
-    reg_save.save_live_registers(masm, 0, &frame_size_in_words);
+    RegisterSaver::save_live_registers(masm, 0, &frame_size_in_words);
     // fetch_unroll_info needs to call last_java_frame()
     Label retaddr;
     __ set_last_Java_frame(sp, noreg, retaddr, rscratch1);
@@ -2301,7 +2298,7 @@ void SharedRuntime::generate_deopt_blob() {
   // This is a somewhat fragile mechanism.
 
   // Save everything in sight.
-  map = reg_save.save_live_registers(masm, 0, &frame_size_in_words);
+  map = RegisterSaver::save_live_registers(masm, 0, &frame_size_in_words);
 
   // Now it is safe to overwrite any register
 
@@ -2382,7 +2379,7 @@ void SharedRuntime::generate_deopt_blob() {
   __ verify_oop(r0);
 
   // Overwrite the result registers with the exception results.
-  __ str(r0, Address(sp, reg_save.r0_offset_in_bytes()));
+  __ str(r0, Address(sp, RegisterSaver::r0_offset_in_bytes()));
   // I think this is useless
   // __ str(r3, Address(sp, RegisterSaver::r3_offset_in_bytes()));
 
@@ -2391,14 +2388,7 @@ void SharedRuntime::generate_deopt_blob() {
   // Only register save data is on the stack.
   // Now restore the result registers.  Everything else is either dead
   // or captured in the vframeArray.
-
-  // Restore fp result register
-  __ ldrd(v0, Address(sp, reg_save.v0_offset_in_bytes()));
-  // Restore integer result register
-  __ ldr(r0, Address(sp, reg_save.r0_offset_in_bytes()));
-
-  // Pop all of the register save area off the stack
-  __ add(sp, sp, frame_size_in_words * wordSize);
+  RegisterSaver::restore_result_registers(masm);
 
   // All of the register save area has been popped of the stack. Only the
   // return address remains.
@@ -2425,8 +2415,10 @@ void SharedRuntime::generate_deopt_blob() {
   // Compilers generate code that bang the stack by as much as the
   // interpreter would need. So this stack banging should never
   // trigger a fault. Verify that it does not on non product builds.
-  __ ldrw(r19, Address(r5, Deoptimization::UnrollBlock::total_frame_sizes_offset_in_bytes()));
-  __ bang_stack_size(r19, r2);
+  if (UseStackBanging) {
+    __ ldrw(r19, Address(r5, Deoptimization::UnrollBlock::total_frame_sizes_offset_in_bytes()));
+    __ bang_stack_size(r19, r2);
+  }
 #endif
   // Load address of array of frame pcs into r2
   __ ldr(r2, Address(r5, Deoptimization::UnrollBlock::frame_pcs_offset_in_bytes()));
@@ -2479,8 +2471,8 @@ void SharedRuntime::generate_deopt_blob() {
   __ sub(sp, sp, (frame_size_in_words - 2) * wordSize);
 
   // Restore frame locals after moving the frame
-  __ strd(v0, Address(sp, reg_save.v0_offset_in_bytes()));
-  __ str(r0, Address(sp, reg_save.r0_offset_in_bytes()));
+  __ strd(v0, Address(sp, RegisterSaver::v0_offset_in_bytes()));
+  __ str(r0, Address(sp, RegisterSaver::r0_offset_in_bytes()));
 
   // Call C code.  Need thread but NOT official VM entry
   // crud.  We cannot block on this call, no GC can happen.  Call should
@@ -2507,8 +2499,8 @@ void SharedRuntime::generate_deopt_blob() {
   __ reset_last_Java_frame(true);
 
   // Collect return values
-  __ ldrd(v0, Address(sp, reg_save.v0_offset_in_bytes()));
-  __ ldr(r0, Address(sp, reg_save.r0_offset_in_bytes()));
+  __ ldrd(v0, Address(sp, RegisterSaver::v0_offset_in_bytes()));
+  __ ldr(r0, Address(sp, RegisterSaver::r0_offset_in_bytes()));
   // I think this is useless (throwing pc?)
   // __ ldr(r3, Address(sp, RegisterSaver::r3_offset_in_bytes()));
 
@@ -2640,10 +2632,12 @@ void SharedRuntime::generate_uncommon_trap_blob() {
   // Compilers generate code that bang the stack by as much as the
   // interpreter would need. So this stack banging should never
   // trigger a fault. Verify that it does not on non product builds.
-  __ ldrw(r1, Address(r4,
-                      Deoptimization::UnrollBlock::
-                      total_frame_sizes_offset_in_bytes()));
-  __ bang_stack_size(r1, r2);
+  if (UseStackBanging) {
+    __ ldrw(r1, Address(r4,
+                        Deoptimization::UnrollBlock::
+                        total_frame_sizes_offset_in_bytes()));
+    __ bang_stack_size(r1, r2);
+  }
 #endif
 
   // Load address of array of frame pcs into r2 (address*)
@@ -2754,10 +2748,10 @@ SafepointBlob* SharedRuntime::generate_handler_blob(address call_ptr, int poll_t
   address call_pc = NULL;
   int frame_size_in_words;
   bool cause_return = (poll_type == POLL_AT_RETURN);
-  RegisterSaver reg_save(poll_type == POLL_AT_VECTOR_LOOP /* save_vectors */);
+  bool save_vectors = (poll_type == POLL_AT_VECTOR_LOOP);
 
   // Save Integer and Float registers.
-  map = reg_save.save_live_registers(masm, 0, &frame_size_in_words);
+  map = RegisterSaver::save_live_registers(masm, 0, &frame_size_in_words, save_vectors);
 
   // The following is basically a call_VM.  However, we need the precise
   // address of the call in order to generate an oopmap. Hence, we do all the
@@ -2802,7 +2796,7 @@ SafepointBlob* SharedRuntime::generate_handler_blob(address call_ptr, int poll_t
 
   // Exception pending
 
-  reg_save.restore_live_registers(masm);
+  RegisterSaver::restore_live_registers(masm, save_vectors);
 
   __ far_jump(RuntimeAddress(StubRoutines::forward_exception_entry()));
 
@@ -2834,7 +2828,7 @@ SafepointBlob* SharedRuntime::generate_handler_blob(address call_ptr, int poll_t
 
   __ bind(no_adjust);
   // Normal exit, restore registers and exit.
-  reg_save.restore_live_registers(masm);
+  RegisterSaver::restore_live_registers(masm, save_vectors);
 
   __ ret(lr);
 
@@ -2868,14 +2862,13 @@ RuntimeStub* SharedRuntime::generate_resolve_blob(address destination, const cha
   MacroAssembler* masm                = new MacroAssembler(&buffer);
 
   int frame_size_in_words;
-  RegisterSaver reg_save(false /* save_vectors */);
 
   OopMapSet *oop_maps = new OopMapSet();
   OopMap* map = NULL;
 
   int start = __ offset();
 
-  map = reg_save.save_live_registers(masm, 0, &frame_size_in_words);
+  map = RegisterSaver::save_live_registers(masm, 0, &frame_size_in_words);
 
   int frame_complete = __ offset();
 
@@ -2907,11 +2900,11 @@ RuntimeStub* SharedRuntime::generate_resolve_blob(address destination, const cha
 
   // get the returned Method*
   __ get_vm_result_2(rmethod, rthread);
-  __ str(rmethod, Address(sp, reg_save.reg_offset_in_bytes(rmethod)));
+  __ str(rmethod, Address(sp, RegisterSaver::reg_offset_in_bytes(rmethod)));
 
   // r0 is where we want to jump, overwrite rscratch1 which is saved and scratch
-  __ str(r0, Address(sp, reg_save.rscratch1_offset_in_bytes()));
-  reg_save.restore_live_registers(masm);
+  __ str(r0, Address(sp, RegisterSaver::rscratch1_offset_in_bytes()));
+  RegisterSaver::restore_live_registers(masm);
 
   // We are back the the original state on entry and ready to go.
 
@@ -2921,7 +2914,7 @@ RuntimeStub* SharedRuntime::generate_resolve_blob(address destination, const cha
 
   __ bind(pending);
 
-  reg_save.restore_live_registers(masm);
+  RegisterSaver::restore_live_registers(masm);
 
   // exception pending => remove activation and forward to exception handler
 
@@ -3074,168 +3067,9 @@ void OptoRuntime::generate_exception_blob() {
 }
 #endif // COMPILER2
 
-// ---------------------------------------------------------------
-
-class NativeInvokerGenerator : public StubCodeGenerator {
-  address _call_target;
-  int _shadow_space_bytes;
-
-  const GrowableArray<VMReg>& _input_registers;
-  const GrowableArray<VMReg>& _output_registers;
-public:
-  NativeInvokerGenerator(CodeBuffer* buffer,
-                         address call_target,
-                         int shadow_space_bytes,
-                         const GrowableArray<VMReg>& input_registers,
-                         const GrowableArray<VMReg>& output_registers)
-   : StubCodeGenerator(buffer, PrintMethodHandleStubs),
-     _call_target(call_target),
-     _shadow_space_bytes(shadow_space_bytes),
-     _input_registers(input_registers),
-     _output_registers(output_registers) {}
-  void generate();
-
-private:
-#ifdef ASSERT
-  bool target_uses_register(VMReg reg) {
-    return _input_registers.contains(reg) || _output_registers.contains(reg);
-  }
-#endif
-};
-
-static const int native_invoker_code_size = 1024;
-
 BufferBlob* SharedRuntime::make_native_invoker(address call_target,
-                                               int shadow_space_bytes,
-                                               const GrowableArray<VMReg>& input_registers,
-                                               const GrowableArray<VMReg>& output_registers) {
-  BufferBlob* _invoke_native_blob =
-    BufferBlob::create("nep_invoker_blob", native_invoker_code_size);
-  if (_invoke_native_blob == NULL)
-    return NULL; // allocation failure
-
-  CodeBuffer code(_invoke_native_blob);
-  NativeInvokerGenerator g(&code, call_target, shadow_space_bytes, input_registers, output_registers);
-  g.generate();
-  code.log_section_sizes("nep_invoker_blob");
-
-  return _invoke_native_blob;
-}
-
-void NativeInvokerGenerator::generate() {
-  assert(!(target_uses_register(rscratch1->as_VMReg())
-           || target_uses_register(rscratch2->as_VMReg())
-           || target_uses_register(rthread->as_VMReg())),
-         "Register conflict");
-
-  MacroAssembler* masm = _masm;
-
-  __ set_last_Java_frame(sp, noreg, lr, rscratch1);
-
-  __ enter();
-
-  // Store a pointer to the previous R29 (RFP) saved on the stack as it
-  // may contain an oop if PreserveFramePointer is off. This value is
-  // retrieved later by frame::sender_for_entry_frame() when the stack
-  // is walked.
-  __ mov(rscratch1, sp);
-  __ str(rscratch1, Address(rthread, JavaThread::saved_fp_address_offset()));
-
-  // State transition
-  __ mov(rscratch1, _thread_in_native);
-  __ lea(rscratch2, Address(rthread, JavaThread::thread_state_offset()));
-  __ stlrw(rscratch1, rscratch2);
-
-  assert(_shadow_space_bytes == 0, "not expecting shadow space on AArch64");
-
-  rt_call(masm, _call_target);
-
-  __ mov(rscratch1, _thread_in_native_trans);
-  __ strw(rscratch1, Address(rthread, JavaThread::thread_state_offset()));
-
-  // Force this write out before the read below
-  __ membar(Assembler::LoadLoad | Assembler::LoadStore |
-            Assembler::StoreLoad | Assembler::StoreStore);
-
-  __ verify_sve_vector_length();
-
-  Label L_after_safepoint_poll;
-  Label L_safepoint_poll_slow_path;
-
-  __ safepoint_poll(L_safepoint_poll_slow_path, true /* at_return */, true /* acquire */, false /* in_nmethod */);
-
-  __ ldrw(rscratch1, Address(rthread, JavaThread::suspend_flags_offset()));
-  __ cbnzw(rscratch1, L_safepoint_poll_slow_path);
-
-  __ bind(L_after_safepoint_poll);
-
-  // change thread state
-  __ mov(rscratch1, _thread_in_Java);
-  __ lea(rscratch2, Address(rthread, JavaThread::thread_state_offset()));
-  __ stlrw(rscratch1, rscratch2);
-
-  __ block_comment("reguard stack check");
-  Label L_reguard;
-  Label L_after_reguard;
-  __ ldrb(rscratch1, Address(rthread, JavaThread::stack_guard_state_offset()));
-  __ cmpw(rscratch1, StackOverflow::stack_guard_yellow_reserved_disabled);
-  __ br(Assembler::EQ, L_reguard);
-  __ bind(L_after_reguard);
-
-  __ reset_last_Java_frame(true);
-
-  __ leave(); // required for proper stackwalking of RuntimeStub frame
-  __ ret(lr);
-
-  //////////////////////////////////////////////////////////////////////////////
-
-  __ block_comment("{ L_safepoint_poll_slow_path");
-  __ bind(L_safepoint_poll_slow_path);
-
-  // Need to save the native result registers around any runtime calls.
-  RegSet spills;
-  FloatRegSet fp_spills;
-  for (int i = 0; i < _output_registers.length(); i++) {
-    VMReg output = _output_registers.at(i);
-    if (output->is_Register()) {
-      spills += RegSet::of(output->as_Register());
-    } else if (output->is_FloatRegister()) {
-      fp_spills += FloatRegSet::of(output->as_FloatRegister());
-    }
-  }
-
-  __ push(spills, sp);
-  __ push_fp(fp_spills, sp);
-
-  __ mov(c_rarg0, rthread);
-  assert(frame::arg_reg_save_area_bytes == 0, "not expecting frame reg save area");
-  __ lea(rscratch1, RuntimeAddress(CAST_FROM_FN_PTR(address, JavaThread::check_special_condition_for_native_trans)));
-  __ blr(rscratch1);
-
-  __ pop_fp(fp_spills, sp);
-  __ pop(spills, sp);
-
-  __ b(L_after_safepoint_poll);
-  __ block_comment("} L_safepoint_poll_slow_path");
-
-  //////////////////////////////////////////////////////////////////////////////
-
-  __ block_comment("{ L_reguard");
-  __ bind(L_reguard);
-
-  __ push(spills, sp);
-  __ push_fp(fp_spills, sp);
-
-  rt_call(masm, CAST_FROM_FN_PTR(address, SharedRuntime::reguard_yellow_pages));
-
-  __ pop_fp(fp_spills, sp);
-  __ pop(spills, sp);
-
-  __ b(L_after_reguard);
-
-  __ block_comment("} L_reguard");
-
-  //////////////////////////////////////////////////////////////////////////////
-
-  __ flush();
+                                           int shadow_space_bytes,
+                                           const GrowableArray<VMReg>& input_registers,
+                                           const GrowableArray<VMReg>& output_registers) {
+  return NULL;
 }

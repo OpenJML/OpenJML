@@ -284,7 +284,8 @@ public abstract class AbstractEventStream implements EventStream {
     }
 
     private String nextThreadName() {
-        return "JFR Event Stream " + counter.incrementAndGet();
+        counter.incrementAndGet();
+        return "JFR Event Stream " + counter;
     }
 
     @Override

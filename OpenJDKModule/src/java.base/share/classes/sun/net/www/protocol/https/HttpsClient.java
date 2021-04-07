@@ -426,7 +426,7 @@ final class HttpsClient extends HttpClient
             // unconnected sockets have not been implemented.
             //
             Throwable t = se.getCause();
-            if (t instanceof UnsupportedOperationException) {
+            if (t != null && t instanceof UnsupportedOperationException) {
                 return super.createSocket();
             } else {
                 throw se;
