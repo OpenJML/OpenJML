@@ -33,7 +33,7 @@ import sun.font.SunFontManager;
  */
 public final class JDKFontLookup {
 
-    public static final String getJDKFontDir() {
+    public final static String getJDKFontDir() {
         return SunFontManager.getJDKFontDir();
     }
 }

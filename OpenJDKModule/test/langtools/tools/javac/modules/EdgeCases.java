@@ -302,17 +302,13 @@ public class EdgeCases extends ModuleTestBase {
         Path src_m1 = src.resolve("m1x");
         tb.writeJavaFiles(src_m1,
                           "module m1x { exports test.m1x; }",
-                          """
-                              package test.m1x;
-                              public class Test {}
-                              """);
+                          "package test.m1x;\n" +
+                          "public class Test {}\n");
         Path src_m2 = src.resolve("m2x");
         tb.writeJavaFiles(src_m2,
                           "module m2x { requires m1x; }",
-                          """
-                              package test;
-                              public class m1x {}
-                              """);
+                          "package test;\n" +
+                          "public class m1x {}\n");
         Path classes = base.resolve("classes");
         tb.createDirectories(classes);
 
@@ -519,21 +515,15 @@ public class EdgeCases extends ModuleTestBase {
         Path src_m1 = src.resolve("m1x");
         tb.writeJavaFiles(src_m1,
                           "module m1x { }",
-                          """
-                              package m1x;
-                              import m1x.a.*; public class Test { A a; }
-                              """,
-                          """
-                              package m1x.a;
-                              public class A { }
-                              """);
+                          "package m1x;\n" +
+                          "import m1x.a.*; public class Test { A a; }\n",
+                          "package m1x.a;\n" +
+                          "public class A { }\n");
         Path src_m2 = src.resolve("m2x");
         tb.writeJavaFiles(src_m2,
                           "module m2x { }",
-                          """
-                              package m1x;
-                              public class a { public static class A { } }
-                              """);
+                          "package m1x;\n" +
+                          "public class a { public static class A { } }\n");
         Path classes = base.resolve("classes");
         tb.createDirectories(classes);
 

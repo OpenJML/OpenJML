@@ -210,7 +210,7 @@ public class JavacMessages implements Messages {
         }
     }
 
-    private static String getLocalizedString(List<ResourceBundle> bundles,
+    static private String getLocalizedString(List<ResourceBundle> bundles,
                                              String key,
                                              Object... args) {
        String msg = null;

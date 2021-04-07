@@ -202,8 +202,6 @@
                                                                width:(NSUInteger) width
                                                               height:(NSUInteger) height
                                                            mipmapped:NO];
-    textureDescriptor.usage = MTLTextureUsageRenderTarget |
-        MTLTextureUsageShaderRead;
     if (isMultiSample) {
         textureDescriptor.textureType = MTLTextureType2DMultisample;
         textureDescriptor.sampleCount = MTLAASampleCount;

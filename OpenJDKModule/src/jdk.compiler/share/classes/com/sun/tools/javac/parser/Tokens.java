@@ -390,7 +390,7 @@ public class Tokens {
         }
     }
 
-    static final class NamedToken extends Token {
+    final static class NamedToken extends Token {
         /** The name of this token */
         public final Name name;
 
@@ -432,7 +432,7 @@ public class Tokens {
         }
     }
 
-    static final class NumericToken extends StringToken {
+    final static class NumericToken extends StringToken {
         /** The 'radix' value of this token */
         public final int radix;
 

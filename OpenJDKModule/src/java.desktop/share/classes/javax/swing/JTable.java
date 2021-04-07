@@ -5592,6 +5592,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      */
     protected void initializeLocalVars() {
         updateSelectionOnSort = true;
+        setOpaque(true);
         createDefaultRenderers();
         createDefaultEditors();
 

@@ -726,6 +726,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
         selectionModel = new DefaultTreeSelectionModel();
         cellRenderer = null;
         scrollsOnExpand = true;
+        setOpaque(true);
         expandsSelectedPaths = true;
         updateUI();
         setModel(newModel);

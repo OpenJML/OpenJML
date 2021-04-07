@@ -83,6 +83,7 @@ public class JToolTip extends JComponent implements Accessible {
 
     /** Creates a tool tip. */
     public JToolTip() {
+        setOpaque(true);
         updateUI();
     }
 

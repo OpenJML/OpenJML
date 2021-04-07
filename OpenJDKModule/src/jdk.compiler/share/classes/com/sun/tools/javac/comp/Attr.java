@@ -2062,7 +2062,7 @@ public class Attr extends JCTree.Visitor {
                         .collect(List.collector()));
         }
 
-    static final TypeTag[] primitiveTags = new TypeTag[]{
+    final static TypeTag[] primitiveTags = new TypeTag[]{
         BYTE,
         CHAR,
         SHORT,

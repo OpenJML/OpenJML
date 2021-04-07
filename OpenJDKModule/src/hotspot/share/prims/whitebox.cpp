@@ -1372,15 +1372,17 @@ WB_ENTRY(void, WB_SetStringVMFlag(JNIEnv* env, jobject o, jstring name, jstring 
     ccstrValue = env->GetStringUTFChars(value, NULL);
     CHECK_JNI_EXCEPTION(env);
   }
+  ccstr ccstrResult = ccstrValue;
+  bool needFree;
   {
-    ccstr param = ccstrValue;
     ThreadInVMfromNative ttvfn(thread); // back to VM
-    if (SetVMFlag <JVM_FLAG_TYPE(ccstr)> (thread, env, name, &param)) {
-      assert(param == NULL, "old value is freed automatically and not returned");
-    }
+    needFree = SetVMFlag <JVM_FLAG_TYPE(ccstr)> (thread, env, name, &ccstrResult);
   }
   if (value != NULL) {
     env->ReleaseStringUTFChars(value, ccstrValue);
+  }
+  if (needFree) {
+    FREE_C_HEAP_ARRAY(char, ccstrResult);
   }
 WB_END
 
@@ -1778,14 +1780,8 @@ WB_ENTRY(jlong, WB_MetaspaceCapacityUntilGC(JNIEnv* env, jobject wb))
   return (jlong) MetaspaceGC::capacity_until_GC();
 WB_END
 
-// The function is only valid when CDS is available.
-WB_ENTRY(jlong, WB_MetaspaceSharedRegionAlignment(JNIEnv* env, jobject wb))
-#if INCLUDE_CDS
-  return (jlong)MetaspaceShared::core_region_alignment();
-#else
-  ShouldNotReachHere();
-  return 0L;
-#endif
+WB_ENTRY(jlong, WB_MetaspaceReserveAlignment(JNIEnv* env, jobject wb))
+  return (jlong)Metaspace::reserve_alignment();
 WB_END
 
 WB_ENTRY(jboolean, WB_IsMonitorInflated(JNIEnv* env, jobject wb, jobject obj))
@@ -2509,7 +2505,7 @@ static JNINativeMethod methods[] = {
      CC"(Ljava/lang/ClassLoader;J)J",                 (void*)&WB_AllocateMetaspace },
   {CC"incMetaspaceCapacityUntilGC", CC"(J)J",         (void*)&WB_IncMetaspaceCapacityUntilGC },
   {CC"metaspaceCapacityUntilGC", CC"()J",             (void*)&WB_MetaspaceCapacityUntilGC },
-  {CC"metaspaceSharedRegionAlignment", CC"()J",       (void*)&WB_MetaspaceSharedRegionAlignment },
+  {CC"metaspaceReserveAlignment", CC"()J",            (void*)&WB_MetaspaceReserveAlignment },
   {CC"getCPUFeatures",     CC"()Ljava/lang/String;",  (void*)&WB_GetCPUFeatures     },
   {CC"getNMethod0",         CC"(Ljava/lang/reflect/Executable;Z)[Ljava/lang/Object;",
                                                       (void*)&WB_GetNMethod         },

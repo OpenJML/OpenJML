@@ -83,7 +83,7 @@ public class Iterators {
     }
 
     @SuppressWarnings("rawtypes")
-    private static final Iterator EMPTY = new Iterator() {
+    private final static Iterator EMPTY = new Iterator() {
         public boolean hasNext() {
             return false;
         }

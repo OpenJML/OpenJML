@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -35,10 +35,10 @@ public abstract class BytecodeJmp extends Bytecode {
   public abstract int getTargetBCI();
 
   public String toString() {
-    StringBuilder buf = new StringBuilder();
+    StringBuffer buf = new StringBuffer();
     buf.append(getJavaBytecodeName());
     buf.append(spaces);
-    buf.append(getTargetBCI());
+    buf.append(Integer.toString(getTargetBCI()));
     return buf.toString();
   }
 }

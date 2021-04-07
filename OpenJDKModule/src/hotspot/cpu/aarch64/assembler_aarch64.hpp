@@ -2184,13 +2184,13 @@ public:
     if (value)
       fmov_imm(Vn, value, 0b00);
     else
-      movi(Vn, T2S, 0);
+      fmovs(Vn, zr);
   }
   void fmovd(FloatRegister Vn, double value) {
     if (value)
       fmov_imm(Vn, value, 0b01);
     else
-      movi(Vn, T1D, 0);
+      fmovd(Vn, zr);
   }
 
    // Floating-point rounding
@@ -2427,7 +2427,6 @@ public:
   INSN(addv,   0, 0b110001101110, 1); // accepted arrangements: T8B, T16B, T4H, T8H,      T4S
   INSN(smaxv,  0, 0b110000101010, 1); // accepted arrangements: T8B, T16B, T4H, T8H,      T4S
   INSN(sminv,  0, 0b110001101010, 1); // accepted arrangements: T8B, T16B, T4H, T8H,      T4S
-  INSN(uminv,  1, 0b110001101010, 1); // accepted arrangements: T8B, T16B, T4H, T8H,      T4S
   INSN(cls,    0, 0b100000010010, 2); // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S
   INSN(clz,    1, 0b100000010010, 2); // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S
   INSN(cnt,    0, 0b100000010110, 0); // accepted arrangements: T8B, T16B

@@ -28,6 +28,7 @@
 #include "logging/log.hpp"
 #include "memory/iterator.hpp"
 #include "memory/virtualspace.hpp"
+#include "runtime/arguments.hpp"
 #include "utilities/bitMap.hpp"
 
 class BootstrapInfo;

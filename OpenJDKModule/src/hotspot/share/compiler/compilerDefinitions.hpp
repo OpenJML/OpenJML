@@ -28,7 +28,7 @@
 #include "compiler/compiler_globals.hpp"
 #include "jvmci/jvmci_globals.hpp"
 #include "memory/allocation.hpp"
-#include "runtime/globals.hpp"
+#include "runtime/arguments.hpp"
 
 // The (closed set) of concrete compiler classes.
 enum CompilerType {
@@ -143,7 +143,9 @@ public:
   static bool is_aot()               { return AOT_ONLY(has_aot() && UseAOT) NOT_AOT(false);                 }
   static bool is_jvmci_compiler()    { return JVMCI_ONLY(has_jvmci() && UseJVMCICompiler) NOT_JVMCI(false); }
   static bool is_jvmci()             { return JVMCI_ONLY(has_jvmci() && EnableJVMCI) NOT_JVMCI(false);      }
-  static bool is_interpreter_only();
+  static bool is_interpreter_only() {
+    return Arguments::is_interpreter_only() || TieredStopAtLevel == CompLevel_none;
+  }
 
   // is_*_only() functions describe situations in which the JVM is in one way or another
   // forced to use a particular compiler or their combination. The constraint functions

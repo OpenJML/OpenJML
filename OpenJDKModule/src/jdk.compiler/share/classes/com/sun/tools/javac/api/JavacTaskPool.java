@@ -360,7 +360,7 @@ public class JavacTaskPool {
          */
         static class ReusableJavaCompiler extends JavaCompiler {
 
-            static final Factory<JavaCompiler> factory = ReusableJavaCompiler::new;
+            final static Factory<JavaCompiler> factory = ReusableJavaCompiler::new;
 
             ReusableJavaCompiler(Context context) {
                 super(context);
@@ -387,7 +387,7 @@ public class JavacTaskPool {
          */
         static class ReusableLog extends Log {
 
-            static final Factory<Log> factory = ReusableLog::new;
+            final static Factory<Log> factory = ReusableLog::new;
 
             Context context;
 

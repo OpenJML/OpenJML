@@ -49,26 +49,23 @@ public class WrongErrorMessageForNestedServiceProviderTest extends ModuleTestBas
     }
 
     private static final String twoServicesModuleDef =
-            """
-                module m {
-                    exports example;
-                    provides example.SomeService with example.ServiceImpl;
-                    provides example.SomeServiceOuter with example.Outer.ServiceImplOuter;
-                }""";
+            "module m {\n" +
+            "    exports example;\n" +
+            "    provides example.SomeService with example.ServiceImpl;\n" +
+            "    provides example.SomeServiceOuter with example.Outer.ServiceImplOuter;\n" +
+            "}";
 
     private static final String someServiceInt =
-            """
-                package example;
-                public interface SomeService {
-                    public void foo();
-                }""";
+            "package example;\n" +
+            "public interface SomeService {\n" +
+            "    public void foo();\n" +
+            "}";
 
     private static final String someServiceIntOuter =
-            """
-                package example;
-                public interface SomeServiceOuter {
-                    public void foo();
-                }""";
+            "package example;\n" +
+            "public interface SomeServiceOuter {\n" +
+            "    public void foo();\n" +
+            "}";
 
     @Test
     public void testPositive(Path base) throws Exception {
@@ -77,21 +74,19 @@ public class WrongErrorMessageForNestedServiceProviderTest extends ModuleTestBas
                 twoServicesModuleDef,
                 someServiceInt,
                 someServiceIntOuter,
-                """
-                    package example;
-                    public class ServiceImpl implements example.SomeService {
-                        public ServiceImpl() {}
-                        public void foo() {}
-                    }""",
+                "package example;\n" +
+                "public class ServiceImpl implements example.SomeService {\n" +
+                "    public ServiceImpl() {}\n" +
+                "    public void foo() {}\n" +
+                "}",
 
-                """
-                    package example;
-                    class Outer {
-                        public static class ServiceImplOuter implements example.SomeServiceOuter {
-                            public ServiceImplOuter() {}
-                            public void foo() {}
-                        }
-                    }""");
+                "package example;\n" +
+                "class Outer {\n" +
+                "    public static class ServiceImplOuter implements example.SomeServiceOuter {\n" +
+                "        public ServiceImplOuter() {}\n" +
+                "        public void foo() {}\n" +
+                "    }\n" +
+                "}");
         Path classes = base.resolve("classes");
         Files.createDirectories(classes);
 
@@ -115,21 +110,20 @@ public class WrongErrorMessageForNestedServiceProviderTest extends ModuleTestBas
                 twoServicesModuleDef,
                 someServiceInt,
                 someServiceIntOuter,
-                """
-                    package example;
-                    class ServiceImpl implements example.SomeService {
-                        public ServiceImpl() {}
-                        public void foo() {}
-                    }""",
 
-                """
-                    package example;
-                    class Outer {
-                        static class ServiceImplOuter implements example.SomeServiceOuter {
-                            public ServiceImplOuter() {}
-                            public void foo() {}
-                        }
-                    }""");
+                "package example;\n" +
+                "class ServiceImpl implements example.SomeService {\n" +
+                "    public ServiceImpl() {}\n" +
+                "    public void foo() {}\n" +
+                "}",
+
+                "package example;\n" +
+                "class Outer {\n" +
+                "    static class ServiceImplOuter implements example.SomeServiceOuter {\n" +
+                "        public ServiceImplOuter() {}\n" +
+                "        public void foo() {}\n" +
+                "    }\n" +
+                "}");
         Path classes = base.resolve("classes");
         Files.createDirectories(classes);
 
@@ -153,24 +147,22 @@ public class WrongErrorMessageForNestedServiceProviderTest extends ModuleTestBas
     public void testClassWrappedByPrivateClass(Path base) throws Exception {
         Path src = base.resolve("src");
         tb.writeJavaFiles(src,
-                """
-                    module m {
-                        exports example;
-                        provides example.SomeServiceOuter with example.Outer1.Outer2.ServiceImplOuter;
-                    }""",
+                "module m {\n" +
+                "    exports example;\n" +
+                "    provides example.SomeServiceOuter with example.Outer1.Outer2.ServiceImplOuter;\n" +
+                "}",
 
                 someServiceIntOuter,
 
-                """
-                    package example;
-                    class Outer1 {
-                        static private class Outer2 {
-                            public static class ServiceImplOuter implements example.SomeServiceOuter {
-                                public ServiceImplOuter() {}
-                                public void foo() {}
-                            }
-                        }
-                    }""");
+                "package example;\n" +
+                "class Outer1 {\n" +
+                "    static private class Outer2 {\n" +
+                "        public static class ServiceImplOuter implements example.SomeServiceOuter {\n" +
+                "            public ServiceImplOuter() {}\n" +
+                "            public void foo() {}\n" +
+                "        }\n" +
+                "    }\n" +
+                "}");
         Path classes = base.resolve("classes");
         Files.createDirectories(classes);
 

@@ -215,7 +215,7 @@ public class BasicDiagnosticFormatter extends AbstractDiagnosticFormatter {
         return (BasicConfiguration)super.getConfiguration();
     }
 
-    public static class BasicConfiguration extends SimpleConfiguration {
+    static public class BasicConfiguration extends SimpleConfiguration {
 
         protected Map<DiagnosticPart, Integer> indentationLevels;
         protected Map<BasicFormatKind, String> availableFormats;

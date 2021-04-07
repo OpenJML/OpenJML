@@ -25,13 +25,11 @@
 
 package java.security;
 
-import java.math.BigInteger;
 import java.util.*;
-import java.util.random.RandomGenerator;
 import java.util.regex.*;
+
 import java.security.Provider.Service;
 
-import jdk.internal.util.random.RandomSupport.RandomGeneratorProperties;
 import sun.security.jca.*;
 import sun.security.jca.GetInstance.Instance;
 import sun.security.provider.SunEntries;
@@ -149,10 +147,6 @@ import sun.security.util.Debug;
  * @since 1.1
  */
 
-@RandomGeneratorProperties(
-        name = "SecureRandom",
-        isStochastic = true
-)
 public class SecureRandom extends java.util.Random {
 
     private static final Debug pdebug =

@@ -46,7 +46,7 @@ public class ReferenceParser {
      * An object to contain the result of parsing a reference to an API element.
      * Any, but not all, of the member fields may be null.
      */
-    public static class Reference {
+    static public class Reference {
         public final JCTree.JCExpression moduleName;
         /** The type, if any, in the signature. */
         public final JCTree qualExpr;
@@ -66,7 +66,7 @@ public class ReferenceParser {
     /**
      * An exception that indicates an error occurred while parsing a signature.
      */
-    public static class ParseException extends Exception {
+    static public class ParseException extends Exception {
         private static final long serialVersionUID = 0;
         ParseException(String message) {
             super(message);

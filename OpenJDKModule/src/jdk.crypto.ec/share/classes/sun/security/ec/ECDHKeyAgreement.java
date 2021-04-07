@@ -149,7 +149,6 @@ public final class ECDHKeyAgreement extends KeyAgreementSpi {
         return null;
     }
 
-    // Verify that x and y are integers in the interval [0, p - 1].
     private static void validateCoordinate(BigInteger c, BigInteger mod)
         throws InvalidKeyException{
         if (c.compareTo(BigInteger.ZERO) < 0) {
@@ -161,29 +160,15 @@ public final class ECDHKeyAgreement extends KeyAgreementSpi {
         }
     }
 
-    // Check whether a public key is valid, following the ECC
-    // Full Public-key Validation Routine (See section 5.6.2.3.3,
-    // NIST SP 800-56A Revision 3).
+    /*
+     * Check whether a public key is valid.
+     */
     private static void validate(ECOperations ops, ECPublicKey key)
         throws InvalidKeyException {
 
         ECParameterSpec spec = key.getParams();
 
-        // Note: Per the NIST 800-56A specification, it is required
-        // to verify that the public key is not the identity element
-        // (point of infinity).  However, the point of infinity has no
-        // affine coordinates, although the point of infinity could
-        // be encoded.  Per IEEE 1363.3-2013 (see section A.6.4.1),
-        // the point of inifinity is represented by a pair of
-        // coordinates (x, y) not on the curve.  For EC prime finite
-        // field (q = p^m), the point of infinity is (0, 0) unless
-        // b = 0; in which case it is (0, 1).
-        //
-        // It means that this verification could be covered by the
-        // validation that the public key is on the curve.  As will be
-        // verified in the following steps.
-
-        // Ensure that integers are in proper range.
+        // ensure that integers are in proper range
         BigInteger x = key.getW().getAffineX();
         BigInteger y = key.getW().getAffineY();
 
@@ -191,7 +176,7 @@ public final class ECDHKeyAgreement extends KeyAgreementSpi {
         validateCoordinate(x, p);
         validateCoordinate(y, p);
 
-        // Ensure the point is on the curve.
+        // ensure the point is on the curve
         EllipticCurve curve = spec.getCurve();
         BigInteger rhs = x.modPow(BigInteger.valueOf(3), p).add(curve.getA()
             .multiply(x)).add(curve.getB()).mod(p);
@@ -200,10 +185,7 @@ public final class ECDHKeyAgreement extends KeyAgreementSpi {
             throw new InvalidKeyException("Point is not on curve");
         }
 
-        // Check the order of the point.
-        //
-        // Compute nQ (using elliptic curve arithmetic), and verify that
-        // nQ is the the identity element.
+        // check the order of the point
         ImmutableIntegerModuloP xElem = ops.getField().getElement(x);
         ImmutableIntegerModuloP yElem = ops.getField().getElement(y);
         AffinePoint affP = new AffinePoint(xElem, yElem);
@@ -213,6 +195,7 @@ public final class ECDHKeyAgreement extends KeyAgreementSpi {
         if (!ops.isNeutral(product)) {
             throw new InvalidKeyException("Point has incorrect order");
         }
+
     }
 
     // see JCE spec

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -54,7 +54,8 @@ public class RMIHelper {
             }
         }
 
-        serverNamePrefix = System.getProperty("sun.jvm.hotspot.rmi.serverNamePrefix", "SARemoteDebugger");
+        tmp = System.getProperty("sun.jvm.hotspot.rmi.serverNamePrefix");
+        serverNamePrefix = (tmp != null)? serverNamePrefix : "SARemoteDebugger";
     }
 
     public static void rebind(String uniqueID, Remote object) throws DebuggerException {
@@ -92,7 +93,7 @@ public class RMIHelper {
         // we have to transform this as //host[:port]/<serverNamePrefix>['_'<unique_id>]
 
         int index = debugServerID.indexOf('@');
-        StringBuilder nameBuf = new StringBuilder("//");
+        StringBuffer nameBuf = new StringBuffer("//");
         String uniqueID = null;
         if (index != -1) {
             nameBuf.append(debugServerID.substring(index + 1));

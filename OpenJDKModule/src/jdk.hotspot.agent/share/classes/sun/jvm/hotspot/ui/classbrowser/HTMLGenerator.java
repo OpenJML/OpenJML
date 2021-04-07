@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2002, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -883,7 +883,10 @@ public class HTMLGenerator implements /* imports */ ClassConstants {
    }
 
    protected String genMultPCHref(String pcs) {
-      return genBaseHref() + "pc_multiple=" + pcs;
+      StringBuffer buf = new StringBuffer(genBaseHref());
+      buf.append("pc_multiple=");
+      buf.append(pcs);
+      return buf.toString();
    }
 
    protected String genPCHref(Address addr) {
@@ -1539,7 +1542,7 @@ public class HTMLGenerator implements /* imports */ ClassConstants {
    }
 
    protected String genDumpKlassesHref(InstanceKlass[] klasses) {
-      StringBuilder buf = new StringBuilder(genBaseHref());
+      StringBuffer buf = new StringBuffer(genBaseHref());
       buf.append("jcore_multiple=");
       for (int k = 0; k < klasses.length; k++) {
          buf.append(klasses[k].getAddress().toString());
