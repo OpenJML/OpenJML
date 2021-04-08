@@ -1157,7 +1157,7 @@ public class CommandProcessor {
                                 (System.getProperty("sun.jvm.hotspot.runtime.VM.disableVersionCheck") == null));
                 } else if (t.countTokens() == 1) {
                     if (Boolean.valueOf(t.nextToken()).booleanValue()) {
-                        System.clearProperty("sun.jvm.hotspot.runtime.VM.disableVersionCheck");
+                        System.setProperty("sun.jvm.hotspot.runtime.VM.disableVersionCheck", null);
                     } else {
                         System.setProperty("sun.jvm.hotspot.runtime.VM.disableVersionCheck", "true");
                     }

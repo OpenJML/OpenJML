@@ -37,7 +37,6 @@
 #include "runtime/thread.inline.hpp"
 #include "runtime/safepointVerifiers.hpp"
 #include "runtime/vframe.hpp"
-#include "runtime/vmOperations.hpp"
 #include "runtime/vmThread.hpp"
 #include "utilities/preserveException.hpp"
 

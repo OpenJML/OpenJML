@@ -61,11 +61,6 @@ public class TestLargePageUseForHeap {
     }
 
     static boolean checkLargePageEnabled(OutputAnalyzer output) {
-        String lp = output.firstMatch("Large Page Support: (\\w*)", 1);
-        // Make sure large pages really are enabled.
-        if (lp == null || lp.equals("Disabled")) {
-            return false;
-        }
         // This message is printed when tried to reserve a memory with large page but it failed.
         String errorStr = "Reserve regular memory without large pages";
         String heapPattern = ".*Heap: ";
@@ -89,7 +84,7 @@ public class TestLargePageUseForHeap {
         pb = ProcessTools.createJavaProcessBuilder("-XX:+UseG1GC",
                                                    "-XX:G1HeapRegionSize=" + regionSize,
                                                    "-Xmx128m",
-                                                   "-Xlog:gc+init,pagesize,gc+heap+coops=debug",
+                                                   "-Xlog:pagesize,gc+heap+coops=debug",
                                                    "-XX:+UseLargePages",
                                                    "-version");
 
@@ -102,7 +97,7 @@ public class TestLargePageUseForHeap {
         pb = ProcessTools.createJavaProcessBuilder("-XX:+UseG1GC",
                                                    "-XX:G1HeapRegionSize=" + regionSize,
                                                    "-Xmx128m",
-                                                   "-Xlog:gc+init,pagesize,gc+heap+coops=debug",
+                                                   "-Xlog:pagesize,gc+heap+coops=debug",
                                                    "-XX:-UseLargePages",
                                                    "-version");
 

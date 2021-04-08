@@ -260,7 +260,6 @@ public class TestGCLogMessages {
         pb = ProcessTools.createJavaProcessBuilder("-XX:+UseG1GC",
                                                    "-Xmx32M",
                                                    "-Xmn16M",
-                                                   "-Xms32M",
                                                    "-Xlog:gc+phases=trace",
                                                    GCTestWithEvacuationFailure.class.getName());
 

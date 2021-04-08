@@ -44,7 +44,6 @@ import sun.hotspot.WhiteBox;
  *          java.management
  * @requires vm.gc != "Epsilon"
  * @requires vm.gc != "Z"
- * @requires os.maxMemory >= 2G
  *
  * @compile TestMetaSpaceLog.java
  * @run driver ClassFileInstaller sun.hotspot.WhiteBox
