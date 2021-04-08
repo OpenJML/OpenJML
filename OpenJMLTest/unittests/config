@@ -1,0 +1,2 @@
+CP=".:../src:$JUNIT"
+ARGS="-cp $CP Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java"
