@@ -31,6 +31,7 @@
 #include "memory/archiveBuilder.hpp"
 #include "memory/dynamicArchive.hpp"
 #include "memory/metaspaceClosure.hpp"
+#include "memory/metaspaceShared.hpp"
 #include "memory/resourceArea.hpp"
 #include "oops/oop.inline.hpp"
 #include "runtime/atomic.hpp"
@@ -603,7 +604,8 @@ size_t SymbolTable::estimate_size_for_archive() {
 }
 
 void SymbolTable::write_to_archive(GrowableArray<Symbol*>* symbols) {
-  CompactHashtableWriter writer(int(_items_count), ArchiveBuilder::symbol_stats());
+  CompactHashtableWriter writer(int(_items_count),
+                                &MetaspaceShared::stats()->symbol);
   copy_shared_symbol_table(symbols, &writer);
   if (!DynamicDumpSharedSpaces) {
     _shared_table.reset();

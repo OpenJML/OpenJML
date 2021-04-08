@@ -26,7 +26,7 @@ package gc.epsilon;
 /**
  * @test TestByteArrays
  * @key randomness
- * @requires vm.gc.Epsilon & os.maxMemory > 1G
+ * @requires vm.gc.Epsilon
  * @summary Epsilon is able to allocate arrays, and does not corrupt their state
  * @library /test/lib
  *

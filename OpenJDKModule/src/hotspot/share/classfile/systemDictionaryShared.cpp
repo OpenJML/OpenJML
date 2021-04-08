@@ -2048,7 +2048,7 @@ public:
     log_info(cds,dynamic)("Archiving hidden %s", info._proxy_klasses->at(0)->external_name());
     size_t byte_size = sizeof(RunTimeLambdaProxyClassInfo);
     RunTimeLambdaProxyClassInfo* runtime_info =
-        (RunTimeLambdaProxyClassInfo*)ArchiveBuilder::ro_region_alloc(byte_size);
+        (RunTimeLambdaProxyClassInfo*)MetaspaceShared::read_only_space_alloc(byte_size);
     runtime_info->init(key, info);
     unsigned int hash = runtime_info->hash(); // Fields in runtime_info->_key already point to target space.
     u4 delta = DynamicDumpSharedSpaces ?
@@ -2098,7 +2098,7 @@ public:
     if (!info.is_excluded() && info.is_builtin() == _is_builtin) {
       size_t byte_size = RunTimeSharedClassInfo::byte_size(info._klass, info.num_verifier_constraints(), info.num_loader_constraints());
       RunTimeSharedClassInfo* record;
-      record = (RunTimeSharedClassInfo*)ArchiveBuilder::ro_region_alloc(byte_size);
+      record = (RunTimeSharedClassInfo*)MetaspaceShared::read_only_space_alloc(byte_size);
       record->init(info);
 
       unsigned int hash;

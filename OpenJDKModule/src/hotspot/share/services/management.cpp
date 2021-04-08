@@ -50,7 +50,6 @@
 #include "runtime/os.hpp"
 #include "runtime/thread.inline.hpp"
 #include "runtime/threadSMR.hpp"
-#include "runtime/vmOperations.hpp"
 #include "services/classLoadingService.hpp"
 #include "services/diagnosticCommand.hpp"
 #include "services/diagnosticFramework.hpp"
