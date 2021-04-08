@@ -1,0 +1,12 @@
+#! /bin/bash
+
+R=$( cd $(dirname $BASH_SOURCE) && pwd)
+ROOT=$R/../../OpenJDKModule
+JROOT=$R/../libs
+JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar"
+
+cd $R
+rm -f *.class
+CP=".:../src:$JUNIT"
+NOJML= njavac  -Xlint:unchecked -cp $CP Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java
+(cd ..; njava -cp unittests:src:$JUNIT Test $@ )
