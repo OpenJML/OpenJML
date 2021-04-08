@@ -3913,9 +3913,6 @@ public class Attr extends JCTree.Visitor {
         // Find operator.
         Symbol operator = tree.operator = operators.resolveBinary(tree, tree.getTag(), left, right);
         Type owntype = types.createErrorType(tree.type);
-        if (tree.getTag() == JCTree.Tag.EQ || tree.getTag() == JCTree.Tag.NE) {
-        	owntype = tree.type = syms.booleanType; // FIXME - improve handling of == != on JML types
-        } else 
         if (operator != operators.noOpSymbol &&
                 !left.isErroneous() &&
                 !right.isErroneous()) {
@@ -3929,11 +3926,14 @@ public class Attr extends JCTree.Visitor {
                 }
             }
 
+            if (System.getenv("DEB")!= null) System.out.println("BIN " + tree + " " + operator);
             // Check that argument types of a reference ==, != are
             // castable to each other, (JLS 15.21).  Note: unboxing
             // comparisons will not have an acmp* opc at this point.
             if ((opc == ByteCodes.if_acmpeq || opc == ByteCodes.if_acmpne)) {
+                if (System.getenv("DEB-A")!= null) System.out.println("BIN " + tree + " " + operator);
                 if (!types.isCastable(left, right, new Warner(tree.pos()))) {
+                    if (System.getenv("DEB-B")!= null) System.out.println("BIN " + tree + " " + operator);
                     log.error(tree.pos(), Errors.IncomparableTypes(left, right));
                 }
             }
