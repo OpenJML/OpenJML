@@ -633,7 +633,7 @@ public class escvisibility extends EscBase {
     @Test
     public void testPublic7() {
         main.addOptions("-method", "tt.TestJava.m1");
-        addMockJavaFile("tx/B.java","package tx; public class B {\n"
+        addMockFile("tx/B.java","package tx; public class B {\n"
                 +"  //@  requires false;\n"
                 +"  static public void m1() {\n"
                 +"  }\n"
@@ -660,7 +660,7 @@ public class escvisibility extends EscBase {
     public void testPrivate8() {
     	expectedExit = 1;
         main.addOptions("-method", "tt.TestJava.m1");
-        addMockJavaFile("tx/B.java","package tx; public class B {\n"
+        addMockFile("tx/B.java","package tx; public class B {\n"
                 +"  //@ private normal_behavior\n"
                 +"  //@  requires false;\n"
                 +"  static public void m1() {\n"
@@ -682,7 +682,7 @@ public class escvisibility extends EscBase {
     @Test
     public void testPublic8() {
         main.addOptions("-method", "tt.TestJava.m1");
-        addMockJavaFile("tx/B.java","package tx; public class B {\n"
+        addMockFile("tx/B.java","package tx; public class B {\n"
                 +"  //@ public normal_behavior\n"
                 +"  //@  requires false;\n"
                 +"  static public void m1() {\n"
@@ -710,7 +710,7 @@ public class escvisibility extends EscBase {
     public void testProtected8() {
     	expectedExit = 1;
         main.addOptions("-method", "tt.TestJava.m1");
-        addMockJavaFile("tx/B.java","package tx; public class B {\n"
+        addMockFile("tx/B.java","package tx; public class B {\n"
                 +"  //@ protected normal_behavior\n"
                 +"  //@  requires false;\n"
                 +"  static public void m1() {\n"
@@ -734,7 +734,7 @@ public class escvisibility extends EscBase {
     public void testPackage8() {
     	expectedExit = 1;
         main.addOptions("-method", "tt.TestJava.m1");
-        addMockJavaFile("tx/B.java","package tx; public class B {\n"
+        addMockFile("tx/B.java","package tx; public class B {\n"
                 +"  //@ normal_behavior\n"
                 +"  //@  requires false;\n"
                 +"  static public void m1() {\n"

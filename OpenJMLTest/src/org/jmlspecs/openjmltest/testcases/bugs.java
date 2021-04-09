@@ -13,7 +13,7 @@ import org.junit.Test;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class bugs extends TCBase {
 
-    static String testspecpath = "$A"+z+"$B"+z+"$SY";
+    static String testspecpath = "$A"+z+"$B";
 
     @Override
     public void setUp() throws Exception {
@@ -49,7 +49,7 @@ public class bugs extends TCBase {
     
     @Test
     public void testMiscBug4() {
-        helpTCF("A.java","public class A { //@ ensures equals(\\result.equals(b).c(p(0))); \n Object m(int j) { return null; } String b; StringBuffer a; int[] q; /*@pure*/int p(int i) { return 0; }}"
+        helpTCF("A.java","public class A { //@ ensures equals(\\result.equals(b).c(p(0))); \n Object m(int j) { return null; } String b; StringBuffer a; int[] q; /*@ pure*/int p(int i) { return 0; }}"
                 ,"/A.java:1: error: boolean cannot be dereferenced",54);
     }
 
@@ -105,8 +105,18 @@ public class bugs extends TCBase {
     
     @Test
     public void testMisc11() {
+        // Use the system specs
+        helpTCF("A.java","public class A { private /*@ spec_public */ java.util.Vector pending; \n //@ public invariant pending.elementCount == 0; \n} "
+                );
+    }
+
+    @Test
+    public void testMisc11b() {
+    	// No system specs - don't see that elementCount is soec_publicp
         main.addOptions("-specspath",   testspecpath);
         helpTCF("A.java","public class A { private /*@ spec_public */ java.util.Vector pending; \n //@ public invariant pending.elementCount == 0; \n} "
+                ,"/A.java:2: error: elementCount has protected access in java.util.Vector",30
+                ,"/A.java:2: error: An identifier with protected visibility may not be used in a invariant clause with public visibility",30
                 );
     }
 

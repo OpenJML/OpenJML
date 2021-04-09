@@ -20,17 +20,19 @@ public class Test {
 	}
 	@SuppressWarnings("unchecked")
 	public static void main(String... args) throws Exception {
-		while (args.length > 0 && args[0].charAt(0) == '-') {
+		while (args.length > 0) {
 			if (args[0].equals("-seq")) {
 				sequential = true;
-				args = Arrays.copyOfRange(args,1,args.length);
 			} else if (args[0].startsWith("-t=")) {
 				numThreads = Integer.valueOf(args[0].substring(3));
-				args = Arrays.copyOfRange(args,1,args.length);
 			} else if (args[0].startsWith("-s=")) {
 				seconds = Integer.valueOf(args[0].substring(3));
-				args = Arrays.copyOfRange(args,1,args.length);
+			} else if (args[0].startsWith("-v")) {
+				verbose = true;;
+			} else {
+				break;
 			}
+			args = Arrays.copyOfRange(args,1,args.length);
 		}
 		eservice = Executors.newFixedThreadPool(numThreads);
 		var dir = new File(JmlTestCase.root + "/OpenJML/OpenJMLTest/src/org/jmlspecs/openjmltest/testcases");

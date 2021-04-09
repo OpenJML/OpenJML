@@ -686,8 +686,6 @@ public class Attr extends JCTree.Visitor {
             return result;
         } catch (CompletionFailure ex) {
             tree.type = syms.errType;
-            if (org.jmlspecs.openjml.Utils.debug()) System.out.println("COMPLETION ERROR " + tree);
-            if (org.jmlspecs.openjml.Utils.debug()) ex.printStackTrace(System.out);
             return chk.completionError(tree.pos(), ex);
         } finally {
             this.env = prevEnv;
@@ -2468,6 +2466,7 @@ public class Attr extends JCTree.Visitor {
             localEnv.info.pendingResolutionPhase = null;
             Type mtype = attribTree(tree.meth, localEnv, new ResultInfo(kind, mpt, resultInfo.checkContext));
             // Compute the result type.
+
             Type restype = mtype.getReturnType();
 
             if (restype.hasTag(WILDCARD))
@@ -4280,7 +4279,19 @@ public class Attr extends JCTree.Visitor {
         }
 
         env.info.selectSuper = selectSuperPrev;
-        result = checkId(tree, site, sym, env, resultInfo);
+        if (sym.kind == ERR) {
+        	// FIXME - cf. bugs.testMiscBug4 -- calling checkId causes a crash, but jsut when the 
+        	// offending expression is in JML -- why
+        	result = tree.type = types.createErrorType(resultInfo.pt);
+        	if (org.jmlspecs.openjml.Utils.debug()) {
+        		System.out.println("CHECKID-Y " + tree + " " + tree.type + " " + result + " " + site + " " + sym + " " + sym.kind);
+        		org.jmlspecs.openjml.Utils.dumpStack();
+        	}
+        } else {
+        	if (org.jmlspecs.openjml.Utils.debug()) System.out.println("CHECKID " + tree + " " + site + " " + sym + " " + sym.kind);
+        	result = checkId(tree, site, sym, env, resultInfo);
+        	if (org.jmlspecs.openjml.Utils.debug()) System.out.println("CHECKID-Z " + tree + " " + tree.type + " " + result + " " + site + " " + sym + " " + sym.kind);
+        }
     }
     //where
         /** Determine symbol referenced by a Select expression,
@@ -4907,12 +4918,6 @@ public class Attr extends JCTree.Visitor {
 
         if (!typeVar.getUpperBound().isErroneous()) {
             //fixup type-parameter bound computed in 'attribTypeVariables'
-        	if (org.jmlspecs.openjml.Utils.debug() && tree.bounds.head == null) {
-        		System.out.println("VISITTYPEPARAMETER " + tree + " " + typeVar + " " + log.currentSource() + " " + log.currentSourceFile());
-        		System.out.println("VISITTYPEPARAMETER2 " + tree.bounds);
-        		//org.jmlspecs.openjml.Utils.instance(((JmlAttr)this).context).note(tree, "jml.message", "Location");
-        		
-        	}
             typeVar.setUpperBound(checkIntersection(tree, tree.bounds));
         }
     }
@@ -5406,7 +5411,6 @@ public class Attr extends JCTree.Visitor {
             // Check type annotations applicability rules
             validateTypeAnnotations(tree, false); // OPENJML - allow skipping body
         }
-        if (org.jmlspecs.openjml.Utils.debug()) System.out.println("ATTRBCLASSBODY-Z " + c + " " + tree);
     }
         // where
         /** get a diagnostic position for an attribute of Type t, or null if attribute missing */

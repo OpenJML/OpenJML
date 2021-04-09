@@ -103,7 +103,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** The compilation unit context associated with this instance of Main
      * (for the programmatic API); for the command-line API it is simply 
      * the most recent value of the context, and is used that way in testing. */
-    protected Context context;
+    public Context context;
     
     /** True if compilation has been canceled, by setting this field in some exception handler. */
     public boolean canceled = false;
@@ -230,16 +230,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         this(Strings.applicationName, new PrintWriter(System.err, true));
     }
 
-    /**
-     * Construct an initialized compiler instance; all options are set 
-     * according to values from the options and args arguments.
-     * @param applicationName the name to use for the application
-     * @param out  the PrintWriter to which to send information and error messages
-     * @param diagListener the listener to receive problem and warning reports
-     * @param options the default set of options (adjusted by the command-line
-     * args); if null, then default values are read from the environment
-     * @param args command-line options
-     */
     public Main(/*@ non_null */String applicationName, 
                 /*@ non_null */PrintWriter out) 
         throws java.io.IOException {
@@ -248,6 +238,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     
     public Context initialize(
                 /*@nullable*/ DiagnosticListener<? extends JavaFileObject> diagListener) {
+        useJML = true;
         check(); // Aborts if the environment does not support OpenJML
         this.diagListener = diagListener;
         this.context = new Context();
@@ -273,7 +264,6 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     //@ requires args != null && \nonnullelements(args);
     public static void main(String... args) {
-        useJML = true;
         if (args.length > 0 && args[0].equals("-Xjdb")) {
         	try {
         		// Note: Copied directly from com.sun.tools.javac.Main and not tested
@@ -291,10 +281,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         		System.exit(3);
         	}
         } else {
-    		if (Utils.debug()) try { System.out.println(new File(Main.class.getProtectionDomain().getCodeSource().getLocation()
-        			.toURI()).getPath());
-    		} catch (Exception e) { System.out.println(e); }
-
             System.exit(execute(args, false));  // The boolean: true - errors to stdErr, false - errors to stdOut
         }
     }
@@ -528,7 +514,8 @@ public class Main extends com.sun.tools.javac.main.Main {
         this.context = context; // FIXME - it is a problem if this changes the already stored context, as it was used for JavacFileManager and Utils
 //        register(context);
         setProofResultListener(prl);
-        args = JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);
+    	//if (Options.instance(context) instanceof JmlOptions) return;
+    	args = JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);
         // Note that the Java option processing happens in compile method call below.
         // Those options are not read at the time of the register call,
         // but the register call has to happen before compile is called.
@@ -758,16 +745,19 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** Adds additional options to those already present (which may change 
      * previous settings). */
     public void addOptions(String... args) {
+    	if (!(Options.instance(context) instanceof JmlOptions)) return;
         args = JmlOptions.instance(context).addOptions(args);
     }
     
     /** Adds a custom option (not checked as a legitimate command-line option);
      * may have an argument after a = symbol */
     public void addUncheckedOption(String arg) {
+    	if (!(Options.instance(context) instanceof JmlOptions)) return;
         JmlOptions.instance(context).addUncheckedOption(arg);
     }
 
     public boolean setupOptions() {
+    	if (!(Options.instance(context) instanceof JmlOptions)) return true;
         return JmlOptions.instance(context).setupOptions();
     }
 

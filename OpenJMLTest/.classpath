@@ -13,6 +13,7 @@
 			<attribute name="ignore_optional_problems" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="src" path="unittests"/>
 	<classpathentry kind="lib" path="/Users/davidcok/projects/OpenJMLA/OpenJML/OpenJMLTest/libs/junit-jupiter-api-5.5.2.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/OpenJMLModule"/>
 	<classpathentry kind="output" path="bin"/>

@@ -1913,6 +1913,11 @@ public class JmlSpecs {
 		return (s == null) ? SpecsStatus.NOT_LOADED : s;
 	}
 	
+	public boolean statusOK(Symbol sym) {
+		var s = specsStatus.get(sym);
+		return s != SpecsStatus.ERROR;
+	}
+	
 	public void setStatus(Symbol sym, SpecsStatus status) {
 		specsStatus.put(sym, status);
 		if (sym instanceof ClassSymbol) {

@@ -236,12 +236,11 @@ public class JmlCompiler extends JavaCompiler {
     public Queue<Env<AttrContext>> attribute(Queue<Env<AttrContext>> envs) {
         ListBuffer<Env<AttrContext>> results = new ListBuffer<>();
         while (!envs.isEmpty()) {
-        	if (Utils.debug()) System.out.println("JC-ATTRIB " + envs.peek().getClass() + " " + envs.peek().toplevel.sourcefile);
             results.append(attribute(envs.remove()));
         }
         ((JmlAttr)attr).completeTodo();
         
-        if (!utils.esc && org.jmlspecs.openjml.Main.useJML) {
+        if (org.jmlspecs.openjml.Main.useJML) {
         	envs = results;
         	JmlSpecs specs = JmlSpecs.instance(context);
         	results = new ListBuffer<>();
@@ -260,7 +259,6 @@ public class JmlCompiler extends JavaCompiler {
         			}
         			break;
         		default:
-                	//System.out.println("ATTRIBUTING SPECS-B of " + env.enclClass.sym + " " + env.enclClass);
         			JmlAttr.instance(context).attribClassBodySpecs((JmlClassDecl)env.enclClass);
         		}
         		results.append(env);

@@ -235,7 +235,8 @@ public class DeferredAttr extends JCTree.Visitor {
                     result.pos = t.pos;
                     return result;
                 }
-            };        }
+            };
+        }
         deferredCopier = new TypeMapping<Void> () {
                 @Override
                 public Type visitType(Type t, Void v) {

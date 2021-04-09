@@ -34,11 +34,13 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.Completer;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.ModuleSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Kinds.KindName;
 import com.sun.tools.javac.code.Scope.WriteableScope;
 import com.sun.tools.javac.code.Type.ClassType;
+import com.sun.tools.javac.comp.Enter.UnenterScanner;
 import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.resources.CompilerProperties.Errors;
 import com.sun.tools.javac.tree.JCTree;
@@ -823,7 +825,7 @@ public class JmlEnter extends Enter {
 		}
 		Symbol.MethodSymbol msym = findMethod(csym, mdecl, specsEnv);
     	if (msym == null) {
-			// No corresponding binary method
+			// No corresponding Java method
     		if (!isJML) {
 				utils.error(mdecl, "jml.message", "There is no binary method to match this Java declaration in the specification file: " + mdecl.name + " (owner: " + csym +")");
 				for (var s: csym.members().getSymbolsByName(mdecl.name, s->(s instanceof MethodSymbol))) {
@@ -877,6 +879,15 @@ public class JmlEnter extends Enter {
 				utils.error(pos, "jml.message", "A Java method declaration must not be marked either ghost or model: " + mdecl.name + " (owner: " + csym +")");
 				return;
 			}
+			if (mdecl.restype != null) {
+				Type t = Attr.instance(context).attribType(mdecl.restype,csym);
+				// The difficulty here is that TypeVars show up as different types,
+				// and that binary types are erased, so do not have type arguments.
+				if (!specsTypeSufficientlyMatches(t, msym.getReturnType())) {
+					utils.error(mdecl.restype,  "jml.mismatched.return.type", 
+							msym.enclClass().fullname + "." + msym.toString(),t,msym.getReturnType());
+				}
+			}
 			if (!isGhostOrModel && mdecl.body != null && !isSameCU && ((msym.flags() & Flags.GENERATEDCONSTR) == 0)) {
 				utils.error(mdecl.body, "jml.message", "The specification of the method " + csym + "." + msym + " must not have a body");;
 			}
@@ -903,6 +914,13 @@ public class JmlEnter extends Enter {
 			// FIXME - what about the return type, or exception types?
 			JmlSpecs.instance(context).putSpecs(msym, mspecs, specsEnv);
     	}
+    }
+    
+    public boolean specsTypeSufficientlyMatches(Type specsType, Type javaType) {
+		// The difficulty here is that TypeVars show up as different types,
+		// and that binary types are erased, so do not have type arguments.
+		return specsType.toString().startsWith(javaType.toString()) ||
+				types.isSubtype(specsType, javaType);
     }
     
     public VarSymbol findVar(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> env) {
@@ -997,7 +1015,7 @@ public class JmlEnter extends Enter {
 					}
 					ok = false;
 				}
-				if (!JmlTypes.instance(context).isSameType(t, vsym.type) && !loaded) {
+				if (!specsTypeSufficientlyMatches(t, vsym.type)) {
 					utils.error(vdecl.vartype, "jml.message", "Type of field " + vdecl.name + " in specification differs from type in source/binary: " + t + " vs. " + vsym.type);
 					ok = false;
 				}
@@ -1006,9 +1024,14 @@ public class JmlEnter extends Enter {
 				vdecl.sym = vsym;
 				if (ok) utils.note(true,  "Matched field: " + vsym + " (owner: " + csym +")" );
 			}
+		} catch (Throwable t) {
+			utils.error("Exception while entering field: " + vdecl.name);
+			t.printStackTrace(System.out);
+			ok = false;
 		} finally {
-			if (vsym != null && ok) {
+			if (vsym != null) {
 				JmlSpecs.instance(context).putSpecs(vsym, vdecl.fieldSpecs);
+				if (!ok) JmlSpecs.instance(context).setStatus(vsym, JmlSpecs.SpecsStatus.ERROR);
 			}
 		}
     }
@@ -1186,6 +1209,16 @@ public class JmlEnter extends Enter {
     	JmlSpecs.instance(context).putSpecs(csymbol,typespecs);
     }
 
+    @Override
+    public void unenter(JCCompilationUnit topLevel, JCTree tree) {
+        new JmlUnenterScanner(topLevel.modle).scan(tree);
+    }
+    class JmlUnenterScanner extends UnenterScanner implements org.jmlspecs.openjml.visitors.IJmlVisitor {
 
+        public JmlUnenterScanner(ModuleSymbol msym) {
+        	super(msym);
+        }
+
+    }
     
 }

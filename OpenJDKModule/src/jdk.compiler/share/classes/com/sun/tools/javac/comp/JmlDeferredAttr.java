@@ -8,6 +8,7 @@ package com.sun.tools.javac.comp;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlLambda;
 import org.jmlspecs.openjml.visitors.JmlTreeCopier;
+import org.jmlspecs.openjml.visitors.IJmlVisitor;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeCopier;
@@ -16,7 +17,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.util.Context;
 
-public class JmlDeferredAttr extends DeferredAttr {
+public class JmlDeferredAttr extends DeferredAttr implements IJmlVisitor {
 
     public static void preRegister(final Context context) {
         context.put(deferredAttrKey, new Context.Factory<DeferredAttr>() {

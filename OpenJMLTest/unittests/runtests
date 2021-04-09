@@ -8,5 +8,5 @@ JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter
 cd $R
 rm -f *.class
 CP=".:../src:$JUNIT"
-NOJML= njavac  -Xlint:unchecked -cp $CP Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java
-(cd ..; njava -cp unittests:src:$JUNIT Test $@ )
+( NOJML=X njavac  -Xlint:unchecked -cp $CP Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java )
+( cd ..; njava -cp unittests:src:$JUNIT Test $@ )

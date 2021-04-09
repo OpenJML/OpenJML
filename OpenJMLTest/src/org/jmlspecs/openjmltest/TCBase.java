@@ -11,6 +11,7 @@ import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Options;
 
 import static org.junit.Assert.*;
 
@@ -36,17 +37,13 @@ public abstract class TCBase extends JmlTestCase {
     @Override
     public void setUp() throws Exception {
         testspecpath = testspecpath1;
-        ignoreNotes = true;
+        ignoreNotes = false;
         super.setUp();
         main.addOptions("-specspath",   testspecpath + (!useSystemSpecs ? "" : (z + "$SY") ));
         main.addOptions("-sourcepath",   testspecpath);
         main.addOptions("-classpath",   "../OpenJML/bin-runtime");
         if (!useSystemSpecs) main.addOptions("-no-internalSpecs");
         main.addOptions(JmlOption.PURITYCHECK.optionName()+"=false");
-
-        // FIXME - check these
-        JmlAttr.instance(context);
-        JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         specs = JmlSpecs.instance(context);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
@@ -98,7 +95,6 @@ public abstract class TCBase extends JmlTestCase {
             // If additional Java options are wanted (e.g. -verbose), add them here
             int ex = main.compile(new String[]{ "-Xlint:unchecked" }, files).exitCode;
             
-            if (print) printDiagnostics();
             int i = 0;
             int k = 0;
             Object p1,p2,p3,p4;
