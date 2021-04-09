@@ -86,6 +86,8 @@ public class JmlParser extends JavacParser {
 
     /** True only when we are parsing within a model program */
     public boolean       inModelProgram = false;
+    
+    public boolean       addOrgJmlspecsLang = true;
 
     public java.util.List<IJmlLineAnnotation> lineAnnotations = new java.util.LinkedList<>();
 
@@ -198,6 +200,7 @@ public class JmlParser extends JavacParser {
     public JCTree.JCCompilationUnit parseCompilationUnit() {
     	try {
     		JCTree.JCCompilationUnit u = super.parseCompilationUnit();
+    		storeEnd(u, pos());
     		if (!(u instanceof JmlCompilationUnit)) {
     			utils.error(
     					"jml.internal",
@@ -211,14 +214,17 @@ public class JmlParser extends JavacParser {
     			// compilation unit in which the declaration sits.
     			// This code sets that field in after the whole tree is parsed.
     			JmlCompilationUnit jmlcu = (JmlCompilationUnit) u;
-    			JCExpression p = utils.nametree(-1, -1, "org.jmlspecs.lang.*", this);
-    			JmlImport m = jmlF.Import(p,  false);
-    			m.isModel = true;
-    			if (jmlcu.defs.head instanceof JCPackageDecl) {
-    				JCTree t = jmlcu.defs.head;
-    				jmlcu.defs = jmlcu.defs.tail.prepend(m).prepend(t);
-    			} else {
-    				jmlcu.defs = jmlcu.defs.prepend(m);
+    			if (addOrgJmlspecsLang) {
+    				JCExpression p = utils.nametree(0, 0, "org.jmlspecs.lang.*", this);
+        			JmlImport m = jmlF.at(0).Import(p,  false);
+        			storeEnd(m, 0);
+        			m.isModel = true;
+        			if (jmlcu.defs.head instanceof JCPackageDecl) {
+        				JCTree t = jmlcu.defs.head;
+        				jmlcu.defs = jmlcu.defs.tail.prepend(m).prepend(t);
+        			} else {
+        				jmlcu.defs = jmlcu.defs.prepend(m);
+        			}
     			}
     			setTopLevel(jmlcu,jmlcu.defs);
     			jmlcu.sourceCU = jmlcu;

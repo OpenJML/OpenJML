@@ -44,7 +44,7 @@ abstract public class ParseBase extends JmlTestCase {
         super.setUp();
         main.addOptions("compilePolicy","check");  // Don't do code generation
         main.addOptions("-specspath",   testspecpath);
-        //main.register(context);
+        // TODO - are the following needed?
         JmlAttr.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         sfac = ScannerFactory.instance(context);
@@ -94,6 +94,7 @@ abstract public class ParseBase extends JmlTestCase {
     public List<JCTree> parseCompilationUnit(String s) {
         Log.instance(context).useSource(new TestJavaFileObject(s));
         parser = ((JmlFactory)fac).newParser(s,false,true,true,jml);
+        parser.addOrgJmlspecsLang = false;
         JCTree e = parser.parseCompilationUnit();
         return ParseTreeScanner.walk(e);
     }
