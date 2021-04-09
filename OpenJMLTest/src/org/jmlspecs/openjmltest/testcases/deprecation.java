@@ -42,39 +42,22 @@ public class deprecation extends TCBase {
 
     @Test
     public void testParsePlus() {
-        main.addOptions("-deprecation");
         helpTCF("A.java","public class A {\n" +
                 " //+@ model int i;\n" +
                 " }"
-                ,"/A.java:2: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",4
-                );
-    }
-
-    @Test
-    public void testParsePlusB() {
-        helpTCF("A.java","public class A {\n" +
-                " //+@ model int i;\n" +
-                " }"
+                ,"/A.java:2: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",4
                 );
     }
 
     @Test
     public void testParseMinus() {
-        main.addOptions("-deprecation");
         helpTCF("A.java","public class A {\n" +
                 " //-@ model int i;\n" +
                 " }"
-                ,"/A.java:2: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",4
+                ,"/A.java:2: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",4
                 );
     }
 
-    @Test
-    public void testParseMinusB() {
-        helpTCF("A.java","public class A {\n" +
-                " //-@ model int i;\n" +
-                " }"
-                );
-    }
 
 
 }

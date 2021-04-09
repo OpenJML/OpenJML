@@ -573,24 +573,35 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param prevIsInJmlDeclaration true if we are in a non-model JML declaration  (FIXME - this needs better evaluation)
      */
     public void attribClassBodySpecs(JmlClassDecl c) {
+    	if (Utils.debug()) System.out.println("Attributing class body specs of " + c.sym);
     	specs.getSpecs(c.sym); // Attributing specs, if not already done
-    	if (true || !utils.esc) for (var d: c.defs) {
-    		if (d instanceof JCMethodDecl) specs.getSpecs(((JCMethodDecl)d).sym);
-    		else if (d instanceof JCVariableDecl) {
-    			JCVariableDecl v = (JCVariableDecl)d;
-    			if (v.type.isReference() && v.type.tsym instanceof ClassSymbol) specs.getSpecs((ClassSymbol)v.type.tsym);
-    			specs.getSpecs(v.sym);
-    		}
-    		else if (d instanceof JCClassDecl) specs.getSpecs(((JCClassDecl)d).sym);
-    		else if (d instanceof JmlBlock) {
-    			JmlBlock bl = (JmlBlock)d;
-    			//System.out.println("FOUND BLOCK POTENTIAL SPECS " + " " + bl + " " + bl.blockSpecs);
-    			if (bl.blockSpecs != null) {
-    				attrSpecs(bl.blockSpecs);
+    	if (true || !utils.esc) {
+    		for (var d: c.defs) {
+    			// FIXME : leave out any JML decls in the Java file
+    			if (d instanceof JCMethodDecl) {
+    				var msym = ((JCMethodDecl)d).sym;
+    				if (!utils.isJML(msym.flags())) specs.getSpecs(msym);
+    			}
+    			else if (d instanceof JCVariableDecl) {
+    				JCVariableDecl v = (JCVariableDecl)d;
+    				if (!utils.isJML(v.sym.flags()) && v.type.isReference() && v.type.tsym instanceof ClassSymbol) specs.getSpecs((ClassSymbol)v.type.tsym);
+    				specs.getSpecs(v.sym);
+    			}
+    			else if (d instanceof JCClassDecl) {
+    				var csym = ((JCClassDecl)d).sym;
+    				if (!utils.isJML(csym.flags())) specs.getSpecs(csym);
+    			}
+    			else if (d instanceof JmlBlock) {
+    				JmlBlock bl = (JmlBlock)d;
+    				//System.out.println("FOUND BLOCK POTENTIAL SPECS " + " " + bl + " " + bl.blockSpecs);
+    				if (bl.blockSpecs != null) {
+    					attrSpecs(bl.blockSpecs);
+    				}
     			}
     		}
-    	//	else     		System.out.println("DECL " + d.getClass() + " " + d);
-
+    		for (var s: c.sym.members().getSymbols()) {
+    			specs.getSpecs(s);
+    		}
     	}
 
 //        JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(c);
@@ -6998,7 +7009,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		} catch (SpecificationException e) {
     			// error already reported
     			stat = JmlSpecs.SpecsStatus.ERROR;
+//    			System.out.println("SPECIFICATIONEXCEPTION");
+//    			e.printStackTrace(System.out);
+//    			Utils.dumpStack();
     		} catch (Exception e) {
+//    			System.out.println("EXCEPTION");
+//    			e.printStackTrace(System.out);
+//    			Utils.dumpStack();
     			stat = JmlSpecs.SpecsStatus.ERROR;
     			if (e instanceof PropagatedException) throw e;
     			utils.note("Exception while attributing specs for " + msym);
@@ -7025,6 +7042,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		if (Utils.debug() && msym.toString().equals("equals")) System.out.println("EQUALS-E");
     		if (nerrors != log.nerrors) {
     			specs.setStatus(msym, JmlSpecs.SpecsStatus.ERROR);
+//    			System.out.println("SERRORS" + msym);
+//    			Utils.dumpStack();
     		}
     	}
     }
@@ -7088,7 +7107,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 		if (utils.verbose()) utils.note("Attributing specs for " + vsym.owner + " " + vsym);
 		TypeSpecs cspecs = specs.getLoadedSpecs((ClassSymbol)vsym.enclClass());
 		FieldSpecs fspecs = specs.getLoadedSpecs(vsym);
-		ResultInfo ri = new ResultInfo(KindSelector.VAL_TYP, Type.noType);
+		ResultInfo ri = new ResultInfo(KindSelector.VAL_TYP, vsym.type);
+		var stat = JmlSpecs.SpecsStatus.SPECS_ATTR;
 		if (fspecs != null) {
 			// The following copied from Attr.visitVarDef
 //	        Lint lint = env.info.lint == null ? null : env.info.lint.augment(vsym);
@@ -7096,6 +7116,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Env<AttrContext> initEnv = memberEnter.initEnv(fspecs.decl, cspecs.specsEnv); // FIXME - interface instance vars are not static
 //            initEnv.info.lint = lint;
 //            initEnv.info.enclVar = vsym;
+            var prevSource = fspecs.decl == null ? null : log.useSource(fspecs.decl.sourcefile);
+            
+            if (fspecs.decl != null && fspecs.decl.init != null) {
+        		ResultInfo rri = new ResultInfo(KindSelector.VAL_TYP, vsym.type);
+            	Type t = fspecs.decl.init.type = attribTree(fspecs.decl.init, initEnv, rri);
+            	if (t.isErroneous()) stat = JmlSpecs.SpecsStatus.ERROR;
+            }
 
 			for (var cl: fspecs.list) {
 				var savedPure = this.pureEnvironment;
@@ -7103,7 +7130,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 				try {
 					this.pureEnvironment = true;
 					if (!utils.isJMLStatic(vsym)) initEnv.info.staticLevel = 0;
-					attribTree(cl, initEnv, ri);
+					Type t = attribTree(cl, initEnv, ri);
+	            	if (t.isErroneous()) stat = JmlSpecs.SpecsStatus.ERROR;
 				} catch (Exception e) {
 					utils.error(cl, "jml.internal", "Exception while attributing field clause: " + cl);
 					e.printStackTrace(System.out);
@@ -7112,9 +7140,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 					log.useSource(prev);
 				}
 			}
+			if (prevSource != null) log.useSource(prevSource);
 //            chk.setLint(prevLint);
 		}
-		JmlSpecs.instance(context).setStatus(vsym, JmlSpecs.SpecsStatus.SPECS_ATTR);
+		JmlSpecs.instance(context).setStatus(vsym, stat);
 		if (utils.verbose()) utils.note("    Attributed specs for " + vsym.owner + " " + vsym);
     }
 

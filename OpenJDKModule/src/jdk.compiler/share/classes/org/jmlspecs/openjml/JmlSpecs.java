@@ -66,6 +66,7 @@ import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.file.RelativePath;
 import com.sun.tools.javac.jvm.ClassReader;
+import com.sun.tools.javac.main.Option;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
@@ -428,8 +429,8 @@ public class JmlSpecs {
     //@ requires \nonnullelements(specsPathArray);
     //@ assignable this.specsDirs;
     public void setSpecsPath(String[] specsPathArray) {
-        boolean verbose = utils.jmlverbose >= Utils.JMLVERBOSE ||
-            Options.instance(context).get("-verbose") != null;
+        boolean verbose = utils.verbose() ||
+            Options.instance(context).get(Option.VERBOSE.getPrimaryName()) != null;
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
 
         specsDirs = new LinkedList<Dir>();
@@ -471,7 +472,7 @@ public class JmlSpecs {
                     utils.warning("jml.bad.sp.var","$CP");
                 } else {
                     cpIncluded = true;
-                    String dirs = Options.instance(context).get("-classpath");
+                    String dirs = Options.instance(context).get(Option.CLASS_PATH.getPrimaryName());
                     if (dirs == null) dirs = System.getProperty("java.class.path");
                     if (dirs != null) pushback(dirs,todo);
                 }
@@ -488,7 +489,7 @@ public class JmlSpecs {
                     utils.warning("jml.bad.sp.var","$SP");
                 } else {
                     spIncluded = true;
-                    String dirs = Options.instance(context).get("-sourcepath");
+                    String dirs = Options.instance(context).get(Option.SOURCE_PATH.getPrimaryName());
                     if (dirs != null) pushback(dirs,todo);
                 }
             } else if (dir.length()>0){
@@ -912,6 +913,12 @@ public class JmlSpecs {
         return getLoadedSpecs(type);
     }
     
+    public void getSpecs(Symbol s) {
+    	if (s instanceof ClassSymbol) getSpecs((ClassSymbol)s);
+    	if (s instanceof MethodSymbol) getSpecs((MethodSymbol)s);
+    	if (s instanceof VarSymbol) getSpecs((VarSymbol)s);
+    }
+    
 //    /** Retrieves the specifications for a given type, providing and registering
 //     * a default if one is not there
 //     * @param type the ClassSymbol of the type whose specs are wanted
@@ -983,9 +990,9 @@ public class JmlSpecs {
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
     	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) log.error("jml.internal", "Specs not yet loaded for " + m.owner + " on attempting to put " + m);
-    	if (utils.verbose()) utils.note("            Saving field specs for " + m.owner + " " + m);
         getLoadedSpecs((ClassSymbol)m.owner).fields.put(m,spec);
         setStatus(m, SpecsStatus.SPECS_LOADED);
+    	if (utils.verbose()) utils.note("            Saving field specs for " + m.owner + " " + m + " " + status(m));
     }
     
     /** Retrieves the attributed specs for a given method, possibly default specs;
