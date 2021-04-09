@@ -7672,6 +7672,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        JCExpression savedCondition = condition;
 //        try {
 //        condition = treeutils.trueLit;
+    	
+    	if (that.meth.type.isErroneous()) {
+    		System.out.println("ERRONEOUS TYPE " + that);
+    		return;
+    	}
 
         //System.out.println("APPLY ENTER " + statementStack.size());
         // FIXME - needs result set - needs proper handling of pure methods etc.

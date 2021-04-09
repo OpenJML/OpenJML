@@ -34,13 +34,13 @@ public class binaries extends TCBase {
                 "package java.io; //@ model class VVV{ static int i; }\n" + 
                 "public class File  implements Serializable, Comparable<File> { \n" +
                 " public void m() {  }\n" +
-                "//@model static class TTT { static int j; } " +
+                "//@ model static class TTT { static int j; } " +
                 "\n }");
         helpTCF("A.java",
                 " class A { \n" +
                 "    java.io.File file; \n" +
                 "}"
-                ,"/$A/java/io/File.jml:3: error: The method java.io.File.m() is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class.",14
+                ,"/$A/java/io/File.jml:3: error: There is no binary method to match this Java declaration in the specification file: m (owner: java.io.File)",14
         );
     }
     
@@ -51,7 +51,7 @@ public class binaries extends TCBase {
                 "package java.io; //@ model class VVV{ static int i; }\n" + 
                 "public class File implements Serializable, Comparable<File> { \n" +
                 " public void exists() { /*@ assert true; assume true; */ }\n" +
-                "//@model static class TTT { static int j; } " +
+                "//@ model static class TTT { static int j; } " +
                 "\n }");
         helpTCF("A.java",
                 " class A { \n" +
@@ -65,12 +65,12 @@ public class binaries extends TCBase {
     
     /** Tests that model methods etc. in system spec files are actually checked */  // FIXME - not sure this should actually work - unlerss File is parsed by some other means, how would one know where VVV and TTT are
     @Test
-    public void testBinary3() {
+    public void testBinary3() { 
         addMockFile("$A/java/io/File.jml",
                 "package java.io; //@ model class VVV{ public static int i; }\n" + 
                 "public class File implements Serializable, Comparable<File> { \n" +
                 "/*@ public invariant VVV.i; public invariant TTT.j; */ \n" +
-                "//@model static class TTT { public static int j; } \n" +
+                "//@ model static class TTT { public static int j; } \n" +
                 "}\n ");
         helpTCF("java/io/A.java",
                 "package java.io; class A { \n" +

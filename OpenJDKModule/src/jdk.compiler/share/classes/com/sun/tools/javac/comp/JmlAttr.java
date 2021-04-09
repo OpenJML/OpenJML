@@ -573,11 +573,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param prevIsInJmlDeclaration true if we are in a non-model JML declaration  (FIXME - this needs better evaluation)
      */
     public void attribClassBodySpecs(JmlClassDecl c) {
-
     	specs.getSpecs(c.sym); // Attributing specs, if not already done
-    	if (!utils.esc) for (var d: c.defs) {
+    	if (true || !utils.esc) for (var d: c.defs) {
     		if (d instanceof JCMethodDecl) specs.getSpecs(((JCMethodDecl)d).sym);
-    		else if (d instanceof JCVariableDecl) specs.getSpecs(((JCVariableDecl)d).sym);
+    		else if (d instanceof JCVariableDecl) {
+    			JCVariableDecl v = (JCVariableDecl)d;
+    			if (v.type.isReference() && v.type.tsym instanceof ClassSymbol) specs.getSpecs((ClassSymbol)v.type.tsym);
+    			specs.getSpecs(v.sym);
+    		}
     		else if (d instanceof JCClassDecl) specs.getSpecs(((JCClassDecl)d).sym);
     		else if (d instanceof JmlBlock) {
     			JmlBlock bl = (JmlBlock)d;
@@ -1143,17 +1146,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             prevSource = log.useSource(jmethod.source());
             attribAnnotationTypes(m.mods.annotations,env); // FIXME- CHECK : This is needed at least for the spec files of binary classes
-            
-            JmlSpecs.MethodSpecs mspecs = specs.getLoadedSpecs(m.sym);
-            if (mspecs != null) { // FIXME - is mspecs allowed to be null?
-            	attrSpecs(jmethod.sym);
-            	enclosingMethodEnv = mspecs.specsEnv;
-                currentSecretContext = mspecs.secretDatagroup;
-                currentQueryContext = mspecs.queryDatagroup;
-                if (currentQueryContext != null) currentSecretContext = currentQueryContext;
-            }
-            
+
             labelEnvs.put(null, enclosingMethodEnv);
+
+            JmlSpecs.MethodSpecs mspecs = specs.getLoadedSpecs(m.sym);
+//            if (mspecs != null) { // FIXME - is mspecs allowed to be null?
+//            	attrSpecs(jmethod.sym);
+//            	enclosingMethodEnv = mspecs.specsEnv;
+//                currentSecretContext = mspecs.secretDatagroup;
+//                currentQueryContext = mspecs.queryDatagroup;
+//                if (currentQueryContext != null) currentSecretContext = currentQueryContext;
+//            }
+            
             
 
 
@@ -1174,10 +1178,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             noBodyOK = noBodyOKSaved;
             if (isJmlDecl) jmlresolve.setAllowJML(prevAllowJML);
             {
-                if (m.body == null) {
-                    currentSecretContext = mspecs.secretDatagroup;
-                    currentQueryContext = null;
-                }
+//                if (m.body == null) {
+//                    currentSecretContext = mspecs.secretDatagroup;
+//                    currentQueryContext = null;
+//                }
                 // If the body is null, the specs are checked in visitBlock
                 //else deSugarMethodSpecs(jmethod,jmethod.methodSpecs);
             }
@@ -2987,18 +2991,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     else tree.modifiers.flags &=  ~Flags.STATIC;
                 }
                 specs.getLoadedSpecs((ClassSymbol)sym.owner);
-                FieldSpecs fspecs = specs.getSpecs((VarSymbol)sym);
-                if (fspecs == null || !isModel(fspecs.mods)) {
-                    utils.error(tree.ident,"jml.represents.expected.model", sym.owner, sym);
-                    if (fspecs != null && fspecs.decl != null) {
-                    	utils.note(fspecs.decl.sourcefile, fspecs.decl, "jml.associated.decl.cf", utils.locationString(tree.ident.pos));
-                    };
-                }
-                if (env.enclClass.sym != sym.owner && isStatic(sym.flags())) {
-                    utils.error(tree.ident,"jml.misplaced.static.represents", sym.owner, sym);
-                    if (fspecs != null && fspecs.decl != null) {
-                    	utils.note(fspecs.decl.sourcefile, fspecs.decl, "jml.associated.decl.cf", utils.locationString(tree.ident.pos));
-                    };
+                if (specs.statusOK((ClassSymbol)sym.owner)) { 
+                	FieldSpecs fspecs = specs.getSpecs((VarSymbol)sym);
+                	if (fspecs == null || !isModel(fspecs.mods)) {
+                		utils.error(tree.ident,"jml.represents.expected.model", sym.owner, sym);
+                		if (fspecs != null && fspecs.decl != null) {
+                			utils.note(fspecs.decl.sourcefile, fspecs.decl, "jml.associated.decl.cf", utils.locationString(tree.ident.pos));
+                		};
+                	}
+                	if (env.enclClass.sym != sym.owner && isStatic(sym.flags())) {
+                		utils.error(tree.ident,"jml.misplaced.static.represents", sym.owner, sym);
+                		if (fspecs != null && fspecs.decl != null) {
+                			utils.note(fspecs.decl.sourcefile, fspecs.decl, "jml.associated.decl.cf", utils.locationString(tree.ident.pos));
+                		};
+                	}
                 }
             }
             
@@ -3169,9 +3175,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
         savedMethodClauseOutputEnv = this.env;
         currentClauseType = tree.clauseKind;
+        Type t = null;
         switch (tree.clauseKind.name()) {
             case "recommends":
-                tree.clauseKind.typecheck(this,tree,env);
+                t = tree.clauseKind.typecheck(this,tree,env);
                 break;
             case "requires":
             case "ensures":
@@ -3179,15 +3186,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case "when":
             case "returns":
             	//System.out.println("EXPRCLAUSE " + tree);
-                attribExpr(tree.expression, env, syms.booleanType);
+                t = attribExpr(tree.expression, env, syms.booleanType);
                 break;
                 
             case "continues":
             case "breaks":
                 // FIXME - what about the label
-                attribExpr(tree.expression, env, syms.booleanType);
+                t = attribExpr(tree.expression, env, syms.booleanType);
                 break;
-            
             case "callable":
                 // FIXME - should be implemented somewhere else
                 break;
@@ -3198,6 +3204,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         savedMethodClauseOutputEnv = null;
         currentClauseType = null;
+        if (t != null && t.isErroneous()) {
+            throw new SpecificationException();
+        }
+    }
+    
+    public static class SpecificationException extends RuntimeException {
+    	
     }
     
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
@@ -3601,7 +3614,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitApply(JCTree.JCMethodInvocation tree) {
         // Otherwise this is just a Java method application
-        super.visitApply(tree);
+    	try {
+    		super.visitApply(tree);
+    	} catch (Exception e) {
+    		System.out.println("VISIT APPLY EXCEPTION");
+    		e.printStackTrace(System.out);
+            if (result == null) System.out.println("RESULT NULL");
+            if (result.isErroneous()) System.out.println("RESULT ERRONEOUS");
+    	}
         if (result.isErroneous()) return;
         Type savedResult = result;
         MethodSymbol msym = null;
@@ -4802,12 +4822,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // FIXME - the code below crashes for class symbols. What should we do?
                 // FIXME - we also get this case for annotations on a clause
             } else {
-            	boolean print = sym.toString().contains("elementCount");
                 JCModifiers mods = null;
                 if (sym.owner != null && sym.owner.kind == TYP) {
                     if (sym.kind == VAR) {
+                        VarSymbol vsym = (VarSymbol)sym;
                         mods = specs.getSpecsModifiers((VarSymbol)sym);
-                    }
+                   }
                     if (sym.kind == MTH) {
                         mods = specs.getSpecsModifiers((MethodSymbol)sym);
                     }
@@ -4818,7 +4838,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (mods != null && utils.hasMod(mods,SPEC_PUBLIC)) {
                     v = Flags.PUBLIC;
                 }
-                if (print) System.out.println("VIZ " + sym + " " + sym.owner + " " + sym.owner.kind + " " + sym.kind + " " + jmlVisibility + " " + v + " " + utils.hasMod(mods,SPEC_PUBLIC) + " " + mods);
             }
             
             if (currentClauseType == invariantClause || currentClauseType == constraintClause) {
@@ -6925,27 +6944,29 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void attrSpecs(MethodSymbol msym) {
-    	if (utils.verbose()) utils.note("Attributing specs for " + msym.owner + " " + msym);
     	int nerrors = log.nerrors;
     	var savedClauseType = this.currentClauseType;
 		var saved = this.env;
 		var savedEnclosingClassEnv = this.enclosingClassEnv;
 		var savedEnclosingMethodEnv = this.enclosingMethodEnv;
 		var savedPure = this.pureEnvironment;
-    	this.currentClauseType = null;
-        attribClass((ClassSymbol)msym.owner);
-        JmlSpecs.MethodSpecs sp = specs.getLoadedSpecs(msym);
-        if (sp == null) {
-        	if (utils.verbose()) utils.note("Specs are null for " + msym.owner + "." + msym);
-        	return;
-        }
-        if (sp.specsEnv == null) return;  // Default specs? already attributed? -- e.g. default constructor with no source
-        this.env = sp.specsEnv;
-        this.enclosingMethodEnv = sp.specsEnv;
-        specs.getSpecs((ClassSymbol)msym.owner); // Checking all the type clauses and declarations, if not already done
-        this.pureEnvironment = true;
-    	if (utils.verbose()) utils.note("    Lint " + msym.owner + " " + msym + " " + (sp.specsEnv.info.lint != null));
-    	try {
+		JmlSpecs.MethodSpecs sp = null;
+		JmlSpecs.SpecsStatus stat = JmlSpecs.SpecsStatus.SPECS_ATTR;
+		try {
+    		if (utils.verbose()) utils.note("Attributing specs for " + msym.owner + " " + msym);
+    		this.currentClauseType = null;
+    		attribClass((ClassSymbol)msym.owner);
+    		sp = specs.getLoadedSpecs(msym);
+    		if (sp == null) {
+    			if (utils.verbose()) utils.note("Specs are null for " + msym.owner + "." + msym);
+    			return;
+    		}
+    		if (sp.specsEnv == null) return;  // Default specs? already attributed? -- e.g. default constructor with no source
+    		this.env = sp.specsEnv;
+    		this.enclosingMethodEnv = sp.specsEnv;
+    		specs.getSpecs((ClassSymbol)msym.owner); // Checking all the type clauses and declarations, if not already done
+    		this.pureEnvironment = true;
+    		if (utils.verbose()) utils.note("    Lint " + msym.owner + " " + msym + " " + (sp.specsEnv.info.lint != null));
     		if (utils.verbose()) utils.note("    Specs are " + sp);
     		var biter = msym.params.iterator();
     		if (sp.cases.decl != null) {
@@ -6971,34 +6992,40 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			if (sp != null && sp.cases != null) {
     				this.env = sp.specsEnv;
     				this.enclosingClassEnv = specs.getLoadedSpecs(msym.enclClass()).specsEnv;
-// FIXME    				deSugarMethodSpecs(msym,sp); // FIXME - needed?
+    				// FIXME    				deSugarMethodSpecs(msym,sp); // FIXME - needed?
     				sp.cases.accept(this); // FIXME - use desugared?
     			}
+    		} catch (SpecificationException e) {
+    			// error already reported
+    			stat = JmlSpecs.SpecsStatus.ERROR;
     		} catch (Exception e) {
+    			stat = JmlSpecs.SpecsStatus.ERROR;
     			if (e instanceof PropagatedException) throw e;
     			utils.note("Exception while attributing specs for " + msym);
     			throw new PropagatedException(new RuntimeException(e));
     		} finally {
-    			specs.setStatus(msym, JmlSpecs.SpecsStatus.SPECS_ATTR);
+    			specs.setStatus(msym, stat);
     			this.env = saved;
     			currentSecretContext = savedSecret;
     			currentQueryContext = savedQuery;
     			jmlresolve.setAllowJML(prevAllowJML);
     		}
     		utils.note(true, "    Attributed specs for " + msym.owner + " " + msym);
+    	} catch (SpecificationException e) {
+    		throw new PropagatedException(e);
     	} catch (PropagatedException e) {
     		// continue to clean exit - already reported
     	} catch (Exception e) {
-    		utils.error(sp.cases.decl, "jml.internal", "Exception while attributing method specs: " + msym.owner + " " + msym);
+    		if (sp != null) utils.error(sp.cases.decl, "jml.internal", "Exception while attributing method specs: " + msym.owner + " " + msym);
     	} finally {
     		this.enclosingClassEnv = savedEnclosingClassEnv;
     		this.enclosingMethodEnv = savedEnclosingMethodEnv;
     		this.currentClauseType = savedClauseType;
-            this.pureEnvironment = savedPure;
-            if (Utils.debug() && msym.toString().equals("equals")) System.out.println("EQUALS-E");
-        	if (nerrors != log.nerrors) {
-        		specs.setStatus(msym, JmlSpecs.SpecsStatus.ERROR);
-        	}
+    		this.pureEnvironment = savedPure;
+    		if (Utils.debug() && msym.toString().equals("equals")) System.out.println("EQUALS-E");
+    		if (nerrors != log.nerrors) {
+    			specs.setStatus(msym, JmlSpecs.SpecsStatus.ERROR);
+    		}
     	}
     }
     

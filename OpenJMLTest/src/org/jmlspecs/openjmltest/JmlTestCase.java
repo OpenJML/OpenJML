@@ -36,6 +36,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
 
+import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
@@ -59,18 +60,27 @@ import com.sun.tools.javac.util.Position;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public abstract class JmlTestCase {
 
+    // The test output expects that the current working directory while running unittests is  .../OpenJML/OpenJMLTest
+
     // In a 'standard' local OpenJML github working environment, root will be the container for
     // OpenJML/OpenJDKModule, OpenJML/OpenJMLTest, Specs, etc.
     // Presumes that the working directory for executing unit tests is .../OpenJML/OpenJMLTest
     // This value is needed because some tests emit a full absolute path name in error messages
-    static public String root = new File(".").getAbsoluteFile().getParentFile().getParentFile().getParent();
+    static final public String root = new File(".").getAbsoluteFile().getParentFile().getParentFile().getParent();
+    {
+    	if (!new File(root + "/OpenJML").exists() || !new File(root + "/OpenJML/OpenJMLTest").exists()) {
+    		System.out.println("The current working directory for tests is incorrect");
+    		System.exit(1);
+    	}
+    }
 
-    // This value is for running tests, so we can presume the current directory is .../OpenJML/OpenJMLTest
     public final static String specsdir = System.getenv("SPECSDIR") != null ? System.getenv("SPECSDIR") : (root + "/Specs");
     public final static String streamLine = "10"; // This line number is present in many test oracle files, but changes as edits are made to Stream.jml
+    /** Replace aspects of expected output that depend on the local environment */
+    public static String doReplacements(String s) {
+        return s.replace("$ROOT",JmlTestCase.root).replace("$SPECS",specsdir).replace("$STRL", JmlTestCase.streamLine);
+    }
     
-    static protected boolean isWindows = System.getProperty("os.name").contains("Wind");
-
     // FIXME - do not rely on eclipse
     static protected String projLocation = System.getProperty("openjml.eclipseProjectLocation");
     
@@ -103,18 +113,19 @@ public abstract class JmlTestCase {
     // before calling super.setUp()
     public boolean ignoreNotes = false;
 
+    /** A Diagnostic Listener that collects the diagnostics, so that they can be compared against expected results */
     final static public class FilteredDiagnosticCollector<S> implements DiagnosticListenerX<S> {
         /** Constructs a diagnostic listener that collects all of the diagnostics,
          * with the ability to filter out the notes.
-         * @param filtered if true, no notes (only errors and warnings) are collected
+         * @param noNotes if true, no notes (only errors and warnings) are collected
          */
-        public FilteredDiagnosticCollector(boolean filtered, boolean print) {
-            this.filtered = filtered;
-            this.print = print;
+        public FilteredDiagnosticCollector(boolean noNotes, boolean print) {
+            this.noNotes = noNotes && System.getenv("VERBOSE") == null;
+            this.print = print || System.getenv("VERBOSE") != null || System.getenv("STACK") != null;
         }
         
-        /** If true, no notes are collected. */
-        boolean filtered;
+        /** If true, no notes are collected, except if VERBOSE is true */
+        boolean noNotes;
         /** If true, diagnostics are printed (as well as being collected) */
         boolean print;
         
@@ -126,7 +137,7 @@ public abstract class JmlTestCase {
         public void report(Diagnostic<? extends S> diagnostic) {
             diagnostic.getClass(); // null check
             if (print) System.out.println(diagnostic.toString());
-            if (!filtered || diagnostic.getKind() != Diagnostic.Kind.NOTE)
+            if (!noNotes || diagnostic.getKind() != Diagnostic.Kind.NOTE)
                 diagnostics.add(diagnostic);
         }
 
@@ -141,7 +152,7 @@ public abstract class JmlTestCase {
     }
     
     // A class to manage communication with external processes, that is with both the input from
-    // the external's System.out and from System.err
+    // the external's System.out and from System.err. Just used for RAC.
     public static class StreamGobbler extends Thread
     {
         private InputStream is;
@@ -170,6 +181,7 @@ public abstract class JmlTestCase {
         }
     }
     
+    /** Class used by the timeout mechanism */
     private static class InterruptScheduler extends TimerTask {
         Thread target = null;
         
@@ -183,6 +195,7 @@ public abstract class JmlTestCase {
         }
     }
     
+    /** Used to set a timeout on a RAC process */
     public static boolean timeout(Process p, long milliseconds) {
         // Set a timer to interrupt the process if it does not return within the timeout period
         Timer timer = new Timer();
@@ -208,7 +221,7 @@ public abstract class JmlTestCase {
     protected LinkedList<JavaFileObject> mockFiles;
     
     /** Normally false, but set to true in tests of the test harness itself, to
-     * avoid printing out diagnostic messages when a test fails.
+     * avoid printing out diagnostic messages when a test intentionally fails.
      */
     public boolean noExtraPrinting = false;
 
@@ -234,10 +247,19 @@ public abstract class JmlTestCase {
     @Before
     public void setUp() throws Exception {
         main = new org.jmlspecs.openjml.Main("openjml-unittest",new PrintWriter(System.out, true));
-        collector = new FilteredDiagnosticCollector<JavaFileObject>(ignoreNotes,false);
-        context = main.initialize(collector);
+        collector = new FilteredDiagnosticCollector<JavaFileObject>(ignoreNotes,printDiagnostics);
+        if (System.getenv("NOJML")!=null) {
+            context = main.context = new Context();
+            JavacFileManager.preRegister(context); // can't create it until Log has been set up
+        } else {
+        	context = main.initialize(collector);
+        }
         mockFiles = new LinkedList<JavaFileObject>();
         Log.alwaysReport = true; // Always report errors (even if they would be suppressed because they are at the same position
+        if (System.getenv("VERBOSE") != null) {
+        	Options.instance(context).put("-verbose","true");
+        	main.addOptions("-jmlverbose","3");
+        }
     }
     
     public int compile(com.sun.tools.javac.util.List<String> args) {
@@ -264,18 +286,6 @@ public abstract class JmlTestCase {
     }
 
 
-    /** Prints a diagnostic as it is in an error or warning message, but without
-     * any line of source code (or pointer to a column).  
-     * This is how dd.toString() used to behave, but in OpenJDK
-     * build 55, toString also included the source information.  So we need to 
-     * wrap dd in this call (or change all of the tests).
-     * @param dd the diagnostic
-     * @return
-     */
-    static protected String noSource(Diagnostic<? extends JavaFileObject> dd) {
-        return dd instanceof JCDiagnostic ? noSource((JCDiagnostic)dd) : dd.toString();
-    }
-
     
     /** Prints out the errors collected by the diagnostic listener */
     public void printDiagnostics() {
@@ -292,21 +302,21 @@ public abstract class JmlTestCase {
     	}
     }
 
-    /** Checks that all of the collected diagnostic messages match the data supplied
-     * in the arguments.
-     * @param messages an array of expected messages that are checked against the actual messages
-     * @param cols an array of expected column numbers that are checked against the actual diagnostics
-     */ // TODO - not used
-    public void checkMessages(/*@ non_null */String[] messages, /*@ non_null */int[] cols) {
-        List<Diagnostic<? extends JavaFileObject>> diags = collector.getDiagnostics();
-        if (print || (!noExtraPrinting && messages.length != diags.size())) printDiagnostics();
-        assertEquals("Saw wrong number of errors ",messages.length,diags.size());
-        assertEquals("Saw wrong number of columns ",cols.length,diags.size());
-        for (int i = 0; i<diags.size(); ++i) {
-            assertEquals("Message for item " + i,messages[i],noSource(diags.get(i)));
-            assertEquals("Column number for item " + i,cols[i],diags.get(i).getColumnNumber()); // Column number is 1-based
-        }
-    }
+//    /** Checks that all of the collected diagnostic messages match the data supplied
+//     * in the arguments.
+//     * @param messages an array of expected messages that are checked against the actual messages
+//     * @param cols an array of expected column numbers that are checked against the actual diagnostics
+//     */ // TODO - not used
+//    public void checkMessages(/*@ non_null */String[] messages, /*@ non_null */int[] cols) {
+//        List<Diagnostic<? extends JavaFileObject>> diags = collector.getDiagnostics();
+//        if (print || (!noExtraPrinting && messages.length != diags.size())) printDiagnostics();
+//        assertEquals("Saw wrong number of errors ",messages.length,diags.size());
+//        assertEquals("Saw wrong number of columns ",cols.length,diags.size());
+//        for (int i = 0; i<diags.size(); ++i) {
+//            assertEquals("Message for item " + i,messages[i],noSource(diags.get(i)));
+//            assertEquals("Column number for item " + i,cols[i],diags.get(i).getColumnNumber()); // Column number is 1-based
+//        }
+//    }
 
     /** Checks that all of the collected messages match the data supplied
      * in the arguments.
@@ -332,20 +342,6 @@ public abstract class JmlTestCase {
     public void checkMessages() {
         if (print || (!noExtraPrinting && 0 != 2*collector.getDiagnostics().size())) printDiagnostics();
         assertEquals("Saw wrong number of messages ",0,collector.getDiagnostics().size());
-    }
-
-    /** Used to add a pseudo file to the file system. Note that for testing, a 
-     * typical filename given here might be #B/A.java, where #B denotes a 
-     * mock directory on the specification path
-     * @param filename the name of the file, including leading directory components 
-     * @param content the String constituting the content of the pseudo-file
-     */
-    protected void addMockFile(/*@ non_null */ String filename, /*@ non_null */String content) {
-        try {
-            addMockFile(filename,new TestJavaFileObject(new URI("file:///" + filename),content));
-        } catch (Exception e) {
-            fail("Exception in creating a URI: " + e);
-        }
     }
 
     protected ByteArrayOutputStream berr;
@@ -391,6 +387,20 @@ public abstract class JmlTestCase {
      * typical filename given here might be #B/A.java, where #B denotes a 
      * mock directory on the specification path
      * @param filename the name of the file, including leading directory components 
+     * @param content the String constituting the content of the pseudo-file
+     */
+    protected void addMockFile(/*@ non_null */ String filename, /*@ non_null */String content) {
+        try {
+            addMockFile(filename,new TestJavaFileObject(new URI("file:///" + filename),content));
+        } catch (Exception e) {
+            fail("Exception in creating a URI: " + e);
+        }
+    }
+
+    /** Used to add a pseudo file to the file system. Note that for testing, a 
+     * typical filename given here might be #B/A.java, where #B denotes a 
+     * mock directory on the specification path
+     * @param filename the name of the file, including leading directory components 
      * @param file the JavaFileObject to be associated with this name
      */
     protected void addMockFile(String filename, JavaFileObject file) {
@@ -398,32 +408,21 @@ public abstract class JmlTestCase {
         specs.addMockFile(filename,file);
     }
     
-    /** Used to add a pseudo file to the command-line.   // TODO - is it $A or #A, here and above
-     * @param filename the name of the pseudo-file, including leading directory components (e.g. /$A/ )
-     * @param content the content of the pseudo-file
+    /** Prints a diagnostic as it is in an error or warning message, but without
+     * any line of source code (or pointer to a column).  
+     * This is how dd.toString() used to behave, but in OpenJDK
+     * build 55, toString also included the source information.  So we need to 
+     * wrap dd in this call (or change all of the tests).
+     * @param dd the diagnostic
+     * @return
      */
-    protected void addMockJavaFile(String filename, /*@ non_null */String content) {
-        try {
-            addMockFile(filename,new TestJavaFileObject(new URI("file:///" + filename),content));
-        } catch (Exception e) {
-            fail("Exception in creating a URI: " + e);
-        }
+    static protected String noSource(Diagnostic<? extends JavaFileObject> dd) {
+        return dd instanceof JCDiagnostic ? noSource((JCDiagnostic)dd) : dd.toString();
     }
-    
-//    /** Used to add a pseudo file to the file system. Note that for testing, a 
-//     * typical filename given here might be #B/A.java, where #B denotes a 
-//     * mock directory on the specification path
-//     * @param filename the name of the file, including leading directory components 
-//     * @param file the JavaFileObject to be associated with this name
-//     */
-//    protected void addMockJavaFile(String filename, JavaFileObject file) {
-//        mockFiles.add(file);
-//    }
 
-    
-    /** Returns the diagnostic message without the source code line;
+   /** Returns the diagnostic message without the source code line;
      *  source file may be null, in which case it is omitted from the generated string;
-     *  line number may be -1, in which case it is omitted aslo */
+     *  line number may be -1, in which case it is omitted also */
     static String noSource(JCDiagnostic dd) {
     	JavaFileObject jfo = dd.getSource();
     	String s = jfo == null ? "" : (jfo.getName() + ":");
@@ -431,10 +430,7 @@ public abstract class JmlTestCase {
         return s + ln+ dd.getPrefix() + dd.getMessage(java.util.Locale.getDefault());
     }
 
-    public static String doReplacements(String s) {
-        return s.replace("$ROOT",JmlTestCase.root).replace("$SPECS",specsdir).replace("$STRL", JmlTestCase.streamLine);
-    }
-    
+    /** Used by some tests to set the Java deprecation option */
     public void setDeprecation() {
         Options.instance(context).put("-Xlint:deprecation","true");
     }

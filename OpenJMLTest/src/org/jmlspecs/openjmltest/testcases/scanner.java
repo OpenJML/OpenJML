@@ -92,7 +92,7 @@ public class scanner extends JmlTestCase {
         try {
             Log.instance(context).useSource(new TestJavaFileObject(s) );
             JmlScanner sc = (JmlScanner)fac.newScanner(s, true);
-            if (keys != null) {
+            if (keys != null && org.jmlspecs.openjml.Main.useJML) {
                 for (String k: keys) { JmlOptions.instance(context).commentKeys.add(k); }
             }
             int i = 0;

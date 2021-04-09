@@ -67,6 +67,7 @@ public class JmlOptions extends Options {
     }
 
     public static JmlOptions instance(Context context) {
+    	if (!(Options.instance(context) instanceof JmlOptions)) Utils.dumpStack();
         return (JmlOptions)Options.instance(context);
     }
 
@@ -369,7 +370,7 @@ public class JmlOptions extends Options {
                 }
             }
         }
-
+        
         String n = JmlOption.VERBOSENESS.optionName().trim();
         String levelstring = options.get(n);
         if (levelstring != null) {
