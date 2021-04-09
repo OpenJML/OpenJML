@@ -565,7 +565,7 @@ public class JmlEnter extends Enter {
 				if (!isJML && isGhostOrModel) {
 					var pos = utils.locMod(specDecl.mods, Modifiers.GHOST, Modifiers.MODEL);
 					utils.error(pos, "jml.message", "A Java class declaration must not be marked either ghost or model: " + className + " (owner: " + owner +")");
-					return ok;
+					// continue
 				}
 				if (utils.verbose()) utils.note("Matched class: " + csym + " (owner: " + csym.owner +")" );
 			}
@@ -975,6 +975,7 @@ public class JmlEnter extends Enter {
 				me.env = savedEnv;
 
 				if (utils.verbose()) utils.note("Entered JML field: " + vsym.type + " " + vsym + " (owner: " + vsym.owner + ")");
+				ok = true;
 			} else {
 				// Found a matching binary field
 				final var vvsym = vsym;
@@ -1012,8 +1013,8 @@ public class JmlEnter extends Enter {
 					if (!isSameCU) { // if isSameCU==true, there already is a error about duplicate definition in MemberEnter
 						utils.error(vdecl, "jml.message", "This specification declaration of field " + vdecl.name + " has the same name as a previous field declaration");
 						utils.error(prevDecl.source(), prevDecl.pos, "jml.associated.decl.cf", utils.locationString(vdecl.pos, vdecl.source()));
+						ok = false;
 					}
-					ok = false;
 				}
 				if (!specsTypeSufficientlyMatches(t, vsym.type)) {
 					utils.error(vdecl.vartype, "jml.message", "Type of field " + vdecl.name + " in specification differs from type in source/binary: " + t + " vs. " + vsym.type);
@@ -1031,6 +1032,7 @@ public class JmlEnter extends Enter {
 		} finally {
 			if (vsym != null) {
 				JmlSpecs.instance(context).putSpecs(vsym, vdecl.fieldSpecs);
+				if (!ok) System.out.println("ENTERING NOT OK " + vsym);
 				if (!ok) JmlSpecs.instance(context).setStatus(vsym, JmlSpecs.SpecsStatus.ERROR);
 			}
 		}

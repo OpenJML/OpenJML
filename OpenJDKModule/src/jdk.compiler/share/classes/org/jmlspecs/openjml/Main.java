@@ -27,6 +27,7 @@ import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlScanner;
+import com.sun.tools.javac.resources.CompilerProperties.Errors;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.List;
@@ -287,10 +288,6 @@ public class Main extends com.sun.tools.javac.main.Main {
     
     // TODO: Move these? Get them from Option?
     
-    /** The option string for requesting help information */
-    /*@non_null*/
-    final public static String helpOption = "-help";
-    
     /** The option string for running jmldoc */
     /*@non_null*/
     final public static String jmldocOption = "-doc";
@@ -302,13 +299,6 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     //@ requires args != null && \nonnullelements(args);
     public static int execute(String... args) {
-        if (args != null) {
-            for (String a: args) {
-                if (jmldocOption.equals(a)) {
-                    return 4; // FIXME  - org.jmlspecs.openjml.jmldoc.Main.execute(args);
-                }
-            }
-        }
         return execute(args,false);  // The boolean: true - errors to stdErr, false - errors to stdOut
     }
 
@@ -515,9 +505,20 @@ public class Main extends com.sun.tools.javac.main.Main {
 //        register(context);
         setProofResultListener(prl);
     	//if (Options.instance(context) instanceof JmlOptions) return;
+        boolean hasArgs = args.length != 0;
     	args = JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);
+    	if (JmlOptions.instance(context).get("-?") != null) return Result.OK;
+    	if (args.length == 0 && fileObjects == null) {
+    		if (hasArgs) {
+    			Log.instance(context).error(Errors.NoSourceFiles);
+    			return Result.CMDERR;
+    		} else {
+    			JmlOptions.instance(context).allHelp(false);
+    			return Result.CMDERR;
+    		}
+    	}
         // Note that the Java option processing happens in compile method call below.
-        // Those options are not read at the time of the register call,
+        // Those options are not read at the time of the register() call,
         // but the register call has to happen before compile is called.
         canceled = false;
         Main.Result exit = super.compile(args,context);
@@ -535,8 +536,8 @@ public class Main extends com.sun.tools.javac.main.Main {
 
     @Override
     protected void adjustArgs(Arguments args)  {
-    	args.allowEmpty();
     	if (fileObjects != null) {
+        	args.allowEmpty();
     		args.fileObjects = new java.util.HashSet<JavaFileObject>();
     		args.fileObjects.addAll(fileObjects);
     	}

@@ -168,7 +168,7 @@ public class Utils {
     }
 
     /** Global utility value that enables printing of debugging or trace information. */
-    public int jmlverbose = 0; 
+    public int jmlverbose = NORMAL; 
     static public final int QUIET = 0;
     static public final int NORMAL = 1;
     static public final int PROGRESS = 2;
@@ -1730,7 +1730,7 @@ public class Utils {
     }
     
     public boolean verbose() {
-    	return jmlverbose >= Utils.JMLVERBOSE;
+    	return jmlverbose >= Utils.JMLVERBOSE || System.getenv("VERBOSE") != null;
     }
     
     public boolean progress() {

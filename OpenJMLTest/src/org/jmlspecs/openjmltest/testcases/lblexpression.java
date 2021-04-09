@@ -22,7 +22,7 @@ public class lblexpression extends TCBase {
                 "   //@ invariant (\\lblpos A k);\n" +
                 "   void m(double k) {}\n" +
                 "}",
-        "/A.java:3: incompatible types: int cannot be converted to boolean",29
+        "/A.java:3: error: incompatible types: int cannot be converted to boolean",29
         );
     }
 
@@ -34,7 +34,7 @@ public class lblexpression extends TCBase {
                 "   //@ invariant 0==(\\lblpos A -k);\n" +
                 "   void m(double k) {}\n" +
                 "}"
-                ,"/A.java:3: incompatible types: int cannot be converted to boolean",32
+                ,"/A.java:3: error: incompatible types: int cannot be converted to boolean",32
         );
     }
 
@@ -46,7 +46,7 @@ public class lblexpression extends TCBase {
                 "   //@ invariant 0==(\\lblpos pure -k);\n" +
                 "   void m(double k) {}\n" +
                 "}"
-                ,"/A.java:3: incompatible types: int cannot be converted to boolean",35
+                ,"/A.java:3: error: incompatible types: int cannot be converted to boolean",35
         );
     }
 
@@ -69,7 +69,7 @@ public class lblexpression extends TCBase {
                 "   //@ invariant (\\lbl pure -k);\n" +
                 "   void m(double k) {}\n" +
                 "}"
-                ,"/A.java:3: incompatible types: int cannot be converted to boolean",19
+                ,"/A.java:3: error: incompatible types: int cannot be converted to boolean",19
         );
     }
 

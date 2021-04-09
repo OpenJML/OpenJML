@@ -4288,9 +4288,9 @@ public class Attr extends JCTree.Visitor {
         		org.jmlspecs.openjml.Utils.dumpStack();
         	}
         } else {
-        	if (org.jmlspecs.openjml.Utils.debug()) System.out.println("CHECKID " + tree + " " + site + " " + sym + " " + sym.kind);
+        	//if (org.jmlspecs.openjml.Utils.debug()) System.out.println("CHECKID " + tree + " " + site + " " + sym + " " + sym.kind);
         	result = checkId(tree, site, sym, env, resultInfo);
-        	if (org.jmlspecs.openjml.Utils.debug()) System.out.println("CHECKID-Z " + tree + " " + tree.type + " " + result + " " + site + " " + sym + " " + sym.kind);
+        	//if (org.jmlspecs.openjml.Utils.debug()) System.out.println("CHECKID-Z " + tree + " " + tree.type + " " + result + " " + site + " " + sym + " " + sym.kind);
         }
     }
     //where

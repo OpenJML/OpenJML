@@ -29,6 +29,7 @@ import org.jmlspecs.openjml.Main.PrintProgressReporter;
 import org.jmlspecs.openjml.esc.MethodProverSMT;
 
 import com.sun.tools.javac.main.Arguments;
+import com.sun.tools.javac.main.Option.OptionKind;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -42,6 +43,8 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
+import com.sun.tools.javac.util.Log.PrefixKind;
+import com.sun.tools.javac.util.Log.WriterKind;
 
 /** Handles JML options. Note that all option settings are contained in a simple map of
  * option name (with the initial -) to string value, in the Options superclass.
@@ -78,6 +81,7 @@ public class JmlOptions extends Options {
             Object d = opt.defaultValue();
             String s = d == null ? null : d.toString();
             put(opt.optionName(),s);
+            opt.check(context);
         }
     }
 
@@ -116,6 +120,7 @@ public class JmlOptions extends Options {
                 iter.remove();
             }
         }
+        setupOptions(); // check consistency of options so far,even though Java options are not processed yet
         options.put("compilePolicy", "simple");
         // setupOptions is called to verify consistency after Java options are processed, in JmlArguments.validate
         return newargs.toArray(new String[newargs.size()]);
@@ -205,11 +210,15 @@ public class JmlOptions extends Options {
             } else {
                 res = "";
                 Utils.instance(context).warning("jml.expected.parameter",s);
+                o = null;
+                s = null;
             }
         }
-        if (o == null) {
+        if (s == null) {
+        } else if (o == null) {
             if (s.equals("-help") || s.equals("-?") || s.equals("--help")) {
-                helpJML(Main.instance(context).stdOut); // FIXME - send to a log?
+            	allHelp(true);
+            	options.put("-?", "");
             } else {
                 remainingArgs.add(s);
             }
@@ -263,6 +272,7 @@ public class JmlOptions extends Options {
                         // continue
                     }
                 }
+                o = null;
             }
         } else {
             if (negate) {
@@ -293,7 +303,21 @@ public class JmlOptions extends Options {
                 }
                 setPropertiesFileOptions(options, properties);
             }
+            o = null;
         }
+        if (o != null) o.check(context);
+    }
+    
+    public void allHelp(boolean details) {
+    	if (!details) {
+    		Log.instance(context).printRawLines("Usage: openjml <options> <source files>");
+    		Log.instance(context).printRawLines("Use option '-?' to list options");
+    	} else {
+    		Log.instance(context).printLines(WriterKind.STDOUT, PrefixKind.JAVAC, "msg.usage.header", "openjml");
+    		Log.instance(context).printRawLines("Java options:");
+    		com.sun.tools.javac.main.Option.showHelp(Log.instance(context), OptionKind.STANDARD);
+    		helpJML(Main.instance(context).stdOut); // FIXME - send to a log?
+    	}
     }
 
 
@@ -345,19 +369,15 @@ public class JmlOptions extends Options {
         Utils utils = Utils.instance(context);
 
         options.remove("printArgsToFile");
-        String t = options.get(JmlOption.JMLTESTING.optionName());
-        Utils.testingMode =  ( t != null && !t.equals("false"));
         String benchmarkDir = options.get(JmlOption.BENCHMARKS.optionName());
         if (benchmarkDir != null) {
             new File(benchmarkDir).mkdir();
         }
 
-        utils.jmlverbose = Utils.NORMAL;
-
         {
             // Automatically set verboseness to PROGRESS if we are debugging checkFeasibility.
             // So do this determination before we interpret the verboseness option.
-            t = options.get(JmlOption.FEASIBILITY.optionName());
+            String t = options.get(JmlOption.FEASIBILITY.optionName());
             if (t != null) {
                 if (t.startsWith("debug") && utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
                 int k = t.indexOf(":");
@@ -371,17 +391,6 @@ public class JmlOptions extends Options {
             }
         }
         
-        String n = JmlOption.VERBOSENESS.optionName().trim();
-        String levelstring = options.get(n);
-        if (levelstring != null) {
-            levelstring = levelstring.trim();
-            if (!levelstring.isEmpty()) try {
-                utils.jmlverbose = Integer.parseInt(levelstring);
-            } catch (NumberFormatException e) {
-                utils.warning("jml.message","The value of the " + n + " option or the " + Strings.optionPropertyPrefix + n.substring(1) + " property should be the string representation of an integer: \"" + levelstring + "\"");
-                options.put(n, "1");
-            }
-        }
         if (options.get("-verbose") != null) {
             // If the Java -verbose option is set, we set -jmlverbose as well
             utils.jmlverbose = Utils.JMLVERBOSE;
@@ -407,43 +416,6 @@ public class JmlOptions extends Options {
             Main.instance(context).progressDelegator.setDelegate(null);
         }
 
-        boolean b = JmlOption.isOption(context,JmlOption.USEJAVACOMPILER);
-        if (b) {
-            Utils.instance(context).warning("jml.message","The -java option is ignored unless it is the first command-line argument");
-        }
-
-        Cmd cmd = Cmd.CHECK; // default
-        String val = options.get(JmlOption.COMMAND.optionName());
-        try {
-            if (val != null) cmd = Cmd.valueOf(val.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            Log.instance(context).error("jml.bad.command",val);
-            return false;
-        }
-        utils.cmd = cmd;
-        utils.rac = cmd == Cmd.RAC;
-        utils.esc = cmd == Cmd.ESC;
-        utils.check = cmd == Cmd.CHECK;
-        utils.compile = cmd == Cmd.COMPILE;
-        utils.infer   = cmd == Cmd.INFER;
-
-        val = options.get(JmlOption.ESC_BV.optionName());
-        if (val == null || val.isEmpty()) {
-            options.put(JmlOption.ESC_BV.optionName(),(String)JmlOption.ESC_BV.defaultValue());
-        } else if("auto".equals(val) || "true".equals(val) || "false".equals(val)) {
-        } else {
-            utils.warning("jml.message","Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: " + val);
-            options.put(JmlOption.ESC_BV.optionName(),(String)JmlOption.ESC_BV.defaultValue());
-        }
-
-        val = options.get(JmlOption.LANG.optionName());
-        if (val == null || val.isEmpty()) {
-            options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
-        } else if(JmlOption.langPlus.equals(val) || JmlOption.langJavelyn.equals(val) || JmlOption.langJML.equals(val)) {
-        } else {
-            utils.warning("jml.message","Command-line argument error: Expected '" + JmlOption.langPlus + "', '" + JmlOption.langJML + "' or '" + JmlOption.langJavelyn + "' for -lang: " + val);
-            options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
-        }
 
         String keysString = options.get(JmlOption.KEYS.optionName());
         commentKeys = new HashSet<String>();
@@ -460,38 +432,11 @@ public class JmlOptions extends Options {
         // FIXME - can this be set later, so it is not called everytime the options are set/checked
         if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) Main.appendRuntime(context);
 
-        String limit = JmlOption.value(context,JmlOption.ESC_MAX_WARNINGS);
-        if (limit == null || limit.isEmpty() || limit.equals("all")) {
-            utils.maxWarnings = Integer.MAX_VALUE; // no limit is the default
-        } else {
-            try {
-                int k = Integer.parseInt(limit);
-                utils.maxWarnings = k <= 0 ? Integer.MAX_VALUE : k;
-            } catch (NumberFormatException e) {
-                utils.error("jml.message","Expected a number or 'all' as argument for -escMaxWarnings: " + limit);
-                utils.maxWarnings = Integer.MAX_VALUE;
-            }
-        }
 
-        String v = JmlOption.value(context, JmlOption.SHOW);
-        if (v == null) options.put(JmlOption.SHOW.optionName(),"");
 
-        String check = JmlOption.value(context,JmlOption.FEASIBILITY);
-        if (check == null || check.isEmpty() || check.equals(Strings.feas_default)) {
-            options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_defaults);
-        }
-        if (check.equals(Strings.feas_all)) {
-            options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls);
-        } else if (check.startsWith(Strings.feas_debug)) {
-            options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls+",debug");
-            if (utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
-        }
-        String badString = Strings.isOK(check);
-        if (badString != null) {
-            utils.error("jml.message","Unexpected value as argument for -checkFeasibility: " + badString);
-        }
 
-        Extensions.register(context);
+
+        if (!JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) Extensions.register(context);
 // FIXME - turn off for now        JmlSpecs.instance(context).initializeSpecsPath();
         // dumpOptions();
         return true;

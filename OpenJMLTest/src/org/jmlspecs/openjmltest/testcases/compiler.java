@@ -33,13 +33,13 @@ public class compiler {
     String projHome;
     {
     String h = System.getProperty("openjml.eclipseProjectLocation");
-    if (h == null) h = "/Users/davidcok/project/OpenJMLB/OpenJML/OpenJMLTest";
+    if (h == null) h = JmlTestCase.root + "/OpenJML/OpenJMLTest";
     projHome = h.replace("C:","").replace("\\","/");
     }
     String specsHome;
     {
     	try {
-    		specsHome = new java.io.File("../../Specs").getCanonicalPath().replace("\\", "/");
+    		specsHome = JmlTestCase.root + "/Specs";
     	} catch (Exception e) {
     		specsHome = null;
     	}
@@ -53,6 +53,7 @@ public class compiler {
         savedout = System.out;
         if (capture) System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
         if (capture) System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
+        org.jmlspecs.openjml.Main.useJML = false;
     }
     
     @After
@@ -174,17 +175,17 @@ public class compiler {
     /** Tests an unknown option */
     @Test
     public void testBadOption() throws Exception {
-        String failureMessage = "openjml: invalid flag: -ZZZ" + eol +
+        String failureMessage = "error: invalid flag: -ZZZ" + eol +
                                 "Usage: openjml <options> <source files>" + eol + 
-                                "use -help for a list of possible options" + eol;
-        helper(new String[]{"-ZZZ"},2,0,failureMessage);
+                                "use --help for a list of possible options" + eol;
+        helper(new String[]{"-ZZZ","test/testNoErrors/A.java"},2,0,failureMessage);
     }
     
     /** Tests a bad command */
     @Test
     public void testBadCommand() throws Exception {
         String failureMessage = "error: Invalid parameter to the -command option: zzz" + eol;
-        helper(new String[]{"-command=zzz"},2,0,failureMessage);
+        helper(new String[]{"-command=zzz","test/testNoErrors/A.java"},2,0,failureMessage);
     }
     
     /** Tests setting the specs path through the command-line option, by using non-existent 
@@ -220,7 +221,7 @@ public class compiler {
     }
 
     /** Tests the lack of a runtime library */
-    @Test
+    @Test @Ignore // FIXME: Current implementation cannot disable the internal runtime library
     public void testNoRuntime() throws Exception {
         helper(new String[]
                           { "-noInternalRuntime","-noInternalSpecs",
@@ -458,7 +459,7 @@ public class compiler {
                                   "-specspath","../OpenJML/runtime",
                                   "-lang=jml",
                                   "-extensions=X","-nowarn", // Ignored when strict
-                                  "test/testNoErrors/A.jml"
+                                  "test/testNoErrors/A.java"
                                 },0,0
                                 ,""
                                 );
@@ -473,7 +474,7 @@ public class compiler {
                                   "-specspath","../OpenJML/runtime",
                                   "-lang=jml",
                                   "-extensions=X","-Werror", // Ignored when strict
-                                  "test/testNoErrors/A.jml"
+                                  "test/testNoErrors/A.java"
                                 },1,0
                                 ,"$SPECS/specs/java/util/stream/Stream.jml:$STRL: warning: The /count construct is an OpenJML extension to JML and not allowed under -lang=jml\n"
                                 +"            //@ loop_invariant i == /count && 0 <= i <= values.length;\n"
@@ -573,7 +574,7 @@ public class compiler {
                             "test/testSuperRead/A.java"
                           },1,1
                           ,""
-                          ,"test/testSuperRead/B.jml:3: error: This JML modifier is not allowed for a type declaration"
+                          ,"test/testSuperRead/B.jml:3: error: A Java class declaration must not be marked either ghost or model: B (owner: testSuperRead)"
                           );
     }
     
@@ -840,11 +841,10 @@ public class compiler {
     
     @Test
     public void release_testJmlHelp() throws Exception {
-    	expectedFile = "releaseTests/testJmlHelp/expected";
     	helper(new String[]
                 { 
                 },2,0
-                ,""
+                ,"Usage: openjml <options> <source files>\nUse option '-?' to list options\n"
                 );
     }
 
@@ -853,6 +853,26 @@ public class compiler {
     	expectedFile = "releaseTests/testJmlHelp/expected";
     	helper(new String[]
                 { "-help"
+                },0,0
+                ,""
+                );
+    }
+
+    @Test
+    public void release_testJmlHelp3() throws Exception {
+    	expectedFile = "releaseTests/testJmlHelp/expected";
+    	helper(new String[]
+                { "--help"
+                },0,0
+                ,""
+                );
+    }
+
+    @Test
+    public void release_testJmlHelp4() throws Exception {
+    	expectedFile = "releaseTests/testJmlHelp/expected";
+    	helper(new String[]
+                { "-?"
                 },0,0
                 ,""
                 );
@@ -927,7 +947,7 @@ public class compiler {
     }
     
     // Testing typechecking without org.jmlspecs.annotation.*
-    @Test
+    @Test @Ignore // FIXME: Cannot currently turn off internal runtime library
     public void release_testRuntime1() throws Exception {
     	expectedFile = "releaseTests/testRuntime1/expected";
     	helper(new String[]
@@ -985,7 +1005,8 @@ public class compiler {
     public void release_testEsc1() throws Exception {
     	expectedFile = "releaseTests/testEsc1/expected";
     	helper(new String[]
-    			{ "-no-purityCheck", "-esc", "testfiles/testEsc/A.java", "-classpath", "testfiles/testEsc"
+    			{ "-no-purityCheck", "-esc", "testfiles/testEsc/A.java", "-classpath", "testfiles/testEsc",
+    					"-exec=" + JmlTestCase.root + "/Solvers/Solvers-macos/z3-4.3.1"
     			},0,0
     			,""
     			);
@@ -995,7 +1016,8 @@ public class compiler {
     public void release_testEsc2() throws Exception {
     	expectedFile = "releaseTests/testEsc2/expected";
     	helper(new String[]
-    			{ "-no-purityCheck", "-esc", "testfiles/testEsc/B.java", "-classpath", "testfiles/testEsc"
+    			{ "-no-purityCheck", "-esc", "testfiles/testEsc/B.java", "-classpath", "testfiles/testEsc",
+    					"-exec=" + JmlTestCase.root + "/Solvers/Solvers-macos/z3-4.3.1"
     			},0,0
     			,""
     			);

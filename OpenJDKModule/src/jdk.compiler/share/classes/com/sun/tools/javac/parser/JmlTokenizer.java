@@ -201,8 +201,14 @@ public class JmlTokenizer extends JavadocTokenizer {
             }
             
             boolean isplus = ch == '+';
+
             ch = next();
             if (!Character.isLetter(ch)) {
+               	if (ch == '@') {
+                    Utils.instance(context).warning(plusPosition,"jml.message",
+                    		"Annotation comments beginning with +@ or -@ are no longer supported; use keys instead");
+
+            	}
             	reset(endPos);
                 return super.processComment(pos, endPos, style);
             }
@@ -275,6 +281,11 @@ public class JmlTokenizer extends JavadocTokenizer {
         }
         if (!(isOneOf(' ','\t','{') || (style == CommentStyle.BLOCK && isOneOf('\n','\r','{')))
         		&& JmlOptions.instance(context).isSet(JmlOption.REQUIRE_WS.optionName())) {
+        	if (isOneOf('+','-')) {
+                Utils.instance(context).warning(position(),
+                		"Annotation comments beginning with @+ or @- are no longer supported; use keys instead");
+
+        	}
         	// Not a valid JML comment if there is not whitespace after the @.
         	// This is to avoid processing commented out Annotations, like //@Injected or //@line
         	reset(endPos);

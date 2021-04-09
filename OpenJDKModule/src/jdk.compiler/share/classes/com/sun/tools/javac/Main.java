@@ -50,7 +50,7 @@ public class Main {
     	if (System.getenv("NOJML") != null) {
             System.exit(compile(args));
     	} else {
-           org.jmlspecs.openjml.Main.main(args);
+            org.jmlspecs.openjml.Main.main(args);
     	}
     }
 

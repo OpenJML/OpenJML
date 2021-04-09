@@ -7,6 +7,9 @@ package org.jmlspecs.openjml;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.jmlspecs.openjml.Main.Cmd;
+
 import java.util.List;
 import java.util.ArrayList;
 
@@ -14,6 +17,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Options;
+import org.jmlspecs.openjml.Utils;
 
 /**
  * This is an Enum that contains information about command-line options for JML
@@ -28,6 +32,8 @@ public class JmlOption {
 
     static public final Map<String,JmlOption> map = new HashMap<>();
     static public final List<JmlOption> list = new ArrayList<>();
+    
+    public boolean check(Context context) { return true; }
 
 
     // Arguments: option as on CL; true=1 argument, false=0 args; help string
@@ -35,19 +41,61 @@ public class JmlOption {
     public static final JmlOption DIRS = new JmlOption("-dirs",true,null,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)",null);
     public static final JmlOption ENDOPTIONS = new JmlOption("--",false,null,"Terminates option processing - all remaining arguments are files",null);  // FIXME - fix or remove
     public static final JmlOption KEYS = new JmlOption("-keys",true,"","Identifiers for optional JML comments",null);
-    public static final JmlOption COMMAND = new JmlOption("-command",true,"check","The command to execute (check,esc,rac,compile)",null);
+    public static final JmlOption COMMAND = new JmlOption("-command",true,"check","The command to execute (check,esc,rac,compile)",null) {
+    	public boolean check(Context context) {
+            Cmd cmd = Cmd.CHECK; // default
+            boolean ok = true;
+            Utils utils = Utils.instance(context);
+            String val = JmlOptions.instance(context).get(JmlOption.COMMAND.optionName());
+            try {
+                if (val != null) cmd = Cmd.valueOf(val.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                Log.instance(context).error("jml.bad.command",val);
+                ok = false;
+            }
+            utils.cmd = cmd;
+            utils.rac = cmd == Cmd.RAC;
+            utils.esc = cmd == Cmd.ESC;
+            utils.check = cmd == Cmd.CHECK;
+            utils.compile = cmd == Cmd.COMPILE;
+            utils.infer   = cmd == Cmd.INFER;
+            return ok;
+    	}
+    };
     public static final JmlOption CHECK = new JmlOption("-check",false,null,"Does a JML syntax check","-command=check");
     public static final JmlOption COMPILE = new JmlOption("-compile",false,null,"Does a Java-only compile","-command=compile");
     public static final JmlOption RAC = new JmlOption("-rac",false,null,"Enables generating code instrumented with runtime assertion checks","-command=rac");
     public static final JmlOption ESC = new JmlOption("-esc",false,null,"Enables static checking","-command=esc");
     public static final JmlOption BOOGIE = new JmlOption("-boogie",false,false,"Enables static checking with boogie",null);
-    public static final JmlOption USEJAVACOMPILER = new JmlOption("-java",false,false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null);
+    public static final JmlOption USEJAVACOMPILER = new JmlOption("-java",false,false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null) {
+    	public boolean check(Context context) {
+    		boolean b = JmlOption.isOption(context,JmlOption.USEJAVACOMPILER);
+    		if (b) {
+    			Utils.instance(context).warning("jml.message","The -java option is ignored unless it is the first command-line argument");
+    		}
+    		return true;
+    	}
+    };
     public static final JmlOption JML = new JmlOption("-jml",false,true,"When on, the JML compiler is used and all JML constructs are processed; use -no-jml to use OpenJML but ignore JML annotations",null);
     //public static final JmlOption STRICT = new JmlOption("-strictJML",false,false,"Disables any JML extensions in OpenJML",null);
     public static final String langJML = "jml";
     public static final String langJavelyn = "javelyn";
     public static final String langPlus = "jml+";
-    public static final JmlOption LANG = new JmlOption("-lang",true,langPlus,"Set the language variant to use: " + langJML + ", " + langJavelyn + ", or " + langPlus + " (the default)",null);
+    public static final JmlOption LANG = new JmlOption("-lang",true,langPlus,"Set the language variant to use: " + langJML + ", " + langJavelyn + ", or " + langPlus + " (the default)",null) {
+    	public boolean check(Context context) {
+    		JmlOptions options = JmlOptions.instance(context);
+            String val = options.get(JmlOption.LANG.optionName());
+            if (val == null || val.isEmpty()) {
+                options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
+            } else if(JmlOption.langPlus.equals(val) || JmlOption.langJavelyn.equals(val) || JmlOption.langJML.equals(val)) {
+            } else {
+                Utils.instance(context).warning("jml.message","Command-line argument error: Expected '" + JmlOption.langPlus + "', '" + JmlOption.langJML + "' or '" + JmlOption.langJavelyn + "' for -lang: " + val);
+                options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
+                return false;
+            }
+            return true;
+    	}
+    };
     public static final JmlOption EXTENSIONS = new JmlOption("-extensions",true,null,"Extension packages and classes (comma-separated qualified names)",null);
 
     public static final JmlOption STOPIFERRORS = new JmlOption("-stopIfParseErrors",false,false,"When enabled, stops after parsing if any files have parsing errors",null);
@@ -75,7 +123,23 @@ public class JmlOption {
     public static final JmlOption SHOW_NOT_IMPLEMENTED = new JmlOption("-showNotImplemented",false,false,"When on (off by default), warnings about unimplemented constructs are issued",null);
     public static final JmlOption SHOW_NOT_EXECUTABLE = new JmlOption("-showNotExecutable",false,false,"When on (off by default), warnings about non-executable constructs are issued",null);
 
-    public static final JmlOption VERBOSENESS = new JmlOption("-verboseness",true,1,"Level of verboseness (0=quiet...4=debug)",null);
+    public static final JmlOption VERBOSENESS = new JmlOption("-verboseness",true,1,"Level of verboseness (0=quiet...4=debug)",null) {
+    	public boolean check(Context context) {
+            String n = JmlOption.VERBOSENESS.optionName().trim();
+            String levelstring = JmlOptions.instance(context).get(n);
+            if (levelstring != null) {
+                levelstring = levelstring.trim();
+                if (!levelstring.isEmpty()) try {
+                    Utils.instance(context).jmlverbose = Integer.parseInt(levelstring);
+                } catch (NumberFormatException e) {
+                    Utils.instance(context).warning("jml.message","The value of the " + n + " option or the " + Strings.optionPropertyPrefix + n.substring(1) + " property should be the string representation of an integer: \"" + levelstring + "\"");
+                    JmlOptions.instance(context).put(n, "1");
+                    return false;
+                }
+            }
+            return true;
+    	}
+    };
     public static final JmlOption QUIET = new JmlOption("-quiet",false,null,"Only output warnings and errors","-verboseness="+Utils.QUIET);
     public static final JmlOption NORMAL = new JmlOption("-normal",false,null,"Limited output","-verboseness="+Utils.NORMAL);
     public static final JmlOption PROGRESS = new JmlOption("-progress",false,null,"Shows progress through compilation phases","-verboseness="+Utils.PROGRESS);
@@ -84,19 +148,78 @@ public class JmlOption {
     public static final JmlOption JMLDEBUG = new JmlOption("-jmldebug",false,false,"When on, the program emits lots of output (includes -progress)","-verboseness="+Utils.JMLDEBUG);
     public static final JmlOption SHOW_OPTIONS = new JmlOption("-showOptions",true, "none","When enabled, the values of options and properties are printed, for debugging",null);
 
-    public static final JmlOption JMLTESTING = new JmlOption("-jmltesting",false,false,"Only used to generate tracing information during testing",null);
+    public static final JmlOption JMLTESTING = new JmlOption("-jmltesting",false,false,"Only used to generate tracing information during testing",null) {
+        public boolean check(Context context) {
+        	String t = Options.instance(context).get(JmlOption.JMLTESTING.optionName());
+            Utils.testingMode =  ( t != null && !t.equals("false"));
+            return true;
+        }
+    };
     public static final JmlOption TRACE = new JmlOption("-trace",false,false,"ESC: Enables tracing of counterexamples",null);
     public static final JmlOption SHOW = new JmlOption("-show",true,"","Show intermediate programs",null,false,"all");
     public static final JmlOption SPLIT = new JmlOption("-split",true,"","Split proof into sections",null);
-    public static final JmlOption ESC_BV = new JmlOption("-escBV",true,"auto","ESC: If enabled, use bit-vector arithmetic (auto, true, false)",null);
+    public static final JmlOption ESC_BV = new JmlOption("-escBV",true,"auto","ESC: If enabled, use bit-vector arithmetic (auto, true, false)",null) {
+    	public boolean check(Context context) {
+    		JmlOptions options = JmlOptions.instance(context);
+            String val = options.get(JmlOption.ESC_BV.optionName());
+            if (val == null || val.isEmpty()) {
+                options.put(JmlOption.ESC_BV.optionName(),(String)JmlOption.ESC_BV.defaultValue());
+            } else if("auto".equals(val) || "true".equals(val) || "false".equals(val)) {
+            } else {
+                Utils.instance(context).warning("jml.message","Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: " + val);
+                options.put(JmlOption.ESC_BV.optionName(),(String)JmlOption.ESC_BV.defaultValue());
+            	return false;
+            }
+            return true;
+    	}
+    };
     public static final JmlOption ESC_TRIGGERS = new JmlOption("-triggers",false,true,"ESC: Enable quantifier triggers in SMT encoding (default true)",null);
     public static final JmlOption ESC_EXIT_INFO = new JmlOption("-escExitInfo",false,true,"ESC: Show exit location for postconditions (default true)",null);
-    public static final JmlOption ESC_MAX_WARNINGS = new JmlOption("-escMaxWarnings",true,"all","ESC: Maximum number of warnings to find per method",null);
+    public static final JmlOption ESC_MAX_WARNINGS = new JmlOption("-escMaxWarnings",true,"all","ESC: Maximum number of warnings to find per method",null) {
+    	public boolean check(Context context) {
+            Utils utils = Utils.instance(context);
+            String limit = JmlOption.value(context,JmlOption.ESC_MAX_WARNINGS);
+            if (limit == null || limit.isEmpty() || limit.equals("all")) {
+                utils.maxWarnings = Integer.MAX_VALUE; // no limit is the default
+            } else {
+                try {
+                    int k = Integer.parseInt(limit);
+                    utils.maxWarnings = k <= 0 ? Integer.MAX_VALUE : k;
+                } catch (NumberFormatException e) {
+                    utils.error("jml.message","Expected a number or 'all' as argument for -escMaxWarnings: " + limit);
+                    utils.maxWarnings = Integer.MAX_VALUE;
+                    return false;
+                }
+            }
+            return true;
+    	}
+    };
     public static final JmlOption MAXWARNINGSPATH = new JmlOption("-escMaxWarningsPath",false,false,"ESC: If true, find all counterexample paths to each invalid assert",null);
     public static final JmlOption COUNTEREXAMPLE = new JmlOption("-counterexample",false,false,"ESC: Enables output of complete, raw counterexample",null);
     public static final JmlOption CE = new JmlOption("-ce",false,null,"ESC: Enables output of complete, raw counterexample","-counterexample");
     public static final JmlOption SUBEXPRESSIONS = new JmlOption("-subexpressions",false,false,"ESC: Enables tracing with subexpressions",null);
-    public static final JmlOption FEASIBILITY = new JmlOption("-checkFeasibility",true,"all","ESC: Check feasibility of assumptions",null);
+    public static final JmlOption FEASIBILITY = new JmlOption("-checkFeasibility",true,"all","ESC: Check feasibility of assumptions",null) {
+    	public boolean check(Context context) {
+    		JmlOptions options = JmlOptions.instance(context);
+            Utils utils = Utils.instance(context);
+            String check = JmlOption.value(context,JmlOption.FEASIBILITY);
+            if (check == null || check.isEmpty() || check.equals(Strings.feas_default)) {
+                options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_defaults);
+            }
+            if (check.equals(Strings.feas_all)) {
+                options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls);
+            } else if (check.startsWith(Strings.feas_debug)) {
+                options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls+",debug");
+                if (utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
+            }
+            String badString = Strings.isOK(check);
+            if (badString != null) {
+                utils.error("jml.message","Unexpected value as argument for -checkFeasibility: " + badString);
+                return false;
+            }
+            return true;
+    	}
+    };
     public static final JmlOption BENCHMARKS = new JmlOption("-benchmarks",true,null,"ESC: Collects solver communications",null);
     public static final JmlOption MINIMIZE_QUANTIFICATIONS = new JmlOption("-minQuant",false,true,"ESC: Minimizes using quantifications, in favor of inlining",null);
     public static final JmlOption QUANTS_FOR_TYPES = new JmlOption("-typeQuants",true,"auto","ESC: Introduces quantified assertions for type variables (true, false, or auto)",null);
