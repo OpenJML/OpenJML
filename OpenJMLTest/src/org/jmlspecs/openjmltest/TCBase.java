@@ -31,17 +31,18 @@ public abstract class TCBase extends JmlTestCase {
     protected static String z = java.io.File.pathSeparator;
     protected static String testspecpath1 = "$A"+z+"$B"+z+root+"/Specs/specs";
     protected String testspecpath;
+    protected String testSourcePath;
     protected int expectedExit;
     protected boolean useSystemSpecs = false;
 
     @Override
     public void setUp() throws Exception {
-        testspecpath = testspecpath1;
-        ignoreNotes = false;
+    	testspecpath = testspecpath1;
+        testSourcePath = testspecpath1;
         super.setUp();
         main.addOptions("-specspath",   testspecpath + (!useSystemSpecs ? "" : (z + "$SY") ));
-        main.addOptions("-sourcepath",   testspecpath);
-        main.addOptions("-classpath",   "../OpenJML/bin-runtime");
+        main.addOptions("-sourcepath",   testSourcePath);
+        main.addOptions("-classpath",   "src" + z + testSourcePath);
         if (!useSystemSpecs) main.addOptions("-no-internalSpecs");
         main.addOptions(JmlOption.PURITYCHECK.optionName()+"=false");
         specs = JmlSpecs.instance(context);

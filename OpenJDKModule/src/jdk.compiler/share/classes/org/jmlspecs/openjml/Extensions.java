@@ -106,6 +106,13 @@ public class Extensions {
         return null;
     }
     
+    public static @Nullable IJmlClauseKind.ModifierKind findModifier(String name) {
+    	for (var k: allKinds.values()) {
+    		if (k instanceof IJmlClauseKind.ModifierKind && ((IJmlClauseKind.ModifierKind)k).fullAnnotation.endsWith(name)) return (IJmlClauseKind.ModifierKind)k;
+    	}
+    	return null;
+    }
+    
     /** Last resort list of classes that add extensions to the Parser.
      *  Typically these are found by listing all the classes in
      *  the org.jmlspecs.openjml.ext package */  // TODO - fix this list

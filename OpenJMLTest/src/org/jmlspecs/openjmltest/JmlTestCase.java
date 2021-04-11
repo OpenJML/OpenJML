@@ -120,11 +120,11 @@ public abstract class JmlTestCase {
          * @param noNotes if true, no notes (only errors and warnings) are collected
          */
         public FilteredDiagnosticCollector(boolean noNotes, boolean print) {
-            this.noNotes = noNotes && System.getenv("VERBOSE") == null;
+            this.noNotes = noNotes;
             this.print = print || System.getenv("VERBOSE") != null || System.getenv("STACK") != null;
         }
         
-        /** If true, no notes are collected, except if VERBOSE is true */
+        /** If true, no notes are collected; some test output contains notes, so this mut generally be false */
         boolean noNotes;
         /** If true, diagnostics are printed (as well as being collected) */
         boolean print;

@@ -4,7 +4,6 @@ import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Assert;
 import org.junit.Test;
 
-
 /** These tests do typechecking on all the aspects of JML types.
  * <BR> \TYPE - the type of types in JML, somewhat like, but not equivalent to Class<?>
  * <BR> \type - (type \TYPE) type literal in JML, similar to T.class
@@ -45,20 +44,24 @@ public class jmltypes extends TCBase {
                 "  //@ set b = tt <: ttt;\n" +
                 " }\n" +
                 "}\n"
-                ,"/A.java:11: variable t might not have been initialized",27
+                ,"/A.java:13: error: The LHS in a set statement must be a ghost variable",11
+                ,"/A.java:11: error: variable t might not have been initialized",27
                 );
     }
 
     @Test
     public void testOK1() {
+    	testSourcePath =  "$A"+z+"$B"+z+root+"/OpenJML/OpenJML/runtime";
+    	com.sun.tools.javac.util.Options.instance(context).put(com.sun.tools.javac.main.Option.SOURCE_PATH.getPrimaryName(),testSourcePath);
+    	main.addOptions("-specspath",testspecpath);
         helpTCF("A.java",
                 "public class A { \n" +
                 " void m() {\n" +
                 "  Class<?> c = Object.class; Object o = c; \n" +
-                "  //@ ghost boolean b = JML.erasure(\\typeof(o)) == Object.class;\n" +
-                "  //@ set b = JML.typeargs(\\typeof(o)).length == 0;\n" +
-                "  //@ set b = JML.typeargs(\\typeof(o))[0] != \\typeof(o);\n" +
-                "  //@ set b = JML.isArray(\\typeof(o));\n" +
+                "  //@ ghost boolean b = org.jmlspecs.lang.JML.erasure(\\typeof(o)) == Object.class;\n" +
+                "  //@ set b = org.jmlspecs.lang.JML.typeargs(\\typeof(o)).length == 0;\n" +
+                "  //@ set b = org.jmlspecs.lang.JML.typeargs(\\typeof(o))[0] != \\typeof(o);\n" +
+                "  //@ set b = org.jmlspecs.lang.JML.isArray(\\typeof(o));\n" +
                 "  boolean jb = c.isArray();\n" +
                 " }\n" +
                 "}\n"
@@ -125,15 +128,17 @@ public class jmltypes extends TCBase {
                 "  //@ set t = (\\TYPE)0;\n" + // No casts of ints
                 "  //@ set t = (\\TYPE)o;\n" + // No casts of Object
                 "}}\n"
-                ,"/A.java:4: incompatible types: java.lang.Class<java.lang.Object> cannot be converted to \\TYPE",29
-                ,"/A.java:5: incompatible types: \\TYPE cannot be converted to java.lang.Class<?>",27
-                ,"/A.java:6: incomparable types: \\TYPE and java.lang.Class<java.lang.Object>",39
-                ,"/A.java:8: The arguments to <: must both be \\TYPE or both be Class",26
-                ,"/A.java:9: The arguments to <: must both be \\TYPE or both be Class",31
-                ,"/A.java:10: unexpected type\n  required: class\n  found:    value",33
-                ,"/A.java:11: unexpected type\n  required: reference\n  found:    \\TYPE",15
-                ,"/A.java:12: A cast to \\TYPE may be applied only to expressions of type Class, not int",22
-                ,"/A.java:13: A cast to \\TYPE may be applied only to expressions of type Class, not java.lang.Object",22
+                ,"/A.java:4: error: incompatible types: java.lang.Class<java.lang.Object> cannot be converted to \\TYPE",29
+                ,"/A.java:5: error: incompatible types: \\TYPE cannot be converted to java.lang.Class<?>",27
+                ,"/A.java:6: error: bad operand types for binary operator '=='\n"
+                		+ "  first type:  \\TYPE\n"
+                		+ "  second type: java.lang.Class<java.lang.Object>",39
+                ,"/A.java:8: error: The arguments to <: must both be \\TYPE or both be Class",26
+                ,"/A.java:9: error: The arguments to <: must both be \\TYPE or both be Class",31
+                ,"/A.java:10: error: unexpected type\n  required: class\n  found:    value",33
+                ,"/A.java:11: error: unexpected type\n  required: reference\n  found:    \\TYPE",15
+                ,"/A.java:12: error: A cast to \\TYPE may be applied only to expressions of type Class, not int",22
+                ,"/A.java:13: error: A cast to \\TYPE may be applied only to expressions of type Class, not java.lang.Object",22
 
         );
                 
@@ -146,7 +151,7 @@ public class jmltypes extends TCBase {
                 " void m() {\n" +
                 "  Class<?> c = T.class; \n" +
                 "}}\n"
-                ,"/A.java:3: cannot select from a type variable",17
+                ,"/A.java:3: error: cannot select from a type variable",17
         );
     }
     
@@ -157,7 +162,8 @@ public class jmltypes extends TCBase {
                 " void m() {\n" +
                 "  Class<?> c = A<T>.class; \n" +
                 "}}\n"
-                ,"/A.java:3: <identifier> expected",21
+                ,"/A.java:3: error: <identifier> expected",21
+                ,"/A.java:3: error: <identifier> expected",26
         );
     }
     

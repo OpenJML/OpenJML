@@ -4037,8 +4037,10 @@ public class JmlTree {
     }
 
     public static class JmlAnnotation extends JCAnnotation {
+    	public ModifierKind kind;
         public JmlAnnotation(Tag tag, JCTree annotationType, List<JCExpression> args) {
             super(tag,annotationType,args);
+            kind = null;
         }
         
         /** The origin of the annotation, which may not be the same as the item being annotated;

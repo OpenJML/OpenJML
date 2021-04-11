@@ -916,9 +916,10 @@ public class JavaTokenizer extends UnicodeReader {
                     if (accept('/')) { // (Spec. 3.7)
                         skipToEOLN();
 
-                        if (isAvailable()) {
-                            comments = appendComment(comments, processComment(pos, position(), CommentStyle.LINE));
-                        }
+                        // OPENJML - the guard that was here prevented processing a line comment at the end of a file
+                        // that had no terminating newline. The guard is unnecessary in any, given the
+                        // success of accept and skipToEOLN
+                        comments = appendComment(comments, processComment(pos, position(), CommentStyle.LINE));
                         break;
                     } else if (accept('*')) { // (Spec. 3.7)
                         boolean isEmpty = false;

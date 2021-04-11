@@ -166,10 +166,12 @@ public class JmlTokenizer extends JavadocTokenizer {
     // Here if the comment is indeed a JML comment, we reset the scanner to the
     // beginning of the comment, set jml to true, and let the scanner proceed
     // to scan the contents of the comment.
+    // The comment is the content of buffer[] from pos to endPos, exclusive. 
+    // The comment includes the terminating */, but not the terminating newline.
+    // endPos may be equal to buffer.length
     @Override
     protected Tokens.Comment processComment(int pos, int endPos, CommentStyle style) {
         //if (org.jmlspecs.openjml.Main.useJML) System.out.println("COMMENT " + pos + " " + endPos);
-        // endPos is one beyond the last character of the comment
 
         // The inclusive range pos to endPos-1 does include the opening and closing
         // comment characters.
@@ -258,7 +260,6 @@ public class JmlTokenizer extends JavadocTokenizer {
         }
 
         // Either there were no optional keys or we found the right ones, so continue to process the comment
-        
         while (accept('@')) {} // Gobble up all leading @s
         if (ch == '#') {
         	// Inlined Java code, but only in line comments

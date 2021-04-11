@@ -265,10 +265,10 @@ public class JmlParser extends JavacParser {
             if (a.annotationType.toString().equals("org.jmlspecs.annotation.Model")) { modelImport = true; }
             else utils.error(a.pos, "jml.no.mods.on.import"); // FIXME - source?
         }
-        for (var t: ((JmlModifiers)mods).jmlmods) {
-            if (t.jmlclausekind == Modifiers.MODEL) modelImport = true; 
-            else utils.error(t.pos, t.endPos, "jml.no.mods.on.import"); // FIXME t.source
-        }
+//        for (var t: ((JmlModifiers)mods).jmlmods) {
+//            if (t.jmlclausekind == Modifiers.MODEL) modelImport = true; 
+//            else utils.error(t.pos, t.endPos, "jml.no.mods.on.import"); // FIXME t.source
+//        }
         boolean importIsInJml = S.jml();
         if (!modelImport && importIsInJml) {
             utils.error(p, endPos(), "jml.import.no.model");
@@ -294,6 +294,12 @@ public class JmlParser extends JavacParser {
     JCAnnotation annotation(int pos, JCTree.Tag kind) {
         JCAnnotation a = super.annotation(pos, kind);
         ((JmlTree.JmlAnnotation)a).sourcefile = currentSourceFile();
+        String s = a.getAnnotationType().toString();
+        // FIXME - problem here - if the annotation is not fully qualified, it is possible that
+        // the annotation will resolve to a type in a different package than org.jmlspecs.annotation
+        // which will mean it erroneously is marked as a JML modifier. But we need to know at least \
+        // whether it is a MODEL, and maybe a type annotation, in JmlEnter, before attribution
+        ((JmlAnnotation)a).kind = Extensions.findModifier(s);
         return a;
     }
 
@@ -1805,11 +1811,19 @@ public class JmlParser extends JavacParser {
     			nextToken();
     			while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
     		}
+			while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
     		var lst = super.annotationsOpt(kind);
+			while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
     		if (lst.isEmpty()) return annos.toList();
     		annos.appendList(lst);
     	}
     }
+
+//    List<JCAnnotation> typeAnnotationsOpt() {
+//        List<JCAnnotation> annotations = super.annotationsOpt(Tag.TYPE_ANNOTATION);
+//        while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
+//        return annotations;
+//    }
 
 
 
@@ -1869,20 +1883,22 @@ public class JmlParser extends JavacParser {
             if (token.kind == CUSTOM) break;
             partial = super.modifiersOpt(partial);
         }
+        while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
         return partial;
     }
 
 
-    public/* @ nullable */JCAnnotation tokenToAnnotationAST(String annName,
-            int position, int endpos) {
-        JCExpression t = utils.nametree(position,endpos,annName,this);
-        JCAnnotation ann = to(F.at(position).Annotation(t,
-                List.<JCExpression> nil()));
-        ((JmlTree.JmlAnnotation)ann).sourcefile = currentSourceFile();
-        storeEnd(ann, endpos);
-        return ann;
-    }
-
+//    public/* @ nullable */JCAnnotation tokenToAnnotationAST(String annName,
+//            int position, int endpos) {
+//    	return utils.tokenToAnnotationAST()
+//        JCExpression t = utils.nametree(position,endpos,annName,this);
+//        JCAnnotation ann = to(F.at(position).Annotation(t,
+//                List.<JCExpression> nil()));
+//        ((JmlTree.JmlAnnotation)ann).sourcefile = currentSourceFile();
+//        storeEnd(ann, endpos);
+//        return ann;
+//    }
+//
     /**
      * Reads any JML modifiers, combining them with the input to produce a new
      * JCModifiers object
@@ -1901,16 +1917,20 @@ public class JmlParser extends JavacParser {
         if (partial != null) {
             pos = partial.pos;
         }
+        JCModifiers mods = jmlF.at(pos).Modifiers(
+                partial == null ? 0 : partial.flags, annotations.toList(), jmlmods);
         while (isJmlModifier()) {
         	last = endPos();
         	ModifierKind mk = (ModifierKind)Extensions.findKeyword(token);
         	JmlToken jt = new JmlToken(mk, token);
         	jmlmods.add(jt);
         	jt.source = Log.instance(context).currentSourceFile();
-        	JCAnnotation a = tokenToAnnotationAST(mk.fullAnnotation, pos(), last);
+        	JmlAnnotation a = JmlTreeUtils.instance(context).addAnnotation(mods, jt, this);
         	if (a != null) {
-        		annotations.append(a);
-        		if (pos == Position.NOPOS) pos = a.getStartPosition();
+        		if (pos == Position.NOPOS) {
+        			pos = a.getStartPosition();
+        			mods.pos = pos;
+        		}
         	}
         	// a is null if no annotation is defined for the modifier;
         	// we just silently ignore that situation
@@ -1921,11 +1941,7 @@ public class JmlParser extends JavacParser {
         	}
             nextToken();
         }
-        while (jmlTokenClauseKind() == Operators.endjmlcommentKind) {
-        	nextToken();
-        }
-        JCModifiers mods = jmlF.at(pos).Modifiers(
-                partial == null ? 0 : partial.flags, annotations.toList(), jmlmods);
+        while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
         if (last != Position.NOPOS) storeEnd(mods, last);
         return mods;
     }

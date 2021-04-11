@@ -108,12 +108,12 @@ public class modelghost extends TCBase {
                 "  //@ int q();\n" +  // BAD
                 "}"
                 // errors in a different order in Java 8
-                ,"/A.java:4: error: A Java method declaration must not be marked either ghost or model: m2 (owner: A)",7
-                ,"/A.java:7: error: A Java method declaration must not be marked either ghost or model: p2 (owner: A)",7
-                ,"/A.java:12: error: A Java method declaration must not be marked either ghost or model: m2 (owner: A.II)",7
-                ,"/A.java:15: error: A Java method declaration must not be marked either ghost or model: p2 (owner: A.II)",7
-                ,"/A.java:34: error: A Java method declaration must not be marked either ghost or model: m2 (owner: C)",7
-                ,"/A.java:37: error: A Java method declaration must not be marked either ghost or model: p2 (owner: C)",7
+                ,"/A.java:4: error: A Java method declaration must not be marked model: m2 (owner: A)",7
+                ,"/A.java:7: error: A Java method declaration must not be marked model: p2 (owner: A)",7
+                ,"/A.java:12: error: A Java method declaration must not be marked model: m2 (owner: A.II)",7
+                ,"/A.java:15: error: A Java method declaration must not be marked model: p2 (owner: A.II)",7
+                ,"/A.java:34: error: A Java method declaration must not be marked model: m2 (owner: C)",7
+                ,"/A.java:37: error: A Java method declaration must not be marked model: p2 (owner: C)",7
 
                 ,"/A.java:5: error: missing method body, or declare abstract",8
                 ,"/A.java:7: error: missing method body, or declare abstract",20
@@ -253,14 +253,14 @@ public class modelghost extends TCBase {
                 "}\n"
                 // Java 8
                 ,"/A.java:3: error: A Java class declaration must not be marked either ghost or model: C (owner: A)",7
-                ,"/A.java:4: error: A JML class declaration must be marked either ghost or model: D (owner: A)", 21
+                ,"/A.java:4: error: A JML class declaration must be marked model: D (owner: A)", 21
                 ,"/A.java:7: error: A Java class declaration must not be marked either ghost or model: C (owner: A.AA)",9
-                ,"/A.java:8: error: A JML class declaration must be marked either ghost or model: D (owner: A.AA)", 17
+                ,"/A.java:8: error: A JML class declaration must be marked model: D (owner: A.AA)", 17
                 ,"/A.java:11: error: A model type may not contain model declarations: B in A.M",19
                 ,"/A.java:15: error: A Java class declaration must not be marked either ghost or model: Y (owner: unnamed package)",5
                 ,"/A.java:18: error: A model type may not contain model declarations: C in Q",17
                 ,"/A.java:23: error: A Java class declaration must not be marked either ghost or model: C (owner: Z)",7
-                ,"/A.java:24: error: A JML class declaration must be marked either ghost or model: D (owner: Z)", 15
+                ,"/A.java:24: error: A JML class declaration must be marked model: D (owner: Z)", 15
                 // Java 7
 //                ,"/A.java:4: error: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: error: class",21
 //                ,"/A.java:8: error: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: error: class",17
