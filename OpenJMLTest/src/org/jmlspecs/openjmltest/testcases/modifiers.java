@@ -99,7 +99,6 @@ public class modifiers extends TCBase {
         helpTCF("A.java","\n //@ public @Model class A{}"
                 ,"/A.java:2: error: cannot find symbol\n"
                 		+ "  symbol: class Model",14
-        		,"/A.java:2: error: A JML class declaration must be marked model: A (owner: unnamed package)",20
         		);
     }
     
@@ -107,6 +106,7 @@ public class modifiers extends TCBase {
         helpTCF("A.java","\n     public @Model class A{}"
                 ,"/A.java:2: error: cannot find symbol\n"
                 		+ "  symbol: class Model",14
+                		,"/A.java:2: error: A Java class declaration must not be marked either ghost or model: A (owner: unnamed package)",13
         		);
     }
     
@@ -232,6 +232,7 @@ public class modifiers extends TCBase {
         helpTCF("A.java","public class A {}\n @Model class B{}\n\n"
                 ,"/A.java:2: error: cannot find symbol\n"
                 		+ "  symbol: class Model",3
+                		,"/A.java:2: error: A Java class declaration must not be marked either ghost or model: B (owner: unnamed package)",2
                 );
     }
     
@@ -239,7 +240,6 @@ public class modifiers extends TCBase {
         helpTCF("A.java","public class A {}\n //@ @Model class B{}\n\n"
                 ,"/A.java:2: error: cannot find symbol\n"
                 		+ "  symbol: class Model",7
-                ,"/A.java:2: error: A JML class declaration must be marked model: B (owner: unnamed package)",13
                 );
     }
     
@@ -747,7 +747,7 @@ public class modifiers extends TCBase {
      
     @Test public void testInterfaceMethod() {
         helpTCF("A.java","public interface A{ /*@ pure spec_protected extract non_null */ Object m(); }"
-                ,"/A.java:1: error: This JML modifier is not allowed for a interface method declaration",55
+                ,"/A.java:1: error: This JML modifier is not allowed for a interface method declaration",45
                 );
     }
      
@@ -800,6 +800,7 @@ public class modifiers extends TCBase {
      
     @Test public void testConstructor3() {
         helpTCF("A.java","public class A{ \n/*@ instance non_null nullable */ A(){} }"
+        		,"/A.java:2: error: illegal start of type",14
                 ,"/A.java:2: error: This JML modifier is not allowed for a constructor declaration",5
                 ,"/A.java:2: error: This JML modifier is not allowed for a constructor declaration",14
                 ,"/A.java:2: error: This JML modifier is not allowed for a constructor declaration",23
@@ -825,7 +826,7 @@ public class modifiers extends TCBase {
      
     @Test public void testInterfaceModelMethod() {
         helpTCF("A.java","public interface A{ /*@ model pure extract non_null Object m(); */ }"
-                ,"/A.java:1: error: This JML modifier is not allowed for a interface model method declaration",45
+                ,"/A.java:1: error: This JML modifier is not allowed for a interface model method declaration",36
                 );
     }
      
@@ -892,8 +893,9 @@ public class modifiers extends TCBase {
      
     @Test public void testModelConstructor2a() {
         helpTCF("A.java","public class A{ A(int i) {} \n/*@ model non_null nullable A(){} */ }"
-                ,"/A.java:2: error: This JML modifier is not allowed for a model constructor declaration",47
-                ,"/A.java:2: error: This JML modifier is not allowed for a model constructor declaration",56
+        		,"/A.java:2: error: illegal start of type", 11
+                ,"/A.java:2: error: This JML modifier is not allowed for a model constructor declaration",11
+                ,"/A.java:2: error: This JML modifier is not allowed for a model constructor declaration",20
                 );
     }
      

@@ -510,7 +510,10 @@ public class Utils {
 
     public JmlTree.JmlAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */IJmlClauseKind.ModifierKind ta) {
         if (mods == null) return null;
-        return findMod(mods,JmlAttr.instance(context).modToAnnotationSymbol.get(ta));
+        for (JCTree.JCAnnotation a: mods.annotations) {
+        	if (((JmlTree.JmlAnnotation)a).kind == ta) return (JmlTree.JmlAnnotation)a;
+        }
+        return null;
     }
     
     public boolean hasMod(JCModifiers mods, ModifierKind... ata) {
