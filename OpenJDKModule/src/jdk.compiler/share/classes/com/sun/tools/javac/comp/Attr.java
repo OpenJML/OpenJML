@@ -952,6 +952,7 @@ public class Attr extends JCTree.Visitor {
             // Local and anonymous classes have not been entered yet, so we need to
             // do it now.
             if (env.info.scope.owner.kind.matches(KindSelector.VAL_MTH)) {
+            	if (org.jmlspecs.openjml.Main.useJML) System.out.println("ATTR ENTERING " + tree.name);
                 enter.classEnter(tree, env);
             } else {
                 // If this class declaration is part of a class level annotation,
@@ -1238,7 +1239,7 @@ public class Attr extends JCTree.Visitor {
                 annotate.flush();
 
                 // Attribute method body.
-                attribStat(tree.body, localEnv);
+                attribMethodBody(tree.body, localEnv);
             }
 
             localEnv.info.scope.leave();
@@ -1247,6 +1248,10 @@ public class Attr extends JCTree.Visitor {
             chk.setLint(prevLint);
             chk.setMethod(prevMethod);
         }
+    }
+    
+    protected void attribMethodBody(JCBlock body, Env<AttrContext>  env) {
+        attribStat(body, env);
     }
     
     protected void saveMethodEnv(MethodSymbol msym, Env<AttrContext> env) {}

@@ -396,15 +396,15 @@ public class modifiers extends TCBase {
         addMockFile("$A/A.jml","public class A { boolean k; }");
         helpTCF("A.java","public class A{ int k; }"
                 ,"/$A/A.jml:1: error: Type of field k in specification differs from type in source/binary: boolean vs. int",18
-                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",21
+                ,"/A.java:1: Note: Associated declaration: /$A/A.jml:1:",21
                 );
     }
     
     @Test public void testMatchField7() {  
         addMockFile("$A/A.jml","public class A { String k; }");
         helpTCF("A.java","public class A{ Object k; }",
-                "/$A/A.jml:1: error: The field k in the specification matches a Java field A.k but they have different types: java.lang.String vs. java.lang.Object",18
-                ,"/A.java:1: Associated declaration: /$A/A.jml:1: ",24
+                "/$A/A.jml:1: error: Type of field k in specification differs from type in source/binary: java.lang.String vs. java.lang.Object",18
+                ,"/A.java:1: Note: Associated declaration: /$A/A.jml:1:",24
         		);
     }
     
@@ -417,7 +417,7 @@ public class modifiers extends TCBase {
         addMockFile("$A/A.jml","public class A { Class<String> k; }");
         helpTCF("A.java","public class A{ Class<Object> k; }",
                 "/$A/A.jml:1: error: Type of field k in specification differs from type in source/binary: java.lang.Class<java.lang.String> vs. java.lang.Class<java.lang.Object>", 23
-                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",31
+                ,"/A.java:1: Note: Associated declaration: /$A/A.jml:1:",31
         		); 
     }
     
@@ -908,7 +908,6 @@ public class modifiers extends TCBase {
         		"/*@ non_null non_null */ Object ooob, \n" +
         		"/*@ spec_public */ Object oooo) {} }"
                 ,"/A.java:6: error: org.jmlspecs.annotation.NonNull is not a repeatable annotation type", 14
-                ,"/A.java:6: error: org.jmlspecs.annotation.NonNull is not a repeatable annotation type", 14
                 ,"/A.java:5: error: This JML modifier is not allowed for a formal parameter",5
                 ,"/A.java:5: error: A type may not be declared both non_null and nullable",11
                 ,"/A.java:7: error: This JML modifier is not allowed for a formal parameter",5
@@ -943,8 +942,8 @@ public class modifiers extends TCBase {
     @Test public void testLocalVar4() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  void m() {\n /*@ non_null non_null Object o; */} }"
+                ,"/A.java:3: error: org.jmlspecs.annotation.NonNull is not a repeatable annotation type",15
                 ,"/A.java:3: error: A local declaration within a JML annotation must be ghost",31
-                ,"/A.java:3: error: th non_null and nullable",15
                 );
     }
      

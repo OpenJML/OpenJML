@@ -893,6 +893,7 @@ public class JmlParser extends JavacParser {
             }
             JCModifiers mods = modifiersOpt(); // Gets anything that is in
                                                // pushBackModifiers
+            List<JCAnnotation> typeAnns = null;//typeAnnotationsOpt();
             int pos = pos();
             JmlTokenKind jt = jmlTokenKind();
             if (jt != null && !isJmlTypeToken(jt) && currentMethodSpecs != null && !startOfMethodSpecs(token)) {
@@ -906,6 +907,10 @@ public class JmlParser extends JavacParser {
                 ct = Extensions.findTM(id);
             }
             if (ct != null) {
+            	if (typeAnns != null) {
+            		if (!typeAnns.isEmpty()) utils.error(typeAnns.head, "jml.message", "Type annotations are not permitted here");
+            		typeAnns = null;
+            	}
                 if (startOfMethodSpecs(token)) {
                     currentMethodSpecs = parseMethodSpecs(mods);
                     continue;
@@ -941,17 +946,17 @@ public class JmlParser extends JavacParser {
                     skipThroughSemi();
                     continue;
                 }
-            } else if (startOfMethodSpecs(token)) {
-            	// FIXME
-            	utils.warning(token.pos, "jml.message", "Keying on a token that should be an extension: " + token);
-                currentMethodSpecs = parseMethodSpecs(mods);
-                continue;
-            } else if (startOfTypeSpec(token)) {
-            	// FIXME
-            	utils.warning(token.pos, "jml.message", "Keying on a token that should be an extension: " + token);
-                JCTree tc = parseTypeSpecs(mods);
-                list.append(tc);
-                continue;
+//            } else if (startOfMethodSpecs(token)) {
+//            	// FIXME
+//            	utils.warning(token.pos, "jml.message", "Keying on a token that should be an extension: " + token);
+//                currentMethodSpecs = parseMethodSpecs(mods);
+//                continue;
+//            } else if (startOfTypeSpec(token)) {
+//            	// FIXME
+//            	utils.warning(token.pos, "jml.message", "Keying on a token that should be an extension: " + token);
+//                JCTree tc = parseTypeSpecs(mods);
+//                list.append(tc);
+//                continue;
             } else if (S.jml() && id != null && Extensions.findSM(id) != null && !"set".equals(id)) {
                 utils.error(pos(), endPos(),
                         "jml.illegal.token.for.declaration", id);
@@ -983,6 +988,7 @@ public class JmlParser extends JavacParser {
                         t = List.<JCTree>of(cl.parse(mods, cl.keyword, cl, this));
                         // FIXME - attach the doc comment
                     } else {
+                        savedTypeAnnotations = typeAnns;
                         t = super.classOrInterfaceOrRecordBodyDeclaration(
                                 className, isInterface, isRecord);
                         if (isInterface && t.head instanceof JmlMethodDecl) {
@@ -1001,6 +1007,7 @@ public class JmlParser extends JavacParser {
                         currentMethodSpecs = null;
                     }
                     // no longer in JML
+                    savedTypeAnnotations = typeAnns;
                     t = super.classOrInterfaceOrRecordBodyDeclaration(
                             className, isInterface, isRecord);
                 }
@@ -1118,7 +1125,8 @@ public class JmlParser extends JavacParser {
     protected void startOfDeclaration(JCModifiers mods) {
     	if (S.jml()) utils.setJML(mods);
     }
-
+    
+    List<JCAnnotation> savedTypeAnnotations = null;
 
 
     /**
@@ -1801,6 +1809,10 @@ public class JmlParser extends JavacParser {
     
     protected List<JCAnnotation> annotationsOpt(Tag kind) {
     	ListBuffer<JCAnnotation> annos = new ListBuffer<>();
+//    	if (kind == Tag.TYPE_ANNOTATION && savedTypeAnnotations != null) {
+//    		annos.addAll(savedTypeAnnotations);
+//    		savedTypeAnnotations = null;
+//    	}
     	while (true) {
     		while (S.jml()) {
     			var m = Extensions.findKeyword(token);
