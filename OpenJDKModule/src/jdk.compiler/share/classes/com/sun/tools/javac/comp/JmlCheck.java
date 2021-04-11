@@ -117,13 +117,15 @@ public class JmlCheck extends Check {
         long wasFinal = flags & Flags.FINAL;
         long k = super.checkFlags(pos,flags,sym,tree);
         if (staticOldEnv) { k |= Flags.STATIC; }
-        if (tree instanceof JCTree.JCVariableDecl) {
+        if (sym.kind == Kinds.Kind.VAR) {
             JCTree.JCVariableDecl d =(JCTree.JCVariableDecl) tree;
+            boolean isInInterface = sym.owner.isInterface();
             boolean isInstance = JmlAttr.instance(context).isInstance(d.mods);
             if (isInstance) k &= ~Flags.STATIC;
-            if (isInstance && Utils.instance(context).isJML(flags) && sym.owner.isInterface()) {
-            	if (wasFinal == 0) k &= ~Flags.FINAL;
+            if ((wasFinal==0) && Utils.instance(context).isJML(flags) && sym.owner.isInterface()) {
+            	k &= ~Flags.FINAL;
             }
+        	if (isInInterface && (k&Flags.AccessFlags)==0) k |= Flags.PUBLIC;
         }
         return k;
     }
