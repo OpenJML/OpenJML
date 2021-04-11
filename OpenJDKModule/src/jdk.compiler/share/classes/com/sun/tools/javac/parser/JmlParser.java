@@ -1802,7 +1802,7 @@ public class JmlParser extends JavacParser {
     protected List<JCAnnotation> annotationsOpt(Tag kind) {
     	ListBuffer<JCAnnotation> annos = new ListBuffer<>();
     	while (true) {
-    		while (true) {
+    		while (S.jml()) {
     			var m = Extensions.findKeyword(token);
     			if (!(m instanceof TypeAnnotationKind) ) break;
     			
@@ -1811,20 +1811,12 @@ public class JmlParser extends JavacParser {
     			nextToken();
     			while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
     		}
-			while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
     		var lst = super.annotationsOpt(kind);
 			while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
     		if (lst.isEmpty()) return annos.toList();
     		annos.appendList(lst);
     	}
     }
-
-//    List<JCAnnotation> typeAnnotationsOpt() {
-//        List<JCAnnotation> annotations = super.annotationsOpt(Tag.TYPE_ANNOTATION);
-//        while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
-//        return annotations;
-//    }
-
 
 
     protected JCModifiers pushBackModifiers = null;

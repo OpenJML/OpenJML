@@ -832,10 +832,11 @@ public class JmlEnter extends Enter {
     	if (msym == null) {
 			// No corresponding Java method
     		if (!isJML) {
-				utils.error(mdecl, "jml.message", "There is no binary method to match this Java declaration in the specification file: " + mdecl.name + " (owner: " + csym +")");
+    			String msg = "There is no binary method to match this Java declaration in the specification file: " + mdecl.name + " (owner: " + csym + ")";
 				for (var s: csym.members().getSymbolsByName(mdecl.name, s->(s instanceof MethodSymbol))) {
-					utils.note(false, "    " + csym + " has " + s);
+					msg = msg + "\n    " + csym + " has " + s;
 				}
+				utils.error(mdecl, "jml.message", msg);
 				return;
     		}
 			if (!isModel && !isOwnerJML) {
