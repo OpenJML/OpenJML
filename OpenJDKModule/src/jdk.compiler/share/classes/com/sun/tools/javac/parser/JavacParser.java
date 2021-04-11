@@ -4258,7 +4258,6 @@ public class JavacParser implements Parser {
                                     className,
                                     Fragments.ThrowsClauseNotAllowedForCanonicalConstructor(Fragments.Compact)));
                     skip(false, true, false, false);
-                    startOfDeclaration(mods);
                     return List.of(methodDeclaratorRest(
                             pos, mods, null, names.init, typarams,
                             isInterface, true, isRecord, dc));
@@ -4387,6 +4386,7 @@ public class JavacParser implements Parser {
                               boolean isInterface, boolean isVoid,
                               boolean isRecord,
                               Comment dc) {
+        startOfDeclaration(mods); // OPENJML
         if (isInterface) {
             if ((mods.flags & Flags.STATIC) != 0) {
                 checkSourceLevel(Feature.STATIC_INTERFACE_METHODS);

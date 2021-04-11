@@ -355,7 +355,7 @@ public class modifiers extends TCBase {
     @Test public void testMatchField() {
         addMockFile("$A/A.jml","public class A { int k; }");
         helpTCF("A.java","public class A{}",
-                "/$A/A.jml:1: error: The field k is a Java field (neither ghost nor model) but does not match any fields in the corresponding Java class.", 22);
+                "/$A/A.jml:1: error: There is no binary field to match this Java declaration in the specification file: k (owner: A)", 22);
     }
     
     @Test public void testMatchField2() {
@@ -377,7 +377,7 @@ public class modifiers extends TCBase {
     @Test public void testMatchField3a() {
         addMockFile("$A/A.jml","public class A { /*@ int k; */}");
         helpTCF("A.java","public class A{}",
-                "/$A/A.jml:1: error: A declaration within a JML annotation must be either ghost or model", 26); 
+                "/$A/A.jml:1: error: A JML field declaration must be marked either ghost or model: k (owner: A)", 26); 
     }
     
     @Test public void testMatchField4() {
@@ -395,7 +395,7 @@ public class modifiers extends TCBase {
     @Test public void testMatchField6() { 
         addMockFile("$A/A.jml","public class A { boolean k; }");
         helpTCF("A.java","public class A{ int k; }"
-                ,"/$A/A.jml:1: error: The field k in the specification matches a Java field A.k but they have different types: boolean vs. int",18
+                ,"/$A/A.jml:1: error: Type of field k in specification differs from type in source/binary: boolean vs. int",18
                 ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",21
                 );
     }
@@ -416,7 +416,7 @@ public class modifiers extends TCBase {
     @Test public void testMatchField9() { 
         addMockFile("$A/A.jml","public class A { Class<String> k; }");
         helpTCF("A.java","public class A{ Class<Object> k; }",
-                "/$A/A.jml:1: error: The field k in the specification matches a Java field A.k but they have different types: java.lang.Class<java.lang.String> vs. java.lang.Class<java.lang.Object>", 23
+                "/$A/A.jml:1: error: Type of field k in specification differs from type in source/binary: java.lang.Class<java.lang.String> vs. java.lang.Class<java.lang.Object>", 23
                 ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",31
         		); 
     }
@@ -429,7 +429,10 @@ public class modifiers extends TCBase {
     @Test public void testMatchMethod1() { 
         addMockFile("$A/A.jml","public class A { void m(int i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(Object i) {} }",
-                "/$A/A.jml:1: error: The method A.m(int) is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class.", 23); 
+                "/$A/A.jml:1: error: There is no binary method to match this Java declaration in the specification file: m (owner: A)\n"
+                + "      A has m(java.lang.Object)\n"
+                + "      A has m(boolean)", 23
+                ); 
     }
     
     @Test public void testMatchMethod2() { // Should be OK
@@ -440,7 +443,10 @@ public class modifiers extends TCBase {
     @Test public void testMatchMethod3() { 
         addMockFile("$A/A.jml","public class A { void m(int i, boolean j); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(int i) {} }",
-                "/$A/A.jml:1: error: The method A.m(int,boolean) is a Java method (neither ghost nor model) but does not match any methods in the corresponding Java class.", 23); 
+                "/$A/A.jml:1: error: There is no binary method to match this Java declaration in the specification file: m (owner: A)\n"
+                + "      A has m(int)\n"
+                + "      A has m(boolean)", 23
+                ); 
     }
     
     @Test public void testMatchMethod4() { 
@@ -704,12 +710,12 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testModelField2() {
-        helpTCF("A.java","public class A{ /*@model non_null instance  Object o; */}"
+        helpTCF("A.java","public class A{ /*@model instance non_null Object o; */}"
                 );
     }
     
     @Test public void testModelField3() {
-        helpTCF("A.java","public class A{ /*@model nullable instance  Object o; */}"
+        helpTCF("A.java","public class A{ /*@model instance nullable Object o; */}"
                 );
     }
     
@@ -730,7 +736,7 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testMethod() {
-        helpTCF("A.java","public class A{ /*@ pure spec_protected extractn on_null */ Object m(){ return null; } }"
+        helpTCF("A.java","public class A{ /*@ pure spec_protected extract non_null */ Object m(){ return null; } }"
                 );
     }
      
@@ -746,12 +752,12 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testMethod2() {
-        helpTCF("A.java","public class A{ /*@ pure spec_public nullable */ void m(){} }"
+        helpTCF("A.java","public class A{ /*@ pure spec_public nullable */ Object m(){ return null;} }"
                 );
     }
      
     @Test public void testMethod2a() {
-        helpTCF("A.java","public class A{ /*@ pure helper private nullable */ void m(){} }"
+        helpTCF("A.java","public class A{ /*@ pure helper private nullable */ Object m(){ return null;} }"
                 );
     }
      
@@ -767,7 +773,7 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testMethod5() {
-        helpTCF("A.java","public class A{ /*@ non_null nullable */ void m(){} }"
+        helpTCF("A.java","public class A{ /*@ non_null nullable */ Object m(){return null;} }"
                 ,"/A.java:1: error: A declaration may not be both non_null and nullable",30
                 );
     }
@@ -824,12 +830,12 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testModelMethod1() {
-        helpTCF("A.java","public class A{ /*@ model pure nullable void m(){} */ }"
+        helpTCF("A.java","public class A{ /*@ model pure nullable Object m(){ return null; } */ }"
                 );
     }
      
     @Test public void testModelMethod1a() {
-        helpTCF("A.java","public class A{ /*@ model pure private helper nullable  void m(){} */ }"
+        helpTCF("A.java","public class A{ /*@ model pure private helper nullable Object m(); */ }"
                 );
     }
      
@@ -866,24 +872,28 @@ public class modifiers extends TCBase {
      
     @Test public void testModelConstructor1() {
         helpTCF("A.java","public class A{ /*@ model pure  */ A(){} }"
-                ,"/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model",36
+                ,"/A.java:1: error: A Java method declaration must not be marked model: <init> (owner: A)",21
                 );
     }
      
     @Test public void testModelConstructor1a() {
-        helpTCF("A.java","public class A{ /*@ model pure private helper */ A(){} }"
-                ,"/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model",50
+        helpTCF("A.java","public class A{ /*@  pure private helper */ A(){} }"
                 );
     }
      
      
     @Test public void testModelConstructor2() {
-        helpTCF("A.java","public class A{ A(int i) {} \n/*@ model instance non_null nullable spec_public spec_protected A(){} */ }"
+        helpTCF("A.java","public class A{ A(int i) {} \n/*@ model instance spec_public spec_protected A(){} */ }"
                 ,"/A.java:2: error: This JML modifier is not allowed for a model constructor declaration",11
                 ,"/A.java:2: error: This JML modifier is not allowed for a model constructor declaration",20
-                ,"/A.java:2: error: This JML modifier is not allowed for a model constructor declaration",29
-                ,"/A.java:2: error: This JML modifier is not allowed for a model constructor declaration",38
-                ,"/A.java:2: error: This JML modifier is not allowed for a model constructor declaration",50
+                ,"/A.java:2: error: This JML modifier is not allowed for a model constructor declaration",32
+                );
+    }
+     
+    @Test public void testModelConstructor2a() {
+        helpTCF("A.java","public class A{ A(int i) {} \n/*@ model non_null nullable A(){} */ }"
+                ,"/A.java:2: error: This JML modifier is not allowed for a model constructor declaration",47
+                ,"/A.java:2: error: This JML modifier is not allowed for a model constructor declaration",56
                 );
     }
      
@@ -905,7 +915,7 @@ public class modifiers extends TCBase {
      
     @Test public void testLocalVar() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
-                "  void m() {\n /*@ nninitialized non_null */ Object o;} }"
+                "  void m() {\n /*@ uninitialized non_null */ Object o;} }"
                 );
     }
      
@@ -939,7 +949,7 @@ public class modifiers extends TCBase {
     @Test public void testLocalVar5() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  void m() {\n /*@ non_null nullable */ Object o; } }"
-                ,"/A.java:3: error: A type may not be declared both non_null and nullable",15
+                ,"/A.java:3: error: A type may not be declared both non_null and nullable",6
                 );
     }
      
