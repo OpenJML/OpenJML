@@ -794,7 +794,7 @@ public class JavacParser implements Parser {
         if (annotations.nonEmpty()) {
             result = insertAnnotationsToMostInner(result, annotations, false);
         }
-
+        
         return result;
     }
 

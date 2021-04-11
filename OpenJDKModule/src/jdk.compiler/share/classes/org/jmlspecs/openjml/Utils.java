@@ -84,6 +84,7 @@ import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
+import com.sun.tools.javac.util.Position;
 import com.sun.tools.javac.util.PropagatedException;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticFlag;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
@@ -524,7 +525,7 @@ public class Utils {
     	}
     	return false;
     }
-
+    
     // FIXME - would prefer to issue a DiagnosticPosition
     public int locMod(JCModifiers mods, ModifierKind... ata) {
     	for (var ta: ata) {
@@ -1271,6 +1272,7 @@ public class Utils {
         return n.toList();
     }
     
+    // FIXME - replace calls of this by the versions in treeutils
     public/* @ nullable */JCAnnotation modToAnnotationAST(ModifierKind jt,
             int position, int endpos) {
 
@@ -1319,6 +1321,15 @@ public class Utils {
             if (parser != null) parser.storeEnd(tree,endpos);
         }
         return tree;
+    }
+    
+    public void removeAnnotation(JCModifiers mods, ModifierKind mk) {
+    	ListBuffer<JCAnnotation> newlist = new ListBuffer<>();
+    	mods.annotations.forEach((JCAnnotation a)->{ if (a instanceof JmlTree.JmlAnnotation && ((JmlTree.JmlAnnotation)a).kind != mk) newlist.add(a); } );
+    	mods.annotations = newlist.toList();
+    	ListBuffer<JmlToken> newtokens = new ListBuffer<>();
+    	((JmlModifiers)mods).jmlmods.forEach((JmlToken t)->{ if (t.jmlclausekind != mk) newtokens.add(t); });
+    	((JmlModifiers)mods).jmlmods  = newtokens.toList();
     }
 
 

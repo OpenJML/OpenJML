@@ -722,7 +722,7 @@ public class TreeInfo {
         return trees.stream().map(t -> TreeInfo.diagnosticPositionFor(sym, t)).filter(t -> t != null).findFirst().get();
     }
 
-    private static class DeclScanner extends TreeScanner {
+    private static class DeclScanner extends TreeScanner implements org.jmlspecs.openjml.visitors.IJmlVisitor {
         final Symbol sym;
 
         DeclScanner(final Symbol sym) {

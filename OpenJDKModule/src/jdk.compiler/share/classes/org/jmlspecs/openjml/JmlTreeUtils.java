@@ -12,9 +12,8 @@ import java.util.Map;
 
 import javax.lang.model.type.TypeKind;
 
-import org.jmlspecs.openjml.JmlTree.JmlBinary;
-import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
-import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
+import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.MiscExpressions;
@@ -40,28 +39,10 @@ import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.comp.Operators;
 import com.sun.tools.javac.jvm.ClassReader;
+import com.sun.tools.javac.parser.JmlParser;
+import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.tree.*;
-import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
-import com.sun.tools.javac.tree.JCTree.JCAssign;
-import com.sun.tools.javac.tree.JCTree.JCAssignOp;
-import com.sun.tools.javac.tree.JCTree.JCBinary;
-import com.sun.tools.javac.tree.JCTree.JCCatch;
-import com.sun.tools.javac.tree.JCTree.JCConditional;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCTypeApply;
-import com.sun.tools.javac.tree.JCTree.JCUnary;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.tree.JCTree.JCWildcard;
-import com.sun.tools.javac.tree.JCTree.Tag;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
@@ -1815,6 +1796,34 @@ public class JmlTreeUtils {
         if (changed) return buf.toList();
         buf.clear();
         return tlist;
+    }
+
+    // FIXME - avoid this call -- no ModifierKind stored
+    private JmlAnnotation tokenToAnnotationAST(String annName, int position, int endpos, JmlParser parser) {
+        JCExpression t = utils.nametree(position,endpos,annName,parser);
+        JmlAnnotation ann = (JmlAnnotation)factory.at(position).Annotation(t,
+                List.<JCExpression> nil());
+    	ann.sourcefile = Log.instance(context).currentSourceFile();
+
+        if (parser != null) parser.storeEnd(ann, endpos);
+        return ann;
+    }
+
+    public void addAnnotation(JCModifiers mods, int pos, int endPos, ModifierKind mk, JmlParser parser) {
+ 	   JmlAnnotation a = tokenToAnnotationAST(mk.fullAnnotation, pos, endPos, parser);
+ 	   if (a != null) {
+ 	 	   a.kind = mk;
+ 		   mods.annotations = mods.annotations.append(a);
+ 	   }
+    }
+
+    public JmlAnnotation addAnnotation(JCModifiers mods, JmlToken token, JmlParser parser) {
+ 	   JmlAnnotation a = tokenToAnnotationAST(((ModifierKind)token.jmlclausekind).fullAnnotation, token.pos, token.endPos, parser);
+ 	   if (a != null) {
+ 	 	   a.kind = (ModifierKind)token.jmlclausekind;
+ 		   mods.annotations = mods.annotations.append(a);
+ 	   }
+ 	   return a;
     }
 
 

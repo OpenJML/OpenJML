@@ -22,9 +22,9 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:3: ';' expected",14
-                ,"/TEST.java:3: Method specs may not precede a variable declaration",7
-                ,"/TEST.java:3: cannot find symbol\n" + 
+                ,"/TEST.java:3: error: ';' expected",14
+                ,"/TEST.java:3: error: Method specs may not precede a variable declaration",7
+                ,"/TEST.java:3: error: cannot find symbol\n" + 
                                         "  symbol:   class r\n" + 
                                         "  location: class A",5
                 );
@@ -39,11 +39,11 @@ public class methodspecs extends TCBase {
                 +"//@ s ignals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:4: ';' expected",18
-                ,"/TEST.java:4: Method specs may not precede a variable declaration",7
-                ,"/TEST.java:4: <identifier> expected",28
-                ,"/TEST.java:4: cannot find symbol\n  symbol:   class s\n  location: class A",5
-//                ,"/TEST.java:4: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: s",5
+                ,"/TEST.java:4: error: ';' expected",18
+                ,"/TEST.java:4: error: Method specs may not precede a variable declaration",7
+                ,"/TEST.java:4: error: <identifier> expected",28
+                ,"/TEST.java:4: error: cannot find symbol\n  symbol:   class s\n  location: class A",5
+//                ,"/TEST.java:4:error: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: s",5
                 );
     }
 
@@ -55,9 +55,9 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:2: ';' expected",14
-                ,"/TEST.java:2: cannot find symbol\n  symbol:   class r\n  location: class A",5
-//                ,"/TEST.java:2: A declaration within a JML annotation must be either ghost or model",7
+                ,"/TEST.java:2: error: ';' expected",14
+                ,"/TEST.java:2: error: cannot find symbol\n  symbol:   class r\n  location: class A",5
+//                ,"/TEST.java:2: error: A declaration within a JML annotation must be either ghost or model",7
                 );
     }
     
@@ -69,11 +69,11 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:2: illegal start of type",5
-                ,"/TEST.java:2: ';' expected",9
-                ,"/TEST.java:2: illegal start of type",18
-                ,"/TEST.java:2: <identifier> expected",22
-                ,"/TEST.java:2: ';' expected",23
+                ,"/TEST.java:2: error: illegal start of type",5
+                ,"/TEST.java:2: error: <identifier> expected",17
+                ,"/TEST.java:2: error: cannot find symbol\n"
+                		+ "  symbol:   class equires\n"
+                		+ "  location: class A",10
                 );
     }
     
@@ -85,9 +85,8 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:2: '{' expected",18
-                ,"/TEST.java:5: reached end of file while parsing",2
-                ,"/TEST.java:2: A method or type declaration within a JML annotation must be model",5
+                ,"/TEST.java:2: error: '{' expected",18
+                ,"/TEST.java:2: error: A JML class declaration must be marked model: equires (owner: A)",5
                 );
     }
     
@@ -99,8 +98,7 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:2: <identifier> expected",16
-                ,"/TEST.java:5: reached end of file while parsing",2
+                ,"/TEST.java:2: error: <identifier> expected",16
                 );
     }
     
@@ -113,7 +111,7 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:4: At most one signals_only clause is permitted in a specification case",5
+                ,"/TEST.java:4: error: At most one signals_only clause is permitted in a specification case",5
                 );
     }
     
@@ -136,7 +134,7 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Object;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:3: incompatible types: java.lang.Object cannot be converted to java.lang.Throwable",18
+                ,"/TEST.java:3: error: incompatible types: java.lang.Object cannot be converted to java.lang.Throwable",18
                 );
     }
     
@@ -159,7 +157,7 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only ;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:3: Use \\nothing to denote an empty list of exceptions in a signals_only clause",18
+                ,"/TEST.java:3: error: Use \\nothing to denote an empty list of exceptions in a signals_only clause",18
                 );
     }
     
@@ -176,7 +174,7 @@ public class methodspecs extends TCBase {
                 +"//@ |}\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:7: At most one signals_only clause is permitted in a specification case",5
+                ,"/TEST.java:7: error: At most one signals_only clause is permitted in a specification case",5
                 );
     }
         
@@ -208,7 +206,7 @@ public class methodspecs extends TCBase {
                 +"//@ pure\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:6: Pure methods may not assign to any fields: \\everything",16
+                ,"/TEST.java:6: error: Pure methods may not assign to any fields: \\everything",16
         );
     }
     
@@ -225,9 +223,9 @@ public class methodspecs extends TCBase {
                 +"//@ pure\n"
                 +"int m() {  return 0; }\n"
                 +"}"
-                ,"/TEST.java:6: Pure methods may not assign to any fields: k",16
-                ,"/TEST.java:6: Pure methods may not assign to any fields: sk",19
-                ,"/TEST.java:6: Pure methods may not assign to any fields: this.k",27
+                ,"/TEST.java:6: error: Pure methods may not assign to any fields: k",16
+                ,"/TEST.java:6: error: Pure methods may not assign to any fields: sk",19
+                ,"/TEST.java:6: error: Pure methods may not assign to any fields: this.k",27
         );
     }
     
@@ -244,10 +242,10 @@ public class methodspecs extends TCBase {
                 +"//@ pure\n"
                 +"A() { }\n"
                 +"}"
-                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: sk",16
-                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: A.sk",21
-                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: sbk",26
-                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: B.sbk",32
+                ,"/TEST.java:6: error: Pure constructors may not assign to any fields other than non-static member fields: sk",16
+                ,"/TEST.java:6: error: Pure constructors may not assign to any fields other than non-static member fields: A.sk",21
+                ,"/TEST.java:6: error: Pure constructors may not assign to any fields other than non-static member fields: sbk",26
+                ,"/TEST.java:6: error: Pure constructors may not assign to any fields other than non-static member fields: B.sbk",32
         );
     }
     
@@ -264,8 +262,8 @@ public class methodspecs extends TCBase {
                 +"//@ pure\n"
                 +"A() { }\n"
                 +"}"
-                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: sbk",20
-                ,"/TEST.java:6: Pure constructors may not assign to any fields other than non-static member fields: A.sbk",26
+                ,"/TEST.java:6: error: Pure constructors may not assign to any fields other than non-static member fields: sbk",20
+                ,"/TEST.java:6: error: Pure constructors may not assign to any fields other than non-static member fields: A.sbk",26
         );
     }
     
@@ -295,7 +293,7 @@ public class methodspecs extends TCBase {
                 +"//@ ensures false;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:6: Ensures clauses are not permitted in exceptional specification cases",5
+                ,"/TEST.java:6: error: Ensures clauses are not permitted in exceptional specification cases",5
         );
     }
     
@@ -325,7 +323,7 @@ public class methodspecs extends TCBase {
                 +"//@ signals (Exception e) false;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:6: Signals clauses are not permitted in normal specification cases",5
+                ,"/TEST.java:6: error: Signals clauses are not permitted in normal specification cases",5
         );
     }
     
@@ -356,7 +354,7 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only RuntimeException;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:6: Signals_only clauses are not permitted in normal specification cases",5
+                ,"/TEST.java:6: error: Signals_only clauses are not permitted in normal specification cases",5
         );
     }
     
