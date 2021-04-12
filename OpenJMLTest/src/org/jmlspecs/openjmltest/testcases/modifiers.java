@@ -800,7 +800,6 @@ public class modifiers extends TCBase {
      
     @Test public void testConstructor3() {
         helpTCF("A.java","public class A{ \n/*@ instance non_null nullable */ A(){} }"
-        		,"/A.java:2: error: illegal start of type",14
                 ,"/A.java:2: error: This JML modifier is not allowed for a constructor declaration",5
                 ,"/A.java:2: error: This JML modifier is not allowed for a constructor declaration",14
                 ,"/A.java:2: error: This JML modifier is not allowed for a constructor declaration",23
@@ -893,7 +892,6 @@ public class modifiers extends TCBase {
      
     @Test public void testModelConstructor2a() {
         helpTCF("A.java","public class A{ A(int i) {} \n/*@ model non_null nullable A(){} */ }"
-        		,"/A.java:2: error: illegal start of type", 11
                 ,"/A.java:2: error: This JML modifier is not allowed for a model constructor declaration",11
                 ,"/A.java:2: error: This JML modifier is not allowed for a model constructor declaration",20
                 );
@@ -1138,9 +1136,9 @@ public class modifiers extends TCBase {
                 "  //@ non_null invariant true; \n" +
                 "  //@ spec_public invariant true; \n" +
                 "  void m() {} }"
+                ,"/A.java:7: error: Type annotations are not permitted here", 7
                 ,"/A.java:4: error: This JML modifier is not allowed for a invariant clause", 7
-                ,"/A.java:6: error: illegal combination of modifiers: error: public and private", 22
-                ,"/A.java:7: error: This JML modifier is not allowed for a invariant clause", 7
+                ,"/A.java:6: error: illegal combination of modifiers: public and private", 22
                 ,"/A.java:8: error: This JML modifier is not allowed for a invariant clause", 7
                 );
     }
@@ -1176,13 +1174,10 @@ public class modifiers extends TCBase {
                 "  //@ pure axiom true; \n" +    // ERROR
                 "  //@ private axiom true; \n" + // ERROR
                 "  //@ public private axiom true; \n" + // ERROR
-                "  //@ non_null axiom true; \n" +       // ERROR -- FIXME - could have better error messages
+                "  //@ non_null axiom true; \n" +       // ERROR
                 "  //@ spec_public axiom true; \n" +    // ERROR
                 "  void m() {} }"
-                ,"/A.java:7: error: <identifier> expected", 21
-                ,"/A.java:7: error: cannot find symbol\n"
-                		+ "  symbol:   class axiom\n"
-                		+ "  location: class A", 16
+                ,"/A.java:7: error: Type annotations are not permitted here", 7
                 ,"/A.java:3: error: These modifiers are not allowed here: public", 14
                 ,"/A.java:4: error: This JML modifier is not allowed for a axiom clause", 7
                 ,"/A.java:5: error: These modifiers are not allowed here: private", 15
@@ -1203,9 +1198,9 @@ public class modifiers extends TCBase {
                 "  //@ static initially true; \n" +
                 "  //@ instance initially true; \n" +
                 "  void m() {} }"
+                ,"/A.java:7: error: Type annotations are not permitted here", 7
                 ,"/A.java:4: error: This JML modifier is not allowed for a initially clause", 7
-                ,"/A.java:6: error: illegal combination of modifiers: error: public and private", 22
-                ,"/A.java:7: error: This JML modifier is not allowed for a initially clause", 7
+                ,"/A.java:6: error: illegal combination of modifiers: public and private", 22
                 ,"/A.java:8: error: This JML modifier is not allowed for a initially clause", 7
                 );
     }
@@ -1291,11 +1286,34 @@ public class modifiers extends TCBase {
                 "/A.java:2: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: class A, annotation @Pure", 8);
     }
 
-    // TODO - the next two could use better error messages
     @Test
     public void testBadModifiers() {
         helpTCF("A.java","package tt; \n"
                 +"/*@ nonnull_by_default*/ public class A { \n" // Purposely misspelled non_null_by_default
+                                
+                +"}"
+                ,"/A.java:2: error: Unexpected or misspelled JML token: nonnull_by_default",5
+                );
+    }
+    
+    // TODO - could use better error messages and better recovery
+    @Test @Ignore
+    public void testBadModifiers2() {
+        helpTCF("A.java","package tt; \n"
+                +"public class A { \n"
+                
+                +"  //@ requires a[i]>0;\n"
+                +"  public void m1bad(/*@ nonnull */ int[] a, int i) {\n" // Purposely misspelled non_null
+                +"  }\n"
+                
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testMisc() {
+        helpTCF("A.java","package tt; \n"
+                +"/* */ public class A { \n"
                 
                 +"  //@ requires a[i]>0;\n"
                 +"  public void m1bad(int[] a, int i) {\n"
@@ -1307,27 +1325,9 @@ public class modifiers extends TCBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/A.java:2: error: Unexpected or misspelled JML token: nonnull_by_default",5
                 );
     }
-    
-    @Test @Ignore // FIXME  - Eventually a clear error message, but too many cacading messages to check.
-    public void testBadModifiers2() {
-        helpTCF("A.java","package tt; \n"
-                +"public class A { \n"
-                
-                +"  //@ requires a[i]>0;\n"
-                +"  public void m1bad(/*@ nonnull */ int[] a, int i) {\n" // Purposely misspelled non_null
-                +"  }\n"
-                
-                +"  //@ requires i >= 0 && i < a.length;\n"
-                +"  //@ requires a[i]>0;\n"
-                +"  public void m1good(int[] a, int i) {\n"
-                +"  }\n"
-                
-                +"}"
-                );
-    }
+
     
     @Test public void testHelper1() {
         helpTCF("A.java","public class A{ /*@ helper */ void mzzz(){} }"
