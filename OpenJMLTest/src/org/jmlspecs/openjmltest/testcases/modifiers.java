@@ -1144,9 +1144,11 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testInvariant2() {
+    	expectedExit = 0;
         helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ int m() { return 0; } \n" +
                 "  //@ invariant (new A() { int m() { return 5; } }) != null; \n" +
                 "  void p() {} }"
+                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: A..()",18
                 );
     }
      

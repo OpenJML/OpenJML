@@ -3649,7 +3649,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlTypeClauseExpr(this, d);
             } else {
-                System.out.println("A JmlTypeClauseExpr expects an JmlTreeVisitor, not a " + v.getClass());
+                //System.out.println("A JmlTypeClauseExpr expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
         }
