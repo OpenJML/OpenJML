@@ -105,10 +105,11 @@ public class Annotate {
     private final Attribute theUnfinishedDefaultValue;
     private final boolean allowRepeatedAnnos;
     private final String sourceName;
-
+    public Context context;
+    
     protected Annotate(Context context) {
         context.put(annotateKey, this);
-
+        this.context = context;
         attr = Attr.instance(context);
         chk = Check.instance(context);
         cfolder = ConstFold.instance(context);
@@ -168,6 +169,10 @@ public class Annotate {
         ListBuffer<TypeCompound> buf = new ListBuffer<>();
         for (JCAnnotation anno : annotations) {
         	if (anno.attribute == null) {
+//        		if (anno instanceof org.jmlspecs.openjml.JmlTree.JmlAnnotation) {
+//        			var janno = (org.jmlspecs.openjml.JmlTree.JmlAnnotation)anno;
+//        			var s = com.sun.tools.javac.comp.JmlAttr.instance(context).modToAnnotationSymbol.get(janno.kind);
+//        		}
         		var pre = log.useSource(((org.jmlspecs.openjml.JmlTree.JmlAnnotation)anno).sourcefile);
         		log.error(anno.pos, "jml.message", "ANNO ATTR IS NULL  " + anno );
         		log.useSource(pre);

@@ -245,38 +245,38 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(that.args);
     }
     
-    public void visitJmlMethodSpecs(JmlMethodSpecs tree) {
-        scan(tree.cases);
-        scan(tree.impliesThatCases);
-        scan(tree.forExampleCases);
-        scan(tree.feasible);
-    }
-
-    public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
-        scan(that.item);
-    }
-
-    public void visitJmlNewClass(JmlNewClass that) {
-        visitNewClass(that);
-    }
-
-    public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree tree) {
-        // no children to scan
-    }
-
-    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-        scan(that.decls);
-        scan(that.range);
-        scan(that.value);
-        scan(that.racexpr);
-        scan(that.triggers);
-    }
-
-    public void visitJmlSetComprehension(JmlSetComprehension that) {
-        scan(that.newtype);
-        scan(that.variable);
-        scan(that.predicate);
-    }
+//    public void visitJmlMethodSpecs(JmlMethodSpecs tree) {
+//        scan(tree.cases);
+//        scan(tree.impliesThatCases);
+//        scan(tree.forExampleCases);
+//        scan(tree.feasible);
+//    }
+//
+//    public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
+//        scan(that.item);
+//    }
+//
+//    public void visitJmlNewClass(JmlNewClass that) {
+//        visitNewClass(that);
+//    }
+//
+//    public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree tree) {
+//        // no children to scan
+//    }
+//
+//    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+//        scan(that.decls);
+//        scan(that.range);
+//        scan(that.value);
+//        scan(that.racexpr);
+//        scan(that.triggers);
+//    }
+//
+//    public void visitJmlSetComprehension(JmlSetComprehension that) {
+//        scan(that.newtype);
+//        scan(that.variable);
+//        scan(that.predicate);
+//    }
 
     // public void visitJmlSingleton(JmlSingleton that);
 

@@ -3778,6 +3778,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
+    Symbol identOrSelectSym(JCExpression e) {
+    	if (e instanceof JCIdent) return ((JCIdent)e).sym;
+    	return ((JCFieldAccess)e).sym;
+    }
+    
     /** This is overridden to check that if we are in a pure environment,
      * the method is declared pure.  Also to make sure any specs are attributed.
      */
@@ -3793,6 +3798,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (result.isErroneous()) System.out.println("RESULT ERRONEOUS");
     	}
         if (result.isErroneous()) return;
+        
+        {
+        	Symbol s = identOrSelectSym(tree.meth);
+        	specs.getSpecs((MethodSymbol)s); // To make sure callee specs are attributed
+        }
         Type savedResult = result;
         MethodSymbol msym = null;
         JCExpression m = tree.meth;
@@ -4893,6 +4903,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // T is a subtype of JMLSetType<? super TT>  (FIXME - is that right?)
         // T must be allowed to hold elements of type TT
         attribType(that.newtype,env);
+        System.out.println("JMLATTR SET " + that.variable.vartype.getClass() + " "+ that.variable.vartype);
         attribType(that.variable.vartype,env);
         attribAnnotationTypes(that.variable.mods.annotations,env);
 
@@ -6437,7 +6448,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     public void visitJmlClassDecl(JmlClassDecl that) {
-    	System.out.println("VJCD " + that.name + " " + that.sym + " " + (that.sym == null ? "?":that.sym.owner.kind) + " " + utils.isJML(that.mods.flags) + " " + !this.attribJmlDecls + " " + (env.enclMethod!=null));
     	if (that.sym != null && (env.enclMethod==null) && utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
         // Typically, classes are attributed by calls to attribClass and
         // then to attibClassBody and attribClassBodySpecs, but local
@@ -6451,10 +6461,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         visitClassDef(that);
         if (env.enclMethod != null) {
-        	System.out.println("LOCALCLASS " + that.sym + " " + that.sym.members());
         	//((JmlEnter)enter).specsClassEnter(that.sym.owner, that, typeEnvs.get(that.sym), that);
         	specs.putSpecs((ClassSymbol)that.sym, new JmlSpecs.TypeSpecs(that, typeEnvs.get(that.sym)));
-        	System.out.println("LOCALCLASS SPECS " + specs.status(that.sym));
         	specs.getSpecs(that.sym);
         }
     }
@@ -7119,6 +7127,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 		var savedPure = this.pureEnvironment;
 		JmlSpecs.MethodSpecs sp = null;
 		JmlSpecs.SpecsStatus stat = JmlSpecs.SpecsStatus.SPECS_ATTR;
+		specs.setStatus(msym, stat);
 		try {
     		if (utils.verbose()) utils.note("Attributing specs for " + msym.owner + " " + msym);
     		this.currentClauseType = null;
@@ -7178,10 +7187,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	                            }
     	                        }
     	                    } else if (!specHasAlso && methodOverrides) {
+    	                    	var base = utils.parents(jmethod.sym).get(0);
+    	                    	String s = base.owner + "." + base;
     	                        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
-    	                            utils.error(spec, "jml.missing.also", jmethod.name.toString());
+    	                            utils.warning(spec, "jml.missing.also", jmethod.name.toString(), s);
     	                        } else {
-    	                            utils.warning(spec, "jml.missing.also", jmethod.name.toString());
+    	                            utils.warning(spec, "jml.missing.also", jmethod.name.toString(), s);
     	                        }
     	                    }
     	                }
@@ -7282,6 +7293,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 		try {
     		if (utils.verbose()) utils.note("Attributing specs for " + csym);
     		TypeSpecs tspecs = specs.getLoadedSpecs(csym);
+    		JmlSpecs.instance(context).setStatus(csym, JmlSpecs.SpecsStatus.SPECS_ATTR);
     		ResultInfo ri = new ResultInfo(KindSelector.VAL_TYP, Type.noType);
     		this.env = tspecs.specsEnv;
     		this.enclosingClassEnv = enter.getEnv(csym); // FIXME  - or getClassEnv?
@@ -7292,7 +7304,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		}
     		attrTypeClause(tspecs.initializerSpec, tspecs.specsEnv, ri);
     		attrTypeClause(tspecs.staticInitializerSpec, tspecs.specsEnv, ri);
-    		JmlSpecs.instance(context).setStatus(csym, JmlSpecs.SpecsStatus.SPECS_ATTR);
     	} catch (Exception e) {
     		utils.error("jml.message", "Exception while attributing class specs: " + csym);
     		e.printStackTrace(System.out);
@@ -7312,6 +7323,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 		FieldSpecs fspecs = specs.getLoadedSpecs(vsym);
 		ResultInfo ri = new ResultInfo(KindSelector.VAL_TYP, vsym.type);
 		var stat = JmlSpecs.SpecsStatus.SPECS_ATTR;
+		JmlSpecs.instance(context).setStatus(vsym, stat);
 		if (fspecs != null) {
 			// The following copied from Attr.visitVarDef
 //	        Lint lint = env.info.lint == null ? null : env.info.lint.augment(vsym);

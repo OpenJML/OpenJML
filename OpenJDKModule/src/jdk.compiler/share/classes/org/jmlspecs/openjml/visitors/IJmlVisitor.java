@@ -77,13 +77,43 @@ public interface IJmlVisitor extends IVisitor {
     default public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {}
     default public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) {}
     default public void visitJmlMethodDecl(JmlMethodDecl tree)             {}
-    default public void visitJmlMethodInvocation(JmlMethodInvocation tree) {}
-    default public void visitJmlMethodSpecs(JmlMethodSpecs tree)           {}
-    default public void visitJmlModelProgramStatement(JmlModelProgramStatement tree){}
-    default public void visitJmlNewClass(JmlNewClass tree)                 {}
-    default public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree tree){}
-    default public void visitJmlQuantifiedExpr(JmlQuantifiedExpr tree)     {}
-    default public void visitJmlSetComprehension(JmlSetComprehension tree) {}
+    default public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
+        scan(tree.args);
+    }
+
+    default public void visitJmlMethodSpecs(JmlMethodSpecs tree)           {
+        scan(tree.cases);
+        scan(tree.impliesThatCases);
+        scan(tree.forExampleCases);
+        scan(tree.feasible);
+    }
+
+    default public void visitJmlModelProgramStatement(JmlModelProgramStatement tree){
+        scan(tree.item);
+    }
+
+    default public void visitJmlNewClass(JmlNewClass tree)                 {
+        visitNewClass(tree);
+    }
+    
+    default public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree tree){
+        // no children to scan
+    }
+
+    default public void visitJmlQuantifiedExpr(JmlQuantifiedExpr tree)     {
+        scan(tree.decls);
+        scan(tree.range);
+        scan(tree.value);
+        scan(tree.racexpr);
+        scan(tree.triggers);
+    }
+    
+    default public void visitJmlSetComprehension(JmlSetComprehension tree) {
+    	System.out.println("VISITING JMLSETCOMPR " + tree.newtype.getClass() + " " + tree);
+        scan(tree.newtype);
+        scan(tree.variable);
+        scan(tree.predicate);
+    }
     default public void visitJmlSingleton(JmlSingleton tree) {
     	// do nothing - no children to scan
     }

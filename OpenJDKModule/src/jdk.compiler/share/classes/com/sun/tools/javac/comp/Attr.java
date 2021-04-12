@@ -952,7 +952,6 @@ public class Attr extends JCTree.Visitor {
             // Local and anonymous classes have not been entered yet, so we need to
             // do it now.
             if (env.info.scope.owner.kind.matches(KindSelector.VAL_MTH)) {
-            	if (org.jmlspecs.openjml.Main.useJML) System.out.println("ATTR ENTERING " + tree.name);
                 enter.classEnter(tree, env);
             } else {
                 // If this class declaration is part of a class level annotation,

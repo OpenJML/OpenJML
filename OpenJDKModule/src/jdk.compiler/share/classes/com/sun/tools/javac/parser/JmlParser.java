@@ -335,7 +335,7 @@ public class JmlParser extends JavacParser {
     protected JCStatement classOrRecordOrInterfaceOrEnumDeclaration(JCModifiers mods, Comment dc) {
         boolean prevInJmlDeclaration = inJmlDeclaration;
         JCStatement s = null;
-        try {
+        while (true) try {
             if (S.jml()) {
                 if (mods == null) {
                     mods = jmlF.at(Position.NOPOS).Modifiers(0);
@@ -361,15 +361,19 @@ public class JmlParser extends JavacParser {
                         utils.error(p, ep,
                                 "jml.unexpected.or.misspelled.jml.token", token);
                         setErrorEndPos(endPos());
-                        s = jmlF.at(p).Exec(jmlF.at(p).Erroneous());
+                        //s = jmlF.at(p).Exec(jmlF.at(p).Erroneous());
                     	nextToken();
+                        while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
+                        mods = modifiersOpt(mods);
+                    	continue; // ignore token and try again
                     }
                 } else if (inJmlDeclaration && token.kind == IMPORT) {
                 	pushBackModifiers = mods;
                 	importDeclaration();
                 	utils.warning(p, pos(), "jml.message", "misplaced model import");
                     setErrorEndPos(endPos());
-                    s = jmlF.at(p).Exec(jmlF.at(p).Erroneous());
+                    //s = jmlF.at(p).Exec(jmlF.at(p).Erroneous());
+                    continue;
                 } else {
                     int ep = endPos();
                     utils.error(p, ep,
@@ -377,8 +381,11 @@ public class JmlParser extends JavacParser {
                             token == null ? jmlTokenKind().internedName() : S.chars() );
 
                     setErrorEndPos(ep);
-                    s = to(F.Exec(toP(F.at(p).Erroneous(List.<JCTree> nil()))));
-                    // TODO: Does this recover well enough?
+                	nextToken();
+                    while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
+                    //s = to(F.Exec(toP(F.at(p).Erroneous(List.<JCTree> nil()))));
+                    mods = modifiersOpt(mods);
+                    continue; // ignore token and try again
                 }
             }
             if (s instanceof JCClassDecl && (((JCClassDecl)s).mods.flags & Flags.ENUM) != 0) {
@@ -387,6 +394,7 @@ public class JmlParser extends JavacParser {
             while (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) {
                 nextToken();
             }
+            break;
         } finally {
             inJmlDeclaration = prevInJmlDeclaration;
         }
@@ -893,7 +901,7 @@ public class JmlParser extends JavacParser {
             }
             JCModifiers mods = modifiersOpt(); // Gets anything that is in
                                                // pushBackModifiers
-            List<JCAnnotation> typeAnns = null;//typeAnnotationsOpt();
+            List<JCAnnotation> typeAnns = typeAnnotationsOpt();
             int pos = pos();
             JmlTokenKind jt = jmlTokenKind();
             if (jt != null && !isJmlTypeToken(jt) && currentMethodSpecs != null && !startOfMethodSpecs(token)) {
@@ -988,7 +996,7 @@ public class JmlParser extends JavacParser {
                         t = List.<JCTree>of(cl.parse(mods, cl.keyword, cl, this));
                         // FIXME - attach the doc comment
                     } else {
-                        savedTypeAnnotations = typeAnns;
+                        savedTypeAnnotations = typeAnns; typeAnns = null;
                         t = super.classOrInterfaceOrRecordBodyDeclaration(
                                 className, isInterface, isRecord);
                         if (isInterface && t.head instanceof JmlMethodDecl) {
@@ -1007,7 +1015,7 @@ public class JmlParser extends JavacParser {
                         currentMethodSpecs = null;
                     }
                     // no longer in JML
-                    savedTypeAnnotations = typeAnns;
+                    savedTypeAnnotations = typeAnns; typeAnns = null;
                     t = super.classOrInterfaceOrRecordBodyDeclaration(
                             className, isInterface, isRecord);
                 }
@@ -1123,6 +1131,10 @@ public class JmlParser extends JavacParser {
     }
     
     protected void startOfDeclaration(JCModifiers mods) {
+    	if (savedTypeAnnotations != null) {
+    		mods.annotations = mods.annotations.appendList(savedTypeAnnotations);
+    		savedTypeAnnotations = null;
+    	}
     	if (S.jml()) utils.setJML(mods);
     }
     

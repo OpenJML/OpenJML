@@ -913,18 +913,18 @@ public class JmlEnter extends Enter {
     		if (mdecl == javaMDecl) {
     			// Defensive check
     			if (mdecl.sym != msym) utils.error(mdecl.sourcefile, mdecl, "jml.message", "msym values do not match: " + mdecl.sym + " " + msym);
-    			mdecl.specsDecl = mdecl;
-    			if (utils.verbose()) utils.note("Matched method: (self) " + msym + " (owner: " + msym.owner +")");
-    			specsEnv = MemberEnter.instance(context).methodEnv(mdecl, specsEnv);
-
-    		} else {
-
+    		}
+     		{
+    			mdecl.specsDecl = javaMDecl;
     			boolean b = JmlCheck.instance(context).noDuplicateWarn;
     			JmlCheck.instance(context).noDuplicateWarn = true;
-    			var specsym = makeAndEnterMethodSym(mdecl, specsEnv); 
+    			if (mdecl != javaMDecl) makeAndEnterMethodSym(mdecl, specsEnv);
+    			annotate.flush();
     			JmlCheck.instance(context).noDuplicateWarn = b;
-    			mdecl.sym = specsym;  // FIXME - we are entering both symbols -- but I think the original one is the one actually found
-    			if (utils.verbose()) utils.note("Matched method: " + msym + " (owner: " + msym.owner +")");
+    			if (utils.verbose()) {
+    				if (mdecl != javaMDecl) utils.note("Matched method: " + msym + " (owner: " + msym.owner +")");
+    				else utils.note("Matched method: (self) " + msym + " (owner: " + msym.owner +")");
+    			}
     			mdecl.sym = msym;
     			specsEnv = MemberEnter.instance(context).methodEnv(mdecl, specsEnv);
     			ListBuffer<Type> argtypes = new ListBuffer<>();
@@ -935,11 +935,13 @@ public class JmlEnter extends Enter {
     				mdecl.params.get(i).sym = s;
     				specsEnv.info.scope().enter(s);
     			}
-    			var q = msym.type;
-    			while (q instanceof Type.ForAll) q = ((Type.ForAll)q).qtype; 
-    			if (q instanceof Type.MethodType) ((Type.MethodType)q).argtypes = argtypes.toList();
-    			// FIXME - what about the return type, or exception types?
-    			checkMethodMatch(javaMDecl,msym,mdecl,csym);
+    			if (mdecl != javaMDecl) {
+    				var q = msym.type;
+        			while (q instanceof Type.ForAll) q = ((Type.ForAll)q).qtype; 
+        			if (q instanceof Type.MethodType) ((Type.MethodType)q).argtypes = argtypes.toList();
+        			// FIXME - what about the return type, or exception types?
+        			checkMethodMatch(javaMDecl,msym,mdecl,csym);
+    			}
     		}
 			var mspecs = new JmlSpecs.MethodSpecs(mdecl);
 			JmlSpecs.instance(context).putSpecs(msym, mspecs, specsEnv);
@@ -1302,7 +1304,6 @@ public class JmlEnter extends Enter {
       	
       	long diffs = (javaFlags ^ specFlags)&(isInterface? Flags.InterfaceVarFlags : Flags.VarFlags);
       	if (diffs != 0) {
-      		System.out.println("DIFFS " + (javaFlags&63) + " " + (specFlags&63) + " " + isInterface + " " + utils.isJML(specFlags));
       		utils.error(specVarDecl.sourcefile,specVarDecl,"jml.mismatched.field.modifiers", specVarDecl.name, javaClassSymbol+"."+javaSym.name,Flags.toString(diffs));
       	}
     	
