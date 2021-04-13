@@ -154,7 +154,9 @@ public class QuantifiedExpressions extends ExpressionExtension {
             Type resultType = syms.errType;
             try {
                 
-                if (that.range != null) attr.attribExpr(that.range, localEnv, syms.booleanType);
+                if (that.range != null) {
+                	attr.attribExpr(that.range, localEnv, syms.booleanType);
+                }
 
                 Type t;
                 switch (this.name()) {
@@ -259,6 +261,7 @@ public class QuantifiedExpressions extends ExpressionExtension {
                     mods.pos = pm;
                     parser.storeEnd(mods,pm);
                 }
+                utils.setJML(mods);
                 JCExpression type = parser.parseType();
                 int p = parser.pos();
                 Name name = parser.ident();

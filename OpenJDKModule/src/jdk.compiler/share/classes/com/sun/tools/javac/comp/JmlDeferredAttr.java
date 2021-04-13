@@ -54,6 +54,11 @@ public class JmlDeferredAttr extends DeferredAttr implements IJmlVisitor {
     protected TreeCopier<Void> makeCopier(TreeMaker make) {
         return new JmlTreeCopier(context,JmlTree.Maker.instance(context));
     }
+    
+//    public void scan(JCTree that) {
+//        that.accept(attr);
+//        result = attr.result;
+//    }
 
     // FIXME?
 //    class JmlDeferredChecker extends DeferredChecker {

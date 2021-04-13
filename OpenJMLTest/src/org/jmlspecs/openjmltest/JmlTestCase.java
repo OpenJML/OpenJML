@@ -111,7 +111,7 @@ public abstract class JmlTestCase {
     
     // Set in some testcase classes to ignore Notes reported by the tool. Set the value
     // before calling super.setUp()
-    public boolean ignoreNotes = false;
+    public boolean ignoreNotes = true;
 
     /** A Diagnostic Listener that collects the diagnostics, so that they can be compared against expected results */
     final static public class FilteredDiagnosticCollector<S> implements DiagnosticListenerX<S> {
@@ -137,7 +137,8 @@ public abstract class JmlTestCase {
         public void report(Diagnostic<? extends S> diagnostic) {
             diagnostic.getClass(); // null check
             if (print) System.out.println(diagnostic.toString());
-            if (!noNotes || diagnostic.getKind() != Diagnostic.Kind.NOTE)
+            if (!noNotes || diagnostic.getKind() != Diagnostic.Kind.NOTE ||
+            		diagnostic.getMessage(java.util.Locale.getDefault()).contains("Associated"))
                 diagnostics.add(diagnostic);
         }
 

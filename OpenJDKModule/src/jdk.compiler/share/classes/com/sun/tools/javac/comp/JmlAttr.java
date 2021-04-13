@@ -602,6 +602,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     				}
     			}
     		}
+    		var saved = this.attribJmlDecls;
+    		this.attribJmlDecls = true;
     		for (var s: c.sym.members().getSymbols()) {
     			// This will attribute the correct spec declarations, as entered in JmlEnter
     			// It may also repeat any of the above
@@ -609,7 +611,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			// TODO: Does it include JML initialization specs?
     			specs.getSpecs(s);
     		}
-    	}
+    		this.attribJmlDecls = saved;
+   	}
 
 //        JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(c);
 //        JmlClassDecl classDecl = (JmlClassDecl)env.tree;
@@ -2507,8 +2510,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void checkVarDecl(JmlVariableDecl specField) {
     	
      	// check for no initializer
-    	if (specField.getInitializer() != null && specField != specField.specsDecl &&
-    			!utils.isJML(specField.mods) && !specField.sym.owner.isEnum()) {
+    	if (specField.getInitializer() != null && // There is an initializer
+    			specField != specField.specsDecl && // We are not also in the java file
+    			!utils.isJML(specField.mods) && // The decl is not in JML
+    			specField.sym.owner.kind != Kinds.Kind.MTH && // The decl is not a local decl in a metehod body
+    			!specField.sym.owner.isEnum() // We are not an enum
+    			) {
     		utils.error(specField.sourcefile,specField.getInitializer(),"jml.no.initializer.in.specs",specField.sym.owner+"."+specField.name);
     	}
     	
@@ -3307,13 +3314,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JmlCheck.instance(context).staticOldEnv = statik;
                 var savedInJmlDeclaration = this.isInJmlDeclaration;
                 this.isInJmlDeclaration = true;
+                var savedDoJML = this.attribJmlDecls;
                 try {
+                	this.attribJmlDecls = true;
                     decl.accept(this);
                     if (decl.sym == null) {
                         if (toRemove == null) toRemove = new ListBuffer<>();
                         toRemove.add(tree);
                     }
                 } finally {
+                	this.attribJmlDecls = savedDoJML;
                     this.isInJmlDeclaration = savedInJmlDeclaration;
                     JmlCheck.instance(context).staticOldEnv = forallOldEnv;
                     forallOldEnv = false;
@@ -3355,7 +3365,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case "diverges":
             case "when":
             case "returns":
-            	//System.out.println("EXPRCLAUSE " + tree);
                 t = attribExpr(tree.expression, env, syms.booleanType);
                 break;
                 
@@ -3798,12 +3807,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (result.isErroneous()) System.out.println("RESULT ERRONEOUS");
     	}
         if (result.isErroneous()) return;
+        Type savedResult = result;
         
         {
         	Symbol s = identOrSelectSym(tree.meth);
         	specs.getSpecs((MethodSymbol)s); // To make sure callee specs are attributed
         }
-        Type savedResult = result;
         MethodSymbol msym = null;
         JCExpression m = tree.meth;
         Symbol sym = (m instanceof JCIdent ? ((JCIdent)m).sym : m instanceof JCFieldAccess ? ((JCFieldAccess)m).sym : null);
@@ -3858,6 +3867,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void visitLetExpr(LetExpr tree) { 
+    	JCStatement stat = tree.defs.head;
+    	boolean isJML = stat instanceof JmlVariableDecl && utils.isJML(((JmlVariableDecl)stat).mods);
+    	// FIXME - fixing is needed here. I think a JML \let statement should take the else block
+    	// But doing so causes a crash in testLocalVIsibility3 (which has a binary expression within the let)
         if (env.info.scope.owner.kind == TYP) {
             // Block is a static or instance initializer;
             // let the owner of the environment be a freshly
@@ -3880,8 +3893,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Env<AttrContext> localEnv =
                 env.dup(tree, env.info.dup(env.info.scope.dup()));
 
+            boolean saved = this.attribJmlDecls;
+            this.attribJmlDecls = true;
             attribStats(tree.defs,localEnv);
             attribExpr(tree.expr,localEnv,Type.noType);
+            this.attribJmlDecls = saved;
             Type resultType = tree.expr.type;
             if (resultType.constValue() != null) resultType = resultType.constType(null);
             result = check(tree, resultType, KindSelector.VAL, resultInfo);
@@ -3978,16 +3994,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlStatementDecls(JmlTree.JmlStatementDecls tree) {
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         IJmlClauseKind prevClauseType = currentClauseType;
+        var saved = this.attribJmlDecls;
+        this.attribJmlDecls = true;
         currentClauseType = declClause;
         for (JCTree.JCStatement s : tree.list) {
             attribStat(s,env);
         }
+        this.attribJmlDecls = saved;
         currentClauseType = prevClauseType;
         jmlresolve.setAllowJML(prevAllowJML);
     }
     
     boolean isGhost(JCExpression lhs) {
-    	if (lhs instanceof JCArrayAccess) return isGhost((JCArrayAccess)lhs);
+    	if (lhs instanceof JCArrayAccess) return isGhost(((JCArrayAccess)lhs).indexed);
     	if (lhs instanceof JCIdent) {
     		return utils.isJML(((JCIdent)lhs).sym.flags());
     	}
@@ -4387,7 +4406,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public java.util.List<JmlQuantifiedExpr> quantifiedExprs = new LinkedList<JmlQuantifiedExpr>();
     
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+        boolean saved = this.attribJmlDecls;
+        this.attribJmlDecls = true;
         result = that.kind.typecheck(this, that, env);
+        this.attribJmlDecls = saved;
         return;
     }
 
@@ -7096,6 +7118,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         if (found == null) {
         	System.out.println("FOUND TYPE IS NULL " + resultInfo.pt + " " + tree);
+        	Utils.dumpStack();
         	return (tree.type = types.createErrorType(resultInfo.pt));
         }
         return super.check(tree, found, ownkind, resultInfo);
@@ -7324,6 +7347,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 		ResultInfo ri = new ResultInfo(KindSelector.VAL_TYP, vsym.type);
 		var stat = JmlSpecs.SpecsStatus.SPECS_ATTR;
 		JmlSpecs.instance(context).setStatus(vsym, stat);
+		int nerrors = log.nerrors;
 		if (fspecs != null) {
 			// The following copied from Attr.visitVarDef
 //	        Lint lint = env.info.lint == null ? null : env.info.lint.augment(vsym);
@@ -7348,8 +7372,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     				try {
     					this.pureEnvironment = true;
     					if (!utils.isJMLStatic(vsym)) initEnv.info.staticLevel = 0;
-    					Type t = attribTree(cl, initEnv, ri);
-    	            	if (t.isErroneous()) stat = JmlSpecs.SpecsStatus.ERROR;
+    					attribTree(cl, initEnv, ri);
     				} catch (Exception e) {
     					utils.error(cl, "jml.internal", "Exception while attributing field clause: " + cl);
     					e.printStackTrace(System.out);
@@ -7363,9 +7386,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 			if (prevSource != null) log.useSource(prevSource);
 //            chk.setLint(prevLint);
 		}
+		if (log.nerrors > nerrors) stat = JmlSpecs.SpecsStatus.ERROR;
 		JmlSpecs.instance(context).setStatus(vsym, stat);
-		if (utils.verbose()) utils.note("    Attributed specs for " + vsym.owner + " " + vsym);
+		if (utils.verbose()) utils.note("    Attributed specs for " + vsym.owner + " " + vsym + " " + stat);
     }
 
+    public static class JmlArgumentAttr extends ArgumentAttr implements IJmlVisitor {
+    	
+    	public JmlArgumentAttr(Context context) {
+    		super(context);
+    	}
+    	
+    	public static void preRegister(Context context) {
+    		new JmlArgumentAttr(context);// self registers
+    	}
+    	
+    	public void scan(JCTree tree) {
+    		if (tree != null) visitTree(tree);
+    	}
+    }
 
 }

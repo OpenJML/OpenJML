@@ -351,6 +351,12 @@ public class JmlParser extends JavacParser {
                 // JML modifiers. However, the test above replicates tests in
                 // the super method and may become obsolete.
                 s = super.classOrRecordOrInterfaceOrEnumDeclaration(mods, dc);
+                if (s instanceof JCExpressionStatement && ((JCExpressionStatement)s).expr instanceof JCErroneous) {
+                	var errs = ((JCErroneous)((JCExpressionStatement)s).expr).errs;
+                	if (errs != null && !errs.isEmpty() && errs.head.pos == Position.NOPOS) {
+                		errs.head.pos = s.pos;
+                	}
+                }
             } else {
                 if (inJmlDeclaration && token.kind == IDENTIFIER) {
                     IJmlClauseKind cl = Extensions.findKeyword(token);

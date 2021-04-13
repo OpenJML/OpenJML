@@ -48,7 +48,7 @@ public class typechecking extends TCBase {
 
     @Test public void testTypeArgs() {
         helpTC(" class A { int k; boolean b; <T> int mm() {} void m() { int t = this.<Integer>mm(); \n//@ assert <Object>\\old(k);\n}}"
-                ,"/TEST.java:2: error: illegal start of expression",13
+                ,"/TEST.java:2: error: illegal start of expression",20
                 );
     }
 
@@ -60,7 +60,7 @@ public class typechecking extends TCBase {
     @Test public void testAlso1() {
     	expectedExit = 0;
         helpTC(" class B { void m() {} } class A extends B { /*@ requires true; */ void m() {} /*@ also requires true; */ void n() {}}"
-                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also'",50
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (B.m())",50
                 ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",89
                 );
     }
@@ -73,7 +73,7 @@ public class typechecking extends TCBase {
     @Test public void testAlso1I() {
     	expectedExit = 0;
         helpTC(" interface B { void m(); } class A implements B { /*@ public normal_behavior requires true; */ public void m() {} /*@ also requires true; */ void n() {}}"
-                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also'",62
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (B.m())",62
                 ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",124
                 );
     }
@@ -86,7 +86,7 @@ public class typechecking extends TCBase {
     @Test public void testAlso1II() {
     	expectedExit = 0;
         helpTC(" interface B { void m(); } interface A extends B { /*@ requires true; */ void m(); /*@ also requires true; */ void n();}"
-                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also'",56
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (B.m())",56
                 ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",93
                 );
     }
@@ -100,7 +100,7 @@ public class typechecking extends TCBase {
     @Test public void testAlsoObjectBad() {
     	expectedExit = 0;
         helpTC("  interface A { /*@ public normal_behavior requires true; */ String toString();}"
-                ,"/TEST.java:1: warning: Method toString overrides parent class methods and so its specification should begin with 'also'",28
+                ,"/TEST.java:1: warning: Method toString overrides parent class methods and so its specification should begin with 'also' (java.lang.Object.toString())",28
                 );
     }
 
@@ -965,7 +965,7 @@ public class typechecking extends TCBase {
     
     @Test public void testBadModelImport2a() {
         helpTCF("A.java","/*@ model */  public class A {\n  \n }"
-                ,"/A.java:1: error: A Java class declaration must not be marked either ghost or model: A (owner: unnamed package)",22
+                ,"/A.java:1: error: A Java class declaration must not be marked either ghost or model: A (owner: unnamed package)",5
         );
     }
     

@@ -148,6 +148,7 @@ public class ArgumentAttr extends JCTree.Visitor {
      * type or an argument type,in which case a more complex check is required.
      */
     Type checkSpeculative(JCTree expr, ResultInfo resultInfo) {
+    	if (expr.type == null) System.out.println("CHECKSPECULATIVE " + expr + " " + expr.type + " " + resultInfo.pt);
         return checkSpeculative(expr, expr.type, resultInfo);
     }
 

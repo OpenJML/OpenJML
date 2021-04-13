@@ -435,6 +435,7 @@ public class JmlEnter extends Enter {
     // FIXME - document
     public void specsEnter(JmlCompilationUnit speccu) {
     	if (utils.verbose()) utils.note("Entering declarations from specification file " + speccu.sourcefile);
+    	if (utils.verbose()) utils.note("                          Linked to Java file " + (speccu.sourceCU == null ? "<null>" : speccu.sourceCU.sourcefile.toString()));
 		boolean isSameFile = speccu.sourceCU == speccu;
     	var prev = log.useSource(speccu.sourcefile);
 		try {
@@ -532,6 +533,7 @@ public class JmlEnter extends Enter {
 				csym.members_field = WriteableScope.create(csym);
 				owner.members().enter(csym);
 				if (utils.verbose()) utils.note("Entering JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
+				specDecl.sym = csym;
 			} else {
 				// owner has a binary/source class corresponding to specDecl, namely csym
 				boolean matchIsJML = utils.isJML(csym.flags());
@@ -572,6 +574,7 @@ public class JmlEnter extends Enter {
 					// Attempt recovery by removing the offending annotation
 					utils.removeAnnotation(specDecl.mods,  Modifiers.MODEL);
 				}
+				checkClassMatch(javaDecl, specDecl);
 				if (specDecl == javaDecl) {
 					// Defensive check
 					if (csym != javaDecl.sym) utils.error(specDecl.sourcefile,  specDecl, "jml.internal", "class symbol does not match : " + csym + " vs. " + javaDecl.sym); 
@@ -1287,6 +1290,8 @@ public class JmlEnter extends Enter {
     }
     
     public void checkVarMatch(/*@nullable*/ JmlVariableDecl javaMatch, VarSymbol match, JmlVariableDecl specVarDecl, ClassSymbol javaClassSymbol) {
+    	if (javaMatch == null || javaMatch == specVarDecl) return;
+    	checkAnnotations(javaMatch.mods, specVarDecl.mods, match);
         // Check that the modifiers are the same
       	VarSymbol javaSym = match;
       	long javaFlags = match.flags();
@@ -1309,11 +1314,42 @@ public class JmlEnter extends Enter {
     	
     }
     
+    /** If thre are specifications in a file separate from the .java file, then any annotations in the .java
+     * file are ignored. This condition is checked and warned about here.
+     */
+    public void checkAnnotations(JCModifiers javaMods, JCModifiers specMods, Symbol owner) {
+    	if (javaMods == specMods) return;
+    	for (var a: javaMods.annotations) {
+    		if (a instanceof JmlAnnotation) {
+    			var aa = (JmlAnnotation)a;
+    			if (aa.kind == null) continue;
+    			if (!utils.hasMod(specMods, aa.kind)) {
+    				String k = owner instanceof ClassSymbol? "class": owner instanceof MethodSymbol? "method":
+    					owner instanceof VarSymbol? "var" : "";
+    				utils.warning(aa.sourcefile, aa, "jml.java.annotation.superseded", k, owner, aa.kind.toString());
+    				return;
+    			}
+    		}
+    	}
+    }
+    
+    /** Checks for consistency between the java and specification declarations.
+     * This is only for reporting differences between the declarations. Any 
+     * consistency checks within the specifications themselves are reported during attribution (JmlAttr).
+     */
+    public void checkClassMatch(JmlClassDecl javaDecl, JmlClassDecl specsDecl) {
+    	if (javaDecl == null || javaDecl == specsDecl) return;
+    	checkAnnotations(javaDecl.mods, specsDecl.mods, javaDecl.sym);
+    }
+
+    
 //  /** Checks that the modifiers and annotations in the .java and .jml declarations match appropriately,
 //  * for both the method declaration and any parameter declarations;
 //  * does not do any semantic checks of whether the modifiers or annotations are allowed.
 //  */
     public void checkMethodMatch(/*@nullable*/ JmlMethodDecl javaMatch, MethodSymbol match, JmlMethodDecl specMethodDecl, ClassSymbol javaClassSymbol) {
+    	if (javaMatch == null || javaMatch == specMethodDecl) return;
+    	checkAnnotations(javaMatch.mods, specMethodDecl.mods, match);
     	JavaFileObject prev = log.currentSourceFile();
     	log.useSource(specMethodDecl.sourcefile); // All logged errors are with respect to positions in the jml file
     	try {

@@ -334,6 +334,7 @@ public class typeclauses extends TCBase {
     public void testRepresents13() {
         helpTCF("A.java","public class A {\n //@ ghost int i; represents i = 0;\n}"
                 ,"/A.java:2: error: The target of a represents clause must be a model field: A.i",30
+                ,"/A.java:2: Note: Associated declaration: /A.java:2:",16
                 );
     }
     
@@ -341,6 +342,7 @@ public class typeclauses extends TCBase {
     public void testRepresents14() {
         helpTCF("A.java","public class A {\n int i; //@ represents i = 0;\n}"
                 ,"/A.java:2: error: The target of a represents clause must be a model field: A.i",24
+                ,"/A.java:2: Note: Associated declaration: /A.java:2:",6
                 );
     }
     
@@ -349,6 +351,7 @@ public class typeclauses extends TCBase {
         addMockFile("$A/A.jml","public class A {\n //@ ghost int i; represents i = 0;\n}");
         helpTCF("A.java","public class A {\n }"
                 ,"/$A/A.jml:2: error: The target of a represents clause must be a model field: A.i",30
+                ,"/$A/A.jml:2: Note: Associated declaration: /$A/A.jml:2:",16
                 );
     }
     
@@ -365,6 +368,7 @@ public class typeclauses extends TCBase {
     public void testRepresents15() {
         helpTCF("A.java","public class A extends B {\n //@ static represents i = 0;\n} class B { //@ static model int i; \n}"
                 ,"/A.java:2: error: A represents clause must be declared in the same class as the static model field it represents: B.i",24
+                ,"/A.java:3: Note: Associated declaration: /A.java:2:",34
                 );
     }
     
