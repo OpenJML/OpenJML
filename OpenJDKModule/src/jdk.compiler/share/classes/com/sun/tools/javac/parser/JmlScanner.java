@@ -200,12 +200,11 @@ public class JmlScanner extends Scanner {
         return t instanceof JmlToken ? (JmlToken)t : null;
     }
     
-//    @Override
-//    public void nextToken() {
-//    	super.nextToken();
-//    	System.out.println("TOKEN " + jml() + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
-//    	if (token.pos == 54) org.jmlspecs.openjml.Utils.dumpStack();
-//    }
+    @Override
+    public void nextToken() {
+    	super.nextToken();
+    	if (System.getenv("SCANNER") !=null) System.out.println("TOKEN " + jml() + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
+    }
 
     // FIXME - is this still needed? is it correct?
     public Token rescan() {

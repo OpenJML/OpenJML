@@ -70,8 +70,14 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
                 parser.nextToken();
             } else {
                 while (true) {
-                    JCExpression typ = parser.parseType(); // if this fails, a JCErroneous
-                    // is returned
+                	// parseType allows trailing [] and type annotations, which is overly general
+                	// and confuses error reporting and recovery
+//                    JCExpression typ = parser.parseQualifiedIdent(false);
+//                    if (typ instanceof JCTree.JCIdent && ((JCTree.JCIdent)typ).name == parser.names.error) {
+//                    	parser.skipThroughSemi();
+//                    	break;
+//                    }
+                	JCExpression typ = parser.unannotatedType(false);
                     list.append(typ);
                     TokenKind tk = parser.token().kind;
                     if (tk == SEMI) {
@@ -80,18 +86,17 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
                     } else if (tk == COMMA) {
                         parser.nextToken();
                         continue;
+                    } else if (!scanner.jml() || parser.jmlTokenKind() == ENDJMLCOMMENT) {
+                        parser.syntaxError(parser.pos(), null, "jml.missing.semi");
+                        parser.skipThroughEndOfJML();
+                        break;
                     } else if (typ instanceof JCErroneous) {
                         parser.skipThroughSemi();
                         break;
-                    } else if (parser.jmlTokenKind() == ENDJMLCOMMENT) {
-                        parser.syntaxError(parser.pos(), null, "jml.missing.semi");
                     } else {
                         parser.syntaxError(parser.pos(), null, "jml.missing.comma");
                         continue;
                     }
-                    // error
-                    parser.skipThroughSemi();
-                    break;
                 }
             }
             return toP(parser.maker().at(pp).JmlMethodClauseSignalsOnly(keyword, clauseType, list.toList()));

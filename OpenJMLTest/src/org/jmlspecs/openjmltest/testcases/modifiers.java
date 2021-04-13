@@ -1285,7 +1285,7 @@ public class modifiers extends TCBase {
         expectedExit = 0;
         helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
                 "public @Pure class A{}",
-                "/A.java:2: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: class A, annotation @Pure", 8);
+                "/A.java:2: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: class A, annotation pure", 8);
     }
 
     @Test

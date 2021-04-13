@@ -28,13 +28,13 @@ public class typecheckingvisibility extends TCBase {
 
     @Test public void testVisibility1() {
         helpTCF("TestJava.java","public class TestJava { public int i; \n/*@  invariant i == 0; */ }"
-                ,"/TestJava.java:2: An identifier with public visibility may not be used in a invariant clause with package visibility",16
+                ,"/TestJava.java:2: error: An identifier with public visibility may not be used in a invariant clause with package visibility",16
                 );
     }
 
     @Test public void testVisibility2() {
         helpTCF("TestJava.java","public class TestJava { public int i; \n/*@  invariant this.i == 0; */ }"
-        ,"/TestJava.java:2: An identifier with public visibility may not be used in a invariant clause with package visibility",20
+        ,"/TestJava.java:2: error: An identifier with public visibility may not be used in a invariant clause with package visibility",20
         );
     }
 

@@ -26,7 +26,7 @@ public interface IJmlVisitor extends IVisitor {
 	default public void scan(JCTree tree) {}
 	
 	default public void scan(List<? extends JCTree> trees) {
-		for (var tree: trees) scan(tree);
+		if (trees != null) for (var tree: trees) scan(tree);
 	}
 
     default public void scan(Iterable<? extends JCTree> list) { 

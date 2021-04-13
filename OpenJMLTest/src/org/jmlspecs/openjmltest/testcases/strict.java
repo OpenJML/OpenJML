@@ -11,14 +11,15 @@ import org.junit.Test;
 public class strict extends TCBase {
 
     String opt = JmlOption.LANG.optionName();
-    String optjml = opt + "=jml";
-    String optjmlp = opt + "=jml+";
+    String optjml = opt + "=" + JmlOption.langJML;
+    String optjmlp = opt + "=" + JmlOption.langPlus;
     
     @Override
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
         super.setUp();
+    	setDeprecation();
         main.addOptions(optjml);
         expectedExit = 0;
     }
@@ -96,6 +97,7 @@ public class strict extends TCBase {
                 " void m(int[] a) {\n" +
                 " }}"
                 ,"/A.java:2: warning: The \\exception construct is an OpenJML extension to JML and not allowed under " + optjml,26
+                ,"$SPECS/specs/java/util/stream/Stream.jml:10: warning: The \\count construct is an OpenJML extension to JML and not allowed under -lang=jml",37
                 );
     }
 
@@ -161,7 +163,14 @@ public class strict extends TCBase {
     
     @Test
     public void testRepresents() {
+        helpTCF("A.java","public class A {\n static int j; //@  model static int i; static represents i <- j;\n}"
+                );
+    }
+    
+    @Test
+    public void testRepresentsB() {
         expectedExit = 0;
+        main.addOptions(optjmlp);
         helpTCF("A.java","public class A {\n static int j; //@  model static int i; static represents i <- j;\n}"
                 ,"/A.java:2: warning: The left arrow is deprecated in represents clauses, use = instead",61
                 );

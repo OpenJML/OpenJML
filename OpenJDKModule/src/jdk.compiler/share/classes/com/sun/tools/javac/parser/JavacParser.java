@@ -805,7 +805,6 @@ public class JavacParser implements Parser {
         if (restrictedTypeName != null && (!allowVar || restrictedTypeName != names.var)) {
             syntaxError(result.pos, Errors.RestrictedTypeNotAllowedHere(restrictedTypeName));
         }
-
         return result;
     }
 
@@ -3825,7 +3824,7 @@ public class JavacParser implements Parser {
                     erroneousTree = syntaxError(pos, errs, Errors.ExpectedModuleOrOpen);
                 } else {
                     if (allowRecords) {
-                        erroneousTree = syntaxError(pos, errs, Errors.Expected4(CLASS, INTERFACE, ENUM, "record"));
+                    	erroneousTree = syntaxError(pos, errs, Errors.Expected4(CLASS, INTERFACE, ENUM, "record"));
                     } else {
                         erroneousTree = syntaxError(pos, errs, Errors.Expected3(CLASS, INTERFACE, ENUM));
                     }
