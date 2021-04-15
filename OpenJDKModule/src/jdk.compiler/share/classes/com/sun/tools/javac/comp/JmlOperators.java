@@ -4,6 +4,7 @@ import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.OperatorSymbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
@@ -29,15 +30,24 @@ public class JmlOperators extends Operators {
 	public final Symtab syms;
 
     public OperatorSymbol resolveBinary(DiagnosticPosition pos, JCTree.Tag tag, Type op1, Type op2) {
-    	if (op1.toString().equals("\\bigint") || op2.toString().equals("\\bigint")) { // FIXME - compare types directly?
-    		JmlType BIGINT = JmlTypes.instance(context).BIGINT;
-    		Name n = operatorName(tag);
-    		String nt = n + "(\\bigint,\\bigint)";
-    		for (var s: syms.predefClass.members().getSymbolsByName(n, s -> s instanceof OperatorSymbol)) {
+    	JmlTypes jtype = JmlTypes.instance(context);
+    	if (jtype.isJmlType(op1) || jtype.isJmlType(op2)) {
+    		Name opName = operatorName(tag);
+    		for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
     			OperatorSymbol op = (OperatorSymbol)s;
-    			if (op.toString().equals(nt)) return op;
+    			var args = op.type.getParameterTypes();
+    			if (args.head == op1 && args.tail.head == op2) return op;
     		}
-    		return super.resolveBinary(pos,  tag,  BIGINT, BIGINT);
+    		if (op1 == jtype.BIGINT || op2 == jtype.BIGINT) {
+    			for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
+    				OperatorSymbol op = (OperatorSymbol)s;
+        			var args = op.type.getParameterTypes();
+        			if (args.head == jtype.BIGINT && args.tail.head == jtype.BIGINT) return op;
+    			}
+    			// super.resolveBinary(pos,  tag,  jtype.BIGINT, jtype.BIGINT);
+    		}
+    		org.jmlspecs.openjml.Utils.instance(context).error(pos, "jml.message", "No operator for " + op1 + " " + opName + " " + op2);
+			return noOpSymbol;
     	}
     	return super.resolveBinary(pos,  tag,  op1, op2);
     }

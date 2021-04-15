@@ -267,7 +267,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** When true, we are visiting subtrees that allow only pure methods and
      * pure operations */
-    protected boolean pureEnvironment = false;
+    public boolean pureEnvironment = false;
     
     /** Holds the env of the enclosing method for subtrees of a MethodDecl. */
     public Env<AttrContext> enclosingMethodEnv = null;
@@ -1135,7 +1135,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override 
     public void visitMethodDef(JCMethodDecl m) {
-    	if (utils.verbose()) utils.note("Attributing method " + env.enclClass.sym + " " + " " + ((JmlMethodDecl)m).sourcefile + " " + m);
+    	if (utils.verbose()) utils.note("Attributing method " + env.enclClass.sym + " " + m.name + " " + ((JmlMethodDecl)m).sourcefile + " " + m);
 
         // Setting relax to true keeps super.visitMethodDef from complaining
         // that a method declaration in a spec file does not have a body
@@ -1170,8 +1170,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             prevSource = log.useSource(jmethod.source());
             attribAnnotationTypes(m.mods.annotations,env); // FIXME- CHECK : This is needed at least for the spec files of binary classes
-
-            labelEnvs.put(null, enclosingMethodEnv);
 
             JmlSpecs.MethodSpecs mspecs = specs.getLoadedSpecs(m.sym);
 //            if (mspecs != null) { // FIXME - is mspecs allowed to be null?
@@ -1246,9 +1244,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     protected void attribMethodBody(JCBlock body, Env<AttrContext>  env) {
+        saveEnvForLabel(null, env);
+        saveEnvForLabel(names.empty, env);
         boolean savedAttributeSpecs = this.attribJmlDecls;
         this.attribJmlDecls = true;
-        super.attribStat(body, env);
+        attribStat(body, env);
         this.attribJmlDecls = savedAttributeSpecs;
     }
 
@@ -2512,6 +2512,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      	// check for no initializer
     	if (specField.getInitializer() != null && // There is an initializer
     			specField != specField.specsDecl && // We are not also in the java file
+    			specField.specsDecl != null && // But there is a java file
     			!utils.isJML(specField.mods) && // The decl is not in JML
     			specField.sym.owner.kind != Kinds.Kind.MTH && // The decl is not a local decl in a metehod body
     			!specField.sym.owner.isEnum() // We are not an enum
@@ -3383,8 +3384,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         savedMethodClauseOutputEnv = null;
         currentClauseType = null;
-        if (t != null && t.isErroneous()) {
-            throw new SpecificationException();
+        if (t == null || t.isErroneous()) {
+        	System.out.println("BADCLAUSE " + tree.expression + " " + t + " " + tree.expression.type + " " + (t==null?"?":t.getClass()));
+        	if (tree.expression instanceof JCBinary) {
+        		var b = (JCBinary)tree.expression;
+        		System.out.println("  LHS " + b.lhs.type + "   RHS " + b.rhs.type);
+        	}
         }
     }
     
@@ -3663,30 +3668,35 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prev = pureEnvironment;
         pureEnvironment = true;
         for (JmlSpecificationCase c: tree.cases) {
-            // This check is put here rather than inside visitJmlSpecificationCase
-            // so it is not checked for specification cases that are part of a 
-            // refining statement
-            if (c.modifiers != null && tree.decl != null) { // tree.decl is null for initializers and refining statements
-                JCMethodDecl mdecl = env.enclMethod;
-                long methodMod = jmlAccess(mdecl.mods);
-                long caseMod = c.modifiers.flags & Flags.AccessFlags;
-                if (methodMod == 0 && env.enclClass.sym.isInterface()) methodMod = Flags.PUBLIC;
-                if (methodMod != caseMod && c.token != null) {
-                    if (caseMod == Flags.PUBLIC ||
-                            methodMod == Flags.PRIVATE ||
-                            (caseMod == Flags.PROTECTED && methodMod == 0)) {
-                        DiagnosticPosition p = c.modifiers.pos();
-                        if (p.getPreferredPosition() == Position.NOPOS) p = tree.pos();
-                        if (!env.enclMethod.name.toString().equals("clone")) {
-                            JavaFileObject prevsource = log.useSource(c.source());
-                            utils.warning(p,"jml.no.point.to.more.visibility");
-                            log.useSource(prevsource);
-                        }
-                    }
-                }
-            }
-            
-            c.accept(this);
+        	try {
+        		// This check is put here rather than inside visitJmlSpecificationCase
+        		// so it is not checked for specification cases that are part of a 
+        		// refining statement
+        		if (c.modifiers != null && tree.decl != null) { // tree.decl is null for initializers and refining statements
+        			JCMethodDecl mdecl = env.enclMethod;
+        			long methodMod = jmlAccess(mdecl.mods);
+        			long caseMod = c.modifiers.flags & Flags.AccessFlags;
+        			if (methodMod == 0 && env.enclClass.sym.isInterface()) methodMod = Flags.PUBLIC;
+        			if (methodMod != caseMod && c.token != null) {
+        				if (caseMod == Flags.PUBLIC ||
+        						methodMod == Flags.PRIVATE ||
+        						(caseMod == Flags.PROTECTED && methodMod == 0)) {
+        					DiagnosticPosition p = c.modifiers.pos();
+        					if (p.getPreferredPosition() == Position.NOPOS) p = tree.pos();
+        					if (!env.enclMethod.name.toString().equals("clone")) {
+        						JavaFileObject prevsource = log.useSource(c.source());
+        						utils.warning(p,"jml.no.point.to.more.visibility");
+        						log.useSource(prevsource);
+        					}
+        				}
+        			}
+        		}
+
+        		c.accept(this);
+        	} catch (Exception e) {
+        		System.out.println("EXCEPTION-JmlMethodSpecs " + e);
+        		e.printStackTrace(System.out);
+        	}
         }
         if (tree.feasible != null) for (JmlMethodClause cl: tree.feasible) {
             cl.accept(this);
@@ -3720,7 +3730,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public Map<Name,Env<AttrContext>> labelEnvs = new HashMap<Name,Env<AttrContext>>();
     
     public void visitLabelled(JCLabeledStatement tree) {
-        labelEnvs.put(tree.label,env.dup(tree,env.info.dupUnshared()));
+        saveEnvForLabel(tree.label, env);
         super.visitLabelled(tree);
     }
     
@@ -3740,21 +3750,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        // these JML methods, so it should not technically be needed.
         Env<AttrContext> localEnv = env;
         
-        if (tree.kind != null) {
-            if (!(tree.kind instanceof IJmlClauseKind.ExpressionKind)) {
-            	utils.error(tree,"jml.message","Expected a " + tree.kind.name() + "to be a IJmlClauseKind.Expression");
-                result = tree.type = syms.errType;
-            } else {
-                Type ttt = tree.kind.typecheck(this, tree, localEnv);
-                result = check(tree, ttt, KindSelector.VAL, resultInfo);
-            }
+        if (!(tree.kind instanceof IJmlClauseKind.ExpressionKind)) {
+        	utils.error(tree,"jml.message","Expected a " + tree.kind + "to be a IJmlClauseKind.Expression");
+        	result = tree.type = syms.errType;
         } else {
-        	utils.error(tree, "jml.message", "This sort of ExpressionExtension is obsolete: " + token.internedName());
-//            ExpressionExtension ext = (ExpressionExtension)Extensions.instance(context).findE(tree.pos,token.internedName(),true);
-//            Type ttt = ext.typecheck(this,tree,localEnv);
-//            result = check(tree, ttt, VAL, resultInfo);
-            result = null; // FIXME - an error type?
+        	Type ttt = tree.kind.typecheck(this, tree, localEnv);
+        	result = check(tree, ttt, KindSelector.VAL, resultInfo.dup(ttt));
         }
+    }
+    
+    public void saveEnvForLabel(Name label, Env<AttrContext> env) {
+        labelEnvs.put(label,env.dup(env.enclMethod,env.info.dupUnshared()));
     }
     
     public Env<AttrContext> envForLabel(DiagnosticPosition pos, Name label, Env<AttrContext> oldenv) {
@@ -3850,20 +3856,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     /** This handles JML statements such as assert and assume and unreachable and hence_by. */
     public void visitJmlStatementExpr(JmlTree.JmlStatementExpr tree) {
-        if (tree.clauseType == commentClause) { result = null; return; }
-        boolean isUse = tree.clauseType == useClause;
-        boolean prevAllowJML = jmlresolve.setAllowJML(true);
-        boolean prev = pureEnvironment;
-        pureEnvironment = true;
-        IJmlClauseKind prevClauseType = currentClauseType;
-        currentClauseType = tree.clauseType;
-        // unreachable statements have a null expression
-        if (tree.expression != null) attribExpr(tree.expression,env,isUse ? Type.noType : syms.booleanType);
-        if (tree.optionalExpression != null) attribExpr(tree.optionalExpression,env,Type.noType);
-        currentClauseType = prevClauseType;
-        pureEnvironment = prev;
-        jmlresolve.setAllowJML(prevAllowJML);
-        result = null; // No type returned
+    	result = tree.clauseType.typecheck(this,tree,env);
+//        if (tree.clauseType == commentClause) { result = null; return; }
+//        boolean isUse = tree.clauseType == useClause;
+//        boolean prevAllowJML = jmlresolve.setAllowJML(true);
+//        boolean prev = pureEnvironment;
+//        pureEnvironment = true;
+//        IJmlClauseKind prevClauseType = currentClauseType;
+//        currentClauseType = tree.clauseType;
+//        // unreachable statements have a null expression
+//        if (tree.expression != null) attribExpr(tree.expression,env,isUse ? Type.noType : syms.booleanType);
+//        if (tree.optionalExpression != null) attribExpr(tree.optionalExpression,env,Type.noType);
+//        currentClauseType = prevClauseType;
+//        pureEnvironment = prev;
+//        jmlresolve.setAllowJML(prevAllowJML);
+//        result = null; // No type returned
     }
     
     public void visitLetExpr(LetExpr tree) { 
@@ -4961,22 +4968,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitIdent(JCIdent tree) {
+    	// Attributing an ident can instigate loading of new classes
+    	// Every routine is responsible for saving and restoring state
+    	// However we save and restore it here even though we don't change it here, defensively
         long prevVisibility = jmlVisibility;
-        IJmlClauseKind prevClauseType = currentClauseType; // FIXME _ why do we need to save this?
+        IJmlClauseKind prevClauseType = currentClauseType;
         try {
-//            jmlVisibility = -1;
-//            currentClauseType = null;
-            // Visiting the ident itself in the super class should not need the
-            // jmlVisibility. However, visiting the ident can trigger loading
-            // and type-checking a whole new class - so we unset this field
-            // in the mean time.
             super.visitIdent(tree);
-//        	if (tree.name.toString().equals("i")) {
-//        		System.out.println("VID " + tree.sym + " " + tree.type + " " + tree.sym.isStatic() + " " + env.info.staticLevel);
-//        	}
+        } catch (Exception e) {
+        	System.out.println("EXCEPTION " + e);
+        	e.printStackTrace(System.out);
         } finally {
             jmlVisibility = prevVisibility;
             currentClauseType = prevClauseType;
+        }
+        if (tree.sym == null) {
+        	System.out.println("IDENT NULL SYM " + tree + " " + env.info.scope);
         }
         
         if ((tree.sym instanceof VarSymbol || tree.sym instanceof MethodSymbol)
@@ -5612,10 +5619,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		System.out.println("NULL a.type for " + a);
     	}
     	String s = a.annotationType.toString();
-    	for (var mod: modToAnnotationSymbol.entrySet()) {
+    	if (a.type == null) for (var mod: modToAnnotationSymbol.entrySet()) {
     		if (mod.getKey().fullAnnotation.equals(s)) {
-    			a.annotationType.type = mod.getValue().type;
-    			if (a instanceof JmlAnnotation) utils.warning(((JmlAnnotation)a).sourcefile, a.pos, "jml.internal", "Had to lookup type of a annotation with null type: " + s);
+    			a.type = a.annotationType.type = mod.getValue().type;
+    			if (a instanceof JmlAnnotation) utils.note(((JmlAnnotation)a).sourcefile, a, "jml.internal", "Had to lookup type of a annotation with null type: " + s);
     			return true;
     		}
     	}
@@ -5794,11 +5801,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public boolean hasAnnotation(Symbol symbol, JmlTokenKind t) {
         return symbol.attribute(modToAnnotationSymbol.get(t)) != null;
 
-      }
+    }
+    
     public boolean hasAnnotation(Symbol symbol, ModifierKind t) {
         return symbol.attribute(modToAnnotationSymbol.get(t)) != null;
-
-      }
+    }
+    
+    public boolean hasAnnotation2(VarSymbol symbol, ModifierKind t) {
+    	for (var a: symbol.getAnnotationMirrors()) {
+    		if (a.toString().endsWith(t.fullAnnotation)) return true; 
+    	}
+        return false;
+    }
     
     /** Returns true if the given symbol has a Model annotation */
     public boolean isImmutable(Symbol symbol) {
@@ -6414,15 +6428,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             savedSpecOK = true;
             attribStats(tree.init, loopEnv);
             Env<AttrContext> labelenvi = env.dup(tree,env.info.dupUnshared());
-            labelEnvs.put(names.fromString("LoopInit"),labelenvi);
+            saveEnvForLabel(names.fromString("LoopInit"),labelenvi);
     		if (tree.cond != null) {
     			attribExpr(tree.cond, loopEnv, syms.booleanType);
     			// include condition's bindings when true in the body and step:
     			condBindings = matchBindings;
     		}
             loopEnv.tree = tree; // before, we were not in loop!
-            Env<AttrContext> labelenv = env.dup(tree,env.info.dupUnshared());
-            labelEnvs.put(names.fromString("LoopBodyBegin"),labelenv);
+            saveEnvForLabel(names.fromString("LoopBodyBegin"),env);
 
 
             attribLoopSpecs(tree.loopSpecs, loopEnv);
@@ -6622,7 +6635,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             //if (fspecs != null) for (JmlTypeClause spec:  fspecs.list) spec.accept(this);
 
             if (!that.type.isPrimitive()) {
-                JCAnnotation snullness;
                 ModifierKind nullness = specs.defaultNullity(enclosingClassEnv.enclClass.sym);
                 if (that.type.tsym == datagroupClass) {
                     nullness = Modifiers.NULLABLE;
@@ -6630,6 +6642,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     JCAnnotation an = jmlMaker.at(that).Annotation(a);
                     an.type = an.annotationType.type;
                     ((JmlTree.JmlAnnotation)an).sourcefile = that.sourcefile;
+                    ((JmlTree.JmlAnnotation)an).kind = nullness;
                     that.mods.annotations = that.mods.annotations.append(an);
                     // that.mods == fspecs.mods
                     that.mods.flags |= Flags.FINAL; // JMLDataGroup declarations are implicitly final
@@ -6638,10 +6651,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     }
                     //that.init = jmlMaker.at(that).Literal(TypeTag.BOT,null);
                     //that.init.type = datagroupClass.type;
-                    snullness = an;
-                } else if ((snullness=utils.findMod(that.mods,nonnullAnnotationSymbol)) != null) { 
+                } else if (utils.hasMod(that.mods,Modifiers.NULLABLE) || specs.isNonNullNoDefault(that.sym)) { 
                     nullness = Modifiers.NON_NULL;
-                } else if ((snullness=utils.findMod(that.mods,nullableAnnotationSymbol)) != null || skipDefaultNullity) {
+                } else if (utils.hasMod(that.mods,Modifiers.NULLABLE) || specs.isNullableNoDefault(that.sym)|| skipDefaultNullity) {
                     nullness = Modifiers.NULLABLE;
                 } else {
                     Symbol s = (nullness == Modifiers.NON_NULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
@@ -6649,19 +6661,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     that.sym.appendAttributes(List.<Compound>of(a));
                     JCAnnotation an = jmlMaker.at(that).Annotation(a);  // FIXME - needs a position and a source - we should get the NonNullByDefault if possible
                     ((JmlTree.JmlAnnotation)an).sourcefile = that.sourcefile;
+                    ((JmlTree.JmlAnnotation)an).kind = nullness;
                     an.type = an.annotationType.type;
                     that.mods.annotations = that.mods.annotations.append(an);
-                    snullness = an;
                 }
-                Symbol s = (nullness == Modifiers.NON_NULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
-                if (that.sym.attribute(s) == null) {
-                    Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
-                    that.sym.appendAttributes(List.<Compound>of(a));
-                }
-                // TODO: Need to add the nullness annotation to that.mods.annotations
             }
             //        if (newMods != originalMods) for (JCAnnotation a: originalMods.annotations) { a.type = attribType(a,env); }
-
 
             // Check the mods after the specs, because the modifier checks depend on
             // the specification clauses being attributed
@@ -7355,10 +7360,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Env<AttrContext> initEnv = memberEnter.initEnv(fspecs.decl, cspecs.specsEnv); // FIXME - interface instance vars are not static
 //            initEnv.info.lint = lint;
 //            initEnv.info.enclVar = vsym;
-            var prevSource = fspecs.decl == null ? null : log.useSource(fspecs.decl.sourcefile);
-            
+            var prevSource = fspecs.decl == null ? null : log.useSource(fspecs.decl.sourcefile);            
+    		var savedPure = this.pureEnvironment;
+    		var savedViz = this.jmlVisibility;
             if (fspecs.decl != null && fspecs.decl.init != null) {
         		ResultInfo rri = new ResultInfo(KindSelector.VAL_TYP, vsym.type);
+        		this.pureEnvironment = utils.isJML(fspecs.decl.mods);
+        		this.jmlVisibility = -1;
             	Type t = fspecs.decl.init.type = attribTree(fspecs.decl.init, initEnv, rri);
             	if (t.isErroneous()) stat = JmlSpecs.SpecsStatus.ERROR;
             }
@@ -7367,7 +7375,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             	this.env = cspecs.specsEnv;
         		checkVarDecl(fspecs.decl);
     			for (var cl: fspecs.list) {
-    				var savedPure = this.pureEnvironment;
     				var prev = log.useSource(cl.source());
     				try {
     					this.pureEnvironment = true;
@@ -7377,12 +7384,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     					utils.error(cl, "jml.internal", "Exception while attributing field clause: " + cl);
     					e.printStackTrace(System.out);
     				} finally {
-    					this.pureEnvironment = savedPure;
     					log.useSource(prev);
     				}
     			}
             }
     		this.env = savedEnv;
+        	this.pureEnvironment = savedPure;
+        	this.jmlVisibility = savedViz;
 			if (prevSource != null) log.useSource(prevSource);
 //            chk.setLint(prevLint);
 		}

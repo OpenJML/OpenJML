@@ -6,6 +6,8 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.COLON;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.commentClause;
+import static org.jmlspecs.openjml.ext.StatementExprExtensions.useClause;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -90,8 +92,21 @@ public class StatementExprType extends IJmlClauseKind.Statement {
     }
     
     @Override
-    public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
-        return null;
+    public Type typecheck(JmlAttr attr, JCTree t, Env<AttrContext> env) {
+    	JmlTree.JmlStatementExpr tree = (JmlTree.JmlStatementExpr)t;
+        boolean isUse = tree.clauseType == useClause;
+        boolean prevAllowJML = attr.jmlresolve.setAllowJML(true);
+        boolean prev = attr.pureEnvironment;
+        attr.pureEnvironment = true;
+        IJmlClauseKind prevClauseType = attr.currentClauseType;
+        attr.currentClauseType = tree.clauseType;
+        // unreachable statements have a null expression
+        if (tree.expression != null) attr.attribExpr(tree.expression,env,isUse ? Type.noType : syms.booleanType);
+        if (tree.optionalExpression != null) attr.attribExpr(tree.optionalExpression,env,Type.noType);
+        attr.currentClauseType = prevClauseType;
+        attr.pureEnvironment = prev;
+        attr.jmlresolve.setAllowJML(prevAllowJML);
+        return null; // No type returned
     }
 
     // FIXME

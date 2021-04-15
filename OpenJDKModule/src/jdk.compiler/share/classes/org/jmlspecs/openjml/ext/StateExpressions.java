@@ -121,38 +121,20 @@ public class StateExpressions extends ExpressionExtension {
             // label == empty ==> pre state; label == null ==> current state
             attr.currentEnvLabel = label == null ? attr.names.empty : label;
             if (n == 0 || t == syms.errType) {
-                t = syms.errType;
-            } else if (localEnv.enclMethod == null) { // FIXME - what about types declared within methods
-                // In an type clause
-                attr.attribExpr(tree.args.get(0), localEnv, Type.noType);
-                attr.attribTypes(tree.typeargs, localEnv);
-                t = tree.args.get(0).type;
+            	t = syms.errType;
             } else {
-                // in a method clause
-                Env<AttrContext> oldenv = attr.envForLabel(labelpos, label, attr.savedMethodClauseOutputEnv);
-                
-                Env<AttrContext> qOldEnv = oldenv;
-                for (JmlQuantifiedExpr qexpr: attr.quantifiedExprs) {
-
-                    qOldEnv = attr.envForExpr(qexpr,qOldEnv);
-                    WriteableScope enclScope = attr.enter.enterScope(qOldEnv);
-
-                    for (JCVariableDecl decl: qexpr.decls) {
-
-                        // FIXME - do we need to do these checks?
-//                        if (chk.checkUnique(tree.pos(), v, enclScope)) {
-//                            chk.checkTransparentVar(tree.pos(), v, enclScope);
-                            enclScope.enter(decl.sym);
-//                        }
-                    }
-                }
-                attr.attribExpr(tree.args.get(0), qOldEnv, Type.noType);
-                attr.attribTypes(tree.typeargs, qOldEnv);
-                t = tree.args.get(0).type;
-                WriteableScope scope = qOldEnv.info.scope();
-                for (JmlQuantifiedExpr qexpr: attr.quantifiedExprs) {
-                    scope = scope.leave();
-                }
+            	if (localEnv.enclMethod == null) {
+            		// In a type clause
+            	} else if (attr.currentClauseType instanceof IJmlClauseKind.MethodSpecClauseKind) {
+            		// In a specification case
+            		// FIXME - need to distinguish beginning of spec case from current position
+            	} else {
+            		// In a method body
+            		localEnv = attr.envForLabel(labelpos, attr.currentEnvLabel, localEnv);
+            	}
+        		attr.attribExpr(tree.args.get(0), localEnv, Type.noType);
+        		attr.attribTypes(tree.typeargs, localEnv);
+        		t = tree.args.get(0).type;
             }
             attr.currentEnvLabel = savedLabel;
             return t;

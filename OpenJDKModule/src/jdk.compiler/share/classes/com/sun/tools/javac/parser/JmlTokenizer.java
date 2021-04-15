@@ -155,8 +155,8 @@ public class JmlTokenizer extends JavadocTokenizer {
         return JmlOptions.instance(context).commentKeys;
     }
     
-    /** Internal use only -- when true, tokens in Java code are skipped */
-    protected boolean skippingTokens = false;
+    /** Internal use only -- when non-negative, tokens in Java code are skipped, and is the position of the beginning of the skip */
+    protected int skippingTokens = -1;
     
     
     // This is called whenever the Java (superclass) scanner has scanned a whole
@@ -171,7 +171,7 @@ public class JmlTokenizer extends JavadocTokenizer {
     // endPos may be equal to buffer.length
     @Override
     protected Tokens.Comment processComment(int pos, int endPos, CommentStyle style) {
-        //if (org.jmlspecs.openjml.Main.useJML) System.out.println("COMMENT " + pos + " " + endPos);
+        //if (org.jmlspecs.openjml.Main.useJML) System.out.println("COMMENT " + pos + " " + endPos + String.valueOf(buffer,pos,endPos-pos));
 
         // The inclusive range pos to endPos-1 does include the opening and closing
         // comment characters.
@@ -261,20 +261,20 @@ public class JmlTokenizer extends JavadocTokenizer {
 
         // Either there were no optional keys or we found the right ones, so continue to process the comment
         while (accept('@')) {} // Gobble up all leading @s
-        if (ch == '#') {
-        	// Inlined Java code, but only in line comments
+        int p = position();
+        if (accept('#')) {
+        	// Inlined Java code
         	// If the # is followed by -, then lines are skipped until another # comment
         	// If the # is followed by white space, the content is tokenized
-            ch = next();
-            if (ch == ' ' || ch == '\t') {
-                if (!skippingTokens) return null; // Go on reading from this point in the comment
-                skippingTokens = false; // Stop skipping tokens
-                return null;
+            if (accept('-')) {
+            	if (skippingTokens>=0) Utils.instance(context).warning(p,"jml.message","Already skipping tokens");
+            	skippingTokens = p;
+                reset(endPos);
+                return null; // Ignore rest of line, keep tokenizing, but skip tokens 
             }
-            if (ch == '-') {
-                skippingTokens = true;
-                next();
-                return null;
+            if (isOneOf(' ','\t') || isOneOf('\n','\r')) {
+                skippingTokens = -1; // Stop skipping tokens
+                return null; // Tokenize rest of comment
             }
             // A non-JML comment
             reset(endPos);
@@ -321,7 +321,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                 }
             } while (position() < endPos);
         }
-    	if (endPos != position()) reset(endPos); // FIXME - do we ever need this?
+    	if (endPos != position()) reset(endPos); // Needed if we abort a comment before completing it
     }
     
     /**
@@ -394,10 +394,13 @@ public class JmlTokenizer extends JavadocTokenizer {
                     // if initialJml == true and now the token is ENDJMLCOMMENT, then we had 
                     // an empty comment. We don't return a token in that case.
                     if (!returnEndOfCommentTokens || !initialJml) continue; // Go get next token
-                    if (skippingTokens && t.kind != TokenKind.EOF) continue;
+                    if (skippingTokens >= 0 && t.kind != TokenKind.EOF) continue;
                    return jmlToken;
                 } else {
-                    if (skippingTokens && t.kind != TokenKind.EOF) continue;
+                    if (skippingTokens >= 0) {
+                    	if (t.kind != TokenKind.EOF) continue; // skip the token
+                    	Utils.instance(context).warning(skippingTokens, "jml.message", "//#- block is not closed at the end of file");
+                    }
                     return t; // A Java token
                 }
             }
@@ -502,7 +505,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                 jmlTokenClauseKind = Operators.dotdotKind;
                 endPos = position();
             }
-            if (skippingTokens && t.kind != TokenKind.EOF) continue;
+            if (skippingTokens >= 0 && t.kind != TokenKind.EOF) continue;
             return jmlTokenKind == null ? t : new JmlToken(jmlTokenKind, jmlTokenClauseKind, TokenKind.CUSTOM, pos, endPos);
             // FIXME - source field?
         }

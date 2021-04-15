@@ -527,7 +527,7 @@ public class Attr extends JCTree.Visitor {
             return chk.checkType(pos, found, pt, checkContext);
         }
 
-        protected ResultInfo dup(Type newPt) {
+        public ResultInfo dup(Type newPt) { // OPENJML - protected to public
             return new ResultInfo(pkind, newPt, checkContext, checkMode);
         }
 
@@ -576,7 +576,7 @@ public class Attr extends JCTree.Visitor {
             return true;
         }
 
-        protected ResultInfo dup(Type newPt) {
+        public ResultInfo dup(Type newPt) { // OPENJML protected to public
             throw new IllegalStateException();
         }
 
@@ -645,7 +645,7 @@ public class Attr extends JCTree.Visitor {
 
     /** Visitor argument: the current environment.
      */
-    Env<AttrContext> env;
+    public Env<AttrContext> env; // OPENJML - package to public
 
     /** Visitor argument: the currently expected attribution result.
      */
@@ -4287,10 +4287,6 @@ public class Attr extends JCTree.Visitor {
         	// FIXME - cf. bugs.testMiscBug4 -- calling checkId causes a crash, but jsut when the 
         	// offending expression is in JML -- why
         	result = tree.type = types.createErrorType(resultInfo.pt);
-        	if (org.jmlspecs.openjml.Utils.debug()) {
-        		System.out.println("CHECKID-Y " + tree + " " + tree.type + " " + result + " " + site + " " + sym + " " + sym.kind);
-        		org.jmlspecs.openjml.Utils.dumpStack();
-        	}
         } else {
         	//if (org.jmlspecs.openjml.Utils.debug()) System.out.println("CHECKID " + tree + " " + site + " " + sym + " " + sym.kind);
         	result = checkId(tree, site, sym, env, resultInfo);
