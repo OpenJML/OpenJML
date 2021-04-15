@@ -159,6 +159,7 @@ public abstract class EscBase extends JmlTestCase {
 
     protected static String z = java.io.File.pathSeparator;
     protected static String testspecpath1 = "$A"+z+"$B";
+    protected static String testspecpath2 = "$A"+z+"$B"+z+"/Users/davidcok/projects/OpenJMLB/Specs/specs";
     protected static String testspecpath;
     
     // Set this field to the expected exit value. 
@@ -173,7 +174,7 @@ public abstract class EscBase extends JmlTestCase {
     @Override
     public void setUp() throws Exception {
         if (captureOutput) collectOutput(true);
-        testspecpath = testspecpath1;
+        testspecpath = testspecpath2;
         ignoreNotes = true;
         super.setUp();
         main.addOptions("-specspath",   testspecpath);

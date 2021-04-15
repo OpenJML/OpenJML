@@ -52,7 +52,7 @@ public class Test {
 			var cons = clazz.getConstructors();
 			if (cons.length != 1) {
 				synchronized (sfailures) { failures++; }
-				System.out.println("Class " + clazz + " should have just one public constructor");
+				System.out.println("ERROR: Class " + clazz + " should have just one public constructor");
 				continue;
 			}
 			var constr = cons[0];
@@ -119,10 +119,11 @@ public class Test {
 			}
 		}
 		eservice.shutdownNow(); // Program won't exit without calling this
-		System.out.println((tests-failures) + " successes, " + failures + " failures, " + ignores + " ignored");
+		System.out.println((tests-timeouts-failures) + " successes, " + timeouts + " timeouts, " + failures + " failures, " + ignores + " ignored");
 	}
 
     static Integer tests = 0; static Object stests = new Object();
+    static Integer timeouts = 0; static Object stimeouts = new Object();
     static Integer failures = 0; static Object sfailures = new Object();
     static int ignores = 0;
     static ArrayList<Thread> threads = new ArrayList<>();
@@ -196,11 +197,11 @@ public class Test {
     			future = eservice.submit(()->doMethod(clazz, method, constr, params));
     			future.get(seconds, TimeUnit.SECONDS);
     		} catch (TimeoutException e) {
-    			System.out.println("Timeout: " + method + " in thread " + Thread.currentThread().getName());
+    			System.out.println("TIMEOUT: " + method + " in thread " + Thread.currentThread().getName());
+    			synchronized(stimeouts) { timeouts++; }
     			future.cancel(true);
-    			synchronized(sfailures) { failures++; }
     		} catch (Exception e) {
-    			System.out.println("Exception: " + method + " " + e);
+    			System.out.println("EXCEPTION: " + method + " " + e);
     			synchronized(sfailures) { failures++; }
     		} finally {
     			if (future != null && !future.isDone()) {

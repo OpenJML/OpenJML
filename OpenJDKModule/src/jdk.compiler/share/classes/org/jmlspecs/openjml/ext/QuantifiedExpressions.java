@@ -147,15 +147,21 @@ public class QuantifiedExpressions extends ExpressionExtension {
             ((JmlMemberEnter)attr.memberEnter).setInJml(b);
             attr.quantifiedExprs.add(that);
             
-            if (that.triggers != null && that.triggers.size() > 0 && that.kind != qforallKind && that.kind != qexistsKind ) {
-                utils.warning(that.triggers.get(0),"jml.message","Triggers only recognized in \\forall or \\exists quantified expressions");
-                that.triggers = null;
+            if (that.triggers != null && that.triggers.size() > 0) {
+            	if (that.kind != qforallKind && that.kind != qexistsKind ) {
+                    utils.warning(that.triggers.get(0),"jml.message","Triggers only recognized in \\forall or \\exists quantified expressions");
+                    that.triggers = null;
+            	} else {
+            		for (var t: that.triggers) t.type = attr.attribExpr(t, localEnv, Type.noType);
+            	}
             }
             Type resultType = syms.errType;
             try {
                 
+            	Type rangeType = null;
                 if (that.range != null) {
-                	attr.attribExpr(that.range, localEnv, syms.booleanType);
+                	rangeType = attr.attribExpr(that.range, localEnv, syms.booleanType);
+                	rangeType = attr.check(that.range, rangeType, KindSelector.VAL, attr.resultInfo.dup(syms.booleanType));
                 }
 
                 Type t;

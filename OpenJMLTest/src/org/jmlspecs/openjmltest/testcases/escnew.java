@@ -1462,7 +1462,7 @@ public class escnew extends EscBase {
                 
                 +"  //@ requires true;\n"
                 +"  //@ ensures true;\n"
-                +"  public int m3bad2(/*@nullable*/ TestJava p) {\n"
+                +"  public int m3bad2(/*@ nullable*/ TestJava p) {\n"
                 +"    return p.f ;\n"
                 +"  }\n"
                 
@@ -1918,9 +1918,10 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 
-                +"}"
+                +"}"  // FIXME - not sure why just one postcondition problem has exit information
                 ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m1bad",18
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m2bad",17
+                ,"/tt/TestJava.java:11: warning: Associated method exit",4
                 ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m3bad",16
                 ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m4bad",16
                 ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m5bad",16
@@ -2085,7 +2086,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testConstantFolding3() {
-        main.addOptions("-method=mm","-show=translated");
+        //main.addOptions("-method=mm","-show=translated");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
@@ -2167,39 +2168,65 @@ public class escnew extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
-                +"  public void mm(int i) {\n" 
+                +"  public void mok(int i) {\n" 
                 +"      int a = 2;\n" 
                 +"      {\n" 
-                +"      //#-\n" 
+                +"      //@#-\n" 
                 +"      a++;\n" 
-                +"      //#-\n" 
+                +"      //@#\n" 
                 +"      a+=3;\n" 
-                +"      //# a += 2;\n" 
+                +"      //@# a += 2;\n"
                 +"      }\n" 
-                +"      //@ assert a == 7;\n" 
+                +"      //@ assert a == 7;\n" // OK
+                +"  }\n"
+                
+                +"  public void mmbad(int i) {\n" 
+                +"      int a = 2;\n" 
+                +"      {\n" 
+                +"      //@#-\n" 
+                +"      a++;\n" 
+                +"      //@#-\n"  // Already skipping
+                +"      a+=3;\n" 
+                +"      //@# a += 2;\n" 
+                +"      }\n" 
+                +"      //@ assert a == 4;\n" // OK
+                +"      //@ assert a == 7;\n" // SHOULD FAIL
                 +"  }\n"
                 
                 +"  public void mok2(int i) {\n" 
                 +"      int a = 2;\n" 
                 +"      {\n" 
-                +"      //#-\n" 
+                +"      //@#-\n" 
                 +"      a++;\n" 
-                +"      //# a += 2;\n" 
+                +"      //@# a += 2;\n" 
+                +"      }\n" 
+                +"      //@ assert a == 4;\n" 
+                +"  }\n"
+               
+                +"}"
+                ,"/tt/TestJava.java:19: warning: Already skipping tokens",10
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assert) in method mmbad",11
+                );
+    }
+
+    @Test 
+    public void testRefactoring2() {
+    	expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public void mbad2(int i) {\n" 
+                +"      int a = 2;\n" 
+                +"      {\n" 
+                +"      //@#-\n"
+                +"      a++;\n" 
                 +"      }\n" 
                 +"      //@ assert a == 4;\n" 
                 +"  }\n"
                 
-//                +"  public void mbad2(int i) {\n" 
-//                +"      int a = 2;\n" 
-//                +"      {\n" 
-//                +"      //#-\n"   // TODO - should warn about skipping the rest of the input
-//                +"      a++;\n" 
-//                +"      }\n" 
-//                +"      //@ assert a == 4;\n" 
-//                +"  }\n"
-                
                
                 +"}"
+                ,"/tt/TestJava.java:6: warning: //#- block is not closed at the end of file",10
+                ,"/tt/TestJava.java:5: error: reached end of file while parsing",8
                 );
     }
 

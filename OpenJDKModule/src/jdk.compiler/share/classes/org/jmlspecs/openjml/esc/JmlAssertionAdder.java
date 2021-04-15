@@ -3993,9 +3993,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         int pos = methodDecl.pos;
         boolean isConstructor = methodDecl.sym.isConstructor();
         ListBuffer<JCStatement> check = pushBlock(initialStats);
-        
         int preheapcount = nextHeapCount();
         int savedheapcount = preheapcount;
+        try {
 
         heapCount = preheapcount;
         
@@ -4008,7 +4008,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         
 
-        
         
         // Assume all axioms of classes mentioned in the target method
         if (esc || infer) {
@@ -4337,11 +4336,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         initialStats.appendList(preStats);
-        paramActuals = null;
-        clearInvariants();
         
-        heapCount = savedheapcount;
-        popBlock(null,check);
+
+        } catch (Exception e) {
+        	System.out.println("Exception in addPreCondition: " + e);
+        	e .printStackTrace(System.out);
+        } finally {
+        	paramActuals = null;
+        	clearInvariants();
+
+        	heapCount = savedheapcount;
+        	popBlock(null,check);
+        }
     }
 
 
@@ -4722,7 +4728,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCVariableDecl d = (JCVariableDecl)dd;
                 if (utils.isJavaOrJmlPrimitiveType(d.sym.type)) continue;
                 if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym)) continue;
-                if (specs.isNonNull((JmlVariableDecl)d)) {
+                if (specs.isNonNull(d.sym)) {
                     JCExpression id = treeutils.makeIdent(d.pos, d.sym);
                     addAssert(d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)));
                 }
@@ -8075,6 +8081,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Helper method to do the work of visitApply and visitNewObject */
     protected void applyHelper(JCExpression that) {
+    	if (Utils.debug()) System.out.println("APPLY HELPER: " + that);
         boolean pushedMethod = false;
         preconditionDetail++;
         int preconditionDetailLocal = preconditionDetail;
@@ -8930,6 +8937,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         } catch (JmlNotImplementedException e) {
                             notImplemented("requires clause containing ",e); // FIXME - clause source
                             pre = treeutils.falseLit;
+                        } catch (Exception e) {
+                        	System.out.println("EXCEPTION-Q " + e);
+                        	e.printStackTrace(System.out);
                         } finally {
                             log.useSource(prev);
                         }
@@ -10165,6 +10175,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             MethodSymbol calleeMethodSym, JCExpression newThisExpr,
             List<JCExpression> convertedArgs, Type receiverType,
             java.util.List<Pair<MethodSymbol, Type>> overridden, boolean details) {
+    	if (Utils.debug()) System.out.println("ADDING METHOD AXIOMS: " + that + " " + newThisExpr + " " + calleeMethodSym);
+    	specs.getSpecs(calleeMethodSym);
         JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden,receiverType,that.type);
         if (details) { // FIXME - document this details check - if it is false, the axioms are dropped
             // FIXME - actually should add these into whatever environment is operative
@@ -11111,7 +11123,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (origtypeString.equals("BigInteger")) fieldName = "value";
             Name id = names.fromString(fieldName);
             Type t = expr.type;
+            specs.getSpecs((ClassSymbol)t.tsym);
             VarSymbol fsym = getField(t,id);
+            if (fsym != null) specs.getSpecs(fsym);
+
             if (fsym == null) {
             	utils.error(expr, "jml.message", "Could not find model field " + fieldName + " in " + origtypeString);
                 // ERROR - throw something
@@ -13212,6 +13227,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitIdent(JCIdent that) {
+    	if (that.sym == null) {
+    		utils.error(that,"jml.message","NULL SYMBOL " + that);
+    	}
         if (translatingLambda && that.sym.name == names._this) {
             convertCopy(currentThisExpr);
             return;
@@ -17687,274 +17705,279 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - needs review
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
+    	specs.getSpecs(that.sym);
+    	if (!specs.statusOK(that.sym)) return; // FIXME - abort
         JavaFileObject prevSource = log.useSource(that.source());
 
         try {
-            
-        if (pureCopy) { 
-            JmlVariableDecl stat = M.at(that).VarDef(that.sym,convertExpr(that.init));
-            stat.mods = convertCopy(that.mods);
-            if (inClassDecl()) classDefs.add(stat);
-            else addStat(stat);
-            result = stat;
-            return;
-        }
-        
-        JCIdent newident = null;
-        if (esc || infer) {
-            that.ident = treeutils.makeIdent(that.pos,that.sym);
-            // We don't use convertExpr, because that might chang the JCIdent to a JCFieldAccess
-            newident = treeutils.makeIdent(that.pos, that.sym);
-            saveMapping(that.ident,newident);
-            if (currentArithmeticMode instanceof Arithmetic.Math) {
-                Symbol sym = that.sym;
-                Type t = mathType(sym.type);
-                if (t != sym.type){ 
-                    Symbol newsym = sym.clone(sym.owner);
-                    newsym.type = t;
-                    newident.type = t;
-                    newident.sym = newsym;
-                    putSymbol(sym,newsym);
-                }
-            }
-        } else if (rac) {
-            // FIXME - should alo be copyint the symbol
-            if (that.type instanceof JmlType) {// FIXME - should really be copying the AST
-                that.vartype = ((JmlPrimitiveTypeTree)that.vartype).repType;
-                that.type = jmltypes.repSym((JmlType)that.type).type;
-                that.sym.type = that.type;
-            }
-            if (specs.fieldSpecHasAnnotation(that.sym, Modifiers.SPEC_PUBLIC)) {
-                that.mods.flags &= ~Flags.AccessFlags;
-                that.mods.flags |= Flags.PUBLIC;
-                that.sym.flags_field  &= ~Flags.AccessFlags;
-                that.sym.flags_field |= Flags.PUBLIC;
-            }
-            if (specs.fieldSpecHasAnnotation(that.sym, Modifiers.SPEC_PROTECTED)) {
-                that.mods.flags &= ~Flags.AccessFlags;
-                that.mods.flags |= Flags.PROTECTED;
-                that.sym.flags_field  &= ~Flags.AccessFlags;
-                that.sym.flags_field |= Flags.PROTECTED;
-            }
-        }
-        
-        
-        if (!inClassDecl()) {
-            addTraceableComment(that,that,that.toString(),null);
-        }
-       
-        if (( that.type.tsym.flags_field & Flags.ENUM)!= 0 && that.sym.owner instanceof ClassSymbol) { // FIXME - should check the initializer expressions of enums
-            JmlVariableDecl stat = M.at(that).VarDef(that.sym,that.init);
-            stat.ident = newident;
 
-            if (inClassDecl()) classDefs.add(stat);
-            else addStat(stat);
+        	if (pureCopy) { 
+        		JmlVariableDecl stat = M.at(that).VarDef(that.sym,convertExpr(that.init));
+        		stat.mods = convertCopy(that.mods);
+        		if (inClassDecl()) classDefs.add(stat);
+        		else addStat(stat);
+        		result = stat;
+        		return;
+        	}
 
-            result = stat;
-            return;
-        }
-        
-        boolean inClassDecl = inClassDecl(); 
-        if (localVariables.containsKey(that.sym)) {
-            JmlVariableDecl stat = M.at(that).VarDef(that.sym,null);
-            JCExpression init = convertExpr(that.init);
-            stat.init = init;
-            stat.ident = newident;
-            if (inClassDecl) classDefs.add(stat);
-            else addStat(stat);
-            result = stat;
-            return;
-        }
-        // Called during translation of model methods
-        if (JmlAttr.instance(context).isGhost(that.mods)) {
-            try {
-                JCExpression init = null;
-                
-                // If we are in a class, there is nowhere to push statements
-                // so we make a block and later turn it into an initializer block
-                ListBuffer<JCStatement> check = null;
-                if (inClassDecl) { check = pushBlock();  }
-                JmlVariableDecl stat = null;
-                boolean pv = checkAccessEnabled;
-                checkAccessEnabled = false;
-                try { 
-                    init = convertJML(that.init);
-                    if (init != null) init = addImplicitConversion(init,that.type,init);
+        	JCIdent newident = null;
+        	if (esc || infer) {
+        		that.ident = treeutils.makeIdent(that.pos,that.sym);
+        		// We don't use convertExpr, because that might chang the JCIdent to a JCFieldAccess
+        		newident = treeutils.makeIdent(that.pos, that.sym);
+        		saveMapping(that.ident,newident);
+        		if (currentArithmeticMode instanceof Arithmetic.Math) {
+        			Symbol sym = that.sym;
+        			Type t = mathType(sym.type);
+        			if (t != sym.type){ 
+        				Symbol newsym = sym.clone(sym.owner);
+        				newsym.type = t;
+        				newident.type = t;
+        				newident.sym = newsym;
+        				putSymbol(sym,newsym);
+        			}
+        		}
+        	} else if (rac) {
+        		// FIXME - should alo be copyint the symbol
+        		if (that.type instanceof JmlType) {// FIXME - should really be copying the AST
+        			that.vartype = ((JmlPrimitiveTypeTree)that.vartype).repType;
+        			that.type = jmltypes.repSym((JmlType)that.type).type;
+        			that.sym.type = that.type;
+        		}
+        		if (specs.fieldSpecHasAnnotation(that.sym, Modifiers.SPEC_PUBLIC)) {
+        			that.mods.flags &= ~Flags.AccessFlags;
+        			that.mods.flags |= Flags.PUBLIC;
+        			that.sym.flags_field  &= ~Flags.AccessFlags;
+        			that.sym.flags_field |= Flags.PUBLIC;
+        		}
+        		if (specs.fieldSpecHasAnnotation(that.sym, Modifiers.SPEC_PROTECTED)) {
+        			that.mods.flags &= ~Flags.AccessFlags;
+        			that.mods.flags |= Flags.PROTECTED;
+        			that.sym.flags_field  &= ~Flags.AccessFlags;
+        			that.sym.flags_field |= Flags.PROTECTED;
+        		}
+        	}
 
-                    stat = M.at(that).VarDef(that.sym,init);
-                    stat.ident = newident;
-                    JCExpression nn = null;
-                    if (init != null && !init.type.isPrimitive() 
-                            && !utils.isJavaOrJmlPrimitiveType(init.type) 
-                            && !isKnownNonNull(that.init) && !isKnownNonNull(init)
-                            && specs.isNonNull(that.sym)) {
-                        nn = treeutils.makeNeqObject(init.pos, init, treeutils.nullLit);
-                        if (init instanceof JCLiteral) {
-                            // FIXME - potential optimizations, but they need testing, particularly the second one
-                            if (init.type.getTag() == TypeTag.BOT) nn = treeutils.falseLit;
-                            else if (init.type.getTag() == TypeTag.CLASS) nn = treeutils.trueLit;
-                        } 
-                        // FIXME - should have an associated position in assert
-                    }
-                    if (inClassDecl) methodDecl = (JmlMethodDecl)M.MethodDef(attr.makeInitializerMethodSymbol(that.mods.flags, JmlEnter.instance(context).getEnv(classDecl.sym)), null);
-                    if (nn != null) addAssert(that,Label.POSSIBLY_NULL_INITIALIZATION,nn,that.name);
-                    if (esc && !that.type.isPrimitive() && !utils.isJavaOrJmlPrimitiveType(that.type)) {
-                        addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
-                                treeutils.makeIdent(that.pos, that.sym), 
-                                that.type));
-                    }
-                } finally {
-                    if (inClassDecl) {
-                        JCBlock bl = popBlock(that.mods.flags & Flags.STATIC,that,check);
-                        if (stat != null) classDefs.add(stat);
-                        classDefs.add(bl);
-                        methodDecl = null;
-                    } else {
-                        if (stat != null) addStat(stat);
-                    }
-                    if (stat != null && esc && !(that.type instanceof Type.ArrayType) && jmltypes.isArray(that.type)) {
-                        JCExpression inv = getInvariantAll(that, that.type, treeutils.makeIdent(that.pos, that.sym));
-                        if (inv != null) inv.type = syms.booleanType; else inv = treeutils.trueLit;
-                        addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeAnd(that.pos,treeutils.makeNotNull(that.pos, treeutils.makeIdent(that.pos, that.sym)),inv));
-                    }
-                    checkAccessEnabled = pv;
-                }
-                result = stat;
-            } catch (JmlNotImplementedException e) {
-                notImplemented("ghost declaration containing ",e);
-            }
-        } else if (that.init == null) {
-            JmlVariableDecl stat = M.at(that).VarDef(that.sym,that.init);
-            stat.ident = newident;
-            // type, vartype, sym, name, mods, init are filled in
-            stat.mods = that.mods;
-            stat.sourcefile = that.sourcefile;
-            stat.docComment = that.docComment;
-            stat.fieldSpecs = that.fieldSpecs;  // TOOD: copy?
-            stat.specsDecl = that.specsDecl; // TODO: copy? translate reference?
-            if (!pureCopy) {
-                if (currentStatements == null) classDefs.add(stat);
-                else addStat(stat);
-            }
-            if (esc && !that.type.isPrimitive()) {
-                addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
-                    treeutils.makeIdent(that.pos, that.sym), 
-                    that.type));
-            }
 
-            result = stat;
-        } else {
-            // FIXME - are these regular Java declarations?  what about model decls?
+        	if (!inClassDecl()) {
+        		addTraceableComment(that,that,that.toString(),null);
+        	}
 
-            // FIXME - need to make a unique symbol; what if the decl is final?
-            JmlVariableDecl stat = M.at(that).VarDef(that.sym,null);
-            stat.ident = newident;
-            // type, vartype, sym, name, mods, init are filled in
-            stat.mods = that.mods;
-            stat.sourcefile = that.sourcefile;
-            stat.docComment = that.docComment;
-            stat.fieldSpecs = that.fieldSpecs;
-            stat.specsDecl = that.specsDecl;
+        	if (( that.type.tsym.flags_field & Flags.ENUM)!= 0 && that.sym.owner instanceof ClassSymbol) { // FIXME - should check the initializer expressions of enums
+        		JmlVariableDecl stat = M.at(that).VarDef(that.sym,that.init);
+        		stat.ident = newident;
 
-            ListBuffer<JCStatement> check = pushBlock();
-            JCExpression init = null;
-            JCExpression nn = null;
-            try {
-                if (statementStack.get(0) == null && methodDecl == null) {
-                    long flags = that.mods.flags & Flags.STATIC;
-                    // We are in an initializer block
-                    // We need a method symbol to be the owner of declarations 
-                    // (otherwise they will have the class as owner and be thought to
-                    // be fields)
-                    MethodSymbol msym = new MethodSymbol(
-                            flags, 
-                            classDecl.name, 
-                            null, 
-                            classDecl.sym);
-                    methodDecl = //M.MethodDef(msym, null,null);
-                            new JmlMethodDecl(
-                                    M.Modifiers(flags, M.Annotations(List.<com.sun.tools.javac.code.Attribute.Compound>nil())),
-                                    classDecl.name,
-                                    null,
-                                    null,
-                                    null,
-                                    null,
-                                    null,
-                                    null, //body,
-                                    null,
-                                    msym);
-                    methodDecl.isInitializer = true;
-                }
+        		if (inClassDecl()) classDefs.add(stat);
+        		else addStat(stat);
 
-//                boolean pv = checkAccessEnabled;
-//                checkAccessEnabled = enclosingMethod != null; // FIXME - decide how to handle initialization of class fields
-//                try {
-                    init = convertExpr(that.init);
-//                } finally {
-//                    checkAccessEnabled = pv;
-//                }
-                if (init != null) init = addImplicitConversion(init,that.type,init);
+        		result = stat;
+        		return;
+        	}
 
-                if (init != null && !utils.isJavaOrJmlPrimitiveType(that.type) && specs.isNonNull(that)) { // isNonNull returns false if that.type is primitive
-                    nn = treeutils.makeNeqObject(init.pos, init, treeutils.nullLit);
-                    if (init instanceof JCLiteral) {
-                        // FIXME - potential optimizations, but they need testing, particularly the second one
-                        if (init.type.getTag() == TypeTag.BOT) nn = treeutils.falseLit;
-                        else if (init.type.getTag() == TypeTag.CLASS) nn = treeutils.trueLit;
-                    } 
-                    // FIXME - should have an associated position
-                }
+        	boolean inClassDecl = inClassDecl(); 
+        	if (localVariables.containsKey(that.sym)) {
+        		JmlVariableDecl stat = M.at(that).VarDef(that.sym,null);
+        		JCExpression init = convertExpr(that.init);
+        		stat.init = init;
+        		stat.ident = newident;
+        		if (inClassDecl) classDefs.add(stat);
+        		else addStat(stat);
+        		result = stat;
+        		return;
+        	}
+        	// Called during translation of model methods
+        	if (JmlAttr.instance(context).isGhost(that.mods)) {
+        		try {
+        			JCExpression init = null;
 
-            } finally {
-                if (statementStack.get(0) == null) {
-                    // Class definition
-                    if (currentStatements.isEmpty() && nn == null) {
-                        // Just a simple initialization since there is no nonnull check
-                        // and the init expression did not create any new statements
-                        popBlock(null,check); // Nothing present - just ignore the empty block
-                        stat.init = init;
-                        this.classDefs.add(stat);
-                        if (esc && !utils.isJavaOrJmlPrimitiveType(that.type)) {
-                            addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
-                                    treeutils.makeIdent(that.pos, that.sym), 
-                                    that.type));
-                        }
-                    } else {
-                        long flags = that.mods.flags & Flags.STATIC;
+        			// If we are in a class, there is nowhere to push statements
+        			// so we make a block and later turn it into an initializer block
+        			ListBuffer<JCStatement> check = null;
+        			if (inClassDecl) { check = pushBlock();  }
+        			JmlVariableDecl stat = null;
+        			boolean pv = checkAccessEnabled;
+        			checkAccessEnabled = false;
+        			try { 
+        				init = convertJML(that.init);
+        				if (init != null) init = addImplicitConversion(init,that.type,init);
 
-                        // Create a initializer block
-                        if (nn != null) addAssert(that,Label.POSSIBLY_NULL_INITIALIZATION,nn,that.name);
-                        addStat(treeutils.makeAssignStat(that.pos, treeutils.makeIdent(that.pos, stat.sym), init));
-                        if (esc && !utils.isJavaOrJmlPrimitiveType(that.type)) {
-                            addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
-                                    treeutils.makeIdent(that.pos, that.sym), 
-                                    that.type));
-                        }
-                        JCBlock bl = popBlock(flags,that,check);
-                        this.classDefs.add(stat);
-                        this.classDefs.add(bl);
-                    }
-                    methodDecl = null;
-                } else {
-                    // Regular method body
-                    if (isKnownNonNull(that.init) || isKnownNonNull(init)) nn = null;
-                    JCBlock bl = popBlock(that,check);
-                    currentStatements.addAll(bl.stats);
-                    if (nn != null) addAssert(that,Label.POSSIBLY_NULL_INITIALIZATION,nn,that.name);
-                    stat.init = init;
-                    //if (splitExpressions) {
-                        addStat(stat);
-                        if (esc && !utils.isJavaOrJmlPrimitiveType(that.type)) {
-                            addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
-                                    treeutils.makeIdent(that.pos, that.sym), 
-                                    that.type));
-                        }
-                    //}
-                }
-                result = stat;
-            }
-        }
-        
+        				stat = M.at(that).VarDef(that.sym,init);
+        				stat.ident = newident;
+        				JCExpression nn = null;
+        				if (init != null && !init.type.isPrimitive() 
+        						&& !utils.isJavaOrJmlPrimitiveType(init.type) 
+        						&& !isKnownNonNull(that.init) && !isKnownNonNull(init)
+        						&& specs.isNonNull(that.sym)) {
+
+        					nn = treeutils.makeNeqObject(init.pos, init, treeutils.nullLit);
+        					if (init instanceof JCLiteral) {
+        						// FIXME - potential optimizations, but they need testing, particularly the second one
+        						if (init.type.getTag() == TypeTag.BOT) nn = treeutils.falseLit;
+        						else if (init.type.getTag() == TypeTag.CLASS) nn = treeutils.trueLit;
+        					} 
+        					// FIXME - should have an associated position in assert
+        				}
+        				if (inClassDecl) methodDecl = (JmlMethodDecl)M.MethodDef(attr.makeInitializerMethodSymbol(that.mods.flags, JmlEnter.instance(context).getEnv(classDecl.sym)), null);
+        				if (nn != null) addAssert(that,Label.POSSIBLY_NULL_INITIALIZATION,nn,that.name);
+        				if (esc && !that.type.isPrimitive() && !utils.isJavaOrJmlPrimitiveType(that.type)) {
+        					addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
+        							treeutils.makeIdent(that.pos, that.sym), 
+        							that.type));
+        				}
+        			} finally {
+        				if (inClassDecl) {
+        					JCBlock bl = popBlock(that.mods.flags & Flags.STATIC,that,check);
+        					if (stat != null) classDefs.add(stat);
+        					classDefs.add(bl);
+        					methodDecl = null;
+        				} else {
+        					if (stat != null) addStat(stat);
+        				}
+        				if (stat != null && esc && !(that.type instanceof Type.ArrayType) && jmltypes.isArray(that.type)) {
+        					JCExpression inv = getInvariantAll(that, that.type, treeutils.makeIdent(that.pos, that.sym));
+        					if (inv != null) inv.type = syms.booleanType; else inv = treeutils.trueLit;
+        					addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeAnd(that.pos,treeutils.makeNotNull(that.pos, treeutils.makeIdent(that.pos, that.sym)),inv));
+        				}
+        				checkAccessEnabled = pv;
+        			}
+        			result = stat;
+        		} catch (JmlNotImplementedException e) {
+        			notImplemented("ghost declaration containing ",e);
+        		}
+        	} else if (that.init == null) {
+        		JmlVariableDecl stat = M.at(that).VarDef(that.sym,that.init);
+        		stat.ident = newident;
+        		// type, vartype, sym, name, mods, init are filled in
+        		stat.mods = that.mods;
+        		stat.sourcefile = that.sourcefile;
+        		stat.docComment = that.docComment;
+        		stat.fieldSpecs = that.fieldSpecs;  // TOOD: copy?
+        		stat.specsDecl = that.specsDecl; // TODO: copy? translate reference?
+        		if (!pureCopy) {
+        			if (currentStatements == null) classDefs.add(stat);
+        			else addStat(stat);
+        		}
+        		if (esc && !that.type.isPrimitive()) {
+        			addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
+        					treeutils.makeIdent(that.pos, that.sym), 
+        					that.type));
+        		}
+
+        		result = stat;
+        	} else {
+        		// FIXME - are these regular Java declarations?  what about model decls?
+
+        		// FIXME - need to make a unique symbol; what if the decl is final?
+        		JmlVariableDecl stat = M.at(that).VarDef(that.sym,null);
+        		stat.ident = newident;
+        		// type, vartype, sym, name, mods, init are filled in
+        		stat.mods = that.mods;
+        		stat.sourcefile = that.sourcefile;
+        		stat.docComment = that.docComment;
+        		stat.fieldSpecs = that.fieldSpecs;
+        		stat.specsDecl = that.specsDecl;
+
+        		ListBuffer<JCStatement> check = pushBlock();
+        		JCExpression init = null;
+        		JCExpression nn = null;
+        		try {
+        			if (statementStack.get(0) == null && methodDecl == null) {
+        				long flags = that.mods.flags & Flags.STATIC;
+        				// We are in an initializer block
+        				// We need a method symbol to be the owner of declarations 
+        				// (otherwise they will have the class as owner and be thought to
+        				// be fields)
+        				MethodSymbol msym = new MethodSymbol(
+        						flags, 
+        						classDecl.name, 
+        						null, 
+        						classDecl.sym);
+        				methodDecl = //M.MethodDef(msym, null,null);
+        						new JmlMethodDecl(
+        								M.Modifiers(flags, M.Annotations(List.<com.sun.tools.javac.code.Attribute.Compound>nil())),
+        								classDecl.name,
+        								null,
+        								null,
+        								null,
+        								null,
+        								null,
+        								null, //body,
+        								null,
+        								msym);
+        				methodDecl.isInitializer = true;
+        			}
+
+        			//                boolean pv = checkAccessEnabled;
+        			//                checkAccessEnabled = enclosingMethod != null; // FIXME - decide how to handle initialization of class fields
+        			//                try {
+        			init = convertExpr(that.init);
+        			//                } finally {
+        			//                    checkAccessEnabled = pv;
+        			//                }
+        			if (init != null) init = addImplicitConversion(init,that.type,init);
+
+        			if (init != null && !utils.isJavaOrJmlPrimitiveType(that.type) && specs.isNonNull(that.sym)) { // isNonNull returns false if that.type is primitive
+        				nn = treeutils.makeNeqObject(init.pos, init, treeutils.nullLit);
+        				if (init instanceof JCLiteral) {
+        					// FIXME - potential optimizations, but they need testing, particularly the second one
+        					if (init.type.getTag() == TypeTag.BOT) nn = treeutils.falseLit;
+        					else if (init.type.getTag() == TypeTag.CLASS) nn = treeutils.trueLit;
+        				} 
+        				// FIXME - should have an associated position
+        			}
+        		} catch (Exception e) {
+        			System.out.println("EXCEPTION " + e);
+        			e.printStackTrace(System.out);
+        		} finally {
+        			if (statementStack.get(0) == null) {
+        				// Class definition
+        				if (currentStatements.isEmpty() && nn == null) {
+        					// Just a simple initialization since there is no nonnull check
+        					// and the init expression did not create any new statements
+        					popBlock(null,check); // Nothing present - just ignore the empty block
+        					stat.init = init;
+        					this.classDefs.add(stat);
+        					if (esc && !utils.isJavaOrJmlPrimitiveType(that.type)) {
+        						addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
+        								treeutils.makeIdent(that.pos, that.sym), 
+        								that.type));
+        					}
+        				} else {
+        					long flags = that.mods.flags & Flags.STATIC;
+
+        					// Create a initializer block
+        					if (nn != null) addAssert(that,Label.POSSIBLY_NULL_INITIALIZATION,nn,that.name);
+        					addStat(treeutils.makeAssignStat(that.pos, treeutils.makeIdent(that.pos, stat.sym), init));
+        					if (esc && !utils.isJavaOrJmlPrimitiveType(that.type)) {
+        						addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
+        								treeutils.makeIdent(that.pos, that.sym), 
+        								that.type));
+        					}
+        					JCBlock bl = popBlock(flags,that,check);
+        					this.classDefs.add(stat);
+        					this.classDefs.add(bl);
+        				}
+        				methodDecl = null;
+        			} else {
+        				// Regular method body
+        				if (init == null || isKnownNonNull(that.init) || isKnownNonNull(init)) nn = null;
+        				JCBlock bl = popBlock(that,check);
+        				currentStatements.addAll(bl.stats);
+        				if (nn != null) addAssert(that,Label.POSSIBLY_NULL_INITIALIZATION,nn,that.name);
+        				stat.init = init;
+        				//if (splitExpressions) {
+        				addStat(stat);
+        				if (esc && !utils.isJavaOrJmlPrimitiveType(that.type)) {
+        					addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
+        							treeutils.makeIdent(that.pos, that.sym), 
+        							that.type));
+        				}
+        				//}
+        		}
+        			result = stat;
+        		}
+        	}
+
         } finally {
             log.useSource(prevSource);
         }
@@ -18528,6 +18551,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
                 // This initial logic must match that above for preconditions
                 calleeSpecs = specs.getDenestedSpecs(mpsym);
+                if (!specs.statusOK(mpsym)) continue; // FIXME - abort
                 if (calleeSpecs == null) continue; // FIXME - not sure about this
                 if (calleeSpecs.decl == null && !mpsym.owner.isEnum() && !isStatic && 
                                         (mpsym.name != names.values)) continue; // FIXME - only values?

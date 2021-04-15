@@ -145,7 +145,7 @@ public class escConstantFields extends EscBase {
                 
                 +"  //@ assignable \\everything;\n"
                 +"  static public void n() {}\n"
-                +"  //@ ensures \\result == 10;\n"
+                +"  //@ ensures \\result == 10; pure\n"
                 +"  static public int z() { return 10; }\n"
                 +"}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method TestJava",10

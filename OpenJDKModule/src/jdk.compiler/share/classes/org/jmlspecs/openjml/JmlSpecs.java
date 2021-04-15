@@ -1567,9 +1567,25 @@ public class JmlSpecs {
         utils.error("jmllinternal", "Unexpected execution path in isNonNull");
         return false;
     }
-    
+
+    public boolean isNonNullNoDefault(VarSymbol sym) {
+    	if (!sym.type.isReference()) return false;
+		if (attr.hasAnnotation2(sym, Modifiers.NON_NULL)) return true;
+    	if (findAnnotation(sym.type, Modifiers.NON_NULL)) return true;
+    	return false;
+    }
+
+    public boolean isNullableNoDefault(VarSymbol sym) {
+    	if (!sym.type.isReference()) return false;
+    	if (attr.hasAnnotation2(sym, Modifiers.NULLABLE)) return true;
+    	if (findAnnotation(sym.type, Modifiers.NULLABLE)) return true;
+    	return false;
+    }
+
     public boolean isNonNull(VarSymbol sym) {
     	if (!sym.type.isReference()) return false;
+    	if (attr.hasAnnotation2(sym, Modifiers.NULLABLE)) return false;
+		if (attr.hasAnnotation2(sym, Modifiers.NON_NULL)) return true;
     	return isNonNull(sym.type, sym.enclClass());
 //    	if (sym.owner instanceof ClassSymbol) {
 //    		JmlModifiers mods = getSpecsModifiers(sym);
@@ -1616,8 +1632,8 @@ public class JmlSpecs {
     	if (!type.isReference()) return false;
     	if (Types.instance(context).isSubtype(type, 
     			Symtab.instance(context).jmlPrimitiveType)) return true;
-    	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
     	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
+    	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
     	if (type instanceof Type.TypeVar) return false; 
     	return defaultNullity(classOwner) == Modifiers.NON_NULL;
     }
@@ -1631,7 +1647,7 @@ public class JmlSpecs {
     public boolean isNonNull(JmlVariableDecl decl) {
     	if (!decl.type.isReference()) return false;
     	if (decl.sym.owner instanceof ClassSymbol) {
-    		return isNonNull(decl.sym.type, decl.sym.enclClass());
+    		return isNonNull(decl.sym);
     	} else {
     		// Local variable or parameter -- owned by method
     		JmlModifiers mods = (JmlModifiers)decl.mods;

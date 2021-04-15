@@ -200,10 +200,16 @@ public class JmlScanner extends Scanner {
         return t instanceof JmlToken ? (JmlToken)t : null;
     }
     
+    // A built-in debugging tool is to define the Env Var SCANNER, in which case all tokens are 
+    // printed out as scanned. The fact that SCANNER is defined is cached here so it is not looked up
+    // in the system properties map on every token. If you like both the declaration of scannerDebug
+    // and the override of nextToken my be deleted for production code.
+    public boolean scannerDebug = System.getenv("SCANNER") !=null;
+    
     @Override
     public void nextToken() {
     	super.nextToken();
-    	if (System.getenv("SCANNER") !=null) System.out.println("TOKEN " + jml() + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
+    	if (scannerDebug) System.out.println("TOKEN " + jml() + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
     }
 
     // FIXME - is this still needed? is it correct?

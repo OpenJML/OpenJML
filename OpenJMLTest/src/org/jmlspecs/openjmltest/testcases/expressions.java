@@ -4,11 +4,7 @@ import java.util.List;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.JmlTree.JmlBinary;
-import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
-import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
-import org.jmlspecs.openjml.JmlTree.JmlSingleton;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjmltest.IgnoreFalseAssumptions;
 import org.jmlspecs.openjmltest.ParseBase;
 import org.jmlspecs.openjmltest.TestJavaFileObject;
@@ -598,7 +594,7 @@ public class expressions extends ParseBase {
         helpExpr(" \\exists  int i; 0 <= i; i < 0  ",
                 JmlQuantifiedExpr.class,1,1,30,
                 JmlVariableDecl.class,10,14,15,
-                JCModifiers.class,10,10,10,
+                JmlModifiers.class,10,10,10,
                 JCPrimitiveTypeTree.class, 10,10,13,
                 JCBinary.class, 17,19,23,
                 JCLiteral.class ,17,17,18,
@@ -614,7 +610,7 @@ public class expressions extends ParseBase {
                 JCParens.class, 0,0,32,
                 JmlQuantifiedExpr.class,1,1,30,
                 JmlVariableDecl.class,10,14,15,
-                JCModifiers.class,10,10,10,
+                JmlModifiers.class,10,10,10,
                 JCPrimitiveTypeTree.class, 10,10,13,
                 JCBinary.class, 17,19,23,
                 JCLiteral.class ,17,17,18,
@@ -630,7 +626,7 @@ public class expressions extends ParseBase {
                 JCParens.class, 0,0,32,
                 JmlQuantifiedExpr.class,1,1,30,
                 JmlVariableDecl.class,10,14,15,
-                JCModifiers.class,10,10,10,
+                JmlModifiers.class,10,10,10,
                 JCPrimitiveTypeTree.class, 10,10,13,
                 JCBinary.class, 17,19,23,
                 JCLiteral.class ,17,17,18,
@@ -646,7 +642,7 @@ public class expressions extends ParseBase {
                 JCParens.class, 0,0,26,
                 JmlQuantifiedExpr.class,1,1,24,
                 JmlVariableDecl.class,10,14,15,
-                JCModifiers.class,10,10,10,
+                JmlModifiers.class,10,10,10,
                 JCPrimitiveTypeTree.class, 10,10,13,
                 JCBinary.class ,19,21,24,
                 JCIdent.class ,19,19,20,
@@ -659,7 +655,7 @@ public class expressions extends ParseBase {
                 JCParens.class, 0,0,26,
                 JmlQuantifiedExpr.class,1,1,24,
                 JmlVariableDecl.class,10,14,15,
-                JCModifiers.class,10,10,10,
+                JmlModifiers.class,10,10,10,
                 JCPrimitiveTypeTree.class, 10,10,13,
                 JCBinary.class ,19,21,24,
                 JCIdent.class ,19,19,20,
@@ -672,7 +668,7 @@ public class expressions extends ParseBase {
                 JCParens.class, 0,0,26,
                 JmlQuantifiedExpr.class,1,1,24,
                 JmlVariableDecl.class,10,14,15,
-                JCModifiers.class,10,10,10,
+                JmlModifiers.class,10,10,10,
                 JCPrimitiveTypeTree.class, 10,10,13,
                 JCBinary.class ,19,21,24,
                 JCIdent.class ,19,19,20,
@@ -685,13 +681,13 @@ public class expressions extends ParseBase {
                 JCParens.class, 0, 0, 44,
                 LetExpr.class, 1, 1, 42,
                 JmlVariableDecl.class,6,10, 15,
-                JCModifiers.class, 6,6,6,
+                JmlModifiers.class, 6,6,6,
                 JCPrimitiveTypeTree.class, 6,6,9,
                 JCBinary.class, 12,13,15,
                 JCLiteral.class, 12,12,13,
                 JCLiteral.class, 14,14,15,
                 JmlVariableDecl.class, 17,25,33,
-                JCModifiers.class, 17,17,17,
+                JmlModifiers.class, 17,17,17,
                 JCPrimitiveTypeTree.class, 17,17,24,
                 JCBinary.class, 29,30,33,
                 JCIdent.class, 29,29,30,

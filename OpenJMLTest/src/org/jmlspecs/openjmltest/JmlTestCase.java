@@ -234,7 +234,7 @@ public abstract class JmlTestCase {
     /** Set this to true (in the setUp for a test, before calling super.setUp)
      * if you want diagnostics to be printed as they occur (as well as being collected).
      */
-    public boolean printDiagnostics = false;
+    public boolean printDiagnostics =  System.getenv("VERBOSE") != null ;
     
     /** A collector for all of the diagnostic messages*/
     protected DiagnosticListenerX<JavaFileObject> collector;

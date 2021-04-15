@@ -1097,7 +1097,7 @@ public class Resolve {
         }
 
         @Override
-        protected MethodResultInfo dup(Type newPt) {
+        public MethodResultInfo dup(Type newPt) { // OPENJML protected to public
             return new MethodResultInfo(newPt, checkContext);
         }
 

@@ -255,7 +255,7 @@ public class JmlTreeUtils {
     }
     
     /** This sets the end position of newnode to be the same as that of srcnode;
-     * the nodes are assumed to reference the same source file. */
+     * the nodes are assumed to reference the same source file, which is the current source file. */
     public void copyEndPosition(JCTree newnode, JCTree srcnode) {
         EndPosTable z = log.currentSource().getEndPosTable();
         try {

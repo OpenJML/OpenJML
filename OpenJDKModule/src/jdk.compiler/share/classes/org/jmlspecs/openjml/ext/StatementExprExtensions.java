@@ -4,6 +4,12 @@ import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.comp.AttrContext;
+import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.tree.JCTree;
+
 public class StatementExprExtensions extends JmlExtension {
     
     public static final String assertID = "assert";
@@ -21,7 +27,14 @@ public class StatementExprExtensions extends JmlExtension {
     
     public static final IJmlClauseKind assumeClause = new StatementExprType(assumeID);
     
-    public static final IJmlClauseKind commentClause = new StatementExprType(commentID) ;
+    public static final IJmlClauseKind commentClause = new StatementExprType(commentID) {
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree t, Env<AttrContext> env) {
+        	// Do nothing for a comment clause -- just contains text
+        	return null;
+        }
+
+    };
     
     public static final IJmlClauseKind useClause = new StatementExprType(useID);
     
