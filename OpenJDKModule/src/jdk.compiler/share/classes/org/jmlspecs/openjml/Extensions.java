@@ -131,8 +131,7 @@ public class Extensions {
             ProgramLocation.class, 
             
             // Modifiers
-            ModifierExtension.class,
-            PureModifier.class,
+            Modifiers.class,
             
             // Method clauses
             AssignableClauseExtension.class, 

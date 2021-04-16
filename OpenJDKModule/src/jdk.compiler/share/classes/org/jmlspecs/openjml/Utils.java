@@ -1750,6 +1750,11 @@ public class Utils {
         
     }
     
+    public void unexpectedException(String msg, Exception e) {
+    	error("jml.internal","Unexpected exception: " + msg + " " + e);
+    	e.printStackTrace(log.getWriter(WriterKind.ERROR));
+    }
+    
     public static boolean debug() {
     	return System.getenv("PRINT")!=null;
     }

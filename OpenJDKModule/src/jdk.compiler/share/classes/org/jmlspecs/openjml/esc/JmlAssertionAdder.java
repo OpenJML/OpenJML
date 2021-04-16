@@ -3230,7 +3230,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     public void addRepresentsAxioms(TypeSymbol clsym, Symbol varsym, JCTree that, JCExpression translatedSelector) {
-    	if (Utils.debug()) System.out.println("ADDREPAXIOM " + rac);
     	reps.add(0,varsym);  // FIXME - as varsym can have different representations in different derived classes
         boolean pv = checkAccessEnabled;
         checkAccessEnabled = false; // Do not check access in JML clauses
@@ -4339,8 +4338,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
 
         } catch (Exception e) {
-        	System.out.println("Exception in addPreCondition: " + e);
-        	e .printStackTrace(System.out);
+        	utils.unexpectedException("addPreCondition",e);
         } finally {
         	paramActuals = null;
         	clearInvariants();
@@ -8626,8 +8624,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!anyFound && !inliningCall) {
                 // No specs - set default
 
-            	System.out.println("GETTING SPECS FOR CALLEE " + calleeMethodSym + " " + calleeMethodSym.toString());
                 JmlSpecs.MethodSpecs s = specs.getSpecs(calleeMethodSym);
+            	System.out.println("GETTING SPECS FOR CALLEE " + calleeMethodSym + " " + calleeMethodSym.hashCode() + " " + s);
                 if (s == null) {
                     JmlMethodSpecs defaults = JmlSpecs.instance(context).defaultSpecs(methodDecl, methodDecl.sym,methodDecl.pos).cases;
                     s = new JmlSpecs.MethodSpecs(methodDecl.mods,defaults);
@@ -9728,7 +9726,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // Now we iterate over all specification cases in all parent
                 // methods again, this time putting in the post-condition checks
                 
-                if (resultExpr != null && meth != null && specs.isNonNull(meth.type.getReturnType(), null)) {
+                if (resultExpr != null && meth != null && specs.isNonNull(calleeMethodSym)) {
                 	JCExpression nn = treeutils.makeNotNull(that.pos,resultExpr);
                 	addAssume(meth, Label.POSSIBLY_NULL_RETURN, nn,
                 			mspecs.decl.pos(), mspecs.decl.sourcefile);
@@ -18480,7 +18478,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             currentThisExpr = qthisid;
             if (calleeSpecs != null && calleeSpecs.decl != null) {
                 for (JCVariableDecl d : specs.getDenestedSpecs(msym).decl.params) {
-                    JCVariableDecl newDecl = treeutils.makeVarDef(d.type, d.name, ownerSym, d.pos);
+                    JCVariableDecl newDecl = treeutils.makeVarDef(d.sym.type, d.name, ownerSym, d.pos);
                     newDecls.add(newDecl);
                     JCIdent id = treeutils.makeIdent(d,newDecl.sym);
                     newparamsWithHeap.add(id);

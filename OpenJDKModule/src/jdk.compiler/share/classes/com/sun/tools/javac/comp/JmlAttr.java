@@ -73,7 +73,6 @@ import org.jmlspecs.openjml.ext.CallableClauseExtension;
 import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
-import org.jmlspecs.openjml.ext.ModifierExtension;
 import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 
@@ -5626,7 +5625,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	if (a.type == null) for (var mod: modToAnnotationSymbol.entrySet()) {
     		if (mod.getKey().fullAnnotation.equals(s)) {
     			a.type = a.annotationType.type = mod.getValue().type;
-    			if (a instanceof JmlAnnotation) utils.note(((JmlAnnotation)a).sourcefile, a, "jml.internal", "Had to lookup type of a annotation with null type: " + s);
+    			if (a instanceof JmlAnnotation) utils.note(((JmlAnnotation)a).sourcefile, a, "jml.internal.notsobad", "Had to lookup type of a annotation with null type: " + s);
     			return true;
     		}
     	}
@@ -5818,7 +5817,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return false;
     }
     
-    /** Returns true if the given symbol has a Model annotation */
+    public boolean hasAnnotation(List<JCAnnotation> list, ModifierKind t) {
+    	for (var a: list) {
+    		if (((JmlAnnotation)a).kind == t) return true;
+    	}
+        return false;
+    }
+    
+    /** Returns true if the given symbol has a Immutable annotation */
     public boolean isImmutable(Symbol symbol) {
         return symbol.attribute(modToAnnotationSymbol.get(Modifiers.IMMUTABLE))!=null; // FIXME - need to get this from the spec
     }

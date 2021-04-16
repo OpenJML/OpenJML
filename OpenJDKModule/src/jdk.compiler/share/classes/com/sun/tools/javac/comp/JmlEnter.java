@@ -611,6 +611,8 @@ public class JmlEnter extends Enter {
 			}
 			specDecl.defs = newdefs.toList();
 			ok = true;
+		} catch (Exception e) {
+			utils.unexpectedException("JmlEnterspecsClassEnter", e);
 		} finally {
 			if (!ok && csym != null) {
 				JmlSpecs.instance(context).setStatus(csym, JmlSpecs.SpecsStatus.ERROR);
@@ -888,6 +890,9 @@ public class JmlEnter extends Enter {
 			JmlMemberEnter.instance(context).enterJML = false;
 			makeAndEnterMethodSym(mdecl, specsEnv);
 			JmlMemberEnter.instance(context).enterJML = saved;
+			for (int i=0; i<mdecl.params.length(); ++i) { // One would think that the attribution of mdecl would set the parameter types, but it just sets the types in the parameter sym
+				mdecl.params.get(i).type = mdecl.sym.params.get(i).type;
+			}
 			msym = findMethod(csym, mdecl, specsEnv);
 		}
     	if (msym == null) {
@@ -908,12 +913,6 @@ public class JmlEnter extends Enter {
 			// Enter the method in the parent class
 			msym = mdecl.sym; // makeAndEnterMethodSym(mdecl, specsEnv); // Also calls putSpecs
 			enclScope.enter(msym);
-			var msp = JmlSpecs.instance(context).get(msym);
-//			for (int i=0; i<mdecl.params.length(); ++i) { // SHould this be within the above call
-//				VarSymbol s = msym.params.get(i);
-//				mdecl.params.get(i).sym = s;
-//				mdecl.params.get(i).type = s.type;
-//			}
 			
 			if (!isModel && mdecl.body != null) {
 				utils.error(mdecl.body, "jml.message", "The specification of the method " + csym + "." + msym + " must not have a body");
@@ -983,8 +982,7 @@ public class JmlEnter extends Enter {
 //    			var mspecs = specs.get(mdecl.sym);
 //         		specs.putSpecs(msym, mspecs, mspecs.specsEnv);
     			if (javaMDecl == null) {
-    				enclScope.remove(msym);
-    				enclScope.enter(mdecl.sym);
+    				JmlSpecs.instance(context).dupSpecs(msym, mdecl.sym);
     			}
 //    			specsEnv = MemberEnter.instance(context).methodEnv(mdecl, specsEnv);
 //    			ListBuffer<Type> argtypes = new ListBuffer<>();
@@ -1115,7 +1113,7 @@ public class JmlEnter extends Enter {
 					utils.removeAnnotation(vdecl.mods,  Modifiers.MODEL);
 					utils.removeAnnotation(vdecl.mods,  Modifiers.GHOST);
 				}
-				Type t = vdecl.type = vdecl.vartype.type = JmlAttr.instance(context).attribType(vdecl.vartype, specsEnv);
+				Type t = vdecl.type = vdecl.vartype.type = vsym.type;
 				ok = true;
 
 				if (vdecl == javaVDecl) {
@@ -1124,27 +1122,25 @@ public class JmlEnter extends Enter {
 					//vdecl.type = vdecl.sym.type;
 					if (utils.verbose()) utils.note("Matched field: (self) " + vsym + " (owner: " + csym +")" );
 				} else {
-
-					boolean loaded = !JmlSpecs.instance(context).status(vsym).less(JmlSpecs.SpecsStatus.SPECS_LOADED);
-					if (loaded) {
-						JmlVariableDecl prevDecl = JmlSpecs.instance(context).getLoadedSpecs(vsym).decl;
-						if (!isSameCU) { // if isSameCU==true, there already is a error about duplicate definition in MemberEnter
+					if (vsym.owner instanceof ClassSymbol) {
+						if (!isSameCU && javaVDecl != null) { // if isSameCU==true, there already is a error about duplicate definition in MemberEnter
 							utils.error(vdecl, "jml.message", "This specification declaration of field " + vdecl.name + " has the same name as a previous field declaration");
-							utils.error(prevDecl.source(), prevDecl.pos, "jml.associated.decl.cf", utils.locationString(vdecl.pos, vdecl.source()));
+							utils.error(javaVDecl.source(), javaVDecl.pos, "jml.associated.decl.cf", utils.locationString(vdecl.pos, vdecl.source()));
 						}
-					}
-					if (!specsTypeSufficientlyMatches(t, vsym.type, javaVDecl == null)) {
-						String msg = "Type of field " + vdecl.name + " in specification differs from type in source/binary: " + t + " vs. " + vsym.type;
-						if (javaVDecl != null) {
-							utils.error(vdecl.vartype, "jml.message", msg, javaVDecl.pos(), javaVDecl.sourcefile);
-							utils.note(javaVDecl.source(), javaVDecl, "jml.associated.decl.cf", utils.locationString(vdecl.pos, vdecl.source()));
-						} else {
-							utils.error(vdecl.vartype, "jml.message", msg);
+
+						if (!specsTypeSufficientlyMatches(t, vsym.type, javaVDecl == null)) {
+							String msg = "Type of field " + vdecl.name + " in specification differs from type in source/binary: " + t + " vs. " + vsym.type;
+							if (javaVDecl != null) {
+								utils.error(vdecl.vartype, "jml.message", msg, javaVDecl.pos(), javaVDecl.sourcefile);
+								utils.note(javaVDecl.source(), javaVDecl, "jml.associated.decl.cf", utils.locationString(vdecl.pos, vdecl.source()));
+							} else {
+								utils.error(vdecl.vartype, "jml.message", msg);
+							}
+							ok = false;
 						}
-						ok = false;
 					}
 					checkVarMatch(javaVDecl,vsym,vdecl,csym);
-					// Note - other checks are dine in JmlAttr
+					// Note - other checks are done in JmlAttr
 
 					vdecl.sym = vsym;
 					if (ok && utils.verbose()) utils.note("Matched field: " + vsym + " (owner: " + csym +")" );

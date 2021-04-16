@@ -134,7 +134,7 @@ public class JmlParser extends JavacParser {
     public boolean isJmlModifier() {
     	if (token.kind != IDENTIFIER) return false;
     	var m = Extensions.findKeyword(token);
-    	if (m instanceof TypeAnnotationKind) return false;
+    	//if (m instanceof TypeAnnotationKind) return false;
     	return m instanceof ModifierKind;
     }
 
@@ -906,7 +906,7 @@ public class JmlParser extends JavacParser {
             }
             JCModifiers mods = modifiersOpt(); // Gets anything that is in
                                                // pushBackModifiers
-            List<JCAnnotation> typeAnns = typeAnnotationsOpt();
+            List<JCAnnotation> typeAnns = null;//typeAnnotationsOpt();
             int pos = pos();
             JmlTokenKind jt = jmlTokenKind();
             if (jt != null && !isJmlTypeToken(jt) && currentMethodSpecs != null && !startOfMethodSpecs(token)) {
@@ -1218,7 +1218,7 @@ public class JmlParser extends JavacParser {
     }
 
     public JCExpression replacementType;
-
+    
     @Override
     public JCExpression unannotatedType(boolean allowVar) {
         JCExpression replacementType = null;
@@ -1832,10 +1832,23 @@ public class JmlParser extends JavacParser {
 //    	}
     	while (true) {
     		while (S.jml()) {
-    			var m = Extensions.findKeyword(token);
-    			if (!(m instanceof TypeAnnotationKind) ) break;
+    			var mm = Extensions.findKeyword(token);
+    			if (!(mm instanceof ModifierKind)) break;
+    			var m = (ModifierKind)mm;
     			
-    			JCAnnotation t = utils.modToAnnotationAST((ModifierKind)m, token.pos, token.endPos);
+//    			if (kind == Tag.TYPE_ANNOTATION && savedTypeAnnotations != null) {
+//    				System.out.println("OUT OF PLACE TYPE ANNOTATINOS");
+//    				savedTypeAnnotations = null;
+//    			}
+    			JCAnnotation t;
+    			if (kind == Tag.TYPE_ANNOTATION) {
+    		        JCExpression p = utils.nametree(token.pos, token.endPos, m.fullAnnotation, null);
+    		        t = F.at(token.pos).TypeAnnotation(p,
+    		                    com.sun.tools.javac.util.List.<JCExpression> nil());
+    		        ((JmlAnnotation)t).kind = m;
+    			} else {
+    				t = utils.modToAnnotationAST(m, token.pos, token.endPos);
+    			}
     			annos.append(t);
     			nextToken();
     			while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
@@ -1877,23 +1890,6 @@ public class JmlParser extends JavacParser {
     public JCModifiers modifiersOpt(JCModifiers partial) {
         if (partial == null) {
             partial = pushBackModifiers;
-            pushBackModifiers = null;
-        } else if (pushBackModifiers != null) {
-            utils.error(
-                    pos(),
-                    endPos(),
-                    "jml.internal.notsobad",
-                    "This code branch in modifiersOpt() is not expected to be executed and is not fully implemented - please report with code samples");
-            // I don't think this is ever executed. If it is we need to check
-            // that
-            // there is no duplication of modifiers.
-            long flags = partial.flags | pushBackModifiers.flags;
-            // long same = (partial.flags & pushBackModifiers.flags);
-            ListBuffer<JCAnnotation> annotations = new ListBuffer<JCAnnotation>();
-            annotations.appendList(pushBackModifiers.annotations);
-            annotations.appendList(partial.annotations);
-            partial = jmlF.at(pushBackModifiers.pos()).Modifiers(flags,
-                    annotations.toList());
             pushBackModifiers = null;
         }
         partial = super.modifiersOpt(partial);

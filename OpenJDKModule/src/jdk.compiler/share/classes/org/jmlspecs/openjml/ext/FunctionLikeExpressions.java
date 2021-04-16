@@ -99,7 +99,7 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             JmlMethodInvocation tree = (JmlMethodInvocation)expr;
-        	for (var arg: tree.args) arg.type = attr.attribExpr(arg, localEnv, Type.noType);
+        	typecheckHelper(attr, tree.args, localEnv);
             expr.type = JmlTypes.instance(context).TYPE;
             return expr.type;
         }
@@ -197,6 +197,10 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             JmlMethodInvocation tree = (JmlMethodInvocation)expr;
             typecheckHelper(attr, tree.args, localEnv);
+            int n = tree.args.size();
+            if (n != 1) {
+                error(tree.pos(),"jml.one.arg",name(),n);
+            }
             return tree.args.head.type;
         }
 
@@ -213,10 +217,8 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             JmlMethodInvocation tree = (JmlMethodInvocation)expr;
-            ListBuffer<Type> argtypes = new ListBuffer<>();
-            attr.attribArgs(tree.args, localEnv, argtypes);
-            com.sun.tools.javac.util.List<Type> typeargtypes = attr.attribTypes(tree.typeargs, localEnv);
-            return tree.args.head != null ? argtypes.first() : null;
+            typecheckHelper(attr, tree.args, localEnv);
+            return tree.args.head != null ? tree.args.head.type : null;
         }
 
         @Override
@@ -285,23 +287,18 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
+        	super.typecheck(attr, expr, localEnv);
             JmlMethodInvocation tree = (JmlMethodInvocation)expr;
             
             // Expect one argument of any array type, result type is \TYPE
             // The argument expression may contain JML constructs
+            Type t = attr.syms.errType;
             int n = tree.args.size();
-            if (n != 1) {
-                error(tree.pos(),"jml.one.arg",name(),n);
-            } else {
+            if (n > 0) {
                 JCExpression e = tree.args.get(0);
                 if (e instanceof JmlMethodInvocation && ((JmlMethodInvocation)e).kind == MiscExpressions.typelcKind) {
                     ((JmlMethodInvocation)e).javaType = true;
                 }
-            }
-            ListBuffer<Type> argtypesBuf = new ListBuffer<>();
-            attr.attribArgs(tree.args, localEnv, argtypesBuf);
-            Type t = attr.syms.errType;
-            if (n > 0) {
                 Type tt = tree.args.get(0).type;
                 if (tt == attr.jmltypes.TYPE || tt == attr.syms.classType) t = attr.syms.classType; 
             }
