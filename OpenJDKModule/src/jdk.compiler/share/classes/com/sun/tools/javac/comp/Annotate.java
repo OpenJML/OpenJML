@@ -174,7 +174,7 @@ public class Annotate {
 //        			var s = com.sun.tools.javac.comp.JmlAttr.instance(context).modToAnnotationSymbol.get(janno.kind);
 //        		}
         		var pre = log.useSource(((org.jmlspecs.openjml.JmlTree.JmlAnnotation)anno).sourcefile);
-        		log.error(anno.pos, "jml.message", "ANNO ATTR IS NULL  " + anno );
+        		log.error(anno.pos, "jml.message", "ANNO ATTR IS NULL  " + anno + " " + anno.hashCode());
         		log.useSource(pre);
         	}
             Assert.checkNonNull(anno.attribute);

@@ -233,7 +233,9 @@ public class JmlSpecs {
     final protected Utils utils;
     
     /** The map giving the accumulated specifications for a given type */
-    final protected Map<TypeSymbol,TypeSpecs> specsmap = new HashMap<>();
+    final protected Map<TypeSymbol,TypeSpecs> specsTypes = new HashMap<>();
+    final protected Map<MethodSymbol,MethodSpecs> specsMethods = new HashMap<>();
+    final protected Map<VarSymbol,FieldSpecs> specsFields = new HashMap<>();
     
     /** The specifications path, which is a sequence of directories in which to
      * find specification files; this is created by initializeSpecsPath().
@@ -837,45 +839,45 @@ public class JmlSpecs {
  
     /////////////////////////////////////////////////////////////////////////
     
-    /** A debugging method that prints the content of the specs database */
+//    /** A debugging method that prints the content of the specs database */
     public void printDatabase() {
-        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
-        try {
-            for (Map.Entry<TypeSymbol,TypeSpecs> e : specsmap.entrySet()) {
-                String n = e.getKey().flatName().toString();
-                JavaFileObject f = e.getValue().file;
-                noticeWriter.println(n + " " + (f==null?"<NOFILE>":f.getName()));
-                ListBuffer<JmlTree.JmlTypeClause> clauses = e.getValue().clauses;
-                noticeWriter.println("  " + clauses.size() + " CLAUSES");
-                for (JmlTree.JmlTypeClause j: clauses) {
-                    noticeWriter.println("  " + JmlPretty.write(j));
-                }
-                noticeWriter.println("  " + e.getValue().methods.size() + " METHODS");
-                for (MethodSymbol m: e.getValue().methods.keySet()) {
-                    MethodSpecs sp = getSpecs(m);
-                    noticeWriter.println("  " + JmlPretty.write(sp.mods));
-                    noticeWriter.println(" " + m.enclClass().toString() + " " + m.flatName());
-                    noticeWriter.print(JmlPretty.write(sp.cases));
-                    //log.noticeWriter.println(sp.toString("     "));
-                }
-                noticeWriter.println("  " + e.getValue().fields.size() + " FIELDS");
-                for (VarSymbol m: e.getValue().fields.keySet()) {
-                    FieldSpecs sp = getSpecs(m);
-                    noticeWriter.print("  " + JmlPretty.write(sp.mods));
-                    noticeWriter.println(" " + m.enclClass().toString() + " " + m.flatName());
-                    for (JmlTypeClause t: sp.list) {
-                        noticeWriter.print(JmlPretty.write(t));
-                        //noticeWriter.println(sp.toString("     "));
-                    }
-                }
-            }
-            noticeWriter.println("MOCK FILES");
-            for (String s: mockFiles.keySet()) {
-                noticeWriter.println(s + " :: " + mockFiles.get(s));
-            }
-        } catch (Exception e) {
-            noticeWriter.println("Exception occurred in printing the database: " + e);
-        }
+//        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
+//        try {
+//            for (Map.Entry<TypeSymbol,TypeSpecs> e : specsmap.entrySet()) {
+//                String n = e.getKey().flatName().toString();
+//                JavaFileObject f = e.getValue().file;
+//                noticeWriter.println(n + " " + (f==null?"<NOFILE>":f.getName()));
+//                ListBuffer<JmlTree.JmlTypeClause> clauses = e.getValue().clauses;
+//                noticeWriter.println("  " + clauses.size() + " CLAUSES");
+//                for (JmlTree.JmlTypeClause j: clauses) {
+//                    noticeWriter.println("  " + JmlPretty.write(j));
+//                }
+//                noticeWriter.println("  " + e.getValue().methods.size() + " METHODS");
+//                for (MethodSymbol m: e.getValue().methods.keySet()) {
+//                    MethodSpecs sp = getSpecs(m);
+//                    noticeWriter.println("  " + JmlPretty.write(sp.mods));
+//                    noticeWriter.println(" " + m.enclClass().toString() + " " + m.flatName());
+//                    noticeWriter.print(JmlPretty.write(sp.cases));
+//                    //log.noticeWriter.println(sp.toString("     "));
+//                }
+//                noticeWriter.println("  " + e.getValue().fields.size() + " FIELDS");
+//                for (VarSymbol m: e.getValue().fields.keySet()) {
+//                    FieldSpecs sp = getSpecs(m);
+//                    noticeWriter.print("  " + JmlPretty.write(sp.mods));
+//                    noticeWriter.println(" " + m.enclClass().toString() + " " + m.flatName());
+//                    for (JmlTypeClause t: sp.list) {
+//                        noticeWriter.print(JmlPretty.write(t));
+//                        //noticeWriter.println(sp.toString("     "));
+//                    }
+//                }
+//            }
+//            noticeWriter.println("MOCK FILES");
+//            for (String s: mockFiles.keySet()) {
+//                noticeWriter.println(s + " :: " + mockFiles.get(s));
+//            }
+//        } catch (Exception e) {
+//            noticeWriter.println("Exception occurred in printing the database: " + e);
+//        }
     }
     
     
@@ -884,16 +886,16 @@ public class JmlSpecs {
      */
     //@ nullable 
     public TypeSpecs get(ClassSymbol type) {
-        return specsmap.get(type);
+        return specsTypes.get(type);
     }
     
     public TypeSpecs getLoadedSpecs(ClassSymbol type) {
     	if (status(type).less(SpecsStatus.SPECS_LOADED)) JmlEnter.instance(context).requestSpecs(type);
-    	var ts = specsmap.get(type);
+    	var ts = specsTypes.get(type);
     	if (ts == null) {
     		ts = new TypeSpecs(type, null, (JmlModifiers)JmlTree.Maker.instance(context).Modifiers(type.flags()), new ListBuffer<>());
             utils.note(true,"      inserting default class specs for " + type.flatname);
-    		specsmap.put(type,  ts);
+    		specsTypes.put(type,  ts);
     	}
     	return ts;
     }
@@ -937,7 +939,7 @@ public class JmlSpecs {
      * @param type the type whose specs are to be deleted
      */
     public void deleteSpecs(ClassSymbol type) {
-        specsmap.put(type, null);
+        specsTypes.put(type, null);
     }
     
     
@@ -948,13 +950,13 @@ public class JmlSpecs {
      */
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
         spec.csymbol = type;
-        specsmap.put(type,spec);
+        specsTypes.put(type,spec);
         specsStatus.put(type, SpecsStatus.SPECS_LOADED);
         if (utils.verbose()) utils.note("      Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
     public void removeSpecs(ClassSymbol type) {
-        specsmap.remove(type);
+        specsTypes.remove(type);
     }
     
     /** Adds the specs for a given method to the database, overwriting anything
@@ -964,10 +966,11 @@ public class JmlSpecs {
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec, Env<AttrContext> specsEnv) {
     	spec.msym = m;
-    	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) log.error("jml.internal", "Specs not yet loaded for " + m.owner + " on attempting to put " + m);
-        if (utils.verbose()) utils.note("            Saving method specs for " + m.owner + "." + m);
+//    	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) log.error("jml.internal", "Specs not yet loaded for " + m.owner + " on attempting to put " + m);
+        if (utils.verbose()) utils.note("            Saving method specs for " + m.owner + "." + m + " " + m.hashCode());
         spec.setEnv(specsEnv);
-        get((ClassSymbol)m.owner).methods.put(m,spec);
+        specsMethods.put(m,spec);
+        //get((ClassSymbol)m.owner).methods.put(m,spec);
     }
     
     /** Adds the specs for a given initialization block to the database, overwriting anything
@@ -979,7 +982,7 @@ public class JmlSpecs {
      */
     public void putSpecs(ClassSymbol csym, JCTree.JCBlock m, MethodSpecs spec) {
     	if (utils.verbose()) utils.note("            Saving initializer block specs " );
-        specsmap.get(csym).blocks.put(m,spec);
+        specsTypes.get(csym).blocks.put(m,spec);
     }
     
     /** Adds the specs for a given field to the database, overwriting anything
@@ -989,8 +992,9 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
-    	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) log.error("jml.internal", "Specs not yet loaded for " + m.owner + " on attempting to put " + m);
-        getLoadedSpecs((ClassSymbol)m.owner).fields.put(m,spec);
+//    	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) log.error("jml.internal", "Specs not yet loaded for " + m.owner + " on attempting to put " + m);
+//        getLoadedSpecs((ClassSymbol)m.owner).fields.put(m,spec);
+		specsFields.put(m, spec);
         setStatus(m, SpecsStatus.SPECS_LOADED);
     	if (utils.verbose()) utils.note("            Saving field specs for " + m.owner + " " + m + " " + status(m));
     }
@@ -1002,11 +1006,12 @@ public class JmlSpecs {
      */
     //@ non_null
     public MethodSpecs getSpecs(MethodSymbol m) {
-    	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
+//    	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
     	if (status(m).less(SpecsStatus.SPECS_ATTR)) attr.attrSpecs(m);
     	//if (status(m) == SpecsStatus.ERROR) throw new PropagatedException(new RuntimeException("Failure in type-checking " + m.owner + "." + m));
-        TypeSpecs t = specsmap.get(m.owner);
-        return t == null ? null : t.methods.get(m);
+//        TypeSpecs t = specsmap.get(m.owner);
+//        return t == null ? null : t.methods.get(m);
+        return specsMethods.get(m);
     }
     
     /** Returns loaded specs: modifiers are present; specification cases may be present, 
@@ -1023,10 +1028,11 @@ public class JmlSpecs {
      */
     //@ non_null
     public MethodSpecs getLoadedSpecs(MethodSymbol m) {
-    	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
+ //   	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
     	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) JmlEnter.instance(context).requestSpecs((ClassSymbol)m.owner);
-        TypeSpecs t = specsmap.get(m.owner);
-        var ms = t == null ? null : t.methods.get(m);
+//        TypeSpecs t = specsmap.get(m.owner);
+//        var ms = t == null ? null : t.methods.get(m);
+    	var ms = specsMethods.get(m);
         if (ms == null && utils.verbose()) System.out.println("Null specs returned from getLoadedSpecs for " + m.owner + " " + m);
         return ms;
     }
@@ -1034,8 +1040,9 @@ public class JmlSpecs {
     /** Returns precisely what is in the current specs data base -- may be null */
     //@ nullable
     public MethodSpecs get(MethodSymbol m) {
-        TypeSpecs t = specsmap.get(m.owner);
-        return t == null ? null : t.methods.get(m);
+//        TypeSpecs t = specsmap.get(m.owner);
+//        return t == null ? null : t.methods.get(m);
+    	return specsMethods.get(m);
     }
     
     /** Retrieves attributed, desugared specs */
@@ -1306,18 +1313,21 @@ public class JmlSpecs {
     public FieldSpecs getSpecs(VarSymbol m) {
     	if (!(m.owner instanceof ClassSymbol)) return null;
         ClassSymbol c = (ClassSymbol)m.owner;
-    	if (c == null) System.out.println("Unexpected difference - field " + m + " " + m.owner + " " + m.enclClass());
-    	if (c == null) Utils.dumpStack();
+    	getLoadedSpecs(c);
+//    	if (c == null) System.out.println("Unexpected difference - field " + m + " " + m.owner + " " + m.enclClass());
+//    	if (c == null) Utils.dumpStack();
     	if (status(m).less(SpecsStatus.SPECS_ATTR)) attr.attrSpecs(m);
-        TypeSpecs t = specsmap.get(c);
-        return t == null ? null : t.fields.get(m);
+//        TypeSpecs t = specsmap.get(c);
+//        return t == null ? null : t.fields.get(m);
+    	return specsFields.get(m);
     }
     
     /** Returns precisely what is in the current specs data base -- may be null */
     //@ nullable
     public FieldSpecs get(VarSymbol m) {
-        TypeSpecs t = specsmap.get(m.owner);
-        return t == null ? null : t.fields.get(m);
+//        TypeSpecs t = specsmap.get(m.owner);
+//        return t == null ? null : t.fields.get(m);
+    	return specsFields.get(m);
     }
     
    /** Retrieves the specs for a given field
@@ -1331,7 +1341,7 @@ public class JmlSpecs {
     	if (c == null) System.out.println("Unexpected difference - field " + m + " " + m.owner + " " + m.enclClass());
     	if (c == null) Utils.dumpStack();
         TypeSpecs t = getLoadedSpecs(c);
-        return t == null ? null : t.fields.get(m);
+    	return specsFields.get(m);
     }
     
     public JmlModifiers getSpecsModifiers(VarSymbol vsym) {
@@ -1401,14 +1411,14 @@ public class JmlSpecs {
         // The following maps are part of the TypeSpecs so that everything associated with a given
         // type can be disposed of at once (by releasing references to the TypeSpecs instance)
 
-        /** A map from methods of the class to the specifications for the method. */
-        /*@ non_null */
-        public Map<MethodSymbol,MethodSpecs> methods = new HashMap<MethodSymbol,MethodSpecs>();
-
-        /** A map from fields of the class to the specifications for the field. */
-        /*@ non_null */
-        public Map<VarSymbol,FieldSpecs> fields = new HashMap<VarSymbol,FieldSpecs>();
-        
+//        /** A map from methods of the class to the specifications for the method. */
+//        /*@ non_null */
+//        public Map<MethodSymbol,MethodSpecs> methods = new HashMap<MethodSymbol,MethodSpecs>();
+//
+//        /** A map from fields of the class to the specifications for the field. */
+//        /*@ non_null */
+//        public Map<VarSymbol,FieldSpecs> fields = new HashMap<VarSymbol,FieldSpecs>();
+//        
         /** A map from initializer blocks of the class to the specifications for the initializers. */
         /*@ non_null */
         public Map<JCTree.JCBlock,MethodSpecs> blocks = new HashMap<JCTree.JCBlock,MethodSpecs>();
@@ -1639,9 +1649,12 @@ public class JmlSpecs {
     }
     
     public boolean isNonNull(MethodSymbol sym) {
-    	var rt = sym.getReturnType();
-    	if (!rt.isReference()) return false;
-    	return isNonNull(rt,sym.enclClass());
+    	// For some reason, type annotations are not part of the method return type,
+    	// but are in the MethodSymbol's annotations
+    	if (!sym.getReturnType().isReference()) return false;
+    	if (attr.hasAnnotation2(sym, Modifiers.NULLABLE)) return false;
+		if (attr.hasAnnotation2(sym, Modifiers.NON_NULL)) return true;
+    	return isNonNull(sym.enclClass());
     }
     
     public boolean isNonNull(JmlVariableDecl decl) {

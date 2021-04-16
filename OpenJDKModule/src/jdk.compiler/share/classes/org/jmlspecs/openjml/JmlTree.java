@@ -4043,6 +4043,11 @@ public class JmlTree {
             kind = null;
         }
         
+        public JmlAnnotation(Tag tag, ModifierKind kind, JCTree annotationType) {
+            super(tag,annotationType,List.<JCExpression>nil());
+            this.kind = kind;
+        }
+        
         /** The origin of the annotation, which may not be the same as the item being annotated;
          * if null, the annotation is inserted to make a default explicit.
          */

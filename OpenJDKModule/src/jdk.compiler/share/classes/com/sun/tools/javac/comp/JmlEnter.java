@@ -26,6 +26,7 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.ext.TypeInitializerClauseExtension;
 
@@ -734,60 +735,100 @@ public class JmlEnter extends Enter {
     
     boolean print = false;
     
+    public void addAttribute(JCAnnotation a, Type t, Env<AttrContext> env) {
+    	a.attribute = annotate.attributeTypeAnnotation(a, t, env);
+    }
+    
+    public void addAttribute(List<JCAnnotation> alist, Type t, Env<AttrContext> env) {
+    	for (var a: alist) {
+    		a.attribute = annotate.attributeTypeAnnotation(a, t, env);
+    	}
+    }
+    
+    public void addAttribute(JCExpression at, Type t, Env<AttrContext> env) {
+    	if (at instanceof JCAnnotatedType) {
+    		addAttribute(((JCAnnotatedType)at).annotations, t, env);
+    		addAttribute(((JCAnnotatedType)at).underlyingType, t, env);
+    	}
+    }
+    
     public MethodSymbol findMethod(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> env) {
     	//print = mdecl.name.toString().equals("equals");
-    	boolean hasTypeParams = csym.getTypeParameters().length() != 0 || mdecl.typarams.length() != 0;
+    	boolean hasTypeParams =  mdecl.typarams.length() != 0;
     	boolean useStringComparison = false;
-    	if (print) System.out.println("SEEKING " + csym + " " + mdecl.name + " " + hasTypeParams + " " + csym.members());
-    	{
-    		try {
-    			Attr attr = Attr.instance(context);
-    			// FIXME mdecl.mods.annotations?
-    			if (mdecl.typarams != null) attr.attribTypeVariables(mdecl.typarams, env, true);
-    			if (mdecl.recvparam != null) attr.attribType(mdecl.recvparam, env);
-    			for (var p: mdecl.params) {
-    				if (p.vartype instanceof JCAnnotatedType) {
-    					var vt = ((JCAnnotatedType)p.vartype);
-    					for (var a: vt.annotations) {
-    						a.attribute = annotate.attributeTypeAnnotation(a, syms.annotationType, env);
-    					}
-    				}
-    				p.type = p.vartype.type = attr.attribType(p.vartype, env);
-    			}
-    			if (mdecl.restype != null) attr.attribType(mdecl.restype, env);
-    			if (mdecl.thrown != null) attr.attribTypes(mdecl.thrown, env);
-    		} catch (Exception e) {
-    			//utils.warning(mdecl, "jml.message", "Failed to attribute types");
-    			//e.printStackTrace(System.out);
-    			useStringComparison = true;
-    		} finally {
-    			annotate.flush();
-    		}
+    	if (print) System.out.println("SEEKING " + csym + " " + mdecl.name + " " + mdecl.sym + " " + mdecl.type + " " + hasTypeParams + " " + csym.members());
+    	if (print && mdecl.sym != null) System.out.println("       SYMTYPE " + mdecl.sym.type);
+    	for (var p: mdecl.params) {
+    		addAttribute(p.vartype, syms.annotationType, env);
     	}
+    	if (mdecl.restype != null) {
+    		addAttribute(mdecl.restype, syms.annotationType, env);
+    	}
+//    	try {
+//    		annotate.flush();
+//    	} catch (Exception ee) {
+//    		System.out.println("EXCEPTION-FLUSH " + ee);
+//    		ee.printStackTrace(System.out);
+//    	}
+//    			if (mdecl.name.toString().equals("getAvailableLocales")) {
+//    				var rt = mdecl.restype;
+//    				System.out.println("RESTYPE " + rt.getClass() + rt.type);
+//    				if (rt instanceof JCAnnotatedType) {
+//    					var rat = (JCAnnotatedType)rt;
+//    					System.out.println("RESTYPE ANN " + rat.annotations.hashCode() + " " + rat.annotations);
+//    					System.out.println("RESTYPE ANN " + ((JCAnnotatedType)rt).underlyingType);
+//    					System.out.println("RESTYPE ANN " + ((JCAnnotatedType)rt).annotations);
+//    					for (var a: ((JCAnnotatedType)rt).annotations) {
+//    						JmlAnnotation aa = (JmlAnnotation)a;
+//        					System.out.println("RESTYPE AA " + aa + " " + aa.kind + " " + aa.hashCode() + " " + aa.attribute);
+//        					attr.attribAnnotationTypes(rat.annotations, env);
+//        					System.out.println("RESTYPE AA " + aa + " " + aa.kind + " " + aa.hashCode() + " " + aa.attribute);
+//    					}
+//    				}
+//    			}
+//    			if (mdecl.thrown != null) attr.attribTypes(mdecl.thrown, env);
+//    		} catch (Exception e) {
+//    			utils.warning(mdecl, "jml.message", "Failed to attribute types");
+//    			e.printStackTrace(System.out);
+//    			useStringComparison = true;
+//    		} finally {
+//    			try {
+//    				annotate.flush();
+//    			} catch (Exception ee) {
+//    				System.out.println("UNEXPECTED EXCEPTION - annotate.flush");
+//    				ee.printStackTrace(System.out);
+//    			}
+//    		}
+//    	}
 		Symbol.MethodSymbol msym = null;
 		MethodSymbol first = null;
 		int count = 0;
 		var iter = csym.members().getSymbolsByName(mdecl.name, s->(s instanceof Symbol.MethodSymbol)).iterator();
     	x: while (iter.hasNext()) {
     		var m = (MethodSymbol)iter.next();
-    		if (print) System.out.println("CONSIDERING " + m + " " + m.params.length() + " " + mdecl.params.length() + " " + m.getTypeParameters().length() + " " + mdecl.getTypeParameters().length());
+    		if (print) System.out.println("CONSIDERING " + m + " " + m.type + " " + m.params.length() + " " + mdecl.params.length() + " " + m.getTypeParameters().length() + " " + mdecl.getTypeParameters().length());
     		if (m.params.length() != mdecl.params.length()) continue;
     		if (m.getTypeParameters().length() != mdecl.getTypeParameters().length()) continue;
     		if (print) System.out.println("CONSIDERING-A " + m);
 			first = m;
 			count++;
-    		for (int i=0; i<m.params.length(); i++) {
-    			if (hasTypeParams) {
-    				// FIXME - When there are type parameters, the type resolution above is not working
-    				// so we fall back to string comparison -- a hack that only partially works
-    				// Probably has to do with getting the correct env
-    				//if (Utils.debug()) System.out.println("TYPES " + m.params.get(i).type.toString() + " " + mdecl.params.get(i).vartype.toString());
-    				if (!matchAsStrings(m.params.get(i).type, mdecl.params.get(i).vartype)) continue x;
-    			} else {
-    				if (print) System.out.println("COMPARING-T " + m.params.get(i).type + " " + mdecl.params.get(i).type + " " + types.isSameType(m.params.get(i).type,mdecl.params.get(i).type));
-    				if (!types.isSameType(m.params.get(i).type,mdecl.params.get(i).type)) continue x;
-    			}
-    		}
+			if (hasTypeParams) {
+				if (print) System.out.println("COMPARING-TP " + m.type + " " + mdecl.sym.type + " " + types.isSameType(m.type,mdecl.sym.type));
+//				var atypes = m.type.getTypeArguments();
+//				var btypes = mdecl.sym.type.getTypeArguments();
+//				var ntype = types.subst(m.type, atypes, btypes);
+				if (!types.isSameType(m.type, mdecl.sym.type)) continue x;
+//				for (int i=0; i<m.params.length(); i++) {
+//					// FIXME - When there are type parameters, the type resolution above is not working
+//					// so we fall back to string comparison -- a hack that only partially works
+//					// Probably has to do with getting the correct env
+//					//if (Utils.debug()) System.out.println("TYPES " + m.params.get(i).type.toString() + " " + mdecl.params.get(i).vartype.toString());
+//					if (!matchAsStrings(m.params.get(i).type, mdecl.params.get(i).vartype)) continue x;
+//				}
+			} else {
+				if (print) System.out.println("COMPARING-T " + m.type + " " + mdecl.sym.type + " " + types.isSameType(m.type,mdecl.sym.type));
+				if (!types.isSameType(m.type,mdecl.sym.type)) continue x;
+			}
     		if (msym != null) {
     			// It turns out that there sometimes are two method symbols with the same signature.
     			// cf. AbstractStringBuilder, StringBuffer
@@ -840,7 +881,15 @@ public class JmlEnter extends Enter {
 			// Attempt recovery by removing the offending annotation
 			utils.removeAnnotation(mdecl.mods,  Modifiers.MODEL);
 		}
-		Symbol.MethodSymbol msym = findMethod(csym, mdecl, specsEnv);
+		WriteableScope enclScope = enterScope(specsEnv);
+		Symbol.MethodSymbol msym = mdecl.sym; // Nonnull if specs and java decls are the same file
+		if (mdecl.sym == null) {
+			var saved = JmlMemberEnter.instance(context).enterJML;
+			JmlMemberEnter.instance(context).enterJML = false;
+			makeAndEnterMethodSym(mdecl, specsEnv);
+			JmlMemberEnter.instance(context).enterJML = saved;
+			msym = findMethod(csym, mdecl, specsEnv);
+		}
     	if (msym == null) {
 			// No corresponding Java method
     		if (!isJML) {
@@ -857,12 +906,14 @@ public class JmlEnter extends Enter {
 				JmlTreeUtils.instance(context).addAnnotation(mdecl.mods, mdecl.mods.pos, mdecl.mods.pos, Modifiers.MODEL, null);
 			}
 			// Enter the method in the parent class
-			msym = makeAndEnterMethodSym(mdecl, specsEnv); // Also calls putSpecs
-			for (int i=0; i<mdecl.params.length(); ++i) { // SHould this be within the above call
-				VarSymbol s = msym.params.get(i);
-				mdecl.params.get(i).sym = s;
-				mdecl.params.get(i).type = s.type;
-			}
+			msym = mdecl.sym; // makeAndEnterMethodSym(mdecl, specsEnv); // Also calls putSpecs
+			enclScope.enter(msym);
+			var msp = JmlSpecs.instance(context).get(msym);
+//			for (int i=0; i<mdecl.params.length(); ++i) { // SHould this be within the above call
+//				VarSymbol s = msym.params.get(i);
+//				mdecl.params.get(i).sym = s;
+//				mdecl.params.get(i).type = s.type;
+//			}
 			
 			if (!isModel && mdecl.body != null) {
 				utils.error(mdecl.body, "jml.message", "The specification of the method " + csym + "." + msym + " must not have a body");
@@ -919,35 +970,43 @@ public class JmlEnter extends Enter {
     		}
      		{
     			mdecl.specsDecl = javaMDecl;
-    			boolean b = JmlCheck.instance(context).noDuplicateWarn;
-    			JmlCheck.instance(context).noDuplicateWarn = true;
-    			if (mdecl != javaMDecl) makeAndEnterMethodSym(mdecl, specsEnv);
-    			annotate.flush();
-    			JmlCheck.instance(context).noDuplicateWarn = b;
+    			//boolean b = JmlCheck.instance(context).noDuplicateWarn;
+    			//JmlCheck.instance(context).noDuplicateWarn = true;
+    			//if (mdecl != javaMDecl) makeAndEnterMethodSym(mdecl, specsEnv);
+    			//annotate.flush();
+    			//JmlCheck.instance(context).noDuplicateWarn = b;
     			if (utils.verbose()) {
     				if (mdecl != javaMDecl) utils.note("Matched method: " + msym + " (owner: " + msym.owner +")");
     				else utils.note("Matched method: (self) " + msym + " (owner: " + msym.owner +")");
     			}
-    			mdecl.sym = msym;
-    			specsEnv = MemberEnter.instance(context).methodEnv(mdecl, specsEnv);
-    			ListBuffer<Type> argtypes = new ListBuffer<>();
-    			for (int i=0; i<mdecl.params.length(); ++i) {  // FIXME - I think some or all of this can be simplified
-    				VarSymbol s = msym.params.get(i);
-    				s.type = mdecl.params.get(i).type;
-    				argtypes.add(s.type);
-    				mdecl.params.get(i).sym = s;
-    				specsEnv.info.scope().enter(s);
+//    			var specs = JmlSpecs.instance(context);
+//    			var mspecs = specs.get(mdecl.sym);
+//         		specs.putSpecs(msym, mspecs, mspecs.specsEnv);
+    			if (javaMDecl == null) {
+    				enclScope.remove(msym);
+    				enclScope.enter(mdecl.sym);
     			}
+//    			specsEnv = MemberEnter.instance(context).methodEnv(mdecl, specsEnv);
+//    			ListBuffer<Type> argtypes = new ListBuffer<>();
+//    			for (int i=0; i<mdecl.params.length(); ++i) {  // FIXME - I think some or all of this can be simplified
+//    				VarSymbol s = msym.params.get(i);
+//    				s.type = mdecl.params.get(i).type;
+//    				if (s.type == null) {
+//    					System.out.println("NOTYPE " + msym + " " + i + " " + s + " " + mdecl.params.get(i).type + " " + msym.params.get(i) + " " + msym.params.get(i).type);
+//    				} else {
+//    					argtypes.add(s.type);
+//    				}
+//    				mdecl.params.get(i).sym = s;
+//    				specsEnv.info.scope().enter(s);
+//    			}
     			if (mdecl != javaMDecl) {
-    				var q = msym.type;
-        			while (q instanceof Type.ForAll) q = ((Type.ForAll)q).qtype; 
-        			if (q instanceof Type.MethodType) ((Type.MethodType)q).argtypes = argtypes.toList();
-        			// FIXME - what about the return type, or exception types?
+//    				var q = msym.type;
+//        			while (q instanceof Type.ForAll) q = ((Type.ForAll)q).qtype; 
+//        			if (q instanceof Type.MethodType) ((Type.MethodType)q).argtypes = argtypes.toList();
+//        			// FIXME - what about the return type, or exception types?
         			checkMethodMatch(javaMDecl,msym,mdecl,csym);
     			}
     		}
-			var mspecs = new JmlSpecs.MethodSpecs(mdecl);
-			JmlSpecs.instance(context).putSpecs(msym, mspecs, specsEnv);
     	}
     }
     
