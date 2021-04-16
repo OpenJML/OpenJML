@@ -975,6 +975,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                     print(s);
             } else {
                 super.visitAnnotation(tree);
+                if (tree instanceof JmlAnnotation) print("[" + ((JmlAnnotation)tree).kind + "]");
             }
         } catch (IOException e) { perr(tree,e); }
     }

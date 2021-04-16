@@ -209,7 +209,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //    }
 //
 //        
-//    public boolean enterJML = false;
+//    
+    public boolean enterJML = true; // Set to false to just create the sym and type, but not enter or check duplicates
     
     /**  FIXME: still true, useful?:Returns true if there is a duplicate, whether or not it was warned about */
     protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, WriteableScope enclScope, Env<AttrContext> localEnv) {
@@ -235,12 +236,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            ((JmlCheck)chk).noDuplicateWarn = was;
 //            return false;
 //        }
-    	var st = specs.status(m.owner);
-    	if (st != JmlSpecs.SpecsStatus.NOT_LOADED) {
-    		// The check above is to avoid calling putSpecs during the processing of source files
-    		// FIXME - it presumes that source files are completely processed before aspec files are queued
+//    	var st = specs.status(m.owner);
+//    	if (st != JmlSpecs.SpecsStatus.NOT_LOADED || !enterJML) {
+//    		// The check above is to avoid calling putSpecs during the processing of source files
+//    		// FIXME - it presumes that source files are completely processed before aspec files are queued
     		specs.putSpecs(m, new MethodSpecs((JmlMethodDecl)tree), localEnv);
-    	}
+//    	}
+    	if (!enterJML) return true;
     	boolean b = super.visitMethodDefHelper(tree, m, enclScope, localEnv);
         return b;
     }

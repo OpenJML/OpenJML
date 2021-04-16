@@ -638,7 +638,7 @@ public class JmlParser extends JavacParser {
                     accept(SEMI);
                     return stats.toList();
                 }
-            } else if (((JmlToken)token).jmlkind == ENDJMLCOMMENT) {
+            } else if (jmlTokenClauseKind(token) == Operators.endjmlcommentKind) {
                 if (S.jml()) throw new AssertionError("Thought jml was always false at this point");
                 S.setJml(false); // TOOD _ already false?
                 nextToken();
@@ -684,7 +684,6 @@ public class JmlParser extends JavacParser {
         return parseLoopWithSpecs(firstSpec, false);
     }
     public JCStatement parseLoopWithSpecs(JmlStatementLoop firstSpec, boolean block) {
-    	System.out.println("PARSELOOPWITHSPECS " + firstSpec);
         JCStatement stt = block ? blockStatement().head : parseStatement();
         if (stt instanceof IJmlLoop) {
             IJmlLoop loop = (IJmlLoop)stt;

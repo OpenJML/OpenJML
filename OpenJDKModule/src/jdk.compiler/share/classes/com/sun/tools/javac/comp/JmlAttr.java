@@ -2771,6 +2771,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         long prevVisibility = jmlVisibility;
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         try {
+        	for (var v: tree.list) {
+        		attributeGroup(v);
+        	}
             inVarDecl = tree.parentVar;
             currentClauseType = tree.clauseType;
             pureEnvironment = true;
@@ -4027,8 +4030,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		}
     		return true;
     	}
-		utils.error(lhs, "jml.internal", "Unexpected kind of LHS in a set statement: " + lhs + " (" + lhs.getClass() + ")");
-		return true;
+		utils.error(lhs, "jml.message", "Unexpected kind of LHS in a set statement: " + lhs);
+		//utils.error(lhs, "jml.message", "Unexpected kind of LHS in a set statement: " + lhs + " (" + lhs.getClass() + ")");
+		return false;
     }
     
     /** This handles JML statements such as set and debug */
@@ -5616,7 +5620,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	if (a.annotationType.type != null) return true;
     	if (a.type == null) {
     		a.type = a.annotationType.type;
-    		System.out.println("NULL a.type for " + a);
+    		//System.out.println("NULL a.type for " + a);
     	}
     	String s = a.annotationType.toString();
     	if (a.type == null) for (var mod: modToAnnotationSymbol.entrySet()) {
@@ -5807,9 +5811,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return symbol.attribute(modToAnnotationSymbol.get(t)) != null;
     }
     
-    public boolean hasAnnotation2(VarSymbol symbol, ModifierKind t) {
+    public boolean hasAnnotation2(Symbol symbol, ModifierKind t) {
     	for (var a: symbol.getAnnotationMirrors()) {
-    		if (a.toString().endsWith(t.fullAnnotation)) return true; 
+    		if (a.toString().endsWith(t.fullAnnotation)) return true; // FIXME - improve this
     	}
         return false;
     }
@@ -7345,10 +7349,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     public void attrSpecs(VarSymbol vsym) {
-		if (utils.verbose()) utils.note("Attributing specs for " + vsym.owner + " " + vsym);
+		if (utils.verbose()) utils.note("Attributing specs for " + vsym.owner + " " + vsym );
     	var savedEnv = this.env;
 		TypeSpecs cspecs = specs.getLoadedSpecs((ClassSymbol)vsym.enclClass());
 		FieldSpecs fspecs = specs.getLoadedSpecs(vsym);
+		if (utils.verbose()) utils.note("Getting specs for " + vsym.owner + " " + vsym + " " + (fspecs != null));
 		ResultInfo ri = new ResultInfo(KindSelector.VAL_TYP, vsym.type);
 		var stat = JmlSpecs.SpecsStatus.SPECS_ATTR;
 		JmlSpecs.instance(context).setStatus(vsym, stat);

@@ -4236,6 +4236,7 @@ public class JavacParser implements Parser {
                 } else {
                     // method returns types are un-annotated types
                     type = unannotatedType(false);
+
                 }
                 if ((token.kind == LPAREN && !isInterface ||
                         isRecord && token.kind == LBRACE) && type.hasTag(IDENT)) {

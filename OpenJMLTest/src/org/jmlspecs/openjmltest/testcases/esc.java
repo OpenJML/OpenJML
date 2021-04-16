@@ -427,7 +427,7 @@ public class esc extends EscBase {
                 + "  //@ public normal_behavior  ensures true;\n" 
                 + "  public void m3() {\n" 
                 + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
-                + "    Integer k = new Integer(1);\n"
+                + "    Integer k = IntegervalueOf(1);\n"
                 + "    values.add(k);\n" 
                 + "  }\n"
 
@@ -479,36 +479,46 @@ public class esc extends EscBase {
                 + "    long[] a = { 1,2,3,4};\n" 
                 + "    for (long k: a) {\n"
                 + "      //@ set \\count = 6;\n" // Syntax error
-                + "    }\n" + "  }\n"
-
-                + "  public void v1a() {\n" + "    Integer[] a = { 1,2,3,4};\n" + "    for (Integer k: a) {\n"
-                + "    }\n" + "    //@ ghost org.jmlspecs.lang.JMLList i = \\values;\n" // Out
-                                                                                        // of
-                                                                                        // scope
+                + "    }\n"
                 + "  }\n"
 
-                + "  public void v2() {\n" + "    long[] a = { 1,2,3,4};\n"
-                + "    //@ ghost org.jmlspecs.lang.JMLList i = \\values;\n" // Out
-                                                                            // of
-                                                                            // scope
+                + "  public void v1a() {\n"
+                + "    Integer[] a = { 1,2,3,4};\n"
+                + "    for (Integer k: a) {\n"
+                + "    }\n"
+                + "    //@ ghost org.jmlspecs.lang.JMLList i = \\values;\n" // Out of scope
                 + "  }\n"
 
-                + "  public void v4() {\n" + "    Integer[] a = { 1,2,3,4};\n" + "    for (Integer k: a) {\n"
+                + "  public void v2() {\n"
+                + "    long[] a = { 1,2,3,4};\n"
+                + "    //@ ghost org.jmlspecs.lang.JMLList i = \\values;\n" // Out of scope
+                + "    }\n"
+
+                + "  public void v4() {\n"
+                + "    Integer[] a = { 1,2,3,4};\n"
+                + "    for (Integer k: a) {\n"
                 + "      //@ set \\values = null;\n" // Syntax error
-                + "    }\n" + "  }\n"
+                + "    }\n"
+                + "  }\n"
 
-                + "  public void v10a() {\n" + "    long[] a = { 1,2,3,4};\n" + "    for (long k: a) {\n"
+                + "  public void v10a() {\n" + "    long[] a = { 1,2,3,4};\n"
+                + "    for (long k: a) {\n"
                 + "      //@ ghost org.jmlspecs.lang.JMLList i = \\values;\n" // OK
                 + "    }\n" + "  }\n"
 
                 + "}"
 
-                , "/tt/TestJava.java:7: error: A \\count token is used outside the scope of a foreach loop", 23,
-                "/tt/TestJava.java:11: error: A \\count token is used outside the scope of a foreach loop", 23,
-                "/tt/TestJava.java:16: error: unexpected type\n  required: variable\n  found:    value", 15,
-                "/tt/TestJava.java:23: error: A \\values token is used outside the scope of a foreach loop", 45,
-                "/tt/TestJava.java:27: error: A \\values token is used outside the scope of a foreach loop", 45,
-                "/tt/TestJava.java:32: error: unexpected type\n  required: variable\n  found:    value", 15);
+                , "/tt/TestJava.java:7: error: A \\count token is used outside the scope of a foreach loop", 23
+                ,"/tt/TestJava.java:11: error: A \\count token is used outside the scope of a foreach loop", 23
+                ,"/tt/TestJava.java:16: error: unexpected type\n  required: variable\n  found:    value", 15
+                ,"/tt/TestJava.java:16: error: Unexpected kind of LHS in a set statement: \\count",15
+                ,"/tt/TestJava.java:16: error: The LHS in a set statement must be a ghost variable",15
+                ,"/tt/TestJava.java:23: error: A \\values token is used outside the scope of a foreach loop", 45
+                ,"/tt/TestJava.java:27: error: A \\values token is used outside the scope of a foreach loop", 45
+                ,"/tt/TestJava.java:32: error: unexpected type\n  required: variable\n  found:    value", 15
+                ,"/tt/TestJava.java:32: error: Unexpected kind of LHS in a set statement: \\values",15
+                ,"/tt/TestJava.java:32: error: The LHS in a set statement must be a ghost variable",15
+                );
     }
 
     @Test
@@ -1289,7 +1299,10 @@ public class esc extends EscBase {
     public void testAssignables2a() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava",
-                "package tt; \n" + "public class TestJava { \n" + "  public int k;\n" + "  public static int sk;\n"
+                "package tt; \n"
+                		+ "public class TestJava { \n"
+                		+ "  public int k;\n"
+                		+ "  public static int sk;\n"
 
                         + "  //@ modifies k,sk;\n" 
                         + "  public void m1() {\n" 
@@ -1309,7 +1322,8 @@ public class esc extends EscBase {
                         + "  public void m2() {\n" 
                         + "    //@ assume k == 0 && sk == 0;\n"
                         + "    c1(1);\n" 
-                        + "    //@ assert k == 0;\n" + "  }\n"
+                        + "    //@ assert k == 0;\n"
+                        + "  }\n"
 
                         + "  //@ modifies k,sk;\n" 
                         + "  public void m2a() {\n" 
@@ -1335,6 +1349,7 @@ public class esc extends EscBase {
                         + "  //@ requires a!=null && 0<=i && i<a.length;\n" 
                         + "  //@ modifies a[i];\n"
                         + "  public void c3(int i) {}\n" 
+                        
                         + "  //@ requires b!=null && 0<=i && i<b.length;\n"
                         + "  //@ modifies b[i];\n" 
                         + "  public void c4(int i) {}\n" 
@@ -2020,27 +2035,39 @@ public class esc extends EscBase {
 
     @Test
     public void testNonNull() {
-        helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
-                + "  //@ requires ii == 10;\n" + "  //@ ensures true;\n"
-                + "  public /*@ non_null */Object inst(int ii) { return null; }\n" + "  //@ requires ii == 10;\n"
-                + "  //@ ensures true;\n" + "  public @NonNull Object inst2(int ii) {  return null; }\n" + "}",
-                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method inst",
-                47, "/tt/TestJava.java:5: warning: Associated declaration", 14,
-                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method inst2",
-                43, "/tt/TestJava.java:8: warning: Associated declaration", 10);
+        helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
+        		+ "public class TestJava { \n"
+                + "  //@ requires ii == 10;\n"
+        		+ "  //@ ensures true;\n"
+                + "  public /*@ non_null */Object inst(int ii) { return null; }\n"
+                + "  //@ requires ii == 10;\n"
+                + "  //@ ensures true;\n"
+                + "  public @NonNull Object inst2(int ii) {  return null; }\n"
+                + "}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",25  // FIXME - should e identify the return statement?
+           //     , "/tt/TestJava.java:5: warning: Associated declaration", 14
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",19
+           //     , "/tt/TestJava.java:8: warning: Associated declaration", 10
+                );
     }
 
     @Test
     public void testNonNull2() {
         main.addOptions("-nonnullByDefault");
-        helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
-                + "  //@ requires ii == 10;\n" + "  //@ ensures true;\n"
-                + "  public                Object inst(int ii) { return null; }\n" + "  //@ requires ii == 10;\n"
-                + "  //@ ensures true;\n" + "  public          Object inst2(int ii) {  return null; }\n" + "}",
-                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method inst",
-                47, "/tt/TestJava.java:5: warning: Associated declaration", 32,
-                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method inst2",
-                43, "/tt/TestJava.java:8: warning: Associated declaration", 26);
+        helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
+                + "public class TestJava { \n"
+                + "  //@ requires ii == 10;\n"
+                + "  //@ ensures true;\n"
+                + "  public Object inst(int ii) { return null; }\n"
+                + "  //@ requires ii == 10;\n"
+                + "  //@ ensures true;\n"
+                + "  public Object inst2(int ii) { return null; }\n"
+                + "}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",10
+           //     , "/tt/TestJava.java:5: warning: Associated declaration", 32
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",10
+           //     , "/tt/TestJava.java:8: warning: Associated declaration", 26
+                );
     }
 
     @Test
@@ -3377,34 +3404,34 @@ public class esc extends EscBase {
                 + "  public int j = 1;\n"
                 + "  public static @Nullable TestJava t;\n" 
                 + "  public static void m(TestJava o) { \n"
-                + "    //@ assume o.j == 1; \n" 
+                + "    //@ assume o.j == 1; \n"    // ERROR
                 + "  }\n  " 
                 + "  public static void m1(TestJava o) { \n"
-                + "    //@ assert o.j == 1 ? true : true; \n" 
+                + "    //@ assert o.j == 1 ? true : true; \n"  // ERROR 
                 + "  }\n  " 
                 + "  public static void m2(TestJava o) { \n"
-                + "    //@ ghost int i = o.j; \n" 
+                + "    //@ ghost int i = o.j; \n"    // ERROR
                 + "  }\n  " 
                 + "  public static void m3(TestJava o) { \n"
-                + "    //@ ghost int i; debug i = o.j; \n" 
+                + "    //@ ghost int i; debug i = o.j; \n"  // ERROR
                 + "  }\n  " 
-                + "  //@ requires o.j == 1;\n"
+                + "  //@ requires o.j == 1;\n"              // ERROR
                 + "  public static void m4(@Nullable TestJava o) { \n" 
                 + "  }\n  "
-                + "  //@ ensures t.j == 1 ? true : true;\n" 
+                + "  //@ ensures t.j == 1 ? true : true;\n"   // ERROR
                 + "  public static void m5(TestJava o) { \n" 
                 + "  }\n  "
                 + "  public static void m6(TestJava o) { \n" 
-                + "    //@ ghost int i; set i = o.j; \n" 
+                + "    //@ ghost int i; set i = o.j; \n"   // ERROR
                 + "  }\n  " 
-                + "}",
+                + "}",  // FIXME - all of these should be PossiblylNullDereference
                 "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",
                 17,
                 "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1",
                 17,
                 "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m2",
                 24,
-                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m3",
+                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3",
                 33,
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m4",
                 19,
@@ -3412,7 +3439,7 @@ public class esc extends EscBase {
                 18,
                 "/tt/TestJava.java:22: warning: Associated method exit",
                 4,
-                "/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m6",
+                "/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m6",
                 31);
     }
 
@@ -3737,11 +3764,21 @@ public class esc extends EscBase {
 
     @Test
     public void testSignals2() {
-        helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  static public int i;\n"
-                + "  //@ requires i >= 0;\n" + "  //@ ensures i>0;\n" + "  //@ signals (Exception e) i == 0;\n" // OK
-                + "  public void m2() throws Exception {\n" + "    if (i==0) throw new Exception();\n" + "  }\n"
-                + "  //@ requires i >= 0;\n" + "  //@ ensures i>0;\n" + "  //@ signals (RuntimeException e) i == 1;\n" // FAILS
-                + "  public void m2a() throws Exception {\n" + "    if (i==0) throw new RuntimeException();\n" + "  }\n"
+        helpTCX("tt.TestJava", "package tt; \n"
+        		+ "public class TestJava { \n"
+        		+ "  static public int i;\n"
+                + "  //@ requires i >= 0;\n"
+        		+ "  //@ ensures i>0;\n"
+        		+ "  //@ signals (Exception e) i == 0;\n" // OK
+                + "  public void m2() throws Exception {\n"
+                + "    if (i==0) throw new Exception();\n"
+                + "  }\n"
+                + "  //@ requires i >= 0;\n"
+                + "  //@ ensures i>0;\n"
+                + "  //@ signals (RuntimeException e) i == 1;\n" // FAILS
+                + "  public void m2a() throws Exception {\n"
+                + "    if (i==0) throw new RuntimeException();\n"
+                + "  }\n"
                 + "}",
                 "/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2a",
                 15, "/tt/TestJava.java:12: warning: Associated declaration", 7);
@@ -4295,8 +4332,8 @@ public class esc extends EscBase {
                         + "      //@ assert (\\lbl I i) + \\lbl(J j) == 0; \n" 
                         + "  }\n" 
                         + "}"
-                        ,"/tt/TestJava.java:4: Expected a comma or right parenthesis here",38
-                        ,"/tt/TestJava.java:4: Incorrectly formed or terminated assert statement near here",38
+                        ,"/tt/TestJava.java:4: error: Expected a comma or right parenthesis here",38
+                        ,"/tt/TestJava.java:4: error: Incorrectly formed or terminated assert statement near here",38
                 );
     }
 
@@ -4339,7 +4376,7 @@ public class esc extends EscBase {
                         ,anyorder(seq(
                  "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
                 ,"/tt/TestJava.java:5: warning: Associated declaration",45
-                ,"/tt/TestJava.java:12: warning: Associated method exit",34
+                ,"/tt/TestJava.java:12: warning: Associated method exit",29
                 ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",18
                 ),seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",48
                 ,"/tt/TestJava.java:5: warning: Associated declaration",45
@@ -4590,6 +4627,7 @@ public class esc extends EscBase {
                         + "  //@ public normal_behavior \n"
                         + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <: \\type(Key); \n"
                         + "  public static void m(Key[] k) {\n"
+                        + "  //@   assert k != null; \n"
                         + "     Key[] kk = java.util.Arrays.copyOfRange(k,0,k.length);\n"
                         + "     //@ assert kk != null;\n"
                         + "     //@ assert \\nonnullelements(kk);\n"
@@ -4635,6 +4673,7 @@ public class esc extends EscBase {
 
     @Test
     public void testChainedCompare() {
+    	expectedExit = 1;
         helpTCX("tt.TestJava",
                           "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -4645,9 +4684,9 @@ public class esc extends EscBase {
                         + "  //@ assert !(0 <= i < 10);\n"
                         + "  //@ assert 0 <= i < 11 == 2 <= i <= 12;\n"
                         + "  //@ assert 11 >= i+1 > 1 == 12 >= i > 2;\n"
-                        + "  //@ assert 11 >= i+1 < 12;\n"
-                        + "  //@ assert 11 >= i+1 < 12 == true;\n"
-                        + "  //@ assert 11 >= i+1 > 1 != 12 <= i <= 22;\n"
+                        + "  //@ assert 11 >= i+1 < 12;\n" // ERROR
+                        + "  //@ assert 11 >= i+1 < 12 == true;\n" // ERROR
+                        + "  //@ assert 11 >= i+1 > 1 != 12 <= i <= 22;\n" // OK but bad style
                         + "  }\n"
                         + "}\n"
                         ,"/tt/TestJava.java:10: error: Cannot chain comparisons that are in different directions",17
