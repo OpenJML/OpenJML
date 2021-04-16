@@ -4302,7 +4302,7 @@ public class JavacParser implements Parser {
             }
         }
     }
-
+    
     protected boolean isRecordStart() {
         if (token.kind == IDENTIFIER && token.name() == names.record &&
             (peekToken(TokenKind.IDENTIFIER, TokenKind.LPAREN) ||
@@ -4528,7 +4528,7 @@ public class JavacParser implements Parser {
         if (token.kind != RPAREN) {
             this.allowThisIdent = !lambdaParameters && !recordComponents;
             lastParam = formalParameter(lambdaParameters, recordComponents);
-            if (lastParam.nameexpr != null) {
+        if (lastParam.nameexpr != null) {
                 this.receiverParam = lastParam;
             } else {
                 params.append(lastParam);

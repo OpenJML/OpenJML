@@ -970,8 +970,14 @@ public class JmlSpecs {
         if (utils.verbose()) utils.note("            Saving method specs for " + m.owner + "." + m + " " + m.hashCode());
         spec.setEnv(specsEnv);
         specsMethods.put(m,spec);
-        //get((ClassSymbol)m.owner).methods.put(m,spec);
     }
+    
+    public void dupSpecs(MethodSymbol m, MethodSymbol old) {
+    	var spec = getLoadedSpecs(old);
+    	specsMethods.put(m, spec);
+    	setStatus(m, status(old));
+    }
+
     
     /** Adds the specs for a given initialization block to the database, overwriting anything
      * already there.  The type must already have a spec supplied, to which this
@@ -1030,18 +1036,14 @@ public class JmlSpecs {
     public MethodSpecs getLoadedSpecs(MethodSymbol m) {
  //   	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
     	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) JmlEnter.instance(context).requestSpecs((ClassSymbol)m.owner);
-//        TypeSpecs t = specsmap.get(m.owner);
-//        var ms = t == null ? null : t.methods.get(m);
     	var ms = specsMethods.get(m);
-        if (ms == null && utils.verbose()) System.out.println("Null specs returned from getLoadedSpecs for " + m.owner + " " + m);
+        if (ms == null && utils.verbose()) System.out.println("Null specs returned from getLoadedSpecs for " + m.owner + " " + m + " " + m.hashCode());
         return ms;
     }
     
     /** Returns precisely what is in the current specs data base -- may be null */
     //@ nullable
     public MethodSpecs get(MethodSymbol m) {
-//        TypeSpecs t = specsmap.get(m.owner);
-//        return t == null ? null : t.methods.get(m);
     	return specsMethods.get(m);
     }
     
@@ -1340,7 +1342,6 @@ public class JmlSpecs {
         ClassSymbol c = (ClassSymbol)m.owner;
     	if (c == null) System.out.println("Unexpected difference - field " + m + " " + m.owner + " " + m.enclClass());
     	if (c == null) Utils.dumpStack();
-        TypeSpecs t = getLoadedSpecs(c);
     	return specsFields.get(m);
     }
     
@@ -1654,6 +1655,9 @@ public class JmlSpecs {
     	if (!sym.getReturnType().isReference()) return false;
     	if (attr.hasAnnotation2(sym, Modifiers.NULLABLE)) return false;
 		if (attr.hasAnnotation2(sym, Modifiers.NON_NULL)) return true;
+		var sp = specsMethods.get(sym);
+		if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NON_NULL)) return true;
+		if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NULLABLE)) return false;
     	return isNonNull(sym.enclClass());
     }
     

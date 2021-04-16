@@ -447,6 +447,13 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         }
         return s.toString();
     }
+    
+    
+    boolean printParser = System.getenv("PARSER") != null;
+    
+    public JCTree() {
+    	if (printParser) System.out.println("Constructing " + this.getClass());
+    }
 
     /** Set position field and return this tree.
      */
