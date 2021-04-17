@@ -184,8 +184,8 @@ public class bugs extends TCBase {
                 +"  } /*@ pure */ boolean mm() { return true; } \n"
                 +"}\n"
                 ,"/A.java:3: error: cannot find symbol\n  symbol:   variable Short\n  location: class A",37
-                ,"/A.java:3: error: cannot find symbol\n  symbol:   class lang\n  location: package java",57
-                ,"/A.java:3: error: cannot find symbol\n  symbol:   class lang\n  location: package java",57
+                ,"/A.java:3: error: package java does not exist",57
+                ,"/A.java:3: error: package java does not exist",57
               ); 
     }
     
@@ -205,8 +205,8 @@ public class bugs extends TCBase {
                 +"  public /*@ pure */ boolean m(Object i) {\n"
                 +"  }  \n"
                 +"}\n"
-                ,"/A.java:3: error: cannot find symbol\n  symbol:   class lang\n  location: package java",64
-                ,"/A.java:3: error: cannot find symbol\n  symbol:   class lang\n  location: package java",64
+                ,"/A.java:3: error: package java does not exist",64
+                ,"/A.java:3: error: package java does not exist",64
               ); 
     }
 
@@ -218,8 +218,8 @@ public class bugs extends TCBase {
                 +"  public /*@ pure */ boolean m(Object i) {\n"
                 +"  }  \n"
                 +"}\n"
-                ,"/A.java:3: error: cannot find symbol\n  symbol:   class lang\n  location: package java",56
-                ,"/A.java:3: error: cannot find symbol\n  symbol:   class lang\n  location: package java",56
+                ,"/A.java:3: error: package java does not exist",56
+                ,"/A.java:3: error: package java does not exist",56
               );
     }
 }

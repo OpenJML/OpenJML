@@ -488,19 +488,19 @@ public class escreadable extends EscBase {
                 +"  static private int y4; //@ readable y4 if bs1 || bs2 || bs3 || bs4; \n"
 
                 +"}"
-                ,"/tt/TestJava.java:11: non-static variable b1 cannot be referenced from a static context",44
-                ,"/tt/TestJava.java:12: An identifier with protected visibility may not be used in a readable clause with public visibility",43
-                ,"/tt/TestJava.java:12: An identifier with package visibility may not be used in a readable clause with public visibility",49
-                ,"/tt/TestJava.java:12: An identifier with private visibility may not be used in a readable clause with public visibility",55
-                ,"/tt/TestJava.java:13: An identifier with protected visibility may not be used in a readable clause with public visibility",51
-                ,"/tt/TestJava.java:13: An identifier with package visibility may not be used in a readable clause with public visibility",58
-                ,"/tt/TestJava.java:13: An identifier with private visibility may not be used in a readable clause with public visibility",65
-                ,"/tt/TestJava.java:14: An identifier with package visibility may not be used in a readable clause with protected visibility",52
-                ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a readable clause with protected visibility",58
-                ,"/tt/TestJava.java:15: An identifier with package visibility may not be used in a readable clause with protected visibility",61
-                ,"/tt/TestJava.java:15: An identifier with private visibility may not be used in a readable clause with protected visibility",68
-                ,"/tt/TestJava.java:16: An identifier with private visibility may not be used in a readable clause with package visibility",49
-                ,"/tt/TestJava.java:17: An identifier with private visibility may not be used in a readable clause with package visibility",59
+                ,"/tt/TestJava.java:11: error: non-static variable b1 cannot be referenced from a static context",44
+                ,"/tt/TestJava.java:12: error: An identifier with protected visibility may not be used in a readable clause with public visibility",43
+                ,"/tt/TestJava.java:12: error: An identifier with package visibility may not be used in a readable clause with public visibility",49
+                ,"/tt/TestJava.java:12: error: An identifier with private visibility may not be used in a readable clause with public visibility",55
+                ,"/tt/TestJava.java:13: error: An identifier with protected visibility may not be used in a readable clause with public visibility",51
+                ,"/tt/TestJava.java:13: error: An identifier with package visibility may not be used in a readable clause with public visibility",58
+                ,"/tt/TestJava.java:13: error: An identifier with private visibility may not be used in a readable clause with public visibility",65
+                ,"/tt/TestJava.java:14: error: An identifier with package visibility may not be used in a readable clause with protected visibility",52
+                ,"/tt/TestJava.java:14: error: An identifier with private visibility may not be used in a readable clause with protected visibility",58
+                ,"/tt/TestJava.java:15: error: An identifier with package visibility may not be used in a readable clause with protected visibility",61
+                ,"/tt/TestJava.java:15: error: An identifier with private visibility may not be used in a readable clause with protected visibility",68
+                ,"/tt/TestJava.java:16: error: An identifier with private visibility may not be used in a readable clause with package visibility",49
+                ,"/tt/TestJava.java:17: error: An identifier with private visibility may not be used in a readable clause with package visibility",59
                 );
     }
 
