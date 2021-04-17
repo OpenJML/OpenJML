@@ -4074,6 +4074,10 @@ public class Attr extends JCTree.Visitor {
             sym = rs.resolveIdent(tree.pos(), env, tree.name, pkind());
         }
         tree.sym = sym;
+//        if (tree.name.toString().equals("src")) {
+//        	System.out.println("ATTR-VIDENT " + tree + " " + sym + " " + sym.hashCode());
+//        	env.info.scope().getSymbols().forEach(s->System.out.println("    ENTRY " + s + " " + s.hashCode()));
+//        }
 
         // (1) Also find the environment current for the class where
         //     sym is defined (`symEnv').

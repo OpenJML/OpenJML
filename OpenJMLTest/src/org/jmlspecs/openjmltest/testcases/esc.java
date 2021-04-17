@@ -2047,10 +2047,10 @@ public class esc extends EscBase {
                 + "  //@ ensures true;\n"
                 + "  public @NonNull Object inst2(int ii) {  return null; }\n"
                 + "}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",25  // FIXME - should e identify the return statement?
-           //     , "/tt/TestJava.java:5: warning: Associated declaration", 14
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",25
+                , "/tt/TestJava.java:5: warning: Associated method exit", 47
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",19
-           //     , "/tt/TestJava.java:8: warning: Associated declaration", 10
+                , "/tt/TestJava.java:8: warning: Associated method exit", 43
                 );
     }
 
@@ -2067,9 +2067,9 @@ public class esc extends EscBase {
                 + "  public Object inst2(int ii) { return null; }\n"
                 + "}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",10
-           //     , "/tt/TestJava.java:5: warning: Associated declaration", 32
+                , "/tt/TestJava.java:5: warning: Associated method exit", 32
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",10
-           //     , "/tt/TestJava.java:8: warning: Associated declaration", 26
+                , "/tt/TestJava.java:8: warning: Associated method exit", 33
                 );
     }
 
@@ -2086,9 +2086,9 @@ public class esc extends EscBase {
                         + "  public Object inst2(int ii) {  return null; }\n"
                         + "}"
                         ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",47
-                        ,"/tt/TestJava.java:5: warning: Associated declaration", 32
+                        ,"/tt/TestJava.java:5: warning: Associated method exit", 32
                         ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",43
-                        ,"/tt/TestJava.java:8: warning: Associated declaration", 26
+                        ,"/tt/TestJava.java:8: warning: Associated method exit", 34
                         );
     }
 
@@ -2146,11 +2146,12 @@ public class esc extends EscBase {
                         + "  public /*@ non_null*/Object inst2(boolean b, @NonNull Object i, Object ii) { return i; }\n"
                         + "  \n"
                         + "  public /*@ non_null*/Object inst2bad(boolean b, @NonNull Object i, Object ii) { return ii; }\n"
-                        + "}",
-                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method instbad",
-                88, "/tt/TestJava.java:6: warning: Associated declaration", 14,
-                "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2bad",
-                83, "/tt/TestJava.java:10: warning: Associated declaration", 14);
+                        + "}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method instbad",24
+                , "/tt/TestJava.java:6: warning: Associated declaration", 88
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2bad",24
+                , "/tt/TestJava.java:10: warning: Associated declaration", 83
+                );
     }
 
     @Test
@@ -4067,8 +4068,9 @@ public class esc extends EscBase {
                         + "  private /*@ spec_public */ char[] o; \n"
                         + "  \n" 
                         + "  //@ assignable \\everything;\n "
-                        + "  public TestJava(final /*@ non_null */ char[] the_array) {\n"
-                        + "      o = new char[the_array.length]; \n"
+                        + "  public TestJava(final char  /*@ non_null */[] the_array) {\n"
+                        + "      o = new char[the_array.length]; //@ assert o != null;\n"
+                        +"  //@ show the_array instanceof char[], o instanceof char[], the_array.length;\n"
                         + "      System.arraycopy(the_array, 0, o, 0, the_array.length); \n" 
                         + "  }\n" 
                         + "}"
@@ -4383,7 +4385,7 @@ public class esc extends EscBase {
                 ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",18
                 ),seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",48
                 ,"/tt/TestJava.java:5: warning: Associated declaration",45
-                ,"/tt/TestJava.java:11: warning: Associated method exit",35  // FIXME Why not 29?
+                ,"/tt/TestJava.java:11: warning: Associated method exit",29
                 ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",18
                 ))
                 );
@@ -4606,11 +4608,11 @@ public class esc extends EscBase {
                         + "  //@   requires true; \n"
                         + "  public static void m(int i, int j) {\n"
                         + "     //@ show i;\n"
-                        + "     //@ show \n"
-                        + "     //@ show i i;\n"
-                        + "     //@ show;\n"
-                        + "     //@ show i\n"
-                        + "     //@ show %;\n"
+                        + "     //@ show \n"  // ERROR
+                        + "     //@ show i i;\n" // ERROR
+                        + "     //@ show;\n"     
+                        + "     //@ show i\n"    // ERROR
+                        + "     //@ show %;\n"   // ERROR
                         + "  }\n"
                         + "}\n"
                         ,"/tt/TestJava.java:8: warning: Inserting missing semicolon at the end of a show statement",14

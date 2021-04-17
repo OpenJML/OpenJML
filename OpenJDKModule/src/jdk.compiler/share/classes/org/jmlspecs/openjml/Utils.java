@@ -1695,11 +1695,11 @@ public class Utils {
 
     public void note(JavaFileObject source, DiagnosticPosition pos, String key, Object ... args) {
         JavaFileObject prev = null;
-        if (source != null) prev = log.useSource(source);
+        if (source != null) prev = log().useSource(source);
         try {
             note(pos, key, args);
         } finally {
-            if (prev != null) log.useSource(prev);
+            if (prev != null) log().useSource(prev);
         }
     }
     
