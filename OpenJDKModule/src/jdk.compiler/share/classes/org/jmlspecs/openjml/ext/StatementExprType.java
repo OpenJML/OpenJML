@@ -96,15 +96,13 @@ public class StatementExprType extends IJmlClauseKind.Statement {
     	JmlTree.JmlStatementExpr tree = (JmlTree.JmlStatementExpr)t;
         boolean isUse = tree.clauseType == useClause;
         boolean prevAllowJML = attr.jmlresolve.setAllowJML(true);
-        boolean prev = attr.pureEnvironment;
-        attr.pureEnvironment = true;
-        IJmlClauseKind prevClauseType = attr.currentClauseType;
-        attr.currentClauseType = tree.clauseType;
+        attr.jmlenv = attr.jmlenv.pushCopy();
+        attr.jmlenv.inPureEnvironment = true;
+        attr.jmlenv.currentClauseKind = tree.clauseType;
         // unreachable statements have a null expression
         if (tree.expression != null) attr.attribExpr(tree.expression,env,isUse ? Type.noType : syms.booleanType);
         if (tree.optionalExpression != null) attr.attribExpr(tree.optionalExpression,env,Type.noType);
-        attr.currentClauseType = prevClauseType;
-        attr.pureEnvironment = prev;
+        attr.jmlenv = attr.jmlenv.pop();
         attr.jmlresolve.setAllowJML(prevAllowJML);
         return null; // No type returned
     }

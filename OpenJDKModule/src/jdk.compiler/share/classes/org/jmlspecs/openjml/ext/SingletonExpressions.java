@@ -58,13 +58,13 @@ public class SingletonExpressions extends ExpressionExtension {
             } else {
                 t = res.type;
             }
-            if (attr.currentEnvLabel != null) {
+            if (attr.jmlenv.currentLabel != null) {
                 Log.instance(context).error(that.pos, "jml.no.result.in.old");
             }
-            if (!attr.resultClauses.contains(attr.currentClauseType)) {
+            if (!attr.resultClauses.contains(attr.jmlenv.currentClauseKind)) {
                 // The +1 is to fool the error reporting mechanism into 
                 // allowing other error reports about the same token
-                Log.instance(context).error(that.pos+1, "jml.misplaced.result", attr.currentClauseType.name());
+                Log.instance(context).error(that.pos+1, "jml.misplaced.result", attr.jmlenv.currentClauseKind.name());
                 t = syms.errType;
             }
             that.type = t;
@@ -158,10 +158,10 @@ public class SingletonExpressions extends ExpressionExtension {
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
             syms = Symtab.instance(context);
             Type t;
-            if (!attr.exceptionClauses.contains(attr.currentClauseType)) {
+            if (!attr.exceptionClauses.contains(attr.jmlenv.currentClauseKind)) {
                 // The +1 is to fool the error reporting mechanism into 
                 // allowing other error reports about the same token
-                Log.instance(context).error(that.pos+1, "jml.misplaced.exception", attr.currentClauseType.name());
+                Log.instance(context).error(that.pos+1, "jml.misplaced.exception", attr.jmlenv.currentClauseKind.name());
                 t = syms.errType;
             } else {
                 t = attr.currentExceptionType;

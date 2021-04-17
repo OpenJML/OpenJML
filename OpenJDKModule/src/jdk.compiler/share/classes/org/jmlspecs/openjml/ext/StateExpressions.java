@@ -70,39 +70,39 @@ public class StateExpressions extends ExpressionExtension {
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
             syms = attr.syms;
             JmlMethodInvocation tree = (JmlMethodInvocation)that;
-            Name savedLabel = attr.currentEnvLabel;
+            attr.jmlenv = attr.jmlenv.pushCopy();
             int n = tree.args.size();
             if (!(n == 1 || (tree.token != JmlTokenKind.BSPRE && n == 2))) {
                 if (tree.token != JmlTokenKind.BSPRE) error(tree,"jml.wrong.number.args",name(),
                         "1 or 2",n);
                 else error(tree,"jml.one.arg",name(), n);
             }
-            IJmlClauseKind currentClauseType = attr.currentClauseType;
+            IJmlClauseKind clauseKind = attr.jmlenv.currentClauseKind;
             Type t = null;
             if (tree.token == BSPRE) {
                 // pre
-                if (!currentClauseType.preAllowed()) {
-                    log.error(tree.pos+1, "jml.misplaced.old", "\\pre token", currentClauseType.name());
+                if (!clauseKind.preAllowed()) {
+                    log.error(tree.pos+1, "jml.misplaced.old", "\\pre token", clauseKind.name());
                     t = syms.errType;
                 }
             } else if (n == 1) {
                 // old with no label
-                if (attr.currentClauseType == null) {
+                if (clauseKind == null) {
                     // OK
-                } else if (!currentClauseType.oldNoLabelAllowed() && currentClauseType != MethodSimpleClauseExtensions.declClause) {
-                    log.error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", currentClauseType.name());
+                } else if (!clauseKind.oldNoLabelAllowed() && clauseKind != MethodSimpleClauseExtensions.declClause) {
+                    log.error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", clauseKind.name());
                     t = syms.errType;
-                } else if (currentClauseType == MethodSimpleClauseExtensions.declClause && localEnv.enclMethod == null) {
-                    log.error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", currentClauseType.name());
+                } else if (clauseKind == MethodSimpleClauseExtensions.declClause && localEnv.enclMethod == null) {
+                    log.error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", clauseKind.name());
                     t = syms.errType;
                 }
             } else {
                 // old with label
-                if (!currentClauseType.preOrOldWithLabelAllowed() && currentClauseType != MethodSimpleClauseExtensions.declClause) {
-                    log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", currentClauseType.name());
+                if (!clauseKind.preOrOldWithLabelAllowed() && clauseKind != MethodSimpleClauseExtensions.declClause) {
+                    log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", clauseKind.name());
                     t = syms.errType;
-                } else if (currentClauseType == MethodSimpleClauseExtensions.declClause && localEnv.enclMethod == null) {
-                    log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", currentClauseType.name());
+                } else if (clauseKind == MethodSimpleClauseExtensions.declClause && localEnv.enclMethod == null) {
+                    log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", clauseKind.name());
                     t = syms.errType;
                 }
             }
@@ -119,24 +119,24 @@ public class StateExpressions extends ExpressionExtension {
             // FIXME - is it possible for a variable to have a different type at a previous label?
             
             // label == empty ==> pre state; label == null ==> current state
-            attr.currentEnvLabel = label == null ? attr.names.empty : label;
+            attr.jmlenv.currentLabel = label == null ? attr.names.empty : label;
             if (n == 0 || t == syms.errType) {
             	t = syms.errType;
             } else {
             	if (localEnv.enclMethod == null) {
             		// In a type clause
-            	} else if (attr.currentClauseType instanceof IJmlClauseKind.MethodSpecClauseKind) {
+            	} else if (clauseKind instanceof IJmlClauseKind.MethodSpecClauseKind) {
             		// In a specification case
             		// FIXME - need to distinguish beginning of spec case from current position
             	} else {
             		// In a method body
-            		localEnv = attr.envForLabel(labelpos, attr.currentEnvLabel, localEnv);
+            		localEnv = attr.envForLabel(labelpos, attr.jmlenv.currentLabel, localEnv);
             	}
         		attr.attribExpr(tree.args.get(0), localEnv, Type.noType);
         		attr.attribTypes(tree.typeargs, localEnv);
         		t = tree.args.get(0).type;
             }
-            attr.currentEnvLabel = savedLabel;
+            attr.jmlenv = attr.jmlenv.pop();
             return t;
         }
 

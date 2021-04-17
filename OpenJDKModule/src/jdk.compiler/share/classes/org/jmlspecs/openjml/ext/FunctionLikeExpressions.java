@@ -258,9 +258,9 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             super.typecheck(attr, tree, localEnv);
-            if (!attr.postClauses.contains(attr.currentClauseType)) {
+            if (!attr.postClauses.contains(attr.jmlenv.currentClauseKind)) {
                 JmlMethodInvocation expr = (JmlMethodInvocation)tree;
-                log.error(tree.pos, "jml.misplaced.token", expr.kind != null ? expr.kind.name() : expr.token.internedName(), attr.currentClauseType == null ? "jml declaration" : attr.currentClauseType.name());
+                log.error(tree.pos, "jml.misplaced.token", expr.kind != null ? expr.kind.name() : expr.token.internedName(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.name());
             }
             return Symtab.instance(context).booleanType;
         }
@@ -401,8 +401,8 @@ public class FunctionLikeExpressions extends ExpressionExtension {
     public static final IJmlClauseKind sameKind = new OneArgExpression(sameID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            if (attr.currentClauseType != requiresClauseKind &&
-                    attr.currentClauseType != recommendsClauseKind) {
+            if (attr.jmlenv.currentClauseKind != requiresClauseKind &&
+                    attr.jmlenv.currentClauseKind != recommendsClauseKind) {
                 error(that,"jml.misplaced.same");
             }
             return Symtab.instance(context).booleanType;

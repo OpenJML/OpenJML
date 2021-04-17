@@ -71,8 +71,8 @@ public class FrameExpressions extends ExpressionExtension {
             JmlMethodInvocation tree = (JmlMethodInvocation)that;
             ListBuffer<Type> argtypesBuf = new ListBuffer<>();
             attr.attribArgs(KindSelector.VAL, tree.args, localEnv, argtypesBuf);
-            if (!attr.postClauses.contains(attr.currentClauseType)) {
-                log.error(tree.pos, "jml.misplaced.token", tree.kind != null ? tree.kind.name() : tree.token.internedName(), attr.currentClauseType == null ? "jml declaration" : attr.currentClauseType.name());
+            if (!attr.postClauses.contains(attr.jmlenv.currentClauseKind)) {
+                log.error(tree.pos, "jml.misplaced.token", tree.kind != null ? tree.kind.name() : tree.token.internedName(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.name());
             }
             return attr.syms.booleanType;
         }
@@ -115,8 +115,8 @@ public class FrameExpressions extends ExpressionExtension {
 // FIXME - needs implementation
 //            ListBuffer<Type> argtypesBuf = new ListBuffer<>();
 //            attr.attribArgs(VAL, tree.args, localEnv, argtypesBuf);
-            if (!attr.postClauses.contains(attr.currentClauseType)) {
-                log.error(tree.pos+1, "jml.misplaced.token", tree.token.internedName(), attr.currentClauseType == null ? "jml declaration" : attr.currentClauseType.name());
+            if (!attr.postClauses.contains(attr.jmlenv.currentClauseKind)) {
+                log.error(tree.pos+1, "jml.misplaced.token", tree.token.internedName(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.name());
             }
             return attr.syms.booleanType;
         }

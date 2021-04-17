@@ -2370,7 +2370,7 @@ public class Attr extends JCTree.Visitor {
         // The types of the actual method type arguments.
         List<Type> typeargtypes = null;
 
-        if (tree.meth == null) System.out.println("APPLY " + tree);
+        //if (org.jmlspecs.openjml.Main.useJML) System.out.println("APPLY " + tree);
         Name methName = TreeInfo.name(tree.meth);
 
         boolean isConstructorCall =
@@ -2473,6 +2473,7 @@ public class Attr extends JCTree.Visitor {
             // Compute the result type.
 
             Type restype = mtype.getReturnType();
+            //if (org.jmlspecs.openjml.Main.useJML) System.out.println("RESTYPE " + methName + " : "  + restype);
 
             if (restype.hasTag(WILDCARD))
                 throw new AssertionError(mtype);
@@ -4074,9 +4075,8 @@ public class Attr extends JCTree.Visitor {
             sym = rs.resolveIdent(tree.pos(), env, tree.name, pkind());
         }
         tree.sym = sym;
-//        if (tree.name.toString().equals("src")) {
-//        	System.out.println("ATTR-VIDENT " + tree + " " + sym + " " + sym.hashCode());
-//        	env.info.scope().getSymbols().forEach(s->System.out.println("    ENTRY " + s + " " + s.hashCode()));
+//        if (tree.name.toString().equals("c")) {
+//        	System.out.println("ATTR-VIDENT " + tree + " " + sym );
 //        }
 
         // (1) Also find the environment current for the class where

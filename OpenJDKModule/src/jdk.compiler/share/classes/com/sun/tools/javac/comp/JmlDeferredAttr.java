@@ -7,6 +7,7 @@ package com.sun.tools.javac.comp;
 
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlLambda;
+import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 import org.jmlspecs.openjml.visitors.JmlTreeCopier;
 import org.jmlspecs.openjml.visitors.IJmlVisitor;
 
@@ -55,10 +56,15 @@ public class JmlDeferredAttr extends DeferredAttr implements IJmlVisitor {
         return new JmlTreeCopier(context,JmlTree.Maker.instance(context));
     }
     
-//    public void scan(JCTree that) {
-//        that.accept(attr);
-//        result = attr.result;
-//    }
+    public void scan(JCTree that) {
+        that.accept(attr);
+        //result = attr.result;
+    }
+    
+    public void visitJmlSingleton(JmlSingleton that) {
+    	scan(that);
+    	System.out.println("VISITING " + that + " " + that.type);
+    }
 
     // FIXME?
 //    class JmlDeferredChecker extends DeferredChecker {

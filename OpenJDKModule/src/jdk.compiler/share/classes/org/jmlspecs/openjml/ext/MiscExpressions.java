@@ -139,10 +139,10 @@ public class MiscExpressions extends ExpressionExtension {
                 if (tt.isPrimitive()) {
                     utils.error(arg,"jml.ref.arg.required", name());
                 }
-                if (!attr.freshClauses.contains(attr.currentClauseType)) {
+                if (!attr.freshClauses.contains(attr.jmlenv.currentClauseKind)) {
                     // The +1 is to fool the error reporting mechanism into 
                     // allowing other error reports about the same token
-                    utils.error(tree.pos+1, "jml.misplaced.token", name(), attr.currentClauseType == null ? "jml declaration" : attr.currentClauseType.name());
+                    utils.error(tree.pos+1, "jml.misplaced.token", name(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.name());
                 }
             }
             expr.type = Symtab.instance(context).booleanType;
