@@ -878,6 +878,7 @@ public class JmlEnter extends Enter {
 		boolean isJML = utils.isJML(mdecl);
 		boolean isOwnerJML = utils.isJML(csym.flags());
 		boolean isModel = utils.hasMod(mdecl.mods, Modifiers.MODEL);
+		var specs = JmlSpecs.instance(context);
 		if (isOwnerJML && isModel) {
 			utils.error(mdecl, "jml.message", "A model type may not contain model declarations: " + mdecl.name + " in " + csym);
 			// Attempt recovery by removing the offending annotation
@@ -962,28 +963,75 @@ public class JmlEnter extends Enter {
     		if (!isModel && mdecl.body != null && !isSameCU && ((msym.flags() & Flags.GENERATEDCONSTR) == 0)) {
     			utils.error(mdecl.body, "jml.message", "The specification of the method " + csym + "." + msym + " must not have a body");;
     		}
-
+    		
+    		// Either
+    		// 0) There is no Java declaration, just a (model/ghost) spec declaration -- that is the case above with msym == null
+    		// 1) Just binary, no source Java declaration, and a jml declaration: javaMDecl == null
+    		// 2) Java and JML are the same file: javaMDecl == mdecl
+    		// 3) Java and JML are different files: javaMDecl != null, javaMDecl != mdecl
+    		// Note that the javaSym may have already been used for attribution of other code, so we have to use it
+    		// as the MethodSymbol to retrive information from the specs database.
     		if (mdecl == javaMDecl) {
+    			// In this case we did not do a separate attribution of the method signature
     			// Defensive check
-    			if (mdecl.sym != msym) utils.error(mdecl.sourcefile, mdecl, "jml.message", "msym values do not match: " + mdecl.sym + " " + msym);
+    			if (mdecl.sym != msym) utils.error(mdecl.sourcefile, mdecl, "jml.internal.notsobad", "msym values do not match: " + mdecl.sym + " " + msym);
+    			utils.note("Matched method: (self) " + msym + " (owner: " + msym.owner +")");
+    			var sp = specs.getLoadedSpecs(msym);
+    			sp.javaDecl = javaMDecl;
+    			sp.specDecl = mdecl;
+    			sp.javaSym = msym;
+    			sp.specSym = mdecl.sym;
+    			sp.javaEnv = sp.specsEnv;
+    		} else if (javaMDecl == null) {
+    			utils.note("Matched method: (binary) " + msym + " (owner: " + msym.owner +")");
+    			// No specs entry for msym -- msym is just the symbol created on loading the binary class file
+    			var ssp = specs.getLoadedSpecs(mdecl.sym);
+//    			if (msym.toString().contains("arraycopy")) {
+//    				System.out.println("JMLENTER-J " + msym + " " + msym.params.head + " " + msym.params.head.hashCode());
+//    				System.out.println("JMLENTER-S " + mdecl.sym + " " + mdecl.sym.params.head + " " + mdecl.sym.params.head.hashCode());
+//    				System.out.println("JMLENTER-SS " + mdecl.params.head.sym + " " + mdecl.params.head.sym.hashCode());
+//    				System.out.println("SPECENV " + specs.getLoadedSpecs(mdecl.sym).specsEnv.info.scope().getSymbolsByName(mdecl.sym.params.head.name).iterator().next().hashCode());
+//    				//System.out.println("JAVAENV " + specs.getLoadedSpecs(msym).specsEnv.info.scope().getSymbolsByName(msym.params.head.name).iterator().next().hashCode());
+//    			}
+    			ssp.javaDecl = javaMDecl;
+    			ssp.specDecl = mdecl;
+    			ssp.javaSym = msym;
+    			ssp.specSym = mdecl.sym;
+    			ssp.javaEnv = null;
+    			specs.setStatus(msym, ssp.status);
+    			specs.dupSpecs(msym,  mdecl.sym);
+    			checkMethodMatch(javaMDecl,msym,mdecl,csym);
+    		} else { // javaMDecl != mdecl
+    			utils.note("Matched method: " + msym + " (owner: " + msym.owner +")");
+    			var jsp = specs.getLoadedSpecs(msym);
+    			var ssp = specs.getLoadedSpecs(mdecl.sym);
+    			jsp.javaDecl = ssp.javaDecl = javaMDecl;
+    			jsp.specDecl = ssp.specDecl = mdecl;
+    			jsp.javaSym = ssp.javaSym = msym;
+    			jsp.specSym = ssp.specSym = mdecl.sym;
+    			javaMDecl.specsDecl = mdecl;
+    			ssp.javaEnv = jsp.specsEnv;
+    			jsp.specsEnv = ssp.specsEnv;
+    			jsp.cases = ssp.cases;
+    			jsp.status = ssp.status;
+    			specs.setStatus(msym, ssp.status);
+    			checkMethodMatch(javaMDecl,msym,mdecl,csym);
     		}
+    		
      		{
-    			mdecl.specsDecl = javaMDecl;
-    			//boolean b = JmlCheck.instance(context).noDuplicateWarn;
-    			//JmlCheck.instance(context).noDuplicateWarn = true;
-    			//if (mdecl != javaMDecl) makeAndEnterMethodSym(mdecl, specsEnv);
-    			//annotate.flush();
-    			//JmlCheck.instance(context).noDuplicateWarn = b;
-    			if (utils.verbose()) {
-    				if (mdecl != javaMDecl) utils.note("Matched method: " + msym + " (owner: " + msym.owner +")");
-    				else utils.note("Matched method: (self) " + msym + " (owner: " + msym.owner +")");
-    			}
+//    			mdecl.specsDecl = javaMDecl;
 //    			var specs = JmlSpecs.instance(context);
 //    			var mspecs = specs.get(mdecl.sym);
 //         		specs.putSpecs(msym, mspecs, mspecs.specsEnv);
-    			if (javaMDecl == null) {
-    				JmlSpecs.instance(context).dupSpecs(msym, mdecl.sym);
-    			}
+//    			if (javaMDecl == null) {
+//    				if (msym.toString().contains("arraycopy")) {
+//    					System.out.println("JMLENTER-J " + msym + " " + msym.params.head + " " + msym.params.head.hashCode());
+//    					System.out.println("JMLENTER-S " + mdecl.sym + " " + mdecl.sym.params.head + " " + mdecl.sym.params.head.hashCode());
+//    					System.out.println("JMLENTER-SS " + mdecl.params.head.sym + " " + mdecl.params.head.sym.hashCode());
+//    					System.out.println("SPECENV " + specs.getLoadedSpecs(mdecl.sym).specsEnv.info.scope().getSymbolsByName(mdecl.sym.params.head.name).iterator().next().hashCode());
+//						//System.out.println("JAVAENV " + specs.getLoadedSpecs(msym).specsEnv.info.scope().getSymbolsByName(msym.params.head.name).iterator().next().hashCode());
+//    				}
+//    			}
 //    			specsEnv = MemberEnter.instance(context).methodEnv(mdecl, specsEnv);
 //    			ListBuffer<Type> argtypes = new ListBuffer<>();
 //    			for (int i=0; i<mdecl.params.length(); ++i) {  // FIXME - I think some or all of this can be simplified
@@ -1002,9 +1050,13 @@ public class JmlEnter extends Enter {
 //        			while (q instanceof Type.ForAll) q = ((Type.ForAll)q).qtype; 
 //        			if (q instanceof Type.MethodType) ((Type.MethodType)q).argtypes = argtypes.toList();
 //        			// FIXME - what about the return type, or exception types?
-        			checkMethodMatch(javaMDecl,msym,mdecl,csym);
     			}
     		}
+    	}
+    	var iter = msym.params.iterator();
+    	for (var v: mdecl.params) {
+    		if (iter.hasNext()) specs.putSpecs(iter.next(), new JmlSpecs.FieldSpecs((JmlVariableDecl)v));
+    		specs.putSpecs(v.sym, new JmlSpecs.FieldSpecs((JmlVariableDecl)v));
     	}
     }
     

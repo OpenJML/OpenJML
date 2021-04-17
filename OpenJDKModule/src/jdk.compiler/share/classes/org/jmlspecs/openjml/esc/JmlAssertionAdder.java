@@ -8656,10 +8656,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 var paramTypes = meth != null ? meth.type.getParameterTypes() : newclass != null ? newclass.type.getParameterTypes(): null;
                 if (paramTypes != null) {
                 	// Type checks (e.g. NonNull) on assignments to formal parameters
-                	for (int i=0; i<paramTypes.size(); i++) {
-                		Type t = paramTypes.get(i);
-                		if (specs.isNonNull(t,null)) {
-                			addAssert(trArgs.get(i), Label.UNDEFINED_NULL_PRECONDITION, treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)),
+                	for (int i=0; i<calleeMethodSym.params.size(); i++) {
+                		VarSymbol v = calleeMethodSym.params.get(i);
+                		if (specs.isNonNull(v)) {
+                			addAssert(trArgs.get(i), Label.NULL_FORMAL, treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)),
                 					mspecs.decl.params.get(i).vartype, mspecs.decl.sourcefile);
                 		}
                 	}
@@ -8691,24 +8691,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (savedParamActuals != null) paramActuals.putAll(savedParamActuals); // In cases that we are capturing the environment, such as inlining lambdas or model programs, we still need the mappings from the outer call // NOt sure this is needed
                     mapParamActuals.put(mpsym,paramActuals);
                     
-                    if (calleeSpecs.decl != null) {
+                    {
                         // Map the formals for this particular method to the corresponding translated actual argument
-                        // Not sure we need this first alternative
-                        Iterator<JCVariableDecl> iter = calleeSpecs.decl.params.iterator();
+                        // The MethodSymbol used to iterate over the parameter VarSymbols must correspond to the Env
+                    	// used to attribute the specifications. We use the specSym because the javaSym might belong to
+                    	// a binary and thus have different parameter names (which it might if it has a java declaration as well)
+                        Iterator<VarSymbol> iter = specs.getSpecs(mpsym).specSym.params.iterator();
                         for (JCExpression arg: trArgs) {
-                            if (iter.hasNext()) paramActuals.put(iter.next().sym, arg);
+                        	VarSymbol v = null;
+                            if (iter.hasNext()) paramActuals.put(v=iter.next(), arg);
                             else {
                                 // FIXME - mismatch in number of arguments; what about varargs?
                             }
+//                            if (mpsym.toString().contains("arraycopy")) System.out.println("   MAPPING " + v + " " + v.hashCode() + " " + arg);
                         }
-                    } else if (mpsym.params != null) {
-                        Iterator<VarSymbol> iter = mpsym.params.iterator();
-                        for (JCExpression arg: trArgs) {
-                            if (iter.hasNext()) paramActuals.put(iter.next(), arg);
-                            else {
-                                // FIXME - mismatch in number of arguments; what about varargs?
-                            }
-                        }
+//                        if (mpsym.toString().contains("arraycopy")) System.out.println("PARAMACTUALS " + mpsym + " " + calleeSpecs.decl.sym + " " + paramActuals);
+//                    } else if (mpsym.params != null) {
+//                        Iterator<VarSymbol> iter = mpsym.params.iterator();
+//                        for (JCExpression arg: trArgs) {
+//                            if (iter.hasNext()) paramActuals.put(iter.next(), arg);
+//                            else {
+//                                // FIXME - mismatch in number of arguments; what about varargs?
+//                            }
+//                        }
                         
                     }
                     if (esc) {
@@ -13380,6 +13385,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // can also be the mapping from a formal to actual argument.
             boolean local = false;
             JCExpression actual = paramActuals == null ? null : paramActuals.get(sym);
+            if (sym.name.toString().equals("src")) {
+            	System.out.println("VISITIDENT " + sym + " " + sym.hashCode() + " " + actual);
+            }
             if (actual != null) {
                 // Replicate the AST so we are not sharing ASTs across multiple
                 // instances of the original ID.

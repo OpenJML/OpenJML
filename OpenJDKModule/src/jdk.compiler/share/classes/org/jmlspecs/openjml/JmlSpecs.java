@@ -964,12 +964,11 @@ public class JmlSpecs {
      * @param m the MethodSymbol of the method whose specs are provided
      * @param spec the specs to associate with the method
      */
-    public void putSpecs(MethodSymbol m, MethodSpecs spec, Env<AttrContext> specsEnv) {
-    	spec.msym = m;
-//    	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) log.error("jml.internal", "Specs not yet loaded for " + m.owner + " on attempting to put " + m);
-        if (utils.verbose()) utils.note("            Saving method specs for " + m.owner + "." + m + " " + m.hashCode());
+    public void putSpecs(MethodSymbol specSym, MethodSpecs spec, Env<AttrContext> specsEnv) {
+    	spec.specSym = specSym;
+        if (utils.verbose()) utils.note("            Saving method specs for " + specSym.owner + "." + specSym + " " + specSym.hashCode());
         spec.setEnv(specsEnv);
-        specsMethods.put(m,spec);
+        specsMethods.put(specSym,spec);
     }
     
     public void dupSpecs(MethodSymbol m, MethodSymbol old) {
@@ -998,11 +997,9 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
-//    	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) log.error("jml.internal", "Specs not yet loaded for " + m.owner + " on attempting to put " + m);
-//        getLoadedSpecs((ClassSymbol)m.owner).fields.put(m,spec);
 		specsFields.put(m, spec);
         setStatus(m, SpecsStatus.SPECS_LOADED);
-    	if (utils.verbose()) utils.note("            Saving field specs for " + m.owner + " " + m + " " + status(m));
+    	if (utils.verbose()) utils.note("            Saving field specs for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
     }
     
     /** Retrieves the attributed specs for a given method, possibly default specs;
@@ -1012,11 +1009,7 @@ public class JmlSpecs {
      */
     //@ non_null
     public MethodSpecs getSpecs(MethodSymbol m) {
-//    	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
     	if (status(m).less(SpecsStatus.SPECS_ATTR)) attr.attrSpecs(m);
-    	//if (status(m) == SpecsStatus.ERROR) throw new PropagatedException(new RuntimeException("Failure in type-checking " + m.owner + "." + m));
-//        TypeSpecs t = specsmap.get(m.owner);
-//        return t == null ? null : t.methods.get(m);
         return specsMethods.get(m);
     }
     
@@ -1338,10 +1331,9 @@ public class JmlSpecs {
      */
     //@ nullable
     public FieldSpecs getLoadedSpecs(VarSymbol m) {
-    	if (!(m.owner instanceof ClassSymbol)) return null; // m is a formal parameter or local variable -- has no specs
-        ClassSymbol c = (ClassSymbol)m.owner;
-    	if (c == null) System.out.println("Unexpected difference - field " + m + " " + m.owner + " " + m.enclClass());
-    	if (c == null) Utils.dumpStack();
+    	if (m.owner instanceof ClassSymbol && status(m).less(SpecsStatus.SPECS_LOADED)) {
+    		JmlEnter.instance(context).requestSpecs((ClassSymbol)m.owner);
+    	}
     	return specsFields.get(m);
     }
     
@@ -1581,6 +1573,10 @@ public class JmlSpecs {
 
     public boolean isNonNullNoDefault(VarSymbol sym) {
     	if (!sym.type.isReference()) return false;
+    	var fspecs = getLoadedSpecs(sym);
+    	if (fspecs != null) {
+    		if (utils.hasMod(fspecs.mods, Modifiers.NON_NULL)) return true;
+    	}
 		if (attr.hasAnnotation2(sym, Modifiers.NON_NULL)) return true;
     	if (findAnnotation(sym.type, Modifiers.NON_NULL)) return true;
     	return false;
@@ -1588,6 +1584,10 @@ public class JmlSpecs {
 
     public boolean isNullableNoDefault(VarSymbol sym) {
     	if (!sym.type.isReference()) return false;
+    	var fspecs = getLoadedSpecs(sym);
+    	if (fspecs != null) {
+        	if (utils.hasMod(fspecs.mods, Modifiers.NULLABLE)) return true;
+    	}
     	if (attr.hasAnnotation2(sym, Modifiers.NULLABLE)) return true;
     	if (findAnnotation(sym.type, Modifiers.NULLABLE)) return true;
     	return false;
@@ -1595,21 +1595,14 @@ public class JmlSpecs {
 
     public boolean isNonNull(VarSymbol sym) {
     	if (!sym.type.isReference()) return false;
+    	var fspecs = getLoadedSpecs(sym);
+    	if (fspecs != null) {
+        	if (utils.hasMod(fspecs.mods, Modifiers.NULLABLE)) return false;
+    		if (utils.hasMod(fspecs.mods, Modifiers.NON_NULL)) return true;
+    	}
     	if (attr.hasAnnotation2(sym, Modifiers.NULLABLE)) return false;
 		if (attr.hasAnnotation2(sym, Modifiers.NON_NULL)) return true;
     	return isNonNull(sym.type, sym.enclClass());
-//    	if (sym.owner instanceof ClassSymbol) {
-//    		JmlModifiers mods = getSpecsModifiers(sym);
-//        	if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
-//        	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
-//        	return defaultNullity((ClassSymbol)sym.owner) == Modifiers.NON_NULL;
-//    	} else {
-//    		// Parameter or local variable
-//    		// FIXME
-//    		if (attr.hasAnnotation(sym, Modifiers.NULLABLE)) return false;
-//    		if (attr.hasAnnotation(sym, Modifiers.NON_NULL)) return true;
-//        	return defaultNullity((ClassSymbol)sym.enclClass()) == Modifiers.NON_NULL;
-//    	}
     }
     
     public boolean findAnnotation(Type type, ModifierKind kind) {
@@ -1829,11 +1822,15 @@ public class JmlSpecs {
     /** An ADT to hold the specs for a method or block */
     public static class MethodSpecs {
         
-    	public MethodSymbol msym;
+        public MethodSymbol javaSym;
+    	public MethodSymbol specSym;
+    	public JmlMethodDecl javaDecl;
+    	public JmlMethodDecl specDecl;
         public JCTree.JCModifiers mods;
         public VarSymbol queryDatagroup;
         public VarSymbol secretDatagroup;
         public JmlMethodSpecs cases;
+        public Env<AttrContext> javaEnv;
         public Env<AttrContext> specsEnv;
         public SpecsStatus status;
         

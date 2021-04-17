@@ -2066,7 +2066,6 @@ public class escnew extends EscBase {
 
     @Test 
     public void testConstantFolding4() {
-        main.addOptions("-method=mm","-show=translated");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
@@ -2086,7 +2085,6 @@ public class escnew extends EscBase {
 
     @Test 
     public void testConstantFolding3() {
-        //main.addOptions("-method=mm","-show=translated");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 

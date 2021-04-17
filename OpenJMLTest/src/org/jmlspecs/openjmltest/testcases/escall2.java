@@ -61,17 +61,16 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",14
-        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
-        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Precondition) in method m8",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",14
-        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",26
+        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",26
         );
     }
 
     @Test
     public void testNN2Param() {
+//    	main.addOptions("-show","-method=m2");
 //        Assume.assumeTrue(runLongTests);
         helpTCX("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
@@ -104,16 +103,14 @@ public class escall2 extends EscBase {
         +"     n3(ooo); \n"
         +" } \n"
         +" public void n1(@Nullable Object s) {} \n"
-        +" public void n2(@NonNull Object s) {} \n"
+        +" public void n2(@NonNull Object oooo) {} \n"
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",14
-        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
-        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Precondition) in method m8",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",14
-        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",26
+        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",26
         );
     }
 
@@ -155,12 +152,10 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"    // Line 33
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",14
-        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
-        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Precondition) in method m3",8
-        ,"/tt/TestJava.java:33: warning: Associated declaration",14
-        ,"/tt/TestJava.java:33: warning: Precondition conjunct is false: s != null",24
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",26
+        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3",9
+        ,"/tt/TestJava.java:33: warning: Associated declaration",17
         );
     }
     @Test
@@ -201,12 +196,10 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",14
-        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
-        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Precondition) in method m3",8
-        ,"/tt/TestJava.java:33: warning: Associated declaration",14
-        ,"/tt/TestJava.java:33: warning: Precondition conjunct is false: s != null",24
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",26
+        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3",9
+        ,"/tt/TestJava.java:33: warning: Associated declaration",17
         );
     }
 
@@ -248,12 +241,10 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",14
-        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
-        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Precondition) in method m8",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",14
-        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",26
+        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",26
         );
     }
 
@@ -295,12 +286,10 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"    // Line 33
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Precondition) in method m2",8
-        ,"/tt/TestJava.java:32: warning: Associated declaration",14
-        ,"/tt/TestJava.java:32: warning: Precondition conjunct is false: s != null",17
-        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Precondition) in method m3",8
-        ,"/tt/TestJava.java:33: warning: Associated declaration",14
-        ,"/tt/TestJava.java:33: warning: Precondition conjunct is false: s != null",24
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",26
+        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3",9
+        ,"/tt/TestJava.java:33: warning: Associated declaration",17
         );
     }
     

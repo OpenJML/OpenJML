@@ -1370,6 +1370,7 @@ public class JmlParser extends JavacParser {
             }
             also = ext;
             nextToken();
+            skipEndJML();
             // get any modifiers
             mods = modifiersOpt();
             ext = methodSpecKeyword();
@@ -1381,6 +1382,7 @@ public class JmlParser extends JavacParser {
             codePos = pos();
             code = true;
             nextToken();
+            skipEndJML();
             ext = methodSpecKeywordS();
         }
 
@@ -1418,6 +1420,7 @@ public class JmlParser extends JavacParser {
             if (code) utils.warning(codePos, "jml.misplaced.code");
             // lightweight
         }
+        skipEndJML();
 
         Name specCaseName = null;
         if (ext != null && token.kind == TokenKind.IDENTIFIER && S.token(1).kind == TokenKind.COLON) {
@@ -1430,6 +1433,7 @@ public class JmlParser extends JavacParser {
         JmlMethodClause e;
         JCBlock stat = null;
         while (true) {
+            skipEndJML();
             if ((e = parseClause()) != null) {
                 clauses.append(e);
             } else if (S.jml() && token.kind == TokenKind.LBRACE) {
@@ -1441,6 +1445,7 @@ public class JmlParser extends JavacParser {
                 break;
             }
         }
+        skipEndJML();
 
         if (clauses.size() == 0 && stat == null) {
             if (ext != null && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
@@ -2848,7 +2853,11 @@ public class JmlParser extends JavacParser {
             nextToken();
         S.setJml(false); // Shouldn't the scanner set this appropriately?
         inJmlDeclaration = false;
-        if (token.kind != EOF) nextToken();
+        while (token.ikind == ENDJMLCOMMENT) nextToken();
+    }
+    
+    public void skipEndJML() {
+    	while (token.ikind == ENDJMLCOMMENT) nextToken();
     }
 
     /** Optionally accepts an ENDJMLCOMMENT token */
