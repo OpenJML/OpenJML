@@ -226,16 +226,8 @@ public abstract class IJmlClauseKind {
         if (!parseSemicolon) {
             // If we do not need a semicolon yet (e.g. because we already
             // parsed it or because the statement does not end with one,
-            // then the scanner has already scanned the next symbol,
-            // with setJmlKeyword having been (potentially) false.
-            // So we need to do the following conversion.
-//            if (parser.token().kind == IDENTIFIER && scanner.jml()) {
-//                JmlTokenKind tt = JmlTokenKind.allTokens.get(scanner.chars());
-//                IJmlClauseKind tk = Extensions.allKinds.get(scanner.chars());
-//                if (tt != null) {
-//                    scanner.setToken(new JmlToken(tt, tk, null, parser.pos(), parser.endPos()));
-//                }
-//            }  FIXME - do we still need this?
+            // then the scanner has already scanned the next symbol --
+        	// either the end-of-jml or the start of the next JML clause/statement
         } else if (parser.token().ikind == ENDJMLCOMMENT) {
             // FIXME - was -2 here, why?
             if (requireSemicolon) warning(parser.pos(), parser.endPos(), "jml.missing.semi", clauseType.name());
@@ -245,6 +237,7 @@ public abstract class IJmlClauseKind {
         } else {
             parser.nextToken(); // advance to the token after the semi
         }
+        parser.acceptEndJML();
     }
     
     /** Derived classes implement this method to do any typechecking of the tree, which should have

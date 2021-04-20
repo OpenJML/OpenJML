@@ -3533,9 +3533,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             if (tree.token == null) {
                 if (enclosingMethodEnv != null)
-                    jmlVisibility = enclosingMethodEnv.enclMethod.mods.flags & Flags.AccessFlags;
+                    jmlVisibility = env.enclMethod.mods.flags & Flags.AccessFlags;
                 else 
-                    jmlVisibility = enclosingClassEnv.enclClass.mods.flags & Flags.AccessFlags; // FIXME - should this be the visibilty of the initializer block?
+                    jmlVisibility = env.enclClass.mods.flags & Flags.AccessFlags; // FIXME - should this be the visibilty of the initializer block?
             } else {
                 jmlVisibility = tree.modifiers == null ? 0 : (tree.modifiers.flags & Flags.AccessFlags);
             }

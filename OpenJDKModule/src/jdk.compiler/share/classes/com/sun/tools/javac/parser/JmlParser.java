@@ -1370,7 +1370,7 @@ public class JmlParser extends JavacParser {
             }
             also = ext;
             nextToken();
-            skipEndJML();
+            acceptEndJML();
             // get any modifiers
             mods = modifiersOpt();
             ext = methodSpecKeyword();
@@ -1382,7 +1382,7 @@ public class JmlParser extends JavacParser {
             codePos = pos();
             code = true;
             nextToken();
-            skipEndJML();
+            acceptEndJML();
             ext = methodSpecKeywordS();
         }
 
@@ -1420,7 +1420,7 @@ public class JmlParser extends JavacParser {
             if (code) utils.warning(codePos, "jml.misplaced.code");
             // lightweight
         }
-        skipEndJML();
+        acceptEndJML();
 
         Name specCaseName = null;
         if (ext != null && token.kind == TokenKind.IDENTIFIER && S.token(1).kind == TokenKind.COLON) {
@@ -1433,19 +1433,19 @@ public class JmlParser extends JavacParser {
         JmlMethodClause e;
         JCBlock stat = null;
         while (true) {
-            skipEndJML();
             if ((e = parseClause()) != null) {
                 clauses.append(e);
+                acceptEndJML(); // FIXME - part of parseClause?
             } else if (S.jml() && token.kind == TokenKind.LBRACE) {
                 if (stat != null) {
                     // FIXME - error
                 }
                 stat = parseModelProgramBlock();
-            } else {
+                acceptEndJML(); // FIXME - part of parseModelProgramBlock?
+           } else {
                 break;
             }
         }
-        skipEndJML();
 
         if (clauses.size() == 0 && stat == null) {
             if (ext != null && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
@@ -1831,20 +1831,12 @@ public class JmlParser extends JavacParser {
     
     protected List<JCAnnotation> annotationsOpt(Tag kind) {
     	ListBuffer<JCAnnotation> annos = new ListBuffer<>();
-//    	if (kind == Tag.TYPE_ANNOTATION && savedTypeAnnotations != null) {
-//    		annos.addAll(savedTypeAnnotations);
-//    		savedTypeAnnotations = null;
-//    	}
     	while (true) {
     		while (S.jml()) {
     			var mm = Extensions.findKeyword(token);
     			if (!(mm instanceof ModifierKind)) break;
     			var m = (ModifierKind)mm;
     			
-//    			if (kind == Tag.TYPE_ANNOTATION && savedTypeAnnotations != null) {
-//    				System.out.println("OUT OF PLACE TYPE ANNOTATINOS");
-//    				savedTypeAnnotations = null;
-//    			}
     			JCAnnotation t;
     			if (kind == Tag.TYPE_ANNOTATION) {
     		        JCExpression p = utils.nametree(token.pos, token.endPos, m.fullAnnotation, null);
@@ -1856,10 +1848,9 @@ public class JmlParser extends JavacParser {
     			}
     			annos.append(t);
     			nextToken();
-    			while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
+    			acceptEndJML();
     		}
     		var lst = super.annotationsOpt(kind);
-			while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
     		if (lst.isEmpty()) return annos.toList();
     		annos.appendList(lst);
     	}
@@ -2847,7 +2838,8 @@ public class JmlParser extends JavacParser {
         if (token.kind != EOF) nextToken();
     }
 
-    /** Skips through an ENDJMLCOMMENT token, or up to EOF */
+    /** Skips through an ENDJMLCOMMENT token, or up to EOF; 
+     * used to recover from a parsing error in a JML comment */
     public void skipThroughEndOfJML() {
         while (token.ikind != ENDJMLCOMMENT && token.kind != EOF)
             nextToken();
@@ -2856,17 +2848,13 @@ public class JmlParser extends JavacParser {
         while (token.ikind == ENDJMLCOMMENT) nextToken();
     }
     
-    public void skipEndJML() {
+    /** Call this method wherever end-of-jml-comments are allowed; they need not be required.
+     * For example, call at the end of a JML statement or clause in case it is the last one,
+     * but it is allowed to combine multiple consecutive statements into a single comment, so
+     * and end-of-jml marker is not required.
+     */
+    public void acceptEndJML() {
     	while (token.ikind == ENDJMLCOMMENT) nextToken();
-    }
-
-    /** Optionally accepts an ENDJMLCOMMENT token */
-    public void acceptEndOfJMLOptional() {
-        if (token.ikind == ENDJMLCOMMENT) {
-            S.setJml(false);
-            inJmlDeclaration = false;
-            nextToken();
-        }
     }
 
     /**

@@ -210,6 +210,8 @@ public class JmlScanner extends Scanner {
     public void nextToken() {
     	super.nextToken();
     	if (scannerDebug) System.out.println("TOKEN " + jml() + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
+    	if (scannerDebug && token.ikind.toString().equals("ENDJMLCOMMENT")) org.jmlspecs.openjml.Utils.dumpStack();
+    	if (scannerDebug && token.ikind.toString().equals("';'")) org.jmlspecs.openjml.Utils.dumpStack();
     }
 
     // FIXME - is this still needed? is it correct?
