@@ -45,7 +45,7 @@ public class esclocation extends EscBase {
                 +"    mm();\n"
                 +"  }\n"
                 +"  public void mm() {}\n"
-                +"}"  // FIXME - are the following the best error messages we can make?
+                +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m",7
                 ,"/tt/TestJava.java:6: warning: Associated declaration",15
                 ,"/$A/tt/TestJava.jml:2: warning: Precondition conjunct is false: false",18

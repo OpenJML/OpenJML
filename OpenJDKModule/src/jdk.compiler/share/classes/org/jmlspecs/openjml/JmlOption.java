@@ -33,7 +33,7 @@ public class JmlOption {
     static public final Map<String,JmlOption> map = new HashMap<>();
     static public final List<JmlOption> list = new ArrayList<>();
     
-    public boolean check(Context context) { return true; }
+    public boolean check(Context context, boolean negate) { return true; }
 
 
     // Arguments: option as on CL; true=1 argument, false=0 args; help string
@@ -42,7 +42,7 @@ public class JmlOption {
     public static final JmlOption ENDOPTIONS = new JmlOption("--",false,null,"Terminates option processing - all remaining arguments are files",null);  // FIXME - fix or remove
     public static final JmlOption KEYS = new JmlOption("-keys",true,"","Identifiers for optional JML comments",null);
     public static final JmlOption COMMAND = new JmlOption("-command",true,"check","The command to execute (check,esc,rac,compile)",null) {
-    	public boolean check(Context context) {
+    	public boolean check(Context context, boolean negate) {
             Cmd cmd = Cmd.CHECK; // default
             boolean ok = true;
             Utils utils = Utils.instance(context);
@@ -68,7 +68,7 @@ public class JmlOption {
     public static final JmlOption ESC = new JmlOption("-esc",false,null,"Enables static checking","-command=esc");
     public static final JmlOption BOOGIE = new JmlOption("-boogie",false,false,"Enables static checking with boogie",null);
     public static final JmlOption USEJAVACOMPILER = new JmlOption("-java",false,false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null) {
-    	public boolean check(Context context) {
+    	public boolean check(Context context, boolean negate) {
     		boolean b = JmlOption.isOption(context,JmlOption.USEJAVACOMPILER);
     		if (b) {
     			Utils.instance(context).warning("jml.message","The -java option is ignored unless it is the first command-line argument");
@@ -82,7 +82,7 @@ public class JmlOption {
     public static final String langJavelyn = "javelyn";
     public static final String langPlus = "jml+";
     public static final JmlOption LANG = new JmlOption("-lang",true,langPlus,"Set the language variant to use: " + langJML + ", " + langJavelyn + ", or " + langPlus + " (the default)",null) {
-    	public boolean check(Context context) {
+    	public boolean check(Context context, boolean negate) {
     		JmlOptions options = JmlOptions.instance(context);
             String val = options.get(JmlOption.LANG.optionName());
             if (val == null || val.isEmpty()) {
@@ -124,7 +124,7 @@ public class JmlOption {
     public static final JmlOption SHOW_NOT_EXECUTABLE = new JmlOption("-showNotExecutable",false,false,"When on (off by default), warnings about non-executable constructs are issued",null);
 
     public static final JmlOption VERBOSENESS = new JmlOption("-verboseness",true,1,"Level of verboseness (0=quiet...4=debug)",null) {
-    	public boolean check(Context context) {
+    	public boolean check(Context context, boolean negate) {
             String n = JmlOption.VERBOSENESS.optionName().trim();
             String levelstring = JmlOptions.instance(context).get(n);
             if (levelstring != null) {
@@ -140,6 +140,15 @@ public class JmlOption {
             return true;
     	}
     };
+    public static final JmlOption WARN = new JmlOption("-warn",true,"","Comma-separated list of warning keys to enable or disable",null) {
+    	public boolean check(Context context, boolean negate) {
+    		JmlOptions options = JmlOptions.instance(context);
+            String val = options.get(JmlOption.WARN.optionName());
+            String[] keys = val.split(",");
+            for (var k: keys) options.warningKeys.put(k,!negate);
+            return true;
+    	}
+    };
     public static final JmlOption QUIET = new JmlOption("-quiet",false,null,"Only output warnings and errors","-verboseness="+Utils.QUIET);
     public static final JmlOption NORMAL = new JmlOption("-normal",false,null,"Limited output","-verboseness="+Utils.NORMAL);
     public static final JmlOption PROGRESS = new JmlOption("-progress",false,null,"Shows progress through compilation phases","-verboseness="+Utils.PROGRESS);
@@ -149,9 +158,8 @@ public class JmlOption {
     public static final JmlOption SHOW_OPTIONS = new JmlOption("-showOptions",true, "none","When enabled, the values of options and properties are printed, for debugging",null);
 
     public static final JmlOption JMLTESTING = new JmlOption("-jmltesting",false,false,"Only used to generate tracing information during testing",null) {
-        public boolean check(Context context) {
-        	String t = Options.instance(context).get(JmlOption.JMLTESTING.optionName());
-            Utils.testingMode =  ( t != null && !t.equals("false"));
+        public boolean check(Context context, boolean negate) {
+        	Utils.testingMode = Options.instance(context).getBoolean(JmlOption.JMLTESTING.optionName()); // value is already negated if need be
             return true;
         }
     };
@@ -159,7 +167,7 @@ public class JmlOption {
     public static final JmlOption SHOW = new JmlOption("-show",true,"","Show intermediate programs",null,false,"all");
     public static final JmlOption SPLIT = new JmlOption("-split",true,"","Split proof into sections",null);
     public static final JmlOption ESC_BV = new JmlOption("-escBV",true,"auto","ESC: If enabled, use bit-vector arithmetic (auto, true, false)",null) {
-    	public boolean check(Context context) {
+    	public boolean check(Context context, boolean negate) {
     		JmlOptions options = JmlOptions.instance(context);
             String val = options.get(JmlOption.ESC_BV.optionName());
             if (val == null || val.isEmpty()) {
@@ -176,7 +184,7 @@ public class JmlOption {
     public static final JmlOption ESC_TRIGGERS = new JmlOption("-triggers",false,true,"ESC: Enable quantifier triggers in SMT encoding (default true)",null);
     public static final JmlOption ESC_EXIT_INFO = new JmlOption("-escExitInfo",false,true,"ESC: Show exit location for postconditions (default true)",null);
     public static final JmlOption ESC_MAX_WARNINGS = new JmlOption("-escMaxWarnings",true,"all","ESC: Maximum number of warnings to find per method",null) {
-    	public boolean check(Context context) {
+    	public boolean check(Context context, boolean negate) {
             Utils utils = Utils.instance(context);
             String limit = JmlOption.value(context,JmlOption.ESC_MAX_WARNINGS);
             if (limit == null || limit.isEmpty() || limit.equals("all")) {
@@ -199,7 +207,7 @@ public class JmlOption {
     public static final JmlOption CE = new JmlOption("-ce",false,null,"ESC: Enables output of complete, raw counterexample","-counterexample");
     public static final JmlOption SUBEXPRESSIONS = new JmlOption("-subexpressions",false,false,"ESC: Enables tracing with subexpressions",null);
     public static final JmlOption FEASIBILITY = new JmlOption("-checkFeasibility",true,"all","ESC: Check feasibility of assumptions",null) {
-    	public boolean check(Context context) {
+    	public boolean check(Context context, boolean negate) {
     		JmlOptions options = JmlOptions.instance(context);
             Utils utils = Utils.instance(context);
             String check = JmlOption.value(context,JmlOption.FEASIBILITY);

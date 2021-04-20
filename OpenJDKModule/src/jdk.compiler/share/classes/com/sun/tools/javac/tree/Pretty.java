@@ -1014,7 +1014,7 @@ public class Pretty extends JCTree.Visitor {
     public void visitIf(JCIf tree) {
         try {
             print("if ");
-            if (tree.cond.hasTag(PARENS)) {
+            if (tree.cond != null && tree.cond.hasTag(PARENS)) {
                 printExpr(tree.cond);
             } else {
                 print("(");

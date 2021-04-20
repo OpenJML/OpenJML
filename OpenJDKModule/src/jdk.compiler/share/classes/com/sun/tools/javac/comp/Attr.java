@@ -3439,11 +3439,9 @@ public class Attr extends JCTree.Visitor {
             return lambdaEnv;
         }
 
-    protected boolean visitReferenceInJML() { return false; }   // OPENJML - added OpenJML callback
-
     @Override
     public void visitReference(final JCMemberReference that) {
-        if (pt().isErroneous() || (pt().hasTag(NONE) && pt() != Type.recoveryType && !visitReferenceInJML())) {   // OPENJML - added OpenJML callback
+        if (pt().isErroneous() || (pt().hasTag(NONE) && pt() != Type.recoveryType)) {
             if (pt().hasTag(NONE) && (env.info.enclVar == null || !env.info.enclVar.type.isErroneous())) {
                 //method reference only allowed in assignment or method invocation/cast context
                 log.error(that.pos(), Errors.UnexpectedMref);

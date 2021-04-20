@@ -532,6 +532,9 @@ public class Main extends com.sun.tools.javac.main.Main {
     	return compile(args,context);
     }
     
+    public void postOptionProcessing() {
+    }
+    
     public java.util.Collection<JavaFileObject> fileObjects;
 
     @Override

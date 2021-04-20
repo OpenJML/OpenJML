@@ -10,10 +10,8 @@ import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree.IJmlLoop;
-import org.jmlspecs.openjml.JmlTree.JmlIfStatement;
-import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
-import org.jmlspecs.openjml.JmlTree.JmlSwitchStatement;
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.JmlTreeUtils;
 
 import com.sun.tools.javac.code.Type;
@@ -44,6 +42,7 @@ public class ReachableStatement extends JmlExtension {
     public static final String splitID = "split";
     public static final String haltID = "halt";
     
+    // FIXME - combine this with StatementExprType
     public static final IJmlClauseKind reachableClause = new ExprStatementType(reachableID);
 
     public static final IJmlClauseKind unreachableClause = new ExprStatementType(unreachableID);
@@ -115,9 +114,18 @@ public class ReachableStatement extends JmlExtension {
         }
 
         @Override
-        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
-            // TODO Auto-generated method stub
-            return null;
+        public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
+        	JmlTree.JmlStatementExpr clause = (JmlTree.JmlStatementExpr)tree;
+        	boolean prevAllowJML = attr.jmlresolve.setAllowJML(true);
+        	attr.jmlenv = attr.jmlenv.pushCopy();
+        	attr.jmlenv.inPureEnvironment = true;
+        	attr.jmlenv.currentClauseKind = clause.clauseType;
+        	// unreachable statements have a null expression
+	        if (clause.expression != null) attr.attribExpr(clause.expression,env,syms.booleanType);
+        	if (clause.optionalExpression != null) attr.attribExpr(clause.optionalExpression,env,Type.noType);
+        	attr.jmlenv = attr.jmlenv.pop();
+        	attr.jmlresolve.setAllowJML(prevAllowJML);
+        	return null; // No type returned for the clause
         }
     }
     
