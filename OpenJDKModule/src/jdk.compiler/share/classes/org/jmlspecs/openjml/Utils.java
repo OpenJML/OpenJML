@@ -902,7 +902,7 @@ public class Utils {
             List<Type> ifs = ccc.getInterfaces();
             for (Type ifc : ifs) {
                 ClassSymbol sym = (ClassSymbol)ifc.tsym;
-                if (interfaceSet.add(sym)) interfaces.add(sym);
+               if (interfaceSet.add(sym)) interfaces.add(sym);
             }
         }
         // FIXME - the interfaces are not in a good order
@@ -931,7 +931,10 @@ public class Utils {
         if (isJMLStatic(m)) {
             methods.add(m); 
         } else {
-            for (ClassSymbol c: parents((ClassSymbol)m.owner, false)) {
+        	// FIXME - the 'true' here should be false -- it seems that model interface enclosed within 
+        	// and extending java interfaces do not show those interfaces in getIntrerfaces()
+        	// are not getting their 
+            for (ClassSymbol c: parents((ClassSymbol)m.owner, true)) {
                for (Symbol mem: c.members().getSymbols(
             		   mem->(mem instanceof MethodSymbol &&
             				   mem.name.equals(m.name) &&
@@ -1750,9 +1753,15 @@ public class Utils {
         
     }
     
+    // FIXME - git rid of this one, in favor of the one below
     public void unexpectedException(String msg, Exception e) {
     	error("jml.internal","Unexpected exception: " + msg + " " + e);
-    	e.printStackTrace(log.getWriter(WriterKind.ERROR));
+    	e.printStackTrace(System.out);
+    }
+    
+    public void unexpectedException(Exception e, String msg) {
+    	error("jml.internal","Unexpected exception: " + msg + " " + e);
+    	e.printStackTrace(System.out);
     }
     
     public static boolean debug() {

@@ -280,7 +280,7 @@ public class JmlSpecs {
      */
     public boolean appendInternalSpecs(boolean verbose, java.util.List<Dir> dirs) {
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
-        if (true) return true; // FIXME _ until we can include specs internally
+//        if (true) return true; // FIXME _ until we can include specs internally
        
         // Look for jmlspecs.jar file on the classpath
         // If present, use it.
@@ -353,9 +353,9 @@ public class JmlSpecs {
 // FIXME - fix for Eclipse dev environment
 //        Bundle specs = null;
 //        try {
-//            specs = Platform.getBundle("org.jmlspecs.Specs");
+//        	specs = Platform.getBundle("org.jmlspecs.Specs");
 //        } catch (Exception e) {
-//            // On windows an exception can be thrown
+//        	// On windows an exception can be thrown
 //        }
 //        if (specs != null) {
 //        	String pp = specs.getLocation();
@@ -363,28 +363,42 @@ public class JmlSpecs {
 //        	int k = pp.lastIndexOf(":");
 //        	if (k >= 0) pp = pp.substring(k+1);
 //        	Dir dd = make(pp + "/" + libToUse);
-//            if (dd.exists()) {
-//                if (verbose) noticeWriter.println("Using internal specs F:" + dd);
-//                dirs.add(dd);
-//                return true;
-//            }
+//        	if (dd.exists()) {
+//        		if (verbose) noticeWriter.println("Using internal specs F:" + dd);
+//        		dirs.add(dd);
+//        		return true;
+//        	}
 //        }
         
-        // This option is needed for running command-line tests in the development environment.
-        // sy should be the trunk directory of the Specs project
-        String sy = Options.instance(context).get(Strings.eclipseSpecsProjectLocation);
-        if (sy != null) {
-            boolean found = false;
-            Dir dd;
-            dd = make(sy + "/" + libToUse);
-            if (dd.exists()) {
-                dirs.add(dd);
-                found = true;
+//        // This option is needed for running command-line tests in the development environment.
+//        // sy should be the trunk directory of the Specs project
+//        String sy = Options.instance(context).get(Strings.eclipseSpecsProjectLocation);
+//        if (sy != null) {
+//            boolean found = false;
+//            Dir dd;
+//            dd = make(sy + "/" + libToUse);
+//            if (dd.exists()) {
+//                dirs.add(dd);
+//                found = true;
+//            }
+//            if (!found) log.error("jml.internal.specs.dir.not.exist",sy);
+//            return true;
+//        } else {
+//            log.error("jml.internal.specs.dir.not.defined");
+//        }
+        
+        
+        // Running in test environment
+        String sy = "../../Specs/specs";
+        sy = "/Users/davidcok/projects/OpenJMLB/Specs/specs"; // FIXME - make this environment independent
+        {
+            File f = new File(sy);
+            if (f.exists() && f.isDirectory()) {
+            	dirs.add(new FileSystemDir(f));
+            	return true;
+            } else {
+            	log.error("jml.internal.specs.dir.not.exist",sy);
             }
-            if (!found) log.error("jml.internal.specs.dir.not.exist",sy);
-            return true;
-        } else {
-            log.error("jml.internal.specs.dir.not.defined");
         }
         return false;
     }
@@ -1247,6 +1261,7 @@ public class JmlSpecs {
         JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase(csm, false, MethodSimpleClauseExtensions.behaviorClause,null,clauses,null);
         mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
         if (decl == null) mspecs.cases.deSugared = mspecs.cases;
+        if (Utils.debug()) System.out.println("DEFAULTSPECS " + sym + " " + cs.hashCode());
         return mspecs;
     }
     

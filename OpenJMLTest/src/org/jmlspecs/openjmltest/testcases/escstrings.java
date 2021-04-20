@@ -77,7 +77,7 @@ public class escstrings extends EscBase {
     /** Tests String equality */
     @Test
     public void testStringEqualsNoSpecs1a() {
-        main.addOptions("-no-internalSpecs");
+        main.addOptions("-no-internalSpecs","-no-warn=missing-specs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -101,7 +101,7 @@ public class escstrings extends EscBase {
     /** Tests String equality */
     @Test
     public void testStringEqualsNoSpecs1() {
-        main.addOptions("-no-internalSpecs");
+        main.addOptions("-no-internalSpecs","-no-warn=missing-specs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -124,7 +124,7 @@ public class escstrings extends EscBase {
     /** Tests String equality */
     @Test
     public void testStringEqualsNoSpecs2() {
-        main.addOptions("-internalSpecs=false");
+        main.addOptions("-internalSpecs=false","-no-warn=missing-specs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -325,8 +325,8 @@ public class escstrings extends EscBase {
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",27
-                ,"$SPECS/specs/java/lang/String.jml:340: warning: Associated declaration",30
-                ,optional("$SPECS/specs/java/lang/CharSequence.jml:70: warning: Precondition conjunct is false: 0 <= index < charArray.length",34)
+                ,"$SPECS/specs/java/lang/String.jml:341: warning: Associated declaration",30
+                ,"$SPECS/specs/java/lang/CharSequence.jml:78: warning: Precondition conjunct is false: 0 <= index < charArray.length",34
                 );
     }
 
@@ -368,8 +368,8 @@ public class escstrings extends EscBase {
                 ,anyorder(
                         seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m",12)
                         ,seq(seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43
-                             ,"$SPECS/specs/java/lang/String.jml:340: warning: Associated declaration",30)
-                             ,optional("$SPECS/specs/java/lang/CharSequence.jml:70: warning: Precondition conjunct is false: 0 <= index < charArray.length",34)
+                             ,"$SPECS/specs/java/lang/String.jml:341: warning: Associated declaration",30)
+                             ,"$SPECS/specs/java/lang/CharSequence.jml:78: warning: Precondition conjunct is false: 0 <= index < charArray.length",34
                             )
                                 		
                         )

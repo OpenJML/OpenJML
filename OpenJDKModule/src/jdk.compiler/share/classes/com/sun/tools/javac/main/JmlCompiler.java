@@ -156,13 +156,11 @@ public class JmlCompiler extends JavaCompiler {
     /** Overridden in order to put out some progress information about stopping */
     @Override
     public  <T> List<T> stopIfError(CompileState cs, List<T> list) {
-        if (shouldStop(cs)) {
-            if (JmlOption.isOption(context,JmlOption.STOPIFERRORS)) {
-                if (utils.progress()) context.get(Main.IProgressListener.class).report(1,"Stopping because of parsing errors");
-                return List.<T>nil();
-            }
-        }
-        return list;
+    	if (shouldStop(cs) && JmlOption.isOption(context,JmlOption.STOPIFERRORS)) {
+    		if (utils.progress()) context.get(Main.IProgressListener.class).report(1,"Stopping because of parsing errors");
+    		return List.<T>nil();
+    	}
+        return super.stopIfError(cs, list);
     }
 
     /** We override this method instead of the desugar method that does one

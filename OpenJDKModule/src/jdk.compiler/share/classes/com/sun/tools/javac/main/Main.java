@@ -298,6 +298,8 @@ public class Main {
             fileManager.handleOption(Option.MULTIRELEASE.primaryName, list.iterator());
         }
 
+        postOptionProcessing();
+        
         // init JavaCompiler
         JavaCompiler comp = JavaCompiler.instance(context);
 
@@ -371,6 +373,7 @@ public class Main {
         }
     }
     
+    protected void postOptionProcessing() {}
     protected void adjustArgs(Arguments args)  {}
 
     void printArgumentsToFile(String... params) {

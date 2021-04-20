@@ -69,7 +69,7 @@ public class FunctionLikeExpressions extends ExpressionExtension {
             syms = Symtab.instance(context);
             Type t = syms.errType;
             if (n > 0) {
-            	for (var arg: tree.args) arg.type = attr.attribExpr(arg, localEnv, JmlTypes.instance(context).TYPE);
+            	for (var arg: tree.args) arg.type = attr.attribExpr(arg, localEnv, Type.noType);
                 Type tt = tree.args.get(0).type;
             	if (tt == null) {
                 	System.out.println("NULLTYPE - Unexpected null type in \\elemtype");

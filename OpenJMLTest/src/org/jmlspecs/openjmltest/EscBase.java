@@ -174,7 +174,7 @@ public abstract class EscBase extends JmlTestCase {
     @Override
     public void setUp() throws Exception {
         if (captureOutput) collectOutput(true);
-        testspecpath = testspecpath2;
+        testspecpath = testspecpath1;
         ignoreNotes = true;
         super.setUp();
         main.addOptions("-specspath",   testspecpath);

@@ -101,6 +101,7 @@ JML options:
   -showNotImplemented        When on (off by default), warnings about unimplemented constructs are issued
   -showNotExecutable         When on (off by default), warnings about non-executable constructs are issued
   -verboseness               Level of verboseness (0=quiet...4=debug)
+  -warn                      Comma-separated list of warning keys to enable or disable
   -quiet                     Only output warnings and errors [-verboseness=0]
   -normal                    Limited output [-verboseness=1]
   -progress                  Shows progress through compilation phases [-verboseness=2]

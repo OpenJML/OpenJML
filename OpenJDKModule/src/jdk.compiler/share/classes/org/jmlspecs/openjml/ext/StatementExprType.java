@@ -100,7 +100,10 @@ public class StatementExprType extends IJmlClauseKind.Statement {
         attr.jmlenv.inPureEnvironment = true;
         attr.jmlenv.currentClauseKind = tree.clauseType;
         // unreachable statements have a null expression
-        if (tree.expression != null) attr.attribExpr(tree.expression,env,isUse ? Type.noType : syms.booleanType);
+        if (tree.expression != null) {
+        	var ty = attr.attribExpr(tree.expression,env,isUse ? Type.noType : syms.booleanType);
+        	tree.expression.type = syms.booleanType; // Set to boolean, even if an error has occurred, to avoid cascading error messages
+        }
         if (tree.optionalExpression != null) attr.attribExpr(tree.optionalExpression,env,Type.noType);
         attr.jmlenv = attr.jmlenv.pop();
         attr.jmlresolve.setAllowJML(prevAllowJML);

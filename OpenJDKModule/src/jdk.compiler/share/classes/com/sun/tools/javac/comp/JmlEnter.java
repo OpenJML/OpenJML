@@ -484,7 +484,9 @@ public class JmlEnter extends Enter {
 		boolean isJML = utils.isJML(specDecl);
 		boolean isOwnerJML = utils.isJML(owner.flags());
 		boolean isModel = utils.hasMod(specDecl.mods, Modifiers.MODEL);
+		boolean isLocal = !(owner instanceof ClassSymbol || owner instanceof PackageSymbol);
 		ClassSymbol csym = (ClassSymbol)owner.members().findFirst(className, s->(s instanceof ClassSymbol && s.owner == owner));
+		if (isLocal) System.out.println("LCOCL-SPECSENTER " + specDecl.name);
 		boolean ok = false;
 		try {
 			if (isOwnerJML && isModel) {
@@ -914,13 +916,20 @@ public class JmlEnter extends Enter {
 			// Enter the method in the parent class
 			msym = mdecl.sym; // makeAndEnterMethodSym(mdecl, specsEnv); // Also calls putSpecs
 			enclScope.enter(msym);
+			var sp = specs.getLoadedSpecs(msym);
+			sp.javaDecl = null;
+			sp.specDecl = mdecl;
+			sp.javaSym = null;
+			sp.specSym = mdecl.sym;
+			sp.javaEnv = null;
+
 			
 			if (!isModel && mdecl.body != null) {
 				utils.error(mdecl.body, "jml.message", "The specification of the method " + csym + "." + msym + " must not have a body");
 			}
-			utils.note(true,  "Entered JML method: " + msym + " (owner: " + csym + ")" );
+			if (utils.verbose()) utils.note("Entered JML method: " + msym + " (owner: " + csym + ")" );
     	} else {
-			// Found a matching binary method
+			// Found a matching Java method
     		final var mmsym = msym;
     		JmlMethodDecl javaMDecl = javaDecl == null ? null : (JmlMethodDecl)find(javaDecl.defs, t->(t instanceof JmlMethodDecl && ((JmlMethodDecl)t).sym == mmsym));
     		boolean matchIsJML = utils.isJML(msym.flags());
@@ -951,10 +960,15 @@ public class JmlEnter extends Enter {
     			// Attempt recovery by removing the offending annotation
     			utils.removeAnnotation(mdecl.mods,  Modifiers.MODEL);
     		}
-    		if (mdecl.restype != null) {
+    		if (mdecl != javaMDecl && mdecl.restype != null) {
     			Type t = Attr.instance(context).attribType(mdecl.restype,csym);
     			// The difficulty here is that TypeVars show up as different types,
     			// and that binary types are erased, so do not have type arguments.
+    			try {
+    				msym.getReturnType();
+    			} catch (Exception e) {
+    				System.out.println("RETTYPE " + msym + " " + t + " " + mdecl.sym + " " + (msym.type != null) + " " + msym.type + " " + mdecl.sym.type);
+    			}
     			if (!specsTypeSufficientlyMatches(t, msym.getReturnType(), javaMDecl == null)) {
     				utils.error(mdecl.restype,  "jml.mismatched.return.type", 
     						msym.enclClass().fullname + "." + msym.toString(),t,msym.getReturnType());
@@ -975,7 +989,7 @@ public class JmlEnter extends Enter {
     			// In this case we did not do a separate attribution of the method signature
     			// Defensive check
     			if (mdecl.sym != msym) utils.error(mdecl.sourcefile, mdecl, "jml.internal.notsobad", "msym values do not match: " + mdecl.sym + " " + msym);
-    			utils.note("Matched method: (self) " + msym + " (owner: " + msym.owner +")");
+    			if (utils.verbose()) utils.note("Matched method: (self) " + msym + " (owner: " + msym.owner +")");
     			var sp = specs.getLoadedSpecs(msym);
     			sp.javaDecl = javaMDecl;
     			sp.specDecl = mdecl;
@@ -983,7 +997,7 @@ public class JmlEnter extends Enter {
     			sp.specSym = mdecl.sym;
     			sp.javaEnv = sp.specsEnv;
     		} else if (javaMDecl == null) {
-    			utils.note("Matched method: (binary) " + msym + " (owner: " + msym.owner +")");
+    			if (utils.verbose()) utils.note("Matched method: (binary) " + msym + " (owner: " + msym.owner +")");
     			// No specs entry for msym -- msym is just the symbol created on loading the binary class file
     			var ssp = specs.getLoadedSpecs(mdecl.sym);
 //    			if (msym.toString().contains("arraycopy")) {
@@ -1002,7 +1016,7 @@ public class JmlEnter extends Enter {
     			specs.dupSpecs(msym,  mdecl.sym);
     			checkMethodMatch(javaMDecl,msym,mdecl,csym);
     		} else { // javaMDecl != mdecl
-    			utils.note("Matched method: " + msym + " (owner: " + msym.owner +")");
+    			if (utils.verbose()) utils.note("Matched method: " + msym + " (owner: " + msym.owner +")");
     			var jsp = specs.getLoadedSpecs(msym);
     			var ssp = specs.getLoadedSpecs(mdecl.sym);
     			jsp.javaDecl = ssp.javaDecl = javaMDecl;
@@ -1369,7 +1383,8 @@ public class JmlEnter extends Enter {
     			} else {
     				// No specs -- binary with no .jml file
     				recordEmptySpecs(csymbol);
-    				if (utils.verbose()) utils.note("No specs file found for binary " + csymbol);
+    				if (org.jmlspecs.openjml.JmlOptions.instance(context).warningKeys.getOrDefault("missing-specs",false))
+    					utils.warning("jml.message","[missing-specs] No specifications file found for binary " + csymbol);
     			}
     		} finally {
 				if (utils.verbose()) utils.note("Completed entering specs for " + csymbol + (javaCU==null?" (binary)":(" (" + javaCU.sourcefile + ")")));

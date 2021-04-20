@@ -130,9 +130,7 @@ public class jmltypes extends TCBase {
                 "}}\n"
                 ,"/A.java:4: error: incompatible types: java.lang.Class<java.lang.Object> cannot be converted to \\TYPE",29
                 ,"/A.java:5: error: incompatible types: \\TYPE cannot be converted to java.lang.Class<?>",27
-                ,"/A.java:6: error: bad operand types for binary operator '=='\n"
-                		+ "  first type:  \\TYPE\n"
-                		+ "  second type: java.lang.Class<java.lang.Object>",39
+                ,"/A.java:6: error: No operator for \\TYPE == java.lang.Class<java.lang.Object>",39
                 ,"/A.java:8: error: The arguments to <: must both be \\TYPE or both be Class",26
                 ,"/A.java:9: error: The arguments to <: must both be \\TYPE or both be Class",31
                 ,"/A.java:10: error: unexpected type\n  required: class\n  found:    value",33

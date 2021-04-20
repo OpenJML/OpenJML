@@ -58,6 +58,8 @@ public class JmlOptions extends Options {
 
     /** The set of keys that control the use of optional comments, set in setupOptions() */
     public Set<String> commentKeys = new HashSet<String>();
+    
+    public Map<String,Boolean> warningKeys = new java.util.HashMap<>();
 
     protected JmlOptions(Context context) {
         super(context);
@@ -81,7 +83,7 @@ public class JmlOptions extends Options {
             Object d = opt.defaultValue();
             String s = d == null ? null : d.toString();
             put(opt.optionName(),s);
-            opt.check(context);
+            opt.check(context,false);
         }
     }
 
@@ -275,21 +277,12 @@ public class JmlOptions extends Options {
                 o = null;
             }
         } else {
-            if (negate) {
-                if (o.defaultValue() instanceof Boolean) {
-                    JmlOption.setOption(context, o, false);
-                } else if (o.defaultValue() == null) {
-                    options.put(s,null);
-                } else {
-                    options.put(s,o.defaultValue().toString());
-                }
-            } else {
-                if (o.defaultValue() instanceof Boolean) {
-                    JmlOption.setOption(context, o, true);
-                } else {
-                    options.put(s,res);
-                }
-            }
+        	if (o.defaultValue() instanceof Boolean) {
+        		JmlOption.setOption(context, o, !negate);
+        	} else {
+        		options.put(s,res);
+        		// Use negate with call of check later on
+        	}
         }
 
         if (o != null && o.equals(JmlOption.PROPERTIES)){
@@ -305,7 +298,7 @@ public class JmlOptions extends Options {
             }
             o = null;
         }
-        if (o != null) o.check(context);
+        if (o != null) o.check(context, negate);
     }
     
     public void allHelp(boolean details) {

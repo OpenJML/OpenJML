@@ -525,6 +525,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         //copy.line = that.line;
         copy.source = that.source;
         copy.type = that.type;
+        System.out.println("COPIED " + that.hashCode() + " TO " + copy.hashCode());
         return copy;
     }
 
