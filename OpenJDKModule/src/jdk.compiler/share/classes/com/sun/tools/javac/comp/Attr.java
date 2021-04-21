@@ -527,7 +527,7 @@ public class Attr extends JCTree.Visitor {
             return chk.checkType(pos, found, pt, checkContext);
         }
 
-        public ResultInfo dup(Type newPt) { // OPENJML - protected to public
+        protected ResultInfo dup(Type newPt) {
             return new ResultInfo(pkind, newPt, checkContext, checkMode);
         }
 

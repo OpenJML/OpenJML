@@ -277,43 +277,59 @@ public class typeclauses extends TCBase {
     
     @Test
     public void testRepresents6() {
-        helpTCF("A.java","public class A {\n //@ model int i; represents j = 0\n}"
-                ,"/A.java:2: error: The expression is invalid or not terminated by a semicolon",35
-                ,"/A.java:2: error: cannot find symbol"+eol+"  symbol:   variable j"+eol+"  location: class A",30
+    	expectedExit = 0;
+        helpTCF("A.java","public class A {\n //@ model int i; represents i = 0\n}"
+                ,"/A.java:2: warning: Inserting missing semicolon at the end of a represents statement",35
                 );
     }
     
     @Test
     public void testRepresents7() {
         helpTCF("A.java","public class A {\n //@ model int i; represents x = 0\n}"
-                ,"/A.java:2: error: The expression is invalid or not terminated by a semicolon",35
+                ,"/A.java:2: warning: Inserting missing semicolon at the end of a represents statement",35
                 ,"/A.java:2: error: cannot find symbol"+eol+"  symbol:   variable x"+eol+"  location: class A",30
                 );
     }
     
     @Test
     public void testRepresents8() {
-        helpTCF("A.java","public class A {\n //@ model int i; represents x.* = 0\n}"
-                ,"/A.java:2: error: Expected an identifier after the dot in this context",32
-                ,"/A.java:2: error: A represents clause must have a = or \\such_that after the identifier",37
-//                ,"/A.java:2: error: cannot find symbol"+eol+"  symbol:   variable x"+eol+"  location: class A",30
+        helpTCF("A.java","public class A {\n //@ model Object x; represents x.* = 0;\n}"
+                ,"/A.java:2: error: Field accesses are not permitted in a represents clause",34
                 );
     }
     
-    @Test  // FIXME - why is strict on here? isn't the default false
+    @Test 
     public void testRepresents9() {
-        helpTCF("A.java","public class A {\n //@ model int i; represents x[*] = 0\n}"
-                ,"/A.java:2: error: Strict JML does not allow the [*] syntax",32
-                ,"/A.java:2: error: The expression is invalid or not terminated by a semicolon",38
-                ,"/A.java:2: error: cannot find symbol"+eol+"  symbol:   variable x"+eol+"  location: class A",30
+    	expectedExit = 0;
+    	main.addOptions("-lang=jml"); // Part of test
+        helpTCF("A.java","public class A {\n //@ model int[] x; represents x[*] = 0;\n}"
+                ,"/A.java:2: warning: Strict JML does not allow the [*] syntax",34
+                );
+    }
+    
+    @Test
+    public void testRepresents9a() {
+    	main.addOptions("-lang=jml+"); // Part of test
+        helpTCF("A.java","public class A {\n //@ represents x[*] = 0;\n}"
+                ,"/A.java:2: error: cannot find symbol"+eol+"  symbol:   variable x"+eol+"  location: class A",17
+                ,"/A.java:2: error: Represents target with wild-card index must be an array: x[*]",17
+                );
+    }
+    
+    @Test
+    public void testRepresents9b() {
+        helpTCF("A.java","public class A {\n //@ model int x; represents x[*] = 0;\n}"
+                ,"/A.java:2: error: Represents target with wild-card index must be an array: x[*]",30
                 );
     }
     
     @Test
     public void testRepresents10() {
         helpTCF("A.java","public class A {\n //@ model int i; represents x[3] = 0;\n}"
-                ,"/A.java:2: error: cannot find symbol\n  symbol:   variable x\n  location: class A",30
-                );
+                ,"/A.java:2: error: Array ranges are not permitted in a represents clause",30
+                ,"/A.java:2: error: cannot find symbol"+eol+"  symbol:   variable x"+eol+"  location: class A",30
+                ,"/A.java:2: error: Represents target with wild-card index must be an array: x[3]",30
+               );
     }
     
     @Test
@@ -701,9 +717,9 @@ public class typeclauses extends TCBase {
 
     @Test
     public void testInitializer5() {
-        addMockFile("$A/A.jml","public class A {\n int i; static int j; static {} \n}");
+        addMockFile("$A/A.jml","public class A {\n  static {} \n}");
         helpTCF("A.java","public class A {\n int i; static int j;  \n}"
-                ,"/$A/A.jml:2: error: Initializer blocks are not allowed in specifications",30
+                ,"/$A/A.jml:2: error: Initializer blocks are not allowed in specifications",10
         );
     }
 

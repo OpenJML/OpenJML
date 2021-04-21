@@ -1686,8 +1686,7 @@ public class JmlParser extends JavacParser {
                         // Caution: Java will not expect the field selector to
                         // be null
                         e = toP(jmlF.at(dotpos).Select(e, (Name) null));
-                        if (token.kind != COMMA && token.kind != SEMI
-                                && token.kind != RPAREN) {
+                        if (token.kind == DOT || token.kind == LBRACKET) { // expected token: ; ) = ,
                             utils.error(pos(), endPos(), "jml.not.after.star");
                             skipToCommaOrSemi();
                         }
@@ -1777,7 +1776,7 @@ public class JmlParser extends JavacParser {
             nextToken(); // move past the LBRACKET
             if (token.kind == STAR) {
                 if (strictId) {
-                    utils.error(pos(), endPos(), "jml.no.star.in.strict.mode");
+                    utils.warning(pos(), endPos(), "jml.no.star.in.strict.mode");
                 }
                 nextToken();
                 if (token.kind == RBRACKET) {

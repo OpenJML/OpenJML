@@ -2696,7 +2696,7 @@ public class Resolve {
      *  @param name      The identifier's name.
      *  @param kind      The set of admissible symbol kinds for the identifier.
      */
-    Symbol resolveIdent(DiagnosticPosition pos, Env<AttrContext> env,
+    public Symbol resolveIdent(DiagnosticPosition pos, Env<AttrContext> env,  // OPENJML - package to public
                         Name name, KindSelector kind) {
         return accessBase(
             findIdent(pos, env, name, kind),

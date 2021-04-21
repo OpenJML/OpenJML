@@ -158,10 +158,8 @@ public class QuantifiedExpressions extends ExpressionExtension {
             Type resultType = syms.errType;
             try {
                 
-            	Type rangeType = null;
                 if (that.range != null) {
-                	rangeType = attr.attribExpr(that.range, localEnv, syms.booleanType);
-                	rangeType = attr.check(that.range, rangeType, KindSelector.VAL, attr.resultInfo.dup(syms.booleanType));
+                	that.range.type = attr.attribExpr(that.range, localEnv, syms.booleanType);
                 }
 
                 Type t;
@@ -170,8 +168,9 @@ public class QuantifiedExpressions extends ExpressionExtension {
                     case qforallID:
                         t = attr.attribExpr(that.value, localEnv, syms.booleanType);
                         if (that.triggers != null) {
-                            ListBuffer<Type> argtypesBuf = new ListBuffer<Type>();
-                            attr.attribArgs(that.triggers, localEnv, argtypesBuf);
+                        	for (var tr: that.triggers) {
+                        		attr.attribExpr(tr, localEnv, Type.noType);
+                        	}
                             // FIXME - need to check well-formedness of triggers
                         }
                         resultType = syms.booleanType;
@@ -179,7 +178,7 @@ public class QuantifiedExpressions extends ExpressionExtension {
 
                     case qnumofID:
                         t = attr.attribExpr(that.value, localEnv, syms.booleanType);
-                        resultType = syms.intType; // FIXME - int? long? bigint?
+                        resultType = com.sun.tools.javac.code.JmlTypes.instance(context).BIGINT;
                         break;
 
                     case qmaxID:
@@ -221,6 +220,7 @@ public class QuantifiedExpressions extends ExpressionExtension {
                 attr.quantifiedExprs.remove(attr.quantifiedExprs.size()-1);
                 localEnv.info.scope().leave();
             }
+            if (that.range != null && that.range.type.isErroneous()) resultType = that.type = that.range.type;
             return resultType;
         }
 
@@ -259,13 +259,12 @@ public class QuantifiedExpressions extends ExpressionExtension {
             init(parser);
             ListBuffer<JCTree.JCStatement> vdefs = new ListBuffer<>();
             int pos = parser.pos();
-            parser.nextToken();
+            parser.nextToken(); // advance over keyword
             do {
-                int pm = parser.pos();
-                mods = parser.jmlF.Modifiers(0L);
-                {
-                    mods.pos = pm;
-                    parser.storeEnd(mods,pm);
+                if (mods == null) {
+                	mods = parser.jmlF.Modifiers(0L);
+                    mods.pos = pos;
+                    parser.storeEnd(mods,pos);
                 }
                 utils.setJML(mods);
                 JCExpression type = parser.parseType();
