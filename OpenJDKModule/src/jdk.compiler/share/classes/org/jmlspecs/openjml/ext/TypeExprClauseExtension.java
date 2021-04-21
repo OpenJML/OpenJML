@@ -15,6 +15,9 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static org.jmlspecs.openjml.ext.MiscExtensions.everythingID;
 import static org.jmlspecs.openjml.ext.MiscExtensions.nothingID;
 import static org.jmlspecs.openjml.ext.MiscExtensions.notspecifiedID;
+import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.invariantClause;
+
+import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
@@ -27,13 +30,20 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConstraint;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
 import org.jmlspecs.openjml.JmlTree.Maker;
 
+import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Kinds.KindSelector;
+import com.sun.tools.javac.code.Symbol.PackageSymbol;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
@@ -138,8 +148,58 @@ public class TypeExprClauseExtension extends JmlExtension {
 
         
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
-            // TODO Auto-generated method stub
-            return null;
+        	JmlTypeClauseExpr tree = (JmlTypeClauseExpr)expr;
+            boolean isStatic = tree.modifiers != null && attr.isStatic(tree.modifiers);
+            JavaFileObject old = log.useSource(tree.source);
+            attr.jmlenv = attr.jmlenv.pushCopy();
+            VarSymbol previousSecretContext = attr.currentSecretContext;
+            boolean prevAllowJML = attr.jmlresolve.setAllowJML(true);
+            long prevVisibility = attr.jmlVisibility;
+            Env<AttrContext> localEnv = env; // FIXME - here and in constraint, should we make a new local environment?
+            try {
+                attr.jmlenv.inPureEnvironment = true;
+                attr.jmlenv.currentClauseKind = tree.clauseType;
+                // invariant, axiom, initially
+                //if (tree.token == JmlToken.AXIOM) isStatic = true; // FIXME - but have to sort out use of variables in axioms in general
+                if (isStatic) attr.bumpStatic(localEnv);
+
+                if (tree.clauseType == invariantClause) {
+                	attr.jmlVisibility = -1;
+                	attr.attribAnnotationTypes(tree.modifiers.annotations,env); // Is this needed?
+                    JCAnnotation a = attr.findMod(tree.modifiers,Modifiers.SECRET);
+                    attr.jmlVisibility = tree.modifiers.flags & Flags.AccessFlags;
+                    if (a != null) {
+                        if (a.args.size() != 1) {
+                        	utils.error(tree.pos(),"jml.secret.invariant.one.arg");
+                        } else {
+                            Name datagroup = attr.getAnnotationStringArg(a);
+                            if (datagroup != null) {
+                                //Symbol v = rs.findField(env,env.enclClass.type,datagroup,env.enclClass.sym);
+                                Symbol v = JmlResolve.instance(context).resolveIdent(a.args.get(0).pos(),env,datagroup,KindSelector.VAR);
+                                if (v instanceof VarSymbol) attr.currentSecretContext = (VarSymbol)v;
+                                else if (v instanceof PackageSymbol) {
+                                	utils.error(a.args.get(0).pos(),"jml.annotation.arg.not.a.field",v.getQualifiedName());
+                                }
+                            }
+                        }
+                    }
+                }
+
+                attr.attribExpr(tree.expression, localEnv, syms.booleanType);
+                attr.checkTypeClauseMods(tree,tree.modifiers,tree.clauseType.name() + " clause",tree.clauseType);
+                return null;
+            } catch (Exception e) {
+            	utils.note(tree, "jml.message", "Exception occurred in attributing clause: " + tree);
+            	utils.note("    Env: " + env.enclClass.name + " " + (env.enclMethod==null?"<null method>": env.enclMethod.name));
+            	throw e;
+            } finally {
+                if (isStatic) attr.decStatic(localEnv);  // FIXME - move this to finally, but does not screw up the checks on the next line?
+                attr.jmlVisibility = prevVisibility;
+                attr.currentSecretContext = previousSecretContext;
+                attr.jmlresolve.setAllowJML(prevAllowJML);
+                attr.jmlenv = attr.jmlenv.pop();
+                log.useSource(old);
+            }
         }
     }
 }

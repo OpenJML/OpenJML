@@ -11,7 +11,7 @@ import static com.sun.tools.javac.code.Flags.HASINIT;
 import static com.sun.tools.javac.code.Flags.INTERFACE;
 import static com.sun.tools.javac.code.Flags.PUBLIC;
 
-import java.util.Iterator;
+import java.util.*;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlPretty;
@@ -458,12 +458,14 @@ public class JmlEnter extends Enter {
             JmlCompilationUnit javacu = speccu.sourceCU;
             JmlClassDecl javaDecl = null;
             
+            Set<Symbol> alreadyMatched = new HashSet<>();
+            
             ListBuffer<JCTree> newdefs = new ListBuffer<>();
 			for (JCTree decl: speccu.defs) {
 				if (!(decl instanceof JmlClassDecl)) { newdefs.add(decl); continue; }
 				var specDecl = (JmlClassDecl)decl;
 				javaDecl = 	findClass(specDecl.name, javacu);
-				var ok = specsClassEnter(p, specDecl, specEnv, javaDecl); // javaDecl matches specDecl, if javaDecl exists
+				var ok = specsClassEnter(p, specDecl, specEnv, javaDecl, alreadyMatched); // javaDecl matches specDecl, if javaDecl exists
 				if (ok) newdefs.add(specDecl);
 			}
 			speccu.defs = newdefs.toList();
@@ -472,14 +474,14 @@ public class JmlEnter extends Enter {
 				if (!(decl instanceof JmlClassDecl)) continue;
 				var specDecl = (JmlClassDecl)decl;
 				javaDecl = findClass(specDecl.name, javacu);
-				specsMemberEnter(p, specDecl, javaDecl, isSameFile);
+				specsMemberEnter(p, specDecl, javaDecl, isSameFile, alreadyMatched);
 			}
 		} finally {
 			log.useSource(prev);
 		}
     }
     
-    public boolean specsClassEnter(Symbol owner, JmlClassDecl specDecl, Env<AttrContext> specsEnv, /*@ nullable */JmlClassDecl javaDecl) {
+    public boolean specsClassEnter(Symbol owner, JmlClassDecl specDecl, Env<AttrContext> specsEnv, /*@ nullable */JmlClassDecl javaDecl, Set<Symbol> alreadyMatched) {
     	Name className = specDecl.name;
 		boolean isJML = utils.isJML(specDecl);
 		boolean isOwnerJML = utils.isJML(owner.flags());
@@ -605,7 +607,7 @@ public class JmlEnter extends Enter {
 				if (t instanceof JmlClassDecl) {
 					JmlClassDecl st = (JmlClassDecl)t;
 					JmlClassDecl jt = findClass(st.name, javaDecl);
-					var okk = specsClassEnter(csym, st, localEnv, jt);
+					var okk = specsClassEnter(csym, st, localEnv, jt, alreadyMatched);
 					if (okk) newdefs.add(t);
 				} else {
 					newdefs.add(t);
@@ -657,7 +659,7 @@ public class JmlEnter extends Enter {
 		return jt;
     }
     
-    public void specsMemberEnter(Symbol owner, JmlClassDecl specDecl, JmlClassDecl javaDecl, boolean isSameCU) {
+    public void specsMemberEnter(Symbol owner, JmlClassDecl specDecl, JmlClassDecl javaDecl, boolean isSameCU, Set<Symbol> alreadyMatched) {
 		// Already know that jdecl.name matches jdecl.sym.name
 		ClassSymbol csym = specDecl.sym;
 		JmlSpecs specs = JmlSpecs.instance(context);
@@ -686,9 +688,9 @@ public class JmlEnter extends Enter {
 		boolean hasInstanceInit = false;
 		for (JCTree t: specDecl.defs) {
 			if (t instanceof JmlMethodDecl) {
-				specsEnter(csym, (JmlMethodDecl)t, specsEnv, javaDecl, isSameCU);
+				specsEnter(csym, (JmlMethodDecl)t, specsEnv, javaDecl, isSameCU, alreadyMatched);
 			} else if (t instanceof JmlVariableDecl) {
-				specsEnter(csym, (JmlVariableDecl)t, specsEnv, javaDecl, isSameCU);
+				specsEnter(csym, (JmlVariableDecl)t, specsEnv, javaDecl, isSameCU, alreadyMatched);
 			} else if (t instanceof JmlBlock) {
 				if (specDecl != javaDecl) {
 					utils.error(t, "jml.initializer.block.allowed");
@@ -723,7 +725,7 @@ public class JmlEnter extends Enter {
  		for (JCTree t: specDecl.defs) {
 			if (t instanceof JmlClassDecl) {
 				JmlClassDecl st = (JmlClassDecl)t;
-				specsMemberEnter(csym, st, findClass(st.name, javaDecl), isSameCU);
+				specsMemberEnter(csym, st, findClass(st.name, javaDecl), isSameCU, alreadyMatched);
 			}
 		}
     }
@@ -876,7 +878,7 @@ public class JmlEnter extends Enter {
     	return tree.sym;
     }
     
-    public void specsEnter(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl, boolean isSameCU) {
+    public void specsEnter(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl, boolean isSameCU, Set<Symbol> alreadyMatched) {
 		boolean isJML = utils.isJML(mdecl);
 		boolean isOwnerJML = utils.isJML(csym.flags());
 		boolean isModel = utils.hasMod(mdecl.mods, Modifiers.MODEL);
@@ -1105,7 +1107,7 @@ public class JmlEnter extends Enter {
     	return null;
     }
     
-    public void specsEnter(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl, boolean isSameCU) {
+    public void specsEnter(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl, boolean isSameCU, Set<Symbol> alreadyMatched) {
 		boolean isJML = utils.isJML(vdecl);
 		boolean isOwnerJML = utils.isJML(csym.flags());
 		boolean isGhostOrModel = utils.hasMod(vdecl.mods, Modifiers.MODEL, Modifiers.GHOST);
@@ -1189,7 +1191,7 @@ public class JmlEnter extends Enter {
 					if (utils.verbose()) utils.note("Matched field: (self) " + vsym + " (owner: " + csym +")" );
 				} else {
 					if (vsym.owner instanceof ClassSymbol) {
-						if (!isSameCU && javaVDecl != null) { // if isSameCU==true, there already is a error about duplicate definition in MemberEnter
+						if (!isSameCU && javaVDecl != null && alreadyMatched.contains(vsym)) { // if isSameCU==true, there already is a error about duplicate definition in MemberEnter
 							utils.error(vdecl, "jml.message", "This specification declaration of field " + vdecl.name + " has the same name as a previous field declaration");
 							utils.error(javaVDecl.source(), javaVDecl.pos, "jml.associated.decl.cf", utils.locationString(vdecl.pos, vdecl.source()));
 						}
@@ -1211,6 +1213,7 @@ public class JmlEnter extends Enter {
 					vdecl.sym = vsym;
 					if (ok && utils.verbose()) utils.note("Matched field: " + vsym + " (owner: " + csym +")" );
 				}
+				alreadyMatched.add(vsym);
 			} else {
 				ok = false;
 			}

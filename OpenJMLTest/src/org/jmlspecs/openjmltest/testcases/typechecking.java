@@ -259,14 +259,12 @@ public class typechecking extends TCBase {
     @Test public void testType() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(A,k);\n}}"
                 ,"/A.java:2: error: More than one argument or otherwise ill-formed type expression as argument of \\type",19
-                ,"/A.java:2: error: incompatible types: \\TYPE cannot be converted to boolean",17
                 );
     }
 
     @Test public void testType2() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type();\n}}"
                 ,"/A.java:2: error: illegal start of type",18
-                ,"/A.java:2: error: incompatible types: \\TYPE cannot be converted to boolean",17
                 );
     }
 
@@ -280,7 +278,6 @@ public class typechecking extends TCBase {
     @Test public void testType4() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(true);\n}}"
                 ,"/A.java:2: error: illegal start of type",18
-                ,"/A.java:2: error: incompatible types: \\TYPE cannot be converted to boolean",17
                 );
     }
 
@@ -474,6 +471,7 @@ public class typechecking extends TCBase {
     
     @Test public void testErasure5() {
         helpTCF("A.java","public class A { Object o; //@ ghost Class<?> t = \\erasure(\\type(java.util.List));\n}"
+                ,"/A.java:1: error: The argument of a \\type construct must be a fully parameterized type: java.util.List",65
                 );
     }
     
@@ -504,8 +502,8 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testQuantifierA() {
-        helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n //@ requires m( (\\exists int i; 0 < i && i <10; m(i)) ); \n/*@pure*/boolean m(int k) { return false; }\n }",
-                "/A.java:3: error: incompatible types: boolean cannot be converted to int",18);
+        helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n //@ requires m( (\\exists int i; 0 < i && i <10; m(i)) ); \n/*@ pure*/boolean m(int k) { return false; }\n }",
+                "/A.java:3: error: incompatible types: boolean cannot be converted to int",51);
     }
   
     @Test public void testSetCompB() {
@@ -527,7 +525,7 @@ public class typechecking extends TCBase {
 
     @Test public void testQuantifierB() {
         helpTCF("A.java","public class A {  \n  //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \nboolean m(int k) { return false; }\n }",
-                "/A.java:2: error: incompatible types: boolean cannot be converted to int",27);
+                "/A.java:2: error: incompatible types: boolean cannot be converted to int",60);
     }
   
     @Test public void testQuantifierB2() {
@@ -538,6 +536,7 @@ public class typechecking extends TCBase {
     @Test public void testQuantifierB3() {
         helpTCF("A.java","public class A {  \n  //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \nboolean m(boolean k) { return false; } \n }"
                 ,"/A.java:2: error: incompatible types: int cannot be converted to boolean",61
+                ,"/A.java:2: error: incompatible types: int cannot be converted to boolean",61  // FIXME - why a duplicate error message
                 );
     }
   
@@ -568,7 +567,7 @@ public class typechecking extends TCBase {
 
     @Test public void testQuantifierC() {
         helpTCF("A.java","public class A {  \n  boolean m(int k) { //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \n return false; }\n }",
-                "/A.java:2: error: incompatible types: boolean cannot be converted to int",46
+                "/A.java:2: error: incompatible types: boolean cannot be converted to int",79
                 );
     }
     
@@ -589,24 +588,33 @@ public class typechecking extends TCBase {
                 );
     }
 
-    @Test public void testQuantifierD() {
-        helpTCF("A.java","public class A { //@ ghost int j;\n  \n  boolean m(int k) { //@ set j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \n return false; }\n }",
-                "/A.java:3: error: incompatible types: boolean cannot be converted to int",37);
+    @Test public void testQuantifierOK() {
+        helpTCF("A.java","public class A { \n/*@ pure */ boolean n(boolean b) { return b; }; \n/*@ pure*/ boolean m(int i) { return false; }\n//@ invariant n( (\\exists int i; 0 < i && i <10; m(i)) ); \n }"
+        		);
     }
+    
+    @Test public void testQuantifierD() {
+        helpTCF("A.java","public class A { //@ ghost int j;\n  \n  boolean m(int k) { //@ set j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \n return false; }\n }"
+                ,"/A.java:3: error: incompatible types: boolean cannot be converted to int",70
+                );
+    }
+    
+    // FIXME - error message column is not clear to user when the quantifier is a method argument
     
     @Test public void testQuantifier() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n /*@ pure*/ boolean m(int i) { return false; }\n//@ invariant m( (\\exists int i; 0 < i && i <10; m(i)) ); \n }",
-                "/A.java:4: error: incompatible types: boolean cannot be converted to int",19);
+                "/A.java:4: error: incompatible types: boolean cannot be converted to int",51);
     }
     
     @Test public void testQuantifier1() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n /*@ pure*/ boolean m(int i) { return false; }\n//@ invariant m( (\\forall int i; 0 < i && i <10; m(i)) ); \n }",
-                "/A.java:4: error: incompatible types: boolean cannot be converted to int",19);
+                "/A.java:4: error: incompatible types: boolean cannot be converted to int",51);
     }
     
     @Test public void testQuantifier2() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n /*@ pure*/ boolean m(int i) { return false; }\n//@ invariant (\\num_of int i; 0 < i && i <10; m(i)) ; \n }",
-                "/A.java:4: error: incompatible types: int cannot be converted to boolean",16);
+                "/A.java:4: error: incompatible types: \\bigint cannot be converted to boolean",16
+                );
     }
     
     @Test public void testQuantifier3() {
@@ -679,6 +687,18 @@ public class typechecking extends TCBase {
     }
     
 
+    @Test public void testLetX1() {
+        helpTCF("A.java","public class A { void m() { //@ assert (\\let ghost int i = 0; i != 0); \n}}"
+        		,"/A.java:1: error: ghost or model modifiers not permitted on an expression-local declaration",56
+                );
+    }
+    
+    @Test public void testLetX2() {
+        helpTCF("A.java","public class A { void m() { //@ assert (\\let model int i = 0; i != 0); \n}}"
+        		,"/A.java:1: error: ghost or model modifiers not permitted on an expression-local declaration",56
+                );
+    }
+    
     @Test public void testLet() {
         helpTCF("A.java","public class A { void m() { //@ assert (\\let int i = 0; i != 0); \n}}"
                 );
@@ -969,14 +989,10 @@ public class typechecking extends TCBase {
         );
     }
     
-    @Test public void testBadModelImport3() { // FIXME - could be a better error message
+    @Test public void testBadModelImport3() {
         helpTCF("A.java","/*@ model import */ java.util.List;\n public class A {\n  \n }"
                 ,"/A.java:1: error: Expected an identifier, found end of JML comment instead",18
                 ,"/A.java:1: error: '.' expected",20
-                ,"/A.java:1: error: package <error>.java.util does not exist",30
-                ,"/A.java:1: error: package <error>.java.util does not exist",30
-                ,"/A.java:1: error: package <error>.java.util does not exist",30
-                ,"/A.java:1: error: package <error>.java.util does not exist",30
         );
     }
     
@@ -1100,7 +1116,6 @@ public class typechecking extends TCBase {
                 +"}\n"
                 ,"/Test.java:4: warning: Do not include a datagroup in itself: height",22
                 ,"/Test.java:4: warning: Do not include a datagroup in itself: height",22
-                ,"/Test.java:4: warning: Do not include a datagroup in itself: height",22
         );
         
     }
@@ -1121,7 +1136,6 @@ public class typechecking extends TCBase {
                 +"    my_height = 1;\n"
                 +"  }\n"
                 +"}\n"
-                ,"/Test.java:3: error: This field participates in a circular datagroup inclusion chain: height -> height2 -> height",24
                 ,"/Test.java:6: error: This field participates in a circular datagroup inclusion chain: height2 -> height -> height2",24
                 ,"/Test.java:3: error: This field participates in a circular datagroup inclusion chain: height -> height2 -> height",24
                 ,"/Test.java:2: error: This field participates in a circular datagroup inclusion chain: my_height -> height -> height2 -> height",19

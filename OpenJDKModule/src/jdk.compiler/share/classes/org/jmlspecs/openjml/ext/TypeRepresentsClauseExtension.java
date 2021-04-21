@@ -52,7 +52,8 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
             init(parser);
             int pp = parser.pos();
             parser.nextToken();
-            JCExpression id = parser.parseStoreRef(true);
+            boolean strict = JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
+            JCExpression id = parser.parseStoreRef(strict);
             boolean suchThat;
             JCExpression e;
             if (parser.token().kind == EQ) {
@@ -80,8 +81,8 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
             if (e == null) { // skip
                 e = parser.maker().Erroneous();
             } else if (parser.token().kind != SEMI) {
-                error(parser.pos(), parser.endPos(),
-                        "jml.invalid.expression.or.missing.semi");
+                warning(parser.pos(), parser.endPos(),
+                        "jml.missing.semi",representsID);
                 parser.skipThroughSemi();
             } else {
                 parser.nextToken();
