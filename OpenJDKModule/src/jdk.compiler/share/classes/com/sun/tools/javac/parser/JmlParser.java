@@ -12,6 +12,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Function;
 
 import javax.tools.JavaFileObject;
 
@@ -64,6 +65,7 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Position;
+import com.sun.tools.javac.util.JCDiagnostic.Error;
 
 /** This class extends the javac parser to parse JML constructs as well. */
 public class JmlParser extends JavacParser {
@@ -1130,7 +1132,10 @@ public class JmlParser extends JavacParser {
                 break;
             }
         }
-        while (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) nextToken();
+        acceptEndJML();
+        if (currentMethodSpecs != null) {
+        	utils.error(currentMethodSpecs, "jml.message", "Method specifications without a following method declaration");
+        }
         //if (org.jmlspecs.openjml.Main.useJML) System.out.println(JmlPretty.write(list.first()));
         return list.toList();
     }
@@ -1466,6 +1471,15 @@ public class JmlParser extends JavacParser {
     public void warnNotImplemented(int pos, String construct, String location) {
         if (JmlOption.isOption(context, JmlOption.SHOW_NOT_IMPLEMENTED))
             utils.warning(pos, "jml.unimplemented.construct", construct, location);
+    }
+
+    public boolean acceptIf(TokenKind tk) {
+        if (token.kind == tk) {
+            nextToken();
+            return true;
+        } else {
+        	return false;
+        }
     }
 
     public JCBlock parseModelProgramBlock() {
@@ -1848,6 +1862,7 @@ public class JmlParser extends JavacParser {
     			annos.append(t);
     			nextToken();
     			acceptEndJML();
+                //System.out.println("READ ANNOT " + annos);
     		}
     		var lst = super.annotationsOpt(kind);
     		if (lst.isEmpty()) return annos.toList();
@@ -1870,7 +1885,6 @@ public class JmlParser extends JavacParser {
         JCModifiers partial = pushBackModifiers;
         pushBackModifiers = null;
         JCModifiers m = modifiersOpt(partial);
-        while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
         return m;
     }
 
@@ -1883,6 +1897,7 @@ public class JmlParser extends JavacParser {
      */
     @Override
     public JCModifiers modifiersOpt(JCModifiers partial) {
+    	//System.out.println("CALLING MODIFIERS OPT");
         if (partial == null) {
             partial = pushBackModifiers;
             pushBackModifiers = null;
@@ -1895,7 +1910,7 @@ public class JmlParser extends JavacParser {
             if (token.kind == CUSTOM) break;
             partial = super.modifiersOpt(partial);
         }
-        while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
+    	//System.out.println("ENDING MODIFIERS OPT " + partial + " " + partial.annotations); Utils.dumpStack();
         return partial;
     }
 
@@ -1952,8 +1967,9 @@ public class JmlParser extends JavacParser {
         		utils.warning(pos(),"jml.not.strict",mk.keyword);  // FIXME - probably wrong position
         	}
             nextToken();
+            acceptEndJML();
+            //System.out.println("READ JML MODIFIERS " + mods + " " + mods.annotations);
         }
-        while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
         if (last != Position.NOPOS) storeEnd(mods, last);
         return mods;
     }
@@ -2854,6 +2870,7 @@ public class JmlParser extends JavacParser {
      */
     public void acceptEndJML() {
     	while (token.ikind == ENDJMLCOMMENT) nextToken();
+        //while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken(); // FIXME - replace using this
     }
 
     /**

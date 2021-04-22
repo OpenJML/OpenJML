@@ -330,12 +330,12 @@ public class MemberEnter extends JCTree.Visitor {
 
     // OPENJML - added to allow overriding some functionality
     protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, WriteableScope enclScope, Env<AttrContext> localEnv) {
-       if (chk.checkUnique(tree.pos(), m, enclScope)) {
-            enclScope.enter(m);
-            return true;
-        } else {
-        	return false;
-        }
+    	if (chk.checkUnique(tree.pos(), m, enclScope)) {
+    		enclScope.enter(m);
+    		return true;
+    	} else {
+    		return false;
+    	}
     }
 
     // OPENJML - added to allow overriding some functionality

@@ -44,11 +44,26 @@ public class JmlOperators extends Operators {
         			var args = op.type.getParameterTypes();
         			if (args.head == jtype.BIGINT && args.tail.head == jtype.BIGINT) return op;
     			}
-    			// super.resolveBinary(pos,  tag,  jtype.BIGINT, jtype.BIGINT);
     		}
     		org.jmlspecs.openjml.Utils.instance(context).error(pos, "jml.message", "No operator for " + op1 + " " + opName + " " + op2);
 			return noOpSymbol;
     	}
     	return super.resolveBinary(pos,  tag,  op1, op2);
     }
+    
+    public OperatorSymbol resolveUnary(DiagnosticPosition pos, JCTree.Tag tag, Type op) {
+    	JmlTypes jtype = JmlTypes.instance(context);
+    	if (jtype.isJmlType(op)) {
+    		Name opName = operatorName(tag);
+    		for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
+    			OperatorSymbol ops = (OperatorSymbol)s;
+    			var args = ops.type.getParameterTypes();
+    			if (args.head == jtype.BIGINT ) return ops;
+    		}
+    		org.jmlspecs.openjml.Utils.instance(context).error(pos, "jml.message", "No operator for " + opName + " " + op);
+			return noOpSymbol;
+    	}
+        return super.resolveUnary(pos,  tag,  op);
+    }
+
 }

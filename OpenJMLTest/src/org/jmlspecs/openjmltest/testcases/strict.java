@@ -97,7 +97,6 @@ public class strict extends TCBase {
                 " void m(int[] a) {\n" +
                 " }}"
                 ,"/A.java:2: warning: The \\exception construct is an OpenJML extension to JML and not allowed under " + optjml,26
-                ,"$SPECS/specs/java/util/stream/Stream.jml:10: warning: The \\count construct is an OpenJML extension to JML and not allowed under -lang=jml",37
                 );
     }
 

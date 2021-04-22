@@ -113,8 +113,8 @@ public class escfunction extends EscBase {
                 +"  //@ assert !mfunc(0);\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: error: Function methods are implicitly pure and may not assign to any fields: n",18
                 ,"/tt/TestJava.java:6: error: A non-static function method must be a member of a Immutable class", 3
+                ,"/tt/TestJava.java:4: error: Function methods are implicitly pure and may not assign to any fields: n",18
         		);
     }
 

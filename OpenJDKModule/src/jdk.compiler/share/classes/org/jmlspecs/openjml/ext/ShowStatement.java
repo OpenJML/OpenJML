@@ -59,37 +59,22 @@ public class ShowStatement extends JmlExtension {
                 utils.warning(pp,"jml.not.strict","show statement");
             }
             
-            
             parser.nextToken();
 
             ListBuffer<JCExpression> expressions = new ListBuffer<>();
-            while (parser.token().kind != TokenKind.SEMI && parser.token().ikind != JmlTokenKind.ENDJMLCOMMENT) {
-                // Only expressions are allowed -
-                // but JML constructs are allowed.
-                //inJmlDeclaration = true;
-                if (!expressions.isEmpty()) {
-                    error(parser.pos(), parser.pos()+1, "jml.bad.expression.list.in.show");
-                    parser.skipToSemi();
-                    break;
-                }
-                JCExpression t = parser.parseExpression();
-                expressions.add(t);
-                while (parser.token().kind == TokenKind.COMMA) {
-                    parser.accept(TokenKind.COMMA);
-                    t = parser.parseExpression();
-                    expressions.add(t);
-                }
+            if (parser.token().kind != TokenKind.SEMI && parser.token().ikind != JmlTokenKind.ENDJMLCOMMENT) {
+            	do {
+            		int n = log.nerrors;
+            		JCExpression t = parser.parseExpression();
+            		if (n != log.nerrors) {
+            			parser.skipToSemi();
+            			break;
+            		}
+            		expressions.add(t);
+                } while (parser.acceptIf(TokenKind.COMMA));
             }
             JmlStatementShow st = toP(parser.maker().at(pp).JmlStatementShow(showClause,expressions.toList()));
-            wrapup(st, clauseType, false);
-            if (parser.token().kind == TokenKind.SEMI) {
-                parser.accept(TokenKind.SEMI);
-            } else if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
-                warning(parser.pos()-1, parser.pos(), "jml.missing.semi","show");
-            } else {
-                error(parser.pos(), parser.pos()+1, "jml.bad.expression.list.in.show");
-                parser.skipThroughSemi();
-            }
+            wrapup(st, clauseType, true, true);
             return st;
         }
         

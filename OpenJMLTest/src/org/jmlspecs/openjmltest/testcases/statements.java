@@ -166,7 +166,6 @@ public class statements extends TCBase {
         expectedExit = 1;
         helpTCF("A.java"," class A { void m() { int i; \n //@ ghost int j; set j = 1 \n i = 0; \n}}"
                 ,"/A.java:2: error: ';' expected",28
-                //"/A.java:2: warning: Inserting missing semicolon at the end of a set statement",27
                 );
     }
     
@@ -174,7 +173,6 @@ public class statements extends TCBase {
         expectedExit = 1;
         helpTCF("A.java"," class A { void m() { int i; \n //@ ghost int j; set j = 1 \n; i = 0; \n}}"
                 ,"/A.java:2: error: ';' expected",28
-                //"/A.java:2: warning: Inserting missing semicolon at the end of a set statement",27
                 );
     }
     
@@ -198,7 +196,6 @@ public class statements extends TCBase {
         expectedExit = 1;
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; debug m() \n i = 0; \n}}"
                 ,"/A.java:2: error: ';' expected",28
-                //,"/A.java:2: warning: Inserting missing semicolon at the end of a debug statement",27
                 );
     }
 

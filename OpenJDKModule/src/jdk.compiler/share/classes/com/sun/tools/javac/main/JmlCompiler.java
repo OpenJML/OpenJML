@@ -120,7 +120,11 @@ public class JmlCompiler extends JavaCompiler {
     	// type resolution, which requires the init() call
     	// (If we do this initialization during tool creation, we get circular instantiation)
     	init();
-    	return super.enterTrees(roots);
+    	JmlEnter.instance(context).hold();
+    	var list = super.enterTrees(roots);
+    	JmlEnter.instance(context).release();
+    	JmlEnter.instance(context).flush();
+    	return list;
     }
     
     

@@ -77,7 +77,6 @@ public class escconstructor extends EscBase {
 						+ "  }\n" 
 						+ "}\n"
 				,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  b", 7
-				,"/tt/TestJava.java:6: warning: Associated declaration", 10
 				);
 	}
 

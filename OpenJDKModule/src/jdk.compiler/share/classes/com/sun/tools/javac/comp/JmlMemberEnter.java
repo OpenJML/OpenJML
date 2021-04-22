@@ -1120,7 +1120,16 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         return b;
     }
 
-    /** Overridden to add default nullity, if needed */
+    @Override
+    public void visitMethodDef(JCMethodDecl tree) {
+    	boolean prev = JmlResolve.instance(context).setAllowJML(utils.isJML(tree.mods));
+    	try {
+    		super.visitMethodDef(tree);
+    	} finally {
+    		JmlResolve.instance(context).setAllowJML(prev);
+    	}
+    }
+
     @Override
     public void visitVarDef(JCVariableDecl tree) {
 //    	JCAnnotatedType atype = null;
@@ -1136,7 +1145,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //    	} else {
 //    		tree.vartype = jmlF.at(tree).AnnotatedType(List.<JCAnnotation>of(ann), tree.vartype);
 //    	}
-    	super.visitVarDef(tree);;
+    	boolean prev = JmlResolve.instance(context).setAllowJML(utils.isJML(tree.mods));
+    	try {
+    		super.visitVarDef(tree);
+    	} finally {
+    		JmlResolve.instance(context).setAllowJML(prev);
+    	}
     }
 
     @Override

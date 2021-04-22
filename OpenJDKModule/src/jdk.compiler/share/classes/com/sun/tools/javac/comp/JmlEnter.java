@@ -458,7 +458,7 @@ public class JmlEnter extends Enter {
             JmlCompilationUnit javacu = speccu.sourceCU;
             JmlClassDecl javaDecl = null;
             
-            Set<Symbol> alreadyMatched = new HashSet<>();
+            Map<Symbol,JCTree> alreadyMatched = new HashMap<>();
             
             ListBuffer<JCTree> newdefs = new ListBuffer<>();
 			for (JCTree decl: speccu.defs) {
@@ -481,14 +481,15 @@ public class JmlEnter extends Enter {
 		}
     }
     
-    public boolean specsClassEnter(Symbol owner, JmlClassDecl specDecl, Env<AttrContext> specsEnv, /*@ nullable */JmlClassDecl javaDecl, Set<Symbol> alreadyMatched) {
+    public boolean specsClassEnter(Symbol owner, JmlClassDecl specDecl, Env<AttrContext> specsEnv, /*@ nullable */JmlClassDecl javaDecl, Map<Symbol,JCTree> alreadyMatched) {
     	Name className = specDecl.name;
 		boolean isJML = utils.isJML(specDecl);
 		boolean isOwnerJML = utils.isJML(owner.flags());
 		boolean isModel = utils.hasMod(specDecl.mods, Modifiers.MODEL);
 		boolean isLocal = !(owner instanceof ClassSymbol || owner instanceof PackageSymbol);
-		ClassSymbol csym = (ClassSymbol)owner.members().findFirst(className, s->(s instanceof ClassSymbol && s.owner == owner));
-		if (isLocal) System.out.println("LCOCL-SPECSENTER " + specDecl.name);
+		ClassSymbol csym = javaDecl == null ? null : javaDecl.sym;
+		// FIXME - the following may not work correctly for top-level classes whose u=owner is a package, at least in the test environment
+		if (csym == null) csym = (ClassSymbol)owner.members().findFirst(className, s->(s instanceof ClassSymbol && s.owner == owner));
 		boolean ok = false;
 		try {
 			if (isOwnerJML && isModel) {
@@ -549,7 +550,7 @@ public class JmlEnter extends Enter {
 						JmlTreeUtils.instance(context).addAnnotation(specDecl.mods, specDecl.mods.pos, specDecl.mods.pos, Modifiers.MODEL, null);
 					}
 					if (matchIsJML) {
-						if (javaDecl.sym != csym) {
+						if (javaDecl == null) {
 							JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csym);
 							utils.error(specDecl, "jml.message", "This JML class declaration conflicts with a previous JML class: " + specDecl.name + " (owner: " + owner +")");
 							if (tspecs != null) {
@@ -579,6 +580,12 @@ public class JmlEnter extends Enter {
 					// Attempt recovery by removing the offending annotation
 					utils.removeAnnotation(specDecl.mods,  Modifiers.MODEL);
 				}
+				if (!isJML && !matchIsJML && alreadyMatched.containsKey(csym)) {
+					utils.error(specDecl, "jml.message", "This declaration duplicates an earlier declaration");
+					var match = (JmlClassDecl)alreadyMatched.get(csym);
+					utils.error(match.source(), match, "jml.associated.decl.cf", utils.locationString(specDecl.pos, specDecl.source()));
+					return ok;
+				}
 				checkClassMatch(javaDecl, specDecl);
 				if (specDecl == javaDecl) {
 					// Defensive check
@@ -590,6 +597,7 @@ public class JmlEnter extends Enter {
 					if (utils.verbose()) utils.note("Matched class: " + csym + " (owner: " + csym.owner +")" );
 					specDecl.sym = csym;
 				}
+				alreadyMatched.put(csym, specDecl);
 			}
 			for (int i = 0; i < specDecl.typarams.length(); ++i) specDecl.typarams.get(i).type = csym.type.getTypeArguments().get(i).tsym.type;
 			Env<AttrContext> localEnv = classEnv(specDecl, specsEnv);
@@ -659,7 +667,7 @@ public class JmlEnter extends Enter {
 		return jt;
     }
     
-    public void specsMemberEnter(Symbol owner, JmlClassDecl specDecl, JmlClassDecl javaDecl, boolean isSameCU, Set<Symbol> alreadyMatched) {
+    public void specsMemberEnter(Symbol owner, JmlClassDecl specDecl, JmlClassDecl javaDecl, boolean isSameCU, Map<Symbol,JCTree> alreadyMatched) {
 		// Already know that jdecl.name matches jdecl.sym.name
 		ClassSymbol csym = specDecl.sym;
 		JmlSpecs specs = JmlSpecs.instance(context);
@@ -878,7 +886,7 @@ public class JmlEnter extends Enter {
     	return tree.sym;
     }
     
-    public void specsEnter(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl, boolean isSameCU, Set<Symbol> alreadyMatched) {
+    public void specsEnter(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl, boolean isSameCU, Map<Symbol,JCTree> alreadyMatched) {
 		boolean isJML = utils.isJML(mdecl);
 		boolean isOwnerJML = utils.isJML(csym.flags());
 		boolean isModel = utils.hasMod(mdecl.mods, Modifiers.MODEL);
@@ -941,7 +949,7 @@ public class JmlEnter extends Enter {
     				if (javaMDecl == null) {
     					JmlSpecs.MethodSpecs mspecs = JmlSpecs.instance(context).getSpecs(msym);
     					utils.error(mdecl, "jml.message", "This JML method declaration conflicts with a previous JML method: " + msym + " (owner: " + csym +")");
-    					utils.error(javaMDecl != null ? javaMDecl : mspecs.cases.decl, "jml.associated.decl.cf", utils.locationString(mdecl.pos, log.currentSourceFile()));
+    					utils.error(mspecs.cases.decl, "jml.associated.decl.cf", utils.locationString(mdecl.pos, log.currentSourceFile()));
     					return;
     				}
     			} else {
@@ -1033,7 +1041,7 @@ public class JmlEnter extends Enter {
     			specs.setStatus(msym, ssp.status);
     			checkMethodMatch(javaMDecl,msym,mdecl,csym);
     		}
-    		
+    		alreadyMatched.put(msym,mdecl);
      		{
 //    			mdecl.specsDecl = javaMDecl;
 //    			var specs = JmlSpecs.instance(context);
@@ -1107,7 +1115,7 @@ public class JmlEnter extends Enter {
     	return null;
     }
     
-    public void specsEnter(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl, boolean isSameCU, Set<Symbol> alreadyMatched) {
+    public void specsEnter(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl, boolean isSameCU, Map<Symbol,JCTree> alreadyMatched) {
 		boolean isJML = utils.isJML(vdecl);
 		boolean isOwnerJML = utils.isJML(csym.flags());
 		boolean isGhostOrModel = utils.hasMod(vdecl.mods, Modifiers.MODEL, Modifiers.GHOST);
@@ -1164,7 +1172,10 @@ public class JmlEnter extends Enter {
 							return;
 						}
 					} else {
-						if (!isSameCU) utils.error(vdecl, "jml.message", "This JML field declaration conflicts with an existing field with the same name: " + vdecl.name + " (owner: " + csym +")");
+						if (!isSameCU) {
+							utils.error(vdecl, "jml.message", "This JML field declaration conflicts with an existing field with the same name: " + vdecl.name + " (owner: " + csym +")");
+							utils.error(javaVDecl.source(),javaVDecl, "jml.associated.decl.cf", utils.locationString(vdecl.pos, log.currentSourceFile()));
+						}
 						return;
 					}
 				}
@@ -1191,9 +1202,10 @@ public class JmlEnter extends Enter {
 					if (utils.verbose()) utils.note("Matched field: (self) " + vsym + " (owner: " + csym +")" );
 				} else {
 					if (vsym.owner instanceof ClassSymbol) {
-						if (!isSameCU && javaVDecl != null && alreadyMatched.contains(vsym)) { // if isSameCU==true, there already is a error about duplicate definition in MemberEnter
+						if (!isSameCU && javaVDecl != null && alreadyMatched.containsKey(vsym)) { // if isSameCU==true, there already is a error about duplicate definition in MemberEnter
 							utils.error(vdecl, "jml.message", "This specification declaration of field " + vdecl.name + " has the same name as a previous field declaration");
-							utils.error(javaVDecl.source(), javaVDecl.pos, "jml.associated.decl.cf", utils.locationString(vdecl.pos, vdecl.source()));
+							JmlVariableDecl v = (JmlVariableDecl)alreadyMatched.get(vsym);
+							utils.error(v.source(), v.pos, "jml.associated.decl.cf", utils.locationString(vdecl.pos, vdecl.source()));
 						}
 
 						if (!specsTypeSufficientlyMatches(t, vsym.type, javaVDecl == null)) {
@@ -1213,7 +1225,7 @@ public class JmlEnter extends Enter {
 					vdecl.sym = vsym;
 					if (ok && utils.verbose()) utils.note("Matched field: " + vsym + " (owner: " + csym +")" );
 				}
-				alreadyMatched.add(vsym);
+				alreadyMatched.put(vsym,vdecl);
 			} else {
 				ok = false;
 			}
@@ -1295,6 +1307,18 @@ public class JmlEnter extends Enter {
     }
 
     private int nestingLevel = 0;
+    
+    public void hold() { 
+    	nestingLevel++;
+    }
+    
+    public void release() { 
+    	nestingLevel--;
+    }
+    
+    public void flush() {
+    	if (nestingLevel == 0) completeBinaryEnterTodo();
+    }
     
     /** Queues a class for loading specs. Once loaded, JmlSpecs contains the specs for each class, method,
      * and field, but they are not yet attributed. This is called to load specs for either binarh or source classes.
