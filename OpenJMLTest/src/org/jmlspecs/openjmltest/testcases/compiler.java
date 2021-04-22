@@ -259,7 +259,7 @@ public class compiler {
     public void testIgnoreJava() throws Exception {
         helper(new String[]
                           { "-classpath","test/testJavaErrors"+z+"bin",
-                            "test/testJavaErrors/A.java", "-jmlverbose", "-noInternalSpecs"
+                            "test/testJavaErrors/A.java", "-noInternalSpecs"
                           },0,2,"",
                           //"parsing ${PROJ}/test/testJavaErrors/A.java" + eol +
                           // stuff about specs path comes in here
@@ -782,6 +782,7 @@ public class compiler {
                             "test/model1/ModelClassExampleBugSub.java",
                             "test/model1/ModelClassExampleBugSub2.java"
                           },1,0
+                          ,""
                           ,"test/model1/ModelClassExampleBugSub.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
                            "    public static class SIndexedContents extends ModelClassExampleBug<E>.SContents { // ERROR" + eol +
                            "                                                                      ^" + eol +

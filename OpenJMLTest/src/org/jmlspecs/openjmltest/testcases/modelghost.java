@@ -112,6 +112,10 @@ public class modelghost extends TCBase {
                 ,"/A.java:7: error: A Java method declaration must not be marked model: p2 (owner: A)",7
                 ,"/A.java:12: error: A Java method declaration must not be marked model: m2 (owner: A.II)",7
                 ,"/A.java:15: error: A Java method declaration must not be marked model: p2 (owner: A.II)",7
+                ,"/A.java:20: error: A model type may not contain model declarations",13
+                ,"/A.java:22: error: A model type may not contain model declarations",13
+                ,"/A.java:27: error: A model type may not contain model declarations",14
+                ,"/A.java:29: error: A model type may not contain model declarations",14
                 ,"/A.java:34: error: A Java method declaration must not be marked model: m2 (owner: C)",7
                 ,"/A.java:37: error: A Java method declaration must not be marked model: p2 (owner: C)",7
 
@@ -120,15 +124,11 @@ public class modelghost extends TCBase {
                 ,"/A.java:8: error: missing method body, or declare abstract",20
 
                 ,"/A.java:16: error: A method or type declaration within a JML annotation must be model",11
-                ,"/A.java:20: error: A model type may not contain model declarations",13
                 ,"/A.java:8: error: A method or type declaration within a JML annotation must be model",11
                 //,"/A.java:21: error: missing method body, or declare abstract",8
                 //,"/A.java:22: error: missing method body, or declare abstract",13
-                ,"/A.java:22: error: A model type may not contain model declarations",13
-                ,"/A.java:27: error: A model type may not contain model declarations",14
                 //,"/A.java:28: error: missing method body, or declare abstract",8
                 //,"/A.java:29: error: missing method body, or declare abstract",14
-                ,"/A.java:29: error: A model type may not contain model declarations",14
                 ,"/A.java:38: error: A method or type declaration within a JML annotation must be model",11  // FIXME - beginning of declaration?
 
                 
@@ -321,16 +321,16 @@ public class modelghost extends TCBase {
                 // Order changed for Java8
                 ,"/A.java:5: error: A Java field declaration must not be marked either ghost or model: m2 (owner: A)",7
                 ,"/A.java:6: error: A Java field declaration must not be marked either ghost or model: m2a (owner: A)",7
-                ,"/A.java:7: error: A declaration within a JML annotation must be either ghost or model",11
                 ,"/A.java:12: error: A Java field declaration must not be marked either ghost or model: m2 (owner: A.II)",7
                 ,"/A.java:13: error: A Java field declaration must not be marked either ghost or model: m2a (owner: A.II)",7
-                ,"/A.java:14: error: A declaration within a JML annotation must be either ghost or model",11
-                ,"/A.java:18: error: A model type may not contain model declarations",15
-                ,"/A.java:19: error: A model type may not contain ghost declarations",15
-                ,"/A.java:25: error: A model type may not contain model declarations",14
-                ,"/A.java:25: error: A model type may not contain ghost declarations",28
+                ,"/A.java:18: error: A model type may not contain model declarations: m1 in A.III",15
+                ,"/A.java:19: error: A model type may not contain ghost declarations: m1a in A.III",15
+                ,"/A.java:25: error: A model type may not contain model declarations: m1 in B",14
+                ,"/A.java:25: error: A model type may not contain ghost declarations: m2 in B",28
                 ,"/A.java:31: error: A Java field declaration must not be marked either ghost or model: B (owner: unnamed package)",20
                 ,"/A.java:32: error: A Java field declaration must not be marked either ghost or model: B (owner: unnamed package)",20
+                ,"/A.java:7: error: A declaration within a JML annotation must be either ghost or model",11
+                ,"/A.java:14: error: A declaration within a JML annotation must be either ghost or model",11
                 ,"/A.java:33: error: A declaration within a JML annotation must be either ghost or model",11 // FIXME - beginning of declaration?
                 
                 

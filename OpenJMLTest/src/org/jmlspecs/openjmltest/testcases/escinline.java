@@ -189,7 +189,6 @@ public class escinline extends EscBase {
                 +"  }\n"
                 +"}\n"
                 ,"/tt/TestJava.java:4: warning: The inline construct is an OpenJML extension to JML and not allowed under -lang=jml", 15
-                ,"$SPECS/specs/java/util/stream/Stream.jml:$STRL: warning: The \\count construct is an OpenJML extension to JML and not allowed under -lang=jml",37
                 ,"/tt/TestJava.java:4: warning: Inlined methods should be final since overriding methods will be ignored: minline", 15
                 );
     }
@@ -205,7 +204,7 @@ public class escinline extends EscBase {
                 +"    j = i + 1;\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: This JML modifier is not allowed for a constructor declaration", 15
+                ,"/tt/TestJava.java:4: error: This JML modifier is not allowed for a constructor declaration", 15
                 );
     }
                 

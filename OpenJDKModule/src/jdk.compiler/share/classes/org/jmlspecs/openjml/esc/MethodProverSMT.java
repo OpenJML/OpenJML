@@ -1118,6 +1118,7 @@ public class MethodProverSMT {
                                     if (s != null) utils.note(s);
                                 } catch (Exception ex) {}
                             }
+                            
 //                        }
                         // TODO - above we include the optionalExpression as part of the error message
                         // however, it is an expression, and not evaluated for ESC. Even if it is

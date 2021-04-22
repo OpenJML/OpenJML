@@ -24,9 +24,6 @@ public class methodspecs extends TCBase {
                 +"}"
                 ,"/TEST.java:3: error: ';' expected",14
                 ,"/TEST.java:3: error: Method specs may not precede a variable declaration",7
-                ,"/TEST.java:3: error: cannot find symbol\n" + 
-                                        "  symbol:   class r\n" + 
-                                        "  location: class A",5
                 );
     }
 
@@ -42,8 +39,6 @@ public class methodspecs extends TCBase {
                 ,"/TEST.java:4: error: ';' expected",18
                 ,"/TEST.java:4: error: Method specs may not precede a variable declaration",7
                 ,"/TEST.java:4: error: <identifier> expected",28
-                ,"/TEST.java:4: error: cannot find symbol\n  symbol:   class s\n  location: class A",5
-//                ,"/TEST.java:4:error: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: s",5
                 );
     }
 
@@ -56,8 +51,6 @@ public class methodspecs extends TCBase {
                 +"int m() { return 0; }\n"
                 +"}"
                 ,"/TEST.java:2: error: ';' expected",14
-                ,"/TEST.java:2: error: cannot find symbol\n  symbol:   class r\n  location: class A",5
-//                ,"/TEST.java:2: error: A declaration within a JML annotation must be either ghost or model",7
                 );
     }
     
@@ -71,9 +64,6 @@ public class methodspecs extends TCBase {
                 +"}"
                 ,"/TEST.java:2: error: illegal start of type",5
                 ,"/TEST.java:2: error: <identifier> expected",17
-                ,"/TEST.java:2: error: cannot find symbol\n"
-                		+ "  symbol:   class equires\n"
-                		+ "  location: class A",10
                 );
     }
     
@@ -86,7 +76,6 @@ public class methodspecs extends TCBase {
                 +"int m() { return 0; }\n"
                 +"}"
                 ,"/TEST.java:2: error: '{' expected",18
-                ,"/TEST.java:2: error: A JML class declaration must be marked model: equires (owner: A)",5
                 );
     }
     

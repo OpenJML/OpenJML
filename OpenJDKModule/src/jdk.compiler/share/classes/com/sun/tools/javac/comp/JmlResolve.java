@@ -120,6 +120,7 @@ public class JmlResolve extends Resolve {
      */
     @Override
     protected boolean symbolOK(Symbol e) {
+    	//System.out.println("JMLRESOLVE " + e + " " + allowJML + " " + utils.isJML(e.flags_field));
         return allowJML || !utils.isJML(e.flags_field);
     }
     

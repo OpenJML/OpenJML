@@ -158,7 +158,6 @@ public class assignable extends TCBase {
                 ,"/A.java:2: error: A this or super token must be followed by a field selection",39
                 ,"/A.java:2: error: Expected an identifier or star after the dot",52
                 ,"/A.java:2: error: A this or super token must be followed by a field selection",46
-                ,"/A.java:2: error: An assignable clause may not contain method formal parameters: b",35
                 );
     }
 
@@ -198,7 +197,6 @@ public class assignable extends TCBase {
                 ,"/A.java:2: error: Missing comma or otherwise ill-formed type name",18
                 ,"/A.java:2: error: Expected an identifier or star after the dot",26
                 ,"/A.java:2: error: A this or super token must be followed by a field selection",21
-                ,"/A.java:2: error: An assignable clause may not contain method formal parameters: b",18
                 );
     }
     
@@ -219,9 +217,22 @@ public class assignable extends TCBase {
 
     @Test
     public void testAssignableBad6() {
-        helpTCF("A.java","public class A { int k;  \n//@ assignable k[*], this.*.x;\n void m(boolean b) {} }"
-                ,"/A.java:2: error: Further selection is not permitted after a wild-card field",28
+        helpTCF("A.java","public class A {  \n//@ assignable  this.*.x;\n void m(boolean b) {} }"
+                ,"/A.java:2: error: Further selection is not permitted after a wild-card field",23
+                );
+    }
+
+    @Test
+    public void testAssignableBad7() {
+        helpTCF("A.java","public class A { int k;  \n//@ assignable k[*];\n void m(){} }"
                 ,"/A.java:2: error: The expression preceding the array element selection does not have array type: int",16
+                );
+    }
+
+    @Test
+    public void testAssignableBad8() {
+        helpTCF("A.java","public class A { int k;  \n//@ assignable k[*];\n }"
+                ,"/A.java:2: error: Method specifications without a following method declaration",5
                 );
     }
 

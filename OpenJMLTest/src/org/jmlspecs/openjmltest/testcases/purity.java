@@ -15,6 +15,7 @@ public class purity extends TCBase {
 //        jmldebug = true;
         useSystemSpecs = true;
         super.setUp();
+        main.addOptions("-no-require-white-space");
         main.addOptions("-purityCheck=false");  // Do not warn about library calls -- everything else is warned about
     }
 
@@ -74,42 +75,42 @@ public class purity extends TCBase {
     @Test
     public void testPureAssign() {
         helpTC(" class A {  boolean b,bb;  \n //@ invariant (b=bb); \n}"
-                ,"/TEST.java:2: Assignments are not allowed where pure expressions are expected",18
+                ,"/TEST.java:2: error: Assignments are not allowed where pure expressions are expected",18
                 );
     }
 
     @Test
     public void testPureAssignOp() {
         helpTC(" class A {  int b,bb;  \n //@ invariant (b+=bb)==0; \n}"
-                ,"/TEST.java:2: Assignments are not allowed where pure expressions are expected",18
+                ,"/TEST.java:2: error: Assignments are not allowed where pure expressions are expected",18
                 );
     }
 
     @Test
     public void testPureIncrement() {
         helpTC(" class A {  int b,bb;  \n //@ invariant 0==(++b); \n}"
-                ,"/TEST.java:2: Increment and decrement operators are not allowed where pure expressions are expected",20
+                ,"/TEST.java:2: error: Increment and decrement operators are not allowed where pure expressions are expected",20
                 );
     }
 
     @Test
     public void testPureIncrement2() {
         helpTC(" class A {  int b,bb;  \n //@ invariant 0==(b++); \n}"
-                ,"/TEST.java:2: Increment and decrement operators are not allowed where pure expressions are expected",21
+                ,"/TEST.java:2: error: Increment and decrement operators are not allowed where pure expressions are expected",21
                 );
     }
 
     @Test
     public void testPureDecrement() {
         helpTC(" class A {  int b,bb;  \n //@ invariant 0==(--b); \n}"
-                ,"/TEST.java:2: Increment and decrement operators are not allowed where pure expressions are expected",20
+                ,"/TEST.java:2: error: Increment and decrement operators are not allowed where pure expressions are expected",20
                 );
     }
 
     @Test
     public void testPureDecrement2() {
         helpTC(" class A {  int b,bb;  \n //@ invariant 0==(b--); \n}"
-                ,"/TEST.java:2: Increment and decrement operators are not allowed where pure expressions are expected",21
+                ,"/TEST.java:2: error: Increment and decrement operators are not allowed where pure expressions are expected",21
                 );
     }
 

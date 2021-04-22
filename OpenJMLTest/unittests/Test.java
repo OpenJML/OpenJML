@@ -89,7 +89,7 @@ public class Test {
 				if (true || verbose) System.out.println(params.size() + " PARAMETER SETS");
 			}
 			for (var p: params) {
-				if (verbose && constr.getParameterCount() != 0) {
+				if ((true||verbose) && constr.getParameterCount() != 0) {
 					System.out.print("PARAMS");
 					for (var o: p) System.out.print(" " + o);
 					System.out.println();

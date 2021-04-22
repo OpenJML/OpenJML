@@ -2085,9 +2085,9 @@ public class esc extends EscBase {
                         + "  //@ ensures true;\n"
                         + "  public Object inst2(int ii) {  return null; }\n"
                         + "}"
-                        ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",47
+                        ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",10
                         ,"/tt/TestJava.java:5: warning: Associated method exit", 32
-                        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",43
+                        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",10
                         ,"/tt/TestJava.java:8: warning: Associated method exit", 34
                         );
     }
@@ -2098,14 +2098,20 @@ public class esc extends EscBase {
     @Test
     public void testNonNull4() {
         main.addOptions("-nullableByDefault=false");
-        helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
-                + "  //@ requires ii == 10;\n" + "  //@ ensures true;\n"
-                + "  public                Object inst(int ii) { return null; }\n" + "  //@ requires ii == 10;\n"
-                + "  //@ ensures true;\n" + "  public          Object inst2(int ii) {  return null; }\n" + "}",
-                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",
-                47, "/tt/TestJava.java:5: warning: Associated declaration", 32,
-                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",
-                43, "/tt/TestJava.java:8: warning: Associated declaration", 26);
+        helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
+        		+ "public class TestJava { \n"
+                + "  //@ requires ii == 10;\n"
+                + "  //@ ensures true;\n"
+                + "  public Object inst(int ii) { return null; }\n"
+                + "  //@ requires ii == 10;\n"
+                + "  //@ ensures true;\n"
+                + "  public Object inst2(int ii) {  return null; }\n"
+                + "}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",10
+                ,"/tt/TestJava.java:5: warning: Associated method exit", 32
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",10
+                ,"/tt/TestJava.java:8: warning: Associated method exit", 34
+                );
     }
 
     // Tests that a cast is nonnull if the argument is
@@ -2148,9 +2154,9 @@ public class esc extends EscBase {
                         + "  public /*@ non_null*/Object inst2bad(boolean b, @NonNull Object i, Object ii) { return ii; }\n"
                         + "}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method instbad",24
-                , "/tt/TestJava.java:6: warning: Associated declaration", 88
+                , "/tt/TestJava.java:6: warning: Associated method exit", 88
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2bad",24
-                , "/tt/TestJava.java:10: warning: Associated declaration", 83
+                , "/tt/TestJava.java:10: warning: Associated method exit", 83
                 );
     }
 
@@ -3132,8 +3138,14 @@ public class esc extends EscBase {
     public void testForwardInit() {
         expectedExit = 1;
         helpTCX("tt.TestJava",
-                "package tt; \n" + "public class TestJava { \n" + "  public static int m() { \n" + "    int c = c+1; \n"
-                        + "    //@ assert c == 1; \n" + "    return c; \n" + "  }\n" + "}",
+                "package tt; \n"
+                		+ "public class TestJava { \n"
+                		+ "  public static int m() { \n"
+                		+ "    int c = c+1; \n"
+                        + "    //@ assert c == 1; \n"
+                		+ "    return c; \n"
+                        + "  }\n"
+                        + "}",
                 "/tt/TestJava.java:4: variable c might not have been initialized", 13);
     }
 
@@ -3325,9 +3337,9 @@ public class esc extends EscBase {
                         14,
                         "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m5",
                         14,
-                        "/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m6a:  a @org.jmlspecs.annotation.Nullable java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
+                        "/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m6a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
                         28,
-                        "/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m7a:  a @org.jmlspecs.annotation.Nullable java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
+                        "/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m7a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
                         28));
     }
 
@@ -3359,41 +3371,60 @@ public class esc extends EscBase {
     public void testUndefinedInSpec2() {
         //main.addOptions("-logic=AUFNIA");
         helpTCX("tt.TestJava",
-                "package tt; \n" + "/*@ nullable_by_default */ public class TestJava { \n" + "  int j;\n"
-                        + "  public static void m(TestJava o) { \n" + "    //@ assume o.j == 1; \n" + "  }\n  "
-                        + "  public static void m1(int[] a) { \n" + "    //@ assume a[0] == 1; \n" + "  }\n"
-                        + "  //@ requires a != null;\n" + "  public static void m2(int[] a) { \n"
-                        + "    //@ assume a[-1] == 1; \n" + "  }\n" + "  //@ requires a != null;\n"
-                        + "  public static void m3(int[] a) { \n" + "    //@ assume a.length == 1; \n"
-                        + "    //@ assume a[1] == 1; \n" + "  }\n" + "  public static void m4(int i, int j) { \n"
-                        + "    //@ assume i/j == 4; \n" + "  }\n" + "  public static void m5(int i, int j) { \n"
-                        + "    //@ assume i%j == 4; \n" + "  }\n" + "  public static void m6(RuntimeException r) { \n"
-                        + "    Throwable t = r;\n" + "    //@ assume ((Exception)t) != null ? true : true; \n" // OK
-                        + "  }\n" + "  public static void m6a(Exception r) { \n" + "    Throwable t = r;\n"
-                        + "    //@ assume ((RuntimeException)t) != null ? true : true ; \n" + "  }\n"
-                        + "  public static void m7(/*@ non_null*/RuntimeException r) { \n" + "    Throwable t = r;\n"
-                        + "    //@ assume ((Exception)t) != null ? true : true; \n" + "  }\n"
-                        + "  public static void m7a(/*@ non_null*/Exception r) { \n" + "    Throwable t = r;\n"
-                        + "    //@ assume ((RuntimeException)t) != null ? true : true ; \n" + "  }\n" + "}",
-                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",
-                17,
-                anyorder(
+                "package tt; \n"
+                		+ "/*@ nullable_by_default */ public class TestJava { \n"
+                		+ "  int j;\n"
+                        + "  public static void m(TestJava o) { \n"
+                		+ "    //@ assume o.j == 1; \n"
+                        + "  }\n  "
+                        + "  public static void m1(int[] a) { \n"
+                        + "    //@ assume a[0] == 1; \n"
+                        + "  }\n"
+                        + "  //@ requires a != null;\n"
+                        + "  public static void m2(int[] a) { \n"
+                        + "    //@ assume a[-1] == 1; \n"
+                        + "  }\n"
+                        + "  //@ requires a != null;\n"
+                        + "  public static void m3(int[] a) { \n"
+                        + "    //@ assume a.length == 1; \n"
+                        + "    //@ assume a[1] == 1; \n"
+                        + "  }\n"
+                        + "  public static void m4(int i, int j) { \n"
+                        + "    //@ assume i/j == 4; \n"
+                        + "  }\n"
+                        + "  public static void m5(int i, int j) { \n"
+                        + "    //@ assume i%j == 4; \n"
+                        + "  }\n"
+                        + "  public static void m6(RuntimeException r) { \n"
+                        + "    Throwable t = r;\n"
+                        + "    //@ assume ((Exception)t) != null ? true : true; \n" // OK
+                        + "  }\n"
+                        + "  public static void m6a(Exception r) { \n"
+                        + "    Throwable t = r;\n"
+                        + "    //@ assume ((RuntimeException)t) != null ? true : true ; \n"
+                        + "  }\n"
+                        + "  public static void m7(/*@ non_null*/RuntimeException r) { \n"
+                        + "    Throwable t = r;\n"
+                        + "    //@ assume ((Exception)t) != null ? true : true; \n"
+                        + "  }\n"
+                        + "  public static void m7a(/*@ non_null*/Exception r) { \n"
+                        + "    Throwable t = r;\n"
+                        + "    //@ assume ((RuntimeException)t) != null ? true : true ; \n"
+                        + "  }\n"
+                        + "}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",17
+                ,anyorder(
                         seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1",
                                 17),
                         seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1",
-                                17)),
-                "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m2",
-                17,
-                "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3",
-                17,
-                "/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m4",
-                17,
-                "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m5",
-                17,
-                "/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m6a:  a @org.jmlspecs.annotation.Nullable java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
-                17,
-                "/tt/TestJava.java:39: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m7a:  a @org.jmlspecs.annotation.Nullable java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
-                17);
+                                17))
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m2",17
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3",17
+                ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m4",17
+                ,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m5",17
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m6a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",17
+                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m7a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",17
+                );
     }
 
     /** Tests whether undefinedness is caught in various JML constructions */
@@ -4608,16 +4639,16 @@ public class esc extends EscBase {
                         + "  //@   requires true; \n"
                         + "  public static void m(int i, int j) {\n"
                         + "     //@ show i;\n"
-                        + "     //@ show \n"  // ERROR
+                        + "     //@ show \n"  // WARNING
                         + "     //@ show i i;\n" // ERROR
                         + "     //@ show;\n"     
-                        + "     //@ show i\n"    // ERROR
+                        + "     //@ show i\n"    // WARNING
                         + "     //@ show %;\n"   // ERROR
                         + "  }\n"
                         + "}\n"
-                        ,"/tt/TestJava.java:8: warning: Inserting missing semicolon at the end of a show statement",14
-                        ,"/tt/TestJava.java:9: error: Bad syntax in the expression list in show statement",17
-                        ,"/tt/TestJava.java:11: warning: Inserting missing semicolon at the end of a show statement",15
+                        ,"/tt/TestJava.java:8: warning: Inserting missing semicolon at the end of a show statement",15
+                        ,"/tt/TestJava.java:9: error: Incorrectly formed or terminated show statement near here",17
+                        ,"/tt/TestJava.java:11: warning: Inserting missing semicolon at the end of a show statement",16
                         ,"/tt/TestJava.java:12: error: illegal start of expression",15
                         ,"/tt/TestJava.java:12: error: illegal start of expression",16
                         );
@@ -4775,9 +4806,8 @@ public class esc extends EscBase {
                         + "  public int iii;\n"
                         + "  public void m(/*@ nullable */ TestJava t) {\n"
                         + "  int i = t.iii //@ allow NullPointerException; \n"
-                        + "  ;\n"
+                        + "  ;\n\n"
                         + "  int j = t.iii; //@ forbid NullPointerException; \n"
-                        + "  int k = t.iii; //@ forbid X; \n"
                         + "  k = t.iii; //@ forbid ; \n"
                         + "  k = t.iii; //@ forbid NullPointerException \n"
                         + "  k = t.iii; //@ forbid NullPointerException, ArrayIndexOutOfBoundsException; \n"
@@ -4797,9 +4827,7 @@ public class esc extends EscBase {
                         ,"/tt/TestJava.java:15: warning: A line annotation should end with a semicolon",75
                         ,"/tt/TestJava.java:16: warning: A line annotation should end with a semicolon",56
                         ,"/tt/TestJava.java:17: error: Expected an identifier here in the line annotation",35
-                        ,"/tt/TestJava.java:8: error: cannot find symbol\n" + 
-                                 "  symbol:   class X\n" + 
-                                 "  location: class tt.TestJava",29
+                        // When there is an error, no attribution is performed
                         );
     }
     
