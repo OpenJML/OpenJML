@@ -207,12 +207,9 @@ public class JmlScanner extends Scanner {
     public boolean scannerDebug = System.getenv("SCANNER") !=null;
     
     @Override
-    public Token token() {
-    	var token = super.token();
+    public void nextToken() {
+    	super.nextToken();
     	if (scannerDebug) System.out.println("TOKEN " + jml() + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
-    	if (scannerDebug && token.ikind.toString().equals("ENDJMLCOMMENT")) org.jmlspecs.openjml.Utils.dumpStack();
-    	if (scannerDebug && token.toString().equals("spec_public")) org.jmlspecs.openjml.Utils.dumpStack();
-    	return token;
     }
 
     // FIXME - is this still needed? is it correct?

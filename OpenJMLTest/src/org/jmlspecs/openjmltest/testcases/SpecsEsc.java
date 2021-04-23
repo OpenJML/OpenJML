@@ -7,7 +7,7 @@ import java.util.Collection;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.Strings;
-import org.jmlspecs.openjmltest.EscBase;
+import org.jmlspecs.openjmltest.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -27,6 +27,7 @@ public class SpecsEsc extends EscBase {
 
     @Parameters
     static public  Collection<String[]> datax() {
+    	System.out.println("CALLING PARAMETERS");
         if (!dotests) return new ArrayList<String[]>(0);
         Collection<String[]> data = new ArrayList<String[]>(1000);
         for (File f: findAllFiles()) {
@@ -69,12 +70,8 @@ public class SpecsEsc extends EscBase {
     @Test
     public void testSpecificationFile() {
         expectedExit = 0;
-        String subdir = "testspecs" + "/" + classname;
-        for (File f: new File(subdir).listFiles()) {
-            if (f.getName().startsWith("Test")) {
-                break;
-            }
-        }
+        String subdir = JmlTestCase.root + "/OpenJML/OpenJMLTest/" + "testspecs" + "/" + classname;
+        System.out.println("    ... " + classname.replace('_', '.'));
     	escOnFiles(subdir,subdir,"-method=esc","-checkFeasibility=exit");
     }
     
@@ -84,7 +81,7 @@ public class SpecsEsc extends EscBase {
         for (File f: dir.listFiles()) {
             if (f.getName().endsWith("HashSet")) continue;
             if (f.getName().endsWith("ArrayList")) continue;
-           if (f.isDirectory()) classes.add(f);
+            if (f.isDirectory()) classes.add(f);
         }
         System.out.println(classes.size() + " system specification classes found for esc testing");
         return classes;

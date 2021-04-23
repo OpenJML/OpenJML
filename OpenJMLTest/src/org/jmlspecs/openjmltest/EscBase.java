@@ -159,7 +159,7 @@ public abstract class EscBase extends JmlTestCase {
 
     protected static String z = java.io.File.pathSeparator;
     protected static String testspecpath1 = "$A"+z+"$B";
-    protected static String testspecpath2 = "$A"+z+"$B"+z+"/Users/davidcok/projects/OpenJMLB/Specs/specs";
+    protected static String testspecpath2 = "$A"+z+"$B"+z+"$SY";
     protected static String testspecpath;
     
     // Set this field to the expected exit value. 
@@ -183,7 +183,7 @@ public abstract class EscBase extends JmlTestCase {
         main.addOptions("-escExitInfo","-no-purityCheck");
 //        main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
-        main.addOptions("-exec","/Users/davidcok/mybin/z3");  // FIXME
+        main.addOptions("-exec",JmlTestCase.root + "/Solvers/Solvers-macos/z3-4.3.1","-verbose");  // FIXME
         main.addUncheckedOption("openjml.defaultProver=z3_4");
         addOptions(options);
         if (solver != null) main.addOptions(JmlOption.PROVER.optionName(),solver);
@@ -206,7 +206,7 @@ public abstract class EscBase extends JmlTestCase {
     		PrintWriter pw = new PrintWriter(actCompile);
     		int ex = -1;
     		try {
-//    			ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
+    			ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
     			//ex = com.sun.tools.javac.Main.compile(args.toArray(new String[args.size()]),pw);
     		} finally {
     			pw.close();

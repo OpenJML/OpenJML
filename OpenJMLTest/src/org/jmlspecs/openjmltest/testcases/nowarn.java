@@ -2,16 +2,11 @@ package org.jmlspecs.openjmltest.testcases;
 
 /** This tests parsing of nowarn. */
 
-import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
-import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
-import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjmltest.ParseBase;
 import org.junit.Test;
 
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.JCTree.*;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class nowarn extends ParseBase {
@@ -28,9 +23,10 @@ public class nowarn extends ParseBase {
     public void testNowarn() {
         checkCompilationUnit("/*@ nowarn Z; */package t; //@ nowarn X; \n/*@ nowarn Y; */ class A{}",
                 JmlCompilationUnit.class,16,
+                JCPackageDecl.class,16,
                 JCIdent.class, 24,
                 JmlClassDecl.class, 59,
-                JCModifiers.class, -1);
+                JmlModifiers.class, -1);
         checkMessages();
     }
     
@@ -38,9 +34,10 @@ public class nowarn extends ParseBase {
     public void testNowarn2() {
         checkCompilationUnit("package /*@ nowarn Z ZZ ZZZ; */t; //@ nowarn X,A,B; \n/*@ nowarn Y, YY,  YYY; */ class A{}",
                 JmlCompilationUnit.class,0,
+                JCPackageDecl.class,0,
                 JCIdent.class, 31,
                 JmlClassDecl.class, 80,
-                JCModifiers.class, -1);
+                JmlModifiers.class, -1);
         checkMessages();
     }
     
@@ -48,9 +45,10 @@ public class nowarn extends ParseBase {
     public void testNowarn3() {
         checkCompilationUnit("package /*@ nowarn Z ; nowarn Q; */t; //@ nowarn X,A,B; \n/*@ nowarn Y, YY,  YYY; */ class A{}",
                 JmlCompilationUnit.class,0,
+                JCPackageDecl.class,0,
                 JCIdent.class, 35,
                 JmlClassDecl.class, 84,
-                JCModifiers.class, -1);
+                JmlModifiers.class, -1);
         checkMessages();
     }
     
@@ -58,9 +56,10 @@ public class nowarn extends ParseBase {
     public void testNowarn4() {
         checkCompilationUnit("package /*@ nowarn Z  */t; //@ nowarn X\n/*@ nowarn ; */ class A{}",
                 JmlCompilationUnit.class,0,
+                JCPackageDecl.class,0,
                 JCIdent.class, 24,
                 JmlClassDecl.class, 56,
-                JCModifiers.class, -1);
+                JmlModifiers.class, -1);
         checkMessages("/TEST.java:1: warning: A line annotation should end with a semicolon",23,
                 "/TEST.java:1: warning: A line annotation should end with a semicolon",40);
     }
@@ -69,9 +68,10 @@ public class nowarn extends ParseBase {
     public void testNowarn5() {
         checkCompilationUnit("package /*@ nowarn Z  */t; //@ nowarn X\n/*@ nowarn ; */ class A{}",
                 JmlCompilationUnit.class,0,
+                JCPackageDecl.class,0,
                 JCIdent.class, 24,
                 JmlClassDecl.class, 56,
-                JCModifiers.class, -1);
+                JmlModifiers.class, -1);
         checkMessages("/TEST.java:1: warning: A line annotation should end with a semicolon",23,
                 "/TEST.java:1: warning: A line annotation should end with a semicolon",40);
     }
@@ -80,9 +80,10 @@ public class nowarn extends ParseBase {
     public void testNowarn6() {
         checkCompilationUnit("package /*@ nowarn nowarn */t; \n class /*@ nowarn ; */A{}",
                 JmlCompilationUnit.class,0,
+                JCPackageDecl.class,0,
                 JCIdent.class, 28,
                 JmlClassDecl.class, 33,
-                JCModifiers.class, -1);
+                JmlModifiers.class, -1);
         checkMessages("/TEST.java:1: warning: A line annotation should end with a semicolon",27);
     }
     
@@ -90,9 +91,10 @@ public class nowarn extends ParseBase {
     public void testNowarnA() {
         checkCompilationUnit("package t; \n/*@ pure nowarn Y; */ class A{}",
                 JmlCompilationUnit.class,0,
+                JCPackageDecl.class,0,
                 JCIdent.class, 8,
                 JmlClassDecl.class, 34,
-                JCModifiers.class, 16,
+                JmlModifiers.class, 16,
                 JmlAnnotation.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,
@@ -106,9 +108,10 @@ public class nowarn extends ParseBase {
     public void testNowarnB() {
         checkCompilationUnit("package t; \n/*@ pure nowarn Y */ class A{}",
                 JmlCompilationUnit.class,0,
+                JCPackageDecl.class,0,
                 JCIdent.class, 8,
                 JmlClassDecl.class, 33,
-                JCModifiers.class, 16,
+                JmlModifiers.class, 16,
                 JmlAnnotation.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,
@@ -122,9 +125,10 @@ public class nowarn extends ParseBase {
     public void testNowarnC() {
         checkCompilationUnit("package t; \n/*@ pure nowarn C; nullable_by_default */ class A{}",
                 JmlCompilationUnit.class,0,
+                JCPackageDecl.class,0,
                 JCIdent.class, 8,
                 JmlClassDecl.class, 54,
-                JCModifiers.class, 16,
+                JmlModifiers.class, 16,
                 JmlAnnotation.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,
@@ -143,9 +147,10 @@ public class nowarn extends ParseBase {
     public void testNowarnD() {
         checkCompilationUnit("package t; \n/*@ pure nowarn C nullable            */ class A{}",
                 JmlCompilationUnit.class,0,
+                JCPackageDecl.class,0,
                 JCIdent.class, 8,
                 JmlClassDecl.class, 53,
-                JCModifiers.class, 16,
+                JmlModifiers.class, 16,
                 JmlAnnotation.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,
@@ -158,10 +163,11 @@ public class nowarn extends ParseBase {
     @Test
     public void testNowarnE() {
         checkCompilationUnit("package t; \n/*@  nowarn C! ; */ class A{}",
-                JmlCompilationUnit.class,0,
-                JCIdent.class, 8,
-                JmlClassDecl.class, 32,
-                JCModifiers.class, -1);
-        checkMessages("/TEST.java:2: Expected an identifier here in the line annotation",14);
+                JmlCompilationUnit.class,0,0,41,
+                JCPackageDecl.class, 0,0,10,
+                JCIdent.class, 8,8,9,
+                JmlClassDecl.class, 32,32,41,
+                JmlModifiers.class, -1,-1,-1);
+        checkMessages("/TEST.java:2: error: Expected an identifier here in the line annotation",14);
     }
 }

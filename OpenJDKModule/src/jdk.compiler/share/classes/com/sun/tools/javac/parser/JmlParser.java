@@ -121,6 +121,12 @@ public class JmlParser extends JavacParser {
         this.S = (JmlScanner) S;
         this.jmlF = (JmlTree.Maker) F;
     }
+    
+    public int getStartPos(JCTree tree) {
+    	if (tree instanceof IJmlTree) return ((IJmlTree)tree).getStartPosition();
+        return TreeInfo.getStartPos(tree);
+    }
+
 
     /** Beginning position of current token */
     public int pos() {
@@ -1288,7 +1294,7 @@ public class JmlParser extends JavacParser {
         IJmlClauseKind ext = methodSpecKeyword();
         if (ext == feasibleBehaviorClause) {
             if (!isNone(mods))
-                utils.error(pos(), endPos(), "jml.no.mods.allowed",
+                utils.warning(pos(), endPos(), "jml.no.mods.allowed",
                         ext.keyword);
             nextToken();
             mods = modifiersOpt();
@@ -1304,7 +1310,7 @@ public class JmlParser extends JavacParser {
         }
         if (ext == impliesThatClause) {
             if (!isNone(mods))
-                utils.error(pos(), endPos(), "jml.no.mods.allowed",
+                utils.warning(pos(), endPos(), "jml.no.mods.allowed",
                         ext.keyword);
             nextToken();
             mods = modifiersOpt();
@@ -1320,7 +1326,7 @@ public class JmlParser extends JavacParser {
         }
         if (ext == forExampleClause) {
             if (!isNone(mods))
-                utils.error(mods.getStartPosition(),
+                utils.warning(mods.getStartPosition(),
                         getEndPos(mods),
                         "jml.no.mods.allowed", ext.keyword);
             nextToken();
@@ -1369,7 +1375,7 @@ public class JmlParser extends JavacParser {
         IJmlClauseKind ext = methodSpecKeyword();
         if (ext == alsoClause || ext == elseClause) {
             if (!isNone(mods)) {
-                utils.error(mods.getStartPosition(), endPos(),
+                utils.warning(mods.getStartPosition(), endPos(),
                         "jml.no.mods.allowed", ext.keyword);
                 mods = null;
             }

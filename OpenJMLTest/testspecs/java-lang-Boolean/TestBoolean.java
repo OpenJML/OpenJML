@@ -7,10 +7,10 @@ public class TestBoolean {
 	}
 	
 	public static void esc(boolean p, boolean q) {
-		Boolean t = new Boolean(true);
-		Boolean f = new Boolean(false);
-		//@ assert p ==> t == Boolean.TRUE;   // ERROR - not necessarily true
-		//@ assert q ==> f == Boolean.FALSE;   // ERROR - not necessarily true
+		Boolean t = Boolean.TRUE;
+		Boolean f = Boolean.FALSE;
+		//@ assert p ==> t == Boolean.TRUE;
+		//@ assert q ==> f == Boolean.FALSE;
 		//@ assert t != null;
 		//@ assert f != null;
 		

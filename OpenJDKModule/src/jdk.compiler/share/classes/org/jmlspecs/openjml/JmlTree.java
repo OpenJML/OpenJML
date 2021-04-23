@@ -100,11 +100,22 @@ public class JmlTree {
         return (flags & Utils.JMLBIT) != 0;
     }
     
-    public static interface IInJML {
+    /** This is a marker interface for all JMLTree nodes, to distinguish them from JCTree nodes  */
+    public static interface IJmlTree {
+    	/** JCTree notes use TreeInfo.getStartPos to return start position, which does not work
+    	 * correctly for most JMLTree nodes, so those implement their own, class dependent, getStartPosition
+    	 */
+    	int getStartPosition();
+    	/** JCTree notes use TreeInfo.getEndPos to return start position, which does not work
+    	 * correctly for most JMLTree nodes, so those implement their own, class dependent, getEndPosition
+    	 */
+    	int getEndPosition(EndPosTable t);
+    }
+    
+    public static interface IInJML extends IJmlTree{
         boolean isJML();
     }
-
-
+    
     /** This interface extends the node factory for Java parse tree nodes by adding factory
      * methods for all of the JML nodes.  All these methods create the AST nodes;
      * the pos field is set using other methods on the factory.
@@ -1486,7 +1497,7 @@ public class JmlTree {
     /** An abstract class that parents any Jml expression classes (that are not
      * special cases of other specific Java expressions)
      */
-    abstract public static class JmlExpression extends JCTree.JCExpression {
+    abstract public static class JmlExpression extends JCTree.JCExpression implements IJmlTree {
     	protected JmlExpression() {}
 
     	@Override

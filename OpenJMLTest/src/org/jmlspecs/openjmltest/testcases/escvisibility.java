@@ -734,7 +734,7 @@ public class escvisibility extends EscBase {
     public void testPackage8() {
     	expectedExit = 1;
         main.addOptions("-method", "tt.TestJava.m1");
-        addMockFile("tx/B.java","package tx; public class B {\n"
+        addMockFile("/$A/tx/B.java","package tx; public class B {\n"
                 +"  //@ normal_behavior\n"
                 +"  //@  requires false;\n"
                 +"  static public void m1() {\n"
