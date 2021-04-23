@@ -46,6 +46,19 @@ public class prettyprinting extends ParseBase {
                 code = code.replaceAll("[\r]","");
                 out = out.replaceAll("[\r]","");
             }
+            String added = "//@ model import org.jmlspecs.lang.*;";
+            boolean hasPackage = code.contains("package");
+            boolean hasImport = code.contains("import");
+            boolean hasAddedNL = out.contains(added + "\n");
+            if (hasImport) {
+            	out = out.replace("//@ model import org.jmlspecs.lang.*;\n", "");
+            } else if (hasPackage) {
+            	out = out.replace("\n//@ model import org.jmlspecs.lang.*;\n", "");
+            } else if (out.contains(added + " ")) {
+            	out = out.replace("//@ model import org.jmlspecs.lang.*; ", "");
+            } else if (hasAddedNL) {
+            	out = out.replace("\n//@ model import org.jmlspecs.lang.*;\n", "");
+            }
             if (print || !code.equals(out)) {
                 System.out.println("IN:");
                 System.out.print(code);
@@ -195,7 +208,7 @@ public class prettyprinting extends ParseBase {
     
     @Test
     public void testMethodStatements2() {
-        precise = false; // TODO
+        precise = false; // TODO  // Fixme - seems to use incorrectly formatted JML annotations 
         helpPP(
                 eol + 
                 "public static final class A {" + eol + 

@@ -895,7 +895,7 @@ public class JavacParser implements Parser {
             JCExpression t1 = term();
             accept(COLON);
             JCExpression t2 = term1();
-            return F.at(pos).Conditional(t, t1, t2);
+            return toP(F.at(pos).Conditional(t, t1, t2));
         } else {
             return t;
         }
@@ -1001,9 +1001,9 @@ public class JavacParser implements Parser {
     		JCExpression od2)
     {
     	if (opToken.kind == INSTANCEOF) {
-    		return F.at(pos).TypeTest(od1, od2);
+    		return toP(F.at(pos).TypeTest(od1, od2));
     	} else {
-    		return F.at(pos).Binary(optag(opToken.kind), od1, od2);
+    		return toP(F.at(pos).Binary(optag(opToken.kind), od1, od2));
     	}
     }
     

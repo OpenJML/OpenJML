@@ -51,6 +51,7 @@ public class positions extends JmlTestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp(); // Sets up a main program, diagnostic collector
+		org.jmlspecs.openjml.Extensions.register(context);
         parserFactory = ParserFactory.instance(context);
     }
 

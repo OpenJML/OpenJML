@@ -56,7 +56,7 @@ public class Test {
 				continue;
 			}
 			var constr = cons[0];
-			var allmethods = clazz.getMethods();
+			var allmethods = clazz.getDeclaredMethods();
 			var methods = allmethods;
 			java.util.Arrays.sort(methods, (a,b)->a.toString().compareTo(b.toString()));
 			if (k > 0) {
@@ -71,14 +71,18 @@ public class Test {
 			}
 			java.util.Collection<Object[]> params = java.util.Arrays.<Object[]>asList(new Object[0]);
 			if (constr.getParameterCount() != 0) {
+				Class c = clazz;
 				Method pmethod = null;
-				x: for (var m: allmethods) {
-					for (var a: m.getDeclaredAnnotations()) {
-						if (a.toString().contains("org.junit.runners.Parameterized$Parameters")) {
-							pmethod = m;
-							break x;
+				x: while (c != null) {
+					for (var m: c.getDeclaredMethods()) {
+						for (var a: m.getDeclaredAnnotations()) {
+							if (a.toString().contains("org.junit.runners.Parameterized$Parameters")) {
+								pmethod = m;
+								break x;
+							}
 						}
 					}
+					c = c.getSuperclass();
 				}
 				if (pmethod == null) {
 					System.out.println("No @Parameters found for " + clazz);
@@ -89,7 +93,7 @@ public class Test {
 				if (true || verbose) System.out.println(params.size() + " PARAMETER SETS");
 			}
 			for (var p: params) {
-				if ((true||verbose) && constr.getParameterCount() != 0) {
+				if ((verbose && constr.getParameterCount() != 0) || constr.getParameterCount() < 10) {
 					System.out.print("PARAMS");
 					for (var o: p) System.out.print(" " + o);
 					System.out.println();

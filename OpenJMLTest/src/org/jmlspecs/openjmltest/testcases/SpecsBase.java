@@ -19,9 +19,8 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlSpecs.Dir;
-import org.jmlspecs.openjmltest.TCBase;
-import org.jmlspecs.openjmltest.TestJavaFileObject;
+import org.jmlspecs.openjml.JmlSpecs.*;
+import org.jmlspecs.openjmltest.*;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
 import org.junit.Ignore;
@@ -218,6 +217,7 @@ public class SpecsBase extends TCBase {
         try {
             if (specs == null) {
                 Main main = new Main();
+                main.initialize(null);
                 Context context = main.context();
                 specs = JmlSpecs.instance(context);
                 specs.setSpecsPath("$SY");
@@ -227,11 +227,13 @@ public class SpecsBase extends TCBase {
             fail("Exception in findAllFiles");
         }
         java.util.List<Dir> dirs = specs.getSpecsPath();
+        dirs.clear(); dirs.add(specs.new FileSystemDir(JmlTestCase.root + "/Specs/specs"));
         assertTrue ("Null specs path",dirs != null); 
         assertTrue ("No specs path",dirs.size() != 0); 
         
         SortedSet<String> classes = new TreeSet<String>(); 
         for (Dir dir: dirs) {
+        	System.out.println("DIR " + dir.toString());
             File d = new File(dir.toString());
             classes.addAll(findAllFiles(d, dir.toString()));
         }

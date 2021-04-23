@@ -30,7 +30,7 @@ public class escoption extends EscBase {
         super.setUp();
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
         main.addOptions("-quiet");
-        main.addOptions("-checkFeasibility=none");
+        main.addOptions("-checkFeasibility=none","-no-require-white-space");
         //main.addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -74,7 +74,8 @@ public class escoption extends EscBase {
     
     @Test
     public void testOption() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+    	main.addOptions("-quiet");
+    	helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
                 +"  //@ ensures true;\n"

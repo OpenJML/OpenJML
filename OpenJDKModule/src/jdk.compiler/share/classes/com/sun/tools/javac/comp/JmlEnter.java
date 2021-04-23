@@ -916,10 +916,13 @@ public class JmlEnter extends Enter {
 					msg = msg + "\n    " + csym + " has " + s;
 				}
 				utils.error(mdecl, "jml.message", msg);
+				if (isModel ) {
+					utils.error(mdecl, "jml.message", "A Java declaration may not be marked either ghost or model: " + mdecl.name + " (owner: " + csym +")");
+				}
 				return;
     		}
 			if (!isModel && !isOwnerJML) {
-				utils.error(mdecl, "jml.message", "A Java method declaration must be marked model: " + mdecl.name + " (owner: " + csym +")");
+				utils.error(mdecl, "jml.message", "A JML method declaration must be marked model: " + mdecl.name + " (owner: " + csym +")");
 				// Attempt recovery by adding a model annotation
 				JmlTreeUtils.instance(context).addAnnotation(mdecl.mods, mdecl.mods.pos, mdecl.mods.pos, Modifiers.MODEL, null);
 			}
@@ -1118,12 +1121,13 @@ public class JmlEnter extends Enter {
     public void specsEnter(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> specsEnv, JmlClassDecl javaDecl, boolean isSameCU, Map<Symbol,JCTree> alreadyMatched) {
 		boolean isJML = utils.isJML(vdecl);
 		boolean isOwnerJML = utils.isJML(csym.flags());
-		boolean isGhostOrModel = utils.hasMod(vdecl.mods, Modifiers.MODEL, Modifiers.GHOST);
+		boolean isGhost = utils.hasMod(vdecl.mods, Modifiers.GHOST);
+		boolean isGhostOrModel = isGhost || utils.hasMod(vdecl.mods, Modifiers.MODEL);
 		boolean ok = false;
 		Symbol.VarSymbol vsym = findVar(csym, vdecl, specsEnv);
 		try {
 			if (isOwnerJML && isGhostOrModel) {
-				utils.error(vdecl, "jml.message", "A model type may not contain model declarations: " + vdecl.name + " in " + csym);
+				utils.error(vdecl, "jml.message", "A model type may not contain " + (isGhost?"ghost":"model") + " declarations: " + vdecl.name + " in " + csym);
 				// Attempt recovery by removing the offending annotation
 				utils.removeAnnotation(vdecl.mods,  Modifiers.MODEL);
 			}
@@ -1438,6 +1442,7 @@ public class JmlEnter extends Enter {
 
     }
     
+    // FIXME - what about checking vs. binary
     public void checkVarMatch(/*@nullable*/ JmlVariableDecl javaMatch, VarSymbol match, JmlVariableDecl specVarDecl, ClassSymbol javaClassSymbol) {
     	if (javaMatch == null || javaMatch == specVarDecl) return;
     	checkAnnotations(javaMatch.mods, specVarDecl.mods, match);

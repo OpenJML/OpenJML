@@ -465,7 +465,9 @@ public class modifiers extends TCBase {
     @Test public void testMatchMethod6() {
         addMockFile("$A/A.jml","public class A { public void m(int i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {}  public String m(int i) { return null; } }",
-                "/$A/A.jml:1: error: The return types of method A.m(int) are different in the specification and java files: void vs. java.lang.String",25); 
+                "/$A/A.jml:1: error: There is no binary method to match this Java declaration in the specification file: m (owner: A)\n"
+                + "      A has m(int)\n"
+                + "      A has m(boolean)",30); 
     }
     
     @Test public void testMatchMethod7() { 
@@ -948,7 +950,7 @@ public class modifiers extends TCBase {
     @Test public void testLocalVar5() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  void m() {\n /*@ non_null nullable */ Object o; } }"
-                ,"/A.java:3: error: A type may not be declared both non_null and nullable",6
+                ,"/A.java:3: error: A declaration may not be both non_null and nullable",15
                 );
     }
      
@@ -1021,19 +1023,21 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testSpec7() {
+    	expectedExit = 0;
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  //@ public also behavior requires true;\n" +
                 "  void m() {} }"
-                ,"/A.java:2: error: No modifiers are allowed prior to a also token",7
+                ,"/A.java:2: warning: No modifiers are allowed prior to a also token",7
                 ,"/A.java:2: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",19
                 );
     }
      
     @Test public void testSpec8() {
+    	expectedExit = 0;
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  //@ pure also behavior requires true;\n" +
                 "  void m() {} }"
-                ,"/A.java:2: error: No modifiers are allowed prior to a also token",7
+                ,"/A.java:2: warning: No modifiers are allowed prior to a also token",7
                 ,"/A.java:2: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",17
                 );
     }
@@ -1098,7 +1102,7 @@ public class modifiers extends TCBase {
         helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ A(int i) {} \n" +
                 "  //@ forall nullable Object o1; \n" +
                 "  //@ forall non_null Object o2; \n" +
-                "  //@ forall \\readonly Object o3; \n" +
+                "  //@ forall readonly Object o3; \n" +
                 "  //@ forall @Nullable Object o4; \n" +
                 "  //@ forall @Pure Object o6; \n" +
                 "  //@ forall pure Object o7; \n" +
@@ -1115,7 +1119,7 @@ public class modifiers extends TCBase {
         helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ A(int i) {} \n" +
                 "  //@ old nullable Object o1 = null; \n" +
                 "  //@ old non_null Object o2 = null; \n" +
-                "  //@ old \\readonly Object o3 = null; \n" +
+                "  //@ old readonly Object o3 = null; \n" +
                 "  //@ old @Nullable Object o4 = null; \n" +
                 "  //@ old @Pure Object o6 = null; \n" +
                 "  //@ old pure Object o6 = null; \n" +
@@ -1136,9 +1140,9 @@ public class modifiers extends TCBase {
                 "  //@ non_null invariant true; \n" +
                 "  //@ spec_public invariant true; \n" +
                 "  void m() {} }"
-                ,"/A.java:7: error: Type annotations are not permitted here", 7
                 ,"/A.java:4: error: This JML modifier is not allowed for a invariant clause", 7
                 ,"/A.java:6: error: illegal combination of modifiers: public and private", 22
+                ,"/A.java:7: error: This JML modifier is not allowed for a invariant clause", 7
                 ,"/A.java:8: error: This JML modifier is not allowed for a invariant clause", 7
                 );
     }
@@ -1179,11 +1183,11 @@ public class modifiers extends TCBase {
                 "  //@ non_null axiom true; \n" +       // ERROR
                 "  //@ spec_public axiom true; \n" +    // ERROR
                 "  void m() {} }"
-                ,"/A.java:7: error: Type annotations are not permitted here", 7
                 ,"/A.java:3: error: These modifiers are not allowed here: public", 14
                 ,"/A.java:4: error: This JML modifier is not allowed for a axiom clause", 7
                 ,"/A.java:5: error: These modifiers are not allowed here: private", 15
                 ,"/A.java:6: error: These modifiers are not allowed here: public private", 22
+                ,"/A.java:7: error: This JML modifier is not allowed for a axiom clause", 7
                 ,"/A.java:8: error: This JML modifier is not allowed for a axiom clause", 7
                 );
     }
@@ -1200,9 +1204,9 @@ public class modifiers extends TCBase {
                 "  //@ static initially true; \n" +
                 "  //@ instance initially true; \n" +
                 "  void m() {} }"
-                ,"/A.java:7: error: Type annotations are not permitted here", 7
                 ,"/A.java:4: error: This JML modifier is not allowed for a initially clause", 7
                 ,"/A.java:6: error: illegal combination of modifiers: public and private", 22
+                ,"/A.java:7: error: This JML modifier is not allowed for a initially clause", 7
                 ,"/A.java:8: error: This JML modifier is not allowed for a initially clause", 7
                 );
     }
@@ -1234,7 +1238,7 @@ public class modifiers extends TCBase {
                 +"public boolean equals(Object o);}");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  boolean m() { return new Object().equals(null); } }"
-                ,"/$A/java/lang/Object.jml:1: error: Unexpected or misspelled JML token: non_null",24
+                ,"/$A/java/lang/Object.jml:1: error: This JML modifier is not allowed for a type declaration",24
                 );
     }
     

@@ -46,6 +46,8 @@ public class scanner extends JmlTestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp(); // Sets up a main program, diagnostic collector
+    	main.addOptions("-no-require-white-space");
+        org.jmlspecs.openjml.Extensions.register(context);
         fac = ScannerFactory.instance(context);
         keys = null;
     }
@@ -98,7 +100,7 @@ public class scanner extends JmlTestCase {
             int i = 0;
             while (i<list.length) {
                 sc.nextToken();
-                if (print) System.out.println(sc.token() + " " + ((JmlScanner)sc).jmlToken());
+                if (print) System.out.println(sc.token() + " " + sc.jmlToken());
                 Token e = sc.token();
                 if (e.ikind != list[i]) {
                     fail("Unexpected token at position " + i + " expected: " + list[i] + " actual: " + e.kind );
@@ -136,8 +138,7 @@ public class scanner extends JmlTestCase {
     @Test public void testSomeUnicode() {
         helpScanner("\\u0041\\u0020\\u0041",  // A space A
                 new TokenKind[]{IDENTIFIER,IDENTIFIER},
-                new int[]{5,11,17,18});  // Current behavior but wrong - BUG - FIXME
-                //new int[]{0,6,12,18}); // This is what it should be
+                new int[]{0,6,12,18});
     }
     
     /** Test some unicode  - multiple u*/
@@ -148,14 +149,14 @@ public class scanner extends JmlTestCase {
     }
 
     // FIXME - Java tokenizer recovery from bad character is not robust
-    /** Test some unicode  - first backslash is an error and ignored */
+    /** Test some unicode  - first backslash is an error */
     @Test public void testSomeUnicode3() {
         helpScanner(
                 "\\\\u0041 A",
                 new ITokenKind[]{ERROR,IDENTIFIER,IDENTIFIER},
-                new int[]{0,6,6,7,8,9},
+                new int[]{0,1,1,7,8,9},
                 1);
-                checkMessages("/TEST.java:1: illegal character: '\\'",1);  
+                checkMessages("/TEST.java:1: error: illegal character: '\\'",0);  
     }
     
     /** This tests that the test harness records if not enough tokens are listed */
@@ -319,10 +320,10 @@ public class scanner extends JmlTestCase {
     /** Test for an invalid backslash identifier */
     @Test public void testBackslash5() {
         helpScanner("/*@ \\xyz result*/",
-                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML},
+                new ITokenKind[]{ERROR,IDENTIFIER,EJML},
                 null,
-                0);
-        checkMessages();
+                1);
+        checkMessages("/TEST.java:1: error: This backslash token is unknown: \\xyz",5);
     }
 
     /** Test for a JML backslash with no identifier */
@@ -331,7 +332,7 @@ public class scanner extends JmlTestCase {
                 new ITokenKind[]{ERROR,IDENTIFIER,EJML},
                 null,
                 1);
-        checkMessages("/TEST.java:1: A backslash in a JML comment expects to be followed by a valid identifier",5);
+        checkMessages("/TEST.java:1: error: A backslash in a JML comment expects to be followed by a valid identifier",5);
     }
     
 
@@ -402,23 +403,23 @@ public class scanner extends JmlTestCase {
     @Test public void testEmbeddedJavaComment2() {
         helpScanner("//@requires /* requires */ ensures ",
                 new ITokenKind[]{IDENTIFIER,IDENTIFIER,EOF},
-                new int[] {3,11,27,34,34,34});
+                new int[] {3,11,27,34,35,35});
     }
 
     /** Test an embedded JML comment */
     @Test public void testEmbeddedJavaComment3() { 
         helpScanner("//@requires /* requires ensures \n signals */ modifies ",
                 new ITokenKind[]{IDENTIFIER,IDENTIFIER,EOF},
-                new int[]{3,11,45,53,53,53},
+                new int[]{3,11,45,53,54,54},
                 1);
-        checkMessages("/TEST.java:1: Java block comment must terminate within the JML line comment",13);
+        checkMessages("/TEST.java:1: error: Java block comment must terminate within the JML line comment",13);
     }
 
     /** Test an embedded Java comment */
     @Test public void testEmbeddedJavaComment4() {
         helpScanner("/*@requires // modifies \n ensures */ signals ",
                 new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML,IDENTIFIER,EOF},
-                new int[]{3,11,26,33,34,36,37,44,44,44}); // FIXME - check position of EOF
+                new int[]{3,11,26,33,34,36,37,44,45,45});
     }
 
     /** Test an embedded Java comment (which ends a JML block comment) */
@@ -434,7 +435,7 @@ public class scanner extends JmlTestCase {
 
     // NOTE: The scanner absorbs ending whitespace into the EOF.
     @Test public void testLineComment2() {
-        helpScanner("//@ requires\n",new ITokenKind[]{IDENTIFIER,EOF},null);
+        helpScanner("//@ requires\n",new ITokenKind[]{IDENTIFIER,EJML},null);
     }
 
     /** Test that a line comment ends with a NL character */
@@ -498,7 +499,7 @@ public class scanner extends JmlTestCase {
         helpScanner("//@@x\\@@@\nrequires ",
                 new ITokenKind[]{IDENTIFIER,ERROR,MONKEYS_AT,MONKEYS_AT,MONKEYS_AT,EJML,IDENTIFIER},
                 null,1);
-        checkMessages("/TEST.java:1: A backslash in a JML comment expects to be followed by a valid identifier",6);
+        checkMessages("/TEST.java:1: error: A backslash in a JML comment expects to be followed by a valid identifier",6);
     }
     
     /** Test a bad backslash */
@@ -506,7 +507,7 @@ public class scanner extends JmlTestCase {
         helpScanner("//@@\\@x@@\nrequires ",
                 new ITokenKind[]{ERROR,MONKEYS_AT,IDENTIFIER,MONKEYS_AT,MONKEYS_AT,EJML,IDENTIFIER},
                 null,1);
-        checkMessages("/TEST.java:1: A backslash in a JML comment expects to be followed by a valid identifier",5);
+        checkMessages("/TEST.java:1: error: A backslash in a JML comment expects to be followed by a valid identifier",5);
     }
     
 //    @Test public void testMultiLine() {
@@ -547,10 +548,10 @@ public class scanner extends JmlTestCase {
 
     @Test public void testMultiLineError() {
         helpScanner("/*@ \\result\n  @@@\\xyz@*/",
-                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML,EOF},
+                new ITokenKind[]{IDENTIFIER,ERROR,EJML,EOF},
                 new int[]{4,11,17,21,21,24,24,24},
-                0);
-        checkMessages();
+                1);
+        checkMessages("/TEST.java:2: error: This backslash token is unknown: \\xyz",6);
     }
 
     @Test public void testInformalComment() {
@@ -579,7 +580,7 @@ public class scanner extends JmlTestCase {
                 new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EJML},
                 new int[]{4,11,11,28,28,30},
                 1);
-        checkMessages("/TEST.java:1: The informal expression is not closed",13);
+        checkMessages("/TEST.java:1: error: The informal expression is not closed",13);
     }
     
     // Testing an unclosed informal comment in a BLOCK comment
@@ -588,7 +589,7 @@ public class scanner extends JmlTestCase {
                 new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EJML},
                 new int[]{4,11,11,29,29,31},
                 1);
-        checkMessages("/TEST.java:1: The informal expression is not closed",13);
+        checkMessages("/TEST.java:1: error: The informal expression is not closed",13);
     }
     
     // Testing an unclosed informal comment in a BLOCK comment
@@ -597,7 +598,7 @@ public class scanner extends JmlTestCase {
                 new ITokenKind[]{ERROR,EOF},
                 null, //new int[]{4,11,11,30,30,31},
                 1);
-        checkMessages("/TEST.java:1: unclosed comment",1);
+        checkMessages("/TEST.java:1: error: unclosed comment",1);
     }
     
     // Testing an unclosed informal comment in a LINE comment
@@ -606,7 +607,7 @@ public class scanner extends JmlTestCase {
                 new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EJML,PUBLIC,EOF},
                 new int[]{4,11,11,28,28,29,30,36,36,36},
                 1);
-        checkMessages("/TEST.java:1: The informal expression is not closed",13);
+        checkMessages("/TEST.java:1: error: The informal expression is not closed",13);
     }
     
     // Testing an unclosed informal comment in a LINE comment
@@ -615,16 +616,16 @@ public class scanner extends JmlTestCase {
                 new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EOF},
                 new int[]{4,11,11,28,28,28},
                 1);
-        checkMessages("/TEST.java:1: The informal expression is not closed",13);
+        checkMessages("/TEST.java:1: error: The informal expression is not closed",13);
     }
     
     // Testing an unclosed informal comment in a LINE comment
     @Test public void testInformalComment6() {
         helpScanner("//@ \\result(* requires ***\"*) \" requires\n",
-                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,ERROR,EOF},
-                new int[]{4,11,11,29,30,40,40,40},  // FIXME - check posiiton of EOF
+                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,ERROR,EJML},
+                new int[]{4,11,11,29,30,40,40,41},
                 1);
-        checkMessages("/TEST.java:1: unclosed string literal",31);
+        checkMessages("/TEST.java:1: error: unclosed string literal",31);
     }
     
     @Test public void testStringLiteral() {
@@ -678,9 +679,9 @@ public class scanner extends JmlTestCase {
     }
     
     @Test public void testDotDot() {
-        helpScanner("//@..",
+        helpScanner("//@ ..",
                 new ITokenKind[]{DOT_DOT,EOF},
-                new int[]{3,5,5,5},
+                new int[]{4,6,6,6},
                 0);
     }
     
@@ -752,7 +753,7 @@ public class scanner extends JmlTestCase {
                 new ITokenKind[]{DOUBLELITERAL,IDENTIFIER,EJML,EOF},
                 null,
                 1);
-        checkMessages("/TEST.java:1: malformed floating point literal",5);
+        checkMessages("/TEST.java:1: error: malformed floating point literal",5);
     }
  
     @Test public void testDotDot10() {
@@ -760,7 +761,7 @@ public class scanner extends JmlTestCase {
                 new ITokenKind[]{DOUBLELITERAL,IDENTIFIER,EJML,EOF},
                 null,
                 1);
-        checkMessages("/TEST.java:1: malformed floating point literal",5);
+        checkMessages("/TEST.java:1: error: malformed floating point literal",5);
     }
  
     @Test public void testDotDot11() {
@@ -768,7 +769,7 @@ public class scanner extends JmlTestCase {
                 new ITokenKind[]{DOUBLELITERAL,IDENTIFIER,EJML,EOF},
                 null,
                 1);
-        checkMessages("/TEST.java:1: malformed floating point literal",5);
+        checkMessages("/TEST.java:1: error: malformed floating point literal",5);
     }
  
     @Test public void testDotDot12() {
@@ -776,7 +777,7 @@ public class scanner extends JmlTestCase {
                 new ITokenKind[]{DOUBLELITERAL,IDENTIFIER,EJML,EOF},
                 null,
                 1);
-        checkMessages("/TEST.java:1: malformed floating point literal",5);
+        checkMessages("/TEST.java:1: error: malformed floating point literal",5);
     }
  
     @Test public void testConditionalKey1() {
@@ -847,8 +848,8 @@ public class scanner extends JmlTestCase {
                 new ITokenKind[]{EOF},
                 null,
                 2);
-        checkMessages("/TEST.java:1: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",3
-        		,"/TEST.java:2: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",5);
+        checkMessages("/TEST.java:1: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",3
+        		,"/TEST.java:2: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",5);
     }
 
 //    @Test public void testConditionalKey9d() {
@@ -857,12 +858,12 @@ public class scanner extends JmlTestCase {
 //                null,0);
 //    }
 
-    @Test public void testConditionalKey10d() {
-        helpScanner("//-@ requires\n  /*-@ requires */",
-                new ITokenKind[]{EOF},
-                null,
-                0);
-    }
+//    @Test public void testConditionalKey10d() {
+//        helpScanner("//-@ requires\n  /*-@ requires */",
+//                new ITokenKind[]{EOF},
+//                null,
+//                0);
+//    }
 
 
 

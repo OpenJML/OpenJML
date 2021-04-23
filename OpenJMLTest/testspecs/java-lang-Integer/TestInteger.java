@@ -8,8 +8,8 @@ public class TestInteger {
 	
 	@org.jmlspecs.annotation.CodeJavaMath
 	public static void esc(int i, int j, /*@ non_null */ Integer z) {
-		Integer a = new Integer(i);
-		Integer c = new Integer(i+1);
+		Integer a = Integer.valueOf(i);
+		Integer c = Integer.valueOf(i+1);
 		Integer b = i;
 		//@ assert a != null;
 		//@ assert b != null;

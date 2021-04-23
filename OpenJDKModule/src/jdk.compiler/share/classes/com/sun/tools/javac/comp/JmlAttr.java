@@ -904,8 +904,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (ownerIsJML && isModel) {
         	if (isLocal) utils.error(tspecs.file,specsDecl,"jml.no.nested.model.type");
         } else if (inJML && !isModel && !ownerIsJML) {
-        	System.out.println("DATA " + classSymbol + " " + owner + " " + inJML + " " + ownerIsJML + " " + isLocal + " " + (tspecs!=null) + " " + isModel);
-            System.out.println("   M " + tspecs.file + " " + tspecs.decl + " " + tspecs.modifiers);
         	if (isLocal) utils.error(tspecs.file,specsDecl,"jml.missing.model"); // Already checked in JmlEnter for non-local class declarations
         } else if (!inJML && isModel) {
         	if (isLocal) utils.error(tspecs.file,specsDecl,"jml.ghost.model.on.java"); // Already checked in JmlEnter for non-local calss declarations

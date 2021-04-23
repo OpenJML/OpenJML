@@ -185,6 +185,7 @@ public class MethodProverSMT {
         org.smtlib.SolverProcess.useMultiThreading = false;
         org.smtlib.SolverProcess.useNotifyWait = false;
         String exec = JmlOption.value(context, JmlOption.PROVEREXEC);
+        if (exec == null) exec = "/Users/davidcok/projects/OpenJMLB/Solvers/Solvers-macos/z3-4.3.1"; // FIXME
         if (exec == null || exec.isEmpty()) exec = JmlOption.value(context, Strings.proverPropertyPrefix + proverToUse);
         if (exec == null || exec.isEmpty()) {
             String loc = utils.findInstallLocation();
@@ -1119,7 +1120,6 @@ public class MethodProverSMT {
                                 } catch (Exception ex) {}
                             }
                             
-//                        }
                         // TODO - above we include the optionalExpression as part of the error message
                         // however, it is an expression, and not evaluated for ESC. Even if it is
                         // a literal string, it is printed with quotes around it.
