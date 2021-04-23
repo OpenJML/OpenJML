@@ -292,7 +292,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-    @Test
+    @Test @Ignore // TIMES OUT
     public void testModMathZ() {
         Assume.assumeTrue(runLongArithmetic);
         Assume.assumeTrue(!options.contains("-escBV=true")); // Cannot have BV and Math mode

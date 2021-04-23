@@ -402,7 +402,7 @@ public class JmlParser extends JavacParser {
                 }
             }
             if (s instanceof JCClassDecl && (((JCClassDecl)s).mods.flags & Flags.ENUM) != 0) {
-//                addImplicitEnumAxioms((JCClassDecl)s); // FIXME - causes compile errors in module system
+                addImplicitEnumAxioms((JCClassDecl)s); // FIXME - causes compile errors in module system
             }
             while (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) {
                 nextToken();
@@ -502,12 +502,12 @@ public class JmlParser extends JavacParser {
             }
             cd.defs = cd.defs.appendList(newdefs);
         }
-        if (org.jmlspecs.openjml.Main.useJML) {
-        	System.out.println("ENUM " + cd.name);
-        	for (var t: cd.defs) {
-            	System.out.println("ENUMDEF " + JmlPretty.write(t));
-        	}
-        }
+//        if (org.jmlspecs.openjml.Main.useJML) {
+//        	System.out.println("ENUM " + cd.name);
+//        	for (var t: cd.defs) {
+//            	System.out.println("ENUMDEF " + JmlPretty.write(t));
+//        	}
+//        }
     }
 
     @Override
