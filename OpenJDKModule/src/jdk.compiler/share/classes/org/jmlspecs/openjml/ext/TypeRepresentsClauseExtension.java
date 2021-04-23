@@ -80,18 +80,11 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
             Maker M = parser.maker().at(pp);
             if (e == null) { // skip
                 e = parser.maker().Erroneous();
-            } else if (parser.token().kind != SEMI) {
-                warning(parser.pos(), parser.endPos(),
-                        "jml.missing.semi",representsID);
-                parser.skipThroughSemi();
-            } else {
-                parser.nextToken();
             }
-//            if (id == null) return null;
             if (mods == null) mods = M.Modifiers(0);
             JmlTypeClauseRepresents tcl = parser.to(M.JmlTypeClauseRepresents(
                     mods, id, suchThat, e));
-            tcl.source = log.currentSourceFile();
+            wrapup(tcl, clauseType, true, true);
             return tcl;
             }
         

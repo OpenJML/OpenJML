@@ -61,12 +61,9 @@ public class TypeMonitorsForClauseExtension extends JmlExtension {
                 }
             }
             JCTree.JCIdent id = parser.to(parser.maker().at(identPos).Ident(n));
-            if (parser.token().kind != SEMI) {
-                parser.skipThroughSemi();
-            } else {
-                parser.nextToken();
-            }
-            return toP(parser.maker().at(pp).JmlTypeClauseMonitorsFor(mods, id, elist));
+            var t = toP(parser.maker().at(pp).JmlTypeClauseMonitorsFor(mods, id, elist));
+            wrapup(t, clauseType, true, true);
+            return t;
         }
         
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {

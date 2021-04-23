@@ -89,17 +89,10 @@ public class TypeExprClauseExtension extends JmlExtension {
             } else {
                 parser.nextToken();
                 JCExpression e = parser.parseExpression();
-                if (parser.token().kind != SEMI) {
-                    utils.error(parser.pos(), parser.endPos(), "jml.bad.construct",
-                            keyword + " declaration");
-                    parser.skipThroughSemi();
-                } else {
-                    parser.nextToken();
-                }
                 Maker M = parser.maker().at(pp);
                 if (mods == null) mods = M.Modifiers(0);
                 JmlTypeClauseExpr tcl = parser.to(M.JmlTypeClauseExpr(mods, keyword, clauseType, e));
-                tcl.source = log.currentSourceFile();
+                wrapup(tcl, clauseType, true, true);
                 return tcl;
             }
         }
@@ -135,14 +128,7 @@ public class TypeExprClauseExtension extends JmlExtension {
             JmlTypeClauseConstraint tcl = parser.to(parser.jmlF.at(pos).JmlTypeClauseConstraint(
                     mods, e, sigs));
             tcl.notlist = notlist;
-            tcl.source = log.currentSourceFile();
-            if (parser.token().kind != SEMI) {
-                utils.error(parser.pos(), parser.endPos(), "jml.bad.construct",
-                        "constraint declaration");
-                parser.skipThroughSemi();
-            } else {
-                parser.nextToken();
-            }
+            wrapup(tcl, constraintClause, true, true);
             return tcl;
         }
 

@@ -66,15 +66,12 @@ public class TypeRWClauseExtension extends JmlExtension {
                     e = M.Erroneous();
                 } else {
                     parser.accept(TokenKind.IF); // check that current token is 'if' and advace scanner
-                    e = parser.parseExpression(); // read expression, advancinng scanner to token after expression
+                    e = parser.parseExpression(); // read expression, advancing scanner to token after expression
                 }
             }
-            if (e.getTag() == JCTree.Tag.ERRONEOUS || parser.token().kind != SEMI) {
-                parser.skipThroughSemi();
-            } else {
-                parser.accept(TokenKind.SEMI); // skip over semicolon
-            }
-            return toP(M.at(pp).JmlTypeClauseConditional(mods, clauseType, id, e));
+            var t = toP(M.at(pp).JmlTypeClauseConditional(mods, clauseType, id, e));
+            wrapup(t, clauseType, true, true);
+            return t;
         }
         
         @Override

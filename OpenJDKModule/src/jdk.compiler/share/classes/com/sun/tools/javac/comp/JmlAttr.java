@@ -5521,7 +5521,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	if (a.type == null) for (var mod: modToAnnotationSymbol.entrySet()) {
     		if (mod.getKey().fullAnnotation.equals(s)) {
     			a.type = a.annotationType.type = mod.getValue().type;
-    			if (a instanceof JmlAnnotation) utils.note(((JmlAnnotation)a).sourcefile, a, "jml.internal.notsobad", "Had to lookup type of a annotation with null type: " + s);
+    			if (Utils.debug()) if (a instanceof JmlAnnotation) utils.note(((JmlAnnotation)a).sourcefile, a, "jml.internal.notsobad", "Had to lookup type of a annotation with null type: " + s);
     			return true;
     		}
     	}

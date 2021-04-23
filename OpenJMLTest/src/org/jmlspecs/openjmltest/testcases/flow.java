@@ -26,7 +26,7 @@ public class flow extends TCBase {
     public void testForwardReference2() {
         addMockFile("$A/A.jml","public class A { }\n//@ model class B { int b = c; int c = 0; }\n\n");
         helpTCF("A.java","public class A { }"
-        ,"/$A/A.jml:2: illegal forward reference",29
+        ,"/$A/A.jml:2: error: illegal forward reference",29
         );
     }
 
@@ -35,8 +35,8 @@ public class flow extends TCBase {
     public void testModelMethod() {
         addMockFile("$A/A.jml","public class A { \n//@ model int m() {} \n}");
         helpTCF("A.java","public class A { int mm() {} }"
-                ,"/A.java:1: missing return statement",28
-                ,"/$A/A.jml:2: missing return statement",20
+                ,"/A.java:1: error: missing return statement",28
+                ,"/$A/A.jml:2: error: missing return statement",20
         );
     }
 
@@ -44,7 +44,7 @@ public class flow extends TCBase {
     @Test
     public void testFileName() {
         helpTCF("A.java","public class B { }"
-        ,"/A.java:1: class B is public, should be declared in a file named B.java",8
+        ,"/A.java:1: error: class B is public, should be declared in a file named B.java",8
         );
     }
 
@@ -52,7 +52,7 @@ public class flow extends TCBase {
     @Test
     public void testFileName3() {
         helpTCF("A.java","public class A { } //@ model public class B {}"
-        ,"/A.java:1: class B is public, should be declared in a file named B.java",37
+        ,"/A.java:1: error: class B is public, should be declared in a file named B.java",37
         );
     }
 
@@ -60,7 +60,7 @@ public class flow extends TCBase {
     @Test
     public void testFileNameModel() {
         helpTCF("A.java","/*@ model public class B { } */"
-        ,"/A.java:1: class B is public, should be declared in a file named B.java",18
+        ,"/A.java:1: error: class B is public, should be declared in a file named B.java",18
         );
     }
 
@@ -69,8 +69,8 @@ public class flow extends TCBase {
     public void testGhostForwardReference() {
         addMockFile("$A/A.jml","public class A { \n//@ ghost int i = j; ghost int j; \n}");
         helpTCF("A.java","public class A { int ii = jj; int jj;}"
-                ,"/A.java:1: illegal forward reference",27
-                ,"/$A/A.jml:2: illegal forward reference",19
+                ,"/A.java:1: error: illegal forward reference",27
+                ,"/$A/A.jml:2: error: illegal forward reference",19
         );
     }
     
@@ -81,7 +81,7 @@ public class flow extends TCBase {
                 +" public static void m() {\n"
                 +"  //@ ghost int n = (\\num_of int i; 0<i && i<5; n>i);\n"
                 +"}}"
-                ,"/A.java:3: variable n might not have been initialized",49
+                ,"/A.java:3: error: variable n might not have been initialized",49
                 );
                 
     }
@@ -93,11 +93,8 @@ public class flow extends TCBase {
                 +" public static void m() {\n"
                 +"  //@ ghost int n = (\\num_of int i; ; n>i);\n"
                 +"}}"
-                ,"/A.java:3: variable n might not have been initialized",39
+                ,"/A.java:3: error: variable n might not have been initialized",39
                 );
                 
     }
-
-
-
 }
