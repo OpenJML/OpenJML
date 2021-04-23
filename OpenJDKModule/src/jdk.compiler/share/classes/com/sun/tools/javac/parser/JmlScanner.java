@@ -140,7 +140,7 @@ public class JmlScanner extends Scanner {
 
     /** Set to true internally while the scanner is within a JML comment */
     public boolean       jml() {
-        return jmltokenizer.jml;
+        return jmlForCurrentToken;
     }
 
     /**
@@ -150,8 +150,12 @@ public class JmlScanner extends Scanner {
      * @param j set the jml mode to this boolean value
      */
     public void setJml(boolean j) {
-        jmltokenizer.setJml(j);
+        jmltokenizer.jml = j;
     }
+    
+    protected java.util.List<Boolean> savedJml = new java.util.LinkedList<Boolean>();
+    
+    protected boolean jmlForCurrentToken;
 
 
     /**
@@ -209,18 +213,37 @@ public class JmlScanner extends Scanner {
     @Override
     public void nextToken() {
     	super.nextToken();
-    	if (scannerDebug) System.out.println("TOKEN " + jml() + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
+        if (!savedJml.isEmpty()) {
+            jmlForCurrentToken = savedJml.remove(0);
+        } else {
+        	jmlForCurrentToken = ((JmlTokenizer)tokenizer).jml();
+        }
+    	if (scannerDebug) System.out.println("TOKEN " + jmlForCurrentToken + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
+    	if (scannerDebug && token.toString().equals("final")) org.jmlspecs.openjml.Utils.dumpStack();
     }
 
-    // FIXME - is this still needed? is it correct?
-    public Token rescan() {
-        if (!jml()) return token;
-        int i = token.pos;
-        jmltokenizer.reset(i);
-        savedTokens.clear();
-        nextToken();
-        return token;
+    public Token token(int lookahead) {
+        if (lookahead == 0) {
+            return token;
+        } else {
+            for (int i = savedTokens.size() ; i < lookahead ; i ++) {
+                savedTokens.add(tokenizer.readToken());
+                savedJml.add(((JmlTokenizer)tokenizer).jml());
+            }
+            return savedTokens.get(lookahead - 1);
+        }
     }
+
+//    // FIXME - is this still needed? is it correct?
+//    public Token rescan() {
+//        if (!jml()) return token;
+//        int i = token.pos;
+//        jmltokenizer.reset(i);
+//        savedTokens.clear();
+//        savedJml.clear();
+//        nextToken();
+//        return token;
+//    }
 
     public void setToken(Token token) {
         this.token = token;

@@ -56,19 +56,14 @@ public class TypeMapsClauseExtension extends JmlExtension {
                 utils.error(parser.pos(), parser.endPos(), "jml.expected",
                         "an \\into token here, or the maps target is ill-formed");
                 glist = new ListBuffer<JmlGroupName>();
-                parser.skipThroughSemi();
+                parser.skipToSemi();
             } else {
                 parser.nextToken();
                 glist = parser.parseGroupNameList();
-                if (parser.token().kind != TokenKind.SEMI) {
-                    utils.error(parser.pos(), parser.endPos(), "jml.bad.construct",
-                            "maps clause");
-                    parser.skipThroughSemi();
-                } else {
-                    parser.nextToken();
-                }
             }
-            return toP(parser.jmlF.at(pos).JmlTypeClauseMaps(e, glist.toList()));
+            var t = toP(parser.jmlF.at(pos).JmlTypeClauseMaps(e, glist.toList()));
+            wrapup(t, TypeInClauseExtension.inClause, true, true); // FIXME - make a proper mapsClauseKind
+            return t;
         }
 
         /** Parses the target portion (before the \\into) of a maps clause */

@@ -41,8 +41,9 @@ public class TypeInClauseExtension extends JmlExtension {
             init(parser);
             parser.nextToken(); // skip over the in token
             ListBuffer<JmlGroupName> list = parser.parseGroupNameList();
-            parser.accept(SEMI);
-            return parser.toP(parser.maker().at(pp).JmlTypeClauseIn(list.toList()));
+            var t = parser.toP(parser.maker().at(pp).JmlTypeClauseIn(list.toList()));
+            wrapup(t, clauseType, true, true);
+            return t;
         }
         
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
