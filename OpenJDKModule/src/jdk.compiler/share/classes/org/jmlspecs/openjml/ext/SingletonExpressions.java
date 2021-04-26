@@ -164,7 +164,7 @@ public class SingletonExpressions extends ExpressionExtension {
                 Log.instance(context).error(that.pos+1, "jml.misplaced.exception", attr.jmlenv.currentClauseKind.name());
                 t = syms.errType;
             } else {
-                t = attr.currentExceptionType;
+                t = attr.jmlenv.currentExceptionType;
             }
             return t;
         }

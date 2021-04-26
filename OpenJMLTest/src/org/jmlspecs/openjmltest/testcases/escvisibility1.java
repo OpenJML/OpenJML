@@ -64,18 +64,18 @@ public class escvisibility1 extends EscBase {
                 +"  //@ private invariant 0 == pa;\n"
                 +"  //@ private invariant 0 == pv;\n"
                 +"}"
-                ,"/tt/TestJava.java:7: An identifier with public visibility may not be used in a invariant clause with package visibility",22
-                ,"/tt/TestJava.java:8: An identifier with protected visibility may not be used in a invariant clause with package visibility",22
-                ,"/tt/TestJava.java:10: An identifier with private visibility may not be used in a invariant clause with package visibility",22
-                ,"/tt/TestJava.java:12: An identifier with protected visibility may not be used in a invariant clause with public visibility",29
-                ,"/tt/TestJava.java:13: An identifier with package visibility may not be used in a invariant clause with public visibility",29
-                ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a invariant clause with public visibility",29
-                ,"/tt/TestJava.java:15: An identifier with public visibility may not be used in a invariant clause with protected visibility",32
-                ,"/tt/TestJava.java:17: An identifier with package visibility may not be used in a invariant clause with protected visibility",32
-                ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a invariant clause with protected visibility",32
-                ,"/tt/TestJava.java:19: An identifier with public visibility may not be used in a invariant clause with private visibility",30
-                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a invariant clause with private visibility",30
-                ,"/tt/TestJava.java:21: An identifier with package visibility may not be used in a invariant clause with private visibility",30
+                ,"/tt/TestJava.java:7: error: An identifier with public visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:8: error: An identifier with protected visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:10: error: An identifier with private visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:12: error: An identifier with protected visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:13: error: An identifier with package visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:14: error: An identifier with private visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:15: error: An identifier with public visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:17: error: An identifier with package visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:18: error: An identifier with private visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:19: error: An identifier with public visibility may not be used in a invariant clause with private visibility",30
+                ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a invariant clause with private visibility",30
+                ,"/tt/TestJava.java:21: error: An identifier with package visibility may not be used in a invariant clause with private visibility",30
                 );
     }
     
@@ -110,12 +110,12 @@ public class escvisibility1 extends EscBase {
                 +"  //@ private invariant 0 == pa();\n"
                 +"  //@ private invariant 0 == pv();\n"
                 +"}"
-                ,"/tt/TestJava.java:10: An identifier with private visibility may not be used in a invariant clause with package visibility",22
-                ,"/tt/TestJava.java:12: An identifier with protected visibility may not be used in a invariant clause with public visibility",29
-                ,"/tt/TestJava.java:13: An identifier with package visibility may not be used in a invariant clause with public visibility",29
-                ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a invariant clause with public visibility",29
-                ,"/tt/TestJava.java:17: An identifier with package visibility may not be used in a invariant clause with protected visibility",32
-                ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:10: error: An identifier with private visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:12: error: An identifier with protected visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:13: error: An identifier with package visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:14: error: An identifier with private visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:17: error: An identifier with package visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:18: error: An identifier with private visibility may not be used in a invariant clause with protected visibility",32
                 );
     }
     
@@ -160,28 +160,29 @@ public class escvisibility1 extends EscBase {
                 +"  //@ private invariant 0 == pat;\n"
                 +"  //@ private invariant 0 == pvt;\n"
                 +"}"
-                ,"/tt/TestJava.java:6: An identifier with public visibility may not be used in a invariant clause with package visibility",22
-                ,"/tt/TestJava.java:7: An identifier with public visibility may not be used in a invariant clause with package visibility",22
-                ,"/tt/TestJava.java:8: An identifier with public visibility may not be used in a invariant clause with package visibility",22
-                ,"/tt/TestJava.java:12: An identifier with public visibility may not be used in a invariant clause with protected visibility",32
-                ,"/tt/TestJava.java:13: An identifier with public visibility may not be used in a invariant clause with protected visibility",32
-                ,"/tt/TestJava.java:14: An identifier with public visibility may not be used in a invariant clause with protected visibility",32
-                ,"/tt/TestJava.java:15: An identifier with public visibility may not be used in a invariant clause with private visibility",30
-                ,"/tt/TestJava.java:16: An identifier with public visibility may not be used in a invariant clause with private visibility",30
-                ,"/tt/TestJava.java:17: An identifier with public visibility may not be used in a invariant clause with private visibility",30
+                ,"/tt/TestJava.java:6: error: An identifier with public visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:7: error: An identifier with public visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:8: error: An identifier with public visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:12: error: An identifier with public visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:13: error: An identifier with public visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:14: error: An identifier with public visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:15: error: An identifier with public visibility may not be used in a invariant clause with private visibility",30
+                ,"/tt/TestJava.java:16: error: An identifier with public visibility may not be used in a invariant clause with private visibility",30
+                ,"/tt/TestJava.java:17: error: An identifier with public visibility may not be used in a invariant clause with private visibility",30
  
-                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a invariant clause with package visibility",22
-                ,"/tt/TestJava.java:21: An identifier with protected visibility may not be used in a invariant clause with package visibility",22
-                ,"/tt/TestJava.java:22: An identifier with protected visibility may not be used in a invariant clause with public visibility",29
-                ,"/tt/TestJava.java:23: An identifier with protected visibility may not be used in a invariant clause with public visibility",29
-                ,"/tt/TestJava.java:26: An identifier with protected visibility may not be used in a invariant clause with private visibility",30
-                ,"/tt/TestJava.java:27: An identifier with protected visibility may not be used in a invariant clause with private visibility",30
+                ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:21: error: An identifier with protected visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:22: error: An identifier with protected visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:23: error: An identifier with protected visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:26: error: An identifier with protected visibility may not be used in a invariant clause with private visibility",30
+                ,"/tt/TestJava.java:27: error: An identifier with protected visibility may not be used in a invariant clause with private visibility",30
                 );
     }
     
     @Test
     public void testInClause() {
         expectedExit = 1;
+        main.addOptions("-check");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
@@ -211,12 +212,12 @@ public class escvisibility1 extends EscBase {
                 +"  private int t4; //@ in pv;\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: An identifier with protected visibility may not be used in a in clause with public visibility",25
-                ,"/tt/TestJava.java:9: An identifier with package visibility may not be used in a in clause with public visibility",25
-                ,"/tt/TestJava.java:10: An identifier with private visibility may not be used in a in clause with public visibility",25
-                ,"/tt/TestJava.java:13: An identifier with package visibility may not be used in a in clause with protected visibility",28
-                ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a in clause with protected visibility",28
-                ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a in clause with package visibility",19
+                ,"/tt/TestJava.java:8: error: An identifier with protected visibility may not be used in a in clause with public visibility",25
+                ,"/tt/TestJava.java:9: error: An identifier with package visibility may not be used in a in clause with public visibility",25
+                ,"/tt/TestJava.java:10: error: An identifier with private visibility may not be used in a in clause with public visibility",25
+                ,"/tt/TestJava.java:13: error: An identifier with package visibility may not be used in a in clause with protected visibility",28
+                ,"/tt/TestJava.java:14: error: An identifier with private visibility may not be used in a in clause with protected visibility",28
+                ,"/tt/TestJava.java:18: error: An identifier with private visibility may not be used in a in clause with package visibility",19
                 );
     }
     
@@ -249,19 +250,19 @@ public class escvisibility1 extends EscBase {
                 +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
                 +"  public void m(){}\n"
                 +"}"
-                ,"/tt/TestJava.java:12: An identifier with protected visibility may not be used in a requires clause with public visibility",22
-                ,"/tt/TestJava.java:12: An identifier with package visibility may not be used in a requires clause with public visibility",28
-                ,"/tt/TestJava.java:12: An identifier with private visibility may not be used in a requires clause with public visibility",34
-                ,"/tt/TestJava.java:12: An identifier with protected visibility may not be used in a requires clause with public visibility",61
-                ,"/tt/TestJava.java:12: An identifier with protected visibility may not be used in a requires clause with public visibility",68
-                ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a requires clause with package visibility",34
-                ,"/tt/TestJava.java:18: An identifier with package visibility may not be used in a requires clause with protected visibility",28
-                ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a requires clause with protected visibility",34
-                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",22
-                ,"/tt/TestJava.java:20: An identifier with package visibility may not be used in a requires clause with public visibility",28
-                ,"/tt/TestJava.java:20: An identifier with private visibility may not be used in a requires clause with public visibility",34
-                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",61
-                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",68
+                ,"/tt/TestJava.java:12: error: An identifier with protected visibility may not be used in a requires clause with public visibility",22
+                ,"/tt/TestJava.java:12: error: An identifier with package visibility may not be used in a requires clause with public visibility",28
+                ,"/tt/TestJava.java:12: error: An identifier with private visibility may not be used in a requires clause with public visibility",34
+                ,"/tt/TestJava.java:12: error: An identifier with protected visibility may not be used in a requires clause with public visibility",61
+                ,"/tt/TestJava.java:12: error: An identifier with protected visibility may not be used in a requires clause with public visibility",68
+                ,"/tt/TestJava.java:14: error: An identifier with private visibility may not be used in a requires clause with package visibility",34
+                ,"/tt/TestJava.java:18: error: An identifier with package visibility may not be used in a requires clause with protected visibility",28
+                ,"/tt/TestJava.java:18: error: An identifier with private visibility may not be used in a requires clause with protected visibility",34
+                ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a requires clause with public visibility",22
+                ,"/tt/TestJava.java:20: error: An identifier with package visibility may not be used in a requires clause with public visibility",28
+                ,"/tt/TestJava.java:20: error: An identifier with private visibility may not be used in a requires clause with public visibility",34
+                ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a requires clause with public visibility",61
+                ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a requires clause with public visibility",68
                 );
     }
     
@@ -294,17 +295,17 @@ public class escvisibility1 extends EscBase {
                 +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
                 +"  protected void m(){}\n"
                 +"}"
-                ,"/tt/TestJava.java:12: An identifier with package visibility may not be used in a requires clause with protected visibility",28
-                ,"/tt/TestJava.java:12: An identifier with private visibility may not be used in a requires clause with protected visibility",34
-                ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a requires clause with package visibility",34
-                ,"/tt/TestJava.java:18: An identifier with package visibility may not be used in a requires clause with protected visibility",28
-                ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a requires clause with protected visibility",34
+                ,"/tt/TestJava.java:12: error: An identifier with package visibility may not be used in a requires clause with protected visibility",28
+                ,"/tt/TestJava.java:12: error: An identifier with private visibility may not be used in a requires clause with protected visibility",34
+                ,"/tt/TestJava.java:14: error: An identifier with private visibility may not be used in a requires clause with package visibility",34
+                ,"/tt/TestJava.java:18: error: An identifier with package visibility may not be used in a requires clause with protected visibility",28
+                ,"/tt/TestJava.java:18: error: An identifier with private visibility may not be used in a requires clause with protected visibility",34
                 ,"/tt/TestJava.java:19: warning: There is no point to a specification case having more visibility than its method",12
-                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",22
-                ,"/tt/TestJava.java:20: An identifier with package visibility may not be used in a requires clause with public visibility",28
-                ,"/tt/TestJava.java:20: An identifier with private visibility may not be used in a requires clause with public visibility",34
-                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",61
-                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",68
+                ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a requires clause with public visibility",22
+                ,"/tt/TestJava.java:20: error: An identifier with package visibility may not be used in a requires clause with public visibility",28
+                ,"/tt/TestJava.java:20: error: An identifier with private visibility may not be used in a requires clause with public visibility",34
+                ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a requires clause with public visibility",61
+                ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a requires clause with public visibility",68
                 );
     }
     
@@ -337,17 +338,17 @@ public class escvisibility1 extends EscBase {
                 +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
                 +"   void m(){}\n"
                 +"}"
-                ,"/tt/TestJava.java:12: An identifier with private visibility may not be used in a requires clause with package visibility",34
-                ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a requires clause with package visibility",34
+                ,"/tt/TestJava.java:12: error: An identifier with private visibility may not be used in a requires clause with package visibility",34
+                ,"/tt/TestJava.java:14: error: An identifier with private visibility may not be used in a requires clause with package visibility",34
                 ,"/tt/TestJava.java:17: warning: There is no point to a specification case having more visibility than its method",12
-                ,"/tt/TestJava.java:18: An identifier with package visibility may not be used in a requires clause with protected visibility",28
-                ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a requires clause with protected visibility",34
+                ,"/tt/TestJava.java:18: error: An identifier with package visibility may not be used in a requires clause with protected visibility",28
+                ,"/tt/TestJava.java:18: error: An identifier with private visibility may not be used in a requires clause with protected visibility",34
                 ,"/tt/TestJava.java:19: warning: There is no point to a specification case having more visibility than its method",12
-                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",22
-                ,"/tt/TestJava.java:20: An identifier with package visibility may not be used in a requires clause with public visibility",28
-                ,"/tt/TestJava.java:20: An identifier with private visibility may not be used in a requires clause with public visibility",34
-                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",61
-                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",68
+                ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a requires clause with public visibility",22
+                ,"/tt/TestJava.java:20: error: An identifier with package visibility may not be used in a requires clause with public visibility",28
+                ,"/tt/TestJava.java:20: error: An identifier with private visibility may not be used in a requires clause with public visibility",34
+                ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a requires clause with public visibility",61
+                ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a requires clause with public visibility",68
                 );
     }
     
@@ -381,16 +382,16 @@ public class escvisibility1 extends EscBase {
                 +"  private void m(){}\n"
                 +"}"
                 ,"/tt/TestJava.java:12: warning: There is no point to a specification case having more visibility than its method",7
-                ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a requires clause with package visibility",34
+                ,"/tt/TestJava.java:14: error: An identifier with private visibility may not be used in a requires clause with package visibility",34
                 ,"/tt/TestJava.java:17: warning: There is no point to a specification case having more visibility than its method",12
-                ,"/tt/TestJava.java:18: An identifier with package visibility may not be used in a requires clause with protected visibility",28
-                ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a requires clause with protected visibility",34
+                ,"/tt/TestJava.java:18: error: An identifier with package visibility may not be used in a requires clause with protected visibility",28
+                ,"/tt/TestJava.java:18: error: An identifier with private visibility may not be used in a requires clause with protected visibility",34
                 ,"/tt/TestJava.java:19: warning: There is no point to a specification case having more visibility than its method",12
-                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",22
-                ,"/tt/TestJava.java:20: An identifier with package visibility may not be used in a requires clause with public visibility",28
-                ,"/tt/TestJava.java:20: An identifier with private visibility may not be used in a requires clause with public visibility",34
-                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",61
-                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",68
+                ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a requires clause with public visibility",22
+                ,"/tt/TestJava.java:20: error: An identifier with package visibility may not be used in a requires clause with public visibility",28
+                ,"/tt/TestJava.java:20: error: An identifier with private visibility may not be used in a requires clause with public visibility",34
+                ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a requires clause with public visibility",61
+                ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a requires clause with public visibility",68
                 );
     }
     
