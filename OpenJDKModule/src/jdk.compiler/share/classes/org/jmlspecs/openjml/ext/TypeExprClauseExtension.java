@@ -140,7 +140,6 @@ public class TypeExprClauseExtension extends JmlExtension {
             attr.jmlenv = attr.jmlenv.pushCopy();
             VarSymbol previousSecretContext = attr.currentSecretContext;
             boolean prevAllowJML = attr.jmlresolve.setAllowJML(true);
-            long prevVisibility = attr.jmlVisibility;
             Env<AttrContext> localEnv = env; // FIXME - here and in constraint, should we make a new local environment?
             try {
                 attr.jmlenv.inPureEnvironment = true;
@@ -150,10 +149,10 @@ public class TypeExprClauseExtension extends JmlExtension {
                 if (isStatic) attr.bumpStatic(localEnv);
 
                 if (tree.clauseType == invariantClause) {
-                	attr.jmlVisibility = -1;
+                	attr.jmlenv.jmlVisibility = -1;
                 	attr.attribAnnotationTypes(tree.modifiers.annotations,env); // Is this needed?
                     JCAnnotation a = attr.findMod(tree.modifiers,Modifiers.SECRET);
-                    attr.jmlVisibility = tree.modifiers.flags & Flags.AccessFlags;
+                    attr.jmlenv.jmlVisibility = tree.modifiers.flags & Flags.AccessFlags;
                     if (a != null) {
                         if (a.args.size() != 1) {
                         	utils.error(tree.pos(),"jml.secret.invariant.one.arg");
@@ -180,7 +179,6 @@ public class TypeExprClauseExtension extends JmlExtension {
             	throw e;
             } finally {
                 if (isStatic) attr.decStatic(localEnv);  // FIXME - move this to finally, but does not screw up the checks on the next line?
-                attr.jmlVisibility = prevVisibility;
                 attr.currentSecretContext = previousSecretContext;
                 attr.jmlresolve.setAllowJML(prevAllowJML);
                 attr.jmlenv = attr.jmlenv.pop();
