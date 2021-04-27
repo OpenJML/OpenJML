@@ -1,10 +1,12 @@
 package org.jmlspecs.openjmltest.testcases;
 
-import org.jmlspecs.openjmltest.EscBase;
+import org.jmlspecs.openjmltest.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.openjml.runners.ParameterizedWithNames;
+
+import com.sun.tools.javac.util.Options;
 
 // Tests the rules about which specification cases are enforced by a method's implementation
 
@@ -23,8 +25,8 @@ public class escvisibility extends EscBase {
         main.addOptions("-no-purityCheck");
         String z = java.io.File.pathSeparator;
         String testspecpath = "$A"+z+"$B";
-        main.addOptions("-classpath",   testspecpath);
-        main.addOptions("-sourcepath",   testspecpath);
+        Options.instance(context).put("--class-path",   testspecpath);
+        Options.instance(context).put("--source-path",   testspecpath);
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-quiet");
         //JmlEsc.escdebug = true;
@@ -633,20 +635,21 @@ public class escvisibility extends EscBase {
     @Test
     public void testPublic7() {
         main.addOptions("-method", "tt.TestJava.m1");
-        addMockFile("$A/tx/B.java","package tx; public class B {\n"
+        String s2 = "package tx; public class B {\n"
                 +"  //@  requires false;\n"
                 +"  static public void m1() {\n"
                 +"  }\n"
                 +"}"
-                );
+                ;
                         
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX2("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m1() {\n"
                 +"     tx.B.m1();"
                 +"  }\n"
                 
                 +"}"
+                , "tx.B", s2
                 
                         
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m1",13
@@ -660,21 +663,21 @@ public class escvisibility extends EscBase {
     public void testPrivate8() {
     	expectedExit = 1;
         main.addOptions("-method", "tt.TestJava.m1");
-        addMockFile("$A/tx/B.java","package tx; public class B {\n"
+        String s2 = "package tx; public class B {\n"
                 +"  //@ private normal_behavior\n"
                 +"  //@  requires false;\n"
                 +"  static public void m1() {\n"
                 +"  }\n"
                 +"}"
-                );
+                ;
                         
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX2("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m1() {\n"
                 +"     tx.B.m1();"
                 +"  }\n"
-                
                 +"}"
+                ,"tx.B",s2
                 ,"/tt/TestJava.java:4: No visible specifications for this call site: tx.B.m1() called from tt.TestJava.m1()",13
                 );
     }
@@ -682,22 +685,21 @@ public class escvisibility extends EscBase {
     @Test
     public void testPublic8() {
         main.addOptions("-method", "tt.TestJava.m1");
-        addMockFile("$A/tx/B.java","package tx; public class B {\n"
+        String s2 = "package tx; public class B {\n"
                 +"  //@ public normal_behavior\n"
                 +"  //@  requires false;\n"
                 +"  static public void m1() {\n"
                 +"  }\n"
                 +"}"
-                );
+                ;
                         
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX2("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m1() {\n"
                 +"     tx.B.m1();"
                 +"  }\n"
-                
                 +"}"
-                
+                ,"tx.B,s2"
                         
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m1",13
                 ,"/tx/B.java:4: warning: Associated declaration",22
@@ -710,23 +712,22 @@ public class escvisibility extends EscBase {
     public void testProtected8() {
     	expectedExit = 1;
         main.addOptions("-method", "tt.TestJava.m1");
-        addMockFile("$A/tx/B.java","package tx; public class B {\n"
+        String s2 = "package tx; public class B {\n"
                 +"  //@ protected normal_behavior\n"
                 +"  //@  requires false;\n"
                 +"  static public void m1() {\n"
                 +"  }\n"
                 +"}"
-                );
+                ;
                         
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX2("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m1() {\n"
                 +"     tx.B.m1();"
                 +"  }\n"
-                
                 +"}"
-                
-                ,"/tt/TestJava.java:4: No visible specifications for this call site: tx.B.m1() called from tt.TestJava.m1()",13
+                ,"tx.B",s2
+                ,"/tt/TestJava.java:4: error: No visible specifications for this call site: tx.B.m1() called from tt.TestJava.m1()",13
                 );
     }
         
@@ -734,23 +735,22 @@ public class escvisibility extends EscBase {
     public void testPackage8() {
     	expectedExit = 1;
         main.addOptions("-method", "tt.TestJava.m1");
-        addMockFile("$A/tx/B.java","package tx; public class B {\n"
+        String s2 = "package tx; public class B {\n"
                 +"  //@ normal_behavior\n"
                 +"  //@  requires false;\n"
                 +"  static public void m1() {\n"
                 +"  }\n"
                 +"}"
-                );
+                ;
 
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX2("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m1() {\n"
                 +"     tx.B.m1();"
                 +"  }\n"
-
-                    +"}"
-
-                ,"/tt/TestJava.java:4: No visible specifications for this call site: tx.B.m1() called from tt.TestJava.m1()",13
+                +"}"
+                ,"tx.B", s2
+                ,"/tt/TestJava.java:4: error: No visible specifications for this call site: tx.B.m1() called from tt.TestJava.m1()",13
                 );
     }
 
@@ -774,7 +774,7 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:10: No visible specifications for this call site: tt.B.m1() called from tt.TestJava.m1()",11
+                ,"/tt/TestJava.java:10: error: No visible specifications for this call site: tt.B.m1() called from tt.TestJava.m1()",11
                 );
     }
     

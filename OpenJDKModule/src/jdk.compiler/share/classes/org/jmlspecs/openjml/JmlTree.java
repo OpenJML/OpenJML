@@ -44,32 +44,8 @@ import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.parser.Tokens.ITokenKind;
 import com.sun.tools.javac.tree.*;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
-import com.sun.tools.javac.tree.JCTree.JCBinary;
-import com.sun.tools.javac.tree.JCTree.JCBlock;
-import com.sun.tools.javac.tree.JCTree.JCCase;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
-import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
-import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCForLoop;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCIf;
-import com.sun.tools.javac.tree.JCTree.JCLambda;
-import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.JCTree.JCPackageDecl;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCSwitch;
-import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
-import com.sun.tools.javac.tree.JCTree.Tag;
+import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.tree.JCTree.JCOperatorExpression.OperandPos;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
@@ -1561,8 +1537,10 @@ public class JmlTree {
         public JCExpression rhs;
         
         public ExpressionTree getLeftOperand() { return lhs; }
-                
         public ExpressionTree getRightOperand() {return rhs; }
+//        public JCExpression getOperand(OperandPos pos) {
+//        	return pos == OperandPos.LEFT ? lhs : rhs;
+//        }
 
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
@@ -1618,9 +1596,6 @@ public class JmlTree {
         public int getEndPosition(EndPosTable table) {
             return rhs.getEndPosition(table);
         }
-    
-
-        
     }
 
     public static class JmlChained extends JmlExpression {
@@ -2722,7 +2697,7 @@ public class JmlTree {
         // but requires them all to have the same type.  However, in anticipation of
         // relaxing this requirement and for use elsewhere (i.e. in ESC) this
         // class permits different types.
-        
+    	
         /** The operation, e.g \\forall, \\exists, \\let, ... */
         public IJmlClauseKind kind;
         

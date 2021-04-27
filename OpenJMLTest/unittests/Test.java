@@ -204,6 +204,7 @@ public class Test {
     			System.out.println("TIMEOUT: " + method + " in thread " + Thread.currentThread().getName());
     			synchronized(stimeouts) { timeouts++; }
     			future.cancel(true);
+                        System.out.println("timeout cancelled " + future.isCancelled());
     		} catch (Exception e) {
     			System.out.println("EXCEPTION: " + method + " " + e);
     			synchronized(sfailures) { failures++; }

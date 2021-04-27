@@ -109,7 +109,6 @@ public interface IJmlVisitor extends IVisitor {
     }
     
     default public void visitJmlSetComprehension(JmlSetComprehension tree) {
-    	System.out.println("VISITING JMLSETCOMPR " + tree.newtype.getClass() + " " + tree);
         scan(tree.newtype);
         scan(tree.variable);
         scan(tree.predicate);

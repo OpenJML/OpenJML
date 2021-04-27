@@ -1892,7 +1892,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 ListBuffer<JmlSpecificationCase> allitcases = new ListBuffer<JmlSpecificationCase>();
                 ListBuffer<JmlSpecificationCase> allfecases = new ListBuffer<JmlSpecificationCase>();
                 for (JmlSpecificationCase c: methodSpecs.cases) {
-                    if (c.token == null && decl != null) mods = decl.mods;
+                    if (c.token == null && decl != null) mods = c.modifiers = decl.mods;
                     ListBuffer<JmlMethodClause> cl = new ListBuffer<JmlMethodClause>();
                     cl.appendList(commonClauses);  // FIXME - appending the same ASTs to each spec case - is this sharing OK
                     ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,mods);
@@ -1905,7 +1905,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     ListBuffer<JmlMethodClause> cl = new ListBuffer<JmlMethodClause>();
                     cl.appendList(commonClauses);
                     JCModifiers cmods = c.modifiers;
-                    if (c.token == null && decl != null) cmods = decl.mods;
+                    if (c.token == null && decl != null) cmods = c.modifiers = decl.mods;
                     ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,cmods);
                     for (JmlSpecificationCase cs: newcases) {
                         // Note: a model program spec case has no clauses
@@ -1919,7 +1919,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     ListBuffer<JmlMethodClause> cl = new ListBuffer<JmlMethodClause>();
                     cl.appendList(commonClauses);
                     JCModifiers cmods = c.modifiers;
-                    if (c.token == null && decl != null) cmods = decl.mods;
+                    if (c.token == null && decl != null) cmods = c.modifiers = decl.mods;
                     ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,cmods);
                     for (JmlSpecificationCase cs: newcases) {
                         // Note: a model program spec case has no clauses
@@ -2297,7 +2297,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         addDefaultSignalsOnly(prefix,parent,decl);
         JmlSpecificationCase sc = (((JmlTree.Maker)make).JmlSpecificationCase(parent,prefix.toList()));
-        sc.modifiers = mods;
+        sc.modifiers = parent.modifiers;
         newlist.append(sc);
         return newlist;
     }
@@ -4801,7 +4801,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // T is a subtype of JMLSetType<? super TT>  (FIXME - is that right?)
         // T must be allowed to hold elements of type TT
         attribType(that.newtype,env);
-        System.out.println("JMLATTR SET " + that.variable.vartype.getClass() + " "+ that.variable.vartype);
         attribType(that.variable.vartype,env);
         attribAnnotationTypes(that.variable.mods.annotations,env);
 
@@ -7233,10 +7232,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            initEnv.info.enclVar = vsym;
             var prevSource = fspecs.decl == null ? null : log.useSource(fspecs.decl.sourcefile);            
     		jmlenv = jmlenv.pushCopy();
+    		jmlenv.jmlVisibility = -1;
             if (fspecs.decl != null && fspecs.decl.init != null && fspecs.decl.init.type == null) {
         		ResultInfo rri = new ResultInfo(KindSelector.VAL_TYP, vsym.type);
         		jmlenv.inPureEnvironment = utils.isJML(fspecs.decl.mods);
-        		jmlenv.jmlVisibility = -1;
             	Type t = fspecs.decl.init.type = attribTree(fspecs.decl.init, initEnv, rri);
             	if (t.isErroneous()) stat = JmlSpecs.SpecsStatus.ERROR;
             }

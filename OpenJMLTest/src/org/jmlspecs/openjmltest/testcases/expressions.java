@@ -58,7 +58,7 @@ public class expressions extends ParseBase {
             List<JCTree> out = ParseTreeScanner.walk(e);
             int i = 0;
             int k = 0;
-            if (print) {
+            if (print || true) {
                 for (JCTree t: out) {
                     System.out.println(t.getClass() 
                             + " " + t.getStartPosition() 
@@ -490,7 +490,7 @@ public class expressions extends ParseBase {
     /** Test scanning \max(\lockset) expression */
     @Test
     public void testMaxLocksetError2() {
-        helpExprErrors(" \\max","/TEST.java:1: reached end of file while parsing");
+        helpExprErrors(" \\max","reached end of file while parsing");
     }
 
     /** Test precedence of <= operator */
