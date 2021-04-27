@@ -443,6 +443,7 @@ public class TreeInfo {
     public static int getStartPos(JCTree tree) {
         if (tree == null)
             return Position.NOPOS;
+        if ((tree.getTag() == null || tree.getTag() == NO_TAG) && tree instanceof org.jmlspecs.openjml.JmlTree.IJmlTree) return tree.getStartPosition(); // OPENJMLM added
 
         switch(tree.getTag()) {
             case MODULEDEF: {

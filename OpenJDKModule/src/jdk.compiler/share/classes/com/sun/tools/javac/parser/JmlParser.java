@@ -656,9 +656,11 @@ public class JmlParser extends JavacParser {
         }
     }
 
-    // FIXME - is this really needed?
     public JCStatement parseJavaStatement() {
-        return super.parseStatement();
+        var stats = super.blockStatement();
+        if (stats.isEmpty()) return maker().at(pos()).Exec(maker().at(pos()).Erroneous());
+        if (stats.size() > 1) utils.error(stats.get(1), "jml.message", "Expected just one statement here");
+        return stats.head;
     }
     
     public JCStatement parseLoopWithSpecs() {

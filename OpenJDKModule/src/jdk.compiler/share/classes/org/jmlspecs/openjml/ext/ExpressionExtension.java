@@ -135,7 +135,7 @@ abstract public class ExpressionExtension extends JmlExtension {
             return parser.syntaxError(p, null, "jml.no.typeargs.allowed", jt.internedName());
         } else {
             IJmlClauseKind kind = parser.jmlTokenClauseKind();
-            if (kind != null) return parser.jmlF.at(p).JmlSingleton(kind);
+            if (kind != null) return toP(parser.jmlF.at(p).JmlSingleton(kind));
             throw new RuntimeException("some kind of singleton");
         }
     }

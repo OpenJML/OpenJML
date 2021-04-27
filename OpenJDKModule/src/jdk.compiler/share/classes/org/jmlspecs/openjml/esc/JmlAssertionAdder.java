@@ -4783,7 +4783,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // corresponding parameter of the target method.
             // We need this even if names have not changed, because the parameters 
             // will have been attributed with different symbols.
-            if(denestedSpecs==null){  // CHECK - added for inference
+            if (denestedSpecs==null) {  // CHECK - added for inference
                 continue;
             }
             
@@ -4803,8 +4803,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             
+//        	System.out.println("CASES FOR  " + msym.owner + " " + msym);
+//        	System.out.println("PLAIN " + JmlSpecs.instance(context).getSpecs(msym));
+//        	System.out.println("DENEST " + JmlSpecs.instance(context).getDenestedSpecs(msym));
             for (JmlSpecificationCase scase : denestedSpecs.cases) {
                 sawSomeSpecs = true;
+                //System.out.println("JMLV " + msym.owner + "." + msym + " " + classDecl.sym + " " + msym.owner + " " + (scase.modifiers.flags&7) + " " + (methodDecl.mods.flags&7) + " " + scase);
                 if (!utils.jmlvisible(msym,classDecl.sym, msym.owner,  scase.modifiers.flags, methodDecl.mods.flags)) continue;
                 if (msym != methodDecl.sym && scase.code) continue;
                 JCIdent preident = preconditions.get(scase);
@@ -9746,7 +9750,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             this.freshnessReferenceCount = callLabelReferenceCount;
             boolean hasModelProgramBlocks = false;
-            {
+            try {
                 if (esc && resultExpr != null && !utils.isJavaOrJmlPrimitiveType(resultExpr.type)) {
                     JCExpression nn = treeutils.makeEqNull(resultExpr.pos, convertCopy(resultExpr));
                     JCExpression ty = treeutils.makeTypeof(convertCopy(resultExpr));
@@ -9988,6 +9992,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    }
 //                }                
                 typevarMapping = newTypeVarMapping;
+            } catch (Exception eee) {
+            	utils.unexpectedException(eee, "APPLY-HELPER");
             }
             if (Utils.debug()) System.out.println("APPLYHELPER-XB " + calleeMethodSym + " ");
             // FIXME - the source must be handled properly
@@ -18298,9 +18304,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 interfacesToDo.add(fin);
             }
         }
-        Type obj = classes.remove(0);  // Makes sure that java.langObject is first
-        interfaces.addAll(classes);
-        interfaces.add(0,obj);
+        if (classes.size() > 0) {
+        	Type obj = classes.remove(0);  // Makes sure that java.langObject is first
+        	interfaces.addAll(classes);
+        	interfaces.add(0,obj);
+        } else {
+        	// This is when ct is the nulltype -- FIXME - is it OK that that occurs? (SpecsEsc)
+        }
 
         return interfaces;        
     }

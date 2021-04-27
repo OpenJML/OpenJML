@@ -260,17 +260,19 @@ public class QuantifiedExpressions extends ExpressionExtension {
             ListBuffer<JCTree.JCStatement> vdefs = new ListBuffer<>();
             int pos = parser.pos();
             parser.nextToken(); // advance over keyword
+            if (mods == null) {
+            	mods = parser.jmlF.Modifiers(0L);
+            }
+            utils.setJML(mods);
             do {
-                if (mods == null) {
-                	mods = parser.jmlF.Modifiers(0L);
-                    mods.pos = pos;
-                    parser.storeEnd(mods,pos);
-                }
-                utils.setJML(mods);
+                int declpos = parser.pos();
+                JCModifiers xmods = parser.jmlF.Modifiers(mods.flags);
+                xmods.pos = declpos;
+                parser.storeEnd(xmods,declpos);
                 JCExpression type = parser.parseType();
                 int p = parser.pos();
                 Name name = parser.ident();
-                JCVariableDecl decl = parser.variableDeclaratorRest(p,mods,type,name,true,null,true,false);
+                JCVariableDecl decl = parser.variableDeclaratorRest(p,xmods,type,name,true,null,true,false);
                 decl.pos = p;
                 if (decl.init == null) toP(decl);
                 vdefs.add(decl);

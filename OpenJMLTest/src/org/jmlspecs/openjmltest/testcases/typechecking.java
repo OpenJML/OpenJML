@@ -236,7 +236,6 @@ public class typechecking extends TCBase {
     	main.addOptions("-lang=jml");
         helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for(Integer,k);\n}}"
         		,"/A.java:2: error: A \\invariant_for expression expects just 1 argument, not 2", 26
-        		,"$SPECS/specs/java/util/stream/Stream.jml:$STRL: warning: The \\count construct is an OpenJML extension to JML and not allowed under -lang=jml",37
         		,"/A.java:2: error: The argument of \\invariant_for must be of reference type", 27
         		,"/A.java:2: error: The argument of \\invariant_for must be of reference type", 35
         		);
