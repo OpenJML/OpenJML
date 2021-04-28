@@ -18,6 +18,7 @@ import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.Main;
@@ -110,6 +111,9 @@ public class JmlEsc extends JmlTreeScanner {
         	//org.jmlspecs.openjml.esc.JmlAssertionAdder.CheckTree.check(context,tree);
             // FIXME - would prefer for esc to just translate the methods that are to be proved
             // We convert the whole tree first
+//        	System.out.println("ESC " + tree.getClass());
+//        	if (tree instanceof JmlCompilationUnit) System.out.println("  CU  " + ((JmlCompilationUnit)tree).sourcefile);
+//        	if (tree instanceof JmlClassDecl) System.out.println("  CL  " + ((JmlClassDecl)tree).sym + " " + ((JmlClassDecl)tree).sourcefile );
         	int nerrors = log.nerrors;
             assertionAdder.convert(tree); // get at the converted tree through the map
 			if (nerrors != log.nerrors) {

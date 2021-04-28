@@ -392,7 +392,7 @@ public class typechecking extends TCBase {
     /** Missing model or ghost modifier */
     @Test public void testJmlTypes2() {
         helpTCF("A.java","public class A {  int i; /*@  \\TYPE t; */ } ",
-                "/A.java:1: error: A declaration within a JML annotation must be either ghost or model",37);
+                "/A.java:1: error: A JML field declaration must be marked either ghost or model: t (owner: A)",37);
     }
 
     /** Wrong position model or ghost modifier */

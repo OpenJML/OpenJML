@@ -1293,6 +1293,7 @@ public class Utils {
                     com.sun.tools.javac.util.List.<JCExpression> nil()));
         }
         ((JmlTree.JmlAnnotation)ann).sourcefile = log().currentSourceFile();
+        ((JmlTree.JmlAnnotation)ann).kind = jt;
         
 //        ClassSymbol sym = JmlAttr.instance(context).modToAnnotationSymbol.get(jt);
 //        if (sym != null) {

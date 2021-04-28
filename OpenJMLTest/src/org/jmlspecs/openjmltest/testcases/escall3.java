@@ -1206,7 +1206,7 @@ public class escall3 extends EscBase {
                 
                 
                 +"}\n"
-                ,"/tt/TestJava.java:8: unreported exception java.lang.NoSuchMethodException; must be caught or declared to be thrown", 6
+                ,"/tt/TestJava.java:8: error: unreported exception java.lang.NoSuchMethodException; must be caught or declared to be thrown", 6
                 );
     }
     

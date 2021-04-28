@@ -1352,7 +1352,6 @@ public class JavaCompiler {
         finally {
             log.useSource(prev);
         }
-
         return env;
     }
 

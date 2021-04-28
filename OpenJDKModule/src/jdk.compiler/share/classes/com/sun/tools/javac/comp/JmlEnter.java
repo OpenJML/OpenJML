@@ -439,6 +439,7 @@ public class JmlEnter extends Enter {
     	if (utils.verbose()) utils.note("                          Linked to Java file " + (speccu.sourceCU == null ? "<null>" : speccu.sourceCU.sourcefile.toString()));
 		boolean isSameFile = speccu.sourceCU == speccu;
     	var prev = log.useSource(speccu.sourcefile);
+    	var specs = JmlSpecs.instance(context);
 		try {
 
 			String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
@@ -467,6 +468,11 @@ public class JmlEnter extends Enter {
 				javaDecl = 	findClass(specDecl.name, javacu);
 				var ok = specsClassEnter(p, specDecl, specEnv, javaDecl, alreadyMatched); // javaDecl matches specDecl, if javaDecl exists
 				if (ok) newdefs.add(specDecl);
+				if (ok && javacu != null && javaDecl != specDecl) {
+					var env = specs.get(specDecl.sym).specsEnv;
+					Todo.instance(context).add(env);
+					javacu.defs = javacu.defs.append(specDecl);
+				}
 			}
 			speccu.defs = newdefs.toList();
 
@@ -475,6 +481,16 @@ public class JmlEnter extends Enter {
 				var specDecl = (JmlClassDecl)decl;
 				javaDecl = findClass(specDecl.name, javacu);
 				specsMemberEnter(p, specDecl, javaDecl, isSameFile, alreadyMatched);
+			}
+			
+			// If we have a Java CU, add specs for any top-level classes in the Java CU that
+			// do not have specs given in the specs cu.
+			if (javacu != null) for (JCTree decl: javacu.defs) {
+				if (!(decl instanceof JmlClassDecl)) continue;
+				var jDecl = (JmlClassDecl)decl;
+				if (specs.status(jDecl.sym) == JmlSpecs.SpecsStatus.NOT_LOADED) {
+					specsClassEnter(p, jDecl, specEnv, jDecl, alreadyMatched);
+				}
 			}
 		} finally {
 			log.useSource(prev);
@@ -496,17 +512,21 @@ public class JmlEnter extends Enter {
 				utils.error(specDecl, "jml.message", "A model type may not contain model declarations: " + specDecl.name + " in " + owner);
 				// Attempt recovery by removing the offending annotation
 				utils.removeAnnotation(specDecl.mods,  Modifiers.MODEL);
+			} else if (isJML && !isModel && !isOwnerJML) {
+				utils.error(specDecl, "jml.message", "A JML class declaration must be marked model: " + className + " (owner: " + owner +")");
+				// Attempt recovery by adding a model annotation
+				JmlTreeUtils.instance(context).addAnnotation(specDecl.mods, specDecl.mods.pos, specDecl.mods.pos, Modifiers.MODEL, null);
+			} else if (!isJML && isModel) {
+				var pos = utils.locMod(specDecl.mods, Modifiers.GHOST, Modifiers.MODEL);
+				utils.error(pos, "jml.message", "A Java class declaration must not be marked either ghost or model: " + className + " (owner: " + owner +")");
+				// Attempt recovery by removing the offending annotation
+				utils.removeAnnotation(specDecl.mods,  Modifiers.MODEL);
 			}
 			if (csym == null) {
 				// owner has no binary/source class corresponding to specDecl
 				if (!isJML) {
 					utils.error(specDecl, "jml.message", "There is no binary class to match this Java declaration in the specification file: " + className + " (owner: " + owner +")");
 					return ok;
-				}
-				if (!isModel && !isOwnerJML) {
-					utils.error(specDecl, "jml.message", "A JML class declaration must be marked model: " + className + " (owner: " + owner +")");
-					// Attempt recovery by adding a model annotation
-					JmlTreeUtils.instance(context).addAnnotation(specDecl.mods, specDecl.mods.pos, specDecl.mods.pos, Modifiers.MODEL, null);
 				}
 				// Enter the class in the package or the parent class
 				if (owner instanceof PackageSymbol) {
@@ -532,7 +552,7 @@ public class JmlEnter extends Enter {
 					csym.sourcefile = cowner.sourcefile;
 					((ClassType)csym.type).typarams_field = List.from(cowner.type.getTypeArguments());
 				}
-				csym.flags_field = specDecl.mods.flags;
+				csym.flags_field = specDecl.mods.flags | Flags.UNATTRIBUTED;
 				var ct = (ClassType)csym.type;
 				if (specDecl.extending != null) ct.supertype_field = specDecl.extending.type = Attr.instance(context).attribType(specDecl.extending,env);
 				else if ((specDecl.mods.flags & Flags.INTERFACE) == 0) ct.supertype_field = syms.objectType;
@@ -544,23 +564,19 @@ public class JmlEnter extends Enter {
 				// owner has a binary/source class corresponding to specDecl, namely csym
 				boolean matchIsJML = utils.isJML(csym.flags());
 				if (isJML) {
-					if (!isModel && !isOwnerJML) {
-						utils.error(specDecl, "jml.message", "A JML class declaration must be marked model: " + className + " (owner: " + owner +")");
-						// Attempt recovery by adding a model annotation
-						JmlTreeUtils.instance(context).addAnnotation(specDecl.mods, specDecl.mods.pos, specDecl.mods.pos, Modifiers.MODEL, null);
-					}
 					if (matchIsJML) {
-						if (javaDecl == null) {
+						if (javaDecl != specDecl) {
 							JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csym);
 							utils.error(specDecl, "jml.message", "This JML class declaration conflicts with a previous JML class: " + specDecl.name + " (owner: " + owner +")");
-							if (tspecs != null) {
-								utils.error(tspecs.decl, "jml.associated.decl.cf", utils.locationString(specDecl.pos, log.currentSourceFile()));
+							if (tspecs != null && tspecs.decl != null) {
+								utils.error(tspecs.decl.sourcefile, tspecs.decl, "jml.associated.decl.cf", utils.locationString(specDecl.pos, log.currentSourceFile()));
 								owner.members().remove(csym);
-								return ok;
 							}
+							return ok;
 						}
 					} else {
 						utils.error(specDecl, "jml.message", "This JML class declaration conflicts with an existing binary class with the same name: " + className + " (owner: " + owner +")");
+						if (javaDecl != null) utils.error(javaDecl.sourcefile, javaDecl, "jml.associated.decl.cf", utils.locationString(specDecl.pos, log.currentSourceFile()));
 						owner.members().remove(csym);
 						return ok;
 					}
@@ -573,12 +589,6 @@ public class JmlEnter extends Enter {
 						owner.members().remove(csym);
 						return ok;
 					}
-				}
-				if (!isJML && isModel) {
-					var pos = utils.locMod(specDecl.mods, Modifiers.GHOST, Modifiers.MODEL);
-					utils.error(pos, "jml.message", "A Java class declaration must not be marked either ghost or model: " + className + " (owner: " + owner +")");
-					// Attempt recovery by removing the offending annotation
-					utils.removeAnnotation(specDecl.mods,  Modifiers.MODEL);
 				}
 				if (!isJML && !matchIsJML && alreadyMatched.containsKey(csym)) {
 					utils.error(specDecl, "jml.message", "This declaration duplicates an earlier declaration");
@@ -617,6 +627,7 @@ public class JmlEnter extends Enter {
 					JmlClassDecl jt = findClass(st.name, javaDecl);
 					var okk = specsClassEnter(csym, st, localEnv, jt, alreadyMatched);
 					if (okk) newdefs.add(t);
+					if (okk && javaDecl != null && st != jt && utils.isJML(st.mods)) javaDecl.defs = javaDecl.defs.append(st);
 				} else {
 					newdefs.add(t);
 				}
@@ -895,7 +906,17 @@ public class JmlEnter extends Enter {
 			utils.error(mdecl, "jml.message", "A model type may not contain model declarations: " + mdecl.name + " in " + csym);
 			// Attempt recovery by removing the offending annotation
 			utils.removeAnnotation(mdecl.mods,  Modifiers.MODEL);
+		} else if (!isJML && isModel ) {
+			var pos = utils.locMod(mdecl.mods, Modifiers.MODEL);
+			utils.error(pos, "jml.message", "A Java method declaration must not be marked model: " + mdecl.name + " (owner: " + csym +")");
+			// Attempt recovery by removing the offending annotation
+			utils.removeAnnotation(mdecl.mods,  Modifiers.MODEL);
+		} else if (isJML && !isModel && !isOwnerJML) {
+			utils.error(mdecl, "jml.message", "A JML method declaration must be marked model: " + mdecl.name + " (owner: " + csym +")");
+			// Attempt recovery by adding a model annotation
+			JmlTreeUtils.instance(context).addAnnotation(mdecl.mods, mdecl.mods.pos, mdecl.mods.pos, Modifiers.MODEL, null);
 		}
+
 		WriteableScope enclScope = enterScope(specsEnv);
 		Symbol.MethodSymbol msym = mdecl.sym; // Nonnull if specs and java decls are the same file
 		if (mdecl.sym == null) {
@@ -916,16 +937,8 @@ public class JmlEnter extends Enter {
 					msg = msg + "\n    " + csym + " has " + s;
 				}
 				utils.error(mdecl, "jml.message", msg);
-				if (isModel ) {
-					utils.error(mdecl, "jml.message", "A Java declaration may not be marked either ghost or model: " + mdecl.name + " (owner: " + csym +")");
-				}
 				return;
     		}
-			if (!isModel && !isOwnerJML) {
-				utils.error(mdecl, "jml.message", "A JML method declaration must be marked model: " + mdecl.name + " (owner: " + csym +")");
-				// Attempt recovery by adding a model annotation
-				JmlTreeUtils.instance(context).addAnnotation(mdecl.mods, mdecl.mods.pos, mdecl.mods.pos, Modifiers.MODEL, null);
-			}
 			// Enter the method in the parent class
 			msym = mdecl.sym; // makeAndEnterMethodSym(mdecl, specsEnv); // Also calls putSpecs
 			enclScope.enter(msym);
@@ -935,8 +948,10 @@ public class JmlEnter extends Enter {
 			sp.javaSym = null;
 			sp.specSym = mdecl.sym;
 			sp.javaEnv = null;
-
 			
+			if (javaDecl != null && !isSameCU && isJML && !isOwnerJML) {
+				javaDecl.defs = javaDecl.defs.append(mdecl);
+			}
 			if (!isModel && mdecl.body != null) {
 				utils.error(mdecl.body, "jml.message", "The specification of the method " + csym + "." + msym + " must not have a body");
 			}
@@ -966,12 +981,6 @@ public class JmlEnter extends Enter {
     			utils.error(mdecl, "jml.message", "This Java method declaration conflicts with a previous JML method: " + mdecl.name + " (owner: " + csym +")");
     			utils.error(mspecs.cases.decl, "jml.associated.decl.cf", utils.locationString(mdecl.pos, log.currentSourceFile()));
     			return;
-    		}
-    		if (!isJML && isModel) {
-    			var pos = utils.locMod(mdecl.mods, Modifiers.MODEL);
-    			utils.error(pos, "jml.message", "A Java method declaration must not be marked model: " + mdecl.name + " (owner: " + csym +")");
-    			// Attempt recovery by removing the offending annotation
-    			utils.removeAnnotation(mdecl.mods,  Modifiers.MODEL);
     		}
     		if (mdecl != javaMDecl && mdecl.restype != null) {
     			Type t = Attr.instance(context).attribType(mdecl.restype,csym);
@@ -1130,17 +1139,23 @@ public class JmlEnter extends Enter {
 				utils.error(vdecl, "jml.message", "A model type may not contain " + (isGhost?"ghost":"model") + " declarations: " + vdecl.name + " in " + csym);
 				// Attempt recovery by removing the offending annotation
 				utils.removeAnnotation(vdecl.mods,  Modifiers.MODEL);
+			} else if (isJML && !isGhostOrModel && !isOwnerJML) {
+				utils.error(vdecl, "jml.message", "A JML field declaration must be marked either ghost or model: " + vdecl.name + " (owner: " + csym +")");
+				// Attempt recovery by adding a ghost annotation
+				JmlTreeUtils.instance(context).addAnnotation(vdecl.mods, vdecl.mods.pos, vdecl.mods.pos, Modifiers.GHOST, null);
+			} else if (!isJML && isGhostOrModel) {
+				var pos = utils.locMod(vdecl.mods, Modifiers.GHOST, Modifiers.MODEL);
+				utils.error(pos, "jml.message", "A Java field declaration must not be marked either ghost or model: " + vdecl.name + " (owner: " + csym +")");
+				// Attempt recovery by removing the offending annotation
+				utils.removeAnnotation(vdecl.mods,  Modifiers.MODEL);
+				utils.removeAnnotation(vdecl.mods,  Modifiers.GHOST);
 			}
+
 			if (vsym == null) {
 				// No corresponding binary field
 				if (!isJML) {
 					utils.error(vdecl, "jml.message", "There is no binary field to match this Java declaration in the specification file: " + vdecl.name + " (owner: " + csym +")");
 					return;
-				}
-				if (!isGhostOrModel && !isOwnerJML) {
-					utils.error(vdecl, "jml.message", "A JML field declaration must be marked either ghost or model: " + vdecl.name + " (owner: " + csym +")");
-					// Attempt recovery by adding a ghost annotation
-					JmlTreeUtils.instance(context).addAnnotation(vdecl.mods, vdecl.mods.pos, vdecl.mods.pos, Modifiers.GHOST, null);
 				}
 				// Enter the class in the package or the parent class
 
@@ -1158,6 +1173,9 @@ public class JmlEnter extends Enter {
 				//					if (utils.hasMod(vdecl.mods, Modifiers.INSTANCE)) vsym.flags_field &= ~Flags.STATIC; 
 				//				}
 				me.env = savedEnv;
+				if (javaDecl != null && !isSameCU && isJML && !isOwnerJML) {
+					javaDecl.defs = javaDecl.defs.append(vdecl);
+				}
 
 				if (utils.verbose()) utils.note("Entered JML field: " + vsym.type + " " + vsym + " (owner: " + vsym.owner + ")");
 				ok = true;
@@ -1188,13 +1206,6 @@ public class JmlEnter extends Enter {
 					utils.error(vdecl, "jml.message", "This Java field declaration conflicts with a previous JML field: " + vdecl.name + " (owner: " + csym +")");
 					utils.error(fspecs.decl, "jml.associated.decl.cf", utils.locationString(vdecl.pos, log.currentSourceFile()));
 					return;
-				}
-				if (!isJML && isGhostOrModel) {
-					var pos = utils.locMod(vdecl.mods, Modifiers.GHOST, Modifiers.MODEL);
-					utils.error(pos, "jml.message", "A Java field declaration must not be marked either ghost or model: " + vdecl.name + " (owner: " + csym +")");
-					// Attempt recovery by removing the offending annotation
-					utils.removeAnnotation(vdecl.mods,  Modifiers.MODEL);
-					utils.removeAnnotation(vdecl.mods,  Modifiers.GHOST);
 				}
 				Type t = vdecl.type = vdecl.vartype.type = vsym.type;
 				ok = true;

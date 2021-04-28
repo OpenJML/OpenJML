@@ -5131,7 +5131,6 @@ public class Attr extends JCTree.Visitor {
             if (c.owner.kind == TYP && c.owner.type.hasTag(CLASS))
                 attribClass((ClassSymbol)c.owner);
         }
-
         // The previous operations might have attributed the current class
         // if there was a cycle. So we test first whether the class is still
         // UNATTRIBUTED.
@@ -5140,7 +5139,6 @@ public class Attr extends JCTree.Visitor {
 
             // Get environment current at the point of class definition.
             Env<AttrContext> env = typeEnvs.get(c);
-
             if (c.isSealed() &&
                     !c.isEnum() &&
                     !c.isPermittedExplicit &&

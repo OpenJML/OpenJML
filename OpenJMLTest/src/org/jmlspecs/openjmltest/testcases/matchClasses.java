@@ -54,11 +54,9 @@ public class matchClasses  extends TCBase {
     @Test public void testModelDup() {
         helpTCF("$A/A.java",
                 "public class A {  } /*@ model  class A {} */"
-                // Changed for Java 8
                 ,"/$A/A.java:1: error: duplicate class: A",32
                 ,"/$A/A.java:1: error: This JML class declaration conflicts with an existing binary class with the same name: A (owner: unnamed package)",32
-                
-//                ,"/$A/A.java:1: error: Associated declaration: /$A/A.java:1: ",8
+                ,"/$A/A.java:1: error: Associated declaration: /$A/A.java:1:",8
                 );
     }
 
@@ -103,9 +101,7 @@ public class matchClasses  extends TCBase {
         helpTCF("$A/A.java",
                 "  public class A {  } "
                 ,"/$A/A.jml:2: error: This JML class declaration conflicts with an existing binary class with the same name: A (owner: unnamed package)",11
-
-//                ,"/$A/A.jml:2: error: This specification declaration of type A has the same name as a previous JML type declaration",11
-//                ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:2: ",8
+                ,"/$A/A.java:1: error: Associated declaration: /$A/A.jml:2:",10
                 );
     }
     
@@ -115,10 +111,8 @@ public class matchClasses  extends TCBase {
                 "public class A {  } "
                 ,"/$A/A.jml:2: error: A JML class declaration must be marked model: A (owner: unnamed package)",5
                 ,"/$A/A.jml:2: error: This JML class declaration conflicts with an existing binary class with the same name: A (owner: unnamed package)",5
-
-//                ,"/$A/A.jml:2: error: This specification declaration of type A has the same name as a previous JML type declaration",5
-//                ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:2: ",8
-                ); // FIXME - missing the missing model complaint
+                ,"/$A/A.java:1: error: Associated declaration: /$A/A.jml:2:",8
+                );
     }
     
     @Test public void testJmlMatch() {
@@ -126,7 +120,7 @@ public class matchClasses  extends TCBase {
         helpTCF("$A/A.java",
                 "  public class A {  } class B {}"
                 ,"/$A/A.jml:1: error: This JML class declaration conflicts with an existing binary class with the same name: B (owner: unnamed package)",31
-                ,"/$A/A.java:1: error: Associated declaration: /$A/A.jml:1: ",23 
+                ,"/$A/A.java:1: error: Associated declaration: /$A/A.jml:1:",23 
                 );
     }
     
@@ -149,8 +143,8 @@ public class matchClasses  extends TCBase {
         addMockFile("$A/A.jml", "public class A {  } /*@ model */ class B {} ");
         helpTCF("$A/A.java",
                 "public class A {  } "
+                ,"/$A/A.jml:1: error: A Java class declaration must not be marked either ghost or model: B (owner: unnamed package)",25
                 ,"/$A/A.jml:1: error: There is no binary class to match this Java declaration in the specification file: B (owner: unnamed package)",34
-                ,"/$A/A.jml:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model",34
                 );
     }
     
@@ -185,6 +179,7 @@ public class matchClasses  extends TCBase {
         helpTCF("$A/A.java",
                 "public class A { int j; \n/*@  int j; */} "
                 ,"/$A/A.java:2: error: variable j is already defined in class A",10
+                ,"/$A/A.java:2: error: A JML field declaration must be marked either ghost or model: j (owner: A)",10
                 );
     }
     
@@ -236,9 +231,9 @@ public class matchClasses  extends TCBase {
         addMockFile("$A/A.jml", "public class A { \n/*@ int jjjj; */ }");
         helpTCF("$A/A.java",
                 "public class A { int jjjj; } "
+                ,"/$A/A.jml:2: error: A JML field declaration must be marked either ghost or model: jjjj (owner: A)",9
                 ,"/$A/A.jml:2: error: This JML field declaration conflicts with an existing field with the same name: jjjj (owner: A)",9
                 ,"/$A/A.java:1: error: Associated declaration: /$A/A.jml:2:",22
-                ,"/$A/A.jml:2: error: A declaration within a JML annotation must be either ghost or model",9
                 );
     }
     
@@ -269,8 +264,8 @@ public class matchClasses  extends TCBase {
         addMockFile("$A/A.jml", "public class A { /*@ model */ int k; }");
         helpTCF("$A/A.java",
                 "public class A { int j; } "
+        		,"/$A/A.jml:1: error: A Java field declaration must not be marked either ghost or model: k (owner: A)",22
                 ,"/$A/A.jml:1: error: There is no binary field to match this Java declaration in the specification file: k (owner: A)",35
-                ,"/$A/A.jml:1: error: A Java declaration may not be marked either ghost or model",22
                 );
     }
     
@@ -305,7 +300,7 @@ public class matchClasses  extends TCBase {
         helpTCF("$A/A.java",
                 "public class A { int j(){return 0;}  \n/*@ int j(){return 0;}  */} "
                 ,"/$A/A.java:2: error: method j() is already defined in class A",9
-                //,"/$A/A.java:2: error: A declaration within a JML annotation must be either ghost or model",9 // Duplicate ignored in Java 8
+                ,"/$A/A.java:2: error: A JML method declaration must be marked model: j (owner: A)",9 // Duplicate ignored in Java 8
                 );
     }
     
@@ -363,8 +358,6 @@ public class matchClasses  extends TCBase {
         helpTCF("$A/A.java",
                 "public class A { int j(){return 0;} } "
                 ,"/$A/A.jml:2: error: A Java method declaration must not be marked model: j (owner: A)",5
-                ,"/$A/A.jml:2: error: Method j() is already defined in class A",18 
-                ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:2: ",22
                 );
     }
     
@@ -372,9 +365,9 @@ public class matchClasses  extends TCBase {
         addMockFile("$A/A.jml", "public class A { int j();  \n/*@ model */ int j(int k){return 0;}  }");
         helpTCF("$A/A.java",
                 "public class A { int j(){return 0;} } "
+                ,"/$A/A.jml:2: error: A Java method declaration must not be marked model: j (owner: A)",5
                 ,"/$A/A.jml:2: error: There is no binary method to match this Java declaration in the specification file: j (owner: A)\n"
                 		+ "      A has j()",18
-                 ,"/$A/A.jml:2: error: A Java declaration may not be marked either ghost or model: j (owner: A)",18
                 );
     }
     
@@ -382,8 +375,8 @@ public class matchClasses  extends TCBase {
         addMockFile("$A/A.jml", "public class A { \n/*@ int j();  */ }");
         helpTCF("$A/A.java",
                 "public class A { int j(){return 0;}  } "
+                ,"/$A/A.jml:2: error: A JML method declaration must be marked model: j (owner: A)",9
                 ,"/$A/A.jml:2: error: This JML method declaration conflicts with an existing binary method with the same name: j (owner: A)",9
-                //,"/$A/A.jml:2: error: A declaration within a JML annotation must be either ghost or model",9 // duplicate ignored in Java 8
                 );
     }
     
@@ -415,8 +408,8 @@ public class matchClasses  extends TCBase {
         addMockFile("$A/A.jml", "public class A { \n/*@ model */ int k(){return 0;}  }");
         helpTCF("$A/A.java",
                 "public class A { int j(){return 0;}  } "
+                ,"/$A/A.jml:2: error: A Java method declaration must not be marked model: k (owner: A)",5
                 ,"/$A/A.jml:2: error: There is no binary method to match this Java declaration in the specification file: k (owner: A)",18
-                ,"/$A/A.jml:2: error: A Java declaration may not be marked either ghost or model: k (owner: A)",18
                 );
     }
     

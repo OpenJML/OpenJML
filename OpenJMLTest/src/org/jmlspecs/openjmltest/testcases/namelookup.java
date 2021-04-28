@@ -364,7 +364,6 @@ public class namelookup extends TCBase {
                 "}\n" +
                 "class C {}\n"
 
-                // Change in output for Java8
                 ,"/A.java:3: error: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
                 ,"/$A/A.jml:12: error: This declaration duplicates an earlier declaration",11
                 ,"/$A/A.jml:2: error: Associated declaration: /$A/A.jml:12:",11
@@ -392,18 +391,11 @@ public class namelookup extends TCBase {
                 "public class A {   \n" +
                 "}\n" +
                 ""
-        // Java 8
         ,"/$A/A.jml:3: error: This JML class declaration conflicts with an existing binary class with the same name: A (owner: unnamed package)", 11
+        ,"/A.java:1: error: Associated declaration: /$A/A.jml:3:",8
         ,"/$A/A.jml:5: error: This JML class declaration conflicts with a previous JML class: B (owner: unnamed package)", 11
         ,"/$A/A.jml:4: error: Associated declaration: /$A/A.jml:5:",11
         ,"/$A/A.jml:7: error: There is no binary class to match this Java declaration in the specification file: D (owner: unnamed package)",2
-
-        // Java 7
-//        ,"/$A/A.jml:7: error: This specification declaration of type D does not match any Java type declaration in /A.java",2
-//        ,"/$A/A.jml:3: error: This specification declaration of type A has the same name as a previous JML type declaration",11
-//        ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:3:",8
-//        ,"/$A/A.jml:5: error: duplicate class: B",11   // FIXME - OpenJML reports wrong location
-
         );
     }
  

@@ -266,7 +266,7 @@ public class JmlCompiler extends JavaCompiler {
         		results.append(env);
         	}
         }
-        
+      
         
 //        // TODO: Review the following
 //        if (rerunForTesting)  {
@@ -306,14 +306,13 @@ public class JmlCompiler extends JavaCompiler {
         return stopIfError(CompileState.ATTR, results);
     }
 
-    /** Overridden to remove binary/spec entries from the list of Envs after processing */
     @Override
     protected void flow(Env<AttrContext> env, Queue<Env<AttrContext>> results) {
-        if (env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
-//            // FIXME - not sure why this is needed for rac but causes esc tests to fail
-            if (utils.rac) CompileStates.instance(context).put(env,CompileState.FLOW);
-            return;
-        }
+//        if (env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
+////            // FIXME - not sure why this is needed for rac but causes esc tests to fail
+//            if (utils.rac) CompileStates.instance(context).put(env,CompileState.FLOW);
+//            return;
+//        }
         super.flow(env,results);
     }
     

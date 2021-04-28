@@ -395,7 +395,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // environment and we need to restore it properly.  Also, when in a
         // pure environment we may need to attribute a class, not all of which
         // is pure.
- //       boolean prevPureEnvironment = pureEnvironment;
         jmlenv = jmlenv.pushCopy();
         jmlenv.inPureEnvironment = false;  
         try {
@@ -403,10 +402,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (eee != null) { // FIXME - is null an error? is null for annotations like SpecPublic, for example, but no attribution is needed either, since there are no spec files.
                 JavaFileObject prevv = log.useSource(eee.toplevel.sourcefile);
                 try {
-                	if (Utils.debug()) System.out.println("ATTRIBUTING " + c + " " + eee.toplevel.sourcefile);
 //                	attribAnnotationTypes(classSpecs.modifiers.annotations, eee);
                     super.attribClass(c);
-                	if (Utils.debug()) System.out.println("ATTRIBUTING-DONE " + c + " " + eee.toplevel.sourcefile);
                 } finally {
                     log.useSource(prevv);
                 }
@@ -572,8 +569,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			}
     			else if (d instanceof JCVariableDecl) {
     				JCVariableDecl v = (JCVariableDecl)d;
-    				if (!utils.isJML(v.sym.flags()) && v.type.isReference() && v.type.tsym instanceof ClassSymbol) specs.getSpecs((ClassSymbol)v.type.tsym);
-    				specs.getSpecs(v.sym);
+    				if (v.sym != null) { // v.sym == null if there is an error in JmlEnter
+    					if (v.type.isReference() && v.type.tsym instanceof ClassSymbol) specs.getSpecs((ClassSymbol)v.type.tsym);
+    					specs.getSpecs(v.sym);
+    				}
     			}
     			else if (d instanceof JCClassDecl) {
     				var csym = ((JCClassDecl)d).sym;
@@ -1172,23 +1171,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // If the body is null, the specs are checked in visitBlock
                 //else deSugarMethodSpecs(jmethod,jmethod.methodSpecs);
             }
-            if (isJavaFile && !isJmlDecl) {
-                // Java methods in Java files must have a body (usually)
-                if (m.body == null) {
-                    ClassSymbol owner = env.enclClass.sym;
-                    // Empty bodies are only allowed for
-                    // abstract, native, or interface methods, or for methods
-                    // in a retrofit signature class.
-                    if ((owner.flags() & INTERFACE) == 0 &&
-                        (m.mods.flags & (ABSTRACT | NATIVE)) == 0 )
-                        utils.error(m, "missing.meth.body.or.decl.abstract");
-                }
-            } else if (m.body != null && !isJmlDecl && !isJavaFile && !isInJmlDeclaration && (m.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
-                // Java methods not in Java files may not have bodies (generated constructors do)
-                //log.error(m.pos(),"jml.no.body.allowed",m.sym);
-                // A warning is appropriate, but this is a duplicate.
-                // A warning is already given in JmlMemberEnter.checkMethodMatch
-            }
+//            if (isJavaFile && !isJmlDecl) {
+//                // Java methods in Java files must have a body (usually)
+//                if (m.body == null) {
+//                    ClassSymbol owner = env.enclClass.sym;
+//                    // Empty bodies are only allowed for
+//                    // abstract, native, or interface methods, or for methods
+//                    // in a retrofit signature class.
+//                    if ((owner.flags() & INTERFACE) == 0 &&
+//                        (m.mods.flags & (ABSTRACT | NATIVE)) == 0 )
+//                        utils.error(m, "missing.meth.body.or.decl.abstract");
+//                }
+//            } else if (m.body != null && !isJmlDecl && !isJavaFile && !isInJmlDeclaration && (m.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
+//                // Java methods not in Java files may not have bodies (generated constructors do)
+//                //log.error(m.pos(),"jml.no.body.allowed",m.sym);
+//                // A warning is appropriate, but this is a duplicate.
+//                // A warning is already given in JmlMemberEnter.checkMethodMatch
+//            }
             specs.getSpecs(jmethod.sym);
   
         } catch (Exception e) {
@@ -3446,9 +3445,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 tree.modifiers.annotations = newlist.toList();
                 if (tree.token == null) {
-                    if (!utils.hasNone(tree.modifiers)) {
+                    if (!utils.hasNone(tree.modifiers) && env.enclMethod != null && tree.modifiers != env.enclMethod.mods) {
                         utils.error(tree,"jml.no.mods.lightweight");
                     }
+                    if (env.enclMethod != null) tree.modifiers = env.enclMethod.mods;
                 } else {
                     long diffs = utils.hasOnly(tree.modifiers,Flags.AccessFlags);
                     if (diffs != 0) utils.error(tree,"jml.bad.mods.spec.case",Flags.toString(diffs));
@@ -4015,17 +4015,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void visitJmlBlock(JmlBlock that) {
+    	boolean prev = false;
+    	if (env.enclMethod == null) prev = ((JmlResolve)rs).setAllowJML(utils.isJML(env.enclClass.mods));
         visitBlock(that);
-        // FIXME
-//        if (that.cases != null) {
-//            boolean isStatic = (that.flags & Flags.STATIC) != 0;
-//            if (isStatic) env.info.staticLevel++;
-//            try {
-//                that.cases.accept(this);
-//            } finally {
-//                if (isStatic) env.info.staticLevel--;
-//            }
-//        }
+        if (env.enclMethod == null) ((JmlResolve)rs).setAllowJML(prev);
     }
     
     
@@ -7233,12 +7226,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             var prevSource = fspecs.decl == null ? null : log.useSource(fspecs.decl.sourcefile);            
     		jmlenv = jmlenv.pushCopy();
     		jmlenv.jmlVisibility = -1;
+            boolean prevAllow = ((JmlResolve)rs).setAllowJML(utils.isJML(vsym.flags()));
             if (fspecs.decl != null && fspecs.decl.init != null && fspecs.decl.init.type == null) {
         		ResultInfo rri = new ResultInfo(KindSelector.VAL_TYP, vsym.type);
         		jmlenv.inPureEnvironment = utils.isJML(fspecs.decl.mods);
             	Type t = fspecs.decl.init.type = attribTree(fspecs.decl.init, initEnv, rri);
             	if (t.isErroneous()) stat = JmlSpecs.SpecsStatus.ERROR;
             }
+            ((JmlResolve)rs).setAllowJML(prevAllow);
 
             if (!vsym.type.isErroneous()) {
             	this.env = cspecs.specsEnv;

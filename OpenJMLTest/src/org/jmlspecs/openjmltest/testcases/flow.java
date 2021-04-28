@@ -67,10 +67,10 @@ public class flow extends TCBase {
     /** Flow checks for ghost fields */
     @Test
     public void testGhostForwardReference() {
-        addMockFile("$A/A.jml","public class A { \n//@ ghost int i = j; ghost int j; \n}");
+        addMockFile("$A/A.jml","public class A { \n//@ ghost int iiii = jjjj; ghost int jjjj; \n}");
         helpTCF("A.java","public class A { int ii = jj; int jj;}"
                 ,"/A.java:1: error: illegal forward reference",27
-                ,"/$A/A.jml:2: error: illegal forward reference",19
+                ,"/$A/A.jml:2: error: illegal forward reference",22
         );
     }
     
@@ -79,9 +79,9 @@ public class flow extends TCBase {
     public void testQuantifiedFlow() {
         helpTCF("A.java","public class A { \n"
                 +" public static void m() {\n"
-                +"  //@ ghost int n = (\\num_of int i; 0<i && i<5; n>i);\n"
+                +"  //@ ghost \\bigint n = (\\num_of int i; 0<i && i<5; n>i);\n" // ERROR - can't use n in the initializer
                 +"}}"
-                ,"/A.java:3: error: variable n might not have been initialized",49
+                ,"/A.java:3: error: variable n might not have been initialized", 53
                 );
                 
     }
@@ -91,9 +91,9 @@ public class flow extends TCBase {
     public void testQuantifiedNonExFlow() {
         helpTCF("A.java","public class A { \n"
                 +" public static void m() {\n"
-                +"  //@ ghost int n = (\\num_of int i; ; n>i);\n"
+                +"  //@ ghost \\bigint n = (\\num_of int i; ; n>i);\n" // ERROR - can't use n in the initializer
                 +"}}"
-                ,"/A.java:3: error: variable n might not have been initialized",39
+                ,"/A.java:3: error: variable n might not have been initialized", 43
                 );
                 
     }

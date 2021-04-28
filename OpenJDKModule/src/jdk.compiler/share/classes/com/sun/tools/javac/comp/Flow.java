@@ -202,7 +202,7 @@ public class Flow {
     private final Resolve rs;
     private final JCDiagnostic.Factory diags;
     private Env<AttrContext> attrEnv;
-    private       Lint lint;
+    protected       Lint lint; // OPENJML - private to protected
     private final boolean allowEffectivelyFinalInInnerClasses;
 
     public static Flow instance(Context context) {
@@ -1883,7 +1883,6 @@ public class Flow {
                 !inits.isMember(sym.adr) &&
                 (sym.flags_field & CLASH) == 0) {
                     log.error(pos, errkey);
-                    new RuntimeException().printStackTrace(System.out);
                 inits.incl(sym.adr);
             }
         }
