@@ -580,7 +580,7 @@ public class JmlFlow extends Flow  {
         
         @Override
         public void visitJmlStatementShow(JmlStatementShow that) {
-            scanExprs(that.expressions);
+        	// pure expressions - no assignments
         }
 
         @Override
@@ -590,8 +590,7 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStatementExpr(JmlStatementExpr that) {
-            scanExpr(that.expression);
-            scanExpr(that.optionalExpression);
+        	// pure expressions - no assignments
         }
 
         @Override
@@ -627,6 +626,10 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
             quantDeclStack.add(0,that.decls);
+            for (var d: that.decls) {
+            	scan(d);
+            	letInit(d.pos(), d.sym);
+            }
             if (that.racexpr != null) {
                 scanExpr(that.racexpr); // FIXME - do this elsewhere in this file also?
             } else {
@@ -658,28 +661,31 @@ public class JmlFlow extends Flow  {
         
         public void visitVarDef(JCVariableDecl tree) {
             super.visitVarDef(tree);
-//            if (tree.init == null) {
-//                if (tree.type.toString().startsWith("org.jmlspecs.lang")) {
-//                    letInit(tree.pos(), tree.sym);
-//                }
-//            }
+            if (tree.init == null) {
+            	if (tree.type.toString().startsWith("org.jmlspecs.lang")) {
+            		//if (tree.type instanceof org.jmlspecs.lang.IJmlPrimitiveType) { // package does not exist is first compilation round
+            		letInit(tree.pos(), tree.sym);
+            	}
+            }
             
-//            Lint lintPrev = lint;
-//            lint = lint.augment(tree.sym);
-//            try{
-//                boolean track = trackable(tree.sym);
-//                if (track && tree.sym.owner.kind == MTH) {
-//                    newVar(tree);
-//                }
-//                if (tree.init != null) {
-//                    scanExpr(tree.init);
-//                    if (track) {
-//                        letInit(tree.pos(), tree.sym);
+//                Lint lintPrev = lint;
+//                lint = lint.augment(tree.sym);
+//                try{
+//                    boolean track = trackable(tree.sym);
+//                    if (track && (tree.sym.owner.kind == MTH || tree.sym.owner.kind == VAR)) {
+//                        newVar(tree);
 //                    }
+//                    if (tree.init != null || tree.type.toString().startsWith("org.jmlspecs.lang")) {
+//                        scanExpr(tree.init);
+//                        if (track) {
+//                            letInit(tree.pos(), tree.sym);
+//                        }
+//                    } else {
+//                    	System.out.println("NOT INIT " + tree.type.toString());
+//                    }
+//                } finally {
+//                    lint = lintPrev;
 //                }
-//            } finally {
-//                lint = lintPrev;
-//            }
         }
 
 
@@ -700,62 +706,51 @@ public class JmlFlow extends Flow  {
             // we could call scanExpr on each expression, but we have to watch for special expressions
         }
 
-        //// These are not implemented
+        //// These do nothing, if they are even needed
 
         @Override
         public void visitJmlGroupName(JmlGroupName that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlGroupNameg");
         }
 
         @Override
         public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseCallable");
         }
 
         @Override
         public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseConditional");
         }
 
         @Override
         public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
             for (JCVariableDecl d: that.decls) visitVarDef(d);
-            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseDecl");
         }
 
         @Override
         public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
-//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseExpr");
         }
 
         @Override
         public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseGroup");
         }
 
         @Override
         public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseSigOnly");
         }
 
         @Override
         public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseSignals");
         }
 
         @Override
         public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseStoreRef");
         }
 
         @Override
         public void visitJmlMethodSpecs(JmlMethodSpecs that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodSpecs");
         }
 
         @Override
         public void visitJmlSpecificationCase(JmlSpecificationCase that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlSpecificationCase");
         }
 
         @Override
@@ -776,64 +771,64 @@ public class JmlFlow extends Flow  {
 //            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
         }
 
-        @Override
-        public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseConditional");
-        }
-
-        @Override
-        public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseConstraint");
-        }
-
-        @Override
-        public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseDecl");
-        }
-
-        @Override
-        public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
-         // ignore call
-            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseExpr");
-        }
-
-        @Override
-        public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
-         // ignore call
-            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseIn");
-        }
-
-        @Override
-        public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseInitializer");
-        }
-
-        @Override
-        public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
-         // ignore call
-            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseMaps");
-        }
-
-        @Override
-        public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
-         // ignore call
-            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseMonitorsFor");
-        }
-
-        @Override
-        public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
-         // ignore call
-            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseRepresents");
-        }
-
-        public void visitJmlMethodSig(JmlMethodSig that) {
-         // ignore call
-            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlConstraintMethodSig");
-        }
-
-        public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlModelProgramStatement");
-        }
+//        @Override
+//        public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseConditional");
+//        }
+//
+//        @Override
+//        public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseConstraint");
+//        }
+//
+//        @Override
+//        public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseDecl");
+//        }
+//
+//        @Override
+//        public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
+//         // ignore call
+//            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseExpr");
+//        }
+//
+//        @Override
+//        public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
+//         // ignore call
+//            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseIn");
+//        }
+//
+//        @Override
+//        public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseInitializer");
+//        }
+//
+//        @Override
+//        public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
+//         // ignore call
+//            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseMaps");
+//        }
+//
+//        @Override
+//        public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
+//         // ignore call
+//            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseMonitorsFor");
+//        }
+//
+//        @Override
+//        public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
+//         // ignore call
+//            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseRepresents");
+//        }
+//
+//        public void visitJmlMethodSig(JmlMethodSig that) {
+//         // ignore call
+//            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlConstraintMethodSig");
+//        }
+//
+//        public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlModelProgramStatement");
+//        }
         
      // Instead of overriding visitClassDef (which does a lot of processing), a hook
         // (moreClassDef) was added into the middle of its implementation; this hook does
@@ -1069,12 +1064,10 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlGroupName(JmlGroupName that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlGroupNameg");
         }
 
         @Override
         public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlMethodClauseCallable");
         }
 
         @Override
@@ -1143,7 +1136,7 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseConditional");
+        	// do nothing
         }
 
         @Override
@@ -1171,7 +1164,7 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseInitializer");
+        	// do nothing
         }
 
         @Override
@@ -1238,13 +1231,26 @@ public class JmlFlow extends Flow  {
 //            }
         }
     }
+    
+    public class JmlCaptureAnalyzer extends CaptureAnalyzer implements IJmlVisitor{
+    	public void visitAnnotation(JCTree.JCAnnotation tree) {
+    		// FIXME - we skip annotations because some of them crash in CaptureAnalyzer.visitIdent, as they do 
+    		// not have sym set -- this is a bug of as yet undebugged cause
+    		//System.out.println("ANNOT " + tree + " " + tree.type);
+    		return;
+    	}
+    }
         
     // Overridden to call JML versions of visitors
     @Override 
     public void analyzeTree(Env<AttrContext> env, TreeMaker make) {
-        new JmlAliveAnalyzer().analyzeTree(env, make);
-        //new JmlAssignAnalyzer().analyzeTree(env, make); // FIXME
-        //new JmlFlowAnalyzer().analyzeTree(env, make);
-        //new CaptureAnalyzer().analyzeTree(env, make);
+    	try {
+    		new JmlAliveAnalyzer().analyzeTree(env, make);
+    		new JmlAssignAnalyzer().analyzeTree(env, make);
+    		new JmlFlowAnalyzer().analyzeTree(env, make);
+    		new JmlCaptureAnalyzer().analyzeTree(env, make);
+    	} catch (Exception e)  {
+    		Utils.instance(context).unexpectedException(e, "FLOW");
+    	}
     }
 }

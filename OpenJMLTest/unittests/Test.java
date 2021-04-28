@@ -173,6 +173,7 @@ public class Test {
     			if (System.getenv("TSTACK") != null) e.printStackTrace(System.out);
     		} finally {
     			if (t != null) t.tearDown();
+                        //System.out.println("  Post teardown " + method);
     		}
     	} catch (Exception e) {
     		System.out.println("Failed to construct or execute test: " + method + " " + e);
@@ -213,6 +214,7 @@ public class Test {
     				System.out.println("PROBLEM: " + method + " not reported as done");
         			future.cancel(true);
     			}
+                        //System.out.println("  Completed " + method);
     		}
     	}
     }

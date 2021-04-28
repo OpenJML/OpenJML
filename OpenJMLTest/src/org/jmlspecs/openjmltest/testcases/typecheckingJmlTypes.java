@@ -35,7 +35,8 @@ public class typecheckingJmlTypes extends TCBase {
     }
 
     @Test public void testArrayType() {
-        helpTC(" class A { void m() { //@ ghost array<Object> b; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}");
+        helpTC(" class A { void m() { //@ ghost array<Object> b; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}"
+        		);
     }
 
     @Test public void testIntsetType() {
@@ -63,9 +64,9 @@ public class typecheckingJmlTypes extends TCBase {
     }
 
     @Test public void testStringType() {
-        helpTC(" class A { void m() {  //@ ghost string b ; ghost char c = 'a'; set b[c] = 'b'; ghost char bb = b[c]; \n}}");
+        helpTC(" class A { void m() {  //@ ghost string b; ghost char c = 'a'; set b[c] = 'b'; ghost char bb = b[c]; \n}}");
     }
 
-    
+    // FIXME - need to be able to initialize JML types
     
 }
