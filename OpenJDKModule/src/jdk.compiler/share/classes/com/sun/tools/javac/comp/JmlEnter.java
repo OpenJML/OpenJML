@@ -554,8 +554,11 @@ public class JmlEnter extends Enter {
 				}
 				csym.flags_field = specDecl.mods.flags | Flags.UNATTRIBUTED;
 				var ct = (ClassType)csym.type;
-				if (specDecl.extending != null) ct.supertype_field = specDecl.extending.type = Attr.instance(context).attribType(specDecl.extending,env);
+				if (specDecl.extending != null) ct.supertype_field = specDecl.extending.type;
 				else if ((specDecl.mods.flags & Flags.INTERFACE) == 0) ct.supertype_field = syms.objectType;
+//				specDecl.implementing.forEach(t -> Attr.instance(context).attribType(t,env));
+//				specDecl.permitting.forEach(t -> Attr.instance(context).attribType(t,env));
+//				specDecl.typarams.forEach(t -> Attr.instance(context).attribType(t,env));
 				csym.members_field = WriteableScope.create(csym);
 				owner.members().enter(csym);
 				if (utils.verbose()) utils.note("Entering JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
@@ -596,7 +599,15 @@ public class JmlEnter extends Enter {
 					utils.error(match.source(), match, "jml.associated.decl.cf", utils.locationString(specDecl.pos, specDecl.source()));
 					return ok;
 				}
-				checkClassMatch(javaDecl, specDecl);
+//				{
+//					var ct = (ClassType)csym.type;
+//					if (specDecl.extending != null) {
+//						//if (specDecl.extending instanceof JCTypeApply) ((JCTypeApply)specDecl.extending).arguments.forEach(t -> t.type = Attr.instance(context).attribType(t,env));
+//						ct.supertype_field = specDecl.extending.type;
+//						System.out.println("SUPERTYPE " + ct.supertype_field + " " + csym.getSuperclass());
+//					}
+//					else if ((specDecl.mods.flags & Flags.INTERFACE) == 0) ct.supertype_field = syms.objectType;
+//				}
 				if (specDecl == javaDecl) {
 					// Defensive check
 					if (csym != javaDecl.sym) utils.error(specDecl.sourcefile,  specDecl, "jml.internal", "class symbol does not match : " + csym + " vs. " + javaDecl.sym); 
@@ -606,10 +617,24 @@ public class JmlEnter extends Enter {
 					checkAndEnterTypeParameters(csym,specDecl,specsEnv); // FIXME - just does checking
 					if (utils.verbose()) utils.note("Matched class: " + csym + " (owner: " + csym.owner +")" );
 					specDecl.sym = csym;
+					{
+//						if (specDecl.extending != null) {
+//							//if (specDecl.extending instanceof JCTypeApply) ((JCTypeApply)specDecl.extending).arguments.forEach(t -> t.type = Attr.instance(context).attribType(t,env));
+//							specDecl.extending.type = Attr.instance(context).attribType(specDecl.extending,specsEnv);
+//							specDecl.implementing.forEach(t -> t.type = Attr.instance(context).attribType(t, specsEnv));
+//							System.out.println("SUPERTYPE " + specDecl.extending.type + " # " + specDecl.implementing);
+//						}
+					}
 				}
+//				System.out.println("TYES "+ csym.type + " " + csym.getSuperclass());
+				if (!checkClassMatch(javaDecl, specDecl)) return ok;
 				alreadyMatched.put(csym, specDecl);
 			}
-			for (int i = 0; i < specDecl.typarams.length(); ++i) specDecl.typarams.get(i).type = csym.type.getTypeArguments().get(i).tsym.type;
+			if (specDecl.typarams.size() == csym.type.getTypeArguments().size()) {
+				for (int i = 0; i < specDecl.typarams.length(); ++i) {
+					specDecl.typarams.get(i).type = csym.type.getTypeArguments().get(i).tsym.type;
+				}
+			}
 			Env<AttrContext> localEnv = classEnv(specDecl, specsEnv);
 			TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localEnv);
 			if (typeEnvs.get(csym) == null) {
@@ -1100,7 +1125,10 @@ public class JmlEnter extends Enter {
 		// The difficulty here is that TypeVars show up as different types,
 		// and that binary types are erased, so do not have type arguments.
     	if (types.isSameType(specsType, javaType)) return true;
-    	if (!isBinary) return false;
+//    	System.out.println("COMPARING " + isBinary + " " + specsType + " " + javaType + " " + (specsType.getClass()));
+//    	if ((specsType instanceof Type.TypeVar) != (javaType instanceof Type.TypeVar)) return false;
+//    	if (specsType instanceof Type.TypeVar) return specsType.toString().equals(javaType.toString()); 
+//    	if (!isBinary) return false;
 		return specsType.toString().startsWith(javaType.toString()) ||
 				types.isSubtype(specsType, javaType);
     }
@@ -1502,9 +1530,18 @@ public class JmlEnter extends Enter {
      * This is only for reporting differences between the declarations. Any 
      * consistency checks within the specifications themselves are reported during attribution (JmlAttr).
      */
-    public void checkClassMatch(JmlClassDecl javaDecl, JmlClassDecl specsDecl) {
-    	if (javaDecl == null || javaDecl == specsDecl) return;
+    public boolean checkClassMatch(JmlClassDecl javaDecl, JmlClassDecl specsDecl) {
+    	if (javaDecl == null || javaDecl == specsDecl) return true;
+    	int n = log.nerrors;
     	checkAnnotations(javaDecl.mods, specsDecl.mods, javaDecl.sym);
+    	if (javaDecl.typarams.size() != specsDecl.typarams.size()) return false;
+//    		System.out.println("TY MISMATCH");
+//    		var p = specsDecl.typarams.size() == 0 ? specsDecl : specsDecl.typarams.head;
+//    		String nm = specsDecl.typarams.size() == 0 ? specsDecl.name.toString()
+//    				: (specsDecl.name + "<" + specsDecl.typarams.toString() + ">");
+//    		utils.error(p, "jml.mismatched.type.arguments", nm, javaDecl.sym.type.toString());
+//    	}
+    	return n == log.nerrors;
     }
 
     

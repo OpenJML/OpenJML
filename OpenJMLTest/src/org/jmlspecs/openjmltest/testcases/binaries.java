@@ -72,13 +72,13 @@ public class binaries extends TCBase {
                 "/*@ public invariant VVV.i; public invariant TTT.j; */ \n" +
                 "//@ model static class TTT { public static int j; } \n" +
                 "}\n ");
-        helpTCF("java/io/A.java",
-                "package java.io; class A { \n" +
+        helpTCF("A.java",
+                "class A { \n" +
                 "    java.io.File file; \n" +
                 " public void m() { /*@ assert java.io.VVV.i; assume java.io.File.TTT.j; */ }\n" +
                 "}"
-                ,"/java/io/A.java:3: error: incompatible types: int cannot be converted to boolean",42
-                ,"/java/io/A.java:3: error: incompatible types: int cannot be converted to boolean",69
+                ,"/A.java:3: error: incompatible types: int cannot be converted to boolean",42
+                ,"/A.java:3: error: incompatible types: int cannot be converted to boolean",69
                 ,"/$A/java/io/File.jml:3: error: incompatible types: int cannot be converted to boolean",25
                 ,"/$A/java/io/File.jml:3: error: incompatible types: int cannot be converted to boolean",49
         );
@@ -93,19 +93,19 @@ public class binaries extends TCBase {
                 "  static public int j;\n" +
                 "  //@ ghost static public int k; \n" +
                 "}\n ");
-        helpTCF("java/io/A.java",
-                "package java.io; class A { \n" +
+        helpTCF("A.java",
+                "import java.io.File; class A { \n" +
                 "    java.io.File file; \n" +
                 " public void m() { boolean i = File.j; int ii = File.k; \n" +
                 "     boolean q = File.separatorChar; \n" + 
                 "     /*@ assert java.io.File.j; assume java.io.File.k; */ }\n" +
                 "}"
-                ,"/$A/java/io/File.jml:3: The field j is a Java field (neither ghost nor model) but does not match any fields in the corresponding Java class.",21
-                ,"/java/io/A.java:3: error: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",36
-                ,"/java/io/A.java:3: error: cannot find symbol\n  symbol:   variable k\n  location: class java.io.File",53
-                ,"/java/io/A.java:4: error: incompatible types: char cannot be converted to boolean",22
-                ,"/java/io/A.java:5: error: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",29
-                ,"/java/io/A.java:5: error: incompatible types: int cannot be converted to boolean",52
+                ,"/$A/java/io/File.jml:3: error: There is no binary field to match this Java declaration in the specification file: j (owner: java.io.File)",21
+                ,"/A.java:3: error: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",36
+                ,"/A.java:3: error: cannot find symbol\n  symbol:   variable k\n  location: class java.io.File",53
+                ,"/A.java:4: error: incompatible types: char cannot be converted to boolean",22
+                ,"/A.java:5: error: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",29
+                ,"/A.java:5: error: incompatible types: int cannot be converted to boolean",52
         );
     }
 
@@ -117,11 +117,11 @@ public class binaries extends TCBase {
                 "public class File implements Serializable, Comparable<File> { \n" +
                 "}\n" +
                 "class Extra {}\n");
-        helpTCF("java/io/A.java",
-                "package java.io; class A { \n" +
+        helpTCF("/A.java",
+                "class A { \n" +
                 "    java.io.File file; \n" +
                 "}"
-                ,"/$A/java/io/File.jml:4: error: This type declaration (java.io.Extra) is not matched by a binary class",1
+                ,"/$A/java/io/File.jml:4: error: There is no binary class to match this Java declaration in the specification file: Extra (owner: java.io)",1
         );
     }
 }
