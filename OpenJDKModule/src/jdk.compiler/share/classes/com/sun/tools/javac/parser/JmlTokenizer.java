@@ -131,19 +131,6 @@ public class JmlTokenizer extends JavadocTokenizer {
         nowarns = Nowarns.instance(context);
     }
     
-//    /**
-//     * Sets the jml mode, returning the old value - 
-//     * used for testing to be able to test constructs that
-//     * are within a JML comment.
-//     * 
-//     * @param j set the jml mode to this boolean value
-//     */
-//    public boolean setJml(boolean j) {
-//        boolean t = jml;
-//        jml = j;
-//        return t;
-//    }
-    
     /** True if the tokenizer is in a JML comment, false otherwise */
     public boolean jml() {
         return jml;
@@ -281,7 +268,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             return super.processComment(pos, endPos, style);
         }
         if (!(isOneOf(' ','\t','{') || (style == CommentStyle.BLOCK && isOneOf('\n','\r','{')))
-        		&& JmlOptions.instance(context).isSet(JmlOption.REQUIRE_WS.optionName())) {
+        		&& JmlOptions.instance(context).getBoolean(JmlOption.REQUIRE_WS.optionName())) {
         	if (isOneOf('+','-')) {
                 Utils.instance(context).warning(position(),
                 		"Annotation comments beginning with @+ or @- are no longer supported; use keys instead");

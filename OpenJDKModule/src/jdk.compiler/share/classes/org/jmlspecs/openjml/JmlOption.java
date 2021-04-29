@@ -410,8 +410,9 @@ public class JmlOption {
         return interpretBoolean(val);
     }
 
+    // CAUTION: Should maintain that this is equivalent to the behavior in Option
     private static boolean interpretBoolean(String v) {
-        return v != null && !"false".equals(v);
+        return v != null && Boolean.parseBoolean(v);
     }
 
     // FIXME - is this needed?

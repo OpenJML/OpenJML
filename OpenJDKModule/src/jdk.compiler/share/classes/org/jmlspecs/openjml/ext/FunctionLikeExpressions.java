@@ -290,7 +290,6 @@ public class FunctionLikeExpressions extends ExpressionExtension {
         	super.typecheck(attr, expr, localEnv);
             JmlMethodInvocation tree = (JmlMethodInvocation)expr;
             
-            // Expect one argument of any array type, result type is \TYPE
             // The argument expression may contain JML constructs
             Type t = attr.syms.errType;
             int n = tree.args.size();
@@ -298,6 +297,7 @@ public class FunctionLikeExpressions extends ExpressionExtension {
                 JCExpression e = tree.args.get(0);
                 if (e instanceof JmlMethodInvocation && ((JmlMethodInvocation)e).kind == MiscExpressions.typelcKind) {
                     ((JmlMethodInvocation)e).javaType = true;
+                    ((JmlMethodInvocation)e).type = attr.syms.classType;
                 }
                 Type tt = tree.args.get(0).type;
                 if (tt == attr.jmltypes.TYPE || tt == attr.syms.classType) t = attr.syms.classType; 

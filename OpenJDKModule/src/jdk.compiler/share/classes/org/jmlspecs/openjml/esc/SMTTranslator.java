@@ -308,6 +308,10 @@ public class SMTTranslator extends JmlTreeScanner {
                 Arrays.asList(new ISort[]{jmlTypeSort}), 
                 javaTypeSort);
         commands.add(c);
+        c = new C_declare_fun(F.symbol("erasure_java"),
+                Arrays.asList(new ISort[]{javaTypeSort}), 
+                javaTypeSort);
+        commands.add(c);
 
         addCommand(smt,"(declare-fun _JMLT_0 ("+JAVATYPESORT+") "+JMLTYPESORT+")");
         addCommand(smt,"(declare-fun _JMLT_1 ("+JAVATYPESORT+" "+JMLTYPESORT+") "+JMLTYPESORT+")");
@@ -315,6 +319,7 @@ public class SMTTranslator extends JmlTreeScanner {
         addCommand(smt,"(declare-fun _JMLT_3 ("+JAVATYPESORT+" "+JMLTYPESORT+" "+JMLTYPESORT+" "+JMLTYPESORT+") "+JMLTYPESORT+")");
 
         if (quantOK) addCommand(smt,"(assert (forall ((o REF)) (= (erasure (jmlTypeOf o)) (javaTypeOf o))))");
+        if (quantOK) addCommand(smt,"(assert (forall ((o REF)) (= (erasure_java (javaTypeOf o)) (javaTypeOf o))))");
         
         addCommand(smt,"(declare-fun _makeArrayType ("+JAVATYPESORT+") "+JAVATYPESORT+")");
         addCommand(smt,"(declare-fun _isArrayType ("+JAVATYPESORT+") Bool)");
@@ -1987,7 +1992,14 @@ public class SMTTranslator extends JmlTreeScanner {
         } else if (that.kind == sameKind || that.kind == oldKind) { // old has already been translated
             result = newargs.get(0);
         } else if (that.kind == erasureKind) {
-            result = F.fcn(F.symbol("erasure"), newargs);
+        	if (that.args.get(0).type == com.sun.tools.javac.comp.JmlAttr.instance(context).syms.classType) {
+        		result = F.fcn(F.symbol("erasure_java"), newargs);
+        	} else if (that.args.get(0).type == com.sun.tools.javac.comp.JmlAttr.instance(context).jmltypes.TYPE) {
+        		result = F.fcn(F.symbol("erasure"), newargs);
+        	} else {
+        		log.error("jml.internal","Unexpected argument type " + that.args.get(0).type + " " + that);
+        		result = null;
+        	}
         } else if (that.kind == distinctKind) {
             result = F.fcn(distinctSym, newargs);
         } else if (that.kind == concatKind) {
