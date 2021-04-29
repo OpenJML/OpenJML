@@ -267,9 +267,8 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testCUMods3() {
-        helpTCF("t/A.java","package t; /*@ pure */ import org.jmlspecs.annotation.*; \n public /*@ pure */ @Pure class A{}"
+        helpTCF("t/A.java","package t; /*@ pure */ import org.jmlspecs.annotation.*; \n public /*@ pure */ class A{}"
                 ,"/t/A.java:1: error: No modifiers are allowed on an import statement", 16
-                ,"/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation type",21
                 );
     }
     
@@ -282,8 +281,6 @@ public class modifiers extends TCBase {
     @Test public void testCUMods5() {
         helpTCF("t/A.java","package t; @Pure import org.jmlspecs.annotation.*; \n public @Pure class A{}"
                 ,"/t/A.java:1: error: class, interface, enum, or record expected", 18
-                ,"/t/A.java:2: error: cannot find symbol\n"
-                		+ "  symbol: class Pure", 10
                 );
     }
     
@@ -899,7 +896,7 @@ public class modifiers extends TCBase {
                 );
     }
      
-    @Test public void testFormal() {  // FIXME - figure out how to avoid duplicate error messages
+    @Test public void testFormal() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  void m(\n" +
         		"/*@ non_null */ Object o, \n" +
@@ -909,7 +906,7 @@ public class modifiers extends TCBase {
         		"/*@ spec_public */ Object oooo) {} }"
                 ,"/A.java:6: error: org.jmlspecs.annotation.NonNull is not a repeatable annotation type", 14
                 ,"/A.java:5: error: This JML modifier is not allowed for a formal parameter",5
-                ,"/A.java:5: error: A type may not be declared both non_null and nullable",11
+                ,"/A.java:5: error: A declaration may not be both non_null and nullable",20
                 ,"/A.java:7: error: This JML modifier is not allowed for a formal parameter",5
                 );
     }
@@ -1108,10 +1105,9 @@ public class modifiers extends TCBase {
                 "  //@ forall pure Object o7; \n" +
                 "  //@ forall final Object o5; \n" +
                 "  void m() {} }"
-                ,"/A.java:5: error: No Java modifiers are allowed in a method specification declaration",7
-                ,"/A.java:6: error: No Java modifiers are allowed in a method specification declaration",7
-                ,"/A.java:7: error: No Java modifiers are allowed in a method specification declaration",7
-                ,"/A.java:8: error: No Java modifiers are allowed in a method specification declaration",7
+                ,"/A.java:6: error: This JML modifier is not allowed for a method specification declaration",14
+                ,"/A.java:7: error: This JML modifier is not allowed for a method specification declaration",14
+                ,"/A.java:8: error: No Java modifiers are allowed in a method specification declaration",14
                 );
     }
      
@@ -1121,12 +1117,13 @@ public class modifiers extends TCBase {
                 "  //@ old non_null Object o2 = null; \n" +
                 "  //@ old readonly Object o3 = null; \n" +
                 "  //@ old @Nullable Object o4 = null; \n" +
-                "  //@ old @Pure Object o6 = null; \n" +
+                "  //@ old @Pure Object o5 = null; \n" +
                 "  //@ old pure Object o6 = null; \n" +
-                "  //@ old final Object o5 = null; \n" +
+                "  //@ old final Object o7 = null; \n" +
                 "  void m() {} }"
-                ,"/A.java:6: error: This JML modifier is not allowed for a local variable declaration",11
-                ,"/A.java:7: error: No Java modifiers are allowed in a method specification declaration",7
+                ,"/A.java:6: error: This JML modifier is not allowed for a method specification declaration",11
+                ,"/A.java:7: error: This JML modifier is not allowed for a method specification declaration",11
+                ,"/A.java:8: error: No Java modifiers are allowed in a method specification declaration",11
                 );
     }
      
@@ -1153,6 +1150,15 @@ public class modifiers extends TCBase {
                 "  //@ invariant (new A() { int m() { return 5; } }) != null; \n" +
                 "  void p() {} }"
                 ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: A..()",18
+                );
+    }
+     
+    @Test public void testInvariant2a() {
+    	expectedExit = 0;
+        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ A(int i){} int m() { return 0; } \n" +
+                "  //@ invariant (new A(1) { int m() { return 5; } }) != null; \n" +
+                "  void p() {} }"
+                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: A..(int)",18
                 );
     }
      

@@ -1016,7 +1016,7 @@ public class JmlEnter extends Enter {
     			} catch (Exception e) {
     				System.out.println("RETTYPE " + msym + " " + t + " " + mdecl.sym + " " + (msym.type != null) + " " + msym.type + " " + mdecl.sym.type);
     			}
-    			if (!specsTypeSufficientlyMatches(t, msym.getReturnType(), javaMDecl == null)) {
+    			if (!specsTypeSufficientlyMatches(t, msym.getReturnType(), javaMDecl == null, msym)) {
     				utils.error(mdecl.restype,  "jml.mismatched.return.type", 
     						msym.enclClass().fullname + "." + msym.toString(),t,msym.getReturnType());
     			}
@@ -1121,16 +1121,17 @@ public class JmlEnter extends Enter {
     	}
     }
     
-    public boolean specsTypeSufficientlyMatches(Type specsType, Type javaType, boolean isBinary) {
+    public boolean specsTypeSufficientlyMatches(Type specsType, Type javaType, boolean isBinary, Symbol sym) {
 		// The difficulty here is that TypeVars show up as different types,
 		// and that binary types are erased, so do not have type arguments.
+    	//if (sym.name.toString().equals("k")) System.out.println("COMPARING " + sym + " " + isBinary + " " + specsType + " " + javaType + " " + (specsType.getClass()));
     	if (types.isSameType(specsType, javaType)) return true;
-//    	System.out.println("COMPARING " + isBinary + " " + specsType + " " + javaType + " " + (specsType.getClass()));
 //    	if ((specsType instanceof Type.TypeVar) != (javaType instanceof Type.TypeVar)) return false;
 //    	if (specsType instanceof Type.TypeVar) return specsType.toString().equals(javaType.toString()); 
 //    	if (!isBinary) return false;
-		return specsType.toString().startsWith(javaType.toString()) ||
-				types.isSubtype(specsType, javaType);
+    	
+    	if (specsType.toString().startsWith(javaType.toString())) return true;
+		return  false; // types.isSubtype(specsType, javaType);
     }
     
     public VarSymbol findVar(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> env) {
@@ -1192,7 +1193,7 @@ public class JmlEnter extends Enter {
 				var savedEnv = me.env;
 				me.env = specsEnv;
 				me.visitVarDef(vdecl);
-				vdecl.type = vdecl.sym.type;
+				vdecl.vartype.type = vdecl.type = vdecl.sym.type;
 				vsym = vdecl.sym;
 				//				if (isGhostOrModel && vsym.owner.isInterface()) {
 				//					// not final by default; no static if declared instance
@@ -1235,15 +1236,16 @@ public class JmlEnter extends Enter {
 					utils.error(fspecs.decl, "jml.associated.decl.cf", utils.locationString(vdecl.pos, log.currentSourceFile()));
 					return;
 				}
-				Type t = vdecl.type = vdecl.vartype.type = vsym.type;
 				ok = true;
 
 				if (vdecl == javaVDecl) {
 					if (vdecl.sym != vsym) utils.error(vdecl.sourcefile, vdecl, "jml.message", "vsym values do not match: " + vdecl.sym + " " + vsym);
 					vdecl.specsDecl = vdecl;
+					vdecl.type = vdecl.vartype.type = vsym.type;
 					//vdecl.type = vdecl.sym.type;
 					if (utils.verbose()) utils.note("Matched field: (self) " + vsym + " (owner: " + csym +")" );
 				} else {
+					Type t = Attr.instance(context).attribType(vdecl.vartype, specsEnv);
 					if (vsym.owner instanceof ClassSymbol) {
 						if (!isSameCU && javaVDecl != null && alreadyMatched.containsKey(vsym)) { // if isSameCU==true, there already is a error about duplicate definition in MemberEnter
 							utils.error(vdecl, "jml.message", "This specification declaration of field " + vdecl.name + " has the same name as a previous field declaration");
@@ -1251,7 +1253,7 @@ public class JmlEnter extends Enter {
 							utils.error(v.source(), v.pos, "jml.associated.decl.cf", utils.locationString(vdecl.pos, vdecl.source()));
 						}
 
-						if (!specsTypeSufficientlyMatches(t, vsym.type, javaVDecl == null)) {
+						if ((!isJML && !matchIsJML) && !specsTypeSufficientlyMatches(t, vsym.type, javaVDecl == null, vsym)) {
 							String msg = "Type of field " + vdecl.name + " in specification differs from type in source/binary: " + t + " vs. " + vsym.type;
 							if (javaVDecl != null) {
 								utils.error(vdecl.vartype, "jml.message", msg, javaVDecl.pos(), javaVDecl.sourcefile);
@@ -1262,15 +1264,17 @@ public class JmlEnter extends Enter {
 							ok = false;
 						}
 					}
+					vdecl.type = vdecl.vartype.type = vsym.type;
+					vdecl.sym = vsym;
 					checkVarMatch(javaVDecl,vsym,vdecl,csym);
 					// Note - other checks are done in JmlAttr
 
-					vdecl.sym = vsym;
 					if (ok && utils.verbose()) utils.note("Matched field: " + vsym + " (owner: " + csym +")" );
 				}
 				alreadyMatched.put(vsym,vdecl);
 			} else {
 				ok = false;
+				vdecl.type = vdecl.vartype.type = vsym.type;
 			}
 		} catch (Throwable t) {
 			utils.error("Exception while entering field: " + vdecl.name);
@@ -1499,7 +1503,13 @@ public class JmlEnter extends Enter {
       			if (utils.hasMod(specVarDecl.mods, Modifiers.INSTANCE)) specVarDecl.mods.flags &= ~Flags.STATIC; 
       		}
       	}
-      	
+
+      	// check for no initializer
+      	if (specVarDecl.getInitializer() != null && specVarDecl != javaMatch && javaMatch != null &&
+      			!utils.isJML(specVarDecl.mods) && !specVarDecl.sym.owner.isEnum()) {
+      		utils.error(specVarDecl.getInitializer().pos(),"jml.no.initializer.in.specs",javaSym.enclClass().getQualifiedName()+"."+javaSym.name);
+      	}
+
       	long diffs = (javaFlags ^ specFlags)&(isInterface? Flags.InterfaceVarFlags : Flags.VarFlags);
       	if (diffs != 0) {
       		utils.error(specVarDecl.sourcefile,specVarDecl,"jml.mismatched.field.modifiers", specVarDecl.name, javaClassSymbol+"."+javaSym.name,Flags.toString(diffs));

@@ -43,22 +43,20 @@ public class MethodDeclClauseExtension extends JmlExtension  {
         JmlMethodClauseDecl parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             // TODO: Warning if mods is not null or empty
-            mods = parser.maker().Modifiers(0L);
-            
+            if (!utils.hasNone(mods)) utils.warning(mods, "jml.no.mods.allowed");
             int pp = parser.pos();
             int pe = parser.endPos();
             
             parser.nextToken();
 
-            // non_null and nullable and perhaps other type modifiers in the
-            // future are allowed
-            JCModifiers mods2 = parser.modifiersOpt();
-            Utils.instance(context).setJML(mods2);
-            Utils.instance(context).setJMLTop(mods2);
+            mods = parser.modifiersOpt();
+
+            Utils.instance(context).setJML(mods);
+            Utils.instance(context).setJMLTop(mods);
             JCExpression t = parser.parseType();
             boolean prev = parser.setInJmlDeclaration(true); // allows non-ghost declarations
-            ListBuffer<JCTree.JCVariableDecl> decls = parser.variableDeclarators(mods2, t,
-                    new ListBuffer<JCVariableDecl>(), false); // FIXME - no local decl?
+            ListBuffer<JCTree.JCVariableDecl> decls = parser.variableDeclarators(mods, t,
+                    new ListBuffer<JCVariableDecl>(), false); // FIXME - why not true - this is a local decl
             parser.setInJmlDeclaration(prev);
             JmlMethodClauseDecl res = parser.to(parser.maker().at(pp)
                     .JmlMethodClauseDecl(keyword, clauseType, decls.toList()));

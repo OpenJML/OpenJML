@@ -922,11 +922,11 @@ public class JmlSpecs {
     	return getLoadedSpecs(m).modifiers;
     }
     
-    public TypeSpecs getSpecs(ClassSymbol type) {
-    	if (status(type).less(SpecsStatus.SPECS_ATTR)) {
-    		attr.attrSpecs(type);
+    public TypeSpecs getSpecs(ClassSymbol csym) {
+    	if (status(csym).less(SpecsStatus.SPECS_ATTR)) {
+    		attr.attrSpecs(csym);
     	}
-        return getLoadedSpecs(type);
+        return getLoadedSpecs(csym);
     }
     
     public void getSpecs(Symbol s) {
@@ -1112,9 +1112,17 @@ public class JmlSpecs {
                 // default specification.
             }
         }
+        
+        MethodSymbol superSym = null;
+        if ((sym.flags() & Flags.GENERATEDCONSTR) != 0) {
+        	var iter = ((ClassSymbol)sym.owner).getSuperclass().tsym.members().getSymbols(s->s.isConstructor() && s.type.getParameterTypes().size() == sym.type.getParameterTypes().size()).iterator();
+        	if (iter.hasNext()) superSym = (MethodSymbol)iter.next();
+        }
+        
+        if (sym.isConstructor() && sym.owner.toString().equals("RR")) System.out.println("DEF " + sym + " " + (superSym != null) + " " + isPure(superSym));
 
         // FIXME - check the case of a binary generated constructor with a declaration in JML
-        if (((sym.flags() & Flags.GENERATEDCONSTR) != 0) || ( sym.owner == syms.objectType.tsym && sym.isConstructor()) || sym.owner == Symtab.instance(context).enumSym ) {
+        if (((sym.flags() & Flags.GENERATEDCONSTR) != 0 && superSym != null && isPure(superSym)) || ( sym.owner == syms.objectType.tsym && sym.isConstructor()) || sym.owner == Symtab.instance(context).enumSym ) {
             JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                     com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,nothingKind)));
             if (sym.isConstructor()) {

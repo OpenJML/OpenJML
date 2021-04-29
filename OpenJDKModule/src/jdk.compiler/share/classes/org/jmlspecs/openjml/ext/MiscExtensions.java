@@ -115,11 +115,11 @@ public class MiscExtensions extends JmlExtension {
     public static final String bspeerID = "\\peer";
     public static final IJmlClauseKind bspeerKind = new NoTypeMisc(bspeerID);
     
-    public static final String readonlyID = "readonly";
-    public static final IJmlClauseKind readonlyKind = new NoTypeMisc(readonlyID);
-
-    public static final String bsreadonlyID = "\\readonly";
-    public static final IJmlClauseKind bsreadonlyKind = new NoTypeMisc(bsreadonlyID);
+//    public static final String readonlyID = "readonly";
+//    public static final IJmlClauseKind readonlyKind = new NoTypeMisc(readonlyID);
+//
+//    public static final String bsreadonlyID = "\\readonly";
+//    public static final IJmlClauseKind bsreadonlyKind = new NoTypeMisc(bsreadonlyID);
 
     public static final String bsrepID = "\\rep";
     public static final IJmlClauseKind bsrepKind = new NoTypeMisc(bsrepID);
