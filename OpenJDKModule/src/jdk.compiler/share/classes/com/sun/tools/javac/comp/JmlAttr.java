@@ -399,8 +399,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // environment and we need to restore it properly.  Also, when in a
         // pure environment we may need to attribute a class, not all of which
         // is pure.
-        jmlenv = jmlenv.pushCopy();
-        jmlenv.inPureEnvironment = false;  
+        var check = jmlenv = jmlenv.pushCopy();
+        jmlenv.inPureEnvironment = false;  //System.out.println("PUREENV SET FALSE"); Utils.dumpStack();
         try {
             Env<AttrContext> eee = typeEnvs.get(c);
             if (eee != null) { // FIXME - is null an error? is null for annotations like SpecPublic, for example, but no attribution is needed either, since there are no spec files.
@@ -445,7 +445,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            }
 
         } finally {
-            jmlenv = jmlenv.pop();
+            jmlenv = jmlenv.pop(check);
 //            if (prev != null) log.useSource(prev);
             level--;
             if (c != syms.predefClass) {
@@ -2397,6 +2397,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             NON_NULL, NULLABLE, GHOST, UNINITIALIZED, READONLY, REP, PEER, SECRET
        };
     
+    public ModifierKind[] allowedMethodSpecDeclModifiers = new ModifierKind[] {
+            NON_NULL, NULLABLE, READONLY  // FIXME - should this include readonly?
+       };
+    
     public void checkTypeMods(JCVariableDecl tree) {
     	if (!org.jmlspecs.openjml.Main.useJML) return;
     	boolean hasNonNull = false;
@@ -2435,7 +2439,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
        
     public void checkVarMods(JmlVariableDecl tree) {
-        if (tree.name == names.error || tree.type.isErroneous()) return;
+        if (tree.name == names.error || tree.type == null || tree.type.isErroneous()) System.out.println("BAD VAR " + tree);
+        if (tree.name == names.error || tree.type == null || tree.type.isErroneous()) return;
         JCModifiers mods = tree.mods;
         String kind;
         JavaFileObject prev = log.useSource(tree.source());
@@ -2505,7 +2510,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		allAllowed(mods.annotations, allowedLocalVarModifiers, kind);
         		if (modsinJML && !ghost  && !isInJmlDeclaration && !ownerInJML && !jmlenv.inExpressionScope) {
         			if (!utils.isJMLTop(mods)) utils.error(tree.source(),tree.pos,"jml.missing.ghost");
-        		} else if (!modsinJML && ghostX) {
+        		} else if (!modsinJML && ghost) {
         			utils.error(tree.source(),tree.pos,"jml.ghost.on.java");
         		} else if (modelOrGhostX && jmlenv.inExpressionScope) {
         			utils.error(log.currentSourceFile(),treeForMods.pos,"jml.message","ghost or model modifiers not permitted on an expression-local declaration");
@@ -2745,7 +2750,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     /** Attributes invariant, axiom, initially clauses */
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree) {
+    	var check = jmlenv = jmlenv.pushCopy();
+    	jmlenv.inPureEnvironment = true;
     	tree.clauseType.typecheck(this, tree, env);
+    	jmlenv = jmlenv.pop(check);
     }
     
     public Name getAnnotationStringArg(JCAnnotation a) {
@@ -3179,8 +3187,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (statik) {
                     flags |= Flags.STATIC;  // old and forall decls are implicitly static for a static method
                 }
-                allAllowed(mods.annotations, allowedLocalVarModifiers, "method specification declaration");
-                if (utils.hasOnly(mods,flags) != 0) log.error(tree.pos,"jml.no.java.mods.allowed","method specification declaration");
+                attribAnnotationTypes(mods.annotations, env);
+                allAllowed(mods.annotations, allowedMethodSpecDeclModifiers, "method specification declaration");
+                if (utils.hasOnly(mods,flags) != 0) log.error(mods.pos,"jml.no.java.mods.allowed","method specification declaration");
                 mods.flags |= flags;
                 forallOldEnv = JmlCheck.instance(context).staticOldEnv;
                 JmlCheck.instance(context).staticOldEnv = statik;
@@ -3511,7 +3520,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (tree.block != null) {
                 // model program
                 jmlenv = jmlenv.pushCopy();
-                jmlenv.inPureEnvironment = false;
+                jmlenv.inPureEnvironment = false;  //System.out.println("PUREENV SET FALSE"); Utils.dumpStack();
                 jmlenv.currentClauseKind = modelprogramClause;
                 var savedEnv = this.env;
                 try {
@@ -6374,7 +6383,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }        
 
         visitClassDef(that);
-        if (env.enclMethod != null) {
+        if (env.enclMethod != null && specs.status(that.sym).less(JmlSpecs.SpecsStatus.SPECS_ATTR)) {
+        	utils.warning(that,"jml.message","UNEXPECTED RE-PUTTING LOCAL CLASS SPECS " + that.sym);
         	// Note: We need that.sym in order to register a local class's specs, but the local class
         	// is attributed as a method statement.
         	//((JmlEnter)enter).specsClassEnter(that.sym.owner, that, typeEnvs.get(that.sym), that);
@@ -6471,7 +6481,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             annotate.flush(); 
             for (JCAnnotation a: that.mods.annotations) a.type = a.annotationType.type;
 
-            if (utils.isJML(that.mods)) {
+            if (utils.isJML(that.mods) && jmlenv.currentClauseKind == null) {
                 jmlenv.currentClauseKind = declClause; // FIXME - could be model, if it matters
             }
             if (that.vartype != null && that.vartype.type == null) attribType(that.vartype,env);
@@ -6486,8 +6496,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             visitVarDef(that);
             
-            if (!(that.sym.owner instanceof ClassSymbol)) {
-        		checkVarDecl(that);
+            if (!(that.sym.owner instanceof ClassSymbol) && (jmlenv.currentClauseKind == null || jmlenv.currentClauseKind == declClause)) {
+            	checkVarDecl(that);
             }
 
         	if (env.enclMethod != null) {
@@ -7385,6 +7395,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	
     	public JmlEnv pushCopy() {
     		var j = new JmlEnv(this);
+    		//System.out.println("PUSHCOPY " + this.hashCode() + " " + jmlenv.hashCode() + " " + j.hashCode());
     		j.previous = this;
     		JmlAttr.this.jmlenv = j;
     		return j;
@@ -7392,14 +7403,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	
     	public JmlEnv pushInit() {
     		var j = new JmlEnv();
+    		//System.out.println("PUSHINIT " + this.hashCode() + " " + jmlenv.hashCode() + " " + j.hashCode());
     		j.previous = this;
     		JmlAttr.this.jmlenv = j;
     		return j;
     	}
     	
     	public JmlEnv pop() {
+    		//System.out.println("POPENV " + previous.inPureEnvironment + this.hashCode() + " " + jmlenv.hashCode() + " " + previous.hashCode());
     		JmlAttr.this.jmlenv = previous;
     		return previous;
+    	}
+    	
+    	public JmlEnv pop(JmlEnv check) {
+    		if (check != jmlenv) { System.out.println("MISMATCHED JMLENV"); Utils.dumpStack(); }
+    		return pop();
     	}
     }
 
