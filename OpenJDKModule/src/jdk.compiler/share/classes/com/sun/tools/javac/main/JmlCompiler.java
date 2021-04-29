@@ -143,15 +143,21 @@ public class JmlCompiler extends JavaCompiler {
         /*@Nullable*/ JmlCompilationUnit speccu = (JmlCompilationUnit)parse(f);
         if (speccu == null) return null;
         Symbol.PackageSymbol p = typeSymbol.packge();
+        String ps = p.toString();
         String specpid = speccu.pid == null ? "unnamed package" : speccu.pid.getPackageName().toString();
-        if (!p.toString().equals(specpid)) {
-        	utils.error(speccu.sourcefile,speccu.pid == null ? 1 : speccu.pid.pos,
-        			"jml.mismatched.package",
-        			specpid,
-        			p.toString());
-        	return null;
+        if (!ps.equals(specpid)) {
+        	if (!ps.isEmpty()) {
+        		utils.error(speccu.sourcefile,speccu.pid == null ? 1 : speccu.pid.pos,
+        				"jml.mismatched.package",
+        				specpid,
+        				p.toString());
+        		return null;
+        	} else {
+        		speccu.packge = syms.rootPackage;
+        	}
+        } else {
+        	speccu.packge = p;
         }
-        speccu.packge = p;
         speccu.modle = p.modle;
         return speccu;
     }

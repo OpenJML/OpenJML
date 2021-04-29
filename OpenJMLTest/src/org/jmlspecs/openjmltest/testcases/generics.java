@@ -37,7 +37,7 @@ public class generics extends TCBase {
         addMockFile("$A/A.jml","public class A {  }");
         //specs.printDatabase();
         helpTCF("A.java","public class A<T> { T t; T item() { return t; }}"
-                ,"/$A/A.jml:1: The type A in the specification matches a Java type A<T> with a different number of type arguments",8
+                ,"/$A/A.jml:1: error: The type A in the specification matches a Java type A<T> with a different number of type arguments",8
                 );
     }
 
@@ -47,7 +47,7 @@ public class generics extends TCBase {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
         addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection extends java.lang.Iterable {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
-                ,"/$A/java/util/Collection.jml:2: The type Collection in the specification matches a Java type java.util.Collection<E> with a different number of type arguments",8
+                ,"/$A/java/util/Collection.jml:2: error: The type Collection in the specification matches a Java type java.util.Collection<E> with a different number of type arguments",8
                 );
     }
 
@@ -66,7 +66,7 @@ public class generics extends TCBase {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
         addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection<E> extends java.lang.Iterable<Z> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
-                ,"/$A/java/util/Collection.jml:2: cannot find symbol\n  symbol: class Z",59
+                ,"/$A/java/util/Collection.jml:2: error: cannot find symbol\n  symbol: class Z",59
                 );
     }
 
@@ -76,7 +76,7 @@ public class generics extends TCBase {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
         addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection<Z> extends java.lang.Iterable<Z> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
-                ,"/$A/java/util/Collection.jml:2: The specification type named Collection (java.util.Collection) has a type parameter named Z but the Java declaration has that type parameter named E",29
+                ,"/$A/java/util/Collection.jml:2: error: The specification type named Collection (java.util.Collection) has a type parameter named Z but the Java declaration has that type parameter named E",29
                 );
     }
 
@@ -86,7 +86,7 @@ public class generics extends TCBase {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
         addMockFile("$A/java/util/Collection.jml","public interface Collection<Z> extends java.lang.Iterable<Z> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
-                ,"/$A/java/util/Collection.jml:1: Specification package does not match Java package: unnamed package vs. java.util",2
+                ,"/$A/java/util/Collection.jml:1: error: Specification package does not match Java package: unnamed package vs. java.util",2
                 );
     }
 
@@ -96,7 +96,7 @@ public class generics extends TCBase {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
         addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection<E,Z> extends java.lang.Iterable<E> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
-                ,"/$A/java/util/Collection.jml:2: The type Collection in the specification matches a Java type java.util.Collection<E> with a different number of type arguments",8
+                ,"/$A/java/util/Collection.jml:2: error: The type Collection in the specification matches a Java type java.util.Collection<E> with a different number of type arguments",8
                 );
     }
     
@@ -111,7 +111,7 @@ public class generics extends TCBase {
     public void testMethod2() {
         addMockFile("$A/java/util/Vector.jml","package java.util;\npublic class Vector<E> extends java.util.AbstractList<E> implements java.util.List<E>, java.util.RandomAccess, java.lang.Cloneable, java.io.Serializable { \npublic <T> T[] toArray(T[] t); }");
         helpTCF("A.java","public class A<X> { java.util.Vector<X> t; }"
-// OK in Java8                ,"/$A/java/util/Vector.jml:3: The method toArray in the specification matches a Java method <T>toArray(T[]) with different modifiers: synchronized",16
+// OK in Java8                ,"/$A/java/util/Vector.jml:3: error: The method toArray in the specification matches a Java method <T>toArray(T[]) with different modifiers: synchronized",16
                 );
         
     }

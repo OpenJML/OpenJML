@@ -7747,6 +7747,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 that.args = newargs.toList();
             }
         }
+        if (sym.name == names.fromString("clone") && sym.owner.name == names.fromString("Array")) {
+        	// Special case of the special class Array
+        	((JCFieldAccess)that.meth).sym = syms.objectType.tsym.members().findFirst(names.fromString("clone"));
+        }
         if (classDecl.sym.isEnum() && methodDecl.sym.isConstructor() && that.meth instanceof JCIdent && ((JCIdent)that.meth).name.equals(names._super)) {
             // OpenJDK inserts default constructors in classes and
             // inserts super() calls in constructors. For enums, this 
@@ -8667,6 +8671,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 var paramTypes = meth != null ? meth.type.getParameterTypes() : newclass != null ? newclass.type.getParameterTypes(): null;
                 if (paramTypes != null) {
                 	// Type checks (e.g. NonNull) on assignments to formal parameters
+                	if (calleeMethodSym.params == null) {
+                		System.out.println("NULL PARAMS " + calleeMethodSym.owner + " # "  + calleeMethodSym.owner.members()  + " # "  + calleeMethodSym.owner.members().getSymbols() + " # " + calleeMethodSym);
+                	} else
                 	for (int i=0; i<calleeMethodSym.params.size(); i++) {
                 		VarSymbol v = calleeMethodSym.params.get(i);
                 		if (specs.isNonNull(v)) {
@@ -13124,16 +13131,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             fa.pos = that.pos;
             fa.sym = null;
             eee = fa;
-        } else if (translatingJML && s instanceof VarSymbol && utils.isModel(s) && !convertingAssignable && !reps.contains(s)) {
+        } else if (translatingJML && s instanceof VarSymbol && (utils.isModel(s) || utils.isJML(s.owner.flags())) && !convertingAssignable && !reps.contains(s)) {
             selected = convertCopy(trexpr);
             boolean var = false;
             // FIXME - why must selected be a JCIdent here and below
-            if (!utils.isJMLStatic(s) && that.selected instanceof JCIdent && !localVariables.containsKey(((JCIdent)that.selected).sym)) {
+            if (!utils.isJMLStatic(s) && (!(that.selected instanceof JCIdent) || !localVariables.containsKey(((JCIdent)that.selected).sym))) {
                 if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
                     // continue
                 } else {
                     JCExpression nonnull = treeutils.trueLit;
-                    if (utils.isJavaOrJmlPrimitiveType(selected.type)) treeutils.makeNotNull(that.pos, selected); 
+                    if (!utils.isJavaOrJmlPrimitiveType(selected.type)) nonnull = treeutils.makeNotNull(that.pos, selected); 
                     if (selected.toString().contains(Strings.newObjectVarString)) nonnull = treeutils.trueLit;
 
                     addJavaCheck(that,nonnull,Label.POSSIBLY_NULL_DEREFERENCE,Label.UNDEFINED_NULL_DEREFERENCE,"java.lang.NullPointerException");
@@ -13186,11 +13193,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     eee = treeutils.makeSelect(that.pos, currentThisExpr, vsym);
                     addAssume(that, Label.IMPLICIT_ASSUME, treeutils.makeNotNull(that.pos, eee));
                 }
-            } else if (!utils.isJMLStatic(s) && that.selected instanceof JCIdent && !localVariables.containsKey(((JCIdent)that.selected).sym)) {
-                JCIdent id = (JCIdent)that.selected;
+            } else if (!utils.isJMLStatic(s) && (!(that.selected instanceof JCIdent) || !localVariables.containsKey(((JCIdent)that.selected).sym))) {
+                JCIdent id = that.selected instanceof JCIdent ? (JCIdent)that.selected : null;
                 if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
                     // continue
-                } else if (id.sym.isEnum() && id.sym.isStatic() && ((id.sym.flags() & Flags.FINAL) != 0)) {
+                } else if (id != null && id.sym.isEnum() && id.sym.isStatic() && ((id.sym.flags() & Flags.FINAL) != 0)) {
                     // Optimization: Enum constants are always non-null 
                     // addStat(comment(that.selected,"Skipping non-null check of " + that.selected.toString(), log.currentSourceFile()));
                 } else {
@@ -14534,21 +14541,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    sym = java.util.Optional.of(ss);
 //                }
 //            }
-            java.util.Optional<Symbol> sym = iterableSuperType.tsym.getEnclosedElements().stream().filter(s->s.name.toString().equals("values")).findFirst();
-            if (sym.isPresent()) {
-                originalIterable = (that.expr);
-                JCExpression fa = M.at(that.expr).Select(that.expr,sym.get());
-                fa.type = sym.get().type;
-                JCExpression bin = treeutils.makeNotNull(that.expr.pos, fa);
-                bin = convertExpr(bin);
-                addAssume(that.expr,Label.IMPLICIT_ASSUME,bin);
-                that.expr = fa;
-            } else {
-                utils.error(that.expr,"jml.message","No values field found for type " + that.expr.type);
-            }
+//            java.util.Optional<Symbol> sym = iterableSuperType.tsym.getEnclosedElements().stream().filter(s->s.name.toString().equals("values")).findFirst();
+//            if (sym.isPresent()) {
+//                originalIterable = (that.expr);
+//                JCExpression fa = M.at(that.expr).Select(that.expr,sym.get());
+//                fa.type = sym.get().type;
+//                JCExpression bin = treeutils.makeNotNull(that.expr.pos, fa);
+//                bin = convertExpr(bin);
+//                addAssume(that.expr,Label.IMPLICIT_ASSUME,bin);
+//                that.expr = fa;
+//            } else {
+//                utils.error(that.expr,"jml.message","No values field found for type " + that.expr.type);
+//            }
             
         }
-        JCExpression array = convertExpr(that.expr);
+        JCExpression array = null;
 
         JCVariableDecl indexDecl = loopHelperDeclareIndex(that);;
 
@@ -14566,10 +14573,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
             JCExpression lengthExpr = null;
             if (isArray) {
+            	array = convertExpr(that.expr);
             	lengthExpr = treeutils.makeLength(array, array);
             	lengthExpr = newTemp(lengthExpr); // FIXME - could give it a recognizable name
             } else {
-            	// TODO???
+            	JCExpression e = that.expr;
+            	Name niter = names.fromString("values");
+                JCFieldAccess fa = M.at(that.expr).Select(e, niter);
+                fa.sym = syms.iterableType.tsym.members().findFirst(niter);
+                fa.type = fa.sym.type;
+                var lensym = fa.type.tsym.members().findFirst(names.length);
+                fa = M.at(that.expr).Select(fa, names.length);
+                fa.sym = lensym;
+                fa.type = jmltypes.BIGINT;
+            	lengthExpr = convertJML(fa);
             }
 
             // Test that invariants hold before entering loop
@@ -14584,10 +14601,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (!b) changeState();
             }
             
-            if (!isArray) {
-                // assign the foreach loop variable
-                addStat(M.at(that.var.pos).VarDef(that.var.sym, null));
-            }
 
             // Assume the invariants
             // Compute and remember the variants
@@ -14595,10 +14608,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             // Compute the condition, recording any side-effects
             if (isArray) {
-
                 JmlSingleton index = M.at(that.pos).JmlSingleton(countKind);
                 index.kind = countKind;
                 index.type = syms.intType;
+                JCExpression ocond = treeutils.makeBinary(that.pos, JCTree.Tag.LT, 
+                        index,
+                        lengthExpr);
+                JCExpression cond = convertJML(ocond);
+                addTraceableComment(ocond,ocond,"Loop test");
+
+                // The exit block tests the condition; if exiting, it tests the
+                // invariant and breaks.
+                savedHeapCount = heapCount;
+                splitInfo = loopHelperMakeBreak(that.loopSpecs,cond,loop,that);
+            } else {
+                JmlSingleton index = M.at(that.pos).JmlSingleton(countKind);
+                index.kind = countKind;
+                index.type = jmltypes.BIGINT;
                 JCExpression ocond = treeutils.makeBinary(that.pos, JCTree.Tag.LT, 
                         index,
                         lengthExpr);
@@ -14625,26 +14651,57 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             	loopVarDecl.sym = that.var.sym; // We share syms; if we don't we have to add
             	// a mapping to paramActuals
             	addStat(loopVarDecl);
-            	if (that.var.type.isReference()) { // Not null
-            		// If we originally had an Iterable, check the value of 'containsNull'
-            		if (iterableSuperType != null) {
-            			java.util.Optional<Symbol> sym = iterableSuperType.tsym.getEnclosedElements().stream().filter(s->s.name.toString().equals("containsNull")).findFirst();
-            			if (sym.isPresent()) {
-            				JCExpression fa = M.at(that.expr).Select(originalIterable,sym.get());
-            				fa.type = syms.booleanType;
-            				fa = convertExpr(fa);
-            				JCExpression b = treeutils.makeNot(that.pos, fa);
-            				JCExpression e = treeutils.makeNotNull(that.pos, treeutils.makeIdent(that.pos, that.var.sym));
-            				b = treeutils.makeImplies(that.pos, b, e);
-            				addAssume(that,Label.IMPLICIT_ASSUME,b);
-            			}
-            		}
-            		JCIdent id = M.at(that.var).Ident(that.var.sym);
-            		JCExpression e = treeutils.makeNotNull(id.pos, id);
-            		JCExpression ee = treeutils.makeInstanceOf(that.var.pos, id, that.var.type);
-            		addAssume(that.var,Label.IMPLICIT_ASSUME,treeutils.makeImplies(that.var.pos, e, ee));
-            	}
+//            	if (that.var.type.isReference()) { // Not null
+//            		// If we originally had an Iterable, check the value of 'containsNull'
+//            		if (iterableSuperType != null) {
+//            			java.util.Optional<Symbol> sym = iterableSuperType.tsym.getEnclosedElements().stream().filter(s->s.name.toString().equals("containsNull")).findFirst();
+//            			if (sym.isPresent()) {
+//            				JCExpression fa = M.at(that.expr).Select(originalIterable,sym.get());
+//            				fa.type = syms.booleanType;
+//            				fa = convertExpr(fa);
+//            				JCExpression b = treeutils.makeNot(that.pos, fa);
+//            				JCExpression e = treeutils.makeNotNull(that.pos, treeutils.makeIdent(that.pos, that.var.sym));
+//            				b = treeutils.makeImplies(that.pos, b, e);
+//            				addAssume(that,Label.IMPLICIT_ASSUME,b);
+//            			}
+//            		}
+//            		JCIdent id = M.at(that.var).Ident(that.var.sym);
+//            		JCExpression e = treeutils.makeNotNull(id.pos, id);
+//            		JCExpression ee = treeutils.makeInstanceOf(that.var.pos, id, that.var.type);
+//            		addAssume(that.var,Label.IMPLICIT_ASSUME,treeutils.makeImplies(that.var.pos, e, ee));
+//            	}
+            } else {
+            	JCExpression e = that.expr;
+            	Name niter = names.fromString("values");
+                JCFieldAccess fa = M.at(that.expr).Select(e, niter);
+                fa.sym = syms.iterableType.tsym.members().findFirst(niter);
+                fa.type = fa.sym.type; // FIXME - need to substitute type argument
+                
+                var typeargs = that.expr.type.getTypeArguments();
+                var typearg = syms.objectType;
+                if (typeargs.size() > 0) typearg = typeargs.head;
+                
+                JmlSingleton index = M.at(that.var).JmlSingleton(countKind);
+                index.kind = countKind;
+                index.type = jmltypes.BIGINT;
+                e = M.at(that.var).Indexed(fa, index);
+                e.type = typearg;
+
+                boolean nn = specs.isNonNull(typearg,(ClassSymbol)enclosingClass);
+                e = convertJML(e);
+                if (nn) addAssume(that.var, Label.IMPLICIT_ASSUME, treeutils.makeNotNull(that.var, e));
+                
+
+                // FIXME - the above is not a general solution to calculating argtype
+                // FIXME - should also check the nullity of the declared variable and see if an assert is needed
+                
+            	JCVariableDecl loopVarDecl = treeutils.makeVarDef(that.var.type, 
+            			that.var.name, methodDecl.sym, addImplicitConversion(that.expr, that.var.type, e));
+            	loopVarDecl.sym = that.var.sym;
+            	// assign the foreach loop variable
+                addStat(loopVarDecl);
             }
+
             
         } else if (!rac) {
 

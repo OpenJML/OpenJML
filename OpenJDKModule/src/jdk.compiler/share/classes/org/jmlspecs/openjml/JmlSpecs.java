@@ -1261,7 +1261,7 @@ public class JmlSpecs {
         JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase(csm, false, MethodSimpleClauseExtensions.behaviorClause,null,clauses,null);
         mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
         if (decl == null) mspecs.cases.deSugared = mspecs.cases;
-        if (Utils.debug()) System.out.println("DEFAULTSPECS " + sym + " " + cs.hashCode());
+        //if (Utils.debug()) System.out.println("DEFAULTSPECS " + sym + " " + cs.hashCode());
         return mspecs;
     }
     

@@ -253,7 +253,7 @@ public class JmlOption {
 
     public static final JmlOption OSNAME = new JmlOption("-osname",true,null,"Name of OS to use in selecting solver executable",null);
     public static final JmlOption INLINE_FUNCTION_LITERAL = new JmlOption("-inline-function-literal",false,true,"Whether to inline function literals",null);
-    public static final JmlOption REQUIRE_WS = new JmlOption("-require-white-space",false,true, "Whether white space is required after the @ in a JML comment", null);
+    public static final JmlOption REQUIRE_WS = new JmlOption("-require-white-space",false,false, "Whether white space is required after the @ in a JML comment", null);
 
 //    // Options Related to Specification Inference
 //    public static final JmlOption INFER = new JmlOption("-infer",true,"POSTCONDITIONS","Infer missing contracts (postconditions (default), preconditions)","-command=infer");

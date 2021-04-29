@@ -376,6 +376,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    	}
     	if (!(c.owner instanceof ClassSymbol || c.owner instanceof PackageSymbol)) {
     		var classEnv = typeEnvs.get(c);
+    		if (classEnv == null) {
+    			System.out.println("NULL ENV FOR " + c + " " + c.owner);
+    			return;
+    		}
     		JmlClassDecl tree = (JmlClassDecl)classEnv.tree;
     		if (specs.status(c).less(JmlSpecs.SpecsStatus.SPECS_LOADED)) {
     			var tspecs = new JmlSpecs.TypeSpecs(tree, classEnv);

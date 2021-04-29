@@ -37,18 +37,6 @@ public class compilationUnit extends ParseBase {
         checkMessages();
     }
     
-    /** One refines clause with no package or imports */
-    @Test
-    public void testRefines() {
-        checkCompilationUnit("/*@ refines \"A.xxx\"; */ class A{}",
-                JmlCompilationUnit.class,4,
-                JCErroneous.class, 4,
-                JmlClassDecl.class, 24,
-                JmlModifiers.class, -1);
-        checkMessages("/TEST.java:1: Unexpected or misspelled JML token: refines",5);
-    }
-
-
     /** Tests a star import */
     @Test
     public void testImports() {

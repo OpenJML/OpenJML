@@ -38,6 +38,7 @@ import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.comp.Operators;
+import com.sun.tools.javac.comp.JmlOperators;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlToken;
@@ -183,10 +184,10 @@ public class JmlTreeUtils {
         this.types = JmlTypes.instance(context);
     }
     
-    private Operators operators;
+    private JmlOperators operators;
     
     public void init() {
-    	operators = Operators.instance(context);
+    	operators = (JmlOperators)JmlOperators.instance(context);
         andSymbol = findBinOpSymbol(JCTree.Tag.AND,syms.booleanType);
         orSymbol = findBinOpSymbol(JCTree.Tag.OR,syms.booleanType);
         intbitandSymbol = findBinOpSymbol(JCTree.Tag.BITAND,syms.intType);

@@ -3146,7 +3146,7 @@ public class esc extends EscBase {
                 		+ "    return c; \n"
                         + "  }\n"
                         + "}",
-                "/tt/TestJava.java:4: variable c might not have been initialized", 13);
+                "/tt/TestJava.java:4: error: variable c might not have been initialized", 13);
     }
 
     @Test

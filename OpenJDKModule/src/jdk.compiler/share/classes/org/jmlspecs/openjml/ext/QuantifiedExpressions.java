@@ -153,6 +153,7 @@ public class QuantifiedExpressions extends ExpressionExtension {
                     that.triggers = null;
             	} else {
             		for (var t: that.triggers) t.type = attr.attribExpr(t, localEnv, Type.noType);
+                    // FIXME - need to check well-formedness of triggers
             	}
             }
             Type resultType = syms.errType;
@@ -167,12 +168,6 @@ public class QuantifiedExpressions extends ExpressionExtension {
                     case qexistsID:
                     case qforallID:
                         t = attr.attribExpr(that.value, localEnv, syms.booleanType);
-                        if (that.triggers != null) {
-                        	for (var tr: that.triggers) {
-                        		attr.attribExpr(tr, localEnv, Type.noType);
-                        	}
-                            // FIXME - need to check well-formedness of triggers
-                        }
                         resultType = syms.booleanType;
                         break;
 

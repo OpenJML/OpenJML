@@ -36,9 +36,10 @@ public class JmlOperators extends Operators {
     		for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
     			OperatorSymbol op = (OperatorSymbol)s;
     			var args = op.type.getParameterTypes();
-    			if (args.head == op1 && args.tail.head == op2) return op;
+    			if (args.tail != null && args.head == op1 && args.tail.head == op2) return op;
     		}
     		if (op1 == jtype.BIGINT || op2 == jtype.BIGINT) {
+    			// This allows for implicit conversions
     			for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
     				OperatorSymbol op = (OperatorSymbol)s;
         			var args = op.type.getParameterTypes();

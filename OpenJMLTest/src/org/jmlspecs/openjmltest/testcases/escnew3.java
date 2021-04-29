@@ -1651,7 +1651,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
-                + "  class A{} //enum A { X,Y; };\n"  // FIXME - change this back to enum, when enums are impolemented again
+                + "  enum A { X,Y; };\n"
                 + "  //@ public normal_behavior\n"
                 + "  public void foo(/*@ nullable */ A a) { \n"
                 + "     switch (a) {};\n"
