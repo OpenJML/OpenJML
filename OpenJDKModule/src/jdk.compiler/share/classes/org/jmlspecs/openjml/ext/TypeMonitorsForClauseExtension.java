@@ -1,17 +1,11 @@
 package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.IDENTIFIER;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.IF;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTree.JmlGroupName;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -22,12 +16,8 @@ import com.sun.tools.javac.parser.Tokens.ITokenKind;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
 public class TypeMonitorsForClauseExtension extends JmlExtension {

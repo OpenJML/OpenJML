@@ -390,7 +390,7 @@ public class JmlSpecs {
         
         // Running in test environment
         String sy = "../../Specs/specs";
-        sy = "/Users/davidcok/projects/OpenJMLB/Specs/specs"; // FIXME - make this environment independent
+        if (Main.root != null) sy = Main.root + "/specs"; 
         {
             File f = new File(sy);
             if (f.exists() && f.isDirectory()) {

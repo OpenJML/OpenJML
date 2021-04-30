@@ -55,14 +55,14 @@ import com.sun.tools.javac.util.Name;
 // RAC and ESC translation are added.
 public class MiscExpressions extends ExpressionExtension {
 
-    public MiscExpressions(Context context) {
-        super(context);
-    }
-
-    @Override
-    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-        //        checkOneArg(parser,e);
-    }
+//    public MiscExpressions(Context context) {
+//        super(context);
+//    }
+//
+//    @Override
+//    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
+//        //        checkOneArg(parser,e);
+//    }
 
     public static final String typelcID = "\\type";
     public static final IJmlClauseKind typelcKind = new IJmlClauseKind.ExpressionKind(typelcID) {

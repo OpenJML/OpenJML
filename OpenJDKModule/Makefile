@@ -62,3 +62,19 @@ topdir := $(strip $(patsubst %/, %, $(dir $(makefile_path))))
 
 # ... and then we can include the real makefile
 include $(topdir)/make/Init.gmk
+
+REL=release-temp
+
+clean-release:
+	rm -rf $(REL)
+
+release:
+	rm -rf $(REL)
+	mkdir $(REL)
+	bash configure > log-release
+	make images > log-release-make 2>&1
+	cp -r build/m*/images/jdk $(REL)
+	cp -r ../../Solvers/Solvers-* $(REL)
+	cp -r ../../Specs/specs $(REL)
+	cp -r release-files/ $(REL)
+	chmod ugo+x $(REL)/openjml

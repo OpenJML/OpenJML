@@ -74,7 +74,7 @@ public abstract class JmlTestCase {
     	}
     }
 
-    public final static String specsdir = System.getenv("SPECSDIR") != null ? System.getenv("SPECSDIR") : (root + "/Specs");
+    public final static String specsdir = System.getenv("SPECSDIR") != null ? System.getenv("SPECSDIR") : ("../../Specs");
     public final static String streamLine = "10"; // This line number is present in many test oracle files, but changes as edits are made to Stream.jml
     /** Replace aspects of expected output that depend on the local environment */
     public static String doReplacements(String s) {

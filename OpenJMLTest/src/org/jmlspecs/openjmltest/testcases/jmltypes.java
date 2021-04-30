@@ -39,12 +39,33 @@ public class jmltypes extends TCBase {
                 "  //@ ghost boolean b = \\type(Object) == tt;\n" +
                 "  //@ set b = \\typeof(o) == tt;\n" +
                 "  //@ set b = (\\TYPE)c == t; \n" + // Casts allowed
-                "  //@ set t = \\elemtype(t); \n" + // Allow elemtype on TYPE, returning TYPE
-                "  //@ set c = \\elemtype(c); \n" + // Allow elemtype on Class, returning Class
+                "  //@ set t = \\elemtype(t); \n" + // Allow elemtype on TYPE, returning TYPE // flow checks not performed because of other errors
+                "  //@ set c = \\elemtype(c); \n" + // Allow elemtype on Class, returning Class // ERROR - not ghost
                 "  //@ set b = tt <: ttt;\n" +
                 " }\n" +
                 "}\n"
                 ,"/A.java:13: error: The LHS in a set statement must be a ghost variable",11
+                );
+    }
+
+    @Test
+    public void testUninitGhostA() {
+        helpTCF("A.java",
+                "import java.util.Vector; public class A { \n" +
+                " void m() {\n" +
+                "  Class<?> c = Object.class; Object o = c; \n" +
+                "  //@ ghost \\TYPE t;\n" +
+                "  //@ ghost \\TYPE tt = \\type(Object);\n" +
+                "  //@ set tt = \\type(int);\n" +
+                "  //@ set tt = \\type(Vector<Integer>);\n" +
+                "  //@ ghost \\TYPE ttt = \\typeof(o);\n" +
+                "  //@ ghost boolean b = \\type(Object) == tt;\n" +
+                "  //@ set b = \\typeof(o) == tt;\n" +
+                "  //@ set b = (\\TYPE)c == t; \n" + // Casts allowed
+                "  //@ set t = \\elemtype(t); \n" + // Allow elemtype on TYPE, returning TYPE
+                "  //@ set b = tt <: ttt;\n" +
+                " }\n" +
+                "}\n"
                 ,"/A.java:11: error: variable t might not have been initialized",27
                 );
     }

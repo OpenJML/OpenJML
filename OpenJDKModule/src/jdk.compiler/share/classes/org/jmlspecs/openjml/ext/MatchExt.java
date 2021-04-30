@@ -22,9 +22,9 @@ import com.sun.tools.javac.util.ListBuffer;
 
 public class MatchExt extends ExpressionExtension {
 
-    public MatchExt(Context context) {
-        super(context);
-    }
+//    public MatchExt(Context context) {
+//        super(context);
+//    }
 
     public static final String matchID = "\\match";
     public static final IJmlClauseKind matchKind = new MatchKind(matchID);
@@ -93,17 +93,17 @@ public class MatchExt extends ExpressionExtension {
         
     }
 
-    @Override
-    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public Type typecheck(JmlAttr attr, JCExpression expr,
-            Env<AttrContext> env) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+//    @Override
+//    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
+//        // TODO Auto-generated method stub
+//        
+//    }
+//
+//    @Override
+//    public Type typecheck(JmlAttr attr, JCExpression expr,
+//            Env<AttrContext> env) {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
 
 }

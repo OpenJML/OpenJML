@@ -5,7 +5,6 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.IDENTIFIER;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.LBRACKET;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.STAR;
 import static org.jmlspecs.openjml.ext.MiscExtensions.intoKind;
-import static org.jmlspecs.openjml.ext.TypeMapsClauseExtension.mapsClause;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
@@ -18,7 +17,6 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;

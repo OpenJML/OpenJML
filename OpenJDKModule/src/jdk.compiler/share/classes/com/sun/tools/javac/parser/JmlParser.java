@@ -2232,7 +2232,7 @@ public class JmlParser extends JavacParser {
                     } else {
                         String id = token instanceof JmlToken ? ((JmlToken)token).jmlkind.internedName() : token.toString();
                         if (id.equals("match")) {
-                            return new MatchExt(context).parse(this, typeArgs);
+                            return null; // FIXME new MatchExt(context).parse(this, typeArgs);
                         } else {
 //                        ExpressionExtension ne = (ExpressionExtension)Extensions.instance(context).findE(pos(),id,false);
 //                        if (true || ne == null) {

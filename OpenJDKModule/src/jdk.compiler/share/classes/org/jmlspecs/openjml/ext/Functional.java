@@ -46,9 +46,9 @@ import com.sun.tools.javac.util.Names;
 // RAC and ESC translation are added.
 public class Functional extends ExpressionExtension {
 
-    public Functional(Context context) {
-        super(context);
-    }
+//    public Functional(Context context) {
+//        super(context);
+//    }
     
     static public class FunctionalKinds extends IJmlClauseKind.FunctionLikeExpressionKind {
         public FunctionalKinds(String keyword) {
@@ -162,20 +162,20 @@ public class Functional extends ExpressionExtension {
     static public final IJmlClauseKind writesExprKind = new FunctionalKinds(bswritesID);
     
 
-    @Override
-    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public Type typecheck(JmlAttr attr, JCExpression expr,
-            Env<AttrContext> env) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+//    @Override
+//    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
+//        // TODO Auto-generated method stub
+//        
+//    }
+//
+//    @Override
+//    public Type typecheck(JmlAttr attr, JCExpression expr,
+//            Env<AttrContext> env) {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
     
-    public void register() {
+    static {
         synonym("\\assigns",writesExprKind);
     }
 

@@ -3,25 +3,18 @@ package org.jmlspecs.openjml.ext;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
-import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
 public class StatementLocationsExtension extends JmlExtension {
@@ -33,7 +26,7 @@ public class StatementLocationsExtension extends JmlExtension {
     
     public static final IJmlClauseKind loopwritesStatement = new LocationSetStatementType(loopwritesID);
     
-    public void register() {
+    static {
         synonym("loop_assignable",loopwritesStatement);
         synonym("loop_assigns",loopwritesStatement);
         synonym("loop_modifies",loopwritesStatement);
@@ -68,18 +61,21 @@ public class StatementLocationsExtension extends JmlExtension {
                 } else if (parser.jmlTokenKind() == ENDJMLCOMMENT) {
                     parser.syntaxError(parser.pos(), null, "jml.missing.semi");
                 }
+                if (list.isEmpty()) {
+                    parser.syntaxError(parser.pos(), null, "jml.use.nothing.assignable");
+                }
                 if (parser.token().kind != SEMI) {
                     // error already reported
                     parser.skipThroughSemi();
                 } else {
-                    if (list.isEmpty()) {
-                        parser.syntaxError(parser.pos(), null, "jml.use.nothing.assignable");
-                    }
                     parser.nextToken();
                 }
             }
-            if (keyword.equals(havocID)) return toP(parser.maker().at(pp).JmlHavocStatement(list.toList()));
-            return toP(parser.maker().at(pp).JmlStatementLoopModifies(clauseType, list.toList()));
+            // FIXME - refactor to use wrapup
+            var st = keyword.equals(havocID) ? (parser.maker().at(pp).JmlHavocStatement(list.toList()))
+            					: parser.maker().at(pp).JmlStatementLoopModifies(clauseType, list.toList());
+            //wrapup(st, clauseType, false, false);
+            return toP(st);
         }
         
         @Override

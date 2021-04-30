@@ -1,29 +1,16 @@
 package org.jmlspecs.openjml.ext;
 
-import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.STAR;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.SUPER;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.THIS;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.BANG;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.COMMA;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.DOT;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.FOR;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.IDENTIFIER;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.LPAREN;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.NEW;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static org.jmlspecs.openjml.ext.MiscExtensions.everythingID;
 import static org.jmlspecs.openjml.ext.MiscExtensions.nothingID;
 import static org.jmlspecs.openjml.ext.MiscExtensions.notspecifiedID;
-import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.invariantClause;
 
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConstraint;
@@ -41,14 +28,10 @@ import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;

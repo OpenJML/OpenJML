@@ -40,9 +40,9 @@ import com.sun.tools.javac.util.Name;
 // RAC and ESC translation are added.
 public class StateExpressions extends ExpressionExtension {
 
-    public StateExpressions(Context context) {
-        super(context);
-    }
+//    public StateExpressions(Context context) {
+//        super(context);
+//    }
 
     public static class StateExpression extends IJmlClauseKind.ExpressionKind {
         public StateExpression(String keyword) { super(keyword); }
@@ -149,16 +149,16 @@ public class StateExpressions extends ExpressionExtension {
     public static final String pastID = "\\past";
     public static final IJmlClauseKind pastKind = new StateExpression(pastID);
 
-    // FIXME - eventually remove these
-    
-    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
-        return null;
-    }
-
-    @Override
-    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-        // TODO Auto-generated method stub
-        
-    }
+//    // FIXME - eventually remove these
+//    
+//    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
+//        return null;
+//    }
+//
+//    @Override
+//    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
+//        // TODO Auto-generated method stub
+//        
+//    }
 }
 

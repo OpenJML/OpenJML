@@ -1,6 +1,5 @@
 package org.jmlspecs.openjml.ext;
 
-import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 
@@ -33,7 +32,6 @@ public class StatementExprExtensions extends JmlExtension {
         	// Do nothing for a comment clause -- just contains text
         	return null;
         }
-
     };
     
     public static final IJmlClauseKind useClause = new StatementExprType(useID);
@@ -43,8 +41,7 @@ public class StatementExprExtensions extends JmlExtension {
     public static final IJmlClauseKind loopinvariantClause = new StatementExprType(loopinvariantID);
     public static final IJmlClauseKind loopdecreasesClause = new StatementExprType(loopdecreasesID);
     
-    @Override
-    public void register() {
+    static {
         synonym("decreases",loopdecreasesClause);
         synonym("decreasing",loopdecreasesClause);
         synonym("maintaining",loopinvariantClause);
