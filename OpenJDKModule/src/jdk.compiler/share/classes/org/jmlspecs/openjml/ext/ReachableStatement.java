@@ -4,8 +4,6 @@
  */
 package org.jmlspecs.openjml.ext;
 
-import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
-
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlOption;
@@ -15,7 +13,6 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.JmlTreeUtils;
 
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -25,16 +22,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.util.Context;
 
-/** This class handles expression extensions that take an argument list of JCExpressions.
- * Even if there are constraints on the number of arguments, it
- * is more robust to accept all of them and then issue an error in the typechecker
- * if the number of arguments is wrong.
- * 
- * @author David Cok
- *
- */
 public class ReachableStatement extends JmlExtension {
 
     public static final String reachableID = "reachable";
@@ -64,7 +52,6 @@ public class ReachableStatement extends JmlExtension {
         public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             int pp = parser.pos();
-            int pe = parser.endPos();
             int p = scanner.currentPos();
             boolean noExpression = keyword.equals(splitID) || keyword.equals(haltID);
             boolean semiWarning = !noExpression && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
@@ -94,6 +81,7 @@ public class ReachableStatement extends JmlExtension {
                 } else {
                     parser.nextToken(); // skip over semicolon
                 }
+                // FIXME - use wrapup
             }
             JCTree tree = st;
             if (keyword.equals(splitID) && st.expression == null) {

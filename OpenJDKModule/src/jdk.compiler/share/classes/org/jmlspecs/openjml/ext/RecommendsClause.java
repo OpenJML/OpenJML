@@ -18,10 +18,8 @@ import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.Visitor;
 
 public class RecommendsClause extends JmlExtension {
-	private RecommendsClause() {}
     
     public static final String recommendsID = "recommends";
     
@@ -39,8 +37,6 @@ public class RecommendsClause extends JmlExtension {
             init(parser);
             
             int pp = parser.pos();
-            int pe = parser.endPos();
-            
             parser.nextToken();
             JCExpression e = parser.parsePredicateOrNotSpecified();
             JCExpression ex = null;
@@ -51,15 +47,9 @@ public class RecommendsClause extends JmlExtension {
                 parser.syntaxError(parser.pos(), null, "jml.message", "A recommends clause must include an exception (recommends <expr> else <exception>;");
                 parser.skipToSemi();
             }
-            if (scanner.token().kind != SEMI) {
-                parser.syntaxError(parser.pos(), null, "jml.invalid.expression.or.missing.semi");
-                parser.skipThroughSemi();
-            } else {
-                parser.nextToken(); // skip SEMI
-            }
             Node cl = new Node(pp, e, ex);
-            return toP(cl);
-
+            wrapup(cl, clauseType, true, true);
+            return cl;
         }
         
         @Override
@@ -74,8 +64,6 @@ public class RecommendsClause extends JmlExtension {
             }
             return null;
         }
-        
-
     };
     
     public static class Node extends JmlTree.JmlMethodClauseExpr {
@@ -114,6 +102,5 @@ public class RecommendsClause extends JmlExtension {
                 return super.accept(v,d);
             }
         }
-
     }
 }

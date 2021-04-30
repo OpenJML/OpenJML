@@ -3,6 +3,7 @@ package org.jmlspecs.openjml.ext;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlOption;
 
+// FIXME - get rid of this entirely?
 public abstract class OptionsInfer extends JmlExtension {
 
 //    // Options Related to Specification Inference

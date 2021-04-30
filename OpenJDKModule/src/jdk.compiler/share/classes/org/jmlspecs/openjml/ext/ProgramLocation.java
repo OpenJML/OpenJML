@@ -11,7 +11,7 @@ package org.jmlspecs.openjml.ext;
  * 
  * @author David Cok
  */
-/*@pure*/
+/*@ pure*/  // FIXME - is this used?
 public class ProgramLocation {
     /** A counter used to give a unique index to each instance of a ProgramLocation.
      * The index is used to be able to create efficient sets as arrays

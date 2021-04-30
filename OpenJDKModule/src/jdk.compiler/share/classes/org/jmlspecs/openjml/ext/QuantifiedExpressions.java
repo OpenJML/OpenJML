@@ -5,15 +5,12 @@
 package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.code.Kinds.*;
-import static com.sun.tools.javac.code.Kinds.Kind.*;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.COLON;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.COMMA;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 
 import com.sun.tools.javac.code.Type;
@@ -26,27 +23,12 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-/** This class handles expression extensions that take an argument list of JCExpressions.
- * Even if there are constraints on the number of arguments, it
- * is more robust to accept all of them and then issue an error in the typechecker
- * if the number of arguments is wrong.
- * 
- * @author David Cok
- *
- */// TODO: This extension is inappropriately named at present.  However, I expect that this 
-// extension will be broken into individual extensions when type checking and
-// RAC and ESC translation are added.
 public class QuantifiedExpressions extends ExpressionExtension {
 
-//    public QuantifiedExpressions(Context context) {
-//        super(context);
-//    }
-    
     public static class QuantifiedExpression extends IJmlClauseKind.ExpressionKind {
         public QuantifiedExpression(String keyword) { super(keyword); }
 
@@ -239,15 +221,6 @@ public class QuantifiedExpressions extends ExpressionExtension {
     public static final IJmlClauseKind qminKind = new QuantifiedExpression(qminID);
     public static final String letID = "\\let";
     public static final IJmlClauseKind letKind = new QuantifiedExpression(letID) {
-        /**
-         * Parses: <identifier> <expression>
-         * 
-         * @param pos
-         *            character position of the lbl token
-         * @param jmlToken
-         *            either the LBLPOS or LBLNEG token
-         * @return a JmlLblExpression
-         */
         
         public JCExpression parse(JCModifiers mods, String keyword,
                 IJmlClauseKind clauseType, JmlParser parser) {
@@ -274,22 +247,10 @@ public class QuantifiedExpressions extends ExpressionExtension {
                 if (parser.token().kind != COMMA) break;
                 parser.accept(COMMA);
             } while (true);
-            parser.accept(SEMI);
+            parser.accept(SEMI); // FIXME - use wrapup
             JCExpression expr = parser.parseExpression();
             return toP(parser.jmlF.at(pos).LetExpr(vdefs.toList(),expr));
         }
     };
-
-//    // FIXME - eventually remove these
-//    
-//    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
-//        return null;
-//    }
-//
-//    @Override
-//    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-//        // TODO Auto-generated method stub
-//        
-//    }
 }
 
