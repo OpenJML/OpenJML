@@ -21,7 +21,7 @@ public abstract class JmlExtension {
         register();
     }
     
-    public void synonym(String s, IJmlClauseKind t) {
+    public static void synonym(String s, IJmlClauseKind t) {
         Extensions.allKinds.put(s,t);
     }
 

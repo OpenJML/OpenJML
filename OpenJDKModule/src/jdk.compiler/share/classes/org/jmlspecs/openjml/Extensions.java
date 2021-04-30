@@ -116,7 +116,7 @@ public class Extensions {
     /** Last resort list of classes that add extensions to the Parser.
      *  Typically these are found by listing all the classes in
      *  the org.jmlspecs.openjml.ext package */  // TODO - fix this list
-    static Class<?>[] extensions = { FunctionLikeExpressions.class, 
+    static Class<?>[] extensions = { 
             // Expressions
             Arithmetic.class,
             FrameExpressions.class,
@@ -225,13 +225,38 @@ public class Extensions {
     }
     
     public static boolean registerClass(Context context, Class<?> cce) {
-        if (!JmlExtension.class.isAssignableFrom(cce)) return false; // Extension classes must inherit from JmlExtensionn
+        if (!JmlExtension.class.isAssignableFrom(cce)) {
+            Utils.instance(context).note("Skipped " + cce);
+            String s = cce.toString();
+            int k = s.indexOf('$');
+            if (k > 0) s = s.substring(0, k);
+            try { Class.forName(s); return true; } catch (ClassNotFoundException e) { Utils.instance(context).note("Not found " + s); }
+        	return false; // Extension classes must inherit from JmlExtensionn
+        }
         @SuppressWarnings("unchecked")
         Class<? extends JmlExtension> cc = (Class<? extends JmlExtension>)cce;
         try {
             cc.getConstructor().newInstance().register(context);
+            Utils.instance(context).note("Registered " + cc);
             return true;
         } catch (Exception e) {
+//            Utils.instance(context).note("Skipped " + cc + " " + e.getMessage());
+//            String s = cce.toString();
+//            int k = s.indexOf('$');
+//            if (k > 0) s = s.substring(0, k);
+//            try { Class.forName(s); return true; } catch (ClassNotFoundException ee) { Utils.instance(context).note("Not found " + s); }
+//            return false;
+        }
+        try {
+            cc.getConstructor(Context.class).newInstance(context);
+            Utils.instance(context).note("Registered " + cc);
+            return true;
+        } catch (Exception e) {
+            Utils.instance(context).note("Skipped " + cc + " " + e.getMessage());
+            String s = cce.toString();
+            int k = s.indexOf('$');
+            if (k > 0) s = s.substring(0, k);
+            try { Class.forName(s); return true; } catch (ClassNotFoundException ee) { Utils.instance(context).note("Not found " + s); }
             return false;
         }
     }
@@ -331,7 +356,7 @@ public class Extensions {
         if (foundClassNames.isEmpty()) {
             //System.out.println("LAST RESORT EXTENSION");
             // Last resort
-            Utils.instance(context).warning("jml.internal.notsobad","Last resort loading of extensions");
+            Utils.instance(context).note("Last resort loading of extensions");
             for (Class<?> cl : extensions) {
                 try {
                     registerClass(context,cl);

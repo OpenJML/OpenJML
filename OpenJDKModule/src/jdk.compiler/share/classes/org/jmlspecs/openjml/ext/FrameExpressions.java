@@ -39,9 +39,9 @@ import com.sun.tools.javac.util.Log;
 // RAC and ESC translation are added.
 public class FrameExpressions extends ExpressionExtension {
 
-    public FrameExpressions(Context context) {
-        super(context);
-    }
+//    public FrameExpressions(Context context) {
+//        super(context);
+//    }
 
     public static class FrameExpression extends IJmlClauseKind.ExpressionKind {
         public FrameExpression(String keyword) { super(keyword); }
@@ -124,16 +124,16 @@ public class FrameExpressions extends ExpressionExtension {
 
     };
 
-    // FIXME - eventually remove these
-    
-    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
-        return null;
-    }
-
-    @Override
-    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-        // TODO Auto-generated method stub
-        
-    }
+//    // FIXME - eventually remove these
+//    
+//    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
+//        return null;
+//    }
+//
+//    @Override
+//    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
+//        // TODO Auto-generated method stub
+//        
+//    }
 }
 

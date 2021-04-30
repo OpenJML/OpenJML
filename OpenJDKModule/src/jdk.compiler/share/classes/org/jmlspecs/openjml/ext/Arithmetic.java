@@ -4,6 +4,7 @@ import org.jmlspecs.openjml.IArithmeticMode;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Strings;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.Label;
@@ -50,10 +51,10 @@ abstract public class Arithmetic extends ExpressionExtension {
     
     };
     
-    public Arithmetic(Context context) {
-        super(context);
-        this.intType = Symtab.instance(context).intType;
-    }
+//    public Arithmetic(Context context) {
+//        super(context);
+//        this.intType = Symtab.instance(context).intType;
+//    }
     
     Symbol codeBigintMath = null;
     Symbol codeSafeMath = null;
@@ -131,12 +132,10 @@ abstract public class Arithmetic extends ExpressionExtension {
     }
 
     
-    @Override
     public void checkParse(JmlParser parser, JmlMethodInvocation e) {
         checkOneArg(parser,e);
     }
 
-    @Override
     public Type typecheck(JmlAttr attr, JCExpression expr,
             Env<AttrContext> env) {
         JmlMethodInvocation tree = (JmlMethodInvocation)expr;
@@ -149,9 +148,9 @@ abstract public class Arithmetic extends ExpressionExtension {
         //attr.attribTypes(tree.typeargs, env);
         int n = tree.args.size();
         if (n != 1) {
-            utils.error(tree.pos,"jml.one.arg",token.internedName(),n);
+            Utils.instance(context).error(tree.pos,"jml.one.arg",token.internedName(),n);
         }
-        Type t = syms.errType;
+        Type t = Symtab.instance(context).errType;
         if (n > 0) {
             return tree.args.get(0).type;
         }
@@ -230,7 +229,7 @@ abstract public class Arithmetic extends ExpressionExtension {
                 e = rewriter.treeutils.makeUtilsMethodCall(that.pos,"bigint_sub1",e);
                 eresult = e;
             } else { 
-                utils.error(that,"jml.internal","Unknown unary operation in Arithmetic.Java for JML type: " + that);
+                Utils.instance(context).error(that,"jml.internal","Unknown unary operation in Arithmetic.Java for JML type: " + that);
                 eresult = arg;
             }
         } else {
@@ -253,7 +252,7 @@ abstract public class Arithmetic extends ExpressionExtension {
                     JCExpression conditional = rewriter.treeutils.makeConditional(that.pos, eq, lit, eresult);
                     eresult = conditional;
                 } else if (rewriter.jmltypes.isIntegral(that.type)) {
-                    utils.error(that,"jml.internal","Unimplemented integral type in Arithmetic.Java: " + that.type);
+                	Utils.instance(context).error(that,"jml.internal","Unimplemented integral type in Arithmetic.Java: " + that.type);
                 }
             }
         }
@@ -265,7 +264,9 @@ abstract public class Arithmetic extends ExpressionExtension {
     }
     
     public JCExpression makeBinaryOp(JmlAssertionAdder rewriter, JCBinary that, Type newtype, boolean implementOverflow, boolean checkOverflow, boolean alreadyConverted) {
-        int p = that.pos;
+        var syms = Symtab.instance(context);
+        var utils = Utils.instance(context);
+    	int p = that.pos;
         this.javaChecks = (rewriter.esc || (rewriter.rac && JmlOption.isOption(context,JmlOption.RAC_JAVA_CHECKS)));
 
         JCTree.Tag optag = that.getTag();
@@ -601,9 +602,9 @@ abstract public class Arithmetic extends ExpressionExtension {
     /** This implements the bigint (which is also real) mathematical mode */
     public static class Math extends Arithmetic implements IArithmeticMode {
         
-        public Math(Context context) {
-            super(context);
-        }
+//        public Math(Context context) {
+//            super(context);
+//        }
         
         public static Math instance(Context context) {
             return instance(context,Math.class);
@@ -664,9 +665,9 @@ abstract public class Arithmetic extends ExpressionExtension {
 
     public static class Safe extends Arithmetic implements IArithmeticMode {
         
-        public Safe(Context context) {
-            super(context);
-        }
+//        public Safe(Context context) {
+//            super(context);
+//        }
         
         public static Safe instance(Context context) {
             return instance(context,Safe.class);
@@ -689,9 +690,9 @@ abstract public class Arithmetic extends ExpressionExtension {
 
     public static class Java extends Arithmetic implements IArithmeticMode {
 
-        public Java(Context context) {
-            super(context);
-        }
+//        public Java(Context context) {
+//            super(context);
+//        }
         
         public static Java instance(Context context) {
             return instance(context,Java.class);

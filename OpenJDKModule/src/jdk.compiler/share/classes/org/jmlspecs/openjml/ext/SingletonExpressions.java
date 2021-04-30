@@ -36,12 +36,12 @@ import com.sun.tools.javac.util.Log;
 // RAC and ESC translation are added.
 public class SingletonExpressions extends ExpressionExtension {
 
-    protected JmlTypes jmltypes;
-
-    public SingletonExpressions(Context context) {
-        super(context);
-        this.jmltypes = JmlTypes.instance(context);
-    }
+//    protected JmlTypes jmltypes;
+//
+//    public SingletonExpressions(Context context) {
+//        super(context);
+//        this.jmltypes = JmlTypes.instance(context);
+//    }
 
     public static final String resultID ="\\result";
     public static final IJmlClauseKind resultKind = new IJmlClauseKind.SingletonExpressionKind(resultID) {
@@ -187,21 +187,21 @@ public class SingletonExpressions extends ExpressionExtension {
         Extensions.allKinds.put("\\index", countKind);
     }
 
-    // FIXME - eventually remove these
-    
-    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
-        return null;
-    }
-
-    @Override
-    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-        // TODO Auto-generated method stub
-        
-    }
-    
-    public void register(Context context) {
-        Extensions.allKinds.put("\\index", countKind);
-        //Extensions.expressionKinds.put("\\index", countKind);
-    }
+//    // FIXME - eventually remove these
+//    
+//    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
+//        return null;
+//    }
+//
+//    @Override
+//    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
+//        // TODO Auto-generated method stub
+//        
+//    }
+//    
+//    public void register(Context context) {
+//        Extensions.allKinds.put("\\index", countKind);
+//        //Extensions.expressionKinds.put("\\index", countKind);
+//    }
 }
 

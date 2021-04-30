@@ -118,7 +118,7 @@ public class generics extends TCBase {
     
     @Test
     public void testForEach1() {
-        helpTCF("A.java"," class A { void m(java.util.List<Integer> list) { " +
+        helpTCF("A.java"," class A { void m(java.util.List<Integer> list) {\n" +
                 " //@ loop_invariant o != null; decreasing 6; \n" +
                 " for (Integer o: list) {}  \n" +
                 "}}"

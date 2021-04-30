@@ -94,6 +94,12 @@ import com.sun.tools.javac.util.Options;
  * TODO - check and complete the documentation above
  */
 public class Main extends com.sun.tools.javac.main.Main {
+	
+	/** Holds the value of an environment variable, which is supposed to be the absolute path to
+	 *  the installation directory for openjml. That is Main.root contains the 'specs' directory
+	 *  and Solvers-macos etc.
+	 */
+	public static final String root = System.getenv("OPENJML_ROOT");
     
     // FIXME - get rid of this when we figure out how to control the entry point of the jdk image 
     public static boolean useJML = false;
