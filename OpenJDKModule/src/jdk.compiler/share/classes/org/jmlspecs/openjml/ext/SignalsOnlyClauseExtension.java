@@ -31,11 +31,6 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
 
     public static final String signalsOnlyID = "signals_only";
     
-    @Override
-    public void register() {
-        synonym("throws_only", signalsOnlyClauseKind);
-    }
-    
     public static final IJmlClauseKind signalsOnlyClauseKind = new IJmlClauseKind.MethodSpecClauseKind(signalsOnlyID) {
         @Override
         public boolean oldNoLabelAllowed() { return false; }
@@ -72,11 +67,6 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
                 while (true) {
                 	// parseType allows trailing [] and type annotations, which is overly general
                 	// and confuses error reporting and recovery
-//                    JCExpression typ = parser.parseQualifiedIdent(false);
-//                    if (typ instanceof JCTree.JCIdent && ((JCTree.JCIdent)typ).name == parser.names.error) {
-//                    	parser.skipThroughSemi();
-//                    	break;
-//                    }
                 	JCExpression typ = parser.unannotatedType(false);
                     list.append(typ);
                     TokenKind tk = parser.token().kind;
@@ -99,6 +89,7 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
                     }
                 }
             }
+            // FIXME - use wrapup
             return toP(parser.maker().at(pp).JmlMethodClauseSignalsOnly(keyword, clauseType, list.toList()));
         }
         
@@ -109,4 +100,7 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
         }
     };
     
+    static {
+        synonym("throws_only", signalsOnlyClauseKind);
+    }
 }

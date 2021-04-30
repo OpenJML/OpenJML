@@ -5,11 +5,9 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.LPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
-import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.Maker;
 
 import com.sun.source.tree.Tree.Kind;
@@ -19,23 +17,14 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Name;
 
 public class SignalsClauseExtension extends JmlExtension {
     
     public static final String signalsID = "signals";
-    
-    public void register() {
-        synonym("exsures",signalsClauseKind);
-        synonym("throws",signalsClauseKind);
-    }
     
     public static final IJmlClauseKind signalsClauseKind = new IJmlClauseKind.MethodSpecClauseKind(signalsID) {
         @Override
@@ -50,9 +39,7 @@ public class SignalsClauseExtension extends JmlExtension {
                 return null;
             }
             int pp = parser.pos();
-            int pe = parser.endPos();
             init(parser);
-            
             
             parser.nextToken();
 
@@ -110,5 +97,11 @@ public class SignalsClauseExtension extends JmlExtension {
             return null;
         }
     };
+
+    static {
+        synonym("exsures",signalsClauseKind);
+        synonym("throws",signalsClauseKind);
+    }
     
+
 }

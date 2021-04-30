@@ -7,9 +7,8 @@ package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
+import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Symtab;
@@ -19,9 +18,7 @@ import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 
 /** This class handles expression extensions that take an argument list of JCExpressions.
@@ -31,17 +28,8 @@ import com.sun.tools.javac.util.Log;
  * 
  * @author David Cok
  *
- */// TODO: This extension is inappropriately named at present.  However, I expect that this 
-// extension will be broken into individual extensions when type checking and
-// RAC and ESC translation are added.
+ */
 public class SingletonExpressions extends ExpressionExtension {
-
-//    protected JmlTypes jmltypes;
-//
-//    public SingletonExpressions(Context context) {
-//        super(context);
-//        this.jmltypes = JmlTypes.instance(context);
-//    }
 
     public static final String resultID ="\\result";
     public static final IJmlClauseKind resultKind = new IJmlClauseKind.SingletonExpressionKind(resultID) {
@@ -53,18 +41,18 @@ public class SingletonExpressions extends ExpressionExtension {
             JCTree res = md.getReturnType();
             Type t;
             if (res == null || (!res.type.isErroneous() && JmlTypes.instance(context).isSameType(res.type,syms.voidType))) {
-                Log.instance(context).error(that.pos+1, "jml.void.result");
+                Utils.instance(context).error(that.pos+1, "jml.void.result");
                 t = syms.errType;
             } else {
                 t = res.type;
             }
             if (attr.jmlenv.currentLabel != null) {
-                Log.instance(context).error(that.pos, "jml.no.result.in.old");
+                Utils.instance(context).error(that.pos, "jml.no.result.in.old");
             }
             if (!attr.resultClauses.contains(attr.jmlenv.currentClauseKind)) {
                 // The +1 is to fool the error reporting mechanism into 
                 // allowing other error reports about the same token
-                Log.instance(context).error(that.pos+1, "jml.misplaced.result", attr.jmlenv.currentClauseKind.name());
+                Utils.instance(context).error(that.pos+1, "jml.misplaced.result", attr.jmlenv.currentClauseKind.name());
                 t = syms.errType;
             }
             that.type = t;
@@ -96,7 +84,7 @@ public class SingletonExpressions extends ExpressionExtension {
             syms = Symtab.instance(context);
             Type t = syms.intType;
             if (attr.loopStack.isEmpty()) {
-                Log.instance(context).error(that.pos,"jml.outofscope", name());
+                Utils.instance(context).error(that.pos,"jml.outofscope", name());
             } else {
                 ((JmlSingleton)that).info = attr.loopStack.get(0).sym;
             }
@@ -119,7 +107,7 @@ public class SingletonExpressions extends ExpressionExtension {
             syms = Symtab.instance(context);
             Type t = attr.JMLValuesType;
             if (attr.foreachLoopStack.isEmpty()) {
-                Log.instance(context).error(that.pos,"jml.outofscope", name());
+                Utils.instance(context).error(that.pos,"jml.outofscope", name());
             } else {
                 JCVariableDecl d = attr.foreachLoopStack.get(0).valuesDecl;
                 if (d == null) {
@@ -156,13 +144,12 @@ public class SingletonExpressions extends ExpressionExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            syms = Symtab.instance(context);
             Type t;
             if (!attr.exceptionClauses.contains(attr.jmlenv.currentClauseKind)) {
                 // The +1 is to fool the error reporting mechanism into 
                 // allowing other error reports about the same token
-                Log.instance(context).error(that.pos+1, "jml.misplaced.exception", attr.jmlenv.currentClauseKind.name());
-                t = syms.errType;
+                Utils.instance(context).error(that.pos+1, "jml.misplaced.exception", attr.jmlenv.currentClauseKind.name());
+                t = Symtab.instance(context).errType;
             } else {
                 t = attr.jmlenv.currentExceptionType;
             }
@@ -186,22 +173,5 @@ public class SingletonExpressions extends ExpressionExtension {
     static {
         Extensions.allKinds.put("\\index", countKind);
     }
-
-//    // FIXME - eventually remove these
-//    
-//    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
-//        return null;
-//    }
-//
-//    @Override
-//    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-//        // TODO Auto-generated method stub
-//        
-//    }
-//    
-//    public void register(Context context) {
-//        Extensions.allKinds.put("\\index", countKind);
-//        //Extensions.expressionKinds.put("\\index", countKind);
-//    }
 }
 
