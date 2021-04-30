@@ -13,6 +13,7 @@ import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions.AnyArgBooleanExpressions;
 
 import com.sun.tools.javac.code.Kinds;
@@ -33,7 +34,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-public class MiscExpressions extends ExpressionExtension {
+public class MiscExpressions extends JmlExtension {
 
     public static final String typelcID = "\\type";
     public static final IJmlClauseKind typelcKind = new IJmlClauseKind.ExpressionKind(typelcID) {

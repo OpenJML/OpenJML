@@ -8,6 +8,7 @@ import static com.sun.tools.javac.code.Kinds.*;
 import static com.sun.tools.javac.code.Kinds.Kind.*;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
@@ -27,21 +28,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 
-/** This class handles expression extensions that take an argument list of JCExpressions.
- * Even if there are constraints on the number of arguments, it
- * is more robust to accept all of them and then issue an error in the typechecker
- * if the number of arguments is wrong.
- * 
- * @author David Cok
- *
- */// TODO: This extension is inappropriately named at present.  However, I expect that this 
-// extension will be broken into individual extensions when type checking and
-// RAC and ESC translation are added.
-public class FrameExpressions extends ExpressionExtension {
-
-//    public FrameExpressions(Context context) {
-//        super(context);
-//    }
+public class FrameExpressions extends JmlExtension {
 
     public static class FrameExpression extends IJmlClauseKind.ExpressionKind {
         public FrameExpression(String keyword) { super(keyword); }
@@ -76,7 +63,6 @@ public class FrameExpressions extends ExpressionExtension {
             }
             return attr.syms.booleanType;
         }
-
     };
 
     public static final String onlyAssignedID = "\\only_assigned";
@@ -120,20 +106,6 @@ public class FrameExpressions extends ExpressionExtension {
             }
             return attr.syms.booleanType;
         }
-
-
     };
-
-//    // FIXME - eventually remove these
-//    
-//    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
-//        return null;
-//    }
-//
-//    @Override
-//    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-//        // TODO Auto-generated method stub
-//        
-//    }
 }
 

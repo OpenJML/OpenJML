@@ -236,7 +236,7 @@ public class Extensions {
         @SuppressWarnings("unchecked")
         Class<? extends JmlExtension> cc = (Class<? extends JmlExtension>)cce;
         try {
-            cc.getConstructor().newInstance().register(context);
+            cc.getConstructor().newInstance(); // Instance created only to perform static initialization
             Utils.instance(context).note("Registered " + cc);
             return true;
         } catch (Exception e) {

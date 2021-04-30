@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMatchExpression;
@@ -20,7 +21,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
-public class MatchExt extends ExpressionExtension {
+public class MatchExt extends JmlExtension {
 
     public static final String matchID = "\\match";
     public static final IJmlClauseKind matchKind = new MatchKind(matchID);

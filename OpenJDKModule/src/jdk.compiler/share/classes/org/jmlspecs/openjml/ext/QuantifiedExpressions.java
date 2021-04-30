@@ -11,6 +11,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 
 import com.sun.tools.javac.code.Type;
@@ -27,7 +28,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-public class QuantifiedExpressions extends ExpressionExtension {
+public class QuantifiedExpressions extends JmlExtension {
 
     public static class QuantifiedExpression extends IJmlClauseKind.ExpressionKind {
         public QuantifiedExpression(String keyword) { super(keyword); }

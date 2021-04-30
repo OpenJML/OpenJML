@@ -7,12 +7,11 @@ package org.jmlspecs.openjml.ext;
 import java.util.Iterator;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlTokenKind;
+import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.JmlTypes;
-import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
@@ -27,29 +26,11 @@ import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Names;
 
-/** This class handles expression extensions that take an argument list of JCExpressions.
- * Even if there are constraints on the number of arguments, it
- * is more robust to accept all of them and then issue an error in the typechecker
- * if the number of arguments is wrong.
- * 
- * @author David Cok
- *
- */// TODO: This extension is inappropriately named at present.  However, I expect that this 
-// extension will be broken into individual extensions when type checking and
-// RAC and ESC translation are added.
-public class Functional extends ExpressionExtension {
+public class Functional extends JmlExtension {
 
-//    public Functional(Context context) {
-//        super(context);
-//    }
-    
     static public class FunctionalKinds extends IJmlClauseKind.FunctionLikeExpressionKind {
         public FunctionalKinds(String keyword) {
             super(keyword);
@@ -160,20 +141,6 @@ public class Functional extends ExpressionExtension {
     static public final IJmlClauseKind ensuresExprKind = new FunctionalKinds(bsensuresID);
     static public final IJmlClauseKind readsExprKind = new FunctionalKinds(bsreadsID);
     static public final IJmlClauseKind writesExprKind = new FunctionalKinds(bswritesID);
-    
-
-//    @Override
-//    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-//        // TODO Auto-generated method stub
-//        
-//    }
-//
-//    @Override
-//    public Type typecheck(JmlAttr attr, JCExpression expr,
-//            Env<AttrContext> env) {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
     
     static {
         synonym("\\assigns",writesExprKind);

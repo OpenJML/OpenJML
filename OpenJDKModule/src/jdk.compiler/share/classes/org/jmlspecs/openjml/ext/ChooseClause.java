@@ -1,44 +1,25 @@
 package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.ELSE;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.IDENTIFIER;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.LPAREN;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 
-import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
-import com.sun.tools.javac.util.Name;
 
 public class ChooseClause extends JmlExtension {
     
     public static final String chooseID = "choose";
-    
-    public void register() {
-        Extensions.allKinds.put("choose_if",chooseClause);
-    }
     
     public static final IJmlClauseKind chooseClause = new IJmlClauseKind.Statement(chooseID) {
         @Override
@@ -83,5 +64,8 @@ public class ChooseClause extends JmlExtension {
             return null;
         }
     };
-    
+
+    static {
+        Extensions.allKinds.put("choose_if",chooseClause);
+    }
 }

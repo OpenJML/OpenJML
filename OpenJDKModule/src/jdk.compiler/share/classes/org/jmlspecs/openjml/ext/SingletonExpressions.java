@@ -7,6 +7,7 @@ package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 import org.jmlspecs.openjml.Utils;
 
@@ -29,7 +30,7 @@ import com.sun.tools.javac.util.Log;
  * @author David Cok
  *
  */
-public class SingletonExpressions extends ExpressionExtension {
+public class SingletonExpressions extends JmlExtension {
 
     public static final String resultID ="\\result";
     public static final IJmlClauseKind resultKind = new IJmlClauseKind.SingletonExpressionKind(resultID) {

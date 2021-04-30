@@ -8,11 +8,8 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.visitors.JmlTreeCopier;
 
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Flags.Flag;
-import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
@@ -22,12 +19,9 @@ import com.sun.tools.javac.parser.Tokens.Comment;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.List;
@@ -129,16 +123,12 @@ public class DatatypeExt extends JmlExtension {
             // TODO Auto-generated method stub
             return null;
         }
-        
     }
-
-
 
     static public class JmlDatatypeDecl extends JmlClassDecl {
         
         public List<Pair<Name,List<JCVariableDecl> >> constructors;
         
-
         protected JmlDatatypeDecl(JCModifiers mods, Name name,
                 List<JCTypeParameter> typarams, JCExpression extending,
                 List<JCExpression> implementing, List<JCTree> defs,
@@ -148,5 +138,4 @@ public class DatatypeExt extends JmlExtension {
         }
         
     }
-
 }
