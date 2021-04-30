@@ -30,16 +30,6 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
-/** This class handles expression extensions that take an argument list of JCExpressions.
- * Even if there are constraints on the number of arguments, it
- * is more robust to accept all of them and then issue an error in the typechecker
- * if the number of arguments is wrong.
- * 
- * @author David Cok
- *
- */// TODO: This extension is inappropriately named at present.  However, I expect that this 
-// extension will be broken into individual extensions when type checking and
-// RAC and ESC translation are added.
 public class GhostModelStatement extends JmlExtension {
 
     public static final String ghostID = "ghost";
@@ -85,7 +75,5 @@ public class GhostModelStatement extends JmlExtension {
             // TODO Auto-generated method stub
             return null;
         }
-}
-    
-    
+    }
 }

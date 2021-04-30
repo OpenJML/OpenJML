@@ -218,7 +218,6 @@ public abstract class IJmlClauseKind {
     }
     
     protected void wrapup(JCTree statement, IJmlClauseKind clauseType, boolean parseSemicolon, boolean requireSemicolon) {
-        parser.toP(statement);
         if (statement instanceof JmlSource) {
             ((JmlSource)statement).setSource(Log.instance(context).currentSourceFile());
         }
@@ -237,6 +236,7 @@ public abstract class IJmlClauseKind {
         } else {
             parser.nextToken(); // advance to the token after the semi
         }
+        parser.toP(statement);
         parser.acceptEndJML();
     }
     

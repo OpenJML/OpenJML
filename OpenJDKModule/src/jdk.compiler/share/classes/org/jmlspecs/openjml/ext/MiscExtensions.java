@@ -4,56 +4,16 @@
  */
 package org.jmlspecs.openjml.ext;
 
-import static com.sun.tools.javac.code.Kinds.*;
-import static com.sun.tools.javac.code.Kinds.Kind.*;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.LPAREN;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
-import static com.sun.tools.javac.parser.Tokens.TokenKind.VOID;
-
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlPretty;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree.JmlExpression;
-import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
-import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
-import org.jmlspecs.openjml.ext.FunctionLikeExpressions.AnyArgBooleanExpressions;
-
-import com.sun.tools.javac.code.JmlTypes;
-import com.sun.tools.javac.code.Kinds;
-import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTag;
-import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
-import com.sun.tools.javac.comp.Infer;
 import com.sun.tools.javac.comp.JmlAttr;
-import com.sun.tools.javac.comp.Attr.ResultInfo;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCErroneous;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.ListBuffer;
-import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Name;
 
-/** This class handles expression extensions that take an argument list of JCExpressions.
- * Even if there are constraints on the number of arguments, it
- * is more robust to accept all of them and then issue an error in the typechecker
- * if the number of arguments is wrong.
- * 
- * @author David Cok
- *
- */// TODO: This extension is inappropriately named at present.  However, I expect that this 
-// extension will be broken into individual extensions when type checking and
-// RAC and ESC translation are added.
 public class MiscExtensions extends JmlExtension {
 
     public static class NoTypeMisc extends IJmlClauseKind.SingletonKind {
@@ -115,12 +75,6 @@ public class MiscExtensions extends JmlExtension {
     public static final String bspeerID = "\\peer";
     public static final IJmlClauseKind bspeerKind = new NoTypeMisc(bspeerID);
     
-//    public static final String readonlyID = "readonly";
-//    public static final IJmlClauseKind readonlyKind = new NoTypeMisc(readonlyID);
-//
-//    public static final String bsreadonlyID = "\\readonly";
-//    public static final IJmlClauseKind bsreadonlyKind = new NoTypeMisc(bsreadonlyID);
-
     public static final String bsrepID = "\\rep";
     public static final IJmlClauseKind bsrepKind = new NoTypeMisc(bsrepID);
 

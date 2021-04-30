@@ -22,10 +22,6 @@ import com.sun.tools.javac.util.ListBuffer;
 
 public class MatchExt extends ExpressionExtension {
 
-//    public MatchExt(Context context) {
-//        super(context);
-//    }
-
     public static final String matchID = "\\match";
     public static final IJmlClauseKind matchKind = new MatchKind(matchID);
 
@@ -55,7 +51,9 @@ public class MatchExt extends ExpressionExtension {
                 cases.add(new JmlMatchExpression.MatchCase(caseExpression,value));
             }
             parser.accept(TokenKind.RBRACE);
-            return parser.jmlF.at(p).JmlMatchExpression(expr,cases.toList());
+            var cl = parser.jmlF.at(p).JmlMatchExpression(expr,cases.toList());
+            wrapup(cl, clauseType, false, false);
+            return cl;
             // FIXME - the above needs better error messages and recovery
         }
 

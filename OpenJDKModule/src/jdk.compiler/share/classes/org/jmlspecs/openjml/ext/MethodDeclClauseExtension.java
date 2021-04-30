@@ -3,7 +3,6 @@ package org.jmlspecs.openjml.ext;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
 import org.jmlspecs.openjml.JmlExtension;
@@ -13,14 +12,10 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
 public class MethodDeclClauseExtension extends JmlExtension  {
@@ -38,6 +33,7 @@ public class MethodDeclClauseExtension extends JmlExtension  {
     
     public static class MethodClauseDeclType extends IJmlClauseKind.MethodSpecClauseKind {
         public MethodClauseDeclType(String keyword) { super(keyword); }
+ 
         @Override
         public 
         JmlMethodClauseDecl parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
@@ -60,13 +56,7 @@ public class MethodDeclClauseExtension extends JmlExtension  {
             parser.setInJmlDeclaration(prev);
             JmlMethodClauseDecl res = parser.to(parser.maker().at(pp)
                     .JmlMethodClauseDecl(keyword, clauseType, decls.toList()));
-            if (parser.token().kind == SEMI) {
-                parser.nextToken();
-            } else {
-                utils.error(parser.pos(), parser.endPos(), "jml.bad.construct",
-                        keyword + " specification");
-                parser.skipThroughSemi();
-            }
+            wrapup(res, clauseType, true, true);
             return res;
         }
         

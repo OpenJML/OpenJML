@@ -22,6 +22,7 @@ public class MethodClauseExprType extends IJmlClauseKind.MethodSpecClauseKind {
 
     @Override
     public boolean oldNoLabelAllowed() { return false; }
+
     @Override
     public boolean preOrOldWithLabelAllowed() { return false; }
 
@@ -39,15 +40,9 @@ public class MethodClauseExprType extends IJmlClauseKind.MethodSpecClauseKind {
         
         parser.nextToken();
         JCExpression e = parser.parsePredicateOrNotSpecified();
-        if (scanner.token().kind != SEMI) {
-            parser.syntaxError(parser.pos(), null, "jml.invalid.expression.or.missing.semi");
-            parser.skipThroughSemi();
-        } else {
-            parser.nextToken(); // skip SEMI
-        }
         JmlMethodClauseExpr cl = parser.maker().at(pp).JmlMethodClauseExpr(keyword, clauseType, e);
-        return toP(cl);
-
+        wrapup(cl, clauseType, true, true);
+        return cl;
     }
     
     @Override

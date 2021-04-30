@@ -66,13 +66,7 @@ public class Operators extends JmlExtension {
     public static final String leftarrowID = "<-";
     public static final IJmlClauseKind leftarrowKind = new Operator(leftarrowID);
     
-    // FIXME - the following should be punctuation 
-    public static final String specgroupstartID = "{|";
-    public static final IJmlClauseKind specgroupstartKind = new Operator(specgroupstartID);
-    
-    public static final String specgroupendID = "|}";
-    public static final IJmlClauseKind specgroupendKind = new Operator(specgroupendID);
-    
+    // FIXME -- should be with punctuation?
     public static final String endjmlcommentID = "@*/"; // Also represents a newline at the end of a LINE comment
     public static final IJmlClauseKind endjmlcommentKind = new Operator(endjmlcommentID);
 
