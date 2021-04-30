@@ -5,31 +5,23 @@
 package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.code.Kinds.*;
-import static com.sun.tools.javac.code.Kinds.Kind.*;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.LPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.VOID;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
-import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree.JmlExpression;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions.AnyArgBooleanExpressions;
 
-import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
-import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
-import com.sun.tools.javac.comp.Infer;
 import com.sun.tools.javac.comp.JmlAttr;
-import com.sun.tools.javac.comp.Attr.ResultInfo;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
@@ -37,32 +29,11 @@ import com.sun.tools.javac.tree.JCTree.JCErroneous;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
-import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 
-/** This class handles expression extensions that take an argument list of JCExpressions.
- * Even if there are constraints on the number of arguments, it
- * is more robust to accept all of them and then issue an error in the typechecker
- * if the number of arguments is wrong.
- * 
- * @author David Cok
- *
- */// TODO: This extension is inappropriately named at present.  However, I expect that this 
-// extension will be broken into individual extensions when type checking and
-// RAC and ESC translation are added.
 public class MiscExpressions extends ExpressionExtension {
-
-//    public MiscExpressions(Context context) {
-//        super(context);
-//    }
-//
-//    @Override
-//    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-//        //        checkOneArg(parser,e);
-//    }
 
     public static final String typelcID = "\\type";
     public static final IJmlClauseKind typelcKind = new IJmlClauseKind.ExpressionKind(typelcID) {
@@ -269,42 +240,5 @@ public class MiscExpressions extends ExpressionExtension {
     public static final IJmlClauseKind lblposKind = new LabelExpression(lblposID); 
     public static final String lblnegID = "\\lblneg";
     public static final IJmlClauseKind lblnegKind = new LabelExpression(lblnegID); 
-
-    public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
-        //        JmlMethodInvocation tree = (JmlMethodInvocation)expr;
-        //        JmlTokenKind token = tree.token;
-        //        
-        //        switch (token) {
-        //            case BSELEMTYPE:
-        //                // Expect one argument of any array type, result type is \TYPE
-        //                // The argument expression may contain JML constructs
-        //                ListBuffer<Type> argtypesBuf = new ListBuffer<>();
-        //                attr.attribArgs(tree.args, localEnv, argtypesBuf);
-        //                //attr.attribTypes(tree.typeargs, localEnv);
-        //                int n = tree.args.size();
-        //                if (n != 1) {  // FIXME _ incorrect for BSOLD
-        //                    error(tree.pos(),"jml.one.arg",token.internedName(),n);
-        //                }
-        //                Type t = syms.errType;
-        //                if (n > 0) {
-        //                    Type tt = tree.args.get(0).type;
-        //                    if (tt == jmltypes.TYPE) {
-        //                        t = jmltypes.TYPE;
-        //                    } else if (tree.args.get(0).type.tsym == syms.classType.tsym) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
-        //                        t = syms.classType;
-        //                    } else {
-        //                        error(tree.args.get(0).pos(),"jml.elemtype.expects.classtype",tree.args.get(0).type.toString());
-        //                        t = jmltypes.TYPE;
-        //                    }
-        //                }
-        //                return t;
-        //            case BSPOST:
-        //                // FIXME - need to check types
-        //                return syms.booleanType;
-        //            default:
-        //                error(tree.pos(), "jml.error", "Unimplemented backslash token type in ElemType.typecheck: " + token);
-        //                return null;
-        return null;
-    }
 }
 

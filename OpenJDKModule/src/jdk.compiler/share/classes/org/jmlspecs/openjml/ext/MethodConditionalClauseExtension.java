@@ -49,7 +49,6 @@ public class MethodConditionalClauseExtension extends JmlExtension {
             init(parser);
 
             int pp = parser.pos();
-            int pe = parser.endPos();
 
             parser.nextToken();
             JCExpression p = null;
@@ -62,13 +61,7 @@ public class MethodConditionalClauseExtension extends JmlExtension {
             }
             JmlMethodClauseConditional res = parser.to(parser.maker().at(pp)
                     .JmlMethodClauseConditional(keyword, clauseType, e, p));
-            if (parser.token().kind == SEMI) {
-                parser.nextToken();
-            } else {
-                utils.error(parser.pos(), parser.endPos(), "jml.bad.construct",
-                        keyword + " specification");
-                parser.skipThroughSemi();
-            }
+            wrapup(res, clauseType, true, true);
             return res;
 
         }

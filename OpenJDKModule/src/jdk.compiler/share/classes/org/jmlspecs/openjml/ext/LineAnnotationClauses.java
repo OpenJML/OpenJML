@@ -31,7 +31,7 @@ public class LineAnnotationClauses extends JmlExtension {
     public static final IJmlClauseKind forbidClauseKind = new ExceptionLineAnnotationKind(forbidID);
     public static final IJmlClauseKind ignoreClauseKind = new ExceptionLineAnnotationKind(ignoreID);
     
-    // We use ExceptionnLineAnnotationKind for nowarn annotations in order to share the scan method,
+    // We use ExceptionLineAnnotationKind for nowarn annotations in order to share the scan method,
     // even though it is handled differently and does not hold a list of exceptions
     public static final IJmlClauseKind nowarnClauseKind = new ExceptionLineAnnotationKind(nowarnID);
     
@@ -120,7 +120,7 @@ public class LineAnnotationClauses extends JmlExtension {
 
         @Override
         public Type typecheck(JmlAttr attr, Env<AttrContext> env) {
-            for (JCTree.JCExpression e : this.exprs()){
+            for (JCTree.JCExpression e : this.exprs()){  // FIXME - not for nowarn
                 e.type = attr.attribType(e,env);
             }
             return null;

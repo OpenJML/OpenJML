@@ -1,8 +1,5 @@
 package org.jmlspecs.openjml.ext;
 
-import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
-
-import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
@@ -13,10 +10,7 @@ import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.util.ListBuffer;
 
 public class MethodSimpleClauseExtensions extends JmlExtension {
     
@@ -38,9 +32,7 @@ public class MethodSimpleClauseExtensions extends JmlExtension {
     public static final String modelprogramID = "model_program";
     
     public static final IJmlClauseKind specGroupStartClause = new MethodKeywordClauseType(specGroupStartID);
-    
     public static final IJmlClauseKind specGroupEndClause = new MethodKeywordClauseType(specGroupEndID);
-    
     public static final IJmlClauseKind modelprogramClause = new MethodKeywordClauseType(modelprogramID);
     public static final IJmlClauseKind normalBehaviorClause = new MethodKeywordClauseType(normalBehaviorID);
     public static final IJmlClauseKind exceptionalBehaviorClause = new MethodKeywordClauseType(exceptionalBehaviorID);
@@ -61,7 +53,7 @@ public class MethodSimpleClauseExtensions extends JmlExtension {
         @Override public String name() { return "jml declaration"; }
     };
     
-    public void register() {
+    static {
         synonym("normal_behaviour",normalBehaviorClause);
         synonym("exceptional_behaviour",exceptionalBehaviorClause);
         synonym("abrupt_behaviour",abruptBehaviorClause);
@@ -71,6 +63,7 @@ public class MethodSimpleClauseExtensions extends JmlExtension {
     
     public static class MethodKeywordClauseType extends IJmlClauseKind.MethodClauseKind {
         public MethodKeywordClauseType(String keyword) { super(keyword); }
+
         @Override
         public 
         JmlMethodClauseDecl parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
