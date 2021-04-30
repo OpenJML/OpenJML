@@ -1,7 +1,9 @@
 package org.jmlspecs.openjml.ext;
 
+import java.lang.reflect.Constructor;
+
+import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.IArithmeticMode;
-import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
@@ -10,8 +12,6 @@ import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.tools.javac.code.JmlTypes;
-import com.sun.tools.javac.code.Kinds;
-import com.sun.tools.javac.code.JmlType;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.OperatorSymbol;
 import com.sun.tools.javac.code.Symtab;
@@ -28,15 +28,21 @@ import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
-import com.sun.tools.javac.tree.JCTree.Tag;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Names;
 
 import org.jmlspecs.openjml.JmlOption;
 
-abstract public class Arithmetic extends ExpressionExtension {
+abstract public class Arithmetic extends JmlExtension {
     
+	public Context context;
+
+    public void register(Context context) {
+    	Math.instance(context);
+    	Safe.instance(context);
+    	Java.instance(context);
+    }
     
     public static enum Mode { MATH(false,false), SAFE(true,true), JAVA(true,false) ;
         
@@ -50,12 +56,7 @@ abstract public class Arithmetic extends ExpressionExtension {
         public boolean overflowWarnings() { return overflowWarnings; }
     
     };
-    
-//    public Arithmetic(Context context) {
-//        super(context);
-//        this.intType = Symtab.instance(context).intType;
-//    }
-    
+        
     Symbol codeBigintMath = null;
     Symbol codeSafeMath = null;
     Symbol codeJavaMath = null;
@@ -134,6 +135,27 @@ abstract public class Arithmetic extends ExpressionExtension {
     
     public void checkParse(JmlParser parser, JmlMethodInvocation e) {
         checkOneArg(parser,e);
+    }
+    
+    public void checkOneArg(JmlParser parser, JmlMethodInvocation e) {
+    	if (e.args.size() != 1) {
+    		org.jmlspecs.openjml.Utils.instance(context).error(e.pos, parser.getEndPos(e), "jml.one.arg", e.token.internedName());
+    	}
+    }
+
+    public static <T> T instance(Context context, Class<T> key) {
+    	T s = context.get(key);
+    	if (s == null) {
+    		try {
+    			Constructor<T> c = key.getConstructor();
+    			s = c.newInstance();
+    			((Arithmetic)s).context = context;
+    			context.put(key, s);
+    		} catch (Exception e) {
+    			throw new RuntimeException(e);
+    		}
+    	}
+    	return s;
     }
 
     public Type typecheck(JmlAttr attr, JCExpression expr,
@@ -602,10 +624,6 @@ abstract public class Arithmetic extends ExpressionExtension {
     /** This implements the bigint (which is also real) mathematical mode */
     public static class Math extends Arithmetic implements IArithmeticMode {
         
-//        public Math(Context context) {
-//            super(context);
-//        }
-        
         public static Math instance(Context context) {
             return instance(context,Math.class);
         }
@@ -665,10 +683,6 @@ abstract public class Arithmetic extends ExpressionExtension {
 
     public static class Safe extends Arithmetic implements IArithmeticMode {
         
-//        public Safe(Context context) {
-//            super(context);
-//        }
-        
         public static Safe instance(Context context) {
             return instance(context,Safe.class);
         }
@@ -690,10 +704,6 @@ abstract public class Arithmetic extends ExpressionExtension {
 
     public static class Java extends Arithmetic implements IArithmeticMode {
 
-//        public Java(Context context) {
-//            super(context);
-//        }
-        
         public static Java instance(Context context) {
             return instance(context,Java.class);
         }
@@ -710,7 +720,5 @@ abstract public class Arithmetic extends ExpressionExtension {
         public JCExpression rewriteBinary(JmlAssertionAdder rewriter, JCBinary that, boolean alreadyConverted) {
             return makeBinaryOp(rewriter, that, null, true, false, alreadyConverted);
         }
-
     }
-
 }

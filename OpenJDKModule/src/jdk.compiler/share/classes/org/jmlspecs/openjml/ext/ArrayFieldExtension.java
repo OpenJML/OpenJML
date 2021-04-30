@@ -16,7 +16,6 @@ import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.Log;
 
 /** This extension allows the field .array to be used on array objects
  * (like 'length'). It produces a model value of type array<E>, which
@@ -60,5 +59,4 @@ public class ArrayFieldExtension extends JmlExtension {
             return t;
         }
     }
-
 }

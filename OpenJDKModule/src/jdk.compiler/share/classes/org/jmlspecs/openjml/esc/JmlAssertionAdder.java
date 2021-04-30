@@ -28,7 +28,7 @@ import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.Utils.JmlNotImplementedException;
-import org.jmlspecs.openjml.ext.Arithmetic;
+import org.jmlspecs.openjml.ext.*;
 import static org.jmlspecs.openjml.ext.RecommendsClause.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
@@ -38,29 +38,9 @@ import static org.jmlspecs.openjml.ext.MiscExpressions.*;
 import static org.jmlspecs.openjml.ext.FrameExpressions.*;
 import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
 import static org.jmlspecs.openjml.ext.Operators.*;
+import static org.jmlspecs.openjml.ext.LineAnnotationClauses.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.requiresClauseKind;
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
-import org.jmlspecs.openjml.ext.CallableClauseExtension;
-import org.jmlspecs.openjml.ext.EndStatement;
-import org.jmlspecs.openjml.ext.ExpressionExtension;
-import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
-import org.jmlspecs.openjml.ext.Functional;
-import org.jmlspecs.openjml.ext.LineAnnotationClauses;
-import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
-import org.jmlspecs.openjml.visitors.JmlTreeScanner;
-import org.jmlspecs.openjml.visitors.JmlTreeSubstitute;
-import org.jmlspecs.openjml.ext.MethodConditionalClauseExtension;
-import org.jmlspecs.openjml.ext.MethodDeclClauseExtension;
-import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
-import org.jmlspecs.openjml.ext.MiscExtensions;
-import org.jmlspecs.openjml.ext.Modifiers;
-import org.jmlspecs.openjml.ext.QuantifiedExpressions;
-import org.jmlspecs.openjml.ext.ReachableStatement;
-import org.jmlspecs.openjml.ext.SetStatement;
-import org.jmlspecs.openjml.ext.SignalsClauseExtension;
-import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
-import org.jmlspecs.openjml.ext.TypeExprClauseExtension;
-
 import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
@@ -69,8 +49,12 @@ import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeInClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension.*;
 
+import org.jmlspecs.openjml.visitors.JmlTreeScanner;
+import org.jmlspecs.openjml.visitors.JmlTreeSubstitute;
+
 import com.sun.source.tree.*;
 import com.sun.tools.javac.code.*;
+
 import com.sun.tools.javac.code.Attribute.Compound;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol.*;
@@ -16295,7 +16279,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             case workingspaceID :
             case durationID :
             case isInitializedID :
-            case nowarnID:
+            case bsnowarnID:
             case nowarnopID:
             case warnID:
             case warnopID:

@@ -67,21 +67,12 @@ import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.ext.ArrayFieldExtension.JmlField;
-import org.jmlspecs.openjml.ext.AssignableClauseExtension;
-import org.jmlspecs.openjml.ext.CallableClauseExtension;
-import org.jmlspecs.openjml.ext.ExpressionExtension;
-import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
-import org.jmlspecs.openjml.ext.MiscExpressions;
-import org.jmlspecs.openjml.ext.Modifiers;
-import org.jmlspecs.openjml.ext.QuantifiedExpressions;
+import org.jmlspecs.openjml.ext.*;
 
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.Operators.*;
-import org.jmlspecs.openjml.ext.SignalsClauseExtension;
-import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
-import org.jmlspecs.openjml.ext.SingletonExpressions;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
+import org.jmlspecs.openjml.ext.ArrayFieldExtension.JmlField;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 import org.jmlspecs.openjml.visitors.IJmlVisitor;
 import org.jmlspecs.openjml.visitors.JmlTreeCopier;

@@ -24,7 +24,6 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.AssignableClauseExtension;
 import org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl;
 import org.jmlspecs.openjml.ext.EndStatement;
-import org.jmlspecs.openjml.ext.ExpressionExtension;
 import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
@@ -2234,17 +2233,10 @@ public class JmlParser extends JavacParser {
                         if (id.equals("match")) {
                             return null; // FIXME new MatchExt(context).parse(this, typeArgs);
                         } else {
-//                        ExpressionExtension ne = (ExpressionExtension)Extensions.instance(context).findE(pos(),id,false);
-//                        if (true || ne == null) {
                             utils.error(p, endPos(), "jml.bad.type.expression",
                                     "( token " + token
                                     + " in JmlParser.term3())");
-                            //                        utils.error(p, endPos(), "jml.no.such.extension",
-                            //                                jt.internedName());
                             return jmlF.at(p).Erroneous();
-//                        } else {
-//                            return ne.parse(this, typeArgs);
-//                        }
                         }
                     }
                 }

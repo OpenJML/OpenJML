@@ -1,13 +1,8 @@
 package org.jmlspecs.openjml.ext;
 
-import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
-import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
-
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlStoreRefKeyword;
 
@@ -16,15 +11,9 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.ListBuffer;
 
 public class CallableClauseExtension extends JmlExtension {
 
@@ -50,15 +39,13 @@ public class CallableClauseExtension extends JmlExtension {
             if (refkeyword == null) {
                 sigs = parseMethodNameList();
             }
-            int endpos = parser.pos();
-            parser.accept(SEMI);
             JmlMethodClauseCallable ec;
             if (refkeyword != null) {
-                ec = toP(parser.maker().at(pp).JmlMethodClauseCallable(
-                        refkeyword));
+                ec = parser.maker().at(pp).JmlMethodClauseCallable(refkeyword);
             } else {
-                ec = toP(parser.maker().at(pp).JmlMethodClauseCallable(sigs));
+                ec = parser.maker().at(pp).JmlMethodClauseCallable(sigs);
             }
+            wrapup(ec, clauseType, true, true);
             return ec;
         }
         
@@ -67,7 +54,5 @@ public class CallableClauseExtension extends JmlExtension {
             // TODO Auto-generated method stub
             return null;
         }
-};
-
-    
- }
+    };
+}

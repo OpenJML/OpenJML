@@ -3,24 +3,18 @@ package org.jmlspecs.openjml.ext;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
-import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 
 public class AssignableClauseExtension extends JmlExtension {
@@ -41,7 +35,7 @@ public class AssignableClauseExtension extends JmlExtension {
         public String name() { return capturesID; }
     };
     
-    public void register() {
+    static {
         synonym("modifies",assignableClauseKind);
         synonym("assigns",assignableClauseKind);
         synonym("writes",assignableClauseKind);
@@ -64,7 +58,6 @@ public class AssignableClauseExtension extends JmlExtension {
             this.keyword = keyword;
             
             int pp = parser.pos();
-            int pe = parser.endPos();
             
             parser.nextToken();
 
@@ -88,8 +81,10 @@ public class AssignableClauseExtension extends JmlExtension {
                     }
                     parser.nextToken();
                 }
-            }
-            return toP(parser.maker().at(pp).JmlMethodClauseStoreRef(keyword, clauseType, list.toList()));
+            }  // FIXME - fix the above; cf loop_writes
+            var cl = parser.maker().at(pp).JmlMethodClauseStoreRef(keyword, clauseType, list.toList());
+            wrapup(cl, clauseType, false, false);
+            return cl;
         }
         
         @Override
@@ -98,5 +93,4 @@ public class AssignableClauseExtension extends JmlExtension {
             return null;
         }
     }
-    
 }
