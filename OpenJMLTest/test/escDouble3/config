@@ -1,1 +1,1 @@
-ARGS+=" -method=remainderBy -escMaxWarnings=1 -show -subexpressions"
+ARGS+=" -method=remainderBy -escMaxWarnings=1"

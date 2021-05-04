@@ -226,37 +226,40 @@ public class Extensions {
     
     public static boolean registerClass(Context context, Class<?> cce) {
         if (!JmlExtension.class.isAssignableFrom(cce)) {
-            Utils.instance(context).note("Skipped " + cce);
+//            Utils.instance(context).note("Skipped " + cce);
             String s = cce.toString();
             int k = s.indexOf('$');
             if (k > 0) s = s.substring(0, k);
-            try { Class.forName(s); return true; } catch (ClassNotFoundException e) { Utils.instance(context).note("Not found " + s); }
+            try { Class.forName(s); return true; } catch (ClassNotFoundException e) { 
+ //           	Utils.instance(context).note("Not found " + s);
+            }
         	return false; // Extension classes must inherit from JmlExtensionn
         }
         @SuppressWarnings("unchecked")
         Class<? extends JmlExtension> cc = (Class<? extends JmlExtension>)cce;
         try {
             cc.getConstructor().newInstance(); // Instance created only to perform static initialization
-            Utils.instance(context).note("Registered " + cc);
+            //Utils.instance(context).note("Registered-A " + cc);
             return true;
         } catch (Exception e) {
-//            Utils.instance(context).note("Skipped " + cc + " " + e.getMessage());
-//            String s = cce.toString();
-//            int k = s.indexOf('$');
-//            if (k > 0) s = s.substring(0, k);
-//            try { Class.forName(s); return true; } catch (ClassNotFoundException ee) { Utils.instance(context).note("Not found " + s); }
-//            return false;
         }
         try {
             cc.getConstructor(Context.class).newInstance(context);
-            Utils.instance(context).note("Registered " + cc);
+            //Utils.instance(context).note("Registered-B " + cc);
             return true;
         } catch (Exception e) {
-            Utils.instance(context).note("Skipped " + cc + " " + e.getMessage());
             String s = cce.toString();
             int k = s.indexOf('$');
             if (k > 0) s = s.substring(0, k);
-            try { Class.forName(s); return true; } catch (ClassNotFoundException ee) { Utils.instance(context).note("Not found " + s); }
+            try { 
+            	Class.forName(s);
+                Utils.instance(context).note("Registered-C " + cc);
+            	return true; 
+            } 
+            catch (ClassNotFoundException ee) { 
+//            	Utils.instance(context).note("Not found " + s); 
+            }
+            Utils.instance(context).note("Failed " + cc + " " + e.getMessage());
             return false;
         }
     }
@@ -354,16 +357,10 @@ public class Extensions {
 //        }
         ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
         if (foundClassNames.isEmpty()) {
-            //System.out.println("LAST RESORT EXTENSION");
             // Last resort
             Utils.instance(context).note("Last resort loading of extensions");
             for (Class<?> cl : extensions) {
-                try {
-                    registerClass(context,cl);
-                    classes.add(cl);
-                } catch (Exception e) {
-                	Utils.instance(context).note(true,"Failed to register " + cl.getName());
-                }
+                 classes.add(cl);
             }
             methodThatWorked = 4;
 
@@ -374,7 +371,6 @@ public class Extensions {
                 try {
                     Class<?> c = Class.forName(fullname);
                     if (Modifier.isAbstract(c.getModifiers())) continue;
-                    registerClass(context,c);
                     classes.add(c);
                 } catch (Exception e) {
                     // Just skip if there is any exception, such as a

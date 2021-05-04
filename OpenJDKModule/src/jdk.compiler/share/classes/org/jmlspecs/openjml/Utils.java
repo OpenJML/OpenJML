@@ -321,19 +321,16 @@ public class Utils {
     }
 
     /** A cache for the symbol */
-    private ClassSymbol helperAnnotationSymbol = null;
-    private ClassSymbol modelAnnotationSymbol = null;
+//    private ClassSymbol helperAnnotationSymbol = null;
+//    private ClassSymbol modelAnnotationSymbol = null;
 
     /** Returns true if the given symbol has a helper annotation
      * 
      * @param symbol the symbol to check
      * @return true if there is a helper annotation
      */
-    public boolean isHelper(/*@non_null*/ Symbol symbol) {
-        if (helperAnnotationSymbol == null) {
-            helperAnnotationSymbol = createClassSymbol(Strings.helperAnnotation);
-        }
-        return symbol.attribute(helperAnnotationSymbol)!=null;
+    public boolean isHelper(/*@non_null*/ MethodSymbol symbol) {
+    	return hasMod(JmlSpecs.instance(context).getLoadedSpecs(symbol).mods, Modifiers.HELPER);
     }
     
     public boolean isModel(/*@non_null*/ ClassSymbol symbol) {
@@ -514,6 +511,12 @@ public class Utils {
         	if (((JmlTree.JmlAnnotation)a).kind == ta) return (JmlTree.JmlAnnotation)a;
         }
         return null;
+    }
+    
+    public boolean hasMod(MethodSymbol msym, ModifierKind kind) {
+    	var mspecs = JmlSpecs.instance(context).getLoadedSpecs(msym);
+    	if (mspecs == null) return false;
+    	return hasMod(mspecs.mods, kind);
     }
     
     public boolean hasMod(JCModifiers mods, ModifierKind... ata) {

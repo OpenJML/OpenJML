@@ -426,10 +426,7 @@ public class JmlOptions extends Options {
         if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) Main.appendRuntime(context);
 
 
-
-
-
-        if (!JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) Extensions.register(context);
+        Extensions.register(context);
 // FIXME - turn off for now        JmlSpecs.instance(context).initializeSpecsPath();
         // dumpOptions();
         return true;

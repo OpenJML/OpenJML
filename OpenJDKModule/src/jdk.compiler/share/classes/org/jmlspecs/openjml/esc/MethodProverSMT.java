@@ -183,7 +183,10 @@ public class MethodProverSMT {
         org.smtlib.SolverProcess.useMultiThreading = false;
         org.smtlib.SolverProcess.useNotifyWait = false;
         String exec = JmlOption.value(context, JmlOption.PROVEREXEC);
-        if (exec == null) exec = "/Users/davidcok/projects/OpenJMLB/Solvers/Solvers-macos/z3-4.3.1"; // FIXME
+        if (exec == null) {
+        	if (Main.root == null) exec = "../../Solvers/Solvers-macos/z3-4.3.1"; // FIXME
+        	else exec = Main.root + "/Solvers-macos/z3-4.3.1";
+        }
         if (exec == null || exec.isEmpty()) exec = JmlOption.value(context, Strings.proverPropertyPrefix + proverToUse);
         if (exec == null || exec.isEmpty()) {
             String loc = utils.findInstallLocation();
@@ -1110,7 +1113,7 @@ public class MethodProverSMT {
                         	utils.warning(assertStat.source,pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
                             loc = utils.locationString(pos,assertStat.source);
                             tracer.appendln(loc + " Invalid assertion (" + label + ")");
-                            if (label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION) {
+                            if (label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION || label == Label.NULL_FORMAL) {
                                 try {
                                     Name nm = ((JCIdent)assertStat.expression).name;
                                     String s = jmlesc.assertionAdder.callStacks.get(nm);

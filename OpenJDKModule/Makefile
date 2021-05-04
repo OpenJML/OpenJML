@@ -66,15 +66,30 @@ include $(topdir)/make/Init.gmk
 REL=release-temp
 
 clean-release:
+	make clean dist-clean
 	rm -rf $(REL)
+
+release-image:
+	rm -rf $(REL)
+	mkdir $(REL)
+	bash ./configure > log-release
+	NOJML= make images > log-release-make 2>&1
+	cp -r build/m*/images/jdk $(REL)
+	make post
 
 release:
 	rm -rf $(REL)
 	mkdir $(REL)
-	bash configure > log-release
-	make images > log-release-make 2>&1
-	cp -r build/m*/images/jdk $(REL)
+	bash ./configure > log-release
+	NOJML= make > log-release-make 2>&1
+	make post
+	cp -r build/m*/jdk $(REL)
+
+post:
 	cp -r ../../Solvers/Solvers-* $(REL)
 	cp -r ../../Specs/specs $(REL)
 	cp -r release-files/ $(REL)
 	chmod ugo+x $(REL)/openjml
+
+trial:
+	$(REL)/openjml -esc -progress $(REL)/demos/Max.java

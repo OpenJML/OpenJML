@@ -1,8 +1,9 @@
 test/gitbug572/Fact.java:4: error: illegal start of expression
      *@ ensures \result == (\product int i; 0 < i && i <= n; i)
       ^
-test/gitbug572/Fact.java:5: error: The expression is invalid or not terminated by a semicolon
+test/gitbug572/Fact.java:5: warning: Inserting missing semicolon at the end of a requires statement
      */
      ^
 Operation not performed because of parse or type errors
-2 errors
+1 error
+1 warning

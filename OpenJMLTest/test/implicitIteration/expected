@@ -7,10 +7,10 @@ Starting proof of ImplicitIterationDemo.check(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of ImplicitIterationDemo.check(Object) with prover !!!! - no warnings
-Starting proof of ImplicitIterationDemo.checkA(@NonNull Boolean) with prover !!!!
+Starting proof of ImplicitIterationDemo.checkA(Boolean) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of ImplicitIterationDemo.checkA(@NonNull Boolean) with prover !!!! - no warnings
+Completed proof of ImplicitIterationDemo.checkA(Boolean) with prover !!!! - no warnings
 Starting proof of ImplicitIterationDemo.test() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

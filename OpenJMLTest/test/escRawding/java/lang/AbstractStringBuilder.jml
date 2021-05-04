@@ -9,11 +9,11 @@ package java.lang;
  */
 abstract class AbstractStringBuilder implements Appendable, CharSequence {
 
-//    /*@ spec_public @*/ byte[] value; //@ in modelValue;
+    /*@ spec_public @*/ byte[] value; //@ in modelValue;
     
     /*@ spec_public @*/ int count; //@ in stringLength;
     
-//    /*@ spec_public @*/ int MAX_ARRAY_SIZE;
+    /*@ spec_public @*/ int MAX_ARRAY_SIZE;
   
     //@ public static ghost char[] nullChars = {'n', 'u', 'l', 'l'};
     //@ public ghost char[] trueChars = {'t', 'r', 'u', 'e'};
@@ -29,7 +29,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     
     //@ public model char[] modelValue;
     
-//    //@ public invariant 0 <= capacity <= MAX_ARRAY_SIZE;
+    //@ public invariant 0 <= capacity <= MAX_ARRAY_SIZE;
     //@ public invariant 0 <= count <= modelValue.length;
     //@ public invariant (\forall int i; stringLength <= i && i < capacity; modelValue[i] == '\0');
     
@@ -428,5 +428,5 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     
     public /*@ pure @*/ abstract String toString(); //58
     
-    final /*@ pure @*/ char[] getValue(); //59
+    final /*@ pure @*/ byte[] getValue(); //59
 }

@@ -1,6 +1,6 @@
 test/staticOld/NullableOld.java:7: error: No Java modifiers are allowed in a method specification declaration
     //@ old static Object o = oo;
-        ^
+            ^
 test/staticOld/NullableOld.java:7: error: modifier static not allowed here
     //@ old static Object o = oo;
                           ^

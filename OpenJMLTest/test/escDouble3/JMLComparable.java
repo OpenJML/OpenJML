@@ -26,7 +26,7 @@
  * @author Gary T. Leavens
  * @see java.lang.Comparable
  */
-//-@ immutable
+//-RAC@ immutable
 public /*@ pure @*/ interface JMLComparable
     extends JMLType, Comparable {
 
