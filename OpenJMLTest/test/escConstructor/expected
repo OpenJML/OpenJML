@@ -1,12 +1,12 @@
 Proving methods in Child
-Starting proof of Child.Child(@NonNull Object) with prover !!!!
+Starting proof of Child.Child(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Child.Child(@NonNull Object) with prover !!!! - no warnings
+Completed proof of Child.Child(Object) with prover !!!! - no warnings
 Completed proving methods in Child
 Proving methods in Parent
-Starting proof of Parent.Parent(@NonNull Object) with prover !!!!
+Starting proof of Parent.Parent(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Parent.Parent(@NonNull Object) with prover !!!! - no warnings
+Completed proof of Parent.Parent(Object) with prover !!!! - no warnings
 Completed proving methods in Parent

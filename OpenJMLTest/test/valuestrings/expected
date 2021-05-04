@@ -75,38 +75,29 @@ Starting proof of JMLStringTest.conversion2(String) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLStringTest.conversion2(String) with prover !!!! - no warnings
-Starting proof of JMLStringTest.conversionBad1(@Nullable String,Object) with prover !!!!
-test/valuestrings/JMLStringTest.java:111: warning: The prover cannot establish an assertion (UndefinedCalledMethodNullPrecondition) in method conversionBad1
+Starting proof of JMLStringTest.conversionBad1(String,Object) with prover !!!!
+test/valuestrings/JMLStringTest.java:111: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad1
     //@   ghost string s1 = s; // verification error
                             ^
 $SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
     static public string string(String s);
-                         ^
-$SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Precondition conjunct is false: s != null
-    static public string string(String s);
-                                       ^
-Completed proof of JMLStringTest.conversionBad1(@Nullable String,Object) with prover !!!! - with warnings
-Starting proof of JMLStringTest.conversionBad2(@Nullable String,Object) with prover !!!!
-test/valuestrings/JMLStringTest.java:115: warning: The prover cannot establish an assertion (UndefinedCalledMethodNullPrecondition) in method conversionBad2
+                                ^
+Completed proof of JMLStringTest.conversionBad1(String,Object) with prover !!!! - with warnings
+Starting proof of JMLStringTest.conversionBad2(String,Object) with prover !!!!
+test/valuestrings/JMLStringTest.java:115: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad2
     //@   ghost string s2 = (string)s; // verification error
-                            ^
+                                    ^
 $SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
     static public string string(String s);
-                         ^
-$SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Precondition conjunct is false: s != null
-    static public string string(String s);
-                                       ^
-Completed proof of JMLStringTest.conversionBad2(@Nullable String,Object) with prover !!!! - with warnings
-Starting proof of JMLStringTest.conversionBad3(@Nullable String,Object) with prover !!!!
-test/valuestrings/JMLStringTest.java:119: warning: The prover cannot establish an assertion (UndefinedCalledMethodNullPrecondition) in method conversionBad3
+                                ^
+Completed proof of JMLStringTest.conversionBad2(String,Object) with prover !!!! - with warnings
+Starting proof of JMLStringTest.conversionBad3(String,Object) with prover !!!!
+test/valuestrings/JMLStringTest.java:119: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad3
     //@   ghost string s3 = string.string(s); // verification error
-                                         ^
+                                          ^
 $SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
     static public string string(String s);
-                         ^
-$SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Precondition conjunct is false: s != null
-    static public string string(String s);
-                                       ^
-Completed proof of JMLStringTest.conversionBad3(@Nullable String,Object) with prover !!!! - with warnings
+                                ^
+Completed proof of JMLStringTest.conversionBad3(String,Object) with prover !!!! - with warnings
 Completed proving methods in JMLStringTest
-9 warnings
+6 warnings

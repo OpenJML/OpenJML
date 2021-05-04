@@ -1,4 +1,4 @@
-test/escRecursiveInvariant/RecursiveInvariant.java:4: error: Recursive attempt to assert or assume invariants - use pure helper methods: RecursiveInvariant
+test/escRecursiveInvariant/RecursiveInvariant.java:4: warning: Recursive attempt to assert or assume invariants - use pure helper methods: RecursiveInvariant
     //@ public invariant m();
                           ^
 Proving methods in RecursiveInvariant
@@ -19,5 +19,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of RecursiveInvariant.t() with prover !!!! - no warnings
 Completed proving methods in RecursiveInvariant
-1 error
-2 warnings
+3 warnings

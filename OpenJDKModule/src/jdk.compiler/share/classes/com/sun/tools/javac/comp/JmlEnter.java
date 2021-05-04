@@ -1063,7 +1063,7 @@ public class JmlEnter extends Enter {
     			specs.dupSpecs(msym,  mdecl.sym);
     			checkMethodMatch(javaMDecl,msym,mdecl,csym);
     		} else { // javaMDecl != mdecl
-    			if (utils.verbose()) utils.note("Matched method: " + msym + " (owner: " + msym.owner +")");
+    			if (utils.verbose()) utils.note("Matched method: (java) " + msym + " (owner: " + msym.owner +")");
     			var jsp = specs.getLoadedSpecs(msym);
     			var ssp = specs.getLoadedSpecs(mdecl.sym);
     			jsp.javaDecl = ssp.javaDecl = javaMDecl;
@@ -1079,45 +1079,13 @@ public class JmlEnter extends Enter {
     			checkMethodMatch(javaMDecl,msym,mdecl,csym);
     		}
     		alreadyMatched.put(msym,mdecl);
-     		{
-//    			mdecl.specsDecl = javaMDecl;
-//    			var specs = JmlSpecs.instance(context);
-//    			var mspecs = specs.get(mdecl.sym);
-//         		specs.putSpecs(msym, mspecs, mspecs.specsEnv);
-//    			if (javaMDecl == null) {
-//    				if (msym.toString().contains("arraycopy")) {
-//    					System.out.println("JMLENTER-J " + msym + " " + msym.params.head + " " + msym.params.head.hashCode());
-//    					System.out.println("JMLENTER-S " + mdecl.sym + " " + mdecl.sym.params.head + " " + mdecl.sym.params.head.hashCode());
-//    					System.out.println("JMLENTER-SS " + mdecl.params.head.sym + " " + mdecl.params.head.sym.hashCode());
-//    					System.out.println("SPECENV " + specs.getLoadedSpecs(mdecl.sym).specsEnv.info.scope().getSymbolsByName(mdecl.sym.params.head.name).iterator().next().hashCode());
-//						//System.out.println("JAVAENV " + specs.getLoadedSpecs(msym).specsEnv.info.scope().getSymbolsByName(msym.params.head.name).iterator().next().hashCode());
-//    				}
-//    			}
-//    			specsEnv = MemberEnter.instance(context).methodEnv(mdecl, specsEnv);
-//    			ListBuffer<Type> argtypes = new ListBuffer<>();
-//    			for (int i=0; i<mdecl.params.length(); ++i) {  // FIXME - I think some or all of this can be simplified
-//    				VarSymbol s = msym.params.get(i);
-//    				s.type = mdecl.params.get(i).type;
-//    				if (s.type == null) {
-//    					System.out.println("NOTYPE " + msym + " " + i + " " + s + " " + mdecl.params.get(i).type + " " + msym.params.get(i) + " " + msym.params.get(i).type);
-//    				} else {
-//    					argtypes.add(s.type);
-//    				}
-//    				mdecl.params.get(i).sym = s;
-//    				specsEnv.info.scope().enter(s);
-//    			}
-    			if (mdecl != javaMDecl) {
-//    				var q = msym.type;
-//        			while (q instanceof Type.ForAll) q = ((Type.ForAll)q).qtype; 
-//        			if (q instanceof Type.MethodType) ((Type.MethodType)q).argtypes = argtypes.toList();
-//        			// FIXME - what about the return type, or exception types?
-    			}
-    		}
     	}
     	var iter = msym.params.iterator();
+    	VarSymbol vs = null;
     	for (var v: mdecl.params) {
-    		if (iter.hasNext()) specs.putSpecs(iter.next(), new JmlSpecs.FieldSpecs((JmlVariableDecl)v));
+    		if (iter.hasNext()) specs.putSpecs(vs = iter.next(), new JmlSpecs.FieldSpecs((JmlVariableDecl)v));
     		specs.putSpecs(v.sym, new JmlSpecs.FieldSpecs((JmlVariableDecl)v));
+    		
     	}
     }
     
@@ -1642,17 +1610,18 @@ public class JmlEnter extends Enter {
 //             }
 //         }
 //
+    		
     		// Check that parameter names are the same (a JML requirement to avoid having to rename within specs)
     		if (javaMatch != null) {
-    			for (int i = 0; i<javaMatch.getParameters().size(); i++) {
-    				JCTree.JCVariableDecl javaparam = javaMatch.getParameters().get(i);
-    				JCTree.JCVariableDecl jmlparam = specMethodDecl.params.get(i);
-    				if (!javaparam.name.equals(jmlparam.name)) {
-    					utils.error(jmlparam.pos(),"jml.mismatched.param.names",i,
-    							match.enclClass().fullname + "." + match.toString(),
-    							javaparam.name, jmlparam.name);
-    				}
-    			}
+//    			for (int i = 0; i<javaMatch.getParameters().size(); i++) {
+//    				JCTree.JCVariableDecl javaparam = javaMatch.getParameters().get(i);
+//    				JCTree.JCVariableDecl jmlparam = specMethodDecl.params.get(i);
+//    				if (!javaparam.name.equals(jmlparam.name)) {
+//    					utils.error(jmlparam.pos(),"jml.mismatched.param.names",i,
+//    							match.enclClass().fullname + "." + match.toString(),
+//    							javaparam.name, jmlparam.name);
+//    				}
+//    			}
 
 //    		} else {
 //    			// FIXME - do not really need this alternative since without a java Decl there is no body

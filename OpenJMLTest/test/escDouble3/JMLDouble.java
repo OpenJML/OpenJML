@@ -28,7 +28,7 @@
  * @see java.lang.Double
  * @see JMLDouble
  */
-//-@ immutable
+//-RAC@ immutable
 public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
 
     /** The double that is the abstract value of this object.
@@ -39,8 +39,6 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
     //@                                   in theDouble;
     //@ public represents theDouble = doubleValue;
 
-    //@ public invariant owner == null;
-
     /** Initialize this object to contain zero.
      */
     /*@ public normal_behavior
@@ -48,7 +46,6 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
       @*/
     public JMLDouble ( ) {
         doubleValue = 0.0d;
-        //@ set owner = null;
     } 
    
     /** Initialize this object to contain the given double.
@@ -63,7 +60,6 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
       @*/ 
     public JMLDouble (double inDouble) {
         doubleValue = inDouble;
-        //@ set owner = null;
     } 
 
     /** Initialize this object to contain an approximation to the
@@ -74,8 +70,7 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
       @*/
     public JMLDouble (int inInt) {
         doubleValue = (double)inInt;
-        //@ set owner = null;
-    } 
+    }
 
     /** Initialize this object to contain the value of the given
      * Double.
@@ -90,7 +85,6 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
       @*/
     public JMLDouble(/*@ non_null */ Double inDouble) {
         doubleValue = inDouble.doubleValue();
-        //@ set owner = null;
     }
 
     /** Initialize this object to contain the value given by the
@@ -108,7 +102,6 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
       @*/
     public JMLDouble (/*@ non_null @*/ String s) throws NumberFormatException {
         doubleValue = new Double(s).doubleValue();
-        //@ set owner = null;
     }
 
     /** Tell if this object contains either positive or negative infinity.
@@ -203,7 +196,6 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
         }
         JMLDouble jmld2 = (JMLDouble)op2;
         //@ assert \invariant_for(jmld2);
-        //@ assert jmld2.owner == null;
         if (isNaN() && jmld2.isNaN()) {
             return true;
         } else if (isZero() && jmld2.isZero()) {

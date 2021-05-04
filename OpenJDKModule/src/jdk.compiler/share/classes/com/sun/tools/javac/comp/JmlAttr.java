@@ -4280,9 +4280,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
         boolean saved = this.attribJmlDecls;
-        this.attribJmlDecls = true;
-        result = that.kind.typecheck(this, that, env);
-        this.attribJmlDecls = saved;
+        quantifiedExprs.add(0,that);
+        try {
+        	this.attribJmlDecls = true;
+        	result = that.kind.typecheck(this, that, env);
+        } finally {
+        	quantifiedExprs.remove(0);
+            this.attribJmlDecls = saved;
+        }
         return;
     }
 
@@ -4842,10 +4847,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	// However we save and restore it here even though we don't change it here, defensively
         jmlenv = jmlenv.pushCopy();
         try {
+            // First check quantified variables. If we are an old environment, they will not necessarily be in the
+            // environment scope.
+            for (var q: quantifiedExprs) {
+            	for (var d: q.decls) {
+            		if (tree.name == d.name) {
+            			tree.sym = d.sym;
+            			tree.type = d.type;
+            			result = d.type;
+            			return;
+            		}
+            	}
+            }
             super.visitIdent(tree);
         } catch (Exception e) {
-        	System.out.println("EXCEPTION " + e);
-        	e.printStackTrace(System.out);
+        	utils.unexpectedException(e, "JmlAttr.visitIdent");
         } finally {
             jmlenv = jmlenv.pop();
         }
@@ -5814,17 +5830,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void addHelper(MethodSymbol symbol) {
+        addAnnotation(symbol,Modifiers.HELPER);
+        if (!utils.isHelper(symbol)) System.out.println("ISHELPER FAILED AFTER ADD HELPER " + symbol);
+        return;
+    }
+    
+    public void addAnnotation(MethodSymbol symbol, ModifierKind kind) {
         MethodSpecs mspecs = specs.getLoadedSpecs(symbol);
         if (mspecs == null) {
             // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
             return ;
         }
         // FIXME - what if mspecs.mods is null
-        Symbol ansym = modToAnnotationSymbol.get(Modifiers.HELPER);
+        Symbol ansym = modToAnnotationSymbol.get(kind);
         Attribute.Compound a = new Attribute.Compound(ansym.type,List.<Pair<MethodSymbol,Attribute>>nil());
-        JCAnnotation an = jmlMaker.Annotation(a);
+        JmlAnnotation an = (JmlAnnotation)jmlMaker.Annotation(a);
         an.type = ansym.type;
+        an.kind = kind;
         mspecs.mods.annotations = mspecs.mods.annotations.append(an);
+        for (JCTree.JCAnnotation aa: mspecs.mods.annotations) {
+        	if (((JmlTree.JmlAnnotation)aa).kind == kind) return;
+        }
+        System.out.println("ANNOTATION NOT FOUND AFTER ADD HELPER " + symbol);
         return;
     }
     
@@ -6987,25 +7014,36 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public Type check(final JCTree tree, final Type found, final Kinds.KindSelector ownkind, final ResultInfo resultInfo) {
+        tree.type = found;
         if (resultInfo.pt instanceof JmlListType) {
-            return (tree.type = found);
-        }
-        if (utils.isExtensionValueType(resultInfo.pt)) {
-            if (types.isSameType(resultInfo.pt, utils.extensionValueType("string"))
-                    && types.isSameType(found, syms.stringType)) {
-                return (tree.type = found);
-            }
-            if (!types.isSameType(resultInfo.pt, found)) {
-                utils.error(tree.pos(), "jml.message",
-                        "illegal conversion: " + found +
-                        " to " + resultInfo.pt);
-                return (tree.type = types.createErrorType(found));
-            }
+            return found;
         }
         if (found == null) {
         	System.out.println("FOUND TYPE IS NULL " + resultInfo.pt + " " + tree);
         	Utils.dumpStack();
         	return (tree.type = types.createErrorType(resultInfo.pt));
+        }
+        if (utils.isExtensionValueType(resultInfo.pt)) {
+        	// We should check for conversions from found to resultInfo.pt,
+        	// but currently no such implicit conversions are allowed
+            if (types.isSameType(resultInfo.pt, utils.extensionValueType("string"))
+                    && types.isSameType(found, syms.stringType)) {
+                return found; // FIXME - explain why this test for strings
+            }
+            if (!types.isSameType(resultInfo.pt, found)) return found;
+
+            if (found.isParameterized() == resultInfo.pt.isParameterized()) {
+            	if (found.tsym == resultInfo.pt.tsym) {
+            		// There are cases where two parameterized types with type variable parameters appear equal
+            		// but test unequal. We'll resort to string comparison for now
+            		if (found.toString().equals(resultInfo.pt.toString())) return found;
+            	}
+            }
+            
+            utils.error(tree.pos(), "jml.message",
+            		"illegal conversion: " + found +
+            		" to " + resultInfo.pt);
+            return (tree.type = types.createErrorType(found));
         }
         return super.check(tree, found, ownkind, resultInfo);
     } 
