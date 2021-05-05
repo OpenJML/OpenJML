@@ -659,32 +659,9 @@ public class JmlParser extends JavacParser {
     /** Overridden to parse JML statements */
     @Override  // TODO - needs REVIEW
     public JCStatement parseStatement() {
-        if (S.jml()) {
-            if (token.kind == TokenKind.IDENTIFIER) {
-                List<JCStatement> sts = blockStatement();
-                return sts == null ? null : sts.head;
-//                id = token.name().toString();
-//                IJmlClauseKind clauseType = Extensions.findSM(id);
-//                if (clauseType instanceof IJmlClauseKind.Statement) {
-//                    log.error(pos, "jml.message", "NOT EXPECTED HERE - loop");
-//                    st = (JmlAbstractStatement)clauseType.parse(null,id,clauseType,this);
-//                    while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
-//                    if (st instanceof JmlStatementLoop) {
-//                        st = parseLoopWithSpecs((JmlStatementLoop)st);
-//                    }
-//                    return st;
-//                } else if (clauseType instanceof IJmlClauseKind.MethodClauseKind) {
-//                    log.error(pos, "jml.message", "NOT EXPECTED HERE - refining");
-//                    st = parseRefining(pos(),null);
-//                    return st;
-//                } else if (token.kind == TokenKind.ASSERT) {
-//                    log.error(pos, "jml.message", "NOT EXPECTED HERE - assert");
-//                    clauseType = assertClause;
-//                    st = (JCStatement)clauseType.parse(null,id,clauseType,this);
-//                } else {
-//                    log.error(pos, "jml.message", "Unexpected statement type: " + id);
-//                }
-            }
+        if (S.jml() && token.kind == TokenKind.IDENTIFIER) {
+            List<JCStatement> sts = blockStatement();
+            return sts == null ? null : sts.head;
         }
         JCStatement stt = super.parseStatement();
         return stt;
