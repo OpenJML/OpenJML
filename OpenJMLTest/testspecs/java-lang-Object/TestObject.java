@@ -13,7 +13,9 @@ public class TestObject {
 		//@ assert a != null;
 		//@ assert b != null;
 		//@ assert a != b;
-		//@ assert a.hashCode() == a.hashCode();
+		int i1 = a.hashCode();
+		int i2 = a.hashCode();
+		//@ assert i1 == i2;
 		//@ assert a.equals(a); 
 		//@ assert !a.equals(b); 
 		//@ assert !a.equals(null); 

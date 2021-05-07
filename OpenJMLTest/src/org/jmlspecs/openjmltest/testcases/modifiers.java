@@ -469,10 +469,10 @@ public class modifiers extends TCBase {
     
     @Test public void testMatchMethod7() { 
         addMockFile("$A/A.jml","public class A { public void m(int j, Object k); }");
-        helpTCF("A.java","public class A{ void m(boolean i) {}  public String m(int i, Object mm) { return null; } }",
-                "/$A/A.jml:1: error: The return types of method A.m(int,java.lang.Object) are different in the specification and java files: void vs. java.lang.String",25, 
-//                "/$A/A.jml:1: error: Parameter 0 of method A.m(int,java.lang.Object) has name i in the .java file but j in the specification (they should be the same)",36,
-//                "/$A/A.jml:1: error: Parameter 1 of method A.m(int,java.lang.Object) has name mm in the .java file but k in the specification (they should be the same)",46
+        helpTCF("A.java","public class A{ void m(boolean i) {}  public String m(int i, Object mm) { return null; } }"
+                ,"/$A/A.jml:1: error: The return types of method A.m(int,java.lang.Object) are different in the specification and java files: void vs. java.lang.String",25
+//                ,"/$A/A.jml:1: error: Parameter 0 of method A.m(int,java.lang.Object) has name i in the .java file but j in the specification (they should be the same)",36
+//                ,"/$A/A.jml:1: error: Parameter 1 of method A.m(int,java.lang.Object) has name mm in the .java file but k in the specification (they should be the same)",46
                 );
     }
 

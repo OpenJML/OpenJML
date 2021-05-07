@@ -11,59 +11,61 @@ Starting proof of Simpler.H.H() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Simpler.H.H() with prover !!!! - no warnings
-Starting proof of Simpler.H.has(java.lang.Object) with prover !!!!
+Starting proof of Simpler.H.has(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Simpler.H.has(java.lang.Object) with prover !!!! - no warnings
-Starting proof of Simpler.H.take(java.lang.Object) with prover !!!!
+Completed proof of Simpler.H.has(Object) with prover !!!! - no warnings
+Starting proof of Simpler.H.take(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Simpler.H.take(java.lang.Object) with prover !!!! - no warnings
+Completed proof of Simpler.H.take(Object) with prover !!!! - no warnings
 Completed proving methods in Simpler.H
-Starting proof of Simpler.loop(Simpler.H,java.lang.Object) with prover !!!!
+Starting proof of Simpler.loop(Simpler.H,Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
-Completed proof of Simpler.loop(Simpler.H,java.lang.Object) with prover !!!! - no warnings
-Starting proof of Simpler.loop2(Simpler.H,java.lang.Object) with prover !!!!
+Completed proof of Simpler.loop(Simpler.H,Object) with prover !!!! - no warnings
+Starting proof of Simpler.loop2(Simpler.H,Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
-Completed proof of Simpler.loop2(Simpler.H,java.lang.Object) with prover !!!! - no warnings
-Starting proof of Simpler.loop3(Simpler.H,java.lang.Object) with prover !!!!
+Completed proof of Simpler.loop2(Simpler.H,Object) with prover !!!! - no warnings
+Starting proof of Simpler.loop3(Simpler.H,Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
-Completed proof of Simpler.loop3(Simpler.H,java.lang.Object) with prover !!!! - no warnings
-Starting proof of Simpler.loop4(int[],Simpler.H,java.lang.Object) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - after explicit assume statement : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - at program exit : OK
-Completed proof of Simpler.loop4(int[],Simpler.H,java.lang.Object) with prover !!!! - no warnings
-Starting proof of Simpler.loop4(java.util.List<java.lang.Object>,Simpler.H,java.lang.Object) with prover !!!!
+Completed proof of Simpler.loop3(Simpler.H,Object) with prover !!!! - no warnings
+Starting proof of Simpler.loop4(int[],Simpler.H,Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - after explicit assume statement : OK
 Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
-Completed proof of Simpler.loop4(java.util.List<java.lang.Object>,Simpler.H,java.lang.Object) with prover !!!! - no warnings
+Completed proof of Simpler.loop4(int[],Simpler.H,Object) with prover !!!! - no warnings
+Starting proof of Simpler.loop4(java.util.List<Object>,Simpler.H,Object) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of Simpler.loop4(java.util.List<Object>,Simpler.H,Object) with prover !!!! - no warnings
 Completed proving methods in Simpler
 Proving methods in courseman.baderrs.StudentSimple2_3
 Starting proof of courseman.baderrs.StudentSimple2_3.StudentSimple2_3() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of courseman.baderrs.StudentSimple2_3.StudentSimple2_3() with prover !!!! - no warnings
-Starting proof of courseman.baderrs.StudentSimple2_3.addEnrolment(java.lang.Object) with prover !!!!
+Starting proof of courseman.baderrs.StudentSimple2_3.addEnrolment(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of courseman.baderrs.StudentSimple2_3.addEnrolment(java.lang.Object) with prover !!!! - no warnings
-Starting proof of courseman.baderrs.StudentSimple2_3.removeEnrolmentBad(java.lang.Object) with prover !!!!
+Completed proof of courseman.baderrs.StudentSimple2_3.addEnrolment(Object) with prover !!!! - no warnings
+Starting proof of courseman.baderrs.StudentSimple2_3.removeEnrolmentBad(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of courseman.baderrs.StudentSimple2_3.removeEnrolmentBad(java.lang.Object) with prover !!!! - no warnings
-Starting proof of courseman.baderrs.StudentSimple2_3.removeEnrolmentGood(java.lang.Object) with prover !!!!
+Completed proof of courseman.baderrs.StudentSimple2_3.removeEnrolmentBad(Object) with prover !!!! - no warnings
+Starting proof of courseman.baderrs.StudentSimple2_3.removeEnrolmentGood(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of courseman.baderrs.StudentSimple2_3.removeEnrolmentGood(java.lang.Object) with prover !!!! - no warnings
+Completed proof of courseman.baderrs.StudentSimple2_3.removeEnrolmentGood(Object) with prover !!!! - no warnings
 Completed proving methods in courseman.baderrs.StudentSimple2_3
+Note: test/gitbug582/StudentSimple2_3.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
 1 warning

@@ -635,11 +635,6 @@ public abstract class Buffer {
       @*/
     final /*@ pure @*/ int markValue();                             // package-private
 
-    /*@ normal_behavior
-      @   assignable mark, position, limit, capacity;
-      @   ensures mark < 0 && position == 0 && limit == 0 && capacity == 0;
-      @*/
-    final void truncate();                             // package-private
 
     /*@ normal_behavior
       @   assignable mark;
@@ -647,5 +642,4 @@ public abstract class Buffer {
       @*/
     final void discardMark();                          // package-private
 
-    static void checkBounds(int off, int len, int size);
 }

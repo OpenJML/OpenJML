@@ -366,23 +366,6 @@ public class JmlOptions extends Options {
         if (benchmarkDir != null) {
             new File(benchmarkDir).mkdir();
         }
-
-        {
-            // Automatically set verboseness to PROGRESS if we are debugging checkFeasibility.
-            // So do this determination before we interpret the verboseness option.
-            String t = options.get(JmlOption.FEASIBILITY.optionName());
-            if (t != null) {
-                if (t.startsWith("debug") && utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
-                int k = t.indexOf(":");
-                if (k > 0) {
-                    try {
-                        MethodProverSMT.startFeasibilityCheck = Integer.parseInt(t.substring(k+1));
-                    } catch (Exception e) {
-                        // continue
-                    }
-                }
-            }
-        }
         
         if (options.get("-verbose") != null) {
             // If the Java -verbose option is set, we set -jmlverbose as well

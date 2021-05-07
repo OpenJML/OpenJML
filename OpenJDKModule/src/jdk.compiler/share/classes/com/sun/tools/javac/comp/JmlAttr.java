@@ -1005,6 +1005,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     @Override
+    public void visitNewArray(JCNewArray tree) {
+    	super.visitNewArray(tree);
+    	if (!quantifiedExprs.isEmpty()) {
+        	utils.error(tree, "jml.message", "Quantifier bodies may not contain constructors");
+    	}
+    }
+    
+    @Override
     public void visitNewClass(JCNewClass tree) {
     	// FIXME
         boolean prev = implementationAllowed;
@@ -1032,6 +1040,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             implementationAllowed= true;
             super.visitNewClass(tree);
+        	if (!quantifiedExprs.isEmpty()) {
+            	utils.error(tree, "jml.message", "Quantifier bodies may not contain constructors: " + tree.constructor.toString());
+        	}
             if (!(tree.type instanceof Type.ErrorType) && jmlenv.inPureEnvironment) {
                 Symbol sym = tree.constructor;
                 MethodSymbol msym = null;
@@ -1056,15 +1067,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     protected void nonPureWarning(DiagnosticPosition pos, MethodSymbol msym) {
-        String name = msym.owner != null ? msym.owner.toString() : "";
-        boolean libraryMethod = name.startsWith("java") 
-                || name.startsWith("org.jmlspecs.models") // FIXME - the models should be annotated and shjoiuld work
-                || name.startsWith("org.jmlspecs.lang.JML");  // FIXME - these should work but don't
-        if (!libraryMethod // FIXME && !msym.owner.isEnum())
-                || JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
-        	utils.warning(pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
-        }
-
+    	utils.warning(pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
     }
    
     boolean noBodyOK = false;
@@ -2678,13 +2681,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         jmlenv = jmlenv.pushCopy();
         jmlenv.currentClauseKind = tree.clauseType;
         jmlenv.inPureEnvironment = true;
+        //var localEnv = enter.typeEnvs.get(env.enclClass.sym);
+        var localEnv = localEnv(env,enter.typeEnvs.get(env.enclClass.sym).tree);
+        localEnv.info.staticLevel = 0;
+        var savedEnv = env;
+        env = localEnv;
+        boolean isStaticParent = utils.isJMLStatic(tree.parentVar.sym);
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         try {
             inVarDecl = tree.parentVar;
             jmlenv.jmlVisibility = tree.parentVar.mods.flags & Flags.AccessFlags; // FIXME - don't thnk this is needed here
-        	for (var v: tree.list) {
-        		attributeGroup(v);
-        	}
+            tree.list.forEach(v -> attributeGroup(v));
             java.util.List<VarSymbol> circList = checkForCircularity(inVarDecl.sym);
             if (circList != null) {
                 Iterator<VarSymbol> iter = circList.iterator();
@@ -2698,6 +2705,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             inVarDecl = prevDecl;
             jmlenv = jmlenv.pop();
             jmlresolve.setAllowJML(prevAllowJML);
+            env = savedEnv;
             result = null;
         }
     }
@@ -4025,6 +4033,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (env.enclMethod == null) ((JmlResolve)rs).setAllowJML(prev);
     }
     
+    @Override
+    Type condType(List<DiagnosticPosition> positions, List<Type> condTypes) {
+    	if (condTypes.stream().anyMatch(t->t==jmltypes.REAL) && condTypes.stream().allMatch(t->jmltypes.isNumeric(t))) return jmltypes.REAL;
+    	if (condTypes.stream().anyMatch(t->t==jmltypes.BIGINT) && condTypes.stream().allMatch(t->jmltypes.isIntegral(t))) return jmltypes.BIGINT;
+    	return super.condType(positions, condTypes);
+    }
+
     
     @Override
     public void visitJmlBinary(JmlBinary that) {  // FIXME - how do we handle unboxing, casting
@@ -6333,7 +6348,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	try {
             savedSpecOK = true;
             attribStats(tree.init, loopEnv);
-            Env<AttrContext> labelenvi = env.dup(tree,env.info.dupUnshared());
+            Env<AttrContext> labelenvi = env.dup(tree,loopEnv.info.dupUnshared());
             saveEnvForLabel(names.fromString("LoopInit"),labelenvi);
     		if (tree.cond != null) {
     			attribExpr(tree.cond, loopEnv, syms.booleanType);
@@ -6341,7 +6356,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			condBindings = matchBindings;
     		}
             loopEnv.tree = tree; // before, we were not in loop!
-            saveEnvForLabel(names.fromString("LoopBodyBegin"),env);
+            saveEnvForLabel(names.fromString("LoopBodyBegin"),loopEnv);
 
 
             attribLoopSpecs(tree.loopSpecs, loopEnv);
@@ -7030,7 +7045,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     && types.isSameType(found, syms.stringType)) {
                 return found; // FIXME - explain why this test for strings
             }
-            if (!types.isSameType(resultInfo.pt, found)) return found;
+            if (types.isSameType(resultInfo.pt, found)) return found;
 
             if (found.isParameterized() == resultInfo.pt.isParameterized()) {
             	if (found.tsym == resultInfo.pt.tsym) {

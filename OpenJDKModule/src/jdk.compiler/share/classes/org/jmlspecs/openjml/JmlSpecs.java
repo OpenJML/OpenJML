@@ -1253,7 +1253,9 @@ public class JmlSpecs {
             JCExpression e = JmlTreeUtils.instance(context).makeType(pos, t);
             list.add(e);
         }
-        boolean isPure = utils.hasMod(mspecs.mods, Modifiers.PURE, Modifiers.FUNCTION);
+        
+        boolean libraryMethod = sym.owner instanceof ClassSymbol && sym.owner.toString().startsWith("java");
+        boolean isPure = utils.hasMod(mspecs.mods, Modifiers.PURE, Modifiers.FUNCTION) || (libraryMethod && !JmlOption.isOption(context,JmlOption.PURITYCHECK));
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                 com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPure?nothingKind:everythingKind)));
         JmlMethodClause clpa = new JmlTree.JmlMethodClauseStoreRef(pos,accessibleID, accessibleClause,

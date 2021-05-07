@@ -3,7 +3,7 @@ package courseman.baderrs;
 import java.util.ArrayList;
 import java.util.List;
 
-//@ model import org.jmlspecs.models.*;
+//  @ model import org.jmlspecs.models.*;
 
 /**
  * 
@@ -37,7 +37,7 @@ public class StudentSimple2_3 {
     @ ensures !\old(enrolments).contains(e) ==> 
     @            enrolments.equals(\old(enrolments).add(e));
     @*/
-  public void addEnrolment(Object e) {
+  public void addEnrolment(Object e) { // THIS WILL NOT PROVE - SPECS are incorrect and not pure
     if (!enrolments.contains(e))
       enrolments.add(e);
   }

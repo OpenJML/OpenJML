@@ -1243,11 +1243,11 @@ public abstract class ByteBuffer
      */
     public boolean equals(Object ob);
 
-    /*@ private normal_behavior
-      @   assignable \nothing;
-      @   ensures \result <==> x == y;
-      @*/
-    private /*@ pure @*/ static boolean equals(byte x, byte y);
+//    /*@ private normal_behavior
+//      @   assignable \nothing;
+//      @   ensures \result <==> x == y;
+//      @*/
+//    private /*@ pure @*/ static boolean equals(byte x, byte y);
 
     /**
      * Compares this buffer to another.
@@ -1303,10 +1303,10 @@ public abstract class ByteBuffer
      */
     public final ByteBuffer order(ByteOrder bo);
 
-    // Unchecked accessors, for use by ByteBufferAs-X-Buffer classes
-    //
-    abstract byte _get(int i);                          // package-private
-    abstract void _put(int i, byte b);                  // package-private
+//    // Unchecked accessors, for use by ByteBufferAs-X-Buffer classes
+//    //
+//    abstract byte _get(int i);                          // package-private
+//    abstract void _put(int i, byte b);                  // package-private
 
 
     /**
