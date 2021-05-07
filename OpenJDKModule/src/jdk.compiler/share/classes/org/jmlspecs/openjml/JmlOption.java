@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jmlspecs.openjml.Main.Cmd;
+import org.jmlspecs.openjml.esc.MethodProverSMT;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -217,8 +218,16 @@ public class JmlOption {
             if (check.equals(Strings.feas_all)) {
                 options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls);
             } else if (check.startsWith(Strings.feas_debug)) {
-                options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls+",debug");
                 if (utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
+                int k = check.indexOf(":");
+                if (k > 0) {
+                	try {
+                		MethodProverSMT.startFeasibilityCheck = Integer.parseInt(check.substring(k+1));
+                        options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls+",debug");
+                	} catch (Exception e) {
+                		// continue
+                	}
+                }
             }
             String badString = Strings.isOK(check);
             if (badString != null) {

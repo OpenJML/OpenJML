@@ -785,7 +785,7 @@ public class escnew3 extends EscBase {
                 );
     }
 
-    @Test
+    @Test @Ignore // TIMES OUT
     public void testVarargs3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

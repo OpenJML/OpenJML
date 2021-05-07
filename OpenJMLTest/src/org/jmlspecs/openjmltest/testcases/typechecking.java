@@ -1161,6 +1161,7 @@ public class typechecking extends TCBase {
 
     @Test public void testQuantifiedExpression() {
         helpTCF("A.java"," class A { /*@ public invariant (\\sum Integer i; 0<=i && i < 6; new Object()); */ }"
+        		,"/A.java:1: error: Quantifier bodies may not contain constructors: Object()",65
         		,"/A.java:1: error: The value expression of a sum or product expression must be a numeric type, not java.lang.Object",65
                 );
     }

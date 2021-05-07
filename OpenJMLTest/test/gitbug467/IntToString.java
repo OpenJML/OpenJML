@@ -1,5 +1,6 @@
 public class IntToString {
   public static String intToString(int x) {
-    return x + "";
+	    return x + "";
+	    //return String.valueOf(x) + ""; // OK
   }
 }

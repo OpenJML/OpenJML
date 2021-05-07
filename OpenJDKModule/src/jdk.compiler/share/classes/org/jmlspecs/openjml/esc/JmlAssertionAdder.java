@@ -4011,25 +4011,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         
 
-        
         // Assume all axioms of classes mentioned in the target method
         if (esc || infer) {
-            addStat(comment(methodDecl,"Assume axioms",null));
-            addForClasses(collector.classes, axiomAdder);
-            if (isHelper(methodDecl.sym)) {
-                addStat(comment(methodDecl,"Method is helper so not assuming static invariants",null));
-            } else {
-                addStat(comment(methodDecl,"Assume static invariants",null));
-                addForClasses(collector.classes, staticInvariantAdder);
-            }
-            addStat(comment(methodDecl,"Assume static final constant fields",null));
-            addForClasses(collector.classes, finalStaticFieldAdder);
-            addStat(comment(methodDecl,"Assume static initialization",null));
-            addForClasses(collector.classes, staticInitializerAdder);
-            {
-                addStat(comment(methodDecl.pos(),"Static initialization",log.currentSourceFile()));
-                addStaticInitialization((ClassSymbol)methodDecl.sym.owner);
-            }
+        		addStat(comment(methodDecl,"Assume axioms",null));
+        		addForClasses(collector.classes, axiomAdder);
+        		if (isHelper(methodDecl.sym)) {
+        			addStat(comment(methodDecl,"Method is helper so not assuming static invariants",null));
+        		} else {
+        			addStat(comment(methodDecl,"Assume static invariants",null));
+        			addForClasses(collector.classes, staticInvariantAdder);
+        		}
+        		addStat(comment(methodDecl,"Assume static final constant fields",null));
+        		addForClasses(collector.classes, finalStaticFieldAdder);
+        		addStat(comment(methodDecl,"Assume static initialization",null));
+        		addForClasses(collector.classes, staticInitializerAdder);
+        		{
+        			addStat(comment(methodDecl.pos(),"Static initialization",log.currentSourceFile()));
+        			addStaticInitialization((ClassSymbol)methodDecl.sym.owner);
+        		}
         }
 
 
@@ -8383,7 +8382,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             boolean hasTypeArgs = calleeMethodSym.type instanceof Type.ForAll; 
             if (calleeIsConstructor && !localVariables.isEmpty()) {
             	utils.error(that, "jml.message", "Quantifier bodies may not contain constructors: " + calleeMethodSym.toString());
-                throw new JmlInternalAbort();
+                throw new JmlInternalAbort(); // This problem is su[osed to be caught in JmlAttr
             }
             boolean addMethodAxioms = nodoTranslations && !calleeIsConstructor && !hasTypeArgs && !isSuperCall && !isThisCall;
 //            boolean addMethodAxioms = !rac && !calleeMethodSym.isConstructor() && !hasTypeArgs && !isSuperCall && !isThisCall && isPure(calleeMethodSym)
