@@ -1,1 +1,2 @@
-ARGS="-Xmaxwarns 100 -quiet"
+ARGS="-Xmaxwarns=100 -quiet"
+EXIT=2
