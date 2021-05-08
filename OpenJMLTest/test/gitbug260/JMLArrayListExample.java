@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 public class JMLArrayListExample {
-public ArrayList elements;
+public ArrayList<String> elements;
 
 public JMLArrayListExample () {
     elements = new ArrayList<String>();

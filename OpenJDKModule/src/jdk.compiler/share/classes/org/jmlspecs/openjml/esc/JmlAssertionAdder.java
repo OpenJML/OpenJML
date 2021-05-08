@@ -14930,6 +14930,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 if (item instanceof JCIdent && item.type.isPrimitive() && ((JCIdent)item).sym.owner instanceof MethodSymbol) continue;
                 allLocal = false;
+                if (item.type.isReference()) {
+                    JCExpression e = getInvariantAll(item,item.type,item);
+                    addAssume(item, Label.IMPLICIT_ASSUME, e);
+                }
                 // FIXME - zadd more types? becareful not to include wildcards
             }
         }
