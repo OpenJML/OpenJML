@@ -22,7 +22,7 @@ public class Test {
 		//@ also public normal_behavior
 		//@   requires true;
 		//@   ensures false;
-		//@ abstract public non_null String toString();
+		//@ model public non_null String toString();
 	}
 	
 	static public class BB extends B {

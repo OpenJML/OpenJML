@@ -1,0 +1,7 @@
+public class Test {
+
+	//@ public normal_behavior
+	//@   ensures init;
+	public Test();
+
+}

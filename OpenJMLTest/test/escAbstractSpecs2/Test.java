@@ -6,7 +6,7 @@ public class Test {
 		
 		//@ public normal_behavior
 		//@   ensures init;
-		//@ public C(); // ERROR - no such constructor
+		//@ model public C(); // ERROR - no such constructor
 		
 		public C(int i) {
 			this(); // ERROR - no such constructor
