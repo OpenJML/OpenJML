@@ -57,9 +57,11 @@ public class Challenge1A {
 
             // @ assert \forall int i; 0 <= i < lengthcut-1; cut[i] > 0 ==> (a[cut[i]] < a[cut[i]+1] <=!=> a[cut[i]-1] < a[cut[i]]); // maximal so far
         }
+        //@ assert \forall int i; 0 <= i < lengthcut; 0 <= cut[i] <= y; // within bounds so far
         if (x < n) {
             cut[lengthcut++] = n;
         }
+        //@ assert \forall int i; 0 <= i < lengthcut; 0 <= cut[i] <= y; // within bounds so far
         int[] newcut = new int[lengthcut];
         System.arraycopy(cut, 0, newcut, 0, lengthcut);
         return newcut;

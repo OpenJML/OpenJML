@@ -449,6 +449,19 @@ public class JmlParser extends JavacParser {
             argsn.add(jmlF.Select(jmlF.Ident(decl.getName()), names._name));
             num++;
         }
+//        {
+//        	var pos = cd;
+//        	JCExpression restype = jmlF.at(pos).Ident(cd.name);
+//        	JCVariableDecl param = jmlF.at(pos).VarDef(jmlF.Modifiers(0L), names.fromString("x"), jmlF.at(pos).Ident(names.fromString("String")), null);
+//        	param.mods.annotations = param.mods.annotations.append(utils.modToAnnotationAST(Modifiers.NULLABLE, pos.pos, pos.pos));
+//        	JCExpression thrown = jmlF.at(pos).Ident("NullPointerException");
+//            var mdef = (JmlMethodDecl)jmlF.at(pos).MethodDef(jmlF.at(pos).Modifiers(Flags.PUBLIC|Flags.STATIC), names.valueOf, restype,
+//            		List.<JCTypeParameter>nil(), List.<JCVariableDecl>of(param), List.<JCExpression>of(thrown), null,null);
+//            mdef.mods.annotations = mdef.mods.annotations.append(utils.modToAnnotationAST(Modifiers.PURE, pos.pos, pos.pos));
+//            mdef.mods.annotations = mdef.mods.annotations.append(utils.modToAnnotationAST(Modifiers.HELPER, pos.pos, pos.pos));
+//            mdef.mods.annotations = mdef.mods.annotations.append(utils.modToAnnotationAST(Modifiers.NON_NULL, pos.pos, pos.pos));
+//            cd.defs = cd.defs.append(mdef);
+//        }
         if (disj != null) { // Must be at least one value
             args.add(F.Literal(TypeTag.BOT,null));
             argsn.add(F.Literal(TypeTag.BOT,null));

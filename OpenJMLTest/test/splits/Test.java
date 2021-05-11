@@ -35,7 +35,7 @@ public class Test {
         //@ split
         switch (i + 1) {
         case 1: return i == 0;
-        case 2: return i == 10; // ERROR
+        case 2: return i == 10; // ERROR - split B
         case 3: return i == 2;
         default: return i < 0;
         }
@@ -54,20 +54,20 @@ public class Test {
     //@ ensures \result;
     public boolean mbool(int i) {
         //@ split i > 0;
-        return i > 0;
+        return i > 0;  // Split A OK; Split B is ERROR
     }
     
     //@ ensures \result;
-    public boolean mcombined(int i) {
+    public boolean mcombined(int i) { // ERROR - split AB, BB infeasible
         //@ split
         if (i > 0) {
             //@ split i >= 0;
-            return i >= 0; // ERROR
+            return i >= 0; // split AB infeasible
         } else {
             //@ split
             switch (i) {
             case 0: return true;
-            case 1: return i > 0; // Infeasible
+            case 1: return i > 0; // Infeasible - split BB
             default: return i < 0;
             }
         }
@@ -97,7 +97,7 @@ public class Test {
     
     //@ requires i < 1000;
     //@ ensures j == i + 1;
-    public void mswa(int i) {
+    public void mswa(int i) {  // ERROR - case 1
         switch (i) {
         case 0: j = 1; return;
         case 1: j = 3; break;
@@ -118,7 +118,7 @@ public class Test {
     }
     
     //@ requires i < 1000;
-    //@ ensures j == i + 1;
+    //@ ensures j == i + 1; // ERROR on default
     public void mswc(int i) {
         switch (i) {
         case 0: j = 1; return;

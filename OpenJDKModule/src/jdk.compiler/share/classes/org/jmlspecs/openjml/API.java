@@ -945,7 +945,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#getDenestedSpecs(com.sun.tools.javac.code.Symbol.MethodSymbol)
      */
     @Override
-    public /*@non_null*/ JmlMethodSpecs getDenestedSpecs(/*@non_null*/ MethodSymbol sym) {
+    public /*@ nullable*/ JmlMethodSpecs getDenestedSpecs(/*@non_null*/ MethodSymbol sym) {
         return JmlSpecs.instance(context()).getDenestedSpecs(sym);
     }
     

@@ -18,7 +18,5 @@ public class ArrList {
     //@ assignable \nothing;
     public static void main(String[] args) {
         ArrList al = new ArrList(1);
-        // @ assert al.theList.content.owner == al.theList; // FIXME - with -minQuant, this assertion cannot be proved, though it can with -no-minQuant
-        //System.out.println(al.theList.get(0));
     }
 }

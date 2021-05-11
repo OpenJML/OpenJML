@@ -1648,27 +1648,32 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionSwitchNull() {
+    	main.addOptions("-progress"); // FIXME - fails in nondeterministic ways when this statement is not present
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  enum A { X,Y; };\n"
+                
                 + "  //@ public normal_behavior\n"
                 + "  public void foo(/*@ nullable */ A a) { \n"
-                + "     switch (a) {};\n"
+                + "     switch (a) {};\n" // ERROR - a might be null
                 + "  }\n"
+                
                 + "  //@ public normal_behavior\n"
                 + "  public void fooA(/*@ nullable */ A a) { \n"
-                + "     try { switch (a) {}; } catch (NullPointerException e) {}\n"
+                + "     try { switch (a) {}; } catch (NullPointerException e) {}\n" // OK - possibly null is caught
                 + "  }\n"
+                
                 + "  //@ public normal_behavior requires true;\n"
                 + "  //@ also public exceptional_behavior requires false; signals_only NullPointerException;\n"
                 + "  public void fooB(/*@ nullable */ A a) { \n"
-                + "     switch (a) {};\n"
+                + "     switch (a) {};\n" // ERROR - possibly null is not expected because of null precondition
                 + "  }\n"
+                
                 + "  //@ public normal_behavior requires a != null;\n"
                 + "  //@ also public exceptional_behavior requires a == null; signals_only NullPointerException;\n"
                 + "  public void fooC(/*@ nullable */ A a) { \n"
-                + "     switch(a) {};\n"
+                + "     switch(a) {};\n" // OK - possibly null is expected
                 + "  }\n"
                 + "}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullValue) in method foo",13
