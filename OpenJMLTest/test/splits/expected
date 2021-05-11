@@ -54,7 +54,7 @@ Feasibility check - at program exit : OK
 Result of split A is UNSAT
 Proof attempt for split B
 test/splits/Test.java:38: warning: The prover cannot establish an assertion (Postcondition) in method m3
-        case 2: return i == 10; // ERROR
+        case 2: return i == 10; // ERROR - split B
                 ^
 test/splits/Test.java:33: warning: Associated declaration
     //@ ensures \result;
@@ -85,7 +85,7 @@ Feasibility check - at program exit : OK
 Result of split A is UNSAT
 Proof attempt for split B
 test/splits/Test.java:57: warning: The prover cannot establish an assertion (Postcondition) in method mbool
-        return i > 0;
+        return i > 0;  // Split A OK; Split B is ERROR
         ^
 test/splits/Test.java:54: warning: Associated declaration
     //@ ensures \result;
@@ -102,7 +102,7 @@ Proof attempt for split AB
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
 test/splits/Test.java:61: warning: There is no feasible path to program point at program exit in method Test.mcombined(int)
-    public boolean mcombined(int i) {
+    public boolean mcombined(int i) { // ERROR - split AB, BB infeasible
                    ^
 Result of split AB is INFEASIBLE
 Proof attempt for split BA
@@ -113,7 +113,7 @@ Proof attempt for split BB
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
 test/splits/Test.java:61: warning: There is no feasible path to program point at program exit in method Test.mcombined(int)
-    public boolean mcombined(int i) {
+    public boolean mcombined(int i) { // ERROR - split AB, BB infeasible
                    ^
 Result of split BB is INFEASIBLE
 Proof attempt for split BC
@@ -134,7 +134,7 @@ Feasibility check - at program exit : OK
 Completed proof of Test.msw(int) with prover !!!! - no warnings
 Starting proof of Test.mswa(int) with prover !!!!
 test/splits/Test.java:100: warning: The prover cannot establish an assertion (Postcondition) in method mswa
-    public void mswa(int i) {
+    public void mswa(int i) {  // ERROR - case 1
                 ^
 test/splits/Test.java:99: warning: Associated declaration
     //@ ensures j == i + 1;
@@ -149,7 +149,7 @@ test/splits/Test.java:122: warning: The prover cannot establish an assertion (Po
     public void mswc(int i) {
                 ^
 test/splits/Test.java:121: warning: Associated declaration
-    //@ ensures j == i + 1;
+    //@ ensures j == i + 1; // ERROR on default
         ^
 Completed proof of Test.mswc(int) with prover !!!! - with warnings
 Starting proof of Test.halt1(int) with prover !!!!

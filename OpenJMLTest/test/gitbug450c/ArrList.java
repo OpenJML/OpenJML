@@ -6,8 +6,8 @@ public class ArrList {
     public ArrayList<Integer> theList;
 
     //@ ensures theList != null;
-    //@ ensures theList.size() == 1;
-    // @ ensures theList.indexOf(a) == 0; // FIXME - at this time, the spec of ArrayList (and List) is not adequate to prove this assertion
+    //@ ensures \invariant_for(theList) && theList.size() == 1;
+    // @ ensures theList.indexOf(a) == 0; // FIXME - at this time, the spec of ArrayList (and List) is not adequate to prove this assertion (problem is equality after boxing)
     //@ pure // constructor
     public ArrList(int a) {
         theList = new ArrayList<Integer>();

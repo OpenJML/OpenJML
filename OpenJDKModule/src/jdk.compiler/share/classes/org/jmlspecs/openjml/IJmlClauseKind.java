@@ -467,6 +467,7 @@ public abstract class IJmlClauseKind {
     
     public static class ModifierKind extends IJmlClauseKind {
         public String fullAnnotation;
+        public com.sun.tools.javac.code.Symbol.ClassSymbol annotationSym = null;
         public boolean strict;
         public Class<? extends java.lang.annotation.Annotation> clazz;
         

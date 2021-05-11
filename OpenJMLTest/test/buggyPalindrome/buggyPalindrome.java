@@ -4,7 +4,7 @@ public class buggyPalindrome
 {
    private /*@ spec_public@*/String reverse = "";
    //@ public normal_behavior
-   //@ assignable reverse;
+   //@ assignable reverse, System.out.outputText;
    //@ ensures \result <==> reverse.equals(original);
    public boolean palindromeCheck(String original)
    {
@@ -42,7 +42,7 @@ public class buggyPalindrome
      return false;
     }     
    }
-   //@ assignable reverse;
+   //@ assignable reverse, System.out.outputText;
    //@ ensures \result <==> reverse.equals(original);
    public boolean palindromeCheckExc(String original)
    {
@@ -74,7 +74,7 @@ public class buggyPalindrome
     }     
    }
    //@ public normal_behavior
-   //@ assignable reverse;
+   //@ assignable reverse, System.out.outputText;
    //@ ensures \result <==> reverse.equals(original);
    public boolean palindromeCheckCatch(String original)
    {

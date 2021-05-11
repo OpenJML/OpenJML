@@ -257,9 +257,9 @@ public class MethodProverSMT {
         
         JmlClassDecl currentClassDecl = utils.getOwner(methodDecl);
         
-        // FIXME - when might methodDecl.sym be null?
-        JmlMethodSpecs denestedSpecs = methodDecl.sym == null ? null : 
-            JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym);
+//        // FIXME - when might methodDecl.sym be null?
+//        JmlMethodSpecs denestedSpecs = methodDecl.sym == null ? null : 
+//            JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym);
 
         // determine the executable
         String exec = pickProverExec(proverToUse);
@@ -354,7 +354,7 @@ public class MethodProverSMT {
         {
             // now convert to basic block form
             basicBlocker = new BasicBlocker2(context);
-            program = basicBlocker.convertMethodBody(newblock, methodDecl, denestedSpecs, currentClassDecl, jmlesc.assertionAdder);
+            program = basicBlocker.convertMethodBody(newblock, methodDecl, currentClassDecl, jmlesc.assertionAdder);
             if (printBB) {
                 log.getWriter(WriterKind.NOTICE).println(Strings.empty);
                 log.getWriter(WriterKind.NOTICE).println(separator);
@@ -998,10 +998,8 @@ public class MethodProverSMT {
                         } else {
                             if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).clauseType == assumeClause
                                     && ((JmlStatementExpr)stat).label == Label.ASSIGNMENT && stat.toString().contains("ASSERT")) {
-                                       toTrace = ((JmlStatementExpr)stat).expression;
-                            } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).clauseType == assumeClause
-                                    && ((JmlStatementExpr)stat).label == Label.ASSIGNMENT && stat.toString().contains("ASSERT")) {
-                                       toTrace = ((JmlStatementExpr)stat).expression;
+                                       toTrace = ((JCBinary)((JmlStatementExpr)stat).expression).rhs;
+                                       // FIXME - postcondition expressions are not in the cemap???
                             } 
                             else toTrace = origStat;
                         }
@@ -1063,7 +1061,7 @@ public class MethodProverSMT {
                     JmlStatementExpr assertStat = (JmlStatementExpr)stat;
                     JCExpression e = assertStat.expression;
                     Label label = assertStat.label;
-                   if (e instanceof JCTree.JCLiteral) {
+                    if (e instanceof JCTree.JCLiteral) {
                         value = ((JCTree.JCLiteral)e).value.equals(1); // Boolean literals have 0 and 1 value
                     } else if (e instanceof JCTree.JCParens) {
                         value = ((JCTree.JCLiteral)((JCTree.JCParens)e).expr).value.equals(1); // Boolean literals have 0 and 1 value

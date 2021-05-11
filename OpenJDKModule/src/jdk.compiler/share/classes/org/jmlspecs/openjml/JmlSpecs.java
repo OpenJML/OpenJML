@@ -1119,7 +1119,7 @@ public class JmlSpecs {
         	if (iter.hasNext()) superSym = (MethodSymbol)iter.next();
         }
         
-        if (sym.isConstructor() && sym.owner.toString().equals("RR")) System.out.println("DEF " + sym + " " + (superSym != null) + " " + isPure(superSym));
+
 
         // FIXME - check the case of a binary generated constructor with a declaration in JML
         if (((sym.flags() & Flags.GENERATEDCONSTR) != 0 && superSym != null && isPure(superSym)) || ( sym.owner == syms.objectType.tsym && sym.isConstructor()) || sym.owner == Symtab.instance(context).enumSym ) {
@@ -1171,24 +1171,29 @@ public class JmlSpecs {
                 //    ensures \result.length == <number of elements in enum>
                 //    for the ith enum item    ensures _JMLvalues[i] == item   // TODO
                 
-//                Name nv = names.fromString("_JMLvalues");
-//                JCFieldAccess valf = treeutils.makeSelect(pos, treeutils.makeIdent(pos, sym.owner), nv);
-//                valf.type = res.type;
-//                for (Symbol s: sym.owner.getEnclosedElements()) {
-//                    if (s.name == nv) {
-//                        valf.sym = s;
-//                    }
-//                }
-//                JCExpression fa = treeutils.makeArrayLength(pos, res); // \result.length
-//                JCBinary len = M.at(pos).Binary(JCTree.Tag.EQ, fa, treeutils.makeIntLiteral(pos,count).setType(syms.intType));
-//                len.operator = treeutils.inteqSymbol;
-//                len.setType(syms.booleanType);  // len: // \result.length == [[count]]
-//                JmlMethodClauseExpr enn = new JmlTree.JmlMethodClauseExpr(pos, ensuresID, ensuresClauseKind,len); // ensures \result.length == [[count]]
-//                JCExpression val = treeutils.makeEqObject(pos, res, valf);
-//                // ensures \result == <Enum>._JMLvalues;
-//                JmlMethodClause cval = M.at(pos).JmlMethodClauseExpr(ensuresID, ensuresClauseKind,val);
-//                clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,enn,clp,clpa,sig,cval);
+                Name nv = names.fromString("_JMLvalues");
+                JCFieldAccess valf = treeutils.makeSelect(pos, treeutils.makeIdent(pos, sym.owner), nv);
+                valf.type = res.type;
+                for (Symbol s: sym.owner.getEnclosedElements()) {
+                    if (s.name == nv) {
+                        valf.sym = s;
+                    }
+                }
+                JCExpression fa = treeutils.makeArrayLength(pos, res); // \result.length
+                JCBinary len = M.at(pos).Binary(JCTree.Tag.EQ, fa, treeutils.makeIntLiteral(pos,count).setType(syms.intType));
+                len.operator = treeutils.inteqSymbol;
+                len.setType(syms.booleanType);  // len: // \result.length == [[count]]
+                JmlMethodClauseExpr enn = new JmlTree.JmlMethodClauseExpr(pos, ensuresID, ensuresClauseKind,len); // ensures \result.length == [[count]]
+                JCExpression val = treeutils.makeEqObject(pos, res, valf);
+                // ensures \result == <Enum>._JMLvalues;
+                JmlMethodClause cval = M.at(pos).JmlMethodClauseExpr(ensuresID, ensuresClauseKind,val);
+                clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,enn,clp,clpa,sig,cval);
                 // FIXME - need to add a helper, pure annotation
+                var mdef = (JmlMethodDecl)M.at(pos).MethodDef(sym,null);
+                mdef.mods.annotations = addAnnotation(pos, Modifiers.PURE, mdef.mods.annotations);
+                mdef.mods.annotations = addAnnotation(pos, Modifiers.HELPER, mdef.mods.annotations);
+                mdef.mods.annotations = addAnnotation(pos, Modifiers.NON_NULL, mdef.mods.annotations);
+                mspecs.specDecl = mdef;
                 
             } else if (sym.name.equals(names.valueOf)) {
                // FIXME - add a disjunction of all possibilities?
@@ -1209,9 +1214,17 @@ public class JmlSpecs {
                 	sig.expression = argnull;
                     sig = M.at(pos).JmlMethodClauseSignals(signalsID, signalsClauseKind, vd, argnull);
                     sigo = M.at(pos).JmlMethodClauseSignalsOnly(signalsOnlyID, signalsOnlyClauseKind, com.sun.tools.javac.util.List.<JCExpression>of(M.Type(npeType),M.Type(syms.illegalArgumentExceptionType)));
-                    JmlMethodClauseExpr req = M.at(pos).JmlMethodClauseExpr("requires", requiresClauseKind, argnn);
-                    clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(req,en,clp,clpa,sig,sigo);
+                    en = M.at(pos).JmlMethodClauseExpr("ensures", ensuresClauseKind, treeutils.makeAnd(pos, argnn, resnn));
+                    clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,clp,clpa,sig,sigo);
                     // FIXME - Illegal argument exception? What about user supplied valueOf methods?
+                    var mdef = (JmlMethodDecl)M.at(pos).MethodDef(sym,null);
+                    mdef.mods.annotations = addAnnotation(pos, Modifiers.PURE, mdef.mods.annotations);
+                    mdef.mods.annotations = addAnnotation(pos, Modifiers.HELPER, mdef.mods.annotations);
+                    mdef.mods.annotations = addAnnotation(pos, Modifiers.NON_NULL, mdef.mods.annotations);
+                    JCVariableDecl param = mdef.params.head;
+                    param.mods.annotations = addAnnotation(pos,Modifiers.NULLABLE,param.mods.annotations);
+                    mspecs.specDecl = mdef;
+                    
                 } else {
                     clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,clp,clpa);
                 }
@@ -1234,6 +1247,11 @@ public class JmlSpecs {
             JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false, MethodSimpleClauseExtensions.behaviorClause,null,clauses,null);
             mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
             mspecs.mods.annotations = addPureAnnotation(pos, mspecs.mods.annotations);
+//            if (sym.name.equals(names.valueOf)) {
+//            	System.out.println("VALUEOF MSPECS " + mspecs);
+//                System.out.println("VALUEOF DECL " + mspecs.specDecl);
+//            }
+            JmlSpecs.instance(context).putSpecs(sym, mspecs, null);
             return mspecs;
             
         }
@@ -1299,6 +1317,12 @@ public class JmlSpecs {
         return annots.append(pure);
     }
     
+    public com.sun.tools.javac.util.List<JCAnnotation> addAnnotation(int pos, ModifierKind mk, com.sun.tools.javac.util.List<JCAnnotation> annots) {
+        JmlTree.Maker F = JmlTree.Maker.instance(context);
+        JmlAnnotation pure = makeAnnotation(pos, F, mk);
+        return annots.append(pure);
+    }
+    
     public JmlAnnotation makePureAnnotation(int pos, boolean withType, JmlTree.Maker F) {
         JmlAnnotation annot = makeAnnotation(pos, F, Modifiers.PURE);
         if (withType) annot.type = annot.annotationType.type = pureAnnotationSymbol().type;
@@ -1320,6 +1344,8 @@ public class JmlSpecs {
         t = (F.Select(t, names.fromString("annotation")));
         t = (F.Select(t, names.fromString(s.substring(k+1))));
         JmlAnnotation ann = (F.Annotation(t, com.sun.tools.javac.util.List.<JCExpression> nil()));
+        ann.kind = jt;
+//        annot.type = annot.annotationType.type = modelAnnotationSymbol().type; // FIXME - needs type
         //((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
         //storeEnd(ann, endpos);
         return ann;
@@ -1767,29 +1793,29 @@ public class JmlSpecs {
 
     // FIXME - these are also computed in JmlAttr
     protected ClassSymbol pureAnnotationSymbol() {
-    	if (pureAnnotationSymbol == null) {
-    		pureAnnotationSymbol = utils.createClassSymbol(Symtab.instance(context).java_base, Strings.pureAnnotation);
-    	}
-    	return pureAnnotationSymbol;
+    	return annotationSymbol(Modifiers.PURE);
     }
 
     protected ClassSymbol modelAnnotationSymbol() {
-    	if (modelAnnotationSymbol == null) {
-    		modelAnnotationSymbol = utils.createClassSymbol(Symtab.instance(context).java_base, Strings.modelAnnotation);
-    	}
-    	return modelAnnotationSymbol;
+    	return annotationSymbol(Modifiers.MODEL);
     }
 
     protected ClassSymbol functionAnnotationSymbol() {
-    	if (functionAnnotationSymbol == null) {
-    		functionAnnotationSymbol = utils.createClassSymbol(Symtab.instance(context).java_base, Strings.functionAnnotation);
+    	return annotationSymbol(Modifiers.FUNCTION);
+    }
+    
+    protected ClassSymbol annotationSymbol(ModifierKind mk) {
+    	if (mk.annotationSym == null) {
+    		mk.annotationSym = utils.createClassSymbol(Symtab.instance(context).java_base, mk.fullAnnotation);
     	}
-    	return functionAnnotationSymbol;
+    	return mk.annotationSym;
     }
     
     /** Returns true if the given method symbol is annotated as Pure */
     public boolean isPure(MethodSymbol symbol) {
+    	//boolean print = symbol.toString().contains("values");
     	JmlModifiers mods = getSpecsModifiers(symbol);
+    	//if (print) System.out.println("MODS " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasMod(mods,  Modifiers.PURE));
     	if (utils.hasMod(mods,  Modifiers.PURE)) return true; 
     	if (utils.hasMod(mods,  Modifiers.FUNCTION)) return true; 
         return isPure((Symbol.ClassSymbol)symbol.owner);

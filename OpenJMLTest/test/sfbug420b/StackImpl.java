@@ -3,8 +3,11 @@ package stack;
 public class StackImpl implements Stack {
 		
 	/*@ spec_public */ private int maxSize = 50;
-	private int[] internalStack;
+	/*@ spec_public */ private int[] internalStack;
 	/*@ spec_public */ private int stackCounter; //-RAC@ in count;
+	//-RAC@ public represents count = stackCounter;
+	//@ public invariant 0 <= stackCounter < maxSize;
+	//@ public invariant internalStack.length == maxSize;
 	
 	@SuppressWarnings("unchecked")
 	public StackImpl() {

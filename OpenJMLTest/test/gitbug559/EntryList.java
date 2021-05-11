@@ -11,10 +11,11 @@ public class EntryList {
     }
 
     /*@ ensures (this.first == null && \result == 0) ||(this.rest == null && \result == 1)  ||
-      @ (\result == rest.size() + 1);
+      @                                                (this.rest != null && \result == rest.size() + 1);
       @ pure
       @*/
     public int size() {  //@ assume rest != null ==> rest.size() < 1000000000; // Just to avoid overflow warnings
+    	//@ show this.first, this.rest;
         if(this.first == null) {
             return 0;
         }

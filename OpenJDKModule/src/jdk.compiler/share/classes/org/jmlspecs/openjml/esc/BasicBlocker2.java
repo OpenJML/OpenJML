@@ -548,12 +548,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * in place, modifying the tree that is the 'block' argument as needed.
      * 
      * @param methodDecl the method to convert to to a BasicProgram
-     * @param denestedSpecs the specs of the method
      * @param classDecl the declaration of the containing class
      * @return the completed BasicProgram
      */
     public /*@non_null*/ BasicProgram convertMethodBody(JCBlock block, /*@non_null*/ JmlMethodDecl methodDecl, 
-            JmlMethodSpecs denestedSpecs, /*@non_null*/ JmlClassDecl classDecl, /*@non_null*/ JmlAssertionAdder assertionAdder) {
+            /*@non_null*/ JmlClassDecl classDecl, /*@non_null*/ JmlAssertionAdder assertionAdder) {
         initialize(methodDecl,classDecl,assertionAdder);
         
         // Get the set of field symbols mentioned in the method body

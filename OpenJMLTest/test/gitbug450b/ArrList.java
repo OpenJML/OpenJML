@@ -11,6 +11,14 @@ public class ArrList {
     public ArrList(int a) {
         theList = new ArrayList<Integer>();
         theList.add(a);
+        //@ assert theList.size() == 1;
+        //@ assert theList.values.length == 1;
+        //@ assert theList.values[0] == a;
+        //@ assert java.util.Collection.nullequals(a,theList.values[0]);
+        //@ assert !(\forall int i; (0 <= i < theList.size()) ==> !java.util.Collection.nullequals(a, theList.values[i]));
+        int k = theList.indexOf(a);
+        //@ show k;
+        // @ assert k == 0;
     }
 
 }

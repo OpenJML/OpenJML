@@ -1823,8 +1823,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // the modifiers are added into the symbol
     // FIXME - check everything for position information
     public void deSugarMethodSpecs(MethodSymbol msym, JmlSpecs.MethodSpecs msp) {
-        //log.getWriter(WriterKind.NOTICE).println("DESUGARING " + decl.sym.owner + " " + decl.sym + decl.toString());
         if (msp == null) return;
+        //System.out.println("DESUGARING " + msym.owner + " " + msym + " " + msp.specDecl.toString());
         Env<AttrContext> prevEnv = env;
         var decl = msp.cases.decl;
         
@@ -1859,10 +1859,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // If the local specs are completely empty, then the desugaring depends on what is inherited:
                 // If the method at hand does not override anything, then we go on to add the default specs;
                 // If the method at hand does override some parent methods, then we add no additional specs here
-                if (!desugaringPure && !msym.isConstructor() && utils.parents(msym).size() > 1) { // The override list will always include the method itself
+                if (!msym.isConstructor() && utils.parents(msym).size() > 1) { // The override list will always include the method itself
                     JmlMethodSpecs newspecs = jmlMaker.at(msp.cases.pos).JmlMethodSpecs(List.<JmlTree.JmlSpecificationCase>nil());
                     newspecs.decl = msp.cases.decl;
                     msp.cases.deSugared = newspecs;
+                    //System.out.println("EMPTY WITH INHERITED " + msym.owner + " " + msym);
                     return;
                 }
                 JmlSpecs.MethodSpecs jms = JmlSpecs.instance(context).defaultSpecs(msp.cases.decl, msym, Position.NOPOS);

@@ -321,7 +321,7 @@ public class JmlEsc extends JmlTreeScanner {
             noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
             noticeWriter.println(Strings.empty);
             noticeWriter.println("STARTING PROOF OF " + utils.abbrevMethodSig(methodDecl.sym)); //$NON-NLS-1$
-            noticeWriter.println(JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym).toString());
+            noticeWriter.println(JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym));
             noticeWriter.println(JmlPretty.write(methodDecl.body));
         }
         
