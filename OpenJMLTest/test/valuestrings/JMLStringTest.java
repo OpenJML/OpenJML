@@ -76,16 +76,31 @@ public class JMLStringTest {
 
     //@ public normal_behavior
     //@   ensures string.equals(string.empty(),string.empty());
+    //@ model public static void equals1() {}
+
+    //@ public normal_behavior
     //@   ensures string.equals(string.string("abc"),string.string("abc"));
+    //@ model public static void equals2() {}
+
+    //@ public normal_behavior
     //@   ensures !string.equals(string.string("abc"),string.string(""));
-    //@ model public static void equals() {}
+    //@ model public static void equals3() {}
 
     //@ public normal_behavior
     //@   ensures string.empty() == string.empty();
+    //@ model public static void equalsOp1() {}
+
+    //@ public normal_behavior
     //@   ensures string.string("abc") == string.string("abc");
+    //@ model public static void equalsOp2() {}
+
+    //@ public normal_behavior
     //@   ensures string.string("abc") != string.string("");
+    //@ model public static void equalsOp3() {}
+
+    //@ public normal_behavior
     //@   ensures string.string("abc") != string.string("def");
-    //@ model public static void equalsOp() {}
+    //@ model public static void equalsOp4() {}
 
     //@ model public static void conversion() {
     // @   ghost string s1 = "abc";

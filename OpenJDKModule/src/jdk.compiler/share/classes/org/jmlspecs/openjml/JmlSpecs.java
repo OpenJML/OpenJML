@@ -981,6 +981,7 @@ public class JmlSpecs {
     public void putSpecs(MethodSymbol specSym, MethodSpecs spec, Env<AttrContext> specsEnv) {
     	spec.specSym = specSym;
         if (utils.verbose()) utils.note("            Saving method specs for " + specSym.owner + "." + specSym + " " + specSym.hashCode());
+        if (utils.verbose() && specSym.owner.toString().contains("java.lang.Object")) System.out.println("     SPEC " + spec);
         spec.setEnv(specsEnv);
         specsMethods.put(specSym,spec);
     }
@@ -1044,7 +1045,9 @@ public class JmlSpecs {
  //   	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
     	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) JmlEnter.instance(context).requestSpecs((ClassSymbol)m.owner);
     	var ms = specsMethods.get(m);
-        if (ms == null && utils.verbose()) System.out.println("Null specs returned from getLoadedSpecs for " + m.owner + " " + m + " " + m.hashCode());
+        if (ms == null && utils.verbose()) System.out.println("Null specs returned from getLoadedSpecs (inserting defaults) for " + m.owner + " " + m + " " + m.hashCode());
+    	if (ms == null) { ms = defaultSpecs(null,m,Position.NOPOS); specsMethods.put(m,ms); }
+        if (ms == null && utils.verbose()) System.out.println("Null specs returned from getLoadedSpecs (no default) for " + m.owner + " " + m + " " + m.hashCode());
         return ms;
     }
     
@@ -1057,6 +1060,7 @@ public class JmlSpecs {
     /** Retrieves attributed, desugared specs */
     public JmlMethodSpecs getDenestedSpecs(MethodSymbol m) {
         MethodSpecs s = getSpecs(m);
+        //System.out.println("DENEST " + m + " " + s);
         if (s == null) {
         	// FIXME - recheck the conditions undere which this branch can be taken
             // This can happen when -no-internalSpecs is used, probably for a binary class, but it probably shouldn't - specs should be created when the class is laoded - FIXME
@@ -1068,8 +1072,10 @@ public class JmlSpecs {
             return s.cases;    // FIXME - this is not actually fully desugared, but we don't have a decl to call deSugarMethodSpecs
         }
         if (s.cases.deSugared == null) {
+            //System.out.println("DESUGARING " + m + " " + s);
             attr.deSugarMethodSpecs(m,s);
         }
+        //System.out.println("DESUGARED " + m + " " + s.cases.deSugared);
         return s.cases.deSugared;
     }
     
@@ -1082,7 +1088,6 @@ public class JmlSpecs {
     // TODO - document
     public MethodSpecs defaultSpecs(/*@ nullable */ JmlMethodDecl decl, MethodSymbol sym, int pos) {
         // decl can be null in the case of Enum.values(), and others
-        // FIXME - should use a factory
         JmlTree.Maker M = JmlTree.Maker.instance(context);
         Symtab syms = Symtab.instance(context);
         JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
@@ -1105,6 +1110,7 @@ public class JmlSpecs {
                 mspecs.cases.decl = decl = parentSpecs == null ? null : parentSpecs.cases.decl;
                 mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>nil();
                 mspecs.cases.deSugared = mspecs.cases;
+                JmlSpecs.instance(context).putSpecs(sym, mspecs, null);
                 return mspecs;
             } else {
                 // This is a binary method that has no JML declaration and does not override
@@ -1138,6 +1144,7 @@ public class JmlSpecs {
             JCModifiers csm = M.at(pos).Modifiers(mods.flags & Flags.AccessFlags);
             JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false, MethodSimpleClauseExtensions.behaviorClause,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig),null);
             mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
+            JmlSpecs.instance(context).putSpecs(sym, mspecs, null);
             return mspecs;
             // FIXME - this case should happen only if parent constructors are pure and have no signals clause
         } else xx: if ((sym.owner.flags() & Flags.ENUM) != 0 && !sym.isConstructor()) {
@@ -1273,9 +1280,11 @@ public class JmlSpecs {
         }
         
         boolean libraryMethod = sym.owner instanceof ClassSymbol && sym.owner.toString().startsWith("java");
-        boolean isPure = utils.hasMod(mspecs.mods, Modifiers.PURE, Modifiers.FUNCTION) || (libraryMethod && !JmlOption.isOption(context,JmlOption.PURITYCHECK));
+        boolean isPureA = utils.hasMod(mspecs.mods, Modifiers.PURE, Modifiers.FUNCTION);
+        boolean isPureL = (libraryMethod && !JmlOption.isOption(context,JmlOption.PURITYCHECK));
+        //System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
-                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPure?nothingKind:everythingKind)));
+                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPureA||isPureL?nothingKind:everythingKind)));
         JmlMethodClause clpa = new JmlTree.JmlMethodClauseStoreRef(pos,accessibleID, accessibleClause,
                 com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,everythingKind)));
 
@@ -1289,6 +1298,8 @@ public class JmlSpecs {
         JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase(csm, false, MethodSimpleClauseExtensions.behaviorClause,null,clauses,null);
         mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
         if (decl == null) mspecs.cases.deSugared = mspecs.cases;
+        if (isPureL && !isPureA) mspecs.mods.annotations = addPureAnnotation(pos, mspecs.mods.annotations);
+
         //if (Utils.debug()) System.out.println("DEFAULTSPECS " + sym + " " + cs.hashCode());
         return mspecs;
     }
@@ -1700,8 +1711,10 @@ public class JmlSpecs {
     	if (attr.hasAnnotation2(sym, Modifiers.NULLABLE)) return false;
 		if (attr.hasAnnotation2(sym, Modifiers.NON_NULL)) return true;
 		var sp = specsMethods.get(sym);
-		if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NON_NULL)) return true;
-		if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NULLABLE)) return false;
+		if (sp.cases.decl != null) {
+			if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NON_NULL)) return true;
+			if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NULLABLE)) return false;
+		}
     	return isNonNull(sym.enclClass());
     }
     
@@ -1813,8 +1826,9 @@ public class JmlSpecs {
     
     /** Returns true if the given method symbol is annotated as Pure */
     public boolean isPure(MethodSymbol symbol) {
-    	//boolean print = symbol.toString().contains("values");
+    	//boolean print = symbol.toString().contains("length");
     	JmlModifiers mods = getSpecsModifiers(symbol);
+    	if (mods == null) return false;
     	//if (print) System.out.println("MODS " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasMod(mods,  Modifiers.PURE));
     	if (utils.hasMod(mods,  Modifiers.PURE)) return true; 
     	if (utils.hasMod(mods,  Modifiers.FUNCTION)) return true; 

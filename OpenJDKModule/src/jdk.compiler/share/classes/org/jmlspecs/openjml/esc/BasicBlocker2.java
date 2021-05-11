@@ -689,6 +689,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         } else if (tag == TypeTag.FLOAT || tag == TypeTag.DOUBLE) {
             return "real";
         } else if (tag == TypeTag.CHAR) {
+            //return TypeTag.INT.toString();
             return "char";
         } else {
             return "unknown";
