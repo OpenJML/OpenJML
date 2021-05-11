@@ -95,6 +95,7 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected ISort intSort;
     final protected ISort boolSort;
           protected ISort realSort;
+    final protected ISort stringSort;
     final protected IExpr.ISymbol distinctSym;
     final protected IExpr.ISymbol andSym;
     final protected IExpr.ISymbol orSym;
@@ -113,8 +114,10 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected ISort jmlTypeSort;
     final protected IExpr.ISymbol thisSym;
     final protected IExpr.ISymbol nullSym;
+    final protected IExpr.ISymbol nullStringSym;
 
     final protected IExpr.ISymbol lengthSym;
+    final protected IExpr.ISymbol stringLengthSym;
     
     public boolean useBV;
     public boolean quantOK = true;
@@ -124,6 +127,7 @@ public class SMTTranslator extends JmlTreeScanner {
     // may be simply used in place.
     // Strings that are defined by SMTLIB are used explicitly in place.
     public static final String NULL = "NULL";
+    public static final String NULLSTRING = "NULLSTRING";
     public static final String this_ = makeBarEnclosedString(Strings.THIS); // Must be the same as the id used in JmlAssertionAdder
     public static final String REF = "REF"; // SMT sort for Java references
     public static final String JAVATYPESORT = REF; // "JavaTypeSort";
@@ -214,6 +218,7 @@ public class SMTTranslator extends JmlTreeScanner {
             bv8Sort = F.createSortExpression(F.id(F.symbol("BitVec"), bits));
         }
         arraySym = F.symbol("Array"); // From SMT Array theory
+        stringSort = F.createSortExpression(arraySym, intSort, intSort);
         eqSym = F.symbol("="); // Name determined by SMT Core theory
         leSym = F.symbol("<="); // Name determined by SMT Ints theory
         andSym = F.symbol("and"); // Name determined by SMT Core theory
@@ -228,10 +233,12 @@ public class SMTTranslator extends JmlTreeScanner {
         // Names used in mapping Java/JML to SMT
         refSort = F.createSortExpression(F.symbol(REF));
         nullSym = F.symbol(NULL);
+        nullStringSym = F.symbol(NULLSTRING);
         thisSym = F.symbol(this_);
         javaTypeSort = F.createSortExpression(F.symbol(JAVATYPESORT));
         jmlTypeSort = F.createSortExpression(F.symbol(JMLTYPESORT));
         lengthSym = F.symbol(arrayLength);
+        stringLengthSym = F.symbol("stringLength");
         
     }
     
@@ -780,6 +787,8 @@ public class SMTTranslator extends JmlTreeScanner {
         // define NULL as a REF: (declare-fun NULL () REF)
         c = new C_declare_fun(nullSym,emptyList, refSort);
         startCommands.add(c);
+        c = new C_declare_fun(nullStringSym,emptyList, stringSort);
+        startCommands.add(c);
 //        // define THIS 
 //        c = new C_declare_fun(thisSym,emptyList, convertSort());
 //        startCommands.add(c);
@@ -787,8 +796,8 @@ public class SMTTranslator extends JmlTreeScanner {
         c = new C_declare_fun(F.symbol(concat),Arrays.asList(refSort,refSort), refSort);
         startCommands.add(c);
         {
-        	// define stringLength: (declare-fun stringLength (REF) Int)
-        	c = new C_declare_fun(F.symbol("stringLength"),Arrays.asList(refSort), useBV ? bv32Sort : intSort); // FIXME - not sure this =is used
+        	// define stringLength: (declare-fun stringLength (String) Int)
+        	c = new C_declare_fun(F.symbol("stringLength"),Arrays.asList(stringSort), useBV ? bv32Sort : intSort); // FIXME - not sure this =is used
         	startCommands.add(c);
         }
         // THIS != NULL: (assert (distinct THIS NULL))
@@ -807,9 +816,21 @@ public class SMTTranslator extends JmlTreeScanner {
         	    else addCommand(smt,"(assert (forall ((o "+REF+")) (>= (select "+arrayLength+" o) 0)))");
         	}
         }
+        {
+//        	c = new C_declare_fun(stringLengthSym,
+//        			emptyList, 
+//        			F.createSortExpression(arraySym,stringSort,useBV ? bv32Sort : intSort)
+//        			);
+//        	commands.add(c);  // FIXME - is this a duplicate ?
+            // string lengths are always non-negative
+//        	if (quantOK) {
+//        	    if (useBV) addCommand(smt,"(assert (forall ((o "+stringSort+")) (bvsge (select "+stringLengthSym+" o) #x00000000)))");
+//        	    else addCommand(smt,"(assert (forall ((o "+stringSort+")) (>= (select "+stringLengthSym+" o) 0)))");
+//        	}
+        }
 
             // result of string concatenation is always non-null
-        if (quantOK) addCommand(smt,"(assert (forall ((s1 "+REF+")(s2 "+REF+")) (distinct ("+concat+" s1 s2) "+NULL+")))");
+        //if (quantOK) addCommand(smt,"(assert (forall ((s1 "+stringSort+")(s2 "+stringSort+")) (distinct ("+concat+" s1 s2) "+NULLSTRING+")))");
 
         // The following functions model aspects of Java+JML;
         // The strings here are arbitrary except that they must not conflict with 
@@ -1723,15 +1744,18 @@ public class SMTTranslator extends JmlTreeScanner {
                 if (jt.jmlTypeTag() == JmlTokenKind.BSREAL) { addReal(); return realSort; }
                 if (jt.jmlTypeTag() == JmlTokenKind.BSTYPEUC) return jmlTypeSort;
             }
-            // FIXME - errors
             return refSort; // FIXME - just something
+        } else if (utils.isExtensionValueType(t) && !t.isParameterized()) {
+        	if (t.toString().equals("org.jmlspecs.lang.string")) {
+        		return stringSort;
+        	} else {
+        		addSort(t);
+        		return sortSymbol(t);
+        	}
         } else if (t instanceof BasicBlocker2.Array2Type) {
             return refSort;
         } else if (jmltypes.isArray(t) && !(t instanceof Type.ArrayType)) {
             return refSort;
-        } else if (utils.isExtensionValueType(t) && !t.isParameterized()) {
-            addSort(t);
-            return sortSymbol(t);
 
         } else if (tag == TypeTag.CLASS && utils.isJavaOrJmlPrimitiveType(t) && !t.isParameterized()) {
             if (false && t.isParameterized()) {
@@ -2644,15 +2668,22 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tree instanceof JmlBBArrayAccess) {
             JmlBBArrayAccess aa = (JmlBBArrayAccess)tree;
             // select(select(arraysId,a).i)
-            IExpr.IFcnExpr sel = F.fcn(selectSym,
-                    convertExpr(aa.arraysId),
-                    convertExpr(aa.indexed)
-                    );
-            sel = F.fcn(selectSym,
-                    sel,
-                    convertExpr(aa.index)
-                    );
-            result = sel;
+            if (aa.indexed.type.toString().equals("org.jmlspecs.lang.string")) {
+            	result = F.fcn(selectSym,
+            			convertExpr(aa.indexed),
+            			convertExpr(aa.index)
+            			);
+            } else {
+            	IExpr.IFcnExpr sel = F.fcn(selectSym,
+            			convertExpr(aa.arraysId),
+            			convertExpr(aa.indexed)
+            			);
+            	sel = F.fcn(selectSym,
+            			sel,
+            			convertExpr(aa.index)
+            			);
+            	result = sel;
+            }
             return;
         }
 
@@ -2678,7 +2709,8 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tree.selected != null) {
             JCExpression object = tree.selected;
             Symbol field = tree.sym;
-            if (field != syms.lengthVar) {
+            if (field.name != names.length) {
+                // Non-length selection
                 String encName;
                 if (Utils.instance(context).isJMLStatic(field) || true) {
                     String ostr = tree.sym.owner.toString();
@@ -2703,9 +2735,15 @@ public class SMTTranslator extends JmlTreeScanner {
                                 object == null ? thisSym: convertExpr(object)
                                 );
                 }
+            } else if (object.type.toString().equals("org.jmlspecs.lang.string")) {
+            	// String length
+            	IExpr sel = convertExpr(object);
+            	result = F.fcn(stringLengthSym,sel);
+            	return;
             } else {
+            	// Array length
                 IExpr sel = convertExpr(object);
-                result = F.fcn(selectSym,F.symbol(arrayLength),sel);
+                result = F.fcn(selectSym,lengthSym,sel);
                 return;
             }
         }

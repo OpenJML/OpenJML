@@ -29,8 +29,10 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     
     //@ public model char[] modelValue;
     
-    //@ public invariant 0 <= capacity <= MAX_ARRAY_SIZE;
-    //@ public invariant 0 <= count <= modelValue.length;
+    //@ public invariant modelValue.length == length();
+    
+    //@ public invariant 0 <= capacity;
+    //@ public invariant 0 <= count <= stringLength <= modelValue.length;
     //@ public invariant (\forall int i; stringLength <= i && i < capacity; modelValue[i] == '\0');
     
   
@@ -150,7 +152,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @*/
     public void setCharAt(int index, char ch); //17
     
-    /*-ESC@ public normal_behavior //TODO - ESC seems to hang, need to check spec
+    /*@ public normal_behavior //TODO - ESC seems to hang, need to check spec
       @   requires obj == null;
       @   assignable modelValue;
       @   assignable stringLength;
@@ -158,7 +160,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @*/
     //-RAC-ESC@   ensures (\forall int i; 0 <= i && i < nullChars.length; value[\old(stringLength)+i] == nullChars[i]);
     //-RAC-ESC@   ensures stringLength == \old(stringLength) + nullChars.length; //TODO Skipping a specification clause because it contains an uncompiled ghost or model field: nullChars
-    /*-ESC@   ensures \result == this;
+    /*@   ensures \result == this;
       @ also 
       @ public normal_behavior
       @   requires obj != null;
@@ -189,9 +191,9 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @*/
     public AbstractStringBuilder append(/*@ nullable @*/ String str); //19
     
-    public AbstractStringBuilder append(StringBuffer sb); //20
+    public AbstractStringBuilder append(/*@ nullable @*/ StringBuffer sb); //20
     
-    AbstractStringBuilder append(AbstractStringBuilder asb); //21
+    AbstractStringBuilder append(/*@ nullable @*/ AbstractStringBuilder asb); //21
     
     public AbstractStringBuilder append(/*@ nullable @*/ CharSequence s); //22
     
@@ -199,7 +201,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     
     public AbstractStringBuilder append(CharSequence s, int start, int end); //24
     
-    public AbstractStringBuilder append(char[] str); //25
+    public AbstractStringBuilder append(char/*@ nullable @*/ [] str); //25
     
     public AbstractStringBuilder append(char str /*@ nullable @*/ [], int offset, int len); //26
     

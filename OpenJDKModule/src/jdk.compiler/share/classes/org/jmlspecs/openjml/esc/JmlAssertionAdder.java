@@ -8737,17 +8737,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                     JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
                     if (calleeSpecs == null) continue; // FIXME - not sure about this - should get a default?
-
                     paramActuals = new HashMap<Object,JCExpression>();
                     if (savedParamActuals != null) paramActuals.putAll(savedParamActuals); // In cases that we are capturing the environment, such as inlining lambdas or model programs, we still need the mappings from the outer call // NOt sure this is needed
                     mapParamActuals.put(mpsym,paramActuals);
                     
-                    {
+                    var ssym = specs.getSpecs(mpsym).specSym;
+                    if (ssym != null) {
                         // Map the formals for this particular method to the corresponding translated actual argument
                         // The MethodSymbol used to iterate over the parameter VarSymbols must correspond to the Env
                     	// used to attribute the specifications. We use the specSym because the javaSym might belong to
                     	// a binary and thus have different parameter names (which it might if it has a java declaration as well)
-                        Iterator<VarSymbol> iter = specs.getSpecs(mpsym).specSym.params.iterator();
+                        Iterator<VarSymbol> iter = ssym.params.iterator();
                         for (JCExpression arg: trArgs) {
                         	VarSymbol v = null;
                             if (iter.hasNext()) paramActuals.put(v=iter.next(), arg);

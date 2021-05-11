@@ -59,14 +59,34 @@ Starting proof of JMLStringTest.character() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLStringTest.character() with prover !!!! - no warnings
-Starting proof of JMLStringTest.equals() with prover !!!!
+Starting proof of JMLStringTest.equals1() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.equals() with prover !!!! - no warnings
-Starting proof of JMLStringTest.equalsOp() with prover !!!!
+Completed proof of JMLStringTest.equals1() with prover !!!! - no warnings
+Starting proof of JMLStringTest.equals2() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.equalsOp() with prover !!!! - no warnings
+Completed proof of JMLStringTest.equals2() with prover !!!! - no warnings
+Starting proof of JMLStringTest.equals3() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLStringTest.equals3() with prover !!!! - no warnings
+Starting proof of JMLStringTest.equalsOp1() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLStringTest.equalsOp1() with prover !!!! - no warnings
+Starting proof of JMLStringTest.equalsOp2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLStringTest.equalsOp2() with prover !!!! - no warnings
+Starting proof of JMLStringTest.equalsOp3() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLStringTest.equalsOp3() with prover !!!! - no warnings
+Starting proof of JMLStringTest.equalsOp4() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLStringTest.equalsOp4() with prover !!!! - no warnings
 Starting proof of JMLStringTest.conversion() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -76,7 +96,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLStringTest.conversion2(String) with prover !!!! - no warnings
 Starting proof of JMLStringTest.conversionBad1(String,Object) with prover !!!!
-test/valuestrings/JMLStringTest.java:111: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad1
+test/valuestrings/JMLStringTest.java:126: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad1
     //@   ghost string s1 = s; // verification error
                             ^
 $SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
@@ -84,7 +104,7 @@ $SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
                                 ^
 Completed proof of JMLStringTest.conversionBad1(String,Object) with prover !!!! - with warnings
 Starting proof of JMLStringTest.conversionBad2(String,Object) with prover !!!!
-test/valuestrings/JMLStringTest.java:115: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad2
+test/valuestrings/JMLStringTest.java:130: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad2
     //@   ghost string s2 = (string)s; // verification error
                                     ^
 $SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
@@ -92,7 +112,7 @@ $SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
                                 ^
 Completed proof of JMLStringTest.conversionBad2(String,Object) with prover !!!! - with warnings
 Starting proof of JMLStringTest.conversionBad3(String,Object) with prover !!!!
-test/valuestrings/JMLStringTest.java:119: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad3
+test/valuestrings/JMLStringTest.java:134: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad3
     //@   ghost string s3 = string.string(s); // verification error
                                           ^
 $SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration

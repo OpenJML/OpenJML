@@ -94,7 +94,7 @@ public class escstrings extends EscBase {
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:10: warning: A non-pure method is being called where it is not permitted: java.lang.String.equals(java.lang.Object)",27
+                //,"/tt/TestJava.java:10: warning: A non-pure method is being called where it is not permitted: java.lang.String.equals(java.lang.Object)",27
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
@@ -166,7 +166,7 @@ public class escstrings extends EscBase {
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:10: warning: A non-pure method is being called where it is not permitted: java.lang.String.equals(java.lang.Object)",31
+                //,"/tt/TestJava.java:10: warning: A non-pure method is being called where it is not permitted: java.lang.String.equals(java.lang.Object)",31
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",24
                 );
     }
