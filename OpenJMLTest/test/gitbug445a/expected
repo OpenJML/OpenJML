@@ -1,46 +1,28 @@
-test\gitbug445\Pair.java:17: error: cannot find symbol
-      @     ensures res != null && res instanceof ArrayList<S> 
-                    ^
-  symbol:   variable res
-  location: class Pair<T>
-  where T is a type-variable:
-    T extends Object declared in class Pair
-test\gitbug445\Pair.java:17: error: cannot find symbol
-      @     ensures res != null && res instanceof ArrayList<S> 
-                                   ^
-  symbol:   variable res
-  location: class Pair<T>
-  where T is a type-variable:
-    T extends Object declared in class Pair
-test\gitbug445\Pair.java:17: error: illegal generic type for instanceof
-      @     ensures res != null && res instanceof ArrayList<S> 
-                                                           ^
-test\gitbug445\Pair.java:18: error: cannot find symbol
-      @          && res.size() == 2;
-                    ^
-  symbol:   variable res
-  location: class Pair<T>
-  where T is a type-variable:
-    T extends Object declared in class Pair
-test\gitbug445\Pair.java:19: error: cannot find symbol
-      @   res.add(0,p.run(first));
-          ^
-  symbol:   variable res
-  location: class Pair<T>
-  where T is a type-variable:
-    T extends Object declared in class Pair
-test\gitbug445\Pair.java:20: error: cannot find symbol
-      @   res.add(1,p.run(second));
-          ^
-  symbol:   variable res
-  location: class Pair<T>
-  where T is a type-variable:
-    T extends Object declared in class Pair
-test\gitbug445\Pair.java:21: error: cannot find symbol
+test/gitbug445a/Pair.java:5: error: Implicit references to 'this' are not permitted in constructor assignable clauses: first
+    /*@ assignable first, second;
+                   ^
+test/gitbug445a/Pair.java:5: error: Implicit references to 'this' are not permitted in constructor assignable clauses: second
+    /*@ assignable first, second;
+                          ^
+test/gitbug445a/Pair.java:19: error: A \result expression may not be in a model_program clause
+      @ { \result.add(0,p.run(first));
+           ^
+test/gitbug445a/Pair.java:20: error: A \result expression may not be in a model_program clause
+      @   \result.add(1,p.run(second));
+           ^
+test/gitbug445a/Pair.java:21: error: cannot find symbol
       @   return res;
                  ^
   symbol:   variable res
   location: class Pair<T>
   where T is a type-variable:
     T extends Object declared in class Pair
-7 errors
+test/gitbug445a/MapToAlClient.java:5: warning: A non-pure method is being called where it is not permitted: Pair.getSecond()
+        //@ assert myp.getFirst() == 5 && myp.getSecond() == 4;
+                                                       ^
+test/gitbug445a/PMax.java:4: warning: Method run overrides parent class methods and so its specification should begin with 'also' (Proc.run(T))
+    /*@ assignable maxSeen;
+        ^
+Operation not performed because of parse or type errors
+5 errors
+2 warnings

@@ -6,8 +6,8 @@ import java.nio.channels.ByteChannel;
 
 abstract public class SBB implements SB {
     
-    private final /*@ spec_public @*/ ByteBuffer buf;
-    private /*@ spec_public @*/ int size;
+    private final /*@ spec_public @*/ ByteBuffer buf; //@ in _buf;
+    private /*@ spec_public @*/ int size; //@ in _size;
 
     //@ public represents _size  = size;
     //@ public represents _buf   = buf;

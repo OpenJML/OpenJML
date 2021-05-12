@@ -12,11 +12,11 @@ public class Pair<T> {
     /*@ ensures \result == second; @*/
     public T getSecond() { return second;
     }
-    /*@ public model_program { 
+    /*@ public model_program 
       @   normal_behavior
       @     ensures \result != null && \result instanceof ArrayList<S> 
       @          && \result.size() == 2;
-      @   \result.add(0,p.run(first));
+      @ { \result.add(0,p.run(first));
       @   \result.add(1,p.run(second));
       @   return res;
       @ } @*/

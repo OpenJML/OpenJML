@@ -124,8 +124,7 @@ public class EndStatement extends JmlExtension {
                     parser.nextToken();
                 }
             } else {
-                error(pos,parser.endPos(),"jml.refining.required");
-                return null;
+                warning(pos,parser.endPos(),"jml.refining.required");
             }
             if (!parser.isNone(mods)) {
                 utils.error(mods.getStartPosition(),

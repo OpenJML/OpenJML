@@ -162,7 +162,7 @@ public class strict extends TCBase {
     
     @Test
     public void testRepresents() {
-        helpTCF("A.java","public class A {\n static int j; //@  model static int i; static represents i <- j;\n}"
+        helpTCF("A.java","public class A {\n static int j; //@ in i;\n//@  model static int i; static represents i <- j;\n}"
                 );
     }
     
@@ -170,8 +170,8 @@ public class strict extends TCBase {
     public void testRepresentsB() {
         expectedExit = 0;
         main.addOptions(optjmlp);
-        helpTCF("A.java","public class A {\n static int j; //@  model static int i; static represents i <- j;\n}"
-                ,"/A.java:2: warning: The left arrow is deprecated in represents clauses, use = instead",61
+        helpTCF("A.java","public class A {\n static int j; //@ in i;\n//@  model static int i; static represents i <- j;\n}"
+                ,"/A.java:3: warning: The left arrow is deprecated in represents clauses, use = instead",46
                 );
     }
     

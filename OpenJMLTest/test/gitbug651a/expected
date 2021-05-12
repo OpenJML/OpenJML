@@ -1,1 +1,5 @@
-Should get an error
+test/gitbug651a/B.java:4: error: Because 'N' reads 'count' in a represents clause, 'count' must be 'in' the model field 'N'
+    //@ private represents N = count;
+                               ^
+Operation not performed because of parse or type errors
+1 error
