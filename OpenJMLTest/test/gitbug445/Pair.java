@@ -12,11 +12,11 @@ public class Pair<T> {
     /*@ ensures \result == second; pure @*/
     public T getSecond() { return second;
     }
-    /*@ public model_program { 
-      @   refining normal_behavior
+    /*@ public model_program 
+      @   refining normal_behavior   // ERROR - no refining keyword here
       @     ensures res != null && res instanceof ArrayList<S> 
       @          && res.size() == 2;
-      @   res.add(0,p.run(first));
+      @ { res.add(0,p.run(first));
       @   res.add(1,p.run(second));
       @   return res;
       @ } @*/

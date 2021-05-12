@@ -2657,6 +2657,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         jmlenv = jmlenv.pushCopy();
         jmlenv.currentClauseKind = tree.clauseType;
         jmlenv.inPureEnvironment = true;
+        jmlenv.representsHead = null;
         //var localEnv = enter.typeEnvs.get(env.enclClass.sym);
         var localEnv = localEnv(env,enter.typeEnvs.get(env.enclClass.sym).tree);
         localEnv.info.staticLevel = 0;
@@ -2995,6 +2996,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Env<AttrContext> localEnv = env; //envForClause(tree,sym);
             if ((tree.modifiers.flags & STATIC) != 0) localEnv.info.staticLevel++;
             
+            Symbol s = tree.ident instanceof JCIdent ? ((JCIdent)tree.ident).sym : tree.ident instanceof JCFieldAccess ? ((JCFieldAccess)tree.ident).sym : null;
+            // If an error happened in attributing the clause, then 's' may be a ClassSymbol
+            if (s instanceof VarSymbol) jmlenv.representsHead = (VarSymbol)s;
+
             if (tree.suchThat) {
                 attribExpr(tree.expression, localEnv, syms.booleanType);
             } else if (type == null) {
@@ -3004,6 +3009,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             } else if (type.getKind() == TypeKind.NONE) {
                 // ERROR - parser should not let us get here - FIXME
             } else {
+            	//System.out.println("CHECKING REPRESENTS " +  jmlenv.representsHead + " " + tree);
                 attribExpr(tree.expression, localEnv, type);
             }
             if ((tree.modifiers.flags & STATIC) != 0) localEnv.info.staticLevel--;
@@ -4837,61 +4843,72 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	// Every routine is responsible for saving and restoring state
     	// However we save and restore it here even though we don't change it here, defensively
         jmlenv = jmlenv.pushCopy();
+//        var rep = jmlenv.representsHead;
+//        jmlenv.representsHead = null; // To avoid datagroup containment checks if checkSecretReadable attribs in clauses
+
         try {
-            // First check quantified variables. If we are an old environment, they will not necessarily be in the
-            // environment scope.
-            for (var q: quantifiedExprs) {
-            	for (var d: q.decls) {
-            		if (tree.name == d.name) {
-            			tree.sym = d.sym;
-            			tree.type = d.type;
-            			result = d.type;
-            			return;
-            		}
-            	}
-            }
-            super.visitIdent(tree);
+        	// First check quantified variables. If we are an old environment, they will not necessarily be in the
+        	// environment scope.
+        	for (var q: quantifiedExprs) {
+        		for (var d: q.decls) {
+        			if (tree.name == d.name) {
+        				tree.sym = d.sym;
+        				tree.type = d.type;
+        				result = d.type;
+        				return;
+        			}
+        		}
+        	}
+        	super.visitIdent(tree);
+        	if (tree.sym == null) {
+        		System.out.println("IDENT NULL SYM " + tree + " " + env.info.scope);
+        	}
+        	if ((tree.sym instanceof VarSymbol || tree.sym instanceof MethodSymbol)
+        			&& enclosingMethodEnv != null
+        			&& enclosingMethodEnv.enclMethod != null 
+        			&& enclosingMethodEnv.enclMethod.sym.isConstructor() 
+        			&& !utils.isJMLStatic(tree.sym) 
+        			&& tree.sym.owner == enclosingClassEnv.enclClass.sym
+        			&& interpretInPreState(tree,jmlenv.currentClauseKind)
+        			) {
+        		String k = (jmlenv.currentClauseKind == requiresClauseKind) ? "preconditions: " :
+        			(jmlenv.currentClauseKind.name() + " clauses: ");
+        		k += tree.toString();
+        		if (tree.sym.name != names._this)
+        			utils.error(tree,"jml.message","Implicit references to 'this' are not permitted in constructor " + k);
+        		else
+        			utils.error(tree,"jml.message","References to 'this' are not permitted in constructor "+ k);
+        	}
+
+
+        	// The above call erroneously does not set tree.type for method identifiers
+        	// if the method failed to result, even though a symbol with an error
+        	// type is set, so we patch that here.  See also the comment at visitSelect.
+        	if (tree.type == null) tree.type = tree.sym.type;
+
+        	Type saved = result;
+        	if (!justAttribute && tree.sym instanceof VarSymbol) {
+        		checkSecretReadable(tree,(VarSymbol)tree.sym);
+        	}// Could also be a method call, and error, a package, a class...
+
+        	checkVisibility(tree, jmlenv.jmlVisibility, tree.sym);
+
+            var rep = jmlenv.representsHead;
+//        	jmlenv.representsHead = rep;
+        	if (rep != null && tree.sym instanceof VarSymbol) {  // FIXME - also need to check the reads statement of method calls
+        		//System.out.println("CHECKING DG " + (VarSymbol)tree.sym + " IN " + jmlenv.representsHead);
+        		if (!isContainedInDatagroup((VarSymbol)tree.sym, jmlenv.representsHead)) {
+        			utils.error(tree,"jml.message", "Because '" + rep + "' reads '" + tree.sym + "' in a represents clause, '" + tree.sym + "' must be 'in' the model field '" + rep + "'");
+        		}
+        	}
+        	result = saved;
         } catch (Exception e) {
         	utils.unexpectedException(e, "JmlAttr.visitIdent");
         } finally {
             jmlenv = jmlenv.pop();
         }
-        if (tree.sym == null) {
-        	System.out.println("IDENT NULL SYM " + tree + " " + env.info.scope);
-        }
-        
-        if ((tree.sym instanceof VarSymbol || tree.sym instanceof MethodSymbol)
-                && enclosingMethodEnv != null
-                && enclosingMethodEnv.enclMethod != null 
-                && enclosingMethodEnv.enclMethod.sym.isConstructor() 
-                && !utils.isJMLStatic(tree.sym) 
-                && tree.sym.owner == enclosingClassEnv.enclClass.sym
-                && interpretInPreState(tree,jmlenv.currentClauseKind)
-                ) {
-            String k = (jmlenv.currentClauseKind == requiresClauseKind) ? "preconditions: " :
-                (jmlenv.currentClauseKind.name() + " clauses: ");
-            k += tree.toString();
-            if (tree.sym.name != names._this)
-                utils.error(tree,"jml.message","Implicit references to 'this' are not permitted in constructor " + k);
-            else
-                utils.error(tree,"jml.message","References to 'this' are not permitted in constructor "+ k);
-        }
-
-        
-        // The above call erroneously does not set tree.type for method identifiers
-        // if the method failed to result, even though a symbol with an error
-        // type is set, so we patch that here.  See also the comment at visitSelect.
-        if (tree.type == null) tree.type = tree.sym.type;
-        
-        Type saved = result;
-        if (!justAttribute && tree.sym instanceof VarSymbol) {
-            checkSecretReadable(tree,(VarSymbol)tree.sym);
-        }// Could also be a method call, and error, a package, a class...
-        
-        checkVisibility(tree, jmlenv.jmlVisibility, tree.sym);
-        result = saved;
     }
-    
+        
     protected long jmlAccess(JCModifiers mods) {
         long v = mods.flags & Flags.AccessFlags;
         if (findMod(mods,Modifiers.SPEC_PUBLIC) != null) v = Flags.PUBLIC;
@@ -7390,6 +7407,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	 */
     	public boolean inExpressionScope;
     	
+    	public VarSymbol representsHead;
         /**
          * Holds the visibility of JML construct that is currently being visited.
          * Values are 0=package, Flags.PUBLIC=public, Flags.PROTECTED=protected,
@@ -7407,6 +7425,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		inPureEnvironment = false;
     		inExpressionScope = false;
     		jmlVisibility = -1;
+    		representsHead = null;
     	}
     	
     	public JmlEnv(JmlEnv e) {
@@ -7415,6 +7434,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		inPureEnvironment = e.inPureEnvironment;
     		inExpressionScope = e.inExpressionScope;
     		jmlVisibility = e.jmlVisibility;
+    		representsHead = e.representsHead;
     	}
     	
     	public JmlEnv pushCopy() {
