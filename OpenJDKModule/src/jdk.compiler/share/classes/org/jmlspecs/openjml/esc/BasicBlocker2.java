@@ -1750,16 +1750,22 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         JCExpression indexed = result;
         scan(that.index);
         JCExpression index = result;
-        JCIdent arr = getArrayIdent(JmlTypes.instance(context).indexType(that.indexed.type),that.type,that.pos);
-        if (that instanceof JmlBBArrayAccess) {
-            that.indexed = indexed;
-            that.index = index;
-            ((JmlBBArrayAccess)that).arraysId = arr;
-            result = that;
+        JCIdent arr = null;
+        if (indexed.type.toString().startsWith("org.jmlspecs.lang.")) {
+        	// continue;
         } else {
-            utils.warning(that,"jml.internal","Did not expect a JCArrayAccess node in BasicBlocker2.visitIndexed");
-            result = new JmlBBArrayAccess(arr,indexed,index);
+        	// Standard Java array
+        	arr = getArrayIdent(JmlTypes.instance(context).indexType(that.indexed.type),that.type,that.pos);
         }
+    	if (that instanceof JmlBBArrayAccess) {
+    		that.indexed = indexed;
+    		that.index = index;
+    		((JmlBBArrayAccess)that).arraysId = arr;
+    		result = that;
+    	} else {
+    		utils.warning(that,"jml.internal","Did not expect a JCArrayAccess node in BasicBlocker2.visitIndexed");
+    		result = new JmlBBArrayAccess(arr,indexed,index);
+    	}
     }
 
 

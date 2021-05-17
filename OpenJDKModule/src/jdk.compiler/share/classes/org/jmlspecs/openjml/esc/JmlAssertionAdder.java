@@ -13078,7 +13078,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             aa.arraysId = that instanceof JmlBBArrayAccess ? ((JmlBBArrayAccess)that).arraysId : null;
             JCExpression save = (translatingJML || pureCopy || convertingAssignable) ? aa : newTemp(aa);
             
-            if (esc && localVariables.isEmpty()) {
+            if (utils.isExtensionValueType(that.indexed.type)) {
+            	// continue
+            } else if (esc && localVariables.isEmpty()) {
                 if (utils.isJavaOrJmlPrimitiveType(that.type)) {
                     if (that.type == syms.byteType) {
                         JCExpression e1 = treeutils.makeBinary(that.pos,JCTree.Tag.LE,treeutils.intleSymbol,treeutils.makeIntLiteral(save,-128),save);
