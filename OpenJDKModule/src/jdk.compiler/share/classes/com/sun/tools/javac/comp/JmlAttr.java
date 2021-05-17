@@ -742,7 +742,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             log.error(tree.pos,"jml.no.assign.in.pure");
         }
         // FIXME
-        if (false && tree.lhs instanceof JCArrayAccess && jmltypes.isSubtype(((JCArrayAccess)tree.lhs).indexed.type, JMLArrayLike)) {
+        if (tree.lhs instanceof JCArrayAccess && jmltypes.isSubtype(((JCArrayAccess)tree.lhs).indexed.type, JMLArrayLike)) {
             JCArrayAccess aa = (JCArrayAccess)tree.lhs;
             JCExpression ex = ((JCArrayAccess)tree.lhs).indexed;
             if (ex instanceof JCIdent) {

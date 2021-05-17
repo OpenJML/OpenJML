@@ -13,7 +13,7 @@ public class Set<T> {
     
     //@ public normal_behavior
     //@ ensures !s.contains(o) ==> s.add(o).size() == 1 + s.size();
-    //@ model public static <T> void addBumpsSize(set<T> s, T o) {}
+    //@ model public static <T> void addBumpsSetSize(set<T> s, T o) {}
     
     //@ public normal_behavior
     //@ ensures s.contains(o) ==> s.add(o).size() == s.size();

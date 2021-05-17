@@ -1648,7 +1648,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionSwitchNull() {
-    	main.addOptions("-progress"); // FIXME - fails in nondeterministic ways when this statement is not present
+    	//main.addOptions("-progress"); // FIXME - fails in nondeterministic ways when this statement is not present
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"

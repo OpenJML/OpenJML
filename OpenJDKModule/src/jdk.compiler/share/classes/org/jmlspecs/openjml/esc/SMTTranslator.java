@@ -96,6 +96,7 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected ISort boolSort;
           protected ISort realSort;
     final protected ISort stringSort;
+    final protected ISort intsetSort;
     final protected IExpr.ISymbol distinctSym;
     final protected IExpr.ISymbol andSym;
     final protected IExpr.ISymbol orSym;
@@ -219,6 +220,7 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         arraySym = F.symbol("Array"); // From SMT Array theory
         stringSort = F.createSortExpression(arraySym, intSort, intSort);
+        intsetSort = F.createSortExpression(arraySym, intSort, boolSort);
         eqSym = F.symbol("="); // Name determined by SMT Core theory
         leSym = F.symbol("<="); // Name determined by SMT Ints theory
         andSym = F.symbol("and"); // Name determined by SMT Core theory
@@ -489,6 +491,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     F.numeral(n)));
         }
         for (Type ti: javaTypes) {
+        	
             if (ti.getTag() == TypeTag.TYPEVAR) {
                 if (ti instanceof Type.CapturedType) continue; 
                 tcommands.add(new C_declare_fun(
@@ -496,11 +499,11 @@ public class SMTTranslator extends JmlTreeScanner {
                         emptyList,
                         jmlTypeSort));
             }
-            // Remove the following whe we fix parameterized use primitive types
-            if (utils.isExtensionValueType(ti)) {
+
+            if (utils.isExtensionValueType(ti) && !ti.toString().startsWith("org.jmlspecs.lang.")) {
                 tcommands.add(new C_declare_sort(
-                        (ISymbol)jmlTypeSymbol(ti),
-                        F.numeral(0))); //ti.tsym.type.getTypeArguments().size())));
+                        (ISymbol)javaTypeSymbol(ti),
+                        F.numeral(ti.tsym.type.getTypeArguments().size())));
             }
         }
         for (Type ti: javaTypes) {
@@ -749,7 +752,10 @@ public class SMTTranslator extends JmlTreeScanner {
     //  - might want the option to produce many individual programs, i.e.
     //  one for each assertion, or a form that accommodates push/pop/coreids etc.
     
+    public SMT smt;
+    
     public ICommand.IScript convert(BasicProgram program, SMT smt, boolean useBV) {
+    	this.smt = smt;
         script = new Script();
         this.useBV = useBV;
         ICommand c;
@@ -1745,10 +1751,40 @@ public class SMTTranslator extends JmlTreeScanner {
                 if (jt.jmlTypeTag() == JmlTokenKind.BSTYPEUC) return jmlTypeSort;
             }
             return refSort; // FIXME - just something
-        } else if (utils.isExtensionValueType(t) && !t.isParameterized()) {
-        	if (t.toString().equals("org.jmlspecs.lang.string")) {
+        } else if (utils.isExtensionValueType(t)) {
+        	String ts = t.toString();
+        	if (ts.equals("org.jmlspecs.lang.string")) {
         		return stringSort;
-        	} else {
+        	} else if (ts.startsWith("org.jmlspecs.lang.map")) {
+        		Type t1 = t.getTypeArguments().head;
+        		Type t2 = t.getTypeArguments().tail.head;
+        		ISort s1 = convertSort(t1);
+        		ISort s2 = convertSort(t2);
+        		return F.createSortExpression(arraySym, s1, s2);
+        	} else if (ts.startsWith("org.jmlspecs.lang.set")) {
+        		Type t1 = t.getTypeArguments().head;
+        		ISort s1 = convertSort(t1);
+        		return F.createSortExpression(arraySym, s1, boolSort);
+           	} else if (ts.startsWith("org.jmlspecs.lang.array")) {
+        		Type t1 = t.getTypeArguments().head;
+        		ISort s1 = convertSort(t1);
+        		return F.createSortExpression(arraySym, intSort, s1);
+           	} else if (ts.startsWith("org.jmlspecs.lang.seq")) {
+        		Type t1 = t.getTypeArguments().head;
+        		ISort s1 = convertSort(t1);
+        		return F.createSortExpression(arraySym, intSort, s1);
+           	} else if (ts.startsWith("org.jmlspecs.lang.intmap")) {
+        		Type t1 = t.getTypeArguments().head;
+        		ISort s1 = convertSort(t1);
+        		return F.createSortExpression(arraySym, intSort, s1);
+           	} else if (ts.equals("org.jmlspecs.lang.intset")) {
+        		return intsetSort;
+           	} else if (t.isParameterized()) {
+           		List<ISort> args = new LinkedList<ISort>();
+           		t.getTypeArguments().forEach(tt -> args.add(convertSort(tt)));
+                addType(t);
+                return F.createSortExpression((ISymbol)javaTypeSymbol(t), args);
+          	} else {
         		addSort(t);
         		return sortSymbol(t);
         	}
@@ -2668,7 +2704,20 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tree instanceof JmlBBArrayAccess) {
             JmlBBArrayAccess aa = (JmlBBArrayAccess)tree;
             // select(select(arraysId,a).i)
-            if (aa.indexed.type.toString().equals("org.jmlspecs.lang.string")) {
+            String typeString = aa.indexed.type.toString();
+//            if (typeString.startsWith("org.jmlspecs.lang.array")) {
+//            	IExpr.IFcnExpr sel = F.fcn(selectSym,
+//            			convertExpr(aa.arraysId),
+//            			convertExpr(aa.indexed)
+//            			);
+//            	sel = F.fcn(selectSym,
+//            			sel,
+//            			convertExpr(aa.index)
+//            			);
+//            	result = sel;
+//
+//            } else 
+            	if (typeString.startsWith("org.jmlspecs.lang.")) {
             	result = F.fcn(selectSym,
             			convertExpr(aa.indexed),
             			convertExpr(aa.index)
@@ -2702,6 +2751,9 @@ public class SMTTranslator extends JmlTreeScanner {
 
     /** A set of names of fields that are already defined */
     protected java.util.Set<String> defined = new java.util.HashSet<>();
+    
+    protected java.util.HashMap<Type,Integer> seqLengths = new HashMap<>();
+    protected java.util.HashMap<Type,Integer> arrLengths = new HashMap<>();
     
     @Override
     public void visitSelect(JCFieldAccess tree) {
@@ -2739,6 +2791,30 @@ public class SMTTranslator extends JmlTreeScanner {
             	// String length
             	IExpr sel = convertExpr(object);
             	result = F.fcn(stringLengthSym,sel);
+            	return;
+            } else if (object.type.toString().startsWith("org.jmlspecs.lang.seq")) {
+        		Type t = object.type.getTypeArguments().head;
+        		Integer v = seqLengths.get(t);
+            	if (v == null) {
+            		v = seqLengths.size();
+            		seqLengths.put(t, v);
+            		addCommand(smt,"(declare-fun " + "seqLength"+v + "((Array Int " + convertSort(t) + ")) Int)");
+            	}
+            	// Sequence length
+            	IExpr sel = convertExpr(object);
+            	result = F.fcn(F.symbol("seqLength"+v),sel);
+            	return;
+            } else if (object.type.toString().startsWith("org.jmlspecs.lang.array")) {
+        		Type t = object.type.getTypeArguments().head;
+        		Integer v = arrLengths.get(t);
+            	if (v == null) {
+            		v = arrLengths.size();
+            		arrLengths.put(t, v);
+            		addCommand(smt,"(declare-fun " + "arrLength"+v + "((Array Int " + convertSort(t) + ")) Int)");
+            	}
+            	// Sequence length
+            	IExpr sel = convertExpr(object);
+            	result = F.fcn(F.symbol("arrLength"+v),sel);
             	return;
             } else {
             	// Array length
