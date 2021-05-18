@@ -2270,6 +2270,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             st.associatedSource = associatedSource;
             st.optionalExpression = info;
             st.id = Strings.assumePrefix + (++assertCount);
+            //if (st.toString().contains("tmp9")) { System.out.println("ASSUME ST " + st); Utils.dumpStack(); }
             if (currentStatements != null) currentStatements.add(st);
             else classDefs.add(st);
             stt = st;
@@ -7703,22 +7704,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     		return;
     	}
 
-        //System.out.println("APPLY ENTER " + statementStack.size());
-        // FIXME - needs result set - needs proper handling of pure methods etc.
-        if (false && that.meth != null && 
-                (that.meth.toString().startsWith("System.out.println") ||
-                 that.meth.toString().startsWith("System.err.println"))) {
-//        if (that.meth != null) {
-            // We handle System.out.println specially. It is essentially pure and
-            // does not depend on any class invariants, so we can safely just call it
-            // after translating the arguments. This avoids bloat caused by putting
-            // debug statements into the program under test. 
-            List<JCExpression> args = convertExprList(that.args);
-            JCMethodInvocation app = M.at(that).Apply(that.typeargs, that.meth, args).setType(that.type);
-            app.varargsElement = that.varargsElement; // a Type
-            result = eresult = app;
-            return;
-        }
+
 //        if (inOldEnv && rac) {
 //            String msg = "RAC does not currently implement method calls in \\old expressions: " + treeutils.getSym(that.meth);
 //            notImplemented(that,msg);
@@ -8182,6 +8168,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (that instanceof JCMethodInvocation) {
                 apply = (JCMethodInvocation)that;
                 meth = apply.meth;
+                var symx = meth instanceof JCFieldAccess ? ((JCFieldAccess)meth).sym : meth instanceof JCIdent ? ((JCIdent)meth).sym : null;
+                //System.out.println("VAPP " + that + " " + that.type + " " + symx + " " + meth.type);
                 untrArgs = apply.args;
                 typeargs = apply.typeargs;
             } else if (that instanceof JCNewClass) {
@@ -8503,7 +8491,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         resultExpr = resultId;
                         boolean nn;
                         if (types.isSubtype(resultType, attr.JMLPrimitive)) nn = true;
-                        else nn = specs.isNonNull(calleeMethodSym); // FIXME - need tdo use the resolved type
+                        else {
+                        	nn = specs.isNonNull(that.type,calleeMethodSym);
+                        	//System.out.println("VAP-NN " + that + " " + that.type + " " + calleeMethodSym.getReturnType() + " " + specs.isNonNull(that.type,(ClassSymbol)calleeMethodSym.owner) + " " + specs.isNonNull(calleeMethodSym));
+                        	//nn = specs.isNonNull(calleeMethodSym); // FIXME - need tdo use the resolved type
+                        }
                         addNullnessAllocationTypeCondition(that, resultSym, nn, false, false);
                     } else {
                         resultSym = null;
@@ -9676,7 +9668,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             false,false,false,false,true,true,Label.INVARIANT_EXIT,msg);
                 }
                 
-                Type retType = calleeMethodSym.getReturnType();
+                Type retType = that.type;
                 if (calleeMethodSym.isConstructor()) {
                     // FIXME - invariants for constructor result - already somewhere else?
                 } else if (retType.getTag() != TypeTag.VOID) {
@@ -9798,7 +9790,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // Now we iterate over all specification cases in all parent
                 // methods again, this time putting in the post-condition checks
                 
-                if (resultExpr != null && meth != null && specs.isNonNull(calleeMethodSym)) {
+                if (resultExpr != null && meth != null && specs.isNonNull(that.type,calleeMethodSym)) {
                 	JCExpression nn = treeutils.makeNotNull(that.pos,resultExpr);
                 	var p = mspecs.specDecl != null ? mspecs.specDecl.pos() : that.pos(); // FIXME - sort out cases where specDecl is null -- implicit methods like Enum.values()?
                 	addAssume(meth, Label.POSSIBLY_NULL_RETURN, nn,
@@ -11520,7 +11512,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             rhs = addImplicitConversion(rhs,that.lhs.type,rhs);
             if (array.type instanceof Type.ArrayType) {
                 var atype = (Type.ArrayType)array.type;
-                if (specs.isNonNull(atype.elemtype, null)) {  // FIXME - need the enclosing class at the point of declaration
+                if (specs.isNonNull(atype.elemtype, (ClassSymbol)null)) {  // FIXME - need the enclosing class at the point of declaration
                 	e = treeutils.makeNeqObject(that.rhs.pos, rhs, treeutils.nullLit);
                     addAssert(that,Label.POSSIBLY_NULL_ASSIGNMENT,e);
                }
@@ -11758,7 +11750,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             rhs = addImplicitConversion(rhs,optype,rhs);
             if (array.type instanceof Type.ArrayType) {
                 var atype = (Type.ArrayType)array.type;
-                if (specs.isNonNull(atype.elemtype, null)) {  // FIXME - need the enclosing class at the point of declaration
+                if (specs.isNonNull(atype.elemtype, (ClassSymbol)null)) {  // FIXME - need the enclosing class at the point of declaration
                 	JCExpression e = treeutils.makeNeqObject(that.rhs.pos, rhs, treeutils.nullLit);
                     addAssert(that,Label.POSSIBLY_NULL_ASSIGNMENT,e);
                }

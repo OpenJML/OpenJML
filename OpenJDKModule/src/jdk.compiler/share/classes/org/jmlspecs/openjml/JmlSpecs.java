@@ -1704,6 +1704,17 @@ public class JmlSpecs {
     	return defaultNullity(classOwner) == Modifiers.NON_NULL;
     }
     
+    @SuppressWarnings("unchecked")
+	public boolean isNonNull(Type type, MethodSymbol msym) {
+    	if (!type.isReference()) return false;
+    	if (Types.instance(context).isSubtype(type, 
+    			Symtab.instance(context).jmlPrimitiveType)) return true;
+    	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
+    	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
+    	if (type instanceof Type.TypeVar) return false; 
+    	return isNonNull(msym);
+    }
+    
     public boolean isNonNull(MethodSymbol sym) {
     	// For some reason, type annotations are not part of the method return type,
     	// but are in the MethodSymbol's annotations
