@@ -28,6 +28,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get install libxext-dev libxtst-dev libxrandr-dev libcups2-dev
+        sudo apt-get install libasound2-dev
     - uses: actions/setup-python@v1
     - name: Set up JDK16 
       uses: actions/setup-java@v1
@@ -58,7 +59,8 @@ jobs:
         make release trial
     - name: Publish release
       run: |
-        export token="34ed73e0a51ffa1092bcf40a22535784b23b4206 davidcok"
+        echo $HOME $LOGNAME
         export ver=0.11.0
         export vers=0.11.0
-        curl -s -X POST -H "Authorization: token $token" -d "{\"tag_name\":\"v$ver\", \"name\":\"Dafny $vers\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJDKModule/release-temp/*.zip" > /tmp/post
+        ##curl -s -X POST -H "Authorization: token $token" -d "{\"tag_name\":\"v$ver\", \"name\":\"Dafny $vers\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJDKModule/release-temp/*.zip" > /tmp/post
+        curl -s -X POST -d "{\"tag_name\":\"v$ver\", \"name\":\"Dafny $vers\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJDKModule/release-temp/*.zip" > /tmp/post
