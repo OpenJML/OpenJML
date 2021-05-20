@@ -1,0 +1,7 @@
+#! /bin/bash
+
+ROOT=$( cd $(dirname $BASH_SOURCE) && pwd )
+
+echo $ROOT
+
+OPENJML_ROOT="$ROOT" "$ROOT/jdk/bin/javac" "$@"
