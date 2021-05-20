@@ -39,5 +39,5 @@ jobs:
       run: |
         ls
         pwd
-        (cd OpenJML/OpenJDKModule; bash .configure; NOJML= make )
-        #make -f OpenJML/OpenJDKModule/Makefile release trial
+        (cd OpenJML/OpenJDKModule; bash ./configure; NOJML= make )
+        make -f OpenJML/OpenJDKModule/Makefile release trial
