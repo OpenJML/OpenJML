@@ -49,6 +49,9 @@ jobs:
       run: |
         git clone https://github.com/OpenJML/OpenJML
         git clone https://github.com/OpenJML/Specs
+        ls
+        ( cd OpenJML/OpenJMLModule; git checkout development-module )
+        ( cd Specs; git checkout development-module )
     - name: Build release
       run: |
         ls
