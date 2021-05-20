@@ -1,0 +1,55 @@
+name: Build OpenJML
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        ## Windows jobs fail on some lit tests and sometimes fail even to
+        ## setup a work environment (e.g. dotnet installation)
+        ##os: [ubuntu-latest]
+        ##os: [ubuntu-latest, windows-latest, ubuntu-16.04]
+        ##os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
+        ## Size of the following array must match --num-shards in lit command
+        shard: [1, 2, 3, 4, 5]
+        ##shard: [1, 2, 3]
+        include:
+        - os:                  'ubuntu-latest'
+          os_for_build:        'ubuntu'
+        - os:                  'ubuntu-16.04'
+          os_for_build:        'ubuntu'
+        - os:                  'macos-latest'
+          os_for_build:        'osx'
+        ##- os:                  'windows-latest'
+        ##  os_for_build:        'win'
+
+      fail-fast: false
+    steps:
+    - name: Manually sync certs
+      if: runner.os == 'Linux'
+      run: cert-sync /etc/ssl/certs/ca-certificates.crt
+    - uses: actions/setup-python@v1
+    - name: Setup dotnet 5.0
+      uses: actions/setup-dotnet@v1.7.2
+      with:
+        dotnet-version: '5.0.x' # SDK Version for building Dafny; x will use the latest version of the 5.0 channel
+    - name: Set up JDK16 
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.11
+    - name: Checkout OpenJML
+      run: |
+        git clone https://github.com/OpenJML/OpenJML
+        git clone https://github.com/OpenJML/Specs
+    - name: Build release
+      run: |
+        ls
+        make -f OpenJML/Makefile release
