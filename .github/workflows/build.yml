@@ -62,5 +62,4 @@ jobs:
         echo $HOME $LOGNAME
         export ver=0.11.0
         export vers=0.11.0
-        ##curl -s -X POST -H "Authorization: token $token" -d "{\"tag_name\":\"v$ver\", \"name\":\"Dafny $vers\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJDKModule/release-temp/*.zip" > /tmp/post
-        curl -s -X POST -d "{\"tag_name\":\"v$ver\", \"name\":\"Dafny $vers\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJDKModule/release-temp/*.zip" > /tmp/post
+        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"v$ver\", \"name\":\"Dafny $vers\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJDKModule/release-temp/*.zip" > /tmp/post
