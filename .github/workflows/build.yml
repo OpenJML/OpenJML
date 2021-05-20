@@ -44,8 +44,10 @@ jobs:
         git checkout development-module
     - name: Build OpenJML
       run: |
-        cd OpenJDKModule
+        cd OpenJML/OpenJDKModule
         bash ./configure
         NOJML= make
     - name: Build release
-      run: make release trial
+      run: |
+        cd OpenJML/OpenJDKModule
+        make release trial
