@@ -27,7 +27,7 @@ jobs:
     - name: Linux additions
       if: runner.os == 'Linux'
       run: |
-        sudo apt-get install libxext-dev
+        sudo apt-get install libxext-dev libxtst-dev
     - uses: actions/setup-python@v1
     - name: Set up JDK16 
       uses: actions/setup-java@v1
@@ -37,10 +37,15 @@ jobs:
       run: |
         git clone https://github.com/OpenJML/OpenJML
         git clone https://github.com/OpenJML/Specs
-        ( cd OpenJML; git checkout development-module )
-        ( cd Specs; git checkout development-module )
+        git clone https://github.com/OpenJML/Solvers
+        cd Specs
+        git checkout development-module
+        cd ../OpenJML
+        git checkout development-module
     - name: Build OpenJML
       run: |
-        (cd OpenJML/OpenJDKModule; bash ./configure; NOJML= make )
+        cd OpenJDKModule
+        bash ./configure
+        NOJML= make
     - name: Build release
-      run: (cd OpenJML/OpenJDKModule; make release trial; )
+      run: make release trial
