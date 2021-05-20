@@ -35,9 +35,10 @@ jobs:
         git clone https://github.com/OpenJML/Specs
         ( cd OpenJML; git checkout development-module )
         ( cd Specs; git checkout development-module )
-    - name: Build release
+    - name: Build OpenJML
       run: |
         ls
         pwd
         (cd OpenJML/OpenJDKModule; bash ./configure; NOJML= make )
-        make -f OpenJML/OpenJDKModule/Makefile release trial
+    - name: Build release
+      run: (cd OpenJML/OpenJDK/Module; make release trial; )
