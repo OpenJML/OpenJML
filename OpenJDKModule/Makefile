@@ -74,7 +74,6 @@ release-image:
 	mkdir $(REL)
 	bash ./configure > log-release
 	NOJML= make images > log-release-make 2>&1
-	ls build
 	cp -r build/*/images/jdk $(REL)
 	make post
 
@@ -83,8 +82,9 @@ release:
 	mkdir $(REL)
 	bash ./configure > log-release
 	NOJML= make > log-release-make 2>&1
+	ls build
 	make post
-	cp -r build/m*/jdk $(REL)
+	cp -r build/*/jdk $(REL)
 
 post:
 	cp -r ../../Solvers/Solvers-* $(REL)
