@@ -74,7 +74,8 @@ release-image:
 	mkdir $(REL)
 	bash ./configure > log-release
 	NOJML= make images > log-release-make 2>&1
-	cp -r build/m*/images/jdk $(REL)
+        ls build
+	cp -r build/*/images/jdk $(REL)
 	make post
 
 release:
