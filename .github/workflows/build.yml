@@ -62,13 +62,14 @@ jobs:
       run: |
         cd OpenJML/OpenJDKModule/release-temp
         ls
-        echo $HOME $LOGNAME
         export ver=0.11.0
-        export vers=0.11.0
-        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"v$ver\", \"name\":\"Dafny $vers\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" > /tmp/post
-        for f in *.zip; do
+        echo openjml-${{ runner.os }}-${ver}.zip
+        mv *.zip openjml-${{ runner.os }}-${ver}.zip
+        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"v$ver\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" > /tmp/post
+        for f in *.zip; do \
+         echo $f; \
          curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -H "Content-Type: application/zip" \
           --data-binary @$f  \
-          "$upload_url?name=$f&label=$f" > tmp_upload ;
+          "$upload_url?name=$f&label=$f" > tmp_upload ; \
         done
