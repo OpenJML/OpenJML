@@ -88,9 +88,10 @@ release:
 post:
 	cp -r ../../Solvers/Solvers-* $(REL)
 	cp -r ../../Specs/specs $(REL)
-	cp -r release-files/ $(REL)
-	chmod ugo+x $(REL)/openjml || ls $(REL)
-	(cd $(REL); zip -r ./openjml.zip *
+	cp -r release-files/* $(REL)
+        ls $(REL)
+	chmod ugo+x $(REL)/openjml
+	(cd $(REL); zip -R ./openjml.zip * )
 
 trial:
 	$(REL)/openjml -esc -progress $(REL)/demos/Max.java
