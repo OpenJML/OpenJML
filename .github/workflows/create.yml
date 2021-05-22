@@ -17,7 +17,8 @@ jobs:
     - uses: actions/setup-python@v1
     - name: Create release
       run: |
+        cd OpenJML/OpenJDKModule
         export ver=`cat version.txt`
-        cd OpenJML/OpenJDKModule/release-temp
+        cd release-temp
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"v$ver\", \"target\":\"development-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" > /tmp/post
         cat /tmp/post
