@@ -7,7 +7,7 @@ on:
     branches: [ development-module ]
 
 jobs:
-  build: ## Could be any OS
+  version: ## Could be any OS
     runs-on: macos-latest
 
     strategy:
@@ -23,7 +23,6 @@ jobs:
         cd OpenJML
         cat version.txt
         export ver=`cat version.txt`
-        cd OpenJDKModule/release-temp
         echo VER $ver
-        #curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"v$ver\", \"target\":\"development-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" > /tmp/post
-        #cat /tmp/post
+        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"v$ver\", \"target\":\"development-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" > /tmp/post
+        cat /tmp/post
