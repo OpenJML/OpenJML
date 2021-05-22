@@ -13,6 +13,11 @@ jobs:
     strategy:
       fail-fast: false
     steps:
+    - name: Checkout OpenJML
+      run: |
+        git clone https://github.com/OpenJML/OpenJML
+        cd OpenJML
+        git checkout development-module
     - name: Create release
       run: |
         cd OpenJML/OpenJDKModule
