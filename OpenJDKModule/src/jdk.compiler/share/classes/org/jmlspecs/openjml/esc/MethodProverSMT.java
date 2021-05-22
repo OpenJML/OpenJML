@@ -184,14 +184,14 @@ public class MethodProverSMT {
         org.smtlib.SolverProcess.useMultiThreading = false;
         org.smtlib.SolverProcess.useNotifyWait = false;
         String exec = JmlOption.value(context, JmlOption.PROVEREXEC);
+        String os = Utils.identifyOS(context);
         if (exec == null) {
-        	if (Main.root == null) exec = "../../Solvers/Solvers-macos/z3-4.3.1"; // FIXME
-        	else exec = Main.root + "/Solvers-macos/z3-4.3.1";
+        	if (Main.root == null) exec = "../../Solvers/Solvers-" + os + "/z3-4.3.1"; // FIXME
+        	else exec = Main.root + "/Solvers-" + os + "/z3-4.3.1";
         }
         if (exec == null || exec.isEmpty()) exec = JmlOption.value(context, Strings.proverPropertyPrefix + proverToUse);
         if (exec == null || exec.isEmpty()) {
             String loc = utils.findInstallLocation();
-            String os = Utils.identifyOS(context);
             String ex = null;
             ex = proverToUse.replace("z3_","z3-").replace('_','.');
             
@@ -216,6 +216,7 @@ public class MethodProverSMT {
                 }
             }
         }
+        //System.out.println("PROVER " + exec + " " + os + " " + JmlOption.value(context, JmlOption.PROVEREXEC) + " " + Main.root);
         return exec;
     }
     
