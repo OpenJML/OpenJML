@@ -57,8 +57,9 @@ jobs:
       run: |
         cd OpenJML/OpenJDKModule
         make release 
+        cat log-release-make
         ls build
-        ls build/*/jdk
+        ls build/*release
         make trial
     - name: Publish release
       run: |
