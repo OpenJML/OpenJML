@@ -82,15 +82,13 @@ release:
 post:
 	rm -rf $(REL)
 	mkdir $(REL)
-	cp -pr build/*release/jdk $(REL)
-	cp -pr ../../Solvers/Solvers-* $(REL)
-	cp -pr ../../Specs/specs $(REL)
-	cp -pr release-files/* $(REL)
-	ls build/*release/jdk/lib
-	ls $(REL)
+	cp -pRL build/*release/jdk $(REL)
+	cp -pR ../../Solvers/Solvers-* $(REL)
+	cp -pR ../../Specs/specs $(REL)
+	cp -pR release-files/* $(REL)
 	ls -la $(REL)/jdk/lib
 	chmod ugo+x $(REL)/openjml
-	(cd $(REL); zip -r ./openjml.zip * )
+	(cd $(REL); zip -qr ./openjml.zip * )
 
 trial:
 	$(REL)/openjml -esc -progress $(REL)/demos/Max.java
