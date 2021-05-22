@@ -70,20 +70,18 @@ clean-release:
 	rm -rf $(REL)
 
 release-image:
-	rm -rf $(REL)
-	mkdir $(REL)
 	bash ./configure > log-release
 	NOJML= make images > log-release-make 2>&1
 	make post
 
 release:
-	rm -rf $(REL)
-	mkdir $(REL)
 	bash ./configure > log-release
 	NOJML= make > log-release-make 2>&1
 	make post
 
 post:
+	rm -rf $(REL)
+	mkdir $(REL)
 	cp -pr build/*release/jdk $(REL)
 	cp -pr ../../Solvers/Solvers-* $(REL)
 	cp -pr ../../Specs/specs $(REL)

@@ -60,6 +60,10 @@ jobs:
         cat log-release-make
         ls build
         ls build/*release
+        ls build/*release/jdk
+        echo MAKE POST
+        make post
+        echo MAKE TRIAL
         make trial
     - name: Publish release
       run: |
