@@ -84,12 +84,12 @@ release:
 	NOJML= make > log-release-make 2>&1
 	ls build
 	make post
-	cp -r build/*/jdk $(REL)
+	cp -pr build/*/jdk $(REL)
 
 post:
-	cp -r ../../Solvers/Solvers-* $(REL)
-	cp -r ../../Specs/specs $(REL)
-	cp -r release-files/* $(REL)
+	cp -pr ../../Solvers/Solvers-* $(REL)
+	cp -pr ../../Specs/specs $(REL)
+	cp -pr release-files/* $(REL)
 	ls $(REL)
 	chmod ugo+x $(REL)/openjml
 	(cd $(REL); zip -R ./openjml.zip * )
