@@ -1,0 +1,3 @@
+#! /bin/bash
+
+xattr -d com.apple.quarantine *.dylib javac *z3*

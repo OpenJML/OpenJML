@@ -91,4 +91,5 @@ post:
 	(cd $(REL); zip -qr ./openjml.zip * )
 
 trial:
+	$(REL)/openjml -version
 	$(REL)/openjml -esc -progress $(REL)/demos/Max.java
