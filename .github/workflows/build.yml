@@ -56,7 +56,10 @@ jobs:
     - name: Build release
       run: |
         cd OpenJML/OpenJDKModule
-        make release trial
+        make release 
+        ls build
+        ls build/*/jdk
+        make trial
     - name: Publish release
       run: |
         cd OpenJML/OpenJDKModule/release-temp
