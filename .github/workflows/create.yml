@@ -20,10 +20,10 @@ jobs:
         git checkout development-module
     - name: Create release
       run: |
-        cd OpenJML/OpenJDKModule
+        cd OpenJML
         cat version.txt
         export ver=`cat version.txt`
-        cd release-temp
+        cd OpenJDKModule/release-temp
         echo VER $ver
         #curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"v$ver\", \"target\":\"development-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" > /tmp/post
         #cat /tmp/post
