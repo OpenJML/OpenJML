@@ -21,8 +21,6 @@ jobs:
     - name: Create release
       run: |
         cd OpenJML
-        cat version.txt
         export ver=`cat version.txt`
-        echo VER $ver
+        echo Version $ver
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"v$ver\", \"target\":\"development-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" > /tmp/post
-        cat /tmp/post
