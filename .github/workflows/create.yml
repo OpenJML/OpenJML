@@ -8,17 +8,17 @@ on:
 
 jobs:
   build: ## Could be any OS
-    runs-on: ${{ macos-latest }}
+    runs-on: macos-latest
 
     strategy:
-      matrix: [ macos-latest ]
       fail-fast: false
     steps:
-    - uses: actions/setup-python@v1
     - name: Create release
       run: |
         cd OpenJML/OpenJDKModule
+        cat version.txt
         export ver=`cat version.txt`
         cd release-temp
-        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"v$ver\", \"target\":\"development-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" > /tmp/post
-        cat /tmp/post
+        echo VER $ver
+        #curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"v$ver\", \"target\":\"development-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" > /tmp/post
+        #cat /tmp/post
