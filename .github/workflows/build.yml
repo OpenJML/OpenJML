@@ -63,8 +63,9 @@ jobs:
         make trial
     - name: Publish release
       run: |
+        cd OpenJML/OpenJDKModule
         export ver=`cat version.txt`
-        cd OpenJML/OpenJDKModule/release-temp
+        cd release-temp
         export f=openjml-${{ matrix.os }}-${ver}.zip
         mv *.zip $f
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
