@@ -59,6 +59,7 @@ jobs:
         make release 
     - name: Test release
       run: |
+        cd OpenJML/OpenJDKModule
         make trial
     - name: Publish release
       run: |
