@@ -67,7 +67,7 @@ jobs:
         export ver=0.11.0
         export f=openjml-${{ matrix.os }}-${ver}.zip
         mv *.zip $f
-        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: Bearer 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' |grep '"id":' | head -1 | sed -e 's/.*://' -e 's/,//'`
+        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*://' -e 's/,//'`
         echo ID $id
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"v$ver\", \"target\":\"development-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" > /tmp/post
         export upload_urla=`jq -r '.upload_url' < /tmp/post`
