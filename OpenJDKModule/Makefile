@@ -92,7 +92,7 @@ post:
 	cp -pr release-files/* $(REL)
 	ls $(REL)
 	chmod ugo+x $(REL)/openjml
-	(cd $(REL); zip -R ./openjml.zip * )
+	(cd $(REL); zip -r ./openjml.zip * )
 
 trial:
 	$(REL)/openjml -esc -progress $(REL)/demos/Max.java
