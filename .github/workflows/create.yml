@@ -1,0 +1,24 @@
+name: Create OpenJML Release
+
+on:
+  push:
+    branches: [ development-module ]
+  pull_request:
+    branches: [ development-module ]
+
+jobs:
+  build: ## Could be any OS
+    runs-on: ${{ macos-latest }}
+
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: actions/setup-python@v1
+    - name: Create release
+      run: |
+        cd OpenJML/OpenJDKModule/release-temp
+        export ver=0.11.0
+        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"v$ver\", \"target\":\"development-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" > /tmp/post
+        export upload_urla=`jq -r '.upload_url' < /tmp/post`
+        export upload_url="${upload_urla%\{*}"
+        echo URL ${upload_url}
