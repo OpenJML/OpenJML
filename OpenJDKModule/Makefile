@@ -88,7 +88,9 @@ post:
 	cp -pr ../../Solvers/Solvers-* $(REL)
 	cp -pr ../../Specs/specs $(REL)
 	cp -pr release-files/* $(REL)
+	ls build/*release/jdk/lib
 	ls $(REL)
+	ls -la jdk/lib
 	chmod ugo+x $(REL)/openjml
 	(cd $(REL); zip -r ./openjml.zip * )
 
