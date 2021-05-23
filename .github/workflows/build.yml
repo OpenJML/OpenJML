@@ -65,15 +65,15 @@ jobs:
       run: |
         cd OpenJML
         export ver=`cat version.txt`
-        export tag=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep tag_name | head -1 | sed -e 's/.*: \"//' -s 's/\",//'`
+        export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }} "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep tag_name | head -1 | sed -e 's/.*: \"//' -s 's/\",//'`
         echo $ver $tag
     - name: Check
-      if: "$ver" != "$tag"
+      if: '$ver' != '$tag'
       run: |
         echo Current version is $tag, which does not match $ver
         exit 1
     - name: Publish release
-      if: "$ver" == "$tag"
+      if: '$ver' == '$tag'
       run: |
         cd OpenJML
         export ver=`cat version.txt`
