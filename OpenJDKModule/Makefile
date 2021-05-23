@@ -69,12 +69,15 @@ clean-release:
 	make clean dist-clean
 	rm -rf $(REL)
 
-release-image:
+version:
+	./version.sh
+
+release-image: version
 	bash ./configure > log-release
 	NOJML= make images > log-release-make 2>&1
 	make post
 
-release:
+release: version
 	bash ./configure > log-release
 	NOJML= make > log-release-make 2>&1
 	make post
