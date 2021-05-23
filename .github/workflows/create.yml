@@ -24,10 +24,7 @@ jobs:
         export ver=`cat version.txt`
         export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep tag_name | head -1 | sed -e 's/.*: \"//' -e 's/\",//'`
         echo $ver $tag
-      ##if: "$ver" == "$tag"
-      ##run: |
-        ##echo Version $ver already exists
-        ##exit 1
+        if [ "$var" == "$tag" ]; then echo Version $ver already exists; exit 1;  fi
     - name: Create new release
       ##if: "$ver" != "$tag"
       run: |
