@@ -68,7 +68,7 @@ jobs:
         export tag=$var
         ##export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep tag_name | head -1 | sed -e 's/.*: \"//' -e 's/\",//'`
         echo $ver $tag
-       if [ "$var" != "$tag" ]; then echo Version $ver is not the current release, which is $tag ; exit 1;  fi
+        ##if [ "$var" != "$tag" ]; then echo Version $ver is not the current release, which is $tag ; exit 1;  fi
     - name: Publish release
       run: |
         cd OpenJML
