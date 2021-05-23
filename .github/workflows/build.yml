@@ -61,7 +61,19 @@ jobs:
       run: |
         cd OpenJML/OpenJDKModule
         make trial
+    - name: Find current release
+      run: |
+        cd OpenJML
+        export ver=`cat version.txt`
+        export tag=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep tag_name | head -1 | sed -e 's/.*: \"//' -s 's/\",//'`
+        echo $ver $tag
+    - name: Check
+      if: "$ver" != "$tag"
+      run: |
+        echo Current version is $tag, which does not match $ver
+        exit 1
     - name: Publish release
+      if: "$ver" == "$tag"
       run: |
         cd OpenJML
         export ver=`cat version.txt`
@@ -70,9 +82,6 @@ jobs:
         mv *.zip $f
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
         echo ID $id
-        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"v$ver\", \"target\":\"development-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" > /tmp/post
-        export upload_urla=`jq -r '.upload_url' < /tmp/post`
-        export upload_url="${upload_urla%\{*}"
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
         echo Uploading $f $upload_url
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f"
