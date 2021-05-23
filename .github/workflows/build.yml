@@ -68,7 +68,8 @@ jobs:
         export tag=$var
         ##export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep tag_name | head -1 | sed -e 's/.*: \"//' -e 's/\",//'`
         echo $ver $tag
-        ##if [ "$var" != "$tag" ]; then echo Version $ver is not the current release, which is $tag ; exit 1;  fi
+        test "$ver" = "$tag" || echo Version $ver is not the current release, which is $tag
+        test "$ver" = "$tag"
     - name: Publish release
       run: |
         cd OpenJML
@@ -77,7 +78,5 @@ jobs:
         export f=openjml-${{ matrix.os }}-${ver}.zip
         mv *.zip $f
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
-        echo ID $id $ver
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
-        echo Uploading $f $upload_url
-        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f"
+        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f" > /tmp/upload
