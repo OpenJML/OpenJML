@@ -18,10 +18,16 @@ jobs:
         git clone https://github.com/OpenJML/OpenJML
         cd OpenJML
         git checkout development-module
-    - name: Create release
+    - name: Find current release
+      run: |
+        cd OpenJML
+        export ver=`cat version.txt`
+        export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }} "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep tag_name | head -1 | sed -e 's/.*: \"//' -s 's/\",//'`
+        echo $ver $tag
+    - name: Create new release
       run: |
         cd OpenJML
         export ver=`cat version.txt`
         echo Version $ver
         # Create new version
-        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"v$ver\", \"target\":\"development-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" > /tmp/post
+        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target\":\"development-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" > /tmp/post
