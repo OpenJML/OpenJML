@@ -22,7 +22,7 @@ jobs:
       run: |
         cd OpenJML
         export ver=`cat version.txt`
-        export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }} "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep tag_name | head -1 | sed -e 's/.*: \"//' -s 's/\",//'`
+        export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }} "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep tag_name | head -1 | sed -e 's/.*: \"//' -e 's/\",//'`
         echo $ver $tag
     - name: Create new release
       run: |
