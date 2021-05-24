@@ -1,3 +1,4 @@
 #! /bin/bash
 
-xattr -d com.apple.quarantine *.dylib javac *z3*
+cd "$(dirname $BASH_SOURCE)"
+xattr -d com.apple.quarantine `find . -name *.dylib` `find . -name javac` `find . -name  *z3*` `find . -name jspawnhelper`
