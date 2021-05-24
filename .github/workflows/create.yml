@@ -15,9 +15,7 @@ jobs:
     steps:
     - name: Checkout OpenJML
       run: |
-        git clone https://github.com/OpenJML/OpenJML
-        cd OpenJML
-        git checkout development-module
+        git clone -development-module --depth 1 https://github.com/OpenJML/OpenJML
     - name: Find current release
       run: |
         cd OpenJML
