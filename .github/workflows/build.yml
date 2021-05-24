@@ -36,13 +36,9 @@ jobs:
         java-version: 1.16
     - name: Checkout OpenJML
       run: |
-        git clone https://github.com/OpenJML/OpenJML
-        git clone https://github.com/OpenJML/Specs
-        git clone https://github.com/OpenJML/Solvers
-        cd Specs
-        git checkout development-module
-        cd ../OpenJML
-        git checkout development-module
+        git clone -b development-module --depth 1 https://github.com/OpenJML/OpenJML
+        git clone -b development-module --depth 1 https://github.com/OpenJML/Specs
+        git clone --depth 1 https://github.com/OpenJML/Solvers
     - name: Build OpenJML Windows
       if: runner.os == 'Windows'
       run: |
