@@ -1,5 +1,6 @@
 #! /bin/bash
 
-cd "$(dirname $BASH_SOURCE)"
+pushd "$(dirname $BASH_SOURCE)" > /dev/null
 ROOT="$( pwd )"
+popd > /dev/null
 OPENJML_ROOT="$ROOT" "$ROOT/jdk/bin/javac" "$@"
