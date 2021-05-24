@@ -1,7 +1,5 @@
 #! /bin/bash
 
-ROOT=$( cd $(dirname $BASH_SOURCE) && pwd )
-
-echo $ROOT
-
+cd "$(dirname $BASH_SOURCE)"
+ROOT="$( pwd )"
 OPENJML_ROOT="$ROOT" "$ROOT/jdk/bin/javac" "$@"

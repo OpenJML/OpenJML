@@ -1,0 +1,11 @@
+
+
+Version 0.16.0-alpha-1
+
+This is a first public release of OpenJML based on OpenJDK16.
+It is an alpha release and missing some significant functionality
+(such as RAC, a windows build, and reasoning about lambda functions and anonymous classes).
+
+However, it does implement some of the newer features of currnet OpenJDK, 
+such as being an encapsulated standalone executable that does not need
+Java installed (much less a particular version).
