@@ -10,7 +10,8 @@ public class ListTest {
     }
 
     public ListTest() {
-        mylist = new ArrayList<String>();}
+        mylist = new ArrayList<String>();
+    }
 
     //@ requires getMylist().size() < Integer.MAX_VALUE;
     //@ ensures  \old(getMylist().size()) + 1 == getMylist().size()  ; 
@@ -19,3 +20,5 @@ public class ListTest {
     }
 
 }
+
+// FIXME - The problem here is that addStringInList does not verify when all methods are checked, but does when checked standalone, as in gitbug698A
