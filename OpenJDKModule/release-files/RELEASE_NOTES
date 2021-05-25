@@ -9,3 +9,9 @@ It is an alpha release and missing some significant functionality
 However, it does implement some of the newer features of currnet OpenJDK, 
 such as being an encapsulated standalone executable that does not need
 Java installed (much less a particular version).
+
+To install: download the release zip file and unzip in an empty folder of your choice 
+(that does not have spaces in its path)
+
+Examples: If $OJ is the installation folder, run ``$OJ/openjml -version``
+and ``$OJ/openjml -esc -progress $OJ/demos/Max.java``

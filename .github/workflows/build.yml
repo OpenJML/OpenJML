@@ -16,8 +16,8 @@ jobs:
         ## setup a work environment (e.g. dotnet installation)
         ##os: [ubuntu-latest]
         ##os: [ubuntu-latest, windows-latest, ubuntu-16.04]
-        ##os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        ##os: [ubuntu-latest, macos-latest]
 
       fail-fast: false
     steps:
@@ -29,6 +29,24 @@ jobs:
       run: |
         sudo apt-get install libxext-dev libxtst-dev libxrandr-dev libcups2-dev
         sudo apt-get install libasound2-dev
+    - name: Setup Cygwin for WIndows
+      if: runner.os == 'Windows'
+      run: |
+        & cmd /c 'nslookup www.cygwin.com 2>&1'
+        while ($true)
+          {
+              try
+              {
+                  (New-Object Net.WebClient).DownloadFile('http://www.cygwin.com/setup-x86_64.exe', 'setup-x86_64.exe')
+                  break
+              }
+              catch
+              {
+                  Write-Host "There is an error during package downloading:`n $_"
+              }
+          }
+        & cmd /c 'nslookup www.cygwin.com 8.8.8.8 2>&1'
+      shell: powershell
     - uses: actions/setup-python@v1
     - name: Set up JDK16 
       uses: actions/setup-java@v1

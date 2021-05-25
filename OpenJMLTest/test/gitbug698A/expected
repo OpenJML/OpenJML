@@ -1,0 +1,8 @@
+Proving methods in ListTest
+Skipping proof of ListTest.getMylist() (excluded by -method)
+Skipping proof of ListTest.ListTest() (excluded by -method)
+Starting proof of ListTest.addStringInList(String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ListTest.addStringInList(String) with prover !!!! - no warnings
+Completed proving methods in ListTest
