@@ -9025,7 +9025,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
 
                 if (!anyVisibleSpecCases) {
-                    log.error(that.pos, "jml.message","No visible specifications for this call site: " + utils.qualifiedMethodSig(calleeMethodSym) + " called from " + utils.qualifiedMethodSig(methodDecl.sym));
+                    utils.warning(that.pos, "jml.message","No visible specifications for this call site: " + utils.qualifiedMethodSig(calleeMethodSym) + " called from " + utils.qualifiedMethodSig(methodDecl.sym));
                 }
                 // Issue the overall precondition check (which is an OR of all the preconditions for each spec case, acrsoss all overriding methods).
                 // clauseToReference is null if the precondition is just a true literal  // FIXME - this is confusing if there is more than one clause in one spec case

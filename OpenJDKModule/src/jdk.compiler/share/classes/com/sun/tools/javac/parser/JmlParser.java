@@ -205,8 +205,9 @@ public class JmlParser extends JavacParser {
      */
     @Override
     public JCTree.JCCompilationUnit parseCompilationUnit() {
+    	JCTree.JCCompilationUnit u = null;
     	try {
-    		JCTree.JCCompilationUnit u = super.parseCompilationUnit();
+    		u = super.parseCompilationUnit();
     		storeEnd(u, pos());
     		if (!(u instanceof JmlCompilationUnit)) {
     			utils.error(
@@ -236,12 +237,11 @@ public class JmlParser extends JavacParser {
     			setTopLevel(jmlcu,jmlcu.defs);
     			jmlcu.sourceCU = jmlcu;
     		}
-    		return u;
     	} catch (Exception e) {
            	var S = getScanner();
-        	System.out.println(((JmlTokenizer)S.tokenizer).getCharacters(S.tokenizer.position()-10, S.tokenizer.position()+50));
-    		throw e;
+           	utils.unexpectedException(e, "Exception during parsing near " + ((JmlTokenizer)S.tokenizer).getCharacters(S.tokenizer.position()-10, S.tokenizer.position()+50));
     	}
+    	return u; // Might be null if an error happens, though prefer a partial tree
     }
 
     /** Recursively sets the toplevel field of class declarations */
@@ -314,7 +314,12 @@ public class JmlParser extends JavacParser {
     @Override
     protected JCVariableDecl formalParameter(boolean lambdaParameter, boolean recordComponent) {
         replacementType = null;
+        int n = Log.instance(context).nerrors;
         JmlVariableDecl param = (JmlVariableDecl)super.formalParameter(lambdaParameter, recordComponent);
+        if (n != Log.instance(context).nerrors) {
+        	skipToCommaOrParenOrSemi();
+        	return param;
+        }
         insertReplacementType(param,replacementType);
         replacementType = null;
         return param;
