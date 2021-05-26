@@ -1,7 +1,7 @@
-test/gitbug648a/W.java:4: error: No visible specifications for this call site: X.qqq() called from W.m()
+test/gitbug648a/W.java:4: warning: No visible specifications for this call site: X.qqq() called from W.m()
         int x = X.qqq();  // ERROR - no visible specs
                      ^
-test/gitbug648a/W.java:11: error: No visible specifications for this call site: X.qqq() called from W.mm()
+test/gitbug648a/W.java:11: warning: No visible specifications for this call site: X.qqq() called from W.mm()
         int x = X.qqq();  // ERROR - no visible specs
                      ^
 Proving methods in W
@@ -33,5 +33,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of X.qqq() with prover !!!! - no warnings
 Completed proving methods in X
-2 errors
-3 warnings
+5 warnings

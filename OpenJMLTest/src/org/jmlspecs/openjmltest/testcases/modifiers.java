@@ -1309,7 +1309,7 @@ public class modifiers extends TCBase {
     }
     
     // TODO - could use better error messages and better recovery
-    @Test @Ignore
+    @Test
     public void testBadModifiers2() {
         helpTCF("A.java","package tt; \n"
                 +"public class A { \n"
@@ -1319,6 +1319,7 @@ public class modifiers extends TCBase {
                 +"  }\n"
                 
                 +"}"
+                ,"/A.java:4: error: Expected an identifier, found end of JML comment instead",33
                 );
     }
     
