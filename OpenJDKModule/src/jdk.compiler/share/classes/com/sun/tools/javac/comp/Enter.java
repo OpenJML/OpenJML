@@ -281,7 +281,7 @@ public class Enter extends JCTree.Visitor {
     Type classEnter(JCTree tree, Env<AttrContext> env) {
     	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCCompilationUnit) System.out.println("Entering " + ((JCCompilationUnit)tree).sourcefile);
     	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl) System.out.println("Entering " + ((JCClassDecl)tree).name);
-    	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl && ((JCClassDecl)tree).name.toString().equals("A")) System.out.println("Entering " + ((JCClassDecl)tree).name + " " + ((JCClassDecl)tree).mods);
+    	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl && ((JCClassDecl)tree).name.toString().contains("Abstract")) System.out.println("Entering " + ((JCClassDecl)tree).name + " " + ((JCClassDecl)tree).mods);
         Env<AttrContext> prevEnv = this.env;
         try {
             this.env = env;

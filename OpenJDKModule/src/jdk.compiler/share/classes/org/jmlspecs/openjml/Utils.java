@@ -933,6 +933,8 @@ public class Utils {
         List<MethodSymbol> methods = new LinkedList<MethodSymbol>();
         if (isJMLStatic(m)) {
             methods.add(m); 
+        } else if (m.isConstructor() ) {
+        	methods.add(m);
         } else {
         	// FIXME - the 'true' here should be false -- it seems that model interface enclosed within 
         	// and extending java interfaces do not show those interfaces in getIntrerfaces()

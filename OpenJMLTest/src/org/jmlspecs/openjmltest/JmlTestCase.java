@@ -121,7 +121,7 @@ public abstract class JmlTestCase {
          */
         public FilteredDiagnosticCollector(boolean noNotes, boolean print) {
             this.noNotes = noNotes;
-            this.print = print || System.getenv("VERBOSE") != null || System.getenv("STACK") != null;
+            this.print = print;
         }
         
         /** If true, no notes are collected; some test output contains notes, so this mut generally be false */
@@ -234,7 +234,7 @@ public abstract class JmlTestCase {
     /** Set this to true (in the setUp for a test, before calling super.setUp)
      * if you want diagnostics to be printed as they occur (as well as being collected).
      */
-    public boolean printDiagnostics = System.getenv("VERBOSE") != null || System.getenv("PRINT") != null || System.getenv("SCANNER") != null|| System.getenv("STACK") != null;
+    public boolean printDiagnostics = System.getenv("VERBOSE") != null || System.getenv("PRINT") != null || System.getenv("SCANNER") != null || System.getenv("STACK") != null;
     
     /** A collector for all of the diagnostic messages*/
     protected DiagnosticListenerX<JavaFileObject> collector;
