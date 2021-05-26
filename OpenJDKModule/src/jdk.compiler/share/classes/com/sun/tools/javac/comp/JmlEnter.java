@@ -563,6 +563,7 @@ public class JmlEnter extends Enter {
 				owner.members().enter(csym);
 				if (utils.verbose()) utils.note("Entering JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
 				specDecl.sym = csym;
+				specDecl.type = ct;
 			} else {
 				// owner has a binary/source class corresponding to specDecl, namely csym
 				boolean matchIsJML = utils.isJML(csym.flags());
@@ -617,6 +618,7 @@ public class JmlEnter extends Enter {
 					checkAndEnterTypeParameters(csym,specDecl,specsEnv); // FIXME - just does checking
 					if (utils.verbose()) utils.note("Matched class: " + csym + " (owner: " + csym.owner +")" );
 					specDecl.sym = csym;
+					specDecl.type = csym.type;
 					{
 //						if (specDecl.extending != null) {
 //							//if (specDecl.extending instanceof JCTypeApply) ((JCTypeApply)specDecl.extending).arguments.forEach(t -> t.type = Attr.instance(context).attribType(t,env));
@@ -1416,8 +1418,9 @@ public class JmlEnter extends Enter {
     		if (JmlSpecs.SpecsStatus.QUEUED.less(specs.status(csymbol))) continue;
 
     		nestingLevel++;
+    		JmlCompilationUnit speccu = null;
     		try {
-    			JmlCompilationUnit speccu = JmlCompiler.instance(context).parseSpecs(csymbol);
+    			speccu = JmlCompiler.instance(context).parseSpecs(csymbol);
     			if (speccu == null) speccu = javaCU; // If nothing in the specspath, use the Java source as specs
     			if (speccu != null) {
     				speccu.sourceCU = javaCU; // null indicates a binary; non-null a source Java file
@@ -1429,8 +1432,11 @@ public class JmlEnter extends Enter {
     					utils.warning("jml.message","[missing-specs] No specifications file found for binary " + csymbol);
     			}
     		} finally {
-				if (utils.verbose()) utils.note("Completed entering specs for " + csymbol + (javaCU==null?" (binary)":(" (" + javaCU.sourcefile + ")")));
-    			nestingLevel--;
+				if (utils.verbose()) utils.note("Completed entering specs for " + csymbol + (javaCU==null?" (binary)":(" (" + javaCU.sourcefile + ")" + " spec: " + speccu.sourcefile)));
+//    			if (speccu != null) for (var d: speccu.defs) {
+//    				if (d instanceof JmlClassDecl) { JmlClassDecl cd = (JmlClassDecl)d; System.out.println("    "  + cd.name + " " + cd.sym + " " + cd.type); }
+//    			}
+				nestingLevel--;
     		}
     	}
     }

@@ -29,6 +29,7 @@ import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.JmlCheckSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
@@ -196,8 +197,10 @@ public class JmlCompiler extends JavaCompiler {
 //            return results;
 //        }
         
-        if (utils.check || utils.doc) {
-            // Stop here
+        if (utils.check) {
+        	//JmlCheckSpecs.instance(context).check();
+            return results; // Empty list - do nothing more
+        } else if (utils.doc) {
             return results; // Empty list - do nothing more
         } else if (utils.esc) {
             JmlEsc esc = JmlEsc.instance(context);

@@ -369,6 +369,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		var classEnv = typeEnvs.get(c);
     		if (classEnv == null) {
     			System.out.println("NULL ENV FOR " + c + " " + c.owner);
+                super.attribClass(c);
     			return;
     		}
     		JmlClassDecl tree = (JmlClassDecl)classEnv.tree;
@@ -543,7 +544,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	// The type clauses that need checking are the ones in the specs database, not those
     	// parsed in the class body (though they may be the same)
         if (tree instanceof JmlTypeClause) return null;
+        try {
         return super.attribStat(tree,env);
+        } catch (Exception e) {
+        	System.out.println("EXZCEPTION ON STAT " + env.enclClass.name + " " + tree + " RNV: " + env);
+        	throw e;
+        }
     }
 
     
@@ -4050,7 +4056,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
                 
             case subtypeofID:
-            case subtypeofeqID:
+            case subtypeofeqID: {
                 // Note: the method of comparing types here ignores any type
                 // arguments.  If we use isSameType, for example, then Class
                 // and Class<Object> are different.  In this case, all we need 
@@ -4080,7 +4086,36 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 
                 result = syms.booleanType;
                 break;
+            }
                 
+            case jsubtypeofID:
+            case jsubtypeofeqID: {
+                attribExpr(that.lhs,env,Type.noType);
+                Type t = that.lhs.type;
+                boolean errorAlready = false;
+                if (t.isErroneous()) errorAlready = true;
+//                else if (!t.equals(jmltypes.TYPE)
+//                        && !t.tsym.equals(syms.classType.tsym)) {
+//                    errorAlready = true;
+//                    utils.error(that.lhs.pos(),"jml.subtype.arguments",that.lhs.type);
+//                }
+                attribExpr(that.rhs,env,Type.noType);
+                Type tt = that.rhs.type;
+                if (tt.isErroneous()) errorAlready = true;
+//                else if (!tt.equals(jmltypes.TYPE)
+//                        && !tt.tsym.equals(syms.classType.tsym)) {
+//                    errorAlready = true;
+//                    utils.error(that.rhs.pos(),"jml.subtype.arguments",that.rhs.type);
+//                }
+//                if ((t == jmltypes.TYPE) != (tt == jmltypes.TYPE) && !errorAlready) {
+//                    utils.error(that.rhs.pos(),"jml.subtype.arguments.same",that.rhs.type);
+//                }
+                // FIXME 
+                
+                result = syms.booleanType;
+                break;
+            }
+
             default:
                 utils.error(that.pos(),"jml.unknown.operator",that.op.name(),"JmlAttr");
                 break;
@@ -4922,6 +4957,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (sym instanceof ClassSymbol) {
                 // FIXME - the code below crashes for class symbols. What should we do?
                 // FIXME - we also get this case for annotations on a clause
+            } else if (sym.name == names.length || sym.name == names._class) {
+            	v = Flags.PUBLIC;
             } else {
                 JCModifiers mods = null;
                 if (sym.owner != null && sym.owner.kind == TYP) {
@@ -5252,6 +5289,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JmlSpecs.MethodSpecs f = specs.getLoadedSpecs((Symbol.MethodSymbol)sym); // FIXME - do not need attributed specs
             if (f != null) mods = f.mods;
         } else if (sym instanceof Symbol.ClassSymbol) {
+        	if (sym.type.isPrimitiveOrVoid()) return Flags.PUBLIC; // Primitive type
             JmlSpecs.TypeSpecs f = specs.getLoadedSpecs((Symbol.ClassSymbol)sym);
             if (f != null) mods = f.modifiers;
         }
@@ -5356,8 +5394,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		utils.error(tree, "jml.message", "A " + tree.selected.type.toString() + " value may not be dereferenced");
     		return;
     	}
-    	Symbol s = tree.selected.type.tsym; // might be a PackageSymbol
-    	if (s instanceof ClassSymbol) specs.getLoadedSpecs((ClassSymbol)s);
+    	TypeSymbol s = tree.selected.type.tsym; // might be a PackageSymbol; also might be int.class
+    	if (s instanceof ClassSymbol && s.type.isReference()) specs.getLoadedSpecs((ClassSymbol)s);
     }
 
     
@@ -5533,6 +5571,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	if (!checkAnnotationType(a)) continue; // FIXME - why might the annotation type be null?
             Symbol tsym = a.annotationType.type.tsym;
             for (ModifierKind c: allowed) {
+            	if (((JmlAnnotation)a).kind == c) continue outer; // Found it
             	var asym = modToAnnotationSymbol.get(c);
                 if (tsym.equals(asym)) continue outer; // Found it
             }
