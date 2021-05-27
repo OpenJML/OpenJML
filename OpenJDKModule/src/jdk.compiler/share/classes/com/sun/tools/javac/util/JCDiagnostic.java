@@ -62,6 +62,12 @@ public class JCDiagnostic implements Diagnostic<JavaFileObject> {
             return instance;
         }
 
+        public DiagnosticFormatter<JCDiagnostic> setFormatter(DiagnosticFormatter<JCDiagnostic> df) { // OPENJML - added for testing
+        	var olddf = formatter;
+        	formatter = df;
+        	return olddf;
+        }
+
         DiagnosticFormatter<JCDiagnostic> formatter;
         final String prefix;
         final Set<DiagnosticFlag> defaultErrorFlags;
@@ -756,6 +762,16 @@ public class JCDiagnostic implements Diagnostic<JavaFileObject> {
     @Override
     public String toString() {
         return defaultFormatter.format(this, Locale.getDefault());
+    }
+    
+    public DiagnosticFormatter<JCDiagnostic> setFormatter(DiagnosticFormatter<JCDiagnostic> df) { // OPENJML - added for testing
+    	var olddf = defaultFormatter;
+    	defaultFormatter = df;
+    	return olddf;
+    }
+
+    public DiagnosticFormatter<JCDiagnostic> getFormatter() { // OPENJML - added for testing
+    	return defaultFormatter;
     }
 
     private DiagnosticFormatter<JCDiagnostic> defaultFormatter;
