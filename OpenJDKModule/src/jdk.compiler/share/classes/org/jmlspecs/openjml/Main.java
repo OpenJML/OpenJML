@@ -5,6 +5,8 @@
 
 package org.jmlspecs.openjml;
 
+import static com.sun.tools.javac.main.Option.WERROR;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -528,6 +530,11 @@ public class Main extends com.sun.tools.javac.main.Main {
         // but the register call has to happen before compile is called.
         canceled = false;
         Main.Result exit = super.compile(args,context);
+    	int n = Utils.instance(context).verifyWarnings;
+    	if (n != 0) {
+    		JavaCompiler.instance(context).printCount("verify", n);
+    		if (Options.instance(context).isSet(WERROR)) exit = Result.ERROR;
+    	}
         return exit;
     }
     

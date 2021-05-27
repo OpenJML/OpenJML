@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -78,6 +79,7 @@ import com.sun.tools.javac.util.BasicDiagnosticFormatter.BasicConfiguration.Sour
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.DiagnosticSource;
 import com.sun.tools.javac.util.JCDiagnostic;
+import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
@@ -1436,6 +1438,17 @@ public class Utils {
         return jfo1.equals(jfo2);
     }
 
+    public void verify(JavaFileObject source, int pos, String key, Object ... args) {
+        Log log = log();
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
+        try {
+            verify(pos, key, args);
+        } finally {
+            if (prev != null) log.useSource(prev);
+        }
+    }
+    
     public void warning(JavaFileObject source, int pos, String key, Object ... args) {
         Log log = log();
         JavaFileObject prev = null;
@@ -1687,7 +1700,37 @@ public class Utils {
     public void warning(DiagnosticPosition pos, String key, Object ... args) {
         log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
     }
+    
+    public int verifyWarnings = 0;
+    
+    com.sun.tools.javac.util.BasicDiagnosticFormatter verifyDiagnosticFormatter = null;
+    public void verify(DiagnosticPosition pos, String key, Object ... args) {
+    	var df = log().getDiagnosticFormatter();
+    	if (verifyDiagnosticFormatter == null) 
+    		verifyDiagnosticFormatter = new com.sun.tools.javac.util.BasicDiagnosticFormatter(Options.instance(context),JavacMessages.instance(context)) {
+    	    public String formatKind(JCDiagnostic d, Locale l) {
+    	    	return Utils.testingMode?"warning: ":"verify: ";
+    	    }
+    	};
+    	log().setDiagnosticFormatter(verifyDiagnosticFormatter);
+    	var df2 = JCDiagnostic.Factory.instance(context).setFormatter(verifyDiagnosticFormatter);
+        log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
+    	log().setDiagnosticFormatter(df);
+    	JCDiagnostic.Factory.instance(context).setFormatter(df2);
+    	if (!Utils.testingMode) {
+    		verifyWarnings++;
+        	log().nwarnings--;
+    	}
+    }
 
+    public void verify(int pos, String key, Object ... args) {
+        verify(pos==Position.NOPOS?null:new SimpleDiagnosticPosition(pos), key, args);
+    }
+
+    public void verify(String key, Object ... args) {
+        verify((DiagnosticPosition)null, key, args);
+    }
+    
     public void note(boolean verboseOnly, String msg) {
     	if (!verboseOnly || Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE) {
     		log().getWriter(WriterKind.NOTICE).println(msg);
@@ -1713,7 +1756,7 @@ public class Utils {
     }
     
     public void noPrefix(String msg) {
-    	log().getWriter(WriterKind.NOTICE).println(msg);
+    	log().getWriter(WriterKind.STDOUT).println(msg);
     }
 
     /** A derived class of DiagnosticPosition that allows for straightforward setting of the

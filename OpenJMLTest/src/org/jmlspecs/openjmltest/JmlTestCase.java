@@ -114,7 +114,7 @@ public abstract class JmlTestCase {
     public boolean ignoreNotes = true;
 
     /** A Diagnostic Listener that collects the diagnostics, so that they can be compared against expected results */
-    final static public class FilteredDiagnosticCollector<S> implements DiagnosticListenerX<S> {
+    final public static class FilteredDiagnosticCollector<S> implements DiagnosticListenerX<S> {
         /** Constructs a diagnostic listener that collects all of the diagnostics,
          * with the ability to filter out the notes.
          * @param noNotes if true, no notes (only errors and warnings) are collected
@@ -129,6 +129,8 @@ public abstract class JmlTestCase {
         /** If true, diagnostics are printed (as well as being collected) */
         boolean print;
         
+        Context context;
+        
         /** The collection (in order) of diagnostics heard so far. */
         private java.util.List<Diagnostic<? extends S>> diagnostics =
             Collections.synchronizedList(new ArrayList<Diagnostic<? extends S>>());
@@ -136,8 +138,12 @@ public abstract class JmlTestCase {
         /** The method called by the system when there is a diagnostic to report. */
         public void report(Diagnostic<? extends S> diagnostic) {
             diagnostic.getClass(); // null check
+        	//if (System.getenv("NOJML")==null) System.out.println("LOG-VDH " + Log.instance(context).getDiagnosticFormatter().getClass() + " " + Log.instance(context).getDiagnosticFormatter().hashCode());
+            //if (print) System.out.println(Log.instance(context).getDiagnosticFormatter().format(diagnostic, Locale.getDefault()));
             if (print) System.out.println(diagnostic.toString());
-            if (!noNotes || diagnostic.getKind() != Diagnostic.Kind.NOTE ||
+            //((JCDiagnostic)diagnostic).setFormatter(Log.instance(context).getDiagnosticFormatter());
+            //if (print) System.out.println(diagnostic.toString());
+           if (!noNotes || diagnostic.getKind() != Diagnostic.Kind.NOTE ||
             		diagnostic.getMessage(java.util.Locale.getDefault()).contains("Associated"))
                 diagnostics.add(diagnostic);
         }
@@ -255,6 +261,8 @@ public abstract class JmlTestCase {
         } else {
         	context = main.initialize(collector);
         }
+        ((FilteredDiagnosticCollector<JavaFileObject>)collector).context = context;
+
         mockFiles = new LinkedList<JavaFileObject>();
         Log.alwaysReport = true; // Always report errors (even if they would be suppressed because they are at the same position
         if (System.getenv("VERBOSE") != null) {
@@ -425,10 +433,13 @@ public abstract class JmlTestCase {
      *  source file may be null, in which case it is omitted from the generated string;
      *  line number may be -1, in which case it is omitted also */
     static String noSource(JCDiagnostic dd) {
-    	JavaFileObject jfo = dd.getSource();
-    	String s = jfo == null ? "" : (jfo.getName() + ":");
-    	String ln = dd.getLineNumber() == Position.NOPOS ? "" : (dd.getLineNumber() + ": " );
-        return s + ln+ dd.getPrefix() + dd.getMessage(java.util.Locale.getDefault());
+    	// This ought to match the format being used, but only does so manually
+    	var f = dd.getFormatter();
+    	var l = java.util.Locale.getDefault();
+    	String src = dd.getDiagnosticSource() == null ? "" : (f.formatSource(dd,true,l) + ":");
+    	String ln = dd.getLineNumber() == Position.NOPOS ? "" : (dd.getLineNumber() + ":" );
+    	String sp = src.isEmpty() && ln.isEmpty() ? "" : " ";
+        return src + ln + sp + dd.getPrefix() + dd.getMessage(l);
     }
 
     /** Used by some tests to set the Java deprecation option */
