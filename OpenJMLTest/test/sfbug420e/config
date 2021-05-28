@@ -1,1 +1,1 @@
-ARGS+=" -method=push"
+ARGS+=" -method=push -code-math=bigint -spec-math=bigint"

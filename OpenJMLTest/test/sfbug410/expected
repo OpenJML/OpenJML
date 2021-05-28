@@ -8,11 +8,11 @@ Feasibility check - end of preconditions : OK
 Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of BoxingTests.incr_test2(BoxingTests) with prover !!!! - no warnings
-Starting proof of BoxingTests.incr_test3(java.lang.Integer[]) with prover !!!!
+Starting proof of BoxingTests.incr_test3(Integer[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
-Completed proof of BoxingTests.incr_test3(java.lang.Integer[]) with prover !!!! - no warnings
+Completed proof of BoxingTests.incr_test3(Integer[]) with prover !!!! - no warnings
 Starting proof of BoxingTests.and_test() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

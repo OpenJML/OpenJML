@@ -1,0 +1,22 @@
+Proving methods in X
+Completed proving methods in X
+Proving methods in Main
+Starting proof of Main.Main() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Main.Main() with prover !!!! - no warnings
+Starting proof of Main.main(String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Main.main(String[]) with prover !!!! - no warnings
+Proving methods in Main.C
+Starting proof of Main.C.C() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Main.C.C() with prover !!!! - no warnings
+Starting proof of Main.C.m() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Main.C.m() with prover !!!! - no warnings
+Completed proving methods in Main.C
+Completed proving methods in Main

@@ -6,7 +6,7 @@ Completed proof of Unreachable.Unreachable() with prover !!!! - no warnings
 Starting proof of Unreachable.assertFalse() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - before explicit assert statement : infeasible
-test\sfbug409\Unreachable.java:6: warning: There is no feasible path to program point before explicit assert statement in method Unreachable.assertFalse()
+test/sfbug409/Unreachable.java:6: warning: There is no feasible path to program point before explicit assert statement in method Unreachable.assertFalse()
             //@ assert false;
                 ^
 Feasibility check - at program exit : OK

@@ -2943,6 +2943,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	if (bad(tree.ident)|| bad(tree.expression)) return; 
         jmlenv = jmlenv.pushCopy();
         jmlenv.inPureEnvironment = true;
+        jmlenv.currentClauseKind = tree.clauseType;
         JavaFileObject old = log.useSource(tree.source);
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         VarSymbol prevSecret = currentSecretContext;

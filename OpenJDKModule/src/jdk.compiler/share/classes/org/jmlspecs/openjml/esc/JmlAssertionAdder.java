@@ -11748,13 +11748,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             rhs = convertExpr(rhs);
             rhs = addImplicitConversion(rhs,optype,rhs);
-            if (array.type instanceof Type.ArrayType) {
-                var atype = (Type.ArrayType)array.type;
-                if (specs.isNonNull(atype.elemtype, (ClassSymbol)null)) {  // FIXME - need the enclosing class at the point of declaration
-                	JCExpression e = treeutils.makeNeqObject(that.rhs.pos, rhs, treeutils.nullLit);
-                    addAssert(that,Label.POSSIBLY_NULL_ASSIGNMENT,e);
-               }
-            }
 
             JCExpression nlhs = new JmlBBArrayAccess(null,array,index); // FIXME - use factory
             nlhs.pos = aa.pos;
@@ -11767,7 +11760,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (arith) {
                 rhs = currentArithmeticMode.rewriteBinary(this, (JCBinary)rhs, true);
             }
-            
+
+            if (array.type instanceof Type.ArrayType) {
+                var atype = (Type.ArrayType)array.type;
+                if (specs.isNonNull(atype.elemtype, (ClassSymbol)null) && rhs.type.isReference()) {  // FIXME - need the enclosing class at the point of declaration
+                	JCExpression e = treeutils.makeNeqObject(that.rhs.pos, rhs, treeutils.nullLit);
+                    addAssert(that,Label.POSSIBLY_NULL_ASSIGNMENT,e);
+               }
+            }
+
             // Note that we need to introduce the temporary since the rhs contains
             // identifiers that will be captured by the lhs. (TODO _ example?)
             //rhs = treeutils.makeBinary(that.pos,op,nlhs,rhs);

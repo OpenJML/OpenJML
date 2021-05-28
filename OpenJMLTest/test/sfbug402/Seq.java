@@ -1,18 +1,18 @@
 
 public interface Seq<E extends Object> {
 
-    /*@
-      @ ensures !pastEnd() <==> ( pos().equals( \old(pos()) + 1) );
+    /*@ requires !pastEnd();
+      @ ensures !pastEnd() ==> ( pos().equals( \old(pos()) + 1) );
       @ ensures pastEnd() <==> ( \old(pos()).equals(length()) );
       @*/
     void forth();
 
     /*@
-      @ requires !pastEnd();
-      @ ensures 1 <= \result;
-      @ ensures \result <= length();
+      @ public normal_behavior
+      @   requires !pastEnd();
+      @   ensures 1 <= \result <= length();
       @*/
-    /*@ non_null pure @*/ Integer pos();
+    /*@ pure non_null @*/ Integer pos();
 
     /*@
       @ requires !pastEnd();
@@ -20,9 +20,10 @@ public interface Seq<E extends Object> {
     /*@ non_null @*/ E current();
 
     /*@
-      @ ensures 0 <= \result;
+      @ ensures \result != null && 0 <= \result;
       @*/
-    /*@ non_null pure @*/ Integer length();
+    /*@ pure non_null @*/ Integer length();
 
-    /*@ non_null pure @*/ Boolean pastEnd();
+    //@ ensures !\result == (pos() <= length());
+    /*@ pure non_null @*/ Boolean pastEnd();
 }
