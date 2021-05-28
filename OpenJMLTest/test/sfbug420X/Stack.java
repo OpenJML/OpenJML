@@ -7,13 +7,14 @@ public interface Stack{
 	  @*/
 
 	//-RAC@ public instance model int count;
+	//-RAC@ public instance model int[] items;
 	
 	//-RAC@ ensures \result == count;
 	//@ pure
 	//@ helper
 	int count();
 
-	//@ requires i>=1 && i<=count();
+	//@ requires 1 <= i <= count();
 	//@ pure
 	int itemAt (int i);
 
@@ -21,10 +22,11 @@ public interface Stack{
 	//@ pure
 	boolean isEmpty ( );
 
-	//-RAC@ assignable count;
+	//-RAC@ assignable count, items[*];
 	//@ ensures \result ==> count() == \old(count()) + 1;
+	//@ ensures !\result ==> count() == \old(count());
 	//@ ensures \result ==> item==(top());
-	//@ ensures (\forall int i; 1<=i && i<=\old(count()); itemAt(i)==\old(itemAt(i)));
+	//@ ensures (\forall int i; 1 <= i <= \old(count()); itemAt(i)==\old(itemAt(i)));
 	boolean push(int item);
 
 	//@ requires count() >= 1;
@@ -32,7 +34,9 @@ public interface Stack{
 	//@ pure
 	int top();
 
+	//@ writes count, items;
 	//@ ensures \result == (\old(count) != 0);
+	//@ ensures count == 0;
 	boolean remove ( );
 
 }

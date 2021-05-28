@@ -1,9 +1,9 @@
 Proving methods in BankAccount
 Starting proof of BankAccount.BankAccount() with prover !!!!
-test\sfbug408\RegularBankAccount.java:1: warning: The prover cannot establish an assertion (InvariantExit) in method BankAccount
+test/sfbug408/RegularBankAccount.java:1: warning: The prover cannot establish an assertion (InvariantExit) in method BankAccount
  class BankAccount {
  ^
-test\sfbug408\RegularBankAccount.java:3: warning: Associated declaration
+test/sfbug408/RegularBankAccount.java:3: warning: Associated declaration
     //@ public instance invariant balance_ >= 0; 
                         ^
 Completed proof of BankAccount.BankAccount() with prover !!!! - with warnings

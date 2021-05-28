@@ -3,14 +3,14 @@ Starting proof of GenericBug.GenericBug() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of GenericBug.GenericBug() with prover !!!! - no warnings
-Starting proof of GenericBug.nomutate(ReadableValue<java.lang.Integer>) with prover !!!!
+Starting proof of GenericBug.nomutate(ReadableValue<Integer>) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of GenericBug.nomutate(ReadableValue<java.lang.Integer>) with prover !!!! - no warnings
-Starting proof of GenericBug.main(java.lang.String[]) with prover !!!!
+Completed proof of GenericBug.nomutate(ReadableValue<Integer>) with prover !!!! - no warnings
+Starting proof of GenericBug.main(String[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of GenericBug.main(java.lang.String[]) with prover !!!! - no warnings
+Completed proof of GenericBug.main(String[]) with prover !!!! - no warnings
 Completed proving methods in GenericBug
 Proving methods in ReadableValue
 Starting proof of ReadableValue.ReadableValue(T) with prover !!!!

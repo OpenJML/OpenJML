@@ -9,7 +9,7 @@
     
         public static void main(String args[]){
     
-    	ReadableValue<Integer> r = new ReadableValue<Integer>(new Integer(0));
+    	ReadableValue<Integer> r = new ReadableValue<Integer>(Integer.valueOf(0));
     
     	GenericBug b = new GenericBug();
     
