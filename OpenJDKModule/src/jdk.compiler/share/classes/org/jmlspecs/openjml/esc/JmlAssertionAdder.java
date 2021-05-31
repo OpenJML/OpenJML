@@ -8402,13 +8402,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                        receiverType, overridden, true);
 //            }
             if (Utils.debug()) System.out.println("APPLYHELPER-E " + calleeMethodSym.owner + " " + calleeMethodSym);
+            try {
             if (addMethodAxioms) {
+                if (Utils.debug()) System.out.println("APPLYHELPER-E1 " + calleeMethodSym.owner + " " + calleeMethodSym);
                 addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, extendedArgs, receiverType,
                             overridden, details);
+                if (Utils.debug()) System.out.println("APPLYHELPER-E2 " + calleeMethodSym.owner + " " + calleeMethodSym);
             }
             if (addMethodAxioms) {
                 if ((useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
 
+                    if (Utils.debug()) System.out.println("APPLYHELPER-E3 " + calleeMethodSym.owner + " " + calleeMethodSym);
                     result = eresult = makeDeterminismCall(that, calleeMethodSym, newThisExpr, extendedArgs);
                     currentThisExpr = newThisExpr;
                     if (condition == null) condition = treeutils.trueLit;
@@ -8420,6 +8424,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         result = eresult = treeutils.makeMethodInvocation(that,newThisExpr,calleeMethodSym,trArgs);
                     }
                 }
+            }
+            } catch (Exception eee) {
+            	utils.unexpectedException(eee, "APPLYHELPER-EE");
             }
             if (Utils.debug()) System.out.println("APPLYHELPER-F " + calleeMethodSym.owner + " " + calleeMethodSym);
             if (addMethodAxioms && !inlineSpecs) {

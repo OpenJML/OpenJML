@@ -19,11 +19,12 @@ public interface Seq<E extends Object> {
       @*/
     /*@ non_null @*/ E current();
 
-    /*@
+    /*@ public normal_behavior
       @ ensures \result != null && 0 <= \result;
       @*/
     /*@ pure non_null @*/ Integer length();
 
-    //@ ensures !\result == (pos() <= length());
+    //@ public normal_behavior
+    //@  ensures \result == (pos == 1 + length());
     /*@ pure non_null @*/ Boolean pastEnd();
 }
