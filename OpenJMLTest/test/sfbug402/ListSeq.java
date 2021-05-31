@@ -33,8 +33,8 @@ public class ListSeq<E extends Object> implements Seq<E> {
     //@ also public normal_behavior
     //@   requires !pastEnd();
     //@   ensures \result == pos;
-    // @ also public exceptional_behavior
-    // @   requires pastEnd();
+    //@ also public exceptional_behavior
+    //@   requires pastEnd();
     @Override //@ pure
     public /*@ non_null */ Integer pos() {
         if (pastEnd()) throw new IndexOutOfBoundsException("There is no position past the end of the sequence.");
@@ -46,7 +46,8 @@ public class ListSeq<E extends Object> implements Seq<E> {
         return list.get(pos-1);
     }
 
-    //@ also ensures \result != null && \result == list.size(); pure helper
+    //@ also public normal_behavior
+    //@   ensures \result != null && \result == list.size(); pure helper
     @Override 
     public /* non_null */ Integer length() {
         return list.size();
