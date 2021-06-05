@@ -27,6 +27,8 @@ import org.jmlspecs.utils.JmlAssertionError.Precondition;
  * @author David Cok
  */
 public class Utils {
+    public static int numVerificationErrors = 0;
+    
     /** Reports a JML assertion without a specific label indicating the kind of assertion failure */
     public static void assertionFailure(String message) {
         assertionFailureL(message,null);
@@ -48,6 +50,7 @@ public class Utils {
     // This one is declared first to minimize changes to its location 
     public static final String ASSERTION_FAILURE = "assertionFailureL"; // Must match the method name
     public static void assertionFailureL(String message, /*@ nullable */String label) {
+        countVerificationErrors();
         if (useExceptions) {
             throw createException(message,label);
         } else if (useJavaAssert) {
@@ -64,6 +67,7 @@ public class Utils {
     /** This version of runtime assertion reporting reports only using exceptions */
     public static final String ASSERTION_FAILURE_EX = "assertionFailureE"; // Must match the method name
     public static void assertionFailureE(String message, /*@ nullable */String label) {
+        countVerificationErrors();
         throw createException(message,label);
     }
     
@@ -119,6 +123,9 @@ public class Utils {
      * or error messages (false).
      */
     public static boolean useJavaAssert = System.getProperty("org.jmlspecs.openjml.racjavaassert") != null;
+    
+    /** If defined, gives the exit code to use if there are RAC errors */
+    public static String racExitCodeString = "org.jmlspecs.openjml.racexitcode";
     
     /** If true, then error messages reporting assertion failures are 
      * accompanied with a stack trace to log.errorWriter.
@@ -865,5 +872,27 @@ public class Utils {
     public boolean print(String msg) {
         System.out.println(msg);
         return true;
+    }
+    
+    public static void countVerificationErrors() {
+        final String racExitCode = System.getProperty(racExitCodeString);
+        if (numVerificationErrors == 0 && racExitCode != null) {
+            Thread t = new Thread() {
+                @Override
+                public void run() {
+                    int exitcode = 1;
+                    try {
+                        exitcode = Integer.parseInt(racExitCode);
+                    } catch (Exception e) {
+                        // just continue
+                    }
+                    System.out.println(numVerificationErrors + " verification error" +
+                            (numVerificationErrors>1?"s":""));
+                    Runtime.getRuntime().halt(exitcode);
+                }
+            };
+            Runtime.getRuntime().addShutdownHook(t);
+        }
+        numVerificationErrors++;
     }
 }
