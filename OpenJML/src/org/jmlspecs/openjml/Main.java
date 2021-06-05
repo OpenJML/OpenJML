@@ -415,6 +415,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     savedOptions = Options.instance(compiler.context());
                     // The following line does an end-to-end compile, in a fresh context
                     errorcode = compiler.compile(args).exitCode; // context and new options are created in here
+
                     if (//errorcode > Result.CMDERR.exitCode || 
                             Utils.instance(compiler.context()).jmlverbose >= Utils.JMLVERBOSE) {
                         writer.println("ENDING with exit code " + errorcode);
