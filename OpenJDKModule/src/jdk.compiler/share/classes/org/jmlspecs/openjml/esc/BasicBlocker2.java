@@ -1223,7 +1223,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     // The owner of a local symbol is a MethodSymbol
                     // Also, final fields are not affected by havoc \everything
                     if (vsym.owner instanceof ClassSymbol &&
-                            (vsym.flags() & Flags.FINAL) != Flags.FINAL) {
+                            (vsym.flags() & Flags.FINAL) != Flags.FINAL &&
+                            !vsym.name.toString().equals(Strings.isAllocName) &&
+                            !vsym.name.toString().equals(Strings.allocName)) {
                         newIdentIncarnation(vsym, storeref.pos);
                     }
                 }
