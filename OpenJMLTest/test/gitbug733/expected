@@ -1,0 +1,15 @@
+Proving methods in Counter
+Starting proof of Counter.Counter(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Counter.Counter(int) with prover !!!! - no warnings
+Starting proof of Counter.Counter(Counter) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Counter.Counter(Counter) with prover !!!! - no warnings
+Starting proof of Counter.main(java.lang.String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of Counter.main(java.lang.String[]) with prover !!!! - no warnings
+Completed proving methods in Counter
