@@ -4927,7 +4927,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		checkSecretReadable(tree,(VarSymbol)tree.sym);
         	}// Could also be a method call, and error, a package, a class...
 
-        	checkVisibility(tree, jmlenv.jmlVisibility, tree.sym);
+        	checkVisibility(tree, jmlenv.jmlVisibility, tree.sym, null);
 
             var rep = jmlenv.representsHead;
 //        	jmlenv.representsHead = rep;
@@ -4952,7 +4952,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return v;
     }
     
-    protected void checkVisibility(DiagnosticPosition pos, long jmlVisibility, Symbol sym) {
+    protected void checkVisibility(DiagnosticPosition pos, long jmlVisibility, Symbol sym, JCExpression selected) {
         if (jmlVisibility != -1) {
             long v = (sym.flags() & Flags.AccessFlags);
             if (sym instanceof ClassSymbol) {
@@ -5012,7 +5012,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 
                 if (jmlenv.currentLabel != null && enclosingMethodEnv.enclMethod.sym.isConstructor()) {
-                    if (!sym.isStatic()) utils.error(pos,  "jml.no.old.in.constructor", sym); // FIXME - but this is not an 'old' clause
+                    if (sym.owner instanceof ClassSymbol && !sym.isStatic() && 
+                            (selected == null || (selected instanceof JCIdent && 
+                                 (((JCIdent)selected).name == names._this || ((JCIdent)selected).name == names._super)))) {
+                    	utils.error(pos,  "jml.no.old.in.constructor", sym);
+                    }
                 }
 
             } else  {
@@ -5378,7 +5382,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (c != null) addTodo(c); // FIXME - why this?
         }
         
-        if (tree.sym != null) checkVisibility(tree, jmlenv.jmlVisibility, tree.sym);
+        if (tree.sym != null) checkVisibility(tree, jmlenv.jmlVisibility, tree.sym, tree.selected);
 
         // For selections that are fields with an enclosing class, we check whether it is readable
         // The check on the enclosing class omits fields such as .class
