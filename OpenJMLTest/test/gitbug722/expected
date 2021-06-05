@@ -1,0 +1,51 @@
+Proving methods in FreshBugs
+Starting proof of FreshBugs.FreshBugs() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FreshBugs.FreshBugs() with prover !!!! - no warnings
+Proving methods in FreshBugs.Node
+Starting proof of FreshBugs.Node.Node(java.lang.Object,(@org.jmlspecs.annotation.Nullable :: FreshBugs.Node)) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FreshBugs.Node.Node(java.lang.Object,(@org.jmlspecs.annotation.Nullable :: FreshBugs.Node)) with prover !!!! - no warnings
+Starting proof of FreshBugs.Node.Node(java.lang.Object) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FreshBugs.Node.Node(java.lang.Object) with prover !!!! - no warnings
+Completed proving methods in FreshBugs.Node
+Starting proof of FreshBugs.fail_test0() with prover !!!!
+test/gitbug722/FreshBugs.java:32: warning: The prover cannot establish an assertion (Postcondition) in method fail_test0
+        return n;
+        ^
+test/gitbug722/FreshBugs.java:28: warning: Associated declaration
+      ensures \fresh(\result.payload_); // ERROR
+      ^
+Completed proof of FreshBugs.fail_test0() with prover !!!! - with warnings
+Starting proof of FreshBugs.fresh_bug() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FreshBugs.fresh_bug() with prover !!!! - no warnings
+Starting proof of FreshBugs.fail_test1() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FreshBugs.fail_test1() with prover !!!! - no warnings
+Starting proof of FreshBugs.fail_test2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FreshBugs.fail_test2() with prover !!!! - no warnings
+Starting proof of FreshBugs.good_test3() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FreshBugs.good_test3() with prover !!!! - no warnings
+Proving methods in FreshBugs.IntContainer
+Starting proof of FreshBugs.IntContainer.IntContainer(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FreshBugs.IntContainer.IntContainer(int) with prover !!!! - no warnings
+Completed proving methods in FreshBugs.IntContainer
+Starting proof of FreshBugs.fail_test4() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FreshBugs.fail_test4() with prover !!!! - no warnings
+Completed proving methods in FreshBugs
+2 warnings
