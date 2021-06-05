@@ -4725,7 +4725,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             checkSecretReadable(tree,(VarSymbol)tree.sym);
         }// Could also be a method call, and error, a package, a class...
         
-        checkVisibility(tree, jmlVisibility, tree.sym);
+        checkVisibility(tree, jmlVisibility, tree.sym, null);
         result = saved;
     }
     
@@ -4736,7 +4736,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return v;
     }
     
-    protected void checkVisibility(DiagnosticPosition pos, long jmlVisibility, Symbol sym) {
+    protected void checkVisibility(DiagnosticPosition pos, long jmlVisibility, Symbol sym, JCExpression selected) {
         if (jmlVisibility != -1) {
             long v = (sym.flags() & Flags.AccessFlags);
             if (sym instanceof ClassSymbol) {
@@ -4801,7 +4801,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 
                 if (currentEnvLabel != null && enclosingMethodEnv.enclMethod.sym.isConstructor()) {
-                    if (!sym.isStatic()) log.error(pos,  "jml.no.old.in.constructor", sym);
+                    
+                    if (sym.owner instanceof ClassSymbol && !sym.isStatic() && 
+                            (selected == null || (selected instanceof JCIdent && 
+                                 (((JCIdent)selected).name == names._this || ((JCIdent)selected).name == names._super)))) log.error(pos,  "jml.no.old.in.constructor", sym);
                 }
 
             } else  {
@@ -5168,7 +5171,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (c != null) addTodo(c);
         }
         
-        if (tree.sym != null) checkVisibility(tree, jmlVisibility, tree.sym);
+        if (tree.sym != null) checkVisibility(tree, jmlVisibility, tree.sym, tree.selected);
 
         // For selections that are fields with an enclosing class, we check whether it is readable
         // The check on the enclosing class omits fields such as .class
