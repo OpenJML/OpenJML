@@ -1,0 +1,13 @@
+Proving methods in ListSeq
+Skipping proof of ListSeq.ListSeq(E @NonNull []) (excluded by -method)
+Skipping proof of ListSeq.forth() (excluded by -method)
+Starting proof of ListSeq.pos() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ListSeq.pos() with prover !!!! - no warnings
+Skipping proof of ListSeq.current() (excluded by -method)
+Skipping proof of ListSeq.length() (excluded by -method)
+Skipping proof of ListSeq.pastEnd() (excluded by -method)
+Completed proving methods in ListSeq
+Proving methods in Seq
+Completed proving methods in Seq

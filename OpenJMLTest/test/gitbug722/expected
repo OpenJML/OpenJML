@@ -4,14 +4,14 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of FreshBugs.FreshBugs() with prover !!!! - no warnings
 Proving methods in FreshBugs.Node
-Starting proof of FreshBugs.Node.Node(java.lang.Object,(@org.jmlspecs.annotation.Nullable :: FreshBugs.Node)) with prover !!!!
+Starting proof of FreshBugs.Node.Node(Object,FreshBugs.Node) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of FreshBugs.Node.Node(java.lang.Object,(@org.jmlspecs.annotation.Nullable :: FreshBugs.Node)) with prover !!!! - no warnings
-Starting proof of FreshBugs.Node.Node(java.lang.Object) with prover !!!!
+Completed proof of FreshBugs.Node.Node(Object,FreshBugs.Node) with prover !!!! - no warnings
+Starting proof of FreshBugs.Node.Node(Object) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of FreshBugs.Node.Node(java.lang.Object) with prover !!!! - no warnings
+Completed proof of FreshBugs.Node.Node(Object) with prover !!!! - no warnings
 Completed proving methods in FreshBugs.Node
 Starting proof of FreshBugs.fail_test0() with prover !!!!
 test/gitbug722/FreshBugs.java:32: warning: The prover cannot establish an assertion (Postcondition) in method fail_test0

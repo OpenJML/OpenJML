@@ -19,12 +19,14 @@ public interface Seq<E extends Object> {
       @*/
     /*@ non_null @*/ E current();
 
-    /*@ public normal_behavior
+    /*@
       @ ensures \result != null && 0 <= \result;
       @*/
     /*@ pure non_null @*/ Integer length();
 
-    //@ public normal_behavior
-    // @  ensures \result == (pos() == 1 + length());
+    //@ ensures !\result == (pos() <= length());
     /*@ pure non_null @*/ Boolean pastEnd();
 }
+
+// This program, AS IT STANDS, had a stack overflow crash because of the mutual recursion between pos() and pastEnd().
+// The specs are fixed in sfbug402, but the specs are left non-working here to be sure the recursion problem is fixed.

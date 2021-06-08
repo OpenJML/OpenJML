@@ -1808,7 +1808,7 @@ public class Utils {
     	e.printStackTrace(System.out);
     }
     
-    public void unexpectedException(Exception e, String msg) {
+    public void unexpectedException(Throwable e, String msg) {
     	error("jml.internal","Unexpected exception: " + msg + " " + e);
     	e.printStackTrace(System.out);
     }

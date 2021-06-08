@@ -1,0 +1,29 @@
+Proving methods in ListSeq
+Starting proof of ListSeq.ListSeq(E @NonNull []) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - at program exit : OK
+Completed proof of ListSeq.ListSeq(E @NonNull []) with prover !!!! - no warnings
+Starting proof of ListSeq.forth() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ListSeq.forth() with prover !!!! - no warnings
+Starting proof of ListSeq.pos() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ListSeq.pos() with prover !!!! - no warnings
+Starting proof of ListSeq.current() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ListSeq.current() with prover !!!! - no warnings
+Starting proof of ListSeq.length() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ListSeq.length() with prover !!!! - no warnings
+Starting proof of ListSeq.pastEnd() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ListSeq.pastEnd() with prover !!!! - no warnings
+Completed proving methods in ListSeq
+Proving methods in Seq
+Completed proving methods in Seq
