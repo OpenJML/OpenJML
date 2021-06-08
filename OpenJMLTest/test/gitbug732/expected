@@ -1,0 +1,11 @@
+Proving methods in CopySign
+Starting proof of CopySign.CopySign() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CopySign.CopySign() with prover !!!! - no warnings
+Starting proof of CopySign.copySign_test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of CopySign.copySign_test() with prover !!!! - no warnings
+Completed proving methods in CopySign
