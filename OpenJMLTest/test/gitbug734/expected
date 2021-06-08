@@ -1,0 +1,10 @@
+Proving methods in FloatToIntBug
+Starting proof of FloatToIntBug.FloatToIntBug() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FloatToIntBug.FloatToIntBug() with prover !!!! - no warnings
+Starting proof of FloatToIntBug.floatToIntBits_test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FloatToIntBug.floatToIntBits_test() with prover !!!! - no warnings
+Completed proving methods in FloatToIntBug
