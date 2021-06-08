@@ -517,6 +517,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public int nextHeapCount() {
         heapCount = ++topHeapCount;
         oldHeapMethods.put(null,new HashMap<Symbol,MethodSymbol>());
+        //System.out.println("NEW HEAP METHODS");
         return heapCount;
     }
     
@@ -8367,7 +8368,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    && calleeMethodSym.params != null; // FIXME - why this?
             boolean calleeIsConstructor = calleeMethodSym.isConstructor();
             boolean calleeIsFunction = attr.isFunction(calleeMethodSym);
-            boolean nodoTranslations = !rac && translatingJML && (calleeIsFunction || (!(that instanceof JCNewClass) && !localVariables.isEmpty() && isPure(calleeMethodSym)));
+            boolean nodoTranslations = !rac && translatingJML && (calleeIsFunction || (!(that instanceof JCNewClass) && isPure(calleeMethodSym)));
             boolean hasAModelProgram = hasModelProgram(overridden);
             if (hasAModelProgram) nodoTranslations = false; 
             boolean isRecursive = isRecursiveCall(calleeMethodSym); // Checks whether this method has already been called in the call stack
@@ -8401,7 +8402,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, extendedArgs,
 //                        receiverType, overridden, true);
 //            }
-            if (Utils.debug()) System.out.println("APPLYHELPER-E " + calleeMethodSym.owner + " " + calleeMethodSym);
+            if (Utils.debug()) System.out.println("APPLYHELPER-E " + calleeMethodSym.owner + " " + calleeMethodSym + " " + addMethodAxioms + " " + isRecursive + " " + nodoTranslations
+            		+ " " + (oldHeapMethods.get(oldenv == null ? null : oldenv.name).get(calleeMethodSym)));
             try {
             if (addMethodAxioms) {
                 if (Utils.debug()) System.out.println("APPLYHELPER-E1 " + calleeMethodSym.owner + " " + calleeMethodSym);
@@ -8425,7 +8427,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
             }
-            } catch (Exception eee) {
+            } catch (Throwable eee) {
             	utils.unexpectedException(eee, "APPLYHELPER-EE");
             }
             if (Utils.debug()) System.out.println("APPLYHELPER-F " + calleeMethodSym.owner + " " + calleeMethodSym);
@@ -8552,6 +8554,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                        calleeSpecs.decl != null ? calleeSpecs.decl.pos : that.pos, newParamTypes);
                 JCExpression e = makeDeterminismCall(that, calleeMethodSym, newThisExpr,
                         extendedArgs);
+                //System.out.println("DETERMINISM CALL FOR " + calleeMethodSym + " " + e);
                 if (!calleeMethodSym.isConstructor() && calleeMethodSym.getReturnType().isReference()) {
                     //makeFreshExpression()
                 }
@@ -18967,6 +18970,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         // Save the symbol
         pm.put(msym, newsym);
+        //System.out.println("NEWMETHODNAME " + msym + " " + newsym);
         return newsym;
     }
     
