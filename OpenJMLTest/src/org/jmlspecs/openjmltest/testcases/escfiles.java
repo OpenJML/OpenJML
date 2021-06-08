@@ -618,6 +618,11 @@ public class escfiles extends EscBase {
         helpTF("escDouble2b","-method=approximatelyEqualTo");
     }
 
+    @Test
+    public void escDoubleArith() {
+        helpTF("escDoubleArith");
+    }
+
    @Test
     public void escAssignableBug() {
         helpTF("escAssignableBug");
