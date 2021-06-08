@@ -605,7 +605,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void escDouble2() {
-        helpTF("escDouble2","-exclude=clone,remainderBy,toString");
+        helpTF("escDouble2","-exclude=clone,remainderBy,toString,approximatelyEqualTo");
     }
 
     @Test @Ignore
@@ -614,6 +614,11 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void escDouble2b() {
+        helpTF("escDouble2b","-method=approximatelyEqualTo");
+    }
+
+   @Test
     public void escAssignableBug() {
         helpTF("escAssignableBug");
     }
