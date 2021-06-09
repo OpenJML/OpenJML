@@ -12996,7 +12996,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     Number integralLiteral(JCExpression e) {
         if (e instanceof JCLiteral) {
             JCLiteral lit = (JCLiteral)e;
-            if (lit.value instanceof Number) return (Number)lit.value;
+            if (lit.value instanceof Number && jmltypes.isAnyIntegral(lit.type)) return (Number)lit.value;
         }
         return null;
     }
