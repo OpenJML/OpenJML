@@ -1,0 +1,10 @@
+Proving methods in DoubleProblem
+Starting proof of DoubleProblem.DoubleProblem() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of DoubleProblem.DoubleProblem() with prover !!!! - no warnings
+Starting proof of DoubleProblem.tests() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of DoubleProblem.tests() with prover !!!! - no warnings
+Completed proving methods in DoubleProblem
