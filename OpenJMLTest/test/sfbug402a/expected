@@ -1,13 +1,135 @@
 Proving methods in ListSeq
-Skipping proof of ListSeq.ListSeq(E @NonNull []) (excluded by -method)
-Skipping proof of ListSeq.forth() (excluded by -method)
+Starting proof of ListSeq.ListSeq(E @NonNull []) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - at program exit : OK
+Completed proof of ListSeq.ListSeq(E @NonNull []) with prover !!!! - no warnings
+Starting proof of ListSeq.forth() with prover !!!!
+test/sfbug402a/Seq.java:27: warning: The prover cannot establish an assertion (UndefinedNullUnbox) in method forth
+    //@ ensures !\result == (pos() <= length());
+                                ^
+test/sfbug402a/Seq.java:32: warning: Associated declaration
+// The specs are fixed in sfbug402, but the specs are left non-working here to be sure the recursion problem is fixed.
+                                                                                                                     ^
+test/sfbug402a/Seq.java:27: warning: The prover cannot establish an assertion (UndefinedNullUnbox) in method forth
+    //@ ensures !\result == (pos() <= length());
+                 ^
+test/sfbug402a/Seq.java:32: warning: Associated declaration
+// The specs are fixed in sfbug402, but the specs are left non-working here to be sure the recursion problem is fixed.
+                                                                                                                     ^
+test/sfbug402a/ListSeq.java:20: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method forth
+        for (E element : elements) {
+            ^
+Note: Call stack
+  test/sfbug402a/Seq.java:27: Seq.pos
+  test/sfbug402a/Seq.java:4: Seq.pastEnd
+test/sfbug402a/Seq.java:15: warning: Associated declaration
+    /*@ pure non_null @*/ Integer pos();
+                                  ^
+test/sfbug402a/Seq.java:12: warning: Precondition conjunct is false: !pastEnd()
+      @   requires !pastEnd();
+                   ^
+test/sfbug402a/ListSeq.java:34: warning: Precondition conjunct is false: !pastEnd()
+    //@   requires !pastEnd();
+                   ^
+test/sfbug402a/ListSeq.java:34: warning: The prover cannot establish an assertion (UndefinedNullUnbox) in method forth
+    //@   requires !pastEnd();
+                           ^
+test/sfbug402a/ListSeq.java:20: warning: Associated declaration
+        for (E element : elements) {
+            ^
+test/sfbug402a/Seq.java:27: warning: The prover cannot establish an assertion (UndefinedNullUnbox) in method forth
+    //@ ensures !\result == (pos() <= length());
+                 ^
+test/sfbug402a/Seq.java:32: warning: Associated declaration
+// The specs are fixed in sfbug402, but the specs are left non-working here to be sure the recursion problem is fixed.
+                    ^
+Completed proof of ListSeq.forth() with prover !!!! - with warnings
 Starting proof of ListSeq.pos() with prover !!!!
+test/sfbug402a/ListSeq.java:20: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method pos
+        for (E element : elements) {
+            ^
+Note: Call stack
+  test/sfbug402a/Seq.java:27: Seq.pos
+  test/sfbug402a/Seq.java:12: Seq.pastEnd
+test/sfbug402a/Seq.java:15: warning: Associated declaration
+    /*@ pure non_null @*/ Integer pos();
+                                  ^
+test/sfbug402a/Seq.java:12: warning: Precondition conjunct is false: !pastEnd()
+      @   requires !pastEnd();
+                   ^
+test/sfbug402a/ListSeq.java:34: warning: Precondition conjunct is false: !pastEnd()
+    //@   requires !pastEnd();
+                   ^
+test/sfbug402a/Seq.java:27: warning: The prover cannot establish an assertion (UndefinedNullUnbox) in method pos
+    //@ ensures !\result == (pos() <= length());
+                 ^
+test/sfbug402a/Seq.java:32: warning: Associated declaration
+// The specs are fixed in sfbug402, but the specs are left non-working here to be sure the recursion problem is fixed.
+                                                                                                                     ^
+test/sfbug402a/Seq.java:27: warning: The prover cannot establish an assertion (UndefinedNullUnbox) in method pos
+    //@ ensures !\result == (pos() <= length());
+                                ^
+test/sfbug402a/Seq.java:32: warning: Associated declaration
+// The specs are fixed in sfbug402, but the specs are left non-working here to be sure the recursion problem is fixed.
+                                                                                                                     ^
+test/sfbug402a/Seq.java:27: warning: The prover cannot establish an assertion (UndefinedNullUnbox) in method pos
+    //@ ensures !\result == (pos() <= length());
+                 ^
+test/sfbug402a/Seq.java:32: warning: Associated declaration
+// The specs are fixed in sfbug402, but the specs are left non-working here to be sure the recursion problem is fixed.
+                                                                                                                     ^
+test/sfbug402a/ListSeq.java:34: warning: The prover cannot establish an assertion (UndefinedNullUnbox) in method pos
+    //@   requires !pastEnd();
+                           ^
+test/sfbug402a/ListSeq.java:20: warning: Associated declaration
+        for (E element : elements) {
+            ^
+test/sfbug402a/ListSeq.java:40: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method pos
+        if (pastEnd()) throw new IndexOutOfBoundsException("There is no position past the end of the sequence.");
+                   ^
+test/sfbug402a/Seq.java:11: warning: Associated declaration
+      @ public normal_behavior
+               ^
+Completed proof of ListSeq.pos() with prover !!!! - with warnings
+Starting proof of ListSeq.current() with prover !!!!
+test/sfbug402a/Seq.java:27: warning: The prover cannot establish an assertion (UndefinedNullUnbox) in method current
+    //@ ensures !\result == (pos() <= length());
+                 ^
+test/sfbug402a/Seq.java:32: warning: Associated declaration
+// The specs are fixed in sfbug402, but the specs are left non-working here to be sure the recursion problem is fixed.
+                                                                                                                     ^
+test/sfbug402a/Seq.java:27: warning: The prover cannot establish an assertion (UndefinedNullUnbox) in method current
+    //@ ensures !\result == (pos() <= length());
+                                ^
+test/sfbug402a/Seq.java:32: warning: Associated declaration
+// The specs are fixed in sfbug402, but the specs are left non-working here to be sure the recursion problem is fixed.
+                                                                                                                     ^
+test/sfbug402a/ListSeq.java:20: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method current
+        for (E element : elements) {
+            ^
+Note: Call stack
+  test/sfbug402a/Seq.java:27: Seq.pos
+  test/sfbug402a/Seq.java:18: Seq.pastEnd
+test/sfbug402a/Seq.java:15: warning: Associated declaration
+    /*@ pure non_null @*/ Integer pos();
+                                  ^
+test/sfbug402a/Seq.java:12: warning: Precondition conjunct is false: !pastEnd()
+      @   requires !pastEnd();
+                   ^
+test/sfbug402a/ListSeq.java:34: warning: Precondition conjunct is false: !pastEnd()
+    //@   requires !pastEnd();
+                   ^
+Completed proof of ListSeq.current() with prover !!!! - with warnings
+Starting proof of ListSeq.length() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of ListSeq.pos() with prover !!!! - no warnings
-Skipping proof of ListSeq.current() (excluded by -method)
-Skipping proof of ListSeq.length() (excluded by -method)
-Skipping proof of ListSeq.pastEnd() (excluded by -method)
+Completed proof of ListSeq.length() with prover !!!! - no warnings
+Starting proof of ListSeq.pastEnd() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ListSeq.pastEnd() with prover !!!! - no warnings
 Completed proving methods in ListSeq
 Proving methods in Seq
 Completed proving methods in Seq
+34 warnings
