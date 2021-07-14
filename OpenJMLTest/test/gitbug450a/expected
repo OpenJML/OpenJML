@@ -1,0 +1,12 @@
+Proving methods in ArrList
+Starting proof of ArrList.ArrList(Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - before explicit assert statement : OK
+Feasibility check - at program exit : OK
+Completed proof of ArrList.ArrList(Integer) with prover !!!! - no warnings
+Completed proving methods in ArrList
