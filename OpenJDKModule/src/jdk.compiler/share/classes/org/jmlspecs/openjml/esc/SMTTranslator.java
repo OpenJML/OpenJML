@@ -931,7 +931,7 @@ public class SMTTranslator extends JmlTreeScanner {
             addCommand(smt,"(define-fun |#add64#| ((a Int) (b Int)) Int (let ((p (+ a b))) (ite (|#inRange64#| p) p (ite (< |#max64#| p) (- p |#big64#|) (+ p |#big64#|)))))");
             addCommand(smt,"(define-fun |#mul64ok#| ((a Int) (b Int)) Bool (|#inRange64#| (* a b)) )");
             addCommand(smt,"(define-fun |#mul64#| ((a Int) (b Int)) Int (let ((p (* a b))) (ite (|#inRange64#| p) p (+ (mod (- p |#min64#|) |#big64#|) |#min64#|) )))");
-}
+        }
         
         addReals(smt);
         
@@ -1015,6 +1015,10 @@ public class SMTTranslator extends JmlTreeScanner {
             convertBasicBlock(b);
         }
         
+        if (realSort != null) {
+            ICommand cc = command(smt, "(define_fun toward_zero ((r Real)) Int (ite (>= r (/ (to_real 0) (to_real 1))) (to_int r) (- 0 (to_int (- 0.0 r)))))"); 
+            startCommands.add(cc);
+        }
         {
             // Add an assertion that negates the start block id
             LinkedList<IExpr> argss = new LinkedList<IExpr>();
@@ -2454,7 +2458,7 @@ public class SMTTranslator extends JmlTreeScanner {
                             // \bigint to \bigint -- OK
                         } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
                             // \real to \bigint
-                            result = F.fcn(F.symbol("to_int"), result);
+                            result = F.fcn(F.symbol("toward_zero"), result);
                         } else {
                             // FIXME - error
                         }
@@ -2483,7 +2487,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else {
                     if (((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
                         // float/double to \bigint
-                        result = F.fcn(F.symbol("to_int"), result);
+                        result = F.fcn(F.symbol("toward_zero"), result);
                     } else if ( ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
                         // float/double to \real -- OK
                     } else {
@@ -2496,7 +2500,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         // \bigint to int -- OK
                     } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
                         // \real to int -- FIXME
-                        result = F.fcn(F.symbol("to_int"), result);
+                        result = F.fcn(F.symbol("toward_zero"), result);
                     } else {
                         // FIXME - error
                     }
@@ -2549,7 +2553,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else if (!argIsInt && resultIsInt) {
                     // Requires int and real logic
                     // real to int
-                    result = F.fcn(F.symbol("to_int"), result);
+                    result = F.fcn(F.symbol("toward_zero"), result);
                 } else if (argIsInt && resultIsInt) {
                     if (tage != tagr) {
                         int be = bits(tage);
@@ -2921,11 +2925,14 @@ public class SMTTranslator extends JmlTreeScanner {
             addReal(); // Makes sure there is a real sort declared
             ICommand c = new C_declare_fun(sym,emptyList,realSort); // use definefun and a constant FIXME
             if (Double.isFinite(v)) {
+                // If the user typed a literal, the valye of s may be different than
+                // what the user typed, because of FP precision
+                String s = new java.math.BigDecimal(v).toPlainString();
+                if (v < 0) s = s.substring(1);
+                if (!s.contains(".")) s += ".0";
                 if (v >= 0) {
-                    String s = v.toString();
                     c = new C_define_fun(sym,emptyDeclList,realSort,F.decimal(s));
                 } else {
-                    String s = v.toString().substring(1);
                     c = new C_define_fun(sym,emptyDeclList,realSort,F.fcn(negSym, F.decimal(s)));
                 }
             }
