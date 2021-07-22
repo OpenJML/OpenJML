@@ -1,0 +1,48 @@
+#! /bin/bash
+
+R=/Users/davidcok/projects/OpenJMLB
+ROOT=$R/OpenJML/OpenJDKModule
+JROOT=$R/OpenJML/OpenJMLTest/libs
+JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar"
+
+cd $(dirname $BASH_SOURCE[0])
+f="*"
+if [ $# -gt 0 ]; then f="$@" ; fi
+pwd
+total=0
+errs=0
+skips=0
+for d in $f ; do
+  if [ -d $d ]; then
+   let total++
+   pushd $d > /dev/null
+   if [ -e skip ]; then
+       echo Skipping $d
+       let skips++
+   else
+       echo Testing $d
+       rm -f *.class
+       EXIT=0
+       ARGS='*.java'
+       TEST=Test
+       CP=.
+       if [ -e config ]; then source config ; fi
+       NOJML= njavac $ARGS
+       njava -cp $CP $TEST > actual 2>&1
+       stat=$?
+       if [ -e expected ]; then
+           ( diff expected actual && rm actual ) || let errs++
+           if [ $stat -ne $EXIT ]; then
+               echo Exit code is $stat, expected $EXIT
+               let errs++
+           fi
+       else
+           echo "No expected output"
+           let errs++
+       fi
+   fi 
+   popd > /dev/null
+  fi
+done
+echo $total tests, $skips skipped, $errs failures
+find . -name actual

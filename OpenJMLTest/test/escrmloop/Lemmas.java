@@ -38,7 +38,7 @@ final class Lemmas {
     }
 
     /*@ public normal_behaviour
-      @  requires \invariant_for(sa);
+      @  requires \invariant_for(sa); // FIXME - why needed
       @  requires 0 <= i && i < j && j < sa.a.length;
       @  ensures sa.compare(sa.suffixes[j], sa.suffixes[i]) > 0;
       @  pure helper
@@ -68,7 +68,7 @@ final class Lemmas {
 
 
     /*@ public normal_behaviour 
-      @  requires \invariant_for(sa);
+      @  requires \invariant_for(sa); // FIXME - why needed
       @  requires 0 <= i && i < j && j < sa.a.length;
       @  requires
       @     sa.suffixes[i] + k <= sa.a.length &&  sa.suffixes[j] + k <= sa.a.length && 

@@ -1,0 +1,18 @@
+Proving methods in Recursive
+Starting proof of Recursive.Recursive() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Recursive.Recursive() with prover !!!! - no warnings
+Starting proof of Recursive.add(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Recursive.add(int,int) with prover !!!! - no warnings
+Starting proof of Recursive.mult(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Recursive.mult(int,int) with prover !!!! - no warnings
+Starting proof of Recursive.pow(long,long) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Recursive.pow(long,long) with prover !!!! - no warnings
+Completed proving methods in Recursive

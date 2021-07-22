@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class StudentSimple2_3 {
   
-  private /*@ spec_public @*/ List enrolments;
+  private /*@ spec_public @*/ List<Object> enrolments;
   
   //////// CLASS INVARIANTS //////////////////////////
   /*@ 
@@ -29,7 +29,7 @@ public class StudentSimple2_3 {
     @     enrolments != null && enrolments.isEmpty();  
     @*/
   public StudentSimple2_3() {
-    enrolments = new ArrayList();
+    enrolments = new ArrayList<Object>();
   }
   
   /*@

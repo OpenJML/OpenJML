@@ -812,7 +812,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testDZero() {
-        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
+//        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
 //        Assume.assumeTrue(false); // SKIPPING because CVC4 does not handle integer division
 
         main.addOptions("-logic=AUFNIRA");
@@ -870,11 +870,8 @@ public class escall2 extends EscBase {
                 );
     }
     
-    @Test // THIS ONE BLOWS THE PROVER ??? FIXME (literal divide by zero)
+    @Test
     public void testDZero2() {
-        Assume.assumeTrue(runLongTests);
-        Assume.assumeTrue(false);
-
         main.addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -896,9 +893,9 @@ public class escall2 extends EscBase {
                 );
     }
 
-    @Test
+    @Test  // Sometimes times out
     public void testInvariant1() {
-        main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
+        main.addOptions("-code-math=java","-spec-math=java","-solver-seed=42"); // Just to avoid overflow warnings; the seed attempts to avoid timeouts
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"

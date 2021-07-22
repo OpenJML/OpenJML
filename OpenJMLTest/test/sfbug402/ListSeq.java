@@ -4,14 +4,18 @@ public class ListSeq<E extends Object> implements Seq<E> {
 
     // Private Mutable State
 	//@ spec_public
-    private final /*@ non_null @*/ ArrayList<E> list = new ArrayList<E>();
+    private final /*@ non_null @*/ ArrayList<E> list = new ArrayList<E>(); //@ in _length;
 
 	//@ spec_public non_null
-   private Integer pos = 1;
-    //@ public invariant 1 <= pos <= length() + 1;
-   //@ public invariant length() < 1000;
-   //@ public invariant list.size() < 1000;
+    private Integer pos = 1; //@ in _pos;
+    //@ public invariant 1 <= pos <= _length + 1;
+    //@ public invariant _length < 1000;
+    //@ public invariant list.size() < 1000;
 
+    //@ represents _pos = pos;
+    //@ represents _pastEnd = (pos == _length+1);
+    //@ represents _length = length();
+   
     // Constructor
     //@ requires elements.length < 1000;
     public ListSeq( E /*@ non_null @*/ [] elements) {
@@ -20,7 +24,6 @@ public class ListSeq<E extends Object> implements Seq<E> {
         for (E element : elements) {
             list.add(element);
         }
-        //@ assume list.size() == elements.length;
     }
 
     // Interface Seq
@@ -47,16 +50,23 @@ public class ListSeq<E extends Object> implements Seq<E> {
     }
 
     //@ also public normal_behavior
-    //@   ensures \result != null && \result == list.size(); pure helper
+    //@   requires 0 <= list.size() < 1000;
+    //@   requires 1 <= pos <= _length + 1 <= 1000;
+    //@   ensures \result == list.size();
+    //@ pure helper
     @Override 
-    public /* non_null */ Integer length() {
-        return list.size();
+    public Integer length() {
+        Integer r = list.size();
+        //@ show r, list.size(), _length.theInteger;
+        return r;
     }
 
-    //@ also public normal_behavior
-    //@   ensures \result != null && \result == (pos == 1+length()); //@ pure
+    //@ pure 
     @Override 
-    public /* non_null */ Boolean pastEnd() {
-        return pos.equals(length()+1);
+    public Boolean pastEnd() {
+        //return pos.equals(length()+1);
+        Boolean b = pos == (length()+1);
+        //@ show b.theBoolean, pos.theInteger, _pos.theInteger, length().theInteger, _length.theInteger,  _pastEnd.theBoolean;
+        return b;
     }
 }

@@ -8,7 +8,7 @@ public class ListSeq<E extends Object> implements Seq<E> {
 
 	//@ spec_public non_null
    private Integer pos = 1;
-    //@ public invariant 1 <= pos <= length() + 1;
+   //@ public invariant 1 <= pos <= length() + 1;
    //@ public invariant length() < 1000;
    //@ public invariant list.size() < 1000;
 

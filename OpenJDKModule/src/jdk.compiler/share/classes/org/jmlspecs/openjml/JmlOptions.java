@@ -367,6 +367,11 @@ public class JmlOptions extends Options {
             new File(benchmarkDir).mkdir();
         }
         
+        try {
+        	utils.jmlverbose = Integer.parseInt(options.get(JmlOption.VERBOSENESS.optionName()));
+        } catch (Exception e) {
+        	// continue
+        }
         if (options.get("-verbose") != null) {
             // If the Java -verbose option is set, we set -jmlverbose as well
             utils.jmlverbose = Utils.JMLVERBOSE;
