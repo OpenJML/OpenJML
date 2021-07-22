@@ -2,7 +2,7 @@ import java.util.Scanner;
 
 public class GCDCalculatorMain{
     //@ requires System.out.isOpen && System.err.isOpen;
-    //@ requires \invariant_for(System.out);
+    //@ requires \invariant_for(System.out); // FIXME - this needed? and elsewhere
     //@ requires \invariant_for(System.err);
 	public static void main(String[] args){
 		try{ 

@@ -1,30 +1,45 @@
 
 public interface Seq<E extends Object> {
+	
+	//@ model public instance JMLDataGroup state;
+	//@ model public non_null instance Boolean _pastEnd; //@ in state;
+	//@ model public non_null instance Integer _pos; //@ in _pastEnd;
+	//@ model public non_null instance Integer _length; //@ in _pastEnd;
+	
+	//@ public invariant !_pastEnd ==> (1 <= _pos <= _length);
 
-    /*@ requires !pastEnd();
-      @ ensures !pastEnd() ==> ( pos().equals( \old(pos()) + 1) );
-      @ ensures pastEnd() <==> ( \old(pos()).equals(length()) );
+
+    /*@   requires !pastEnd();
+      @   writes _pos;
+      @   ensures !pastEnd() <==> ( pos().equals( \old(pos()) + 1) );
+      @   ensures pastEnd() <==> ( \old(pos()).equals(length()) );
+      @ also
+      @   requires pastEnd();
+      @   writes \nothing;
       @*/
     void forth();
 
     /*@
       @ public normal_behavior
-      @   requires !pastEnd();
-      @   ensures 1 <= \result <= length();
+      @   requires !_pastEnd;
+      @   ensures \result == _pos;
       @*/
     /*@ pure non_null @*/ Integer pos();
 
     /*@
-      @ requires !pastEnd();
+      @ requires !_pastEnd;
       @*/
     /*@ non_null @*/ E current();
 
     /*@ public normal_behavior
-      @ ensures \result != null && 0 <= \result;
+      @ requires !_pastEnd ==> (1 <= _pos <= _length);
+      @ ensures \result != null;
+      @ ensures \result == _length;
+      @ ensures 0 <= \result;
       @*/
-    /*@ pure non_null @*/ Integer length();
+    /*@ pure non_null helper @*/ Integer length();
 
     //@ public normal_behavior
-    // @  ensures \result == (pos() == 1 + length());
+    //@   ensures \result == _pastEnd;
     /*@ pure non_null @*/ Boolean pastEnd();
 }

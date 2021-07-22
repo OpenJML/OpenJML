@@ -39,6 +39,7 @@ public class Test {
 		var lst = args.length == 0 ? dir.list() : args;
 		java.util.Arrays.sort(lst);
 		int k = args[0].indexOf('#');
+                if (k < 0) k = args[0].indexOf('.');
 		if (k > 0) lst = new String[] { args[0].substring(0,k) };
 		for (var d : lst) {
 			if (args.length == 0 && !d.endsWith(".java")) continue;

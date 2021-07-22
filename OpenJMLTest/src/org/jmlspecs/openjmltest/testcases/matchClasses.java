@@ -195,7 +195,7 @@ public class matchClasses  extends TCBase {
         helpTCF("$A/A.java",
                 "public class A { int j; } "
                 ,"/$A/A.jml:1: error: Type of field j in specification differs from type in source/binary: double vs. int",18
-                ,"/$A/A.java:1: Note: Associated declaration: /$A/A.jml:1: ",22
+                ,"/$A/A.java:1: Note: Associated declaration: /$A/A.jml:1:",22
                 );
     }
     

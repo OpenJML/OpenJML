@@ -9629,11 +9629,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (Utils.debug()) System.out.println("APPLYHELPER-W " + calleeMethodSym.owner + " " + calleeMethodSym);
 
 
+            String msg = utils.qualifiedMethodSig(calleeMethodSym) + ", returning to " + utils.qualifiedMethodSig(methodDecl.sym);
+            ListBuffer<JCStatement> check5 = pushBlock();
             if (!nodoTranslations && !(convertedReceiver instanceof JCLambda)) {
 
-                ListBuffer<JCStatement> check5 = pushBlock();
 
-                String msg = utils.qualifiedMethodSig(calleeMethodSym) + ", returning to " + utils.qualifiedMethodSig(methodDecl.sym);
                 currentStatements.add(comment(that, "Assuming callee invariants by the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
                 if (!rac && !infer) {
                     // After a call, we assume invariants, which includes assuming that
@@ -9682,7 +9682,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             false,false,false,false,true,true,Label.INVARIANT_EXIT,msg);
                 }
                 
+            }
+            if (!(convertedReceiver instanceof JCLambda)) {
                 Type retType = that.type;
+                currentStatements.add(comment(that, "Checking for return callee invariants by the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
+
                 if (calleeMethodSym.isConstructor()) {
                     // FIXME - invariants for constructor result - already somewhere else?
                 } else if (retType.getTag() != TypeTag.VOID) {
@@ -9779,12 +9783,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
                 
-                // FIXME - could optimize if the block is empty except comments
-                JCBlock invariantBlock = popBlock(methodDecl,check5);
-                // FIXME - why are these put in different statement lists?
-                if (esc) currentStatements.add( wrapRuntimeException(that, invariantBlock, "JML undefined invariant while checking postconditions - exception thrown", null));
-                if (rac) ensuresStatsOuter.add( wrapRuntimeException(that, invariantBlock, "JML undefined invariant while checking postconditions - exception thrown", null));
             }
+            // FIXME - could optimize if the block is empty except comments
+            JCBlock invariantBlock = popBlock(methodDecl,check5);
+            // FIXME - why are these put in different statement lists?
+            if (esc) currentStatements.add( wrapRuntimeException(that, invariantBlock, "JML undefined invariant while checking postconditions - exception thrown", null));
+            if (rac) ensuresStatsOuter.add( wrapRuntimeException(that, invariantBlock, "JML undefined invariant while checking postconditions - exception thrown", null));
             if (Utils.debug()) System.out.println("APPLYHELPER-X " + calleeMethodSym.owner + " " + calleeMethodSym);
 
             this.freshnessReferenceCount = callLabelReferenceCount;
