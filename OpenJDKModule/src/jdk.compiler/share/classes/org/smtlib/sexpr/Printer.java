@@ -131,7 +131,7 @@ public class Printer implements IPrinter, org.smtlib.IVisitor</*@Nullable*/ Void
 	/*@Nullable*/
 	@Override
 	public Void visit(IDecimal e) throws IVisitor.VisitorException {
-		try { w.append(e.value().toString()); } catch (IOException ex) { throw new IVisitor.VisitorException(ex); }
+		try { w.append(e.value().toPlainString()); } catch (IOException ex) { throw new IVisitor.VisitorException(ex); }
 		return null;
 	}
 
