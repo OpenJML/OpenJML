@@ -1829,6 +1829,11 @@ public class Utils {
     	new RuntimeException().printStackTrace(System.out);
     }
 
+    public static void dumpStack(String message) {
+    	System.out.println("DUMP " + message);
+    	dumpStack();
+    }
+
     public static void conditionalPrintStack(String heading, Throwable e) {
     	if (System.getenv("STACK") != null) {
     		System.out.println(heading);

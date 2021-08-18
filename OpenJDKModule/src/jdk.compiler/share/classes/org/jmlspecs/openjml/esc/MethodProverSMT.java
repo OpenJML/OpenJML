@@ -498,13 +498,14 @@ public class MethodProverSMT {
                         }
                         
                         ++feasibilityCheckNumber;
-                        if (!scriptString.contains("__JML_AssumeCheck_ != " + feasibilityCheckNumber)) continue;
                         if (feasibilityCheckNumber != stat.associatedPos) {
                             utils.note(false, "XXX");
                         }
                         if (feasibilityCheckNumber < startFeasibilityCheck) continue;
                         if (prevErrors != log.nerrors) break;
-                        
+                        //System.out.println("FEAS " + usePushPop + " " + feasibilityCheckNumber + " " + scriptString.contains("__JML_AssumeCheck_ != " + feasibilityCheckNumber + ")"));
+                        if (!scriptString.contains("__JML_AssumeCheck_ != " + feasibilityCheckNumber + ")")) continue;
+                       
                         // Only do the feasibility check if called for by the feasibility option
                         quit = stat.description == Strings.atSummaryAssumeCheckDescription;
                         if (!allFeasibilities && !Strings.feasibilityContains(stat.description,context)
