@@ -1,0 +1,1 @@
+FIXME: This is the original reported problem. It suffers from no checks on recursive use of an unfounded spec method.
