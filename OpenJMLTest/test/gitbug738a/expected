@@ -4,10 +4,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of A.A() with prover !!!! - no warnings
 Starting proof of A.comm(HasComm) with prover !!!!
-test/gitbug738/A.java:6: warning: The prover cannot establish an assertion (Postcondition) in method comm
+test/gitbug738a/A.java:6: warning: The prover cannot establish an assertion (Postcondition) in method comm
         return true;
         ^
-test/gitbug738/HasComm.java:2: warning: Associated declaration
+test/gitbug738a/HasComm.java:2: warning: Associated declaration
   //@ ensures (\result==other.comm(this));
       ^
 Completed proof of A.comm(HasComm) with prover !!!! - with warnings
@@ -20,10 +20,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of B.B() with prover !!!! - no warnings
 Starting proof of B.comm(HasComm) with prover !!!!
-test/gitbug738/B.java:6: warning: The prover cannot establish an assertion (Postcondition) in method comm
+test/gitbug738a/B.java:6: warning: The prover cannot establish an assertion (Postcondition) in method comm
         return false;
         ^
-test/gitbug738/HasComm.java:2: warning: Associated declaration
+test/gitbug738a/HasComm.java:2: warning: Associated declaration
   //@ ensures (\result==other.comm(this));
       ^
 Completed proof of B.comm(HasComm) with prover !!!! - with warnings
@@ -34,7 +34,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Main.Main() with prover !!!! - no warnings
 Starting proof of Main.main(String[]) with prover !!!!
-test/gitbug738/Main.java:6: warning: The prover cannot establish an assertion (Assert) in method main
+test/gitbug738a/Main.java:6: warning: The prover cannot establish an assertion (Assert) in method main
         //@ assert a.comm(b) != b.comm(a);  // ESC can't prove this
             ^
 Completed proof of Main.main(String[]) with prover !!!! - with warnings
