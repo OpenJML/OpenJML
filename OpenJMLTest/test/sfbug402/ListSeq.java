@@ -5,25 +5,29 @@ public class ListSeq<E extends Object> implements Seq<E> {
     // Private Mutable State
 	//@ spec_public
     private final /*@ non_null @*/ ArrayList<E> list = new ArrayList<E>(); //@ in _length;
+    //@ public invariant \forall int i; 0 <= i < list.size(); list.get(i) != null;
 
 	//@ spec_public non_null
     private Integer pos = 1; //@ in _pos;
-    //@ public invariant 1 <= pos <= _length + 1;
-    //@ public invariant _length < 1000;
+    //@ public invariant 1 <= pos <= length() + 1;
+    //@ public invariant length() < 1000;
     //@ public invariant list.size() < 1000;
 
     //@ represents _pos = pos;
     //@ represents _pastEnd = (pos == _length+1);
-    //@ represents _length = length();
+    //@ represents _length = list.size();
    
     // Constructor
     //@ requires elements.length < 1000;
+    //@ requires \forall int i; 0<=i<elements.length; elements[i] != null;
     public ListSeq( E /*@ non_null @*/ [] elements) {
     	//@ loop_invariant list.size() == \count;
+    	//@ loop_invariant \forall int i; 0 <= i < \count; list.get(i) != null;
     	//@ loop_decreases elements.length - \count;
         for (E element : elements) {
             list.add(element);
         }
+        //@ assert list.size() == elements.length;
     }
 
     // Interface Seq
@@ -45,28 +49,24 @@ public class ListSeq<E extends Object> implements Seq<E> {
     }
 
     @Override //@ pure
-    public E current() {
+    public  /*@ non_null */ E current() {
         return list.get(pos-1);
     }
 
     //@ also public normal_behavior
-    //@   requires 0 <= list.size() < 1000;
-    //@   requires 1 <= pos <= _length + 1 <= 1000;
-    //@   ensures \result == list.size();
+    //@   ensures \result.theInteger == _length;
     //@ pure helper
     @Override 
-    public Integer length() {
+    public  /*@ non_null */ Integer length() {
         Integer r = list.size();
-        //@ show r, list.size(), _length.theInteger;
         return r;
     }
 
-    //@ pure 
+    //@ pure
     @Override 
-    public Boolean pastEnd() {
+    public  /*@ non_null */ Boolean pastEnd() {
         //return pos.equals(length()+1);
         Boolean b = pos == (length()+1);
-        //@ show b.theBoolean, pos.theInteger, _pos.theInteger, length().theInteger, _length.theInteger,  _pastEnd.theBoolean;
         return b;
     }
 }

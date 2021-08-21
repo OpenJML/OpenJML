@@ -955,9 +955,9 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
-    @Test @Ignore // FIXME - needs some implementation
+    @Test
     public void gitbug651a() {
-        expectedExit = 0;
+        expectedExit = 1;
         helpTCG();
     }
 
