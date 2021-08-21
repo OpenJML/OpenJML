@@ -3,8 +3,20 @@ Starting proof of IntToString.IntToString() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of IntToString.IntToString() with prover !!!! - no warnings
-Starting proof of IntToString.intToString(int) with prover !!!!
+Starting proof of IntToString.intToStringA(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of IntToString.intToString(int) with prover !!!! - no warnings
+Completed proof of IntToString.intToStringA(int) with prover !!!! - no warnings
+Starting proof of IntToString.intToStringB(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IntToString.intToStringB(int) with prover !!!! - no warnings
+Starting proof of IntToString.intToStringC(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IntToString.intToStringC(int) with prover !!!! - no warnings
+Starting proof of IntToString.intToStringD(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IntToString.intToStringD(int) with prover !!!! - no warnings
 Completed proving methods in IntToString

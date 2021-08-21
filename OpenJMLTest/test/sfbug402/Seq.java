@@ -2,9 +2,9 @@
 public interface Seq<E extends Object> {
 	
 	//@ model public instance JMLDataGroup state;
-	//@ model public non_null instance Boolean _pastEnd; //@ in state;
-	//@ model public non_null instance Integer _pos; //@ in _pastEnd;
-	//@ model public non_null instance Integer _length; //@ in _pastEnd;
+	//@ model public non_null instance boolean _pastEnd; //@ in state;
+	//@ model public non_null instance int _pos; //@ in _pastEnd;
+	//@ model public non_null instance int _length; //@ in _pastEnd;
 	
 	//@ public invariant !_pastEnd ==> (1 <= _pos <= _length);
 
@@ -32,7 +32,6 @@ public interface Seq<E extends Object> {
     /*@ non_null @*/ E current();
 
     /*@ public normal_behavior
-      @ requires !_pastEnd ==> (1 <= _pos <= _length);
       @ ensures \result != null;
       @ ensures \result == _length;
       @ ensures 0 <= \result;
