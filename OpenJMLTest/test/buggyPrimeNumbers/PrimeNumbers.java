@@ -10,7 +10,7 @@
 
         private /*@ spec_public nullable @*/ int primeArray[];
         //@ requires 1 <= n && n < Integer.MAX_VALUE;
-        //@ assignable primeArray;
+        //@ assignable primeArray, System.out.outputText;
         //@ ensures primeArray.length == n;
         //@ ensures (\forall int i, j; 0 <= i && i < primeArray.length && 2 <= j && j <= primeArray[i]/2; !div(primeArray[i],j));
 	//@ ensures (\forall int i,j; 0 <= i && i < primeArray.length && 0 <= j && j < primeArray.length && i != j; primeArray[i] != primeArray[j]);
@@ -39,6 +39,7 @@
 	 //@ maintaining count_counter == count;
 	 //@ loop_invariant status == 1;
          //@ decreases maxnumber - num;
+          //@ split
           for (count = 2; count <= n;)
           { 
 	     
@@ -47,6 +48,7 @@
 	     //@ maintaining (\forall int k; 0 <= k && k < count - 1; num != primeArray[k]);
 	     //@ maintaining (\forall int k; 2 <= k && k < j; !div(num,k));
              //@ decreases num - j;
+              //@ split
              for (j = 2; j <= num/2; j++)
              { 
                 if (div(num,j))
@@ -58,6 +60,7 @@
                 //@ assert !div(num,j);
              }
 
+             //@ split
              if (status != 0)
              {  
                 //@ assert status != 0;

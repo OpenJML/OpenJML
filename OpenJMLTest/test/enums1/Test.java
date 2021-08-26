@@ -23,11 +23,18 @@ public class Test {
     
     //@ pure
     public void m5d(EEE e) {
-        //@ assume (\forall EEE ee; ee != null ==> (\exists \bigint i; 0<=i && i<EEE._JMLvalues.length; EEE._JMLvalues[i] == ee)); // FIXME - failig
         EEE[] ev = EEE.values();
-        //@ assume (\forall EEE ee; ee != null ==> (\exists \bigint i; 0<=i && i<ev.length; ev[i] == ee)); // FIXME - failig
-        //@ show ev, EEE._JMLvalues, ev[0], EEE._JMLvalues[0];
-        //@ assert (\forall EEE ee; ee != null ==> (\exists \bigint i; 0<=i && i<ev.length; ev[i] == ee)); // FIXME - failig
+        //@ assert  (\exists \bigint i; 0<=i && i<ev.length; ev[i] == EEE.BB);
+        //@ assert  (\exists \bigint i; 0<=i && i<ev.length; ev[i] == EEE.DD);
+        //@ assert  (\forall \bigint i; 0<=i && i<ev.length; ev[i] != null);
+        //@ assert ev == EEE._JMLvalues;
+        //@ assert ev.length == 4;
+        //@ assume (\forall EEE ee; ee != null ==> (\exists \bigint i; 0<=i && i<EEE._JMLvalues.length; EEE._JMLvalues[i] == ee));
+        //@ assume (\forall EEE ee; (ee == null || ee == EEE.AA || ee == EEE.BB || ee == EEE.CC || ee == EEE.DD));
+        //@ assert (\forall EEE ee;  (ee == null || ee == EEE.AA || ee == EEE.BB || ee == EEE.CC || ee == EEE.DD)); // FAILS, despite the assumption above
+        //@ assert (\forall EEE ee;  ee != null ==> ( ee == EEE.AA || ee == EEE.BB || ee == EEE.CC || ee == EEE.DD)); // FAILS, despite the assumption above
+        //@ assume (\forall EEE ee; ee != null ==> (\exists \bigint i; 0<=i && i<ev.length; ev[i] == ee));
+        //@ assert (\forall EEE ee; ee != null ==> (\exists \bigint i; 0<=i && i<ev.length; ev[i] == ee)); // FIXME - failing, even though matches the line above
     }
     
 }

@@ -2682,7 +2682,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (basetype.isPrimitive()) return;
         if (!translatingJML) clearInvariants();
         if (methodDecl.isInitializer) return;
-        if (methodDecl.sym.isConstructor() && assume && types.isSameType(methodDecl.sym.type, basetype)) {
+        if (!isReturn && methodDecl.sym.isConstructor() && assume && types.isSameType(methodDecl.sym.type, basetype)) {
             return;
         }
         if (!isReturn && startInvariants(basecsym,pos)) return;
@@ -2762,7 +2762,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 csym);
                         // Do the actual invariants
                         for (JmlTypeClause clause : tspecs.clauses) {
-                            if (!utils.visible(classDecl.sym, csym, clause.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
+                            if (!utils.jmlvisible(classDecl.sym, csym, clause.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
                             JmlTypeClauseExpr t;
                             DiagnosticPosition cpos = clause;
                             boolean clauseIsStatic = utils.isJMLStatic(clause.modifiers,csym);
@@ -8718,9 +8718,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 	} else
                 	for (int i=0; i<calleeMethodSym.params.size(); i++) {
                 		VarSymbol v = calleeMethodSym.params.get(i);
-            			var calleeSpecs = specs.getSpecs(calleeMethodSym);
+            			var calleeSpecs = specs.getLoadedSpecs(calleeMethodSym);
                 		boolean nn = calleeSpecs.specDecl == null ? specs.isNonNull(v) : specs.isNonNull((JmlVariableDecl)calleeSpecs.specDecl.params.get(i));
-                		//if (calleeMethodSym.toString().contains("valueOf")) System.out.println("VALUEOF " + calleeMethodSym + " " + v + " " + nn + " " + calleeSpecs + " # " + calleeSpecs.specDecl);
                 		if (nn) {
                 			if (calleeSpecs.specDecl == null) {
                 				// There are no specs to point to
@@ -9701,7 +9700,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 currentStatements.add(comment(that, "Checking for return callee invariants by the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
 
                 if (calleeMethodSym.isConstructor()) {
-                    // FIXME - invariants for constructor result - already somewhere else?
+                	if (resultExpr != null) {
+                		currentStatements.add(comment(that, "Assuming invariants for the constructed value by the caller after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
+                		addInvariants(that,retType,resultExpr,currentStatements,
+                				false,false,false,false,true,true,true,Label.INVARIANT_EXIT,
+                				msg);
+                	}
                 } else if (retType.getTag() != TypeTag.VOID) {
                     // Add invariants on the type of the return value only if normal termination
                     ListBuffer<JCStatement> check6 = pushBlock();

@@ -7,6 +7,7 @@ package java.lang;
  * @author Mike Rawding
  * TODO - Credits
  */
+//@ spec_public
 abstract class AbstractStringBuilder implements Appendable, CharSequence {
 
     /*@ spec_public @*/ byte[] value; //@ in modelValue;
@@ -19,17 +20,17 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     //@ public ghost char[] trueChars = {'t', 'r', 'u', 'e'};
     //@ public ghost char[] falseChars = {'f', 'a', 'l', 's', 'e'};
     
+    //@ public model int stringLength; //@ in modelValue;
+    //@ public represents stringLength = this.count;
+    
     //@ public model int capacity;
     //@ public represents capacity = modelValue.length;
     
-    //@ public model int stringLength; //@ in modelValue;
-    //@ represents stringLength = this.count;
-    
     //@ public ghost String stringValue;
     
-    //@ public model char[] modelValue;
+    //@ public model char[] modelValue;  //@ in capacity, charArray, _value;
     
-    //@ public invariant modelValue.length == length();
+    //@ public invariant modelValue != null;  // FIXME
     
     //@ public invariant 0 <= capacity;
     //@ public invariant 0 <= count <= stringLength <= modelValue.length;
@@ -49,17 +50,19 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @   assignable \nothing;
       @   signals_only NegativeArraySizeException;
       @*/
-    /*@ pure helper@*/AbstractStringBuilder(int capacity); //2
+    /*@ pure @*/AbstractStringBuilder(int capacity); //2
     
-    //@ also ensures \result == stringLength;
+    //@ also public normal_behavior 
+    //@   ensures \result == stringLength;
     public /*@ pure @*/ int length(); //3
     
-    //@ ensures \result == capacity;
+    //@ public normal_behavior
+    //@   ensures \result == capacity;
     public /*@ pure @*/ int capacity(); //4
     
     /*@ public normal_behavior
       @   requires minimumCapacity > capacity;
-      @   assignable modelValue;
+      @   assignable modelValue, _value;
       @   ensures this.capacity >= minimumCapacity;
       @ also
       @ public normal_behavior
@@ -85,7 +88,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @*/
     public void trimToSize(); //9
     
-    /*@ public normal_behavior  //TODO ESC failure, need to investigate
+    /*@ public normal_behavior
       @   requires stringLength < newLength;
       @   assignable modelValue;
       @   assignable stringLength;
@@ -100,7 +103,8 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @ also
       @ public exceptional_behavior
       @   requires newLength < 0;
-      @   signals_only StringIndexOutOfBoundsException;
+      @   assignable \nothing;
+      @   signals_only IndexOutOfBoundsException;
       @*/
     public void setLength(int newLength); //10
     
@@ -226,24 +230,28 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     public AbstractStringBuilder append(char c); //28
     
     /*@
+      @ assignable _value, charArray;
       @ ensures stringLength == \old(stringLength) + String.valueOf(i).length();
       @ ensures \result == this;
       @*/
     public AbstractStringBuilder append(int i); //29
     
     /*@
+      @ assignable _value, charArray;
       @ ensures stringLength == \old(stringLength) + String.valueOf(l).length();
       @ ensures \result == this;
       @*/
     public AbstractStringBuilder append(long l); //30
     
     /*-ESC@ // ESC error: logic does not support reals
+      @ assignable _value, charArray;
       @ ensures stringLength == \old(stringLength) + String.valueOf(f).length();
       @ ensures \result == this;
       @*/
     public AbstractStringBuilder append(float f); //31
     
     /*-ESC@ // ESC error: logic does not support reals
+      @ assignable _value, charArray;
       @ ensures stringLength == \old(stringLength) + String.valueOf(d).length();
       @ ensures \result == this;
       @*/
@@ -321,79 +329,91 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @*/
     public /*@ pure @*/ String substring(int start, int end); //39
     
-    /*-ESC@ public normal_behavior //TODO - no feasible path to program exit
-      @   requires index >= 0 && index <= stringLength && offset >= 0 && len >= 0 && offset <= str.length - len;
-      @   assignable value;
+    /*@ public normal_behavior
+      @   requires str != null && 0 <= index <= stringLength && len >= 0 && 0 <= offset <= str.length - len;
+      @   assignable modelValue;
       @   ensures stringLength == \old(stringLength) + len;
       @   ensures (\forall int i; 0 <= i < index; modelValue[i] == \old(modelValue[i]));
       @   ensures (\forall int i; index <= i < index + len; modelValue[i] == str[i - offset]);
       @   ensures (\forall int i; index + len <= i < stringLength; modelValue[i] == \old(modelValue[i + len]));
       @   ensures \result == this;
+      @   ensures \result.length() == \old(this.length()) + len;
       @ also
       @ public exceptional_behavior
-      @   requires index < 0 || index > stringLength || offset < 0 || len < 0 || offset > str.length - len;
+      @   requires str != null && !(0 <= index <= stringLength && len >= 0 && 0 <= offset <= str.length - len);
+      @   assignable \nothing;
       @   signals_only StringIndexOutOfBoundsException;
       @*/
     public AbstractStringBuilder insert(int index,  char /*@ nullable @*/ [] str, int offset, int len); //40
     
-    /*-ESC@ public normal_behavior //TODO - no feasible path to program exit
+    /*@ public normal_behavior
       @   requires 0 <= offset <= stringLength;
-      @   assignable value;
-      @   ensures (\forall int i; 0 <= i && i < offset; modelValue[i] == \old(modelValue[i]));
-      @   ensures (\forall int i; offset <= i && i < offset + String.valueOf(obj).length(); modelValue[i] == String.valueOf(obj).charAt(i - offset));
-      @   ensures (\forall int i; offset + String.valueOf(obj).length() <= i && i < stringLength; modelValue[i] == \old(modelValue[i + String.valueOf(obj).length()]));
+      @   old String s = String.valueOf(obj);
+      @   old int slen = s.length();
+      @   assignable modelValue;
+      @   ensures (\forall int i; 0 <= i < offset; modelValue[i] == \old(modelValue[i]));
+      @   ensures (\forall int i; offset <= i < offset + slen; modelValue[i] == s.charAt(i - offset));
+      @   ensures (\forall int i; offset + slen <= i < stringLength; modelValue[i] == \old(modelValue[i + slen]));
       @   ensures \result == this;
       @ also
       @ public exceptional_behavior
-      @   requires offset < 0 || offset > stringLength;
+      @   requires !(0 <= offset <= stringLength);
+      @   assignable \nothing;
       @   signals_only StringIndexOutOfBoundsException;
       @*/
     public AbstractStringBuilder insert(int offset,  /*@ nullable @*/ Object obj); //41
     
-    /*-ESC@ public normal_behavior //TODO - no feasible path to program exit
-      @   requires 0 <= offset && offset <= stringLength && str != null;
-      @   assignable value;
-      @   ensures stringLength == \old(stringLength) + str.length();
+    /*@ public normal_behavior
+      @   requires 0 <= offset <= stringLength;
+      @   old String s = str == null ? "null" : s;
+      @   old int len = s.length();
+      @   assignable modelValue;
+      @   ensures stringLength == \old(stringLength) + len;
       @   ensures (\forall int i; 0 <= i < offset; modelValue[i] == \old(modelValue[i]));
-      @   ensures (\forall int i; offset <= i < offset + str.length(); modelValue[i] == str.charAt(i - offset));
-      @   ensures (\forall int i; offset + str.length() <= i < stringLength; modelValue[i] == \old(modelValue[i + str.length()]));
+      @   ensures (\forall int i; offset <= i < offset + len; modelValue[i] == s.charAt(i - offset));
+      @   ensures (\forall int i; offset + len <= i < stringLength; modelValue[i] == \old(modelValue[i + len]));
       @   ensures \result == this;
-      @ also
-      @ public normal_behavior
-      @   requires 0 <= offset && offset <= stringLength && str == null;
-      @   assignable value;
-      @   ensures stringLength == \old(stringLength) + nullChars.length;
-      @   ensures (\forall int i; 0 <= i && i < offset; modelValue[i] == \old(modelValue[i]));
-      @   ensures (\forall int i; offset <= i && i < offset + nullChars.length; modelValue[i] == nullChars[i - offset]);
-      @   ensures (\forall int i; offset + nullChars.length <= i && i < stringLength; modelValue[i] == \old(modelValue[i + nullChars.length]));
-      @   ensures \result == this;
+      @   ensures stringLength == \old(stringLength) + len;
       @ also
       @ public exceptional_behavior
       @   requires offset < 0 || offset > stringLength;
+      @   assignable \nothing;
       @   signals_only StringIndexOutOfBoundsException;
       @*/
     public AbstractStringBuilder insert(int offset, /*@ nullable @*/ String str); //42
     
-    /*-ESC@ public normal_behavior //TODO - no feasible path to program exit
-      @   requires 0 <= offset && offset <= stringLength && str != null;
-      @   assignable value;
+    /*@ public normal_behavior
+      @   requires 0 <= offset <= stringLength && str != null;
+      @   old int len = stringLength;
+      @   assignable modelValue;
       @   ensures (\forall int i; 0 <= i < offset; modelValue[i] == \old(modelValue[i]));
       @   ensures (\forall int i; offset <= i < offset + str.length; modelValue[i] == str[i - offset]);
       @   ensures (\forall int i; offset + str.length <= i < stringLength; modelValue[i] == \old(modelValue[i + str.length]));
       @   ensures \result == this;
+      @   ensures stringLength == \old(stringLength) + str.length;
       @ also
       @ public exceptional_behavior
       @   requires offset < 0 || offset > stringLength;
+      @   assignable \nothing;
       @   signals_only StringIndexOutOfBoundsException;
       @ also
       @ public exceptional_behavior
-      @   requires 0 <= offset && offset <= stringLength && str == null;
+      @   requires 0 <= offset <= stringLength && str == null;  // FIXME - not sure about this
+      @   assignable \nothing;
       @   signals_only NullPointerException;
       @*/
     public AbstractStringBuilder insert(int offset, char /*@ nullable @*/ [] str); //43
     
-    public AbstractStringBuilder insert(int dstOffset, CharSequence s); //44
+    //@ public normal_behavior
+    //@     ensures \result.length() == this.length() + (s==null? 4: s.length());
+    public AbstractStringBuilder insert(int dstOffset,  /*@ nullable @*/ CharSequence s); //44
     
+    //@ public normal_behavior
+    //@     requires 0 <= dstoffset <= this.length && 0 <= start <= end <= s.length;
+    //@     requires this.length() + (end-start) <= Integer.MAX_VALUE;
+    //@     assignable modelValue;
+    //@     ensures \result.length() == this.length() + (end-start);
+    //@     ensures \result == this;
     public AbstractStringBuilder insert(int dstOffset, CharSequence s, int start, int end); //45
     
     public AbstractStringBuilder insert(int offset, boolean b); //46
@@ -415,12 +435,12 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @   requires str == null;
       @   signals_only NullPointerException;
       @*/
-    public /*@ pure @*/ int indexOf(/*@ nullable @*/String str); //52  
+    public /*@ pure @*/ int indexOf(/*@ nullable @*/ String str); //52  
 //TODO - should things like this really be nullable? 
 //TODO - I want to express that a NullPointerException will be throw, 
 //TODO - but I do not necessarily want to indicate that null is acceptable
     
-    public /*@ pure @*/ int indexOf(String str, int fromIndex); //53
+    public /*@ pure @*/ int indexOf(/*@ nullable @*/String str, int fromIndex); //53
     
     public int lastIndexOf(String str); //54
     

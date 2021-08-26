@@ -1031,7 +1031,7 @@ public class Utils {
         } while (!(sym instanceof Symbol.PackageSymbol));
         return item;
     }
-
+    
     /** Java visibility, ignoring the access of the containing class */
     public boolean locallyVisible(Symbol base, Symbol parent, long flags) {
         if (base == parent) return true; // Everything is visible in its own class
@@ -1084,11 +1084,35 @@ public class Utils {
     }
     
     public boolean hasSpecPublic(Symbol s) {
-        return s != null && s.attribute(JmlAttr.instance(context).modToAnnotationSymbol.get(Modifiers.SPEC_PUBLIC)) != null;
+    	if (s instanceof ClassSymbol) {
+    		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((ClassSymbol)s);
+    		return hasMod(tspecs.modifiers, Modifiers.SPEC_PUBLIC);
+    	}
+    	if (s instanceof VarSymbol) {
+    		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((VarSymbol)s);
+    		return hasMod(tspecs.mods, Modifiers.SPEC_PUBLIC);
+    	}
+    	if (s instanceof MethodSymbol) {
+    		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((VarSymbol)s);
+    		return hasMod(tspecs.mods, Modifiers.SPEC_PUBLIC);
+    	}
+    	return s != null && s.attribute(JmlAttr.instance(context).modToAnnotationSymbol.get(Modifiers.SPEC_PUBLIC)) != null;
     }
 
     public boolean hasSpecProtected(Symbol s) {
-        return s != null && s.attribute(JmlAttr.instance(context).modToAnnotationSymbol.get(Modifiers.SPEC_PROTECTED)) != null;
+    	if (s instanceof ClassSymbol) {
+    		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((ClassSymbol)s);
+    		return hasMod(tspecs.modifiers, Modifiers.SPEC_PROTECTED);
+    	}
+    	if (s instanceof VarSymbol) {
+    		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((VarSymbol)s);
+    		return hasMod(tspecs.mods, Modifiers.SPEC_PROTECTED);
+    	}
+    	if (s instanceof MethodSymbol) {
+    		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((VarSymbol)s);
+    		return hasMod(tspecs.mods, Modifiers.SPEC_PROTECTED);
+    	}
+    	return s != null && s.attribute(JmlAttr.instance(context).modToAnnotationSymbol.get(Modifiers.SPEC_PROTECTED)) != null;
     }
 
     /** Returns true if a declaration in the 'parent' class with the given flags 

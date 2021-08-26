@@ -2086,6 +2086,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testConstantFolding3() {
+    	main.addOptions("-show","-method=m","-checkFeasibility=debug");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
@@ -2097,17 +2098,21 @@ public class escnew extends EscBase {
                 +"  public static int j;\n" 
                 +"  //@ requires clazz <: Number.class;\n" 
                 +"  //@ assignable j;\n" 
-                +"  //@ ensures j > 100;\n" 
+                +"  //@ ensures j >= 200;\n" // Line 11
                 +"  //@ also\n" 
                 +"  //@ requires clazz <: Boolean.class;\n" 
                 +"  //@ assignable j;\n" 
-                +"  //@ ensures j > 200;\n" 
+                +"  //@ ensures j  == 100;\n" 
                 +"  //@ also\n" 
                 +"  //@ requires clazz <: String.class;\n" 
                 +"  //@ assignable j;\n" 
-                +"  //@ ensures j > 200;\n" 
-                +"  public static  void m( Class<?> clazz) {\n" 
-                +"    j = 1000;\n"
+                +"  //@ ensures j == 0;\n" 
+                +"  public static  void m( Class<?> clazz) {\n" // Line 20
+                +"    if (clazz == Integer.class) j = 200; \n"
+                +"    else if (clazz == Short.class) j = 201; \n"
+                +"    else if (clazz == Boolean.class) j = 100;\n"
+                +"    else if (Number.class.isAssignableFrom(clazz)) j = 202;\n"
+                +"    else j = 0; \n  //@ show clazz <: Number.class, clazz <: Boolean.class, clazz;\n"
                 +"  }\n"
                 
                
@@ -2118,7 +2123,6 @@ public class escnew extends EscBase {
 
     @Test 
     public void testConstantFolding5() {
- //       main.addOptions("-method=mm","-show=translated");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 

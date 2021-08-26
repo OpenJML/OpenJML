@@ -26,4 +26,4 @@ abstract class FF {
 
 // This problem was triggered by calling a method in the arguments
 // of a constructor, because some values were set before 
-// argument evaluation that should ahve been set after.
+// argument evaluation that should have been set after.

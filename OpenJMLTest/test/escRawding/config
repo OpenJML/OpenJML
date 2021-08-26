@@ -1,1 +1,1 @@
-ARGS+=" -specspath=test/escRawding:$SY -code-math=safe -no-purityCheck "
+ARGS+=" -code-math=safe -no-purityCheck  "

@@ -920,7 +920,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     //public void checkTypeMatch(JmlClassDecl javaDecl, JmlClassDecl specsClassDecl) {
-        public void checkTypeMatch(ClassSymbol javaClassSym, JmlClassDecl specsClassDecl) {
+    public void checkTypeMatch(ClassSymbol javaClassSym, JmlClassDecl specsClassDecl) {
         
         //ClassSymbol javaClassSym = javaDecl.sym;
         JmlSpecs.TypeSpecs combinedTypeSpecs = specs.get(javaClassSym);
@@ -4931,7 +4931,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             var rep = jmlenv.representsHead;
 //        	jmlenv.representsHead = rep;
-        	if (rep != null && tree.sym instanceof VarSymbol) {  // FIXME - also need to check the reads statement of method calls
+        	if (rep != null && tree.sym instanceof VarSymbol && tree.sym.owner instanceof ClassSymbol && tree.sym.name != names._this && tree.sym.name != names._super) {  // FIXME - also need to check the reads statement of method calls
         		//System.out.println("CHECKING DG " + (VarSymbol)tree.sym + " IN " + jmlenv.representsHead);
         		if (!isContainedInDatagroup((VarSymbol)tree.sym, jmlenv.representsHead)) {
         			utils.error(tree,"jml.message", "Because '" + rep + "' reads '" + tree.sym + "' in a represents clause, '" + tree.sym + "' must be 'in' the model field '" + rep + "'");
@@ -5217,6 +5217,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected boolean isContainedInDatagroup(/*@nullable*/ VarSymbol varSym, /*@nullable*/ VarSymbol contextSym) {
         if (varSym == contextSym) return true;
         JmlSpecs.FieldSpecs fspecs = specs.getSpecs(varSym);
+        if (fspecs == null) System.out.println("NO SPECS FOR " + varSym + " " + contextSym);
         for (JmlTypeClause t: fspecs.list) {
             if (t.clauseType == inClause) {  // FIXME - relies on variable IN clauses being attributed before a method that uses them
                 for (JmlGroupName g: ((JmlTypeClauseIn)t).list) {
