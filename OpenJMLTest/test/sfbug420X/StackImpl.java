@@ -39,9 +39,12 @@ public class StackImpl implements Stack {
 		return stackCounter == 0;
 	}
 
-	//@ also writes count, internalStack, internalStack[*]; 
-	//@ ensures \old(stackCounter < maxSize) <==> \result;
-	//@ ensures \result ==> stackCounter == \old(stackCounter) + 1;
+	//@ also 
+	//@   writes count, internalStack, internalStack[*]; 
+	//@   ensures \old(stackCounter < maxSize) <==> \result;
+	//@   ensures \result ==> stackCounter == \old(stackCounter) + 1;
+	//@   ensures !\result ==> stackCounter == \old(stackCounter);
+	//@   ensures \result ==> internalStack[stackCounter-1] == item;
 	public boolean push(int item) {
 		if(stackCounter >= maxSize) return false;
 		internalStack[stackCounter] = item;
@@ -60,8 +63,9 @@ public class StackImpl implements Stack {
 	}
 	
 	public static void main(String[] args) {
-		Stack s = new StackImpl();
+		Stack s = new StackImpl(); // OK if s is a StackImpl
 		//@ assert s.count == 0;
+		//@ show s.count, ((StackImpl)s).maxSize, ((StackImpl)s).stackCounter;
 		boolean b1 = s.push(2);
 		//@ show b1, s.count, ((StackImpl)s).maxSize, ((StackImpl)s).stackCounter;
 		boolean b2 = s.push(2);

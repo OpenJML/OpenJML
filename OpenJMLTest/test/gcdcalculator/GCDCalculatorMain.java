@@ -30,7 +30,7 @@ public class GCDCalculatorMain{
 
 			gcd = a.GCD(num1, num2);
 
-			//System.out.println("GCD of "+ num1 + " and " + num2 + " is equal to " + gcd); // FIXME - this times out
+			// System.out.println("GCD of "+ num1 + " and " + num2 + " is equal to " + gcd); // FIXME - this times out
 		}
 		catch (Exception e){
 		    //@ assume \invariant_for(System.err);

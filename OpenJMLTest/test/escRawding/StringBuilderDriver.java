@@ -130,6 +130,9 @@ public class StringBuilderDriver {
         
         testConstructorString(); //3
          
+        // These assumptions needed because the test routines above do not have frame conditions
+        //@ assume \invariant_for(java.io.PrintStream);
+        //@ assume \invariant_for(System.out);
         System.out.println("done");    
     }
     
@@ -142,7 +145,9 @@ public class StringBuilderDriver {
         StringBuilder sb1 = new StringBuilder(1);
         try {
             StringBuilder sb2 = new StringBuilder(-1);
+            //@ unreachable
         } catch (NegativeArraySizeException ex) {
+        	//@ reachable
             System.out.println("StringBuilder(-1) correctly threw an exception.");
         }
     }
@@ -164,8 +169,10 @@ public class StringBuilderDriver {
     private static void testEnsureCapacity() { //5
         StringBuilder sb = new StringBuilder("Test String");
         sb.ensureCapacity(-1);
+        //@ reachable
         sb.ensureCapacity(4);
         sb.ensureCapacity(1000);
+        //@ reachable
     }
     
     //private method //6
@@ -179,9 +186,7 @@ public class StringBuilderDriver {
         //@ assert sb.stringLength <= sb.modelValue.length;
         sb.trimToSize();
         StringBuilder sb1 = new StringBuilder();
-        //@ show sb1.count, sb1.capacity, sb1.modelValue.length;
         sb1.append("sixteencharacter"); //capacity 16, count 16;
-        //@ show sb1.count, sb1.capacity, sb1.modelValue.length;
         sb1.trimToSize();
     }
     
@@ -192,7 +197,9 @@ public class StringBuilderDriver {
         stringBuilder.setLength(0);
         try {
             stringBuilder.setLength(-1);
-        } catch (StringIndexOutOfBoundsException ex) {
+            //@ unreachable
+        } catch (IndexOutOfBoundsException ex) {
+        	//@ reachable
             System.out.println("setLength(-1) correctly threw an exception.");
         }
     }
@@ -581,29 +588,34 @@ public class StringBuilderDriver {
     
     private static void testInsertCharArray() { //43
         StringBuilder sb = new StringBuilder("Test String");
-        char[] charArray = {'t', 'e', 's', 't'};
+        char[] chars = {'t', 'e', 's', 't'};
         /*@ nullable @*/ char[] nullCharArray = null;
-        
-        
-        sb.insert(0, charArray);
-        sb.insert(sb.length(), charArray);
+        //@ assert chars.length == 4;
+        int x = sb.length();
+        //@ assert x == 11;
+        sb.insert(0, chars);
+        //@ assert sb.length() == x + chars.length;
+        sb.insert(sb.length(), chars);
+        //@ assert sb.length() == x + chars.length + chars.length;
         
         try {
-            sb.insert(-1, charArray);
+            sb.insert(-1, chars);
         } catch (StringIndexOutOfBoundsException ex) {
             System.out.println("insert() with negative offset correctly threw an exception");
         }
         
         try {
-            sb.insert(sb.length() + 1, charArray, 0, 0);
+            sb.insert(sb.length() + 1, chars, 0, 0);
         } catch (StringIndexOutOfBoundsException ex) {
-            System.out.println("insert() with offest too large correctly threw an exception");
+            System.out.println("insert() with offset too large correctly threw an exception");
         }
         
         try {
             sb.insert(0, nullCharArray);
+            //@ reachable
+            System.out.println("insert() with null char[] correctly did not throw an exception");
         } catch (NullPointerException ex) {
-            System.out.println("insert() with null char[] correctly threw an exception");
+        	//@ unreachable
         }
 
     }
@@ -649,8 +661,11 @@ public class StringBuilderDriver {
         sb.indexOf("foo");
         
         try {
+        	//@ reachable;
             sb.indexOf(nullString);            
+        	//@ unreachable;
         } catch (NullPointerException ex) {
+        	//@ reachable;
             System.out.println("testIndexOf() with null String correctly threw an exception");
         }
 
@@ -706,7 +721,10 @@ public class StringBuilderDriver {
         try {
             /*@ nullable @*/String nullString = null;
             StringBuilder sb3 = new StringBuilder(nullString);
-        } catch (NullPointerException ex) {}
+            //@ unreachable
+        } catch (NullPointerException ex) {
+        	//@ reachable
+        }
     }
     
 
