@@ -1093,7 +1093,7 @@ public class Utils {
     		return hasMod(tspecs.mods, Modifiers.SPEC_PUBLIC);
     	}
     	if (s instanceof MethodSymbol) {
-    		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((VarSymbol)s);
+    		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((MethodSymbol)s);
     		return hasMod(tspecs.mods, Modifiers.SPEC_PUBLIC);
     	}
     	return s != null && s.attribute(JmlAttr.instance(context).modToAnnotationSymbol.get(Modifiers.SPEC_PUBLIC)) != null;
@@ -1109,7 +1109,7 @@ public class Utils {
     		return hasMod(tspecs.mods, Modifiers.SPEC_PROTECTED);
     	}
     	if (s instanceof MethodSymbol) {
-    		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((VarSymbol)s);
+    		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((MethodSymbol)s);
     		return hasMod(tspecs.mods, Modifiers.SPEC_PROTECTED);
     	}
     	return s != null && s.attribute(JmlAttr.instance(context).modToAnnotationSymbol.get(Modifiers.SPEC_PROTECTED)) != null;

@@ -1694,6 +1694,23 @@ public class JmlSpecs {
 
 
     @SuppressWarnings("unchecked")
+	public boolean isNonNullFormal(Type type, int i, MethodSpecs calleeSpecs, MethodSymbol msym) {
+    	if (!type.isReference()) return false;
+    	if (Types.instance(context).isSubtype(type, 
+    			Symtab.instance(context).jmlPrimitiveType)) return true;
+    	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
+    	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
+    	if (type instanceof Type.TypeVar) return false; 
+    	if (calleeSpecs.specDecl != null) {
+    		var decl = (JmlVariableDecl)calleeSpecs.specDecl.params.get(i);
+    		JmlModifiers mods = (JmlModifiers)decl.mods;
+        	if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
+        	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
+    	}
+    	return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
+    }
+    
+    @SuppressWarnings("unchecked")
 	public boolean isNonNull(Type type, ClassSymbol classOwner) {
     	if (!type.isReference()) return false;
     	if (Types.instance(context).isSubtype(type, 
