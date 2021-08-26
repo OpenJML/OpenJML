@@ -8719,7 +8719,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 	for (int i=0; i<calleeMethodSym.params.size(); i++) {
                 		VarSymbol v = calleeMethodSym.params.get(i);
             			var calleeSpecs = specs.getLoadedSpecs(calleeMethodSym);
-                		boolean nn = calleeSpecs.specDecl == null ? specs.isNonNull(v) : specs.isNonNull((JmlVariableDecl)calleeSpecs.specDecl.params.get(i));
+            			//System.out.println("FORMAL " + calleeMethodSym + " " + calleeSpecs + " " + (calleeSpecs.specDecl == null));
+                		//boolean nn = calleeSpecs.specDecl == null ? specs.isNonNull(v) : specs.isNonNull((JmlVariableDecl)calleeSpecs.specDecl.params.get(i));
+            			boolean nn = specs.isNonNullFormal(v.type, i, calleeSpecs, calleeMethodSym);
+            			//System.out.println("FORMAL VAR " + v + " " + v.type + " " + nn);
                 		if (nn) {
                 			if (calleeSpecs.specDecl == null) {
                 				// There are no specs to point to
