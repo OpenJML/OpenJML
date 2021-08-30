@@ -1,0 +1,10 @@
+#! /bin/bash
+
+cd $(dirname ${BASH_SOURCE[0]})
+. ./config-filelist
+
+if [ $# -gt 0 ]; then
+  . ./spawn "$@"
+else
+  . ./spawn `cat filelist | sed -e 'sx^x../test/x'`
+fi

@@ -1,0 +1,3 @@
+#! /bin/bash
+
+./gitfiles | sed -e 'sx\.\./xx' | sort | tee log-gitfiles | grep -v Matched | grep -v Skip | grep -v 481

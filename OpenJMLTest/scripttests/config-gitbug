@@ -1,0 +1,4 @@
+export CMD=openjml
+export SPECS=/Users/davidcok/projects/OpenJMLB/Specs/specs
+export BASEARGS="-esc -progress -no-staticInitWarning -jmltesting -timeout=600 -escExitInfo"
+export EXIT=0

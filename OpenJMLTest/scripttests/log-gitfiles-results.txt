@@ -1,0 +1,179 @@
+test/gitbug450b : Actual output differs from expected expected1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< can't unroll forloops
+test/gitbug477 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< crash on array clone
+test/gitbug477 : Expected exit code 0 but got 1
+test/gitbug560 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Replacement type
+test/gitbug560 : Expected exit code 0 but got 1
+test/gitbug582 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< sometimes times out
+test/gitbug622 Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test/gitbug622a Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test/gitbug627 Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test/gitbug672 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<###
+test/gitbug673 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< models classes
+test/gitbug673 : Expected exit code 0 but got 1
+test/gitbug688err : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< jml decl vs old
+test/gitbug735 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### [fp]
+test/gitbug738 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### recursive use of not-well-founded method
+test/sfbug396 Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test/sfbug402a : Actual output differs from expected expected-compile <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< needs corrections to associated positions
+test/sfbug420X : Actual output differs from expected expected-compile expected-run <<<<<<<<<<<<<<<<<<<<<<<< needs to implement represents for derived classes
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+219 tests
+Skipping gitbug431
+Skipping gitbug446
+test/gitbug445 : Actual output differs from expected <<<<<<<<<<<<<< parse refining - FIXED enough
+test/gitbug445a : Actual output differs from expected <<<<<<<<<<<<< parse refining - FIXED enough
+test/gitbug450 : Matched expected1
+Skipping gitbug461
+test/gitbug456 : Matched expected1
+test/gitbug456a : Matched expected1
+test/gitbug450b : Actual output differs from expected expected1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< can't unroll forloops
+test/gitbug477 : Expected exit code 0 but got 1
+test/gitbug477 : Actual output differs from expected            <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< crash on array clone
+test/gitbug478 : Expected exit code 0 but got 1
+test/gitbug478 : Actual output differs from expected expected1 - FIXED
+test/gitbug481a : Expected exit code 0 but got 2
+test/gitbug481a1 : Expected exit code 0 but got 2
+test/gitbug481a1 : Actual output differs from expected
+test/gitbug481a : Actual output differs from expected expected1 expected2 expected3 expected4
+test/gitbug467 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< feasibility
+test/gitbug480 : Expected exit code 0 but got 1
+test/gitbug480 : Actual output differs from expected  - FIXED
+test/gitbug481a2 : Expected exit code 0 but got 2
+test/gitbug481a2 : Actual output differs from expected
+test/gitbug481a4 : Expected exit code 0 but got 2
+test/gitbug481a5 : Expected exit code 0 but got 2
+test/gitbug481a4 : Actual output differs from expected
+test/gitbug481a5 : Actual output differs from expected
+test/gitbug481a3 : Expected exit code 0 but got 2
+test/gitbug481a3 : Actual output differs from expected
+test/gitbug481a6 : Expected exit code 0 but got 2
+test/gitbug481a7 : Expected exit code 0 but got 2
+test/gitbug481a7 : Actual output differs from expected expected1
+test/gitbug481a6 : Actual output differs from expected expected1
+Skipping gitbug482
+test/gitbug481a8 : Expected exit code 0 but got 2
+test/gitbug481a8 : Actual output differs from expected
+Skipping gitbug498
+Skipping gitbug500a
+Skipping gitbug500b
+Skipped-rac gitbug500c
+test/gitbug481a9 : Expected exit code 0 but got 2
+test/gitbug481c : Expected exit code 0 but got 2
+test/gitbug481c : Actual output differs from expected
+test/gitbug481a9 : Actual output differs from expected expected1
+test/gitbug497 : Actual output differs from expected - FIXED
+Skipping gitbug503
+Skipping gitbug503a
+Skipped-rac gitbug524
+test/gitbug499 : Actual output differs from expected expected1 - FIXED
+Skipped-rac gitbug529
+Skipped-rac gitbug532
+Skipped-rac gitbug532a
+Skipped-rac gitbug533
+Skipped-rac gitbug533a
+Skipped-rac gitbug534
+Skipped-rac gitbug536
+Skipped-rac gitbug536a
+test/gitbug518 : Actual output differs from expected - FIXED
+test/gitbug528 : Expected exit code 0 but got 1
+test/gitbug528 : Actual output differs from expected - FIXED
+Skipped-rac gitbug542
+Skipped-rac gitbug542a
+Skipped-rac gitbug542b
+Skipped-rac gitbug542c
+Skipped-rac gitbug547
+Skipped-rac gitbug548rac
+Skipped-rac gitbug548racB
+test/gitbug481b : Expected exit code 0 but got 1
+test/gitbug481b : Actual output differs from expected
+Skipping gitbug555
+test/gitbug560 : Expected exit code 0 but got 1
+test/gitbug560 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Replacement type ***************************
+test/gitbug558 : Actual output differs from expected - Proof/specs problems - FIXED
+test/gitbug559 : Actual output differs from expected  - Partial proof results- FIXED
+test/gitbug558a : Actual output differs from expected - Proof/specs problem - FIXED
+test/gitbug558b : Actual output differs from expected - Proof/specs problem - FIXED
+Skipping gitbug573
+Skipping gitbug573a
+test/gitbug572 : Actual output differs from expected - FIXED
+Skipping gitbug573b
+Skipping gitbug573c
+test/gitbug567a : Actual output differs from expected - FIXED
+Skipping gitbug580
+Skipping gitbug584
+test/gitbug567b : Actual output differs from expected - FIXED
+Skipped-rac gitbug590
+test/gitbug578 : Expected exit code 0 but got 1
+test/gitbug578 : Actual output differs from expected - FIXED
+Skipped-rac gitbug590a
+test/gitbug582 : Expected exit code 0 but got 1
+test/gitbug582 : Actual output differs from expected - Problem with proof . FIXED
+Skipped-rac gitbug599
+Skipped-rac gitbug600
+Skipping gitbug601
+test/gitbug260 : Actual output differs from expected - problem with proof - FIXED
+Skipping gitbug604
+test/gitbug597 : Matched expected3
+test/gitbug603 : Actual output differs from expected -- FIXED
+Skipping gitbug626
+test/gitbug627a : Expected exit code 0 but got 1
+test/gitbug627a : Actual output differs from expected expected-compile expected-run - \old Loop lookup FIXED
+Skipping gitbug633
+test/gitbug639a : Expected exit code 0 but got 1
+test/gitbug639a : Actual output differs from expected <<<<<<<<<<<<<<<< parsing refining - FIXED
+Skipped-rac gitbug645
+test/gitbug644 : Expected exit code 0 but got 1
+test/gitbug644 : Actual output differs from expected  - FIXED
+test/gitbug648a : Actual output differs from expected <<< make no viz specs a warning - FIXED
+test/gitbug650 : Expected exit code 0 but got 1
+test/gitbug650 : Actual output differs from expected - FIXED
+test/gitbug650a : Expected exit code 0 but got 1
+test/gitbug650a : Actual output differs from expected -FIXED
+test/gitbug650b : Expected exit code 0 but got 1
+test/gitbug650b : Actual output differs from expected - FIXED
+test/gitbug650c : Expected exit code 0 but got 1
+test/gitbug650c : Actual output differs from expected - FIXED
+test/gitbug618 : Actual output differs from expected - FIXED
+test/gitbug651a : Actual output differs from expected <<<<<<<<<<<<<<<< problem with old FIXED
+Skipping gitbug671
+test/gitbug673 : Expected exit code 0 but got 1
+test/gitbug673 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< models classes ******************************
+test/gitbug666 : No expected output
+Skipping gitbug677
+test/gitbug672 : No expected output
+test/gitbug670 : Matched expected
+test/gitbug688err : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< jml decl vs old ****************************
+Skipped-rac gitbug688racA
+Skipped-rac gitbug688racB
+Skipped-rac gitbug688racC
+test/gitbug686 : Actual output differs from expected - FIXED
+Skipping gitbug705
+test/gitbug469 : Matched expected1            
+Skipping gitbug710
+test/gitbug685 : Actual output differs from expected - FIXED
+test/gitbug682 : Actual output differs from expected - FIXED
+Skipping gitbug717
+Skipping gitbug718
+test/gitbug718x1 : Actual output differs from expected - FIXED
+test/gitbug718x2 : Matched expected
+test/gitbug718x3 : Actual output differs from expected  FIXED
+test/gitbug716 : Actual output differs from expected  FIXED
+14 jobs running
+test/gitbug695 : Actual output differs from expected  - specs/proof problem - FIXED
+Killed ../test/gitbug622
+Killed ../test/gitbug622a
+Killed ../test/gitbug627
+Killed ../test/gitbug678
+Completed
+
+gitbug480
+gitbug582 -- sometimes times out
+gitbug698 -- OK
+sfbug420X
+sfbug402
+sfbug402a
+

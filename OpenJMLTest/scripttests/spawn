@@ -1,0 +1,24 @@
+#! /bin/bash
+
+threads=15
+ntotal=$#
+echo $ntotal tests
+fs=( "$@" )
+
+i=0
+while [ $i -lt $ntotal ]; do
+
+  ./sequential ${fs[$i]} &
+  let "++i"
+
+  nn=`jobs -r | wc -l`
+  while [ $nn -ge $threads ]; do
+    sleep 1
+    nn=`jobs -r | wc -l`
+  done
+
+done
+
+echo `jobs -r | wc -l` jobs running
+wait
+echo Completed
