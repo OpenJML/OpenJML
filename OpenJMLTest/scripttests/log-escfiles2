@@ -1,0 +1,100 @@
+test/anonymousCaptures Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ????
+test/buggyPalindrome : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< quantifier problem?
+test/buggyPrimeNumbers : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< quantifier problem?
+test/datatype : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< datatype implementation incomplete
+test/datatype : Expected exit code 0 but got 1
+test/enums1 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### quantifier problem over non-functions?
+test/esc2DArray : Actual output differs from expected expected1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< nullity default?
+test/esc2DTranspose : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<###
+test/escClone : Actual output differs from expected expectedold <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< clone problem
+test/escClone : Expected exit code 0 but got 1
+test/escConsInfeasible Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ???
+test/escDouble : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
+test/escDouble2 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
+test/escDouble2 : Expected exit code 0 but got 1
+test/escDouble3 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
+test/escFPcompose : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<###
+test/escRawdingB : Actual output differs from expected expected1 expected2 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< feasibilty problem
+test/escStrings : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### switch on strings
+test/implicitIteration Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ???
+test/preold : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< labels in preconditions
+test/preold : Expected exit code 0 but got 1
+test/preold2 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< labels in preconditions
+test/primeNumbers : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<###
+test/requiresElse : Actual output differs from expected expected1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< incomplete implementation
+test/streams : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### 
+test/valuestrings : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< inequality of equal-length strings
+test/valuetypes2 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< \locset
+test/valuetypes2 : Expected exit code 0 but got 1
+test/verifythis-2019-1 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ???
+
+
+buggyRandomNumbers
+
+
+
+------------------------------------------------------------------------------------------------------------------------------
+122 tests
+test/datatype : Expected exit code 0 but got 1
+test/datatype : Actual output differs from expected        <<<<<<<datatype implementation incomplete ***************************************
+test/Dzmz : Matched expected
+test/callstacks : Matched expected
+test/escAbstractSpecs : Expected exit code 0 but got 1
+test/escAbstractSpecs : Actual output differs from expected     <<<<<< specs for implicit (abstract?) method - FIXED
+test/escAbstractSpecs2 : Actual output differs from expected    <<<<<< specs for implicit (abstract?) method - FIXED
+test/esc2DArray : Actual output differs from expected expected1  <<<<< check nullity default                      **************************
+test/escClone : Expected exit code 0 but got 1
+test/escClone : Actual output differs from expected expectedold  <<<<<< array clone crash **************************************************
+test/enums1 : No expected output
+test/esc2DTranspose : No expected output
+test/escFPcompose : No expected output
+test/buggyCalculator : Matched expected
+Killed ../test/anonymousCaptures
+Killed ../test/buggyPalindrome                       
+Killed ../test/buggyPrimeNumbers
+Killed ../test/enums                                 <<<< FIXED
+test/escStrings : No expected output
+test/preold : Expected exit code 0 but got 1
+test/preold : Actual output differs from expected                <<<<<< labels in preconditions *******************************************
+test/preold2 : Actual output differs from expected                <<<<<< labels in preconditions ******************************************
+test/escVector : Matched expected
+Killed ../test/escConsInfeasible
+test/sfbug420 : Matched expected
+test/sfbug420a : Matched expected
+test/sfbug420b : Actual output differs from expected expected-compile expected-run expected1  <<<< Spec inheritance   FIXED
+test/sfbug420d : Matched expected
+test/sfbug420e : Matched expected
+test/sfbug420f : Matched expected1
+test/streams : No expected output
+Killed ../test/escDouble
+test/sfbug420c : Matched expected2
+test/testquant : Matched expected3
+test/valuestringsBad : Actual output differs from expected            <<<< extra type comparison error        **** FIXED
+test/valuetypes : Expected exit code 0 but got 1
+test/valuetypes : Actual output differs from expected                 <<<<<< Type problem (map<>)              FIXED
+test/valuetypes2 : Expected exit code 0 but got 1
+test/valuetypes2 : Actual output differs from expected           <<<<<<  \locset ***********************************************************
+Killed ../test/escDouble2
+test/valuetypesErr : Actual output differs from expected         <<<<<<< Types comparison                   **** FIXED
+14 jobs running
+Killed ../test/escDouble3
+test/requiresElse : Actual output differs from expected expected1   <<<<<<<<< Incomplete implementation ************************************
+test/specificationInterfaceDemo : Actual output differs from expected  <<<<<< Type parameter nullity       FIXED
+test/valuestrings : Expected exit code 0 but got 1
+test/valuestrings : Actual output differs from expected             <<<<<<<  Precondition info FIXED **************************************** REGRESS
+test/sfbug420X : Matched expected
+test/splits : Actual output differs from expected                   <<<<<<<< Specs problem?               FIXED
+test/verifythis-2019-1 : Actual output differs from expected        <<<<<<<< Specs problem?               FIXED ***************************** REGRESS
+Killed ../test/escRawding
+Killed ../test/gcdcalculator
+Killed ../test/primeNumbers
+Completed
+
+escRawding                                                                                               **********************************
+escDouble2
+buggyPrimeNumbers
+buggyPalindrome
+escVector
+gcdCalculator
+
+

@@ -1,0 +1,20 @@
+
+tst=$(dirname $1)
+actual=$(basename $1)
+stat=$2
+mystat=0
+
+cd $tst
+expect=`shopt -s nullglob; echo expected*`
+if [ -z "$expect" ]; then
+    echo $tst ": No expected output" 
+    exit 1
+fi
+if [ -n "$EXIT" -a $stat -ne $EXIT ]; then echo $tst ": Expected exit code" $EXIT "but got" $stat; mystat=1 ; fi
+
+for e in $expect ; do
+    ##(cat $e | sed -e s/\\\$STRL/10/ -e s#\\\$SPECS/specs#$SPECS# | diff - $actual ) && rm $actual && ( if [ `wc -w <<< $expect`  -gt 1 ]; then echo $tst ": Matched $e"; fi)
+    (cat $e | sed -e s/\\\$STRL/10/ -e s#\\\$SPECS/specs#$SPECS# | diff -q - $actual > /dev/null ) && rm $actual && ( if [ `wc -w <<< $expect`  -gt 1 ]; then echo $tst ": Matched $e"; fi) && exit $mystat 
+done
+echo $tst ": Actual output differs from" expected*
+exit 1

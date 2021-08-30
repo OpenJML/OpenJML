@@ -1,0 +1,23 @@
+#! /bin/bash
+
+home=$(cd $(dirname $BASH_SOURCE) && pwd )
+arg=$1
+ts=$(basename $arg)
+cd $arg
+
+if [ -e config ]; then . ./config; fi
+
+if [ -e skip ]; then
+    echo Skipping $ts
+elif [ -e rac ]; then
+    echo Skipped-rac $ts
+else
+    cd ../..
+    p=test/$ts
+    ##echo Testing $ts : $CMD $BASEARGS -specspath $p:$SPECS $ARGS -dir $p
+    $CMD $BASEARGS -specspath $p:$SPECS $ARGS -dir $p > $p/actual 2>&1
+    stat=$?
+    if [ ! -e $p/actual ]; then echo $p/actual : NO ACTUAL ; fi
+    . $home/check-result $p/actual $stat && exit 1
+fi
+exit 0
