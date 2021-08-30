@@ -3960,6 +3960,7 @@ public class JmlTree {
         }        
     }
     
+    // TODO: Not used?
     public static class JmlBBArrayHavoc extends JCMethodInvocation {
         public JmlBBArrayHavoc(JCIdent newarrs, JCIdent oldarrs, JCExpression arr, JCExpression indexlo, JCExpression indexhi, JCExpression precondition, boolean above) {
             super(null,null,null);

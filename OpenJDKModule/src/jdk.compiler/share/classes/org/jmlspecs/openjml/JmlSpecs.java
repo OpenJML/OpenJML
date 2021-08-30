@@ -1701,12 +1701,34 @@ public class JmlSpecs {
     	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
     	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
     	if (type instanceof Type.TypeVar) return false; 
+    	//if (msym.name.toString().equals("insert") && msym.toString().contains("[]")) System.out.println("FORMAL " + msym + " " + i + " " + type + " " + calleeSpecs);
     	if (calleeSpecs.specDecl != null) {
     		var decl = (JmlVariableDecl)calleeSpecs.specDecl.params.get(i);
     		JmlModifiers mods = (JmlModifiers)decl.mods;
-        	if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
+    		//if (msym.name.toString().equals("insert") && msym.toString().contains("[]")) System.out.println("FORMAL-A " + mods + " : " + decl + " : " + decl.type + " : " + decl.vartype);
+    		if (findAnnotation(decl.type, Modifiers.NULLABLE)) return false;
+        	if (findAnnotation(decl.type, Modifiers.NON_NULL)) return true;
+    		if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
         	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
     	}
+    	return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
+    }
+    
+    @SuppressWarnings("unchecked")
+	public boolean isNonNullReturn(Type type, MethodSymbol msym) {
+    	if (!type.isReference()) return false;
+    	if (Types.instance(context).isSubtype(type, 
+    			Symtab.instance(context).jmlPrimitiveType)) return true;
+    	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
+    	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
+    	if (attr.hasAnnotation2(msym, Modifiers.NULLABLE)) return false;
+		if (attr.hasAnnotation2(msym, Modifiers.NON_NULL)) return true;
+		var sp = specsMethods.get(msym);
+		if (sp.cases.decl != null) {
+			if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NON_NULL)) return true;
+			if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NULLABLE)) return false;
+		}
+    	//if (type instanceof Type.TypeVar) return false; 
     	return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
     }
     

@@ -27,7 +27,7 @@ Feasibility check - at program exit : OK
 Completed proof of SpecificationInterfaceDemo.mok(SpecificationInterfaceDemo.PositivePureFunction,Integer) with prover !!!! - no warnings
 Starting proof of SpecificationInterfaceDemo.mbad3(java.util.function.Function<Integer,@Nullable Integer>,Integer) with prover !!!!
 test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:39: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method mbad3:  k
-    Integer k = f.apply(z);
+    Integer k = f.apply(z); // ERROR - result of apply is nullable
             ^
 Completed proof of SpecificationInterfaceDemo.mbad3(java.util.function.Function<Integer,@Nullable Integer>,Integer) with prover !!!! - with warnings
 Starting proof of SpecificationInterfaceDemo.mok2(SpecificationInterfaceDemo.PositivePureFunction,Integer) with prover !!!!

@@ -1,0 +1,25 @@
+( ./runtests access arith assignable compilationUnit compiler deprecation | tee log-access+ | grep failures ; echo "151/4" Completed log-access+ ) &
+( ./runtests binaries | tee log-binaries | grep failures ; echo "5/1" Completed log-binaries ) &
+( ./runtests bugs | tee log-bugs | grep failures ; echo "23/0" Completed log-bugs ) &
+( ./runtests esc1 | tee log-esc1 | grep failures ; echo "88/1" Completed log-esc1 ) &
+( ./runtests esc2 | tee log-esc2 | grep failures ; echo "108/0" Completed log-esc2 ) &
+#( ./runtests escArithmeticModes escArithmeticModes2 | tee log-escarith+ | grep failures ; echo "56/17" Completed log-escarith+ ) &
+( ./runtests escConstantFields escCounterexamples escaccessible escbitvector esccode escconstructor | tee log-escConst+ | grep failures ; echo "80/0" Completed log-escConst+ ) &
+( ./runtests escall2 escall3  | tee log-escall+ | grep failures ; echo "85/0" Completed log-escall+ ) &
+( ./runtests esccallable  | tee log-esccallable | grep failures ; echo "31/1" Completed log-esccallable ) &
+( ./runtests escfunction escgeneric | tee log-escfunction+ | grep failures ; echo "26/2" Completed log-escfunction+ ) &
+( ./runtests escinclause escinline esclocation escnewBoxing escnewassignable escnowarn escoption escprimitivetypes escreadable escstrings | tee log-escinclause+ | grep failures ; echo "104/0" Completed log-escinclause+ ) &
+( ./runtests escnew escnew2 escvisibility escvisibility1 | tee log-escnew+ | grep failures ; echo "158/1" Completed log-escnew+ ) &
+( ./runtests escnew3 | tee log-escnew3 | grep failures ; echo "62/2" Completed log-escnew3 ) &
+( ./runtests esclambdas | tee log-esclambdas | grep failures ; echo "13/8" Completed log-esclambdas ) &
+( ./runtests escm | tee log-escm | grep failures ; echo "6/0" Completed log-escm ) &
+( ./runtests expressions escJML flow generics harnesstests | tee log-expr+ | grep failures ; echo "77/7" Completed log-expr+ ) &
+( ./runtests internalSpecs jmltypes lblexpression methodspecs modelghost namelookup notspecified nowarn positions prettyprinting purity | tee log-inter+ | grep failures ; echo "158/1" Completed log-inter+ ) &
+( ./runtests matchClasses | tee log-matchClasses | grep failures ; echo "49/3" Completed log-matchClasses ) &
+( ./runtests modifiers | tee log-modifiers | grep failures ; echo "192/0" Completed log-modifiers ) &
+( ./runtests escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility | tee log-redundant+ | grep failures ; echo "108/1" Completed log-redundant+ ) &
+( ./runtests scanner | tee log-scanner | grep failures ; echo "80/3" Completed log-scanner ) &
+( ./runtests typechecking | tee log-typechecking | grep failures ; echo "179/2" Completed log-typechecking ) &
+( ./runtests typeclauses | tee log-typeclauses | grep failures ; echo "123/0" Completed log-typeclauses ) &
+( ./runtests SpecsBase | tee log-SpecsBase | grep failures ; echo Completed log-SpecsBase "" ) &
+( ./runtests SpecsEsc | tee log-SpecsEsc | grep failures ; echo "2/1" Completed log-SpecsEsc ) &

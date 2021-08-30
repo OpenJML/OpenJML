@@ -1,0 +1,126 @@
+QueryPure.java       - 10/32 TODO
+QuerySecret.java     - 21/34 TODO
+SFBugs.java
+SpecsBase.java       - 283/5 <<<<<<<<<<<<<<<<<<<< Quite a few things to fix - nested classes, Observable...
+SpecsEsc.java        - 2/1   <<<<<<<<<<<<<<<<<<<< [Integer] !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SpecsRac.java
+access.java          - 28/0 #
+api.java
+arith.java           - 1/0  #
+assignable.java      - 43/0 #
+binaries.java        - 5/1    [model class in library class]
+bugs.java            - 23/0  #
+compilationUnit.java - 15/0  #
+compiler.java.       - 60/4   (2-ignore Java specs)   2-parse nested model classes <<<<<<<
+deprecation.java.    - 4/0   #
+esc1.java            - 88/1 [parse @ for \old]
+esc2.java            - 108/0 #
+escArithmeticModes.java    - 29/5 TODO (JUnit Assumption)
+escArithmeticModes2.java   - 27/12 TODO (JUnit assumption; mod arithmetic)
+escConstantFields.java     - 15/0 #
+escCounterexamples.java    - 16/0 #
+escDemofiles.java
+escJML.java           - 7/0 #
+escTiming.java
+escTrace.java
+escaccessible.java    - 23/0 #
+escall2.java          - 30/0 #- testInvariant1 sometimes timesout
+escall3.java          - 55/0 #
+escbitvector.java     - 12/0 #
+esccallable.java      - 31/1 [implementation of nowarn]
+esccode.java          - 9/0  #
+escconstructor.java   - 5/0  #
+escenums.java         - 16/1 - escenums.enumSwitch feasibility !!!!!!!!!!!!!!!!
+escfeatures.java      -         TODO
+escfiles.java         -  Done separately
+escfilesTrace.java    -         TODO
+escfunction.java      - 7/0  #
+escgeneric.java       - 21/0 # [generics - 2 time outs, occasionally]
+escinclause.java      - 1/0  #
+escinline.java        - 6/0  #
+esclambdas.java       - 13/8/7 (work needed on lambdas, replacement types) ************** 
+esclocation.java      - 7/0  #
+escm.java             - 6/0 [ignoring timeouts for anonymous and nested classes] ********* timeouts to fix
+escnew.java           - 64/1 [ non-det feasibility problem: escnew.testConstantFolding3 ] 
+escnew2.java          - 35/0 #
+escnew3.java          - 62/2 [ clone crash, switch null]
+escnewBoxing.java     - 8/0  #
+escnewassignable.java - 15/0 #
+escnonpublic.java     -          TODO
+escnowarn.java        - 13/0 #
+escoption.java        - 8/0  #
+escprimitivetypes.java - 1/0 #
+escreadable.java      - 6/0  #
+escstrings.java       - 23/0 #
+escvisibility.java    - 37/0 #
+escvisibility1.java   - 22/0 #
+escwebexamples.java   -          TODO tests need work
+expressions.java      - 48/0 #
+flow.java             - 9/0  #
+generics.java         - 14/1 (type parameter lookup) [generics.testBinaryGeneric3c,generics.testSimpleGeneric]  ************
+harnesstests.java     - 0/5  [not yet implemented]
+internalSpecs.java    - 1/0 #
+jmldoc.java           -          TODO all ignored
+jmltypes.java         - 9/0 #
+lblexpression.java    - 5/0 #
+matchClasses.java     - 49/3 [ignoring specs in Java]
+methodspecs.java      - 23/0 #
+modelghost.java       - 36/0 #
+modifiers.java        - 192/0 #
+namelookup.java       - 21/1 [dup field error message]
+notspecified.java     - 8/0  #
+nowarn.java           - 11/0 #
+positions.java        - 16/0 #
+prettyprinting.java   - 10/0 #
+purity.java           - 18/0 #
+racArithmeticModes.java
+racJML.java
+racdemoexamples.java
+racfeatures.java
+racfiles.java
+racnew.java
+racnew2.java
+racnew3.java
+racnewLoops.java
+racnewWithSpecs.java
+racnonpublic.java
+racreadable.java
+racsystem.java
+redundant.java         - 10/0 #
+scanner.java           - 80/3 [unicode, embedded comment]
+statements.java        - 44/0 #
+strict.java            - 16/0 #
+strongarm.java
+sysclasses.java        - 1/0  #
+typechecking.java            - 179/2 [let experessions]
+typecheckingJmlTypes.java    - 13/0  #
+typecheckingvisibility.java  - 8/0   #
+typeclauses.java             - 123/0 #
+
+
+-------------------
+
+- Fix path to specs and to solvers (e.g. SpecsEsc; -exec not working?)
+- Anonymous timeouts
+- Lambdas
+- Sort out var declaration checking
+- records
+- fix exporting to remove warnings
+- switch: fallthrough, expressions, strings, patterns
+
+- rename in and maps extension files
+- revise parsing of var and method specs
+- remove jmlmods; remove JmlTokenKind
+- finish foreach
+- review/revise/complete use of NonNull types
+- Make a JmlEnv for JmlAssertionAdder
+- Run unit tests with JUnit Runner (so Assumptions and names work)
+- Runtests does not exit with a timeout
+- check scanner test for EOF vs EJML
+- infeasibility after splits
+- model program - usefulness, grammar, semantics
+
+- RAC
+- Infer
+- Jmldoc
+
