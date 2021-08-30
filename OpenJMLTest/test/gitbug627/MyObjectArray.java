@@ -11,7 +11,7 @@ public class MyObjectArray {
     //@ ensures (\forall int i; i >= 0 && i < 100; addresses[i] != null);
     //@ ensures (\forall int j,k; 0<=j && j<100 && 0<=k && k<j; addresses[j] != addresses[k]);
     //@ ensures (\forall int j; 0<=j && j<100; addresses[j].address == j);
-    public MyObjectArray() {
+    public MyObjectArray(Address a) {
         //@ maintaining i >= 0 && i <= 100;
         //@ loop_invariant (\forall int j; 0<=j && j<i; addresses[j] != null);
         //@ loop_invariant (\forall int j; 0<=j && j<i; \fresh(addresses[j],LoopInit));

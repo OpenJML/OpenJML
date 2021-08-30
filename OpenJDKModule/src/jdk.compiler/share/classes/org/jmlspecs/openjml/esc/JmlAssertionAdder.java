@@ -8715,21 +8715,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 	// Type checks (e.g. NonNull) on assignments to formal parameters
                 	if (calleeMethodSym.params == null) {
                 		System.out.println("NULL PARAMS " + calleeMethodSym.owner + " # "  + calleeMethodSym.owner.members()  + " # "  + calleeMethodSym.owner.members().getSymbols() + " # " + calleeMethodSym);
-                	} else
-                	for (int i=0; i<calleeMethodSym.params.size(); i++) {
-                		VarSymbol v = calleeMethodSym.params.get(i);
-            			var calleeSpecs = specs.getLoadedSpecs(calleeMethodSym);
-            			//System.out.println("FORMAL " + calleeMethodSym + " " + calleeSpecs + " " + (calleeSpecs.specDecl == null));
-                		//boolean nn = calleeSpecs.specDecl == null ? specs.isNonNull(v) : specs.isNonNull((JmlVariableDecl)calleeSpecs.specDecl.params.get(i));
-            			boolean nn = specs.isNonNullFormal(v.type, i, calleeSpecs, calleeMethodSym);
-            			//System.out.println("FORMAL VAR " + v + " " + v.type + " " + nn);
-                		if (nn) {
-                			if (calleeSpecs.specDecl == null) {
-                				// There are no specs to point to
-                				addAssert(trArgs.get(i), Label.NULL_FORMAL, treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)));
-                			} else {
-                				addAssert(trArgs.get(i), Label.NULL_FORMAL, treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)),
-                					calleeSpecs.specDecl.params.get(i).vartype, calleeSpecs.specDecl.sourcefile);
+                	} else {
+                		var calleeSpecs = specs.getSpecs(calleeMethodSym);
+                		for (int i=0; i<calleeMethodSym.params.size(); i++) {
+                			VarSymbol v = calleeMethodSym.params.get(i);
+                			boolean nn = specs.isNonNullFormal(v.type, i, calleeSpecs, calleeMethodSym);
+                			if (nn) {
+                				if (calleeSpecs.specDecl == null) {
+                					// There are no specs to point to
+                					addAssert(trArgs.get(i), Label.NULL_FORMAL, treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)));
+                				} else {
+                					addAssert(trArgs.get(i), Label.NULL_FORMAL, treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)),
+                							calleeSpecs.specDecl.params.get(i).vartype, calleeSpecs.specDecl.sourcefile);
+                				}
                 			}
                 		}
                 	}
@@ -9713,8 +9711,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // Add invariants on the type of the return value only if normal termination
                     ListBuffer<JCStatement> check6 = pushBlock();
                     if (esc && !utils.isJavaOrJmlPrimitiveType(retType)) {
-                        addStat(comment(that,"Return is non-null: " + calleeMethodSym + " " + specs.isNonNull(calleeMethodSym), null));
-                    	if (specs.isNonNull(calleeMethodSym)) {
+                        boolean nnull = specs.isNonNullReturn(retType, calleeMethodSym);
+                    	//System.out.println("RET TYPE " + calleeMethodSym + " " + calleeMethodSym.type + " " + calleeMethodSym.getReturnType() + " " + retType + " " + nnull);
+                        addStat(comment(that,"Return is non-null: " + calleeMethodSym + " " + nnull, null));
+                    	if (nnull) {
                     		addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeNotNull(that,resultExpr));
                     	}
                         JCExpression nn = treeutils.makeEqNull(that.pos, resultExpr);
@@ -14979,8 +14979,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (item instanceof JCIdent && item.type.isPrimitive() && ((JCIdent)item).sym.owner instanceof MethodSymbol) continue;
                 allLocal = false;
                 if (item.type.isReference()) {
-                    JCExpression e = getInvariantAll(item,item.type,item); // FIXME - is item.type the resolved type?
-                    if (e != null) addAssume(item, Label.IMPLICIT_ASSUME, e); // if e is null, there is no invariant expression
+                	if (item instanceof JmlStoreRefArrayRange && !(((JmlStoreRefArrayRange)item).lo == ((JmlStoreRefArrayRange)item).hi && ((JmlStoreRefArrayRange)item).lo != null)) {
+                		// Need to iterate over elements of the range
+                		addStat(comment(item,"TODO: Skipping assuming invariants of all the havoced array elements: " + item,log.currentSourceFile()));
+                	} else {
+                		JCExpression e = getInvariantAll(item,item.type,item); // FIXME - is item.type the resolved type?
+                		if (e != null) addAssume(item, Label.IMPLICIT_ASSUME, e); // if e is null, there is no invariant expression
+                	}
                 }
                 // FIXME - zadd more types? becareful not to include wildcards
             }
@@ -17637,15 +17642,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
+        JCExpression ta = convertExpr(that.expression);
         if (that.lo == that.hi && that.lo != null) {
-            JCExpression ta = convertExpr(that.expression);
             JCExpression tl = convertExpr(that.lo);
             JmlBBArrayAccess aa = new JmlBBArrayAccess(null,ta,tl);
             aa.pos = that.pos;
             aa.type = that.type;
             result = eresult = aa;
         } else {
-            JCExpression ta = convertExpr(that.expression);
             JCExpression tl = convertExpr(that.lo);
             result = eresult = M.at(that).JmlStoreRefArrayRange(
                     ta,

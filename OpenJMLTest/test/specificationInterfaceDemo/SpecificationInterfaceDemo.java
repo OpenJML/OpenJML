@@ -36,7 +36,7 @@ public class SpecificationInterfaceDemo {
 
   public void mbad3(Function<Integer,/*@ nullable */ Integer> f, Integer z) {
     zz = 0;
-    Integer k = f.apply(z);
+    Integer k = f.apply(z); // ERROR - result of apply is nullable
     //@ assert zz == 0;
   }
 

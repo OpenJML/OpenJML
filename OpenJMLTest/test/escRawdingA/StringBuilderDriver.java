@@ -89,46 +89,49 @@ public class StringBuilderDriver {
         testSubSequence(); //38
         
         testSubstringStartEnd(); //39
-        
-        testInsertIndexCharArray(); //40
-        
-        testInsertObject(); //41
-        
-        testInsertString(); //42
-        
-        testInsertCharArray(); //43
-        
-        testInsertCharSequence(); //44
-        
-        testInsertCharSequenceStartEnd(); //45
-        
-        testInsert_boolean(); //46
-        
-        testInsert_char(); //47
-        
-        testInsert_int(); //48
-        
-        testInsert_long(); //49
-        
-        testInsert_float(); //50
-        
-        testInsert_double(); //51
-        
-        testIndexOf(); //52
-        
-        testIndexOfStart(); //53
-        
-        testLastIndexOf(); //54
-        
-        testLastIndexOfStart(); //55
-        
-        testReverse(); //56
-        
-        testToString(); //58
-        
-        /* -- -- -- -- Methods within StringBuilder -- -- -- -- */
-        
-        testConstructorString(); //3
+//        
+//        testInsertIndexCharArray0(); //40
+//        testInsertIndexCharArray1(); //40
+//        testInsertIndexCharArray2(); //40
+//        testInsertIndexCharArray3(); //40
+//        
+//        testInsertObject(); //41
+//        
+//        testInsertString(); //42
+//        
+//        testInsertCharArray(); //43
+//        
+//        testInsertCharSequence(); //44
+//        
+//        testInsertCharSequenceStartEnd(); //45
+//        
+//        testInsert_boolean(); //46
+//        
+//        testInsert_char(); //47
+//        
+//        testInsert_int(); //48
+//        
+//        testInsert_long(); //49
+//        
+//        testInsert_float(); //50
+//        
+//        testInsert_double(); //51
+//        
+//        testIndexOf(); //52
+//        
+//        testIndexOfStart(); //53
+//        
+//        testLastIndexOf(); //54
+//        
+//        testLastIndexOfStart(); //55
+//        
+//        testReverse(); //56
+//        
+//        testToString(); //58
+//        
+//        /* -- -- -- -- Methods within StringBuilder -- -- -- -- */
+//        
+//        testConstructorString(); //3
          
         // These assumptions needed because the test routines above do not have frame conditions
         //@ assume \invariant_for(java.io.PrintStream);
@@ -488,244 +491,282 @@ public class StringBuilderDriver {
         }
     }
     
-    private static void testInsertIndexCharArray() { //40
-        StringBuilder sb = new StringBuilder("Test String");
-        char[] charArray = {'t', 'e', 's', 't'};
-        /*@ nullable @*/ char[] nullCharArray = null;
-        
-        sb.insert(0, charArray, 0, 3);
-        sb.insert(0, charArray, 0, 0);
-        
-        try {
-            sb.insert(-1, charArray, 0, 0);
-        } catch (StringIndexOutOfBoundsException ex) {
-            System.out.println("insert() with negative index correctly threw an exception");
-        }
-        
-        try {
-            sb.insert(-1, charArray, 0, 0);
-        } catch (StringIndexOutOfBoundsException ex) {
-            System.out.println("insert() with negative index correctly threw an exception");
-        }
-        
-        try {
-            sb.insert(100, charArray, 0, 0);
-        } catch (StringIndexOutOfBoundsException ex) {
-            System.out.println("insert() with index > stringLength correctly threw an exception");
-        }
-        
-        try {
-            sb.insert(0, charArray, -1, 0);
-        } catch (StringIndexOutOfBoundsException ex) {
-            System.out.println("insert() with negative offset correctly threw an exception");
-        }
-        
-        try {
-            sb.insert(0, charArray, 1, -1);
-        } catch (StringIndexOutOfBoundsException ex) {
-            System.out.println("insert() with negative len correctly threw an exception");
-        }
-        
-        try {
-            sb.insert(0, charArray, 1, 100);
-        } catch (StringIndexOutOfBoundsException ex) {
-            System.out.println("insert() with len too large correctly threw an exception");
-        }
-        
-        try {
-            sb.insert(0, nullCharArray, 0, 0);
-        } catch (NullPointerException ex) {
-            System.out.println("insert() with null char[] correctly threw an exception");
-        }
-        
-    }
     
-    private static void testInsertObject() { //41
-        StringBuilder sb = new StringBuilder("Test String");
-        Integer integer = Integer.valueOf(1);
-        /*@ nullable @*/Object nullObject = null;
-        
-        sb.insert(0, integer);
-        sb.insert(sb.length(), integer);
-        sb.insert(0, nullObject);
-        
-        try {
-            sb.insert(-1, integer);
-        } catch (StringIndexOutOfBoundsException ex) {
-            System.out.println("insert() with negative offset correctly threw an exception");
-        }
-        
-        try {
-            sb.insert(100, integer);
-        } catch (StringIndexOutOfBoundsException ex) {
-            System.out.println("insert() with offset too large correctly threw an exception");
-        }
-
-        
-    }
-
-    private static void testInsertString() { //42
-        StringBuilder sb = new StringBuilder("Test StringBuilder");
-        String string = "Test String";
-        /*@ nullable @*/String nullString = null;
-        
-        sb.insert(0, string);
-        sb.insert(sb.length(), string);
-        sb.insert(0, nullString);
-        
-        try {
-            //sb.insert(-1, string);//TODO - this fails under ESC
-        } catch (StringIndexOutOfBoundsException ex) {
-            System.out.println("insert() with negative offset correctly threw an exception");
-        }
-        
-        try {
-            //sb.insert(sb.length() + 1, string); //TODO ESC failure
-        } catch (StringIndexOutOfBoundsException ex) {
-            System.out.println("insert() with offset too large correctly threw an exception");
-        }
-    }
-    
-    private static void testInsertCharArray() { //43
-        StringBuilder sb = new StringBuilder("Test String");
-        char[] chars = {'t', 'e', 's', 't'};
-        /*@ nullable @*/ char[] nullCharArray = null;
-        //@ assert chars.length == 4;
-        int x = sb.length();
-        //@ assert x == 11;
-        sb.insert(0, chars);
-        //@ assert sb.length() == x + chars.length;
-        sb.insert(sb.length(), chars);
-        //@ assert sb.length() == x + chars.length + chars.length;
-        
-        try {
-            sb.insert(-1, chars);
-        } catch (StringIndexOutOfBoundsException ex) {
-            System.out.println("insert() with negative offset correctly threw an exception");
-        }
-        
-        try {
-            sb.insert(sb.length() + 1, chars, 0, 0);
-        } catch (StringIndexOutOfBoundsException ex) {
-            System.out.println("insert() with offset too large correctly threw an exception");
-        }
-        
-        try {
-            sb.insert(0, nullCharArray);
-            //@ reachable
-            System.out.println("insert() with null char[] correctly did not throw an exception");
-        } catch (NullPointerException ex) {
-        	//@ unreachable
-        }
-
-    }
-    
-    private static void testInsertCharSequence() { //44
-        
-    }
-    
-    private static void testInsertCharSequenceStartEnd() {//45
-        
-    }
-
-    private static void testInsert_boolean() { //46
-        
-    }
-    
-    private static void testInsert_char() { //47
-        
-    }
-    
-    private static void testInsert_int() { //48
-        
-    }
-    
-    private static void testInsert_long() { //49
-        
-    }
-
-    private static void testInsert_float() { //50
-        
-    }
-
-    private static void testInsert_double() { //51
-        
-    }
-
-    private static void testIndexOf() { //52
-        StringBuilder sb = new StringBuilder("Test String");
-        String target = "Test";
-        /*@ nullable @*/String nullString = null;
-        
-        sb.indexOf("Test");
-        sb.indexOf("foo");
-        
-        try {
-        	//@ reachable;
-            sb.indexOf(nullString);            
-        	//@ unreachable;
-        } catch (NullPointerException ex) {
-        	//@ reachable;
-            System.out.println("testIndexOf() with null String correctly threw an exception");
-        }
-
-        
-    }
-    
-    private static void testIndexOfStart() { //53
-        
-    }
-    
-    private static void testLastIndexOf() { //54
-        
-    }
-    
-    private static void testLastIndexOfStart() { //55
-        
-    }
-    
-    private static void testReverse() { //56
-        
-    }
-    
-    //private method 57
-    
-    private static void testToString() { //58
-        
-    }
-    
-    //package method 58
-    
-    private static void testConstructorCharSequence() { //4
-        char[] emptyCharArray = {};
-        char[] charArray = {'t', 'e', 's', 't'};
-        
-        Segment voidSegment = new Segment();
-        Segment emptySegment = new Segment(emptyCharArray, 0, emptyCharArray.length);
-        Segment segment = new Segment(charArray, 0, charArray.length);
-        
-        StringBuilder sb0 = new StringBuilder(voidSegment);
-        StringBuilder sb1 = new StringBuilder(emptySegment);
-        StringBuilder sb2 = new StringBuilder(segment);
-
-        try {
-            /*@ nullable @*/Segment nullSegment = null;
-            StringBuilder sb3 = new StringBuilder(nullSegment);
-        } catch (NullPointerException ex) {}
-    }
-    
-    /* -- -- -- -- Methods within StringBuilder -- -- -- -- */
-    private static void testConstructorString() { //3
-        StringBuilder sb0 = new StringBuilder("");
-        StringBuilder sb1 = new StringBuilder("StringBuilder");
-        try {
-            /*@ nullable @*/String nullString = null;
-            StringBuilder sb3 = new StringBuilder(nullString);
-            //@ unreachable
-        } catch (NullPointerException ex) {
-        	//@ reachable
-        }
-    }
-    
+//    private static void testInsertIndexCharArray0() { //40
+//        StringBuilder sb = new StringBuilder("Test String");
+//        char[] charArray = {'t', 'e', 's', 't'};
+//        char /*@ nullable @*/ [] nullCharArray = null;
+//        
+//        sb.insert(0, charArray, 0, 3);
+//        sb.insert(0, charArray, 0, 0);
+//        //@ assert charArray != null;
+//        //@ assert sb.stringLength >= 0;
+//        try {
+//            sb.insert(-1, charArray, 0, 0);
+//            //@ unreachable
+//        } catch (StringIndexOutOfBoundsException ex) {
+//            System.out.println("insert() with negative index correctly threw an exception");
+//            //@ reachable
+//        }
+//    }
+//    
+//    private static void testInsertIndexCharArray1() { //40
+//        StringBuilder sb = new StringBuilder("Test String");
+//        char[] charArray = {'t', 'e', 's', 't'};
+//        char /*@ nullable @*/ [] nullCharArray = null;
+//        
+//        try {
+//            sb.insert(-1, charArray, 0, 0);
+//            //@ unreachable
+//        } catch (StringIndexOutOfBoundsException ex) {
+//            System.out.println("insert() with negative index correctly threw an exception");
+//            //@ reachable
+//        }
+//        
+//        try {
+//            sb.insert(100, charArray, 0, 0);
+//            //@ unreachable
+//        } catch (StringIndexOutOfBoundsException ex) {
+//            System.out.println("insert() with index > stringLength correctly threw an exception");
+//            //@ reachable
+//        }
+//    }
+//    
+//    private static void testInsertIndexCharArray2() { //40
+//        StringBuilder sb = new StringBuilder("Test String");
+//        char[] charArray = {'t', 'e', 's', 't'};
+//        char /*@ nullable @*/ [] nullCharArray = null;
+//        
+//        try {
+//            sb.insert(0, charArray, -1, 0);
+//            //@ unreachable
+//        } catch (StringIndexOutOfBoundsException ex) {
+//            System.out.println("insert() with negative offset correctly threw an exception");
+//            //@ reachable
+//        }
+//        
+//        try {
+//            sb.insert(0, charArray, 1, -1);
+//            //@ unreachable
+//        } catch (StringIndexOutOfBoundsException ex) {
+//            System.out.println("insert() with negative len correctly threw an exception");
+//            //@ reachable
+//        }
+//    }
+//     
+//    
+//    private static void testInsertIndexCharArray3() { //40
+//        StringBuilder sb = new StringBuilder("Test String");
+//        char[] charArray = {'t', 'e', 's', 't'};
+//        char /*@ nullable @*/ [] nullCharArray = null;
+//        
+//        try {
+//            sb.insert(0, charArray, 1, 100);
+//            //@ unreachable
+//        } catch (StringIndexOutOfBoundsException ex) {
+//            System.out.println("insert() with len too large correctly threw an exception");
+//            //@ reachable
+//        }
+//        
+//        try {
+//            sb.insert(0, nullCharArray, 0, 0);
+//            //@ unreachable
+//        } catch (NullPointerException ex) {
+//            System.out.println("insert() with null char[] correctly threw an exception");
+//            //@ reachable
+//        }
+//    }
+//     
+//    private static void testInsertObject() { //41
+//        StringBuilder sb = new StringBuilder("Test String");
+//        Integer integer = Integer.valueOf(1);
+//        /*@ nullable @*/Object nullObject = null;
+//        
+//        sb.insert(0, integer);
+//        sb.insert(sb.length(), integer);
+//        sb.insert(0, nullObject);
+//        
+//        try {
+//            sb.insert(-1, integer);
+//        } catch (StringIndexOutOfBoundsException ex) {
+//            System.out.println("insert() with negative offset correctly threw an exception");
+//        }
+//        
+//        try {
+//            sb.insert(100, integer);
+//        } catch (StringIndexOutOfBoundsException ex) {
+//            System.out.println("insert() with offset too large correctly threw an exception");
+//        }
+//
+//        
+//    }
+//
+//    private static void testInsertString() { //42
+//        StringBuilder sb = new StringBuilder("Test StringBuilder");
+//        String string = "Test String";
+//        /*@ nullable @*/String nullString = null;
+//        
+//        sb.insert(0, string);
+//        sb.insert(sb.length(), string);
+//        sb.insert(0, nullString);
+//        
+//        try {
+//            //sb.insert(-1, string);//TODO - this fails under ESC
+//        } catch (StringIndexOutOfBoundsException ex) {
+//            System.out.println("insert() with negative offset correctly threw an exception");
+//        }
+//        
+//        try {
+//            //sb.insert(sb.length() + 1, string); //TODO ESC failure
+//        } catch (StringIndexOutOfBoundsException ex) {
+//            System.out.println("insert() with offset too large correctly threw an exception");
+//        }
+//    }
+//    
+//    private static void testInsertCharArray() { //43
+//        StringBuilder sb = new StringBuilder("Test String");
+//        char[] chars = {'t', 'e', 's', 't'};
+//        char /*@ nullable @*/ [] nullCharArray = null;
+//        //@ assert chars.length == 4;
+//        int x = sb.length();
+//        //@ assert x == 11;
+//        sb.insert(0, chars);
+//        //@ assert sb.length() == x + chars.length;
+//        sb.insert(sb.length(), chars);
+//        //@ assert sb.length() == x + chars.length + chars.length;
+//        
+//        try {
+//            sb.insert(-1, chars);
+//            //@ unreachable
+//        } catch (StringIndexOutOfBoundsException ex) {
+//            System.out.println("insert() with negative offset correctly threw an exception");
+//            //@ reachable
+//        }
+//
+//        try {
+//            sb.insert(sb.length() + 1, chars, 0, 0);
+//            //@ unreachable
+//        } catch (StringIndexOutOfBoundsException ex) {
+//            System.out.println("insert() with offset too large correctly threw an exception");
+//            //@ reachable
+//       }
+//        
+//        try {
+//            sb.insert(0, nullCharArray);
+//            //@ unreachable
+//        } catch (NullPointerException ex) {
+//            System.out.println("insert() with null char[] correctly threw an exception");
+//        	//@ reachable
+//        }
+//        
+//    }
+//    
+//    private static void testInsertCharSequence() { //44
+//        
+//    }
+//    
+//    private static void testInsertCharSequenceStartEnd() {//45
+//        
+//    }
+//
+//    private static void testInsert_boolean() { //46
+//        
+//    }
+//    
+//    private static void testInsert_char() { //47
+//        
+//    }
+//    
+//    private static void testInsert_int() { //48
+//        
+//    }
+//    
+//    private static void testInsert_long() { //49
+//        
+//    }
+//
+//    private static void testInsert_float() { //50
+//        
+//    }
+//
+//    private static void testInsert_double() { //51
+//        
+//    }
+//
+//    private static void testIndexOf() { //52
+//        StringBuilder sb = new StringBuilder("Test String");
+//        String target = "Test";
+//        /*@ nullable @*/String nullString = null;
+//        
+//        sb.indexOf("Test");
+//        sb.indexOf("foo");
+//        
+//        try {
+//        	//@ reachable;
+//            sb.indexOf(nullString);            
+//        	//@ unreachable;
+//        } catch (NullPointerException ex) {
+//        	//@ reachable;
+//            System.out.println("testIndexOf() with null String correctly threw an exception");
+//        }
+//
+//        
+//    }
+//    
+//    private static void testIndexOfStart() { //53
+//        
+//    }
+//    
+//    private static void testLastIndexOf() { //54
+//        
+//    }
+//    
+//    private static void testLastIndexOfStart() { //55
+//        
+//    }
+//    
+//    private static void testReverse() { //56
+//        
+//    }
+//    
+//    //private method 57
+//    
+//    private static void testToString() { //58
+//        
+//    }
+//    
+//    //package method 58
+//    
+//    private static void testConstructorCharSequence() { //4
+//        char[] emptyCharArray = {};
+//        char[] charArray = {'t', 'e', 's', 't'};
+//        
+//        Segment voidSegment = new Segment();
+//        Segment emptySegment = new Segment(emptyCharArray, 0, emptyCharArray.length);
+//        Segment segment = new Segment(charArray, 0, charArray.length);
+//        
+//        StringBuilder sb0 = new StringBuilder(voidSegment);
+//        StringBuilder sb1 = new StringBuilder(emptySegment);
+//        StringBuilder sb2 = new StringBuilder(segment);
+//
+//        try {
+//            /*@ nullable @*/Segment nullSegment = null;
+//            StringBuilder sb3 = new StringBuilder(nullSegment);
+//        } catch (NullPointerException ex) {}
+//    }
+//    
+//    /* -- -- -- -- Methods within StringBuilder -- -- -- -- */
+//    private static void testConstructorString() { //3
+//        StringBuilder sb0 = new StringBuilder("");
+//        StringBuilder sb1 = new StringBuilder("StringBuilder");
+//        try {
+//            /*@ nullable @*/String nullString = null;
+//            StringBuilder sb3 = new StringBuilder(nullString);
+//            //@ unreachable
+//        } catch (NullPointerException ex) {
+//        	//@ reachable
+//        }
+//    }
+//    
 
 }

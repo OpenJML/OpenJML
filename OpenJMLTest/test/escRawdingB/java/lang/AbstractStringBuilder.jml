@@ -343,6 +343,11 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @   requires str != null && !(0 <= index <= stringLength && len >= 0 && 0 <= offset <= str.length - len);
       @   assignable \nothing;
       @   signals_only StringIndexOutOfBoundsException;
+      @ also
+      @ public exceptional_behavior
+      @   requires str == null;
+      @   assignable \nothing;
+      @   signals_only NullPointerException;
       @*/
     public AbstractStringBuilder insert(int index,  char /*@ nullable @*/ [] str, int offset, int len); //40
     
@@ -383,7 +388,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     public AbstractStringBuilder insert(int offset, /*@ nullable @*/ String str); //42
     
     /*@ public normal_behavior
-      @   requires 0 <= offset <= stringLength && str != null;
+      @   requires str != null && 0 <= offset <= stringLength;
       @   old int len = stringLength;
       @   assignable modelValue;
       @   ensures (\forall int i; 0 <= i < offset; modelValue[i] == \old(modelValue[i]));
@@ -393,12 +398,12 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
       @   ensures stringLength == \old(stringLength) + str.length;
       @ also
       @ public exceptional_behavior
-      @   requires offset < 0 || offset > stringLength;
+      @   requires str != null && (offset < 0 || offset > stringLength);
       @   assignable \nothing;
       @   signals_only StringIndexOutOfBoundsException;
       @ also
       @ public exceptional_behavior
-      @   requires 0 <= offset <= stringLength && str == null;  // FIXME - not sure about this
+      @   requires str == null;
       @   assignable \nothing;
       @   signals_only NullPointerException;
       @*/
