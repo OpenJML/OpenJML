@@ -162,7 +162,7 @@ public class bugs extends TCBase {
     @Test
     public void testCollect() {
         helpTCF("A.java","\n"
-                +"public class A extends java.io.InputStream implements Comparable<A> { \n"
+                +"public abstract class A extends java.io.InputStream implements Comparable<A> { \n"
                 +"  //@ invariant mm() && \type(Short) <: \type(java.lang.Long);\n"
                 +"  public String m(java.lang.Integer i, Number b) {\n"
                 +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
@@ -188,7 +188,7 @@ public class bugs extends TCBase {
     @Test
     public void testCollect2() {
         helpTCF("A.java","\n"
-                +"public class A extends java.io.InputStream implements Comparable<A> { \n"
+                +"public abstract class A extends java.io.InputStream implements Comparable<A> { \n"
                 +"  public boolean mm() { return m(java.lang.Long.TYPE) && m(java.lang.Long);}\n"
                 +"  public /*@ pure */ boolean m(Object i) {\n"
                 +"  }  \n"
@@ -201,7 +201,7 @@ public class bugs extends TCBase {
     @Test
     public void testCollect3() {
         helpTCF("A.java","\n"
-                +"public class A extends java.io.InputStream implements Comparable<A> { \n"
+                +"public abstract class A extends java.io.InputStream implements Comparable<A> { \n"
                 +"  //@ public invariant m(java.lang.Long.TYPE) && m(java.lang.Long);\n"
                 +"  public /*@ pure */ boolean m(Object i) {\n"
                 +"  }  \n"

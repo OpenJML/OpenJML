@@ -1,0 +1,5 @@
+test/gitbug741/BadClass.java:1: error: BadClass is not abstract and does not override abstract method contradiction() in BadInterface
+public class BadClass implements BadInterface {
+       ^
+Operation not performed because of parse or type errors
+1 error

@@ -5,7 +5,7 @@ import java.util.Random;
 //import java.util.function.Function;
 
 
-public class SBB implements SB {
+abstract public class SBB implements SB {
     
     private final ByteBuffer buf;
     private int size;
