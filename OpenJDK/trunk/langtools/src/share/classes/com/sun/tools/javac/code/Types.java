@@ -2835,6 +2835,7 @@ public class Types {
                                 }
                             }
                         }
+                        if (checkJML(absmeth)) continue; // OPENJML added
                         if (implmeth == null || implmeth == absmeth) {
                             undef = absmeth;
                         }
@@ -2853,6 +2854,8 @@ public class Types {
             }
             return undef;
         }
+        
+        public boolean checkJML(MethodSymbol msym) { return false; } // OPENJML
 
 
     //where

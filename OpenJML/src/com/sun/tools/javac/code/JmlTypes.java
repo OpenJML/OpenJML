@@ -12,8 +12,10 @@ import java.util.Map;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Strings;
+import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.OperatorSymbol;
 import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -425,5 +427,11 @@ public class JmlTypes extends Types {
         // Careful: t can be something like (@org.jmlspecs.annotation.NonNull :: org.jmlspecs.lang.JMLDataGroup)
         return t.toString().contains("JMLDataGroup"); // FIXME - implement a better way
     }
+    
+    @Override
+    public boolean checkJML(MethodSymbol msym) { 
+        return Utils.instance(context).isJML(msym.flags());
+    }
+
 
 }
