@@ -29,7 +29,7 @@ if [ -z "$REL" ]; then
     echo "Please give the desired release number as the one argument"
     exit 1
 fi
-pushd ../../../*UpdateSite*
+pushd ../../../OpenJML-UpdateSite
 git add -u
 git commit -m "Adding artifacts for version $REL"
 git push
