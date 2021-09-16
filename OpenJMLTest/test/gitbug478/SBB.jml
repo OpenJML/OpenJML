@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 //import java.util.function.Function;
 
-public class SBB implements SB {
+abstract public class SBB implements SB {
     
     private final /*@ spec_public @*/ ByteBuffer buf;
     private /*@ spec_public @*/ int size;

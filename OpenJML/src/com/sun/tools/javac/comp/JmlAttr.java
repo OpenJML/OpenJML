@@ -532,22 +532,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // If the class is binary only, then we have not yet attributed the super/extending/implementing classes in the source AST for the specifications
             
             JmlClassDecl cd = (JmlClassDecl)env.tree;
-            {
+            if (cd != null) {
                 JCExpression e = cd.extending;
                 if (e != null && e.type == null) attribType(e,env);
-            }
-            if (cd != null) for (JCExpression e: cd.implementing) {
-                if (e.type == null) attribType(e,env);
+                for (JCExpression ee: cd.implementing) {
+                    if (ee.type == null) attribType(ee,env);
+                }
             }
             
-            
-            // The JML specs to check are are in the TypeSpecs structure
+            // The JML specs to check are in the TypeSpecs structure
 
-            relax = true;  // Turns off some bogus lack of overriding warnings
+            relax = cd != null && ((cd.sourcefile == null || cd.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) || utils.isJML(cd.mods));
             super.attribClassBody(env,c);
             Enter.instance(context).typeEnvs.put(c,env); // TODO _ not sure why this is not already done, but is needed in some cases, e.g. immutable modifier on an enum class
             attribClassBodySpecs(env,c,prevIsInJmlDeclaration);
-            if (cd.lineAnnotations != null) {
+            if (cd != null && cd.lineAnnotations != null) {
                 for (ExceptionLineAnnotation a: cd.lineAnnotations) {
                     a.typecheck(this, env);
                 }
@@ -1117,7 +1116,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
 
         boolean oldrelax = relax;
-        relax = true;
+        relax = (m instanceof JmlMethodDecl) && ((JmlMethodDecl)m).sourcefile.toString().endsWith(".jml");
         VarSymbol previousSecretContext = currentSecretContext;
         VarSymbol previousQueryContext = currentQueryContext;
         JavaFileObject prevSource = null;
@@ -1174,17 +1173,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //else deSugarMethodSpecs(jmethod,jmethod.methodSpecs);
             }
             if (isJavaFile && !isJmlDecl) {
-                // Java methods in Java files must have a body (usually)
-                if (m.body == null) {
-                    ClassSymbol owner = env.enclClass.sym;
-                    // Empty bodies are only allowed for
-                    // abstract, native, or interface methods, or for methods
-                    // in a retrofit signature class.
-                    if ((owner.flags() & INTERFACE) == 0 &&
-                        (m.mods.flags & (ABSTRACT | NATIVE)) == 0 &&
-                        !oldrelax)
-                        log.error(m.pos(), "missing.meth.body.or.decl.abstract");
-                }
+//                // Java methods in Java files must have a body (usually)
+//                if (m.body == null) {
+//                    ClassSymbol owner = env.enclClass.sym;
+//                    // Empty bodies are only allowed for
+//                    // abstract, native, or interface methods, or for methods
+//                    // in a retrofit signature class.
+//                    if ((owner.flags() & INTERFACE) == 0 &&
+//                        (m.mods.flags & (ABSTRACT | NATIVE)) == 0 &&
+//                        !oldrelax)
+//                        log.error(m.pos(), "missing.meth.body.or.decl.abstract");
+//                }
             } else if (m.body != null && !isJmlDecl && !isJavaFile && !isInJmlDeclaration && (m.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
                 // Java methods not in Java files may not have bodies (generated constructors do)
                 //log.error(m.pos(),"jml.no.body.allowed",m.sym);
