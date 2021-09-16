@@ -1,6 +1,6 @@
 
 //@ immutable
-public class escDeterministic {
+abstract public class escDeterministic {
 
 	//@ ensures true;
 	//@ function 

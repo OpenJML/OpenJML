@@ -52,7 +52,7 @@ public class esc extends EscBase {
         main.addOptions("-nonnullByDefault", "-method=m");
         helpTCX("tt.TestJava",
                 "package tt; \n"
-                        + "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
+                        + "abstract public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
                         + "  public String m(java.lang.Integer i, Number b) {\n"
                         + "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n" 
                         + "    return null; \n" // FAILS
@@ -65,7 +65,7 @@ public class esc extends EscBase {
     public void testCollectA() {
         main.addOptions("-nonnullByDefault", "-method=m"); // Keep these options
         helpTCX("tt.TestJava", "package tt; \n"
-                + "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
+                + "abstract public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
                 + "  /*@ pure */ public String m(java.lang.Integer i, Number b) {\n"
                 + "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n" 
                 + "\n"
@@ -82,7 +82,7 @@ public class esc extends EscBase {
         main.addOptions("-nonnullByDefault", "-timeout=300");
         helpTCX("tt.TestJava",
                 "package tt; \n"
-                        + "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
+                        + "abstract public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
                         + "  public String m(java.lang.Integer i, Number b) {\n"
                         + "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
                         + "    boolean bb = b instanceof Double;\n" 
@@ -101,7 +101,7 @@ public class esc extends EscBase {
         main.addOptions("-nonnullByDefault", "-timeout=300");
         helpTCX("tt.TestJava",
                 "package tt; \n"
-                        + "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
+                        + "abstract public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
                         + "  public String m(java.lang.Integer i, Number b) {\n"
                         + "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
                         + "    boolean bb = b instanceof Double;\n" 
