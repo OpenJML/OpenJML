@@ -1207,14 +1207,15 @@ public class JmlParser extends JavacParser {
             p = S.token().pos;
         }
         t = super.term3Rest(t, typeArgs);
-        if (S.jml() && token.kind == MONKEYS_AT) {
-            accept(MONKEYS_AT);
-            int pp = pos();
-            Name label = ident();
-            JCIdent id = this.maker().at(pp).Ident(label);
-            JmlMethodInvocation tt = toP(this.maker().at(t).JmlMethodInvocation(oldKind, List.<JCExpression>of(t,id)));
-            return tt;
-        }
+        // TODO - @ for \old can be confused with @ for type annotation -- needs careful work
+//        if (S.jml() && token.kind == MONKEYS_AT) {
+//            accept(MONKEYS_AT);
+//            int pp = pos();
+//            Name label = ident();
+//            JCIdent id = this.maker().at(pp).Ident(label);
+//            JmlMethodInvocation tt = toP(this.maker().at(t).JmlMethodInvocation(oldKind, List.<JCExpression>of(t,id)));
+//            return tt;
+//        }
         return t;
     }
 
@@ -2182,6 +2183,7 @@ public class JmlParser extends JavacParser {
     public JCExpression term3() {
         List<JCExpression> typeArgs = null;
         int p = pos(); // Position of the keyword
+    	if (System.getenv("STACK")!=null) System.out.println("JML TERM3 " + token.kind + " " + p);
         if (token.kind == IDENTIFIER) {
         	// FIXME - generally handle backslash type identifiers; verify type or expression
             String id = token.name().toString();
