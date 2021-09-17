@@ -8,3 +8,4 @@
 **/*actual*
 **/*.class
 /strongarm-error.log
+/misc/

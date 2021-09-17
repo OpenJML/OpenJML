@@ -576,8 +576,15 @@ public class SMTTranslator extends JmlTreeScanner {
                         eqSym, 
                         F.fcn(F.symbol("erasure"),tjsym),
                         tisym)));
-                if ((ti.tsym.flags() & Flags.FINAL) != 0) {
-                    if (quantOK) addCommand(smt,"(assert (forall ((t "+JMLTYPESORT+")) (=> ("+JMLSUBTYPE+" t "+tjsym.toString()+")  (= t "+tjsym.toString()+"))))");
+                if ((ti.tsym.flags() & Flags.FINAL) != 0 && quantOK) {
+//                	if (ti.tsym.name == names.fromString("java.lang.Boolean"))
+//                		{} // addCommand(smt,"(assert (forall ((t "+JMLTYPESORT+")) (=> ("+JMLSUBTYPE+" t "+tjsym.toString()+")  (= t "+tjsym.toString()+"))))");
+//                	else if (ti.tsym.name == names.fromString("java.lang.Character"))
+//            		{}
+////                	else if (ti.tsym.name == names.fromString("java.lang.Integer"))
+////            		{}
+//                	else 
+                		addCommand(smt,"(assert (forall ((t "+JMLTYPESORT+")) (=> ("+JMLSUBTYPE+" t "+tjsym.toString()+")  (= t "+tjsym.toString()+"))))");
                 } 
             }
         }

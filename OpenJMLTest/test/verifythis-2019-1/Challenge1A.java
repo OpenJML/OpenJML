@@ -1,6 +1,6 @@
 // This is Challenge 1A from the 2019 VerifyThis competition
 // a[] is a sequence of integers
-// need to compute a result cut that marks the bounds of monotonic sequences within a (either monotonically decreasing or (= or inccreasing))
+// need to compute a result cut that marks the bounds of monotonic sequences within a[] (either monotonically decreasing or (= or increasing))
 // begin-to-end property   cut[0] == 0 && cut[cut.length-1] == a.length
 // in-range   i in 0 .. cut.length-1   0 <= cut[i] <= a.length
 // increasing i in 0 .. cut.length-2   cut[i] < cut[i+1]
@@ -52,18 +52,26 @@ public class Challenge1A {
             // @ assert \forall int i; 0 <= i < lengthcut-1; cut[i] > 0 ==> (a[cut[i]] < a[cut[i]+1] <=!=> a[cut[i]-1] < a[cut[i]]); // maximal so far
             cut[lengthcut++] = y;
             //@ assert \forall int i; 0 <= i < lengthcut; 0 <= cut[i] <= y; // within bounds so far
+            //@ assert y <= n;
             x = y;
             y = x + 1;
+            //@ assert \forall int i; 0 <= i < lengthcut; 0 <= cut[i] < y; // within bounds so far
+            //@ assert y <= n+1;
+            //@ assert x+1 == y;
 
             // @ assert \forall int i; 0 <= i < lengthcut-1; cut[i] > 0 ==> (a[cut[i]] < a[cut[i]+1] <=!=> a[cut[i]-1] < a[cut[i]]); // maximal so far
         }
+        //@ assert y <= n+1;
+        //@ assert x <= n;
         //@ assert \forall int i; 0 <= i < lengthcut; 0 <= cut[i] <= y; // within bounds so far
+        //@ assert \forall int i; 0 <= i < lengthcut; 0 <= cut[i] <= n+1; // within bounds so far
         if (x < n) {
             cut[lengthcut++] = n;
         }
-        //@ assert \forall int i; 0 <= i < lengthcut; 0 <= cut[i] <= y; // within bounds so far
+        //@ assert \forall int i; 0 <= i < lengthcut; 0 <= cut[i] <= n; // within bounds so far
         int[] newcut = new int[lengthcut];
         System.arraycopy(cut, 0, newcut, 0, lengthcut);
+        //@ assert \forall int i; 0 <= i < newcut.length; 0 <= newcut[i] <= n; // within bounds so far
         return newcut;
     }
 }

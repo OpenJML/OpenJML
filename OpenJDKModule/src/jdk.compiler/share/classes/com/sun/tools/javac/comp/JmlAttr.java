@@ -513,18 +513,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // If the class is binary only, then we have not yet attributed the super/extending/implementing classes in the source AST for the specifications
             
             JmlClassDecl cd = (JmlClassDecl)env.tree;
-            {
+            if (cd != null) {
                 JCExpression e = cd.extending;
                 if (e != null && e.type == null) attribType(e,env);
-            }
-            if (cd != null) for (JCExpression e: cd.implementing) {
-                if (e.type == null) attribType(e,env);
+                for (JCExpression ee: cd.implementing) {
+                    if (ee.type == null) attribType(ee,env);
+                }
             }
             
             // The JML specs to check are are in the TypeSpecs structure
 
             super.attribClassBody(env,c);
-            if (cd.lineAnnotations != null) {
+            if (cd != null && cd.lineAnnotations != null) {
                 for (ExceptionLineAnnotation a: cd.lineAnnotations) {
                     a.typecheck(this, env);
                 }
