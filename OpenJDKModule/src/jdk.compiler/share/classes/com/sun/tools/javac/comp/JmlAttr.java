@@ -2138,6 +2138,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JmlMethodClauseSignalsOnly signalsOnly = null;
         JmlMethodClauseExpr excRequires = null;
         JmlMethodClauseSignals signalsClause = null;
+        boolean hasRecommendsBlock = false;
+        boolean errorRecommendsBlock = false;
         for (JmlMethodClause m: clauses) {
             IJmlClauseKind t = m.clauseKind;
             JCExpression excType = null;
@@ -2148,8 +2150,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //     signals_only list of exceptions in the else clauses
                 //     signals (Exception) disjunction of (\exception instance of else-exception && negation of requires condition)
                 //     ensures false
-            	System.out.println("RECOMMENDS " + m);
+            	// System.out.println("RECOMMENDS " + m);
                 boolean first = exlist == null;
+                if (first && hasRecommendsBlock && !errorRecommendsBlock) {
+                    log.error(m.pos,"jml.message","Only one block of recommends clauses is permitted");
+                    errorRecommendsBlock = true;
+                    continue;
+                }
                 if (first) {
                     exlist = copy(prefix);
                 }
@@ -2178,6 +2185,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JCExpression iof = treeutils.makeInstanceOf(m.pos, ee, excType);
                 JCExpression disjunct = treeutils.makeAnd(m.pos, iof, nn.expression);
                 signalsClause.expression = treeutils.makeOrSimp(m.pos, signalsClause.expression, disjunct);
+                hasRecommendsBlock = true;
                 continue;
             }
             if (exlist != null) {
@@ -2187,7 +2195,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 signalsOnly = null;
                 signalsClause = null;
                 excRequires = null;
-            	System.out.println("EXLIST NOT NULL-B " + scase);
+            	//System.out.println("EXLIST NOT NULL-B " + scase);
             }
             if (m instanceof JmlMethodClauseGroup) {
                 return deNest(prefix,((JmlMethodClauseGroup)m).cases, parent,decl, msym, mods);
@@ -2272,7 +2280,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             newlist.append(scase);
             exlist = null;
             signalsOnly = null;
-        	System.out.println("EXLIST NOT NULL " + scase);
+        	//System.out.println("EXLIST NOT NULL " + scase);
         }
         addDefaultSignalsOnly(prefix,parent,decl);
         JmlSpecificationCase sc = (((JmlTree.Maker)make).JmlSpecificationCase(parent,prefix.toList()));
