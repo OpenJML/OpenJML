@@ -311,6 +311,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testTypeParameter2() {
+    	//main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -335,7 +336,7 @@ public class escgeneric extends EscBase {
                 ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
                 );
     }
- 
+    
     @Test
     public void testUnboxing() {
         main.addOptions("-method=m");  // Just test method m

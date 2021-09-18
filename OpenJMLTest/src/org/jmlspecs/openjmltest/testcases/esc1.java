@@ -1930,74 +1930,80 @@ public class esc1 extends EscBase {
                 140);
     }
 
-//    @Test
-//    public void testOldJava() {
-//        helpTCX("tt.TestJava",
-//                "package tt; \n" 
-//                 + "/*@ code_java_math*/ public class TestJava { \n" 
-//                 + "  static public  int i;\n"
-//                 + "  //@ static public constraint i > \\old(i);\n" 
-//                 + "  //@ modifies i;\n"
-//                 + "  //@ ensures true;\n" 
-//                 + "  public static void bok() { i = i - 1; }\n" 
-//                 + "}"
-//                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Constraint) in method TestJava",29
-//                , "/tt/TestJava.java:4: warning: Associated declaration", 21
-//                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method bok", 22
-//                ,"/tt/TestJava.java:4: warning: Associated declaration", 21
-//                );
-//    }
-//
-//    @Test
-//    public void testOld2Math() {
-//        helpTCX("tt.TestJava",
-//                "package tt; \n" + "/*@ code_bigint_math*/ public class TestJava { \n" + "  static public int i;\n"
-//                        + "  //@ modifies i;\n" + "  //@ ensures i == \\old(i)+2;\n"
-//                        + "  public static void bok() { i = i + 1; i = i + 1;}\n" + "  //@ modifies i;\n"
-//                        + "  //@ ensures i == \\old(i+1);\n" + "  public static void bbad() { i = i - 1; }\n" + "}",
-//                "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method bbad",
-//                22, "/tt/TestJava.java:8: warning: Associated declaration", 7);
-//    }
-//
-//    @Test
-//    public void testOld2() {
-//        helpTCX("tt.TestJava",
-//                "package tt; \n" 
-//                        + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" 
-//                        + "  static public int i;\n"
-//                        + "  //@ modifies i;\n" 
-//                        + "  //@ ensures i == \\old(i)+2;\n"
-//                        + "  public static void bok() { i = i + 1; i = i + 1;}\n" 
-//                        + "  //@ modifies i;\n"
-//                        + "  //@ ensures i == \\old(i+1);\n" 
-//                        + "  public static void bbad() { i = i - 1; }\n" 
-//                        + "}",
-//                "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method bbad",
-//                22, "/tt/TestJava.java:8: warning: Associated declaration", 7);
-//    }
-//
     @Test
-    public void testAt() {
-        expectedExit = 1;
+    public void testOldJava() {
         helpTCX("tt.TestJava",
-                          "package tt; \n" 
+                "package tt; \n" 
+                 + "/*@ code_java_math*/ public class TestJava { \n" 
+                 + "  static public  int i;\n"
+                 + "  //@ static public constraint i > \\old(i);\n" 
+                 + "  //@ modifies i;\n"
+                 + "  //@ ensures true;\n" 
+                 + "  public static void bok() { i = i - 1; }\n" 
+                 + "}"
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Constraint) in method TestJava",29
+                , "/tt/TestJava.java:4: warning: Associated declaration", 21
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method bok", 22
+                ,"/tt/TestJava.java:4: warning: Associated declaration", 21
+                );
+    }
+
+    @Test
+    public void testOld2Math() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" + "/*@ code_bigint_math*/ public class TestJava { \n" + "  static public int i;\n"
+                        + "  //@ modifies i;\n" + "  //@ ensures i == \\old(i)+2;\n"
+                        + "  public static void bok() { i = i + 1; i = i + 1;}\n" + "  //@ modifies i;\n"
+                        + "  //@ ensures i == \\old(i+1);\n" 
+                        + "  public static void bbad() { i = i - 1; }\n" 
+                        + "}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method bbad",22
+                ,"/tt/TestJava.java:8: warning: Associated declaration", 7
+                );
+    }
+
+    @Test
+    public void testOld2() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
                         + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" 
                         + "  static public int i;\n"
                         + "  //@ modifies i;\n" 
                         + "  //@ ensures i == \\old(i)+2;\n"
-                        + "  public static void bok() { x: i = i + 1; /*@ assert i == i@x + 1 && i == (i+1)@x; */ i = i + 1;}\n" 
+                        + "  public static void bok() { i = i + 1; i = i + 1;}\n" 
                         + "  //@ modifies i;\n"
                         + "  //@ ensures i == \\old(i+1);\n" 
-                        + "  public static void bbad() { i = i - 1; /*@ assert i == i@x + 1; */ }\n" 
-                        + "  //@ modifies i;\n" 
-                        + "  public void bok2() { x: i = i + 1; /*@ assert i == this.i@x + 1; */ i = i + 1;}\n" 
-                        + "  //@ requires a.length > 10 && a[0] >= 0;\n" 
-                        + "  //@ modifies i;\n" 
-                        + "  public static void bok3(int[] a) { x: i = i + 1; /*@ assert a[0]@x > -1; */ i = i + 1;}\n" 
+                        + "  public static void bbad() { i = i - 1; }\n" 
                         + "}"
-                ,"/tt/TestJava.java:9: error: There is no label named x", 60
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method bbad",22
+                ,"/tt/TestJava.java:8: warning: Associated declaration", 7
                 );
     }
+
+    
+    // TODO: Parser has trouble distinguishing an @ for \old from an @ for a type annotation. Is the complexity worth the feature?
+//    @Test 
+//    public void testAt() {
+//        expectedExit = 1;
+//        helpTCX("tt.TestJava",
+//                          "package tt; \n" 
+//                        + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" 
+//                        + "  static public int i;\n"
+//                        + "  //@ modifies i;\n" 
+//                        + "  //@ ensures i == \\old(i)+2;\n"
+//                        + "  public static void bok() { x: i = i + 1; /*@ assert i == i@x + 1 && i == (i+1)@x; */ i = i + 1;}\n" 
+//                        + "  //@ modifies i;\n"
+//                        + "  //@ ensures i == \\old(i+1);\n" 
+//                        + "  public static void bbad() { i = i - 1; /*@ assert i == i@x + 1; */ }\n" // ERROR
+//                        + "  //@ modifies i;\n" 
+//                        + "  public void bok2() { x: i = i + 1; /*@ assert i == this.i@x + 1; */ i = i + 1;}\n" 
+//                        + "  //@ requires a.length > 10 && a[0] >= 0;\n" 
+//                        + "  //@ modifies i;\n" 
+//                        + "  public static void bok3(int[] a) { x: i = i + 1; /*@ assert a[0]@x > -1; */ i = i + 1;}\n" 
+//                        + "}"
+//                ,"/tt/TestJava.java:9: error: There is no label named x", 60
+//                );
+//    }
 
     @Test
     public void testNewCompares() { // Just checks parsing
