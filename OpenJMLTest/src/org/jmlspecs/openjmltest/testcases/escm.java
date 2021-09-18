@@ -22,7 +22,7 @@ public class escm extends EscBase {
     }
     
     /** This test checks that nested, local and anonymous classes are handled */
-    @Test @Ignore // F(XME - another timeout on anaonymous classes
+    @Test
     public void testNestedClass() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -56,7 +56,7 @@ public class escm extends EscBase {
     }
    
     /** This test checks that the specs of methods in nested, local and anonymous classes are used */
-    @Test @Ignore // TIMEOUT - FIXME - but why - this is simple
+    @Test
     public void testNestedMethodSpecs() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -98,7 +98,7 @@ public class escm extends EscBase {
     }
    
     /** This test checks that the specs of nested, local and anonymous classes are used */
-    @Test @Ignore // FIXME - should not timeout for simple anonymous classes
+    @Test
     public void testNestedClassSpecs() {
         main.addOptions("-checkFeasibility=precondition,exit");
         //main.addOptions("-progress");
@@ -215,7 +215,7 @@ public class escm extends EscBase {
         );
     }
     
-    @Test @Ignore // FIXME - timesout - but does not seem at all complex
+    @Test
     public void testAnon() {
         helpTCX("tt.TestJava","package tt; \n"
                                 +" import org.jmlspecs.annotation.*; \n"
@@ -231,7 +231,7 @@ public class escm extends EscBase {
                                 );
     }
 
-    @Test @Ignore // FIXME - should not timeout for simple anonymous classes
+    @Test
     public void testAnonX() {
         main.addOptions("-checkFeasibility=exit");
         helpTCX("tt.TestJava","package tt; \n"
@@ -261,7 +261,7 @@ public class escm extends EscBase {
     }
 
 
-    @Test @Ignore // FIXME - should not timeout for simple anonymous classes
+    @Test
     public void testAnonZ() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -294,21 +294,22 @@ public class escm extends EscBase {
     }
 
 
-    @Test @Ignore // FIXME - should not timeout for simple anonymous classes
+    @Test
     public void testAnonY() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { public static int i; \n"
 
                 +"  public int m1(TestJava o) {\n"
-                +"       //@ assert new TestJava() {  } != null; \n"  // Line 5 
+                +"       //@ assert new TestJava() {  } != null; \n"  // Line 5    // FIXME - shoudl this be considered pure or not? (used to be)
                 +"       return 0;\n"
                 +"  }\n"
                 
                 +"  /*@ requires i > 0; */public TestJava() {}"
                 +"}\n"
+                ,"/tt/TestJava.java:5: warning: A non-pure method is being called where it is not permitted: tt.TestJava.1.()",19
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1",19
-                ,"/tt/TestJava.java:5: warning: Associated declaration",34
+                ,"/tt/TestJava.java:8: warning: Associated declaration",7
                 ,"/tt/TestJava.java:8: warning: Precondition conjunct is false: i > 0",18
         );
     }

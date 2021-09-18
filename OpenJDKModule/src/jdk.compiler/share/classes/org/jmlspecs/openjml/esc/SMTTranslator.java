@@ -1132,7 +1132,12 @@ public class SMTTranslator extends JmlTreeScanner {
         if (t.getTag() == TypeTag.ARRAY){
             return typeString(((ArrayType)t).elemtype) + "_A_";
         }
-        return t.tsym.toString().replace('.', '_');
+        String r = t.tsym.toString();
+        if (t.tsym.isAnonymous()) {
+        	//System.out.println("ANON " + r + t.tsym.isAnonymous() + t.tsym.flatName());
+        	r = "ANON_" + t.tsym.flatName();
+        }
+        return r.replace('.', '_');
     }
     
 //    public String arrayOf(Type t) {
