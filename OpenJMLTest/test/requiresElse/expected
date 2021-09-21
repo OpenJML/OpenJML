@@ -97,7 +97,7 @@ also
  */
 
 {
-  @Nullable 
+  /*@ nullable */ 
   int[] a = new int[10];
   o.f = a[i];
 }

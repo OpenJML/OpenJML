@@ -2101,6 +2101,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JmlMethodClauseSignalsOnly signalsOnly = null;
         JmlMethodClauseExpr excRequires = null;
         JmlMethodClauseSignals signalsClause = null;
+        boolean hasRecommendsBlock = false;
+        boolean errorRecommendsBlock = false;
         for (JmlMethodClause m: clauses) {
             IJmlClauseKind t = m.clauseKind;
             JCExpression excType = null;
@@ -2112,6 +2114,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //     signals (Exception) disjunction of (\exception instance of else-exception && negation of requires condition)
                 //     ensures false
                 boolean first = exlist == null;
+                if (first && hasRecommendsBlock && !errorRecommendsBlock) {
+                    log.error(m,"jml.message","Only one block of recommends clauses is permitted");
+                    errorRecommendsBlock = true;
+                    continue;
+                }
                 if (first) {
                     exlist = copy(prefix);
                 }
@@ -2140,6 +2147,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JCExpression iof = treeutils.makeInstanceOf(m.pos, ee, excType);
                 JCExpression disjunct = treeutils.makeAnd(m.pos, iof, nn.expression);
                 signalsClause.expression = treeutils.makeOrSimp(m.pos, signalsClause.expression, disjunct);
+                hasRecommendsBlock = true;
                 continue;
             }
             if (exlist != null) {
