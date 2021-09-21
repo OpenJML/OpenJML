@@ -942,8 +942,13 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testRequiresElse() { // FIXME - why the two different formats of output
+    public void testRequiresElse() {
         helpTF("requiresElse","-show=program"); // -show=program is part of test results
+    }
+
+    @Test
+    public void testRequiresElseA() {
+        helpTF("requiresElseA","-show=program"); // -show=program is part of test results
     }
 
     @Test
