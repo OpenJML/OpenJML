@@ -839,7 +839,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!isModel) addAxioms(-1,null);
         assumingPostConditions = true;
 
-        typevarMapping = typemapping(pclassDecl.type, null, null);
+        typevarMapping = typemapping(pclassDecl.type, null, null, null);
         
         boolean undoLabels = false;
         try {
@@ -2603,7 +2603,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         java.util.List<Type> parents = parents(baseType, false);
         for (Type ctype: parents) {
             if (!(ctype.tsym instanceof ClassSymbol)) continue;
-            typevarMapping = typemapping(ctype, null, null);
+            //typevarMapping = typemapping(ctype, null, null);
             TypeSymbol csym = ctype.tsym;
             for (Symbol s : csym.getEnclosedElements()) {
                 if (s instanceof VarSymbol) {
@@ -2705,7 +2705,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (!(ctype.tsym instanceof ClassSymbol)) continue;
                     if (isDataGroup(ctype)) continue;
                     
-                    typevarMapping = typemapping(ctype, null, null);
+                    typevarMapping = typemapping(ctype, null, null, null);
                     ListBuffer<JCStatement> check = pushBlock();
                     ListBuffer<JCStatement> instanceStats = currentStatements;
                     try {
@@ -7255,7 +7255,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected boolean checkAccessEnabled;
     
     public JCExpression toRepresentationForAssignable(JCFieldAccess fa) {
-        TypeSymbol owner = fa.selected.type.tsym;
+    	Type seltype = fa.selected.type;
+    	//System.out.println("TRFA " + fa + " " + seltype + " " + seltype.getClass() + " " + seltype.tsym + " " + seltype.tsym.getClass());
+    	if (seltype instanceof Type.TypeVar) {
+    		seltype = ((Type.TypeVar)seltype).getUpperBound(); // FIXME - try to lookup the type var to something concrete -- not just the upper bounc (which is likely Object)
+    		//System.out.println("TRFA-UP " + " " + seltype + " " + seltype.tsym);
+    	}
+        TypeSymbol owner = seltype.tsym;
         TypeSpecs tspecs = specs.getSpecs((ClassSymbol)owner);  // FIXME - we get null specs if owner is a TypeVar -- need a type mapping?
         if (tspecs != null) for (JmlTypeClause t: tspecs.clauses) {
             if (t.clauseType == representsClause) {
@@ -7781,6 +7787,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         Map<Symbol,Symbol> saved = pushMapSymbols();
         try {
+        	//System.out.println("CALLING APPLYHELPER " + that);
             applyHelper(that);
         } finally {
             popMapSymbols(saved);
@@ -8109,7 +8116,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Helper method to do the work of visitApply and visitNewObject */
     protected void applyHelper(JCExpression that) {
-    	if (Utils.debug()) System.out.println("APPLY HELPER: " + that);
+//    	System.out.println("APPLY HELPER: " + that);
+//    	if (that instanceof JCMethodInvocation) {
+//    		JCMethodInvocation m = (JCMethodInvocation)that;
+//    		JCExpression sel = m.meth instanceof JCFieldAccess ? ((JCFieldAccess)m.meth).selected : currentThisExpr;
+//    		Symbol sym = m.meth instanceof JCFieldAccess ? ((JCFieldAccess)m.meth).sym : ((JCIdent)m.meth).sym;
+//    		System.out.println("APPLY TYPES: " +  m.meth.type + " # " + sym.type + " # " + sym.owner.type + " # " + m.meth.type.tsym + " # " + sel + " # " + sel.type);
+//    	}
     	//if (that.toString().equals("ListSeq<E>.java_util_ArrayList_size_H4_3582(QQHIS.list)")) Utils.dumpStack();
     	//if (that.toString().equals("list.size()")) Utils.dumpStack();
         boolean pushedMethod = false;
@@ -8222,7 +8235,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 trArgs = convertArgs(that, untrArgs,meth.type.asMethodType().argtypes, (id.sym.flags() & Flags.VARARGS) != 0 );
 
                 calleeMethodSym = (MethodSymbol)id.sym;
-                newTypeVarMapping = typevarMapping = typemapping(receiverType, calleeMethodSym, typeargs);
+                newTypeVarMapping = typevarMapping = typemapping(apply, null);
+                //newTypeVarMapping = typevarMapping = typemapping(receiverType, calleeMethodSym, typeargs);
                 
                 if (meth instanceof JCTree.JCLambda) {
                     // An identifier as the method being applied should never be a lambda expression.
@@ -8269,7 +8283,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 typeargs = convert(typeargs); // FIXME - should this be translated before or after the receiver, here and elsewhere
                 trArgs = convertArgs(that, untrArgs,meth.type.asMethodType().argtypes,  (fa.sym.flags() & Flags.VARARGS) != 0);
                 calleeMethodSym = (MethodSymbol)fa.sym;
-                newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null, meth.type.asMethodType());
+        		newTypeVarMapping = typevarMapping = typemapping(apply, null);
+        		//newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null, meth.type.asMethodType());
 
                 if (convertedReceiver instanceof JCTree.JCLambda || convertedReceiver instanceof JCTree.JCMemberReference) {
                     applyLambda(that, convertedReceiver, untrArgs, trArgs, resultType);
@@ -8317,7 +8332,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 convertedReceiver = convertExpr(newclass.encl);
                 receiverType = newclass.clazz.type;
                 calleeMethodSym = (MethodSymbol)newclass.constructor;
-                newTypeVarMapping = typevarMapping = typemapping(newclass.clazz.type, null, null);
+                //newTypeVarMapping = typevarMapping = typemapping(newclass, null);
+                newTypeVarMapping = typevarMapping = typemapping(newclass.clazz.type, null, null, null);
 
                 if (convertedReceiver != null && !treeutils.isATypeTree(convertedReceiver)) {
                     // Check that receiver is not null
@@ -8750,7 +8766,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (Utils.debug()) System.out.println("... Preconditions of callee " + calleeMethodSym + " in " + classType.toString() + " " + mpsym.owner + " " + mpsym);
                     // FIXME - meth is null for constructors - fix that also; also generic types
                     typevarMapping = typemapping(classType, calleeMethodSym, typeargs, 
-                            meth == null ? null : meth.type instanceof Type.MethodType ? (Type.MethodType)meth.type : null);
+                            meth == null ? null : meth.type instanceof Type.MethodType ? (Type.MethodType)meth.type : null, null);
+                    if (apply != null) typevarMapping = typemapping(apply, typevarMapping);
                     // This initial logic must match that below for postconditions
 
 
@@ -9152,7 +9169,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                         // FIXME - meth is null for constructors - fix that also; also generic types
                         typevarMapping = typemapping(classType, calleeMethodSym, typeargs, 
-                                meth == null ? null : meth.type instanceof Type.MethodType ? (Type.MethodType)meth.type : null);
+                                meth == null ? null : meth.type instanceof Type.MethodType ? (Type.MethodType)meth.type : null, null);
+                        if (apply != null) typevarMapping = typemapping(apply, typevarMapping);
                         // This initial logic must match that below for postconditions
 
 
@@ -9451,7 +9469,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     MethodSymbol mpsym = pair.first;
                     if (Utils.debug()) System.out.println("APPLYHELPER-V1 " + calleeMethodSym + " " + mpsym);
                     Type classType = pair.second;
-                    typevarMapping = typemapping(classType, null, null);
+                    typevarMapping = typemapping(classType, null, null, null);
+                    if (apply != null) typevarMapping = typemapping(apply, typevarMapping);
                     
                     // This initial logic must match that above for preconditions/"RET 
                     JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
@@ -9844,7 +9863,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     MethodSymbol mpsym = pair.first;
                     Type classType = pair.second;
                     typevarMapping = typemapping(classType, calleeMethodSym, typeargs, 
-                            meth == null ? null : meth.type instanceof Type.MethodType ? (Type.MethodType)meth.type : null);
+                            meth == null ? null : meth.type instanceof Type.MethodType ? (Type.MethodType)meth.type : null, null);
+                    if (apply != null) typevarMapping = typemapping(apply, typevarMapping);
                     
                     // This initial logic must match that above for preconditions
                     JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
@@ -10463,6 +10483,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // FIXME - the receiver, the method name, and the arguments may all be from different files.
             
             JCExpression e = treeutils.makeMethodInvocation(that, receiver, (MethodSymbol)mref.sym, untrArgs);
+        	//System.out.println("MEMREF " + that + " " + convertedReceiver + " " + e);
             if (((MethodSymbol)mref.sym).getReturnType().hasTag(TypeTag.VOID)) {
                 // Statement - no return values
                 JCStatement stat = M.at(that.pos).Exec(e);  // FIXME - position location is likely in the wrong file
@@ -10499,7 +10520,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 // FIXME - meth is null for constructors - fix that also; also generic types
                 typevarMapping = typemapping(classType, calleeMethodSym, typeargs, 
-                        meth == null ? null : meth.type instanceof Type.MethodType ? (Type.MethodType)meth.type : null);
+                        meth == null ? null : meth.type instanceof Type.MethodType ? (Type.MethodType)meth.type : null, null);
+                if (that instanceof JCMethodInvocation) typevarMapping = typemapping((JCMethodInvocation)that, typevarMapping);
                 // This initial logic must match that below for postconditions
 
 
@@ -13540,11 +13562,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 result = eresult = convertCopy(that);
 
             } else if (sym instanceof Symbol.TypeSymbol) {
-                Type t = that.type;
-                if (t instanceof Type.TypeVar && typevarMapping != null) {
-                    t = typevarMapping.get(sym.type.tsym);
-                    if (t == null) t = that.type;
-                }
+                Type t = typevarValue(that.type, typevarMapping);
                 // The input id is a type, so we expand it to a FQ name
                 // If the input id is a type variable (that.type instanceof Type.TypeVar)
                 // then makeType creates a new JCIdent, as is appropriate.
@@ -14601,33 +14619,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Outer block to restrict scopes of temporaries
         pushBlock();
 
-        JCExpression originalIterable = null;
-        Type iterableSuperType = null;
-        if (!rac && types.isSubtype(types.erasure(that.expr.type), types.erasure(syms.iterableType))) {
-            iterableSuperType = types.asSuper(that.expr.type, syms.iterableType.tsym);
-//            java.util.Optional<Symbol> sym = java.util.Optional.<Symbol>empty();
-//            for (Symbol ss: t.tsym.getEnclosedElements()) {
-//                if (ss.name.toString().equals("values")) {
-//                    sym = java.util.Optional.of(ss);
-//                }
-//            }
-//            java.util.Optional<Symbol> sym = iterableSuperType.tsym.getEnclosedElements().stream().filter(s->s.name.toString().equals("values")).findFirst();
-//            if (sym.isPresent()) {
-//                originalIterable = (that.expr);
-//                JCExpression fa = M.at(that.expr).Select(that.expr,sym.get());
-//                fa.type = sym.get().type;
-//                JCExpression bin = treeutils.makeNotNull(that.expr.pos, fa);
-//                bin = convertExpr(bin);
-//                addAssume(that.expr,Label.IMPLICIT_ASSUME,bin);
-//                that.expr = fa;
-//            } else {
-//                utils.error(that.expr,"jml.message","No values field found for type " + that.expr.type);
-//            }
-            
-        }
+//        JCExpression originalIterable = null;
+//        Type iterableSuperType = null;
+//        if (!rac && types.isSubtype(types.erasure(that.expr.type), types.erasure(syms.iterableType))) {
+//            iterableSuperType = types.asSuper(that.expr.type, syms.iterableType.tsym);
+//            System.out.println("ITERABLE " + that.expr.type + " " + iterableSuperType + " " + iterableSuperType.getTypeArguments().head + " " + paramActuals);
+////            java.util.Optional<Symbol> sym = java.util.Optional.<Symbol>empty();
+////            for (Symbol ss: t.tsym.getEnclosedElements()) {
+////                if (ss.name.toString().equals("values")) {
+////                    sym = java.util.Optional.of(ss);
+////                }
+////            }
+////            java.util.Optional<Symbol> sym = iterableSuperType.tsym.getEnclosedElements().stream().filter(s->s.name.toString().equals("values")).findFirst();
+////            if (sym.isPresent()) {
+////                originalIterable = (that.expr);
+////                JCExpression fa = M.at(that.expr).Select(that.expr,sym.get());
+////                fa.type = sym.get().type;
+////                JCExpression bin = treeutils.makeNotNull(that.expr.pos, fa);
+////                bin = convertExpr(bin);
+////                addAssume(that.expr,Label.IMPLICIT_ASSUME,bin);
+////                that.expr = fa;
+////            } else {
+////                utils.error(that.expr,"jml.message","No values field found for type " + that.expr.type);
+////            }
+//            
+//        }
         JCExpression array = null;
 
-        JCVariableDecl indexDecl = loopHelperDeclareIndex(that);;
+        JCVariableDecl indexDecl = loopHelperDeclareIndex(that);
 
         java.util.List<JCIdent> decreasesIDs = new java.util.LinkedList<JCIdent>();
 
@@ -14651,7 +14670,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             	Name niter = names.fromString("values");
                 JCFieldAccess fa = M.at(that.expr).Select(e, niter);
                 fa.sym = syms.iterableType.tsym.members().findFirst(niter);
-                fa.type = fa.sym.type;
+                fa.type = typevarValue(fa.sym.type, typevarMapping);
+                //System.out.println("CALLED TYPEVARVALUE-A " + fa.sym.type + " " + fa.type + " " + typevarMapping);
                 var lensym = fa.type.tsym.members().findFirst(names.length);
                 fa = M.at(that.expr).Select(fa, names.length);
                 fa.sym = lensym;
@@ -14714,7 +14734,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (isArray) {
             	JCExpression aa = new JmlBBArrayAccess(null,array,treeutils.makeIdent(that.pos, indexDecl.sym));
             	aa.pos = array.pos;
-            	aa.setType(((Type.ArrayType)array.type).elemtype);
+            	aa.setType(typevarValue(((Type.ArrayType)array.type).elemtype, typevarMapping));
             	aa = addImplicitConversion(array, that.var.type, aa);
             	JCVariableDecl loopVarDecl = treeutils.makeVarDef(that.var.type, 
             			that.var.name, methodDecl.sym, aa);
@@ -14745,7 +14765,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             	Name niter = names.fromString("values");
                 JCFieldAccess fa = M.at(that.expr).Select(e, niter);
                 fa.sym = syms.iterableType.tsym.members().findFirst(niter);
-                fa.type = fa.sym.type; // FIXME - need to substitute type argument
+                fa.type = typevarValue(fa.sym.type, typevarMapping);
+                //System.out.println("CALLED TYPEVARVALUE-B " + fa.sym.type + " " + fa.type + " " + typevarMapping);
                 
                 var typeargs = that.expr.type.getTypeArguments();
                 var typearg = syms.objectType;
@@ -14765,11 +14786,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // FIXME - the above is not a general solution to calculating argtype
                 // FIXME - should also check the nullity of the declared variable and see if an assert is needed
                 
-            	JCVariableDecl loopVarDecl = treeutils.makeVarDef(that.var.type, 
-            			that.var.name, methodDecl.sym, addImplicitConversion(that.expr, that.var.type, e));
+                Type vtype = typevarValue(that.var.type,typevarMapping);
+            	JCVariableDecl loopVarDecl = treeutils.makeVarDef(vtype, 
+            			that.var.name, methodDecl.sym, addImplicitConversion(that.expr, vtype, e));
             	loopVarDecl.sym = that.var.sym;
             	// assign the foreach loop variable
                 addStat(loopVarDecl);
+                if (specs.isNonNull(vtype)) { // Only checks for explicit NonNull -- FIXME - is that correct
+                	addAssume(that, Label.NULL_CHECK, treeutils.makeNotNull(that, treeutils.makeIdent(that,  loopVarDecl.sym)));
+                }
             }
 
             
@@ -14828,6 +14853,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // T v = ITERATOR.next()
             JCExpression value = methodCallUtilsExpression(iter,"next",
                     treeutils.makeIdent(array.pos, decl.sym));
+            value.type = typevarValue(value.type, typevarMapping);
             JCIdent iterId = newTemp(value);  // We only want next called once, so we cache its value
             if (!rac) addNullnessTypeConditionId(iterId, that.var, iterId.sym, attr.isNonNull(that.var.sym, that.var.mods), false);
             JCExpression iterEx = addImplicitConversion(value, that.var.type, iterId);
@@ -18444,15 +18470,78 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         return interfaces;        
     }
-
-    public Map<TypeSymbol,Type> typemapping(Type ct, Symbol sym, List<JCExpression> typeargs) {
-        return typemapping(ct,sym,typeargs,null);
+    
+    public Type typevarValue(Type tv, Map<TypeSymbol,Type> typevarMap) {
+    	if (typevarMap == null || !(tv instanceof Type.TypeVar)) return tv;
+    	Type v = typevarMap.get(((Type.TypeVar)tv).tsym);
+    	//System.out.println("MAPPED " + tv + " TO " + (v == null ? tv : v));
+    	return v == null ? tv : v;
     }
-    public Map<TypeSymbol,Type> typemapping(Type ct, Symbol sym, List<JCExpression> typeargs, Type.MethodType methodType) {
-        Map<TypeSymbol,Type> vars = new HashMap<TypeSymbol,Type>();
+    
+    public Map<TypeSymbol,Type> typemapping(JCMethodInvocation apply, Map<TypeSymbol,Type> map) {
+    	if (map == null) map = new HashMap<TypeSymbol,Type>();
+    	// FIXME - static methods, classes as receiver types
+    	if (apply.meth instanceof JCFieldAccess) {
+    		JCFieldAccess fa = (JCFieldAccess) apply.meth;
+    		// Map fa.type to fa.sym.type // method type
+    		map = unify(fa.type, fa.sym.type, map);
+    		// Map fa.selected.type to fa.sym.owner.type // receiver
+    		map = unify(fa.selected.type, fa.sym.owner.type, map);
+    		// Map each element of m.
+    		
+    	} else if (apply.meth instanceof JCIdent) {
+    		JCIdent id = (JCIdent)apply.meth;
+    		// Map id.type to id.sym.type // method type
+    		map = unify(id.type, id.sym.type, map);
+    		// Map fa.selected.type to fa.sym.owner.type // receiver
+    		map = unify(currentThisExpr.type, id.sym.owner.type, map);
+    		// Map each element of m.
+    		
+    	} else {
+    		System.out.println("UNKNOWN INVOCATION " + apply);
+    	}
+		//System.out.println("MAP " + apply + " " + map);
+    	return map;
+    }
+    
+    public Map<TypeSymbol,Type> unify(Type actual, Type formal, Map<TypeSymbol,Type> map) {
+    	//System.out.println("UNIFYING " + actual + " TO " + formal + " ( " + actual.getClass() + " " + formal.getClass() + ")");
+		if (types.isSameType(actual,formal)) return map;
+    	if (formal instanceof Type.TypeVar) {
+    		map.put(((Type.TypeVar)formal).tsym, actual);
+    		return map;
+    	}
+    	if (formal instanceof Type.ArrayType && actual instanceof Type.ArrayType) {
+    		return unify(((Type.ArrayType)actual).elemtype, ((Type.ArrayType)formal).elemtype, map);
+    	}
+    	if (formal instanceof Type.ClassType && actual instanceof Type.ClassType) {
+    		Type.ClassType cformal = ((Type.ClassType)formal);
+    		Type.ClassType cactual = ((Type.ClassType)actual);
+    		if (cactual.tsym == cformal.tsym) {
+    			Iterator<Type> actualiter = cactual.getTypeArguments().iterator();
+    			Iterator<Type> formaliter = cformal.getTypeArguments().iterator();
+    			while (actualiter.hasNext() && formaliter.hasNext()) {
+    				map = unify(actualiter.next(), formaliter.next(), map);
+    			}
+    			if (actualiter.hasNext() || formaliter.hasNext()) {
+    				// It seems type checking should have failed
+    				//log.error("jml.message","Actual and formal types have different numbers of type arguments: " + actual + " vs. " + formal);
+    			}
+    			return map;
+    		}
+    	}
+    	//System.out.println("CANNOT MAP " + actual + " TO " + formal + " ( " + actual.getClass() + " " + formal.getClass() + ")");
+    	return map;
+    }
+
+    public Map<TypeSymbol,Type> typemapping(Type ct, Symbol sym, List<JCExpression> typeargs, Map<TypeSymbol,Type> vars) {
+        return typemapping(ct,sym,typeargs,null,vars);
+    }
+    public Map<TypeSymbol,Type> typemapping(Type ct, Symbol sym, List<JCExpression> typeargs, Type.MethodType methodType, Map<TypeSymbol,Type> vars) {
+        vars = new HashMap<TypeSymbol,Type>();
         if (ct instanceof Type.ClassType){
             Type ect = ct.getEnclosingType();
-            if (ect != null) vars = typemapping(ect, sym, typeargs, methodType);
+            if (ect != null) vars = typemapping(ect, sym, typeargs, methodType, vars);
         }
         if (ct instanceof Type.ClassType &&
             !((Type.ClassType)ct).getTypeArguments().isEmpty()) {
@@ -18487,10 +18576,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         if (sym != null && methodType != null && sym.type instanceof Type.MethodType) {
             // Match arguments of sym.type to methodType
-            List<Type> params = sym.type.allparams();
             List<Type> args = ((Type.MethodType)sym.type).argtypes;
             List<Type> tt = methodType.getParameterTypes();
-            List<Type> ttt = methodType.argtypes;
             for (Type t: args) {
                 Type value = tt.head;
                 unifyTypes(t,value,vars);
@@ -18774,7 +18861,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             for (Pair<MethodSymbol,Type> pair: overridden) {
                 MethodSymbol mpsym = pair.first;
                 Type classType = pair.second;
-                typevarMapping = typemapping(classType, mpsym, null);
+                typevarMapping = typemapping(classType, mpsym, null, null);
+                //typevarMapping = typemapping(apply, typevarMapping);
                 
                 // This initial logic must match that above for preconditions
                 calleeSpecs = specs.getDenestedSpecs(mpsym);
