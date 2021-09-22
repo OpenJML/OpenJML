@@ -1733,6 +1733,16 @@ public class JmlSpecs {
     }
     
     @SuppressWarnings("unchecked")
+	public boolean isNonNull(Type type) {
+    	if (!type.isReference()) return false;
+    	if (Types.instance(context).isSubtype(type, 
+    			Symtab.instance(context).jmlPrimitiveType)) return true;
+    	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
+    	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
+    	return false;
+    }
+    
+    @SuppressWarnings("unchecked")
 	public boolean isNonNull(Type type, ClassSymbol classOwner) {
     	if (!type.isReference()) return false;
     	if (Types.instance(context).isSubtype(type, 

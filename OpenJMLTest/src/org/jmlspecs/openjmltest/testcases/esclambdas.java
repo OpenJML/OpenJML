@@ -36,6 +36,7 @@ public class esclambdas extends EscBase {
                 +"  \n"
                 +"  public static class MMM {\n"
                 +"    public int i ;\n"
+                +"    //@ assignable i;\n"
                 +"    public void bump() { if (i>0) i--; i++; }\n"
                 +"  }\n"
                 
@@ -48,7 +49,7 @@ public class esclambdas extends EscBase {
                 );
     }
     
-    @Test @Ignore // not working yet
+    @Test
     public void testIterable1b() {
     	main.addOptions("-code-math=java");
         helpTCX("tt.TestJava","package tt; \n"
@@ -65,10 +66,13 @@ public class esclambdas extends EscBase {
                 +"  }\n"
                                 
                 +"}"
+                // FIXME - here and in testIterable2 -- use implicitIteration to be sure the invariant holds
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (InvariantExit) in method m1:  tt.TestJava.m1(java.lang.Iterable<@org.jmlspecs.annotation.NonNull tt.TestJava.MMM>) (parameter a)",65
+                ,"$SPECS/specs/java/lang/Iterable.jml:10: warning: Associated declaration",20
                 );
     }
     
-    @Test @Ignore // not working yet
+    @Test
     public void testIterable2() {
     	main.addOptions("-code-math=java"); // Just to avoid ovcerflow errors
         helpTCX("tt.TestJava","package tt; \n"
@@ -85,20 +89,23 @@ public class esclambdas extends EscBase {
                 +"  }\n"
                                 
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",19
+                ,"$SPECS/specs/java/lang/Iterable.jml:9: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",66
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (InvariantExit) in method m1:  tt.TestJava.m1(java.lang.Iterable<@org.jmlspecs.annotation.Nullable tt.TestJava.MMM>) (parameter a)",81
+                ,"$SPECS/specs/java/lang/Iterable.jml:10: warning: Associated declaration",20
                 );
+        		// FIXME - use implicit iteration to avoid the second error
     }
     
-    @Test @Ignore // not working yet
+    @Test
     public void testIterable2b() {
-    	main.addOptions("-code-math=java"); // Just to avoid ovcerflow errors
+    	main.addOptions("-code-math=java"); // Just to avoid overflow errors
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  \n"
                 +"  public static class MMM {\n"
                 +"    public int i ;\n"
-                +"    public void bump() { i++; }\n"
+                +"    /*@ assignable i; */ public void bump() { i++; }\n"
                 +"  }\n"
                 
                 +"  public void m1(/*@ non_null*/ Iterable<@org.jmlspecs.annotation.NonNull MMM> a) {\n"
@@ -116,17 +123,19 @@ public class esclambdas extends EscBase {
                 +"public class TestJava { \n"
                 
                 +"  public int j;\n"
-                +"  public int k() { return 7; };\n"
+                +"  /*@ pure */ public int k() { return 7; };\n"
                 +"  public static class MMM {\n"
                 +"    public int i ;\n"
                 +"  }\n"
                 
-                +"  public void bump(MMM m1, MMM m2) {"
+                +"  //@ assignable m1.i; \n"
+                +"  public void bump(MMM m1, MMM m2) {\n"
                 +"     m1.i += (j + m2.i + k());\n"
                 +"  }\n"
                 
                 +"  //@ requires a.containsNull == false;\n"
-                +"  public void m1(/*@ non_null*/ Iterable<MMM> a) {\n"
+                +"  public void m1(/*@ non_null*/ Iterable</*@ non_null*/ MMM> a) {\n"
+                +"    //java.util.function.Consumer<MMM> action = (m->bump(m,m)); for (@org.jmlspecs.annotations.NonNull MMM t: a) action.accept(t); \n"
                 +"    a.forEach(m->bump(m,m));\n"
                 +"  }\n"
                                 
@@ -135,7 +144,7 @@ public class esclambdas extends EscBase {
     }
     
     
-    @Test  @Ignore // FIXME - not working yet
+    @Test
     public void testIdentity() {
         helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"
                                 +"public class TestJava { \n"
@@ -152,7 +161,7 @@ public class esclambdas extends EscBase {
                                 );
                     }
 
-    @Test @Ignore // FIXME - not working yet
+    @Test
     public void testIdentity2() {
         helpTCX("tt.TestJava","package tt; import java.util.function.Function;\n"
                                 +"public class TestJava { \n"
@@ -228,7 +237,7 @@ public class esclambdas extends EscBase {
                                 );
                     }
 
-    @Test @Ignore // not working yet
+    @Test
     public void testIterable4() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -294,7 +303,7 @@ public class esclambdas extends EscBase {
                 );
     }
     
-    @Test @Ignore // Timesout -- FIXME - should be simple// FIXME - can we make the casts implicit
+    @Test
     public void testEquality() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -324,7 +333,7 @@ public class esclambdas extends EscBase {
                 +"public class TestJava { \n"
                 
                 +"  public static class C {};\n"
-                +"  //@ public model static class R extends C {};\n"
+                +"  //@ model public static class R extends C {};\n"
                 
                 +"  public /*@ nullable {R}*/C field;\n"
 
@@ -507,7 +516,7 @@ public class esclambdas extends EscBase {
 
                 +"  //@ public behavior ensures true; pure\n" 
                 +"  public static /*@!PureSupplier */ java.util.function.Supplier<Integer> m() {\n"
-                +"      return /*@ ( PureSupplier )@*/ ()->1;\n"
+                +"      return  /*@ ( PureSupplier ) @*/ ()->1;\n"
                 +"  }\n"
                 
                 +"  //@ public behavior ensures true; pure\n" 

@@ -1243,24 +1243,22 @@ public class JmlParser extends JavacParser {
     @Override
     public JCExpression unannotatedType(boolean allowVar) {
         JCExpression replacementType = null;
-        {
-            boolean isBrace = token.kind == TokenKind.LBRACE;
-            if (isBrace || token.kind==TokenKind.BANG) {
-                try {
-                    // We need to be in non-JML mode so that we don't interpret
-                    nextToken();
-                    replacementType = super.unannotatedType(allowVar);
-                } finally {
-                    if (isBrace) accept(TokenKind.RBRACE);
-                    if (token.ikind != JmlTokenKind.ENDJMLCOMMENT) {
-                        utils.error(token.pos,"jml.bad.construct","JML construct");
-                    }
-                    skipThroughEndOfJML();
-                }
-                if (!isBrace) {
-                    return replacementType;
-                }
-            }
+        boolean isBrace = S.jml() && token.kind == TokenKind.LBRACE;
+        if (isBrace || token.kind==TokenKind.BANG) {
+        	try {
+        		// We need to be in non-JML mode so that we don't interpret
+        		nextToken();
+        		replacementType = super.unannotatedType(allowVar);
+        	} finally {
+        		if (isBrace) accept(TokenKind.RBRACE);
+        		if (token.ikind != JmlTokenKind.ENDJMLCOMMENT) {
+        			utils.error(token.pos,"jml.bad.construct","JML construct");
+        		}
+        		skipThroughEndOfJML();
+        	}
+        	if (!isBrace) {
+        		return replacementType;
+        	}
         }
         JCExpression type = super.unannotatedType(allowVar);
         this.replacementType = replacementType;
@@ -2183,7 +2181,6 @@ public class JmlParser extends JavacParser {
     public JCExpression term3() {
         List<JCExpression> typeArgs = null;
         int p = pos(); // Position of the keyword
-    	if (System.getenv("STACK")!=null) System.out.println("JML TERM3 " + token.kind + " " + p);
         if (token.kind == IDENTIFIER) {
         	// FIXME - generally handle backslash type identifiers; verify type or expression
             String id = token.name().toString();
@@ -2302,6 +2299,33 @@ public class JmlParser extends JavacParser {
                         t = toP(jmlF.at(pos).JmlTuple(tuple));
                     }
                     return term3Rest(t, null);
+                } else if (pres == ParensResult.CAST) {
+                    accept(LPAREN);
+                    mode = TYPE;
+                    java.util.List<JCExpression> tuple = new java.util.LinkedList<>();
+                    JCExpression t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
+                    tuple.add(t);
+//                    while (token.kind == COMMA) {
+//                        accept(COMMA);
+//                        t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
+//                        tuple.add(t);
+//                    }
+                    accept(RPAREN);
+//                    if (tuple.size() == 1) {
+                    	if (acceptEndJML()) {
+                    		mode = EXPR;
+                    		JCExpression e = super.term3();
+                    		return toP(F.at(pos).TypeCast(t, e));
+                    	} else {
+                            selectExprMode();
+                            JCExpression e = term3();
+                    		return toP(F.at(pos).TypeCast(t, e));
+                    	}
+//                    } else {
+//                    	// FIXME - this should not happen
+//                        t = toP(jmlF.at(pos).JmlTuple(tuple));
+//                        return term3Rest(t, null);
+//                    }
                 }
             }
         }
@@ -2882,8 +2906,10 @@ public class JmlParser extends JavacParser {
      * but it is allowed to combine multiple consecutive statements into a single comment, so
      * and end-of-jml marker is not required.
      */
-    public void acceptEndJML() {
+    public boolean acceptEndJML() {
+    	if (token.ikind != ENDJMLCOMMENT) return false;
     	while (token.ikind == ENDJMLCOMMENT) nextToken();
+    	return true;
         //while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken(); // FIXME - replace using this
     }
 

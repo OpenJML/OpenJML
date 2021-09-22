@@ -2423,7 +2423,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
        
     public void checkVarMods(JmlVariableDecl tree) {
-        if (tree.name == names.error || tree.type == null || tree.type.isErroneous()) System.out.println("BAD VAR " + tree);
+        // tree.type.isErroneous() can be true during resolution of lambda expressions
         if (tree.name == names.error || tree.type == null || tree.type.isErroneous()) return;
         JCModifiers mods = tree.mods;
         String kind;

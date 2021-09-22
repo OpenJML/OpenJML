@@ -1146,7 +1146,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //    		tree.vartype = jmlF.at(tree).AnnotatedType(List.<JCAnnotation>of(ann), tree.vartype);
 //    	}
     	boolean prev = JmlResolve.instance(context).allowJML();
-    	if (utils.isJML(tree.mods)) JmlResolve.instance(context).setAllowJML(true);
+    	if (utils.isJML(tree.mods) || ((JmlVariableDecl)tree).jmltype) JmlResolve.instance(context).setAllowJML(true);
     	try {
     		super.visitVarDef(tree);
     	} finally {

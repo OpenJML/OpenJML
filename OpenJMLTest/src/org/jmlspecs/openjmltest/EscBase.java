@@ -163,20 +163,19 @@ public abstract class EscBase extends JmlTestCase {
     protected static String testspecpath;
     
     // Set this field to the expected exit value. 
-    // 0: only static checking errors, not parsing or type errors
+    // 0: only warnings and static checking errors, not parsing or type errors
     // 1: parsing or type errors
     // -1: don't check the exit value
     protected int expectedExit = 0;
     protected boolean noAssociatedDeclaration;
     protected String[] args;
-//    protected String openJmlPropertiesDir = "../OpenJML"; 
 
     @Override
     public void setUp() throws Exception {
         if (captureOutput) collectOutput(true);
         testspecpath = testspecpath1;
         ignoreNotes = true;
-        super.setUp();
+        super.setUp(); // Uses ignoreNotes
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-command","esc");
         main.addOptions("-keys","NOARITH");
