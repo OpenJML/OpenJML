@@ -97,6 +97,18 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         r.elseBlock = translate(that.elseBlock);
         result = r;
     }
+    
+    public JCTree visitLetExpr(LetExpr that, Void p) {
+        LetExpr let = that;
+        for (JCStatement d: that.defs) {
+        	if (d instanceof JCVariableDecl) ((JCVariableDecl)d).init = translate(((JCVariableDecl)d).init);
+        }
+        that.expr = translate(that.expr);
+        let.pos = that.pos;
+        let.type = that.type;
+        return let;
+    }
+
 
     @Override
     public void visitJmlClassDecl(JmlClassDecl that) {

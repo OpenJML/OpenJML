@@ -115,6 +115,7 @@ public class JmlTree {
         JmlLabeledStatement JmlLabeledStatement(Name label, ListBuffer<JCStatement> extra, JCStatement block);
         JmlLambda JmlLambda(List<JCVariableDecl> params, JCTree body, JCExpression jmlType);
         JmlLblExpression JmlLblExpression(int labelPosition, IJmlClauseKind kind, Name label, JCTree.JCExpression expr);
+        JmlLetExpr JmlLetExpr(List<JCStatement> defs, JCExpression expr, boolean explicit);
         JmlMatchExpression JmlMatchExpression(JCTree.JCExpression expr, List<JmlMatchExpression.MatchCase> cases);
         JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> cases);
         JmlMethodClauseDecl JmlMethodClauseDecl(String keyword, IJmlClauseKind t, List<JCTree.JCVariableDecl> decls);
@@ -576,6 +577,21 @@ public class JmlTree {
         @Override
         public JmlLblExpression JmlLblExpression(int labelPosition, IJmlClauseKind kind, Name label, JCTree.JCExpression expr) {
             JmlLblExpression p = new JmlLblExpression(pos,labelPosition,kind,label,expr);
+            return p;
+        }
+        
+        /** Creates a JML \let expression */
+        @Override
+        public LetExpr LetExpr(List<JCStatement> defs, JCExpression expr) {
+        	JmlLetExpr p = new JmlLetExpr(defs,expr,false);
+            return p;
+        }
+        
+        /** Creates a JML \let expression */
+        @Override
+        public JmlLetExpr JmlLetExpr(List<JCStatement> defs, JCExpression expr, boolean explicit) {
+        	JmlLetExpr p = new JmlLetExpr(defs,expr,explicit);
+        	p.pos = pos;
             return p;
         }
         
@@ -3899,6 +3915,35 @@ public class JmlTree {
             }
         }
 
+    }
+    
+    public static class JmlLetExpr extends LetExpr {
+        public boolean explicit = false;
+        
+        public JmlLetExpr(List<JCStatement> defs, JCExpression expr, boolean explicit) {
+            super(defs, expr);
+            this.explicit = explicit;
+        }
+        
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitLetExpr(this); 
+            } else {
+                //System.out.println("A JmlLambda expects an IJmlVisitor, not a " + v.getClass());
+                super.accept(v);
+            }
+        }
+    
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitLetExpr(this, d);
+            } else {
+                //System.out.println("A JmlLetExpr expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
     }
     
     public static class JmlNewClass extends JCNewClass {

@@ -2112,7 +2112,7 @@ public class escnew extends EscBase {
                 +"    else if (clazz == Short.class) j = 201; \n"
                 +"    else if (clazz == Boolean.class) j = 100;\n"
                 +"    else if (Number.class.isAssignableFrom(clazz)) j = 202;\n"
-                +"    else j = 0; \n  //@ show clazz <: Number.class, clazz <: Boolean.class, clazz;\n"
+                +"    else j = 0; \n  //@ show j, clazz <: Number.class, clazz <: Boolean.class, clazz, Number.class.isAssignableFrom(clazz) == (clazz <: Number.class);\n"
                 +"  }\n"
                 
                

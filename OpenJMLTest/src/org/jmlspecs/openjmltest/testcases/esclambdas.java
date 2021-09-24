@@ -58,18 +58,18 @@ public class esclambdas extends EscBase {
                 +"  \n"
                 +"  public static class MMM {\n"
                 +"    public int i ;\n"
+                +"    //@ writes i;\n"
                 +"    public void bump() { i++; }\n"
                 +"  }\n"
                 
                 +"  public void m1(Iterable<@org.jmlspecs.annotation.NonNull MMM> a) {\n"
+                +"    //@ loop_invariant a.values == \\old(a.values);\n"
+                +"    //@ inlined_loop;\n"
                 +"    a.forEach(MMM::bump);\n"
                 +"  }\n"
                                 
                 +"}"
-                // FIXME - here and in testIterable2 -- use implicitIteration to be sure the invariant holds
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (InvariantExit) in method m1:  tt.TestJava.m1(java.lang.Iterable<@org.jmlspecs.annotation.NonNull tt.TestJava.MMM>) (parameter a)",65
-                ,"$SPECS/specs/java/lang/Iterable.jml:10: warning: Associated declaration",20
-                );
+                ); // FIXME - no way to write the frame condition for m1
     }
     
     @Test
@@ -81,19 +81,19 @@ public class esclambdas extends EscBase {
                 +"  \n"
                 +"  public static class MMM {\n"
                 +"    public int i ;\n"
+                +"    //@ writes i;\n"
                 +"    public void bump() { i++; }\n"
                 +"  }\n"
                 
                 +"  public void m1(/*@ non_null*/ Iterable<@org.jmlspecs.annotation.Nullable MMM> a) {\n"  // We do not know that each element returned by the iterable is non-null
+                +"    //@ loop_invariant a.values == \\old(a.values);\n"
+                +"    //@ inlined_loop;\n"
                 +"    a.forEach(m->m.bump());\n"
                 +"  }\n"
                                 
                 +"}"
-                ,"$SPECS/specs/java/lang/Iterable.jml:9: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",66
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (InvariantExit) in method m1:  tt.TestJava.m1(java.lang.Iterable<@org.jmlspecs.annotation.Nullable tt.TestJava.MMM>) (parameter a)",81
-                ,"$SPECS/specs/java/lang/Iterable.jml:10: warning: Associated declaration",20
+                ,"$SPECS/specs/java/lang/Iterable.jml:10: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",53
                 );
-        		// FIXME - use implicit iteration to avoid the second error
     }
     
     @Test
@@ -143,7 +143,7 @@ public class esclambdas extends EscBase {
                 );
     }
     
-    
+    // FIXME - identity and identity2 need dynamic specs (f.ensures...)
     @Test
     public void testIdentity() {
         helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"

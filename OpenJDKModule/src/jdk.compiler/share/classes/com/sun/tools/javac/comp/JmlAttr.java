@@ -3748,35 +3748,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void visitLetExpr(LetExpr tree) { 
-    	JCStatement stat = tree.defs.head;
-    	boolean isJML = stat instanceof JmlVariableDecl && utils.isJML(((JmlVariableDecl)stat).mods);
-    	jmlenv.pushCopy();
-    	jmlenv.inExpressionScope = true;
-    	// FIXME - fixing is needed here. I think a JML \let statement should take the else block
-    	// But doing so causes a crash in testLocalVIsibility3 (which has a binary expression within the let)
-        if (env.info.scope.owner.kind == TYP) {
-            // Block is a static or instance initializer;
-            // let the owner of the environment be a freshly
-            // created BLOCK-method.
-            Symbol fakeOwner =
-                new MethodSymbol(BLOCK, names.empty, null, // FIXME - or'd other flags with BLOCK
-                                 env.info.scope.owner);
-            final Env<AttrContext> localEnv =
-                    env.dup(tree, env.info.dup(env.info.scope.dupUnshared(fakeOwner)));
-            //if ((tree.mods.flags & STATIC) != 0) localEnv.info.staticLevel++;
-
-            attribStats(tree.defs,localEnv);
-            attribExpr(tree.expr,localEnv,Type.noType);
-            Type resultType = tree.expr.type;
-            if (resultType.constValue() != null) resultType = resultType.constType(null);
-            result = check(tree, resultType, KindSelector.VAL, resultInfo);
-
-        } else {
-            // Create a new local environment with a local scope.
-            Env<AttrContext> localEnv =
-                env.dup(tree, env.info.dup(env.info.scope.dup()));
-
-            boolean saved = this.attribJmlDecls;
+    	if (tree instanceof JmlLetExpr && ((JmlLetExpr)tree).explicit) {
+        	jmlenv.pushCopy();
+        	jmlenv.inExpressionScope = true;
+        	Env<AttrContext> localEnv;
+        	if (env.info.scope.owner.kind == TYP) {
+                // This branch is for let expressions in class-level clauses (e.g. invariant)
+                Symbol fakeOwner =
+                    new MethodSymbol(BLOCK, names.empty, null, // FIXME - or'd other flags with BLOCK
+                                     env.info.scope.owner);
+                localEnv =
+                        env.dup(tree, env.info.dup(env.info.scope.dupUnshared(fakeOwner)));
+            } else {
+                // Create a new local environment with a local scope.
+                localEnv =
+                    env.dup(tree, env.info.dup(env.info.scope.dup()));
+            }
+            boolean saved = this.attribJmlDecls; // TODO - check where this is used
             this.attribJmlDecls = true;
             attribStats(tree.defs,localEnv);
             attribExpr(tree.expr,localEnv,Type.noType);
@@ -3786,8 +3774,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             result = check(tree, resultType, KindSelector.VAL, resultInfo);
 
             localEnv.info.scope.leave();
-        }
-        jmlenv.pop();
+            jmlenv.pop();
+    	} else {
+    		super.visitLetExpr(tree);
+    	}
     }
 
 

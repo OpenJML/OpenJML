@@ -688,13 +688,13 @@ public class typechecking extends TCBase {
 
     @Test public void testLetX1() {
         helpTCF("A.java","public class A { void m() { //@ assert (\\let ghost int i = 0; i != 0); \n}}"
-        		,"/A.java:1: error: ghost or model modifiers not permitted on an expression-local declaration",56
+        		,"/A.java:1: error: ghost or model modifiers not permitted on an expression-local declaration",46
                 );
     }
     
     @Test public void testLetX2() {
         helpTCF("A.java","public class A { void m() { //@ assert (\\let model int i = 0; i != 0); \n}}"
-        		,"/A.java:1: error: ghost or model modifiers not permitted on an expression-local declaration",56
+        		,"/A.java:1: error: ghost or model modifiers not permitted on an expression-local declaration",46
                 );
     }
     

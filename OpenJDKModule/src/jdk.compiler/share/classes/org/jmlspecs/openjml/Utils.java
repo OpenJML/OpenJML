@@ -35,6 +35,7 @@ import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.IJmlClauseKind.TypeAnnotationKind;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.IInJML;
+import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlModifiers;
@@ -348,6 +349,11 @@ public class Utils {
     	return fs != null && hasMod(fs.mods, Modifiers.MODEL);
     }
     
+    public boolean isGhost(/*@non_null*/ VarSymbol symbol) {
+    	var fs = JmlSpecs.instance(context).getLoadedSpecs(symbol);
+    	return fs != null && hasMod(fs.mods, Modifiers.GHOST);
+    }
+    
     public boolean isModel(/*@non_null*/ Symbol symbol) {
     	if (symbol instanceof ClassSymbol) return isModel((ClassSymbol)symbol);
     	if (symbol instanceof MethodSymbol) return isModel((MethodSymbol)symbol);
@@ -507,10 +513,12 @@ public class Utils {
 //        return findMod(mods,JmlAttr.instance(context).tokenToAnnotationSymbol.get(ta));
 //    }
 
-    public JmlTree.JmlAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */IJmlClauseKind.ModifierKind ta) {
+    public JmlTree.JmlAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */IJmlClauseKind.ModifierKind ... tarr) {
         if (mods == null) return null;
         for (JCTree.JCAnnotation a: mods.annotations) {
-        	if (((JmlTree.JmlAnnotation)a).kind == ta) return (JmlTree.JmlAnnotation)a;
+        	for (var ta: tarr) {
+        		if (((JmlTree.JmlAnnotation)a).kind == ta) return (JmlTree.JmlAnnotation)a;
+        	}
         }
         return null;
     }

@@ -13882,7 +13882,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             try {
                 JCExpression e = convertExpr(that.expr);
-                result = eresult = M.at(that).LetExpr(that.defs, e).setType(that.type);
+                result = eresult = M.at(that).JmlLetExpr(that.defs, e, ((JmlLetExpr)that).explicit).setType(that.type);
             } finally {
                 for (JCStatement st : that.defs) {
                     if (st instanceof JCVariableDecl) {
