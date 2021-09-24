@@ -1221,9 +1221,7 @@ public class JmlEnter extends Enter {
 							utils.error(vdecl, "jml.message", "This specification declaration of field " + vdecl.name + " has the same name as a previous field declaration");
 							JmlVariableDecl v = (JmlVariableDecl)alreadyMatched.get(vsym);
 							utils.error(v.source(), v.pos, "jml.associated.decl.cf", utils.locationString(vdecl.pos, vdecl.source()));
-						}
-
-						if ((!isJML && !matchIsJML) && !specsTypeSufficientlyMatches(t, vsym.type, javaVDecl == null, vsym)) {
+						} else if ((!isJML && !matchIsJML) && !specsTypeSufficientlyMatches(t, vsym.type, javaVDecl == null, vsym)) {
 							String msg = "Type of field " + vdecl.name + " in specification differs from type in source/binary: " + t + " vs. " + vsym.type;
 							if (javaVDecl != null) {
 								utils.error(vdecl.vartype, "jml.message", msg, javaVDecl.pos(), javaVDecl.sourcefile);

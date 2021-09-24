@@ -23,7 +23,9 @@ import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.LetExpr;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
@@ -227,30 +229,32 @@ public class QuantifiedExpressions extends JmlExtension {
                 IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             ListBuffer<JCTree.JCStatement> vdefs = new ListBuffer<>();
-            int pos = parser.pos();
+            int pos = parser.pos(); // Position of keyword
             parser.nextToken(); // advance over keyword
-            if (mods == null) {
-            	mods = parser.jmlF.Modifiers(0L);
+            if (mods != null) { 
+            	log.error(pos,"jml.internal.notsobad","Parse routine for \\let does not expect modifiers to be already parsed");
             }
-            utils.setJML(mods);
             do {
-                int declpos = parser.pos();
-                JCModifiers xmods = parser.jmlF.Modifiers(mods.flags);
-                xmods.pos = declpos;
-                parser.storeEnd(xmods,declpos);
+                mods = parser.modifiersOpt();
+                utils.setJML(mods);
+                if (utils.hasMod(mods, Modifiers.MODEL, Modifiers.GHOST)) {
+                	utils.error(log.currentSourceFile(),mods.pos,"jml.message","ghost or model modifiers not permitted on an expression-local declaration");
+                }
+                int declpos = parser.pos(); // beginning of type
                 JCExpression type = parser.parseType();
-                int p = parser.pos();
+                int p = parser.pos(); // beginning of name
                 Name name = parser.ident();
-                JCVariableDecl decl = parser.variableDeclaratorRest(p,xmods,type,name,true,null,true,false);
-                decl.pos = p;
+                JCVariableDecl decl = parser.variableDeclaratorRest(p,mods,type,name,true,null,true,false);
                 if (decl.init == null) toP(decl);
                 vdefs.add(decl);
                 if (parser.token().kind != COMMA) break;
                 parser.accept(COMMA);
             } while (true);
-            parser.accept(SEMI); // FIXME - use wrapup
+            parser.accept(SEMI);
             JCExpression expr = parser.parseExpression();
-            return toP(parser.jmlF.at(pos).LetExpr(vdefs.toList(),expr));
+            LetExpr r = parser.jmlF.at(pos).JmlLetExpr(vdefs.toList(),expr,true);
+            wrapup(r, clauseType, false, false);
+            return r;
         }
     };
 }

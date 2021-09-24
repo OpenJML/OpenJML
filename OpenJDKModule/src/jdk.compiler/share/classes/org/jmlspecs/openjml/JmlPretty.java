@@ -252,6 +252,23 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             perr(that,e);
         }
     }
+    
+    public void visitLetExpr(LetExpr that) {
+        try {
+            if (that instanceof JmlLetExpr && ((JmlLetExpr)that).explicit) {
+            	print("\\let ");
+            	for (JCStatement d: that.defs) {
+            		printStat(d); // FIXME - decls should be comma-separated, not in //@
+            	}
+            	print("; ");
+            	printExpr(that.expr);
+            } else {
+                super.visitLetExpr(that);
+            }
+        } catch (IOException e) {
+            perr(that,e);
+        }
+    }
 
     public void visitJmlLabeledStatement(JmlLabeledStatement that) {
         try {

@@ -143,7 +143,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
     @Override
     public JCTree visitLetExpr(LetExpr that, Void p) {
         try {
-            ListBuffer<JCVariableDecl> newdecls = new ListBuffer<JCVariableDecl>();
+            ListBuffer<JCStatement> newstats = new ListBuffer<JCStatement>();
             ListBuffer<JCExpression> newinits = new ListBuffer<JCExpression>();
 
             // The initializers are evaluated in the external scope,
@@ -155,20 +155,23 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
                 newinits.add(newinit);
             }
             for (JCStatement st: that.defs) {
-            	if (!(st instanceof JCVariableDecl)) continue;
-            	JCVariableDecl decl = (JCVariableDecl)st;
-                JCExpression newinit = newinits.next();
-                JCVariableDecl newdecl = treeutils.makeVariableDecl(decl.name,  decl.type, newinit, decl.pos);
-                JCIdent id = treeutils.makeIdent(that,newdecl.sym);
-                replacements.put(decl.sym, id);
-                newdecls.add(newdecl);
+            	if (st instanceof JCVariableDecl) {
+            		JCVariableDecl decl = (JCVariableDecl)st;
+            		JCExpression newinit = newinits.next();
+            		JCVariableDecl newdecl = treeutils.makeVariableDecl(decl.name,  decl.type, newinit, decl.pos);
+            		JCIdent id = treeutils.makeIdent(that,newdecl.sym);
+            		replacements.put(decl.sym, id);
+            		newstats.add(newdecl);
+            	} else {
+            		newstats.add(st);
+            	}
             }
-//            LetExpr q =  M.LetExpr(newdecls.toList(), null);
-//            q.expr = copy(that.expr, p);
-//            q.setType(that.type);
-//            q.pos = that.pos;
-//            return q;
-            return null; // FIXME
+            // FIXME
+            LetExpr q =  M.JmlLetExpr(newstats.toList(), null, ((JmlLetExpr)that).explicit);
+            q.expr = copy(that.expr, p);
+            q.setType(that.type);
+            q.pos = that.pos;
+            return q;
         } finally {
             for (JCStatement st: that.defs) {
             	if (!(st instanceof JCVariableDecl)) continue;
