@@ -1,7 +1,7 @@
-test/gitbug688err/DayTime.java:47: error: An identifier with private visibility may not be used in a jml declaration clause with public visibility
+test/gitbug688err/DayTime.java:47: error: An identifier with private visibility may not be used in a old clause with public visibility
     //@ old int diff = secondCalulation(this) - secondCalulation(stop); // A public spec cannot see private methods/specs
                        ^
-test/gitbug688err/DayTime.java:47: error: An identifier with private visibility may not be used in a jml declaration clause with public visibility
+test/gitbug688err/DayTime.java:47: error: An identifier with private visibility may not be used in a old clause with public visibility
     //@ old int diff = secondCalulation(this) - secondCalulation(stop); // A public spec cannot see private methods/specs
                                                 ^
 Operation not performed because of parse or type errors

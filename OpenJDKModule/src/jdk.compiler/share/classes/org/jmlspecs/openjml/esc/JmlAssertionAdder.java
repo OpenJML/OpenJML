@@ -8783,25 +8783,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         // The MethodSymbol used to iterate over the parameter VarSymbols must correspond to the Env
                     	// used to attribute the specifications. We use the specSym because the javaSym might belong to
                     	// a binary and thus have different parameter names (which it might if it has a java declaration as well)
-                        Iterator<VarSymbol> iter = ssym.params.iterator();
-                        for (JCExpression arg: trArgs) {
-                        	VarSymbol v = null;
-                            if (iter.hasNext()) paramActuals.put(v=iter.next(), arg);
-                            else {
-                                // FIXME - mismatch in number of arguments; what about varargs?
-                            }
-//                            if (mpsym.toString().contains("arraycopy")) System.out.println("   MAPPING " + v + " " + v.hashCode() + " " + arg);
+                        if (ssym.params == null) {
+                        	// For some reason, calls to clone() have ssym.params == null instead of an empty parameter list
+                        	if (trArgs.length() != 0) {
+                    			// FIXME - mismatch in number of arguments; what about varargs?
+                        	}
+                        } else {
+                        	Iterator<VarSymbol> iter = ssym.params.iterator();
+                        	for (JCExpression arg: trArgs) {
+                        		VarSymbol v = null;
+                        		if (iter.hasNext()) paramActuals.put(v=iter.next(), arg);
+                        		else {
+                        			// FIXME - mismatch in number of arguments; what about varargs?
+                        		}
+                        	}
                         }
-//                        if (mpsym.toString().contains("arraycopy")) System.out.println("PARAMACTUALS " + mpsym + " " + calleeSpecs.decl.sym + " " + paramActuals);
-//                    } else if (mpsym.params != null) {
-//                        Iterator<VarSymbol> iter = mpsym.params.iterator();
-//                        for (JCExpression arg: trArgs) {
-//                            if (iter.hasNext()) paramActuals.put(iter.next(), arg);
-//                            else {
-//                                // FIXME - mismatch in number of arguments; what about varargs?
-//                            }
-//                        }
-                        
                     }
                     if (esc) {
                         // Map type variables for this particular method declaration to the corresponding type, already determined by type attribution 

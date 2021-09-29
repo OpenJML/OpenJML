@@ -80,7 +80,7 @@ public class TreeBidiMap<K extends Comparable<K>, V extends Comparable<V>>
 
     static enum DataElement {
         KEY("key"), VALUE("value");
-
+    	//@ spec_public
         private final String description;
 
         /**

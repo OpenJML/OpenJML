@@ -5,11 +5,24 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of MyObjectArray.Address.Address() with prover !!!! - no warnings
 Completed proving methods in MyObjectArray.Address
-Starting proof of MyObjectArray.MyObjectArray() with prover !!!!
+Starting proof of MyObjectArray.MyObjectArray(MyObjectArray.Address) with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - after explicit assume statement : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
-Completed proof of MyObjectArray.MyObjectArray() with prover !!!! - no warnings
+Completed proof of MyObjectArray.MyObjectArray(MyObjectArray.Address) with prover !!!! - no warnings
 Completed proving methods in MyObjectArray
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Proving methods in Test.2
+Starting proof of Test.2.apply(String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.2.apply(String) with prover !!!! - no warnings
+Completed proving methods in Test.2
+Starting proof of Test.blah(java.util.Collection<String>) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.blah(java.util.Collection<String>) with prover !!!! - no warnings
+Completed proving methods in Test

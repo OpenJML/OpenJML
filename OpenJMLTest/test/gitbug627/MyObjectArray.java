@@ -20,12 +20,12 @@ public class MyObjectArray {
         for (int i = 0; i < 100; ++i) {
             addresses[i] = new Address();
             int jj = 0;
-            //@ havoc jj;
-            //@ assume 0 <= jj && jj < i ;
-            //@ show jj,i,addresses[jj],addresses[i], \fresh(addresses[jj],LoopBodyBegin), \fresh(addresses[i],LoopBodyBegin);
-            //@ assert addresses[i] != addresses[jj];
-            //@ assert !\fresh(addresses[jj], LoopBodyBegin);
-            //@ assert \fresh(addresses[i], LoopBodyBegin);
+            // @ havoc jj;
+            // @ assume 0 <= jj && jj < i ;
+            // @ show jj,i,addresses[jj],addresses[i], \fresh(addresses[jj],LoopBodyBegin), \fresh(addresses[i],LoopBodyBegin);
+            // @ assert addresses[i] != addresses[jj];
+            // @ assert !\fresh(addresses[jj], LoopBodyBegin);
+            // @ assert \fresh(addresses[i], LoopBodyBegin);
             //@ assert (\forall int j; 0<=j && j<=i; (\forall int k; 0<=k && k<j; addresses[j] != addresses[k]));
         }
 
