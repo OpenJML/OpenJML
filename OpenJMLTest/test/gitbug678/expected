@@ -1,5 +1,8 @@
 Proving methods in DoubleABS
-Skipping proof of DoubleABS.DoubleABS() (excluded by -method)
+Starting proof of DoubleABS.DoubleABS() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of DoubleABS.DoubleABS() with prover !!!! - no warnings
 Starting proof of DoubleABS.DoubleAbsolute(Double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
