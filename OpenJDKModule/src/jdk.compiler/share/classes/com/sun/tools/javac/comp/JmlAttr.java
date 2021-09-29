@@ -368,7 +368,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	if (!(c.owner instanceof ClassSymbol || c.owner instanceof PackageSymbol)) {
     		var classEnv = typeEnvs.get(c);
     		if (classEnv == null) {
-    			System.out.println("NULL ENV FOR " + c + " " + c.owner);
+    			// This branch happens for calls to clone() (at least)
+    			//System.out.println("NULL ENV FOR " + c + " " + c.owner);
                 super.attribClass(c);
     			return;
     		}
@@ -5557,8 +5558,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			return true;
     		}
     	}
-    	if (a.toString().equals("@Deprecated")) return false; // FIXME - why is this not attributed
-    	if (a.toString().equals("@Override")) return false; // FIXME - why is this not attributed
+    	if (a.toString().contains("@Deprecated")) return false; // FIXME - why is this not attributed
+    	if (a.toString().contains("@Override")) return false; // FIXME - why is this not attributed
     	utils.error(((JmlAnnotation)a).sourcefile, a.pos, "jml.message", "Null annotation type: " + a );
     	return false;
     }

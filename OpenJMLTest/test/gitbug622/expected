@@ -3,14 +3,14 @@ Starting proof of Test.Test() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
-Proving methods in Test.1
-Starting proof of Test.1.apply(java.lang.String) with prover !!!!
+Proving methods in Test.2
+Starting proof of Test.2.apply(String) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.1.apply(java.lang.String) with prover !!!! - no warnings
-Completed proving methods in Test.1
-Starting proof of Test.blah(java.util.Collection<java.lang.String>) with prover !!!!
+Completed proof of Test.2.apply(String) with prover !!!! - no warnings
+Completed proving methods in Test.2
+Starting proof of Test.blah(java.util.Collection<String>) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.blah(java.util.Collection<java.lang.String>) with prover !!!! - no warnings
+Completed proof of Test.blah(java.util.Collection<String>) with prover !!!! - no warnings
 Completed proving methods in Test

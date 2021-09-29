@@ -1,6 +1,6 @@
 public class Test {
     
-    //@ requires m >= 0 && n>= 0;  // FIXME - fails to prove if m is allowed to be 0
+    //@ requires m >= 0 && n >= 0;
     //@ ensures \fresh(\result);
     //@ ensures \result.length == m;
     //@ ensures \forall int i; 0<=i<m; \result[i] != null && \result[i].length == n;
@@ -10,7 +10,7 @@ public class Test {
         int[][] a = new int[m][n];
         //@ assert a != null;
         //@ assert a.length == m;
-        //@ assert m > 0 ==> a[0] != null;  // FIXME - proof fails if the following are not assumed
+        //@ assert m > 0 ==> a[0] != null;
         //@ assert m > 0 ==> a[0].length == n;
         //@ assert \forall int i; 0 <= i < m; a[i] != null && a[i].length == n;
         //@ assert \forall int e; 0<=e<m; \forall int k; 0 <= k < m; (e != k ==> a[e] != a[k]);
@@ -53,7 +53,7 @@ public class Test {
         //@ assert a[2][3] ==7; //OK
     }
     
-    public static void mm2(int[][] a) {
+    public static void mm2a(int[][] a) {
         //@ assume a != null;
         //@ assume a.length == 5;
         //@ assume a[1] != null && a[2] != null;
@@ -61,11 +61,29 @@ public class Test {
         //@ assume a[2].length == 7;
         //@ assume a[2][3] ==7;
         //@ havoc a[*][*];
-        //@ assert a.length == 5 && a[1].length == 6 && a[2].length == 7 && a[2][3] ==7;  // FAILS
-        // @ assert a.length == 5;  // FAILS
-        // @ assert a[1].length == 6;  // FAILS
-        // @ assert a[2].length == 7;  // FAILS
-        // @ assert a[2][3] ==7;  // FAILS
+        //@ assert a.length == 5;  // OK
+    }
+    
+    public static void mm2b(int[][] a) {
+        //@ assume a != null;
+        //@ assume a.length == 5;
+        //@ assume a[1] != null && a[2] != null;
+        //@ assume a[1].length == 6;
+        //@ assume a[2].length == 7;
+        //@ assume a[2][3] ==7;
+        //@ havoc a[*][*];
+        //@ assert a[1].length == 6;  // FAILS
+    }
+    
+    public static void mm2c(int[][] a) {
+        //@ assume a != null;
+        //@ assume a.length == 5;
+        //@ assume a[1] != null && a[2] != null;
+        //@ assume a[1].length == 6;
+        //@ assume a[2].length == 7;
+        //@ assume a[2][3] ==7;
+        //@ havoc a[*][*];
+        //@ assert a[2].length == 7 ==> a[2][3] ==7;  // FAILS
     }
     
     public static void mm3(int[][] a) {

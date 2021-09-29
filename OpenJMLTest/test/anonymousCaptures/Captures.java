@@ -16,9 +16,9 @@ public class Captures {
         //@ assert res;
     }
         
-    public void mm(/*@ nullable */ Object xxxx) {
+    public void mm(/*@ non_null */ Object xxxx) {
     
-        // @ assert xxxx != null;
+        //@ assert xxxx != null;
         AAA a = new AAA() { 
             //@ public invariant xxxx != null;
             
@@ -28,7 +28,7 @@ public class Captures {
             public boolean p() { return xxxx != null; } 
             };
         boolean res = a.p();
-        // @ assert res;
+        //@ assert res;
     }
     
 }
