@@ -1,3 +1,14 @@
+// This Test file launches JUnit tests runs for the OpenJML tests,
+// running everything in OpenJMLTest/src/testcases...
+// except for rac tests, Specs tests, and those things listed in 'skips'
+//
+// Some parallelism is implemented -- cf. 'numThreads'
+// but currently the tests are run sequentially
+// A timeout is enforced -- cf. 'seconds'
+// There are some command-line options: -seq -par -t= -s= -v
+
+
+
 import org.jmlspecs.openjmltest.*;
 import org.jmlspecs.openjmltest.testcases.*;
 
@@ -23,6 +34,8 @@ public class Test {
 		while (args.length > 0) {
 			if (args[0].equals("-seq")) {
 				sequential = true;
+			} else if (args[0].equals("-par")) {
+				sequential = false;
 			} else if (args[0].startsWith("-t=")) {
 				numThreads = Integer.valueOf(args[0].substring(3));
 			} else if (args[0].startsWith("-s=")) {

@@ -1,4 +1,8 @@
 Dzmz
+Double
+Float
+Math
+PrimitiveOps
 Else
 anonymousCaptures
 binarySearch
@@ -96,6 +100,8 @@ primitives
 refining
 refiningBad
 requiresElse
+requiresElseA
+requiresElseB
 specificationInterfaceDemo
 splits
 splits2
