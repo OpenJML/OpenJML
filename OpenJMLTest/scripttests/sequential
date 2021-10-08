@@ -2,7 +2,7 @@
 
 for arg in "$@" ; do
 
-   timeout 7200s ./one-dir $arg 
+   timeout 600s ./one-dir $arg 
    if [ $? -eq 124 ]; then echo $arg Killed ; fi
 
 done

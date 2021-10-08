@@ -2,9 +2,9 @@ name: Create OpenJML Release
 
 on:
   push:
-    branches: [ development-module ]
+    branches: [ master--module ]
   pull_request:
-    branches: [ development-module ]
+    branches: [ master-module ]
 
 jobs:
   version: ## Could be any OS
@@ -15,7 +15,7 @@ jobs:
     steps:
     - name: Checkout OpenJML
       run: |
-        git clone -b development-module --depth 1 https://github.com/OpenJML/OpenJML
+        git clone -b master-module --depth 1 https://github.com/OpenJML/OpenJML
     - name: Find current release
       run: |
         cd OpenJML
@@ -31,4 +31,4 @@ jobs:
         export ver=`cat version.txt`
         echo Version $ver
         # Create new version
-        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"development-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" 
+        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"master-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases" 
