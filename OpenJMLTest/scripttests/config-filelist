@@ -1,4 +1,4 @@
-export CMD=openjml
+export CMD=./openjml
 export SPECS=`cd ../../../Specs/specs && pwd`
 export BASEARGS="-esc -progress -no-staticInitWarning -jmltesting -timeout=300 -checkFeasibility=precondition,reachable,exit,spec -code-math=bigint -spec-math=bigint"
 export EXIT=0
