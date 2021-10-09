@@ -2,9 +2,9 @@ name: Build OpenJML
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master-module ]
   pull_request:
-    branches: [ master ]
+    branches: [ master-module ]
 
 jobs:
   build:
@@ -12,12 +12,11 @@ jobs:
 
     strategy:
       matrix:
-        ## Windows jobs fail on some lit tests and sometimes fail even to
-        ## setup a work environment (e.g. dotnet installation)
+        ## TODO: Windows jobs fail 
         ##os: [ubuntu-latest]
         ##os: [ubuntu-latest, windows-latest, ubuntu-16.04]
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        ##os: [ubuntu-latest, macos-latest]
+        ##os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
 
       fail-fast: false
     steps:
@@ -54,8 +53,8 @@ jobs:
         java-version: 1.16
     - name: Checkout OpenJML
       run: |
-        git clone -b development-module --depth 1 https://github.com/OpenJML/OpenJML
-        git clone -b development-module --depth 1 https://github.com/OpenJML/Specs
+        git clone -b master-module --depth 1 https://github.com/OpenJML/OpenJML
+        git clone -b master-module --depth 1 https://github.com/OpenJML/Specs
         git clone --depth 1 https://github.com/OpenJML/Solvers
     - name: Build OpenJML Windows
       if: runner.os == 'Windows'
