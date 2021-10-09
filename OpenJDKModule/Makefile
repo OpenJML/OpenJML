@@ -63,6 +63,8 @@ topdir := $(strip $(patsubst %/, %, $(dir $(makefile_path))))
 # ... and then we can include the real makefile
 include $(topdir)/make/Init.gmk
 
+#### Additions for building OpenJML
+
 REL=release-temp
 
 clean-release:
@@ -95,3 +97,19 @@ post:
 trial:
 	$(REL)/openjml -version
 	$(REL)/openjml -esc -progress $(REL)/demos/Max.java
+
+
+openjml:
+	NOJML= make
+        make jmlruntime.jar
+
+jmlruntime.jar:
+	cp -r bin-runtime/* temp2
+	cp -r ${ANNOTATIONS}/bin/* temp2
+	touch temp2/JMLRUNTIME_MARKER
+	## jmlruntime.jar has bin-runtime, the annotations, and the marker file JMLRUNTIME_MARKER
+	## If Java is incorrectly setup, the jar command fails - so we check it this first time
+	(cd temp2; jar -cf ../${TEMPJAR}/jmlruntime.jar . ) || exit 1
+	rm -rf temp2
+	echo "   " jmlruntime.jar created
+
