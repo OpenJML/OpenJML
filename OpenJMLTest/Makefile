@@ -1,8 +1,8 @@
 
-R=/Users/davidcok/projects/OpenJMLB
-ROOT=$R/OpenJML/OpenJDKModule
-MODS=$(ROOT)/build/macosx-x86_64-server-release/images/jmods
-SPECS=/Users/davidcok/projects/OpenJMLB/Specs/specs
+##R=/Users/davidcok/projects/OpenJMLB
+##ROOT=$R/OpenJML/OpenJDKModule
+##MODS=$(ROOT)/build/macosx-x86_64-server-release/images/jmods
+##SPECS=$R/Specs/specs
 
 
 ##### The following are debugging tests
