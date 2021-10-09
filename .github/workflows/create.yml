@@ -2,7 +2,7 @@ name: Create OpenJML Release
 
 on:
   push:
-    branches: [ master--module ]
+    branches: [ master-module ]
   pull_request:
     branches: [ master-module ]
 
