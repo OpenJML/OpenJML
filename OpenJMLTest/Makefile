@@ -22,13 +22,6 @@ prep:
 	echo "import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }" > $T/C.java
 	echo "import org.jmlspecs.annotation.*; public class D { @Pure int m() { return 0; } }" > $T/D.java
 
-### The following is the OpenJML tests
-
-openjml-test:
-	( cd ./unittests; grep -v sleep runall | tr -d '&' > runseq; . ./runseq )
-	( cd ./scripttests; ./escfiles-sort)
-	( cd ./scripttests; ./gitfiles-sort)
-
 ##### The following are debugging tests
 
 debug:
