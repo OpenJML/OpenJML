@@ -1,8 +1,26 @@
 
-R=/Users/davidcok/projects/OpenJMLB
-ROOT=$R/OpenJML/OpenJDKModule
-MODS=$(ROOT)/build/macosx-x86_64-server-release/images/jmods
-SPECS=/Users/davidcok/projects/OpenJMLB/Specs/specs
+#R=/Users/davidcok/projects/OpenJMLB
+#ROOT=$R/OpenJML/OpenJDKModule
+#MODS=$(ROOT)/build/macosx-x86_64-server-release/images/jmods
+#SPECS=/Users/davidcok/projects/OpenJMLB/Specs/specs
+
+### The following is the OpenJML tests
+
+openjml-test: prep
+	( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
+	( cd ./scripttests; ./escfiles-sort)
+	( cd ./scripttests; ./gitfiles-sort)
+
+
+T=temp-release
+
+prep:
+	rm -rf $T
+	mkdir $T
+	echo "public class A { /*@ invariant 0; */ }" > $T/A.java
+	echo "public class B { /*@ invariant true; */ }" > $T/B.java
+	echo "import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }" > $T/C.java
+	echo "import org.jmlspecs.annotation.*; public class D { @Pure int m() { return 0; } }" > $T/D.java
 
 ### The following is the OpenJML tests
 
