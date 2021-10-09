@@ -41,7 +41,7 @@ public class Test {
 			} else if (args[0].startsWith("-s=")) {
 				seconds = Integer.valueOf(args[0].substring(3));
 			} else if (args[0].startsWith("-v")) {
-				verbose = true;;
+				verbose = true;
 			} else {
 				break;
 			}
@@ -104,10 +104,10 @@ public class Test {
 				}
 				if (verbose) System.out.println("Found @Parameter: " + pmethod);
 				params = (java.util.Collection<Object[]>)pmethod.invoke(null);
-				if (true || verbose) System.out.println(params.size() + " PARAMETER SETS");
+				if (verbose) System.out.println(params.size() + " PARAMETER SETS");
 			}
 			for (var p: params) {
-				if ((verbose && constr.getParameterCount() != 0) || constr.getParameterCount() < 10) {
+				if (verbose && constr.getParameterCount() != 0) {
 					System.out.print("PARAMS");
 					for (var o: p) System.out.print(" " + o);
 					System.out.println();
