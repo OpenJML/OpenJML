@@ -182,7 +182,7 @@ public abstract class EscBase extends JmlTestCase {
         main.addOptions("-escExitInfo","-no-purityCheck");
 //        main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
-        main.addOptions("-exec",JmlTestCase.root + "/Solvers/Solvers-macos/z3-4.3.1","-verbose");  // FIXME
+//        main.addOptions("-exec",JmlTestCase.root + "/Solvers/Solvers-macos/z3-4.3.1","-verbose");  // FIXME
         main.addUncheckedOption("openjml.defaultProver=z3_4");
         addOptions(options);
         if (solver != null) main.addOptions(JmlOption.PROVER.optionName(),solver);

@@ -15,7 +15,7 @@ else
     cd ../..
     p=test/$ts
     ##echo Testing $ts : $CMD $BASEARGS -specspath $p:$SPECS $ARGS -dir $p
-    $CMD $BASEARGS -specspath $p:$SPECS $ARGS -dir $p > $p/actual 2>&1
+    $home/$CMD $BASEARGS -specspath $p:$SPECS $ARGS -dir $p > $p/actual 2>&1
     stat=$?
     if [ ! -e $p/actual ]; then echo $p/actual : NO ACTUAL ; fi
     . $home/check-result $p/actual $stat && exit 1

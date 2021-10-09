@@ -4,10 +4,16 @@ ROOT=$R/OpenJML/OpenJDKModule
 MODS=$(ROOT)/build/macosx-x86_64-server-release/images/jmods
 SPECS=/Users/davidcok/projects/OpenJMLB/Specs/specs
 
+### The following is the OpenJML tests
+
+openjml-test:
+	( cd ./unittests; grep -v sleep runall | tr -d '&' > runseq; . ./runseq )
+	( cd ./scripttests; ./escfiles-sort)
+	( cd ./scripttests; ./gitfiles-sort)
 
 ##### The following are debugging tests
 
-default:
+debug:
 	rm -f Test.class
 	njavac -cp . Test.java
 	njava -cp . Test 
@@ -42,9 +48,3 @@ E-src:
 	cd ~/testn && openjml 1 -no-staticInitWarning -specspath /Users/davidcok/testn/esc:$(SPECS) /Users/davidcok/testn/esc/ETest.java -esc -verbose
 
 
-### The following is the OpenJML tests
-
-openjml-test:
-	( cd ./scripttests; ./escfiles-sort)
-	( cd ./scripttests; ./gitfiles-sort)
-	( cd ./unittests; source ./runall )
