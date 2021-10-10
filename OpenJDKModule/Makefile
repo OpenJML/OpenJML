@@ -63,26 +63,19 @@ topdir := $(strip $(patsubst %/, %, $(dir $(makefile_path))))
 # ... and then we can include the real makefile
 include $(topdir)/make/Init.gmk
 
-#### Additions for building OpenJML
+#### Additions for building OpenJML in the GitHub actions
 
 REL=release-temp
 
-clean-release:
-	make clean dist-clean
-	rm -rf $(REL)
+## Used in the github build.yml action
+
+release: version
+	bash ./configure
+	NOJML= make
+	make post
 
 version:
 	./version.sh
-
-release-image: version
-	bash ./configure > log-release
-	NOJML= make images > log-release-make 2>&1
-	make post
-
-release: version
-	bash ./configure > log-release
-	NOJML= make > log-release-make 2>&1
-	make post
 
 post:
 	rm -rf $(REL)
@@ -98,6 +91,7 @@ trial:
 	$(REL)/openjml -version
 	$(REL)/openjml -esc -progress $(REL)/demos/Max.java
 
+## Development build targets
 
 openjml:
 	NOJML= make
@@ -112,4 +106,20 @@ jmlruntime.jar:
 	(cd temp2; jar -cf ../${TEMPJAR}/jmlruntime.jar . ) || exit 1
 	rm -rf temp2
 	echo "   " jmlruntime.jar created
+
+## Misc helpful targets
+
+clean-release:
+	make clean dist-clean
+	rm -rf $(REL)
+
+release-image: version
+	bash ./configure > log-release
+	NOJML= make images > log-release-make 2>&1
+	make post
+
+release-quiet: version
+	bash ./configure > log-release
+	NOJML= make > log-release-make 2>&1
+	make post
 

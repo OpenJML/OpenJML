@@ -68,21 +68,10 @@ jobs:
         bash ./configure
     - name: Build release
       run: |
-        cd OpenJML/OpenJDKModule
-        make release 
+        make -C OpenJML/OpenJDKModule release 
     - name: Test release
       run: |
-        cd OpenJML/OpenJDKModule
-        make trial
-    - name: Find current release
-      run: |
-        cd OpenJML
-        export ver=`cat version.txt`
-        export tag=$var
-        export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep tag_name | head -1 | sed -e 's/.*: \"//' -e 's/\",//'`
-        echo $ver $tag
-        test "$ver" = "$tag" || echo Version $ver is not the current release, which is $tag
-        test "$ver" = "$tag"
+        make -C OpenJML/OpenJDKModule trial
     - name: Publish release
       run: |
         cd OpenJML
@@ -93,3 +82,12 @@ jobs:
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f" > /tmp/upload
+    - name: Check current release
+      run: |
+        cd OpenJML
+        export ver=`cat version.txt`
+        export tag=$var
+        export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep tag_name | head -1 | sed -e 's/.*: \"//' -e 's/\",//'`
+        echo $ver $tag
+        test "$ver" = "$tag" || echo Version $ver is not the current release, which is $tag
+        test "$ver" = "$tag"
