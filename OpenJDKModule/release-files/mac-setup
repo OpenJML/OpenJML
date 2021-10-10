@@ -1,4 +1,7 @@
 #! /bin/bash
 
+## This is run to fix some Mac security warnings
+## It actually only needs to be run once; it emits errors on subsequent runs.
+
 cd "$(dirname $BASH_SOURCE)"
 xattr -d com.apple.quarantine `find . -name *.dylib` `find . -name javac` `find . -name  *z3*` `find . -name jspawnhelper`
