@@ -69,25 +69,24 @@ jobs:
         cd OpenJML
         export ver=`cat version.txt`
         echo Version $ver
-        # Create new version
+        # Create new GitHub version
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"master-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
-    - name: Build OpenJML Windows
+    - name: Build OpenJML release on Windows
       if: runner.os == 'Windows'
       run: |
         cd OpenJML/OpenJDKModule
         bash ./configure
-    - name: Build OpenJML
+        make -C OpenJML/OpenJDKModule release 
+    - name: Build OpenJML release on not  Windows
       if: runner.os != 'Windows'
       run: |
         cd OpenJML/OpenJDKModule
         bash ./configure
-    - name: Build release
-      run: |
         make -C OpenJML/OpenJDKModule release 
-    - name: Test release
+    - name: Smoke Test release
       run: |
         make -C OpenJML/OpenJDKModule trial
-    - name: Publish release
+    - name: Load OpenJML build into GitHub release
       run: |
         cd OpenJML
         export ver=`cat version.txt`
@@ -98,7 +97,6 @@ jobs:
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f" 
     - name: Check current release
-      if: 0 == 1
       run: |
         cd OpenJML
         export ver=`cat version.txt`
