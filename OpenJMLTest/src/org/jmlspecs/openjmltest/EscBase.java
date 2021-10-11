@@ -342,6 +342,7 @@ public abstract class EscBase extends JmlTestCase {
         	synchronized (System.out) { 
         		if (print) printDiagnostics();
         		outputCompare.compareResults(expectedResults,collector);
+                        if (expectedExit == 0) for (Object er: expectedResults) if (er.toString().contains(": verify:")) expectedExit = 6;
         		if (ex != expectedExit) fail("Compile ended with exit code " + ex);
         	}
         } catch (Exception e) {
