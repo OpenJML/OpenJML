@@ -10,6 +10,10 @@ jobs:
 
     strategy:
       matrix:
+        ## Note that the GitHub realease needs to be create by one job
+        ## before each job can populate the release with the OpenJML build
+        ## for the corresponding OS. At present ubuntu-latest is used so
+        ## it must be in matrix.os
         ## TODO: Windows jobs fail 
         ##os: [ubuntu-latest]
         ##os: [ubuntu-latest, windows-latest, ubuntu-16.04]
@@ -60,7 +64,7 @@ jobs:
         git clone --depth 1 https://github.com/OpenJML/Solvers
     - name: Create the release
       ## Do this for just one element of the matrix
-      if: runner.os == 'Linux'
+      if: matrix.os == 'ubuntu-latest'
       run: |
         cd OpenJML
         export ver=`cat version.txt`
