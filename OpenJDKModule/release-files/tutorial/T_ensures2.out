@@ -1,0 +1,7 @@
+T_ensures2.java:18: verify: The prover cannot establish an assertion (Postcondition: T_ensures2.java:3:) in method max
+            if (b > c) return b;
+                       ^
+T_ensures2.java:3: verify: Associated declaration: T_ensures2.java:18:
+  //@ ensures \result >= a & \result >= b & \result >= c & \result >= d;
+      ^
+2 verification failures

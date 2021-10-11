@@ -1,8 +1,14 @@
 #! /bin/bash
 
+# Use quotes to accommodate paths containing spaces
+R1=$(realpath "$BASH_SOURCE")
+R2=$(dirname "$R1")
+ROOT=$( cd "$R2" && pwd)
 
-pushd "$(dirname $BASH_SOURCE)" > /dev/null
-if [ "$( uname )" = "Darwin" ] ; then ./mac-setup > /tmp/openjmlsetup 2>&1 ; fi
-ROOT="$( pwd )"
-popd > /dev/null
+# mac-setup is needed to fix Mac security cmplaints, though it is only
+# needed once
+if [ "$( uname )" = "Darwin" ] ; then "${ROOT}/mac-setup" > /tmp/openjmlsetup 2>&1 ; fi
+
+# OPENJML_ROOT is used within the executable to find things like 
+# the Specs and Solvers
 OPENJML_ROOT="$ROOT" "$ROOT/jdk/bin/javac" "$@"

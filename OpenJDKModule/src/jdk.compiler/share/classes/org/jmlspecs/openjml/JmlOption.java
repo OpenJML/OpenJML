@@ -97,6 +97,7 @@ public class JmlOption {
             return true;
     	}
     };
+    public static final JmlOption EXITVERIFY = new JmlOption("-verify-exit",true,null,"Exit code for verification errors",null);
     public static final JmlOption EXTENSIONS = new JmlOption("-extensions",true,null,"Extension packages and classes (comma-separated qualified names)",null);
 
     public static final JmlOption STOPIFERRORS = new JmlOption("-stopIfParseErrors",false,false,"When enabled, stops after parsing if any files have parsing errors",null);
