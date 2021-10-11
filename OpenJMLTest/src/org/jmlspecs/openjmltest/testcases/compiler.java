@@ -1024,7 +1024,7 @@ public class compiler {
     	helper(new String[]
     			{ "-no-purityCheck", "-esc", "testfiles/testEsc/A.java", "-classpath", "testfiles/testEsc",
     					"-exec=" + JmlTestCase.root + "/Solvers/Solvers-macos/z3-4.3.1"
-    			},0,0
+    			},6,0
     			,""
     			);
     }
