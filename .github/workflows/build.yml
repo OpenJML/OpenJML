@@ -21,6 +21,14 @@ jobs:
     - name: Manually sync certs
       if: runner.os == 'Linux'
       run: cert-sync /etc/ssl/certs/ca-certificates.crt
+    - name: MacOSX additions
+      if: runner.os == 'MacOS'
+      run: |
+        brew install coreutils
+    - name: MacOSX additions
+      if: runner.os == 'Darwin'
+      run: |
+        brew install coreutils
     - name: Linux additions
       if: runner.os == 'Linux'
       run: |
