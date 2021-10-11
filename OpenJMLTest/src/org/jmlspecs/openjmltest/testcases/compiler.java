@@ -213,8 +213,7 @@ public class compiler {
     @Test
     public void testRecursiveCP() throws Exception {
         helper(new String[]
-                          { "-classpath","test/testNoErrors"+z+"bin"+z+"$CP",
-                  //          "-noInternalSpecs",
+                          { "-classpath","test/testNoErrors"+z+"$CP",
                             "test/testNoErrors/A.java",  
                           },0,0,"warning: $CP is included in the specs path recursively or multiple times"+eol
                           + "1 warning" + eol);
@@ -979,7 +978,8 @@ public class compiler {
     public void release_testRuntime2() throws Exception {
     	expectedFile = "releaseTests/testRuntime2/expected";
     	helper(new String[]
-    			{ "temp-release/C.java", "-classpath", "../../JMLAnnotations/bin"+z+"../OpenJML/bin-runtime", "-no-purityCheck", "-no-internalRuntime"
+    			//{ "temp-release/C.java", "-classpath", "../../JMLAnnotations/bin"+z+"../OpenJML/bin-runtime", "-no-purityCheck", "-no-internalRuntime"
+    			{ "temp-release/C.java", "-no-purityCheck", "-no-internalRuntime"
     			},0,0
     			,""
     			);
