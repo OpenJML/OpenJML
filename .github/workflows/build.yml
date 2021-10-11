@@ -25,16 +25,12 @@ jobs:
       if: runner.os == 'MacOS'
       run: |
         brew install coreutils
-    - name: MacOSX additions
-      if: runner.os == 'Darwin'
-      run: |
-        brew install coreutils
     - name: Linux additions
       if: runner.os == 'Linux'
       run: |
         sudo apt-get install libxext-dev libxtst-dev libxrandr-dev libcups2-dev
         sudo apt-get install libasound2-dev
-    - name: Setup Cygwin for WIndows
+    - name: Setup Cygwin for Windows
       if: runner.os == 'Windows'
       run: |
         & cmd /c 'nslookup www.cygwin.com 2>&1'
