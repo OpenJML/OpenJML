@@ -76,13 +76,13 @@ jobs:
       run: |
         cd OpenJML/OpenJDKModule
         bash ./configure
-        make -C OpenJML/OpenJDKModule release 
-    - name: Build OpenJML release on not  Windows
+        make release 
+    - name: Build OpenJML release on non-Windows
       if: runner.os != 'Windows'
       run: |
         cd OpenJML/OpenJDKModule
         bash ./configure
-        make -C OpenJML/OpenJDKModule release 
+        make release 
     - name: Smoke Test release
       run: |
         make -C OpenJML/OpenJDKModule trial
