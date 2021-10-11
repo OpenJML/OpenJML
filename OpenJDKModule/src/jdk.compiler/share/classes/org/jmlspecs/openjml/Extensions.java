@@ -282,7 +282,7 @@ public class Extensions {
         ArrayList<String> foundClassNames = new ArrayList<String>();
         int methodThatWorked = -1;
         String prefix = "jar:file:";
-        
+       
         // This approach works in the development environment
         Enumeration<URL> resources = classLoader.getResources(path);
         while (resources.hasMoreElements()) {
@@ -290,7 +290,8 @@ public class Extensions {
             
             JarFile jar = null;
             try {
-                String n = resource.toString().replace('\\', '/');
+                String n = resource.toString().replace('\\', '/').replaceAll("%20"," "); // FIXME - use toExternalForm?
+                //System.out.println("RES " + n);
                 if (n.startsWith(prefix)) {
                     int k = n.indexOf("!");
                     if (k < 0) continue;
@@ -314,7 +315,8 @@ public class Extensions {
 
                 } else {
 
-                    File dir = new File(resource.getFile());
+                    File dir = new File(resource.getFile().replaceAll("%20"," ")); // FIXME - use toExternalForm?
+                    //System.out.println("DIR " + dir);
                     File[] files = dir.listFiles();
                     if (files == null) continue;
                     for (File f: files) {

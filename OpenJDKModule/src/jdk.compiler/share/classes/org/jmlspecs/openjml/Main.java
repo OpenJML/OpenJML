@@ -533,6 +533,20 @@ public class Main extends com.sun.tools.javac.main.Main {
     	int n = Utils.instance(context).verifyWarnings;
     	if (n != 0) {
     		JavaCompiler.instance(context).printCount("verify", n);
+    		if (exit.exitCode == 0 && !Utils.testingMode) {
+    			exit = Result.VERIFY;
+    			String v = JmlOption.value(context, JmlOption.EXITVERIFY);
+    			if (v != null) {
+    				try {
+    					int z = Integer.valueOf(v);
+    					for (Result x: Result.values()) { if (x.exitCode == z) { exit = x; break; }}
+    					if (exit.exitCode != z) throw new RuntimeException();
+    				} catch (Exception e) {
+    	                uninitializedLog().error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + v);
+    					exit = Result.CMDERR;
+    				}
+    			}
+    		}
     		if (Options.instance(context).isSet(WERROR)) exit = Result.ERROR;
     	}
         return exit;
@@ -832,7 +846,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                 }
             }
         }
-       
+      
         // The above all presume some variation on the conventional installation
         // of the command-line tool.  In the development environment, those
         // presumptions do not hold.  So in that case we use the appropriate
@@ -847,6 +861,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                 try {
                     String s = url.getPath();
                     if (s.startsWith("file:")) s = s.substring("file:".length());
+                    s = s.replaceAll("%20", " ");
                     int b = (s.length()> 2 && s.charAt(0) == '/' && s.charAt(2) == ':') ? 1 : 0;
                     int k = s.indexOf("!");
                     if (k >= 0) {
@@ -863,6 +878,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     if (url != null) {
                         s = url.getPath();
                         if (s.startsWith("file:")) s = s.substring("file:".length());
+                        s = s.replaceAll("%20", " ");
                         b = (s.length()> 2 && s.charAt(0) == '/' && s.charAt(2) == ':') ? 1 : 0;
                         k = s.indexOf("!");
                         if (k >= 0) {
@@ -876,7 +892,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                         }
                     }
                 } catch (Exception e) {
-                    // Just skip
+                   // Just skip
                 }
             }
         }
