@@ -185,29 +185,27 @@ public class MethodProverSMT {
         org.smtlib.SolverProcess.useNotifyWait = false;
         String exec = JmlOption.value(context, JmlOption.PROVEREXEC);
         String os = Utils.identifyOS(context);
-        if (exec == null) {
-        	if (Main.root == null) exec = "../../Solvers/Solvers-" + os + "/z3-4.3.1"; // FIXME
-        	else exec = Main.root + "/Solvers-" + os + "/z3-4.3.1";
-        }
         if (exec == null || exec.isEmpty()) exec = JmlOption.value(context, Strings.proverPropertyPrefix + proverToUse);
         if (exec == null || exec.isEmpty()) {
             String loc = utils.findInstallLocation();
             String ex = null;
             ex = proverToUse.replace("z3_","z3-").replace('_','.');
             
-            if (loc != null && os != null && ex != null) {
+            x: if (loc != null && os != null && ex != null) {
                 exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + proverToUse;
-                if (new java.io.File(exec).exists()) return exec;
-                if (new java.io.File(exec + ".exe").exists()) return exec;
-                if (proverToUse.equals("cvc4")) ex = ex + "-1";
+                if (new java.io.File(exec).exists()) break x;
+                if (new java.io.File(exec + ".exe").exists()) { exec = exec + ".exe"; break x; }
+                if (proverToUse.equals("cvc4")) ex = ex + "-1"; // FIXME - is this needed?
                 exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + ex + ".";
-                for (int i=9; i>=0; --i) {
+                for (int i=20; i>=0; --i) {
                     String execi = exec + i;
                     if (new java.io.File(execi).exists()) {
-                        return execi;
+                        exec = execi;
+                        break;
                     }
                     if (new java.io.File(execi + ".exe").exists()) {
-                        return execi;
+                        exec = execi;
+                        break;
                     }
                 }
                 if (!new java.io.File(exec).exists()) {
@@ -216,7 +214,7 @@ public class MethodProverSMT {
                 }
             }
         }
-        //System.out.println("PROVER " + exec + " " + os + " " + JmlOption.value(context, JmlOption.PROVEREXEC) + " " + Main.root);
+        //System.out.println("PROVER " + proverToUse + " " + exec + " " + os + " " + JmlOption.value(context, JmlOption.PROVEREXEC) + " " + Main.root);
         return exec;
     }
     

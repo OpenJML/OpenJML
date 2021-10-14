@@ -409,33 +409,32 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (!isUnattributed) return;
 
 
+            // FIXME - do we still need this?
+            // Binary files with specs had entries put in the Env map so that the
+            // specs had environments against which to be attributed.  However, the
+            // presence of envs for non-.java files confuses later compiler phases,
+            // and we no longer need that mapping since all the specs are now
+            // attributed and entered into the JmlSpecs database.  Hence we remove
+            // the entry.
+            Env<AttrContext> e = enter.getEnv(c);
+            if (e != null) {  // SHould be non-null the first time, but subsequent calls will have e null and so we won't do duplicate checking
+                //                // FIXME - RAC should take advantage of the same stuff as ESC
+                //                if (true || !JmlOptionName.isOption(context,JmlOptionName.RAC)) {
+                //                    new JmlTranslator(context).translate(e.tree);
+                //                }
+                
+                if (e.tree != null && e.tree instanceof JmlClassDecl) {
+                    Symbol thissym = thisSym(e.tree.pos(),e);
+                    if (thissym instanceof VarSymbol) ((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)thissym;
+//                    //((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._this);
+//                    if (!((JmlClassDecl)e.tree).sym.isInterface() && c != syms.objectType.tsym) ((JmlClassDecl)e.tree).superSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._super);
+                }
 
-//            // FIXME - do we still need this?
-//            // Binary files with specs had entries put in the Env map so that the
-//            // specs had environments against which to be attributed.  However, the
-//            // presence of envs for non-.java files confuses later compiler phases,
-//            // and we no longer need that mapping since all the specs are now
-//            // attributed and entered into the JmlSpecs database.  Hence we remove
-//            // the entry.
-//            Env<AttrContext> e = enter.getEnv(c);
-//            if (e != null) {  // SHould be non-null the first time, but subsequent calls will have e null and so we won't do duplicate checking
-//                //                // FIXME - RAC should take advantage of the same stuff as ESC
-//                //                if (true || !JmlOptionName.isOption(context,JmlOptionName.RAC)) {
-//                //                    new JmlTranslator(context).translate(e.tree);
-//                //                }
-//                
-//                if (e.tree != null && e.tree instanceof JmlClassDecl) {
-//                    Symbol thissym = thisSym(e.tree.pos(),e);
-//                    if (thissym instanceof VarSymbol) ((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)thissym;
-////                    //((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._this);
-////                    if (!((JmlClassDecl)e.tree).sym.isInterface() && c != syms.objectType.tsym) ((JmlClassDecl)e.tree).superSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._super);
+//                if (e.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
+//                    // If not a .java file
+//                    enter.typeEnvs.remove(c); // FIXME - after flow checking of model methods and classes for binary classes?
 //                }
-//
-////                if (e.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
-////                    // If not a .java file
-////                    enter.typeEnvs.remove(c); // FIXME - after flow checking of model methods and classes for binary classes?
-////                }
-//            }
+            }
 
         } finally {
             jmlenv = jmlenv.pop(check);

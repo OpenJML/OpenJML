@@ -372,12 +372,18 @@ public class Utils {
         return null;
     }
     
+    // The install location must contain the specs (e.g. specs/java. specs/org) and Solvers-macos etc. folders
     //@ non_null
     public String findInstallLocation() {
+        boolean verbose = jmlverbose >= Utils.JMLVERBOSE;
+        if (Main.root != null) {
+            if (verbose) log().getWriter(WriterKind.NOTICE).println("Installation location " + Main.root);
+        	return Main.root;
+        }
+
         String sp = System.getProperty("java.class.path");
         String[] ss = sp.split(java.io.File.pathSeparator);
-        boolean verbose = jmlverbose >= Utils.JMLVERBOSE;
-        
+                
         // Find the item on the classpath that contains the OpenJML classes.
         // The install location should be the parent of the .jar file.
         // This should work for a command-line installation
