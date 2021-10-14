@@ -280,31 +280,17 @@ public class JmlSpecs {
      */
     public boolean appendInternalSpecs(boolean verbose, java.util.List<Dir> dirs) {
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
-//        if (true) return true; // FIXME _ until we can include specs internally
        
-        // Look for jmlspecs.jar file on the classpath
+        // Look for specs in a file on the classpath
         // If present, use it.
-        // Otherwise look for openjml.jar
-        // This happens in command-line mode.
+        // Otherwise look use the defauylt installation.
         
         String sp = System.getProperty("java.class.path");
         String[] ss = sp.split(java.io.File.pathSeparator);
         Dir d;
         
-        // Look for jmlspecs.jar -- specs are at the top-level in this jar file
-        for (String s: ss) {
-            if (s.endsWith(Strings.specsJar)) {
-                //d = new JarDir(s,"");
-            	d = null; // FIXME - need to handle jar files
-//                if (d.exists()) {
-//                    if (verbose) noticeWriter.println("Using internal specs A: " + d);
-//                    dirs.add(d);
-//                    return true;
-//                }
-            }
-        }
         
-        // Next see if there is any jar file on the classpath that contains
+        // See if there is any jar file on the classpath that contains
         // specs files at the top-level
         
         for (String s: ss) {
@@ -317,83 +303,16 @@ public class JmlSpecs {
                 }
             }
         }
-        
-        // Next look for openjml.jar - this option applies to typical installed use
-        String libToUse = "specs"; // The top-level subdirectory within openjml.jar
-        for (String s: ss) {
-            if (s.endsWith(Strings.releaseJar)) {
-                d = new JarDir(s,libToUse);
-                if (d.exists()) {
-                    if (verbose) noticeWriter.println("Using internal specs C:" + d);
-                    dirs.add(d);
-                    return true;
-                }
-            }
-        }
-        
-        // Or an equivalent
-        // This alternative applies when openjml.jar has been renamed within a command-line installation
-        for (String s: ss) {
-            if (s.endsWith(".jar")) {
-                d = new JarDir(s,libToUse);
-                if (d.exists()) {
-                    if (verbose) noticeWriter.println("Using internal specs D:" + d);
-                    dirs.add(d);
-                    return true;
-                }
-            }
-        }
-        
-        
-        // FIXME - clean this all up and try to get rid of the dependency on eclipseSpecsProjectLocation
-        // (which is used in tests) - be careful though, the UI can be tricky and operates
-        // differently in development vs. deployed mode
-        
-        // This option applies for running the IDE in the development environment
-// FIXME - fix for Eclipse dev environment
-//        Bundle specs = null;
-//        try {
-//        	specs = Platform.getBundle("org.jmlspecs.Specs");
-//        } catch (Exception e) {
-//        	// On windows an exception can be thrown
-//        }
-//        if (specs != null) {
-//        	String pp = specs.getLocation();
-//        	if (verbose) noticeWriter.println("Specs location: " + pp);
-//        	int k = pp.lastIndexOf(":");
-//        	if (k >= 0) pp = pp.substring(k+1);
-//        	Dir dd = make(pp + "/" + libToUse);
-//        	if (dd.exists()) {
-//        		if (verbose) noticeWriter.println("Using internal specs F:" + dd);
-//        		dirs.add(dd);
-//        		return true;
-//        	}
-//        }
-        
-//        // This option is needed for running command-line tests in the development environment.
-//        // sy should be the trunk directory of the Specs project
-//        String sy = Options.instance(context).get(Strings.eclipseSpecsProjectLocation);
-//        if (sy != null) {
-//            boolean found = false;
-//            Dir dd;
-//            dd = make(sy + "/" + libToUse);
-//            if (dd.exists()) {
-//                dirs.add(dd);
-//                found = true;
-//            }
-//            if (!found) log.error("jml.internal.specs.dir.not.exist",sy);
-//            return true;
-//        } else {
-//            log.error("jml.internal.specs.dir.not.defined");
-//        }
-        
-        
-        // Running in test environment
-        String sy = "../../Specs/specs";
-        if (Main.root != null) sy = Main.root + "/specs"; 
-        {
+                
+        // Default for test or install environment
+        if (Main.root != null) {
+            String sy = Main.root + "/specs"; 
+            if (!new File(sy).exists())sy = Main.root + "/../Specs/specs";
+            
+            //System.out.println("SY " + sy + " " + new File(sy).getAbsolutePath());
             File f = new File(sy);
             if (f.exists() && f.isDirectory()) {
+                if (verbose) noticeWriter.println("Using internal specs T:" + sy);
             	dirs.add(new FileSystemDir(f));
             	return true;
             } else {

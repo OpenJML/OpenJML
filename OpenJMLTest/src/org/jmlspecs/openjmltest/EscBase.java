@@ -39,7 +39,7 @@ public abstract class EscBase extends JmlTestCase {
     }
 
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
-            "z3_4_3", 
+            "z3-4.8", 
 //            "z3_4_7", 
  //           "z3_4_5", 
  //           "z3_4_6", 

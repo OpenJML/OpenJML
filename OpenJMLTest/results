@@ -31,6 +31,7 @@ test/verifythis-2019-1 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<
 escRawdingA
 buggyRandomNumbers
 gcdcalculator
+implicitIteration
 
 test/gitbug450b : Actual output differs from expected expected1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< can't unroll forloops
 test/gitbug582 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< sometimes times out
@@ -44,10 +45,6 @@ test/sfbug402  : Actual output differs from expected expected-compile <<<<<<<<<<
 test/sfbug402a : Actual output differs from expected expected-compile <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< infeasibility
 test/sfbug420X : Actual output differs from expected expected-compile expected-run <<<<<<<<<<<<<<<<<<<<<<<< needs to implement represents for derived classes
 
-445a
-502
-596bcd
-627
 
 QueryPure.java       - 10/32 TODO
 QuerySecret.java     - 21/34 TODO

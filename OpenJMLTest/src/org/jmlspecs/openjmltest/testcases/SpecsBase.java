@@ -157,7 +157,7 @@ public class SpecsBase extends TCBase {
     }
     
     /** Set to true if errors are found in any test in checkFiles */
-    protected boolean foundErrors;
+    public boolean foundErrors;
     
     /** Helper method that executes a test 
      * 

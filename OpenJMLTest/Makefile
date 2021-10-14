@@ -7,9 +7,10 @@
 ### The following is the OpenJML tests
 
 openjml-test: prep
-	( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
 	( cd ./scripttests; ./escfiles-sort)
 	( cd ./scripttests; ./gitfiles-sort)
+	( cd ./unittests; source ./runall  )
+	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
 
 
 T=temp-release

@@ -1,13 +1,20 @@
 #! /bin/bash
 
 # Use quotes to accommodate paths containing spaces
-R1=$(realpath "$BASH_SOURCE")
-R2=$(dirname "$R1")
-ROOT=$( cd "$R2" && pwd)
+## realpath is needed to resolve symbolic links, but is not present on all OSes
+## e.g. on Macs it must be installed (brew install coreutils)
+if [ -n "`which realpath`" ] ; then
+     R1=$(realpath "$BASH_SOURCE")
+else R1="$BASH_SOURCE" 
+fi
+R2=$(dirname "$R1")      # Gets directory holding this file
+ROOT=$( cd "$R2" && pwd) # Converts to absolute path
 
 # mac-setup is needed to fix Mac security cmplaints, though it is only
 # needed once
-if [ "$( uname )" = "Darwin" ] ; then "${ROOT}/mac-setup" > /tmp/openjmlsetup 2>&1 ; fi
+if [ "$( uname )" = "Darwin" ] ; then 
+  "${ROOT}/mac-setup" > /tmp/openjmlsetup 2>&1 ; 
+fi
 
 # OPENJML_ROOT is used within the executable to find things like 
 # the Specs and Solvers

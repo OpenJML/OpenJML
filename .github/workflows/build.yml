@@ -54,7 +54,7 @@ jobs:
         git clone -b master-module --depth 1 https://github.com/OpenJML/OpenJML
         git clone -b master-module --depth 1 https://github.com/OpenJML/Specs
         git clone --depth 1 https://github.com/OpenJML/Solvers
-    - name: Create the release
+    - name: Create the GitHub release
       ## Do this for just one element of the matrix
       if: runner.os == 'Linux'
       run: |
@@ -89,8 +89,7 @@ jobs:
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f" 
-    - name: Check current release
-      if: 0 == 1
+    - name: Check current GitHub release number against version.txt
       run: |
         cd OpenJML
         export ver=`cat version.txt`
@@ -98,4 +97,3 @@ jobs:
         export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep tag_name | head -1 | sed -e 's/.*: \"//' -e 's/\",//'`
         echo $ver $tag
         test "$ver" = "$tag" || echo Version $ver is not the current release, which is $tag
-        test "$ver" = "$tag"

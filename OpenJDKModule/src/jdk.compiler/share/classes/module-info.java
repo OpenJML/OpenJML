@@ -81,6 +81,14 @@ module jdk.compiler {
     exports org.jmlspecs.openjml.ext;
     exports org.jmlspecs.openjml.proverinterface;
     exports org.jmlspecs.openjml.visitors;
+    exports org.smtlib;
+    exports org.smtlib.command;
+    exports org.smtlib.ext;
+    exports org.smtlib.impl;
+    exports org.smtlib.logic;
+    exports org.smtlib.resources;
+    exports org.smtlib.sexpr;
+    exports org.smtlib.solvers;
     exports com.sun.tools.javac.parser;
     exports com.sun.tools.javac.code;
     exports com.sun.tools.javac.tree;

@@ -71,6 +71,7 @@ REL=release-temp
 
 release: version
 	bash ./configure
+	make smt
 	NOJML= make
 	make post
 
@@ -93,9 +94,12 @@ trial:
 
 ## Development build targets
 
-openjml:
+openjml: .FORCE
 	NOJML= make
 	##make jmlruntime.jar
+
+smt:
+	if [ -e ../../../jSMTLIB/SMT ]; then cp -Rp ../../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; fi
 
 jmlruntime.jar:
 	cp -r bin-runtime/* temp2

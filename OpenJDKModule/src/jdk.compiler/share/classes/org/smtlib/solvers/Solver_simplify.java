@@ -420,15 +420,6 @@ public class Solver_simplify extends Solver_test implements ISolver {
 	 * how to handle boolean terms???
 	 */
 
-	/* Simplify ids:
-	 * 		a) sequence of alpha, digits, underscore, beginning with alpha
-	 * 		b) sequence of ! # $ % & * + - . / : < = > ? @ [ ] ^ _ { } ~
-	 *               excludes | ( ) ` \ ; " ' , 
-	 * 		c) printable characters and space except \ |, surrounded by |
-	 *           - also allows undocumented 'escape sequences'
-	 *  To translate from SMT-LIB use form (c), but have to remove
-	 *  explicit tabs, newlines, crs; also any \-escape sequences
-	 */
 	
 
 	/** Name of an if-then-else construct on term arguments */ 
@@ -822,7 +813,7 @@ public class Solver_simplify extends Solver_test implements ISolver {
 		}
 
 		@Override
-		public String visit(IAttribute<?> e) throws VisitorException {
+		public String visit(IAttribute e) throws VisitorException {
 			// TODO Auto-generated method stub
 			return null;
 		}

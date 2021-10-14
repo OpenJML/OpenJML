@@ -242,7 +242,6 @@ public class SMT {
 		 * the commands map and all but the initial entry of commandExtensionPrefixes are 
 		 * ignored. 
 		 */
-		@SuppressWarnings("unchecked")
 		public /*@Nullable*/ ICommand.IFinder commandFinder = new ICommand.IFinder() {
 			@Override
 			public Class<? extends ICommand> findCommand(String name) {
@@ -823,7 +822,9 @@ public class SMT {
 	            constructor = adapterClass.getConstructor(SMT.Configuration.class,command.getClass());
 				solver = (ISolver)(constructor.newInstance(smtConfig,command));
 			}
+			//System.out.println("SMT START " + solver + " " + command);
 			IResponse res = solver.start();
+            //System.out.println("SMT RES " + res);
 			if (res.isError()) {
 				smtConfig.log.logError((IResponse.IError)res);
 				error(solvername + " failed to start: " + ((IResponse.IError)res).errorMsg());
