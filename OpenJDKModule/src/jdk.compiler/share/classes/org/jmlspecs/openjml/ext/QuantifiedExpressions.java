@@ -242,6 +242,10 @@ public class QuantifiedExpressions extends JmlExtension {
                 }
                 int declpos = parser.pos(); // beginning of type
                 JCExpression type = parser.parseType();
+                if (mods.pos == -1) {
+                	mods.pos = declpos; // In case the mods are empty
+                	parser.storeEnd(mods,declpos);
+                }
                 int p = parser.pos(); // beginning of name
                 Name name = parser.ident();
                 JCVariableDecl decl = parser.variableDeclaratorRest(p,mods,type,name,true,null,true,false);

@@ -47,12 +47,9 @@ public class Solver_cvc4 extends AbstractSolver implements ISolver {
 	
 	/** The command-line arguments for launching the solver */
 	protected String cmds[];
-	protected String cmds_win[] = new String[]{ "", "--smtlib","--interactive","--no-full-saturate-quant"}; 
-	protected String cmds_mac[] = new String[]{ "", "--smtlib","--interactive","--interactive","--produce-models"}; 
-	protected String cmds_unix[] = new String[]{ "", "--smtlib","--incremental", "--interactive"};
-//	protected String cmds_win_nostrict[] = new String[]{ "", "--interactive","--no-full-saturate-quant"}; 
-//	protected String cmds_mac_nostrict[] = new String[]{ "", "--interactive"}; 
-//	protected String cmds_unix_nostrict[] = new String[]{ "", "--incremental", "--interactive"};
+	protected String cmds_win[] = new String[]{ "", "--lang","smt","--interactive","--incremental","--quiet", "--produce-models","--no-full-saturate-quant"}; 
+	protected String cmds_mac[] = new String[]{ "", "--lang","smt","--interactive","--incremental","--quiet", "--produce-models"}; 
+	protected String cmds_unix[] = new String[]{ "", "--lang","smt","--interactive","--incremental","--quiet", "--produce-models" };
 
 	/** The parser that parses responses from the solver */
 	protected org.smtlib.sexpr.Parser responseParser;
@@ -68,9 +65,12 @@ public class Solver_cvc4 extends AbstractSolver implements ISolver {
 	protected Map<String,IAttributeValue> options = new HashMap<String,IAttributeValue>();
 	
 	/** Creates an instance of the solver */
-	public Solver_cvc4(SMT.Configuration smtConfig, /*@NonNull*/ String executable) {
+    public Solver_cvc4(SMT.Configuration smtConfig, /*@NonNull*/ String executable) {
+        this(smtConfig, executable, "CVC4> ");
+    }
+    
+    public Solver_cvc4(SMT.Configuration smtConfig, /*@NonNull*/ String executable, String prompt) {
 		this.smtConfig = smtConfig;
-		String prompt = "CVC4> ";
 		if (isWindows) {
 			cmds = cmds_win;
 		} else if (isMac) {
@@ -95,21 +95,22 @@ public class Solver_cvc4 extends AbstractSolver implements ISolver {
 			args.add("--tlimit-per=" + Long.toString(Math.round(1000*timeout+0.5)));
 			cmds = args.toArray(new String[args.size()]);
 		}
-		solverProcess = new SolverProcess(cmds,prompt,smtConfig.logfile) {
-			
-			@Override
-			public String listen() throws IOException {
-				// FIXME - need to put the two reads in parallel, otherwise one might block on a full buffer, preventing the other from completing
-				String err = listenThru(errors,null);
-				String out = listenThru(fromProcess,endMarker);
-				err = err + listenThru(errors,null);
-				if (out.endsWith(endMarker)) out = out.substring(0,out.length()-endMarker.length());
-				if (log != null) {
-					if (!out.isEmpty()) { log.write(";OUT: "); log.write(out); log.write(eol); log.flush(); } // input usually ends with a prompt and no line terminator
-					if (!err.isEmpty()) { log.write(";ERR: "); log.write(err); log.flush(); } // input usually ends with a line terminator, we think
-				}
-				return err.isEmpty() ? out : err;
-			}};
+		solverProcess = new SolverProcess(cmds,prompt,smtConfig.logfile);
+//		{
+//			
+//			@Override
+//			public String listen() throws IOException {
+//				// FIXME - need to put the two reads in parallel, otherwise one might block on a full buffer, preventing the other from completing
+//				String err = listenThru(errors,null);
+//				String out = listenThru(fromProcess,endMarker);
+//				err = err + listenThru(errors,null);
+//				if (out.endsWith(endMarker)) out = out.substring(0,out.length()-endMarker.length());
+//				if (log != null) {
+//					if (!out.isEmpty()) { log.write(";OUT: "); log.write(out); log.write(eol); log.flush(); } // input usually ends with a prompt and no line terminator
+//					if (!err.isEmpty()) { log.write(";ERR: "); log.write(err); log.flush(); } // input usually ends with a line terminator, we think
+//				}
+//				return err.isEmpty() ? out : err;
+//			}};
 
 		responseParser = new org.smtlib.sexpr.Parser(smt(),new Pos.Source("",null));
 	}
@@ -124,11 +125,11 @@ public class Solver_cvc4 extends AbstractSolver implements ISolver {
 	@Override
 	public IResponse start() {
 		try {
-			solverProcess.start(true);
-			if (smtConfig.solverVerbosity > 0) solverProcess.sendNoListen("(set-option :verbosity ",Integer.toString(smtConfig.solverVerbosity),")");
+			solverProcess.start(false);
+//			if (smtConfig.solverVerbosity > 0) solverProcess.sendNoListen("(set-option :verbosity ",Integer.toString(smtConfig.solverVerbosity),")");
 			//if (!smtConfig.batch) solverProcess.sendNoListen("(set-option :interactive-mode true)"); // FIXME - not sure we can do this - we'll lose the feedback
 			// Can't turn off printing success, or we get no feedback
-			//if (smtConfig.nosuccess) solverProcess.sendAndListen("(set-option :print-success false)");
+			solverProcess.sendAndListen("(set-option :print-success true)");
 			if (smtConfig.verbose != 0) smtConfig.log.logDiag("Started CVC4 ");
 			return smtConfig.responseFactory.success();
 		} catch (Exception e) {

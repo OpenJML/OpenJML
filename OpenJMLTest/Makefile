@@ -1,17 +1,21 @@
 
-#R=/Users/davidcok/projects/OpenJMLB
-#ROOT=$R/OpenJML/OpenJDKModule
+mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+mkfile_dir := $(dir $(mkfile_path))
+
+ROOT=${mkfile_dir}
 #MODS=$(ROOT)/build/macosx-x86_64-server-release/images/jmods
 #SPECS=/Users/davidcok/projects/OpenJMLB/Specs/specs
 
 ### The following is the OpenJML tests
 
 openjml-test: prep
-	( cd ./scripttests; ./escfiles-sort)
-	( cd ./scripttests; ./gitfiles-sort)
-	( cd ./unittests; source ./runall  )
+	( cd ${ROOT}/scripttests; ./escfiles-sort)
+	( cd ${ROOT}/scripttests; ./gitfiles-sort)
+	( cd ${ROOT}/unittests; source ./runall  )
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
 
+openjml:
+	(cd ${ROOT}/../OpenJDKModule; make openjml)
 
 T=temp-release
 

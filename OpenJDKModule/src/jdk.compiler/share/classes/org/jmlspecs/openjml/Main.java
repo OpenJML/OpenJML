@@ -246,7 +246,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
     
     public Context initialize(
-                /*@nullable*/ DiagnosticListener<? extends JavaFileObject> diagListener) {
+                /*@ nullable*/ DiagnosticListener<? extends JavaFileObject> diagListener) {
         useJML = true;
         check(); // Aborts if the environment does not support OpenJML
         this.diagListener = diagListener;
@@ -255,6 +255,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         JavacFileManager.preRegister(this.context);
         register(context);
         utils = Utils.instance(this.context);
+        Utils.setOptionsFromProperties(Utils.findProperties(context), context);
         return this.context;
     }
     

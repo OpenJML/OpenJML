@@ -28,6 +28,9 @@
 ### It also performs some sanity checks on make.
 ###
 
+mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+mkfile_dir := $(dir $(mkfile_path))
+
 # The shell code below will be executed on /usr/bin/make on Solaris, but not in GNU Make.
 # /usr/bin/make lacks basically every other flow control mechanism.
 .TEST_FOR_NON_GNUMAKE:sh=echo You are not using GNU Make/gmake, this is a requirement. Check your path. 1>&2 && exit 1

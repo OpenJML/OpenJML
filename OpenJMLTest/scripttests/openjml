@@ -8,4 +8,4 @@ SP=$ROOT/src/java.base/share/classes:$ROOT/build/*-server-release/support/gensrc
 AM="--add-modules jdk.compiler,java.base"
 EXEC="-exec=$R/Solvers/Solvers-$OS/z3-4.3.1"
 
-$BIN -specspath -prover=z3-4.8 "$@"
+"$BIN" "$@"
