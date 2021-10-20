@@ -592,7 +592,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.showRacSource = JmlOption.isOption(context,JmlOption.RAC_SHOW_SOURCE);
         this.racCheckAssumeStatements = JmlOption.isOption(context,JmlOption.RAC_CHECK_ASSUMPTIONS);
         this.javaChecks = esc || (rac && JmlOption.isOption(context,JmlOption.RAC_JAVA_CHECKS));
-        this.boogie = esc && JmlOption.isOption(context,JmlOption.BOOGIE);
+        this.boogie = false; // esc && JmlOption.isOption(context,JmlOption.BOOGIE);
         this.uniqueCount = 0;
         this.assertCount = 0;
         this.precount = 0;
