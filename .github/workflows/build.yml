@@ -10,6 +10,10 @@ jobs:
 
     strategy:
       matrix:
+        ## Note that the GitHub realease needs to be create by one job
+        ## before each job can populate the release with the OpenJML build
+        ## for the corresponding OS. At present ubuntu-latest is used so
+        ## it must be in matrix.os
         ## TODO: Windows jobs fail 
         ##os: [ubuntu-latest]
         ##os: [ubuntu-latest, windows-latest, ubuntu-16.04]
@@ -21,12 +25,16 @@ jobs:
     - name: Manually sync certs
       if: runner.os == 'Linux'
       run: cert-sync /etc/ssl/certs/ca-certificates.crt
+    - name: MacOSX additions
+      if: runner.os == 'MacOS'
+      run: |
+        brew install coreutils
     - name: Linux additions
       if: runner.os == 'Linux'
       run: |
         sudo apt-get install libxext-dev libxtst-dev libxrandr-dev libcups2-dev
         sudo apt-get install libasound2-dev
-    - name: Setup Cygwin for WIndows
+    - name: Setup Cygwin for Windows
       if: runner.os == 'Windows'
       run: |
         & cmd /c 'nslookup www.cygwin.com 2>&1'
@@ -56,30 +64,29 @@ jobs:
         git clone --depth 1 https://github.com/OpenJML/Solvers
     - name: Create the GitHub release
       ## Do this for just one element of the matrix
-      if: runner.os == 'Linux'
+      if: matrix.os == 'ubuntu-latest'
       run: |
         cd OpenJML
         export ver=`cat version.txt`
         echo Version $ver
-        # Create new version
+        # Create new GitHub version
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"master-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
-    - name: Build OpenJML Windows
+    - name: Build OpenJML release on Windows
       if: runner.os == 'Windows'
       run: |
         cd OpenJML/OpenJDKModule
         bash ./configure
-    - name: Build OpenJML
+        make release 
+    - name: Build OpenJML release on non-Windows
       if: runner.os != 'Windows'
       run: |
         cd OpenJML/OpenJDKModule
         bash ./configure
-    - name: Build release
-      run: |
-        make -C OpenJML/OpenJDKModule release 
-    - name: Test release
+        make release 
+    - name: Smoke Test release
       run: |
         make -C OpenJML/OpenJDKModule trial
-    - name: Publish release
+    - name: Load OpenJML build into GitHub release
       run: |
         cd OpenJML
         export ver=`cat version.txt`
