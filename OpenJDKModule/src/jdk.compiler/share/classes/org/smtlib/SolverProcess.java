@@ -172,6 +172,7 @@ public class SolverProcess {
 	        if (err.endsWith("\n") || out.isEmpty()) {
 	            return err.isEmpty() || err.charAt(0) == ';' ? out : err; // Note: the guard against comments (starting with ;) is for Z3
 	        } else {
+                if (out.endsWith(endMarker)) out = out.substring(0,out.length()-endMarker.length());
 	            return out;
 	        }
 		} else {
@@ -187,6 +188,7 @@ public class SolverProcess {
             if (err.endsWith("\n") || out.isEmpty()) {
                 return err.isEmpty() || err.charAt(0) == ';' ? out : err; // Note: the guard against comments (starting with ;) is for Z3
             } else {
+                if (out.endsWith(endMarker)) out = out.substring(0,out.length()-endMarker.length());
                 return out;
             }
 		}

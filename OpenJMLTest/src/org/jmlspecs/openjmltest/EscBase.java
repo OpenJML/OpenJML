@@ -39,7 +39,10 @@ public abstract class EscBase extends JmlTestCase {
     }
 
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
-            "z3-4.8", 
+            "z3_4_3",
+//            "z3-4.8",
+//            "cvc4-1.8",
+//            "cvc5-0.0"
 //            "z3_4_7", 
  //           "z3_4_5", 
  //           "z3_4_6", 
@@ -335,7 +338,6 @@ public abstract class EscBase extends JmlTestCase {
 
     protected void helpTCXB(String[] allargs, JavaFileObject f, Object... expectedResults) {
         try {
-            
             int ex = main.compile(allargs, List.<JavaFileObject>of(f)).exitCode;
             if (captureOutput) collectOutput(false);
             

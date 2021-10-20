@@ -1783,7 +1783,7 @@ public class esc1 extends EscBase {
     public void testAssert() {
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  //@ requires bb;\n"
                 + "  //@ ensures true;\n"
-                + "  public static void bassert(boolean bb, boolean b) { /*@ assume b; */ /*@assert false;*/   }\n" // Should
+                + "  public static void bassert(boolean bb, boolean b) { /*@ assume b; */ /*@ assert false;*/   }\n" // Should
                                                                                                                     // fail
                                                                                                                     // because
                                                                                                                     // of
@@ -1792,7 +1792,7 @@ public class esc1 extends EscBase {
                                                                                                                     // assert
                                                                                                                     // false
                 + "  //@ requires bb;\n" + "  //@ ensures true;\n"
-                + "  public static void bassert2(boolean bb, boolean b) { /*@ assume b; */ /*@assert !bb;*/   }\n" // Should
+                + "  public static void bassert2(boolean bb, boolean b) { /*@ assume b; */ /*@ assert !bb;*/   }\n" // Should
                                                                                                                     // fail
                                                                                                                     // because
                                                                                                                     // of
@@ -1801,19 +1801,18 @@ public class esc1 extends EscBase {
                                                                                                                     // false
                                                                                                                     // assert
                 + "  //@ requires bb;\n" + "  //@ ensures true;\n"
-                + "  public static void bassert3(boolean bb, boolean b) { /*@ assume bb; */ /*@assert b;*/   }\n" // Should
+                + "  public static void bassert3(boolean bb, boolean b) { /*@ assume bb; */ /*@ assert b;*/   }\n" // Should
                                                                                                                     // fail
                                                                                                                     // because
                                                                                                                     // of
                                                                                                                     // the
                                                                                                                     // unprovable
                                                                                                                     // assert
-                + "}",
-                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method bassert", 75,
-                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method bassert2",
-                76,
-                "/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method bassert3",
-                77);
+                + "}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method bassert", 76
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method bassert2",77
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method bassert3",78
+                );
     }
 
 

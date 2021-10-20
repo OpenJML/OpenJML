@@ -734,24 +734,29 @@ public class Utils {
     }
 
     
-
+    public static void setOptionsFromProperties(Properties properties, Context context) {
+    	for (var p: properties.entrySet()) {
+    		String k = p.getKey().toString();
+    		if (k.startsWith(Strings.optionPropertyPrefix)) {
+    			String kk = "-" + k.substring(Strings.optionPropertyPrefix.length());
+    			JmlOptions.instance(context).processOption(kk, p.getValue().toString());
+    		}
+    	}
+    }
     
     /** Finds OpenJML properties files in pre-defined places, reading their
      * contents and loading them into the System property set.
      */
     public static Properties findProperties(Context context) {
-
-        //      boolean verbose = Utils.instance(context).jmldebug ||
-        //          JmlOption.isOption(context,JmlOption.JMLVERBOSE) ||
-        //          Options.instance(context).get("-verbose") != null;
+    	
+        boolean verbose = false;
 
     	if (context == null) context = new Context();
-        boolean verbose = Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE;
         PrintWriter noticeWriter = Log.instance(context).getWriter(WriterKind.NOTICE);
         Properties properties = new Properties();
         
         // Initialize with builtin defaults
-        setPropertiesFromOptionsDefaults(properties);
+        //setPropertiesFromOptionsDefaults(properties);
         
         // Override with any system properties
         properties.putAll(System.getProperties());
@@ -759,6 +764,21 @@ public class Utils {
         // Load properties files found in these locations:
         // These are read in inverse order of priority, so that later reads
         // overwrite the earlier ones.
+        
+        // In installation directory
+        {
+            String s = System.getenv("OPENJML_ROOT") + "/" + Strings.propertiesFileName;
+            try {
+                boolean found = readProps(properties,s);
+                if (verbose) {
+                    if (found) noticeWriter.println("Properties read from installation directory: " + s);
+                    else noticeWriter.println("No properties found in installation directory: " + s);
+                }
+            } catch (java.io.IOException e) {
+                noticeWriter.println("Failed to read property file " + s); // FIXME - review
+            }
+        }
+        
         
         // On the system classpath
         {
@@ -806,9 +826,18 @@ public class Utils {
             }
         }
 
-        // FIXME - add on the application classpath
-
-
+        // Set from environment variables
+        {
+    		String prefix = "OPENJML_";
+        	for (var p : System.getenv().entrySet()) {
+        		if (p.getKey().startsWith(prefix)) {
+        			String kk = Strings.optionPropertyPrefix + p.getKey().substring(prefix.length());
+        			properties.put(kk, p.getValue());
+        		}
+        	} // FIXME - the above does not work for option names with . or - in them
+        }
+        
+        // TODO: Review the following
         // check if -properties or -properties-default option is set.
         {
             String properties_file = JmlOption.value(context,JmlOption.PROPERTIES_DEFAULT);            

@@ -679,7 +679,7 @@ public class expressions extends ParseBase {
     public void testLet1() {
         helpExpr("(\\let int i=1+2, boolean b = i==i;   i + 1 ) ",
                 JCParens.class, 0, 0, 44,
-                LetExpr.class, 1, 1, 42,
+                JmlLetExpr.class, 1, 1, 42,
                 JmlVariableDecl.class,6,10, 15,
                 JmlModifiers.class, 6,6,6,
                 JCPrimitiveTypeTree.class, 6,6,9,

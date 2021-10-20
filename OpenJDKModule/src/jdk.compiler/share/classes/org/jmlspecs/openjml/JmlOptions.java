@@ -127,6 +127,14 @@ public class JmlOptions extends Options {
         // setupOptions is called to verify consistency after Java options are processed, in JmlArguments.validate
         return newargs.toArray(new String[newargs.size()]);
     }
+    
+    public void processOption(String key, String value) {
+        var o = JmlOption.find(key);
+        if (o != null) {
+        	values.put(key,  value);
+        	o.check(context,  false);
+        }
+    }
 
     /** Processes a single JML command-line option and any arguments.
      * Any non-JML argument is added to remainingArgs
@@ -487,7 +495,7 @@ public class JmlOptions extends Options {
 
     /** Output all the options -- purely for debugging */
     public void dumpOptions() {
-        new RuntimeException().printStackTrace(System.out);
+        //new RuntimeException().printStackTrace(System.out);
         System.out.println("JML Options:");
         for (var s: values.entrySet()) {
             System.out.println(s.getKey() + " : " + s.getValue());
