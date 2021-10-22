@@ -47,9 +47,11 @@ jobs:
         java-version: 1.16
     - name: Checkout OpenJML
       run: |
+        git config --global core.autocrlf input
         git clone -b master-module --depth 1 https://github.com/OpenJML/OpenJML
         git clone -b master-module --depth 1 https://github.com/OpenJML/Specs
         git clone --depth 1 https://github.com/OpenJML/Solvers
+        git clone --depth 1 https://github.com/OpenJML/JMLAnnotations
     - name: Create the GitHub release
       ## Do this for just one element of the matrix
       if: matrix.os == 'ubuntu-latest'
@@ -62,9 +64,12 @@ jobs:
     - name: Build OpenJML release on Windows
       if: runner.os == 'Windows'
       run: |
-        cd OpenJML/OpenJDKModule
-        bash ./configure
-        make release 
+        basic() {
+          cd OpenJML/OpenJDKModule
+          bash ./configure
+          make release 
+        }
+        basic
       shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
     - name: Build OpenJML release on non-Windows
       if: runner.os != 'Windows'
