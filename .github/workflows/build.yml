@@ -65,13 +65,13 @@ jobs:
         cd OpenJML/OpenJDKModule
         bash ./configure
         make release 
+      shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
     - name: Build OpenJML release on non-Windows
       if: runner.os != 'Windows'
       run: |
         cd OpenJML/OpenJDKModule
         bash ./configure
         make release 
-      shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
     - name: Smoke Test release
       run: |
         make -C OpenJML/OpenJDKModule trial
