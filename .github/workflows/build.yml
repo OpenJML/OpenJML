@@ -33,13 +33,13 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get install libxext-dev libxtst-dev libxrandr-dev libcups2-dev
-        sudo apt-get install libasound2-dev autoconf
+        sudo apt-get install libasound2-dev autoconf 
     - name: Setup Cygwin for Windows
       if: runner.os == 'Windows'
       uses: egor-tensin/setup-cygwin@v3
       with:
         platform: x64
-        packages: cmake python3 autoconf
+        packages: cmake python3 autoconf make
     - uses: actions/setup-python@v1
     - name: Set up JDK16 
       uses: actions/setup-java@v1
