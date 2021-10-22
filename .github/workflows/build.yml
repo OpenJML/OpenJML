@@ -52,8 +52,6 @@ jobs:
         git clone -b master-module --depth 1 https://github.com/OpenJML/Specs
         git clone --depth 1 https://github.com/OpenJML/Solvers
         git clone --depth 1 https://github.com/OpenJML/JMLAnnotations
-        pwd.exe
-        ls.exe -Al
     - name: Create the GitHub release
       ## Do this for just one element of the matrix
       if: matrix.os == 'ubuntu-latest'
@@ -70,7 +68,7 @@ jobs:
           cd D:/a/OpenJML/OpenJML
           pwd
           ls -la
-          cd OpenJDKModule
+          cd OpenJML/OpenJDKModule
           bash ./configure
           make release 
         }
