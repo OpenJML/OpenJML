@@ -33,7 +33,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get install libxext-dev libxtst-dev libxrandr-dev libcups2-dev
-        sudo apt-get install libasound2-dev
+        sudo apt-get install libasound2-dev autoconf
     - name: Setup Cygwin for Windows
       if: runner.os == 'Windows'
       run: |
