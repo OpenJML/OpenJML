@@ -73,7 +73,7 @@ REL=release-temp
 ## Used in the github build.yml action
 
 release: version
-	make clean reconfigure openjml
+	make clean openjml
 	NOJML= make
 	make post
 
