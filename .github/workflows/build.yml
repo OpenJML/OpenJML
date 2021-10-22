@@ -66,8 +66,9 @@ jobs:
       run: |
         basic() {
           pwd
-          ls
-          cd OpenJML/OpenJDKModule
+          ls -la
+          cd OpenJML
+          cd OpenJDKModule
           bash ./configure
           make release 
         }
