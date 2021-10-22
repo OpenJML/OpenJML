@@ -65,6 +65,8 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         basic() {
+          pwd
+          ls
           cd OpenJML/OpenJDKModule
           bash ./configure
           make release 
