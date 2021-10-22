@@ -67,6 +67,7 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         basic() {
+          cd D:/a/OpenJML
           pwd
           ls -la
           cd OpenJML
