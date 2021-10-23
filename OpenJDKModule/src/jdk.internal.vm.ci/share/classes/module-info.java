@@ -34,6 +34,7 @@ module jdk.internal.vm.ci {
     exports jdk.vm.ci.code to jdk.internal.vm.compiler;
     exports jdk.vm.ci.code.site to jdk.internal.vm.compiler; // OPENJML added
     exports jdk.vm.ci.hotspot to jdk.internal.vm.compiler;
+    exports jdk.vm.ci.aarch64 to jdk.internal.vm.compiler; // OPENJML added for Windows build
     exports jdk.vm.ci.amd64 to jdk.internal.vm.compiler; // OPENJML added for Windows build
 
     uses jdk.vm.ci.services.JVMCIServiceLocator;
