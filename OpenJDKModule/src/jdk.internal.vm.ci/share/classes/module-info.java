@@ -32,6 +32,7 @@ module jdk.internal.vm.ci {
         jdk.internal.vm.compiler.management;
     exports jdk.vm.ci.meta to jdk.internal.vm.compiler;
     exports jdk.vm.ci.code to jdk.internal.vm.compiler;
+    exports jdk.vm.ci.code.site to jdk.internal.vm.compiler; // OPENJML added
     exports jdk.vm.ci.hotspot to jdk.internal.vm.compiler;
     exports jdk.vm.ci.amd64 to jdk.internal.vm.compiler; // OPENJML added for Windows build
 
