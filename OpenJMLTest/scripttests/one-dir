@@ -1,9 +1,10 @@
 #! /bin/bash
 
 home=$(cd $(dirname $BASH_SOURCE) && pwd )
+CMD=${home}/../../OpenJDKModule/openjml
 arg=$1
 ts=$(basename $arg)
-cd $arg
+cd ../test/$ts
 
 if [ -e config ]; then . ./config; fi
 
@@ -14,8 +15,9 @@ elif [ -e rac ]; then
 else
     cd ../..
     p=test/$ts
-    ##echo Testing $ts : $CMD $BASEARGS -specspath $p:$SPECS $ARGS -dir $p
-    $home/$CMD $BASEARGS -specspath $p:$SPECS $ARGS -dir $p > $p/actual 2>&1
+##    echo Testing $ts 
+##: $CMD $BASEARGS -specspath $p:$SPECS $ARGS -dir $p
+    $CMD $BASEARGS -specspath $p $ARGS -dir $p > $p/actual 2>&1
     stat=$?
     if [ ! -e $p/actual ]; then echo $p/actual : NO ACTUAL ; fi
     . $home/check-result $p/actual $stat && exit 1

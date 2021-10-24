@@ -1,5 +1,6 @@
-export CMD=./openjml
-export SPECS=`cd ../../../Specs/specs && pwd`
-export BASEARGS="-esc -progress -no-staticInitWarning -jmltesting -timeout=300 -checkFeasibility=precondition,reachable,exit,spec -code-math=bigint -spec-math=bigint -prover=z3-4.3 "
+#export CMD=./openjml
+#export SPECS=`cd ../../../Specs/specs && pwd`
+export BASEARGS="-esc -progress -no-staticInitWarning -jmltesting -timeout=300 -checkFeasibility=precondition,reachable,exit,spec  -escExitInfo "
+##export BASEARGS="-esc -progress -no-staticInitWarning -jmltesting -timeout=300 -checkFeasibility=all -code-math=bigint "
 export EXIT=0
 

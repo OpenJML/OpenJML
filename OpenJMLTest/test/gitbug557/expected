@@ -12,8 +12,6 @@ Completed proving methods in Test.Help
 Proving methods in Test.Inner
 Starting proof of Test.Inner.Inner() with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Inner.Inner() with prover !!!! - no warnings
 Completed proving methods in Test.Inner

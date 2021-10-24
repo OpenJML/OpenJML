@@ -1,1 +1,1 @@
-ARGS+=" -show=program"
+ARGS+=" -show=program -code-math=bigint "

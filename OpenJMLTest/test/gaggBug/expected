@@ -1,0 +1,29 @@
+Proving methods in TestTest
+Starting proof of TestTest.TestTest() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TestTest.TestTest() with prover !!!! - no warnings
+Starting proof of TestTest.test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TestTest.test() with prover !!!! - no warnings
+Completed proving methods in TestTest
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.geta() with prover !!!!
+test/gaggBug/TestTest.java:21: warning: The prover cannot establish an assertion (Postcondition) in method geta
+        return 1;
+        ^
+test/gaggBug/TestTest.java:18: warning: Associated declaration
+    @     ensures \result == 0;  // postcond 1  // incorrect postCondition
+          ^
+Completed proof of Test.geta() with prover !!!! - with warnings
+Starting proof of Test.getb() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.getb() with prover !!!! - no warnings
+Completed proving methods in Test
+2 warnings

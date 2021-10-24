@@ -18,7 +18,7 @@ jobs:
         ##os: [ubuntu-latest]
         ##os: [ubuntu-latest, windows-latest, ubuntu-16.04]
         ##os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [ubuntu-latest, macos-latest, ubuntu-18.04]
+        os: [ubuntu-latest, macos-latest, ubuntu-18.04, windows-latest]
 
       fail-fast: false
     steps:
@@ -33,25 +33,13 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get install libxext-dev libxtst-dev libxrandr-dev libcups2-dev
-        sudo apt-get install libasound2-dev
+        sudo apt-get install libasound2-dev autoconf
     - name: Setup Cygwin for Windows
       if: runner.os == 'Windows'
-      run: |
-        & cmd /c 'nslookup www.cygwin.com 2>&1'
-        while ($true)
-          {
-              try
-              {
-                  (New-Object Net.WebClient).DownloadFile('http://www.cygwin.com/setup-x86_64.exe', 'setup-x86_64.exe')
-                  break
-              }
-              catch
-              {
-                  Write-Host "There is an error during package downloading:`n $_"
-              }
-          }
-        & cmd /c 'nslookup www.cygwin.com 8.8.8.8 2>&1'
-      shell: powershell
+      uses: egor-tensin/setup-cygwin@v3
+      with:
+        platform: x64
+        packages: cmake python3
     - uses: actions/setup-python@v1
     - name: Set up JDK16 
       uses: actions/setup-java@v1
@@ -83,6 +71,7 @@ jobs:
         cd OpenJML/OpenJDKModule
         bash ./configure
         make release 
+      shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
     - name: Smoke Test release
       run: |
         make -C OpenJML/OpenJDKModule trial
