@@ -31,7 +31,6 @@ test/verifythis-2019-1 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<
 escRawdingA
 buggyRandomNumbers
 gcdcalculator
-implicitIteration
 
 test/gitbug450b : Actual output differs from expected expected1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< can't unroll forloops
 test/gitbug582 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< sometimes times out

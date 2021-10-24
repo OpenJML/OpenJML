@@ -27,6 +27,32 @@ prep:
 	echo "import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }" > $T/C.java
 	echo "import org.jmlspecs.annotation.*; public class D { @Pure int m() { return 0; } }" > $T/D.java
 
+tutorial-test:
+	@ (cd $(mkfile_dir)/../OpenJDKModule/release-files/tutorial; \
+	    X=0 ;\
+	    for f in *.java ; do \
+		o=`echo $$f | sed -e 's/java/out/'`; \
+		../../openjml -esc $$f > log ;\
+		e=$$? ;\
+		if [ -e $$o ]; then  \
+			if [ $$e -eq "0" ]; then \
+			    X=1; echo $$f "has out file but exit code of 0" ;\
+			fi ;\
+			diff log $$o ; z=$$? ; \
+			if [ $$z -ne "0" ]; then  \
+			    X=1; echo $$f "has wrong output" ; \
+			fi ;\
+		elif [ -n "$( cat log )" ]; then \
+			echo "OK example has output: " $$f ;\
+			cat log ;\
+		elif [ $$e -ne "0" ]; then \
+			X=1; echo "OK example has unexpected exit code: " $$f $$e ; \
+		fi ; \
+	    done ; \
+	    exit $$X \
+	)
+
+			
 ##### The following are debugging tests
 
 debug:
@@ -44,23 +70,5 @@ test:
 version:
 	@ NOJML= njavac -d bin Version.java
 	@ STACK=X njava -cp bin Version
-
-git:
-	openjml -no-staticInitWarning -specspath $(SPECS) -esc -dir test/gitbug257 
-
-E-vm:
-	openjml 4 -no-staticInitWarning  -specspath /Users/davidcok/testn/esc:$(SPECS) /Users/davidcok/testn/esc/ETest.java -esc -verbose -method m 
-
-E-v:
-	openjml 4 -no-staticInitWarning  -specspath /Users/davidcok/testn/esc:$(SPECS) /Users/davidcok/testn/esc/ETest.java -esc -verbose 
-
-E-bin:
-	openjml 4 -no-staticInitWarning  -specspath /Users/davidcok/testn/esc:$(SPECS) /Users/davidcok/testn/esc/ETest.java -esc -progress
-
-E:
-	openjml -no-staticInitWarning  -specspath /Users/davidcok/testn/esc:$(SPECS) /Users/davidcok/testn/esc/ETest.java -esc -progress
-
-E-src:
-	cd ~/testn && openjml 1 -no-staticInitWarning -specspath /Users/davidcok/testn/esc:$(SPECS) /Users/davidcok/testn/esc/ETest.java -esc -verbose
 
 

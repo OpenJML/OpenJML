@@ -1,3 +1,4 @@
+// openjml -esc T_ensures1a.java
 public class T_ensures1a {
   //@ ensures \result == a | \result == b | \result == c | \result == d;
   //@ ensures \result >= a & \result >= b & \result >= c & \result >= d;

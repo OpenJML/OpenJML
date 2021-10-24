@@ -22,29 +22,22 @@ Completed proof of Simpler.H.take(Object) with prover !!!! - no warnings
 Completed proving methods in Simpler.H
 Starting proof of Simpler.loop(Simpler.H,Object) with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of Simpler.loop(Simpler.H,Object) with prover !!!! - no warnings
 Starting proof of Simpler.loop2(Simpler.H,Object) with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of Simpler.loop2(Simpler.H,Object) with prover !!!! - no warnings
 Starting proof of Simpler.loop3(Simpler.H,Object) with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of Simpler.loop3(Simpler.H,Object) with prover !!!! - no warnings
 Starting proof of Simpler.loop4(int[],Simpler.H,Object) with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - after explicit assume statement : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of Simpler.loop4(int[],Simpler.H,Object) with prover !!!! - no warnings
 Starting proof of Simpler.loop4(java.util.List<Object>,Simpler.H,Object) with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - after explicit assume statement : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of Simpler.loop4(java.util.List<Object>,Simpler.H,Object) with prover !!!! - no warnings
 Completed proving methods in Simpler

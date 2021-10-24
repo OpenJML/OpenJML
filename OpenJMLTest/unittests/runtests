@@ -1,5 +1,12 @@
 #! /bin/bash
 
+## This script runs the JUnit tests (directly, without using Eclipse)
+## It does so by running the Test.java program, after compiling all the
+## unit test drivers in OpenJMLTest/src/org/jmlspecs/openjmltest/testcases/
+
+## $R is the location of the directory containing this script, with
+## $R/.. expected to be OpenJMLTest, which should be a sibling of OpenJDKModule
+
 R=$( cd $(dirname "$BASH_SOURCE") && pwd)
 ROOT=$R/../../OpenJDKModule
 JROOT=$R/../libs
@@ -9,7 +16,7 @@ NJAVA=$ROOT/build/*/jdk/bin/java
 
 
 cd $R
-export SPECS=`cd $ROOT/../../Specs && pwd`
+#export SPECS=`cd $ROOT/../../Specs && pwd`
 rm -f *.class
 CP=".:../src:$JUNIT"
 ( NOJML= $NJAVAC -Xlint:unchecked -cp $CP Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java ) || exit 1

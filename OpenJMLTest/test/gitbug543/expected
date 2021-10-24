@@ -9,7 +9,6 @@ Feasibility check - at program exit : OK
 Completed proof of Test541.set(int[]) with prover !!!! - no warnings
 Starting proof of Test541.set(int[],int,int,int) with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of Test541.set(int[],int,int,int) with prover !!!! - no warnings
 Skipping proof of Test541.set1(int[],int,int,int) (excluded by skipesc)
@@ -28,14 +27,10 @@ Feasibility check - at program exit : OK
 Completed proof of Test541.m2(int[]) with prover !!!! - no warnings
 Starting proof of Test541.kk(int[],int,int,int) with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - after explicit assume statement : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of Test541.kk(int[],int,int,int) with prover !!!! - no warnings
 Starting proof of Test541.kkk(int[],int,int,int) with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - after explicit assume statement : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of Test541.kkk(int[],int,int,int) with prover !!!! - no warnings
 Skipping proof of Test541.kkkbad(int[],int,int,int) (excluded by skipesc)
