@@ -2,7 +2,7 @@
 
 export TESTNAME=$1
 export TESTLOC=../releaseTests
-export CMD=$2
+export CMD="$2"
 
 echo TESTING ${TESTNAME}
 

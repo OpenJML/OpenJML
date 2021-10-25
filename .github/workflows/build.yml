@@ -72,9 +72,9 @@ jobs:
         bash ./configure
         make release 
       shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-    - name: Smoke Test release
+    - name: Test the release
       run: |
-        make -C OpenJML/OpenJDKModule trial
+        make -C OpenJML/OpenJDKModule release-test
     - name: Load OpenJML build into GitHub release
       run: |
         cd OpenJML

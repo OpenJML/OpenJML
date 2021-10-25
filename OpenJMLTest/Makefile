@@ -1,18 +1,17 @@
 
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+## The following includes a terminating /
 mkfile_dir := $(dir $(mkfile_path))
 
 ROOT=${mkfile_dir}
-#MODS=$(ROOT)/build/macosx-x86_64-server-release/images/jmods
-#SPECS=/Users/davidcok/projects/OpenJMLB/Specs/specs
 
 ### The following is the OpenJML tests
 
 openjml-test: prep
 	( cd ${ROOT}/scripttests; ./escfiles-sort)
-	( cd ${ROOT}/scripttests; ./gitfiles-sort)
 	( cd ${ROOT}/unittests; source ./runall  )
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
+	make release-tests
 
 openjml:
 	(cd ${ROOT}/../OpenJDKModule; make openjml)
@@ -52,6 +51,14 @@ tutorial-test:
 	    exit $$X \
 	)
 
+release-tests:
+	@ NOZIP= $(ROOT)releaseTests/runtests > log-release-tests || echo "Errors reported in log-release-tests"
+
+unittests-seq:
+	. $(ROOT)unittests/runseq
+			
+unittests-par:
+	. $(ROOT)unittests/runall
 			
 ##### The following are debugging tests
 

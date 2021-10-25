@@ -26,54 +26,54 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TestA.TestA() with prover !!!! - no warnings
 Starting proof of TestA.mm(TestAA,int) with prover !!!!
-test/preconditionDetail/TestA.java:23: warning: The prover cannot establish an assertion (Precondition) in method mm
+test/preconditionDetail2/TestA.java:23: warning: The prover cannot establish an assertion (Precondition) in method mm
         case 3: a.m(0,0,0); break;
                    ^
-test/preconditionDetail/TestA.java:11: warning: Associated declaration
+test/preconditionDetail2/TestA.java:11: warning: Associated declaration
     public void m(int p, int q, int r) {
                 ^
-test/preconditionDetail/TestC.java:3: warning: Precondition conjunct is false: r >= 5
+test/preconditionDetail2/TestC.java:3: warning: Precondition conjunct is false: r >= 5
     //@   requires r >= 5;
-                   ^
-test/preconditionDetail/TestC.java:3: warning: Precondition conjunct is false: r >= 5
-    //@   requires r >= 5;
-                   ^
-test/preconditionDetail/TestB.java:4: warning: Precondition conjunct is false: q >= 10
+                     ^
+test/preconditionDetail2/TestC.java:8: warning: Precondition conjunct is false: r >= 15
+    //@   requires r >= 15;
+                     ^
+test/preconditionDetail2/TestB.java:4: warning: Precondition conjunct is false: q >= 10
     //@   requires q >= 0 &&  q >= 10 && q >= 20;
-                              ^
-test/preconditionDetail/TestB.java:6: warning: Precondition conjunct is false: q >= 5
+                                ^
+test/preconditionDetail2/TestB.java:6: warning: Precondition conjunct is false: q >= 5
     //@   requires q >= 5 && q >= 15 && q >= 25;
-                   ^
-test/preconditionDetail/TestA.java:5: warning: Precondition conjunct is false: p >= 10
+                     ^
+test/preconditionDetail2/TestA.java:5: warning: Precondition conjunct is false: p >= 10
     //@   requires p >= 10;
-                   ^
-test/preconditionDetail/TestA.java:8: warning: Precondition conjunct is false: p >= 5
+                     ^
+test/preconditionDetail2/TestA.java:8: warning: Precondition conjunct is false: p >= 5
     //@   requires p >= 5;
-                   ^
-test/preconditionDetail/TestA.java:22: warning: The prover cannot establish an assertion (Precondition) in method mm
+                     ^
+test/preconditionDetail2/TestA.java:22: warning: The prover cannot establish an assertion (Precondition) in method mm
         case 2: a.m(15,15,10); break;
                    ^
-test/preconditionDetail/TestA.java:11: warning: Associated declaration
+test/preconditionDetail2/TestA.java:11: warning: Associated declaration
     public void m(int p, int q, int r) {
                 ^
-test/preconditionDetail/TestC.java:6: warning: Precondition conjunct is false: r >= 20
+test/preconditionDetail2/TestC.java:6: warning: Precondition conjunct is false: r >= 20
     //@   requires r >= 20;
-                   ^
-test/preconditionDetail/TestC.java:8: warning: Precondition conjunct is false: r >= 15
+                     ^
+test/preconditionDetail2/TestC.java:8: warning: Precondition conjunct is false: r >= 15
     //@   requires r >= 15;
-                   ^
-test/preconditionDetail/TestB.java:4: warning: Precondition conjunct is false: q >= 20
+                     ^
+test/preconditionDetail2/TestB.java:4: warning: Precondition conjunct is false: q >= 20
     //@   requires q >= 0 &&  q >= 10 && q >= 20;
-                                         ^
-test/preconditionDetail/TestB.java:6: warning: Precondition conjunct is false: q >= 25
+                                           ^
+test/preconditionDetail2/TestB.java:6: warning: Precondition conjunct is false: q >= 25
     //@   requires q >= 5 && q >= 15 && q >= 25;
-                                        ^
-test/preconditionDetail/TestA.java:6: warning: Precondition conjunct is false: p >= 20
+                                          ^
+test/preconditionDetail2/TestA.java:6: warning: Precondition conjunct is false: p >= 20
     //@   requires p >= 20;
-                   ^
-test/preconditionDetail/TestA.java:10: warning: Precondition conjunct is false: p >= 25
+                     ^
+test/preconditionDetail2/TestA.java:10: warning: Precondition conjunct is false: p >= 25
     //@   requires p >= 25;
-                   ^
+                     ^
 Completed proof of TestA.mm(TestAA,int) with prover !!!! - with warnings
 Completed proving methods in TestA
 16 warnings

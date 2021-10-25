@@ -2,9 +2,13 @@
 
 home=$(cd $(dirname $BASH_SOURCE) && pwd )
 CMD=${home}/../../OpenJDKModule/openjml
-arg=$1
-ts=$(basename $arg)
-cd ../test/$ts
+ts=$(basename $1)
+
+if [ ! -e ${home}/../test/$ts ]; then
+    echo $ts : No such test
+    exit 1
+fi
+cd ${home}/../test/$ts
 
 if [ -e config ]; then . ./config; fi
 

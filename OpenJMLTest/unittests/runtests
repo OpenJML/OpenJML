@@ -16,8 +16,8 @@ NJAVA=$ROOT/build/*/jdk/bin/java
 
 
 cd $R
-#export SPECS=`cd $ROOT/../../Specs && pwd`
 rm -f *.class
 CP=".:../src:$JUNIT"
+
 ( NOJML= $NJAVAC -Xlint:unchecked -cp $CP Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java ) || exit 1
 ( cd ..; OPENJML_ROOT="$ROOT/../../Solvers" $NJAVA -cp unittests:src:$JUNIT Test $@ )

@@ -5,6 +5,7 @@ test/PrimitiveOps <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 test/anonymousCaptures Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< specs of derived anonymous class
 test/buggyPalindrome : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< quantifier problem?
 test/buggyPrimeNumbers : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< quantifier problem?
+test/buggyRandomNumbers : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ??????
 test/datatype : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< datatype implementation incomplete
 test/datatype : Expected exit code 0 but got 1
 test/enums1 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### quantifier problem over non-functions?
@@ -15,8 +16,11 @@ test/escDouble2 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<
 test/escDouble2 : Expected exit code 0 but got 1
 test/escDouble3 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
 test/escFPcompose : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<###
+test/escRawdingA : Killed                                                                                  ???
 test/escRawdingB : Actual output differs from expected expected1 expected2 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< feasibilty problem
 test/escStrings : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### switch on strings
+test/gcdcalculator:                                                                                        ???
+test/implicitIteration:                                                                                    ???
 test/implicitIterationA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ???
 test/preold : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< labels in preconditions
 test/preold : Expected exit code 0 but got 1
@@ -28,9 +32,6 @@ test/valuetypes2 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<
 test/valuetypes2 : Expected exit code 0 but got 1
 test/verifythis-2019-1 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ???
 
-escRawdingA
-buggyRandomNumbers
-gcdcalculator
 
 test/gitbug450b : Actual output differs from expected expected1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< can't unroll forloops
 test/gitbug582 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< sometimes times out
