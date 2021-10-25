@@ -18,7 +18,7 @@ jobs:
         ##os: [ubuntu-latest]
         ##os: [ubuntu-latest, windows-latest, ubuntu-16.04]
         ##os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [ubuntu-latest, macos-latest, ubuntu-18.04, windows-latest]
+        os: [ubuntu-latest, macos-latest, ubuntu-18.04]
 
       fail-fast: false
     steps:
@@ -80,7 +80,6 @@ jobs:
         cd OpenJML/OpenJDKModule
         bash ./configure
         make release 
-      shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
     - name: Test the release
       run: |
         make -C OpenJML/OpenJDKModule release-test
