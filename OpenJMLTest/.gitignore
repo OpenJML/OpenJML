@@ -9,3 +9,4 @@
 **/*.class
 /strongarm-error.log
 /misc/
+log*

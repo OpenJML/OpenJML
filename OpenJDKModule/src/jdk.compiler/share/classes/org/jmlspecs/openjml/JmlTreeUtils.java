@@ -1459,7 +1459,7 @@ public class JmlTreeUtils {
         rhs.type = JmlTypes.instance(context).TYPE;
         JCExpression expr = makeEqObject(p,lhs,rhs);
         // FIXME - the check below just until unerased types are supported in boogie
-        if (!JmlOption.isOption(context, JmlOption.BOOGIE)) {
+        if (true) { // !JmlOption.isOption(context, JmlOption.BOOGIE)) {
             expr = makeAnd(p,expr,
                 makeJmlMethodInvocation(pos,JmlTokenKind.SUBTYPE_OF,syms.booleanType,lhs,rhs));
             {
@@ -1520,7 +1520,7 @@ public class JmlTreeUtils {
             if (type.getKind() != TypeKind.ARRAY) {
                 JCTree.JCInstanceOf tt = makeInstanceOf(p,id,types.erasure(type));
                 expr = makeAnd(p,tt,expr);
-                if (JmlOption.isOption(context, JmlOption.BOOGIE)) expr = tt; // FIXME - just until Boogie handles unerased types
+                //if (JmlOption.isOption(context, JmlOption.BOOGIE)) expr = tt; // FIXME - just until Boogie handles unerased types
             } else {
                 Type comptype = ((Type.ArrayType)type).elemtype;
                 JCExpression e = makeTypeof(id);

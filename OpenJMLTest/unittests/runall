@@ -1,3 +1,6 @@
+#! /bin/bash
+cd $(dirname "$BASH_SOURCE")
+
 ( ./runtests access arith assignable compilationUnit compiler deprecation | tee log-access+ | grep failures ; echo "151/4" Completed log-access+ ) &
 ( ./runtests binaries | tee log-binaries | grep failures ; echo "5/1" Completed log-binaries ) &
 ( ./runtests bugs | tee log-bugs | grep failures ; echo "23/0" Completed log-bugs ) &

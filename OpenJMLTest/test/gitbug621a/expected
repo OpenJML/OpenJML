@@ -2,7 +2,6 @@ Proving methods in Test
 Skipping proof of Test.Test() (excluded by -method)
 Starting proof of Test.testMethod() with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.testMethod() with prover !!!! - no warnings
 Skipping proof of Test.workerMethod() (excluded by -method)

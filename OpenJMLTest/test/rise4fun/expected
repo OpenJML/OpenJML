@@ -61,10 +61,10 @@ test/rise4fun/MaybeAdd.java:7: warning: Associated declaration
     //@ ensures \result == a+b;
         ^
 Completed proof of MaybeAdd.add(int,int) with prover !!!! - with warnings
-Starting proof of MaybeAdd.main(java.lang.String[]) with prover !!!!
+Starting proof of MaybeAdd.main(String[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of MaybeAdd.main(java.lang.String[]) with prover !!!! - no warnings
+Completed proof of MaybeAdd.main(String[]) with prover !!!! - no warnings
 Completed proving methods in MaybeAdd
 Proving methods in MaybeAddFixed
 Starting proof of MaybeAddFixed.MaybeAddFixed() with prover !!!!
@@ -75,10 +75,10 @@ Starting proof of MaybeAddFixed.add(int,int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of MaybeAddFixed.add(int,int) with prover !!!! - no warnings
-Starting proof of MaybeAddFixed.main(java.lang.String[]) with prover !!!!
+Starting proof of MaybeAddFixed.main(String[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of MaybeAddFixed.main(java.lang.String[]) with prover !!!! - no warnings
+Completed proof of MaybeAddFixed.main(String[]) with prover !!!! - no warnings
 Completed proving methods in MaybeAddFixed
 Proving methods in Smallest
 Starting proof of Smallest.Smallest() with prover !!!!

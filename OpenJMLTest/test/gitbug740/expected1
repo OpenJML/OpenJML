@@ -9,7 +9,6 @@ Feasibility check - at program exit : OK
 Completed proof of PrintProblem.main(String[]) with prover !!!! - no warnings
 Starting proof of PrintProblem.test() with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of PrintProblem.test() with prover !!!! - no warnings
 Starting proof of PrintProblem.main1(String[]) with prover !!!!
@@ -28,7 +27,6 @@ $SPECS/specs/java/io/PrintStream.jml:35: warning: Associated declaration
 Completed proof of PrintProblem.main1(String[]) with prover !!!! - with warnings
 Starting proof of PrintProblem.test1() with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of PrintProblem.test1() with prover !!!! - no warnings
 Completed proving methods in PrintProblem

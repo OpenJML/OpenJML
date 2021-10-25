@@ -14,7 +14,6 @@ Feasibility check - at program exit : OK
 Completed proof of ACD.SPI.SPI() with prover !!!! - no warnings
 Starting proof of ACD.SPI.lazyInit() with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of ACD.SPI.lazyInit() with prover !!!! - no warnings
 Completed proving methods in ACD.SPI

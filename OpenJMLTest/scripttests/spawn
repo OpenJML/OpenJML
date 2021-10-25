@@ -1,8 +1,7 @@
 #! /bin/bash
 
-threads=15
 ntotal=$#
-echo $ntotal tests
+echo $ntotal "tests (some may be skipped)"
 fs=( "$@" )
 
 i=0

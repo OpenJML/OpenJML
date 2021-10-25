@@ -1,0 +1,1 @@
+ARGS+=" -specspath test/escJML/specs -nullableByDefault "

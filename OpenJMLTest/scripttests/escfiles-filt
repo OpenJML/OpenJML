@@ -1,0 +1,3 @@
+#! /bin/bash
+
+./escfiles "$@" | tee log-escfiles | egrep -v '(Matched|Skip|481)'

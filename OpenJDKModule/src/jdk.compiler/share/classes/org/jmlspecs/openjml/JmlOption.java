@@ -67,7 +67,7 @@ public class JmlOption {
     public static final JmlOption COMPILE = new JmlOption("-compile",false,null,"Does a Java-only compile","-command=compile");
     public static final JmlOption RAC = new JmlOption("-rac",false,null,"Enables generating code instrumented with runtime assertion checks","-command=rac");
     public static final JmlOption ESC = new JmlOption("-esc",false,null,"Enables static checking","-command=esc");
-    public static final JmlOption BOOGIE = new JmlOption("-boogie",false,false,"Enables static checking with boogie",null);
+//    public static final JmlOption BOOGIE = new JmlOption("-boogie",false,false,"Enables static checking with boogie",null);
     public static final JmlOption USEJAVACOMPILER = new JmlOption("-java",false,false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null) {
     	public boolean check(Context context, boolean negate) {
     		boolean b = JmlOption.isOption(context,JmlOption.USEJAVACOMPILER);
