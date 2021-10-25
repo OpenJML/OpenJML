@@ -5,16 +5,10 @@ Feasibility check - at program exit : OK
 Completed proof of LongArith.LongArith(int) with prover !!!! - no warnings
 Starting proof of LongArith.use_int(int) with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of LongArith.use_int(int) with prover !!!! - no warnings
 Starting proof of LongArith.use_long(long) with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of LongArith.use_long(long) with prover !!!! - no warnings
 Completed proving methods in LongArith
