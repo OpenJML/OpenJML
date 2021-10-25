@@ -95,7 +95,10 @@ trial:
 # Tests a recently created release (releae-temp/openjml.zip)
 release-test:
 	pwd
-	@ $(topdir)/../OpenJMLTest/releaseTests/runtests
+	echo $(topdir)
+	ls -la $(topdir)/..
+	ls -la $(topdir)/../OpenJMLTest
+	$(topdir)/../OpenJMLTest/releaseTests/runtests
 
 ## Development build targets
 
