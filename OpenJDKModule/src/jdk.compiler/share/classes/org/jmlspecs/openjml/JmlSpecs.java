@@ -384,6 +384,8 @@ public class JmlSpecs {
             todo.add("$SY");
         }
 
+        String cwd = System.getProperty("user.dir");
+        
         boolean syIncluded = false;
         boolean spIncluded = false;
         boolean cpIncluded = false;
@@ -434,7 +436,7 @@ public class JmlSpecs {
                 Dir d = make(dir);
                 if (d != null) {
                     if (checkDirectories && !d.exists()) { 
-                        utils.warning("jml.specs.dir.not.exist",d);
+                        utils.warning("jml.specs.dir.not.exist",d + " (" + cwd + ")");
                     }
                     specsDirs.add(d);
                 } else {

@@ -41,7 +41,6 @@ escDemoTypes
 escDmz2Trace
 escDoubleArith
 escFeatures
-escInvariants1
 escJML
 escJml1
 escJml1a
@@ -50,10 +49,7 @@ escJml3
 escJmlDup
 escJmlImport
 escRawding2
-escRecursiveInvariantMQ
-escSeparateJml
 escSettableClock
-escSimpleStringWithAsserts
 escStaticModel
 escTrace
 escTrace2
@@ -92,11 +88,9 @@ jmldoc5
 jmldoc6
 jmldoc7
 listNullity
-loopExercises
 model1
 model2
 opt
-preconditionDetail2
 prettyprint
 purse
 purseMod

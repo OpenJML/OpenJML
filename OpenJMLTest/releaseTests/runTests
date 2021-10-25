@@ -1,5 +1,8 @@
 #! /bin/bash 
 
+# Go to OpenJMLTest
+cd $(dirname "$BASH_SOURCE")/..
+
 ## This file tests a release of the OpenJML tool
 ## This is just a quick "smoke" test to make sure that 
 ## the tool runs on simple inputs
@@ -7,73 +10,95 @@
 ## current working directory, but does its work in a temporary subdirectory
 
 ## Name of folder holding releaseBuilds (within OpenJML)
-D=releaseBuilds
 
-## Execute any local setup
-if [[ -n "${LOCAL_SETUP}" ]]; then
-    echo Executing local setup ${LOCAL_SETUP}
-	source ${LOCAL_SETUP}
-fi
-
-JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home
-java -version
-which java
 
 Z=:
 if [[ "$COMSPEC" != "" ]] ; then
 Z=';'
 fi
 
-pushd $D
-REL=$1
-if [[ "$REL" == "" ]] ; then REL=`ls -t *zip | head -1` ; fi
-echo Testing $REL in `pwd`
-popd
-
 cd ../OpenJMLTest
 
 rm -rf temp-release
 mkdir temp-release
-cp ../OpenJML/$D/$REL temp-release
 cd temp-release
 
+if [ -z ${NOZIP+x} ]; then
+## if NOZIP is not set, then test the most recent release zip
+
+ZIP=../../OpenJDKModule/release-temp/openjml.zip
+if [ -e "$ZIP" ]; then
+  cp $ZIP .
+else
+  echo "Zip file not found" $ZIP "cwd=" `pwd` 
+  exit 1
+fi
+  
+unzip openjml.zip > /dev/null
+OJ=`pwd`/openjml
+
+elif [ -z "$OJ" ]; then
+## NOZIP was set to a null string; test the current build
+
+OJ=`pwd`/../../OpenJDKModule/openjml
+echo "Testing current build at $OJ"
+
+else
+## NOZIP was set to something, use that as the openjml to test
+
+OJ="$NOZIP"
+echo "Testing executable at $OJ"
+
+fi
+
 TESTLOC=../releaseTests
+
+if [ ! -e "$OJ" ]; then
+   echo No openjml : $OJ
+   exit 1
+fi
 
 export RTH=../releaseTests/releaseTestHelper
 RES=0
 
-## Checks the contents of the release tar file
-##${RTH} testTar "tar ztf *gz" || RES=$(($RES+1))
-
-## Expand the zip file (quietly)
-unzip *zip
 
 ## Checks the version
 echo Visually check that the version matches the zip file being tested
-java -jar openjml.jar -version
-${RTH} testJmlVersion "java -jar openjml.jar -version" || RES=$(($RES+1))
+$OJ -version
+echo "openjml" `cat ../../version.txt` > ${TESTLOC}/testJmlVersion/expected
+${RTH} testJmlVersion "$OJ -version" || RES=$(($RES+1))
 
 
 ## Checks the help message (when there are no arguments)
-${RTH} testJmlHelp "java -jar openjml.jar" || RES=$(($RES+1))
+${RTH} testJmlHelpSimp "$OJ" || RES=$(($RES+1))
 
 ## Checks the help message (when there is a -help option)
-${RTH} testJmlHelp "java -jar openjml.jar -help" || RES=$(($RES+1))
+${RTH} testJmlHelp "$OJ -?" || RES=$(($RES+1))
+
+## Checks the help message (when there is a -help option)
+${RTH} testJmlHelp "$OJ -help" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument ## FIXME - embedded quotes are not working as expected within the test script
-##${RTH} testJmlBad "java -jar openjml.jar -verboseness \"\"" || RES=$(($RES+1))
+##${RTH} testJmlBad "$OJ -verboseness \"\"" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument
-${RTH} testJmlBad "java -jar openjml.jar -verboseness=" || RES=$(($RES+1))
+${RTH} testJmlBad "$OJ -verboseness=" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness property
-${RTH} testJmlBad2 "java -Dorg.openjml.option.verboseness=x -jar openjml.jar -check" || RES=$(($RES+1))
+export OPENJML_verboseness=x
+${RTH} testJmlBad2 "$OJ -check" || RES=$(($RES+1))
+unset OPENJML_verboseness
+
+## Checks when there is a bad verboseness property
+echo "org.openjml.option.verboseness=x" > ./openjml.properties
+${RTH} testJmlBad2 "$OJ -check" || RES=$(($RES+1))
+rm openjml.properties
 
 ## Checks when there is a bad use of -java
-${RTH} testJmlBad3 "java -jar openjml.jar -check -java" || RES=$(($RES+1))
+${RTH} testJmlBad3 "$OJ -check -java" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument ## FIXME _ this works OK but not within this test script
-#${RTH} testJmlBad "java -jar openjml.jar \"-verboseness= \"" || RES=$(($RES+1))
+#${RTH} testJmlBad "$OJ '-verboseness= '" || RES=$(($RES+1))
 
 
 
@@ -84,12 +109,16 @@ echo "import org.jmlspecs.annotation.*; public class D { @Pure int m() { return 
 
 
 ## Checks a valid file using java -jar
-${RTH} testOK1 "java -jar openjml.jar -noPurityCheck -specspath . B.java" || RES=$(($RES+1))
+${RTH} testOK1 "$OJ -noPurityCheck -specspath . B.java" || RES=$(($RES+1))
+
+echo SKIPPING RAC
+## FIXME
+if [[ "SKIP" == "" ]]; then
 
 ## rac
 rm -rf rac
 mkdir -p rac
-${RTH} testRac "java -jar openjml.jar -rac -noRacSource -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ -rac -noRacSource -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
 echo RAC-OK
 #echo java -classpath "rac${Z}jmlruntime.jar" A
 java -classpath "rac${Z}jmlruntime.jar" A  > racactual
@@ -107,22 +136,23 @@ echo RAC-ST
 java -classpath "rac${Z}jmlruntime.jar" -Dorg.jmlspecs.openjml.racshowstack A 1 2 > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack || { RES=$(($RES+1)); }
 
+fi
 
-## Checks a valid file using java -classpath
-${RTH} testOK2 "java -classpath openjml.jar org.jmlspecs.openjml.Main -noPurityCheck -specspath . B.java" || RES=$(($RES+1))
 
 ## This checks verbose output - which changes too often to put in the 
 ## regular test suite
 if [[ "$COKENV" != "" ]] ; then
 ## Checks a valid file with jmlverbose
-${RTH} testOK3 "java -jar openjml.jar -noPurityCheck -specspath . B.java -jmlverbose" || RES=$(($RES+1))
+${RTH} testOK3 "$OJ -noPurityCheck -specspath . B.java -jmlverbose" || RES=$(($RES+1))
 fi
 
 ## Checks a valid file with no internal specs
-${RTH} testOK4 "java -jar openjml.jar -specspath . B.java -noInternalSpecs" || RES=$(($RES+1))
+## FIXME - why does this work?
+${RTH} testOK4 "$OJ -specspath . B.java -noInternalSpecs" || RES=$(($RES+1))
 
 ## Checks a valid file with no internal runtime library - should fail to find annotations
-${RTH} testRuntime1 "java -jar openjml.jar C.java -jmltesting -classpath . -noPurityCheck -noInternalRuntime" || RES=$(($RES+1))
+## FIXME - is -noInternalRuntime still a usefule/vlid option?
+${RTH} testRuntime1 "$OJ C.java -jmltesting -classpath . -noPurityCheck -noInternalRuntime" || RES=$(($RES+1))
 
 ## ANNOTATIONS might be an absolute or relative path.  We are currently in
 ## OpenJML/temp-release so if absolute we want ${ANNOTATIONS}, if relative we want ../${ANNOTATIONS}
@@ -131,76 +161,68 @@ ${RTH} testRuntime1 "java -jar openjml.jar C.java -jmltesting -classpath . -noPu
 ANNOTATIONS=../../../JMLAnnotations
 #fi
 
+## FIXME - uses of OpenJML/bin-runtime must change
 ## Checks a valid file with an external binary runtime library - should be OK
-${RTH} testRuntime2 "java -jar openjml.jar C.java -noPurityCheck -classpath ../../OpenJML/bin-runtime${Z}${ANNOTATIONS}/bin -noInternalRuntime"  || RES=$(($RES+1))
+${RTH} testRuntime2 "$OJ C.java -noPurityCheck -classpath ../../OpenJML/bin-runtime${Z}${ANNOTATIONS}/bin -noInternalRuntime"  || RES=$(($RES+1))
 
 ## Checks a valid file with an external source runtime library - should be OK
-${RTH} testRuntime3 "java -jar openjml.jar C.java -noPurityCheck -classpath ../../OpenJML/runtime${Z}${ANNOTATIONS}/src -noInternalRuntime" || RES=$(($RES+1))
+${RTH} testRuntime3 "$OJ C.java -noPurityCheck -classpath ../../OpenJML/runtime${Z}${ANNOTATIONS}/src -noInternalRuntime" || RES=$(($RES+1))
 
 ## Checks using annotations with normal use - should be OK
-${RTH} testRuntime4 "java -jar openjml.jar C.java -noPurityCheck " || RES=$(($RES+1))
+${RTH} testRuntime4 "$OJ C.java -noPurityCheck " || RES=$(($RES+1))
 
 ## Checks using annotations with normal use - should be OK
-${RTH} testRuntime5 "java -jar openjml.jar D.java -noPurityCheck " || RES=$(($RES+1))
+${RTH} testRuntime5 "$OJ D.java -noPurityCheck " || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc1 "java -jar openjml.jar -noPurityCheck -esc ../testfiles/testEsc/A.java -classpath ../testfiles/testEsc" || RES=$(($RES+1))
+${RTH} testEsc1 "$OJ -noPurityCheck -esc ../testfiles/testEsc/A.java -classpath ../testfiles/testEsc" || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc2 "java -jar openjml.jar -noPurityCheck -esc ../testfiles/testEsc/B.java -classpath ../testfiles/testEsc" || RES=$(($RES+1))
+${RTH} testEsc2 "$OJ -noPurityCheck -esc ../testfiles/testEsc/B.java -classpath ../testfiles/testEsc" || RES=$(($RES+1))
 
 
-export SWITCHSLASH=YES
 ## Checks using no paths - fails to find super class, uses specs in java file
-${RTH} testPath1 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java " || RES=$(($RES+1))
+${RTH} testPath1 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java " || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testPath2 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data" || RES=$(($RES+1))
+${RTH} testPath2 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data" || RES=$(($RES+1))
 
 ## Checks using specs path - finds specs but not super class
-${RTH} testPath3 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -specspath ../testfiles/testPath/data-specs " || RES=$(($RES+1))
+${RTH} testPath3 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -specspath ../testfiles/testPath/data-specs " || RES=$(($RES+1))
 
 ## Checks using source path - finds specs but not super class
-${RTH} testPath4 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data-specs " || RES=$(($RES+1))
+${RTH} testPath4 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data-specs " || RES=$(($RES+1))
 
 ## Checks using source path (specs and java) - finds specs and super class
-${RTH} testPath5 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data-specs${Z}../testfiles/testPath/data " || RES=$(($RES+1))
+${RTH} testPath5 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data-specs${Z}../testfiles/testPath/data " || RES=$(($RES+1))
 
 ## Checks using source path (java then specs) - finds super class; uses jml file for specs even though it is later on the search path
-${RTH} testPath6 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data${Z}../testfiles/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath6 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data${Z}../testfiles/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using source path and specs path - uses specs file, finds super class
-${RTH} testPath7 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data -specspath ../testfiles/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath7 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data -specspath ../testfiles/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using class path (specs and java) - finds specs and super class
-${RTH} testPath8 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data-specs${Z}../testfiles/testPath/data " || RES=$(($RES+1))
+${RTH} testPath8 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data-specs${Z}../testfiles/testPath/data " || RES=$(($RES+1))
 
 ## Checks using class path (java then specs) - finds super class; uses jml file for specs
-${RTH} testPath9 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data${Z}../testfiles/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath9 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data${Z}../testfiles/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using class path and specs path - uses specs file, finds super class
-${RTH} testPath10 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data -specspath ../testfiles/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath10 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data -specspath ../testfiles/testPath/data-specs" || RES=$(($RES+1))
 
-export SWITCHSLASH=
 
 ## FIXME - this gives an odd error message.  The presence/absence of rt.jar makes no difference
 ##   adding additional spec files or removing -noInternalSpecs gets past this error, but not sure why
 ##   also why would runtime be in the specs path?
-#java -jar openjml.jar -classpath "../bin" -sourcepath ../testfiles/testNoErrors -specs "../runtime" -noPurityCheck -noInternalSpecs ../testfiles/testNoErrors/A.java || { RES=$(($RES+1)); }
+#$OJ -classpath "../bin" -sourcepath ../testfiles/testNoErrors -specs "../runtime" -noPurityCheck -noInternalSpecs ../testfiles/testNoErrors/A.java || { RES=$(($RES+1)); }
 
 
 ## Checks an invalid file
-export SWITCHSLASH=YES
-${RTH} testCheck1 "java -jar openjml.jar -jmltesting -noPurityCheck -specspath . A.java" || RES=$(($RES+1))
-export SWITCHSLASH=
+${RTH} testCheck1 "$OJ -jmltesting -noPurityCheck -specspath . A.java" || RES=$(($RES+1))
 
-##if [[ "${COMSPEC}" == "" ]]; then
-##    if [[ ${RES} -eq 0 ]]; then echo "All tests performed succeeded"; else echo ${RES} tests failed  ; fi
-##    echo Exiting tests early because the OS is not Windows
-##    exit ${RES}
-##fi
 
-## FIXME
+## FIXME - jmldoc & prettyprinying
 if [[ "SKIP" == "" ]]; then
 
 export DIFFJMLDOC="diff -r "
