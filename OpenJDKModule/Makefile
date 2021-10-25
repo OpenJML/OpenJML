@@ -98,7 +98,8 @@ release-test:
 	echo $(topdir)
 	ls -la $(topdir)/..
 	ls -la $(topdir)/../OpenJMLTest
-	$(topdir)/../OpenJMLTest/releaseTests/runtests
+	ls -la $(topdir)/../OpenJMLTest/releaseTests
+	$(topdir)/../OpenJMLTest/releaseTests/runTests
 
 ## Development build targets
 
