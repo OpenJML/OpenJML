@@ -52,7 +52,7 @@ tutorial-test:
 	)
 
 release-tests:
-	@ NOZIP= $(ROOT)releaseTests/runtests > log-release-tests || echo "Errors reported in log-release-tests"
+	@ NOZIP= $(ROOT)releaseTests/runtests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 
 unittests-seq:
 	. $(ROOT)unittests/runseq

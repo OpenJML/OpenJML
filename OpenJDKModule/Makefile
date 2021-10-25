@@ -94,7 +94,7 @@ trial:
 
 # Tests a recently created release (releae-temp/openjml.zip)
 release-test:
-	$(topdir)/../OpenJMLTest/releaseTests/runtests
+	@ $(topdir)/../OpenJMLTest/releaseTests/runtests
 
 ## Development build targets
 
