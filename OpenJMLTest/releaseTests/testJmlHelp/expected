@@ -115,7 +115,6 @@ JML options:
   -split                     Split proof into sections
   -escBV                     ESC: If enabled, use bit-vector arithmetic (auto, true, false)
   -triggers                  ESC: Enable quantifier triggers in SMT encoding (default true)
-  -escExitInfo               ESC: Show exit location for postconditions (default true)
   -escMaxWarnings            ESC: Maximum number of warnings to find per method
   -escMaxWarningsPath        ESC: If true, find all counterexample paths to each invalid assert
   -counterexample            ESC: Enables output of complete, raw counterexample
@@ -123,10 +122,8 @@ JML options:
   -subexpressions            ESC: Enables tracing with subexpressions
   -checkFeasibility          ESC: Check feasibility of assumptions
   -benchmarks                ESC: Collects solver communications
-  -minQuant                  ESC: Minimizes using quantifications, in favor of inlining
   -typeQuants                ESC: Introduces quantified assertions for type variables (true, false, or auto)
   -solver-seed               ESC: Seed to initialize solver's random number generation
-  -modelFieldNoRep           RAC action when a model field has no represents clause (zero,ignore,warn)
   -racShowSource             RAC: Error messages will include source information
   -racCheckAssumptions       RAC: Enables runtime checking that assumptions hold
   -racJavaChecks             RAC: Enables explicit checking of Java language checks

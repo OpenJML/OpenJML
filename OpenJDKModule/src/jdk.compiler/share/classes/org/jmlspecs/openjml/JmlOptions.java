@@ -300,7 +300,7 @@ public class JmlOptions extends Options {
                 try {
                     Utils.readProps(properties,file);
                 } catch (java.io.IOException e) {
-                    Utils.instance(context).note(false,"Failed to read property file " + file);
+                    Utils.instance(context).note(false,"Failed to read property file " + file + " (cwd: " + System.getProperty("user.dir") + ")");
                 }
                 setPropertiesFileOptions(options, properties);
             }

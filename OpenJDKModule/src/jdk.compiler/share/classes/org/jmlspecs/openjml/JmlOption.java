@@ -184,7 +184,7 @@ public class JmlOption {
     	}
     };
     public static final JmlOption ESC_TRIGGERS = new JmlOption("-triggers",false,true,"ESC: Enable quantifier triggers in SMT encoding (default true)",null);
-    public static final JmlOption ESC_EXIT_INFO = new JmlOption("-escExitInfo",false,true,"ESC: Show exit location for postconditions (default true)",null);
+//    public static final JmlOption ESC_EXIT_INFO = new JmlOption("-escExitInfo",false,true,"ESC: Show exit location for postconditions (default true)",null);
     public static final JmlOption ESC_MAX_WARNINGS = new JmlOption("-escMaxWarnings",true,"all","ESC: Maximum number of warnings to find per method",null) {
     	public boolean check(Context context, boolean negate) {
             Utils utils = Utils.instance(context);
@@ -239,10 +239,10 @@ public class JmlOption {
     	}
     };
     public static final JmlOption BENCHMARKS = new JmlOption("-benchmarks",true,null,"ESC: Collects solver communications",null);
-    public static final JmlOption MINIMIZE_QUANTIFICATIONS = new JmlOption("-minQuant",false,true,"ESC: Minimizes using quantifications, in favor of inlining",null);
+//    public static final JmlOption MINIMIZE_QUANTIFICATIONS = new JmlOption("-minQuant",false,true,"ESC: Minimizes using quantifications, in favor of inlining",null);
     public static final JmlOption QUANTS_FOR_TYPES = new JmlOption("-typeQuants",true,"auto","ESC: Introduces quantified assertions for type variables (true, false, or auto)",null);
     public static final JmlOption SEED = new JmlOption("-solver-seed",true,"0","ESC: Seed to initialize solver's random number generation",null);
-    public static final JmlOption MODEL_FIELD_NO_REP = new JmlOption("-modelFieldNoRep",true,"zero","RAC action when a model field has no represents clause (zero,ignore,warn)",null);
+//    public static final JmlOption MODEL_FIELD_NO_REP = new JmlOption("-modelFieldNoRep",true,"zero","RAC action when a model field has no represents clause (zero,ignore,warn)",null);
 //    ROOTS("-roots",false,false,"Enables the Reflective Object-Oriented Testing System---w00t!",null);
 
     public static final JmlOption RAC_SHOW_SOURCE = new JmlOption("-racShowSource",false,true,"RAC: Error messages will include source information",null);

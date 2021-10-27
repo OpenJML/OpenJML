@@ -36,14 +36,14 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of StringBuilderDriver.testSetLength() with prover !!!! - no warnings
 Starting proof of StringBuilderDriver.testCharAt() with prover !!!!
-$SPECS\java5\java\lang\CharSequence.jml:64: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method testCharAt
-      @      ensures  \result == charArray[index];
+$SPECS/java5/java/lang/CharSequence.jml:64: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method testCharAt
+      @      ensures  /result == charArray[index];
                                           ^
-$SPECS\java5\java\lang\CharSequence.jml:64: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method testCharAt
-      @      ensures  \result == charArray[index];
+$SPECS/java5/java/lang/CharSequence.jml:64: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method testCharAt
+      @      ensures  /result == charArray[index];
                                           ^
-$SPECS\java5\java\lang\CharSequence.jml:64: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method testCharAt
-      @      ensures  \result == charArray[index];
+$SPECS/java5/java/lang/CharSequence.jml:64: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method testCharAt
+      @      ensures  /result == charArray[index];
                                           ^
 Completed proof of StringBuilderDriver.testCharAt() with prover !!!! - with warnings
 Starting proof of StringBuilderDriver.testCodePointAt() with prover !!!!
@@ -107,42 +107,42 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of StringBuilderDriver.testAppend_char() with prover !!!! - no warnings
 Starting proof of StringBuilderDriver.testAppend_int() with prover !!!!
-$SPECS\java5\java\lang\String.jml:376: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method testAppend_int
-      @   ensures \result == equal(s1.charArray,s2.charArray);
+$SPECS/java5/java/lang/String.jml:376: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method testAppend_int
+      @   ensures /result == equal(s1.charArray,s2.charArray);
                                   ^
-$SPECS\java5\java\lang\CharSequence.jml:41: warning: Associated declaration
+$SPECS/java5/java/lang/CharSequence.jml:41: warning: Associated declaration
         public static pure helper model boolean equal(char[] a, char[] b);
                                                              ^
-$SPECS\java5\java\lang\String.jml:376: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method testAppend_int
-      @   ensures \result == equal(s1.charArray,s2.charArray);
+$SPECS/java5/java/lang/String.jml:376: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method testAppend_int
+      @   ensures /result == equal(s1.charArray,s2.charArray);
                                   ^
-$SPECS\java5\java\lang\CharSequence.jml:41: warning: Associated declaration
+$SPECS/java5/java/lang/CharSequence.jml:41: warning: Associated declaration
         public static pure helper model boolean equal(char[] a, char[] b);
                                                              ^
-$SPECS\java5\java\lang\String.jml:376: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method testAppend_int
-      @   ensures \result == equal(s1.charArray,s2.charArray);
+$SPECS/java5/java/lang/String.jml:376: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method testAppend_int
+      @   ensures /result == equal(s1.charArray,s2.charArray);
                                   ^
-$SPECS\java5\java\lang\CharSequence.jml:41: warning: Associated declaration
+$SPECS/java5/java/lang/CharSequence.jml:41: warning: Associated declaration
         public static pure helper model boolean equal(char[] a, char[] b);
                                                              ^
 Completed proof of StringBuilderDriver.testAppend_int() with prover !!!! - with warnings
 Starting proof of StringBuilderDriver.testAppend_long() with prover !!!!
-$SPECS\java5\java\lang\String.jml:376: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method testAppend_long
-      @   ensures \result == equal(s1.charArray,s2.charArray);
+$SPECS/java5/java/lang/String.jml:376: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method testAppend_long
+      @   ensures /result == equal(s1.charArray,s2.charArray);
                                   ^
-$SPECS\java5\java\lang\CharSequence.jml:41: warning: Associated declaration
+$SPECS/java5/java/lang/CharSequence.jml:41: warning: Associated declaration
         public static pure helper model boolean equal(char[] a, char[] b);
                                                              ^
-$SPECS\java5\java\lang\String.jml:376: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method testAppend_long
-      @   ensures \result == equal(s1.charArray,s2.charArray);
+$SPECS/java5/java/lang/String.jml:376: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method testAppend_long
+      @   ensures /result == equal(s1.charArray,s2.charArray);
                                   ^
-$SPECS\java5\java\lang\CharSequence.jml:41: warning: Associated declaration
+$SPECS/java5/java/lang/CharSequence.jml:41: warning: Associated declaration
         public static pure helper model boolean equal(char[] a, char[] b);
                                                              ^
-$SPECS\java5\java\lang\String.jml:376: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method testAppend_long
-      @   ensures \result == equal(s1.charArray,s2.charArray);
+$SPECS/java5/java/lang/String.jml:376: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method testAppend_long
+      @   ensures /result == equal(s1.charArray,s2.charArray);
                                   ^
-$SPECS\java5\java\lang\CharSequence.jml:41: warning: Associated declaration
+$SPECS/java5/java/lang/CharSequence.jml:41: warning: Associated declaration
         public static pure helper model boolean equal(char[] a, char[] b);
                                                              ^
 Completed proof of StringBuilderDriver.testAppend_long() with prover !!!! - with warnings
@@ -195,7 +195,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of StringBuilderDriver.testInsertString() with prover !!!! - no warnings
 Starting proof of StringBuilderDriver.testInsertCharArray() with prover !!!!
-test\escRawding\StringBuilderDriver.java:596: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method testInsertCharArray:  overflow in int sum
+test/escRawding/StringBuilderDriver.java:596: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method testInsertCharArray:  overflow in int sum
             sb.insert(sb.length() + 1, charArray, 0, 0);
                                   ^
 Completed proof of StringBuilderDriver.testInsertCharArray() with prover !!!! - with warnings

@@ -36,6 +36,7 @@ fi
   
 unzip openjml.zip > /dev/null
 OJ=`pwd`/openjml
+echo Testing release build unziped at $OJ
 
 elif [ -z "$OJ" ]; then
 ## NOZIP was set to a null string; test the current build
