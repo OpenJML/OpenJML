@@ -27,11 +27,13 @@ prep:
 	echo "import org.jmlspecs.annotation.*; public class D { @Pure int m() { return 0; } }" > $T/D.java
 
 tutorial-test:
-	@ (cd $(mkfile_dir)/../OpenJDKModule/release-files/tutorial; \
+	@ ( echo Testing tutorial files ;\
+	    cd $(mkfile_dir)/../OpenJDKModule/release-files/tutorial; \
 	    X=0 ;\
 	    for f in *.java ; do \
 		o=`echo $$f | sed -e 's/java/out/'`; \
-		../../openjml -esc $$f > log ;\
+		c=`cat $$f | head -1 | sed -e 'sx//[ ]*xx' ` ;\
+		../../$$c > log ;\
 		e=$$? ;\
 		if [ -e $$o ]; then  \
 			if [ $$e -eq "0" ]; then \
@@ -52,6 +54,7 @@ tutorial-test:
 	)
 
 release-tests:
+	@ echo Running release tests with current development build
 	@ NOZIP= $(ROOT)releaseTests/runtests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 
 unittests-seq:

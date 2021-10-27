@@ -15,13 +15,13 @@ Starting proof of PrintProblem.main1(String[]) with prover !!!!
 test/gitbug740/PrintProblem.java:17: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method main1:  (Caller: PrintProblem.main1(java.lang.String[]), Callee: java.io.PrintStream.println(java.lang.String))
         System.out.println("... test done."); // FAILURE -- test1 is assigns \everything
                           ^
-$SPECS/specs/java/io/PrintStream.jml:39: warning: Associated declaration
+$SPECS/java/io/PrintStream.jml:39: warning: Associated declaration
     //-RAC@ public invariant outputText != null && \invariant_for(outputText);
                    ^
 test/gitbug740/PrintProblem.java:17: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method main1:  (Caller: PrintProblem.main1(java.lang.String[]), Callee: java.io.PrintStream.println(java.lang.String))
         System.out.println("... test done."); // FAILURE -- test1 is assigns \everything
                           ^
-$SPECS/specs/java/io/PrintStream.jml:35: warning: Associated declaration
+$SPECS/java/io/PrintStream.jml:35: warning: Associated declaration
     //-RAC@ public static invariant \invariant_for(eol) && eol.length() > 0;
                           ^
 Completed proof of PrintProblem.main1(String[]) with prover !!!! - with warnings
