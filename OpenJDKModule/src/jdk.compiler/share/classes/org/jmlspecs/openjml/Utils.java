@@ -1895,6 +1895,10 @@ public class Utils {
     public static void dumpStack() {
     	new RuntimeException().printStackTrace(System.out);
     }
+    
+    public static boolean isJML() {
+    	return System.getenv("NOJML")==null;
+    }
 
     public static void dumpStack(String message) {
     	System.out.println("DUMP " + message);

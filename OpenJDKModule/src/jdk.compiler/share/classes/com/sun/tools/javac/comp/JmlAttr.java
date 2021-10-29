@@ -6009,7 +6009,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
 //    public JCStatement methodCall(JmlStatementExpr tree) {
-//        // org.jmlspecs.utils.Utils.assertionFailure();
+//        // org.jmlspecs.runtime.Utils.assertionFailure();
 //        
 //        JmlToken t = tree.token;
 //        String s = t == JmlToken.ASSERT ? "assertion is false" : t == JmlToken.ASSUME ? "assumption is false" : "unreachable statement reached";
@@ -6023,7 +6023,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    }
 //    
 //    public JCStatement methodCall(JmlStatementExpr tree, JCExpression translatedOptionalExpr) {
-//        // org.jmlspecs.utils.Utils.assertionFailure();
+//        // org.jmlspecs.runtime.Utils.assertionFailure();
 //        
 //        JmlToken t = tree.token;
 //        String s = t == JmlToken.ASSERT ? "assertion is false" : t == JmlToken.ASSUME ? "assumption is false" : "unreachable statement reached";

@@ -12,6 +12,7 @@ import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.Modifiers;
 
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symtab;
@@ -150,6 +151,13 @@ public class JmlCheck extends Check {
             // We need this for the implementation of JML.typeargs, but
             // does it cause problems elsewhere?
             return req;
+        }
+        if (found == req) return found;
+        JmlTypes jmltypes = JmlTypes.instance(context);
+        if (req == jmltypes.REAL) {
+        	if (found.isNumeric() || found == jmltypes.BIGINT) return found;
+        } else if (req == jmltypes.BIGINT) {
+        	if (found.isIntegral()) return found;
         }
         return super.checkType(pos, found, req);
     }

@@ -88,7 +88,7 @@ public class JmlTreeUtils {
     }
     
     /** The qualified name of the Utils class that contains runtime utility methods */
-    /*@non_null*/ final public static String utilsClassQualifiedName = "org.jmlspecs.utils.Utils";
+    /*@non_null*/ final public static String utilsClassQualifiedName = "org.jmlspecs.runtime.Utils";
 
     /** The Context in which this object was constructed */ 
     //@ non_null
@@ -312,7 +312,7 @@ public class JmlTreeUtils {
     }
 
     
-    /** Returns an attributed AST for "org.jmlspecs.utils.Utils.<methodName>" */
+    /** Returns an attributed AST for "org.jmlspecs.runtime.Utils.<methodName>" */
     public JCFieldAccess findUtilsMethod(int pos, String methodName) {
         Name n = names.fromString(methodName);
         // Presumes there is just one method with the given name - no overloading
@@ -1536,7 +1536,7 @@ public class JmlTreeUtils {
         return expr;
     }
     
-    /** Creates an AST for an invocation of a (static) method in org.jmlspecs.utils.Utils,
+    /** Creates an AST for an invocation of a (static) method in org.jmlspecs.runtime.Utils,
      * with the given name and arguments.
      * @param pos the node position of the new AST
      * @param methodName the name of the method to call
@@ -1553,7 +1553,7 @@ public class JmlTreeUtils {
         return call;
     }
 
-    /** Creates an AST for an invocation of a (static) method in org.jmlspecs.utils.Utils,
+    /** Creates an AST for an invocation of a (static) method in org.jmlspecs.runtime.Utils,
      * with the given name and arguments.
      * @param pos the node position of the new AST
      * @param methodName the name of the method to call
