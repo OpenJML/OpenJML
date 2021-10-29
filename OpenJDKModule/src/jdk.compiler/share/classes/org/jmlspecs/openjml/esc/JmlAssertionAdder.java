@@ -2192,7 +2192,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return addAssert(true,codepos,label,expr,associatedPos,associatedSource,null,args);
     }
     
-    /** Creates a call of org.jmlspecs.utils.Utils.assertionFailure(s), where
+    /** Creates a call of org.jmlspecs.runtime.Utils.assertionFailure(s), where
      * s is a literal containing the value of the argument, for RAC translations
      * @param sp the string to make into the literal argument of the call
      * @param pos the character position of the created AST
@@ -2212,7 +2212,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
 
 //    protected JCStatement assertFailure(JCExpression sp, DiagnosticPosition pos, Label label, JCExpression arg) {
-//        JCFieldAccess m = findUtilsMethod(pos,org.jmlspecs.utils.Utils.ASSERTION_FAILURE);
+//        JCFieldAccess m = findUtilsMethod(pos,org.jmlspecs.uruntime.Utils.ASSERTION_FAILURE);
 //        JCExpression c = M.at(pos).Apply(null,m,List.<JCExpression>of(sp,treeutils.makeStringLiteral(0,label.info()))).setType(syms.voidType);
 //        return M.at(pos).Exec(c);
 //    }
@@ -2285,7 +2285,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
 
     /** Creates an AST for calling a method with the given name from the
-     * org.jmlspecs.utils.Utils class (that is available at runtime)
+     * org.jmlspecs.runtime.Utils class (that is available at runtime)
      * @param methodName the name of the method 
      * @return the corresponding AST
      */
@@ -2306,7 +2306,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     /** Creates an expression AST for a call of the given static method (from
-     * org.jmlspecs.utils.Utils).
+     * org.jmlspecs.runtime.Utils).
      * @param methodName the name of the method to call
      * @param translatedArgs the ASTs which are the (already translated) arguments
      * @return the resulting AST
@@ -2332,7 +2332,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
 
     /** Creates a statement AST for a call of the given method (from
-     * org.jmlspecs.utils.Utils).
+     * org.jmlspecs.runtime.Utils).
      * @param methodName the name of the method to call
      * @param translatedArgs the ASTs which are the (already translated) arguments
      * @return the resulting AST
@@ -10686,7 +10686,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        condition = treeutils.trueLit;
         
         // FIXME - need to call the constructor; need an assertion about the type of the result; about allocation time
-    	boolean isUtils = that.type.toString().contains("org.jmlspecs.utils.Utils"); // FIXME - must be a better way
+    	boolean isUtils = that.type.toString().contains("org.jmlspecs.runtime.Utils"); // FIXME - must be a better way
         if (pureCopy || isUtils) {
             ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
             for (JCExpression arg: that.args) {

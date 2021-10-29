@@ -1444,7 +1444,7 @@ public class JavaCompiler {
      * The preparation stops as soon as an error is found.
      */
     protected void desugar(final Env<AttrContext> env, Queue<Pair<Env<AttrContext>, JCClassDecl>> results) {
-        if (shouldStop(CompileState.TRANSTYPES))
+    	if (shouldStop(CompileState.TRANSTYPES))
             return;
 
         if (implicitSourcePolicy == ImplicitSourcePolicy.NONE

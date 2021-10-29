@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
 import javax.lang.model.element.ElementKind;
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.openjml.Utils;
+
 import com.sun.source.tree.CaseTree;
 import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.MemberReferenceTree.ReferenceMode;

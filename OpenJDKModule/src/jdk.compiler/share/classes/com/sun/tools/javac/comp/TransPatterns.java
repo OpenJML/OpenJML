@@ -262,6 +262,7 @@ public class TransPatterns extends TreeTranslator {
 
     @Override
     public void visitIdent(JCIdent tree) {
+    	if (tree.sym == null) System.out.println("NULLSYM " + tree.name);
         VarSymbol bindingVar = null;
         if ((tree.sym.flags() & Flags.MATCH_BINDING) != 0) {
             bindingVar = bindingContext.getBindingFor((BindingSymbol)tree.sym);

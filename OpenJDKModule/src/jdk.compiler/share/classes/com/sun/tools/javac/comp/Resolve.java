@@ -72,6 +72,8 @@ import java.util.stream.Stream;
 
 import javax.lang.model.element.ElementVisitor;
 
+import org.jmlspecs.openjml.Utils;
+
 import static com.sun.tools.javac.code.Flags.*;
 import static com.sun.tools.javac.code.Flags.BLOCK;
 import static com.sun.tools.javac.code.Flags.STATIC;
@@ -615,7 +617,6 @@ public class Resolve {
              l = l.tail) {
             if (l.head.hasTag(FORALL)) instNeeded = true;
         }
-
         if (instNeeded) {
             return infer.instantiateMethod(env,
                                     tvars,
@@ -1140,7 +1141,7 @@ public class Resolve {
                 formals2 = formals2.tail;
                 actuals = actuals.isEmpty() ? actuals : actuals.tail;
             }
-        }
+       }
 
        /**
         * Create a method check context to be used during the most specific applicability check
@@ -1179,6 +1180,12 @@ public class Resolve {
             }
 
             private boolean compatibleBySubtyping(Type found, Type req) {
+            	if (types instanceof JmlTypes) {
+            		JmlTypes jmltypes = (JmlTypes)types;
+                	if (req == jmltypes.REAL && (found.isNumeric() || found == jmltypes.REAL || found == jmltypes.BIGINT)) return true;
+                	if (req == jmltypes.BIGINT && (found.isIntegral() || found == jmltypes.BIGINT)) return true;
+            	}
+
                 if (!strict && found.isPrimitive() != req.isPrimitive()) {
                     found = found.isPrimitive() ? types.boxedClass(found).type : types.unboxedType(found);
                 }

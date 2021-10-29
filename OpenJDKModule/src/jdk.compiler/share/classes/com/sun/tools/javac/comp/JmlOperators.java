@@ -36,14 +36,18 @@ public class JmlOperators extends Operators {
     		for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
     			OperatorSymbol op = (OperatorSymbol)s;
     			var args = op.type.getParameterTypes();
-    			if (args.tail != null && args.head == op1 && args.tail.head == op2) return op;
+    			if (args.tail != null && args.head == op1 && args.tail.head == op2) {
+    				return op;
+    			}
     		}
     		if (op1 == jtype.REAL || op2 == jtype.REAL) {
     			// This allows for implicit conversions
     			for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
     				OperatorSymbol op = (OperatorSymbol)s;
         			var args = op.type.getParameterTypes();
-        			if (args.head == jtype.REAL && args.tail.head == jtype.REAL) return op;
+        			if (args.head == jtype.REAL && args.tail.head == jtype.REAL) {
+        				return op;
+        			}
     			}
     		}
     		if (op1 == jtype.BIGINT || op2 == jtype.BIGINT) {
@@ -51,7 +55,9 @@ public class JmlOperators extends Operators {
     			for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
     				OperatorSymbol op = (OperatorSymbol)s;
         			var args = op.type.getParameterTypes();
-        			if (args.head == jtype.BIGINT && args.tail.head == jtype.BIGINT) return op;
+        			if (args.head == jtype.BIGINT && args.tail.head == jtype.BIGINT) {
+        				return op;
+        			}
     			}
     		}
     		org.jmlspecs.openjml.Utils.instance(context).error(pos, "jml.message", "No operator for " + op1 + " " + opName + " " + op2);

@@ -305,7 +305,7 @@ public class racnew extends RacBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static void main(String[] args) { \n"
-                +"    org.jmlspecs.utils.Utils.useExceptions = true; \n"
+                +"    org.jmlspecs.runtime.Utils.useExceptions = true; \n"
                 +"    m(1); \n"
                 +"    System.out.println(\"END\"); \n"
                 +"  } \n"
@@ -317,10 +317,10 @@ public class racnew extends RacBase {
                 +"        ensures k == 0; */\n"
                 +"  static void m(int i) { k = i; } " +
                 "}"
-                ,"Exception in thread \"main\" org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:14: JML postcondition is false"
+                ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:14: JML postcondition is false"
                 ,"/tt/TestJava.java:10: Associated declaration"
-                ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:103)"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:55)"
+                ,"\tat org.jmlspecs.runtime.Utils.createException(Utils.java:103)"
+                ,"\tat org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:55)"
                 ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - should be line 14
                 ,"\tat tt.TestJava.main(TestJava.java:5)"
                 );
@@ -1770,7 +1770,7 @@ public class racnew extends RacBase {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static int m = 2;\n"
                 +"public static void main(String[] argv) { \n "
-                +"//  @ ghost int nnn = new org.jmlspecs.utils.Utils.ValueInt() { public int value(final Object[] args) { int count = 0; int lo = (Integer)(args[0]); int hi = (Integer)(args[1]); int i = lo; while (i <= hi) { if (i>=lo && i<=hi) count++; i++; } return count; }}.value(new Object[]{0,5});\n"
+                +"//  @ ghost int nnn = new org.jmlspecs.runtime.Utils.ValueInt() { public int value(final Object[] args) { int count = 0; int lo = (Integer)(args[0]); int hi = (Integer)(args[1]); int i = lo; while (i <= hi) { if (i>=lo && i<=hi) count++; i++; } return count; }}.value(new Object[]{0,5});\n"
                 +"//@ ghost int n = (\\num_of int i; 0 <= i && i < 5; i >= m); \n "
                 +"//@ ghost int nn = (\\num_of int i; 0 <= i && i < 5; m > 0); \n "
                 +"//@ debug System.out.println(\"A \" + n + \" \" + nn ); \n"
