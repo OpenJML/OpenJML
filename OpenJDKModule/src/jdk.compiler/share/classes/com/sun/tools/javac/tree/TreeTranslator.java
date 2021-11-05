@@ -106,12 +106,6 @@ public class TreeTranslator extends JCTree.Visitor {
     /**  Visitor method: translate a list of catch clauses in try statements.
      */
     public List<JCAnnotation> translateAnnotations(List<JCAnnotation> trees) {
-    	// OPENJML - FIXME - We need to remove OpenJML annotations because some of them do not have properly attributed packages.
-    	ListBuffer<JCAnnotation> n = new ListBuffer<>();
-    	for (var a: trees) {
-    		if (!a.toString().startsWith("/*@")) n.add(a);
-    	}
-    	trees = n.toList();
         for (List<JCAnnotation> l = trees; l.nonEmpty(); l = l.tail) {
         	l.head = translate(l.head);
         }

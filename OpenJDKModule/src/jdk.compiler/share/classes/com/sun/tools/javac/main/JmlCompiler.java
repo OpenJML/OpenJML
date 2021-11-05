@@ -496,7 +496,6 @@ public class JmlCompiler extends JavaCompiler {
                                 ));
                 }
             }
-                
             
         } else {
             // FIXME - does this happen?
