@@ -72,8 +72,6 @@ import java.util.stream.Stream;
 
 import javax.lang.model.element.ElementVisitor;
 
-import org.jmlspecs.openjml.Utils;
-
 import static com.sun.tools.javac.code.Flags.*;
 import static com.sun.tools.javac.code.Flags.BLOCK;
 import static com.sun.tools.javac.code.Flags.STATIC;

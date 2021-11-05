@@ -905,7 +905,6 @@ public class JmlSpecs {
     public void putSpecs(MethodSymbol specSym, MethodSpecs spec, Env<AttrContext> specsEnv) {
     	spec.specSym = specSym;
         if (utils.verbose()) utils.note("            Saving method specs for " + specSym.owner + "." + specSym + " " + specSym.hashCode());
-        if (utils.verbose() && specSym.owner.toString().contains("java.lang.Object")) System.out.println("     SPEC " + spec);
         spec.setEnv(specsEnv);
         specsMethods.put(specSym,spec);
     }
