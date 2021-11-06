@@ -4403,24 +4403,36 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case qexistsID: 
                 break;
             case qnumofID: 
-                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_count$$$"), F.Type(restype), F.Literal(restype.getTag(),0).setType(syms.intType));
+            	restype = syms.longType; // FIXME - not working for bigint yet -- as this is RAC, we need to use BigInteger -- same for \sum etc.
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_count$$$"), F.Type(restype), F.Literal(restype.getTag(),0).setType(restype));
                 break;
             case qsumID:
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_sum$$$"), F.Type(restype), F.Literal(restype.getTag(),0).setType(syms.intType));
+                initialDecl.type = restype;
                 break;
             case qproductID:
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_prod$$$"), F.Type(restype), F.Literal(restype.getTag(),1).setType(syms.intType));
+                initialDecl.type = restype;
                 break;
             case qmaxID:
             case qminID:
                 firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTag.BOOLEAN), F.Literal(TypeTag.BOOLEAN,1).setType(syms.booleanType));
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString(q.kind == qminKind ? "_min$$$" : "_max$$$"), F.Type(restype), F.Literal(restype.getTag(),0).setType(restype));
+                initialDecl.type = restype;
                 valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
                 break;
             default:
                 return;
             }
-            if (initialDecl != null) bodyStats.add(initialDecl);
+            if (initialDecl != null) {
+            	// Just the needed pieces from memberEnter.memberEnter(initialDecl, env);
+            	// FIXME - but isn't the whole expression attriubuted later?
+                initialDecl.sym = new VarSymbol(0, initialDecl.name, restype, enter.enterScope(env).owner);
+                initialDecl.sym.flags_field = 0; // FIXME - perhaps FINAL
+                initialDecl.type = restype;
+                initialDecl.vartype.type = restype;
+            	bodyStats.add(initialDecl);
+            }
             if (valueDecl != null) bodyStats.add(valueDecl);
             if (firstDecl != null) bodyStats.add(firstDecl);
 
@@ -4580,9 +4592,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 id.setType(initialDecl.type);
                 id.sym = initialDecl.sym;
                 JCUnary op = (JCUnary)treeutils.makeUnary(id.pos, JCTree.Tag.PREINC, id);
-//                JCUnary op = F.Unary(JCTree.PREINC, id);
-//                op.setType(initialDecl.type);
-//                op.operator = rs.resolveUnaryOperator(op.pos(),op.getTag(),env,op.arg.type);
                 update = F.If(cond, F.Exec(op) , null);
                 retStat = F.Return(id); // Is it OK to reuse the node?
             } else if (q.kind == qsumKind) {
@@ -4590,9 +4599,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 id.setType(initialDecl.type);
                 id.sym = initialDecl.sym;
                 JCAssignOp asn = treeutils.makeAssignOp(Position.NOPOS, JCTree.Tag.PLUS_ASG, id, cond);
-//                JCAssignOp asn = F.Assignop(JCTree.PLUS_ASG, id, cond);
-//                asn.setType(initialDecl.type);
-//                asn.operator = rs.resolveBinaryOperator(asn.pos(), asn.getTag() - JCTree.ASGOffset, env, asn.lhs.type, asn.rhs.type);
                 update = F.Exec(asn);
                 retStat = F.Return(id); // Is it OK to reuse the node?
             } else if (q.kind == qproductKind) {
@@ -4601,9 +4607,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 id.setType(initialDecl.type);
                 id.sym = initialDecl.sym;
                 JCAssignOp asn = treeutils.makeAssignOp(Position.NOPOS, JCTree.Tag.MUL_ASG, id, cond);
-//                JCAssignOp asn = F.Assignop(JCTree.MUL_ASG, id, cond);
-//                asn.setType(initialDecl.type);
-//                asn.operator = rs.resolveBinaryOperator(asn.pos(), asn.getTag() - JCTree.ASGOffset, env, asn.lhs.type, asn.rhs.type);
                 update = F.Exec(asn);
                 retStat = F.Return(id);
             } else if (q.kind == qmaxKind || q.kind == qminKind) {
@@ -4637,40 +4640,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                    null);
                 op1.operator = treeutils.orSymbol;
                 op2.operator = ((JmlResolve)rs).resolveBinaryOperator(op2.pos(),op2.getTag(), env, op2.lhs.type, op2.rhs.type);
-                retStat = F.Return(id);
-            } else if (q.kind == qminKind) {
-                JCIdent id = F.Ident(initialDecl.name);
-                id.setType(initialDecl.type);
-                id.sym = initialDecl.sym;
-                JCIdent vid = F.Ident(valueDecl.name);
-                vid.setType(valueDecl.type);
-                vid.sym = valueDecl.sym;
-                JCIdent fid = F.Ident(firstDecl.name);
-                fid.setType(firstDecl.type);
-                fid.sym = firstDecl.sym;
-                JCBinary op1,op2;
-                // FIXME - use treeutils here
-                update = F.If(
-                        (op1=F.Binary(
-                                JCTree.Tag.OR, 
-                                (op2=F.Binary(
-                                        JCTree.Tag.LT, 
-                                        F.Assign(vid, newvalue).setType(vid.type), 
-                                        id
-                                        )).setType(syms.booleanType), 
-                                fid
-                                )).setType(syms.booleanType)
-                        ,
-                       F.Block(0, 
-                               List.<JCStatement>of(
-                                       F.Exec(F.Assign(id,vid).setType(id.type)),
-                                       F.Exec(F.Assign(fid, F.Literal(TypeTag.BOOLEAN,0).setType(syms.booleanType).setType(fid.type)))
-                                       )
-                               ),
-                       null);
-                op1.operator = treeutils.orSymbol;
-                op2.operator = ((JmlResolve)rs).resolveBinaryOperator(op2.pos(),op2.getTag(), env, op2.lhs.type, op2.rhs.type);
-                
                 retStat = F.Return(id);
             } else {
                 return;

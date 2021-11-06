@@ -262,9 +262,9 @@ public class TransPatterns extends TreeTranslator {
 
     @Override
     public void visitIdent(JCIdent tree) {
-    	if (tree.sym == null) System.out.println("NULLSYM " + tree.name);
+    	// if (tree.sym == null) System.out.println("NULLSYM " + tree.name); // FIXME null can happen for org in JML annotations
         VarSymbol bindingVar = null;
-        if ((tree.sym.flags() & Flags.MATCH_BINDING) != 0) {
+        if (tree.sym != null && (tree.sym.flags() & Flags.MATCH_BINDING) != 0) {
             bindingVar = bindingContext.getBindingFor((BindingSymbol)tree.sym);
         }
         if (bindingVar == null) {
