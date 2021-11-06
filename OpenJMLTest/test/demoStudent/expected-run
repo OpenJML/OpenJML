@@ -1,14 +1,14 @@
 OUT:
-..\..\OpenJMLDemo\src\openjml\student\CStudent.java:63: JML postcondition is false
+$DEMO/src/openjml/student/CStudent.java:63: verify: JML postcondition is false
     public void activityBonus(int bonus) {
                 ^
-..\..\OpenJMLDemo\src\openjml\student\CStudent.java:54: Associated declaration: ..\..\OpenJMLDemo\src\openjml\student\CStudent.java:63: 
+$DEMO/src/openjml/student/CStudent.java:54: verify: Associated declaration: $DEMO/src/openjml/student/CStudent.java:63:
           ensures getCredits() ==
           ^
-..\..\OpenJMLDemo\src\openjml\student\ExecuteCStudent.java:8: JML postcondition is false
+$DEMO/src/openjml/student/ExecuteCStudent.java:8: verify: JML postcondition is false
         s.activityBonus(5);
                        ^
-..\..\OpenJMLDemo\src\openjml\student\CStudent.java:54: Associated declaration: ..\..\OpenJMLDemo\src\openjml\student\ExecuteCStudent.java:8: 
+$DEMO/src/openjml/student/CStudent.java:54: verify: Associated declaration: $DEMO/src/openjml/student/ExecuteCStudent.java:8:
           ensures getCredits() ==
           ^
 183
