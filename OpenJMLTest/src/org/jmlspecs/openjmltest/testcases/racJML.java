@@ -48,7 +48,7 @@ public class racJML extends RacBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static void main(String... args) { \n"
-                +"     //@ assert JML.lbl(\"AL\",\"XYZ\").equals(\"XYZ\"); \n"
+                +"     //@ set var x = JML.lbl(\"AL\",\"XYZ\"); assert x.equals(\"XYZ\"); \n"
                 +"  }\n"
                 +"}"
                 ,"LABEL AL = XYZ"

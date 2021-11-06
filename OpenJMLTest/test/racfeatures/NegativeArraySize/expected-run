@@ -1,6 +1,6 @@
 OUT:
 
 ERR:
-Exception in thread "main" java.lang.NegativeArraySizeException
+Exception in thread "main" java.lang.NegativeArraySizeException: -1
 	at features.NegativeArraySize.test(NegativeArraySize.java:12)
 	at features.NegativeArraySize.main(NegativeArraySize.java:8)
