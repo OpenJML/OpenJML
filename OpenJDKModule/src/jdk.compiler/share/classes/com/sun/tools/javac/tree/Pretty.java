@@ -350,7 +350,7 @@ public class Pretty extends JCTree.Visitor {
      *  {@literal "<...>"} brackets.
      */
     public void printTypeParameters(List<JCTypeParameter> trees) throws IOException {
-        if (trees.nonEmpty()) {
+        if (trees != null && trees.nonEmpty()) { // FIXME - OpenJDK does not expect trees to be null
             print("<");
             printExprs(trees);
             print(">");

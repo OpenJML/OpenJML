@@ -2007,9 +2007,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         assertDecl.sym.flags_field |= Flags.FINAL;
         if (esc || infer) {
 
-            String extra = Strings.empty;
+            String extra = null;
             for (Object o: args) {
-                extra = extra + " " + o.toString();
+                extra = o == null ? extra : ((extra == null ? "" : (extra + " ")) + o.toString());
             }
             
             JmlStatementExpr st = treeutils.makeAssert(codepos,label,treeutils.makeIdent(translatedExpr.pos,assertDecl.sym));
@@ -2018,7 +2018,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             st.associatedSource = associatedSource;
             st.optionalExpression = info;
             st.id = assertID;
-            st.description = extra.isEmpty() ? null : extra;
+            st.description = extra;
             st.associatedClause = conditionAssociatedClause;
             treeutils.copyEndPosition(st.expression, translatedExpr);
             treeutils.copyEndPosition(st, translatedExpr); // Note that the position of the expression may be that of the associatedPos, not of the original assert, if there even is one
@@ -4767,10 +4767,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         exsuresStats.add(exsuresAxiomBlock);
 
         // Note that methodDecl.resType.type appears to be unannotated
-        if (methodDecl.restype != null && resultSym != null && specs.isNonNull(methodDecl.sym)) {
+        if (methodDecl.sym.getReturnType() != null && !methodDecl.sym.getReturnType().isPrimitiveOrVoid() && resultSym != null && specs.isNonNull(methodDecl.sym)) {
         	currentStatements = ensuresStats;
+            addStat(comment(methodDecl.restype,"Adding null return check by callee " + methodDecl.sym,null));
         	JCIdent ret = treeutils.makeIdent(methodDecl.restype.pos, resultSym);
-        	addAssert(methodDecl.restype,Label.POSSIBLY_NULL_RETURN, treeutils.makeNotNull(methodDecl.restype.pos, ret));
+        	addAssert(methodDecl.restype,Label.POSSIBLY_NULL_RETURN, treeutils.makeNotNull(methodDecl.restype.pos, ret),
+        			methodDecl.pos(), ((JmlMethodDecl)methodDecl).sourcefile,
+        			methodDecl.name);
         }
         
         // Iterate over all methods that methodDecl overrides, collecting specs
@@ -9836,13 +9839,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // Now we iterate over all specification cases in all parent
                 // methods again, this time putting in the post-condition checks
                 
-                if (resultExpr != null && meth != null && specs.isNonNull(that.type,calleeMethodSym)) {
-                	JCExpression nn = treeutils.makeNotNull(that.pos,resultExpr);
-                	var p = mspecs.specDecl != null ? mspecs.specDecl.pos() : that.pos(); // FIXME - sort out cases where specDecl is null -- implicit methods like Enum.values()?
-                	addAssume(meth, Label.POSSIBLY_NULL_RETURN, nn,
-                			p, mspecs.specDecl != null ? mspecs.specDecl.sourcefile : null);
-                }
-                
                 for (Pair<MethodSymbol,Type> pair: overridden) {
                     if (Utils.debug()) System.out.println("APPLYHELPER-X2");
                     MethodSymbol mpsym = pair.first;
@@ -9858,6 +9854,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     ensuresStatsOuter.add(comment(methodDecl,"Assuming postconditions for " + utils.qualifiedMethodSig(mpsym),null));
                     exsuresStatsOuter.add(comment(methodDecl,"Assuming exceptional postconditions for " + utils.qualifiedMethodSig(mpsym),null));
 
+                    if (apply != null && calleeMethodSym.getReturnType() != null && !calleeMethodSym.getReturnType().isPrimitiveOrVoid() && resultExpr != null && meth != null && specs.isNonNull(that.type,calleeMethodSym)) {
+                    	JCExpression nn = treeutils.makeNotNull(that.pos,resultExpr);
+                    	var p = mspecs.specDecl != null ? mspecs.specDecl.pos() : that.pos(); // FIXME - sort out cases where specDecl is null -- implicit methods like Enum.values()?
+                    	var psource = mspecs.specDecl != null ? mspecs.specDecl.sourcefile : null;
+                        currentStatements = ensuresStatsOuter;
+                    	addStat(comment(meth, "Assuming non-null return value in " + methodDecl.sym + " on return from callee " + calleeMethodSym, null));
+                    	addAssume(meth, Label.POSSIBLY_NULL_RETURN, nn,
+                    			p, psource,
+                    			calleeMethodSym + ", checked in caller " + methodDecl.sym);
+                    }
+                    
                     paramActuals = mapParamActuals.get(mpsym);
                     
                     // FIXME - we should set condition
@@ -9921,6 +9928,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 notImplemented(clause.keyword + " clause containing ",e, clause.source());
                             }
                         }
+
                         if (Utils.debug()) System.out.println("APPLYHELPER-X4");
                         currentStatements = exsuresStats;
                         for (JmlMethodClause clause : cs.clauses) {
@@ -16748,6 +16756,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 // The accumulator variable
                 Type t = that.type;
+                if (utils.rac && that.type instanceof JmlType) t = syms.longType; // FIXME - stopgap until RAC is working properly on quantifiers
                 Name n = names.fromString("_JML$val$$" + (uniqueCount++));
                 JCVariableDecl decl = treeutils.makeVarDef(t, n, methodDecl.sym, that.pos);
                 decl.init = treeutils.makeZeroEquivalentLit(that.pos, types.unboxedTypeOrType(t));

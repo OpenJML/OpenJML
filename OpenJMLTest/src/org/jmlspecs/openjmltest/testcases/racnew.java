@@ -187,12 +187,12 @@ public class racnew extends RacBase {
                 " static public void m(/*@non_null*/ Object o, int i) {\n" +
                 " }\n" +
                 "}"
-                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"/tt/TestJava.java:3: JML formal argument may be null: o in m(java.lang.Object,int)"
                 ," m(null,1); "
-                ,"  ^"
-                ,"/tt/TestJava.java:6: Associated declaration"
+                ,"   ^"
+                ,"/tt/TestJava.java:6: Associated declaration: /tt/TestJava.java:3:"
                 ," static public void m(/*@non_null*/ Object o, int i) {"
-                ,"                    ^"
+                ,"                                    ^"
                 ,"/tt/TestJava.java:5: JML precondition is false"
                 ," /*@ requires true; */ "
                 ,"     ^"
@@ -204,7 +204,7 @@ public class racnew extends RacBase {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(null,1); System.out.println(\"END\"); }\n" +
                 " static public void m(/*@non_null*/ Object o, int i) {} " +
                 "}"
-                ,"/tt/TestJava.java:1: JML precondition is false"
+                ,"/tt/TestJava.java:1: JML formal argument may be null: o in m(java.lang.Object,int)"
                 ,"/tt/TestJava.java:2: Associated declaration"
                 ,"/tt/TestJava.java:2: JML precondition is false"
                 ,"END"
@@ -215,12 +215,12 @@ public class racnew extends RacBase {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null,1); \n" +
                 "System.out.println(\"END\"); }\n" +
-                " static public /*@non_null*/Object m( /*@nullable*/Object o, int i)\n" +
+                " static public /*@ non_null*/Object m( /*@ nullable*/Object o, int i)\n" +
                 "{ return null; } " +
                 "}"
-                ,"/tt/TestJava.java:4: JML postcondition is false"
+                ,"/tt/TestJava.java:4: verify: JML null return value from method m"
                 ,"/tt/TestJava.java:4: Associated declaration"
-                ,"/tt/TestJava.java:2: JML postcondition is false"
+                ,"/tt/TestJava.java:2: verify: JML null return value from method m(java.lang.Object,int), checked in caller main(java.lang.String[])"
                 ,"/tt/TestJava.java:4: Associated declaration"
                 ,"END"
                 );
@@ -318,10 +318,10 @@ public class racnew extends RacBase {
                 +"        ensures k == 0; */\n"
                 +"  static void m(int i) { k = i; } " +
                 "}"
-                ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:14: JML postcondition is false"
+                ,"org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:14: verify: JML postcondition is false"
                 ,"/tt/TestJava.java:10: Associated declaration"
-                ,"\tat org.jmlspecs.runtime.Utils.createException(Utils.java:103)"
-                ,"\tat org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:55)"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:129)"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:82)"
                 ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - should be line 14
                 ,"\tat tt.TestJava.main(TestJava.java:5)"
                 );
@@ -1455,7 +1455,6 @@ public class racnew extends RacBase {
     }
 
     @Test public void testHelper() {
-    	main.addOptions("-show");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
                 +"/*@ private helper */ void m(); \n"

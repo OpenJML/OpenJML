@@ -162,7 +162,7 @@ public abstract class RacBase extends JmlTestCase {
                     fail("More diagnostics than expected");
                 }
                 String s = noSource(collector.getDiagnostics().get(i));
-                if (s.startsWith(macstring) && isMac) s = s.substring(macstring.length());
+                if (isMac && s.startsWith(macstring)) s = s.substring(macstring.length());
                 assertEquals("Message " + i, list[k].toString(), s);
                 assertEquals("Message " + i, ((Integer)list[k+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
             }
@@ -205,11 +205,13 @@ public abstract class RacBase extends JmlTestCase {
                 	//System.out.println("ACT: " + line);
                 	if (i < list.length) {
                 		String expected = list[i].toString();
+
                 		//System.out.println("EXP: " + expected);
                 		if (expected.contains(":") && !line.matches(".*:[0-9]+:.*")) expected = 
                 				expected.replaceFirst("^.*:[0-9]+: ","").replaceFirst(": .*:[0-9]+:",":");
                 		//System.out.println("EXP: " + expected);
                         if (!expected.contains("verify: ")) line = line.replace("verify: ", "");
+                		//System.out.println("EXP: " + expected);
                         assertEquals("Output line " + i, expected, line);
                 	}
                     i++;
@@ -219,8 +221,18 @@ public abstract class RacBase extends JmlTestCase {
             if (data.length() > 0) {
                 String[] lines = data.split(term);
                 for (String line: lines) {
-                	if (isMac && line.startsWith(macstring) && i < list.length && !line.equals(list[i])) line = line.substring(macstring.length());
-                    if (i < list.length) assertEquals("Output line " + i, list[i], line);
+                	//System.out.println("ERR-ACT: " + line);
+                	if (i < list.length) {
+                		String expected = list[i].toString();
+                		//System.out.println("ERR-EXP: " + expected);
+                		if (isMac && line.startsWith(macstring)&& !line.equals(list[i])) line = line.substring(macstring.length());
+                		if (expected.contains(":") && !line.matches(".*:[0-9]+:.*")) expected = 
+                				expected.replaceFirst("^[^:]*:[0-9]+: ","").replaceFirst(": .*:[0-9]+:",":");
+                		//System.out.println("ERR-EXP: " + expected);
+                        if (!expected.contains("verify: ")) line = line.replace("verify: ", "");
+                		//System.out.println("ERR-EXP: " + expected);
+                        assertEquals("Output line " + i, expected, line);
+                	}
                     i++;
                 }
                 if (isMac && i < list.length && list[i].equals(macstring)) i++;

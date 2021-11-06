@@ -21,7 +21,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.A.mmc(int[]) with prover !!!! - no warnings
 Starting proof of Test.A.mm1() with prover !!!!
-test/gitbug998/Test.java:11: warning: The prover cannot establish an assertion (NullFormal) in method mm1
+test/gitbug998/Test.java:11: warning: The prover cannot establish an assertion (NullFormal) in method mm1: x in mma(int @org.jmlspecs.annotation.NonNull [])
 			mma(null); // ERROR
 			    ^
 test/gitbug998/Test.java:6: warning: Associated declaration
@@ -33,7 +33,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.A.mm2() with prover !!!! - no warnings
 Starting proof of Test.A.mm3() with prover !!!!
-test/gitbug998/Test.java:19: warning: The prover cannot establish an assertion (NullFormal) in method mm3
+test/gitbug998/Test.java:19: warning: The prover cannot establish an assertion (NullFormal) in method mm3: x in mmc(int[])
 			mmc(null); // ERROR
 			    ^
 test/gitbug998/Test.java:8: warning: Associated declaration
@@ -59,7 +59,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.B.nnc(int[]) with prover !!!! - no warnings
 Starting proof of Test.B.nn1() with prover !!!!
-test/gitbug998/Test.java:31: warning: The prover cannot establish an assertion (NullFormal) in method nn1
+test/gitbug998/Test.java:31: warning: The prover cannot establish an assertion (NullFormal) in method nn1: x in nna(int @org.jmlspecs.annotation.NonNull [])
 			nna(null); // ERROR
 			    ^
 test/gitbug998/Test.java:26: warning: Associated declaration
