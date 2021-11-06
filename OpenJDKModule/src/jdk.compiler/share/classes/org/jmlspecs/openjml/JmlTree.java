@@ -418,7 +418,7 @@ public class JmlTree {
                 v);
             tree.pos = pos;
             tree.setType(v.type);
-            tree.sourcefile = Log.instance(context).currentSourceFile();
+            tree.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             // Not filled in: docComment, fieldSpecs, fieldSpecsCombined, specsDecl
             return tree;
         }

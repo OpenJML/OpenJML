@@ -84,10 +84,10 @@ public class racsystem extends RacBase {
                 +"}"
                 +"}"
                 
-                ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:6: JML signals condition is false"
+                ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:6: verify: JML signals condition is false"
                 ,"/tt/TestJava.java:5: Associated declaration"
-                ,"\tat org.jmlspecs.runtime.Utils.createException(Utils.java:103)"
-                ,"\tat org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:55)"
+                ,"\tat org.jmlspecs.runtime.Utils.createException(Utils.java:129)"
+                ,"\tat org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:82)"
                 ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - should be line 6
                 ,"\tat tt.TestJava.main(TestJava.java:3)"       
                 );
@@ -108,10 +108,10 @@ public class racsystem extends RacBase {
                 +"}"
                 +"}"
                 
-                ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError$Precondition: /tt/TestJava.java:3: JML precondition is false"
-                ,"/tt/TestJava.java:6: Associated declaration"
-                ,"\tat org.jmlspecs.runtime.Utils.createException(Utils.java:87)"
-                ,"\tat org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:55)"
+                ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError$Precondition: /tt/TestJava.java:3: verify: JML precondition is false"
+                ,"/tt/TestJava.java:6: verify: Associated declaration: /tt/TestJava.java:3:"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:113)"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:82)"
                 ,"\tat tt.TestJava.main(TestJava.java:1)"         // FIXME - should be line 3   
                 );
     }
@@ -132,10 +132,10 @@ public class racsystem extends RacBase {
                 +"}"
                 
                 ,"CAUGHT ASSERTION"
-                ,"org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:6: JML signals condition is false"
+                ,"org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:6: verify: JML signals condition is false"
                 ,"/tt/TestJava.java:5: Associated declaration"
-                ,"\tat org.jmlspecs.runtime.Utils.createException(Utils.java:103)"
-                ,"\tat org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:55)"
+                ,"\tat org.jmlspecs.runtime.Utils.createException(Utils.java:129)"
+                ,"\tat org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:82)"
                 ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - nshould be line 6
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"END"
@@ -159,10 +159,10 @@ public class racsystem extends RacBase {
                 +"}"
                 +"}"
                 
-                ,"/tt/TestJava.java:6: JML assertion is false"
-                ,"org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:6: JML assertion is false"
-                ,"\tat org.jmlspecs.runtime.Utils.createException(Utils.java:103)"
-                ,"\tat org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:61)"
+                ,"/tt/TestJava.java:6: verify: JML assertion is false"
+                ,"org.jmlspecs.runtime.JmlAssertionError: verify: JML assertion is false"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:129)"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:88)"
                 ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - should be line 6
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"END"
@@ -183,7 +183,7 @@ public class racsystem extends RacBase {
                 +"}"
                 +"}"
                 
-                ,"/tt/TestJava.java:5: JML assertion is false"
+                ,"/tt/TestJava.java:5: verify: JML assertion is false"
                 ,"END"
                 ,"1 verification error"
                 );
@@ -201,6 +201,7 @@ public class racsystem extends RacBase {
                 +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
                 +"}"
                 +"}"
+                ,"verify: JML formal argument may be null: arg0 in compareTo(java.io.File)"
                 ,"CAUGHT EXCEPTION"
                 ,"END"
                 );
