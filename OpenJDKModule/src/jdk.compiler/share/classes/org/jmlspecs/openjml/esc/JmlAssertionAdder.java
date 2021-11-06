@@ -2046,14 +2046,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (rac) {
             JCExpression racarg = null;
             if (args != null && args.length > 0 && args[0] instanceof JCExpression) { racarg = (JCExpression)args[0]; args = new Object[0]; }
-            String msg;
-            if (showRacSource) {
-            	JCDiagnostic diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING, log.currentSource(), codepos, "rac." + label, args);
-            	msg = diag.toString();
-            } else {
-            	JCDiagnostic diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING, DiagnosticSource.NO_SOURCE, codepos, "rac." + label, args);
-            	msg = diag.toString().replace("warning: ", "");
-            }
+        	JCDiagnostic diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING, 
+        			showRacSource ? log.currentSource() : DiagnosticSource.NO_SOURCE, codepos, "rac." + label, args);
+            String msg = diag.toString().replace("warning: ", "verify: ").trim();
             JCExpression emsg;
             if (racarg != null) {
                 int k = msg.indexOf(JmlTree.eol);
@@ -2072,22 +2067,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 emsg = treeutils.makeStringLiteral(translatedExpr.pos,msg);
             }
             if (associatedPos != null) {
-                String msg2;
-                if (showRacSource) {
-                    JCDiagnostic diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING,
-                            new DiagnosticSource(associatedSource != null ? associatedSource : log.currentSourceFile(),null), 
+                diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING,
+                            showRacSource ? (new DiagnosticSource(associatedSource != null ? associatedSource : log.currentSourceFile(),null))
+                            		: DiagnosticSource.NO_SOURCE, 
                             associatedPos, 
-                            Utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
-                                    utils.locationString(codepos.getPreferredPosition()));
-                	msg2 = JmlTree.eol + diag.toString().replace("warning: ", "");
-                } else {
-                    JCDiagnostic diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING,
-                            DiagnosticSource.NO_SOURCE, 
-                            associatedPos, 
-                            "jml.associated.decl",
-                                    utils.locationString(codepos.getPreferredPosition()));
-                	msg2 = JmlTree.eol + diag.toString().replace("warning: ", "");
-                }
+                            Utils.testingMode && !showRacSource? "jml.associated.decl" : "jml.associated.decl.cf",
+                            utils.locationString(codepos.getPreferredPosition()));
+                String msg2 = JmlTree.eol + diag.toString().replace("warning: ", "verify: ").trim();
                 emsg = treeutils.makeUtilsMethodCall(emsg.pos, "concat", emsg, treeutils.makeStringLiteral(translatedExpr.pos,msg2));
             }
             JCStatement stt;
@@ -2740,7 +2726,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     }
                                 }
                             }
-                            if (conj != null) {
+                            if (conj != null && !isHelper) {
                                 currentStatements = instanceStats;
                                 conj = convertJML(conj);
                                 if (assume) addAssume(pos,invariantLabel,conj);
@@ -2754,7 +2740,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             //                        }
                         }
 
-                        staticStats.add(comment(pos,(assume? "Assume" : "Assert") + " invariants for " + csym,null));
+                        if (isHelper) staticStats.add(comment(pos,"Not " + (assume? "Assuming" : "Asserting") + " static invariants for helper method " + csym,null));
+                        else staticStats.add(comment(pos,(assume? "Assume" : "Assert") + " static invariants for " + csym,null));
                         // Do the non_null fields
                         // FIXME - not sure that we should exclue rac
                         if (assume && !rac) addNullnessDynamicTypeConditions(pos, basetype, receiver,
@@ -8737,12 +8724,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 			VarSymbol v = calleeMethodSym.params.get(i);
                 			boolean nn = specs.isNonNullFormal(v.type, i, calleeSpecs, calleeMethodSym);
                 			if (nn) {
+                				// FIXME - why this if?
                 				if (calleeSpecs.specDecl == null) {
                 					// There are no specs to point to
-                					addAssert(trArgs.get(i), Label.NULL_FORMAL, treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)));
+                					addAssert(trArgs.get(i), Label.NULL_FORMAL, treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)), v.name + " in " + calleeMethodSym);
                 				} else {
                 					addAssert(trArgs.get(i), Label.NULL_FORMAL, treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)),
-                							calleeSpecs.specDecl.params.get(i).vartype, calleeSpecs.specDecl.sourcefile);
+                							calleeSpecs.specDecl.params.get(i).vartype, calleeSpecs.specDecl.sourcefile, v.name + " in " + calleeMethodSym);
                 				}
                 			}
                 		}
@@ -9482,7 +9470,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                       if (mpsym != calleeMethodSym && cs.code) continue;
                       if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
                       if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
-                      JCExpression pre = convertCopy(calleePreconditions.get(cs));
+                      JCExpression precond = calleePreconditions.get(cs); // FIXME - REVIEW this - can be null for constructors of anonymous classes
+                      JCExpression pre = precond != null ? convertCopy(precond) : treeutils.trueLit;
                       if (treeutils.isFalseLit(pre)) continue;
                       JavaFileObject prev = log.useSource(cs.source());
                       var check9 = pushBlock();
@@ -14794,11 +14783,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 
             
-        } else if (!rac) {
-
-        } else {
+        } else { // rac && !isArray
             // Have an iterable instead of an array, with RAC
             
+        	array = convertExpr(that.expr);
             Name iteratorName = names.fromString("_JML_iterator_" + (uniqueCount++));
             JCExpression iter = methodCallUtilsExpression(array,"iterator",array);
             Type restype;

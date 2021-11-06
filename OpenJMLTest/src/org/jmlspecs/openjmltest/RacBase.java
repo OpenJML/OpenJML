@@ -92,21 +92,23 @@ public abstract class RacBase extends JmlTestCase {
         
         // Setup the options
         main.addOptions("-specspath",   testspecpath);
-        main.addOptions("-d", "testdata"); // This is where the output program goes
+        String outdir = System.getenv("OPENJML_ROOT") + "/../OpenJML/OpenJMLTest/testdata";
+        main.addJavaOption("-d", outdir); // This is where the output program goes // FIXME - for some reason this does not work here
         main.addOptions("-rac","-racJavaChecks","-racCheckAssumptions");
-        if (jdkrac) {
-            String sy = Options.instance(context).get(Strings.eclipseProjectLocation);
-            if (sy == null) {
-                fail("The OpenJML project location should be set using -D" + Strings.eclipseProjectLocation + "=...");
-            } else if (!new File(sy).exists()) {
-                fail("The OpenJML project location set using -D" + Strings.eclipseProjectLocation + " to " + sy + " does not exist");
-            } else {
-                main.addOptions("-classpath",sy+"/testdata"+z+sy+"/jdkbin"+z+sy+"/bin");
-            }
-        }
+//        if (jdkrac) {
+//            String sy = System.getenv("OPENJML_ROOT") + "/../OpenJMLTest/test";
+//            System.out.println("SY " + sy);
+////            if (sy == null) {
+////                fail("The OpenJML project location should be set using -D" + Strings.eclipseProjectLocation + "=...");
+////            } else if (!new File(sy).exists()) {
+////                fail("The OpenJML project location set using -D" + Strings.eclipseProjectLocation + " to " + sy + " does not exist");
+////            } else {
+//                main.addOptions("-classpath",sy+"/testdata"+z+sy+"/jdkbin"+z+sy+"/bin");
+////            }
+//        }
         main.addOptions("-showNotImplemented");
         main.addOptions("-no-purityCheck"); // System specs have a lot of purity errors, so turn this off for now
-        main.addOptions("-no-internalSpecs"); // Faster with this option; should work either way
+        //main.addOptions("-no-internalSpecs"); // Faster with this option; should work either way
         main.addOptions("-no-racShowSource");
         specs = JmlSpecs.instance(context);
         expectedExit = 0;
@@ -148,8 +150,7 @@ public abstract class RacBase extends JmlTestCase {
             }
 
             Log.instance(context).useSource(files.first());
-            int ex = 0;//compile(files.toList());
-            
+            int ex = main.compile(new String[]{"-d", System.getenv("OPENJML_ROOT") + "/../OpenJML/OpenJMLTest/testdata"},files.toList()).exitCode;
             if (print) printDiagnostics();
             int observedMessages = collector.getDiagnostics().size() - expectedNotes;
             if (observedMessages < 0) observedMessages = 0;
@@ -201,7 +202,16 @@ public abstract class RacBase extends JmlTestCase {
             if (data.length() > 0) {
                 String[] lines = data.split(term);
                 for (String line: lines) {
-                    if (i < list.length) assertEquals("Output line " + i, list[i], line);
+                	//System.out.println("ACT: " + line);
+                	if (i < list.length) {
+                		String expected = list[i].toString();
+                		//System.out.println("EXP: " + expected);
+                		if (expected.contains(":") && !line.matches(".*:[0-9]+:.*")) expected = 
+                				expected.replaceFirst("^.*:[0-9]+: ","").replaceFirst(": .*:[0-9]+:",":");
+                		//System.out.println("EXP: " + expected);
+                        if (!expected.contains("verify: ")) line = line.replace("verify: ", "");
+                        assertEquals("Output line " + i, expected, line);
+                	}
                     i++;
                 }
             }

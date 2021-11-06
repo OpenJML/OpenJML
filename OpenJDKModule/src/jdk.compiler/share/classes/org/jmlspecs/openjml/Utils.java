@@ -522,8 +522,9 @@ public class Utils {
     public JmlTree.JmlAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */IJmlClauseKind.ModifierKind ... tarr) {
         if (mods == null) return null;
         for (JCTree.JCAnnotation a: mods.annotations) {
+        	var ja = (JmlTree.JmlAnnotation)a;
         	for (var ta: tarr) {
-        		if (((JmlTree.JmlAnnotation)a).kind == ta) return (JmlTree.JmlAnnotation)a;
+        		if (ja.kind == ta) return ja;
         	}
         }
         return null;
@@ -538,11 +539,23 @@ public class Utils {
     public boolean hasMod(JCModifiers mods, ModifierKind... ata) {
     	if (mods != null) for (var ta: ata) {
     		if (mods instanceof JmlModifiers) {
-    			for (var t: ((JmlModifiers)mods).jmlmods) {
+    			JmlModifiers jmods = (JmlModifiers)mods;
+    			if (jmods.jmlmods != null) for (var t: jmods.jmlmods) {
     				if (t.jmlclausekind == ta) return true;
     			}
     		}
-    		var a = findMod(mods, ta);
+    		var a = findMod(mods, ta); // Finds annotation
+    		if (a != null) return true;
+    	}
+    	return false;
+    }
+    
+    public boolean hasModOrAnn(JmlModifiers jmods, ModifierKind... ata) {
+    	if (jmods != null) for (var ta: ata) {
+    		if (jmods.jmlmods != null) for (var t: jmods.jmlmods) {
+    			if (t.jmlclausekind == ta) return true;
+    		}
+    		var a = findMod(jmods, ta); // Finds annotation
     		if (a != null) return true;
     	}
     	return false;

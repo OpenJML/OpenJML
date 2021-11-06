@@ -58,7 +58,7 @@ public class Test {
 			if (args.length == 0 && !d.endsWith(".java")) continue;
 			if (d.endsWith(".java")) d = d.substring(0,d.length()-5);
 			var clazz = (Class<JmlTestCase>)Class.forName("org.jmlspecs.openjmltest.testcases." + d);
-			if ((d.startsWith("rac") || d.contains("Specs") || java.util.Arrays.binarySearch(skips,d) >= 0) && args.length == 0 ) {
+			if ((d.contains("Specs") || java.util.Arrays.binarySearch(skips,d) >= 0) && args.length == 0 ) {
 				System.out.println("Skipping " + clazz);
 				continue;
 			}
