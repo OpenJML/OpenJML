@@ -205,7 +205,7 @@ public abstract class RacBase extends JmlTestCase {
                 	//System.out.println("ACT: " + line);
                 	if (i < list.length) {
                 		String expected = list[i].toString();
-
+                		expected = expected.replace("$DEMO", OpenJMLDemoPath);
                 		//System.out.println("EXP: " + expected);
                 		if (expected.contains(":") && !actual.matches(".*:[0-9]+:.*")) expected = 
                 				expected.replaceFirst("^.*:[0-9]+: ","").replaceFirst(": .*:[0-9]+:",":");
@@ -224,6 +224,7 @@ public abstract class RacBase extends JmlTestCase {
                 	//System.out.println("ERR-ACT: " + actual);
                 	if (i < list.length) {
                 		String expected = list[i].toString();
+                		expected = expected.replace("$DEMO", OpenJMLDemoPath);
                 		//System.out.println("ERR-EXP: " + expected);
                         if (actual.startsWith(macstring) && !expected.startsWith(macstring)) actual = actual.substring(macstring.length());
                         else if (!actual.startsWith(macstring) && expected.startsWith(macstring)) expected = expected.substring(macstring.length());
