@@ -161,9 +161,9 @@ public abstract class RacBase extends JmlTestCase {
                     if (!print) printDiagnostics();
                     fail("More diagnostics than expected");
                 }
+                String expected = list[k].toString();
                 String s = noSource(collector.getDiagnostics().get(i));
-                if (isMac && s.startsWith(macstring)) s = s.substring(macstring.length());
-                assertEquals("Message " + i, list[k].toString(), s);
+                assertEquals("Message " + i, expected, s);
                 assertEquals("Message " + i, ((Integer)list[k+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
             }
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
@@ -201,18 +201,18 @@ public abstract class RacBase extends JmlTestCase {
             String data = out.input();
             if (data.length() > 0) {
                 String[] lines = data.split(term);
-                for (String line: lines) {
+                for (String actual: lines) {
                 	//System.out.println("ACT: " + line);
                 	if (i < list.length) {
                 		String expected = list[i].toString();
 
                 		//System.out.println("EXP: " + expected);
-                		if (expected.contains(":") && !line.matches(".*:[0-9]+:.*")) expected = 
+                		if (expected.contains(":") && !actual.matches(".*:[0-9]+:.*")) expected = 
                 				expected.replaceFirst("^.*:[0-9]+: ","").replaceFirst(": .*:[0-9]+:",":");
                 		//System.out.println("EXP: " + expected);
-                        if (!expected.contains("verify: ")) line = line.replace("verify: ", "");
+                        if (!expected.contains("verify: ")) actual = actual.replace("verify: ", "");
                 		//System.out.println("EXP: " + expected);
-                        assertEquals("Output line " + i, expected, line);
+                        assertEquals("Output line " + i, expected, actual);
                 	}
                     i++;
                 }
@@ -220,18 +220,22 @@ public abstract class RacBase extends JmlTestCase {
             data = err.input();
             if (data.length() > 0) {
                 String[] lines = data.split(term);
-                for (String line: lines) {
-                	//System.out.println("ERR-ACT: " + line);
+                for (String actual: lines) {
+                	//System.out.println("ERR-ACT: " + actual);
                 	if (i < list.length) {
                 		String expected = list[i].toString();
                 		//System.out.println("ERR-EXP: " + expected);
-                		if (isMac && line.startsWith(macstring)&& !line.equals(list[i])) line = line.substring(macstring.length());
-                		if (expected.contains(":") && !line.matches(".*:[0-9]+:.*")) expected = 
-                				expected.replaceFirst("^[^:]*:[0-9]+: ","").replaceFirst(": .*:[0-9]+:",":");
+                        if (actual.startsWith(macstring) && !expected.startsWith(macstring)) actual = actual.substring(macstring.length());
+                        else if (!actual.startsWith(macstring) && expected.startsWith(macstring)) expected = expected.substring(macstring.length());
                 		//System.out.println("ERR-EXP: " + expected);
-                        if (!expected.contains("verify: ")) line = line.replace("verify: ", "");
+                		if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
+                			expected = expected.replaceFirst("^[^:]*:[0-9]+: ","");
+                		if (!actual.matches(".*:[0-9]+:$")) 
+                			expected = expected.replaceFirst(": [^:]*:[0-9]+:",":");
                 		//System.out.println("ERR-EXP: " + expected);
-                        assertEquals("Output line " + i, expected, line);
+                        if (!expected.contains("verify: ")) actual = actual.replace("verify: ", "");
+                		//System.out.println("ERR-EXP: " + expected);
+                        assertEquals("Output line " + i, expected, actual);
                 	}
                     i++;
                 }
