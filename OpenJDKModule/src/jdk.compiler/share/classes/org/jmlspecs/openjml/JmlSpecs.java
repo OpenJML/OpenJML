@@ -1618,9 +1618,11 @@ public class JmlSpecs {
 
     @SuppressWarnings("unchecked")
 	public boolean isNonNullFormal(Type type, int i, MethodSpecs calleeSpecs, MethodSymbol msym) {
+//    	System.out.println("NNF " + type + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
     	if (!type.isReference()) return false;
     	if (Types.instance(context).isSubtype(type, 
     			Symtab.instance(context).jmlPrimitiveType)) return true;
+//    	System.out.println("NNF-A " + findAnnotation(type, Modifiers.NULLABLE) + " " + findAnnotation(type, Modifiers.NON_NULL));
     	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
     	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
     	if (type instanceof Type.TypeVar) return false; 
@@ -1629,10 +1631,10 @@ public class JmlSpecs {
     		var decl = (JmlVariableDecl)calleeSpecs.specDecl.params.get(i);
     		JmlModifiers mods = (JmlModifiers)decl.mods;
     		//if (msym.name.toString().equals("insert") && msym.toString().contains("[]")) System.out.println("FORMAL-A " + mods + " : " + decl + " : " + decl.type + " : " + decl.vartype);
-    		if (findAnnotation(decl.type, Modifiers.NULLABLE)) return false;
-        	if (findAnnotation(decl.type, Modifiers.NON_NULL)) return true;
-    		if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
-        	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
+//    		if (findAnnotation(decl.type, Modifiers.NULLABLE)) return false;
+//        	if (findAnnotation(decl.type, Modifiers.NON_NULL)) return true;
+    		if (utils.hasModOrAnn(mods, Modifiers.NULLABLE)) return false;
+        	if (utils.hasModOrAnn(mods, Modifiers.NON_NULL)) return true;
     	}
     	return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
     }

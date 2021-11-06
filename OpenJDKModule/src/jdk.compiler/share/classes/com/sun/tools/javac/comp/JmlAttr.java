@@ -5864,8 +5864,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
             return false;
         }
-    	if (utils.hasMod((JmlModifiers)mspecs.mods, Modifiers.HELPER)) return true;
-    	if (utils.hasMod((JmlModifiers)mspecs.mods, Modifiers.FUNCTION)) return true;
+        if (utils.hasModOrAnn((JmlModifiers)mspecs.mods, Modifiers.HELPER,  Modifiers.FUNCTION)) return true;
     	return false;
     }
     

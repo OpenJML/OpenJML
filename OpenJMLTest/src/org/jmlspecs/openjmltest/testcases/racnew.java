@@ -28,6 +28,7 @@ public class racnew extends RacBase {
         rac = ordrac;
         jdkrac = false;
         //noCollectDiagnostics = true; print = true;
+        ignoreNotes = false;
         super.setUp();
         main.addOptions("-code-math=java","-spec-math=java");  // FIXME - errors if we use bigint math
         //main.addOptions("-verboseness=4");
@@ -597,7 +598,7 @@ public class racnew extends RacBase {
 
     @Test public void testElemtype() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" 
-                +"Object o = new String[3]; Object oo = new int[5]; Object o3 = new Integer(4);\n"
+                +"Object o = new String[3]; Object oo = new int[5]; Object o3 = Integer.valueOf(4);\n"
                 +"//@ ghost nullable java.lang.Class t; ghost nullable \\TYPE tt; \n"
                 +"//@ set tt = (\\lbl A \\elemtype(\\typeof(o)));\n"
                 +"//@ set tt = (\\lbl B \\elemtype(\\typeof(oo)));\n"
@@ -877,7 +878,7 @@ public class racnew extends RacBase {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null); \n" +
                 "System.out.println(\"END\"); } static int i = 0; \n" +
-                " static void m(/*@nullable*/ Object o) { \n" +
+                " static void m(/*@ nullable */ Object o) { \n" +
                 "//@ assert (\\lbl OBJECT null) == null; \n" +
                 "//@ assert (\\lbl INT (int)(4)) != 0; \n" +
                 "//@ assert (\\lbl SHORT (short)(1)) != 0; \n" +
@@ -1454,6 +1455,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testHelper() {
+    	main.addOptions("-show");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
                 +"/*@ private helper */ void m(); \n"
@@ -1475,7 +1477,7 @@ public class racnew extends RacBase {
 
     @Test public void testSuchThat() {
         helpTCX("tt.A","package tt; public class A { \n"
-                +"static int j = 5; \n"
+                +"static int j = 5; //@ in i;\n"
                 +"//@ static model int i; \n"
                 +"//@ static represents i \\such_that i == j+1; \n"
                 +"public static void main(String[] args) { \n"
@@ -1492,7 +1494,7 @@ public class racnew extends RacBase {
     @Test public void testModelField() {
         main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
-                +"static int j = 5; \n "
+                +"static int j = 5; //@ in i; \n "
                 +"//@ static model int i; \n "
                 +"//@ static represents i = j+1; \n "
                 +"public static void main(String[] args) { \n"
@@ -1515,7 +1517,7 @@ public class racnew extends RacBase {
         main.addOptions("-keys=DEBUG");
         expectedNotes = 0;
         helpTCX("tt.A","package tt; public class A { \n"
-                +"static int j = 5; \n "
+                +"static int j = 5; //@ in i ; \n "
                 +"//@ static model int i; \n "
                 +"//@ static represents i \\such_that i==j+1; \n "
                 +"//@ static represents i =j+1; \n "
@@ -1540,7 +1542,7 @@ public class racnew extends RacBase {
         main.addOptions("-keys=DEBUG");
         continueAnyway = true;
         helpTCX("tt.A","package tt; public class A { \n"
-                +"static int j = 5; \n "
+                +"static int j = 5; //@ in i;\n "
                 +"//@ static model int i; \n "
                 +"//@ static represents i = j+1; \n "
                 +"//@ static represents i = j; \n "
@@ -1567,7 +1569,7 @@ public class racnew extends RacBase {
         continueAnyway = true; // That is, even though there are compile errors
         main.addOptions("-keys=DEBUG");
         helpTCX("tt.PA","package tt; public class PA extends PB { \n"
-                +" int j = 5; \n "
+                +" int j = 5; //@ in i;\n "
                 +"//@  represents i = j+1; \n "
                 +"public static void main(String[] args) { \n"
                 +"PA a = new PA();\n"
@@ -1592,7 +1594,7 @@ public class racnew extends RacBase {
     @Test public void testModelField3a() {
         main.addOptions("-keys=DEBUG");
         helpTCX("tt.PA","package tt; public class PA extends PB { \n"
-                +" int j = 5; \n "
+                +" int j = 5; //@ in i;\n "
                 +"//@  represents super.i = j+1; \n "
                 +"public static void main(String[] args) { \n"
                 +"PA a = new PA();\n"
@@ -1616,7 +1618,7 @@ public class racnew extends RacBase {
     @Test public void testModelField1a() {
         main.addOptions("-keys=DEBUG");
         helpTCX("tt.PA","package tt; public class PA { \n"
-                +" static int j = 5; \n "
+                +" static int j = 5; //@ in i;\n "
                 +"//@  model int i; represents i = j; \n"
                 +"public static void main(String[] args) { \n"
                 +"PA a = new PA();\n"

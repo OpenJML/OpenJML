@@ -782,6 +782,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         args = JmlOptions.instance(context).addOptions(args);
     }
     
+    public void addJavaOption(String opt, String value) {
+    	Options.instance(context).put(opt, value);
+    }
+    
     /** Adds a custom option (not checked as a legitimate command-line option);
      * may have an argument after a = symbol */
     public void addUncheckedOption(String arg) {
