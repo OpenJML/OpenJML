@@ -66,10 +66,10 @@ public class racnew2 extends RacBase {
                 "}"
                 ,"START"
                 ,"MID"
-                ,"/tt/TestJava.java:4: JML postcondition is false"
-                ,"/tt/TestJava.java:3: Associated declaration"
-                ,"/tt/TestJava.java:9: JML postcondition is false"
-                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:4: verify: JML postcondition is false"
+                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:4:"
+                ,"/tt/TestJava.java:9: verify: JML postcondition is false"
+                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:9:"
                 ,"END"
         );        
     }
@@ -158,36 +158,39 @@ public class racnew2 extends RacBase {
 
     /** Tests new object in JML */
     @Test public void testNewObject3() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { \n" +
-                "public int k;\n" +
-                "//@requires i > 0; ensures k == i;\n" +
-                "public /*@ pure */ TestJava(int i) { k = i < 2 ? i : 5; }\n" +
-                "public static void main(String[] args) { \n" +
-                "  System.out.println(\"TestJava - 1\");\n" +
-                "  TestJava t = new TestJava(1);\n" +
-                "  System.out.println(\"TestJava - 0\");\n" +
-                "  t = new TestJava(0);\n" +
-                "  System.out.println(\"TestJava - 2\");\n" +
-                "  //@ assert (new TestJava(2)).k == 2;\n" +
-                "  System.out.println(\"TestJava - 0\");\n" +
-                "  //@ assert (new TestJava(0)).k == 0;\n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
+        helpTCX("tt.TestJava",
+        		"""
+        		package tt; public class TestJava {
+                  public int k;
+                  //@requires i > 0; ensures k == i;
+                  public /*@ pure */ TestJava(int i) { k = i < 2 ? i : 5; }
+                  public static void main(String[] args) {
+                    System.out.println(\"TestJava - 1\");
+                    TestJava t = new TestJava(1);
+                    System.out.println(\"TestJava - 0\");
+                    t = new TestJava(0);
+                    System.out.println(\"TestJava - 2\");
+                    //@ assert (new TestJava(2)).k == 2;
+                    System.out.println(\"TestJava - 0\");
+                    //@ assert (new TestJava(0)).k == 0;
+                    System.out.println(\"END\");
+                  }
+                }
+        		"""
                 ,"TestJava - 1"
                 ,"TestJava - 0"
                 ,"/tt/TestJava.java:9: JML precondition is false" // caller check -- TestJava(0)
-                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:9:"
                 ,"/tt/TestJava.java:3: JML precondition is false" // callee check
                 ,"TestJava - 2"
                 ,"/tt/TestJava.java:4: JML postcondition is false" // callee check
-                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:3: Associated declaration: /tt/TestJava.java:4:"
                 ,"/tt/TestJava.java:11: JML postcondition is false" // caller check
-                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:3: Associated declaration: /tt/TestJava.java:11:"
                 ,"/tt/TestJava.java:11: JML assertion is false"
                 ,"TestJava - 0"
                 ,"/tt/TestJava.java:13: JML a method called in a JML expression is undefined because its precondition is false"
-                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:13:"
                 ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"END"
         );        
@@ -226,7 +229,7 @@ public class racnew2 extends RacBase {
                 "public void m() throws RuntimeException { /*@ nullable*/ Object o = null; int i; \n " +
                 "synchronized (o) { i = 0; } \n}}"
                 ,"/tt/A.java:4: JML An object may be illegally null"
-                ,"Exception in thread \"main\" java.lang.NullPointerException"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot enter synchronized block because \"<local4>\" is null"
                 ,"\tat tt.A.m(A.java:4)"
                 ,"\tat tt.A.main(A.java:2)"
                 );
@@ -495,7 +498,7 @@ public class racnew2 extends RacBase {
                 "  m((short)0); m((short)1); m((short)2); m((short)3); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
-                "  static void m(short s) { Short i = new Short(s); \n" +
+                "  static void m(short s) { Short i = Short.valueOf(s); \n" +
                 "  switch (i) { \n" +
                 "  case 0: //@ assert i == 0; \n break; \n" +
                 "  case 1: //@ assert i == 0; \n break; \n" +
@@ -535,7 +538,7 @@ public class racnew2 extends RacBase {
                 "  m((byte)0); m((byte)1); m((byte)2); m((byte)3); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
-                "  static void m(byte s) { Byte i = new Byte(s); \n" +
+                "  static void m(byte s) { Byte i = Byte.valueOf(s); \n" +
                 "  switch (i) { \n" +
                 "  case 0: //@ assert i == 0; \n break; \n" +
                 "  case 1: //@ assert i == 0; \n break; \n" +
@@ -555,7 +558,7 @@ public class racnew2 extends RacBase {
                 "  m(0); m(1); m(2); m(3); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
-                "  static void m(int s) { Integer i = new Integer(s); \n" +
+                "  static void m(int s) { Integer i = Integer.valueOf(s); \n" +
                 "  switch (i) { \n" +
                 "  case 0: //@ assert i == 0; \n break; \n" +
                 "  case 1: //@ assert i == 0; \n break; \n" +
@@ -615,7 +618,7 @@ public class racnew2 extends RacBase {
                 "  m('a'); m('b'); m('c'); m('d'); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
-                "  static void m(char s) { Character i = new Character(s);\n" +
+                "  static void m(char s) { Character i = Character.valueOf(s);\n" +
                 "  switch (i) { \n" +
                 "  case 'a': //@ assert i == 'a'; \n break; \n" +
                 "  case 'b': //@ assert i == 'a'; \n break; \n" +
@@ -633,7 +636,7 @@ public class racnew2 extends RacBase {
     /** Tests type test and type cast expressions */
     @Test public void testTypeCast() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  Integer i = new Integer(10); \n" +
+                "  Integer i = Integer.valueOf(10); \n" +
                 "  Object o = i; \n" +
                 "  Integer ii = (Integer)o; \n" +
                 "  System.out.println(ii); \n" +
@@ -657,10 +660,10 @@ public class racnew2 extends RacBase {
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
                 "}"
-                ,"/tt/TestJava.java:4: JML A cast is invalid - from @org.jmlspecs.annotation.NonNull java.lang.Object to java.lang.Integer"
+                ,"/tt/TestJava.java:4: JML A cast is invalid - from java.lang.Object to java.lang.Integer"
                 ,"  Integer ii = (Integer)o;"
                 ,"               ^"
-                ,"Exception in thread \"main\" java.lang.ClassCastException: java.lang.Boolean cannot be cast to java.lang.Integer"
+                ,"Exception in thread \"main\" java.lang.ClassCastException: class java.lang.Boolean cannot be cast to class java.lang.Integer (java.lang.Boolean and java.lang.Integer are in module java.base of loader 'bootstrap')"
                 ,"\tat tt.TestJava.main(TestJava.java:4)"
         );        
     }
@@ -669,7 +672,7 @@ public class racnew2 extends RacBase {
     @Test public void testTypeCast3() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean b = Boolean.TRUE; \n" +
-                "  Integer i = new Integer(10); /*@ nullable */Integer ii = null; \n" +
+                "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
                 "  Object o = i; \n" +
                 "  if (o instanceof Integer) { ii = (Integer)o; }\n" +
                 "  o = b; \n" +
@@ -687,7 +690,7 @@ public class racnew2 extends RacBase {
     @Test public void testTypeTest4() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean b = Boolean.TRUE; \n" +
-                "  Integer i = new Integer(10); /*@ nullable */Integer ii = null; \n" +
+                "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
                 "  Object o = i; \n" +
                 "  //@ assert o instanceof Integer; \n" +
                 "  o = b; \n" +
@@ -705,7 +708,7 @@ public class racnew2 extends RacBase {
         expectedRACExit = 1;
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean b = Boolean.TRUE; \n" +
-                "  Integer i = new Integer(10); /*@ nullable */Integer ii = null; \n" +
+                "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
                 "  Object o = i; \n" +
                 "  //@ assert (Integer)o != null; \n" +
                 "  o = b; \n" +
@@ -713,8 +716,8 @@ public class racnew2 extends RacBase {
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
                 "}"
-                ,"/tt/TestJava.java:7: JML A cast is invalid - from @org.jmlspecs.annotation.NonNull java.lang.Object to java.lang.Integer"
-                ,"Exception in thread \"main\" java.lang.ClassCastException: java.lang.Boolean cannot be cast to java.lang.Integer"
+                ,"/tt/TestJava.java:7: JML A cast is invalid - from java.lang.Object to java.lang.Integer"
+                ,"Exception in thread \"main\" java.lang.ClassCastException: class java.lang.Boolean cannot be cast to class java.lang.Integer (java.lang.Boolean and java.lang.Integer are in module java.base of loader 'bootstrap')"
                 ,"\tat tt.TestJava.main(TestJava.java:7)"
         );        
     }
@@ -723,7 +726,7 @@ public class racnew2 extends RacBase {
     @Test public void testTypeCast6() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean b = Boolean.TRUE; \n" +
-                "  Integer i = new Integer(10); /*@ nullable */Integer ii = null; \n" +
+                "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
                 "  Object o = i; \n" +
                 "  //@ assert o instanceof Integer && (Integer)o != null; \n" +
                 "  o = b; \n" +
@@ -839,14 +842,14 @@ public class racnew2 extends RacBase {
                 ,"/tt/TestJava.java:5: JML postcondition is false"
                 ," static public void m(int i) { System.out.println(\"i = \" + i ); k = i; } }"
                 ,"                    ^"
-                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:5: "
+                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:5:"
                 ," /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */ "
                 ,"                             ^"
                 ,"LABEL ENS = false"
                 ,"/tt/TestJava.java:2: JML postcondition is false"
                 ," m(1); m(0); "
                 ,"        ^"
-                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:2: "
+                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:2:"
                 ," /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */ "
                 ,"                             ^"
                 ,"END"
@@ -865,12 +868,12 @@ public class racnew2 extends RacBase {
                 ,"LABEL RES = 1"
                 ,"LABEL RES = 0"
                 ,"LABEL ENS = false"
-                ,"/tt/TestJava.java:5: JML postcondition is false"
-                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:5: verify: JML postcondition is false"
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:5:"
                 ,"LABEL RES = 0"
                 ,"LABEL ENS = false"
-                ,"/tt/TestJava.java:2: JML postcondition is false"
-                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:2: verify: JML postcondition is false"
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:2:"
                 ,"END"
         );        
     }
@@ -903,7 +906,7 @@ public class racnew2 extends RacBase {
                 "}"
                 ,"/tt/TestJava.java:3: JML assertion is false"
                 ,"/tt/TestJava.java:4: JML A null object is dereferenced within a JML expression"
-                ,"Exception in thread \"main\" java.lang.NullPointerException"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot read the array length because \"tt.TestJava.b\" is null"
                 ,"\tat tt.TestJava.main(TestJava.java:4)"
         );        
     }
@@ -919,8 +922,8 @@ public class racnew2 extends RacBase {
                 " /*@nullable*/ static int[] b = null;\n" +
                 "}"
                 ,"1"
-                ,"/tt/TestJava.java:3: JML A null object is dereferenced"
-                ,"Exception in thread \"main\" java.lang.NullPointerException"
+                ,"/tt/TestJava.java:3: verify: JML A null object is dereferenced"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot read the array length because \"tt.TestJava.b\" is null"
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
         );        
     }
@@ -1000,23 +1003,23 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"/tt/A.java:4: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
                 ,"/tt/A.java:6: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:6:"
                 ,"MID"
                 ,"/tt/A.java:4: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
                 ,"MID"
                 ,"/tt/A.java:4: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
                 ,"MID"
                 ,"/tt/A.java:4: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
                 ,"/tt/A.java:12: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:12:"
                 ,"MID"
                 ,"/tt/A.java:4: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
                 ,"END"
                 );
     }
@@ -1096,7 +1099,7 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"/tt/A.java:10: JML precondition is false"
-                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: Associated declaration: /tt/A.java:10:"
                 ,"/tt/A.java:4: JML precondition is false"
                 ,"END"
                 );
@@ -1116,7 +1119,7 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"/tt/A.java:8: JML precondition is false"
-                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: Associated declaration: /tt/A.java:8:"
                 ,"/tt/A.java:4: JML precondition is false"
                 ,"END"
                 );
@@ -1136,7 +1139,7 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"/tt/A.java:8: JML precondition is false"
-                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: Associated declaration: /tt/A.java:8:"
                 ,"/tt/A.java:4: JML precondition is false"
                 ,"END"
                 );
@@ -1171,9 +1174,9 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"/tt/A.java:3: JML postcondition is false"
-                ,"/tt/A.java:2: Associated declaration"
+                ,"/tt/A.java:2: Associated declaration: /tt/A.java:3:"
                 ,"/tt/A.java:7: JML postcondition is false"
-                ,"/tt/A.java:2: Associated declaration"
+                ,"/tt/A.java:2: Associated declaration: /tt/A.java:7:"
                 ,"END"
                 );
     }
@@ -1190,9 +1193,9 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"/tt/A.java:5: JML postcondition is false"
-                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: Associated declaration: /tt/A.java:5:"
                 ,"/tt/A.java:8: JML postcondition is false"
-                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: Associated declaration: /tt/A.java:8:"
                 ,"END"
                 );
     }
@@ -1209,9 +1212,9 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"/tt/A.java:5: JML postcondition is false"
-                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: Associated declaration: /tt/A.java:5:"
                 ,"/tt/A.java:8: JML postcondition is false"
-                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: Associated declaration: /tt/A.java:8:"
                 ,"END"
                 );
     }
@@ -1375,40 +1378,45 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testBoxingOnAssignmentOp() {
-        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
-                +"public static void main(String[] args) {  \n"
+        helpTCX("tt.A",
+        		"""
+        		package tt; /*@ nullable_by_default*/ public class A { 
+                  public static void main(String[] args) {
+                    try { Integer i = null; int k = 6;
+                      k += i;  // unbox error  // FIXME - why 2 errors
+                    } catch (Exception e) {}
 
-                +"try { Integer i = null; int k = 6;\n"
-                +" k += i;\n"
-                +"\n} catch (Exception e) {}\n"
+                    try { Integer i = null; int k = 6;
+                      i += k;  // unbox error  // FIXME - why 2 errors
+                    } catch (Exception e) {}
 
-                +"try { Integer i = null; int k = 6;\n"
-                +"i += k; \n"
-                +"\n} catch (Exception e) {}\n"
+                    { Integer i = 5; int k = 6;
+                      k += i; i += k;
+                      //@ assert k == 11;
+                    }
 
-                +"{ Integer i = 5; int k = 6;\n"
-                +" k += i; i += k; \n"
-                +"//@ assert k == 11;\n}\n"
+                    try { Boolean i = null; boolean k = true;
+                          k &= i; // unbox error
+                    } catch (Exception e) {}
 
-                +"try { Boolean i = null; boolean k = true;\n"
-                +" k &= i;\n"
-                +"\n} catch (Exception e) {} \n"
+                    try { Boolean i = null; boolean k = true;
+                         i &= k; // unbox error
+                    } catch (Exception e) {}
 
-                +"try { Boolean i = null; boolean k = true;\n"
-                +" i &= k;\n"
-                +"\n} catch (Exception e) {} \n"
+                    { Boolean i = false; boolean k = true;
+                      k &= i;
+                      i &= k;
+                      //@ assert  !k;
+                    }
 
-                +"{ Boolean i = false; boolean k = true;\n"
-                +" k &= i;\n"
-                +" i &= k;\n"
-                +"//@ assert  !k;\n}\n"
-
-                    +"System.out.println(\"END\"); \n"
-                    +"}}"
-                    ,"/tt/A.java:4: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:8: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:16: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:20: JML Attempt to unbox a null object"
+                    System.out.println(\"END\");
+                  }
+        		}
+        		"""
+                    ,"/tt/A.java:4: verify: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:8: verify: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:16: verify: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:20: verify: JML Attempt to unbox a null object"
                     ,"END"
                 );
     }
@@ -1535,27 +1543,31 @@ public class racnew2 extends RacBase {
 
     @Test public void testBoxingClass() {
         expectedRACExit = 1;
-        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
-                +"public static int unbox(int i) { return i;}  \n"
-                +"public static Integer box(Integer i) { return i;}  \n"
-                +"public static Integer i = 6;  \n"
-                +"public static int j = i;  \n"
-                +"static { //@ assert j == 6; \n}\n"
+        helpTCX("tt.A",
+        		"""
+                package tt; /*@ nullable_by_default*/ public class A {
+                  public static int unbox(int i) { return i;}
+                  public static Integer box(Integer i) { return i;}
+                  public static Integer i = 6; 
+                  public static int j = i;
+                  static { //@ assert j == 6; 
+                  }
+                  static { Integer k = 6; int m = k; //@ assert m == 6;
+                  }
+                  static { try { Integer k = null; int m = k; } catch (Exception e) {}
+                  }
+                  public static Integer ii = null;
+                  public static int jj = ii;
 
-                +"static { Integer k = 6; int m = k; //@ assert m == 6; \n}\n"
-                +"static { try { Integer k = null; int m = k; } catch (Exception e) {} \n}\n"
-
-                +"public static Integer ii = null;  \n"
-                +"public static int jj = ii;  \n"
-
-                +"public static void main(String[] args) {  \n"
-                +"    System.out.println(\"END\"); \n"
-                +"}}"
-                
-                    ,"/tt/A.java:10: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:13: JML Attempt to unbox a null object"
+                  public static void main(String[] args) {
+                      System.out.println(\"END\");
+                  }
+                }
+                """
+                    ,"/tt/A.java:10: verify: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:13: verify: JML Attempt to unbox a null object"
                     ,"java.lang.ExceptionInInitializerError"
-                    ,"Caused by: java.lang.NullPointerException"
+                    ,"Caused by: java.lang.NullPointerException: Cannot invoke \"java.lang.Integer.intValue()\" because \"tt.A.ii\" is null"
                     ,"\tat tt.A.<clinit>(A.java:13)"
                     ,"Exception in thread \"main\" "
                 );

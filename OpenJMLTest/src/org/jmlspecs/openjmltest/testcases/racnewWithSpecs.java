@@ -45,7 +45,7 @@ public class racnewWithSpecs extends RacBase {
         		   """
         		   package tt; import static org.jmlspecs.lang.JML.*; public class TestJava { 
         			  public static void main(String[] args) {
-        				   m(new Object()); m("abc"); m(Boolean.TRUE); System.out.println(\"END\");
+        				   m(new Object()); m(new String("")); m(Boolean.TRUE); System.out.println(\"END\"); // FIXME - crash with using new String() with no argument
         			  }
         		   
                      //@ requires JML.informal(\"asd\") && (\\lbl CLS JML.erasure(\\typeof(i))) == Object.class;  
@@ -55,17 +55,20 @@ public class racnewWithSpecs extends RacBase {
                 ,"LABEL CLS = class java.lang.Object" // precondition check by caller 
                 ,"LABEL CLS = class java.lang.Object" // precondition check by callee
                 ,"CLASS class java.lang.Object"
+                	// These model methods are defined, but the library classes are not compiled with RAC so the model methods do not exist.
+                ,"Skipping a specification clause because it contains an uncompiled model method: 'boolean java.lang.String.initialCharSequence"
+                ,"Skipping a specification clause because it contains an uncompiled model method: 'boolean java.lang.String.equals"
                 ,"LABEL CLS = class java.lang.String"
-                ,"/tt/TestJava.java:2: JML precondition is false"
-                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:2: verify: JML precondition is false"
+                ,"/tt/TestJava.java:4: verify: Associated declaration"
                 ,"LABEL CLS = class java.lang.String"
-                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"/tt/TestJava.java:3: verify: JML precondition is false"
                 ,"CLASS class java.lang.String"
                 ,"LABEL CLS = class java.lang.Boolean"
-                ,"/tt/TestJava.java:2: JML precondition is false"
-                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:2: verify: JML precondition is false"
+                ,"/tt/TestJava.java:4: verify: Associated declaration"
                 ,"LABEL CLS = class java.lang.Boolean"
-                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"/tt/TestJava.java:3: verify: JML precondition is false"
                 ,"CLASS class java.lang.Boolean"
                 ,"END"
                 );
