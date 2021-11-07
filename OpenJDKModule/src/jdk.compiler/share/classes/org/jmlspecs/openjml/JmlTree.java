@@ -349,7 +349,7 @@ public class JmlTree {
                 List<JCTree> defs) {
             JmlClassDecl tree = new JmlClassDecl(mods,name,typarams,extending,implementing,defs,null);
             tree.pos = pos;
-            tree.sourcefile = Log.instance(context).currentSourceFile();
+            tree.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             // In the normal course of things, context is never null, but there is a circular dependency of
             // instantiating tools that can occur in the constructors of the various tools.  In particular
             // TreeMaker -> Symtab -> ClassReader -> Annotate -> Attr -> MemberEnter -> Enter which calls
@@ -359,12 +359,12 @@ public class JmlTree {
 //            if (context != null) 
 //                tree.toplevel.sourcefile = Log.instance(context).currentSourceFile();
 //            else {
-            if (context == null) {
-                String msg = ("INTERNAL ERROR: JmlTree.ClassDef called with a null context, indicating a problem with circular dependencies in constructors.");
-                System.err.println(msg);
-                new Exception().printStackTrace(System.err);
-                throw new JmlInternalError(msg);
-            }
+//            if (context == null) {
+//                String msg = ("INTERNAL ERROR: JmlTree.ClassDef called with a null context, indicating a problem with circular dependencies in constructors.");
+//                System.err.println(msg);
+//                new Exception().printStackTrace(System.err);
+//                throw new JmlInternalError(msg);
+//            }
             return tree;
         }
         
@@ -383,7 +383,7 @@ public class JmlTree {
                 JCExpression defaultValue) {
             JmlMethodDecl tree = new JmlMethodDecl(mods,name,restype,typarams,receiver,params,thrown,body,defaultValue,null); // DRC Introduced null parameter to deal with new/evolved signature.
             tree.pos = pos;
-            tree.sourcefile = Log.instance(context).currentSourceFile();
+            tree.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             return tree;
         }
         
@@ -402,7 +402,7 @@ public class JmlTree {
                     body,
                     null,
                     m).setPos(pos).setType(mtype);
-            tree.sourcefile = Log.instance(context).currentSourceFile();
+            tree.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             return tree;
         }
 
@@ -434,7 +434,7 @@ public class JmlTree {
             JmlVariableDecl tree =  new JmlVariableDecl(mods,name,vartype,init,null);
             tree.pos = pos;
             if (vartype != null) tree.type = vartype.type; // attribute if the type is known
-            tree.sourcefile = Log.instance(context).currentSourceFile();
+            tree.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             // Not filled in: symbol, docComment, fieldSpecs, fieldSpecsCombined, specsDecl
             return tree;
         }
@@ -750,28 +750,28 @@ public class JmlTree {
         @Override
         public JmlTypeClauseExpr JmlTypeClauseExpr(JCModifiers mods, String keyword, IJmlClauseKind token, JCTree.JCExpression e) {
             JmlTypeClauseExpr t = new JmlTypeClauseExpr(pos,mods,keyword,token,e);
-            t.source = Log.instance(context).currentSourceFile();
+            t.source = context == null ? null : Log.instance(context).currentSourceFile();
             return t;
         }
         
         @Override
         public JmlTypeClauseDecl JmlTypeClauseDecl(JCTree decl) {
             JmlTypeClauseDecl t = new JmlTypeClauseDecl(pos,decl);
-            t.source = Log.instance(context).currentSourceFile();
+            t.source = context == null ? null : Log.instance(context).currentSourceFile();
             return t;
         }
         
         @Override
         public JmlTypeClauseInitializer JmlTypeClauseInitializer(IJmlClauseKind token, JCModifiers mods) {
             JmlTypeClauseInitializer t = new JmlTypeClauseInitializer(pos, token, mods);
-            t.source = Log.instance(context).currentSourceFile();
+            t.source = context == null ? null : Log.instance(context).currentSourceFile();
             return t;
         }
         
         @Override
         public JmlTypeClauseConstraint JmlTypeClauseConstraint(JCModifiers mods, JCTree.JCExpression e, List<JmlMethodSig> sigs) {
             JmlTypeClauseConstraint t = new JmlTypeClauseConstraint(pos,mods,e,sigs);
-            t.source = Log.instance(context).currentSourceFile();
+            t.source = context == null ? null : Log.instance(context).currentSourceFile();
             return t;
         }
         
@@ -793,21 +793,21 @@ public class JmlTree {
         @Override
         public JmlTypeClauseRepresents JmlTypeClauseRepresents(JCModifiers mods, JCTree.JCExpression ident, boolean suchThat, JCTree.JCExpression e) {
             JmlTypeClauseRepresents t = new JmlTypeClauseRepresents(pos, mods, ident,suchThat,e);
-            t.source = Log.instance(context).currentSourceFile();
+            t.source = context == null ? null : Log.instance(context).currentSourceFile();
             return t;
         }
 
         @Override
         public JmlTypeClauseConditional JmlTypeClauseConditional(JCModifiers mods, IJmlClauseKind token, JCTree.JCIdent ident, JCTree.JCExpression p) {
             JmlTypeClauseConditional t = new JmlTypeClauseConditional(pos, mods, token,ident,p);
-            t.source = Log.instance(context).currentSourceFile();
+            t.source = context == null ? null : Log.instance(context).currentSourceFile();
             return t;
         }
 
         @Override
         public JmlTypeClauseMonitorsFor JmlTypeClauseMonitorsFor(JCModifiers mods, JCTree.JCIdent ident, List<JCTree.JCExpression> list) {
             JmlTypeClauseMonitorsFor t = new JmlTypeClauseMonitorsFor(pos, mods, ident, list);
-            t.source = Log.instance(context).currentSourceFile();
+            t.source = context == null ? null : Log.instance(context).currentSourceFile();
             return t;
         }
 
@@ -864,7 +864,7 @@ public class JmlTree {
         @Override
         public JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, IJmlClauseKind t, IJmlClauseKind also, List<JmlMethodClause> clauses, JCBlock block) {
             JmlSpecificationCase jcase = new JmlSpecificationCase(pos,mods,code,t,also,clauses,block);
-            jcase.sourcefile = Log.instance(context).currentSourceFile();
+            jcase.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             return jcase;
         }
         
@@ -886,14 +886,14 @@ public class JmlTree {
         @Override
         public JmlTypeClauseIn JmlTypeClauseIn(List<JmlGroupName> list) {
             JmlTypeClauseIn r = new JmlTypeClauseIn(pos,list);
-            r.source = Log.instance(context).currentSourceFile();
+            r.source = context == null ? null : Log.instance(context).currentSourceFile();
             return r;
         }
         
         @Override
         public JmlTypeClauseMaps JmlTypeClauseMaps(JCExpression e, List<JmlGroupName> list) {
             JmlTypeClauseMaps r = new JmlTypeClauseMaps(pos,e,list);
-            r.source = Log.instance(context).currentSourceFile();
+            r.source = context == null ? null : Log.instance(context).currentSourceFile();
             return r;
         }
 

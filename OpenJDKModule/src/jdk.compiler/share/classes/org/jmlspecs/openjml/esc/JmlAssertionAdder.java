@@ -11692,10 +11692,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression lhsc = addImplicitConversion(lhs,optype,convertCopy(lhs));
 
             rhs = convertExpr(rhs);
-            rhs = addImplicitConversion(rhs,optype,rhs); // or optype?
+//            rhs = addImplicitConversion(rhs,optype,rhs); // or optype?
             
 
-            addBinaryChecks(that, op, lhsc, rhs, maxJmlType);
+            addBinaryChecks(that, op, lhsc, rhs, maxJmlType); // includes implicit conversion
 
             rhs = makeBin(that, op, that.getOperator(), lhsc , rhs, maxJmlType);
             treeutils.copyEndPosition(rhs, that);
