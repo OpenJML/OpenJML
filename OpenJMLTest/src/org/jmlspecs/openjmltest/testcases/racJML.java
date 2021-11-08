@@ -48,7 +48,19 @@ public class racJML extends RacBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static void main(String... args) { \n"
-                +"     //@ set var x = JML.lbl(\"AL\",\"XYZ\"); assert x.equals(\"XYZ\"); \n"
+                +"     //@ ghost nullable String x = JML.lbl(\"AL\",\"XYZ\"); assert x.equals(\"XYZ\"); \n" // using ghost decl to avoid duplicate evaluation
+                +"  }\n"
+                +"}"
+                ,"LABEL AL = XYZ"
+                );
+    }
+
+    @Test // Test to check that we have one evaluation
+    public void testLBLStringDup() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public static void main(String... args) { \n"
+                +"     //@ assert JML.lbl(\"AL\",\"XYZ\").equals(\"XYZ\"); \n"
                 +"  }\n"
                 +"}"
                 ,"LABEL AL = XYZ"
