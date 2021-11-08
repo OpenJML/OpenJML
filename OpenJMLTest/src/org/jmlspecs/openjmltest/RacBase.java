@@ -210,7 +210,7 @@ public abstract class RacBase extends JmlTestCase {
                 		if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
                 			expected = expected.replaceFirst("^[^:]*:[0-9]+: ","");
                 		if (!actual.matches(".*:[0-9]+:$")) 
-                			expected = expected.replaceFirst(": [^:]*:[0-9]+:$",":");
+                			expected = expected.replaceFirst(": [^:]*:[0-9]+:$","");
                 		//System.out.println("EXP: " + expected);
                         if (!expected.contains("verify: ")) actual = actual.replace("verify: ", "");
                 		//System.out.println("EXP: " + expected);
