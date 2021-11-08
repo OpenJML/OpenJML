@@ -425,7 +425,7 @@ public class escnew2 extends EscBase {
                 +"@NonNull Integer k = a.i; \n"
                 +"}\n"
                 +"}"
-                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m:  k",18
+                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: k",18
                 );
     }
 

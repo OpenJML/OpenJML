@@ -60,8 +60,7 @@ public class nowarn extends ParseBase {
                 JCIdent.class, 24,
                 JmlClassDecl.class, 56,
                 JmlModifiers.class, -1);
-        checkMessages("/TEST.java:1: warning: A line annotation should end with a semicolon",23,
-                "/TEST.java:1: warning: A line annotation should end with a semicolon",40);
+        checkMessages();
     }
     
     @Test
@@ -72,8 +71,9 @@ public class nowarn extends ParseBase {
                 JCIdent.class, 24,
                 JmlClassDecl.class, 56,
                 JmlModifiers.class, -1);
-        checkMessages("/TEST.java:1: warning: A line annotation should end with a semicolon",23,
-                "/TEST.java:1: warning: A line annotation should end with a semicolon",40);
+        checkMessages();
+//        checkMessages("/TEST.java:1: warning: A line annotation should end with a semicolon",23,
+//                "/TEST.java:1: warning: A line annotation should end with a semicolon",40);
     }
     
     @Test
@@ -84,7 +84,8 @@ public class nowarn extends ParseBase {
                 JCIdent.class, 28,
                 JmlClassDecl.class, 33,
                 JmlModifiers.class, -1);
-        checkMessages("/TEST.java:1: warning: A line annotation should end with a semicolon",27);
+        checkMessages();
+        //checkMessages("/TEST.java:1: warning: A line annotation should end with a semicolon",27);
     }
     
     @Test
@@ -118,7 +119,8 @@ public class nowarn extends ParseBase {
                 JCFieldAccess.class, 16,
                 JCIdent.class, 16
         );
-        checkMessages("/TEST.java:2: warning: A line annotation should end with a semicolon",19);
+        checkMessages();
+        //checkMessages("/TEST.java:2: warning: A line annotation should end with a semicolon",19);
     }
     
     @Test
@@ -157,7 +159,8 @@ public class nowarn extends ParseBase {
                 JCFieldAccess.class, 16,
                 JCIdent.class, 16
                 );
-        checkMessages("/TEST.java:2: warning: A line annotation should end with a semicolon",39);
+        checkMessages();
+        //checkMessages("/TEST.java:2: warning: A line annotation should end with a semicolon",39);
     }
   
     @Test
