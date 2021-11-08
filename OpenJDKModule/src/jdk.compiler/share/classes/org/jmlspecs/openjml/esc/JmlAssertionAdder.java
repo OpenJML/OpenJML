@@ -11679,6 +11679,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Type maxJmlType = that.lhs.type;
         if (jmltypes.isJmlType(that.rhs.type)) maxJmlType = that.rhs.type;
         Type optype = treeutils.opType(that.lhs.type,that.rhs.type);
+        // FIXME - the following gives \bigint+\bigint instead of int+int for optype=int -- why?
+        //var newOperator = JmlResolve.instance(context).resolveBinaryOperator(that,op,Enter.instance(context).getEnv((ClassSymbol)enclosingClass),optype,optype);
+        var newOperator = JmlOperators.instance(context).resolveBinary(that, op, optype, optype);
+//        System.out.println("OPTYPE " + op + " " + optype + " " + newOperator);
         if (lhs instanceof JCIdent) {
             // We start with: id = expr
             // We generate
@@ -11692,12 +11696,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression lhsc = addImplicitConversion(lhs,optype,convertCopy(lhs));
 
             rhs = convertExpr(rhs);
-//            rhs = addImplicitConversion(rhs,optype,rhs); // or optype?
+            rhs = addImplicitConversion(rhs,optype,rhs); // or optype?
             
 
             addBinaryChecks(that, op, lhsc, rhs, maxJmlType); // includes implicit conversion
 
-            rhs = makeBin(that, op, that.getOperator(), lhsc , rhs, maxJmlType);
+            rhs = makeBin(that, op, newOperator, lhsc , rhs, maxJmlType);
             treeutils.copyEndPosition(rhs, that);
             
             if (arith && rhs instanceof JCBinary) {
@@ -11765,7 +11769,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression newfac = addImplicitConversion(newfa,optype,newfa);
             // Note that we need to introduce the temporary since the rhs may contain
             // identifiers that will be captured by the lhs. (TODO - example?)
-            rhs = makeBin(that, op, that.getOperator(), newfa , rhs, maxJmlType);
+            rhs = makeBin(that, op, newOperator, newfa , rhs, maxJmlType);
             if (arith) {
                 // FIXME - this is going to call checkRW again, already called during convertExpr(rhs) above
                 rhs = currentArithmeticMode.rewriteBinary(this, (JCBinary)rhs, true);
@@ -11814,7 +11818,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             nlhs = addImplicitConversion(nlhs,optype,nlhs);
 
             addBinaryChecks(that,op,nlhs,rhs,optype);
-            rhs = makeBin(that, op, that.getOperator(), nlhs , rhs, maxJmlType);
+            rhs = makeBin(that, op, newOperator, nlhs , rhs, maxJmlType);
             if (arith) {
                 rhs = currentArithmeticMode.rewriteBinary(this, (JCBinary)rhs, true);
             }
@@ -12950,11 +12954,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      // FIXME- what should we do if !split, in particular what if this comes from convertAssignable
         if (javaChecks && splitExpressions && !pureCopy && localVariables.isEmpty()) {
             ClassSymbol csym = attr.createClass(exception);
-            if (translatingJML) {
+            if (translatingJML) { // allow, forbid, ignore do not apply to JML
                 cond = conditionedAssertion(p, cond);
                 addAssert(p, jmlLabel, cond);
-            } else if (rac) {
-                addAssert(p,javaLabel,cond);
             } else {
                 long line = JCDiagnostic.Factory.instance(context).error(null,log.currentSource(),p,"jml.message").getLineNumber();
                 boolean allow = findExplicitLineAnnotation(classDecl.lineAnnotations, LineAnnotationClauses.allowClauseKind, line, exception);
@@ -12979,11 +12981,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
                 if (ignore) {
-                    addAssume(p, javaLabel, cond);
+                    if (!rac) addAssume(p, javaLabel, cond);
                 } else if (useException) {
-                    conditionalException(p,cond,csym);
+                    if (!rac) conditionalException(p,cond,csym); // For rac, Java throws the exception
                 } else {
-                    addAssert(p,javaLabel,cond);
+                    addAssert(p, javaLabel, cond);
                 }
             }
         }
@@ -14243,7 +14245,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         	System.out.println("JAA-visitJmlClassDecl-CC " + specs.status(msym) + " " + specs.get(msym));
                     	}
                     }
-                	scan(t);
+                    //try { // FIXME - not working reliably yet -- need to completely skip not implemented clauses
+                    	scan(t);
+//                    } catch (JmlNotImplementedException e) {
+//                    	if (t instanceof JmlTypeClause) {
+//                    		notImplemented(((JmlTypeClause)t).keyword + " clause containing ",e, ((JmlTypeClause)t).source());
+//                    	}
+//                    }
                 }
             }
  
@@ -17241,6 +17249,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!keys.contains("DEBUG")) return;
         }
         if (that.clauseType == SetStatement.setClause || that.clauseType == SetStatement.debugClause) {
+        	boolean saved = translatingJML;
+        	translatingJML = true;
+        	condition = treeutils.trueLit;
             try {
                 if (!pureCopy) addTraceableComment(that); // after the check on the key
                 JCStatement st = that.statement;
@@ -17250,6 +17261,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } catch (JmlNotImplementedException e) {
                 notImplemented(that.clauseType.name() + " statement containing ",e);
                 result = null;
+            } finally {
+            	translatingJML = saved;
+            	condition = null;
             }
         } else if (that.clauseType == EndStatement.endClause) {
             // do nothing -- this should be part of a JmlStatementSpec
@@ -17748,13 +17762,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK - e.g. invariant
     @Override
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
-        JCModifiers mods = fullTranslation ? convert(that.modifiers) : that.modifiers;
-        JCExpression expr = convertExpr(that.expression);
-        JmlTypeClauseExpr cl = M.at(that).JmlTypeClauseExpr(mods, that.keyword, that.clauseType, expr);
-        cl.setType(that.type);
-        cl.source = that.source;
-//        if (!rac) classDefs.add(cl);// FIXME - should we have this at all?
-        result = cl;
+    	JCModifiers mods = fullTranslation ? convert(that.modifiers) : that.modifiers;
+    	JCExpression expr = convertExpr(that.expression);
+    	JmlTypeClauseExpr cl = M.at(that).JmlTypeClauseExpr(mods, that.keyword, that.clauseType, expr);
+    	cl.setType(that.type);
+    	cl.source = that.source;
+    	//        if (!rac) classDefs.add(cl);// FIXME - should we have this at all?
+    	result = cl;
     }
 
     // OK
