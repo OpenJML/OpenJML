@@ -57,9 +57,10 @@ public class esc1 extends EscBase {
                         + "  public String m(java.lang.Integer i, Number b) {\n"
                         + "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n" 
                         + "    return null; \n" // FAILS
-                        + "  }\n" + "}\n",
-                "/tt/TestJava.java:3: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m", 10,
-                "/tt/TestJava.java:5: warning: Associated method exit", 5);
+                        + "  }\n" + "}\n"
+                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m: m", 10
+                ,"/tt/TestJava.java:3: warning: Associated declaration", 17
+                ,"/tt/TestJava.java:5: warning: Associated method exit", 5);
     }
 
     @Test  // version of testCollectB without the calls of getClass and v.add
@@ -73,9 +74,10 @@ public class esc1 extends EscBase {
                 + "    boolean bb = v.elements().hasMoreElements();\n" 
                 + "    return null; \n" // FAILS
                 + "  }\n" 
-                + "}\n",
-                "/tt/TestJava.java:3: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m", 22,
-                "/tt/TestJava.java:7: warning: Associated method exit", 5);
+                + "}\n"
+                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m: m", 22
+                ,"/tt/TestJava.java:3: warning: Associated declaration", 29
+                ,"/tt/TestJava.java:7: warning: Associated method exit", 5);
     }
 
     @Test @Ignore // timesout
@@ -1461,7 +1463,7 @@ public class esc1 extends EscBase {
                         + "  public void c4(int i) {}\n" + "}",
                 seq("/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m5a", 9,
                   anyorder(
-                    seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m6a:  a[i]",7
+                    seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m6a: a[i]",7
                       , "/tt/TestJava.java:20: warning: Associated declaration", 7
                       ),
                     seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m6a",7
@@ -2052,9 +2054,11 @@ public class esc1 extends EscBase {
                 + "  //@ ensures true;\n"
                 + "  public @NonNull Object inst2(int ii) {  return null; }\n"
                 + "}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst: inst",25
+                ,"/tt/TestJava.java:5: warning: Associated declaration",32
                 , "/tt/TestJava.java:5: warning: Associated method exit", 47
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",19
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2: inst2",19
+                ,"/tt/TestJava.java:8: warning: Associated declaration",26
                 , "/tt/TestJava.java:8: warning: Associated method exit", 43
                 );
     }
@@ -2071,9 +2075,11 @@ public class esc1 extends EscBase {
                 + "  //@ ensures true;\n"
                 + "  public Object inst2(int ii) { return null; }\n"
                 + "}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",10
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst: inst",10
+                ,"/tt/TestJava.java:5: warning: Associated declaration",17
                 , "/tt/TestJava.java:5: warning: Associated method exit", 32
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",10
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2: inst2",10
+                ,"/tt/TestJava.java:8: warning: Associated declaration", 17
                 , "/tt/TestJava.java:8: warning: Associated method exit", 33
                 );
     }
@@ -2090,9 +2096,11 @@ public class esc1 extends EscBase {
                         + "  //@ ensures true;\n"
                         + "  public Object inst2(int ii) {  return null; }\n"
                         + "}"
-                        ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",10
+                        ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst: inst",10
+                        ,"/tt/TestJava.java:5: warning: Associated declaration", 17
                         ,"/tt/TestJava.java:5: warning: Associated method exit", 32
-                        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",10
+                        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2: inst2",10
+                        ,"/tt/TestJava.java:8: warning: Associated declaration", 17
                         ,"/tt/TestJava.java:8: warning: Associated method exit", 34
                         );
     }
@@ -2112,9 +2120,11 @@ public class esc1 extends EscBase {
                 + "  //@ ensures true;\n"
                 + "  public Object inst2(int ii) {  return null; }\n"
                 + "}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",10
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst: inst",10
+                ,"/tt/TestJava.java:5: warning: Associated declaration", 17
                 ,"/tt/TestJava.java:5: warning: Associated method exit", 32
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",10
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2: inst2",10
+                ,"/tt/TestJava.java:8: warning: Associated declaration", 17
                 ,"/tt/TestJava.java:8: warning: Associated method exit", 34
                 );
     }
@@ -2142,7 +2152,7 @@ public class esc1 extends EscBase {
                         + "    return i;\n"
                         + "  }\n"
                         + "}\n"
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method inst2:  i",22
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method inst2: i",22
                 );
     }
 
@@ -2158,9 +2168,11 @@ public class esc1 extends EscBase {
                         + "  \n"
                         + "  public /*@ non_null*/Object inst2bad(boolean b, @NonNull Object i, Object ii) { return ii; }\n"
                         + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method instbad",24
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method instbad: instbad",24
+                ,"/tt/TestJava.java:6: warning: Associated declaration",31
                 , "/tt/TestJava.java:6: warning: Associated method exit", 88
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2bad",24
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2bad: inst2bad",24
+                ,"/tt/TestJava.java:10: warning: Associated declaration",31
                 , "/tt/TestJava.java:10: warning: Associated method exit", 83
                 );
     }
@@ -3342,9 +3354,9 @@ public class esc1 extends EscBase {
 //                        14,
 //                        "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m5",
 //                        14,
-//                        "/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m6a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
+//                        "/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m6a: a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
 //                        28,
-//                        "/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m7a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
+//                        "/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m7a: a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
 //                        28));
 //    }
 //
@@ -3427,8 +3439,8 @@ public class esc1 extends EscBase {
 //                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3",17
 //                ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m4",17
 //                ,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m5",17
-//                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m6a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",17
-//                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m7a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",17
+//                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m6a: a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",17
+//                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m7a: a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",17
 //                );
 //    }
 //

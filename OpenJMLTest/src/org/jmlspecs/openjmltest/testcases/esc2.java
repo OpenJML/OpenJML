@@ -513,12 +513,12 @@ public class esc2 extends EscBase {
 //
 //                , "/tt/TestJava.java:7: error: A \\count token is used outside the scope of a foreach loop", 23
 //                ,"/tt/TestJava.java:11: error: A \\count token is used outside the scope of a foreach loop", 23
-//                ,"/tt/TestJava.java:16: error: unexpected type\n  required: variable\n  found:    value", 15
+//                ,"/tt/TestJava.java:16: error: unexpected type\n  required: variable\n  found:   value", 15
 //                ,"/tt/TestJava.java:16: error: Unexpected kind of LHS in a set statement: \\count",15
 //                ,"/tt/TestJava.java:16: error: The LHS in a set statement must be a ghost variable",15
 //                ,"/tt/TestJava.java:23: error: A \\values token is used outside the scope of a foreach loop", 45
 //                ,"/tt/TestJava.java:27: error: A \\values token is used outside the scope of a foreach loop", 45
-//                ,"/tt/TestJava.java:32: error: unexpected type\n  required: variable\n  found:    value", 15
+//                ,"/tt/TestJava.java:32: error: unexpected type\n  required: variable\n  found:   value", 15
 //                ,"/tt/TestJava.java:32: error: Unexpected kind of LHS in a set statement: \\values",15
 //                ,"/tt/TestJava.java:32: error: The LHS in a set statement must be a ghost variable",15
 //                );
@@ -1461,7 +1461,7 @@ public class esc2 extends EscBase {
 //                        + "  public void c4(int i) {}\n" + "}",
 //                seq("/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m5a", 9,
 //                  anyorder(
-//                    seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m6a:  a[i]",7
+//                    seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m6a: a[i]",7
 //                      , "/tt/TestJava.java:20: warning: Associated declaration", 7
 //                      ),
 //                    seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m6a",7
@@ -2137,7 +2137,7 @@ public class esc2 extends EscBase {
 //                        + "    return i;\n"
 //                        + "  }\n"
 //                        + "}\n"
-//                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method inst2:  i",22
+//                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method inst2: i",22
 //                );
 //    }
 //
@@ -3337,9 +3337,9 @@ public class esc2 extends EscBase {
                         14,
                         "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m5",
                         14,
-                        "/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m6a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
+                        "/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m6a: a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
                         28,
-                        "/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m7a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
+                        "/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m7a: a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
                         28));
     }
 
@@ -3422,8 +3422,8 @@ public class esc2 extends EscBase {
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3",17
                 ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m4",17
                 ,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m5",17
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m6a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",17
-                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m7a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",17
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m6a: a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",17
+                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m7a: a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",17
                 );
     }
 
@@ -3466,7 +3466,7 @@ public class esc2 extends EscBase {
                 17,
                 "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m2",
                 24,
-                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3",
+                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m3",
                 33,
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m4",
                 19,
@@ -3474,7 +3474,7 @@ public class esc2 extends EscBase {
                 18,
                 "/tt/TestJava.java:22: warning: Associated method exit",
                 4,
-                "/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m6",
+                "/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m6",
                 31);
     }
 
@@ -4837,12 +4837,6 @@ public class esc2 extends EscBase {
                         + "  ;\n"
                         + "  }\n"
                         + "}\n"
-                        ,"/tt/TestJava.java:9: warning: Ignoring annotation with no exceptions listed",25
-                        ,"/tt/TestJava.java:10: warning: A line annotation should end with a semicolon",46
-                        ,"/tt/TestJava.java:13: warning: A line annotation should end with a semicolon",74
-                        ,"/tt/TestJava.java:14: warning: A line annotation should end with a semicolon",74
-                        ,"/tt/TestJava.java:15: warning: A line annotation should end with a semicolon",75
-                        ,"/tt/TestJava.java:16: warning: A line annotation should end with a semicolon",56
                         ,"/tt/TestJava.java:17: error: Expected an identifier here in the line annotation",35
                         // When there is an error, no attribution is performed
                         );

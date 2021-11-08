@@ -328,7 +328,7 @@ public class escstrings extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",27
                 ,"$SPECS/specs/java/lang/String.jml:334: warning: Associated declaration",30
-                ,"$SPECS/specs/java/lang/CharSequence.jml:78: warning: Precondition conjunct is false: 0 <= index < charArray.length",34
+                ,"$SPECS/specs/java/lang/CharSequence.jml:79: warning: Precondition conjunct is false: 0 <= index < charArray.length",34
                 );
     }
 
@@ -371,7 +371,7 @@ public class escstrings extends EscBase {
                         seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m",12)
                         ,seq(seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43
                              ,"$SPECS/specs/java/lang/String.jml:334: warning: Associated declaration",30)
-                             ,"$SPECS/specs/java/lang/CharSequence.jml:78: warning: Precondition conjunct is false: 0 <= index < charArray.length",34
+                             ,"$SPECS/specs/java/lang/CharSequence.jml:79: warning: Precondition conjunct is false: 0 <= index < charArray.length",34
                             )
                                 		
                         )

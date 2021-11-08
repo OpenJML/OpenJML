@@ -7727,6 +7727,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCMethodInvocation app = M.at(that).Apply(typeargs, meth, args).setType(that.type);
             app.varargsElement = that.varargsElement; // a Type
             result = eresult = app;
+            if (rac && splitExpressions && app.type != null && app.type != syms.voidType) {
+            	JCIdent id = newTemp(app);
+            	result = eresult = id;
+            }
             return;
         }
         Symbol sym = treeutils.getSym(that.meth);
@@ -13170,7 +13174,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression selected;
         Symbol s = convertSymbol(that.sym);
         JCExpression trexpr = that.getExpression();
-        if (!(s instanceof Symbol.TypeSymbol)) trexpr = convertExpr(trexpr);
+        
         if (pureCopy) {
             if (s != null) {
                 result = eresult = treeutils.makeSelect(that.pos, trexpr, s);
@@ -13180,6 +13184,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             treeutils.copyEndPosition(result, that);
             return;
         }
+        if (!(s instanceof Symbol.TypeSymbol)) trexpr = convertExpr(trexpr);
         JCFieldAccess newfa = null;
         Symbol sym = s;
         JCExpression eee = null;
@@ -15452,7 +15457,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         result = eresult = id;
         if (expr instanceof JCLiteral || expr instanceof JCIdent) result = eresult = expr;
         
-        if (esc || infer) ((VarSymbol)id.sym).pos = id.pos;
         if (rac) {
             JCExpression lit = treeutils.makeLit(that.getPreferredPosition(),syms.stringType,that.label.toString());
             // In rac math mode, eresult might have been converted to BigInteger or Real

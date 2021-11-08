@@ -69,7 +69,7 @@ public class escaccessible extends EscBase {
                 +"  int m() { return i; }\n"
                 +"  int i;\n"
                 +"}"
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3:) in method m:  i",20
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3:) in method m: i",20
                 ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:4:",7
                 );
     }
@@ -114,7 +114,7 @@ public class escaccessible extends EscBase {
                 +"  int m() { return i; }\n"
                 +"  int i,j;\n"
                 +"}"
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3:) in method m:  i",20
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3:) in method m: i",20
                 ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:4:",7
                 );
     }
@@ -140,7 +140,7 @@ public class escaccessible extends EscBase {
                 +"  int i,j;\n"
                 +"  TestJava a; TestJava() { a = new TestJava(); } \n"
                 +"}"
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3:) in method m:  a.i",21
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3:) in method m: a.i",21
                 ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:4:",7
                 );
     }
@@ -167,7 +167,7 @@ public class escaccessible extends EscBase {
                 +"  int i,j;\n"
                 +"  TestJava a, b; TestJava() { a = b = new TestJava(); } \n"
                 +"}"
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3:) in method m:  a.i",21
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3:) in method m: a.i",21
                 ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:4:",7
                 );
     }
@@ -208,7 +208,7 @@ public class escaccessible extends EscBase {
                 +"  int i,j;\n"
                 +"  int[] a; int[] b; TestJava() { a = b = new int[1]; } \n"
                 +"}"
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:4:) in method m:  a[i]",21
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:4:) in method m: a[i]",21
                 ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:5:",7
                 );
     }
@@ -236,7 +236,7 @@ public class escaccessible extends EscBase {
                 +"  int n() { return i; }\n"  // Default accessible is \everything
                 +"  int i,j;\n"
                 +"}"
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3:) in method m:  \\everything",21
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3:) in method m: \\everything",21
                 ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:4:",7
                 );
     }
@@ -264,7 +264,7 @@ public class escaccessible extends EscBase {
                 +"  int n() { return 0; }\n"
                 +"  int i,j;\n"
                 +"}"
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3:) in method m:  \\everything",21
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3:) in method m: \\everything",21
                 ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:4:",7
                 );
     }
@@ -277,7 +277,7 @@ public class escaccessible extends EscBase {
                 +"  boolean m() { return this instanceof TestJava; }\n"
                 +"  int i,j;\n"
                 +"}"
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3:) in method m:  this",24
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3:) in method m: this",24
                 ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:4:",7
                 );
     }
@@ -318,7 +318,7 @@ public class escaccessible extends EscBase {
                 +"  int m(boolean b) { return b ? i : j; }\n"
                 +"  int i,j;\n"
                 +"}"
-                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:6:) in method m:  j",37
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:6:) in method m: j",37
                 ,"/tt/TestJava.java:6: verify: Associated declaration: /tt/TestJava.java:7:",7
                 );
     }
