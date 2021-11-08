@@ -12992,16 +12992,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     public boolean findExplicitLineAnnotation(java.util.List<ExceptionLineAnnotation> list, IJmlClauseKind kind, long line, String exType) {
-        if (list == null) return false;
+    	if (list == null) return false;
         for (ExceptionLineAnnotation a: list) {
             if (a.line == line && a.clauseKind() == kind) {
-                for (JCExpression e: a.exprs()) {
-                   if (e.type != null) {
-                     if (e.type.toString().equals(exType)) return true;
-                   } else {
-                       // Backstop for bad exceptions 
-                       if (e.toString().equals(exType)) return true;
-                   }
+            	for (JCExpression e: a.exprs()) {
+            		if (e.type != null) {
+            			if (e.type.toString().equals(exType)) return true; // FIXME - should compare by subtyping
+            			if (e.type == syms.runtimeExceptionType) return true; // FIXME - only true if exType is a subtype
+            		} else {
+            			// Backstop for bad exceptions 
+            			if (e.toString().equals(exType)) return true;
+            		}
                 }
             }
         }
@@ -15451,7 +15452,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         result = eresult = id;
         if (expr instanceof JCLiteral || expr instanceof JCIdent) result = eresult = expr;
         
-        if (esc || infer) ((VarSymbol)id.sym).pos = Position.NOPOS; // TODO: Why?
+        if (esc || infer) ((VarSymbol)id.sym).pos = id.pos;
         if (rac) {
             JCExpression lit = treeutils.makeLit(that.getPreferredPosition(),syms.stringType,that.label.toString());
             // In rac math mode, eresult might have been converted to BigInteger or Real

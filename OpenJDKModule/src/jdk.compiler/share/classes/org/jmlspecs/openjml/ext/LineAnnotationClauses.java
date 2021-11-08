@@ -20,6 +20,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 
 public class LineAnnotationClauses extends JmlExtension {
 
@@ -52,7 +53,12 @@ public class LineAnnotationClauses extends JmlExtension {
                     // No labels - for nowarn this means suppress everything
                     // Indicate this with null
                     if (clauseKind == nowarnClauseKind) Nowarns.instance(context).addItem(Log.instance(context).currentSource(),keywordPos,null);
-                    else warning(t.pos, t.endPos, "jml.message", "Ignoring annotation with no exceptions listed");
+                    else {
+                    	// For allow, forbid, ignore, this means RuntimeException
+                        JCExpression qid = M.Ident(Names.instance(context).fromString("RuntimeException"));
+                        qid.pos = tokenPos;;
+                    	exprs.add(qid);
+                    }
                 } else {
                     while (tokenizer.jml() && t.kind != TokenKind.SEMI && t.ikind != JmlTokenKind.ENDJMLCOMMENT) {
                         if (t.kind != TokenKind.IDENTIFIER){
@@ -91,7 +97,8 @@ public class LineAnnotationClauses extends JmlExtension {
                     }
                 }
                 if (tokenizer.jmlTokenKind == JmlTokenKind.ENDJMLCOMMENT) { 
-                    utils.warning(t.pos, "jml.line.annotation.with.no.semicolon");
+                	// allow optional semicolon without a warning
+                    //utils.warning(t.pos, "jml.line.annotation.with.no.semicolon");
                     // Here we are swallowing the end of comment - we normally 
                     // expect that token in the stream. However if there is just a 
                     // nowarn, the Java scanner will not expect a standalone ENDJMLCOMMENT
