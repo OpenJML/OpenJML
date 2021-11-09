@@ -285,6 +285,7 @@ public class Utils {
         if (k >= 0) msg = msg.substring(0,k);
         msg = "Skipping a specification clause because it contains an uncompiled model method: " + msg;
         if (location != null) msg = msg + " (" + location + ")";
+        t.printStackTrace(System.out);
         report(msg);
     }
     

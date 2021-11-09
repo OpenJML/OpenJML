@@ -8791,6 +8791,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         		else {
                         			// FIXME - mismatch in number of arguments; what about varargs?
                         		}
+                        		//if (v != null) System.out.println("MAPPED FORMAL SYM " + v + " " + java.util.Objects.hashCode(v));
                         	}
                         }
                     }

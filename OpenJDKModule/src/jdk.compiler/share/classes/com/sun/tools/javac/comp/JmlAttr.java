@@ -53,6 +53,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
 
@@ -1846,6 +1847,25 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                // env.enclMethod.
 //        if (env == null) env = enclosingMethodEnv;
         
+    	JCExpression nnexpr = treeutils.trueLit;
+        {
+        	int i = 0;
+        	var iter = msp.specDecl == null ? null : msp.specDecl.params.iterator(); // FIXME - under what circumstances is msp.specDecl null? What do we do if there are no specs at all and we are assuming some param are non-null?
+        	var syms = msp.specSym.params.iterator();
+        	for (var param: msym.params) {
+        		var p = iter == null ? null : iter.next();
+        		var pos = p == null ? Position.NOPOS : p.pos;
+        		var s = syms.next();
+        		boolean nn = specs.isNonNullFormal(param.type, i, msp, msym);
+        		if (nn) {
+        			JCIdent e = treeutils.makeIdent(pos, s!=null ? s :p != null ? p.sym : param);
+        			//System.out.println("USING SYM " + e.name + " " + e.sym + " " + e.sym.hashCode() + " : " + Objects.hashCode(s) + " " + Objects.hashCode(p.sym) + " " + Objects.hashCode(param));
+        			JCExpression ee = treeutils.makeNotNull(pos, e);
+        			nnexpr = treeutils.makeAndSimp(pos, nnexpr, ee);
+        		}
+        		++i;
+        	}
+        }
         
         JavaFileObject prevSource = decl == null ? log.currentSourceFile() : log.useSource(decl.sourcefile);
         EndPosTable endPosTable = null;
@@ -1899,7 +1919,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     cl.appendList(commonClauses);  // FIXME - appending the same ASTs to each spec case - is this sharing OK
                     ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,msym,mods);
                     for (JmlSpecificationCase cs: newcases) {
-                        addDefaultClauses(decl, mods, msym, pure, cs);
+                        addDefaultClauses(decl, mods, msym, pure, cs, nnexpr);
                     }
                     allcases.appendList(newcases);
                 }
@@ -1912,7 +1932,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     for (JmlSpecificationCase cs: newcases) {
                         // Note: a model program spec case has no clauses
                         if (cs.clauses != null) {
-                            addDefaultClauses(decl, mods, msym, pure, cs);
+                            addDefaultClauses(decl, mods, msym, pure, cs, nnexpr);
                         }
                     }
                     allitcases.appendList(newcases);
@@ -1926,7 +1946,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     for (JmlSpecificationCase cs: newcases) {
                         // Note: a model program spec case has no clauses
                         if (cs.clauses != null) {
-                            addDefaultClauses(decl, mods, msym, pure, cs);
+                            addDefaultClauses(decl, mods, msym, pure, cs, nnexpr);
                         }
                     }
                     allfecases.appendList(newcases);
@@ -1942,7 +1962,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (p <= 0) log.error("jml.internal", "Bad position");
                 JCModifiers cmods = jmlMaker.at(p).Modifiers(decl.mods.flags & Flags.AccessFlags);
                 JmlSpecificationCase cs = jmlMaker.at(p).JmlSpecificationCase(cmods,false,null,null,commonClauses.toList(),null);
-                addDefaultClauses(decl, mods, msym, pure, cs);
+                addDefaultClauses(decl, mods, msym, pure, cs, nnexpr);
                 newspecs = jmlMaker.at(p).JmlMethodSpecs(List.<JmlSpecificationCase>of(cs));
             } else {
                 newspecs = jmlMaker.at(-1).JmlMethodSpecs(List.<JmlSpecificationCase>nil());
@@ -1956,7 +1976,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
 
-    protected void addDefaultClauses(JmlMethodDecl decl, JCModifiers mods, MethodSymbol msym, JCAnnotation pure, JmlSpecificationCase cs) {
+    protected void addDefaultClauses(JmlMethodDecl decl, JCModifiers mods, MethodSymbol msym, JCAnnotation pure, JmlSpecificationCase cs, JCExpression nnexpr) {
         String constructorDefault = JmlOption.defaultsValue(context,"constructor","everything");
         boolean hasAssignableClause = false;
         boolean hasAccessibleClause = false;
@@ -1975,6 +1995,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
         }
         ListBuffer<JmlMethodClause> newClauseList = new ListBuffer<>();
+        {
+        	// JmlAssertionAdder expects the first requires cause to be params nonnull test, even if it is 'true'
+        	var req = jmlMaker.at(cs.pos).JmlMethodClauseExpr(requiresID, requiresClauseKind, nnexpr);
+        	newClauseList.add(req);
+        }
         if (!hasAssignableClause && cs.block == null) {
             JmlMethodClause defaultClause;
             if (findMod(mods,Modifiers.INLINE) != null) {
