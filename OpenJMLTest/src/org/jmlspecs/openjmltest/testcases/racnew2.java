@@ -43,11 +43,16 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testMods2() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*; \n" +
-                " public class TestJava { \n" +
-                "   @NonNull  protected void m() {} \n" +
-                "   public static void main(String... args) {}" +
-                "}"
+    	expectedExit = 1;
+        helpTCX("tt.TestJava",
+        		"""
+        		package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*;
+                public class TestJava {
+                    @NonNull  protected void m() {}
+                    public static void main(String... args) {}
+                }
+                """
+                ,"/tt/TestJava.java:3: error: annotation type not applicable to this kind of declaration",11
         );        
     }
     
@@ -75,7 +80,7 @@ public class racnew2 extends RacBase {
     }
     
     /** Tests new array */
-    @Test public void testNewArray() {
+    @Test public void testNewArray() {  // FIXME - improve error message when String.equals includes its model methods for RAC
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  String[] a = new String[]{\"abc\",\"def\"};\n" +
                 "  int i = a.length; \n" +
@@ -1261,28 +1266,28 @@ public class racnew2 extends RacBase {
         helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"try { Integer i = null;\n"
-                +"int k = i;\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"int k = i; //@ forbid\n"
+                +"//@ assert k == i; \n} catch (Exception e) {}\n"
                 +"try { Boolean i = null;\n"
-                +"boolean k = i;\n"
+                +"boolean k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Short i = null;\n"
-                +"short k = i;\n"
+                +"short k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Long i = null;\n"
-                +"long k = i;\n"
+                +"long k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Byte i = null;\n"
-                +"byte k = i;\n"
+                +"byte k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Double i = null;\n"
-                +"double k = i;\n"
+                +"double k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Float i = null;\n"
-                +"float k = i;\n"
+                +"float k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Character i = null;\n"
-                +"char k = i;\n"
+                +"char k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
 
                 +"System.out.println(\"END\"); \n"
@@ -1383,11 +1388,11 @@ public class racnew2 extends RacBase {
         		package tt; /*@ nullable_by_default*/ public class A { 
                   public static void main(String[] args) {
                     try { Integer i = null; int k = 6;
-                      k += i;  // unbox error  // FIXME - why 2 errors
+                      k += i; //@ forbid // FIXME - why duplicate messages
                     } catch (Exception e) {}
 
                     try { Integer i = null; int k = 6;
-                      i += k;  // unbox error  // FIXME - why 2 errors
+                      i += k;  //@ forbid // FIXME - why duplicate messages
                     } catch (Exception e) {}
 
                     { Integer i = 5; int k = 6;
@@ -1396,11 +1401,11 @@ public class racnew2 extends RacBase {
                     }
 
                     try { Boolean i = null; boolean k = true;
-                          k &= i; // unbox error
+                          k &= i; //@ forbid // FIXME - and no duplicate here, or below
                     } catch (Exception e) {}
 
                     try { Boolean i = null; boolean k = true;
-                         i &= k; // unbox error
+                         i &= k; //@ forbid
                     } catch (Exception e) {}
 
                     { Boolean i = false; boolean k = true;
@@ -1413,11 +1418,13 @@ public class racnew2 extends RacBase {
                   }
         		}
         		"""
-                    ,"/tt/A.java:4: verify: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:8: verify: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:16: verify: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:20: verify: JML Attempt to unbox a null object"
-                    ,"END"
+                ,"/tt/A.java:4: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:4: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:8: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:8: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:16: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:20: verify: JML Attempt to unbox a null object"
+                ,"END"
                 );
     }
 
@@ -1425,28 +1432,28 @@ public class racnew2 extends RacBase {
         helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"try { Integer i = null;\n"
-                +"int k; k = i;\n"
+                +"int k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Boolean i = null;\n"
-                +"boolean k; k = i;\n"
+                +"boolean k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Short i = null;\n"
-                +"short k; k = i;\n"
+                +"short k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Long i = null;\n"
-                +"long k; k = i;\n"
+                +"long k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Byte i = null;\n"
-                +"byte k; k = i;\n"
+                +"byte k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Double i = null;\n"
-                +"double k; k = i;\n"
+                +"double k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Float i = null;\n"
-                +"float k; k = i;\n"
+                +"float k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Character i = null;\n"
-                +"char k; k = i;\n"
+                +"char k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
 
                     +"System.out.println(\"END\"); \n"
@@ -1470,39 +1477,39 @@ public class racnew2 extends RacBase {
                 +"public static Integer box(Integer i) { return i;}  \n"
                 +"public static void main(String[] args) {  \n"
                 +"try { Boolean i = null;\n"
-                +"boolean k = true && i;\n"   // Null problem
+                +"boolean k = true && i; //@ forbid \n"   // Null problem
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Boolean i = false;\n"
                 +"boolean k = true && i;\n"
                 +"//@ assert k == false;\n} catch (Exception e) {}\n"
                 +"try { Boolean i = null;\n" 
-                +"boolean k = i && true;\n" // Null problem
+                +"boolean k = i && true; //@ forbid \n" // Null problem
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Boolean i = false;\n"
                 +"boolean k = i && true;\n"
                 +"//@ assert k == false;\n} catch (Exception e) {}\n"
                 
                 +"try { Integer i = null;\n"
-                +"int k = 0 + i;\n"  // Null problem - 22
+                +"int k = 0 + i; //@ forbid \n"  // Null problem - 22
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Integer i = 6;\n"
                 +"int k = 0 + i;\n"
                 +"//@ assert k == 6;\n} catch (Exception e) {}\n"
                 +"try { Integer i = null;\n"
-                +"int k = i + 0;\n" // Null problem - 30
+                +"int k = i + 0; //@ forbid \n" // Null problem - 30
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Integer i = 6;\n"
                 +"int k = i + 0;\n"
                 +"//@ assert k == 6;\n} catch (Exception e) {}\n"
                 +"try { Integer i = null;\n"
-                +"int k = - i;\n" // Null problem -- 38
+                +"int k = - i; //@ forbid \n" // Null problem -- 38
                 +"//@ assert k == -i;\n} catch (Exception e) {}\n"
                 +"try { Integer i = 6;\n"
                 +"int k = - i;\n"
                 +"//@ assert k == -6;\n} catch (Exception e) {}\n"
                 +"try { Integer i = null;\n"
-                +"unbox(i);\n"  // Null problem -- 46
-                +"} catch (Exception e) {}\n"
+                +"unbox(i);  \n"  // Null problem -- 46
+                +"} catch (Exception e) { System.out.println(\"CAUGHT 46\"); }\n"
                 +"try { Integer i = 6;\n"
                 +"int k = unbox(i);\n"
                 +"//@ assert k == 6;\n} catch (Exception e) {}\n"
@@ -1511,14 +1518,14 @@ public class racnew2 extends RacBase {
                 +"//@ assert ii == 6;\n} catch (Exception e) {}\n"
 
                 +"try { Boolean b = null;\n"
-                +"int i = b ? 4 : 5;\n" // Null problem - 57
+                +"int i = b ? 4 : 5; //@ forbid \n" // Null problem - 57
                 +"//@ assert i == 6;\n} catch (Exception e) {}\n"
                 +"try { Boolean b = false;\n"
                 +"int i = b ? 4 : 5;\n"
                 +"//@ assert i == 5;\n} catch (Exception e) {}\n"
 
                 +"try { Boolean b = null;\n"
-                +"int i; if (b) i = 4; else i = 5;\n" // Null problem 65
+                +"int i; if (b) i = 4; else i = 5; //@ forbid \n" // Null problem 65
                 +"//@ assert i == 6;\n} catch (Exception e) {}\n"
                 +"try { Boolean b = false;\n"
                 +"int i; if (b) i = 4; else i = 5;\n"
@@ -1531,7 +1538,7 @@ public class racnew2 extends RacBase {
                     ,"/tt/A.java:22: JML Attempt to unbox a null object"
                     ,"/tt/A.java:30: JML Attempt to unbox a null object"
                     ,"/tt/A.java:38: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:46: JML Attempt to unbox a null object"
+                    ,"CAUGHT 46"
                     ,"/tt/A.java:57: JML Attempt to unbox a null object"
                     ,"/tt/A.java:65: JML Attempt to unbox a null object"
                     ,"END"
@@ -1554,10 +1561,10 @@ public class racnew2 extends RacBase {
                   }
                   static { Integer k = 6; int m = k; //@ assert m == 6;
                   }
-                  static { try { Integer k = null; int m = k; } catch (Exception e) {}
+                  static { try { Integer k = null; int m = k; } catch (Exception e) {} //@ forbid
                   }
                   public static Integer ii = null;
-                  public static int jj = ii;
+                  public static int jj = ii; //@ forbid
 
                   public static void main(String[] args) {
                       System.out.println(\"END\");
@@ -1605,6 +1612,25 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testStringSwitchNull() {
+    	expectedRACExit = 1;
+        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+                +"public static void main(String[] args) {  \n"
+                +"String s = null; int k = 0;\n"
+                +"{ switch (s) {\n"
+                +"  case \"asd\": k = 1; break;\n"
+                +"  case \"abc\": k = 2; break;\n"
+                +"  case \"def\": k = 3; break;\n"
+                +"  default: k = 4; break;\n"
+                +"} }\n" 
+                +"System.out.println(\"END \" + k); \n"
+                    +"}}"
+                ,"/tt/A.java:4: verify: JML An object may be illegally null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local8>\" is null"
+                ,"\tat tt.A.main(A.java:1)"
+                );
+    }
+
+    @Test public void testStringSwitchNullCatch() {
         helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"String s = null; int k = 0;\n"
@@ -1613,10 +1639,10 @@ public class racnew2 extends RacBase {
                 +"  case \"abc\": k = 2; break;\n"
                 +"  case \"def\": k = 3; break;\n"
                 +"  default: k = 4; break;\n"
-                +"} } catch (Exception e) {}\n" 
+                +"} } catch (Exception e) { System.out.println(\"CAUGHT\"); }\n" 
                 +"System.out.println(\"END \" + k); \n"
                     +"}}"
-                ,"/tt/A.java:4: JML An object may be illegally null"
+                ,"CAUGHT"
                 ,"END 0"
                 );
     }
@@ -1639,19 +1665,51 @@ public class racnew2 extends RacBase {
 
 
     @Test public void testEnumSwitchNull() {
-        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
-                +"enum E { A,B,C}; public static void main(String[] args) {  \n"
-                +"E e = null; int k = 0;\n"
-                +"try { switch (e) {\n"
-                +"  case A: k = 1; break;\n"
-                +"  case B: k = 2; break;\n"
-                +"  case C: k = 3; break;\n"
-                +"  default: k = 4; break;\n"
-                +"} } catch (Exception ee) {}\n" 
-                +"System.out.println(\"END \" + k); \n"
-                    +"}}"
-                    ,"/tt/A.java:4: JML An object may be illegally null"
-                    ,"END 0"
+    	expectedRACExit = 1;
+        helpTCX("tt.A",
+        		"""
+        		package tt; /*@ nullable_by_default*/ public class A {
+                    enum E { A,B,C}; 
+                    public static void main(String[] args) {
+                      E e = null; int k = 0;
+                      { switch (e) {
+                        case A: k = 1; break;
+                        case B: k = 2; break;
+                        case C: k = 3; break;
+                        default: k = 4; break;
+                        }
+                      }
+                      System.out.println("END " + k);
+                   }
+                 }
+        		"""
+                ,"verify: JML An object may be illegally null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local5>\" is null"
+                ,"\tat tt.A.main(A.java:1)"
+                );
+    }
+
+
+    @Test public void testEnumSwitchNullCatch() {
+        helpTCX("tt.A",
+        		"""
+        		package tt; /*@ nullable_by_default*/ public class A {
+                    enum E { A,B,C}; 
+                    public static void main(String[] args) {
+                      E e = null; int k = 0;
+                      try { switch (e) {
+                        case A: k = 1; break;
+                        case B: k = 2; break;
+                        case C: k = 3; break;
+                        default: k = 4; break;
+                        }
+                      } catch (Exception ee) { System.out.println("CAUGHT");}
+                      System.out.println("END " + k);
+                   }
+                 }
+        		"""
+                ,"CAUGHT"
+                ,"END 0"
                 );
     }
 

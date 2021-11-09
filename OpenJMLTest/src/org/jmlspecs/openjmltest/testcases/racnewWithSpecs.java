@@ -56,8 +56,8 @@ public class racnewWithSpecs extends RacBase {
                 ,"LABEL CLS = class java.lang.Object" // precondition check by callee
                 ,"CLASS class java.lang.Object"
                 	// These model methods are defined, but the library classes are not compiled with RAC so the model methods do not exist.
-                ,"Skipping a specification clause because it contains an uncompiled model method: 'boolean java.lang.String.initialCharSequence"
-                ,"Skipping a specification clause because it contains an uncompiled model method: 'boolean java.lang.String.equals"
+//                ,"Skipping a specification clause because it contains an uncompiled model method: 'boolean java.lang.String.initialCharSequence"
+//                ,"Skipping a specification clause because it contains an uncompiled model method: 'boolean java.lang.String.equals"
                 ,"LABEL CLS = class java.lang.String"
                 ,"/tt/TestJava.java:2: verify: JML precondition is false"
                 ,"/tt/TestJava.java:4: verify: Associated declaration"

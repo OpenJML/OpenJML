@@ -577,8 +577,7 @@ public class JmlTreeUtils {
      * @return the AST
      */ 
     public JCIdent makeIdent(int pos, Symbol sym) {
-        JCIdent id = factory.Ident(sym);
-        id.pos = pos;
+        JCIdent id = factory.at(pos).Ident(sym);
         // id.type is set in Ident
         return id;
     }
@@ -588,8 +587,7 @@ public class JmlTreeUtils {
      * @return the AST
      */ 
     public JCIdent makeIdent(/*@ nullable */ DiagnosticPosition pos, Symbol sym) {
-        JCIdent id = factory.Ident(sym);
-        id.pos = pos == null ? Position.NOPOS: pos.getPreferredPosition();
+        JCIdent id = factory.at(pos == null ? Position.NOPOS: pos.getPreferredPosition()).Ident(sym);
         // id.type is set in Ident
         return id;
     }

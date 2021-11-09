@@ -183,7 +183,7 @@ public class racnew extends RacBase {
                 "public static void main(String[] args) { \n" +
                 " m(null,1); \n" +
                 " System.out.println(\"END\"); }\n" +
-                " /*@ requires true; */ \n" +
+                " /*@ requires true; */\n" +
                 " static public void m(/*@non_null*/ Object o, int i) {\n" +
                 " }\n" +
                 "}"
@@ -193,15 +193,20 @@ public class racnew extends RacBase {
                 ,"/tt/TestJava.java:6: Associated declaration: /tt/TestJava.java:3:"
                 ," static public void m(/*@non_null*/ Object o, int i) {"
                 ,"                                    ^"
+                ,"/tt/TestJava.java:3: JML precondition is false"
+                ," m(null,1); "
+                ,"  ^"
+                ,"/tt/TestJava.java:6: Associated declaration: /tt/TestJava.java:3:"
+                ," static public void m(/*@non_null*/ Object o, int i) {"
+                ,"                    ^"
                 ,"/tt/TestJava.java:5: JML precondition is false"
-                ," /*@ requires true; */ "
+                ," /*@ requires true; */"
                 ,"     ^"
                 ,"END"
                 );
     }
     
     @Test public void testNonnullPrecondition2() {
-    	main.addOptions("-show");  // FIXME - the non_null is not being tested as a precondition
         helpTCX("tt.TestJava",
         		"""
         		package tt;
@@ -214,6 +219,8 @@ public class racnew extends RacBase {
                 }
         		"""
                 ,"/tt/TestJava.java:4: verify: JML formal argument may be null: o in m(java.lang.Object,int)"
+                ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:1:"
+                ,"/tt/TestJava.java:7: verify: JML precondition is false"
                 ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:1:"
                 ,"/tt/TestJava.java:7: verify: JML precondition is false"
                 ,"END"
