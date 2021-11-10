@@ -3225,49 +3225,48 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (classDecl.type.tsym.isSubClass(clsym,types)) staticBasetype = classDecl.type;
         }
         try {
-            if (rac) {
-                Name mmName = names.fromString(Strings.modelFieldMethodPrefix + varsym.toString());
-                java.util.List<Type> p = parents(staticBasetype, true);
-                ListIterator<Type> iter = p.listIterator(p.size());
-                while (iter.hasPrevious()) {
-                    JmlSpecs.TypeSpecs tyspecs = specs.getSpecs((ClassSymbol)iter.previous().tsym);
-                    for (JmlTypeClauseDecl x: tyspecs.modelFieldMethods) {
-                        if (x.decl instanceof JmlMethodDecl) {
-                            JmlMethodDecl md = (JmlMethodDecl)x.decl;
-                            // THe DEFAULT Flag is used to indicate that the method is just the place-holder method
-                            // created in JmlMemberEnter. It should be ignored as it is not a user supplied method.
-                            if (md.name == mmName ) { // && (md.mods.flags & Flags.DEFAULT) == 0) {
-                                JCMethodInvocation app = treeutils.makeMethodInvocation(that,translatedSelector,md.sym);
-                                result = eresult = app;
-                                treeutils.copyEndPosition(eresult, that);
-                                return;
-                            }
-                        }
-                    }
-                }
-                    result = eresult = treeutils.makeZeroEquivalentLit(that.pos, varsym.type);
-                    Env<AttrContext> env = JmlEnter.instance(context).getEnv(clsym);
-                    // We don't warn if the problem is that we just have a binary class and consequently no implementations of model fields
-                    // FIXME - need some tests for these options - not sure the binary ones have any effect here???
-                    if (env != null && env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.JML) {
-                        String opt = JmlOption.value(context,JmlOption.RAC_MISSING_MODEL_FIELD_REP_SOURCE);
-                        if ("skip".equals(opt)) {
-                            throw new NoModelMethod("No represents clause for model field " + varsym);
-                        } else  {
-                            // already set the eresult
-                            if ("warn".equals(opt)) utils.warning(that.pos, "jml.no.model.method.ignore", varsym.owner.getQualifiedName().toString() + "." + varsym.toString());
-                        }
-                    } else {
-                        String opt = JmlOption.value(context,JmlOption.RAC_MISSING_MODEL_FIELD_REP_BINARY);
-                        if ("skip".equals(opt)) {
-                            throw new NoModelMethod("No represents clause for model field " + varsym);
-                        } else  {
-                            // already set the eresult
-                            if ("warn".equals(opt)) utils.warning(that.pos, "jml.no.model.method.ignore", varsym.owner.getQualifiedName().toString() + "." + varsym.toString());
-                        }
-                    }
-//                }
-                return;
+        	if (rac) {
+        		Name mmName = names.fromString(Strings.modelFieldMethodPrefix + varsym.toString());
+        		java.util.List<Type> p = parents(staticBasetype, true);
+        		ListIterator<Type> iter = p.listIterator(p.size());
+        		while (iter.hasPrevious()) {
+        			JmlSpecs.TypeSpecs tyspecs = specs.getSpecs((ClassSymbol)iter.previous().tsym);
+        			for (JmlTypeClauseDecl x: tyspecs.modelFieldMethods) {
+        				if (x.decl instanceof JmlMethodDecl) {
+        					JmlMethodDecl md = (JmlMethodDecl)x.decl;
+        					// THe DEFAULT Flag is used to indicate that the method is just the place-holder method
+        					// created in JmlMemberEnter. It should be ignored as it is not a user supplied method.
+        					if (md.name == mmName ) { // && (md.mods.flags & Flags.DEFAULT) == 0) {
+        						JCMethodInvocation app = treeutils.makeMethodInvocation(that,translatedSelector,md.sym);
+        						result = eresult = app;
+        						treeutils.copyEndPosition(eresult, that);
+        						return;
+        					}
+        				}
+        			}
+        		}
+                result = eresult = treeutils.makeSelect(that.pos, translatedSelector, varsym);
+        		Env<AttrContext> env = JmlEnter.instance(context).getEnv(clsym);
+        		// We don't warn if the problem is that we just have a binary class and consequently no implementations of model fields
+        		// FIXME - need some tests for these options - not sure the binary ones have any effect here???
+        		if (env != null && env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.JML) {
+        			String opt = JmlOption.value(context,JmlOption.RAC_MISSING_MODEL_FIELD_REP_SOURCE);
+        			if ("skip".equals(opt)) {
+        				throw new NoModelMethod("No represents clause for model field " + varsym);
+        			} else  {
+        				// already set the eresult
+        				if ("warn".equals(opt)) utils.warning(that.pos, "jml.no.model.method.ignore", varsym.owner.getQualifiedName().toString() + "." + varsym.toString());
+        			}
+        		} else {
+        			String opt = JmlOption.value(context,JmlOption.RAC_MISSING_MODEL_FIELD_REP_BINARY);
+        			if ("skip".equals(opt)) {
+        				throw new NoModelMethod("No represents clause for model field " + varsym);
+        			} else  {
+        				// already set the eresult
+        				if ("warn".equals(opt)) utils.warning(that.pos, "jml.no.model.method.ignore", varsym.owner.getQualifiedName().toString() + "." + varsym.toString());
+        			}
+        		}
+        		return;
             }
             if (esc) {
                 if (translatedSelector == null && varsym.owner instanceof ClassSymbol && utils.isJMLStatic(varsym)) {
@@ -13239,10 +13238,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             Type type = that.selected.type;
             if (type instanceof Type.TypeVar) type = ((Type.TypeVar)type).getUpperBound();
+            //result = eresult = treeutils.makeSelect(that.pos, selected, s);
             // The following method sets result and eresult
             addRepresentsAxioms((ClassSymbol)type.tsym, s, that, convertCopy(trexpr));
             // The tsym can be a TypeVar
-            //result = eresult = treeutils.makeSelect(that.pos, sel, s);
             return;
         } else if (s instanceof Symbol.TypeSymbol) {
             // This is a type name, so the tree should be copied, but without inserting temporary assignments
@@ -17768,13 +17767,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK - e.g. invariant
     @Override
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
-    	JCModifiers mods = fullTranslation ? convert(that.modifiers) : that.modifiers;
-    	JCExpression expr = convertExpr(that.expression);
-    	JmlTypeClauseExpr cl = M.at(that).JmlTypeClauseExpr(mods, that.keyword, that.clauseType, expr);
-    	cl.setType(that.type);
-    	cl.source = that.source;
-    	//        if (!rac) classDefs.add(cl);// FIXME - should we have this at all?
-    	result = cl;
+    	try {
+    		if (currentStatements == null) pushBlock();
+        	JCModifiers mods = fullTranslation ? convert(that.modifiers) : that.modifiers;
+        	JCExpression expr = convertExpr(that.expression);
+        	JmlTypeClauseExpr cl = M.at(that).JmlTypeClauseExpr(mods, that.keyword, that.clauseType, expr);
+        	cl.setType(that.type);
+        	cl.source = that.source;
+        	//        if (!rac) classDefs.add(cl);// FIXME - should we have this at all?
+        	result = cl;
+    	} finally {
+    		if (currentStatements == null) {
+    			// FIXME - for ESC - not sure why this would be called and if the result is used at all
+    			// FIXME - for RAC, will eventually need to capture this block in a standalonw method for checking the invariant
+    			popBlock();
+    		}
+    	}
     }
 
     // OK
