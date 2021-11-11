@@ -8417,7 +8417,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 //            ListBuffer<JCStatement> saved = currentStatements;
             oldStatements = currentStatements; // FIXME - why twice
-            initialInvariantCheck(that, isSuperCall, isThisCall, calleeMethodSym, newThisExpr, trArgs, apply);
+            initialInvariantCheck(that, isSuperCall, isThisCall, calleeMethodSym, savedThisExpr, newThisExpr, trArgs, apply);
 
             List<JCExpression> extendedArgs = extendArguments(that,
                     calleeMethodSym, newThisExpr, trArgs);
@@ -9759,30 +9759,39 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // Now assume that the callee has maintained all the caller invariants
                 // both explicit invariants and invariants of the classes of the parameters
 
-                if (!isSuperCall && !isThisCall && !isHelper(calleeMethodSym) && !specs.isPure(calleeMethodSym)) {
-                    if (false) {
-                        currentStatements.add(comment(that, "Assuming caller field invariants upon reentering the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
-                        for (Type parentType : parents(calleeMethodSym.owner.type, false)) {
-                            Scope s = parentType.tsym.members();
-                            for (Symbol sym: s.getSymbols()) {
-                                if (!(sym instanceof VarSymbol)) continue;
-                                if (sym.type.isPrimitive()) continue; // FIXME should be isJMLPrimitivie?
-                                DiagnosticPosition pos = that; // FIXME - is this a good position?
-                                JCExpression expr = treeutils.makeSelect(pos.getPreferredPosition(),currentThisExpr,sym);
-                                addInvariants(pos,sym.type,expr,currentStatements,
-                                        false,false,true,false,true,true,Label.INVARIANT_REENTER_CALLER, "(Field: " + sym + ", Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
-                            }
-                        }
-                    }
+                if (!isSuperCall && !isThisCall && (!isHelper(calleeMethodSym) || methodDecl.sym.owner != calleeMethodSym.owner)) {
+                  if (!specs.isPure(calleeMethodSym) || calleeMethodSym.isConstructor()) {
                     currentStatements.add(comment(that, "Assuming caller invariants upon reentering the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
-                    addInvariants(that,savedEnclosingClass.type,
-                            utils.isJMLStatic(methodDecl.sym)  ? null : savedThisExpr,
-                            currentStatements,
-                            true,
-                            methodDecl.sym.isConstructor(),
-                            isSuperCall,
-                            isHelper(methodDecl.sym),false,true,Label.INVARIANT_REENTER_CALLER, 
-                            "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
+                	var invariantsNeededByCallee = invariantsNeeded(newThisExpr, calleeMethodSym);
+                	for (var r: invariantsNeededByCallee.first) {
+                        if (r != newThisExpr || !calleeMethodSym.isConstructor())
+                            addInvariants(that,r.type,
+                                    r,
+                                    currentStatements,
+                                    true,
+                                    methodDecl.sym.isConstructor(),
+                                    isSuperCall,
+                                    isHelper(methodDecl.sym),false,true,Label.INVARIANT_REENTER_CALLER, 
+                                    "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
+                	}
+                	for (var r: invariantsNeededByCallee.second) {
+                        addInvariants(that,r.type,
+                                null,
+                                currentStatements,
+                                true,
+                                methodDecl.sym.isConstructor(),
+                                isSuperCall,
+                                isHelper(methodDecl.sym),false,true,Label.INVARIANT_REENTER_CALLER, 
+                                "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
+                	}
+//                    addInvariants(that,savedEnclosingClass.type,
+//                            utils.isJMLStatic(methodDecl.sym)  ? null : savedThisExpr,
+//                            currentStatements,
+//                            true,
+//                            methodDecl.sym.isConstructor(),
+//                            isSuperCall,
+//                            isHelper(methodDecl.sym),false,true,Label.INVARIANT_REENTER_CALLER, 
+//                            "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
 //                    addInvariants(that,savedEnclosingClass.type,
 //                            savedEnclosingMethod == null || utils.isJMLStatic(savedEnclosingMethod)  ? null : savedThisExpr,
 //                            currentStatements,
@@ -9797,10 +9806,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCIdent id = treeutils.makeIdent(v.pos,v.sym);
                         JCExpression oldid = treeutils.makeOld(v.pos(), id, labelPropertiesStore.get(preLabel.name));
                         if (rac) oldid = convertExpr(oldid);
+                        JCExpression recv = utils.isJMLStatic(methodDecl.sym)? null : savedThisExpr;
                         currentStatements.add(comment(that, "Assuming invariants for caller parameter " + id + " upon reentering the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
                         addInvariants(v,v.type,oldid,currentStatements,
                                 false,false,false,false,false,true,Label.INVARIANT_REENTER_CALLER, "(Parameter: " + v.sym + ", Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
                     }
+                  } else {
+                        currentStatements.add(comment(that, "Not assuming caller and parameter invariants upon reentering the caller because callee is pure: " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
+                  }
                 }
                 
                 if (isSuperCall) {
@@ -10354,7 +10367,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     public void initialInvariantCheck(DiagnosticPosition that, boolean isSuperCall,
             boolean isThisCall, MethodSymbol calleeMethodSym,
-            JCExpression newThisExpr, List<JCExpression> trArgs,
+            JCExpression callerThisExpr, JCExpression newThisExpr, List<JCExpression> trArgs,
             JCMethodInvocation apply) {
 
         ClassSymbol calleeClass = (ClassSymbol)calleeMethodSym.owner;
@@ -10369,12 +10382,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                                currentStatements,
 //                                true,savedEnclosingMethod != null && savedEnclosingMethod.isConstructor(),isSuperCall,isHelper(methodDecl.sym),false,false,Label.INVARIANT_EXIT_CALLER, "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
 //
-                    addInvariants(that,calleeClass.type,
-                            utils.isJMLStatic(calleeMethodSym) || calleeMethodSym.isConstructor() ? null : newThisExpr,
+            	var invariantsNeededByCallee = invariantsNeeded(newThisExpr, calleeMethodSym);
+            	for (var r: invariantsNeededByCallee.first) {
+                    if (r != newThisExpr || !calleeMethodSym.isConstructor())
+                    	addInvariants(that,r.type,
+                            r,
                                     currentStatements,
                                     false,
                                     calleeMethodSym.isConstructor(),isSuperCall,isHelper(calleeMethodSym),false,false,Label.INVARIANT_EXIT_CALLER,  "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
-                    //utils.qualifiedMethodSig(methodDecl.sym) + " " + utils.qualifiedMethodSig(calleeMethodSym)); // FIXME - do we really do post here and below
+            	}
+            	for (var r: invariantsNeededByCallee.second) {
+                    addInvariants(that,r.type,null,
+                                    currentStatements,
+                                    false,
+                                    calleeMethodSym.isConstructor(),isSuperCall,isHelper(calleeMethodSym),false,false,Label.INVARIANT_EXIT_CALLER,  "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
+            	}
+            	//utils.qualifiedMethodSig(methodDecl.sym) + " " + utils.qualifiedMethodSig(calleeMethodSym)); // FIXME - do we really do post here and below
 //                    }
             }
             clearInvariants();
@@ -10400,9 +10423,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             String msg = "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")";
             addStat(comment(that, "Checking callee invariants by the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " before calling method " + utils.qualifiedMethodSig(calleeMethodSym),null));
             //System.out.println("Checking callee invariants by the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " before calling method " + utils.qualifiedMethodSig(calleeMethodSym) + " helper="+ isHelper(calleeMethodSym) + " " + calleeClass);
+            addStat(comment(that,"RECEIVER = " + newThisExpr + " " + that,null));
             addInvariants(that,calleeClass.type,newThisExpr,currentStatements,
                     false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),false,false,assertionLabel,msg);
             //System.out.println("FINISHED Checking callee invariants by the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " before calling method " + utils.qualifiedMethodSig(calleeMethodSym));
+            addStat(comment(that, "END Checking callee invariants by the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " before calling method " + utils.qualifiedMethodSig(calleeMethodSym),null));
             for (JCExpression arg: trArgs) {
                 if (utils.isJavaOrJmlPrimitiveType(arg.type)) continue;
                 currentStatements.add(comment(arg, "Asserting invariants for callee parameter before calling the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
@@ -10416,6 +10441,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             clearInvariants(); // TODO - test this?
         }
+    }
+    
+    public Pair<List<JCExpression>, List<TypeSymbol>> invariantsNeeded(/*@ nullable */JCExpression receiver, MethodSymbol calleeMethodSymbol) {
+    	var instances = new ListBuffer<JCExpression>();
+    	var statics = new ListBuffer<TypeSymbol>();
+    	if (!isHelper(calleeMethodSymbol)) {
+    		if (receiver != null) instances.add(receiver);
+    		else statics.add((TypeSymbol)calleeMethodSymbol.owner);
+    	}
+    	return new Pair(instances.toList(),statics.toList());
     }
 
 

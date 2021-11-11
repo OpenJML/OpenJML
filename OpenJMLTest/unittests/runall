@@ -1,32 +1,33 @@
 #! /bin/bash
 cd $(dirname "$BASH_SOURCE")
 
-( ./runtests access arith assignable compilationUnit compiler deprecation | tee log-access+ | grep failures ; echo "151/4" Completed log-access+ ) &
-( ./runtests binaries | tee log-binaries | grep failures ; echo "5/1" Completed log-binaries ) &
-( ./runtests bugs | tee log-bugs | grep failures ; echo "23/0" Completed log-bugs ) &
-( ./runtests esc1 | tee log-esc1 | grep failures ; echo "91/0" Completed log-esc1 ) &
-( ./runtests esc2 | tee log-esc2 | grep failures ; echo "109/0" Completed log-esc2 ) &
-#( ./runtests escArithmeticModes escArithmeticModes2 | tee log-escarith+ | grep failures ; echo "56/17" Completed log-escarith+ ) &
-( ./runtests escConstantFields escCounterexamples escaccessible escbitvector esccode escconstructor | tee log-escConst+ | grep failures ; echo "80/0" Completed log-escConst+ ) &
-( ./runtests escall2 escall3  | tee log-escall+ | grep failures ; echo "85/0" Completed log-escall+ ) &
-( ./runtests esccallable  | tee log-esccallable | grep failures ; echo "31/1" Completed log-esccallable ) &
+f=log-access+  ; echo -e $f "\t" `./runtests access arith assignable compilationUnit compiler deprecation | tee $f| grep failures` ": expected 151/4" &
+f=log-binaries ; echo -e $f "\t" `./runtests binaries | tee $f | grep failures` ": expected 5/1" &
+f=log-bugs     ; echo -e $f "\t" `./runtests bugs | tee $f | grep failures` ": expected 23/0" &
+f=log-esc1     ; echo -e $f "\t" `./runtests esc1 | tee $f | grep failures` ": expected 91/0" &
+f=log-esc2     ; echo -e $f "\t" `./runtests esc2 | tee $f | grep failures` ": expected 109/0" &
+#f=log-escarith+ ; echo -e $f "\t" `./runtests escArithmeticModes escArithmeticModes2 | tee $f | grep failures` ": expected 56/17" &
+f=log-escbv     ; echo -e $f "\t" `./runtests escbitvector | tee $f | grep failures` ": expected 12/0" &
+f=log-escConst+ ; echo -e $f "\t" `./runtests escConstantFields escCounterexamples escaccessible esccode escconstructor | tee $f | grep failures` ": expected 68/0" &
+f=log=escall+   ; echo -e $f "\t" `./runtests escall2 escall3  | tee $f | grep failures` ": expected 85/0" &
+f=log-esccallable ; echo -e $f "\t" `./runtests esccallable  | tee $f | grep failures` ": expected 31/1" &
 sleep 300
-( ./runtests escfunction escgeneric | tee log-escfunction+ | grep failures ; echo "28/0" Completed log-escfunction+ ) &
-( ./runtests escinclause escinline esclocation escnewBoxing escnewassignable escnowarn escoption escprimitivetypes escreadable escstrings | tee log-escinclause+ | grep failures ; echo "104/0" Completed log-escinclause+ ) &
-( ./runtests escnew escnew2 escvisibility escvisibility1 | tee log-escnew+ | grep failures ; echo "158/1" Completed log-escnew+ ) &
-( ./runtests escnew3 | tee log-escnew3 | grep failures ; echo "63/1" Completed log-escnew3 ) &
-( ./runtests esclambdas | tee log-esclambdas | grep failures ; echo "25/3" Completed log-esclambdas ) &
-( ./runtests escm | tee log-escm | grep failures ; echo "13/0" Completed log-escm ) &
-( ./runtests expressions escJML flow | tee log-expr+ | grep failures ; echo "64/0" Completed log-expr+ ) &
-( ./runtests generics | tee log-generics | grep failures ; echo "13/2" Completed log-generics ) &
-( ./runtests harnesstests | tee log-harnesstests | grep failures ; echo "0/5" Completed log-harnesstests ) &
-( ./runtests internalSpecs jmltypes lblexpression methodspecs modelghost namelookup notspecified nowarn positions prettyprinting purity | tee log-inter+ | grep failures ; echo "159/0" Completed log-inter+ ) &
+f=log-escfunction+ ; echo -e $f "\t" `./runtests escfunction escgeneric | tee $f | grep failures` ": expected 28/0" &
+f=log-escinclause+ ; echo -e $f "\t" `./runtests escinclause escinline esclocation escnewBoxing escnewassignable escnowarn escoption escprimitivetypes escreadable escstrings | tee $f | grep failures` ": expected 104/0" &
+f=log-escnew+      ; echo -e $f "\t" `./runtests escnew escnew2 escvisibility escvisibility1 | tee $f | grep failures` ": expected 158/1" &
+f=log-escnew3      ; echo -e $f "\t" `./runtests escnew3 | tee $f | grep failures` ": expected 63/1" &
+f=log-esclambdas   ; echo -e $f "\t" `./runtests esclambdas | tee $f | grep failures` ": expected 25/3" &
+f=log-escm         ; echo -e $f "\t" `./runtests escm | tee $f | grep failures` ": expected 13/0"  &
+f=log-expr+        ; echo -e $f "\t" `./runtests expressions escJML flow | tee $f | grep failures` ": expected 64/0" &
+f=log-generics     ; echo -e $f "\t" `./runtests generics | tee $f | grep failures` ": expected 13/2"  &
+f=log-harnesstests ; echo -e $f "\t" `./runtests harnesstests | tee $f | grep failures` ": expected 0/5" &
+f=log-inter+       ; echo -e $f "\t" `./runtests internalSpecs jmltypes lblexpression methodspecs modelghost namelookup notspecified nowarn positions prettyprinting purity | tee $f | grep failures` ": expected 159/0" &
 sleep 300
-( ./runtests matchClasses | tee log-matchClasses | grep failures ; echo "49/3" Completed log-matchClasses ) &
-( ./runtests modifiers | tee log-modifiers | grep failures ; echo "192/0" Completed log-modifiers ) &
-( ./runtests escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility | tee log-redundant+ | grep failures ; echo "108/1" Completed log-redundant+ ) &
-( ./runtests scanner | tee log-scanner | grep failures ; echo "80/3" Completed log-scanner ) &
-( ./runtests typechecking | tee log-typechecking | grep failures ; echo "181/0" Completed log-typechecking ) &
-( ./runtests typeclauses | tee log-typeclauses | grep failures ; echo "123/0" Completed log-typeclauses ) &
-( ./runtests SpecsBase | tee log-SpecsBase | grep failures ; echo Completed log-SpecsBase "" ) &
-( ./runtests SpecsEsc | tee log-SpecsEsc | grep failures ; echo "3/0" Completed log-SpecsEsc ) &
+f=log-matchClasses ; echo -e $f "\t" `./runtests matchClasses | tee $f | grep failures` ": expected 49/3" &
+f=log-modifiers    ; echo -e $f "\t" `./runtests modifiers | tee $f | grep failures` ": expected 192/0" &
+f=log-redundant+   ; echo -e $f "\t" `./runtests escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility | tee $f | grep failures` ": expected 108/1" &
+f=log-scanner      ; echo -e $f "\t" `./runtests scanner | tee $f | grep failures` ": expected 80/3" &
+f=log-typechecking ; echo -e $f "\t" `./runtests typechecking | tee $f | grep failures` ": expected 181/0" &
+f=log-typeclauses  ; echo -e $f "\t" `./runtests typeclauses | tee $f | grep failures` ": expected 123/0" &
+f=log-SpecsBase    ; echo -e $f "\t" `./runtests SpecsBase | tee $f | grep failures` ": expected ? " &
+f=log-SpecsEsc     ; echo -e $f "\t" `./runtests SpecsEsc | tee $f | grep failures` ": expected 3/0" &
