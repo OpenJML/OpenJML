@@ -1811,10 +1811,10 @@ public class JmlSpecs {
     
     /** Returns true if the given method symbol is annotated as Pure */
     public boolean isPure(MethodSymbol symbol) {
-    	//boolean print = symbol.toString().contains("length");
+    	//boolean print = symbol.toString().contains("println");
     	JmlModifiers mods = getSpecsModifiers(symbol);
     	if (mods == null) return false;
-    	//if (print) System.out.println("MODS " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasMod(mods,  Modifiers.PURE));
+    	//if (print) System.out.println("MODS " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasMod(mods,  Modifiers.PURE) + " " + utils.hasMod(mods,  Modifiers.FUNCTION)+ " " + symbol.owner + " " + isPure((Symbol.ClassSymbol)symbol.owner));
     	if (utils.hasMod(mods,  Modifiers.PURE)) return true; 
     	if (utils.hasMod(mods,  Modifiers.FUNCTION)) return true; 
         return isPure((Symbol.ClassSymbol)symbol.owner);

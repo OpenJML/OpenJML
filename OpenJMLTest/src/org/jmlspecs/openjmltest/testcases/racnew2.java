@@ -1036,26 +1036,22 @@ public class racnew2 extends RacBase {
                 +"public int i = 0;  \n "
                 +"void m(int j) { i = j; }  //@ nowarn InvariantExit; \n "
                 +"public static void main(String[] args) { \n"
-                +"new A().m(1); \n"
+                +"new A().m(1); //@ nowarn InvariantExit, InvariantReenterCaller \n"
                 +"System.out.println(\"END\"); \n"
                 +"}}"
-                ,"/tt/A.java:6: verify: JML invariant is false on leaving method tt.A.m(int), returning to tt.A.main(java.lang.String[])"
-                ,"/tt/A.java:2: verify: Associated declaration: /tt/A.java:6:"
                 ,"END"
                 );
     }
 
     @Test public void testNoWarn2() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"//@ public invariant i == 0; \n "
-                +"public int i = 0;  \n "
-                +"void m(int j) { i = j; }  //@ nowarn ; \n "
+                +"//@ public invariant i == 0; \n"
+                +"public int i = 0;  \n"
+                +"void m(int j) { i = j; }  //@ nowarn ; \n"
                 +"public static void main(String[] args) { \n"
-                +"new A().m(1); \n"
+                +"new A().m(1); //@ nowarn \n"
                 +"System.out.println(\"END\"); \n"
                 +"}}"
-                ,"/tt/A.java:6: verify: JML invariant is false on leaving method tt.A.m(int), returning to tt.A.main(java.lang.String[])"
-                ,"/tt/A.java:2: verify: Associated declaration: /tt/A.java:6:"
                 ,"END"
                 );
     }
@@ -1073,6 +1069,8 @@ public class racnew2 extends RacBase {
                 ,"/tt/A.java:2: verify: Associated declaration: /tt/A.java:4:"
                 ,"/tt/A.java:6: verify: JML invariant is false on leaving method tt.A.m(int), returning to tt.A.main(java.lang.String[])"
                 ,"/tt/A.java:2: verify: Associated declaration: /tt/A.java:6:"
+                ,"/tt/A.java:6: verify: JML caller invariant is false on reentering calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m(int))"
+                ,"/tt/A.java:2: verify: Associated declaration: /tt/A.java:6:"
                 ,"END"
                 );
     }
@@ -1081,9 +1079,9 @@ public class racnew2 extends RacBase {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"//@ invariant i == 0; \n "
                 +"int i = 0;  \n "
-                +"void m(int j) { i = j; }  //@ nowarn Precondition, InvariantExit ; \n "
+                +"void m(int j) { i = j; }  //@ nowarn Precondition, InvariantExit; \n "
                 +"public static void main(String[] args) { \n"
-                +"new A().m(1); //@ nowarn InvariantExit; \n"
+                +"new A().m(1); //@ nowarn InvariantExit, InvariantReenterCaller ; \n"
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"END"
@@ -1625,7 +1623,7 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END \" + k); \n"
                     +"}}"
                 ,"/tt/A.java:4: verify: JML An object may be illegally null"
-                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local8>\" is null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local9>\" is null"
                 ,"\tat tt.A.main(A.java:1)"
                 );
     }
@@ -1684,7 +1682,7 @@ public class racnew2 extends RacBase {
                  }
         		"""
                 ,"verify: JML An object may be illegally null"
-                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local5>\" is null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local6>\" is null"
                 ,"\tat tt.A.main(A.java:1)"
                 );
     }
