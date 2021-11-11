@@ -58,7 +58,8 @@ release-tests:
 	@ NOZIP= $(ROOT)releaseTests/runtests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 
 unittests-seq:
-	. $(ROOT)unittests/runseq
+	@ grep -v sleep ${ROOT}unittests/runall | tr -d '&' > ${ROOT}unittests/runseq
+	@ . $(ROOT)unittests/runseq
 			
 unittests-par:
 	. $(ROOT)unittests/runall
