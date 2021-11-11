@@ -1,33 +1,58 @@
 #! /bin/bash
+
+n=`ps -ef | grep runtests | wc -l`
+if [ $n != "1" ]; then
+  echo "tests already running"
+  ps -ef | grep runtests | grep -v grep
+  exit 1
+fi
+
 cd $(dirname "$BASH_SOURCE")
 
-f=log-access+  ; echo -e $f "\t" `./runtests access arith assignable compilationUnit compiler deprecation | tee $f| grep failures` ": expected 151/4" &
-f=log-binaries ; echo -e $f "\t" `./runtests binaries | tee $f | grep failures` ": expected 5/1" &
-f=log-bugs     ; echo -e $f "\t" `./runtests bugs | tee $f | grep failures` ": expected 23/0" &
-f=log-esc1     ; echo -e $f "\t" `./runtests esc1 | tee $f | grep failures` ": expected 91/0" &
-f=log-esc2     ; echo -e $f "\t" `./runtests esc2 | tee $f | grep failures` ": expected 109/0" &
-#f=log-escarith+ ; echo -e $f "\t" `./runtests escArithmeticModes escArithmeticModes2 | tee $f | grep failures` ": expected 56/17" &
-f=log-escbv     ; echo -e $f "\t" `./runtests escbitvector | tee $f | grep failures` ": expected 12/0" &
-f=log-escConst+ ; echo -e $f "\t" `./runtests escConstantFields escCounterexamples escaccessible esccode escconstructor | tee $f | grep failures` ": expected 68/0" &
-f=log=escall+   ; echo -e $f "\t" `./runtests escall2 escall3  | tee $f | grep failures` ": expected 85/0" &
-f=log-esccallable ; echo -e $f "\t" `./runtests esccallable  | tee $f | grep failures` ": expected 31/1" &
+## These rac tests have spurious errors when they are run in parallel (FIXME)
+./run-summary log-rac           "101/0"	racArithmeticModes racdemoexamples racfeatures racJML racnew3 racnewLoops racnewWithSpecs racsystem
+./run-summary log-racfiles     	"11/55" racfiles 
+./run-summary log-racnew       	"128/15" racnew 
+./run-summary log-racnew2      	"73/2"	racnew2
+./run-summary log-racreadable  	"0/2"	racreadable 
+
+./run-summary log-access+  	"151/4" access arith assignable compilationUnit compiler deprecation  &
+./run-summary log-binaries 	"5/1"	binaries  &
+./run-summary log-bugs     	"23/0"	bugs  &
+./run-summary log-esc1     	"91/0"  esc1  &
+./run-summary log-esc2     	"109/0" esc2  &
+#./run-summary log-escarith+ 	"56/17" escArithmeticModes escArithmeticModes2  &
+./run-summary log-escbv     	"12/0"  escbitvector  &
+./run-summary log-escConst+ 	"68/0"  escConstantFields escCounterexamples escaccessible esccode escconstructor  &
+./run-summary log-escall+   	"85/0"  escall2 escall3   &
+./run-summary log-esccallable 	"31/1"  esccallable   &
 sleep 300
-f=log-escfunction+ ; echo -e $f "\t" `./runtests escfunction escgeneric | tee $f | grep failures` ": expected 28/0" &
-f=log-escinclause+ ; echo -e $f "\t" `./runtests escinclause escinline esclocation escnewBoxing escnewassignable escnowarn escoption escprimitivetypes escreadable escstrings | tee $f | grep failures` ": expected 104/0" &
-f=log-escnew+      ; echo -e $f "\t" `./runtests escnew escnew2 escvisibility escvisibility1 | tee $f | grep failures` ": expected 158/1" &
-f=log-escnew3      ; echo -e $f "\t" `./runtests escnew3 | tee $f | grep failures` ": expected 63/1" &
-f=log-esclambdas   ; echo -e $f "\t" `./runtests esclambdas | tee $f | grep failures` ": expected 25/3" &
-f=log-escm         ; echo -e $f "\t" `./runtests escm | tee $f | grep failures` ": expected 13/0"  &
-f=log-expr+        ; echo -e $f "\t" `./runtests expressions escJML flow | tee $f | grep failures` ": expected 64/0" &
-f=log-generics     ; echo -e $f "\t" `./runtests generics | tee $f | grep failures` ": expected 13/2"  &
-f=log-harnesstests ; echo -e $f "\t" `./runtests harnesstests | tee $f | grep failures` ": expected 0/5" &
-f=log-inter+       ; echo -e $f "\t" `./runtests internalSpecs jmltypes lblexpression methodspecs modelghost namelookup notspecified nowarn positions prettyprinting purity | tee $f | grep failures` ": expected 159/0" &
+./run-summary log-escfunction+ 	"28/0"  escfunction escgeneric  &
+./run-summary log-escinclause+ 	"104/0" escinclause escinline esclocation escnewBoxing escnewassignable escnowarn escoption escprimitivetypes escreadable escstrings  &
+./run-summary log-escnew+   	"158/1" escnew escnew2 escvisibility escvisibility1  &
+./run-summary log-escnew3   	"63/1"  escnew3 &
+./run-summary log-esclambdas   	"25/3"  esclambdas  &
+./run-summary log-escm         	"13/0"  escm   &
+./run-summary log-expr+        	"64/0"  expressions escJML flow  &
+./run-summary log-generics     	"13/2"  generics   &
+./run-summary log-harnesstests 	"0/5"	harnesstests &
+./run-summary log-inter+       	"159/0"	internalSpecs jmltypes lblexpression methodspecs modelghost namelookup notspecified nowarn positions prettyprinting purity  &
 sleep 300
-f=log-matchClasses ; echo -e $f "\t" `./runtests matchClasses | tee $f | grep failures` ": expected 49/3" &
-f=log-modifiers    ; echo -e $f "\t" `./runtests modifiers | tee $f | grep failures` ": expected 192/0" &
-f=log-redundant+   ; echo -e $f "\t" `./runtests escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility | tee $f | grep failures` ": expected 108/1" &
-f=log-scanner      ; echo -e $f "\t" `./runtests scanner | tee $f | grep failures` ": expected 80/3" &
-f=log-typechecking ; echo -e $f "\t" `./runtests typechecking | tee $f | grep failures` ": expected 181/0" &
-f=log-typeclauses  ; echo -e $f "\t" `./runtests typeclauses | tee $f | grep failures` ": expected 123/0" &
-f=log-SpecsBase    ; echo -e $f "\t" `./runtests SpecsBase | tee $f | grep failures` ": expected ? " &
-f=log-SpecsEsc     ; echo -e $f "\t" `./runtests SpecsEsc | tee $f | grep failures` ": expected 3/0" &
+./run-summary log-matchClasses 	"49/3"  matchClasses  &
+./run-summary log-modifiers    	"192/0" modifiers  &
+./run-summary log-redundant+   	"108/1"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
+./run-summary log-scanner      	"80/3"	scanner  &
+./run-summary log-typechecking 	"181/0"	typechecking &
+./run-summary log-typeclauses  	"123/0"	typeclauses  &
+./run-summary log-SpecsBase    	"???"	SpecsBase  &
+./run-summary log-SpecsEsc     	"3/0"	SpecsEsc  &
+
+
+n=`ps -ef | grep runtests | wc -l`
+while [ $n != "1" ]; do
+  ##echo still running:
+  ##ps -ef | grep runtests
+  sleep 60
+  n=`ps -ef | grep runtests | wc -l`
+done
+echo Completed

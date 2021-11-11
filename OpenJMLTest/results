@@ -20,30 +20,30 @@ test/escRawdingA : Killed                                                       
 test/escRawdingB : Actual output differs from expected expected1 expected2 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< feasibilty problem
 test/escStrings : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### switch on strings
 test/gcdcalculator:                                                                                        ???
+test/gitbug450b : Actual output differs from expected expected1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< can't unroll forloops
+test/gitbug582 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< sometimes times out
+test/gitbug672 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### diamond type inference
+test/gitbug673 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< models classes
+test/gitbug673 : Expected exit code 0 but got 1
+test/gitbug732 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ???
+test/gitbug735 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### [fp]
+test/gitbug738 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### recursive use of not-well-founded method
 test/implicitIteration:                                                                                    ???
 test/implicitIterationA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ???
 test/preold : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< labels in preconditions
 test/preold : Expected exit code 0 but got 1
 test/preold2 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< labels in preconditions
 test/primeNumbers : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### ?????
+test/sfbug396 Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test/sfbug402  : Actual output differs from expected expected-compile <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< infeasibility
+test/sfbug402a : Actual output differs from expected expected-compile <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< infeasibility
+test/sfbug420X : Actual output differs from expected expected-compile expected-run <<<<<<<<<<<<<<<<<<<<<<<< needs to implement represents for derived classes
 test/streams : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### ?????
 test/valuestrings : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< inequality of equal-length strings
 test/valuetypes2 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< \locset
 test/valuetypes2 : Expected exit code 0 but got 1
 test/verifythis-2019-1 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ???
 
-
-test/gitbug450b : Actual output differs from expected expected1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< can't unroll forloops
-test/gitbug582 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< sometimes times out
-test/gitbug672 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### diamond type inference
-test/gitbug673 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< models classes
-test/gitbug673 : Expected exit code 0 but got 1
-test/gitbug735 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### [fp]
-test/gitbug738 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### recursive use of not-well-founded method
-test/sfbug396 Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-test/sfbug402  : Actual output differs from expected expected-compile <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< infeasibility
-test/sfbug402a : Actual output differs from expected expected-compile <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< infeasibility
-test/sfbug420X : Actual output differs from expected expected-compile expected-run <<<<<<<<<<<<<<<<<<<<<<<< needs to implement represents for derived classes
 
 
 QueryPure.java       - 10/32 TODO

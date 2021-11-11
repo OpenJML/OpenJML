@@ -73,7 +73,7 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2a() {
         expectedRACExit = 1;
-        main.addOptions("-no-racShowSource","-no-internalSpecs");
+        main.addOptions("-no-racShowSource");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
@@ -85,9 +85,9 @@ public class racsystem extends RacBase {
                 +"}"
                 
                 ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:6: verify: JML signals condition is false"
-                ,"/tt/TestJava.java:5: Associated declaration"
-                ,"\tat org.jmlspecs.runtime.Utils.createException(Utils.java:129)"
-                ,"\tat org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:82)"
+                ,"/tt/TestJava.java:5: Associated declaration: /tt/TestJava.java:6:"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:129)"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:82)"
                 ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - should be line 6
                 ,"\tat tt.TestJava.main(TestJava.java:3)"       
                 );
@@ -120,7 +120,7 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2c() {
         expectedRACExit = 0;
-        main.addOptions("-no-racShowSource","-no-internalSpecs");
+        main.addOptions("-no-racShowSource");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
                 +"try { m(); } catch (Error e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
@@ -132,10 +132,10 @@ public class racsystem extends RacBase {
                 +"}"
                 
                 ,"CAUGHT ASSERTION"
-                ,"org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:6: verify: JML signals condition is false"
-                ,"/tt/TestJava.java:5: Associated declaration"
-                ,"\tat org.jmlspecs.runtime.Utils.createException(Utils.java:129)"
-                ,"\tat org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:82)"
+                ,"org.jmlspecs.runtime.JmlAssertionError: verify: JML signals condition is false"
+                ,"Associated declaration: /tt/TestJava.java:6:"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:129)"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:82)"
                 ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - nshould be line 6
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"END"
