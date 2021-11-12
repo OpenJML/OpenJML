@@ -1,8 +1,8 @@
 OUT:
-test\racNoGhostField\Magic.java:10: JML postcondition is false
+test/racNoGhostField/Magic.java:10: JML postcondition is false
 	public static long magic() {
 	                   ^
-test\racNoGhostField\Magic.java:8: Associated declaration
+test/racNoGhostField/Magic.java:8: Associated declaration
 	  @ ensures \result == 42;
 	    ^
 0

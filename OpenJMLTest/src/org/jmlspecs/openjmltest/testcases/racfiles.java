@@ -42,7 +42,14 @@ public class racfiles extends RacBase {
         ignoreNotes = true;
     }
 
-
+    // Must be called within a test method (not in setup) in order to get the test method name correctly
+    public void setRacng() {
+        rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata/"+getMethodName(1)+z+"test/racaddng/jmlunitng.jar",null};
+    }
+    
+    public void setRacngEA() {
+    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata/"+getMethodName(1),"-Dorg.jmlspecs.openjml.racexceptions=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
+    }
 
 
     /** Testing without using system specs */
@@ -180,35 +187,35 @@ public class racfiles extends RacBase {
 
     @Test
     public void racAddng() {
-        rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/racaddng/jmlunitng.jar",null};
+    	setRacng();
         expectedExit = 0;
         helpTCF("test/racaddng/Add_InstanceStrategy.java","test/racaddng","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","-code-math=java","-spec-math=java");
     }
 
     @Test
     public void racAddng2() {
-        rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/racaddng/jmlunitng.jar",null};
+    	setRacng();
         expectedExit = 0;
         helpTCF("test/racaddng/Add_InstanceStrategy.java","test/racaddng2","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","-code-math=safe","-spec-math=bigint");
     }
 
     @Test
     public void racAddngall() {
-        rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/racaddng/jmlunitng.jar",null};
+    	setRacng();
         expectedExit = 0;
         helpTCF("test/racaddng","test/racaddngall","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddngall"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","-code-math=java","-spec-math=java");
     }
 
     @Test
     public void racAddngall2() {
-        rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/racaddng/jmlunitng.jar",null};
+    	setRacng();
         expectedExit = 0;
         helpTCF("test/racaddng","test/racaddngall2","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddngall"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","-code-math=safe","-spec-math=bigint");
     }
 
     @Test
     public void racNoModel() {
-        rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/racaddng/jmlunitng.jar",null};
+    	setRacng();
         expectedExit = 0;
         helpTCF("test/racNoModel","test/racNoModel","NoModelTest","-racMissingModelFieldRepSource=skip");
     }
@@ -238,7 +245,7 @@ public class racfiles extends RacBase {
     @Test
     public void racHans4() {
     	expectedRACExit = 1;
-    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata","-Dorg.jmlspecs.openjml.racexceptions=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
+    	setRacngEA();
     	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorage","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorage");
     	rac = null;
     }
@@ -246,7 +253,7 @@ public class racfiles extends RacBase {
     @Test
     public void racHans4a() {
     	expectedRACExit = 0;
-    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata","-Dorg.jmlspecs.openjml.racexceptions=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
+    	setRacngEA();
     	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorageA","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorage","-nullableByDefault");
     	rac = null;
     }
@@ -254,7 +261,7 @@ public class racfiles extends RacBase {
     @Test
     public void racHans4b() {
         expectedRACExit = 1;
-    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata","-Dorg.jmlspecs.openjml.racexceptions=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
+    	setRacngEA();
     	helpTCF("test/racHansStorageB/StorageParameters.java","test/racHansStorageB","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorageB");
     	rac = null;
     }
@@ -262,7 +269,7 @@ public class racfiles extends RacBase {
     @Test // Bug in that some annotations had to be in the .java file, not the .jml, fixed
     public void racHans4c() {
         expectedRACExit = 0;
-    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata","-Dorg.jmlspecs.openjml.racexceptions=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
+    	setRacngEA();
     	helpTCF("test/racHansStorageC/StorageParameters.java","test/racHansStorageC","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorageC");
     	rac = null;
     }
@@ -270,7 +277,7 @@ public class racfiles extends RacBase {
     @Test  // Bug in that import statements must be in .java files, not .jml // FIXME - partially fixed - .jml imports are merged into .java imports
     public void racHans4d() {
         expectedRACExit = 0;
-    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata","-Dorg.jmlspecs.openjml.racexceptions=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
+    	setRacngEA();
     	helpTCF("test/racHansStorageD/StorageParameters.java","test/racHansStorageD","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorageD");
     	rac = null;
     }
@@ -290,7 +297,7 @@ public class racfiles extends RacBase {
 
     @Test
     public void racHans2() {
-        rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src",null};
+        rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata/"+getMethodName(0)+z+"test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src",null};
 
     	runrac = true;
     	helpTCF("test/racHans2/account",

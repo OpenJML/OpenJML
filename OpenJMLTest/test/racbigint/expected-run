@@ -1,5 +1,5 @@
 OUT:
-test\racbigint\bigint.java:25: JML assertion is false
+test/racbigint/bigint.java:25: JML assertion is false
         //@ assert b == zero;
             ^
 LABEL BBB = -420

@@ -1,7 +1,7 @@
 OUT:
 
 ERR:
-Exception in thread "main" org.jmlspecs.utils.JmlAssertionError$Precondition: test\racHansStorage\StorageParameters.jml:7: JML precondition is false
+Exception in thread "main" org.jmlspecs.utils.JmlAssertionError$Precondition: test/racHansStorage/StorageParameters.jml:7: JML precondition is false
 	  public behavior	    
 	         ^
 	at org.jmlspecs.utils.Utils.createException(Utils.java:83)
