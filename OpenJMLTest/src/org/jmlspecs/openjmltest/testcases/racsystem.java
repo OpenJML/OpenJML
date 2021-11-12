@@ -28,16 +28,8 @@ public class racsystem extends RacBase {
 //    }
 //
     
-    /** The command-line to use to run RACed programs - note the inclusion of the
-     * RAC-compiled JDK library classes ahead of the regular Java libaray classes
-     * in the boot class path. (This may not work on all platforms)
-     */
-    String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata",null};
-
     @Override
     public void setUp() throws Exception {
-        rac = sysrac;
-        jdkrac = true;
         //noCollectDiagnostics = true;
         super.setUp();
         main.addOptions("-no-purityCheck"); // To shut off complaints about misuse of purity in Java specifications
@@ -174,7 +166,7 @@ public class racsystem extends RacBase {
     public void testFile2e() {
         expectedRACExit = 5;
         expectedNotes = 0;
-        rac = new String[]{jdk, "-Dorg.jmlspecs.openjml.racexitcode=5", "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata",null};
+        rac = new String[]{jdk, "-Dorg.jmlspecs.openjml.racexitcode=5", "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata/" + getMethodName(0),null};
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"m();\n"
                 +"System.out.println(\"END\"); }\n"

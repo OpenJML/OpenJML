@@ -13,17 +13,9 @@ import org.junit.Test;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class racJML extends RacBase {
 
-    /** Sets the classpath used for these tests.  The bin in the classpath
-     * brings in the currently compiled runtime classes (so we don't have
-     * to build jmlruntime.jar)
-     */
-    String[] ordrac = new String[]{jdk, "-ea", "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata",null};
-
     @Override
     public void setUp() throws Exception {
         testspecpath1 = "$A"+z+"$B"+z+"$SS";
-        rac = ordrac;
-        jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
         //main.addOptions("-verboseness=4");

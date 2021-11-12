@@ -96,6 +96,11 @@ public abstract class JmlTestCase {
     /** This is here so we can get the name of a test, using name.getMethodName() */
     @Rule public TestName name = new TestName();
     
+    public String getMethodName(int i) {
+    	return (new RuntimeException()).fillInStackTrace().getStackTrace()[i+1].getMethodName();
+    }
+    
+
     /** The java executable */
     // TODO: This is going to use the external setting for java, rather than
     // the current environment within Eclipse // FIXME - no longer valid
