@@ -76,10 +76,6 @@ public abstract class EscBase extends JmlTestCase {
         return makeParameters(solvers);
     }
     
-    public String getMethodName(int i) {
-    	return (new RuntimeException()).fillInStackTrace().getStackTrace()[i+1].getMethodName();
-    }
-    
 //    public static final String[] minQuantOptions = new String[]{"-no-minQuant","-minQuant"};
     
     static public  Collection<String[]> solvers(java.util.List<String> solvers) {

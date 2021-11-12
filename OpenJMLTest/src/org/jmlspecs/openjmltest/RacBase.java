@@ -52,13 +52,15 @@ public abstract class RacBase extends JmlTestCase {
      * program.  The first argument is the java executable; the null argument
      * is replaced by the class name of the class containing the main method.     
      * */
-    protected String[] defrac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata",null};
+    String cp = "../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z;
+    protected String[] defrac = new String[]{jdk, "-ea", "-classpath",cp,null};
 
     /** These are actual command-line arguments, if they are set differently
      * by a subclass.
      */
-    protected String[] rac; // initialized in subclasses
+    protected String[] rac = null; // initialized in subclasses
     
+    protected String outdir;
 
     @BeforeClass
     public static void mktempdirectory() {
@@ -92,8 +94,7 @@ public abstract class RacBase extends JmlTestCase {
         
         // Setup the options
         main.addOptions("-specspath",   testspecpath);
-        String outdir = System.getenv("OPENJML_ROOT") + "/../OpenJML/OpenJMLTest/testdata";
-        main.addJavaOption("-d", outdir); // This is where the output program goes // FIXME - for some reason this does not work here
+        //main.addJavaOption("-d", outdir); // This is where the output program goes // FIXME - for some reason this does not work here
         main.addOptions("-rac","-racJavaChecks","-racCheckAssumptions");
 //        if (jdkrac) {
 //            String sy = System.getenv("OPENJML_ROOT") + "/../OpenJMLTest/test";
@@ -125,6 +126,15 @@ public abstract class RacBase extends JmlTestCase {
     
     public static String macstring = "Exception in thread \"main\" ";
 
+    public void setupOutdir() {
+        outdir = System.getenv("OPENJML_ROOT") + "/../OpenJML/OpenJMLTest/testdata/" + getMethodName(2);
+        //System.out.println("OUTDIR " + outdir);
+        File d = new java.io.File(outdir);
+        //if (d.exists()) d.delete();
+        d.mkdir();
+        defrac[3] = cp + outdir;
+        if (rac == null) rac = new String[]{jdk, "-ea", "-classpath",cp+outdir,null};
+    }
     
     /** This method does the running of a RAC test for tests that supply with body
      * of a file as a String.
@@ -136,6 +146,7 @@ public abstract class RacBase extends JmlTestCase {
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
     public void helpTCX(String classname, String compilationUnitText, Object... list) {
+    	setupOutdir();
 
         String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
         StreamGobbler out=null,err=null;
@@ -150,7 +161,8 @@ public abstract class RacBase extends JmlTestCase {
             }
 
             Log.instance(context).useSource(files.first());
-            int ex = main.compile(new String[]{"-d", System.getenv("OPENJML_ROOT") + "/../OpenJML/OpenJMLTest/testdata"},files.toList()).exitCode;
+            
+            int ex = main.compile(new String[]{"-d", outdir},files.toList()).exitCode;
             if (print) printDiagnostics();
             int observedMessages = collector.getDiagnostics().size() - expectedNotes;
             if (observedMessages < 0) observedMessages = 0;
@@ -293,11 +305,11 @@ public abstract class RacBase extends JmlTestCase {
      * RAC-compiled JDK library classes ahead of the regular Java library classes
      * in the boot class path. (This may not work on all platforms)
      */
-    String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata",null};
+    String[] sysrac = new String[]{jdk, "-classpath",cp+outdir,null};
     
     /** Call this as a setup routine, followed by RacBase.setUp for file based tests */
     public void setUpForFiles() throws Exception {
-        rac = sysrac;
+//        rac = sysrac;
         jdkrac = true;
         runrac = true;
     }
@@ -312,6 +324,7 @@ public abstract class RacBase extends JmlTestCase {
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
     public void helpTCF(String dirname, String outputdir, String mainClassname, String ... opts) {
+    	setupOutdir();
         boolean print = false;
         StreamGobbler out=null,err=null;
         try {
@@ -323,7 +336,7 @@ public abstract class RacBase extends JmlTestCase {
             List<String> args = new LinkedList<String>();
             //args.add("-no-jml");
             args.add("-d");
-            args.add("testdata");
+            args.add(outdir);
             args.add("-rac");
             args.add("-no-purityCheck");
             args.add("-code-math=java");

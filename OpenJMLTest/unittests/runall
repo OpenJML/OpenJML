@@ -9,12 +9,11 @@ fi
 
 cd $(dirname "$BASH_SOURCE")
 
-## These rac tests have spurious errors when they are run in parallel (FIXME)
-./run-summary log-rac           "101/0"	racArithmeticModes racdemoexamples racfeatures racJML racnew3 racnewLoops racnewWithSpecs racsystem
-./run-summary log-racfiles     	"11/55" racfiles 
-./run-summary log-racnew       	"128/15" racnew 
-./run-summary log-racnew2      	"73/2"	racnew2
-./run-summary log-racreadable  	"0/2"	racreadable 
+./run-summary log-rac           "101/0"	racArithmeticModes racdemoexamples racfeatures racJML racnew3 racnewLoops racnewWithSpecs racsystem &
+./run-summary log-racfiles     	"11/55" racfiles  &
+./run-summary log-racnew       	"128/15" racnew  &
+./run-summary log-racnew2      	"73/2"	racnew2 &
+./run-summary log-racreadable  	"0/2"	racreadable & 
 
 ./run-summary log-access+  	"151/4" access arith assignable compilationUnit compiler deprecation  &
 ./run-summary log-binaries 	"5/1"	binaries  &
