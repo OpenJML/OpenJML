@@ -301,11 +301,6 @@ public abstract class RacBase extends JmlTestCase {
 
     protected boolean runrac = true;
     
-    /** The command-line to use to run RACed programs - note the inclusion of the
-     * RAC-compiled JDK library classes ahead of the regular Java library classes
-     * in the boot class path. (This may not work on all platforms)
-     */
-    String[] sysrac = new String[]{jdk, "-classpath",cp+outdir,null};
     
     /** Call this as a setup routine, followed by RacBase.setUp for file based tests */
     public void setUpForFiles() throws Exception {
@@ -337,6 +332,8 @@ public abstract class RacBase extends JmlTestCase {
             //args.add("-no-jml");
             args.add("-d");
             args.add(outdir);
+            args.add("-classpath");
+            args.add(cp);
             args.add("-rac");
             args.add("-no-purityCheck");
             args.add("-code-math=java");

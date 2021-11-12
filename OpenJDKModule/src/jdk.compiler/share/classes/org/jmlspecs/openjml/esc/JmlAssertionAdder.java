@@ -6348,7 +6348,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else {
 
                 Name resultname = names.fromString(Strings.conditionalResult + (uniqueCount++));
-                JCVariableDecl vdecl = treeutils.makeVarDef(that.type, resultname, /*esc? null :*/ methodDecl.sym, that.pos);
+                JCVariableDecl vdecl = treeutils.makeVarDef(that.type, resultname, methodDecl == null ? classDecl.sym : methodDecl.sym, that.pos);
                 addStat(vdecl);
 
                 ListBuffer<JCStatement> checkA = pushBlock();
@@ -7800,7 +7800,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected void checkThatMethodIsCallable(DiagnosticPosition pos, Symbol sym) {
         // Method might be called in an initializer??? FIXME - what do we do then?
         // FIXME - not sure how to detect this
-        if (methodDecl.body == null) return;
+        if (methodDecl == null || methodDecl.body == null) return;
         
         // If there are no specification cases, then the default is that 
         // everything is callable
@@ -8162,7 +8162,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         /*@ nullable */ 
         JCVariableDecl exceptionDeclCall = 
-                translatingJML && esc ? null : treeutils.makeVarDef(syms.exceptionType, exceptionNameCall, methodDecl.sym, that.pos);
+                translatingJML && esc ? null : treeutils.makeVarDef(syms.exceptionType, exceptionNameCall, 
+                		methodDecl == null ? classDecl.sym : methodDecl.sym, that.pos);
         
         // A map to hold the preconditions for the callee, indexed by specification case
         // Since we might have a recursive call, we need to distinguish these from the caller preconditions
