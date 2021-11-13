@@ -2541,7 +2541,7 @@ public class JmlTree {
 
         /** The list of store-ref expressions in the clause */
         public List<JCExpression> list;
-
+        
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlMethodClauseStoreRef(int pos, String keyword, IJmlClauseKind clauseType, List<JCExpression> list) {
             super(pos, keyword, clauseType);

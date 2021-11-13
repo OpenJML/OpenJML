@@ -31,7 +31,7 @@ import com.sun.tools.javac.util.Log;
  *
  */
 public class SingletonExpressions extends JmlExtension {
-
+	
     public static final String resultID ="\\result";
     public static final IJmlClauseKind resultKind = new IJmlClauseKind.SingletonExpressionKind(resultID) {
         

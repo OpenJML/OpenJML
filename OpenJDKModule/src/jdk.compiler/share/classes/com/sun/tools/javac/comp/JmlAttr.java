@@ -40,6 +40,7 @@ import static org.jmlspecs.openjml.ext.StatementLocationsExtension.*;
 import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
+import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
 import org.jmlspecs.openjml.ext.RecommendsClause;
 import static org.jmlspecs.openjml.ext.ShowStatement.*;
 import com.sun.tools.javac.main.JmlCompiler;
@@ -2637,14 +2638,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** Overridden in order to be sure that the type specs are attributed. */
     public Type attribType(JCTree tree, Env<AttrContext> env) { // FIXME _ it seems this will automatically happen - why not?
-        Type result;
-        if (tree instanceof JCIdent && ((JCIdent)tree).name.charAt(0) == '\\') {
+    	Type result;
+    	IJmlClauseKind k;
+        if (tree instanceof JCIdent && (k=Extensions.findKeyword(((JCIdent)tree).name)) instanceof JMLPrimitiveTypes.JmlTypeKind) {
             // Backslash identifier -- user added type
-            JCIdent id = (JCIdent)tree;
-            JCIdent t = jmlMaker.at(tree.pos).Ident(names.fromString(id.name.toString().substring(1)));
+        	JMLPrimitiveTypes.JmlTypeKind kt = (JMLPrimitiveTypes.JmlTypeKind)k;
+            JCIdent t = jmlMaker.at(tree.pos).Ident(names.fromString(kt.typename));
             result = super.attribType(t,env);
-            id.type = t.type;
-            id.sym = t.sym;
+            tree.type = result;
         } else {
             result = super.attribType(tree,env);
         }
@@ -3652,13 +3653,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        // these JML methods, so it should not technically be needed.
         Env<AttrContext> localEnv = env;
         
-        if (!(tree.kind instanceof IJmlClauseKind.ExpressionKind)) {
-        	utils.error(tree,"jml.message","Expected a " + tree.kind + "to be a IJmlClauseKind.Expression");
-        	result = tree.type = syms.errType;
-        } else {
+//        if (!(tree.kind instanceof IJmlClauseKind.ExpressionKind)) {
+//        	utils.error(tree,"jml.message","Expected a " + tree.kind + "to be a IJmlClauseKind.Expression");
+//        	result = tree.type = syms.errType;
+//        } else {
         	Type ttt = tree.kind.typecheck(this, tree, localEnv);
         	result = check(tree, ttt, KindSelector.VAL, resultInfo);
-        }
+//        }
     }
     
     public void saveEnvForLabel(Name label, Env<AttrContext> env) {

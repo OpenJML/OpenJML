@@ -41,6 +41,7 @@ import static org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.TypeInitializerClauseExtension.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
+import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
 //import org.osgi.framework.Bundle;
 //import org.w3c.dom.Element;
 

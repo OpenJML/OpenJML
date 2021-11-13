@@ -48,6 +48,7 @@ import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeInClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension.*;
+import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
 
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.jmlspecs.openjml.visitors.JmlTreeSubstitute;
@@ -254,7 +255,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     final public Symtab syms;
     
     /** Cached value of the Types tool */
-    final public Types types;
+    final public JmlTypes types;
     
     /** Cached value of the Utils tool */
     final public Utils utils;
@@ -558,7 +559,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.names = Names.instance(context);
         this.nowarns = Nowarns.instance(context);
         this.syms = Symtab.instance(context);
-        this.types = Types.instance(context);
+        this.types = JmlTypes.instance(context);
         this.utils = Utils.instance(context);
         this.specs = JmlSpecs.instance(context);
         this.jmltypes = JmlTypes.instance(context);
@@ -15041,7 +15042,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 if (!allLocal) continue;
                 if (item instanceof JmlStoreRefKeyword) {
-                    if (((JmlStoreRefKeyword)item).kind != MiscExtensions.nothingKind) allLocal = false;;
+                    if (((JmlStoreRefKeyword)item).kind != nothingKind) allLocal = false;;
                     continue;
                 }
                 if (item instanceof JCIdent && item.type.isPrimitive() && ((JCIdent)item).sym.owner instanceof MethodSymbol) continue;

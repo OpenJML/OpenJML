@@ -75,6 +75,10 @@ public class JmlOptions extends Options {
     	if (!(Options.instance(context) instanceof JmlOptions)) Utils.dumpStack();
         return (JmlOptions)Options.instance(context);
     }
+    
+    public boolean isSet(JmlOption option) {
+    	return (values.get(option.optionName()) != null);
+    }
 
     /** Loads the options map with all defaults for Jml options */
     public void loadDefaults() {

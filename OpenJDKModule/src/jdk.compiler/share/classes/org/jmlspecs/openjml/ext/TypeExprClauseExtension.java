@@ -2,9 +2,8 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.BANG;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.FOR;
-import static org.jmlspecs.openjml.ext.MiscExtensions.everythingID;
-import static org.jmlspecs.openjml.ext.MiscExtensions.nothingID;
 import static org.jmlspecs.openjml.ext.MiscExtensions.notspecifiedID;
+import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
 
 import javax.tools.JavaFileObject;
 
