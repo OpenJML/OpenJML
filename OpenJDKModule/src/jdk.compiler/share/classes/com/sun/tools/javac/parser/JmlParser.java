@@ -32,6 +32,7 @@ import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
 import static org.jmlspecs.openjml.ext.ReachableStatement.*;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
 import org.jmlspecs.openjml.ext.InlinedLoopStatement;
+import org.jmlspecs.openjml.ext.JMLPrimitiveTypes;
 import org.jmlspecs.openjml.ext.MatchExt;
 import org.jmlspecs.openjml.ext.Modifiers;
 
@@ -1178,13 +1179,41 @@ public class JmlParser extends JavacParser {
      */
     public List<JCExpression> parseExpressionList() {
         ListBuffer<JCExpression> args = new ListBuffer<>();
-        args.append(parseExpression());
-        while (token.kind == COMMA) {
-            nextToken();
-            JCExpression e = parseExpression();
-            args.append(e); // e might be a JCErroneous
+        while (true) {
+        	var e = parseExpression();
+        	if (e != null) args.append(e);
+        	if (token.kind == COMMA) {
+        		nextToken();
+        		continue;
+        	} else if (token.kind == SEMI || token.kind == RPAREN) {
+        		break;
+        	} else if (jmlTokenKind() == ENDJMLCOMMENT) {
+        		// The missing semi-colon is reported by the caller
+        		break;
+        	} else {
+        		syntaxError(pos(), null, "jml.missing.comma");
+        		if (e == null) break;
+        	}
         }
+
+//        while (token.kind == COMMA) {
+//            nextToken();
+//            JCExpression e = parseExpression();
+//            args.append(e); // e might be a JCErroneous
+//        }
         return args.toList();
+    }
+    
+    private boolean parsingLocationList = false;
+    
+    public List<JCExpression> parseLocationList() {
+    	boolean saved = parsingLocationList;
+    	parsingLocationList = true;
+    	try {
+    		return parseExpressionList();
+    	} finally {
+    		parsingLocationList = saved;
+    	}
     }
 
     protected JCExpression term3Rest(JCExpression t,
@@ -1206,6 +1235,11 @@ public class JmlParser extends JavacParser {
                 //System.out.println("P " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + t.pos + " " + t);
             }
             p = S.token().pos;
+        }
+        if (S.jml() && token.kind == DOT && S.token(1).kind == STAR) {
+        	nextToken();
+        	nextToken();
+        	return jmlF.at(p).Select(t, (Name)null);
         }
         t = super.term3Rest(t, typeArgs);
         // TODO - @ for \old can be confused with @ for type annotation -- needs careful work
@@ -2027,6 +2061,10 @@ public class JmlParser extends JavacParser {
 
     @Override
     public Name ident() {
+    	if (possibleDotStar && token.kind == TokenKind.STAR) {
+    		nextToken();
+    		return null;
+    	}
         if (token.kind == CUSTOM) {
             if (((JmlToken)token).jmlkind == JmlTokenKind.ENDJMLCOMMENT) {
                 utils.error(pos(),endPos(),"jml.end.instead.of.ident");
@@ -2050,6 +2088,41 @@ public class JmlParser extends JavacParser {
     // operators into the token set for the Java operators.
     @Override
     protected JCExpression term1() {
+    	JCExpression t;
+    	if (inExprMode() && jmlTokenKind() == JmlTokenKind.DOT_DOT) {
+        	t = null;
+        	nextToken();
+    	} else if (inExprMode() && token.kind == TokenKind.STAR) {
+    		t = null;
+        	int dotpos = pos();
+        	nextToken();
+        	if (jmlTokenKind() != JmlTokenKind.DOT_DOT) {
+        		JMLPrimitiveTypes.rangeType.parse(null, null,JMLPrimitiveTypes.rangeType, this);
+        		return jmlF.at(dotpos).JmlRange(null,null);
+        	}
+        } else {
+            t = term1Cond();
+        }
+        if (inExprMode() && jmlTokenKind() == JmlTokenKind.DOT_DOT) {
+        	int dotpos = pos();
+        	nextToken();
+        	JCExpression tt;
+        	if (token.kind == TokenKind.STAR) {
+        		tt = null;
+        		nextToken();
+        	} else if (token.kind == TokenKind.RBRACKET || token.kind == TokenKind.RPAREN) {
+        		tt = null;
+        	} else {
+        	    tt = term1Cond();
+        	}
+        	JMLPrimitiveTypes.rangeType.parse(null, null,JMLPrimitiveTypes.rangeType, this);
+        	return jmlF.at(dotpos).JmlRange(t,tt);
+        } else {
+            return t;
+        }
+    }
+
+    protected JCExpression term1Cond() {
         JCExpression t = term2Equiv();
         if ((mode & EXPR) != 0 && token.kind == QUES) {
             mode = EXPR;
@@ -2206,7 +2279,6 @@ public class JmlParser extends JavacParser {
                     utils.error(p, endPos(), "jml.message", "Unknown backslash identifier: " + id + ". Known tokens: " + Extensions.allKinds.keySet());
                     return jmlF.at(p).Erroneous();
                 } else if (kind instanceof IJmlClauseKind.SingletonKind) {
-                	System.out.println("PARSING " + token + " " + kind + " " + kind.getClass());
                 	return (JCExpression)kind.parse(null, id, kind, this);
                 } else if (kind instanceof org.jmlspecs.openjml.ext.JMLPrimitiveTypes.JmlTypeKind) {
                 	return ((org.jmlspecs.openjml.ext.JMLPrimitiveTypes.JmlTypeKind)kind).parse(null, id, kind, this); // could be type or expression
@@ -2350,9 +2422,79 @@ public class JmlParser extends JavacParser {
                 }
             }
         }
-        JCExpression eee = toP(super.term3());
-        return eee;
+        if (S.jml() && token.kind == THIS && parsingLocationList) {
+            if ((mode & EXPR) != 0) {
+                selectExprMode();
+                JCExpression t = to(F.at(token.pos).Ident(names._this));
+                nextToken();
+                if (typeArgs == null)
+                    t = argumentsOpt(null, t);
+                else
+                    t = arguments(typeArgs, t);
+                typeArgs = null;
+                if (token.kind != DOT) {
+                    utils.error(p, "jml.naked.this.super");
+                    return t;
+                } else if (S.token(1).kind == STAR) {
+                	t = F.at(token.pos).Select(t, (Name)null);
+                    accept(DOT);
+                    accept(STAR);
+                    if (token.kind == DOT || token.kind == LBRACKET) { // expected token: ; ) = ,
+                        utils.error(pos(), endPos(), "jml.not.after.star");
+                        skipToCommaOrSemi();
+                    }
+                	return t;
+                } else if (S.token(1).kind != IDENTIFIER) {
+                    utils.error(pos(), endPos(),
+                            "jml.ident.or.star.after.dot");
+                	accept(DOT);
+                	return t;
+                }
+                return term3Rest(t, typeArgs);
+            }
+        }
+        if (S.jml() && token.kind == SUPER && parsingLocationList) {
+            if ((mode & EXPR) != 0) {
+                selectExprMode();
+                JCExpression t = to(F.at(token.pos).Ident(names._super));
+                if (S.token(1).kind != DOT) {
+                    utils.error(token.pos, "jml.naked.this.super");
+                	nextToken();
+                    return t;
+                } else if (S.token(2).kind == STAR) {
+                	nextToken();
+                	t = F.at(token.pos).Select(t, (Name)null);
+                    accept(DOT);
+                    accept(STAR);
+                    if (token.kind == DOT || token.kind == LBRACKET) { // expected token: ; ) = ,
+                        utils.error(pos(), endPos(), "jml.not.after.star");
+                        skipToCommaOrSemi();
+                    }
+                    // FIXME - does not allow the typeargs as in superSuffix()
+                	return t;
+                } else if (S.token(2).kind != IDENTIFIER) {
+                	nextToken(); // accept super
+                    utils.error(pos(), endPos(),
+                            "jml.ident.or.star.after.dot");
+                	accept(DOT);
+                	return t;
+                }
+                t = superSuffix(typeArgs, t); // accepts the 'super' token
+                typeArgs = null;
+                return term3Rest(t, typeArgs);
+            }
+        }
+        var saved = possibleDotStar;
+        possibleDotStar = true;
+        try {
+        	JCExpression eee = toP(super.term3());
+        	return eee;
+        } finally {
+        	possibleDotStar = saved;
+        }
     }
+    
+    private boolean possibleDotStar = false;
 
     /** Public wrapper for the benefit of extension clients */
     public JCExpression primaryTrailers(JCExpression t, List<JCExpression> typeArgs) {

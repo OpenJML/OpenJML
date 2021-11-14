@@ -151,6 +151,12 @@ public class JmlFlow extends Flow  {
         }
         
         @Override
+        public void visitJmlRange(JmlRange that) {
+            scan(that.lo);
+            scan(that.hi);
+        }
+
+        @Override
         public void visitJmlSingleton(JmlSingleton that) {
             // nothing to do
         }
@@ -537,6 +543,12 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitJmlImport(JmlImport that) {
             visitImport(that);
+        }
+
+        @Override
+        public void visitJmlRange(JmlRange that) {
+            scan(that.lo);
+            scan(that.hi);
         }
 
         @Override
@@ -942,6 +954,12 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitJmlImport(JmlImport that) {
             visitImport(that);
+        }
+
+        @Override
+        public void visitJmlRange(JmlRange that) {
+            scan(that.lo);
+            scan(that.hi);
         }
 
         @Override

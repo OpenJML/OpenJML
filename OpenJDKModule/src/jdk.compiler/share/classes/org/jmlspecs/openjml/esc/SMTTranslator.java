@@ -3018,8 +3018,9 @@ public class SMTTranslator extends JmlTreeScanner {
 
 
     @Override public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) { notImpl(that); } // FIXME - maybe
-    @Override public void visitJmlSetComprehension(JmlSetComprehension that) { notImpl(that); }
-    @Override public void visitJmlSingleton(JmlSingleton that)               { notImpl(that); }
+    @Override public void visitJmlSetComprehension(JmlSetComprehension that)   { notImpl(that); }
+    @Override public void visitJmlSingleton(JmlSingleton that)                 { notImpl(that); }
+    @Override public void visitJmlRange(JmlRange that)                         { notImpl(that); }
 
     @Override public void visitLetExpr(LetExpr that) { 
         

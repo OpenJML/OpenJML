@@ -2137,6 +2137,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     }
     
     // FIXME - review
+    @Override public void visitJmlRange(JmlRange that) {
+        notImpl(that);
+    }
+
+    // FIXME - review
     @Override public void visitJmlSingleton(JmlSingleton that) {
         notImpl(that);
     }

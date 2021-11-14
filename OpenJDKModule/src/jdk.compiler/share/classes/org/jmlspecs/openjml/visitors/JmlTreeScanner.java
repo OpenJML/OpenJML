@@ -278,6 +278,11 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 //        scan(that.predicate);
 //    }
 
+    public void visitJmlRange(JmlRange that) {
+    	scan(that.lo);
+    	scan(that.hi);
+    }
+    
     // public void visitJmlSingleton(JmlSingleton that);
 
     public void visitJmlSpecificationCase(JmlSpecificationCase tree) {

@@ -124,6 +124,10 @@ public class JmlTreeInline extends JmlTreeCopier {
     }
     
     // FIXME - do we need array assignment and field assignment ?
+    @Override 
+    public JCTree visitJmlRange(JmlRange that, Void p) {
+    	throw new RuntimeException("JmlRange not implemented in TreeInline");
+    }
     
     @Override
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {

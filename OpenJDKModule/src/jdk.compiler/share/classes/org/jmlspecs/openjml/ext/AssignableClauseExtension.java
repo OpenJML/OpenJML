@@ -15,6 +15,7 @@ import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
 public class AssignableClauseExtension extends JmlExtension {
@@ -61,12 +62,12 @@ public class AssignableClauseExtension extends JmlExtension {
             
             parser.nextToken();
 
-            ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
+            List<JCExpression> list = List.<JCExpression>nil();
             if (parser.token().kind == SEMI) {
                 parser.syntaxError(parser.pos(), null, "jml.use.nothing.assignable"); // FIXME - fix to use keyword
                 parser.nextToken(); // skip over the SEMI
             } else {
-                list = parser.parseStoreRefListOrKeyword(false);
+                list = parser.parseLocationList();
                 if (parser.token().kind == SEMI) {
                     // OK, go on
                 } else if (parser.jmlTokenKind() == ENDJMLCOMMENT) {
@@ -82,7 +83,7 @@ public class AssignableClauseExtension extends JmlExtension {
                     parser.nextToken();
                 }
             }  // FIXME - fix the above; cf loop_writes
-            var cl = parser.maker().at(pp).JmlMethodClauseStoreRef(keyword, clauseType, list.toList());
+            var cl = parser.maker().at(pp).JmlMethodClauseStoreRef(keyword, clauseType, list);
             wrapup(cl, clauseType, false, false);
             return cl;
         }

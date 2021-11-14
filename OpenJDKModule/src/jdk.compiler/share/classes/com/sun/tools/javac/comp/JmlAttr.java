@@ -2255,12 +2255,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     // So if there is an assignable clause the elements of the clause
                     // may only be members of the class
                     for (JCTree tt: asg.list) {
-                        if (tt instanceof JmlStoreRefKeyword) {
-                            if (((JmlStoreRefKeyword)tt).kind == nothingKind) {
+                        if (tt instanceof JmlSingleton && ((JmlSingleton)tt).kind == nothingKind) {
                                 // OK
-                            } else {
-                                utils.error(m,"jml.pure.constructor",tt.toString());
-                            }
                         } else if (tt instanceof JCIdent) {
                             // non-static Simple identifier is OK
                             // If the owner of the field is an interface, it
@@ -2283,7 +2279,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                             if (!ok) utils.error(tt,"jml.pure.constructor",tt.toString());
                         } else {
                             // FIXME - also allow this.*  or super.* ?
-                            utils.error(tt,"jml.pure.constructor",tt.toString());
+                            utils.error(tt,"jml.pure.constructor",tt.toString() + " " + tt.getClass());
                         }
                     }
                 } else {
@@ -4003,6 +3999,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = check(that, t, KindSelector.VAL, resultInfo);
     }
     
+    public void visitJmlRange(JmlRange that) {
+    	if (that.lo != null) {
+    		Type t = attribExpr(that.lo, env, Type.noType);
+    		if (!t.isIntegral() && t != jmltypes.BIGINT) {
+    			utils.error(that.lo, "jml.message", "Expected an integral type, not " + t);
+    		}
+    	}
+    	if (that.hi != null) {
+    		Type t = attribExpr(that.hi, env, Type.noType);
+    		if (!t.isIntegral() && t != jmltypes.BIGINT) {
+    			utils.error(that.hi, "jml.message", "Expected an integral type, not " + t);
+    		}
+    	}
+    	result = that.type = JMLPrimitiveTypes.rangeType.getType(context,env);
+    }
+    
 //    public void visitJmlFunction(JmlFunction that) {
 //        // Actually, I don't think this gets called.  It would get called through
 //        // visitApply.
@@ -5044,12 +5056,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (jmltypes.isArray(atype))
                 owntype = jmltypes.elemtype(atype);
             else if (!atype.hasTag(ERROR))
-                utils.error(tree, "array.req.but.found", atype);
-            if (jmltypes.isIntArray(atype) && !jmltypes.isAnyIntegral(t) && !t.isErroneous()) {
-                utils.error(tree, "jml.message", "Expected an integral type as an index, not " + t.toString());
+                utils.error(tree.indexed, "array.req.but.found", atype);
+            if (t == rangeType.getType(context,env)) {
+            	if (!(tree.index instanceof JmlRange)) {
+            		utils.error(tree.index,"jml.message", "Index ranges are implemented only for explicit range expressions (using ..)");
+            	}
+            } else {
+            	if (jmltypes.isIntArray(atype) && !jmltypes.isAnyIntegral(t) && !t.isErroneous()) {
+            		utils.error(tree.index, "jml.message", "Expected an integral type as an index, not " + t.toString());
+            	}
             }
-            if (!pkind().contains(KindSelector.VAR)) owntype = types.capture(owntype);
-            result = check(tree, owntype, KindSelector.VAR, resultInfo);
+        	if (!pkind().contains(KindSelector.VAR)) owntype = types.capture(owntype);
+        	result = check(tree, owntype, KindSelector.VAR, resultInfo);
 
         } else {
             super.visitIndexed(tree);
@@ -5317,7 +5335,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // This is a store-ref with a wild-card field
             // FIXME - the following needs some review
             attribTree(tree.selected, env, new ResultInfo(KindSelector.of(KindSelector.TYP,KindSelector.VAR), Infer.anyPoly));
-            result = tree.type = Type.noType;
+            result = tree.type = locsetType.getType(context,env);
         } else if (tree.name.toString().startsWith("_$T")) {
             attribTree(tree.selected, env, new ResultInfo(KindSelector.VAR, Infer.anyPoly));
             int n = Integer.parseInt(tree.name.toString().substring(3));
@@ -7394,6 +7412,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         public void visitJmlNewClass(JmlNewClass tree)                 { visitTree(tree); }
         public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree tree){ visitTree(tree); }
         public void visitJmlQuantifiedExpr(JmlQuantifiedExpr tree)     { visitTree(tree); }
+        public void visitJmlRange(JmlRange tree)                       { visitTree(tree); }
         public void visitJmlSetComprehension(JmlSetComprehension tree) { visitTree(tree); }
         public void visitJmlSingleton(JmlSingleton tree)               { visitTree(tree); }
         public void visitJmlSpecificationCase(JmlSpecificationCase tree){ visitTree(tree); }

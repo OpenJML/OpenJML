@@ -449,6 +449,14 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     @Override
+    public JCTree visitJmlRange(JmlRange that, Void p) {
+        JmlRange r = M.at(that.pos).JmlRange(copy(that.lo), copy(that.hi));
+        r.type = that.type;
+        r.hiExclusive = that.hiExclusive;
+        return r;
+    }
+
+    @Override
     public JCTree visitJmlSetComprehension(JmlSetComprehension that, Void p) {
         return M.at(that.pos).JmlSetComprehension(
                 copy(that.newtype,p),

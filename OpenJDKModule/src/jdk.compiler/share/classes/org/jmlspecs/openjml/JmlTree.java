@@ -133,6 +133,7 @@ public class JmlTree {
         JmlModelProgramStatement JmlModelProgramStatement(JCTree item);
         JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt, Name id);
         JmlQuantifiedExpr JmlQuantifiedExpr(IJmlClauseKind kind, List<JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression predicate);
+        JmlRange JmlRange(JCExpression lo, JCExpression hi);
         JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate);
         JmlSingleton JmlSingleton(IJmlClauseKind jt);
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, IJmlClauseKind t, IJmlClauseKind also, List<JmlMethodClause> clauses, JCBlock block);
@@ -451,6 +452,10 @@ public class JmlTree {
             return new JmlPrimitiveTypeTree(pos,((JmlType)t).jmlTypeTag(), t.tsym.name); // FIXME - not sure this is right primitive types
         }
 
+        @Override
+        public JmlRange JmlRange(JCExpression lo, JCExpression hi) {
+        	return new JmlRange(pos, lo, hi);
+        }
         
         /** Creates JML expressions from tokens without arguments (e.g. \result)*/
         @Override
@@ -2776,6 +2781,44 @@ public class JmlTree {
             } else {
                 System.out.println("A JmlQuantifiedExpr expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; // return super.accept(v,d);
+            }
+        }
+    }
+    
+    public static class JmlRange extends JmlExpression {
+    	public /*@ nullable */ JCExpression lo;
+    	public /*@ nullable */ JCExpression hi;
+    	public boolean hiExclusive = false;
+    	
+    	protected JmlRange(int pos, JCExpression lo, JCExpression hi) {
+    		this.pos = pos;
+    		this.lo = lo;
+    		this.hi = hi;
+    	}
+    	
+        @Override
+        public int getEndPosition(EndPosTable endPosTable) {
+            return hi == null ? pos : hi.getEndPosition(endPosTable);
+        }
+
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlRange(this); 
+            } else {
+                v.visitTree(this);
+            }
+        }
+
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlRange(this,d); 
+            } else {
+            	//return (R)kind.typecheck((com.sun.tools.javac.comp.JmlAttr)((Attr)v).attr, this, (Env<AttrContext>)d);
+                System.out.println("A JmlRange expects a JmlTreeVisitor, not a " + v.getClass() + " " + this);
+                new RuntimeException().printStackTrace(System.out);
+                return null; //return super.accept(v,d);
             }
         }
     }

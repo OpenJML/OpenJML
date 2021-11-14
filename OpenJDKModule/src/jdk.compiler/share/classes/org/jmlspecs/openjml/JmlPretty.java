@@ -531,6 +531,17 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             prec = savedPrec;
         }
     }
+    
+    public void visitJmlRange(JmlRange that) {
+    	try {
+    		if (that.lo == null && that.hi == null) print("*");
+    		else  {
+    			if (that.lo != null) printExpr(that.lo);
+    			print(" .. ");
+    			if (that.hi != null) printExpr(that.hi);
+    		}
+    	} catch (IOException e) { perr(that,e); }
+    }
 
     public void visitJmlSetComprehension(JmlSetComprehension that) {
         int oldprec = prec;

@@ -25,7 +25,7 @@ import com.sun.tools.javac.util.Names;
 
 public class JMLPrimitiveTypes extends JmlExtension {
 	
-	abstract public static class JmlTypeKind extends IJmlClauseKind {
+	public static class JmlTypeKind extends IJmlClauseKind {
 		public String typename; // expected to be in org.jmlspecs.lang
 		Type type = null; // lazily filled in; depends on context; only  implemented for a single context
 		
@@ -34,7 +34,7 @@ public class JMLPrimitiveTypes extends JmlExtension {
 			this.typename = typename;
 		}
 		
-		Type getType(Env<AttrContext> env) {
+		public Type getType(Context context, Env<AttrContext> env) {
 			if (type == null) {
 				JCIdent id = JmlTree.Maker.instance(context).Ident(Names.instance(context).fromString(typename));
 				type = JmlAttr.instance(context).attribType(id, env);
@@ -46,71 +46,85 @@ public class JMLPrimitiveTypes extends JmlExtension {
 		public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
 			return null;
 		}
-
-		public static final String locsetId = "\\locset";
-		
-		public static final JmlTypeKind locsetType = new JmlTypeKind(locsetId,"locset") {
-			@Override
-			public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
-				// TODO Auto-generated method stub
-				init(parser);
-				JCIdent id = parser.maker().at(parser.pos()).Ident(keyword);
-				int p = parser.pos();
-				int ep = parser.endPos();
-				parser.nextToken();
-				if (parser.token().kind == TokenKind.LPAREN) { 
-					if (!parser.inExprMode()) {
-						utils.error(p, ep, "jml.message",
-								"Did not expect a \\locset expression here");
-						// But go on to treat it like a function-like expression
-					}
-					parser.nextToken();
-					var list = parser.parseStoreRefList();
-					if (parser.token().kind != TokenKind.RPAREN) {
-						utils.error(p, ep, "jml.message",
-								"Either an ill-formed expression or missing right-parenthesis");
-					} else {
-						parser.nextToken();
-					}
-					JmlMethodInvocation app = parser.maker().at(p).JmlMethodInvocation(id, list.toList());
-					app.kind = clauseKind;
-					return app;
-				} else {
-					if (!parser.inTypeMode()) {
-						utils.error(p, ep, "jml.message",
-								"Did not expect a type identifier here");
-						// But go on to treat it like an identifier
-					}
-					return id;
-				}
-			}
-
-			@Override
-			public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
-				if (tree instanceof JmlMethodInvocation) {
-					var app = (JmlMethodInvocation)tree;
-					app.args.stream().forEach(t -> {
-						attr.attribExpr(t, env, Type.noType);
-						if (t instanceof JCTree.JCFieldAccess) {}
-						else if (t instanceof JCTree.JCArrayAccess) {}
-						else if (t instanceof JCTree.JCIdent) {}
-						else if (t instanceof JmlTree.JmlStoreRefArrayRange) {}
-						else if (t instanceof JmlTree.JmlSingleton && ((JmlTree.JmlSingleton)t).kind instanceof LocSet) {}
-						else utils.error(t.pos(), "jml.message", "Only location expressions may be arguments to \\locset: " + t + " (" + t.getClass() + ")");
-					});
-					JCIdent id = JmlTree.Maker.instance(attr.context).Ident(Names.instance(attr.context).fromString(typename));
-					type = attr.attribType(id, env);
-					tree.type = type;
-					((JCIdent)app.meth).sym = id.sym;
-					((JCIdent)app.meth).type = id.type; // FIXME - or should be a method type?
-					return type;
-				}
-				// FIXME - internal error
-				return null;
-			}
-		};
-
+		@Override
+		public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
+			return null;
+		}
 	}
+	
+	public static final String rangeID = "\\range";
+	
+	public static final JmlTypeKind rangeType = new JmlTypeKind(rangeID, "range") {
+		@Override
+		public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
+			init(parser);
+			return null;
+		}
+	};
+
+	public static final String locsetId = "\\locset";
+
+	public static final JmlTypeKind locsetType = new JmlTypeKind(locsetId,"locset") {
+		@Override
+		public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
+			// TODO Auto-generated method stub
+			init(parser);
+			JCIdent id = parser.maker().at(parser.pos()).Ident(keyword);
+			int p = parser.pos();
+			int ep = parser.endPos();
+			parser.nextToken();
+			if (parser.token().kind == TokenKind.LPAREN) { 
+				if (!parser.inExprMode()) {
+					utils.error(p, ep, "jml.message",
+							"Did not expect a \\locset expression here");
+					// But go on to treat it like a function-like expression
+				}
+				parser.nextToken();
+				var list = parser.parseExpressionList();
+				if (parser.token().kind != TokenKind.RPAREN) {
+					utils.error(p, ep, "jml.message",
+							"Either an ill-formed expression or missing right-parenthesis");
+				} else {
+					parser.nextToken();
+				}
+				JmlMethodInvocation app = parser.maker().at(p).JmlMethodInvocation(id, list);
+				app.kind = clauseKind;
+				return app;
+			} else {
+				if (!parser.inTypeMode()) {
+					utils.error(p, ep, "jml.message",
+							"Did not expect a type identifier here");
+					// But go on to treat it like an identifier
+				}
+				return id;
+			}
+		}
+
+		@Override
+		public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
+			if (tree instanceof JmlMethodInvocation) {
+				var app = (JmlMethodInvocation)tree;
+				app.args.stream().forEach(t -> {
+					attr.attribExpr(t, env, Type.noType);
+					if (t instanceof JCTree.JCFieldAccess) {}
+					else if (t instanceof JCTree.JCArrayAccess) {}
+					else if (t instanceof JCTree.JCIdent) {}
+					else if (t instanceof JmlTree.JmlStoreRefArrayRange) {}
+					else if (t instanceof JmlTree.JmlSingleton && ((JmlTree.JmlSingleton)t).kind instanceof LocSet) {}
+					else utils.error(t.pos(), "jml.message", "Only location expressions may be arguments to \\locset: " + t + " (" + t.getClass() + ")");
+				});
+				JCIdent id = JmlTree.Maker.instance(attr.context).Ident(Names.instance(attr.context).fromString(typename));
+				type = attr.attribType(id, env);
+				tree.type = type;
+				((JCIdent)app.meth).sym = id.sym;
+				((JCIdent)app.meth).type = id.type; // FIXME - or should be a method type?
+				return type;
+			}
+			// FIXME - internal error
+			return null;
+		}
+	};
+
 	
     public static class LocSet extends IJmlClauseKind.SingletonKind {
         public LocSet(String name) { super(name); }
