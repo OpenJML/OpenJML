@@ -96,9 +96,9 @@ public class assignable extends TCBase {
     @Test
     public void testAssignableArray4() {
         helpTCF("A.java","public class A { int[] k; boolean b; Object[] o; \n//@ assignable k[true],k[true .. false], k[false ..], k[false .. *];\n void m() {} }"
-                ,"/A.java:2: error: Expected an integral type, not boolean",18
+                ,"/A.java:2: error: Expected an integral type as an index, not boolean",18
                 ,"/A.java:2: error: Expected an integral type, not boolean",26
-                ,"/A.java:2: error: Expected an integral type, not boolean",26
+                ,"/A.java:2: error: Expected an integral type, not boolean",34
                 ,"/A.java:2: error: Expected an integral type, not boolean",44
                 ,"/A.java:2: error: Expected an integral type, not boolean",57
                 );
@@ -107,7 +107,7 @@ public class assignable extends TCBase {
     @Test
     public void testAssignableArray5() {
         helpTCF("A.java","public class A { int[] k; Object b; Object[] o; \n//@ assignable k[b];\n void m(boolean b) {} }"
-                ,"/A.java:2: error: Expected an integral type, not boolean",18
+                ,"/A.java:2: error: Expected an integral type as an index, not boolean",18
                 );
     }
 
@@ -150,31 +150,27 @@ public class assignable extends TCBase {
     public void testAssignableBad2() {
         helpTCF("A.java","public class A { int[] k; Object b; Object[] o; \n//@ assignable k[, k[*, k[i, k[], b., this., super.;\n void m(boolean b) {} }"
                 ,"/A.java:2: error: illegal start of expression",18
-                ,"/A.java:2: error: An invalid expression or succeeding token near here",18
-                ,"/A.java:2: error: Expected a right bracket after the star",23
+                ,"/A.java:2: error: ']' expected",23
+                ,"/A.java:2: error: ']' expected",28
                 ,"/A.java:2: error: An invalid expression or succeeding token near here",28
                 ,"/A.java:2: error: illegal start of expression",32
                 ,"/A.java:2: error: Expected an identifier or star after the dot",37
-                ,"/A.java:2: error: Expected an identifier or star after the dot",44
-                ,"/A.java:2: error: A this or super token must be followed by a field selection",39
-                ,"/A.java:2: error: Expected an identifier or star after the dot",52
-                ,"/A.java:2: error: A this or super token must be followed by a field selection",46
+                ,"/A.java:2: error: Expected an identifier or star after the dot",43
+                ,"/A.java:2: error: Expected an identifier or star after the dot",51
                 );
     }
 
     @Test
     public void testAssignableBad2a() {
         helpTCF("A.java","public class A { int[] k; Object b; Object[] o; \n//@ assignable super.;\n void m(boolean b) {} }"
-                ,"/A.java:2: error: Expected an identifier or star after the dot",22
-                ,"/A.java:2: error: A this or super token must be followed by a field selection",16
+                ,"/A.java:2: error: Expected an identifier or star after the dot",21
                 );
     }
 
     @Test
     public void testAssignableBad2b() {
         helpTCF("A.java","public class A { int[] k; Object b; Object[] o; \n//@ assignable this.;\n void m(boolean b) {} }"
-                ,"/A.java:2: error: Expected an identifier or star after the dot",21
-                ,"/A.java:2: error: A this or super token must be followed by a field selection",16
+                ,"/A.java:2: error: Expected an identifier or star after the dot",20
                 );
     }
 
@@ -196,8 +192,7 @@ public class assignable extends TCBase {
     public void testAssignableBad3() {
         helpTCF("A.java","public class A { int[] k; Object b; Object[] o; \n//@ assignable k b, this.;\n void m(boolean b) {} }"
                 ,"/A.java:2: error: Missing comma or otherwise ill-formed type name",18
-                ,"/A.java:2: error: Expected an identifier or star after the dot",26
-                ,"/A.java:2: error: A this or super token must be followed by a field selection",21
+                ,"/A.java:2: error: Expected an identifier or star after the dot",25
                 );
     }
     
@@ -211,7 +206,7 @@ public class assignable extends TCBase {
     @Test
     public void testAssignableBad5() {
         helpTCF("A.java","public class A { int[] k; Object b; Object[] o; \n//@ assignable .;\n void m(boolean b) {} }"
-                ,"/A.java:2: error: Incorrectly formed or terminated store-reference near here",16
+                ,"/A.java:2: error: illegal start of expression",16
                 ,"/A.java:2: error: Use \\nothing to denote an empty list of locations in an assignable clause",17
                 );
     }
@@ -226,7 +221,7 @@ public class assignable extends TCBase {
     @Test
     public void testAssignableBad7() {
         helpTCF("A.java","public class A { int k;  \n//@ assignable k[*];\n void m(){} }"
-                ,"/A.java:2: error: The expression preceding the array element selection does not have array type: int",16
+                ,"/A.java:2: error: array required, but int found",16
                 );
     }
 

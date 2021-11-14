@@ -90,6 +90,7 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     abstract public R visitJmlMethodInvocation(JmlMethodInvocation that, P p) ;
     abstract public R visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that, P p);
     abstract public R visitJmlQuantifiedExpr(JmlQuantifiedExpr that, P p)     ;
+    abstract public R visitJmlRange(JmlRange that, P p)               ;
     abstract public R visitJmlSetComprehension(JmlSetComprehension that, P p) ;
     abstract public R visitJmlSingleton(JmlSingleton that, P p)               ;
     abstract public R visitJmlNewClass(JmlNewClass that, P p)                 ;

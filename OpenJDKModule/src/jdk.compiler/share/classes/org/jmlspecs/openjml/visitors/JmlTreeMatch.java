@@ -664,6 +664,10 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        scan(that.predicate);
 //    }
 //
+    public void visitJmlRange(JmlRange that) {
+    	scan(that.lo);
+    	scan(that.hi);
+    }
     public void visitJmlSingleton(JmlSingleton that) {
         JmlSingleton t = (JmlSingleton)top;
         if (that.kind != t.kind) nomatch(); 

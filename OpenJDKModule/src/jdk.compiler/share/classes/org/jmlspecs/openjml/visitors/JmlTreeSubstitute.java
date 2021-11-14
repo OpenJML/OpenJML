@@ -94,6 +94,11 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
         } 
     }
     
+//    @Override
+//    public JCTree visitJmlRange(JmlRange that, Void p) {
+//    	return super.visitJmlRange(that, p);
+//    }
+    
     @Override
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {
         // for substitution \result

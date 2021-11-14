@@ -13138,26 +13138,52 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // FIXME _ readable?
 //        checkAccess(JmlTokenKind.ACCESSIBLE, that.indexed, that.indexed, indexed, currentThisId, currentThisId);
 
-        JCExpression index = convertExpr(that.index);
+        JCExpression index = null;
         if (that.indexed.type instanceof Type.ArrayType) {
-            index = addImplicitConversion(index,syms.intType,index);
-            // TODO: Also bigint?
-            Number n = integralLiteral(index);
-            if (n != null && n.longValue() >= 0) {
-                addStat(comment(index,"Constant index is non-negative: " + n.longValue(),log.currentSourceFile()));
-            } else {
-                JCExpression compare = treeutils.makeBinary(that.index.pos, JCTree.Tag.LE,
-                        treeutils.intleSymbol,
-                        treeutils.makeIntLiteral(that.index.pos, 0), 
-                        index);
-                addJavaCheck(that,compare,Label.POSSIBLY_NEGATIVEINDEX,Label.UNDEFINED_NEGATIVEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
-            }
-            JCExpression length = treeutils.makeLength(that.indexed,indexed);
-            {
-                JCExpression compare = treeutils.makeBinary(that.pos, JCTree.Tag.GT, treeutils.intgtSymbol, length, 
-                        index); // We use GT to preserve the textual order of the subexpressions
-                addJavaCheck(that,compare,Label.POSSIBLY_TOOLARGEINDEX,Label.UNDEFINED_TOOLARGEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
-            }
+        	if (that.index.type == rangeType.getType(context,Enter.instance(context).getTopLevelEnv(classDecl.toplevel))) {
+        		var ta = indexed;
+        		if (that.index instanceof JmlRange) {
+        			var range = (JmlRange)that.index;
+        			if (range.lo == range.hi && range.lo != null) {
+        				JCExpression tl = convertExpr(range.lo);
+        				JmlBBArrayAccess aa = new JmlBBArrayAccess(null,ta,tl);
+        				aa.pos = that.pos;
+        				aa.type = that.type;
+        				result = eresult = aa;
+        			} else {
+        				JCExpression tl = convertExpr(range.lo);
+        				result = eresult = M.at(that).JmlStoreRefArrayRange(
+        						ta,
+        						tl,
+        						(range.lo == range.hi) ? tl : convertExpr(range.hi)
+        						).setType(that.type);
+        			}
+        		} else {
+        			// Should not happen
+        		}
+    			return;
+       		
+        	} else {
+                index = convertExpr(that.index);
+        		index = addImplicitConversion(index,syms.intType,index);
+        		// TODO: Also bigint?
+        		Number n = integralLiteral(index);
+        		if (n != null && n.longValue() >= 0) {
+        			addStat(comment(index,"Constant index is non-negative: " + n.longValue(),log.currentSourceFile()));
+        		} else {
+        			JCExpression compare = treeutils.makeBinary(that.index.pos, JCTree.Tag.LE,
+        					treeutils.intleSymbol,
+        					treeutils.makeIntLiteral(that.index.pos, 0), 
+        					index);
+        			addJavaCheck(that,compare,Label.POSSIBLY_NEGATIVEINDEX,Label.UNDEFINED_NEGATIVEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
+        		}
+        		JCExpression length = treeutils.makeLength(that.indexed,indexed);
+        		{
+        			JCExpression compare = treeutils.makeBinary(that.pos, JCTree.Tag.GT, treeutils.intgtSymbol, length, 
+        					index); // We use GT to preserve the textual order of the subexpressions
+        			addJavaCheck(that,compare,Label.POSSIBLY_TOOLARGEINDEX,Label.UNDEFINED_TOOLARGEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
+        		}
+        	}
         }
         
 
@@ -17168,6 +17194,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         throw new JmlNotImplementedException(that,"set comprehension expression");
         //return;
     }
+    
+    @Override
+    public void visitJmlRange(JmlRange that) {
+        throw new JmlNotImplementedException(that,"range expression");
+    }
 
     // OK
     @Override
@@ -19530,6 +19561,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return null;
         }
 
+        @Override
+        public /*@ nullable */ java.util.List<JmlStatementExpr> visitJmlRange(JmlRange that, Void p) {
+            /*@ nullable */ java.util.List<JmlStatementExpr> lo = that.lo == null ? null : that.lo.accept(this,p);
+            /*@ nullable */ java.util.List<JmlStatementExpr> hi = that.hi == null ? null : that.hi.accept(this,p);
+            return combine(lo,hi);
+        }
+        
         @Override
         public /*@ nullable */ java.util.List<JmlStatementExpr> visitJmlSingleton(JmlSingleton that, Void p) {
             return null;

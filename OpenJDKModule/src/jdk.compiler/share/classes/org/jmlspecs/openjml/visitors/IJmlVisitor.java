@@ -113,6 +113,10 @@ public interface IJmlVisitor extends IVisitor {
         scan(tree.variable);
         scan(tree.predicate);
     }
+    default public void visitJmlRange(JmlRange tree) {
+    	scan(tree.lo);
+    	scan(tree.hi);
+    }
     default public void visitJmlSingleton(JmlSingleton tree) {
     	// do nothing - no children to scan
     }
