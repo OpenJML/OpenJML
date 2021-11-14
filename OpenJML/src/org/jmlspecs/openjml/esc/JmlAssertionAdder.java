@@ -9341,7 +9341,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                     addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false, currentThisExpr == null);
                                                 }
                                                 for (JCExpression hv: newlist) {
-                                                    if (hv instanceof JCFieldAccess) havocModelFields((JCFieldAccess)hv);
+                                                    if (hv instanceof JCFieldAccess) {
+                                                        JCFieldAccess fa = (JCFieldAccess)hv;
+                                                        havocModelFields(fa);
+                                                    }
                                                 }
                                             }
                                             JCBlock bl = popBlock(cs,check4);
@@ -11060,26 +11063,51 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected boolean translatingLHS = false;
     
-    public void havocModelFields(JCFieldAccess newfa) {
-        if (rac) return;
-        ListBuffer<JCExpression> havocList = new ListBuffer<>();
-        havocModelFields(newfa,havocList);
-        addStat(M.at(newfa.pos).JmlHavocStatement(havocList.toList()));
+    // Havocs all containing model fields.  FIXME - need to substitute 'this' by the recevier of newfa.
+    public void havocModelFields(JCFieldAccess fa) {
+        havocModelFields(fa.pos, fa.selected, (VarSymbol)fa.sym);
     }
     
-    private void havocModelFields(JCFieldAccess newfa, ListBuffer<JCExpression> havocList) {
-        FieldSpecs fspecs = specs.getSpecs((Symbol.VarSymbol)newfa.sym);
+    public void havocModelFields(int pos, JCExpression recv, VarSymbol sym) {
+        if (rac) return;
+        ListBuffer<JCExpression> havocList = new ListBuffer<>();
+        havocModelFields(recv, sym,havocList);
+        addStat(M.at(pos).JmlHavocStatement(havocList.toList()));
+    }
+    
+    private void havocModelFields(JCExpression recv, VarSymbol sym, ListBuffer<JCExpression> havocList) {
+        FieldSpecs fspecs = specs.getSpecs(sym);
         if (fspecs != null) for (JmlTypeClause tc: fspecs.list) {
             if (tc.clauseType == inClause) {
                 JmlTypeClauseIn tcin = (JmlTypeClauseIn)tc;
                 for (JmlGroupName g : tcin.list) {
-                    JCFieldAccess fa = treeutils.makeSelect(g.pos, newfa.selected, g.sym);
-                    if (!isDataGroup(fa.type))havocList.add(fa);
+                    JCFieldAccess fa = treeutils.makeSelect(g.pos, recv, g.sym);
+                    if (!isDataGroup(fa.type)) havocList.add(fa);
                     havocModelFields(fa);
                 }
             }
         }
     }
+//    public void havocModelFields(JCFieldAccess newfa) {
+//        if (rac) return;
+//        ListBuffer<JCExpression> havocList = new ListBuffer<>();
+//        havocModelFields(newfa,havocList);
+//        addStat(M.at(newfa.pos).JmlHavocStatement(havocList.toList()));
+//    }
+//    
+//    private void havocModelFields(JCFieldAccess newfa, ListBuffer<JCExpression> havocList) {
+//        FieldSpecs fspecs = specs.getSpecs((Symbol.VarSymbol)newfa.sym);
+//        if (fspecs != null) for (JmlTypeClause tc: fspecs.list) {
+//            if (tc.clauseType == inClause) {
+//                JmlTypeClauseIn tcin = (JmlTypeClauseIn)tc;
+//                for (JmlGroupName g : tcin.list) {
+//                    JCFieldAccess fa = treeutils.makeSelect(g.pos, newfa.selected, g.sym);
+//                    if (!isDataGroup(fa.type))havocList.add(fa);
+//                    havocModelFields(fa);
+//                }
+//            }
+//        }
+//    }
     
     public JCExpression convertLHS(JCExpression lhs) {
         if (lhs instanceof JCIdent) {
@@ -11413,6 +11441,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpressionStatement st = addStat(treeutils.makeAssignStat(that.getStartPosition(), newlhs, nid));
             result = eresult = post ? newTemp(lhs) : newlhs;
             saveMapping(that.lhs,eresult);
+            Symbol sym = ((JCIdent)lhs).sym;
+            if (sym.owner instanceof ClassSymbol) {
+                havocModelFields(that.pos, currentThisExpr, (VarSymbol)sym);
+            }
             lastStat = st.expr;
             
         } else if (lhs instanceof JCFieldAccess) {
@@ -11474,6 +11506,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             treeutils.copyEndPosition(st, that);
             result = eresult = post ? idc : newTemp(newlhs);
             saveMapping(that.lhs, eresult);
+            Symbol sym = ((JCFieldAccess)lhs).sym;
+            if (sym.owner instanceof ClassSymbol) {
+                havocModelFields(newfa);
+            }
             lastStat = st.expr;
             
         } else if (lhs instanceof JCArrayAccess) {
@@ -11530,6 +11566,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = eresult = post ? idc : newTemp(lhs);
             saveMapping(that.lhs, eresult);
             lastStat = st.expr;
+            // FIXME - what model fields should be havoced?
             
         } else {
             error(that,"Unexpected kind of AST in JmlAssertionAdder.visitAssignOp: " + that.getClass());
@@ -14530,7 +14567,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         int p = pos.getPreferredPosition();
         JmlStatementHavoc st = M.at(p).JmlHavocStatement(newlistx);
         for (JCExpression hv: newlistx) {
-            if (hv instanceof JCFieldAccess) havocModelFields((JCFieldAccess)hv);
+            if (hv instanceof JCFieldAccess) {
+                JCFieldAccess fa = (JCFieldAccess)hv;
+                havocModelFields(fa);
+            }
         }
         allocCounter++;
         // FIXME - this ought to work to preserve initialized values at the beginning of th e0th iteration, but makes loops infeasbile
