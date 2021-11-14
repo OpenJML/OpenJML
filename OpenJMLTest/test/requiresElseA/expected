@@ -1,0 +1,14 @@
+test/requiresElseA/Test.java:5: error: A recommends clause must include an exception (recommends <expr> else <exception>;
+    //@ recommends o != null ;
+                             ^
+Continuing bravely despite parsing errors
+test/requiresElseA/Test.java:10: error: cannot find symbol
+    //@ recommends x else NullPointerException;
+                   ^
+  symbol:   variable x
+  location: class Test
+test/requiresElseA/Test.java:19: error: Only one block of recommends clauses is permitted
+    //@ recommends o != null else NullPointerException;
+        ^
+Operation not performed because of parse or type errors
+3 errors
