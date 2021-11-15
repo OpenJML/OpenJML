@@ -1,7 +1,7 @@
 public class Test542 {
 
     /*@ spec_public @*/
-    private int[] vals= new int[10];
+    private int[] vals= new int[10]; //@ in countVals;
     
     /*@
       public model int countVals;

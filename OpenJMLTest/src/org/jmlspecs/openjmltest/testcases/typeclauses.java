@@ -369,15 +369,15 @@ public class typeclauses extends TCBase {
     /** Check that the rhs of a static represents clause contains only static fields */
     @Test
     public void testRepresents16() {
-        helpTCF("A.java","public class A {\n static int k; int j; //@ model static int i; static represents i = k;\n}"
+        helpTCF("A.java","public class A {\n static int k; /*@ in i; */int j; //@ model static int i; static represents i = k;\n}"
                 );
     }
     
     /** Check that the rhs of a static represents clause contains only static fields */
     @Test
     public void testRepresents16a() {
-        helpTCF("A.java","public class A {\n static int k; int j; //@ model static int i; static represents i = j;\n}"
-                ,"/A.java:2: non-static variable j cannot be referenced from a static context",69
+        helpTCF("A.java","public class A {\n static int k; int j; /*@ in i; */ //@ model static int i; static represents i = j;\n}"
+                ,"/A.java:2: non-static variable j cannot be referenced from a static context",82
                 );
     }
     
@@ -386,8 +386,8 @@ public class typeclauses extends TCBase {
     public void testRepresents17() {
         expectedExit = 0;
         main.addOptions("-deprecation");
-        helpTCF("A.java","public class A {\n static int j; //@  model static int i; static represents i <- j;\n}"
-                ,"/A.java:2: warning: The left arrow is deprecated in represents clauses, use = instead",61
+        helpTCF("A.java","public class A {\n static int j;  /*@ in i; */ //@  model static int i; static represents i <- j;\n}"
+                ,"/A.java:2: warning: The left arrow is deprecated in represents clauses, use = instead",75
                 );
     }
     
