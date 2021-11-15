@@ -60,8 +60,8 @@ echo Builtin version:
 
 echo Committing changes
 cd OpenJML
-git status
 git add OpenJMLFeature/feature.xml */META-INF/MANIFEST.MF
+git status
 git commit -m "Changing version to $ver"
 cd ..
 for d in Specs JMLAnnotations; do
