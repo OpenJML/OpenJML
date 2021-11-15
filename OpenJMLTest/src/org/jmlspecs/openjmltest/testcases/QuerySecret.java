@@ -688,11 +688,12 @@ public class QuerySecret extends TCBase {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
-                "  //@ secret public model int j;\n" +
+                "  //@ secret public model int j; in i;\n" +
                 "  //@ public model int i;\n" +
                 "  //@ public represents i = j; \n" +
                 "} \n"
                 ,"/A.java:5: Secret fields may not be read in non-secret context: j",29
+                ,"/A.java:3: A datagroup for a secret field must be secret",34
         );
     }
 
