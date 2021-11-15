@@ -9,7 +9,7 @@
 	}
 
 public class RegularBankAccount extends BankAccount {
-    private /*@spec_public*/ int balance;
+    private /*@spec_public*/ int balance; //@ in balance_;
     //@ represents balance_ = balance;
 
     public RegularBankAccount()
@@ -19,7 +19,7 @@ public class RegularBankAccount extends BankAccount {
 }
 
  class RegularBankAccount2 implements BankAccount2 {
-    private /*@spec_public*/ int balanceX;
+    private /*@spec_public*/ int balanceX; //@ in balance_;
     //@ represents balance_ = balanceX;
 
     public RegularBankAccount2()

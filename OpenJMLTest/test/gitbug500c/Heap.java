@@ -1,7 +1,7 @@
 
 public class Heap implements PriorityQueue {
     private Comparable[] elems;
-    private int numElems;
+    private int numElems; //@ in size;
 
     /*@ private represents size <- numElems; @*/
 

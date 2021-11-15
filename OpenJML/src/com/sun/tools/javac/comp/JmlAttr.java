@@ -88,6 +88,8 @@ import static org.jmlspecs.openjml.ext.Operators.*;
 import org.jmlspecs.openjml.ext.SignalsClauseExtension;
 import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
+import org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension;
+
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 import org.jmlspecs.openjml.vistors.IJmlVisitor;
@@ -2914,8 +2916,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
+    JmlTypeClauseRepresents currentRepresentsClause = null;
+    
     /** Attributes a represents clause */
     public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents tree) {
+        currentRepresentsClause = tree;
         boolean prev = pureEnvironment;
         pureEnvironment = true;
         JavaFileObject old = log.useSource(tree.source);
@@ -3004,6 +3009,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             pureEnvironment = prev;
             log.useSource(old);
             currentSecretContext = prevSecret;
+            currentRepresentsClause = null;
         }
     }
     
@@ -4725,6 +4731,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }// Could also be a method call, and error, a package, a class...
         
         checkVisibility(tree, jmlVisibility, tree.sym, null);
+        if (currentClauseType == TypeRepresentsClauseExtension.representsClause) {
+            JCIdent rep = currentRepresentsClause.ident instanceof JCIdent ? (JCIdent)currentRepresentsClause.ident : null;
+            //      jmlenv.representsHead = rep;
+            if (rep != null && tree.sym instanceof VarSymbol && tree.sym.owner instanceof ClassSymbol && tree.sym.name != names._this && tree.sym.name != names._super) {  // FIXME - also need to check the reads statement of method calls
+                //System.out.println("CHECKING DG " + (VarSymbol)tree.sym + " IN " + jmlenv.representsHead);
+                if (!isContainedInDatagroup((VarSymbol)tree.sym, (VarSymbol)rep.sym)) {
+                    utils.error(log.currentSourceFile(),tree,"jml.message", "Because '" + rep + "' reads '" + tree.sym + "' in a represents clause, '" + tree.sym + "' must be 'in' the model field '" + rep + "'");
+                }
+            }
+        }
         result = saved;
     }
     
