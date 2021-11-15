@@ -32,6 +32,7 @@ jobs:
     - name: Linux additions
       if: runner.os == 'Linux'
       run: |
+        sudo apt-get update
         sudo apt-get install libxext-dev libxtst-dev libxrandr-dev libcups2-dev
         sudo apt-get install autoconf 
         sudo apt-get install libasound2-dev
