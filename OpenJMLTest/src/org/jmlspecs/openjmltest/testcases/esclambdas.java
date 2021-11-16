@@ -45,7 +45,7 @@ public class esclambdas extends EscBase {
                 +"  }\n"
                                 
                 +"}"
-                ,"$SPECS/specs/java/lang/Iterable.jml:41: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",40
+                ,"$SPECS/java/lang/Iterable.jml:41: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",40
                 );
     }
     
@@ -92,7 +92,7 @@ public class esclambdas extends EscBase {
                 +"  }\n"
                                 
                 +"}"
-                ,"$SPECS/specs/java/lang/Iterable.jml:10: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",53
+                ,"$SPECS/java/lang/Iterable.jml:10: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",53
                 );
     }
     

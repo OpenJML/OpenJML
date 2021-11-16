@@ -17,14 +17,16 @@ test/escDouble2 : Expected exit code 0 but got 1
 test/escDouble3 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
 test/escFPcompose : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<###
 test/escRawdingA : Killed                                                                                  ???
-test/escRawdingB : Actual output differs from expected expected1 expected2 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< feasibilty problem
+test/escRawdingB : (Skipped) Actual output differs from expected expected1 expected2 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< feasibilty problem
 test/escStrings : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### switch on strings
+test/factorial: <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [one method times out, it appears]
 test/gcdcalculator:                                                                                        ???
 test/gitbug450b : Actual output differs from expected expected1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< can't unroll forloops
 test/gitbug582 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< sometimes times out
 test/gitbug672 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### diamond type inference
 test/gitbug673 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< models classes
-test/gitbug673 : Expected exit code 0 but got 1
+test/gitbug673 : Expected exit code 0 but got 1                                                             ???
+test/gitbug722 : Actual output differs from expected                                                        ???
 test/gitbug732 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ???
 test/gitbug735 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### [fp]
 test/gitbug738 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### recursive use of not-well-founded method
@@ -38,6 +40,7 @@ test/sfbug396 Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 test/sfbug402  : Actual output differs from expected expected-compile <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< infeasibility
 test/sfbug402a : Actual output differs from expected expected-compile <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< infeasibility
 test/sfbug420X : Actual output differs from expected expected-compile expected-run <<<<<<<<<<<<<<<<<<<<<<<< needs to implement represents for derived classes
+test/sfbug420eOK : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< problem with inherited spec translation *******************
 test/streams : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### ?????
 test/valuestrings : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< inequality of equal-length strings
 test/valuetypes2 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< \locset
@@ -121,19 +124,19 @@ nowarn.java           - 11/0 #
 positions.java        - 16/0 #
 prettyprinting.java   - 10/0 #
 purity.java           - 18/0 #
-racArithmeticModes.java
-racJML.java
-racdemoexamples.java
-racfeatures.java
-racfiles.java
-racnew.java
-racnew2.java
-racnew3.java
-racnewLoops.java
-racnewWithSpecs.java
-racnonpublic.java
-racreadable.java
-racsystem.java
+racArithmeticModes.java- 36/0 #
+racJML.java           - 10/0 #
+racdemoexamples.javaa - 1/0  #
+racfeatures.java      - 3/0  #
+racfiles.java         - 25/41  ?????
+racnew.java           - 128/15  ????? 
+racnew2.java          - 73/2  ?????
+racnew3.java          - 21/0 #
+racnewLoops.java      - 20/0 #
+racnewWithSpecs.java  - 1/0 #
+racnonpublic.java             TODO
+racreadable.java      - 0/2 ??????
+racsystem.java        - 9/0  #
 redundant.java         - 10/0 #
 scanner.java           - 80/3 [unicode, embedded comment]
 statements.java        - 44/0 #

@@ -10,7 +10,7 @@ fi
 cd $(dirname "$BASH_SOURCE")
 
 ./run-summary log-racmost           "101/0"	racArithmeticModes racdemoexamples racfeatures racJML racnew3 racnewLoops racnewWithSpecs racsystem &
-./run-summary log-racfiles     	"20/46" racfiles  &
+./run-summary log-racfiles     	"25/41" racfiles  &
 ./run-summary log-racnew       	"128/15" racnew  &
 ./run-summary log-racnew2      	"73/2"	racnew2 &
 ./run-summary log-racreadable	"0/2"	racreadable & 
