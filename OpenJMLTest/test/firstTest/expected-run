@@ -1,11 +1,11 @@
 OUT:
-test/firstTest/FirstTest.java:17: JML precondition is false
+test/firstTest/FirstTest.java:17: verify: JML precondition is false
           x.setA(10);
                 ^
-test/firstTest/FirstTest.java:7: Associated declaration: test/firstTest/FirstTest.java:17:
+test/firstTest/FirstTest.java:7: verify: Associated declaration: test/firstTest/FirstTest.java:17:
 	public void setA(int a) {
 	            ^
-test/firstTest/FirstTest.java:6: JML precondition is false
+test/firstTest/FirstTest.java:6: verify: JML precondition is false
 	//@ requires a < 0;
 	    ^
 x: 10
