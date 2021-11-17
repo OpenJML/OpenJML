@@ -659,30 +659,9 @@ public class JmlParser extends JavacParser {
     /** Overridden to parse JML statements */
     @Override  // TODO - needs REVIEW
     public JCStatement parseStatement() {
-        int pos = pos();
-        JCStatement st;
-        String id = null;
-        if (S.jml()) {
-            if (token.kind == TokenKind.IDENTIFIER) {
-                id = token.name().toString();
-                IJmlClauseKind clauseType = Extensions.findSM(id);
-                if (clauseType instanceof IJmlClauseKind.Statement) {
-                    st = (JmlAbstractStatement)clauseType.parse(null,id,clauseType,this);
-                    while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
-                    if (st instanceof JmlStatementLoop) {
-                        st = parseLoopWithSpecs((JmlStatementLoop)st);
-                    }
-                    return st;
-                } else if (clauseType instanceof IJmlClauseKind.MethodClauseKind) {
-                    st = parseRefining(pos(),null);
-                    return st;
-                } else if (token.kind == TokenKind.ASSERT) {
-                    clauseType = assertClause;
-                    st = (JCStatement)clauseType.parse(null,id,clauseType,this);
-                } else {
-                    log.error(pos, "jml.message", "Unexpected statement type: " + id);
-                }
-            }
+        if (S.jml() && token.kind == TokenKind.IDENTIFIER) {
+            List<JCStatement> sts = blockStatement();
+            return sts == null ? null : sts.head;
         }
         JCStatement stt = super.parseStatement();
         return stt;
@@ -929,9 +908,11 @@ public class JmlParser extends JavacParser {
                     continue;
                 }
             } else if (startOfMethodSpecs(token)) {
+                log.error(pos(), "jml.message", "DO NOT EXPECT TO EVER BE HERE");
                 currentMethodSpecs = parseMethodSpecs(mods);
                 continue;
             } else if (startOfTypeSpec(token)) {
+                log.error(pos(), "jml.message", "DO NOT EXPECT TO EVER BE HERE");
                 JCTree tc = parseTypeSpecs(mods);
                 list.append(tc);
                 continue;
@@ -1086,6 +1067,7 @@ public class JmlParser extends JavacParser {
                 }
                 break;
             } else if (startOfMethodSpecs(token)) {
+                log.error(pos(), "jml.message", "DO NOT EXPECT TO EVER BE HERE");
                 currentMethodSpecs = parseMethodSpecs(mods);
             } else {
                 jmlerror(pos(), endPos(),
@@ -2520,9 +2502,10 @@ public class JmlParser extends JavacParser {
     protected <T extends ListBuffer<? super JCVariableDecl>> T variableDeclaratorsRest(
             int pos, JCModifiers mods, JCExpression type, Name name,
             boolean reqInit, Comment dc, T vdefs) {
-        if (S.jml()) reqInit = false; // In type checking we check this more
-                                    // thoroughly
-        // Here we just allow having no initializer
+        // Fields in interfaces are required to be explicitly initialized
+        // But not ghost fields in JML -- this is checked in more detail in type
+        // checking, but here we just allow no initializer
+        if (S.jml()) reqInit = false;
         return super.variableDeclaratorsRest(pos, mods, type, name, reqInit,
                 dc, vdefs);
     }
