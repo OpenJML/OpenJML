@@ -9,7 +9,8 @@
 ##      - the release files to sourceforge
 ##      - the Eclipse GUI files to sourceforge
 
-cd "$( dirname "${BASH_SOURCE[0]}" )"
+d=$(dirname "${BASH_SOURCE[0]}" )
+cd "$d"
 cd ..
 
 REFBRANCH=`git rev-parse --abbrev-ref HEAD`
@@ -29,7 +30,7 @@ if [ -z "$REL" ]; then
     echo "Please give the desired release number as the one argument"
     exit 1
 fi
-pushd ../../../*UpdateSite*
+pushd ../../*UpdateSite*
 git add -u
 git commit -m "Adding artifacts for version $REL"
 git push
