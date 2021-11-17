@@ -72,7 +72,7 @@ public class escbitvector extends EscBase {
     }
     
     // BV true, with precondition and modulo operation
-    @Test 
+    @Test @Ignore // non-deterministically times out
     public void testBV2b() {
         Assume.assumeTrue(runLongTests);
         main.addOptions("-escBV=true","-logic=ALL");

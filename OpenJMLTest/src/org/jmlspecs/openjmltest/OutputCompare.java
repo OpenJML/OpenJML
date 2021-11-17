@@ -286,7 +286,7 @@ public class OutputCompare {
                     if (sact != null) {
                         sact = sact.replace("\r\n", "\n");
                         sact = sact.replace('\\','/');
-                        if (!hasVerify) sact = sact.replace("verify: ", "");
+                        if (!hasVerify) sact = sact.replace("verify:", "");
                     }
                     if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
                     if (sexp != null && sact == null) {
