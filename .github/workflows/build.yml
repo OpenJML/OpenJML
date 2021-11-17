@@ -18,7 +18,7 @@ jobs:
         ##os: [ubuntu-latest]
         ##os: [ubuntu-latest, windows-latest, ubuntu-16.04]
         ##os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [ubuntu-latest, macos-latest, ubuntu-18.04]
+        os: [ubuntu-latest, macos-latest, ubuntu-18.04, macos-10.15]
 
       fail-fast: false
     steps:
@@ -32,26 +32,16 @@ jobs:
     - name: Linux additions
       if: runner.os == 'Linux'
       run: |
+        sudo apt-get update
         sudo apt-get install libxext-dev libxtst-dev libxrandr-dev libcups2-dev
+        sudo apt-get install autoconf 
         sudo apt-get install libasound2-dev
     - name: Setup Cygwin for Windows
       if: runner.os == 'Windows'
-      run: |
-        & cmd /c 'nslookup www.cygwin.com 2>&1'
-        while ($true)
-          {
-              try
-              {
-                  (New-Object Net.WebClient).DownloadFile('http://www.cygwin.com/setup-x86_64.exe', 'setup-x86_64.exe')
-                  break
-              }
-              catch
-              {
-                  Write-Host "There is an error during package downloading:`n $_"
-              }
-          }
-        & cmd /c 'nslookup www.cygwin.com 8.8.8.8 2>&1'
-      shell: powershell
+      uses: egor-tensin/setup-cygwin@v3
+      with:
+        platform: x64
+        packages: cmake python3 autoconf make zip unzip ar m4 free file gawk cpio
     - uses: actions/setup-python@v1
     - name: Set up JDK16 
       uses: actions/setup-java@v1
@@ -59,9 +49,11 @@ jobs:
         java-version: 1.16
     - name: Checkout OpenJML
       run: |
+        git config --global core.autocrlf input
         git clone -b master-module --depth 1 https://github.com/OpenJML/OpenJML
         git clone -b master-module --depth 1 https://github.com/OpenJML/Specs
         git clone --depth 1 https://github.com/OpenJML/Solvers
+        git clone --depth 1 https://github.com/OpenJML/JMLAnnotations
     - name: Create the GitHub release
       ## Do this for just one element of the matrix
       if: matrix.os == 'ubuntu-latest'
@@ -74,18 +66,25 @@ jobs:
     - name: Build OpenJML release on Windows
       if: runner.os == 'Windows'
       run: |
-        cd OpenJML/OpenJDKModule
-        bash ./configure
-        make release 
+        basic() {
+          cd D:/a/OpenJML/OpenJML
+          pwd
+          ls -la
+          cd OpenJML/OpenJDKModule
+          bash ./configure
+          make release 
+        }
+        basic
+      shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
     - name: Build OpenJML release on non-Windows
       if: runner.os != 'Windows'
       run: |
         cd OpenJML/OpenJDKModule
         bash ./configure
         make release 
-    - name: Smoke Test release
+    - name: Test the release
       run: |
-        make -C OpenJML/OpenJDKModule trial
+        make -C OpenJML/OpenJDKModule release-test
     - name: Load OpenJML build into GitHub release
       run: |
         cd OpenJML

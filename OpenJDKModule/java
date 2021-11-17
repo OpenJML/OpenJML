@@ -1,0 +1,15 @@
+#!/bin/bash
+
+## This is for the development environment
+
+R1=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks; R1 will be the path to this file
+R2=$(dirname "$R1") # path containing this file, namely OpenJDKModule
+R=$( cd "$R2/../.."  && pwd) ## absolute path, still might have spaces
+
+##OS=linux ## macosx linux windows aix
+ROOT=$R/OpenJML/OpenJDKModule
+BIN=`echo $ROOT/build/*/jdk/bin/java`
+##SP=$ROOT/src/java.base/share/classes:$ROOT/build/*-server-release/support/gensrc/java.base:$ROOT/src/java.base/$OS/classes:$ROOT/src/java.base/unix/classes
+##AM="--add-modules jdk.compiler,java.base"
+
+$BIN "$@"

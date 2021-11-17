@@ -309,8 +309,8 @@ public class JmlSpecs {
             String sy = Main.root + "/specs"; 
             if (!new File(sy).exists()) {
             	sy = Main.root + "/../Specs/specs";
-                if (Utils.testingMode) try { sy = new File(sy).getCanonicalPath(); } catch (IOException e) {}
             }
+            try { sy = new File(sy).getCanonicalPath(); } catch (IOException e) {}
             
             //System.out.println("SY " + sy + " " + new File(sy).getAbsolutePath());
             File f = new File(sy);
@@ -384,6 +384,8 @@ public class JmlSpecs {
             todo.add("$SY");
         }
 
+        String cwd = System.getProperty("user.dir");
+        
         boolean syIncluded = false;
         boolean spIncluded = false;
         boolean cpIncluded = false;
@@ -434,7 +436,7 @@ public class JmlSpecs {
                 Dir d = make(dir);
                 if (d != null) {
                     if (checkDirectories && !d.exists()) { 
-                        utils.warning("jml.specs.dir.not.exist",d);
+                        utils.warning("jml.specs.dir.not.exist",d + " (" + cwd + ")");
                     }
                     specsDirs.add(d);
                 } else {
@@ -903,7 +905,6 @@ public class JmlSpecs {
     public void putSpecs(MethodSymbol specSym, MethodSpecs spec, Env<AttrContext> specsEnv) {
     	spec.specSym = specSym;
         if (utils.verbose()) utils.note("            Saving method specs for " + specSym.owner + "." + specSym + " " + specSym.hashCode());
-        if (utils.verbose() && specSym.owner.toString().contains("java.lang.Object")) System.out.println("     SPEC " + spec);
         spec.setEnv(specsEnv);
         specsMethods.put(specSym,spec);
     }
@@ -1617,9 +1618,11 @@ public class JmlSpecs {
 
     @SuppressWarnings("unchecked")
 	public boolean isNonNullFormal(Type type, int i, MethodSpecs calleeSpecs, MethodSymbol msym) {
+//    	System.out.println("NNF " + type + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
     	if (!type.isReference()) return false;
     	if (Types.instance(context).isSubtype(type, 
     			Symtab.instance(context).jmlPrimitiveType)) return true;
+//    	System.out.println("NNF-A " + findAnnotation(type, Modifiers.NULLABLE) + " " + findAnnotation(type, Modifiers.NON_NULL));
     	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
     	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
     	if (type instanceof Type.TypeVar) return false; 
@@ -1628,10 +1631,10 @@ public class JmlSpecs {
     		var decl = (JmlVariableDecl)calleeSpecs.specDecl.params.get(i);
     		JmlModifiers mods = (JmlModifiers)decl.mods;
     		//if (msym.name.toString().equals("insert") && msym.toString().contains("[]")) System.out.println("FORMAL-A " + mods + " : " + decl + " : " + decl.type + " : " + decl.vartype);
-    		if (findAnnotation(decl.type, Modifiers.NULLABLE)) return false;
-        	if (findAnnotation(decl.type, Modifiers.NON_NULL)) return true;
-    		if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
-        	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
+//    		if (findAnnotation(decl.type, Modifiers.NULLABLE)) return false;
+//        	if (findAnnotation(decl.type, Modifiers.NON_NULL)) return true;
+    		if (utils.hasModOrAnn(mods, Modifiers.NULLABLE)) return false;
+        	if (utils.hasModOrAnn(mods, Modifiers.NON_NULL)) return true;
     	}
     	return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
     }
@@ -1808,10 +1811,10 @@ public class JmlSpecs {
     
     /** Returns true if the given method symbol is annotated as Pure */
     public boolean isPure(MethodSymbol symbol) {
-    	//boolean print = symbol.toString().contains("length");
+    	//boolean print = symbol.toString().contains("println");
     	JmlModifiers mods = getSpecsModifiers(symbol);
     	if (mods == null) return false;
-    	//if (print) System.out.println("MODS " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasMod(mods,  Modifiers.PURE));
+    	//if (print) System.out.println("MODS " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasMod(mods,  Modifiers.PURE) + " " + utils.hasMod(mods,  Modifiers.FUNCTION)+ " " + symbol.owner + " " + isPure((Symbol.ClassSymbol)symbol.owner));
     	if (utils.hasMod(mods,  Modifiers.PURE)) return true; 
     	if (utils.hasMod(mods,  Modifiers.FUNCTION)) return true; 
         return isPure((Symbol.ClassSymbol)symbol.owner);

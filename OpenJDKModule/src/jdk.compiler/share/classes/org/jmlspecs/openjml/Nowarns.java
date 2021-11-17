@@ -82,8 +82,11 @@ public class Nowarns {
      */
     // FIXME - this is an inefficient lookup, and in the following method
     public boolean suppress(DiagnosticSource file, int pos, String label) {
+    	//boolean pr = label.contains("Invariant");
         int line = file.getLineNumber(pos);
+    	//if (pr) System.out.println("SUPPRESS? " + label + " " + line + " " + file.getFile());
         for (Item i: nowarns) {
+        	//if (pr && i.label.contains("Invariant")) System.out.println("  ITEM " + i.label + " " + i.line + " " + i.source.getFile());
             if (i.label != null && !label.equals(i.label)) {
                 // continue
             } else if (i.source == null) {
@@ -92,6 +95,7 @@ public class Nowarns {
                 if (file.equals(i.source) && line == i.line) return true; 
             }
         }
+        //if (pr) System.out.println("   Not suppressed");
         return false;
     }
 
@@ -100,7 +104,10 @@ public class Nowarns {
      * @return true if there is a recorded annotation with the given source, position and label
      */
     public boolean suppress(JavaFileObject file, int pos, String label) {
+    	//boolean pr = label.contains("Invariant");
+    	//if (pr) System.out.println("SUPPRESS? " + label );
         for (Item i: nowarns) {
+        	//if (pr && i.label.contains("Invariant")) System.out.println("  ITEM " + i.label + " " + i.line + " " + i.source.getFile() + " " + i.source.getLineNumber(pos));
             if (i.label != null && !label.equals(i.label)) {
                 // continue
             } else if (i.source == null) {
@@ -109,6 +116,7 @@ public class Nowarns {
                 if (Utils.ifSourcesEqual(file, i.source.getFile()) && i.source.getLineNumber(pos) == i.line) return true; 
             }
         }
+        //if (pr) System.out.println("   Not suppressed");
         return false;
     }
 

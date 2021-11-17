@@ -1,11 +1,11 @@
 OUT:
-test\racreal\real.java:15: JML assertion is false
+test/racreal/real.java:15: JML assertion is false
         //@ assert b * bb == prod;
             ^
-test\racreal\real.java:22: JML assertion is false
+test/racreal/real.java:22: JML assertion is false
         //@ assert b * (double)0 == zero;
             ^
-test\racreal\real.java:25: JML assertion is false
+test/racreal/real.java:25: JML assertion is false
         //@ assert b == zero;
             ^
 LABEL BBB = -420.0

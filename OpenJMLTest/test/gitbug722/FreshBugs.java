@@ -10,7 +10,7 @@ public class FreshBugs {
         @Nullable Node next_;
         //@ ensures payload_ == payload && next_ == next;
         //@ pure
-        Node(Object payload, @Nullable Node next){
+        Node(Object payload, /*@ nullable */ Node next){
             payload_ = payload;
             next_ = next;
         }
@@ -21,18 +21,28 @@ public class FreshBugs {
             next_ = null;
         }
     }
-    Object o = new Object();
+    @Nullable Object o = new Object();
+    Object oo = new Object(); // oo is non_null
    
     /*@
       ensures \fresh(\result);
-      ensures \fresh(\result.payload_); // ERROR
+      ensures \fresh(\result.payload_); // OK
     */
-     Node fail_test0() {
+     Node ok_test0() {
         Node n = new Node(o, null);
         return n;
     }
      
-     /*@
+    /*@
+     ensures \fresh(\result);
+     ensures \fresh(\result.payload_); // ERROR
+    */
+    Node fail_test0() {
+       Node n = new Node(oo, null);
+       return n;
+    }
+    
+    /*@
        ensures \fresh(\result);
      */
      Node fresh_bug() {

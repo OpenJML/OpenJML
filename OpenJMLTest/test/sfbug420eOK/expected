@@ -1,0 +1,15 @@
+Proving methods in stack.Stack
+Completed proving methods in stack.Stack
+Proving methods in stack.StackImpl
+Skipping proof of stack.StackImpl.StackImpl() (excluded by -method)
+Skipping proof of stack.StackImpl.count() (excluded by -method)
+Skipping proof of stack.StackImpl.itemAt(int) (excluded by -method)
+Skipping proof of stack.StackImpl.isEmpty() (excluded by -method)
+Starting proof of stack.StackImpl.push(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of stack.StackImpl.push(int) with prover !!!! - no warnings
+Skipping proof of stack.StackImpl.top() (excluded by -method)
+Skipping proof of stack.StackImpl.remove() (excluded by -method)
+Skipping proof of stack.StackImpl.main(String[]) (excluded by -method)
+Completed proving methods in stack.StackImpl

@@ -72,10 +72,7 @@ REL=release-temp
 
 ## Used in the github build.yml action
 
-release: version
-	make clean reconfigure smt openjml
-	NOJML= make
-	make post
+release: clean version openjml post
 
 version:
 	./version.sh
@@ -85,7 +82,6 @@ post:
 	mkdir $(REL)
 	cp -pRL build/*release/jdk $(REL)
 	if [ `uname` = 'Darwin' ]; then echo Mac ; export S=macos ; elif [ `uname` = 'Linux' ]; then echo Linux; export S=linux ; else echo Win; export S=windows ; fi ;\
-	echo OS $$S ;\
 	cp -pR ../../Solvers/Solvers-$$S $(REL)
 	cp -pR ../../Specs/specs $(REL)
 	cp -pR release-files/* $(REL)
@@ -96,6 +92,10 @@ trial:
 	$(REL)/openjml -version
 	$(REL)/openjml -esc -progress $(REL)/demos/Max.java
 
+# Tests a recently created release (releae-temp/openjml.zip)
+release-test:
+	@ $(topdir)/../OpenJMLTest/releaseTests/runtests
+
 ## Development build targets
 
 openjml: .FORCE
@@ -103,7 +103,11 @@ openjml: .FORCE
 	##make jmlruntime.jar
 
 smt:
-	##if [ -e ../../../jSMTLIB/SMT ]; then cp -Rp ../../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; fi
+	if [ -e $(mkfile_dir)/../../../jSMTLIB/SMT ]; then \
+	    cp -Rp $(mkfile_dir)/../../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; \
+	elif [ -e $(mkfile_dir)/../../jSMTLIB/SMT ]; then \
+	    cp -Rp $(mkfile_dir)/../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; \
+	fi
 
 jmlruntime.jar:
 	cp -r bin-runtime/* temp2

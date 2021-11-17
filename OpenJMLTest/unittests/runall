@@ -1,29 +1,57 @@
-( ./runtests access arith assignable compilationUnit compiler deprecation | tee log-access+ | grep failures ; echo "151/4" Completed log-access+ ) &
-( ./runtests binaries | tee log-binaries | grep failures ; echo "5/1" Completed log-binaries ) &
-( ./runtests bugs | tee log-bugs | grep failures ; echo "23/0" Completed log-bugs ) &
-( ./runtests esc1 | tee log-esc1 | grep failures ; echo "91/0" Completed log-esc1 ) &
-( ./runtests esc2 | tee log-esc2 | grep failures ; echo "109/0" Completed log-esc2 ) &
-#( ./runtests escArithmeticModes escArithmeticModes2 | tee log-escarith+ | grep failures ; echo "56/17" Completed log-escarith+ ) &
-( ./runtests escConstantFields escCounterexamples escaccessible escbitvector esccode escconstructor | tee log-escConst+ | grep failures ; echo "80/0" Completed log-escConst+ ) &
-( ./runtests escall2 escall3  | tee log-escall+ | grep failures ; echo "85/0" Completed log-escall+ ) &
-( ./runtests esccallable  | tee log-esccallable | grep failures ; echo "31/1" Completed log-esccallable ) &
+#! /bin/bash
+
+n=`ps -ef | grep runtests | wc -l`
+if [ $n != "1" ]; then
+  echo "tests already running"
+  ps -ef | grep runtests | grep -v grep
+  exit 1
+fi
+
+cd $(dirname "$BASH_SOURCE")
+
+./run-summary log-racmost           "101/0"	racArithmeticModes racdemoexamples racfeatures racJML racnew3 racnewLoops racnewWithSpecs racsystem &
+./run-summary log-racfiles     	"25/41" racfiles  &
+./run-summary log-racnew       	"128/15" racnew  &
+./run-summary log-racnew2      	"73/2"	racnew2 &
+./run-summary log-racreadable	"0/2"	racreadable & 
+
+./run-summary log-access+  	"151/4" access arith assignable compilationUnit compiler deprecation  &
+./run-summary log-binaries 	"5/1"	binaries  &
+./run-summary log-bugs     	"23/0"	bugs  &
+./run-summary log-esc1     	"91/0"  esc1  &
+./run-summary log-esc2     	"109/0" esc2  &
+#./run-summary log-escarith+ 	"56/17" escArithmeticModes escArithmeticModes2  &
+./run-summary log-escbv     	"12/0"  escbitvector  &
+./run-summary log-escConst+ 	"68/0"  escConstantFields escCounterexamples escaccessible esccode escconstructor  &
+./run-summary log-escall+   	"85/0"  escall2 escall3   &
+./run-summary log-esccallable	"31/1"  esccallable   &
 sleep 300
-( ./runtests escfunction escgeneric | tee log-escfunction+ | grep failures ; echo "28/0" Completed log-escfunction+ ) &
-( ./runtests escinclause escinline esclocation escnewBoxing escnewassignable escnowarn escoption escprimitivetypes escreadable escstrings | tee log-escinclause+ | grep failures ; echo "104/0" Completed log-escinclause+ ) &
-( ./runtests escnew escnew2 escvisibility escvisibility1 | tee log-escnew+ | grep failures ; echo "158/1" Completed log-escnew+ ) &
-( ./runtests escnew3 | tee log-escnew3 | grep failures ; echo "63/1" Completed log-escnew3 ) &
-( ./runtests esclambdas | tee log-esclambdas | grep failures ; echo "25/3" Completed log-esclambdas ) &
-( ./runtests escm | tee log-escm | grep failures ; echo "13/0" Completed log-escm ) &
-( ./runtests expressions escJML flow | tee log-expr+ | grep failures ; echo "64/0" Completed log-expr+ ) &
-( ./runtests generics | tee log-generics | grep failures ; echo "13/2" Completed log-generics ) &
-( ./runtests harnesstests | tee log-harnesstests | grep failures ; echo "0/5" Completed log-harnesstests ) &
-( ./runtests internalSpecs jmltypes lblexpression methodspecs modelghost namelookup notspecified nowarn positions prettyprinting purity | tee log-inter+ | grep failures ; echo "159/0" Completed log-inter+ ) &
+./run-summary log-escfunc+	"28/0"  escfunction escgeneric  &
+./run-summary log-escinclau+	"104/0" escinclause escinline esclocation escnewBoxing escnewassignable escnowarn escoption escprimitivetypes escreadable escstrings  &
+./run-summary log-escnew+   	"158/1" escnew escnew2 escvisibility escvisibility1  &
+./run-summary log-escnew3   	"63/1"  escnew3 &
+./run-summary log-esclambdas   	"25/3"  esclambdas  &
+./run-summary log-escm         	"13/0"  escm   &
+./run-summary log-expr+        	"64/0"  expressions escJML flow  &
+./run-summary log-generics     	"13/2"  generics   &
+./run-summary log-harness	"0/5"	harnesstests &
+./run-summary log-inter+       	"159/0"	internalSpecs jmltypes lblexpression methodspecs modelghost namelookup notspecified nowarn positions prettyprinting purity  &
 sleep 300
-( ./runtests matchClasses | tee log-matchClasses | grep failures ; echo "49/3" Completed log-matchClasses ) &
-( ./runtests modifiers | tee log-modifiers | grep failures ; echo "192/0" Completed log-modifiers ) &
-( ./runtests escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility | tee log-redundant+ | grep failures ; echo "108/1" Completed log-redundant+ ) &
-( ./runtests scanner | tee log-scanner | grep failures ; echo "80/3" Completed log-scanner ) &
-( ./runtests typechecking | tee log-typechecking | grep failures ; echo "181/0" Completed log-typechecking ) &
-( ./runtests typeclauses | tee log-typeclauses | grep failures ; echo "123/0" Completed log-typeclauses ) &
-( ./runtests SpecsBase | tee log-SpecsBase | grep failures ; echo Completed log-SpecsBase "" ) &
-( ./runtests SpecsEsc | tee log-SpecsEsc | grep failures ; echo "3/0" Completed log-SpecsEsc ) &
+./run-summary log-matchClass	"49/3"  matchClasses  &
+./run-summary log-modifiers    	"192/0" modifiers  &
+./run-summary log-redundant+   	"108/1"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
+./run-summary log-scanner      	"80/3"	scanner  &
+./run-summary log-typecheck	"181/0"	typechecking &
+./run-summary log-typeclause	"123/0"	typeclauses  &
+./run-summary log-SpecsBase    	"???"	SpecsBase  &
+./run-summary log-SpecsEsc     	"3/0"	SpecsEsc  &
+
+
+n=`ps -ef | grep runtests | wc -l`
+while [ $n != "1" ]; do
+  ##echo still running:
+  ##ps -ef | grep runtests
+  sleep 60
+  n=`ps -ef | grep runtests | wc -l`
+done
+echo Completed

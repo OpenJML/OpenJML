@@ -1,18 +1,20 @@
 
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+## The following includes a terminating /
 mkfile_dir := $(dir $(mkfile_path))
 
 ROOT=${mkfile_dir}
-#MODS=$(ROOT)/build/macosx-x86_64-server-release/images/jmods
-#SPECS=/Users/davidcok/projects/OpenJMLB/Specs/specs
 
 ### The following is the OpenJML tests
 
 openjml-test: prep
 	( cd ${ROOT}/scripttests; ./escfiles-sort)
-	( cd ${ROOT}/scripttests; ./gitfiles-sort)
 	( cd ${ROOT}/unittests; source ./runall  )
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
+	make release-tests
+
+openjml-clean:
+	(cd ${ROOT}/../OpenJDKModule; make clean openjml)
 
 openjml:
 	(cd ${ROOT}/../OpenJDKModule; make openjml)
@@ -27,6 +29,44 @@ prep:
 	echo "import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }" > $T/C.java
 	echo "import org.jmlspecs.annotation.*; public class D { @Pure int m() { return 0; } }" > $T/D.java
 
+tutorial-test:
+	@ ( echo Testing tutorial files ;\
+	    cd $(mkfile_dir)/../OpenJDKModule/release-files/tutorial; \
+	    X=0 ;\
+	    for f in *.java ; do \
+		o=`echo $$f | sed -e 's/java/out/'`; \
+		c=`cat $$f | head -1 | sed -e 'sx//[ ]*xx' ` ;\
+		../../$$c > log ;\
+		e=$$? ;\
+		if [ -e $$o ]; then  \
+			if [ $$e -eq "0" ]; then \
+			    X=1; echo $$f "has out file but exit code of 0" ;\
+			fi ;\
+			diff log $$o ; z=$$? ; \
+			if [ $$z -ne "0" ]; then  \
+			    X=1; echo $$f "has wrong output" ; \
+			fi ;\
+		elif [ -n "$( cat log )" ]; then \
+			echo "OK example has output: " $$f ;\
+			cat log ;\
+		elif [ $$e -ne "0" ]; then \
+			X=1; echo "OK example has unexpected exit code: " $$f $$e ; \
+		fi ; \
+	    done ; \
+	    exit $$X \
+	)
+
+release-tests:
+	@ echo Running release tests with current development build
+	@ NOZIP= $(ROOT)releaseTests/runtests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
+
+unittests-seq:
+	@ grep -v sleep ${ROOT}unittests/runall | tr -d '&' > ${ROOT}unittests/runseq
+	@ . $(ROOT)unittests/runseq
+			
+unittests-par:
+	. $(ROOT)unittests/runall
+			
 ##### The following are debugging tests
 
 debug:
@@ -44,23 +84,5 @@ test:
 version:
 	@ NOJML= njavac -d bin Version.java
 	@ STACK=X njava -cp bin Version
-
-git:
-	openjml -no-staticInitWarning -specspath $(SPECS) -esc -dir test/gitbug257 
-
-E-vm:
-	openjml 4 -no-staticInitWarning  -specspath /Users/davidcok/testn/esc:$(SPECS) /Users/davidcok/testn/esc/ETest.java -esc -verbose -method m 
-
-E-v:
-	openjml 4 -no-staticInitWarning  -specspath /Users/davidcok/testn/esc:$(SPECS) /Users/davidcok/testn/esc/ETest.java -esc -verbose 
-
-E-bin:
-	openjml 4 -no-staticInitWarning  -specspath /Users/davidcok/testn/esc:$(SPECS) /Users/davidcok/testn/esc/ETest.java -esc -progress
-
-E:
-	openjml -no-staticInitWarning  -specspath /Users/davidcok/testn/esc:$(SPECS) /Users/davidcok/testn/esc/ETest.java -esc -progress
-
-E-src:
-	cd ~/testn && openjml 1 -no-staticInitWarning -specspath /Users/davidcok/testn/esc:$(SPECS) /Users/davidcok/testn/esc/ETest.java -esc -verbose
 
 

@@ -159,6 +159,7 @@ public class QuantifiedExpressions extends JmlExtension {
                     case qnumofID:
                         t = attr.attribExpr(that.value, localEnv, syms.booleanType);
                         resultType = com.sun.tools.javac.code.JmlTypes.instance(context).BIGINT;
+                        if (utils.rac) resultType = syms.longType;
                         break;
 
                     case qmaxID:

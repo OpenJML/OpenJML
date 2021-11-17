@@ -5,10 +5,8 @@ Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test.f(Object[]) with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.f(Object[]) with prover !!!! - no warnings
 Completed proving methods in Test
-Note: $SPECS/specs/java/util/Arrays.jml uses unchecked or unsafe operations.
+Note: $SPECS/java/util/Arrays.jml uses unchecked or unsafe operations.
 Note: Recompile with -Xlint:unchecked for details.

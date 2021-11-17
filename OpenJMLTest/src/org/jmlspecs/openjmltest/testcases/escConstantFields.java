@@ -252,7 +252,7 @@ public class escConstantFields extends EscBase {
                 +"     //@ assert I == 1 && J == 2;\n" // Should be OK because of invariant on n()
                 +"  }\n"
                 
-                +"  //@ assignable \\everything;\n"   // FIXME _ why does this reestablish invariant?
+                +"  //@ assignable \\everything;\n"
                 +"  public void n() {}\n"
                 +"}"
                 );
@@ -279,9 +279,10 @@ public class escConstantFields extends EscBase {
                 +"  }\n"
                 
                 +"  //@ public normal_behavior assignable \\everything;\n"
-                +"  static public void n() {}\n"   // FIXME _ why does this proove?
+                +"  static public void n() {}\n"
                 +"}"
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method TestJava",10
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 

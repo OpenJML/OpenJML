@@ -12,4 +12,4 @@ BIN=`echo $ROOT/build/*/jdk/bin/javac`
 ##SP=$ROOT/src/java.base/share/classes:$ROOT/build/*-server-release/support/gensrc/java.base:$ROOT/src/java.base/$OS/classes:$ROOT/src/java.base/unix/classes
 ##AM="--add-modules jdk.compiler,java.base"
 
-OPENJML_ROOT="$R/Solvers" $BIN -no-internalSpecs -specspath .:$R/Specs/specs "$@"
+OPENJML_ROOT="$R/Solvers" $BIN "$@"

@@ -76,14 +76,15 @@ public abstract class JmlTestCase {
 
     public final static String specsdir;
     static {
-    	String s = System.getenv("OPENJML_ROOT") + "../../Specs";
+    	String s = System.getenv("OPENJML_ROOT") + "../../Specs/specs";
     	try { s = new File(s).getCanonicalPath(); } catch (Exception e) {}
     	specsdir = s;
     }
     public final static String streamLine = "10"; // This line number is present in many test oracle files, but changes as edits are made to Stream.jml
     /** Replace aspects of expected output that depend on the local environment */
     public static String doReplacements(String s) {
-        return s.replace("$ROOT",JmlTestCase.root).replace("$SPECS",specsdir).replace("$STRL", JmlTestCase.streamLine);
+        return s.replace("$ROOT",JmlTestCase.root).replace("$SPECS",specsdir).replace("$STRL", JmlTestCase.streamLine)
+        		.replaceAll("\\$DEMO", RacBase.OpenJMLDemoPath);
     }
     
     // FIXME - do not rely on eclipse
@@ -95,6 +96,11 @@ public abstract class JmlTestCase {
     /** This is here so we can get the name of a test, using name.getMethodName() */
     @Rule public TestName name = new TestName();
     
+    public String getMethodName(int i) {
+    	return (new RuntimeException()).fillInStackTrace().getStackTrace()[i+1].getMethodName();
+    }
+    
+
     /** The java executable */
     // TODO: This is going to use the external setting for java, rather than
     // the current environment within Eclipse // FIXME - no longer valid
@@ -259,7 +265,7 @@ public abstract class JmlTestCase {
     @Before
     public void setUp() throws Exception {
         main = new org.jmlspecs.openjml.Main("openjml-unittest",new PrintWriter(System.out, true));
-        collector = new FilteredDiagnosticCollector<JavaFileObject>(ignoreNotes,printDiagnostics);
+        setCollector(ignoreNotes, printDiagnostics);
         if (System.getenv("NOJML")!=null) {
             context = main.context = new Context();
             JavacFileManager.preRegister(context); // can't create it until Log has been set up
@@ -271,9 +277,13 @@ public abstract class JmlTestCase {
         mockFiles = new LinkedList<JavaFileObject>();
         Log.alwaysReport = true; // Always report errors (even if they would be suppressed because they are at the same position
         if (System.getenv("VERBOSE") != null) {
-        	Options.instance(context).put("-verbose","true");
+        	main.addJavaOption("-verbose","true");
         	main.addOptions("-jmlverbose","3");
         }
+    }
+    
+    public void setCollector(boolean ignoreNotes, boolean printDiagnostics) {
+        collector = new FilteredDiagnosticCollector<JavaFileObject>(ignoreNotes,printDiagnostics);    	
     }
     
     public int compile(com.sun.tools.javac.util.List<String> args) {

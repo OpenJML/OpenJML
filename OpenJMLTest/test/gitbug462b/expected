@@ -22,10 +22,6 @@ Feasibility check - at program exit : OK
 Completed proof of Container.ContainerUser.allocate() with prover !!!! - no warnings
 Starting proof of Container.ContainerUser.test() with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of Container.ContainerUser.test() with prover !!!! - no warnings
 Completed proving methods in Container.ContainerUser

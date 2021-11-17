@@ -17,7 +17,7 @@ class AnotherClass {
     
     //@ public normal_behavior
     //@   ensures \result == 0;
-    //@ pure
+    //@ pure helper
     public int zero() {
         return 0;
     }

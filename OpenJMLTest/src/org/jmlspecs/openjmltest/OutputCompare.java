@@ -273,17 +273,20 @@ public class OutputCompare {
             int line = 0;
             while (true) {
                 line++;
+                boolean hasVerify = true;
                 String sexp = exp.readLine();
                 if (sexp != null) {
                     sexp = sexp.replace("\r\n", "\n");
                     sexp = JmlTestCase.doReplacements(sexp);
                     sexp = sexp.replace('\\','/');
+                    hasVerify = sexp.contains("verify: ");
                 }
                 while (true) {
                     String sact = act.readLine();
                     if (sact != null) {
                         sact = sact.replace("\r\n", "\n");
                         sact = sact.replace('\\','/');
+                        if (!hasVerify) sact = sact.replace("verify:", "");
                     }
                     if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
                     if (sexp != null && sact == null) {

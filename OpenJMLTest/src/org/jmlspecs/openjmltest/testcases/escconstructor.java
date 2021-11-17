@@ -57,7 +57,7 @@ public class escconstructor extends EscBase {
 						+ "    b = 10; \n" // Not allowed
 						+ "  }\n" 
 						+ "}\n"
-				,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  b", 7
+				,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
 				,"/tt/TestJava.java:5: warning: Associated declaration", 7
 				);
 	}
@@ -76,7 +76,7 @@ public class escconstructor extends EscBase {
 						+ "    b = 10; \n" // Not allowed
 						+ "  }\n" 
 						+ "}\n"
-				,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  b", 7
+				,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
 				);
 	}
 
@@ -93,7 +93,7 @@ public class escconstructor extends EscBase {
 						+ "    b = 10; \n" // Not allowed
 						+ "  }\n" 
 						+ "}\n"
-				,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  b", 7
+				,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
 				,"/tt/TestJava.java:5: warning: Associated declaration", 7
 				);
 	}

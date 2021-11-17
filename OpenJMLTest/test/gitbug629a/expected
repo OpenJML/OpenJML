@@ -5,7 +5,6 @@ Feasibility check - at program exit : OK
 Completed proof of MyClass.MyClass() with prover !!!! - no warnings
 Starting proof of MyClass.main(String[]) with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of MyClass.main(String[]) with prover !!!! - no warnings
 Completed proving methods in MyClass

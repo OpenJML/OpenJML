@@ -88,7 +88,7 @@ public class JmlTreeUtils {
     }
     
     /** The qualified name of the Utils class that contains runtime utility methods */
-    /*@non_null*/ final public static String utilsClassQualifiedName = "org.jmlspecs.utils.Utils";
+    /*@non_null*/ final public static String utilsClassQualifiedName = "org.jmlspecs.runtime.Utils";
 
     /** The Context in which this object was constructed */ 
     //@ non_null
@@ -312,7 +312,7 @@ public class JmlTreeUtils {
     }
 
     
-    /** Returns an attributed AST for "org.jmlspecs.utils.Utils.<methodName>" */
+    /** Returns an attributed AST for "org.jmlspecs.runtime.Utils.<methodName>" */
     public JCFieldAccess findUtilsMethod(int pos, String methodName) {
         Name n = names.fromString(methodName);
         // Presumes there is just one method with the given name - no overloading
@@ -577,8 +577,7 @@ public class JmlTreeUtils {
      * @return the AST
      */ 
     public JCIdent makeIdent(int pos, Symbol sym) {
-        JCIdent id = factory.Ident(sym);
-        id.pos = pos;
+        JCIdent id = factory.at(pos).Ident(sym);
         // id.type is set in Ident
         return id;
     }
@@ -588,8 +587,7 @@ public class JmlTreeUtils {
      * @return the AST
      */ 
     public JCIdent makeIdent(/*@ nullable */ DiagnosticPosition pos, Symbol sym) {
-        JCIdent id = factory.Ident(sym);
-        id.pos = pos == null ? Position.NOPOS: pos.getPreferredPosition();
+        JCIdent id = factory.at(pos == null ? Position.NOPOS: pos.getPreferredPosition()).Ident(sym);
         // id.type is set in Ident
         return id;
     }
@@ -1459,7 +1457,7 @@ public class JmlTreeUtils {
         rhs.type = JmlTypes.instance(context).TYPE;
         JCExpression expr = makeEqObject(p,lhs,rhs);
         // FIXME - the check below just until unerased types are supported in boogie
-        if (!JmlOption.isOption(context, JmlOption.BOOGIE)) {
+        if (true) { // !JmlOption.isOption(context, JmlOption.BOOGIE)) {
             expr = makeAnd(p,expr,
                 makeJmlMethodInvocation(pos,JmlTokenKind.SUBTYPE_OF,syms.booleanType,lhs,rhs));
             {
@@ -1520,7 +1518,7 @@ public class JmlTreeUtils {
             if (type.getKind() != TypeKind.ARRAY) {
                 JCTree.JCInstanceOf tt = makeInstanceOf(p,id,types.erasure(type));
                 expr = makeAnd(p,tt,expr);
-                if (JmlOption.isOption(context, JmlOption.BOOGIE)) expr = tt; // FIXME - just until Boogie handles unerased types
+                //if (JmlOption.isOption(context, JmlOption.BOOGIE)) expr = tt; // FIXME - just until Boogie handles unerased types
             } else {
                 Type comptype = ((Type.ArrayType)type).elemtype;
                 JCExpression e = makeTypeof(id);
@@ -1536,7 +1534,7 @@ public class JmlTreeUtils {
         return expr;
     }
     
-    /** Creates an AST for an invocation of a (static) method in org.jmlspecs.utils.Utils,
+    /** Creates an AST for an invocation of a (static) method in org.jmlspecs.runtime.Utils,
      * with the given name and arguments.
      * @param pos the node position of the new AST
      * @param methodName the name of the method to call
@@ -1553,7 +1551,7 @@ public class JmlTreeUtils {
         return call;
     }
 
-    /** Creates an AST for an invocation of a (static) method in org.jmlspecs.utils.Utils,
+    /** Creates an AST for an invocation of a (static) method in org.jmlspecs.runtime.Utils,
      * with the given name and arguments.
      * @param pos the node position of the new AST
      * @param methodName the name of the method to call

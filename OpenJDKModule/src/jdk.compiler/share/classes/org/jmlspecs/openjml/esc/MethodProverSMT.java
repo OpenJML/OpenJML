@@ -1132,7 +1132,7 @@ public class MethodProverSMT {
                                     loc);
                             tracer.appendln(associatedLocation + " Associated location");
                         }
-                        if (JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
+                        if (true) { //JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
                             IJmlClauseKind tkind = assertStat.associatedClause == null ? null : assertStat.associatedClause.clauseKind;
                             if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind
                             		|| assertStat.label == Label.POSSIBLY_NULL_RETURN) {  // FIXME - actually - any postcondition check
@@ -1490,7 +1490,7 @@ public class MethodProverSMT {
                         tracer.appendln(associatedLocation + " Associated location");
                         //if (assertStat.associatedSource != null) log.useSource(prev);
                     }
-                    if (assertStat.associatedClause != null && JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
+                    if (assertStat.associatedClause != null) {
                         IJmlClauseKind tkind = assertStat.associatedClause.clauseKind;
                         if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind) {  // FIXME - actually - any postcondition check
                             int p = terminationPos;
