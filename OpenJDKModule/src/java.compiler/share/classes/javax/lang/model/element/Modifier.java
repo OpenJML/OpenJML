@@ -74,10 +74,8 @@ public enum Modifier {
      *           features of the Java language.}
      *
      * The modifier {@code sealed}
-     * @since 15
+     * @since 17
      */
-    @jdk.internal.PreviewFeature(feature=jdk.internal.PreviewFeature.Feature.SEALED_CLASSES,
-                                             essentialAPI=false)
     SEALED,
 
     /**
@@ -89,10 +87,13 @@ public enum Modifier {
      *           features of the Java language.}
      *
      * The modifier {@code non-sealed}
-     * @since 15
+     * @since 17
      */
+<<<<<<< HEAD
     @jdk.internal.PreviewFeature(feature=jdk.internal.PreviewFeature.Feature.SEALED_CLASSES,
             essentialAPI=false)
+=======
+>>>>>>> openjdk-src
     NON_SEALED {
         public String toString() {
             return "non-sealed";

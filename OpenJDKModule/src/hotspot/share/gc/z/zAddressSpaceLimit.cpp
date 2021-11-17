@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,6 +22,7 @@
  */
 
 #include "precompiled.hpp"
+#include "gc/shared/gc_globals.hpp"
 #include "gc/z/zAddressSpaceLimit.hpp"
 #include "gc/z/zGlobals.hpp"
 #include "runtime/globals.hpp"
@@ -29,10 +30,10 @@
 #include "utilities/align.hpp"
 
 static size_t address_space_limit() {
-  julong limit = 0;
+  size_t limit = 0;
 
   if (os::has_allocatable_memory_limit(&limit)) {
-    return (size_t)limit;
+    return limit;
   }
 
   // No limit

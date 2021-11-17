@@ -48,9 +48,21 @@ public class TestStressIGVN {
             className, "10"};
         ProcessBuilder pb  = ProcessTools.createJavaProcessBuilder(procArgs);
         OutputAnalyzer out = new OutputAnalyzer(pb.start());
+        out.shouldHaveExitValue(0);
         return out.getStdout();
     }
 
+<<<<<<< HEAD:OpenJDKModule/test/hotspot/jtreg/compiler/debug/TestStressIGVN.java
+=======
+    static String igvnTrace(int stressSeed) throws Exception {
+        return phaseTrace("StressIGVN", "TraceIterativeGVN", stressSeed);
+    }
+
+    static String ccpTrace(int stressSeed) throws Exception {
+        return phaseTrace("StressCCP", "TracePhaseCCP", stressSeed);
+    }
+
+>>>>>>> openjdk-src:OpenJDKModule/test/hotspot/jtreg/compiler/debug/TestStressIGVNAndCCP.java
     static void sum(int n) {
         int acc = 0;
         for (int i = 0; i < n; i++) acc += i;

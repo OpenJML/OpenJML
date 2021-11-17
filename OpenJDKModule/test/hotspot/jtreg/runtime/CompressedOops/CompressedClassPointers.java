@@ -93,7 +93,6 @@ public class CompressedClassPointers {
             "-XX:+UnlockDiagnosticVMOptions",
             "-XX:+UnlockExperimentalVMOptions",
             "-Xmx30g",
-            "-XX:-UseAOT", // AOT explicitly set klass shift to 3.
             logging_option,
             "-Xshare:off",
             "-XX:+VerifyBeforeGC", "-version");
@@ -109,6 +108,33 @@ public class CompressedClassPointers {
         output.shouldHaveExitValue(0);
     }
 
+<<<<<<< HEAD
+=======
+    // Settings as in largeHeapTest() except for max heap size. We make max heap
+    // size even larger such that it cannot fit into lower 32G but not too large
+    // for compressed oops.
+    // We expect a zerobased ccs.
+    public static void largeHeapAbove32GTest() throws Exception {
+        ProcessBuilder pb = ProcessTools.createJavaProcessBuilder(
+            "-XX:+UnlockDiagnosticVMOptions",
+            "-XX:+UnlockExperimentalVMOptions",
+            "-Xmx31g",
+            logging_option,
+            "-Xshare:off",
+            "-XX:+VerifyBeforeGC", "-version");
+        OutputAnalyzer output = new OutputAnalyzer(pb.start());
+        if (testNarrowKlassBase()) {
+            if (!(Platform.isAArch64() && Platform.isOSX())) { // see JDK-8262895
+                output.shouldContain("Narrow klass base: 0x0000000000000000");
+                if (!Platform.isAArch64() && !Platform.isOSX()) {
+                    output.shouldContain("Narrow klass shift: 0");
+                }
+            }
+        }
+        output.shouldHaveExitValue(0);
+    }
+
+>>>>>>> openjdk-src
     // Using large paged heap, metaspace uses small pages.
     public static void largePagesForHeapTest() throws Exception {
         ProcessBuilder pb = ProcessTools.createJavaProcessBuilder(
@@ -213,7 +239,6 @@ public class CompressedClassPointers {
             "-XX:+UnlockDiagnosticVMOptions",
             "-XX:+UnlockExperimentalVMOptions",
             "-Xmx30g",
-            "-XX:-UseAOT", // AOT explicitly set klass shift to 3.
             "-Xlog:gc+metaspace=trace",
             "-Xshare:off",
             "-Xlog:cds=trace",

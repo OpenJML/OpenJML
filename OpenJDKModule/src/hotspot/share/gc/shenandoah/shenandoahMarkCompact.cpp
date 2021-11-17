@@ -24,7 +24,11 @@
 
 #include "precompiled.hpp"
 
+<<<<<<< HEAD:OpenJDKModule/src/hotspot/share/gc/shenandoah/shenandoahMarkCompact.cpp
 #include "code/codeCache.hpp"
+=======
+#include "compiler/oopMap.hpp"
+>>>>>>> openjdk-src:OpenJDKModule/src/hotspot/share/gc/shenandoah/shenandoahFullGC.cpp
 #include "gc/shared/gcTraceTime.inline.hpp"
 #include "gc/shared/preservedMarks.inline.hpp"
 #include "gc/shenandoah/shenandoahForwarding.inline.hpp"

@@ -213,10 +213,8 @@ public interface TypeElement extends Element, Parameterizable, QualifiedNameable
      *
      * @return the permitted classes, or an empty list if there are none
      *
-     * @since 15
+     * @since 17
      */
-    @jdk.internal.PreviewFeature(feature=jdk.internal.PreviewFeature.Feature.SEALED_CLASSES,
-                                 essentialAPI=false)
     default List<? extends TypeMirror> getPermittedSubclasses() {
         return List.of();
     }

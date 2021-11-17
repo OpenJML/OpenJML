@@ -144,8 +144,82 @@ public class ClhsdbFindPC {
                             "In interpreter codelet"));
             }
 
+<<<<<<< HEAD
             if (withCore) {
                 test.runOnCore(coreFileName, cmds, expStrMap, null);
+=======
+            // Run findpc on a Method*. We can find one in the jstack output. For example:
+            // - LingeredApp.steadyState(java.lang.Object) @bci=1, line=33, pc=..., Method*=0x0000008041000208 ...
+            // This is testing the PointerFinder support for C++ MetaData types.
+            parts = jStackOutput.split("LingeredApp.steadyState");
+            parts = parts[1].split("Method\\*=");
+            parts = parts[1].split(" ");
+            String methodAddr = parts[0];
+            cmdStr = "findpc " + methodAddr;
+            cmds = List.of(cmdStr);
+            expStrMap = new HashMap<>();
+            expStrMap.put(cmdStr, List.of("Method ",
+                                          "LingeredApp.steadyState",
+                                          methodAddr));
+            runTest(withCore, cmds, expStrMap);
+
+            // Run findpc on a JavaThread*. We can find one in the jstack output.
+            // The tid for a thread is it's JavaThread*. For example:
+            //  "main" #1 prio=5 tid=0x00000080263398f0 nid=0x277e0 ...
+            // This is testing the PointerFinder support for all C++ types other than MetaData types.
+            parts = jStackOutput.split("tid=");
+            parts = parts[1].split(" ");
+            String tid = parts[0];  // address of the JavaThread
+            cmdStr = "findpc " + tid;
+            cmds = List.of(cmdStr);
+            expStrMap = new HashMap<>();
+            expStrMap.put(cmdStr, List.of("Is of type JavaThread"));
+            runTest(withCore, cmds, expStrMap);
+
+            // Run findpc on a java stack address. We can find one in the jstack output.
+            //   "main" #1 prio=5 tid=... nid=0x277e0 waiting on condition [0x0000008025aef000]
+            // The stack address is the last word between the brackets.
+            // This is testing the PointerFinder support for thread stack addresses.
+            parts = jStackOutput.split("tid=");
+            parts = parts[1].split(" \\[");
+            parts = parts[1].split("\\]");
+            String stackAddress = parts[0];  // address of the thread's stack
+            if (Long.decode(stackAddress) == 0L) {
+                System.out.println("Stack address is " + stackAddress + ". Skipping test.");
+            } else {
+                cmdStr = "findpc " + stackAddress;
+                cmds = List.of(cmdStr);
+                expStrMap = new HashMap<>();
+                // Note, sometimes a stack address points to a hotspot type, thus allow for "Is of type".
+                expStrMap.put(cmdStr, List.of("(In java stack)|(Is of type)"));
+                runTest(withCore, cmds, expStrMap);
+            }
+
+            // Run 'examine <addr>' using a thread's tid as the address. The
+            // examine output will be the of the form:
+            //    <tid>: <value>
+            // Where <value> is the word stored at <tid>. <value> also happens to
+            // be the vtable address. We then run findpc on this vtable address.
+            // This tests PointerFinder support for native C++ symbols.
+            cmds = List.of("examine " + tid);
+            String examineOutput = runTest(withCore, cmds, null);
+            // Extract <value>.
+            parts = examineOutput.split(tid + ": ");
+            String value = parts[1].split(linesep)[0];
+            // Use findpc on <value>. The output should look something like:
+            //    Address 0x00007fed86f610b8: vtable for JavaThread + 0x10
+            cmdStr = "findpc " + value;
+            cmds = List.of(cmdStr);
+            expStrMap = new HashMap<>();
+            if (Platform.isWindows()) {
+                expStrMap.put(cmdStr, List.of("jvm.+JavaThread"));
+            } else if (Platform.isOSX()) {
+                if (withCore) {
+                    expStrMap.put(cmdStr, List.of("__ZTV10JavaThread"));
+                } else { // address -> symbol lookups not supported with OSX live process
+                    expStrMap.put(cmdStr, List.of("In unknown location"));
+                }
+>>>>>>> openjdk-src
             } else {
                 test.run(theApp.getPid(), cmds, expStrMap, null);
             }

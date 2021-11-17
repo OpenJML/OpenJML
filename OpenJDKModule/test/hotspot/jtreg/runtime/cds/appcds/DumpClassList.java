@@ -74,6 +74,7 @@ public class DumpClassList {
         String appendJar = JarBuilder.build("bootappend", "boot/append/Foo");
 
         // dump class list
+<<<<<<< HEAD
         ProcessBuilder pb = ProcessTools.createTestJvm(
             "-XX:DumpLoadedClassList=" + classList,
             "--patch-module=java.base=" + patchJar,
@@ -86,6 +87,17 @@ public class DumpClassList {
                                    "hello world",
                                    "skip writing class java/lang/NewClass") // skip classes outside of jrt image
             .shouldNotContain("skip writing class boot/append/Foo");        // but classes on -Xbootclasspath/a should not be skipped
+=======
+        CDSTestUtils.dumpClassList(classList,
+                                   "--patch-module=java.base=" + patchJar,
+                                   "-Xbootclasspath/a:" + appendJar,
+                                   "-cp",
+                                   appJar,
+                                   appClass[0])
+            .assertNormalExit(output -> {
+                output.shouldContain("hello world");
+            });
+>>>>>>> openjdk-src
 
         output = TestCommon.createArchive(appJar, appClass,
                                           "-Xbootclasspath/a:" + appendJar,

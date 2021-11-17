@@ -25,6 +25,7 @@
  * @test PlainRead
  * @key cgroups
  * @requires os.family == "linux"
+ * @requires vm.flagless
  * @library /testlibrary /test/lib
  * @build sun.hotspot.WhiteBox
  * @run driver ClassFileInstaller sun.hotspot.WhiteBox

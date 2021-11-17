@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,8 +25,8 @@
 #include "precompiled.hpp"
 #include "c1/c1_MacroAssembler.hpp"
 #include "c1/c1_Runtime1.hpp"
-#include "classfile/systemDictionary.hpp"
 #include "gc/shared/collectedHeap.hpp"
+#include "gc/shared/tlab_globals.hpp"
 #include "interpreter/interpreter.hpp"
 #include "oops/arrayOop.hpp"
 #include "oops/markWord.hpp"
@@ -205,9 +205,9 @@ int C1_MacroAssembler::lock_object(Register hdr, Register obj,
   null_check_offset = offset();
 
   if (DiagnoseSyncOnValueBasedClasses != 0) {
-    load_klass(tmp1, obj);
-    ldr_u32(tmp1, Address(tmp1, Klass::access_flags_offset()));
-    tst(tmp1, JVM_ACC_IS_VALUE_BASED_CLASS);
+    load_klass(tmp2, obj);
+    ldr_u32(tmp2, Address(tmp2, Klass::access_flags_offset()));
+    tst(tmp2, JVM_ACC_IS_VALUE_BASED_CLASS);
     b(slow_case, ne);
   }
 
@@ -234,8 +234,9 @@ int C1_MacroAssembler::lock_object(Register hdr, Register obj,
   // -2- test (hdr - SP) if the low two bits are 0
   sub(tmp2, hdr, SP, eq);
   movs(tmp2, AsmOperand(tmp2, lsr, exact_log2(os::vm_page_size())), eq);
-  // If 'eq' then OK for recursive fast locking: store 0 into a lock record.
-  str(tmp2, Address(disp_hdr, mark_offset), eq);
+  // If still 'eq' then recursive locking OK
+  // set to zero if recursive lock, set to non zero otherwise (see discussion in JDK-8267042)
+  str(tmp2, Address(disp_hdr, mark_offset));
   b(fast_lock_done, eq);
   // else need slow case
   b(slow_case);

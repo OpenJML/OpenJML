@@ -242,6 +242,7 @@ public final class Subject implements java.io.Serializable {
      *         {@code Subject} to be read-only.
      */
     public void setReadOnly() {
+        @SuppressWarnings("removal")
         java.lang.SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkPermission(AuthPermissionHolder.SET_READ_ONLY_PERMISSION);
@@ -284,7 +285,16 @@ public final class Subject implements java.io.Serializable {
      *
      * @throws NullPointerException if the provided
      *          {@code AccessControlContext} is {@code null}.
+     *
+     * @deprecated This method depends on {@link AccessControlContext}
+     *       which, in conjunction with
+     *       {@linkplain SecurityManager the Security Manager}, is deprecated
+     *       and subject to removal in a future release. However, obtaining a
+     *       Subject is useful independent of the Security Manager, so a
+     *       replacement for this method may be added in a future release.
      */
+    @SuppressWarnings("removal")
+    @Deprecated(since="17", forRemoval=true)
     public static Subject getSubject(final AccessControlContext acc) {
 
         java.lang.SecurityManager sm = System.getSecurityManager();
@@ -345,6 +355,7 @@ public final class Subject implements java.io.Serializable {
      *                  AuthPermission("doAs")} permission to invoke this
      *                  method.
      */
+    @SuppressWarnings("removal")
     public static <T> T doAs(final Subject subject,
                         final java.security.PrivilegedAction<T> action) {
 
@@ -407,6 +418,7 @@ public final class Subject implements java.io.Serializable {
      *                  AuthPermission("doAs")} permission to invoke this
      *                  method.
      */
+    @SuppressWarnings("removal")
     public static <T> T doAs(final Subject subject,
                         final java.security.PrivilegedExceptionAction<T> action)
                         throws java.security.PrivilegedActionException {
@@ -463,7 +475,16 @@ public final class Subject implements java.io.Serializable {
      *                  {@link AuthPermission#AuthPermission(String)
      *                  AuthPermission("doAsPrivileged")} permission to invoke
      *                  this method.
+     *
+     * @deprecated This method is only useful in conjunction with
+     *       {@linkplain SecurityManager the Security Manager}, which is
+     *       deprecated and subject to removal in a future release.
+     *       Consequently, this method is also deprecated and subject to
+     *       removal. There is no replacement for the Security Manager or this
+     *       method.
      */
+    @SuppressWarnings("removal")
+    @Deprecated(since="17", forRemoval=true)
     public static <T> T doAsPrivileged(final Subject subject,
                         final java.security.PrivilegedAction<T> action,
                         final java.security.AccessControlContext acc) {
@@ -529,7 +550,16 @@ public final class Subject implements java.io.Serializable {
      *                  {@link AuthPermission#AuthPermission(String)
      *                  AuthPermission("doAsPrivileged")} permission to invoke
      *                  this method.
+     *
+     * @deprecated This method is only useful in conjunction with
+     *       {@linkplain SecurityManager the Security Manager}, which is
+     *       deprecated and subject to removal in a future release.
+     *       Consequently, this method is also deprecated and subject to
+     *       removal. There is no replacement for the Security Manager or this
+     *       method.
      */
+    @SuppressWarnings("removal")
+    @Deprecated(since="17", forRemoval=true)
     public static <T> T doAsPrivileged(final Subject subject,
                         final java.security.PrivilegedExceptionAction<T> action,
                         final java.security.AccessControlContext acc)
@@ -555,6 +585,7 @@ public final class Subject implements java.io.Serializable {
                                         createContext(subject, callerAcc));
     }
 
+    @SuppressWarnings("removal")
     private static AccessControlContext createContext(final Subject subject,
                                         final AccessControlContext acc) {
 
@@ -1083,6 +1114,7 @@ public final class Subject implements java.io.Serializable {
                         return i.next();
                     }
 
+                    @SuppressWarnings("removal")
                     SecurityManager sm = System.getSecurityManager();
                     if (sm != null) {
                         try {
@@ -1104,6 +1136,7 @@ public final class Subject implements java.io.Serializable {
                                 ("Subject.is.read.only"));
                     }
 
+                    @SuppressWarnings("removal")
                     java.lang.SecurityManager sm = System.getSecurityManager();
                     if (sm != null) {
                         switch (which) {
@@ -1133,6 +1166,7 @@ public final class Subject implements java.io.Serializable {
                         (ResourcesMgr.getString("Subject.is.read.only"));
             }
 
+            @SuppressWarnings("removal")
             java.lang.SecurityManager sm = System.getSecurityManager();
             if (sm != null) {
                 switch (which) {
@@ -1168,6 +1202,7 @@ public final class Subject implements java.io.Serializable {
         }
         }
 
+        @SuppressWarnings("removal")
         public boolean remove(Object o) {
 
             Objects.requireNonNull(o,
@@ -1195,6 +1230,7 @@ public final class Subject implements java.io.Serializable {
             return false;
         }
 
+        @SuppressWarnings("removal")
         public boolean contains(Object o) {
 
             Objects.requireNonNull(o,
@@ -1246,6 +1282,7 @@ public final class Subject implements java.io.Serializable {
             return result;
         }
 
+        @SuppressWarnings("removal")
         public boolean removeAll(Collection<?> c) {
             c = collectionNullClean(c);
 
@@ -1288,6 +1325,7 @@ public final class Subject implements java.io.Serializable {
             return true;
         }
 
+        @SuppressWarnings("removal")
         public boolean retainAll(Collection<?> c) {
             c = collectionNullClean(c);
 
@@ -1315,6 +1353,7 @@ public final class Subject implements java.io.Serializable {
             return modified;
         }
 
+        @SuppressWarnings("removal")
         public void clear() {
             final Iterator<E> e = iterator();
             while (e.hasNext()) {
@@ -1471,7 +1510,7 @@ public final class Subject implements java.io.Serializable {
             }
         }
 
-        @SuppressWarnings("unchecked")     /*To suppress warning from line 1374*/
+        @SuppressWarnings({"removal","unchecked"})     /*To suppress warning from line 1374*/
         private void populateSet() {
             final Iterator<?> iterator;
             switch(which) {

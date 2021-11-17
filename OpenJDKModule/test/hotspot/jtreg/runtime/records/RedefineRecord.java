@@ -30,8 +30,9 @@
  * @modules java.instrument
  *          jdk.jartool/sun.tools.jar
  * @requires vm.jvmti
- * @run main RedefineRecord buildagent
- * @run main/othervm/timeout=6000 RedefineRecord runtest
+ * @requires vm.flagless
+ * @run driver RedefineRecord buildagent
+ * @run driver/timeout=6000 RedefineRecord runtest
  */
 
 import java.io.FileNotFoundException;

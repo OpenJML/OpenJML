@@ -47,7 +47,7 @@ public class Main {
      *      just retained for historical compatibility
      */
     public static void main(String[] args) throws Exception {
-    	if (System.getenv("NOJML") != null) {
+    	if (System.getenv("NOJML") != null) { // OPENJML - the 'then' alternative
             System.exit(compile(args));
     	} else {
             org.jmlspecs.openjml.Main.main(args);

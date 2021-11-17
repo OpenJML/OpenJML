@@ -27,8 +27,11 @@
 #
 #############################################################################
 
+vmTestbase/jit/escape/AdaptiveBlocking/AdaptiveBlocking001/AdaptiveBlocking001.java 8260303 windows-x64
+
 resourcehogs/serviceability/sa/TestHeapDumpForLargeArray.java 8220624   generic-all
 serviceability/sa/CDSJMapClstats.java                         8220624   generic-all
+<<<<<<< HEAD
 serviceability/sa/ClhsdClasses.java                           8220624   generic-all
 serviceability/sa/ClhsdbDumpheap.java                         8220624   generic-all
 serviceability/sa/ClhsdbCDSJstackPrintAll.java                8220624   generic-all
@@ -61,3 +64,22 @@ serviceability/sa/TestJmapCore.java                           8220624   generic-
 serviceability/sa/TestJmapCoreMetaspace.java                  8220624   generic-all
 serviceability/sa/TestSysProps.java                           8220624   generic-all
 serviceability/sa/sadebugd/DebugdConnectTest.java             8220624   generic-all
+=======
+serviceability/sa/ClhsdbJhisto.java                           8220624   generic-all
+
+serviceability/sa/ClhsdbCDSCore.java                          8268722   macosx-x64
+serviceability/sa/ClhsdbFindPC.java#id1                       8268722   macosx-x64
+serviceability/sa/ClhsdbFindPC.java#id3                       8268722   macosx-x64
+serviceability/sa/ClhsdbPmap.java#id1                         8268722   macosx-x64
+serviceability/sa/ClhsdbPstack.java#id1                       8268722   macosx-x64
+serviceability/sa/TestJmapCore.java                           8268722,8268283,8270202   macosx-x64,linux-aarch64,linux-x64
+serviceability/sa/TestJmapCoreMetaspace.java                  8268722,8268636   generic-all
+
+serviceability/sa/TestJhsdbJstackMixed.java                   8248912   generic-all
+serviceability/sa/ClhsdbPstack.java#id0                       8248912   generic-all
+serviceability/sa/ClhsdbPstack.java#id1                       8248912   generic-all
+
+serviceability/dcmd/framework/HelpTest.java                   8268433 windows-x64
+serviceability/dcmd/framework/InvalidCommandTest.java         8268433 windows-x64
+serviceability/dcmd/framework/VMVersionTest.java              8268433 windows-x64
+>>>>>>> openjdk-src

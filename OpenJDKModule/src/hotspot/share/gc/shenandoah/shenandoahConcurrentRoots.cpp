@@ -24,8 +24,14 @@
 
 #include "precompiled.hpp"
 
+<<<<<<< HEAD:OpenJDKModule/src/hotspot/share/gc/shenandoah/shenandoahConcurrentRoots.cpp
 #include "gc/shenandoah/shenandoahConcurrentRoots.hpp"
 #include "gc/shenandoah/shenandoahHeap.inline.hpp"
+=======
+#include "oops/compiledICHolder.hpp"
+
+#include "oops/klass.inline.hpp"
+>>>>>>> openjdk-src:OpenJDKModule/src/hotspot/share/oops/compiledICHolder.inline.hpp
 
 bool ShenandoahConcurrentRoots::can_do_concurrent_roots() {
   return true;

@@ -464,6 +464,7 @@ class AnnotationInvocationHandler implements InvocationHandler, Serializable {
         return value;
     }
 
+    @SuppressWarnings("removal")
     private Method[] computeMemberMethods() {
         return AccessController.doPrivileged(
             new PrivilegedAction<Method[]>() {

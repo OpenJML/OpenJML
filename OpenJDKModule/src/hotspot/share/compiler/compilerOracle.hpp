@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -51,6 +51,7 @@ class methodHandle;
   option(Print, "print", Bool) \
   option(Inline,  "inline", Bool) \
   option(DontInline,  "dontinline", Bool) \
+  option(Blackhole,  "blackhole", Bool) \
   option(CompileOnly, "compileonly", Bool)\
   option(Exclude, "exclude", Bool) \
   option(Break, "break", Bool) \
@@ -144,6 +145,9 @@ class CompilerOracle : AllStatic {
   // Tells whether there are any methods to print for print_method_statistics()
   static bool should_print_methods();
 
+  // Tags the method as blackhole candidate, if possible.
+  static void tag_blackhole_if_possible(const methodHandle& method);
+
   // A wrapper for checking bool options
   static bool has_option(const methodHandle& method, enum CompileCommand option);
 
@@ -167,6 +171,14 @@ class CompilerOracle : AllStatic {
   // convert a string to a proper compilecommand option - used from whitebox.
   // returns CompileCommand::Unknown on names not matching an option.
   static enum CompileCommand string_to_option(const char* name);
+
+  // convert a string to a proper compilecommand option
+  // returns CompileCommand::Unknown if name is not an option.
+  static enum CompileCommand parse_option_name(const char* name);
+
+  // convert a string to a proper option type
+  // returns OptionType::Unknown on strings not matching an option type.
+  static enum OptionType parse_option_type(const char* type_str);
 };
 
 #endif // SHARE_COMPILER_COMPILERORACLE_HPP

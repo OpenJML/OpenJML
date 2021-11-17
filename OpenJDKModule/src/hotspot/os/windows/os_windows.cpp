@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,8 +27,6 @@
 
 // no precompiled headers
 #include "jvm.h"
-#include "classfile/classLoader.hpp"
-#include "classfile/systemDictionary.hpp"
 #include "classfile/vmSymbols.hpp"
 #include "code/codeCache.hpp"
 #include "code/icBuffer.hpp"
@@ -41,7 +39,6 @@
 #include "logging/log.hpp"
 #include "logging/logStream.hpp"
 #include "memory/allocation.inline.hpp"
-#include "memory/filemap.hpp"
 #include "oops/oop.inline.hpp"
 #include "os_share_windows.hpp"
 #include "os_windows.inline.hpp"
@@ -59,10 +56,11 @@
 #include "runtime/orderAccess.hpp"
 #include "runtime/osThread.hpp"
 #include "runtime/perfMemory.hpp"
+#include "runtime/safefetch.inline.hpp"
 #include "runtime/safepointMechanism.hpp"
+#include "runtime/semaphore.inline.hpp"
 #include "runtime/sharedRuntime.hpp"
 #include "runtime/statSampler.hpp"
-#include "runtime/stubRoutines.hpp"
 #include "runtime/thread.inline.hpp"
 #include "runtime/threadCritical.hpp"
 #include "runtime/timer.hpp"
@@ -132,9 +130,6 @@ static FILETIME process_kernel_time;
 #if defined(USE_VECTORED_EXCEPTION_HANDLING)
 PVOID  topLevelVectoredExceptionHandler = NULL;
 LPTOP_LEVEL_EXCEPTION_FILTER previousUnhandledExceptionFilter = NULL;
-#elif INCLUDE_AOT
-PVOID  topLevelVectoredExceptionHandler = NULL;
-LONG WINAPI topLevelVectoredExceptionFilter(struct _EXCEPTION_POINTERS* exceptionInfo);
 #endif
 
 // save DLL module handle, used by GetModuleFileName
@@ -155,7 +150,7 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
     if (ForceTimeHighResolution) {
       timeEndPeriod(1L);
     }
-#if defined(USE_VECTORED_EXCEPTION_HANDLING) || INCLUDE_AOT
+#if defined(USE_VECTORED_EXCEPTION_HANDLING)
     if (topLevelVectoredExceptionHandler != NULL) {
       RemoveVectoredExceptionHandler(topLevelVectoredExceptionHandler);
       topLevelVectoredExceptionHandler = NULL;
@@ -267,6 +262,8 @@ bool os::unsetenv(const char* name) {
   assert(name != NULL, "Null pointer");
   return (SetEnvironmentVariable(name, NULL) == TRUE);
 }
+
+char** os::get_environ() { return _environ; }
 
 // No setuid programs under Windows.
 bool os::have_special_privileges() {
@@ -512,22 +509,13 @@ struct tm* os::gmtime_pd(const time_t* clock, struct tm* res) {
   return NULL;
 }
 
+JNIEXPORT
 LONG WINAPI topLevelExceptionFilter(struct _EXCEPTION_POINTERS* exceptionInfo);
 
 // Thread start routine for all newly created threads
 static unsigned __stdcall thread_native_entry(Thread* thread) {
 
   thread->record_stack_base_and_size();
-
-  // Try to randomize the cache line index of hot stack frames.
-  // This helps when threads of the same stack traces evict each other's
-  // cache lines. The threads can be either from the same JVM instance, or
-  // from different JVM instances. The benefit is especially true for
-  // processors with hyperthreading technology.
-  static int counter = 0;
-  int pid = os::current_process_id();
-  _alloca(((pid ^ counter++) & 7) * 128);
-
   thread->initialize_thread_current();
 
   OSThread* osthr = thread->osthread();
@@ -726,6 +714,7 @@ bool os::create_thread(Thread* thread, ThreadType thr_type,
     case os::vm_thread:
     case os::pgc_thread:
     case os::cgc_thread:
+    case os::asynclog_thread:
     case os::watcher_thread:
       if (VMThreadStackSize > 0) stack_size = (size_t)(VMThreadStackSize * K);
       break;
@@ -852,16 +841,16 @@ julong os::physical_memory() {
   return win32::physical_memory();
 }
 
-bool os::has_allocatable_memory_limit(julong* limit) {
+bool os::has_allocatable_memory_limit(size_t* limit) {
   MEMORYSTATUSEX ms;
   ms.dwLength = sizeof(ms);
   GlobalMemoryStatusEx(&ms);
 #ifdef _LP64
-  *limit = (julong)ms.ullAvailVirtual;
+  *limit = (size_t)ms.ullAvailVirtual;
   return true;
 #else
   // Limit to 1400m because of the 2gb address space wall
-  *limit = MIN2((julong)1400*M, (julong)ms.ullAvailVirtual);
+  *limit = MIN2((size_t)1400*M, (size_t)ms.ullAvailVirtual);
   return true;
 #endif
 }
@@ -1197,6 +1186,16 @@ void os::abort(bool dump_core, void* siginfo, const void* context) {
 // Die immediately, no exit hook, no abort hook, no cleanup.
 void os::die() {
   win32::exit_process_or_thread(win32::EPT_PROCESS_DIE, -1);
+}
+
+const char* os::dll_file_extension() { return ".dll"; }
+
+void  os::dll_unload(void *lib) {
+  ::FreeLibrary((HMODULE)lib);
+}
+
+void* os::dll_lookup(void *lib, const char *name) {
+  return (void*)::GetProcAddress((HMODULE)lib, name);
 }
 
 // Directory routines copied from src/win32/native/java/io/dirent_md.c
@@ -1701,9 +1700,9 @@ void os::print_os_info(outputStream* st) {
   char buffer[1024];
   st->print("HostName: ");
   if (get_host_name(buffer, sizeof(buffer))) {
-    st->print("%s ", buffer);
+    st->print_cr(buffer);
   } else {
-    st->print("N/A ");
+    st->print_cr("N/A");
   }
 #endif
   st->print_cr("OS:");
@@ -2206,28 +2205,7 @@ static int check_pending_signals() {
         return i;
       }
     }
-    JavaThread *thread = JavaThread::current();
-
-    ThreadBlockInVM tbivm(thread);
-
-    bool threadIsSuspended;
-    do {
-      thread->set_suspend_equivalent();
-      // cleared by handle_special_suspend_equivalent_condition() or java_suspend_self()
-      sig_sem->wait();
-
-      // were we externally suspended while we were waiting?
-      threadIsSuspended = thread->handle_special_suspend_equivalent_condition();
-      if (threadIsSuspended) {
-        // The semaphore has been incremented, but while we were waiting
-        // another thread suspended us. We don't want to continue running
-        // while suspended because that would surprise the thread that
-        // suspended us.
-        sig_sem->signal();
-
-        thread->java_suspend_self();
-      }
-    } while (threadIsSuspended);
+    sig_sem->wait_with_safepoint_check(JavaThread::current());
   }
   ShouldNotReachHere();
   return 0; // Satisfy compiler
@@ -2242,29 +2220,24 @@ int os::signal_wait() {
 LONG Handle_Exception(struct _EXCEPTION_POINTERS* exceptionInfo,
                       address handler) {
   Thread* thread = Thread::current_or_null();
-  // Save pc in thread
+
 #if defined(_M_ARM64)
-  // Do not blow up if no thread info available.
-  if (thread) {
-    thread->as_Java_thread()->set_saved_exception_pc((address)(DWORD_PTR)exceptionInfo->ContextRecord->Pc);
-  }
-  // Set pc to handler
-  exceptionInfo->ContextRecord->Pc = (DWORD64)handler;
+  #define PC_NAME Pc
 #elif defined(_M_AMD64)
-  // Do not blow up if no thread info available.
-  if (thread != NULL) {
-    thread->as_Java_thread()->set_saved_exception_pc((address)(DWORD_PTR)exceptionInfo->ContextRecord->Rip);
-  }
-  // Set pc to handler
-  exceptionInfo->ContextRecord->Rip = (DWORD64)handler;
+  #define PC_NAME Rip
+#elif defined(_M_IX86)
+  #define PC_NAME Eip
 #else
-  // Do not blow up if no thread info available.
-  if (thread != NULL) {
-    thread->as_Java_thread()->set_saved_exception_pc((address)(DWORD_PTR)exceptionInfo->ContextRecord->Eip);
-  }
-  // Set pc to handler
-  exceptionInfo->ContextRecord->Eip = (DWORD)(DWORD_PTR)handler;
+  #error unknown architecture
 #endif
+
+  // Save pc in thread
+  if (thread != nullptr && thread->is_Java_thread()) {
+    thread->as_Java_thread()->set_saved_exception_pc((address)(DWORD_PTR)exceptionInfo->ContextRecord->PC_NAME);
+  }
+
+  // Set pc to handler
+  exceptionInfo->ContextRecord->PC_NAME = (DWORD64)handler;
 
   // Continue the execution
   return EXCEPTION_CONTINUE_EXECUTION;
@@ -2405,7 +2378,7 @@ LONG WINAPI Handle_FLT_Exception(struct _EXCEPTION_POINTERS* exceptionInfo) {
   case EXCEPTION_FLT_OVERFLOW:
   case EXCEPTION_FLT_STACK_CHECK:
   case EXCEPTION_FLT_UNDERFLOW:
-    jint fp_control_word = (* (jint*) StubRoutines::addr_fpu_cntrl_wrd_std());
+    jint fp_control_word = (* (jint*) StubRoutines::x86::addr_fpu_cntrl_wrd_std());
     if (fp_control_word != ctx->FloatSave.ControlWord) {
       // Restore FPCW and mask out FLT exceptions
       ctx->FloatSave.ControlWord = fp_control_word | 0xffffffc0;
@@ -2425,7 +2398,7 @@ LONG WINAPI Handle_FLT_Exception(struct _EXCEPTION_POINTERS* exceptionInfo) {
   // See also CR 6192333
   //
   jint MxCsr = INITIAL_MXCSR;
-  // we can't use StubRoutines::addr_mxcsr_std()
+  // we can't use StubRoutines::x86::addr_mxcsr_std()
   // because in Win64 mxcsr is not saved there
   if (MxCsr != ctx->MxCsr) {
     ctx->MxCsr = MxCsr;
@@ -2446,6 +2419,7 @@ static inline void report_error(Thread* t, DWORD exception_code,
 }
 
 //-----------------------------------------------------------------------------
+JNIEXPORT
 LONG WINAPI topLevelExceptionFilter(struct _EXCEPTION_POINTERS* exceptionInfo) {
   if (InterceptOSException) return EXCEPTION_CONTINUE_SEARCH;
   PEXCEPTION_RECORD exception_record = exceptionInfo->ExceptionRecord;
@@ -2708,7 +2682,7 @@ LONG WINAPI topLevelExceptionFilter(struct _EXCEPTION_POINTERS* exceptionInfo) {
   return EXCEPTION_CONTINUE_SEARCH;
 }
 
-#if defined(USE_VECTORED_EXCEPTION_HANDLING) || INCLUDE_AOT
+#if defined(USE_VECTORED_EXCEPTION_HANDLING)
 LONG WINAPI topLevelVectoredExceptionFilter(struct _EXCEPTION_POINTERS* exceptionInfo) {
   PEXCEPTION_RECORD exceptionRecord = exceptionInfo->ExceptionRecord;
 #if defined(_M_ARM64)
@@ -2724,9 +2698,7 @@ LONG WINAPI topLevelVectoredExceptionFilter(struct _EXCEPTION_POINTERS* exceptio
     return topLevelExceptionFilter(exceptionInfo);
   }
 
-  // Handle the case where we get an implicit exception in AOT generated
-  // code.  AOT DLL's loaded are not registered for structured exceptions.
-  // If the exception occurred in the codeCache or AOT code, pass control
+  // If the exception occurred in the codeCache, pass control
   // to our normal exception handler.
   CodeBlob* cb = CodeCache::find_blob(pc);
   if (cb != NULL) {
@@ -3196,34 +3168,6 @@ char* os::replace_existing_mapping_with_file_mapping(char* base, size_t size, in
   return map_memory_to_file(base, size, fd);
 }
 
-// On win32, one cannot release just a part of reserved memory, it's an
-// all or nothing deal.  When we split a reservation, we must break the
-// reservation into two reservations.
-void os::split_reserved_memory(char *base, size_t size, size_t split) {
-
-  char* const split_address = base + split;
-  assert(size > 0, "Sanity");
-  assert(size > split, "Sanity");
-  assert(split > 0, "Sanity");
-  assert(is_aligned(base, os::vm_allocation_granularity()), "Sanity");
-  assert(is_aligned(split_address, os::vm_allocation_granularity()), "Sanity");
-
-  const bool rc = release_memory(base, size) &&
-                  (attempt_reserve_memory_at(base, split) != NULL) &&
-                  (attempt_reserve_memory_at(split_address, size - split) != NULL);
-  if (!rc) {
-    log_warning(os)("os::split_reserved_memory failed for " RANGE_FORMAT,
-                    RANGE_FORMAT_ARGS(base, size));
-    os::print_memory_mappings(base, size, tty);
-    assert(false, "os::split_reserved_memory failed for " RANGE_FORMAT,
-                    RANGE_FORMAT_ARGS(base, size));
-  }
-
-  // NMT: nothing to do here. Since Windows implements the split by
-  //  releasing and re-reserving memory, the parts are already registered
-  //  as individual mappings with NMT.
-}
-
 // Multiple threads can race in this code but it's not possible to unmap small sections of
 // virtual space to get requested alignment, like posix-like os's.
 // Windows prevents multiple thread from remapping over each other so this loop is thread-safe.
@@ -3265,7 +3209,8 @@ static char* map_or_reserve_memory_aligned(size_t size, size_t alignment, int fi
   return aligned_base;
 }
 
-char* os::reserve_memory_aligned(size_t size, size_t alignment) {
+char* os::reserve_memory_aligned(size_t size, size_t alignment, bool exec) {
+  // exec can be ignored
   return map_or_reserve_memory_aligned(size, alignment, -1 /* file_desc */);
 }
 
@@ -3273,13 +3218,13 @@ char* os::map_memory_to_file_aligned(size_t size, size_t alignment, int fd) {
   return map_or_reserve_memory_aligned(size, alignment, fd);
 }
 
-char* os::pd_reserve_memory(size_t bytes) {
-  return pd_attempt_reserve_memory_at(NULL /* addr */, bytes);
+char* os::pd_reserve_memory(size_t bytes, bool exec) {
+  return pd_attempt_reserve_memory_at(NULL /* addr */, bytes, exec);
 }
 
 // Reserve memory at an arbitrary address, only if that area is
 // available (and not reserved for something else).
-char* os::pd_attempt_reserve_memory_at(char* addr, size_t bytes) {
+char* os::pd_attempt_reserve_memory_at(char* addr, size_t bytes, bool exec) {
   assert((size_t)addr % os::vm_allocation_granularity() == 0,
          "reserve alignment");
   assert(bytes % os::vm_page_size() == 0, "reserve page size");
@@ -3330,47 +3275,105 @@ bool os::can_execute_large_page_memory() {
   return true;
 }
 
-char* os::pd_reserve_memory_special(size_t bytes, size_t alignment, char* addr,
-                                    bool exec) {
-  assert(UseLargePages, "only for large pages");
-
-  if (!is_aligned(bytes, os::large_page_size()) || alignment > os::large_page_size()) {
-    return NULL; // Fallback to small pages.
-  }
+static char* reserve_large_pages_individually(size_t size, char* req_addr, bool exec) {
+  log_debug(pagesize)("Reserving large pages individually.");
 
   const DWORD prot = exec ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
   const DWORD flags = MEM_RESERVE | MEM_COMMIT | MEM_LARGE_PAGES;
 
+  char * p_buf = allocate_pages_individually(size, req_addr, flags, prot, LargePagesIndividualAllocationInjectError);
+  if (p_buf == NULL) {
+    // give an appropriate warning message
+    if (UseNUMAInterleaving) {
+      warning("NUMA large page allocation failed, UseLargePages flag ignored");
+    }
+    if (UseLargePagesIndividualAllocation) {
+      warning("Individually allocated large pages failed, "
+              "use -XX:-UseLargePagesIndividualAllocation to turn off");
+    }
+    return NULL;
+  }
+  return p_buf;
+}
+
+static char* reserve_large_pages_single_range(size_t size, char* req_addr, bool exec) {
+  log_debug(pagesize)("Reserving large pages in a single large chunk.");
+
+  const DWORD prot = exec ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
+  const DWORD flags = MEM_RESERVE | MEM_COMMIT | MEM_LARGE_PAGES;
+
+  return (char *) virtualAlloc(req_addr, size, flags, prot);
+}
+
+static char* reserve_large_pages(size_t size, char* req_addr, bool exec) {
   // with large pages, there are two cases where we need to use Individual Allocation
   // 1) the UseLargePagesIndividualAllocation flag is set (set by default on WS2003)
   // 2) NUMA Interleaving is enabled, in which case we use a different node for each page
   if (UseLargePagesIndividualAllocation || UseNUMAInterleaving) {
-    log_debug(pagesize)("Reserving large pages individually.");
-
-    char * p_buf = allocate_pages_individually(bytes, addr, flags, prot, LargePagesIndividualAllocationInjectError);
-    if (p_buf == NULL) {
-      // give an appropriate warning message
-      if (UseNUMAInterleaving) {
-        warning("NUMA large page allocation failed, UseLargePages flag ignored");
-      }
-      if (UseLargePagesIndividualAllocation) {
-        warning("Individually allocated large pages failed, "
-                "use -XX:-UseLargePagesIndividualAllocation to turn off");
-      }
-      return NULL;
-    }
-
-    return p_buf;
-
-  } else {
-    log_debug(pagesize)("Reserving large pages in a single large chunk.");
-
-    // normal policy just allocate it all at once
-    DWORD flag = MEM_RESERVE | MEM_COMMIT | MEM_LARGE_PAGES;
-    char * res = (char *)virtualAlloc(addr, bytes, flag, prot);
-
-    return res;
+    return reserve_large_pages_individually(size, req_addr, exec);
   }
+  return reserve_large_pages_single_range(size, req_addr, exec);
+}
+
+static char* find_aligned_address(size_t size, size_t alignment) {
+  // Temporary reserve memory large enough to ensure we can get the requested
+  // alignment and still fit the reservation.
+  char* addr = (char*) virtualAlloc(NULL, size + alignment, MEM_RESERVE, PAGE_NOACCESS);
+  // Align the address to the requested alignment.
+  char* aligned_addr = align_up(addr, alignment);
+  // Free the temporary reservation.
+  virtualFree(addr, 0, MEM_RELEASE);
+
+  return aligned_addr;
+}
+
+static char* reserve_large_pages_aligned(size_t size, size_t alignment, bool exec) {
+  log_debug(pagesize)("Reserving large pages at an aligned address, alignment=" SIZE_FORMAT "%s",
+                      byte_size_in_exact_unit(alignment), exact_unit_for_byte_size(alignment));
+
+  // Will try to find a suitable address at most 20 times. The reason we need to try
+  // multiple times is that between finding the aligned address and trying to commit
+  // the large pages another thread might have reserved an overlapping region.
+  const int attempts_limit = 20;
+  for (int attempts = 0; attempts < attempts_limit; attempts++)  {
+    // Find aligned address.
+    char* aligned_address = find_aligned_address(size, alignment);
+
+    // Try to do the large page reservation using the aligned address.
+    aligned_address = reserve_large_pages(size, aligned_address, exec);
+    if (aligned_address != NULL) {
+      // Reservation at the aligned address succeeded.
+      guarantee(is_aligned(aligned_address, alignment), "Must be aligned");
+      return aligned_address;
+    }
+  }
+
+  log_debug(pagesize)("Failed reserving large pages at aligned address");
+  return NULL;
+}
+
+char* os::pd_reserve_memory_special(size_t bytes, size_t alignment, size_t page_size, char* addr,
+                                    bool exec) {
+  assert(UseLargePages, "only for large pages");
+  assert(page_size == os::large_page_size(), "Currently only support one large page size on Windows");
+  assert(is_aligned(addr, alignment), "Must be");
+  assert(is_aligned(addr, page_size), "Must be");
+
+  if (!is_aligned(bytes, page_size)) {
+    // Fallback to small pages, Windows does not support mixed mappings.
+    return NULL;
+  }
+
+  // The requested alignment can be larger than the page size, for example with G1
+  // the alignment is bound to the heap region size. So this reservation needs to
+  // ensure that the requested alignment is met. When there is a requested address
+  // this solves it self, since it must be properly aligned already.
+  if (addr == NULL && alignment > page_size) {
+    return reserve_large_pages_aligned(bytes, alignment, exec);
+  }
+
+  // No additional requirements, just reserve the large pages.
+  return reserve_large_pages(bytes, addr, exec);
 }
 
 bool os::pd_release_memory_special(char* base, size_t bytes) {
@@ -3474,7 +3477,7 @@ void os::pd_commit_memory_or_exit(char* addr, size_t size,
   pd_commit_memory_or_exit(addr, size, exec, mesg);
 }
 
-bool os::pd_uncommit_memory(char* addr, size_t bytes) {
+bool os::pd_uncommit_memory(char* addr, size_t bytes, bool exec) {
   if (bytes == 0) {
     // Don't bother the OS with noops.
     return true;
@@ -4202,32 +4205,17 @@ jint os::init_2(void) {
 #if defined(USE_VECTORED_EXCEPTION_HANDLING)
   topLevelVectoredExceptionHandler = AddVectoredExceptionHandler(1, topLevelVectoredExceptionFilter);
   previousUnhandledExceptionFilter = SetUnhandledExceptionFilter(topLevelUnhandledExceptionFilter);
-#elif INCLUDE_AOT
-  // If AOT is enabled we need to install a vectored exception handler
-  // in order to forward implicit exceptions from code in AOT
-  // generated DLLs.  This is necessary since these DLLs are not
-  // registered for structured exceptions like codecache methods are.
-  if (AOTLibrary != NULL && (UseAOT || FLAG_IS_DEFAULT(UseAOT))) {
-    topLevelVectoredExceptionHandler = AddVectoredExceptionHandler( 1, topLevelVectoredExceptionFilter);
-  }
 #endif
 
   // for debugging float code generation bugs
-  if (ForceFloatExceptions) {
-#ifndef  _WIN64
-    static long fp_control_word = 0;
-    __asm { fstcw fp_control_word }
-    // see Intel PPro Manual, Vol. 2, p 7-16
-    const long precision = 0x20;
-    const long underflow = 0x10;
-    const long overflow  = 0x08;
-    const long zero_div  = 0x04;
-    const long denorm    = 0x02;
-    const long invalid   = 0x01;
-    fp_control_word |= invalid;
-    __asm { fldcw fp_control_word }
+#if defined(ASSERT) && !defined(_WIN64)
+  static long fp_control_word = 0;
+  __asm { fstcw fp_control_word }
+  // see Intel PPro Manual, Vol. 2, p 7-16
+  const long invalid   = 0x01;
+  fp_control_word |= invalid;
+  __asm { fldcw fp_control_word }
 #endif
-  }
 
   // If stack_commit_size is 0, windows will reserve the default size,
   // but only commit a small portion of it.
@@ -4520,8 +4508,18 @@ bool os::same_files(const char* file1, const char* file2) {
     return true;
   }
 
-  HANDLE handle1 = create_read_only_file_handle(file1);
-  HANDLE handle2 = create_read_only_file_handle(file2);
+  char* native_file1 = os::strdup_check_oom(file1);
+  native_file1 = os::native_path(native_file1);
+  char* native_file2 = os::strdup_check_oom(file2);
+  native_file2 = os::native_path(native_file2);
+  if (strcmp(native_file1, native_file2) == 0) {
+    os::free(native_file1);
+    os::free(native_file2);
+    return true;
+  }
+
+  HANDLE handle1 = create_read_only_file_handle(native_file1);
+  HANDLE handle2 = create_read_only_file_handle(native_file2);
   bool result = false;
 
   // if we could open both paths...
@@ -4547,6 +4545,9 @@ bool os::same_files(const char* file1, const char* file2) {
   if (handle2 != INVALID_HANDLE_VALUE) {
     ::CloseHandle(handle2);
   }
+
+  os::free(native_file1);
+  os::free(native_file2);
 
   return result;
 }
@@ -4675,6 +4676,18 @@ int os::open(const char *path, int oflag, int mode) {
 
 FILE* os::open(int fd, const char* mode) {
   return ::_fdopen(fd, mode);
+}
+
+size_t os::write(int fd, const void *buf, unsigned int nBytes) {
+  return ::write(fd, buf, nBytes);
+}
+
+int os::close(int fd) {
+  return ::close(fd);
+}
+
+void os::exit(int num) {
+  win32::exit_process_or_thread(win32::EPT_PROCESS, num);
 }
 
 // Is a (classpath) directory empty?
@@ -5468,11 +5481,10 @@ void os::PlatformEvent::unpark() {
 
 // The Windows implementation of Park is very straightforward: Basic
 // operations on Win32 Events turn out to have the right semantics to
-// use them directly. We opportunistically resuse the event inherited
-// from Monitor.
+// use them directly.
 
 void Parker::park(bool isAbsolute, jlong time) {
-  guarantee(_ParkEvent != NULL, "invariant");
+  guarantee(_ParkHandle != NULL, "invariant");
   // First, demultiplex/decode time arguments
   if (time < 0) { // don't wait
     return;
@@ -5494,27 +5506,21 @@ void Parker::park(bool isAbsolute, jlong time) {
 
   // Don't wait if interrupted or already triggered
   if (thread->is_interrupted(false) ||
-      WaitForSingleObject(_ParkEvent, 0) == WAIT_OBJECT_0) {
-    ResetEvent(_ParkEvent);
+      WaitForSingleObject(_ParkHandle, 0) == WAIT_OBJECT_0) {
+    ResetEvent(_ParkHandle);
     return;
   } else {
     ThreadBlockInVM tbivm(thread);
     OSThreadWaitState osts(thread->osthread(), false /* not Object.wait() */);
-    thread->set_suspend_equivalent();
 
-    WaitForSingleObject(_ParkEvent, time);
-    ResetEvent(_ParkEvent);
-
-    // If externally suspended while waiting, re-suspend
-    if (thread->handle_special_suspend_equivalent_condition()) {
-      thread->java_suspend_self();
-    }
+    WaitForSingleObject(_ParkHandle, time);
+    ResetEvent(_ParkHandle);
   }
 }
 
 void Parker::unpark() {
-  guarantee(_ParkEvent != NULL, "invariant");
-  SetEvent(_ParkEvent);
+  guarantee(_ParkHandle != NULL, "invariant");
+  SetEvent(_ParkHandle);
 }
 
 // Platform Monitor implementation
@@ -5539,7 +5545,7 @@ int os::PlatformMonitor::wait(jlong millis) {
 
 // Run the specified command in a separate process. Return its exit value,
 // or -1 on failure (e.g. can't create a new process).
-int os::fork_and_exec(char* cmd, bool use_vfork_if_available) {
+int os::fork_and_exec(const char* cmd, bool dummy /* ignored */) {
   STARTUPINFO si;
   PROCESS_INFORMATION pi;
   DWORD exit_code;
@@ -5816,58 +5822,6 @@ char* os::build_agent_function_name(const char *sym_name, const char *lib_name,
   }
   return agent_entry_name;
 }
-
-#ifndef PRODUCT
-
-// test the code path in reserve_memory_special() that tries to allocate memory in a single
-// contiguous memory block at a particular address.
-// The test first tries to find a good approximate address to allocate at by using the same
-// method to allocate some memory at any address. The test then tries to allocate memory in
-// the vicinity (not directly after it to avoid possible by-chance use of that location)
-// This is of course only some dodgy assumption, there is no guarantee that the vicinity of
-// the previously allocated memory is available for allocation. The only actual failure
-// that is reported is when the test tries to allocate at a particular location but gets a
-// different valid one. A NULL return value at this point is not considered an error but may
-// be legitimate.
-void TestReserveMemorySpecial_test() {
-  if (!UseLargePages) {
-    return;
-  }
-  // save current value of globals
-  bool old_use_large_pages_individual_allocation = UseLargePagesIndividualAllocation;
-  bool old_use_numa_interleaving = UseNUMAInterleaving;
-
-  // set globals to make sure we hit the correct code path
-  UseLargePagesIndividualAllocation = UseNUMAInterleaving = false;
-
-  // do an allocation at an address selected by the OS to get a good one.
-  const size_t large_allocation_size = os::large_page_size() * 4;
-  char* result = os::reserve_memory_special(large_allocation_size, os::large_page_size(), NULL, false);
-  if (result == NULL) {
-  } else {
-    os::release_memory_special(result, large_allocation_size);
-
-    // allocate another page within the recently allocated memory area which seems to be a good location. At least
-    // we managed to get it once.
-    const size_t expected_allocation_size = os::large_page_size();
-    char* expected_location = result + os::large_page_size();
-    char* actual_location = os::reserve_memory_special(expected_allocation_size, os::large_page_size(), expected_location, false);
-    if (actual_location == NULL) {
-    } else {
-      // release memory
-      os::release_memory_special(actual_location, expected_allocation_size);
-      // only now check, after releasing any memory to avoid any leaks.
-      assert(actual_location == expected_location,
-             "Failed to allocate memory at requested location " PTR_FORMAT " of size " SIZE_FORMAT ", is " PTR_FORMAT " instead",
-             expected_location, expected_allocation_size, actual_location);
-    }
-  }
-
-  // restore globals
-  UseLargePagesIndividualAllocation = old_use_large_pages_individual_allocation;
-  UseNUMAInterleaving = old_use_numa_interleaving;
-}
-#endif // PRODUCT
 
 /*
   All the defined signal names for Windows.

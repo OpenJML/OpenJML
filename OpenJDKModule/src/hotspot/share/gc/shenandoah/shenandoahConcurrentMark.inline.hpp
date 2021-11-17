@@ -25,6 +25,8 @@
 #ifndef SHARE_GC_SHENANDOAH_SHENANDOAHCONCURRENTMARK_INLINE_HPP
 #define SHARE_GC_SHENANDOAH_SHENANDOAHCONCURRENTMARK_INLINE_HPP
 
+#include "gc/shenandoah/shenandoahMark.hpp"
+
 #include "gc/shenandoah/shenandoahAsserts.hpp"
 #include "gc/shenandoah/shenandoahBarrierSet.inline.hpp"
 #include "gc/shenandoah/shenandoahConcurrentMark.hpp"
@@ -38,7 +40,11 @@
 #include "runtime/prefetch.inline.hpp"
 
 template <class T>
+<<<<<<< HEAD:OpenJDKModule/src/hotspot/share/gc/shenandoah/shenandoahConcurrentMark.inline.hpp
 void ShenandoahConcurrentMark::do_task(ShenandoahObjToScanQueue* q, T* cl, ShenandoahLiveData* live_data, ShenandoahMarkTask* task) {
+=======
+void ShenandoahMark::do_task(ShenandoahObjToScanQueue* q, T* cl, ShenandoahLiveData* live_data, ShenandoahMarkTask* task) {
+>>>>>>> openjdk-src:OpenJDKModule/src/hotspot/share/gc/shenandoah/shenandoahMark.inline.hpp
   oop obj = task->obj();
 
   shenandoah_assert_not_forwarded(NULL, obj);
@@ -204,6 +210,7 @@ inline void ShenandoahConcurrentMark::do_chunked_array(ShenandoahObjToScanQueue*
 
 class ShenandoahSATBBufferClosure : public SATBBufferClosure {
 private:
+  StringDedup::Requests     _stringdedup_requests;
   ShenandoahObjToScanQueue* _queue;
   ShenandoahHeap* _heap;
   ShenandoahMarkingContext* const _mark_context;
@@ -228,13 +235,22 @@ public:
   void do_buffer_impl(void **buffer, size_t size) {
     for (size_t i = 0; i < size; ++i) {
       oop *p = (oop *) &buffer[i];
+<<<<<<< HEAD:OpenJDKModule/src/hotspot/share/gc/shenandoah/shenandoahConcurrentMark.inline.hpp
       ShenandoahConcurrentMark::mark_through_ref<oop, NONE, STRING_DEDUP>(p, _heap, _queue, _mark_context, false);
+=======
+      ShenandoahMark::mark_through_ref<oop, STRING_DEDUP>(p, _queue, _mark_context, &_stringdedup_requests, false);
+>>>>>>> openjdk-src:OpenJDKModule/src/hotspot/share/gc/shenandoah/shenandoahMark.inline.hpp
     }
   }
 };
 
+<<<<<<< HEAD:OpenJDKModule/src/hotspot/share/gc/shenandoah/shenandoahConcurrentMark.inline.hpp
 template<class T, UpdateRefsMode UPDATE_REFS, StringDedupMode STRING_DEDUP>
 inline void ShenandoahConcurrentMark::mark_through_ref(T *p, ShenandoahHeap* heap, ShenandoahObjToScanQueue* q, ShenandoahMarkingContext* const mark_context, bool weak) {
+=======
+template<class T, StringDedupMode STRING_DEDUP>
+inline void ShenandoahMark::mark_through_ref(T* p, ShenandoahObjToScanQueue* q, ShenandoahMarkingContext* const mark_context, StringDedup::Requests* const req, bool weak) {
+>>>>>>> openjdk-src:OpenJDKModule/src/hotspot/share/gc/shenandoah/shenandoahMark.inline.hpp
   T o = RawAccess<>::oop_load(p);
   if (!CompressedOops::is_null(o)) {
     oop obj = CompressedOops::decode_not_null(o);
@@ -255,6 +271,7 @@ inline void ShenandoahConcurrentMark::mark_through_ref(T *p, ShenandoahHeap* hea
       ShouldNotReachHere();
     }
 
+<<<<<<< HEAD:OpenJDKModule/src/hotspot/share/gc/shenandoah/shenandoahConcurrentMark.inline.hpp
     // Note: Only when concurrently updating references can obj be different
     // (that is, really different, not just different from-/to-space copies of the same)
     // from the one we originally loaded. Mutator thread can beat us by writing something
@@ -280,6 +297,14 @@ inline void ShenandoahConcurrentMark::mark_through_ref(T *p, ShenandoahHeap* hea
           assert(ShenandoahStringDedup::is_enabled(), "Must be enabled");
           ShenandoahStringDedup::enqueue_candidate(obj);
         }
+=======
+      if ((STRING_DEDUP == ENQUEUE_DEDUP) && ShenandoahStringDedup::is_candidate(obj)) {
+        assert(ShenandoahStringDedup::is_enabled(), "Must be enabled");
+        req->add(obj);
+      } else if ((STRING_DEDUP == ALWAYS_DEDUP) && ShenandoahStringDedup::is_string_candidate(obj)) {
+        assert(ShenandoahStringDedup::is_enabled(), "Must be enabled");
+        req->add(obj);
+>>>>>>> openjdk-src:OpenJDKModule/src/hotspot/share/gc/shenandoah/shenandoahMark.inline.hpp
       }
 
       shenandoah_assert_marked(p, obj);

@@ -75,6 +75,7 @@
  * @since 9
  */
 module java.base {
+
     exports java.io;
     exports java.lang;
     exports java.lang.annotation;
@@ -127,9 +128,6 @@ module java.base {
     exports javax.security.auth.spi;
     exports javax.security.auth.x500;
     exports javax.security.cert;
-    exports org.jmlspecs.annotation;
-    exports org.jmlspecs.lang;
-    exports org.jmlspecs.runtime;
 
 
     // additional qualified exports may be inserted at build time
@@ -199,6 +197,7 @@ module java.base {
         jdk.attach,
         jdk.charsets,
         jdk.compiler,
+        jdk.crypto.cryptoki,
         jdk.incubator.vector,
         jdk.jfr,
         jdk.jshell,
@@ -212,13 +211,15 @@ module java.base {
         jdk.jartool,
         jdk.jfr,
         jdk.jlink,
-        jdk.jpackage;
+        jdk.jpackage,
+        jdk.incubator.foreign;
     exports jdk.internal.perf to
         java.management,
         jdk.management.agent,
         jdk.internal.jvmstat;
     exports jdk.internal.platform to
-        jdk.management;
+        jdk.management,
+        jdk.jfr;
     exports jdk.internal.ref to
         java.desktop,
         jdk.incubator.foreign;
@@ -228,7 +229,8 @@ module java.base {
         java.sql.rowset,
         jdk.dynalink,
         jdk.internal.vm.ci,
-        jdk.unsupported;
+        jdk.unsupported,
+        jdk.incubator.foreign;
     exports jdk.internal.vm to
         jdk.internal.jvmstat,
         jdk.management.agent;

@@ -26,6 +26,8 @@
 package com.sun.tools.javac.parser;
 
 import java.util.Locale;
+import java.util.function.Predicate;
+import java.util.Map;
 
 import com.sun.tools.javac.api.Formattable;
 import com.sun.tools.javac.api.Messages;
@@ -46,10 +48,6 @@ import com.sun.tools.javac.util.Names;
  *  deletion without notice.</b>
  */
 public class Tokens {
-
-	public static interface ITokenKind { // OPENJML - added this interface to be able to extend it
-	    String name();
-	}
 
     private final Names names;
 
@@ -116,7 +114,7 @@ public class Tokens {
      * This enum defines all tokens used by the javac scanner. A token is
      * optionally associated with a name.
      */
-    public enum TokenKind implements Formattable, Filter<TokenKind>, ITokenKind { // OPENJML - added ITokenKind
+    public enum TokenKind implements Formattable, Predicate<TokenKind> {
         EOF(),
         ERROR(),
         IDENTIFIER(Tag.NAMED),
@@ -289,7 +287,7 @@ public class Tokens {
         }
 
         @Override
-        public boolean accepts(TokenKind that) {
+        public boolean test(TokenKind that) {
             return this == that;
         }
     }
@@ -323,8 +321,7 @@ public class Tokens {
         }
 
         /** The token kind */
-        public final TokenKind kind; // OPENJML - changed to interface to allow extension; also corresponding changes to the use of kind
-        public final ITokenKind ikind; // OPENJML - changed to interface to allow extension; also corresponding changes to the use of kind
+        public final TokenKind kind;
 
         /** The start position of this token */
         public final int pos;
@@ -335,18 +332,8 @@ public class Tokens {
         /** Comment reader associated with this token */
         public final List<Comment> comments;
 
-        Token(TokenKind kind, int pos, int endPos, List<Comment> comments) { // OPENJML - changed to ITokenKind to allow extension
-            this.ikind = kind;
+        Token(TokenKind kind, int pos, int endPos, List<Comment> comments) {
             this.kind = kind;
-            this.pos = pos;
-            this.endPos = endPos;
-            this.comments = comments;
-            checkKind();
-        }
-
-        Token(ITokenKind ikind, int pos, int endPos, List<Comment> comments) { // OPENJML - changed to ITokenKind to allow extension
-            this.ikind = ikind;
-            this.kind = ikind instanceof TokenKind ? (TokenKind)ikind : TokenKind.CUSTOM;
             this.pos = pos;
             this.endPos = endPos;
             this.comments = comments;
@@ -425,7 +412,6 @@ public class Tokens {
                 return buf.toList();
             }
         }
-        public String toString() { return this.kind.toString(); }
     }
 
     final static class NamedToken extends Token {
@@ -447,8 +433,6 @@ public class Tokens {
         public Name name() {
             return name;
         }
-        
-        public String toString() { return name.toString(); }
     }
 
     static class StringToken extends Token {
@@ -470,9 +454,6 @@ public class Tokens {
         public String stringVal() {
             return stringVal;
         }
-        
-        public String toString() { return stringVal(); }
-
     }
 
     final static class NumericToken extends StringToken {
@@ -494,8 +475,6 @@ public class Tokens {
         public int radix() {
             return radix;
         }
-        
-        public String toString() { return stringVal(); }
     }
 
     public static final Token DUMMY =

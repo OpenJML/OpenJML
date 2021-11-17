@@ -24,6 +24,7 @@
 /**
  * @test
  * @library /test/lib /
+ * @requires vm.flagless
  *
  * @build sun.hotspot.WhiteBox
  * @run driver ClassFileInstaller sun.hotspot.WhiteBox

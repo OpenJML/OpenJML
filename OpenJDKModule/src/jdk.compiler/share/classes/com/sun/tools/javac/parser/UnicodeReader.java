@@ -47,7 +47,7 @@ public class UnicodeReader {
      * Buffer containing characters from source file. May contain extraneous characters
      * beyond this.length.
      */
-    protected final char[] buffer; // OPENJML - private to protected
+    private final char[] buffer;
 
     /**
      * Length of meaningful content in buffer.
@@ -57,20 +57,20 @@ public class UnicodeReader {
     /**
      * Character buffer index of character currently being observed.
      */
-    protected int position; // OPENJML - private to protected
+    private int position;
 
     /**
      * Number of characters combined to provide character currently being observed. Typically
      * one, but may be more when combinations of surrogate pairs and unicode escape sequences
      * are read.
      */
-    protected int width; // OPENJML - private to protected
+    private int width;
 
     /**
      * Character currently being observed. If a surrogate pair is read then will be the high
      * member of the pair.
      */
-    protected char character; // OPENJML - private to protected
+    private char character;
 
     /**
      * Codepoint of character currently being observed. Typically equivalent to the character
@@ -84,6 +84,11 @@ public class UnicodeReader {
      * is treated as a backslash and not part of an unicode escape.
      */
     private boolean wasBackslash;
+
+    /**
+     * true if the last character was derived from an unicode escape sequence.
+     */
+    private boolean wasUnicodeEscape;
 
     /**
      * Log for error reporting.
@@ -105,6 +110,7 @@ public class UnicodeReader {
         this.character = '\0';
         this.codepoint = 0;
         this.wasBackslash = false;
+        this.wasUnicodeEscape = false;
         this.log = sf.log;
 
         nextCodePoint();
@@ -161,13 +167,22 @@ public class UnicodeReader {
         // Fetch next character.
         nextCodeUnit();
 
-        // If second backslash is detected.
-        if (wasBackslash) {
-            // Treat like a normal character (not part of unicode escape.)
+        if (character == '\\' && (!wasBackslash || wasUnicodeEscape)) {
+            // Is a backslash and may be an unicode escape.
+            switch (unicodeEscape()) {
+                case BACKSLASH -> {
+                    wasUnicodeEscape = false;
+                    wasBackslash = !wasBackslash;
+                }
+                case VALID_ESCAPE -> {
+                    wasUnicodeEscape = true;
+                    wasBackslash = character == '\\' && !wasBackslash;
+                }
+                case BROKEN_ESCAPE -> nextUnicodeInputCharacter(); //skip broken unicode escapes
+            }
+        } else {
             wasBackslash = false;
-        } else if (character == '\\') {
-            // May be an unicode escape.
-            wasBackslash = !unicodeEscape();
+            wasUnicodeEscape = false;
         }
 
         // Codepoint and character match if not surrogate.
@@ -288,8 +303,8 @@ public class UnicodeReader {
         position = pos;
         width = 0;
         wasBackslash = false;
+        wasUnicodeEscape = false;
         nextCodePoint();
-        //if (org.jmlspecs.openjml.Main.useJML)System.out.println("RESET " + pos + " " + position() + " " + (int)character + " " + character); 
     }
 
     /**
@@ -335,7 +350,7 @@ public class UnicodeReader {
      */
     protected char next() {
         nextCodePoint();
-    	//if (org.jmlspecs.openjml.Main.useJML)System.out.println(position() + " CHAR " + (int)character + " " + character);
+
         return character;
     }
 

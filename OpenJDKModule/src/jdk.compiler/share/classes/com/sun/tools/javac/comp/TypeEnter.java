@@ -297,12 +297,12 @@ public class TypeEnter implements Completer {
         protected abstract void runPhase(Env<AttrContext> env);
     }
 
-    public final ImportsPhase completeClass = new ImportsPhase(); // OPENJML - private to public
+    private final ImportsPhase completeClass = new ImportsPhase();
     private Phase topLevelPhase;
 
     /**Analyze import clauses.
      */
-    public final class ImportsPhase extends Phase { // OPENJML - private to public
+    private final class ImportsPhase extends Phase {
 
         public ImportsPhase() {
             super(CompletionCause.IMPORTS_PHASE, new HierarchyPhase());
@@ -330,7 +330,7 @@ public class TypeEnter implements Completer {
                 sym.owner.complete();
         }
 
-        public void resolveImports(JCCompilationUnit tree, Env<AttrContext> env) { // OPENJML - private to public
+        private void resolveImports(JCCompilationUnit tree, Env<AttrContext> env) {
             if (tree.starImportScope.isFilled()) {
                 // we must have already processed this toplevel
                 return;
@@ -454,7 +454,7 @@ public class TypeEnter implements Completer {
          *  @param tsym          The class or package the members of which are imported.
          *  @param env           The env in which the imported classes will be entered.
          */
-        public void importAll(JCImport imp, // OPENJML - private to public
+        private void importAll(JCImport imp,
                                final TypeSymbol tsym,
                                Env<AttrContext> env) {
             env.toplevel.starImportScope.importAll(types, tsym.members(), typeImportFilter, imp, cfHandler);
@@ -902,7 +902,7 @@ public class TypeEnter implements Completer {
         }
     }
 
-    abstract class AbstractMembersPhase extends Phase {
+    private abstract class AbstractMembersPhase extends Phase {
 
         public AbstractMembersPhase(CompletionCause completionCause, Phase next) {
             super(completionCause, next);
@@ -930,7 +930,7 @@ public class TypeEnter implements Completer {
             }
         }
 
-        public void enterThisAndSuper(ClassSymbol sym, Env<AttrContext> env) { // OPENJML - package to public
+        void enterThisAndSuper(ClassSymbol sym, Env<AttrContext> env) {
             ClassType ct = (ClassType)sym.type;
             // enter symbols for 'this' into current scope.
             VarSymbol thisSym =
@@ -983,7 +983,7 @@ public class TypeEnter implements Completer {
 
     /** Enter member fields and methods of a class
      */
-    public final class MembersPhase extends AbstractMembersPhase { // OPENJML - private to public
+    private final class MembersPhase extends AbstractMembersPhase {
 
         public MembersPhase() {
             super(CompletionCause.MEMBERS_PHASE, null);

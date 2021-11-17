@@ -122,7 +122,11 @@ public class CommandLineFlagCombo {
             }
         }
 
+<<<<<<< HEAD
         if (!WhiteBox.getWhiteBox().isJFRIncludedInVmBuild() && testEntry.equals("-XX:+FlightRecorder"))
+=======
+        if (!WhiteBox.getWhiteBox().isJFRIncluded())
+>>>>>>> openjdk-src
         {
             System.out.println("JFR does not exist");
             return true;

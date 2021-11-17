@@ -27,4 +27,11 @@ package sun.java2d.marlin;
 
 public interface MarlinRenderer extends MarlinConst {
 
+<<<<<<< HEAD:OpenJDKModule/src/java.desktop/share/classes/sun/java2d/marlin/MarlinRenderer.java
 }
+=======
+};
+- (NSAccessibilityRole _Nonnull)accessibilityRole;
+- (id _Nonnull)accessibilityValue;
+@end
+>>>>>>> openjdk-src:OpenJDKModule/src/java.desktop/macosx/native/libawt_lwawt/awt/a11y/CheckboxAccessibility.h

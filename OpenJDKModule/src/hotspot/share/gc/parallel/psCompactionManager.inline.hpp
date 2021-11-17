@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,13 +25,15 @@
 #ifndef SHARE_GC_PARALLEL_PSCOMPACTIONMANAGER_INLINE_HPP
 #define SHARE_GC_PARALLEL_PSCOMPACTIONMANAGER_INLINE_HPP
 
+#include "gc/parallel/psCompactionManager.hpp"
+
+#include "classfile/classLoaderData.hpp"
 #include "classfile/javaClasses.inline.hpp"
 #include "gc/parallel/parMarkBitMap.hpp"
-#include "gc/parallel/psCompactionManager.hpp"
 #include "gc/parallel/psParallelCompact.inline.hpp"
 #include "gc/shared/taskqueue.inline.hpp"
 #include "oops/access.inline.hpp"
-#include "oops/arrayOop.inline.hpp"
+#include "oops/arrayOop.hpp"
 #include "oops/compressedOops.inline.hpp"
 #include "oops/objArrayOop.inline.hpp"
 #include "oops/oop.inline.hpp"
@@ -117,6 +119,9 @@ inline void ParCompactionManager::follow_klass(Klass* klass) {
 
 inline void ParCompactionManager::FollowStackClosure::do_void() {
   _compaction_manager->follow_marking_stacks();
+  if (_terminator != nullptr) {
+    steal_marking_work(*_terminator, _worker_id);
+  }
 }
 
 template <typename T>

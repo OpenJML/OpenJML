@@ -77,7 +77,7 @@ public class JavaTokenizer extends UnicodeReader {
     /**
      * The log to be used for error reporting. Copied from scanner factory.
      */
-    protected final Log log; // OPENJML - private to protected
+    private final Log log;
 
     /**
      * The token factory. Copied from scanner factory.
@@ -556,7 +556,7 @@ public class JavaTokenizer extends UnicodeReader {
      *
      * @param pos  position of the first character in literal.
      */
-    protected void scanFractionAndSuffix(int pos) { // OPENJML - private to protected
+    private void scanFractionAndSuffix(int pos) {
         radix = 10;
         scanFraction(pos);
 
@@ -638,6 +638,13 @@ public class JavaTokenizer extends UnicodeReader {
                     break;
                 }
             }
+            // If it is not a floating point literal,
+            // the octal number should be rescanned correctly.
+            if (radix == 8) {
+                sb.setLength(0);
+                reset(pos);
+                scanDigits(pos, 8);
+            }
 
             if (acceptOneOf('l', 'L')) {
                 tk = TokenKind.LONGLITERAL;
@@ -658,7 +665,7 @@ public class JavaTokenizer extends UnicodeReader {
     /**
      * Read an identifier. (Spec. 3.8)
      */
-    protected void scanIdent() { // OPENJML - private to protected
+    private void scanIdent() {
         putThenNext();
 
         do {
@@ -733,7 +740,7 @@ public class JavaTokenizer extends UnicodeReader {
      *
      * @return true if ch can be part of an operator.
      */
-    protected boolean isSpecial(char ch) { // OPENJML - private to protected
+    private boolean isSpecial(char ch) {
         switch (ch) {
         case '!': case '%': case '&': case '*': case '?':
         case '+': case '-': case ':': case '<': case '=':
@@ -749,7 +756,7 @@ public class JavaTokenizer extends UnicodeReader {
     /**
      * Read longest possible sequence of special characters and convert to token.
      */
-    protected void scanOperator() { // OPENJML - private to protected
+    private void scanOperator() {
         while (true) {
             put();
             TokenKind newtk = tokens.lookupKind(sb.toString());
@@ -796,7 +803,6 @@ public class JavaTokenizer extends UnicodeReader {
                 case '\n': // (Spec 3.4)
                     next();
                     processLineTerminator(pos, position());
-                    if (tk == TokenKind.CUSTOM) break loop;
                     break;
 
                 case '\r': // (Spec 3.4)
@@ -934,7 +940,6 @@ public class JavaTokenizer extends UnicodeReader {
                         } else {
                             style = CommentStyle.BLOCK;
                         }
-
 
                         if (!isEmpty) {
                             while (isAvailable()) {
@@ -1103,7 +1108,6 @@ public class JavaTokenizer extends UnicodeReader {
      * @return new list with comment prepended to the existing list.
      */
     List<Comment> appendComment(List<Comment> comments, Comment comment) {
-    	if (comment == null) return comments; // OPENJML -- added so that comments could be ignored
         return comments == null ?
                 List.of(comment) :
                 comments.prepend(comment);

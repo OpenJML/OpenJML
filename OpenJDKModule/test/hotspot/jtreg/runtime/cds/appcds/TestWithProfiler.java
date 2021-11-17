@@ -49,8 +49,12 @@ public class TestWithProfiler {
         output = TestCommon.exec(appJar,
             "-XX:+UnlockDiagnosticVMOptions",
             "-Xint",
+<<<<<<< HEAD
             "-XX:+FlightRecorder",
             "-XX:StartFlightRecording=duration=15s,filename=myrecording.jfr,settings=profile,dumponexit=true",
+=======
+            "-XX:StartFlightRecording:duration=15s,filename=myrecording.jfr,settings=profile,dumponexit=true",
+>>>>>>> openjdk-src
             "TestWithProfilerHelper");
         TestCommon.checkExec(output);
     }

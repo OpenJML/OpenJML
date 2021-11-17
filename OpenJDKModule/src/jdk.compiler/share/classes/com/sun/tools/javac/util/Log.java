@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -132,13 +132,13 @@ public class Log extends AbstractLog {
      */
     public static class DeferredDiagnosticHandler extends DiagnosticHandler {
         private Queue<JCDiagnostic> deferred = new ListBuffer<>();
-        private final Filter<JCDiagnostic> filter;
+        private final Predicate<JCDiagnostic> filter;
 
         public DeferredDiagnosticHandler(Log log) {
             this(log, null);
         }
 
-        public DeferredDiagnosticHandler(Log log, Filter<JCDiagnostic> filter) {
+        public DeferredDiagnosticHandler(Log log, Predicate<JCDiagnostic> filter) {
             this.filter = filter;
             install(log);
         }
@@ -146,7 +146,7 @@ public class Log extends AbstractLog {
         @Override
         public void report(JCDiagnostic diag) {
             if (!diag.isFlagSet(JCDiagnostic.DiagnosticFlag.NON_DEFERRABLE) &&
-                (filter == null || filter.accepts(diag))) {
+                (filter == null || filter.test(diag))) {
                 deferred.add(diag);
             } else {
                 prev.report(diag);
@@ -306,40 +306,6 @@ public class Log extends AbstractLog {
 
         writers.put(WriterKind.STDOUT, out);
         writers.put(WriterKind.STDERR, err);
-
-        return writers;
-    }
-
-    /**
-     * Construct a log with given I/O redirections.
-     * @deprecated
-     * This constructor is provided to support the supported but now-deprecated javadoc entry point
-     *      com.sun.tools.javadoc.Main.execute(String programName,
-     *          PrintWriter errWriter, PrintWriter warnWriter, PrintWriter noticeWriter,
-     *          String defaultDocletClassName, String... args)
-     */
-    @Deprecated
-    protected Log(Context context, PrintWriter errWriter, PrintWriter warnWriter, PrintWriter noticeWriter) {
-        this(context, initWriters(errWriter, warnWriter, noticeWriter));
-    }
-
-    /**
-     * Initialize a writer map with different streams for different types of diagnostics.
-     * @param errWriter a stream for writing error messages
-     * @param warnWriter a stream for writing warning messages
-     * @param noticeWriter a stream for writing notice messages
-     * @return a map of writers
-     * @deprecated This method exists to support a supported but now deprecated javadoc entry point.
-     */
-    @Deprecated
-    private static Map<WriterKind, PrintWriter>  initWriters(PrintWriter errWriter, PrintWriter warnWriter, PrintWriter noticeWriter) {
-        Map<WriterKind, PrintWriter> writers = new EnumMap<>(WriterKind.class);
-        writers.put(WriterKind.ERROR, errWriter);
-        writers.put(WriterKind.WARNING, warnWriter);
-        writers.put(WriterKind.NOTICE, noticeWriter);
-
-        writers.put(WriterKind.STDOUT, noticeWriter);
-        writers.put(WriterKind.STDERR, errWriter);
 
         return writers;
     }
@@ -507,7 +473,7 @@ public class Log extends AbstractLog {
      * source name and pos.
      */
     protected boolean shouldReport(JavaFileObject file, int pos) {
-        if (file == null || alwaysReport) // OPENJML - added
+        if (file == null)
             return true;
 
         Pair<JavaFileObject,Integer> coords = new Pair<>(file, pos);
@@ -516,15 +482,13 @@ public class Log extends AbstractLog {
             recorded.add(coords);
         return shouldReport;
     }
-    
-    public static boolean alwaysReport = false; // OPENJML - added for debugging
 
     /** Returns true if a diagnostics needs to be reported.
      */
     private boolean shouldReport(JCDiagnostic d) {
         JavaFileObject file = d.getSource();
 
-        if (file == null || alwaysReport) // OPENJML
+        if (file == null)
             return true;
 
         if (!shouldReport(file, d.getIntPosition()))
@@ -550,8 +514,8 @@ public class Log extends AbstractLog {
         private void getCodeRecursive(ListBuffer<String> buf, JCDiagnostic d) {
             buf.add(d.getCode());
             for (Object o : d.getArgs()) {
-                if (o instanceof JCDiagnostic) {
-                    getCodeRecursive(buf, (JCDiagnostic)o);
+                if (o instanceof JCDiagnostic diagnostic) {
+                    getCodeRecursive(buf, diagnostic);
                 }
             }
         }
@@ -687,7 +651,6 @@ public class Log extends AbstractLog {
         nwarnings++;
     }
 
-    static int count = 0;
     /**
      * Primary method to report a diagnostic.
      * @param diagnostic
@@ -779,7 +742,6 @@ public class Log extends AbstractLog {
         writer.flush();
     }
 
-    @Deprecated
     protected PrintWriter getWriterForDiagnosticType(DiagnosticType dt) {
         switch (dt) {
         case FRAGMENT:
@@ -894,12 +856,5 @@ public class Log extends AbstractLog {
     public static String format(String fmt, Object... args) {
         return String.format((java.util.Locale)null, fmt, args);
     }
-    
-    // OPENJML = added to allow resetting the record of errors already issued
-    public void resetRecord() {
-        this.recorded.clear();
-    }
-
-
 
 }

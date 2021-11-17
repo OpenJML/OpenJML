@@ -35,7 +35,12 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 
 import jdk.javadoc.internal.doclets.formats.html.markup.ContentBuilder;
+<<<<<<< HEAD:OpenJDKModule/src/jdk.javadoc/share/classes/jdk/javadoc/internal/doclets/formats/html/LinkFactoryImpl.java
 import jdk.javadoc.internal.doclets.formats.html.markup.Entity;
+=======
+import jdk.javadoc.internal.doclets.formats.html.markup.HtmlTree;
+import jdk.javadoc.internal.doclets.formats.html.markup.TagName;
+>>>>>>> openjdk-src:OpenJDKModule/src/jdk.javadoc/share/classes/jdk/javadoc/internal/doclets/formats/html/HtmlLinkFactory.java
 import jdk.javadoc.internal.doclets.toolkit.BaseConfiguration;
 import jdk.javadoc.internal.doclets.toolkit.Content;
 import jdk.javadoc.internal.doclets.toolkit.Resources;
@@ -89,8 +94,7 @@ public class LinkFactoryImpl extends LinkFactory {
         if (utils.isIncluded(typeElement)) {
             if (configuration.isGeneratedDoc(typeElement)) {
                 DocPath filename = getPath(classLinkInfo);
-                if (linkInfo.linkToSelf ||
-                                !(docPaths.forName(typeElement)).equals(m_writer.filename)) {
+                if (linkInfo.linkToSelf || typeElement != m_writer.getCurrentPageElement()) {
                         link.add(m_writer.links.createLink(
                                 filename.fragment(classLinkInfo.where),
                                 label,
@@ -149,8 +153,13 @@ public class LinkFactoryImpl extends LinkFactory {
             for (TypeMirror t : vars) {
                 if (many) {
                     links.add(",");
+<<<<<<< HEAD:OpenJDKModule/src/jdk.javadoc/share/classes/jdk/javadoc/internal/doclets/formats/html/LinkFactoryImpl.java
                     links.add(Entity.ZERO_WIDTH_SPACE);
                     if (((LinkInfoImpl) linkInfo).getContext() == LinkInfoImpl.Kind.MEMBER_TYPE_PARAMS) {
+=======
+                    links.add(new HtmlTree(TagName.WBR));
+                    if (((HtmlLinkInfo) linkInfo).getContext() == HtmlLinkInfo.Kind.MEMBER_TYPE_PARAMS) {
+>>>>>>> openjdk-src:OpenJDKModule/src/jdk.javadoc/share/classes/jdk/javadoc/internal/doclets/formats/html/HtmlLinkFactory.java
                         links.add(DocletConstants.NL);
                     }
                 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -76,11 +76,11 @@ public class Main {
 
     /** The writer to use for normal output.
      */
-    public PrintWriter stdOut; // OPENJML - package to public
+    PrintWriter stdOut;
 
     /** The writer to use for diagnostic output.
      */
-    public PrintWriter stdErr; // OPENJML - package to public
+    PrintWriter stdErr;
 
     /** The log to use for diagnostic output.
      */
@@ -92,7 +92,7 @@ public class Main {
      */
     boolean apiMode;
 
-    public static final String ENV_OPT_NAME = "JDK_JAVAC_OPTIONS"; // OPENJML - private to public
+    private static final String ENV_OPT_NAME = "JDK_JAVAC_OPTIONS";
 
     /** Result codes.
      */
@@ -203,6 +203,7 @@ public class Main {
         }
 
         log = Log.instance(context);
+
         if (argv.length == 0) {
             OptionHelper h = new OptionHelper.GrumpyHelper(log) {
                 @Override
@@ -235,7 +236,6 @@ public class Main {
 
         Arguments args = Arguments.instance(context);
         args.init(ownName, allArgs);
-        adjustArgs(args);
 
         if (log.nerrors > 0)
             return Result.CMDERR;
@@ -260,11 +260,11 @@ public class Main {
 
         // init file manager
         fileManager = context.get(JavaFileManager.class);
-        JavaFileManager undel = fileManager instanceof DelegatingJavaFileManager ?
-                ((DelegatingJavaFileManager) fileManager).getBaseFileManager() : fileManager;
-        if (undel instanceof BaseFileManager) {
-            ((BaseFileManager) undel).setContext(context); // reinit with options
-            ok &= ((BaseFileManager) undel).handleOptions(args.getDeferredFileManagerOptions());
+        JavaFileManager undel = fileManager instanceof DelegatingJavaFileManager delegatingJavaFileManager ?
+                delegatingJavaFileManager.getBaseFileManager() : fileManager;
+        if (undel instanceof BaseFileManager baseFileManager) {
+            baseFileManager.setContext(context); // reinit with options
+            ok &= baseFileManager.handleOptions(args.getDeferredFileManagerOptions());
         }
 
         // handle this here so it works even if no other options given
@@ -337,7 +337,6 @@ public class Main {
             return Result.SYSERR;
         } catch (FatalError ex) {
             feMessage(ex, options);
-            org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.FatalError",ex); // OPENJML
             return Result.SYSERR;
         } catch (AnnotationProcessingError ex) {
             apMessage(ex);
@@ -350,7 +349,6 @@ public class Main {
                 bugMessage(iae);
             }
             printArgsToFile = true;
-            org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.IllegalAccessError",iae); // OPENJML
             return Result.ABNORMAL;
         } catch (Throwable ex) {
             // Nasty.  If we've already reported an error, compensate
@@ -359,11 +357,10 @@ public class Main {
             if (comp == null || comp.errorCount() == 0 || options.isSet("dev"))
                 bugMessage(ex);
             printArgsToFile = true;
-            org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.Throwable",ex); // OPENJML
             return Result.ABNORMAL;
         } finally {
             if (printArgsToFile) {
-// FIXME                printArgumentsToFile(argv);
+                printArgumentsToFile(argv);
             }
             if (comp != null) {
                 try {
@@ -431,7 +428,7 @@ public class Main {
 
     /** Print a message reporting an internal error.
      */
-    protected void bugMessage(Throwable ex) { // OPENJML - package to protected
+    void bugMessage(Throwable ex) {
         log.printLines(PrefixKind.JAVAC, "msg.bug", JavaCompiler.version());
         ex.printStackTrace(log.getWriter(WriterKind.NOTICE));
     }

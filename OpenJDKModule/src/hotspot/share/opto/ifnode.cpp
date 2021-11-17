@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -631,7 +631,7 @@ const TypeInt* IfNode::filtered_int_type(PhaseGVN* gvn, Node* val, Node* if_proj
               return cmp2_t;
             case BoolTest::lt:
               lo = TypeInt::INT->_lo;
-              if (hi - 1 < hi) {
+              if (hi != min_jint) {
                 hi = hi - 1;
               }
               break;
@@ -639,7 +639,7 @@ const TypeInt* IfNode::filtered_int_type(PhaseGVN* gvn, Node* val, Node* if_proj
               lo = TypeInt::INT->_lo;
               break;
             case BoolTest::gt:
-              if (lo + 1 > lo) {
+              if (lo != max_jint) {
                 lo = lo + 1;
               }
               hi = TypeInt::INT->_hi;
@@ -884,8 +884,6 @@ bool IfNode::fold_compares_helper(ProjNode* proj, ProjNode* success, ProjNode* f
       hi_type->_hi == max_jint && lo_type->_lo == min_jint && lo_test != BoolTest::ne) {
     assert((dom_bool->_test.is_less() && !proj->_con) ||
            (dom_bool->_test.is_greater() && proj->_con), "incorrect test");
-    // this test was canonicalized
-    assert(this_bool->_test.is_less() && fail->_con, "incorrect test");
 
     // this_bool = <
     //   dom_bool = >= (proj = True) or dom_bool = < (proj = False)
@@ -908,19 +906,25 @@ bool IfNode::fold_compares_helper(ProjNode* proj, ProjNode* success, ProjNode* f
       if (lo_test == BoolTest::gt || lo_test == BoolTest::le) {
         lo = igvn->transform(new AddINode(lo, igvn->intcon(1)));
       }
-    } else {
-      assert(hi_test == BoolTest::le, "bad test");
+    } else if (hi_test == BoolTest::le) {
       if (lo_test == BoolTest::ge || lo_test == BoolTest::lt) {
         adjusted_lim = igvn->transform(new SubINode(hi, lo));
         adjusted_lim = igvn->transform(new AddINode(adjusted_lim, igvn->intcon(1)));
         cond = BoolTest::lt;
-      } else {
-        assert(lo_test == BoolTest::gt || lo_test == BoolTest::le, "bad test");
+      } else if (lo_test == BoolTest::gt || lo_test == BoolTest::le) {
         adjusted_lim = igvn->transform(new SubINode(hi, lo));
         lo = igvn->transform(new AddINode(lo, igvn->intcon(1)));
         cond = BoolTest::lt;
+      } else {
+        assert(false, "unhandled lo_test: %d", lo_test);
+        return false;
       }
+    } else {
+      assert(igvn->_worklist.member(in(1)) && in(1)->Value(igvn) != igvn->type(in(1)), "unhandled hi_test: %d", hi_test);
+      return false;
     }
+    // this test was canonicalized
+    assert(this_bool->_test.is_less() && fail->_con, "incorrect test");
   } else if (lo_type != NULL && hi_type != NULL && lo_type->_lo > hi_type->_hi &&
              lo_type->_hi == max_jint && hi_type->_lo == min_jint && lo_test != BoolTest::ne) {
 
@@ -947,31 +951,38 @@ bool IfNode::fold_compares_helper(ProjNode* proj, ProjNode* success, ProjNode* f
 
     assert((dom_bool->_test.is_less() && proj->_con) ||
            (dom_bool->_test.is_greater() && !proj->_con), "incorrect test");
-    // this test was canonicalized
-    assert(this_bool->_test.is_less() && !fail->_con, "incorrect test");
 
     cond = (hi_test == BoolTest::le || hi_test == BoolTest::gt) ? BoolTest::gt : BoolTest::ge;
 
     if (lo_test == BoolTest::lt) {
       if (hi_test == BoolTest::lt || hi_test == BoolTest::ge) {
         cond = BoolTest::ge;
-      } else {
-        assert(hi_test == BoolTest::le || hi_test == BoolTest::gt, "bad test");
+      } else if (hi_test == BoolTest::le || hi_test == BoolTest::gt) {
         adjusted_lim = igvn->transform(new SubINode(hi, lo));
         adjusted_lim = igvn->transform(new AddINode(adjusted_lim, igvn->intcon(1)));
         cond = BoolTest::ge;
+      } else {
+        assert(false, "unhandled hi_test: %d", hi_test);
+        return false;
       }
     } else if (lo_test == BoolTest::le) {
       if (hi_test == BoolTest::lt || hi_test == BoolTest::ge) {
         lo = igvn->transform(new AddINode(lo, igvn->intcon(1)));
         cond = BoolTest::ge;
-      } else {
-        assert(hi_test == BoolTest::le || hi_test == BoolTest::gt, "bad test");
+      } else if (hi_test == BoolTest::le || hi_test == BoolTest::gt) {
         adjusted_lim = igvn->transform(new SubINode(hi, lo));
         lo = igvn->transform(new AddINode(lo, igvn->intcon(1)));
         cond = BoolTest::ge;
+      } else {
+        assert(false, "unhandled hi_test: %d", hi_test);
+        return false;
       }
+    } else {
+      assert(igvn->_worklist.member(in(1)) && in(1)->Value(igvn) != igvn->type(in(1)), "unhandled lo_test: %d", lo_test);
+      return false;
     }
+    // this test was canonicalized
+    assert(this_bool->_test.is_less() && !fail->_con, "incorrect test");
   } else {
     const TypeInt* failtype = filtered_int_type(igvn, n, proj);
     if (failtype != NULL) {
@@ -1000,6 +1011,33 @@ bool IfNode::fold_compares_helper(ProjNode* proj, ProjNode* success, ProjNode* f
       adjusted_lim = igvn->transform(new SubINode(hi, lo));
     }
     hook->destruct(igvn);
+
+    int lo = igvn->type(adjusted_lim)->is_int()->_lo;
+    if (lo < 0) {
+      // If range check elimination applies to this comparison, it includes code to protect from overflows that may
+      // cause the main loop to be skipped entirely. Delay this transformation.
+      // Example:
+      // for (int i = 0; i < limit; i++) {
+      //   if (i < max_jint && i > min_jint) {...
+      // }
+      // Comparisons folded as:
+      // i - min_jint - 1 <u -2
+      // when RC applies, main loop limit becomes:
+      // min(limit, max(-2 + min_jint + 1, min_jint))
+      // = min(limit, min_jint)
+      // = min_jint
+      if (!igvn->C->post_loop_opts_phase()) {
+        if (adjusted_val->outcnt() == 0) {
+          igvn->remove_dead_node(adjusted_val);
+        }
+        if (adjusted_lim->outcnt() == 0) {
+          igvn->remove_dead_node(adjusted_lim);
+        }
+        igvn->C->record_for_post_loop_opts_igvn(this);
+        return false;
+      }
+    }
+
     Node* newcmp = igvn->transform(new CmpUNode(adjusted_val, adjusted_lim));
     Node* newbool = igvn->transform(new BoolNode(newcmp, cond));
 
@@ -1117,14 +1155,14 @@ void IfNode::improve_address_types(Node* l, Node* r, ProjNode* fail, PhaseIterGV
             for (uint j = 2; j < stack.size(); j++) {
               Node* n = stack.node_at(j);
               Node* clone = n->clone();
-              int rep = clone->replace_edge(init_n, new_n);
+              int rep = clone->replace_edge(init_n, new_n, igvn);
               assert(rep > 0, "can't find expected node?");
               clone = igvn->transform(clone);
               init_n = n;
               new_n = clone;
             }
             igvn->hash_delete(use);
-            int rep = use->replace_edge(init_n, new_n);
+            int rep = use->replace_edge(init_n, new_n, igvn);
             assert(rep > 0, "can't find expected node?");
             igvn->transform(use);
             if (init_n->outcnt() == 0) {
@@ -1353,7 +1391,7 @@ static Node *remove_useless_bool(IfNode *iff, PhaseGVN *phase) {
 
   Node* new_bol = (flip ? phase->transform( bol2->negate(phase) ) : bol2);
   assert(new_bol != iff->in(1), "must make progress");
-  iff->set_req(1, new_bol);
+  iff->set_req_X(1, new_bol, phase);
   // Intervening diamond probably goes dead
   phase->C->set_major_progress();
   return iff;

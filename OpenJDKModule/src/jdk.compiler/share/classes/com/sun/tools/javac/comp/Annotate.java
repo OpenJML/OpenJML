@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -47,15 +47,13 @@ import com.sun.tools.javac.util.List;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.JmlPretty;
-import org.jmlspecs.openjml.Utils;
-
 import java.util.*;
 
 import static com.sun.tools.javac.code.Flags.SYNTHETIC;
 import static com.sun.tools.javac.code.Kinds.Kind.MDL;
 import static com.sun.tools.javac.code.Kinds.Kind.MTH;
 import static com.sun.tools.javac.code.Kinds.Kind.PCK;
+import static com.sun.tools.javac.code.Kinds.Kind.TYP;
 import static com.sun.tools.javac.code.Kinds.Kind.VAR;
 import static com.sun.tools.javac.code.Scope.LookupKind.NON_RECURSIVE;
 import static com.sun.tools.javac.code.TypeTag.ARRAY;
@@ -168,7 +166,7 @@ public class Annotate {
 
         ListBuffer<TypeCompound> buf = new ListBuffer<>();
         for (JCAnnotation anno : annotations) {
-        	if (anno.attribute == null) {
+        	if (anno.attribute == null) { // OPENJML - the if statement
 //        		if (anno instanceof org.jmlspecs.openjml.JmlTree.JmlAnnotation) {
 //        			var janno = (org.jmlspecs.openjml.JmlTree.JmlAnnotation)anno;
 //        			var s = com.sun.tools.javac.comp.JmlAttr.instance(context).modToAnnotationSymbol.get(janno.kind);
@@ -382,13 +380,18 @@ public class Annotate {
                 }
             }
 
-            // Note: @Deprecated has no effect on local variables and parameters
             if (!c.type.isErroneous()
                     && types.isSameType(c.type, syms.previewFeatureType)) {
                 toAnnotate.flags_field |= Flags.PREVIEW_API;
                 if (isAttributeTrue(c.member(names.essentialAPI))) {
                     toAnnotate.flags_field |= Flags.PREVIEW_ESSENTIAL_API;
                 }
+            }
+
+            if (!c.type.isErroneous()
+                    && toAnnotate.kind == TYP
+                    && types.isSameType(c.type, syms.valueBasedType)) {
+                toAnnotate.flags_field |= Flags.VALUE_BASED;
             }
         }
 
@@ -417,13 +420,9 @@ public class Annotate {
     }
     //where:
         private boolean isAttributeTrue(Attribute attr) {
-            if (attr instanceof Attribute.Constant) {
-                Attribute.Constant v = (Attribute.Constant) attr;
-                if (v.type == syms.booleanType && ((Integer) v.value) != 0) {
-                    return true;
-                }
-            }
-            return false;
+            return (attr instanceof Attribute.Constant constant)
+                    && constant.type == syms.booleanType
+                    && ((Integer) constant.value) != 0;
         }
 
     /**
@@ -460,7 +459,7 @@ public class Annotate {
     {
         // The attribute might have been entered if it is Target or Repeatable
         // Because TreeCopier does not copy type, redo this if type is null
-        if (a.attribute == null || a.type == null || !(a.attribute instanceof Attribute.TypeCompound)) {
+        if (a.attribute == null || a.type == null || !(a.attribute instanceof Attribute.TypeCompound typeCompound)) {
             // Create a new TypeCompound
             List<Pair<MethodSymbol,Attribute>> elems =
                     attributeAnnotationValues(a, expectedAnnotationType, env);
@@ -471,7 +470,7 @@ public class Annotate {
             return tc;
         } else {
             // Use an existing TypeCompound
-            return (Attribute.TypeCompound)a.attribute;
+            return typeCompound;
         }
     }
 
@@ -924,12 +923,12 @@ public class Annotate {
             log.error(pos, Errors.InvalidRepeatableAnnotation(annoDecl));
             return null;
         }
-        if (!(p.snd instanceof Attribute.Class)) { // check that the value of "value" is an Attribute.Class
+        if (!(p.snd instanceof Attribute.Class attributeClass)) { // check that the value of "value" is an Attribute.Class
             log.error(pos, Errors.InvalidRepeatableAnnotation(annoDecl));
             return null;
         }
 
-        return ((Attribute.Class)p.snd).getValue();
+        return attributeClass.getValue();
     }
 
     /* Validate that the suggested targetContainerType Type is a valid
@@ -1048,10 +1047,7 @@ public class Annotate {
             DiagnosticPosition deferPos)
     {
         Assert.checkNonNull(sym);
-        final var v = org.jmlspecs.openjml.Main.useJML ? new JmlTypeAnnotate(Annotate.this, env, sym, deferPos)
-        												: new TypeAnnotate(env, sym, deferPos);
-        
-        normal(() -> tree.accept(v));
+        normal(() -> tree.accept(new TypeAnnotate(env, sym, deferPos)));
     }
 
     /**
@@ -1059,7 +1055,7 @@ public class Annotate {
      */
     public void annotateTypeSecondStage(JCTree tree, List<JCAnnotation> annotations, Type storeAt) {
         typeAnnotation(() -> {
-        	List<Attribute.TypeCompound> compounds = fromAnnotations(annotations);
+            List<Attribute.TypeCompound> compounds = fromAnnotations(annotations);
             Assert.check(annotations.size() == compounds.size());
             storeAt.getMetadataOfKind(Kind.ANNOTATIONS).combine(new TypeMetadata.Annotations(compounds));
         });
@@ -1079,7 +1075,7 @@ public class Annotate {
      * We need to use a TreeScanner, because it is not enough to visit the top-level
      * annotations. We also need to visit type arguments, etc.
      */
-    protected class TypeAnnotate extends TreeScanner { // OPENJML - private to protected
+    private class TypeAnnotate extends TreeScanner {
         private final Env<AttrContext> env;
         private final Symbol sym;
         private DiagnosticPosition deferPos;

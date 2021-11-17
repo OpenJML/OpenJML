@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -29,7 +29,10 @@
 #include "ci/ciInstanceKlass.hpp"
 #include "ci/ciObject.hpp"
 #include "ci/ciSignature.hpp"
+#include "classfile/vmIntrinsics.hpp"
 #include "compiler/methodLiveness.hpp"
+#include "compiler/compilerOracle.hpp"
+#include "oops/method.hpp"
 #include "runtime/handles.hpp"
 #include "utilities/bitMap.hpp"
 
@@ -75,7 +78,7 @@ class ciMethod : public ciMetadata {
   int _code_size;
   int _max_stack;
   int _max_locals;
-  vmIntrinsics::ID _intrinsic_id;
+  vmIntrinsicID _intrinsic_id;
   int _handler_count;
   int _nmethod_age;
   int _interpreter_invocation_count;
@@ -181,7 +184,7 @@ class ciMethod : public ciMetadata {
   int code_size() const                          { check_is_loaded(); return _code_size; }
   int max_stack() const                          { check_is_loaded(); return _max_stack; }
   int max_locals() const                         { check_is_loaded(); return _max_locals; }
-  vmIntrinsics::ID intrinsic_id() const          { check_is_loaded(); return _intrinsic_id; }
+  vmIntrinsicID intrinsic_id() const             { check_is_loaded(); return _intrinsic_id; }
   bool has_exception_handlers() const            { check_is_loaded(); return _handler_count > 0; }
   int exception_table_length() const             { check_is_loaded(); return _handler_count; }
   int interpreter_invocation_count() const       { check_is_loaded(); return _interpreter_invocation_count; }
@@ -200,6 +203,15 @@ class ciMethod : public ciMetadata {
   bool dont_inline()           const { return get_Method()->dont_inline();           }
   bool intrinsic_candidate()   const { return get_Method()->intrinsic_candidate();   }
   bool is_static_initializer() const { return get_Method()->is_static_initializer(); }
+
+  bool check_intrinsic_candidate() const {
+    if (intrinsic_id() == vmIntrinsics::_blackhole) {
+      // This is the intrinsic without an associated method, so no intrinsic_candidate
+      // flag is set. The intrinsic is still correct.
+      return true;
+    }
+    return (CheckIntrinsics ? intrinsic_candidate() : true);
+  }
 
   int highest_osr_comp_level();
 
@@ -288,7 +300,7 @@ class ciMethod : public ciMetadata {
 
   // Given a known receiver klass, find the target for the call.
   // Return NULL if the call has no target or is abstract.
-  ciMethod* resolve_invoke(ciKlass* caller, ciKlass* exact_receiver, bool check_access = true);
+  ciMethod* resolve_invoke(ciKlass* caller, ciKlass* exact_receiver, bool check_access = true, bool allow_abstract = false);
 
   // Find the proper vtable index to invoke this method.
   int resolve_vtable_index(ciKlass* caller, ciKlass* receiver);
@@ -330,7 +342,6 @@ class ciMethod : public ciMetadata {
   bool is_native      () const                   { return flags().is_native(); }
   bool is_interface   () const                   { return flags().is_interface(); }
   bool is_abstract    () const                   { return flags().is_abstract(); }
-  bool is_strict      () const                   { return flags().is_strict(); }
 
   // Other flags
   bool is_final_method() const                   { return is_final() || holder()->is_final(); }
@@ -343,6 +354,7 @@ class ciMethod : public ciMetadata {
   bool is_setter      () const;
   bool is_accessor    () const;
   bool is_initializer () const;
+  bool is_empty       () const;
   bool can_be_statically_bound() const           { return _can_be_statically_bound; }
   bool has_reserved_stack_access() const         { return _has_reserved_stack_access; }
   bool is_boxing_method() const;

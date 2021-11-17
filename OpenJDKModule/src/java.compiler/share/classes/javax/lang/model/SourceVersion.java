@@ -221,9 +221,23 @@ public enum SourceVersion {
      * The version recognized by the Java Platform, Standard Edition
      * 16.
      *
+     * Additions in this release include pattern matching for {@code
+     * instanceof} and records.
+     *
      * @since 16
      */
-    RELEASE_16;
+    RELEASE_16,
+
+    /**
+     * The version recognized by the Java Platform, Standard Edition
+     * 17.
+     *
+     * Additions in this release include sealed classes and
+     * restoration of always-strict floating-point semantics.
+     *
+     * @since 17
+     */
+    RELEASE_17;
 
     // Note that when adding constants for newer releases, the
     // behavior of latest() and latestSupported() must be updated too.

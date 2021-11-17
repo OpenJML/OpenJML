@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -36,11 +36,10 @@
 #include "memory/universe.hpp"
 #include "oops/oop.inline.hpp"
 #include "runtime/handles.inline.hpp"
-#include "runtime/os.inline.hpp"
+#include "runtime/os.hpp"
 #include "runtime/stubCodeGenerator.hpp"
 #include "runtime/stubRoutines.hpp"
 #include "utilities/resourceHash.hpp"
-#include CPU_HEADER(depChecker)
 
 void*       Disassembler::_library               = NULL;
 bool        Disassembler::_tried_to_load_library = false;
@@ -57,7 +56,6 @@ static const char decode_instructions_virtual_name[] = "decode_instructions_virt
 class decode_env {
  private:
   outputStream* _output;      // where the disassembly is directed to
-  CodeBuffer*   _codeBuffer;  // != NULL only when decoding a CodeBuffer
   CodeBlob*     _codeBlob;    // != NULL only when decoding a CodeBlob
   nmethod*      _nm;          // != NULL only when decoding a nmethod
 
@@ -800,33 +798,45 @@ bool Disassembler::load_library(outputStream* st) {
 
   // Find the disassembler shared library.
   // Search for several paths derived from libjvm, in this order:
-  // 1. <home>/jre/lib/<arch>/<vm>/libhsdis-<arch>.so  (for compatibility)
-  // 2. <home>/jre/lib/<arch>/<vm>/hsdis-<arch>.so
-  // 3. <home>/jre/lib/<arch>/hsdis-<arch>.so
+  // 1. <home>/lib/<vm>/libhsdis-<arch>.so  (for compatibility)
+  // 2. <home>/lib/<vm>/hsdis-<arch>.so
+  // 3. <home>/lib/hsdis-<arch>.so
   // 4. hsdis-<arch>.so  (using LD_LIBRARY_PATH)
   if (jvm_offset >= 0) {
-    // 1. <home>/jre/lib/<arch>/<vm>/libhsdis-<arch>.so
-    strcpy(&buf[jvm_offset], hsdis_library_name);
-    strcat(&buf[jvm_offset], os::dll_file_extension());
-    if (Verbose) st->print_cr("Trying to load: %s", buf);
-    _library = os::dll_load(buf, ebuf, sizeof ebuf);
-    if (_library == NULL && lib_offset >= 0) {
-      // 2. <home>/jre/lib/<arch>/<vm>/hsdis-<arch>.so
-      strcpy(&buf[lib_offset], hsdis_library_name);
-      strcat(&buf[lib_offset], os::dll_file_extension());
+    // 1. <home>/lib/<vm>/libhsdis-<arch>.so
+    if (jvm_offset + strlen(hsdis_library_name) + strlen(os::dll_file_extension()) < JVM_MAXPATHLEN) {
+      strcpy(&buf[jvm_offset], hsdis_library_name);
+      strcat(&buf[jvm_offset], os::dll_file_extension());
       if (Verbose) st->print_cr("Trying to load: %s", buf);
       _library = os::dll_load(buf, ebuf, sizeof ebuf);
+    } else {
+      if (Verbose) st->print_cr("Try to load hsdis library failed: the length of path is beyond the OS limit");
     }
-    if (_library == NULL && lib_offset > 0) {
-      // 3. <home>/jre/lib/<arch>/hsdis-<arch>.so
-      buf[lib_offset - 1] = '\0';
-      const char* p = strrchr(buf, *os::file_separator());
-      if (p != NULL) {
-        lib_offset = p - buf + 1;
+    if (_library == NULL && lib_offset >= 0) {
+      // 2. <home>/lib/<vm>/hsdis-<arch>.so
+      if (lib_offset + strlen(hsdis_library_name) + strlen(os::dll_file_extension()) < JVM_MAXPATHLEN) {
         strcpy(&buf[lib_offset], hsdis_library_name);
         strcat(&buf[lib_offset], os::dll_file_extension());
         if (Verbose) st->print_cr("Trying to load: %s", buf);
         _library = os::dll_load(buf, ebuf, sizeof ebuf);
+      } else {
+        if (Verbose) st->print_cr("Try to load hsdis library failed: the length of path is beyond the OS limit");
+      }
+    }
+    if (_library == NULL && lib_offset > 0) {
+      // 3. <home>/lib/hsdis-<arch>.so
+      buf[lib_offset - 1] = '\0';
+      const char* p = strrchr(buf, *os::file_separator());
+      if (p != NULL) {
+        lib_offset = p - buf + 1;
+        if (lib_offset + strlen(hsdis_library_name) + strlen(os::dll_file_extension()) < JVM_MAXPATHLEN) {
+          strcpy(&buf[lib_offset], hsdis_library_name);
+          strcat(&buf[lib_offset], os::dll_file_extension());
+          if (Verbose) st->print_cr("Trying to load: %s", buf);
+          _library = os::dll_load(buf, ebuf, sizeof ebuf);
+        } else {
+          if (Verbose) st->print_cr("Try to load hsdis library failed: the length of path is beyond the OS limit");
+        }
       }
     }
   }
@@ -883,23 +893,9 @@ void Disassembler::decode(CodeBlob* cb, outputStream* st) {
 
   decode_env env(cb, st);
   env.output()->print_cr("--------------------------------------------------------------------------------");
-  if (cb->is_aot()) {
-    env.output()->print("A ");
-    if (cb->is_compiled()) {
-      CompiledMethod* cm = (CompiledMethod*)cb;
-      env.output()->print("%d ",cm->compile_id());
-      cm->method()->method_holder()->name()->print_symbol_on(env.output());
-      env.output()->print(".");
-      cm->method()->name()->print_symbol_on(env.output());
-      cm->method()->signature()->print_symbol_on(env.output());
-    } else {
-      env.output()->print_cr("%s", cb->name());
-    }
-  } else {
-    env.output()->print("Decoding CodeBlob");
-    if (cb->name() != NULL) {
-      env.output()->print(", name: %s,", cb->name());
-    }
+  env.output()->print("Decoding CodeBlob");
+  if (cb->name() != NULL) {
+    env.output()->print(", name: %s,", cb->name());
   }
   env.output()->print_cr(" at  [" PTR_FORMAT ", " PTR_FORMAT "]  " JLONG_FORMAT " bytes", p2i(cb->code_begin()), p2i(cb->code_end()), ((jlong)(cb->code_end() - cb->code_begin())));
 

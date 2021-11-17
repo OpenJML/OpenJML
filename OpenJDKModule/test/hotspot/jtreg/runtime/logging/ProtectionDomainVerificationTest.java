@@ -40,18 +40,46 @@ public class ProtectionDomainVerificationTest {
         // -Xlog:protectiondomain=trace
         ProcessBuilder pb = ProcessTools.createJavaProcessBuilder("-Xlog:protectiondomain=trace",
                                                                   "-Xmx128m",
+<<<<<<< HEAD
                                                                   Hello.class.getName());
         OutputAnalyzer out = new OutputAnalyzer(pb.start());
         out.shouldContain("[protectiondomain] Checking package access");
         out.shouldContain("[protectiondomain] pd set count = #");
+=======
+                                                                  "-Djava.security.manager=allow",
+                                                                  Hello.class.getName(), "security_manager");
+        new OutputAnalyzer(pb.start())
+        .shouldHaveExitValue(0)
+        .shouldContain("[protectiondomain] Checking package access")
+        .shouldContain("[protectiondomain] adding protection domain for class");
+>>>>>>> openjdk-src
 
         // -Xlog:protectiondomain=debug
         pb = ProcessTools.createJavaProcessBuilder("-Xlog:protectiondomain=debug",
                                                                   "-Xmx128m",
+<<<<<<< HEAD
                                                                   Hello.class.getName());
         out = new OutputAnalyzer(pb.start());
         out.shouldContain("[protectiondomain] Checking package access");
         out.shouldNotContain("pd set count = #");
+=======
+                                                                  "-Djava.security.manager=allow",
+                                                                  Hello.class.getName(), "security_manager");
+        new OutputAnalyzer(pb.start())
+        .shouldHaveExitValue(0)
+        .shouldContain("[protectiondomain] Checking package access")
+        .shouldNotContain("[protectiondomain] adding protection domain for class");
+
+        // -Xlog:protectiondomain=debug
+        pb = ProcessTools.createJavaProcessBuilder("-Xlog:protectiondomain=trace",
+                                                   "-Xmx128m",
+                                                   "-Djava.security.manager=disallow",
+                                                   Hello.class.getName());
+        new OutputAnalyzer(pb.start())
+        .shouldHaveExitValue(0)
+        .shouldNotContain("[protectiondomain] Checking package access")
+        .shouldNotContain("pd set count = #");
+>>>>>>> openjdk-src
     }
 
     public static class Hello {

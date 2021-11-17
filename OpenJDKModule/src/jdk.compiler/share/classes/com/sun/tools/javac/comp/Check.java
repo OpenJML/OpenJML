@@ -26,14 +26,14 @@
 package com.sun.tools.javac.comp;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.NestingKind;
 import javax.tools.JavaFileManager;
 
-import org.jmlspecs.openjml.Utils;
-
+import com.sun.source.tree.CaseTree;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Attribute.Compound;
 import com.sun.tools.javac.code.Directive.ExportsDirective;
@@ -89,9 +89,9 @@ public class Check {
     private final Enter enter;
     private final DeferredAttr deferredAttr;
     private final Infer infer;
-    public final Types types; // OPENJML - private to public
+    private final Types types;
     private final TypeAnnotations typeAnnotations;
-    public final JCDiagnostic.Factory diags; // OPENJML - private to public
+    private final JCDiagnostic.Factory diags;
     private final JavaFileManager fileManager;
     private final Source source;
     private final Target target;
@@ -162,8 +162,7 @@ public class Check {
         deferredLintHandler = DeferredLintHandler.instance(context);
 
         allowRecords = Feature.RECORDS.allowedInSource(source);
-        allowSealed = (!preview.isPreview(Feature.SEALED_CLASSES) || preview.isEnabled()) &&
-                Feature.SEALED_CLASSES.allowedInSource(source);
+        allowSealed = Feature.SEALED_CLASSES.allowedInSource(source);
     }
 
     /** Character for synthetic names
@@ -317,12 +316,12 @@ public class Check {
     Type typeTagError(DiagnosticPosition pos, JCDiagnostic required, Object found) {
         // this error used to be raised by the parser,
         // but has been delayed to this point:
-        if (found instanceof Type && ((Type)found).hasTag(VOID)) {
+        if (found instanceof Type type && type.hasTag(VOID)) {
             log.error(pos, Errors.IllegalStartOfType);
             return syms.errType;
         }
         log.error(pos, Errors.TypeFoundReq(found, required));
-        return types.createErrorType(found instanceof Type ? (Type)found : syms.errType);
+        return types.createErrorType(found instanceof Type type ? type : syms.errType);
     }
 
     /** Report an error that symbol cannot be referenced before super
@@ -655,7 +654,7 @@ public class Check {
         }
     }
     //where
-        protected boolean is292targetTypeCast(JCTypeCast tree) { // OPENJML - private to protected
+        private boolean is292targetTypeCast(JCTypeCast tree) {
             boolean is292targetTypeCast = false;
             JCExpression expr = TreeInfo.skipParens(tree.expr);
             if (expr.hasTag(APPLY)) {
@@ -1212,6 +1211,9 @@ public class Check {
             } else {
                 mask = MethodFlags;
             }
+            if ((flags & STRICTFP) != 0) {
+                warnOnExplicitStrictfp(pos);
+            }
             // Imply STRICTFP if owner has STRICTFP set.
             if (((flags|implicit) & Flags.ABSTRACT) == 0 ||
                 ((flags) & Flags.DEFAULT) != 0)
@@ -1252,6 +1254,9 @@ public class Check {
                 // records can't be declared abstract
                 mask &= ~ABSTRACT;
                 implicit |= FINAL;
+            }
+            if ((flags & STRICTFP) != 0) {
+                warnOnExplicitStrictfp(pos);
             }
             // Imply STRICTFP if owner has STRICTFP set.
             implicit |= sym.owner.flags_field & STRICTFP;
@@ -1315,6 +1320,19 @@ public class Check {
         return flags & (mask | ~ExtendedStandardFlags) | implicit;
     }
 
+    private void warnOnExplicitStrictfp(DiagnosticPosition pos) {
+        DiagnosticPosition prevLintPos = deferredLintHandler.setPos(pos);
+        try {
+            deferredLintHandler.report(() -> {
+                                           if (lint.isEnabled(LintCategory.STRICTFP)) {
+                                               log.warning(LintCategory.STRICTFP,
+                                                           pos, Warnings.Strictfp); }
+                                       });
+        } finally {
+            deferredLintHandler.setPos(prevLintPos);
+        }
+    }
+
 
     /** Determine if this enum should be implicitly final.
      *
@@ -1337,8 +1355,7 @@ public class Check {
             @Override
             public void visitVarDef(JCVariableDecl tree) {
                 if ((tree.mods.flags & ENUM) != 0) {
-                    if (tree.init instanceof JCNewClass &&
-                        ((JCNewClass) tree.init).def != null) {
+                    if (tree.init instanceof JCNewClass newClass && newClass.def != null) {
                         specialized = true;
                     }
                 }
@@ -2138,7 +2155,7 @@ public class Check {
         }
     }
 
-    private Filter<Symbol> equalsHasCodeFilter = s -> MethodSymbol.implementation_filter.accepts(s) &&
+    private Predicate<Symbol> equalsHasCodeFilter = s -> MethodSymbol.implementation_filter.test(s) &&
             (s.flags() & BAD_OVERRIDE) == 0;
 
     public void checkClassOverrideEqualsAndHashIfNeeded(DiagnosticPosition pos,
@@ -2217,8 +2234,8 @@ public class Check {
 
     private boolean checkNameClash(ClassSymbol origin, Symbol s1, Symbol s2) {
         ClashFilter cf = new ClashFilter(origin.type);
-        return (cf.accepts(s1) &&
-                cf.accepts(s2) &&
+        return (cf.test(s1) &&
+                cf.test(s2) &&
                 types.hasSameArgs(s1.erasure(types), s2.erasure(types)));
     }
 
@@ -2248,7 +2265,7 @@ public class Check {
 
     class CycleChecker extends TreeScanner {
 
-        List<Symbol> seenClasses = List.nil();
+        Set<Symbol> seenClasses = new HashSet<>();
         boolean errorFound = false;
         boolean partialCheck = false;
 
@@ -2267,7 +2284,7 @@ public class Check {
                 } else if (sym.kind == TYP) {
                     checkClass(pos, sym, List.nil());
                 }
-            } else {
+            } else if (sym == null || sym.kind != PCK) {
                 //not completed yet
                 partialCheck = true;
             }
@@ -2316,7 +2333,7 @@ public class Check {
                 noteCyclic(pos, (ClassSymbol)c);
             } else if (!c.type.isErroneous()) {
                 try {
-                    seenClasses = seenClasses.prepend(c);
+                    seenClasses.add(c);
                     if (c.type.hasTag(CLASS)) {
                         if (supertypes.nonEmpty()) {
                             scan(supertypes);
@@ -2339,7 +2356,7 @@ public class Check {
                         }
                     }
                 } finally {
-                    seenClasses = seenClasses.tail;
+                    seenClasses.remove(c);
                 }
             }
         }
@@ -2584,7 +2601,7 @@ public class Check {
      }
 
      //where
-     private class ClashFilter implements Filter<Symbol> {
+     private class ClashFilter implements Predicate<Symbol> {
 
          Type site;
 
@@ -2597,7 +2614,8 @@ public class Check {
                 s.owner == site.tsym;
          }
 
-         public boolean accepts(Symbol s) {
+         @Override
+         public boolean test(Symbol s) {
              return s.kind == MTH &&
                      (s.flags() & SYNTHETIC) == 0 &&
                      !shouldSkip(s) &&
@@ -2648,7 +2666,7 @@ public class Check {
     }
 
     //where
-     private class DefaultMethodClashFilter implements Filter<Symbol> {
+     private class DefaultMethodClashFilter implements Predicate<Symbol> {
 
          Type site;
 
@@ -2656,7 +2674,8 @@ public class Check {
              this.site = site;
          }
 
-         public boolean accepts(Symbol s) {
+         @Override
+         public boolean test(Symbol s) {
              return s.kind == MTH &&
                      (s.flags() & DEFAULT) != 0 &&
                      s.isInheritedIn(site.tsym, types) &&
@@ -3166,11 +3185,10 @@ public class Check {
         } else {
             containerTargets = new HashSet<>();
             for (Attribute app : containerTarget.values) {
-                if (!(app instanceof Attribute.Enum)) {
+                if (!(app instanceof Attribute.Enum attributeEnum)) {
                     continue; // recovery
                 }
-                Attribute.Enum e = (Attribute.Enum)app;
-                containerTargets.add(e.value.name);
+                containerTargets.add(attributeEnum.value.name);
             }
         }
 
@@ -3181,11 +3199,10 @@ public class Check {
         } else {
             containedTargets = new HashSet<>();
             for (Attribute app : containedTarget.values) {
-                if (!(app instanceof Attribute.Enum)) {
+                if (!(app instanceof Attribute.Enum attributeEnum)) {
                     continue; // recovery
                 }
-                Attribute.Enum e = (Attribute.Enum)app;
-                containedTargets.add(e.value.name);
+                containedTargets.add(attributeEnum.value.name);
             }
         }
 
@@ -3309,11 +3326,10 @@ public class Check {
             targets = new Name[arr.values.length];
             for (int i=0; i<arr.values.length; ++i) {
                 Attribute app = arr.values[i];
-                if (!(app instanceof Attribute.Enum)) {
+                if (!(app instanceof Attribute.Enum attributeEnum)) {
                     return new Name[0];
                 }
-                Attribute.Enum e = (Attribute.Enum) app;
-                targets[i] = e.value.name;
+                targets[i] = attributeEnum.value.name;
             }
         }
         return targets;
@@ -3328,7 +3344,6 @@ public class Check {
         return targets.isEmpty() || targets.isPresent() && !targets.get().isEmpty();
     }
 
-    @SuppressWarnings("preview")
     Optional<Set<Name>> getApplicableTargets(JCAnnotation a, Symbol s) {
         Attribute.Array arr = getAttributeTargetAttribute(a.annotationType.type.tsym);
         Name[] targets;
@@ -3341,12 +3356,11 @@ public class Check {
             targets = new Name[arr.values.length];
             for (int i=0; i<arr.values.length; ++i) {
                 Attribute app = arr.values[i];
-                if (!(app instanceof Attribute.Enum)) {
+                if (!(app instanceof Attribute.Enum attributeEnum)) {
                     // recovery
                     return Optional.empty();
                 }
-                Attribute.Enum e = (Attribute.Enum) app;
-                targets[i] = e.value.name;
+                targets[i] = attributeEnum.value.name;
             }
         }
         for (Name target : targets) {
@@ -3410,8 +3424,7 @@ public class Check {
         Attribute.Compound atTarget = s.getAnnotationTypeMetadata().getTarget();
         if (atTarget == null) return null; // ok, is applicable
         Attribute atValue = atTarget.member(names.value);
-        if (!(atValue instanceof Attribute.Array)) return null; // error recovery
-        return (Attribute.Array) atValue;
+        return (atValue instanceof Attribute.Array attributeArray) ? attributeArray : null;
     }
 
     public final Name[] dfltTargetMeta;
@@ -3789,7 +3802,7 @@ public class Check {
     private boolean checkUniqueImport(DiagnosticPosition pos, Scope ordinallyImportedSoFar,
                                       Scope staticallyImportedSoFar, Scope topLevelScope,
                                       Symbol sym, boolean staticImport) {
-        Filter<Symbol> duplicates = candidate -> candidate != sym && !candidate.type.isErroneous();
+        Predicate<Symbol> duplicates = candidate -> candidate != sym && !candidate.type.isErroneous();
         Symbol ordinaryClashing = ordinallyImportedSoFar.findFirst(sym.name, duplicates);
         Symbol staticClashing = null;
         if (ordinaryClashing == null && !staticImport) {
@@ -4243,4 +4256,66 @@ public class Check {
         }
     }
 
+    /**
+     * Verify the case labels conform to the constraints. Checks constraints related
+     * combinations of patterns and other labels.
+     *
+     * @param cases the cases that should be checked.
+     */
+    void checkSwitchCaseStructure(List<JCCase> cases) {
+        boolean wasConstant = false;          // Seen a constant in the same case label
+        boolean wasDefault = false;           // Seen a default in the same case label
+        boolean wasNullPattern = false;       // Seen a null pattern in the same case label,
+                                              //or fall through from a null pattern
+        boolean wasPattern = false;           // Seen a pattern in the same case label
+                                              //or fall through from a pattern
+        boolean wasTypePattern = false;       // Seen a pattern in the same case label
+                                              //or fall through from a type pattern
+        boolean wasNonEmptyFallThrough = false;
+        for (List<JCCase> l = cases; l.nonEmpty(); l = l.tail) {
+            JCCase c = l.head;
+            for (JCCaseLabel pat : c.labels) {
+                if (pat.isExpression()) {
+                    JCExpression expr = (JCExpression) pat;
+                    if (TreeInfo.isNull(expr)) {
+                        if (wasPattern && !wasTypePattern && !wasNonEmptyFallThrough) {
+                            log.error(pat.pos(), Errors.FlowsThroughFromPattern);
+                        }
+                        wasNullPattern = true;
+                    } else {
+                        if (wasPattern && !wasNonEmptyFallThrough) {
+                            log.error(pat.pos(), Errors.FlowsThroughFromPattern);
+                        }
+                        wasConstant = true;
+                    }
+                } else if (pat.hasTag(DEFAULTCASELABEL)) {
+                    if (wasPattern && !wasNonEmptyFallThrough) {
+                        log.error(pat.pos(), Errors.FlowsThroughFromPattern);
+                    }
+                    wasDefault = true;
+                } else {
+                    boolean isTypePattern = pat.hasTag(BINDINGPATTERN);
+                    if (wasPattern || wasConstant || wasDefault ||
+                        (wasNullPattern && (!isTypePattern || wasNonEmptyFallThrough))) {
+                        log.error(pat.pos(), Errors.FlowsThroughToPattern);
+                    }
+                    wasPattern = true;
+                    wasTypePattern = isTypePattern;
+                }
+            }
+
+            boolean completesNormally = c.caseKind == CaseTree.CaseKind.STATEMENT ? c.completesNormally
+                                                                                  : false;
+
+            if (c.stats.nonEmpty()) {
+                wasConstant = false;
+                wasDefault = false;
+                wasNullPattern &= completesNormally;
+                wasPattern &= completesNormally;
+                wasTypePattern &= completesNormally;
+            }
+
+            wasNonEmptyFallThrough = c.stats.nonEmpty() && completesNormally;
+        }
+    }
 }

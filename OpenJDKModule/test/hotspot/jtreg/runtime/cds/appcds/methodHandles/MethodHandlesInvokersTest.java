@@ -50,7 +50,11 @@ import java.io.File;
 import jdk.test.lib.cds.CDSOptions;
 import jdk.test.lib.cds.CDSTestUtils;
 import jdk.test.lib.process.OutputAnalyzer;
+<<<<<<< HEAD
 import jdk.test.lib.process.ProcessTools;
+=======
+import jdk.test.lib.Platform;
+>>>>>>> openjdk-src
 
 public class MethodHandlesInvokersTest {
     @Test
@@ -69,6 +73,10 @@ public class MethodHandlesInvokersTest {
         String appJar = JarBuilder.build("MH", new File(classDir), null);
         String classList = testClassName + ".list";
         String archiveName = testClassName + ".jsa";
+        // Disable VerifyDpendencies when running with debug build because
+        // the test requires a lot more time to execute with the option enabled.
+        String verifyOpt =
+            Platform.isDebugBuild() ? "-XX:-VerifyDependencies" : "-showversion";
 
         String[] classPaths = javaClassPath.split(File.pathSeparator);
         String junitJar = null;
@@ -82,11 +90,16 @@ public class MethodHandlesInvokersTest {
         String jars = appJar + ps + junitJar;
 
         // dump class list
+<<<<<<< HEAD
         ProcessBuilder pb = ProcessTools.createTestJvm(
             "-XX:DumpLoadedClassList=" + classList,
             "-cp", jars,
             mainClass, testPackageName + "." + testClassName);
         OutputAnalyzer output = TestCommon.executeAndLog(pb, "dumpClassList");
+=======
+        CDSTestUtils.dumpClassList(classList, "-cp", jars, verifyOpt, mainClass,
+                                   testPackageName + "." + testClassName);
+>>>>>>> openjdk-src
 
         // create archive with the class list
         CDSOptions opts = (new CDSOptions())
@@ -98,7 +111,7 @@ public class MethodHandlesInvokersTest {
 
         // run with archive
         CDSOptions runOpts = (new CDSOptions())
-            .addPrefix("-cp", jars, "-Xlog:class+load,cds=debug")
+            .addPrefix("-cp", jars, "-Xlog:class+load,cds=debug", verifyOpt)
             .setArchiveName(archiveName)
             .setUseVersion(false)
             .addSuffix(mainClass, testPackageName + "." + testClassName);
