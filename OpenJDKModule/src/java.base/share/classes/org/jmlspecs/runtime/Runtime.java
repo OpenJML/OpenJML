@@ -94,7 +94,7 @@ public class Runtime {
     static private Error createException(String message, /*@ nullable */String label) {
         String exname = System.getProperty("org.openjml.exception."+label);
         if (exname == null) {
-            exname = "org.jmlspecs.utils.JmlAssertionError" + "$" + label;
+            exname = "org.jmlspecs.runtime.JmlAssertionError" + "$" + label;
         }
         Class<?> c;
         try { c = Class.forName(exname); } catch (ClassNotFoundException e) { c = null; }

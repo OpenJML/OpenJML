@@ -54,7 +54,7 @@ public class escnewassignable extends EscBase {
                 +"  }\n"
 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m1bad:  y",7
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m1bad: y",7
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
@@ -107,7 +107,7 @@ public class escnewassignable extends EscBase {
                 +"  }\n"
 
                 +"}"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assignable) in method m1bad:  x",7
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assignable) in method m1bad: x",7
                 ,"/tt/TestJava.java:8: warning: Associated declaration",7
                 );
     }
@@ -129,7 +129,7 @@ public class escnewassignable extends EscBase {
                 +"  }\n"
 
                 +"}"
-                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assignable) in method m1bad:  y",7
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assignable) in method m1bad: y",7
                 ,"/tt/TestJava.java:5: warning: Associated declaration",7
                 );
     }
@@ -187,17 +187,17 @@ public class escnewassignable extends EscBase {
                 +"  }\n"
 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m1bad:  y",7
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m1bad: y",7
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assignable) in method m2bad:  xx",8
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assignable) in method m2bad: xx",8
                 ,"/tt/TestJava.java:8: warning: Associated declaration",7
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assignable) in method m3bad:  yy",8
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assignable) in method m3bad: yy",8
                 ,"/tt/TestJava.java:12: warning: Associated declaration",7
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assignable) in method m4bad:  x",7
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assignable) in method m4bad: x",7
                 ,"/tt/TestJava.java:16: warning: Associated declaration",7
-                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Assignable) in method m5bad:  yy",8
+                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Assignable) in method m5bad: yy",8
                 ,"/tt/TestJava.java:20: warning: Associated declaration",7
-                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Assignable) in method m6bad:  x",7
+                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Assignable) in method m6bad: x",7
                 ,"/tt/TestJava.java:24: warning: Associated declaration",7
                 );
     }
@@ -261,13 +261,13 @@ public class escnewassignable extends EscBase {
                 +"  }\n"
 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m1bad:  y",7
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m1bad: y",7
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assignable) in method m2bad:  x",7
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assignable) in method m2bad: x",7
                 ,"/tt/TestJava.java:8: warning: Associated declaration",7
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assignable) in method m3bad:  x",7
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assignable) in method m3bad: x",7
                 ,"/tt/TestJava.java:12: warning: Associated declaration",7
-                ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Assignable) in method m0bad:  x",7
+                ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Assignable) in method m0bad: x",7
                 ,"/tt/TestJava.java:29: warning: Associated declaration",7
                 );
     }
@@ -341,21 +341,21 @@ public class escnewassignable extends EscBase {
 
                 +"  public TestJava() { z = new int[10];}\n"
                 +"}"
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assignable) in method m1bad:  y",7
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assignable) in method m1bad: y",7
                 ,"/tt/TestJava.java:17: warning: Associated declaration",7
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m2bad:  x",7
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m2bad: x",7
                 ,"/tt/TestJava.java:22: warning: Associated declaration",7
-                ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (Assignable) in method m4bad:  this.x",12
+                ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (Assignable) in method m4bad: this.x",12
                 ,"/tt/TestJava.java:32: warning: Associated declaration",7
-                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (Assignable) in method m5bad:  this.y",12
+                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (Assignable) in method m5bad: this.y",12
                 ,"/tt/TestJava.java:37: warning: Associated declaration",7
-                ,"/tt/TestJava.java:44: warning: The prover cannot establish an assertion (Assignable) in method m6bad:  a.x",9
+                ,"/tt/TestJava.java:44: warning: The prover cannot establish an assertion (Assignable) in method m6bad: a.x",9
                 ,"/tt/TestJava.java:42: warning: Associated declaration",7
-                ,"/tt/TestJava.java:49: warning: The prover cannot establish an assertion (Assignable) in method m7bad:  a.y",9
+                ,"/tt/TestJava.java:49: warning: The prover cannot establish an assertion (Assignable) in method m7bad: a.y",9
                 ,"/tt/TestJava.java:47: warning: Associated declaration",7
-                ,"/tt/TestJava.java:54: warning: The prover cannot establish an assertion (Assignable) in method m8bad:  TestJava.y",16
+                ,"/tt/TestJava.java:54: warning: The prover cannot establish an assertion (Assignable) in method m8bad: TestJava.y",16
                 ,"/tt/TestJava.java:52: warning: Associated declaration",7
-                ,"/tt/TestJava.java:60: warning: The prover cannot establish an assertion (Assignable) in method m9bad:  z[0]",10
+                ,"/tt/TestJava.java:60: warning: The prover cannot establish an assertion (Assignable) in method m9bad: z[0]",10
                 ,"/tt/TestJava.java:57: warning: Associated declaration",7
                 );
     }
@@ -427,19 +427,19 @@ public class escnewassignable extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",8
                 ,"/tt/TestJava.java:4: warning: Associated declaration",14
-                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assignable) in method m1bad:  a[1]",10
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assignable) in method m1bad: a[1]",10
                 ,"/tt/TestJava.java:9: warning: Associated declaration",44
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assignable) in method m2bad:  a[1]",10
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assignable) in method m2bad: a[1]",10
                 ,"/tt/TestJava.java:17: warning: Associated declaration",44
-                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assignable) in method m3bad:  a[1]",10
+                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assignable) in method m3bad: a[1]",10
                 ,"/tt/TestJava.java:25: warning: Associated declaration",44
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Assignable) in method m3bad1:  a[1]",10
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Assignable) in method m3bad1: a[1]",10
                 ,"/tt/TestJava.java:29: warning: Associated declaration",44
-                ,"/tt/TestJava.java:35: warning: The prover cannot establish an assertion (Assignable) in method m3bad2:  a[1]",10
+                ,"/tt/TestJava.java:35: warning: The prover cannot establish an assertion (Assignable) in method m3bad2: a[1]",10
                 ,"/tt/TestJava.java:33: warning: Associated declaration",44
-                ,"/tt/TestJava.java:43: warning: The prover cannot establish an assertion (Assignable) in method m4bad:  a[1]",10
+                ,"/tt/TestJava.java:43: warning: The prover cannot establish an assertion (Assignable) in method m4bad: a[1]",10
                 ,"/tt/TestJava.java:41: warning: Associated declaration",44
-                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (Assignable) in method m4bad1:  a[1]",10
+                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (Assignable) in method m4bad1: a[1]",10
                 ,"/tt/TestJava.java:45: warning: Associated declaration",44
                 );
     }
@@ -494,11 +494,11 @@ public class escnewassignable extends EscBase {
 
                 +"  public TestJava() { b = new TestJava(); } \n"
                 +"}"
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assignable) in method m1bad:  a.i",9
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assignable) in method m1bad: a.i",9
                 ,"/tt/TestJava.java:12: warning: Associated declaration",7
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assignable) in method m2bad:  a.i",9
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assignable) in method m2bad: a.i",9
                 ,"/tt/TestJava.java:16: warning: Associated declaration",7
-                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Assignable) in method m3bad:  a.i",9
+                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Assignable) in method m3bad: a.i",9
                 ,"/tt/TestJava.java:20: warning: Associated declaration",7
                 );
     }
@@ -541,9 +541,9 @@ public class escnewassignable extends EscBase {
 
                 +" public TestJava() { a = new A(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assignable) in method m1bad:  x",6
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assignable) in method m1bad: x",6
                 ,"/tt/TestJava.java:5: warning: Associated declaration",7
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assignable) in method m3bad:  xx",7
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assignable) in method m3bad: xx",7
                 ,"/tt/TestJava.java:17: warning: Associated declaration",7
                 
                 );
@@ -654,7 +654,7 @@ public class escnewassignable extends EscBase {
 
                 +" public TestJava() { a = new A(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assignable) in method m1z1bad:  x",8
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assignable) in method m1z1bad: x",8
                 ,"/tt/TestJava.java:15: warning: Associated declaration",7
                 );
     }
@@ -694,7 +694,7 @@ public class escnewassignable extends EscBase {
 
                 +" public TestJava() { a = new A(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad:  x",11
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad: x",11
                 ,"/tt/TestJava.java:17: warning: Associated declaration",7
                 
                 );
@@ -744,9 +744,9 @@ public class escnewassignable extends EscBase {
 
                 +" public TestJava() { a = new A(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assignable) in method m1z1bad:  x",8
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assignable) in method m1z1bad: x",8
                 ,"/tt/TestJava.java:9: warning: Associated declaration",7
-                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad:  x",11
+                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad: x",11
                 ,"/tt/TestJava.java:25: warning: Associated declaration",7
                 
                 );

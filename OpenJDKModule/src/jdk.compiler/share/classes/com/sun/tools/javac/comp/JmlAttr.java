@@ -53,6 +53,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
 
@@ -1846,6 +1847,25 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                // env.enclMethod.
 //        if (env == null) env = enclosingMethodEnv;
         
+    	JCExpression nnexpr = treeutils.trueLit;
+        {
+        	int i = 0;
+        	var iter = msp.specDecl == null ? null : msp.specDecl.params.iterator(); // FIXME - under what circumstances is msp.specDecl null? What do we do if there are no specs at all and we are assuming some param are non-null?
+        	var syms = msp.specSym.params.iterator();
+        	for (var param: msym.params) {
+        		var p = iter == null ? null : iter.next();
+        		var pos = p == null ? Position.NOPOS : p.pos;
+        		var s = syms.next();
+        		boolean nn = specs.isNonNullFormal(param.type, i, msp, msym);
+        		if (nn) {
+        			JCIdent e = treeutils.makeIdent(pos, s!=null ? s :p != null ? p.sym : param);
+        			//System.out.println("USING SYM " + e.name + " " + e.sym + " " + e.sym.hashCode() + " : " + Objects.hashCode(s) + " " + Objects.hashCode(p.sym) + " " + Objects.hashCode(param));
+        			JCExpression ee = treeutils.makeNotNull(pos, e);
+        			nnexpr = treeutils.makeAndSimp(pos, nnexpr, ee);
+        		}
+        		++i;
+        	}
+        }
         
         JavaFileObject prevSource = decl == null ? log.currentSourceFile() : log.useSource(decl.sourcefile);
         EndPosTable endPosTable = null;
@@ -1899,7 +1919,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     cl.appendList(commonClauses);  // FIXME - appending the same ASTs to each spec case - is this sharing OK
                     ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,msym,mods);
                     for (JmlSpecificationCase cs: newcases) {
-                        addDefaultClauses(decl, mods, msym, pure, cs);
+                        addDefaultClauses(decl, mods, msym, pure, cs, nnexpr);
                     }
                     allcases.appendList(newcases);
                 }
@@ -1912,7 +1932,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     for (JmlSpecificationCase cs: newcases) {
                         // Note: a model program spec case has no clauses
                         if (cs.clauses != null) {
-                            addDefaultClauses(decl, mods, msym, pure, cs);
+                            addDefaultClauses(decl, mods, msym, pure, cs, nnexpr);
                         }
                     }
                     allitcases.appendList(newcases);
@@ -1926,7 +1946,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     for (JmlSpecificationCase cs: newcases) {
                         // Note: a model program spec case has no clauses
                         if (cs.clauses != null) {
-                            addDefaultClauses(decl, mods, msym, pure, cs);
+                            addDefaultClauses(decl, mods, msym, pure, cs, nnexpr);
                         }
                     }
                     allfecases.appendList(newcases);
@@ -1942,7 +1962,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (p <= 0) log.error("jml.internal", "Bad position");
                 JCModifiers cmods = jmlMaker.at(p).Modifiers(decl.mods.flags & Flags.AccessFlags);
                 JmlSpecificationCase cs = jmlMaker.at(p).JmlSpecificationCase(cmods,false,null,null,commonClauses.toList(),null);
-                addDefaultClauses(decl, mods, msym, pure, cs);
+                addDefaultClauses(decl, mods, msym, pure, cs, nnexpr);
                 newspecs = jmlMaker.at(p).JmlMethodSpecs(List.<JmlSpecificationCase>of(cs));
             } else {
                 newspecs = jmlMaker.at(-1).JmlMethodSpecs(List.<JmlSpecificationCase>nil());
@@ -1956,7 +1976,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
 
-    protected void addDefaultClauses(JmlMethodDecl decl, JCModifiers mods, MethodSymbol msym, JCAnnotation pure, JmlSpecificationCase cs) {
+    protected void addDefaultClauses(JmlMethodDecl decl, JCModifiers mods, MethodSymbol msym, JCAnnotation pure, JmlSpecificationCase cs, JCExpression nnexpr) {
         String constructorDefault = JmlOption.defaultsValue(context,"constructor","everything");
         boolean hasAssignableClause = false;
         boolean hasAccessibleClause = false;
@@ -1975,6 +1995,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
         }
         ListBuffer<JmlMethodClause> newClauseList = new ListBuffer<>();
+        {
+        	// JmlAssertionAdder expects the first requires cause to be params nonnull test, even if it is 'true'
+        	var req = jmlMaker.at(cs.pos).JmlMethodClauseExpr(requiresID, requiresClauseKind, nnexpr);
+        	newClauseList.add(req);
+        }
         if (!hasAssignableClause && cs.block == null) {
             JmlMethodClause defaultClause;
             if (findMod(mods,Modifiers.INLINE) != null) {
@@ -4403,24 +4428,36 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case qexistsID: 
                 break;
             case qnumofID: 
-                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_count$$$"), F.Type(restype), F.Literal(restype.getTag(),0).setType(syms.intType));
+            	restype = syms.longType; // FIXME - not working for bigint yet -- as this is RAC, we need to use BigInteger -- same for \sum etc.
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_count$$$"), F.Type(restype), F.Literal(restype.getTag(),0).setType(restype));
                 break;
             case qsumID:
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_sum$$$"), F.Type(restype), F.Literal(restype.getTag(),0).setType(syms.intType));
+                initialDecl.type = restype;
                 break;
             case qproductID:
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_prod$$$"), F.Type(restype), F.Literal(restype.getTag(),1).setType(syms.intType));
+                initialDecl.type = restype;
                 break;
             case qmaxID:
             case qminID:
                 firstDecl = F.VarDef(F.Modifiers(0), names.fromString("_first$$$"), F.TypeIdent(TypeTag.BOOLEAN), F.Literal(TypeTag.BOOLEAN,1).setType(syms.booleanType));
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString(q.kind == qminKind ? "_min$$$" : "_max$$$"), F.Type(restype), F.Literal(restype.getTag(),0).setType(restype));
+                initialDecl.type = restype;
                 valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
                 break;
             default:
                 return;
             }
-            if (initialDecl != null) bodyStats.add(initialDecl);
+            if (initialDecl != null) {
+            	// Just the needed pieces from memberEnter.memberEnter(initialDecl, env);
+            	// FIXME - but isn't the whole expression attriubuted later?
+                initialDecl.sym = new VarSymbol(0, initialDecl.name, restype, enter.enterScope(env).owner);
+                initialDecl.sym.flags_field = 0; // FIXME - perhaps FINAL
+                initialDecl.type = restype;
+                initialDecl.vartype.type = restype;
+            	bodyStats.add(initialDecl);
+            }
             if (valueDecl != null) bodyStats.add(valueDecl);
             if (firstDecl != null) bodyStats.add(firstDecl);
 
@@ -4580,9 +4617,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 id.setType(initialDecl.type);
                 id.sym = initialDecl.sym;
                 JCUnary op = (JCUnary)treeutils.makeUnary(id.pos, JCTree.Tag.PREINC, id);
-//                JCUnary op = F.Unary(JCTree.PREINC, id);
-//                op.setType(initialDecl.type);
-//                op.operator = rs.resolveUnaryOperator(op.pos(),op.getTag(),env,op.arg.type);
                 update = F.If(cond, F.Exec(op) , null);
                 retStat = F.Return(id); // Is it OK to reuse the node?
             } else if (q.kind == qsumKind) {
@@ -4590,9 +4624,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 id.setType(initialDecl.type);
                 id.sym = initialDecl.sym;
                 JCAssignOp asn = treeutils.makeAssignOp(Position.NOPOS, JCTree.Tag.PLUS_ASG, id, cond);
-//                JCAssignOp asn = F.Assignop(JCTree.PLUS_ASG, id, cond);
-//                asn.setType(initialDecl.type);
-//                asn.operator = rs.resolveBinaryOperator(asn.pos(), asn.getTag() - JCTree.ASGOffset, env, asn.lhs.type, asn.rhs.type);
                 update = F.Exec(asn);
                 retStat = F.Return(id); // Is it OK to reuse the node?
             } else if (q.kind == qproductKind) {
@@ -4601,9 +4632,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 id.setType(initialDecl.type);
                 id.sym = initialDecl.sym;
                 JCAssignOp asn = treeutils.makeAssignOp(Position.NOPOS, JCTree.Tag.MUL_ASG, id, cond);
-//                JCAssignOp asn = F.Assignop(JCTree.MUL_ASG, id, cond);
-//                asn.setType(initialDecl.type);
-//                asn.operator = rs.resolveBinaryOperator(asn.pos(), asn.getTag() - JCTree.ASGOffset, env, asn.lhs.type, asn.rhs.type);
                 update = F.Exec(asn);
                 retStat = F.Return(id);
             } else if (q.kind == qmaxKind || q.kind == qminKind) {
@@ -4637,40 +4665,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                    null);
                 op1.operator = treeutils.orSymbol;
                 op2.operator = ((JmlResolve)rs).resolveBinaryOperator(op2.pos(),op2.getTag(), env, op2.lhs.type, op2.rhs.type);
-                retStat = F.Return(id);
-            } else if (q.kind == qminKind) {
-                JCIdent id = F.Ident(initialDecl.name);
-                id.setType(initialDecl.type);
-                id.sym = initialDecl.sym;
-                JCIdent vid = F.Ident(valueDecl.name);
-                vid.setType(valueDecl.type);
-                vid.sym = valueDecl.sym;
-                JCIdent fid = F.Ident(firstDecl.name);
-                fid.setType(firstDecl.type);
-                fid.sym = firstDecl.sym;
-                JCBinary op1,op2;
-                // FIXME - use treeutils here
-                update = F.If(
-                        (op1=F.Binary(
-                                JCTree.Tag.OR, 
-                                (op2=F.Binary(
-                                        JCTree.Tag.LT, 
-                                        F.Assign(vid, newvalue).setType(vid.type), 
-                                        id
-                                        )).setType(syms.booleanType), 
-                                fid
-                                )).setType(syms.booleanType)
-                        ,
-                       F.Block(0, 
-                               List.<JCStatement>of(
-                                       F.Exec(F.Assign(id,vid).setType(id.type)),
-                                       F.Exec(F.Assign(fid, F.Literal(TypeTag.BOOLEAN,0).setType(syms.booleanType).setType(fid.type)))
-                                       )
-                               ),
-                       null);
-                op1.operator = treeutils.orSymbol;
-                op2.operator = ((JmlResolve)rs).resolveBinaryOperator(op2.pos(),op2.getTag(), env, op2.lhs.type, op2.rhs.type);
-                
                 retStat = F.Return(id);
             } else {
                 return;
@@ -4922,7 +4916,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         	Type saved = result;
         	if (!justAttribute && tree.sym instanceof VarSymbol) {
-        		checkSecretReadable(tree,(VarSymbol)tree.sym);
+        		var qsaved = quantifiedExprs;
+        		try {
+        			quantifiedExprs = new LinkedList<JmlQuantifiedExpr>();
+        			checkSecretReadable(tree,(VarSymbol)tree.sym);
+        		} finally {
+        			quantifiedExprs = qsaved;
+        		}
         	}// Could also be a method call, and error, a package, a class...
 
         	checkVisibility(tree, jmlenv.jmlVisibility, tree.sym, null);
@@ -5864,8 +5864,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
             return false;
         }
-    	if (utils.hasMod((JmlModifiers)mspecs.mods, Modifiers.HELPER)) return true;
-    	if (utils.hasMod((JmlModifiers)mspecs.mods, Modifiers.FUNCTION)) return true;
+        if (utils.hasModOrAnn((JmlModifiers)mspecs.mods, Modifiers.HELPER,  Modifiers.FUNCTION)) return true;
     	return false;
     }
     
@@ -6009,7 +6008,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
 //    public JCStatement methodCall(JmlStatementExpr tree) {
-//        // org.jmlspecs.utils.Utils.assertionFailure();
+//        // org.jmlspecs.runtime.Utils.assertionFailure();
 //        
 //        JmlToken t = tree.token;
 //        String s = t == JmlToken.ASSERT ? "assertion is false" : t == JmlToken.ASSUME ? "assumption is false" : "unreachable statement reached";
@@ -6023,7 +6022,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    }
 //    
 //    public JCStatement methodCall(JmlStatementExpr tree, JCExpression translatedOptionalExpr) {
-//        // org.jmlspecs.utils.Utils.assertionFailure();
+//        // org.jmlspecs.runtime.Utils.assertionFailure();
 //        
 //        JmlToken t = tree.token;
 //        String s = t == JmlToken.ASSERT ? "assertion is false" : t == JmlToken.ASSUME ? "assumption is false" : "unreachable statement reached";

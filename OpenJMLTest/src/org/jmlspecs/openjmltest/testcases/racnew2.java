@@ -14,16 +14,8 @@ import org.junit.Test;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class racnew2 extends RacBase {
 
-    /** Sets the classpath used for these tests.  The bin in the classpath
-     * brings in the currently compiled runtime classes (so we don't have
-     * to build jmlruntime.jar)
-     */
-    String[] ordrac = new String[]{jdk, "-ea", "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata",null};
-
     @Override
     public void setUp() throws Exception {
-        rac = ordrac;
-        jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
         main.addOptions("-code-math=java","-spec-math=java");;
@@ -43,11 +35,16 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testMods2() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*; \n" +
-                " public class TestJava { \n" +
-                "   @NonNull  protected void m() {} \n" +
-                "   public static void main(String... args) {}" +
-                "}"
+    	expectedExit = 1;
+        helpTCX("tt.TestJava",
+        		"""
+        		package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*;
+                public class TestJava {
+                    @NonNull  protected void m() {}
+                    public static void main(String... args) {}
+                }
+                """
+                ,"/tt/TestJava.java:3: error: annotation type not applicable to this kind of declaration",11
         );        
     }
     
@@ -66,16 +63,16 @@ public class racnew2 extends RacBase {
                 "}"
                 ,"START"
                 ,"MID"
-                ,"/tt/TestJava.java:4: JML postcondition is false"
-                ,"/tt/TestJava.java:3: Associated declaration"
-                ,"/tt/TestJava.java:9: JML postcondition is false"
-                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:4: verify: JML postcondition is false"
+                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:4:"
+                ,"/tt/TestJava.java:9: verify: JML postcondition is false"
+                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:9:"
                 ,"END"
         );        
     }
     
     /** Tests new array */
-    @Test public void testNewArray() {
+    @Test public void testNewArray() {  // FIXME - improve error message when String.equals includes its model methods for RAC
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  String[] a = new String[]{\"abc\",\"def\"};\n" +
                 "  int i = a.length; \n" +
@@ -158,36 +155,39 @@ public class racnew2 extends RacBase {
 
     /** Tests new object in JML */
     @Test public void testNewObject3() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { \n" +
-                "public int k;\n" +
-                "//@requires i > 0; ensures k == i;\n" +
-                "public /*@ pure */ TestJava(int i) { k = i < 2 ? i : 5; }\n" +
-                "public static void main(String[] args) { \n" +
-                "  System.out.println(\"TestJava - 1\");\n" +
-                "  TestJava t = new TestJava(1);\n" +
-                "  System.out.println(\"TestJava - 0\");\n" +
-                "  t = new TestJava(0);\n" +
-                "  System.out.println(\"TestJava - 2\");\n" +
-                "  //@ assert (new TestJava(2)).k == 2;\n" +
-                "  System.out.println(\"TestJava - 0\");\n" +
-                "  //@ assert (new TestJava(0)).k == 0;\n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
+        helpTCX("tt.TestJava",
+        		"""
+        		package tt; public class TestJava {
+                  public int k;
+                  //@requires i > 0; ensures k == i;
+                  public /*@ pure */ TestJava(int i) { k = i < 2 ? i : 5; }
+                  public static void main(String[] args) {
+                    System.out.println(\"TestJava - 1\");
+                    TestJava t = new TestJava(1);
+                    System.out.println(\"TestJava - 0\");
+                    t = new TestJava(0);
+                    System.out.println(\"TestJava - 2\");
+                    //@ assert (new TestJava(2)).k == 2;
+                    System.out.println(\"TestJava - 0\");
+                    //@ assert (new TestJava(0)).k == 0;
+                    System.out.println(\"END\");
+                  }
+                }
+        		"""
                 ,"TestJava - 1"
                 ,"TestJava - 0"
                 ,"/tt/TestJava.java:9: JML precondition is false" // caller check -- TestJava(0)
-                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:9:"
                 ,"/tt/TestJava.java:3: JML precondition is false" // callee check
                 ,"TestJava - 2"
                 ,"/tt/TestJava.java:4: JML postcondition is false" // callee check
-                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:3: Associated declaration: /tt/TestJava.java:4:"
                 ,"/tt/TestJava.java:11: JML postcondition is false" // caller check
-                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:3: Associated declaration: /tt/TestJava.java:11:"
                 ,"/tt/TestJava.java:11: JML assertion is false"
                 ,"TestJava - 0"
                 ,"/tt/TestJava.java:13: JML a method called in a JML expression is undefined because its precondition is false"
-                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:13:"
                 ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"END"
         );        
@@ -226,7 +226,7 @@ public class racnew2 extends RacBase {
                 "public void m() throws RuntimeException { /*@ nullable*/ Object o = null; int i; \n " +
                 "synchronized (o) { i = 0; } \n}}"
                 ,"/tt/A.java:4: JML An object may be illegally null"
-                ,"Exception in thread \"main\" java.lang.NullPointerException"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot enter synchronized block because \"<local4>\" is null"
                 ,"\tat tt.A.m(A.java:4)"
                 ,"\tat tt.A.main(A.java:2)"
                 );
@@ -495,7 +495,7 @@ public class racnew2 extends RacBase {
                 "  m((short)0); m((short)1); m((short)2); m((short)3); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
-                "  static void m(short s) { Short i = new Short(s); \n" +
+                "  static void m(short s) { Short i = Short.valueOf(s); \n" +
                 "  switch (i) { \n" +
                 "  case 0: //@ assert i == 0; \n break; \n" +
                 "  case 1: //@ assert i == 0; \n break; \n" +
@@ -535,7 +535,7 @@ public class racnew2 extends RacBase {
                 "  m((byte)0); m((byte)1); m((byte)2); m((byte)3); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
-                "  static void m(byte s) { Byte i = new Byte(s); \n" +
+                "  static void m(byte s) { Byte i = Byte.valueOf(s); \n" +
                 "  switch (i) { \n" +
                 "  case 0: //@ assert i == 0; \n break; \n" +
                 "  case 1: //@ assert i == 0; \n break; \n" +
@@ -555,7 +555,7 @@ public class racnew2 extends RacBase {
                 "  m(0); m(1); m(2); m(3); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
-                "  static void m(int s) { Integer i = new Integer(s); \n" +
+                "  static void m(int s) { Integer i = Integer.valueOf(s); \n" +
                 "  switch (i) { \n" +
                 "  case 0: //@ assert i == 0; \n break; \n" +
                 "  case 1: //@ assert i == 0; \n break; \n" +
@@ -615,7 +615,7 @@ public class racnew2 extends RacBase {
                 "  m('a'); m('b'); m('c'); m('d'); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
-                "  static void m(char s) { Character i = new Character(s);\n" +
+                "  static void m(char s) { Character i = Character.valueOf(s);\n" +
                 "  switch (i) { \n" +
                 "  case 'a': //@ assert i == 'a'; \n break; \n" +
                 "  case 'b': //@ assert i == 'a'; \n break; \n" +
@@ -633,7 +633,7 @@ public class racnew2 extends RacBase {
     /** Tests type test and type cast expressions */
     @Test public void testTypeCast() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  Integer i = new Integer(10); \n" +
+                "  Integer i = Integer.valueOf(10); \n" +
                 "  Object o = i; \n" +
                 "  Integer ii = (Integer)o; \n" +
                 "  System.out.println(ii); \n" +
@@ -657,10 +657,10 @@ public class racnew2 extends RacBase {
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
                 "}"
-                ,"/tt/TestJava.java:4: JML A cast is invalid - from @org.jmlspecs.annotation.NonNull java.lang.Object to java.lang.Integer"
+                ,"/tt/TestJava.java:4: JML A cast is invalid - from java.lang.Object to java.lang.Integer"
                 ,"  Integer ii = (Integer)o;"
                 ,"               ^"
-                ,"Exception in thread \"main\" java.lang.ClassCastException: java.lang.Boolean cannot be cast to java.lang.Integer"
+                ,"Exception in thread \"main\" java.lang.ClassCastException: class java.lang.Boolean cannot be cast to class java.lang.Integer (java.lang.Boolean and java.lang.Integer are in module java.base of loader 'bootstrap')"
                 ,"\tat tt.TestJava.main(TestJava.java:4)"
         );        
     }
@@ -669,7 +669,7 @@ public class racnew2 extends RacBase {
     @Test public void testTypeCast3() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean b = Boolean.TRUE; \n" +
-                "  Integer i = new Integer(10); /*@ nullable */Integer ii = null; \n" +
+                "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
                 "  Object o = i; \n" +
                 "  if (o instanceof Integer) { ii = (Integer)o; }\n" +
                 "  o = b; \n" +
@@ -687,7 +687,7 @@ public class racnew2 extends RacBase {
     @Test public void testTypeTest4() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean b = Boolean.TRUE; \n" +
-                "  Integer i = new Integer(10); /*@ nullable */Integer ii = null; \n" +
+                "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
                 "  Object o = i; \n" +
                 "  //@ assert o instanceof Integer; \n" +
                 "  o = b; \n" +
@@ -705,7 +705,7 @@ public class racnew2 extends RacBase {
         expectedRACExit = 1;
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean b = Boolean.TRUE; \n" +
-                "  Integer i = new Integer(10); /*@ nullable */Integer ii = null; \n" +
+                "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
                 "  Object o = i; \n" +
                 "  //@ assert (Integer)o != null; \n" +
                 "  o = b; \n" +
@@ -713,8 +713,8 @@ public class racnew2 extends RacBase {
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
                 "}"
-                ,"/tt/TestJava.java:7: JML A cast is invalid - from @org.jmlspecs.annotation.NonNull java.lang.Object to java.lang.Integer"
-                ,"Exception in thread \"main\" java.lang.ClassCastException: java.lang.Boolean cannot be cast to java.lang.Integer"
+                ,"/tt/TestJava.java:7: JML A cast is invalid - from java.lang.Object to java.lang.Integer"
+                ,"Exception in thread \"main\" java.lang.ClassCastException: class java.lang.Boolean cannot be cast to class java.lang.Integer (java.lang.Boolean and java.lang.Integer are in module java.base of loader 'bootstrap')"
                 ,"\tat tt.TestJava.main(TestJava.java:7)"
         );        
     }
@@ -723,7 +723,7 @@ public class racnew2 extends RacBase {
     @Test public void testTypeCast6() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean b = Boolean.TRUE; \n" +
-                "  Integer i = new Integer(10); /*@ nullable */Integer ii = null; \n" +
+                "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
                 "  Object o = i; \n" +
                 "  //@ assert o instanceof Integer && (Integer)o != null; \n" +
                 "  o = b; \n" +
@@ -839,14 +839,14 @@ public class racnew2 extends RacBase {
                 ,"/tt/TestJava.java:5: JML postcondition is false"
                 ," static public void m(int i) { System.out.println(\"i = \" + i ); k = i; } }"
                 ,"                    ^"
-                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:5: "
+                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:5:"
                 ," /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */ "
                 ,"                             ^"
                 ,"LABEL ENS = false"
                 ,"/tt/TestJava.java:2: JML postcondition is false"
                 ," m(1); m(0); "
                 ,"        ^"
-                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:2: "
+                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:2:"
                 ," /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */ "
                 ,"                             ^"
                 ,"END"
@@ -865,12 +865,12 @@ public class racnew2 extends RacBase {
                 ,"LABEL RES = 1"
                 ,"LABEL RES = 0"
                 ,"LABEL ENS = false"
-                ,"/tt/TestJava.java:5: JML postcondition is false"
-                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:5: verify: JML postcondition is false"
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:5:"
                 ,"LABEL RES = 0"
                 ,"LABEL ENS = false"
-                ,"/tt/TestJava.java:2: JML postcondition is false"
-                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:2: verify: JML postcondition is false"
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:2:"
                 ,"END"
         );        
     }
@@ -903,7 +903,7 @@ public class racnew2 extends RacBase {
                 "}"
                 ,"/tt/TestJava.java:3: JML assertion is false"
                 ,"/tt/TestJava.java:4: JML A null object is dereferenced within a JML expression"
-                ,"Exception in thread \"main\" java.lang.NullPointerException"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot read the array length because \"tt.TestJava.b\" is null"
                 ,"\tat tt.TestJava.main(TestJava.java:4)"
         );        
     }
@@ -919,8 +919,8 @@ public class racnew2 extends RacBase {
                 " /*@nullable*/ static int[] b = null;\n" +
                 "}"
                 ,"1"
-                ,"/tt/TestJava.java:3: JML A null object is dereferenced"
-                ,"Exception in thread \"main\" java.lang.NullPointerException"
+                ,"/tt/TestJava.java:3: verify: JML A null object is dereferenced"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot read the array length because \"tt.TestJava.b\" is null"
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
         );        
     }
@@ -1000,23 +1000,23 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"/tt/A.java:4: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
                 ,"/tt/A.java:6: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:6:"
                 ,"MID"
                 ,"/tt/A.java:4: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
                 ,"MID"
                 ,"/tt/A.java:4: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
                 ,"MID"
                 ,"/tt/A.java:4: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
                 ,"/tt/A.java:12: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:12:"
                 ,"MID"
                 ,"/tt/A.java:4: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
                 ,"END"
                 );
     }
@@ -1028,26 +1028,22 @@ public class racnew2 extends RacBase {
                 +"public int i = 0;  \n "
                 +"void m(int j) { i = j; }  //@ nowarn InvariantExit; \n "
                 +"public static void main(String[] args) { \n"
-                +"new A().m(1); \n"
+                +"new A().m(1); //@ nowarn InvariantExit, InvariantReenterCaller \n"
                 +"System.out.println(\"END\"); \n"
                 +"}}"
-                ,"/tt/A.java:6: JML invariant is false on leaving method tt.A.m(int), returning to tt.A.main(java.lang.String[])"
-                ,"/tt/A.java:2: Associated declaration"
                 ,"END"
                 );
     }
 
     @Test public void testNoWarn2() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"//@ public invariant i == 0; \n "
-                +"public int i = 0;  \n "
-                +"void m(int j) { i = j; }  //@ nowarn ; \n "
+                +"//@ public invariant i == 0; \n"
+                +"public int i = 0;  \n"
+                +"void m(int j) { i = j; }  //@ nowarn ; \n"
                 +"public static void main(String[] args) { \n"
-                +"new A().m(1); \n"
+                +"new A().m(1); //@ nowarn \n"
                 +"System.out.println(\"END\"); \n"
                 +"}}"
-                ,"/tt/A.java:6: JML invariant is false on leaving method tt.A.m(int), returning to tt.A.main(java.lang.String[])"
-                ,"/tt/A.java:2: Associated declaration"
                 ,"END"
                 );
     }
@@ -1061,10 +1057,12 @@ public class racnew2 extends RacBase {
                 +"new A().m(1); \n"
                 +"System.out.println(\"END\"); \n"
                 +"}}"
-                ,"/tt/A.java:4: JML invariant is false on leaving method tt.A.m(int)"
-                ,"/tt/A.java:2: Associated declaration"
-                ,"/tt/A.java:6: JML invariant is false on leaving method tt.A.m(int), returning to tt.A.main(java.lang.String[])"
-                ,"/tt/A.java:2: Associated declaration"
+                ,"/tt/A.java:4: verify: JML invariant is false on leaving method tt.A.m(int)"
+                ,"/tt/A.java:2: verify: Associated declaration: /tt/A.java:4:"
+                ,"/tt/A.java:6: verify: JML invariant is false on leaving method tt.A.m(int), returning to tt.A.main(java.lang.String[])"
+                ,"/tt/A.java:2: verify: Associated declaration: /tt/A.java:6:"
+                ,"/tt/A.java:6: verify: JML caller invariant is false on reentering calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m(int))"
+                ,"/tt/A.java:2: verify: Associated declaration: /tt/A.java:6:"
                 ,"END"
                 );
     }
@@ -1073,9 +1071,9 @@ public class racnew2 extends RacBase {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"//@ invariant i == 0; \n "
                 +"int i = 0;  \n "
-                +"void m(int j) { i = j; }  //@ nowarn Precondition, InvariantExit ; \n "
+                +"void m(int j) { i = j; }  //@ nowarn Precondition, InvariantExit; \n "
                 +"public static void main(String[] args) { \n"
-                +"new A().m(1); //@ nowarn InvariantExit; \n"
+                +"new A().m(1); //@ nowarn InvariantExit, InvariantReenterCaller ; \n"
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"END"
@@ -1096,7 +1094,7 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"/tt/A.java:10: JML precondition is false"
-                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: Associated declaration: /tt/A.java:10:"
                 ,"/tt/A.java:4: JML precondition is false"
                 ,"END"
                 );
@@ -1116,7 +1114,7 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"/tt/A.java:8: JML precondition is false"
-                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: Associated declaration: /tt/A.java:8:"
                 ,"/tt/A.java:4: JML precondition is false"
                 ,"END"
                 );
@@ -1136,7 +1134,7 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"/tt/A.java:8: JML precondition is false"
-                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: Associated declaration: /tt/A.java:8:"
                 ,"/tt/A.java:4: JML precondition is false"
                 ,"END"
                 );
@@ -1171,9 +1169,9 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"/tt/A.java:3: JML postcondition is false"
-                ,"/tt/A.java:2: Associated declaration"
+                ,"/tt/A.java:2: Associated declaration: /tt/A.java:3:"
                 ,"/tt/A.java:7: JML postcondition is false"
-                ,"/tt/A.java:2: Associated declaration"
+                ,"/tt/A.java:2: Associated declaration: /tt/A.java:7:"
                 ,"END"
                 );
     }
@@ -1190,9 +1188,9 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"/tt/A.java:5: JML postcondition is false"
-                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: Associated declaration: /tt/A.java:5:"
                 ,"/tt/A.java:8: JML postcondition is false"
-                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: Associated declaration: /tt/A.java:8:"
                 ,"END"
                 );
     }
@@ -1209,9 +1207,9 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END\"); \n"
                 +"}}"
                 ,"/tt/A.java:5: JML postcondition is false"
-                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: Associated declaration: /tt/A.java:5:"
                 ,"/tt/A.java:8: JML postcondition is false"
-                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: Associated declaration: /tt/A.java:8:"
                 ,"END"
                 );
     }
@@ -1258,28 +1256,28 @@ public class racnew2 extends RacBase {
         helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"try { Integer i = null;\n"
-                +"int k = i;\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"int k = i; //@ forbid\n"
+                +"//@ assert k == i; \n} catch (Exception e) {}\n"
                 +"try { Boolean i = null;\n"
-                +"boolean k = i;\n"
+                +"boolean k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Short i = null;\n"
-                +"short k = i;\n"
+                +"short k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Long i = null;\n"
-                +"long k = i;\n"
+                +"long k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Byte i = null;\n"
-                +"byte k = i;\n"
+                +"byte k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Double i = null;\n"
-                +"double k = i;\n"
+                +"double k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Float i = null;\n"
-                +"float k = i;\n"
+                +"float k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Character i = null;\n"
-                +"char k = i;\n"
+                +"char k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
 
                 +"System.out.println(\"END\"); \n"
@@ -1375,41 +1373,48 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testBoxingOnAssignmentOp() {
-        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
-                +"public static void main(String[] args) {  \n"
+        helpTCX("tt.A",
+        		"""
+        		package tt; /*@ nullable_by_default*/ public class A { 
+                  public static void main(String[] args) {
+                    try { Integer i = null; int k = 6;
+                      k += i; //@ forbid // FIXME - why duplicate messages
+                    } catch (Exception e) {}
 
-                +"try { Integer i = null; int k = 6;\n"
-                +" k += i;\n"
-                +"\n} catch (Exception e) {}\n"
+                    try { Integer i = null; int k = 6;
+                      i += k;  //@ forbid // FIXME - why duplicate messages
+                    } catch (Exception e) {}
 
-                +"try { Integer i = null; int k = 6;\n"
-                +"i += k; \n"
-                +"\n} catch (Exception e) {}\n"
+                    { Integer i = 5; int k = 6;
+                      k += i; i += k;
+                      //@ assert k == 11;
+                    }
 
-                +"{ Integer i = 5; int k = 6;\n"
-                +" k += i; i += k; \n"
-                +"//@ assert k == 11;\n}\n"
+                    try { Boolean i = null; boolean k = true;
+                          k &= i; //@ forbid // FIXME - and no duplicate here, or below
+                    } catch (Exception e) {}
 
-                +"try { Boolean i = null; boolean k = true;\n"
-                +" k &= i;\n"
-                +"\n} catch (Exception e) {} \n"
+                    try { Boolean i = null; boolean k = true;
+                         i &= k; //@ forbid
+                    } catch (Exception e) {}
 
-                +"try { Boolean i = null; boolean k = true;\n"
-                +" i &= k;\n"
-                +"\n} catch (Exception e) {} \n"
+                    { Boolean i = false; boolean k = true;
+                      k &= i;
+                      i &= k;
+                      //@ assert  !k;
+                    }
 
-                +"{ Boolean i = false; boolean k = true;\n"
-                +" k &= i;\n"
-                +" i &= k;\n"
-                +"//@ assert  !k;\n}\n"
-
-                    +"System.out.println(\"END\"); \n"
-                    +"}}"
-                    ,"/tt/A.java:4: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:8: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:16: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:20: JML Attempt to unbox a null object"
-                    ,"END"
+                    System.out.println(\"END\");
+                  }
+        		}
+        		"""
+                ,"/tt/A.java:4: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:4: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:8: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:8: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:16: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:20: verify: JML Attempt to unbox a null object"
+                ,"END"
                 );
     }
 
@@ -1417,28 +1422,28 @@ public class racnew2 extends RacBase {
         helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"try { Integer i = null;\n"
-                +"int k; k = i;\n"
+                +"int k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Boolean i = null;\n"
-                +"boolean k; k = i;\n"
+                +"boolean k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Short i = null;\n"
-                +"short k; k = i;\n"
+                +"short k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Long i = null;\n"
-                +"long k; k = i;\n"
+                +"long k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Byte i = null;\n"
-                +"byte k; k = i;\n"
+                +"byte k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Double i = null;\n"
-                +"double k; k = i;\n"
+                +"double k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Float i = null;\n"
-                +"float k; k = i;\n"
+                +"float k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Character i = null;\n"
-                +"char k; k = i;\n"
+                +"char k; k = i; //@ forbid\n"
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
 
                     +"System.out.println(\"END\"); \n"
@@ -1462,39 +1467,39 @@ public class racnew2 extends RacBase {
                 +"public static Integer box(Integer i) { return i;}  \n"
                 +"public static void main(String[] args) {  \n"
                 +"try { Boolean i = null;\n"
-                +"boolean k = true && i;\n"   // Null problem
+                +"boolean k = true && i; //@ forbid \n"   // Null problem
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Boolean i = false;\n"
                 +"boolean k = true && i;\n"
                 +"//@ assert k == false;\n} catch (Exception e) {}\n"
                 +"try { Boolean i = null;\n" 
-                +"boolean k = i && true;\n" // Null problem
+                +"boolean k = i && true; //@ forbid \n" // Null problem
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Boolean i = false;\n"
                 +"boolean k = i && true;\n"
                 +"//@ assert k == false;\n} catch (Exception e) {}\n"
                 
                 +"try { Integer i = null;\n"
-                +"int k = 0 + i;\n"  // Null problem - 22
+                +"int k = 0 + i; //@ forbid \n"  // Null problem - 22
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Integer i = 6;\n"
                 +"int k = 0 + i;\n"
                 +"//@ assert k == 6;\n} catch (Exception e) {}\n"
                 +"try { Integer i = null;\n"
-                +"int k = i + 0;\n" // Null problem - 30
+                +"int k = i + 0; //@ forbid \n" // Null problem - 30
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Integer i = 6;\n"
                 +"int k = i + 0;\n"
                 +"//@ assert k == 6;\n} catch (Exception e) {}\n"
                 +"try { Integer i = null;\n"
-                +"int k = - i;\n" // Null problem -- 38
+                +"int k = - i; //@ forbid \n" // Null problem -- 38
                 +"//@ assert k == -i;\n} catch (Exception e) {}\n"
                 +"try { Integer i = 6;\n"
                 +"int k = - i;\n"
                 +"//@ assert k == -6;\n} catch (Exception e) {}\n"
                 +"try { Integer i = null;\n"
-                +"unbox(i);\n"  // Null problem -- 46
-                +"} catch (Exception e) {}\n"
+                +"unbox(i);  \n"  // Null problem -- 46
+                +"} catch (Exception e) { System.out.println(\"CAUGHT 46\"); }\n"
                 +"try { Integer i = 6;\n"
                 +"int k = unbox(i);\n"
                 +"//@ assert k == 6;\n} catch (Exception e) {}\n"
@@ -1503,14 +1508,14 @@ public class racnew2 extends RacBase {
                 +"//@ assert ii == 6;\n} catch (Exception e) {}\n"
 
                 +"try { Boolean b = null;\n"
-                +"int i = b ? 4 : 5;\n" // Null problem - 57
+                +"int i = b ? 4 : 5; //@ forbid \n" // Null problem - 57
                 +"//@ assert i == 6;\n} catch (Exception e) {}\n"
                 +"try { Boolean b = false;\n"
                 +"int i = b ? 4 : 5;\n"
                 +"//@ assert i == 5;\n} catch (Exception e) {}\n"
 
                 +"try { Boolean b = null;\n"
-                +"int i; if (b) i = 4; else i = 5;\n" // Null problem 65
+                +"int i; if (b) i = 4; else i = 5; //@ forbid \n" // Null problem 65
                 +"//@ assert i == 6;\n} catch (Exception e) {}\n"
                 +"try { Boolean b = false;\n"
                 +"int i; if (b) i = 4; else i = 5;\n"
@@ -1523,7 +1528,7 @@ public class racnew2 extends RacBase {
                     ,"/tt/A.java:22: JML Attempt to unbox a null object"
                     ,"/tt/A.java:30: JML Attempt to unbox a null object"
                     ,"/tt/A.java:38: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:46: JML Attempt to unbox a null object"
+                    ,"CAUGHT 46"
                     ,"/tt/A.java:57: JML Attempt to unbox a null object"
                     ,"/tt/A.java:65: JML Attempt to unbox a null object"
                     ,"END"
@@ -1535,27 +1540,31 @@ public class racnew2 extends RacBase {
 
     @Test public void testBoxingClass() {
         expectedRACExit = 1;
-        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
-                +"public static int unbox(int i) { return i;}  \n"
-                +"public static Integer box(Integer i) { return i;}  \n"
-                +"public static Integer i = 6;  \n"
-                +"public static int j = i;  \n"
-                +"static { //@ assert j == 6; \n}\n"
+        helpTCX("tt.A",
+        		"""
+                package tt; /*@ nullable_by_default*/ public class A {
+                  public static int unbox(int i) { return i;}
+                  public static Integer box(Integer i) { return i;}
+                  public static Integer i = 6; 
+                  public static int j = i;
+                  static { //@ assert j == 6; 
+                  }
+                  static { Integer k = 6; int m = k; //@ assert m == 6;
+                  }
+                  static { try { Integer k = null; int m = k; } catch (Exception e) {} //@ forbid
+                  }
+                  public static Integer ii = null;
+                  public static int jj = ii; //@ forbid
 
-                +"static { Integer k = 6; int m = k; //@ assert m == 6; \n}\n"
-                +"static { try { Integer k = null; int m = k; } catch (Exception e) {} \n}\n"
-
-                +"public static Integer ii = null;  \n"
-                +"public static int jj = ii;  \n"
-
-                +"public static void main(String[] args) {  \n"
-                +"    System.out.println(\"END\"); \n"
-                +"}}"
-                
-                    ,"/tt/A.java:10: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:13: JML Attempt to unbox a null object"
+                  public static void main(String[] args) {
+                      System.out.println(\"END\");
+                  }
+                }
+                """
+                    ,"/tt/A.java:10: verify: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:13: verify: JML Attempt to unbox a null object"
                     ,"java.lang.ExceptionInInitializerError"
-                    ,"Caused by: java.lang.NullPointerException"
+                    ,"Caused by: java.lang.NullPointerException: Cannot invoke \"java.lang.Integer.intValue()\" because \"tt.A.ii\" is null"
                     ,"\tat tt.A.<clinit>(A.java:13)"
                     ,"Exception in thread \"main\" "
                 );
@@ -1593,6 +1602,25 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testStringSwitchNull() {
+    	expectedRACExit = 1;
+        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+                +"public static void main(String[] args) {  \n"
+                +"String s = null; int k = 0;\n"
+                +"{ switch (s) {\n"
+                +"  case \"asd\": k = 1; break;\n"
+                +"  case \"abc\": k = 2; break;\n"
+                +"  case \"def\": k = 3; break;\n"
+                +"  default: k = 4; break;\n"
+                +"} }\n" 
+                +"System.out.println(\"END \" + k); \n"
+                    +"}}"
+                ,"/tt/A.java:4: verify: JML An object may be illegally null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local9>\" is null"
+                ,"\tat tt.A.main(A.java:1)"
+                );
+    }
+
+    @Test public void testStringSwitchNullCatch() {
         helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"String s = null; int k = 0;\n"
@@ -1601,10 +1629,10 @@ public class racnew2 extends RacBase {
                 +"  case \"abc\": k = 2; break;\n"
                 +"  case \"def\": k = 3; break;\n"
                 +"  default: k = 4; break;\n"
-                +"} } catch (Exception e) {}\n" 
+                +"} } catch (Exception e) { System.out.println(\"CAUGHT\"); }\n" 
                 +"System.out.println(\"END \" + k); \n"
                     +"}}"
-                ,"/tt/A.java:4: JML An object may be illegally null"
+                ,"CAUGHT"
                 ,"END 0"
                 );
     }
@@ -1627,19 +1655,51 @@ public class racnew2 extends RacBase {
 
 
     @Test public void testEnumSwitchNull() {
-        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
-                +"enum E { A,B,C}; public static void main(String[] args) {  \n"
-                +"E e = null; int k = 0;\n"
-                +"try { switch (e) {\n"
-                +"  case A: k = 1; break;\n"
-                +"  case B: k = 2; break;\n"
-                +"  case C: k = 3; break;\n"
-                +"  default: k = 4; break;\n"
-                +"} } catch (Exception ee) {}\n" 
-                +"System.out.println(\"END \" + k); \n"
-                    +"}}"
-                    ,"/tt/A.java:4: JML An object may be illegally null"
-                    ,"END 0"
+    	expectedRACExit = 1;
+        helpTCX("tt.A",
+        		"""
+        		package tt; /*@ nullable_by_default*/ public class A {
+                    enum E { A,B,C}; 
+                    public static void main(String[] args) {
+                      E e = null; int k = 0;
+                      { switch (e) {
+                        case A: k = 1; break;
+                        case B: k = 2; break;
+                        case C: k = 3; break;
+                        default: k = 4; break;
+                        }
+                      }
+                      System.out.println("END " + k);
+                   }
+                 }
+        		"""
+                ,"verify: JML An object may be illegally null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local6>\" is null"
+                ,"\tat tt.A.main(A.java:1)"
+                );
+    }
+
+
+    @Test public void testEnumSwitchNullCatch() {
+        helpTCX("tt.A",
+        		"""
+        		package tt; /*@ nullable_by_default*/ public class A {
+                    enum E { A,B,C}; 
+                    public static void main(String[] args) {
+                      E e = null; int k = 0;
+                      try { switch (e) {
+                        case A: k = 1; break;
+                        case B: k = 2; break;
+                        case C: k = 3; break;
+                        default: k = 4; break;
+                        }
+                      } catch (Exception ee) { System.out.println("CAUGHT");}
+                      System.out.println("END " + k);
+                   }
+                 }
+        		"""
+                ,"CAUGHT"
+                ,"END 0"
                 );
     }
 

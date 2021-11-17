@@ -1,5 +1,6 @@
 package org.jmlspecs.runtime;
 
+import org.jmlspecs.annotation.*;
 
 /** The runtime representation of the \TYPE type in JML.
  * FIXME - why is it an interface?
@@ -7,7 +8,7 @@ package org.jmlspecs.runtime;
  * @author David R. Cok
  *
  */
-/*@pure*/
+/*@ pure */
 public interface IJMLTYPE {
 
     public boolean equals(IJMLTYPE t);

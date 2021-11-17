@@ -28,16 +28,8 @@ public class racsystem extends RacBase {
 //    }
 //
     
-    /** The command-line to use to run RACed programs - note the inclusion of the
-     * RAC-compiled JDK library classes ahead of the regular Java libaray classes
-     * in the boot class path. (This may not work on all platforms)
-     */
-    String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata",null};
-
     @Override
     public void setUp() throws Exception {
-        rac = sysrac;
-        jdkrac = true;
         //noCollectDiagnostics = true;
         super.setUp();
         main.addOptions("-no-purityCheck"); // To shut off complaints about misuse of purity in Java specifications
@@ -53,7 +45,7 @@ public class racsystem extends RacBase {
     public void testFile2() {
         expectedRACExit = 1; 
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
+                +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
                 +"try { m(); } catch (Exception e) { e.printStackTrace(System.out); } \n"
                 +"System.out.println(\"END\"); } \n"
                 +"static void m() {\n"
@@ -61,8 +53,8 @@ public class racsystem extends RacBase {
                 +"}"
                 +"}"
                 
-                ,"Exception in thread \"main\" org.jmlspecs.utils.JmlAssertionError: File.refines-spec:77: JML precondition is false"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:63)"
+                ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError: File.refines-spec:77: JML precondition is false"
+                ,"\tat org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:63)"
                 ,"\tat java.io.File.compareTo(File.java:2093)"
                 ,"\tat tt.TestJava.m(TestJava.java:6)"
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
@@ -73,9 +65,9 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2a() {
         expectedRACExit = 1;
-        main.addOptions("-no-racShowSource","-no-internalSpecs");
+        main.addOptions("-no-racShowSource");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
+                +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
                 +"System.out.println(\"END\"); } \n"
                 +"/*@ signals (Exception e) false;*/ \n"
@@ -84,10 +76,10 @@ public class racsystem extends RacBase {
                 +"}"
                 +"}"
                 
-                ,"Exception in thread \"main\" org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:6: JML signals condition is false"
-                ,"/tt/TestJava.java:5: Associated declaration"
-                ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:103)"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:55)"
+                ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:6: verify: JML signals condition is false"
+                ,"/tt/TestJava.java:5: Associated declaration: /tt/TestJava.java:6:"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:129)"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:82)"
                 ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - should be line 6
                 ,"\tat tt.TestJava.main(TestJava.java:3)"       
                 );
@@ -99,7 +91,7 @@ public class racsystem extends RacBase {
         expectedRACExit = 1;
         main.addOptions("-no-racShowSource","-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
+                +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
                 +"System.out.println(\"END\"); } \n"
                 +"/*@ requires false;*/ \n"
@@ -108,10 +100,10 @@ public class racsystem extends RacBase {
                 +"}"
                 +"}"
                 
-                ,"Exception in thread \"main\" org.jmlspecs.utils.JmlAssertionError$Precondition: /tt/TestJava.java:3: JML precondition is false"
-                ,"/tt/TestJava.java:6: Associated declaration"
-                ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:87)"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:55)"
+                ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError$Precondition: /tt/TestJava.java:3: verify: JML precondition is false"
+                ,"/tt/TestJava.java:6: verify: Associated declaration: /tt/TestJava.java:3:"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:113)"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:82)"
                 ,"\tat tt.TestJava.main(TestJava.java:1)"         // FIXME - should be line 3   
                 );
     }
@@ -120,9 +112,9 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2c() {
         expectedRACExit = 0;
-        main.addOptions("-no-racShowSource","-no-internalSpecs");
+        main.addOptions("-no-racShowSource");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
+                +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
                 +"try { m(); } catch (Error e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
                 +"System.out.println(\"END\"); }\n"
                 +"/*@ signals (Exception e) false;*/ \n"
@@ -132,10 +124,10 @@ public class racsystem extends RacBase {
                 +"}"
                 
                 ,"CAUGHT ASSERTION"
-                ,"org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:6: JML signals condition is false"
-                ,"/tt/TestJava.java:5: Associated declaration"
-                ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:103)"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:55)"
+                ,"org.jmlspecs.runtime.JmlAssertionError: verify: JML signals condition is false"
+                ,"Associated declaration: /tt/TestJava.java:6:"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:129)"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:82)"
                 ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - nshould be line 6
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"END"
@@ -151,7 +143,7 @@ public class racsystem extends RacBase {
         main.addOptions("-no-internalSpecs");
         main.addOptions("-no-racShowSource");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"org.jmlspecs.utils.Utils.showStack = true; \n"
+                +"org.jmlspecs.runtime.Utils.showStack = true; \n"
                 +"m();\n"
                 +"System.out.println(\"END\"); }\n"
                 +"static void m() {\n"
@@ -159,10 +151,10 @@ public class racsystem extends RacBase {
                 +"}"
                 +"}"
                 
-                ,"/tt/TestJava.java:6: JML assertion is false"
-                ,"org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:6: JML assertion is false"
-                ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:103)"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:61)"
+                ,"/tt/TestJava.java:6: verify: JML assertion is false"
+                ,"org.jmlspecs.runtime.JmlAssertionError: verify: JML assertion is false"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:129)"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:88)"
                 ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - should be line 6
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"END"
@@ -174,7 +166,7 @@ public class racsystem extends RacBase {
     public void testFile2e() {
         expectedRACExit = 5;
         expectedNotes = 0;
-        rac = new String[]{jdk, "-Dorg.jmlspecs.openjml.racexitcode=5", "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata",null};
+        rac = new String[]{jdk, "-Dorg.jmlspecs.openjml.racexitcode=5", "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata/" + getMethodName(0),null};
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"m();\n"
                 +"System.out.println(\"END\"); }\n"
@@ -183,7 +175,7 @@ public class racsystem extends RacBase {
                 +"}"
                 +"}"
                 
-                ,"/tt/TestJava.java:5: JML assertion is false"
+                ,"/tt/TestJava.java:5: verify: JML assertion is false"
                 ,"END"
                 ,"1 verification error"
                 );
@@ -201,6 +193,7 @@ public class racsystem extends RacBase {
                 +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
                 +"}"
                 +"}"
+                ,"verify: JML formal argument may be null: arg0 in compareTo(java.io.File)"
                 ,"CAUGHT EXCEPTION"
                 ,"END"
                 );
@@ -211,7 +204,7 @@ public class racsystem extends RacBase {
         expectedNotes =  0; // 2
         main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"org.jmlspecs.utils.Utils.showStack = true; \n"
+                +"org.jmlspecs.runtime.Utils.showStack = true; \n"
                 +"int i = ( new Object().hashCode()); \n"
                 +"int j = ( new Object().hashCode()); \n"
                 +" System.out.println(i==j);"

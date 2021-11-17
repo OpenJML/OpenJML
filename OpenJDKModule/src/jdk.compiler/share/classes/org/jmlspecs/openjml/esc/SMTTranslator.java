@@ -1640,6 +1640,7 @@ public class SMTTranslator extends JmlTreeScanner {
             } catch (RuntimeException ee) {
                 // There is no recovery from this
                 log.error("jml.internal", "Exception while translating block: " + ee);
+                ee.printStackTrace();
                 break;
             }
         }

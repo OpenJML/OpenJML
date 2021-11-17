@@ -13,8 +13,8 @@ fi
 if [ -n "$EXIT" -a $stat -ne $EXIT ]; then echo $tst ": Expected exit code" $EXIT "but got" $stat; mystat=1 ; fi
 
 for e in $expect ; do
-    ##(cat $e | sed -e s/\\\$STRL/10/ -e s#\\\$SPECS/specs#$SPECS# | diff - $actual ) && rm $actual && ( if [ `wc -w <<< $expect`  -gt 1 ]; then echo $tst ": Matched $e"; fi)
-    (cat $e | sed -e s/\\\$STRL/10/ -e s#\\\$SPECS/specs#$SPECS# | diff -q - $actual > /dev/null ) && rm $actual && ( if [ `wc -w <<< $expect`  -gt 1 ]; then echo $tst ": Matched $e"; fi) && exit $mystat 
+    ##(cat $e | sed -e s/\\\$STRL/10/ -e s#\\\$SPECS#$SPECS# | diff - $actual ) && rm $actual && ( if [ `wc -w <<< $expect`  -gt 1 ]; then echo $tst ": Matched $e"; fi)
+    (cat $e | sed -e s/\\\$STRL/10/ -e s#\\\$SPECS#$SPECS# | diff -q - $actual > /dev/null ) && rm $actual && ( if [ `wc -w <<< $expect`  -gt 1 ]; then echo $tst ": Matched $e"; fi) && exit $mystat 
 done
 echo $tst ": Actual output differs from" expected*
 exit 1

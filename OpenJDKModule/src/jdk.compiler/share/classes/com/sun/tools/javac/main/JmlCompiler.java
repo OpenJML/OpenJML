@@ -55,6 +55,7 @@ import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.comp.JmlMemberEnter;
 import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.comp.Resolve;
+import com.sun.tools.javac.comp.Todo;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.comp.CompileStates.CompileState;
@@ -177,69 +178,88 @@ public class JmlCompiler extends JavaCompiler {
     /** We override this method instead of the desugar method that does one
      * env because we have to do all the rac before any of the desugaring
      */
-    @Override
-    public Queue<Pair<Env<AttrContext>, JCClassDecl>> desugar(Queue<Env<AttrContext>> envs) {
-        ListBuffer<Pair<Env<AttrContext>, JCClassDecl>> results = new ListBuffer<>();
-        
-        if (envs.isEmpty()) {
-        	if (utils.esc) context.get(Main.IProgressListener.class).report(1,"Operation not performed because of parse or type errors");
-        	return results;
-        }
-        
-        JmlUseSubstitutions subst = new JmlUseSubstitutions(context);
-        for (Env<AttrContext> env: envs) {
-            env.tree = subst.translate(env.tree);
-        }
-
-        // TODO _ dependencies
-//        if (utils.cmd == Main.Cmd.DEP) {
-//            MethodDependencies.find(context, envs);
+//    @Override
+//    public Queue<Pair<Env<AttrContext>, JCClassDecl>> desugar(Queue<Env<AttrContext>> envs) {
+//    	{ System.out.println("DESUGAR ON " + envs.size() + " " + (System.getenv("NOJML") == null)); Utils.dumpStack(); }
+//        ListBuffer<Pair<Env<AttrContext>, JCClassDecl>> results = new ListBuffer<>();
+//        
+//
+//        // TODO _ dependencies
+////        if (utils.cmd == Main.Cmd.DEP) {
+////            MethodDependencies.find(context, envs);
+////            return results;
+////        }
+//        
+//        if (utils.check) {
+//        	//JmlCheckSpecs.instance(context).check();
+//            return results; // Empty list - do nothing more
+//        } else if (utils.doc) {
+//            return results; // Empty list - do nothing more
+//        } else if (utils.esc) {
+//            JmlEsc esc = JmlEsc.instance(context);
+//        	try {
+//                esc.initCounts();
+//        	    for (Env<AttrContext> env: envs) esc(env); // Transforms and proves
+//        	} catch (PropagatedException e) {
+//        		// cancelation - catch and continue
+//        	} finally {
+//                String summary = esc.reportCounts();
+//                if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode) utils.note(false,summary);
+//        	}
+//    		return results; // Empty list - Do nothing more
+//        } else if (utils.infer) {
+//            for (Env<AttrContext> env: envs)
+//                infer(env);
 //            return results;
+//        } else if (utils.rac) {
+//        	Queue<Env<AttrContext>> newenvs = new ListBuffer<>();
+//            for (Env<AttrContext> env: envs) {
+//                JCTree t = env.tree;
+//                if (t instanceof JmlClassDecl && ((JmlClassDecl)t).sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
+////                	newenvs.add(env);
+//                	System.out.println("SKIPPING " + ((JmlClassDecl)t).name + " " + ((JmlClassDecl)t).sourcefile);
+//                	continue;
+//                }
+//            	System.out.println("ABOUT TO RAC " + ((JmlClassDecl)t).name + " " + ((JmlClassDecl)t).sourcefile);
+//                env = rac(env); // Transforms tree in place (within the env)
+//                if (env == null) continue; // Error reported; continue with other trees
+//            	System.out.println("ADDING NEWENV " + ((JmlClassDecl)t).name + " " + ((JmlClassDecl)t).sourcefile);
+//                newenvs.add(env);
+//                if (utils.jmlverbose >= Utils.JMLVERBOSE) 
+//                    context.get(Main.IProgressListener.class).report(2,"desugar " + todo.size() + " " + 
+//                        (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
+//                            t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
+//            }
+//            // Continue with the usual compilation phases
+//            for (Env<AttrContext> env: envs) {
+//            	System.out.println("ENV " + ((JCClassDecl)env.tree).name);
+//            }
+//            for (Env<AttrContext> env: newenvs) {
+//            	System.out.println("NEWENV " + ((JCClassDecl)env.tree).name);
+//            }
+//
+//            envs.clear();
+//            envs.addAll(newenvs);
+//            for (Env<AttrContext> env: envs) {
+//            	System.out.println("ENVZ " + ((JCClassDecl)env.tree).name);
+//            }
+//            for (Env<AttrContext> env: envs) {
+//            	System.out.println("DESUGAR " + ((JmlClassDecl)env.tree).sourcefile);
+//                desugar(env, results);
+//            }
+//            for (var p: results) {
+//            	System.out.println("RESULTS " + ((JCClassDecl)p.fst.tree).name + " " + p.snd.name);
+//            }
+//            System.out.println("RESULTS " + results.size());
+//            
+//        } else {
+//        	// No JML operation. Continue with regular compiler processing
+//            for (Env<AttrContext> env: envs)
+//                desugar(env, results);
 //        }
-        
-        if (utils.check) {
-        	//JmlCheckSpecs.instance(context).check();
-            return results; // Empty list - do nothing more
-        } else if (utils.doc) {
-            return results; // Empty list - do nothing more
-        } else if (utils.esc) {
-            JmlEsc esc = JmlEsc.instance(context);
-        	try {
-                esc.initCounts();
-        	    for (Env<AttrContext> env: envs) esc(env); // Transforms and proves
-        	} catch (PropagatedException e) {
-        		// cancelation - catch and continue
-        	} finally {
-                String summary = esc.reportCounts();
-                if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode) utils.note(false,summary);
-        	}
-    		return results; // Empty list - Do nothing more
-        } else if (utils.infer) {
-            for (Env<AttrContext> env: envs)
-                infer(env);
-            return results;
-        } else if (utils.rac) {
-            for (Env<AttrContext> env: envs) {
-                JCTree t = env.tree;
-                env = rac(env); // Transforms tree in place (within the env)
-                if (env == null) continue; // Error reported; cocmntinue with other trees
-                
-                if (utils.jmlverbose >= Utils.JMLVERBOSE) 
-                    context.get(Main.IProgressListener.class).report(2,"desugar " + todo.size() + " " + 
-                        (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
-                            t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
-            }
-            // Continue with the usual compilation phases
-            for (Env<AttrContext> env: envs)
-                desugar(env, results);
-            
-        } else {
-        	// No JML operation. Continue with regular compiler processing
-            for (Env<AttrContext> env: envs)
-                desugar(env, results);
-        }
-        return stopIfError(CompileState.FLOW, results);
-    }
+//    	if (System.getenv("NOJML") == null) System.out.println("DESUGAR OUT " + results.size());
+//        return stopIfError(CompileState.FLOW, results);
+//    }
 
     /** This is overridden so that if attribute() returns null, processing continues (instead of crashing). */
     // FIXME - why might it return null, and should we stop if it does?
@@ -315,6 +335,55 @@ public class JmlCompiler extends JavaCompiler {
         return stopIfError(CompileState.ATTR, results);
     }
 
+    public Queue<Env<AttrContext>> flow(Queue<Env<AttrContext>> envs) {
+        envs = super.flow(envs);
+        ListBuffer<Env<AttrContext>> results = new ListBuffer<>();
+        if (envs.isEmpty()) {
+        	if (utils.esc) context.get(Main.IProgressListener.class).report(1,"Operation not performed because of parse or type errors");
+        	return results;
+        }
+        
+        if (utils.esc || utils.rac) {
+        	JmlUseSubstitutions subst = new JmlUseSubstitutions(context);
+            for (Env<AttrContext> env: envs) {
+                env.tree = subst.translate(env.tree);
+            }
+        }
+        if (utils.check) {
+        	//JmlCheckSpecs.instance(context).check();
+            return results; // Empty list - do nothing more
+        } else if (utils.doc) {
+            return results; // Empty list - do nothing more
+        } else if (utils.esc) {
+            JmlEsc esc = JmlEsc.instance(context);
+        	try {
+                esc.initCounts();
+        	    for (Env<AttrContext> env: envs) esc(env); // Transforms and proves
+        	} catch (PropagatedException e) {
+        		// cancelation - catch and continue
+        	} finally {
+                String summary = esc.reportCounts();
+                if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode) utils.note(false,summary);
+        	}
+    		return results; // Empty list - Do nothing more
+        } else if (utils.infer) {
+            for (Env<AttrContext> env: envs)
+                infer(env);
+            return results;
+        } else if (utils.rac) {
+        	for (var env: envs) {
+        		var t = env.tree;
+        		if (t instanceof JmlClassDecl && ((JmlClassDecl)t).sourcefile.getKind() != JavaFileObject.Kind.SOURCE) continue;
+        		env = rac(env);
+        		if (env == null) continue;
+        		results.add(env);
+        	}
+        	return results;
+        } else {
+        	return envs;
+        }
+    }
+
     @Override
     protected void flow(Env<AttrContext> env, Queue<Env<AttrContext>> results) {
 //        if (env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
@@ -356,7 +425,7 @@ public class JmlCompiler extends JavaCompiler {
                 return env;
             }
             
-            // The class named here must match that in org.jmlspecs.utils.Utils.isRACCompiled
+            // The class named here must match that in org.jmlspecs.runtime.Utils.isRACCompiled
             Name n = names.fromString("org.jmlspecs.annotation.RACCompiled");
             ClassSymbol sym = ClassReader.instance(context).enterClass(n); // FIXME use modToAnnotationSymbol
             Attribute.Compound ac = new Attribute.Compound(sym.type, List.<Pair<Symbol.MethodSymbol,Attribute>>nil());
@@ -371,7 +440,7 @@ public class JmlCompiler extends JavaCompiler {
         if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("rac " + utils.envString(env));
         
         if (env.tree instanceof JCClassDecl) {
-            JCTree newtree;
+            JCTree newtree= null;
             if (JmlOption.includes(context,JmlOption.SHOW,"translated")) {
                 // FIXME - these are not writing out during rac, at least in debug in development, to the console
                 noticeWriter.println(String.format("[jmlrac] Translating: %s", currentFile));
@@ -383,43 +452,49 @@ public class JmlCompiler extends JavaCompiler {
                                     ));
                 noticeWriter.println("");
             }
-            newtree = new JmlAssertionAdder(context,false,true).convert(env.tree);
-                
-            // When we do the RAC translation, we create a new instance
-            // of the JCClassDecl for the class.  So we have to find where
-            // it is kept in the JCCompilationUnit and replace it there.
-            // If there is more than one class in the compilation unit, we are
-            // presuming that each one that is to be translated will be 
-            // separately called - so we just translate each one when it comes.
-            for (List<JCTree> l = env.toplevel.defs; l.nonEmpty(); l = l.tail) {
-                if(l.head == env.tree){
-                    env.tree = newtree;
-                    l.head = newtree;
-                    break;
-                }
-            }
-            
-            // it's not enough to update the toplevels. If you have nested classes, you must 
-            // update the type envs, otherwise the wrong typeenv gets selected during the desugaring phase
-            if(newtree instanceof JmlClassDecl){
-                updateTypeEnvs((JmlClassDecl)newtree);
-            }
-            
-            // After adding the assertions, we will need to add the OpenJML libraries 
-            // to the import directives.             
 
-            // Add the Import: import org.jmlspecs.utils.*;
-            
-            if (JmlOption.includes(context,JmlOption.SHOW,"translated")) {
-                noticeWriter.println(String.format("[jmlrac] RAC Transformed: %s", currentFile));
-                // this could probably be better - is it OK to modify the AST beforehand? JLS
-                noticeWriter.println(
-                        JmlPretty.toFancyLineFormat(
-                            currentFile,
-                            JmlPretty.racFormatter,            // the formatter 
-                            "import org.jmlspecs.utils.*;",    // a header prefix to print
-                            JmlPretty.write(env.toplevel,true) // the source to format
-                            ));
+//            if (tree instanceof JmlClassDecl) {
+//            	JmlClassDecl d = ((JmlClassDecl)tree);
+//                if (d.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) newtree = tree;
+//            }
+            {
+            	newtree = new JmlAssertionAdder(context,false,true).convert(env.tree);
+                // When we do the RAC translation, we create a new instance
+                // of the JCClassDecl for the class.  So we have to find where
+                // it is kept in the JCCompilationUnit and replace it there.
+                // If there is more than one class in the compilation unit, we are
+                // presuming that each one that is to be translated will be 
+                // separately called - so we just translate each one when it comes.
+                for (List<JCTree> l = env.toplevel.defs; l.nonEmpty(); l = l.tail) {
+                    if(l.head == env.tree){
+                        env.tree = newtree;
+                        l.head = newtree;
+                        break;
+                    }
+                }
+                
+                // it's not enough to update the toplevels. If you have nested classes, you must 
+                // update the type envs, otherwise the wrong typeenv gets selected during the desugaring phase
+                if(newtree instanceof JmlClassDecl){
+                    updateTypeEnvs((JmlClassDecl)newtree);
+                }
+                
+                // After adding the assertions, we will need to add the OpenJML libraries 
+                // to the import directives.             
+
+                // Add the Import: import org.jmlspecs.runtime.*;
+                
+                if (JmlOption.includes(context,JmlOption.SHOW,"translated")) {
+                    noticeWriter.println(String.format("[jmlrac] RAC Transformed: %s", currentFile));
+                    // this could probably be better - is it OK to modify the AST beforehand? JLS
+                    noticeWriter.println(
+                            JmlPretty.toFancyLineFormat(
+                                currentFile,
+                                JmlPretty.racFormatter,            // the formatter 
+                                "",  // a header prefix to print
+                                JmlPretty.write(env.toplevel,true) // the source to format
+                                ));
+                }
             }
             
         } else {

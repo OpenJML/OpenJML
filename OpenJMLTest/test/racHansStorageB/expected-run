@@ -4,7 +4,7 @@ ERR:
 Exception in thread "main" org.jmlspecs.utils.JmlAssertionError$Precondition: test/racHansStorageB/StorageParameters.java:25: JML precondition is false
 		new StorageParameters(1L,null);
 		^
-test/racHansStorageB/StorageParameters.java:7: Associated declaration: test/racHansStorageB/StorageParameters.java:25: 
+test/racHansStorageB/StorageParameters.java:7: Associated declaration: test/racHansStorageB/StorageParameters.java:25:
 	public StorageParameters(long totalBackingStore, long[] sizes) {
 	       ^
 	at org.jmlspecs.utils.Utils.createException(Utils.java:83)

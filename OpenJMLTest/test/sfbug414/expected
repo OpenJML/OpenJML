@@ -5,17 +5,6 @@ Feasibility check - at program exit : OK
 Completed proof of Sqrt.Sqrt() with prover !!!! - no warnings
 Starting proof of Sqrt.sqrt(double) with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - after explicit assume statement : OK
-Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of Sqrt.sqrt(double) with prover !!!! - no warnings
 Completed proving methods in Sqrt

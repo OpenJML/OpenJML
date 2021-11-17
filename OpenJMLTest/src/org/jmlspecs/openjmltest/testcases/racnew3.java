@@ -13,16 +13,8 @@ import org.junit.Test;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class racnew3 extends RacBase {
 
-    /** Sets the classpath used for these tests.  The bin in the classpath
-     * brings in the currently compiled runtime classes (so we don't have
-     * to build jmlruntime.jar)
-     */
-    String[] ordrac = new String[]{jdk, "-ea", "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata",null};
-
     @Override
     public void setUp() throws Exception {
-        rac = ordrac;
-        jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
         //main.addOptions("-verboseness",   "4");
@@ -199,35 +191,35 @@ public class racnew3 extends RacBase {
                 +"  public static void m0() {\n"
                 +"    {/*@ nullable */ Short s = null;\n"
                 +"    try { //@ assert 0 == (short)s; \n} catch (NullPointerException e) {}\n" 
-                +"    try { short d = (Short)null; \n} catch (NullPointerException e) {}\n"  // Lines 10-11
+                +"    try { short d = (Short)null; //@ forbid \n} catch (NullPointerException e) {} \n" // Lines 10-11
                 +"    }\n"
                 +"    {/*@ nullable */ Long s = null;\n"
                 +"    try { //@ assert 0 == (long)s;\n} catch (NullPointerException e) {}\n" 
-                +"    try { long d = (Long)null;\n} catch (NullPointerException e) {}\n"
+                +"    try { long d = (Long)null; //@ forbid \n} catch (NullPointerException e) {}  \n"
                 +"    }\n"
                 +"    {/*@ nullable */ Byte s = null;\n"
                 +"    try { //@ assert 0 == (byte)s;\n} catch (NullPointerException e) {}\n" 
-                +"    try { byte d = (Byte)null;\n} catch (NullPointerException e) {}\n"
+                +"    try { byte d = (Byte)null; //@ forbid \n} catch (NullPointerException e) {}  \n"
                 +"    }\n"
                 +"    {/*@ nullable */ Integer s = null;\n"
                 +"    try { //@ assert 0 == (int)s;\n} catch (NullPointerException e) {}\n" 
-                +"    try { int d = (Integer)null;\n} catch (NullPointerException e) {}\n"
+                +"    try { int d = (Integer)null; //@ forbid \n} catch (NullPointerException e) {}  \n"
                 +"    }\n"
                 +"    {/*@ nullable */ Character s = null;\n"
                 +"    try { //@ assert 0 == (char)s;\n} catch (NullPointerException e) {}\n" 
-                +"    try { char d = (Character)null;\n} catch (NullPointerException e) {}\n"
+                +"    try { char d = (Character)null; //@ forbid \n} catch (NullPointerException e) {}  \n"
                 +"    }\n"
                 +"    {/*@ nullable */ Float s = null;\n"
                 +"    try { //@ assert 0 == (float)s;\n} catch (NullPointerException e) {}\n" 
-                +"    try { float d = (Float)null;}\n catch (NullPointerException e) {}\n"
+                +"    try { float d = (Float)null;} //@ forbid \n catch (NullPointerException e) {}   \n"
                 +"    }\n"
                 +"    {/*@ nullable */ Double s = null;\n"
                 +"    try { //@ assert 0 == (double)s;\n} catch (NullPointerException e) {}\n"
-                +"    try { double d = (Double)null;\n} catch (NullPointerException e) {}\n"
+                +"    try { double d = (Double)null;//@ forbid \n} catch (NullPointerException e) {}  \n"
                 +"    }\n"
                 +"    {/*@ nullable */ Boolean s = null;\n"
                 +"    try { //@ assert (boolean)s;\n} catch (NullPointerException e) {}\n"
-                +"    try { boolean d = (Boolean)null;\n} catch (NullPointerException e) {}\n"
+                +"    try { boolean d = (Boolean)null;//@ forbid \n} catch (NullPointerException e) {}  \n"
                 +"    }\n"
                 
                 +"  }\n"

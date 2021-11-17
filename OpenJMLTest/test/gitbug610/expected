@@ -4,7 +4,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of CounterP1.CounterP1() with prover !!!! - no warnings
 Starting proof of CounterP1.inc() with prover !!!!
-test/gitbug610/CounterP1.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc:  overflow in int sum
+test/gitbug610/CounterP1.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc: overflow in int sum
         count = count+1;
                      ^
 Completed proof of CounterP1.inc() with prover !!!! - with warnings
@@ -19,17 +19,17 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of CounterPA.CounterPA() with prover !!!! - no warnings
 Starting proof of CounterPA.inc() with prover !!!!
-test/gitbug610/CounterPA.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc:  overflow in int sum
+test/gitbug610/CounterPA.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc: overflow in int sum
         a[0] = a[0] + 1;
                     ^
 Completed proof of CounterPA.inc() with prover !!!! - with warnings
 Starting proof of CounterPA.inc0() with prover !!!!
-test/gitbug610/CounterPA.java:8: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc0:  overflow in int sum
+test/gitbug610/CounterPA.java:8: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc0: overflow in int sum
     	a[0]++;
     	    ^
 Completed proof of CounterPA.inc0() with prover !!!! - with warnings
 Starting proof of CounterPA.inc2() with prover !!!!
-test/gitbug610/CounterPA.java:11: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc2:  overflow in int sum
+test/gitbug610/CounterPA.java:11: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc2: overflow in int sum
     	a[0] += 1;
     	     ^
 Completed proof of CounterPA.inc2() with prover !!!! - with warnings
@@ -48,12 +48,12 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of CounterPP.CounterPP() with prover !!!! - no warnings
 Starting proof of CounterPP.inc() with prover !!!!
-test/gitbug610/CounterPP.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc:  overflow in int sum
+test/gitbug610/CounterPP.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc: overflow in int sum
         count++;
              ^
 Completed proof of CounterPP.inc() with prover !!!! - with warnings
 Starting proof of CounterPP.inc2() with prover !!!!
-test/gitbug610/CounterPP.java:7: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc2:  overflow in int sum
+test/gitbug610/CounterPP.java:7: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc2: overflow in int sum
         count += 1;
               ^
 Completed proof of CounterPP.inc2() with prover !!!! - with warnings

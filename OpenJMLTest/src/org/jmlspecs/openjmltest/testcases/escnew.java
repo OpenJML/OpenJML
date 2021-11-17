@@ -2304,9 +2304,9 @@ public class escnew extends EscBase {
                 
 
                 +"}"
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assignable) in method m1bad:  a[i]",19
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assignable) in method m1bad: a[i]",19
                 ,"/tt/TestJava.java:15: warning: Associated declaration",7
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (Assignable) in method mbad:  a[i + 2]",13
+                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (Assignable) in method mbad: a[i + 2]",13
                 ,"/tt/TestJava.java:28: warning: Associated declaration",7
                 
                

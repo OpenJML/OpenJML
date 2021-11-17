@@ -1,0 +1,17 @@
+Proving methods in Counter
+Completed proving methods in Counter
+Proving methods in CounterImpl
+Starting proof of CounterImpl.CounterImpl() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CounterImpl.CounterImpl() with prover !!!! - no warnings
+Starting proof of CounterImpl.increment() with prover !!!!
+test/gitbug754/Counter.java:18: warning: The prover cannot establish an assertion (Postcondition) in method increment
+    public void increment() {
+                ^
+test/gitbug754/Counter.java:6: warning: Associated declaration
+      @ ensures counter == 5;
+        ^
+Completed proof of CounterImpl.increment() with prover !!!! - with warnings
+Completed proving methods in CounterImpl
+2 warnings

@@ -201,11 +201,11 @@ public class compiler {
 //                  "openjml: file not found: A.java" + eol +
 //                  "Usage: openjml <options> <source files>" + eol +
 //                  "use -help for a list of possible options" + eol +
-                  "warning: A specification path directory does not exist: A" + eol +
-                  "warning: A specification path directory does not exist: cpath" + eol +
-                  "warning: A specification path directory does not exist: cpath2" + eol +
-                  "warning: A specification path directory does not exist: spath" + eol +
-                  "warning: A specification path directory does not exist: Z" + eol
+                  "warning: A specification path directory does not exist: A ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                  "warning: A specification path directory does not exist: cpath ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                  "warning: A specification path directory does not exist: cpath2 ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                  "warning: A specification path directory does not exist: spath ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                  "warning: A specification path directory does not exist: Z ($ROOT/OpenJML/OpenJMLTest)" + eol
                   );
     }
     

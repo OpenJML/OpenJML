@@ -1,0 +1,2 @@
+ARGS+=" -show=program -code-math=bigint "
+## Intentionally uses -show in order to see the desugaring of recommends, but this does make the expected output fragile

@@ -17,17 +17,9 @@ import org.junit.Ignore;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class racArithmeticModes extends RacBase {
 
-    /** Sets the classpath used for these tests.  The bin in the classpath
-     * brings in the currently compiled runtime classes (so we don't have
-     * to build jmlruntime.jar)
-     */
-    String[] ordrac = new String[]{jdk, "-ea", "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata",null};
-
     @Override
     public void setUp() throws Exception {
         testspecpath1 = "$A"+z+"$B"+z+"$SY";
-        rac = ordrac;
-        jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
         //main.addOptions("-verboseness=4");
@@ -97,24 +89,26 @@ public class racArithmeticModes extends RacBase {
                 );
     }
 
-    @Ignore // FIXME - cannot do code in math mode
+    // FIXME - in bigint mode, should all integer decls be bigint instead?
     @Test public void testNegMath2() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "int j = Integer.MAX_VALUE; int k = -j; \nSystem.out.println(k + \" END\"); \n" +
                 "int i = Integer.MIN_VALUE; int kk = -i; \nSystem.out.println(kk + \" END\");} \n" +
                 "}"
                 ,"-2147483647 END"
+                ,"verify: JML argument to numeric cast is out of range of the target type"
                 ,"-2147483648 END"
                 );
     }
 
-    @Ignore // FIXME - cannot do code in math mode
+    // FIXME - in bigint mode, should all integer decls be bigint instead?
     @Test public void testNegMathLong() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "long j = Long.MAX_VALUE; long k = -j; \nSystem.out.println(k + \" END\"); \n" +
                 "long i = Long.MIN_VALUE; long kk = -i; \nSystem.out.println(kk + \" END\");} \n" +
                 "}"
                 ,"-9223372036854775807 END"
+                ,"verify: JML argument to numeric cast is out of range of the target type"
                 ,"-9223372036854775808 END"
                 );
     }

@@ -1,4 +1,4 @@
-// This is the original #6750b problem
+// This is the original #650b problem
 interface A {
     /*@ immutable pure public static model class Content {
       @     public normal_behavior

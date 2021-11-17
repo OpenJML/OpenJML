@@ -35,7 +35,7 @@ import com.sun.tools.javac.util.Options;
  */
 public abstract class RacBase extends JmlTestCase {
 	
-	public final static String OpenJMLDemoPath = "../../OpenJMLDemo";
+	public final static String OpenJMLDemoPath = "../../../OpenJMLA/OpenJMLDemo"; //"../../OpenJMLDemo";
 	
     protected String testspecpath1 = "$A"+z+"$B";
     protected String testspecpath;
@@ -52,13 +52,15 @@ public abstract class RacBase extends JmlTestCase {
      * program.  The first argument is the java executable; the null argument
      * is replaced by the class name of the class containing the main method.     
      * */
-    protected String[] defrac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata",null};
+    String cp = "../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z;
+    protected String[] defrac = new String[]{jdk, "-ea", "-classpath",cp,null};
 
     /** These are actual command-line arguments, if they are set differently
      * by a subclass.
      */
-    protected String[] rac; // initialized in subclasses
+    protected String[] rac = null; // initialized in subclasses
     
+    protected String outdir;
 
     @BeforeClass
     public static void mktempdirectory() {
@@ -92,21 +94,22 @@ public abstract class RacBase extends JmlTestCase {
         
         // Setup the options
         main.addOptions("-specspath",   testspecpath);
-        main.addOptions("-d", "testdata"); // This is where the output program goes
+        //main.addJavaOption("-d", outdir); // This is where the output program goes // FIXME - for some reason this does not work here
         main.addOptions("-rac","-racJavaChecks","-racCheckAssumptions");
-        if (jdkrac) {
-            String sy = Options.instance(context).get(Strings.eclipseProjectLocation);
-            if (sy == null) {
-                fail("The OpenJML project location should be set using -D" + Strings.eclipseProjectLocation + "=...");
-            } else if (!new File(sy).exists()) {
-                fail("The OpenJML project location set using -D" + Strings.eclipseProjectLocation + " to " + sy + " does not exist");
-            } else {
-                main.addOptions("-classpath",sy+"/testdata"+z+sy+"/jdkbin"+z+sy+"/bin");
-            }
-        }
+//        if (jdkrac) {
+//            String sy = System.getenv("OPENJML_ROOT") + "/../OpenJMLTest/test";
+//            System.out.println("SY " + sy);
+////            if (sy == null) {
+////                fail("The OpenJML project location should be set using -D" + Strings.eclipseProjectLocation + "=...");
+////            } else if (!new File(sy).exists()) {
+////                fail("The OpenJML project location set using -D" + Strings.eclipseProjectLocation + " to " + sy + " does not exist");
+////            } else {
+//                main.addOptions("-classpath",sy+"/testdata"+z+sy+"/jdkbin"+z+sy+"/bin");
+////            }
+//        }
         main.addOptions("-showNotImplemented");
         main.addOptions("-no-purityCheck"); // System specs have a lot of purity errors, so turn this off for now
-        main.addOptions("-no-internalSpecs"); // Faster with this option; should work either way
+        //main.addOptions("-no-internalSpecs"); // Faster with this option; should work either way
         main.addOptions("-no-racShowSource");
         specs = JmlSpecs.instance(context);
         expectedExit = 0;
@@ -123,6 +126,15 @@ public abstract class RacBase extends JmlTestCase {
     
     public static String macstring = "Exception in thread \"main\" ";
 
+    public void setupOutdir() {
+        outdir = System.getenv("OPENJML_ROOT") + "/../OpenJML/OpenJMLTest/testdata/" + getMethodName(2);
+        //System.out.println("OUTDIR " + outdir);
+        File d = new java.io.File(outdir);
+        //if (d.exists()) d.delete();
+        d.mkdir();
+        defrac[3] = cp + outdir;
+        if (rac == null) rac = new String[]{jdk, "-ea", "-classpath",cp+outdir,null};
+    }
     
     /** This method does the running of a RAC test for tests that supply with body
      * of a file as a String.
@@ -134,6 +146,7 @@ public abstract class RacBase extends JmlTestCase {
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
     public void helpTCX(String classname, String compilationUnitText, Object... list) {
+    	setupOutdir();
 
         String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
         StreamGobbler out=null,err=null;
@@ -148,8 +161,8 @@ public abstract class RacBase extends JmlTestCase {
             }
 
             Log.instance(context).useSource(files.first());
-            int ex = 0;//compile(files.toList());
             
+            int ex = main.compile(new String[]{"-d", outdir},files.toList()).exitCode;
             if (print) printDiagnostics();
             int observedMessages = collector.getDiagnostics().size() - expectedNotes;
             if (observedMessages < 0) observedMessages = 0;
@@ -160,9 +173,9 @@ public abstract class RacBase extends JmlTestCase {
                     if (!print) printDiagnostics();
                     fail("More diagnostics than expected");
                 }
+                String expected = list[k].toString();
                 String s = noSource(collector.getDiagnostics().get(i));
-                if (s.startsWith(macstring) && isMac) s = s.substring(macstring.length());
-                assertEquals("Message " + i, list[k].toString(), s);
+                assertEquals("Message " + i, expected, s);
                 assertEquals("Message " + i, ((Integer)list[k+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
             }
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
@@ -200,17 +213,45 @@ public abstract class RacBase extends JmlTestCase {
             String data = out.input();
             if (data.length() > 0) {
                 String[] lines = data.split(term);
-                for (String line: lines) {
-                    if (i < list.length) assertEquals("Output line " + i, list[i], line);
+                for (String actual: lines) {
+                	//System.out.println("ACT: " + line);
+                	if (i < list.length) {
+                		String expected = list[i].toString();
+                		expected = expected.replace("$DEMO", OpenJMLDemoPath);
+                		//System.out.println("EXP: " + expected);
+                		if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
+                			expected = expected.replaceFirst("^[^:]*:[0-9]+: ","");
+                		if (!actual.matches(".*:[0-9]+:$")) 
+                			expected = expected.replaceFirst(": [^:]*:[0-9]+:$","");
+                		//System.out.println("EXP: " + expected);
+                        if (!expected.contains("verify: ")) actual = actual.replace("verify: ", "");
+                		//System.out.println("EXP: " + expected);
+                        assertEquals("Output line " + i, expected, actual);
+                	}
                     i++;
                 }
             }
             data = err.input();
             if (data.length() > 0) {
                 String[] lines = data.split(term);
-                for (String line: lines) {
-                	if (isMac && line.startsWith(macstring) && i < list.length && !line.equals(list[i])) line = line.substring(macstring.length());
-                    if (i < list.length) assertEquals("Output line " + i, list[i], line);
+                for (String actual: lines) {
+                	//System.out.println("ERR-ACT: " + actual);
+                	if (i < list.length) {
+                		String expected = list[i].toString();
+                		expected = expected.replace("$DEMO", OpenJMLDemoPath);
+                		//System.out.println("ERR-EXP: " + expected);
+                        if (actual.startsWith(macstring) && !expected.startsWith(macstring)) actual = actual.substring(macstring.length());
+                        else if (!actual.startsWith(macstring) && expected.startsWith(macstring)) expected = expected.substring(macstring.length());
+                		//System.out.println("ERR-EXP: " + expected);
+                		if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
+                			expected = expected.replaceFirst("^[^:]*:[0-9]+: ","");
+                		if (!actual.matches(".*:[0-9]+:$")) 
+                			expected = expected.replaceFirst(": [^:]*:[0-9]+:",":");
+                		//System.out.println("ERR-EXP: " + expected);
+                        if (!expected.contains("verify: ")) actual = actual.replace("verify: ", "");
+                		//System.out.println("ERR-EXP: " + expected);
+                        assertEquals("Output line " + i, expected, actual);
+                	}
                     i++;
                 }
                 if (isMac && i < list.length && list[i].equals(macstring)) i++;
@@ -260,15 +301,10 @@ public abstract class RacBase extends JmlTestCase {
 
     protected boolean runrac = true;
     
-    /** The command-line to use to run RACed programs - note the inclusion of the
-     * RAC-compiled JDK library classes ahead of the regular Java library classes
-     * in the boot class path. (This may not work on all platforms)
-     */
-    String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata",null};
     
     /** Call this as a setup routine, followed by RacBase.setUp for file based tests */
     public void setUpForFiles() throws Exception {
-        rac = sysrac;
+//        rac = sysrac;
         jdkrac = true;
         runrac = true;
     }
@@ -283,6 +319,7 @@ public abstract class RacBase extends JmlTestCase {
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
     public void helpTCF(String dirname, String outputdir, String mainClassname, String ... opts) {
+    	setupOutdir();
         boolean print = false;
         StreamGobbler out=null,err=null;
         try {
@@ -294,7 +331,9 @@ public abstract class RacBase extends JmlTestCase {
             List<String> args = new LinkedList<String>();
             //args.add("-no-jml");
             args.add("-d");
-            args.add("testdata");
+            args.add(outdir);
+            args.add("-classpath");
+            args.add(cp);
             args.add("-rac");
             args.add("-no-purityCheck");
             args.add("-code-math=java");

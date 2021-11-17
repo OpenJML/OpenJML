@@ -1,5 +1,5 @@
 OUT:
-test/Dzmz/Dzmz.java:4: JML Division by zero
+test/Dzmz/Dzmz.java:4: verify: JML Division by zero
         int z = x % y;
                   ^
 
