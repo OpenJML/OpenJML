@@ -47,11 +47,7 @@ public class Main {
      *      just retained for historical compatibility
      */
     public static void main(String[] args) throws Exception {
-    	if (System.getenv("NOJML") != null) {
-            System.exit(compile(args));
-    	} else {
-           org.jmlspecs.openjml.Main.main(args);
-    	}
+        System.exit(compile(args));
     }
 
     /** Programmatic interface to the Java Programming Language

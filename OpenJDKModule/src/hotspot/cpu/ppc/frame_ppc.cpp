@@ -24,6 +24,7 @@
  */
 
 #include "precompiled.hpp"
+#include "compiler/oopMap.hpp"
 #include "interpreter/interpreter.hpp"
 #include "memory/resourceArea.hpp"
 #include "memory/universe.hpp"
@@ -194,6 +195,16 @@ frame frame::sender_for_entry_frame(RegisterMap *map) const {
   // constructor retrieves the PC from the stack.
   frame fr(jfa->last_Java_sp());
   return fr;
+}
+
+OptimizedEntryBlob::FrameData* OptimizedEntryBlob::frame_data_for_frame(const frame& frame) const {
+  ShouldNotCallThis();
+  return nullptr;
+}
+
+bool frame::optimized_entry_frame_is_first() const {
+  ShouldNotCallThis();
+  return false;
 }
 
 frame frame::sender_for_interpreter_frame(RegisterMap *map) const {

@@ -27,13 +27,13 @@
  *      5026830 5023243 5070673 4052517 4811767 6192449 6397034 6413313
  *      6464154 6523983 6206031 4960438 6631352 6631966 6850957 6850958
  *      4947220 7018606 7034570 4244896 5049299 8003488 8054494 8058464
- *      8067796 8224905 8263729
+ *      8067796 8224905 8263729 8265173
  * @key intermittent
  * @summary Basic tests for Process and Environment Variable code
  * @modules java.base/java.lang:open
  * @library /test/lib
- * @run main/othervm/timeout=300 Basic
- * @run main/othervm/timeout=300 -Djdk.lang.Process.launchMechanism=fork Basic
+ * @run main/othervm/timeout=300 -Djava.security.manager=allow Basic
+ * @run main/othervm/timeout=300 -Djava.security.manager=allow -Djdk.lang.Process.launchMechanism=fork Basic
  * @author Martin Buchholz
  */
 
@@ -42,7 +42,7 @@
  * @modules java.base/java.lang:open
  * @requires (os.family == "linux")
  * @library /test/lib
- * @run main/othervm/timeout=300 -Djdk.lang.Process.launchMechanism=posix_spawn Basic
+ * @run main/othervm/timeout=300 -Djava.security.manager=allow -Djdk.lang.Process.launchMechanism=posix_spawn Basic
  */
 
 import java.lang.ProcessBuilder.Redirect;
@@ -899,6 +899,7 @@ public class Basic {
         } catch (Throwable t) { unexpected(t); return ""; }
     }
 
+    @SuppressWarnings("removal")
     static void testIORedirection() throws Throwable {
         final File ifile = new File("ifile");
         final File ofile = new File("ofile");
@@ -1303,6 +1304,7 @@ public class Basic {
 
     }
 
+    @SuppressWarnings("removal")
     private static void realMain(String[] args) throws Throwable {
         if (Windows.is())
             System.out.println("This appears to be a Windows system.");
@@ -2150,10 +2152,12 @@ public class Basic {
                     switch (action & 0x1) {
                         case 0:
                             childArgs.set(1, "-XX:+DisplayVMOutputToStderr");
+                            childArgs.add(2, "-Xlog:all=warning:stderr");
                             pb.redirectError(INHERIT);
                             break;
                         case 1:
                             childArgs.set(1, "-XX:+DisplayVMOutputToStdout");
+                            childArgs.add(2, "-Xlog:all=warning:stdout");
                             pb.redirectOutput(INHERIT);
                             break;
                         default:
@@ -2182,7 +2186,9 @@ public class Basic {
                             }
                             if (r >= 0) {
                                 // The child sent unexpected output; print it to diagnose
-                                System.out.println("Unexpected child output:");
+                                System.out.println("Unexpected child output, to: " +
+                                        ((action & 0x1) == 0 ? "getInputStream" : "getErrorStream"));
+                                System.out.println("Child args: " + childArgs);
                                 if ((action & 0x2) == 0) {
                                     System.out.write(r);    // Single character
 
@@ -2203,7 +2209,7 @@ public class Basic {
 
                 thread.start();
                 latch.await();
-                Thread.sleep(10);
+                Thread.sleep(30);
 
                 if (s instanceof BufferedInputStream) {
                     // Wait until after the s.read occurs in "thread" by
@@ -2660,6 +2666,7 @@ public class Basic {
     //----------------------------------------------------------------
     // A Policy class designed to make permissions fiddling very easy.
     //----------------------------------------------------------------
+    @SuppressWarnings("removal")
     private static class Policy extends java.security.Policy {
         static final java.security.Policy DEFAULT_POLICY = java.security.Policy.getPolicy();
 

@@ -29,6 +29,7 @@
 #include "code/icBuffer.hpp"
 #include "code/vtableStubs.hpp"
 #include "frame_ppc.hpp"
+#include "compiler/oopMap.hpp"
 #include "gc/shared/gcLocker.hpp"
 #include "interpreter/interpreter.hpp"
 #include "interpreter/interp_masm.hpp"
@@ -915,6 +916,13 @@ int SharedRuntime::c_calling_convention(const BasicType *sig_bt,
   return align_up(stk, 2);
 }
 #endif // COMPILER2
+
+int SharedRuntime::vector_calling_convention(VMRegPair *regs,
+                                             uint num_bits,
+                                             uint total_args_passed) {
+  Unimplemented();
+  return 0;
+}
 
 static address gen_c2i_adapter(MacroAssembler *masm,
                             int total_args_passed,

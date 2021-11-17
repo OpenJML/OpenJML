@@ -55,9 +55,7 @@ class TypeEnvs {
         context.put(typeEnvsKey, this);
     }
 
-    Env<AttrContext> get(TypeSymbol sym) { var e = map.get(sym); return e;}
-    //Env<AttrContext> get(TypeSymbol sym) { return map.get(sym); }
-    //Env<AttrContext> put(TypeSymbol sym, Env<AttrContext> env) { return map.put(sym, env); }
+    Env<AttrContext> get(TypeSymbol sym) { return map.get(sym); }
     Env<AttrContext> put(TypeSymbol sym, Env<AttrContext> env) { return map.put(sym, env); }
     Env<AttrContext> remove(TypeSymbol sym) { return map.remove(sym); }
     Collection<Env<AttrContext>> values() { return map.values(); }
