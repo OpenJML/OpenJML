@@ -84,7 +84,9 @@ post:
 	rm -rf $(REL)
 	mkdir $(REL)
 	cp -pRL build/*release/jdk $(REL)
-	cp -pR ../../Solvers/Solvers-* $(REL)
+	if [ `uname` = 'Darwin' ]; then echo Mac ; export S=macos ; elif [ `uname` = 'Linux' ]; then echo Linux; export S=linux ; else echo Win; export S=windows ; fi ;\
+	echo OS $$S ;\
+	cp -pR ../../Solvers/Solvers-$$S $(REL)
 	cp -pR ../../Specs/specs $(REL)
 	cp -pR release-files/* $(REL)
 	chmod ugo+x $(REL)/openjml
@@ -101,7 +103,7 @@ openjml: .FORCE
 	##make jmlruntime.jar
 
 smt:
-	if [ -e ../../../jSMTLIB/SMT ]; then cp -Rp ../../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; fi
+	##if [ -e ../../../jSMTLIB/SMT ]; then cp -Rp ../../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; fi
 
 jmlruntime.jar:
 	cp -r bin-runtime/* temp2
