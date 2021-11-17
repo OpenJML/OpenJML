@@ -4929,7 +4929,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         	Type saved = result;
         	if (!justAttribute && tree.sym instanceof VarSymbol) {
-        		checkSecretReadable(tree,(VarSymbol)tree.sym);
+        		var qsaved = quantifiedExprs;
+        		try {
+        			quantifiedExprs = new LinkedList<JmlQuantifiedExpr>();
+        			checkSecretReadable(tree,(VarSymbol)tree.sym);
+        		} finally {
+        			quantifiedExprs = qsaved;
+        		}
         	}// Could also be a method call, and error, a package, a class...
 
         	checkVisibility(tree, jmlenv.jmlVisibility, tree.sym, null);

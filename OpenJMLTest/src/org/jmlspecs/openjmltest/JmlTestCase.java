@@ -76,7 +76,7 @@ public abstract class JmlTestCase {
 
     public final static String specsdir;
     static {
-    	String s = System.getenv("OPENJML_ROOT") + "../../Specs";
+    	String s = System.getenv("OPENJML_ROOT") + "../../Specs/specs";
     	try { s = new File(s).getCanonicalPath(); } catch (Exception e) {}
     	specsdir = s;
     }

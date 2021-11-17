@@ -13,6 +13,9 @@ openjml-test: prep
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
 	make release-tests
 
+openjml-clean:
+	(cd ${ROOT}/../OpenJDKModule; make clean openjml)
+
 openjml:
 	(cd ${ROOT}/../OpenJDKModule; make openjml)
 

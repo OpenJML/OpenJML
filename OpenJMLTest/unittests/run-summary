@@ -2,4 +2,4 @@
 
 f=$1; shift
 s=$1; shift
-echo -e $f "\t" `./runtests $* 2>&1 | tee $f | grep failures` ": expected $s"
+echo -e "$f\t" `./runtests $* 2>&1 | tee $f | grep failures` ": expected $s"

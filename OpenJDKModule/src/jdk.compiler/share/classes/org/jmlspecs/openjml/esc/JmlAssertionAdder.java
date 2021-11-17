@@ -7265,6 +7265,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return fa;
     }
     
+    public Map<Object,JCExpression> mapFormals(JCMethodDecl to, JCMethodDecl from) {
+    	if (to.sym == from.sym) return paramActuals; 
+    	var fromIter = from.params.iterator();
+    	var toIter = to.params.iterator();
+    	var newMap = paramActuals == null ? new HashMap<Object,JCExpression>() : new HashMap<>(paramActuals);
+    	while (fromIter.hasNext() && toIter.hasNext()) {
+    		var fromSym = fromIter.next().sym;
+    		var toDecl = toIter.next();
+    		var toSym = toDecl.sym;
+    		newMap.put(fromSym, M.at(toDecl.pos).Ident(toSym));
+    	}
+    	if (fromIter.hasNext() || toIter.hasNext()) {
+    		// ERROR - mis matched lengths
+    	}
+    	var oldMap = paramActuals;
+    	paramActuals= newMap;
+    	return oldMap;
+    }
+    
     /** Add assertions that the lhs is allowed to be written to or read from.
      * 
      * @param assignPosition the position of the generation assertion
@@ -7282,38 +7301,43 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (sym != null && !(sym instanceof VarSymbol)) return;
         recursiveCall = true;
         boolean noSpecCases = true;
-        /*@ nullable */ JmlMethodSpecs mspecs = specs.getDenestedSpecs(methodDecl.sym);
-        // mspecs can be null if we are translating a initializer block, or if it is just overridden methods that have specs
-        if (mspecs != null) for (JmlSpecificationCase c: mspecs.cases) {
-            // FIXME - visibility?
-          JCExpression pre = preconditions.get(c);  // FIXME - distinguish callee and caller specs?
-          if (pre == null) pre = calleePreconditions.get(c);
-          if (pre == null) continue;
-          JavaFileObject prev = log.useSource(c.source());
-          ListBuffer<JCStatement> ch = pushBlock();
-          try {
-            noSpecCases = false;
-            // FIXME: Are we being called to check callee or caller? If callee, we should get the precondition from preExpressions
-            JCExpression check = checkAccess(token,assignPosition, origlhs, lhs, c,baseThisExpr,targetThisExpr, false); // FIXME - not sure about the lhs,lhs
-            if (!treeutils.isTrueLit(check)) {
-                // The access is not allowed if it is nowhere in the
-                // assignable/accessible clauses; we point to the first one. If there are
-                // none the default is \everything, which is always allowed 
-                // (constructor default handled below)
-                DiagnosticPosition cpos = c;
-                for (JmlMethodClause m : c.clauses) {
-                    if (m.clauseKind == token) { cpos = m; break; }
-                }
-                check = makeAssertionOptional(check);
-                addAssert(assignPosition,
-                        token == assignableClauseKind ? Label.ASSIGNABLE : Label.ACCESSIBLE,
-                        check,cpos,c.sourcefile,origlhs.toString());
-            }
-          } finally {
-              JCBlock bl = popBlock(c,ch);
-              addStat(M.at(c.pos).If(pre,bl,null));
-              log.useSource(prev);
-          }
+        for (var md: parents(methodDecl.sym, methodDecl.sym.owner.type)) { 
+        	/*@ nullable */ JmlMethodSpecs mspecs = specs.getDenestedSpecs(md.first);
+        	// mspecs can be null if we are translating a initializer block, or if it is just overridden methods that have specs
+        	if (mspecs != null) for (JmlSpecificationCase c: mspecs.cases) {
+        		// FIXME - visibility?
+        		//FIXME - map formal arguments
+        		JCExpression pre = preconditions.get(c);  // FIXME - distinguish callee and caller specs?
+        		if (pre == null && calleePreconditions != null) pre = calleePreconditions.get(c);
+        		if (pre == null) continue;
+        		JavaFileObject prev = log.useSource(c.source());
+        		var oldMap = mapFormals(methodDecl, mspecs.decl);
+        		ListBuffer<JCStatement> ch = pushBlock();
+        		try {
+        			noSpecCases = false;
+        			// FIXME: Are we being called to check callee or caller? If callee, we should get the precondition from preExpressions
+        			JCExpression check = checkAccess(token,assignPosition, origlhs, lhs, c,baseThisExpr,targetThisExpr, false); // FIXME - not sure about the lhs,lhs
+        			if (!treeutils.isTrueLit(check)) {
+        				// The access is not allowed if it is nowhere in the
+        				// assignable/accessible clauses; we point to the first one. If there are
+        				// none the default is \everything, which is always allowed 
+        				// (constructor default handled below)
+        				DiagnosticPosition cpos = c;
+        				for (JmlMethodClause m : c.clauses) {
+        					if (m.clauseKind == token) { cpos = m; break; }
+        				}
+        				check = makeAssertionOptional(check);
+        				addAssert(assignPosition,
+        						token == assignableClauseKind ? Label.ASSIGNABLE : Label.ACCESSIBLE,
+        								check,cpos,c.sourcefile,origlhs.toString());
+        			}
+        		} finally {
+        			JCBlock bl = popBlock(c,ch);
+        			if (!bl.stats.isEmpty()) addStat(M.at(c.pos).If(pre,bl,null));
+        			log.useSource(prev);
+        			paramActuals = oldMap;
+        		}
+        	}
         }
         if (noSpecCases) {
             JCExpression check = checkAccess(token,assignPosition, lhs,lhs,M.at(methodDecl.pos).JmlSpecificationCase(null, false, null, null, List.<JmlMethodClause>nil(), null),currentThisExpr,currentThisExpr,false);
@@ -9574,7 +9598,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                     addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false, currentThisExpr == null);
                                                 }
                                                 for (JCExpression hv: newlist) {
-                                                    if (hv instanceof JCFieldAccess) havocModelFields((JCFieldAccess)hv);
+                                                    if (hv instanceof JCFieldAccess) {
+                                                    	var fa = (JCFieldAccess)hv;
+                                                    	havocModelFields(fa);
+                                                    }
                                                 }
                                             }
                                             JCBlock bl = popBlock(cs,check4);
@@ -11397,22 +11424,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected boolean translatingLHS = false;
     
-    public void havocModelFields(JCFieldAccess newfa) {
-        if (rac) return;
-        ListBuffer<JCExpression> havocList = new ListBuffer<>();
-        havocModelFields(newfa,havocList);
-        addStat(M.at(newfa.pos).JmlHavocStatement(havocList.toList()));
+    // Havocs all containing model fields.  FIXME - need to substitute 'this' by the recevier of newfa.
+    public void havocModelFields(JCFieldAccess fa) {
+    	havocModelFields(fa.pos, fa.selected, (VarSymbol)fa.sym);
     }
     
-    private void havocModelFields(JCFieldAccess newfa, ListBuffer<JCExpression> havocList) {
-        FieldSpecs fspecs = specs.getSpecs((Symbol.VarSymbol)newfa.sym);
+    public void havocModelFields(int pos, JCExpression recv, VarSymbol sym) {
+        if (rac) return;
+        ListBuffer<JCExpression> havocList = new ListBuffer<>();
+        havocModelFields(recv, sym, havocList);
+        addStat(M.at(pos).JmlHavocStatement(havocList.toList()));
+    }
+    
+    private void havocModelFields(JCExpression recv, VarSymbol sym, ListBuffer<JCExpression> havocList) {
+        FieldSpecs fspecs = specs.getSpecs(sym);
         if (fspecs != null) for (JmlTypeClause tc: fspecs.list) {
             if (tc.clauseType == inClause) {
                 JmlTypeClauseIn tcin = (JmlTypeClauseIn)tc;
                 for (JmlGroupName g : tcin.list) {
-                    JCFieldAccess fa = treeutils.makeSelect(g.pos, newfa.selected, g.sym);
-                    if (!isDataGroup(fa.type))havocList.add(fa);
-                    havocModelFields(fa);
+                    JCFieldAccess fa = treeutils.makeSelect(g.pos, recv, g.sym);
+                    if (!isDataGroup(fa.type)) havocList.add(fa);
+                    havocModelFields(fa.selected, (VarSymbol)fa.sym, havocList);
                 }
             }
         }
@@ -11431,6 +11463,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     public void assignIdentHelper(DiagnosticPosition pos, JCIdent id, JCExpression origrhs, JCExpression lhs, JCExpression rhs) {
+
         Symbol.VarSymbol vsym = (Symbol.VarSymbol)id.sym;
 //      specs.getSpecs(vsym).  // FIXME - need to call isNonNull with the declaration for id
         if (!infer && specs.isNonNull(vsym)) { // && !(rac && vsym.type.tsym.toString().equals("org.jmlspecs.runtime.IJMLTYPE"))) {
@@ -11445,20 +11478,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
               // FIXME - location of nnonnull declaration?
               addAssert(pos, Label.POSSIBLY_NULL_ASSIGNMENT, e);
           }
-      }
-      checkAccess(assignableClauseKind, pos, id, lhs, currentThisExpr, currentThisExpr);
-      checkRW(writableClause,id.sym,currentThisExpr,id);
-      
-      JCExpressionStatement st = treeutils.makeAssignStat(pos.getPreferredPosition(),  lhs, rhs);
-      addStat( st );
-      lastStat = st.expr;
-      result = eresult = lhs;
+        }
+        checkAccess(assignableClauseKind, pos, id, lhs, currentThisExpr, currentThisExpr);
+        checkRW(writableClause,id.sym,currentThisExpr,id);
 
-      if (splitExpressions && !(lhs instanceof JCIdent)) {
-          result = eresult = newTemp(convertCopy(lhs));
-      }
-      if (lhs instanceof JCFieldAccess) havocModelFields((JCFieldAccess)lhs);
-      saveMappingOverride(id, eresult);
+        JCExpressionStatement st = treeutils.makeAssignStat(pos.getPreferredPosition(),  lhs, rhs);
+        addStat( st );
+        lastStat = st.expr;
+        JCExpression r = lhs;
+
+        if (splitExpressions && !(lhs instanceof JCIdent)) {
+        	r = newTemp(convertCopy(lhs));
+        }
+        if (lhs instanceof JCFieldAccess) havocModelFields((JCFieldAccess)lhs);
+        result = eresult = r;
+        saveMappingOverride(id, eresult);
     }
     
     // FIXME - review
@@ -11762,6 +11796,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpressionStatement st = addStat(treeutils.makeAssignStat(that.getStartPosition(), newlhs, nid));
             result = eresult = post ? newTemp(lhs) : newlhs;
             saveMapping(that.lhs,eresult);
+            var sym = ((JCIdent)lhs).sym;
+            if (sym.owner instanceof ClassSymbol) {
+            	havocModelFields(that.pos, currentThisExpr, (VarSymbol)sym);
+            }
             lastStat = st.expr;
             
         } else if (lhs instanceof JCFieldAccess) {
@@ -11823,6 +11861,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             treeutils.copyEndPosition(st, that);
             result = eresult = post ? idc : newTemp(newlhs);
             saveMapping(that.lhs, eresult);
+            var sym = ((JCFieldAccess)lhs).sym;
+            if (sym.owner instanceof ClassSymbol) {
+            	havocModelFields(newfa);
+            }
             lastStat = st.expr;
             
         } else if (lhs instanceof JCArrayAccess) {
@@ -11887,6 +11929,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = eresult = post ? idc : newTemp(lhs);
             saveMapping(that.lhs, eresult);
             lastStat = st.expr;
+            // FIXME - what model fields should be havoced?
             
         } else {
             error(that,"Unexpected kind of AST in JmlAssertionAdder.visitAssignOp: " + that.getClass());
@@ -15044,7 +15087,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         int p = pos.getPreferredPosition();
         JmlStatementHavoc st = M.at(p).JmlHavocStatement(newlistx);
         for (JCExpression hv: newlistx) {
-            if (hv instanceof JCFieldAccess) havocModelFields((JCFieldAccess)hv);
+            if (hv instanceof JCFieldAccess) {
+            	var fa = (JCFieldAccess)hv;
+            	havocModelFields(fa);
+            }
         }
         allocCounter++;
         // FIXME - this ought to work to preserve initialized values at the beginning of th e0th iteration, but makes loops infeasbile
@@ -17838,7 +17884,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     	try {
     		if (currentStatements == null) pushBlock();
         	JCModifiers mods = fullTranslation ? convert(that.modifiers) : that.modifiers;
-        	JCExpression expr = convertExpr(that.expression);
+        	JCExpression expr = convertJML(that.expression);
         	JmlTypeClauseExpr cl = M.at(that).JmlTypeClauseExpr(mods, that.keyword, that.clauseType, expr);
         	cl.setType(that.type);
         	cl.source = that.source;

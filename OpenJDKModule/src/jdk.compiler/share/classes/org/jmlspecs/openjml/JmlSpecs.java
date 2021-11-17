@@ -310,8 +310,8 @@ public class JmlSpecs {
             String sy = Main.root + "/specs"; 
             if (!new File(sy).exists()) {
             	sy = Main.root + "/../Specs/specs";
-                if (Utils.testingMode) try { sy = new File(sy).getCanonicalPath(); } catch (IOException e) {}
             }
+            try { sy = new File(sy).getCanonicalPath(); } catch (IOException e) {}
             
             //System.out.println("SY " + sy + " " + new File(sy).getAbsolutePath());
             File f = new File(sy);
