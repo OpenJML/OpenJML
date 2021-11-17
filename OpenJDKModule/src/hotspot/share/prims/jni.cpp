@@ -44,6 +44,7 @@
 #include "compiler/compiler_globals.hpp"
 #include "gc/shared/collectedHeap.hpp"
 #include "gc/shared/gcLocker.inline.hpp"
+#include "gc/shared/stringdedup/stringDedup.hpp"
 #include "interpreter/linkResolver.hpp"
 #include "jfr/jfrEvents.hpp"
 #include "jfr/support/jfrThreadId.hpp"
@@ -906,7 +907,7 @@ static void jni_invoke_nonstatic(JNIEnv *env, JavaValue* result, jobject receive
   {
     Method* m = Method::resolve_jmethod_id(method_id);
     number_of_parameters = m->size_of_parameters();
-    Klass* holder = m->method_holder();
+    InstanceKlass* holder = m->method_holder();
     if (call_type != JNI_VIRTUAL) {
         selected_method = m;
     } else if (!m->has_itable_index()) {
@@ -1078,7 +1079,7 @@ static jmethodID get_method_id(JNIEnv *env, jclass clazz, const char *name_str,
   // Throw a NoSuchMethodError exception if we have an instance of a
   // primitive java.lang.Class
   if (java_lang_Class::is_primitive(mirror)) {
-    ResourceMark rm;
+    ResourceMark rm(THREAD);
     THROW_MSG_0(vmSymbols::java_lang_NoSuchMethodError(), err_msg("%s%s.%s%s", is_static ? "static " : "", klass->signature_name(), name_str, sig));
   }
 
@@ -1102,7 +1103,7 @@ static jmethodID get_method_id(JNIEnv *env, jclass clazz, const char *name_str,
     }
   }
   if (m == NULL || (m->is_static() != is_static)) {
-    ResourceMark rm;
+    ResourceMark rm(THREAD);
     THROW_MSG_0(vmSymbols::java_lang_NoSuchMethodError(), err_msg("%s%s.%s%s", is_static ? "static " : "", klass->signature_name(), name_str, sig));
   }
   return m->jmethod_id();
@@ -2842,19 +2843,45 @@ HOTSPOT_JNI_RELEASEPRIMITIVEARRAYCRITICAL_RETURN();
 JNI_END
 
 
+static typeArrayOop lock_gc_or_pin_string_value(JavaThread* thread, oop str) {
+  if (Universe::heap()->supports_object_pinning()) {
+    // Forbid deduplication before obtaining the value array, to prevent
+    // deduplication from replacing the value array while setting up or in
+    // the critical section.  That would lead to the release operation
+    // unpinning the wrong object.
+    if (StringDedup::is_enabled()) {
+      NoSafepointVerifier nsv;
+      StringDedup::forbid_deduplication(str);
+    }
+    typeArrayOop s_value = java_lang_String::value(str);
+    return (typeArrayOop) Universe::heap()->pin_object(thread, s_value);
+  } else {
+    Handle h(thread, str);      // Handlize across potential safepoint.
+    GCLocker::lock_critical(thread);
+    return java_lang_String::value(h());
+  }
+}
+
+static void unlock_gc_or_unpin_string_value(JavaThread* thread, oop str) {
+  if (Universe::heap()->supports_object_pinning()) {
+    typeArrayOop s_value = java_lang_String::value(str);
+    Universe::heap()->unpin_object(thread, s_value);
+  } else {
+    GCLocker::unlock_critical(thread);
+  }
+}
+
 JNI_ENTRY(const jchar*, jni_GetStringCritical(JNIEnv *env, jstring string, jboolean *isCopy))
   HOTSPOT_JNI_GETSTRINGCRITICAL_ENTRY(env, string, (uintptr_t *) isCopy);
-  oop s = lock_gc_or_pin_object(thread, string);
-  typeArrayOop s_value = java_lang_String::value(s);
-  bool is_latin1 = java_lang_String::is_latin1(s);
-  if (isCopy != NULL) {
-    *isCopy = is_latin1 ? JNI_TRUE : JNI_FALSE;
-  }
+  oop s = JNIHandles::resolve_non_null(string);
   jchar* ret;
-  if (!is_latin1) {
+  if (!java_lang_String::is_latin1(s)) {
+    typeArrayOop s_value = lock_gc_or_pin_string_value(thread, s);
     ret = (jchar*) s_value->base(T_CHAR);
+    if (isCopy != NULL) *isCopy = JNI_FALSE;
   } else {
     // Inflate latin1 encoded string to UTF16
+    typeArrayOop s_value = java_lang_String::value(s);
     int s_len = java_lang_String::length(s, s_value);
     ret = NEW_C_HEAP_ARRAY_RETURN_NULL(jchar, s_len + 1, mtInternal);  // add one for zero termination
     /* JNI Specification states return NULL on OOM */
@@ -2864,6 +2891,7 @@ JNI_ENTRY(const jchar*, jni_GetStringCritical(JNIEnv *env, jstring string, jbool
       }
       ret[s_len] = 0;
     }
+    if (isCopy != NULL) *isCopy = JNI_TRUE;
   }
  HOTSPOT_JNI_GETSTRINGCRITICAL_RETURN((uint16_t *) ret);
   return ret;
@@ -2872,15 +2900,16 @@ JNI_END
 
 JNI_ENTRY(void, jni_ReleaseStringCritical(JNIEnv *env, jstring str, const jchar *chars))
   HOTSPOT_JNI_RELEASESTRINGCRITICAL_ENTRY(env, str, (uint16_t *) chars);
-  // The str and chars arguments are ignored for UTF16 strings
   oop s = JNIHandles::resolve_non_null(str);
   bool is_latin1 = java_lang_String::is_latin1(s);
   if (is_latin1) {
     // For latin1 string, free jchar array allocated by earlier call to GetStringCritical.
     // This assumes that ReleaseStringCritical bookends GetStringCritical.
     FREE_C_HEAP_ARRAY(jchar, chars);
+  } else {
+    // For non-latin1 string, drop the associated gc-locker/pin.
+    unlock_gc_or_unpin_string_value(thread, s);
   }
-  unlock_gc_or_unpin_object(thread, str);
 HOTSPOT_JNI_RELEASESTRINGCRITICAL_RETURN();
 JNI_END
 
@@ -3602,7 +3631,7 @@ static jint JNI_CreateJavaVM_inner(JavaVM **vm, void **penv, void *args) {
       if (UseJVMCICompiler) {
         // JVMCI is initialized on a CompilerThread
         if (BootstrapJVMCI) {
-          JavaThread* THREAD = thread;
+          JavaThread* THREAD = thread; // For exception macros.
           JVMCICompiler* compiler = JVMCICompiler::instance(true, CATCH);
           compiler->bootstrap(THREAD);
           if (HAS_PENDING_EXCEPTION) {
@@ -3643,7 +3672,7 @@ static jint JNI_CreateJavaVM_inner(JavaVM **vm, void **penv, void *args) {
     // to continue.
     if (Universe::is_fully_initialized()) {
       // otherwise no pending exception possible - VM will already have aborted
-      JavaThread* THREAD = JavaThread::current();
+      JavaThread* THREAD = JavaThread::current(); // For exception macros.
       if (HAS_PENDING_EXCEPTION) {
         HandleMark hm(THREAD);
         vm_exit_during_initialization(Handle(THREAD, PENDING_EXCEPTION));
@@ -3731,17 +3760,10 @@ static jint JNICALL jni_DestroyJavaVM_inner(JavaVM *vm) {
   MACOS_AARCH64_ONLY(WXMode oldmode = thread->enable_wx(WXWrite));
 
   ThreadStateTransition::transition_from_native(thread, _thread_in_vm);
-  if (Threads::destroy_vm()) {
-    // Should not change thread state, VM is gone
-    vm_created = 0;
-    res = JNI_OK;
-    return res;
-  } else {
-    ThreadStateTransition::transition(thread, _thread_in_vm, _thread_in_native);
-    MACOS_AARCH64_ONLY(thread->enable_wx(oldmode));
-    res = JNI_ERR;
-    return res;
-  }
+  Threads::destroy_vm();
+  // Don't bother restoring thread state, VM is gone.
+  vm_created = 0;
+  return JNI_OK;
 }
 
 jint JNICALL jni_DestroyJavaVM(JavaVM *vm) {

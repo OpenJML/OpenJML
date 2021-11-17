@@ -1530,8 +1530,16 @@ public:
 public:
 
   enum SIMD_Arrangement {
-    T8B, T16B, T4H, T8H, T2S, T4S, T1D, T2D, T1Q
+    T8B, T16B, T4H, T8H, T2S, T4S, T1D, T2D, T1Q, INVALID_ARRANGEMENT
   };
+
+private:
+
+  static SIMD_Arrangement _esize2arrangement_table[9][2];
+
+public:
+
+  static SIMD_Arrangement esize2arrangement(int esize, bool isQ);
 
   enum SIMD_RegVariant {
     B, H, S, D, Q, INVALID
@@ -2392,6 +2400,7 @@ public:
 
   INSN(addv,   0, 0b100001, true);  // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S, T2D
   INSN(subv,   1, 0b100001, true);  // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S, T2D
+  INSN(uqsubv, 1, 0b001011, true);  // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S, T2D
   INSN(mulv,   0, 0b100111, false); // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S
   INSN(mlav,   0, 0b100101, false); // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S
   INSN(mlsv,   1, 0b100101, false); // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S
@@ -2403,9 +2412,13 @@ public:
   INSN(umlalv, 1, 0b100000, false); // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S
   INSN(maxv,   0, 0b011001, false); // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S
   INSN(minv,   0, 0b011011, false); // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S
+  INSN(smaxp,  0, 0b101001, false); // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S
+  INSN(sminp,  0, 0b101011, false); // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S
   INSN(cmeq,   1, 0b100011, true);  // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S, T2D
   INSN(cmgt,   0, 0b001101, true);  // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S, T2D
   INSN(cmge,   0, 0b001111, true);  // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S, T2D
+  INSN(cmhi,   1, 0b001101, true);  // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S, T2D
+  INSN(cmhs,   1, 0b001111, true);  // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S, T2D
 
 #undef INSN
 
@@ -2426,6 +2439,7 @@ public:
   INSN(notr,   1, 0b100000010110, 0); // accepted arrangements: T8B, T16B
   INSN(addv,   0, 0b110001101110, 1); // accepted arrangements: T8B, T16B, T4H, T8H,      T4S
   INSN(smaxv,  0, 0b110000101010, 1); // accepted arrangements: T8B, T16B, T4H, T8H,      T4S
+  INSN(umaxv,  1, 0b110000101010, 1); // accepted arrangements: T8B, T16B, T4H, T8H,      T4S
   INSN(sminv,  0, 0b110001101010, 1); // accepted arrangements: T8B, T16B, T4H, T8H,      T4S
   INSN(uminv,  1, 0b110001101010, 1); // accepted arrangements: T8B, T16B, T4H, T8H,      T4S
   INSN(cls,    0, 0b100000010010, 2); // accepted arrangements: T8B, T16B, T4H, T8H, T2S, T4S
@@ -3060,6 +3074,7 @@ public:
   INSN(sve_and, 0b00);
   INSN(sve_eor, 0b10);
   INSN(sve_orr, 0b01);
+  INSN(sve_bic, 0b11);
 #undef INSN
 
 // SVE shift immediate - unpredicated

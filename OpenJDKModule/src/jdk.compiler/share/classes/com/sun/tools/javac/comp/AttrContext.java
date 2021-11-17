@@ -149,16 +149,8 @@ public class AttrContext {
 
     /** Duplicate this context, copying all fields.
      */
-    public AttrContext dup() { // OPENJML - changed from default to public visibility
+    AttrContext dup() {
         return dup(scope);
-    }
-
-    public AttrContext dupUnshared() { // OPENJML - added this method
-        return dup(scope.dupUnshared());
-    }
-    
-    public WriteableScope scope() { // OPENJML - added this method
-        return scope;
     }
 
     public Iterable<Symbol> getLocalElements() {

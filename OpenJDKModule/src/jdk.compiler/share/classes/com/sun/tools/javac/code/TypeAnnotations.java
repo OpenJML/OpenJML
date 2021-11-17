@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2009, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,7 +30,6 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.type.TypeKind;
 import javax.tools.JavaFileObject;
 
-import com.sun.tools.javac.code.Attribute.Array;
 import com.sun.tools.javac.code.Attribute.TypeCompound;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
@@ -120,11 +119,7 @@ public class TypeAnnotations {
         annotate.afterTypes(() -> {
             JavaFileObject oldSource = log.useSource(env.toplevel.sourcefile);
             try {
-            	if (org.jmlspecs.openjml.Main.useJML) {
-            		new JmlTypeAnnotationPositions(TypeAnnotations.this,true).scan(tree);
-            	} else {
-            		new TypeAnnotationPositions(true).scan(tree);
-            	}
+                new TypeAnnotationPositions(true).scan(tree);
             } finally {
                 log.useSource(oldSource);
             }
@@ -146,12 +141,8 @@ public class TypeAnnotations {
      * This version only visits types in bodies, that is, field initializers,
      * top-level blocks, and method bodies, and should be called from Attr.
      */
-    public void organizeTypeAnnotationsBodies(JCClassDecl tree, boolean sigOnly) {
-        if (org.jmlspecs.openjml.Main.useJML) {
-        	new JmlTypeAnnotationPositions(TypeAnnotations.this,sigOnly).scan(tree);
-        } else {
-        	new TypeAnnotationPositions(sigOnly).scan(tree);
-        }
+    public void organizeTypeAnnotationsBodies(JCClassDecl tree) {
+        new TypeAnnotationPositions(false).scan(tree);
     }
 
     public enum AnnotationType { DECLARATION, TYPE, NONE, BOTH }
@@ -163,11 +154,11 @@ public class TypeAnnotations {
         }
 
         Attribute atValue = atTarget.member(names.value);
-        if (!(atValue instanceof Attribute.Array)) {
+        if (!(atValue instanceof Attribute.Array arrayVal)) {
             return null;
         }
 
-        List<Attribute> targets = ((Array)atValue).getValue();
+        List<Attribute> targets = arrayVal.getValue();
         if (targets.stream().anyMatch(a -> !(a instanceof Attribute.Enum))) {
             return null;
         }
@@ -260,7 +251,7 @@ public class TypeAnnotations {
         return AnnotationType.NONE;
     }
 
-    protected class TypeAnnotationPositions extends TreeScanner { // OPENJML private to protected 
+    private class TypeAnnotationPositions extends TreeScanner {
 
         private final boolean sigOnly;
 
@@ -1232,7 +1223,9 @@ public class TypeAnnotations {
                                 .methodParameter(tree, i, param.vartype.pos);
                         push(param);
                         try {
-                            separateAnnotationsKinds(param.vartype, param.sym.type, param.sym, pos);
+                            if (!param.declaredUsingVar()) {
+                                separateAnnotationsKinds(param.vartype, param.sym.type, param.sym, pos);
+                            }
                         } finally {
                             pop();
                         }
@@ -1257,7 +1250,7 @@ public class TypeAnnotations {
                 // Nothing to do for separateAnnotationsKinds if
                 // there are no annotations of either kind.
             } else if (tree.sym == null) {
-                Assert.error("Visiting tree node before memberEnter: " + tree + " " + ((org.jmlspecs.openjml.JmlTree.JmlVariableDecl)tree).sourcefile);
+                Assert.error("Visiting tree node before memberEnter");
             } else if (tree.sym.getKind() == ElementKind.PARAMETER) {
                 // Parameters are handled in visitMethodDef or visitLambda.
             } else if (tree.sym.getKind() == ElementKind.FIELD) {
@@ -1270,7 +1263,7 @@ public class TypeAnnotations {
                 final TypeAnnotationPosition pos =
                     TypeAnnotationPosition.localVariable(currentLambda,
                                                          tree.pos);
-                if (!tree.isImplicitlyTyped()) {
+                if (!tree.declaredUsingVar()) {
                     separateAnnotationsKinds(tree.vartype, tree.sym.type, tree.sym, pos);
                 }
             } else if (tree.sym.getKind() == ElementKind.BINDING_VARIABLE) {

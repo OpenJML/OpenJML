@@ -28,12 +28,12 @@ import jdk.internal.misc.CDS;
 
 import java.math.BigInteger;
 import java.util.Arrays;
-// @ model import org.jmlspecs.models.JMLMath;
+//@ model import org.jmlspecs.models.JMLMath;
 
 /**
  * A simple big integer package specifically for floating point base conversion.
  */
-public /* @ spec_bigint_math @*/ class FDBigInteger {
+public /*@ spec_bigint_math @*/ class FDBigInteger {
 
     //
     // This class contains many comments that start with "/*@" mark.
@@ -42,7 +42,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
     // http://www.eecs.ucf.edu/~leavens/JML//index.shtml
     //
 
-    /* @
+    /*@
     @ public pure model static \bigint UNSIGNED(int v) {
     @     return v >= 0 ? v : v + (((\bigint)1) << 32);
     @ }
@@ -159,17 +159,17 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
     // Constant for casting an int to a long via bitwise AND.
     private static final long LONG_MASK = 0xffffffffL;
 
-    // @ spec_public non_null;
+    //@ spec_public non_null;
     private int data[];  // value: data[0] is least significant
-    // @ spec_public;
+    //@ spec_public;
     private int offset;  // number of least significant zero padding ints
-    // @ spec_public;
+    //@ spec_public;
     private int nWords;  // data[nWords-1]!=0, all values above are zero
                  // if nWords==0 -> this FDBigInteger is zero
-    // @ spec_public;
+    //@ spec_public;
     private boolean isImmutable = false;
 
-    /* @
+    /*@
      @ public invariant 0 <= nWords && nWords <= data.length && offset >= 0;
      @ public invariant nWords == 0 ==> offset == 0;
      @ public invariant nWords > 0 ==> data[nWords - 1] != 0;
@@ -190,7 +190,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param offset An offset indicating the number of zero <code>int</code>s to pad
      * below the least significant element of <code>data</code>.
      */
-    /* @
+    /*@
      @ requires data != null && offset >= 0;
      @ ensures this.value() == \old(AP(data, data.length) << (offset*32));
      @ ensures this.data == \old(data);
@@ -211,7 +211,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param kDigits The initial index into <code>digits</code>.
      * @param nDigits The final index into <code>digits</code>.
      */
-    /* @
+    /*@
      @ requires digits != null;
      @ requires 0 <= kDigits && kDigits <= nDigits && nDigits <= digits.length;
      @ requires (\forall int i; 0 <= i && i < nDigits; '0' <= digits[i] && digits[i] <= '9');
@@ -255,7 +255,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param p2 The exponent of the power-of-two factor.
      * @return <code>5<sup>p5</sup> * 2<sup>p2</sup></code>
      */
-    /* @
+    /*@
      @ requires p5 >= 0 && p2 >= 0;
      @ assignable \nothing;
      @ ensures \result.value() == \old(pow52(p5, p2));
@@ -293,7 +293,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param p2 The exponent of the power-of-two factor.
      * @return <code>value * 5<sup>p5</sup> * 2<sup>p2</sup></code>
      */
-    /* @
+    /*@
      @ requires p5 >= 0 && p2 >= 0;
      @ assignable \nothing;
      @ ensures \result.value() == \old(UNSIGNED(value) * pow52(p5, p2));
@@ -357,7 +357,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param p2 The exponent of 2.
      * @return <code>2<sup>p2</sup></code>
      */
-    /* @
+    /*@
      @ requires p2 >= 0;
      @ assignable \nothing;
      @ ensures \result.value() == pow52(0, p2);
@@ -372,14 +372,14 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * Removes all leading zeros from this <code>FDBigInteger</code> adjusting
      * the offset and number of non-zero leading words accordingly.
      */
-    /* @
+    /*@
      @ requires data != null;
      @ requires 0 <= nWords && nWords <= data.length && offset >= 0;
      @ requires nWords == 0 ==> offset == 0;
      @ ensures nWords == 0 ==> offset == 0;
      @ ensures nWords > 0 ==> data[nWords - 1] != 0;
      @*/
-    private /* @ helper @*/ void trimLeadingZeros() {
+    private /*@ helper @*/ void trimLeadingZeros() {
         int i = nWords;
         if (i > 0 && (data[--i] == 0)) {
             //for (; i > 0 && data[i - 1] == 0; i--) ;
@@ -402,10 +402,10 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      *
      * @return The normalization bias.
      */
-    /* @
+    /*@
      @ requires this.value() > 0;
      @*/
-    public /* @ pure @*/ int getNormalizationBias() {
+    public /*@ pure @*/ int getNormalizationBias() {
         if (nWords == 0) {
             throw new IllegalArgumentException("Zero value cannot be normalized");
         }
@@ -424,7 +424,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param anticount The left anti-shift, e.g., <code>32-bitcount</code>.
      * @param prev The prior source value.
      */
-    /* @
+    /*@
      @ requires 0 < bitcount && bitcount < 32 && anticount == 32 - bitcount;
      @ requires src.length >= idx && result.length > idx;
      @ assignable result[*];
@@ -449,7 +449,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param shift The number of bits to shift left.
      * @return The shifted <code>FDBigInteger</code>.
      */
-    /* @
+    /*@
      @ requires this.value() == 0 || shift == 0;
      @ assignable \nothing;
      @ ensures \result == this;
@@ -534,7 +534,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      *
      * @return Number of <code>int</code>s required to represent this <code>FDBigInteger</code>.
      */
-    /* @
+    /*@
      @ requires this.value() == 0;
      @ ensures \result == 0;
      @
@@ -543,7 +543,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      @ requires this.value() > 0;
      @ ensures ((\bigint)1) << (\result - 1) <= this.value() && this.value() <= ((\bigint)1) << \result;
      @*/
-    private /* @ pure @*/ int size() {
+    private /*@ pure @*/ int size() {
         return nWords + offset;
     }
 
@@ -564,7 +564,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param S The divisor of this <code>FDBigInteger</code>.
      * @return <code>q = (int)(this / S)</code>.
      */
-    /* @
+    /*@
      @ requires !this.isImmutable;
      @ requires this.size() <= S.size();
      @ requires this.data.length + this.offset >= S.size();
@@ -599,16 +599,16 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
         long q = (this.data[this.nWords - 1] & LONG_MASK) / (S.data[S.nWords - 1] & LONG_MASK);
         long diff = multDiffMe(q, S);
         if (diff != 0L) {
-            // @ assert q != 0;
-            // @ assert this.offset == \old(Math.min(this.offset, S.offset));
-            // @ assert this.offset <= S.offset;
+            //@ assert q != 0;
+            //@ assert this.offset == \old(Math.min(this.offset, S.offset));
+            //@ assert this.offset <= S.offset;
 
             // q is too big.
             // add S back in until this turns +. This should
             // not be very many times!
             long sum = 0L;
             int tStart = S.offset - this.offset;
-            // @ assert tStart >= 0;
+            //@ assert tStart >= 0;
             int[] sd = S.data;
             int[] td = this.data;
             while (sum == 0L) {
@@ -645,7 +645,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      *
      * @return The <code>FDBigInteger</code> multiplied by 10.
      */
-    /* @
+    /*@
      @ requires this.value() == 0;
      @ assignable \nothing;
      @ ensures \result == this;
@@ -700,7 +700,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param p2 The exponent of the power-of-two factor.
      * @return The multiplication result.
      */
-    /* @
+    /*@
      @ requires this.value() == 0 || p5 == 0 && p2 == 0;
      @ assignable \nothing;
      @ ensures \result == this;
@@ -749,7 +749,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param s2Len The number of elements of <code>s2</code> to use.
      * @param dst The product array.
      */
-    /* @
+    /*@
      @ requires s1 != dst && s2 != dst;
      @ requires s1.length >= s1Len && s2.length >= s2Len && dst.length >= s1Len + s2Len;
      @ assignable dst[0 .. s1Len + s2Len - 1];
@@ -777,7 +777,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param subtrahend The <code>FDBigInteger</code> to be subtracted.
      * @return This <code>FDBigInteger</code> less the subtrahend.
      */
-    /* @
+    /*@
      @ requires this.isImmutable;
      @ requires this.value() >= subtrahend.value();
      @ assignable \nothing;
@@ -846,7 +846,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param subtrahend The <code>FDBigInteger</code> to be subtracted.
      * @return This <code>FDBigInteger</code> less the subtrahend.
      */
-    /* @
+    /*@
      @ requires subtrahend.isImmutable;
      @ requires this.value() >= subtrahend.value();
      @ assignable \nothing;
@@ -890,14 +890,14 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
                 subtrahend.data = sData = Arrays.copyOf(sData, rLen);
             }
         }
-        // @ assert minuend == this && minuend.value() == \old(this.value());
-        // @ assert mData == minuend.data && minLen == minuend.nWords;
-        // @ assert subtrahend.offset + subtrahend.data.length >= minuend.size();
-        // @ assert sData == subtrahend.data;
-        // @ assert AP(subtrahend.data, subtrahend.data.length) << subtrahend.offset == \old(subtrahend.value());
-        // @ assert subtrahend.offset == Math.min(\old(this.offset), minuend.offset);
-        // @ assert offsetDiff == minuend.offset - subtrahend.offset;
-        // @ assert 0 <= offsetDiff && offsetDiff + minLen <= sData.length;
+        //@ assert minuend == this && minuend.value() == \old(this.value());
+        //@ assert mData == minuend.data && minLen == minuend.nWords;
+        //@ assert subtrahend.offset + subtrahend.data.length >= minuend.size();
+        //@ assert sData == subtrahend.data;
+        //@ assert AP(subtrahend.data, subtrahend.data.length) << subtrahend.offset == \old(subtrahend.value());
+        //@ assert subtrahend.offset == Math.min(\old(this.offset), minuend.offset);
+        //@ assert offsetDiff == minuend.offset - subtrahend.offset;
+        //@ assert 0 <= offsetDiff && offsetDiff + minLen <= sData.length;
         int sIndex = 0;
         long borrow = 0L;
         for (; sIndex < offsetDiff; sIndex++) {
@@ -905,9 +905,9 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
             sData[sIndex] = (int) diff;
             borrow = diff >> 32; // signed shift
         }
-        // @ assert sIndex == offsetDiff;
+        //@ assert sIndex == offsetDiff;
         for (int mIndex = 0; mIndex < minLen; sIndex++, mIndex++) {
-            // @ assert sIndex == offsetDiff + mIndex;
+            //@ assert sIndex == offsetDiff + mIndex;
             long diff = (mData[mIndex] & LONG_MASK) - (sData[sIndex] & LONG_MASK) + borrow;
             sData[sIndex] = (int) diff;
             borrow = diff >> 32; // signed shift
@@ -928,11 +928,11 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param from The index strictly below which elements are to be examined.
      * @return Zero if all elements in range are zero, 1 otherwise.
      */
-    /* @
+    /*@
      @ requires 0 <= from && from <= a.length;
      @ ensures \result == (AP(a, from) == 0 ? 0 : 1);
      @*/
-    private /* @ pure @*/ static int checkZeroTail(int[] a, int from) {
+    private /*@ pure @*/ static int checkZeroTail(int[] a, int from) {
         while (from > 0) {
             if (a[--from] != 0) {
                 return 1;
@@ -954,10 +954,10 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @return A negative value, zero, or a positive value according to the
      * result of the comparison.
      */
-    /* @
+    /*@
      @ ensures \result == (this.value() < other.value() ? -1 : this.value() > other.value() ? +1 : 0);
      @*/
-    public /* @ pure @*/ int cmp(FDBigInteger other) {
+    public /*@ pure @*/ int cmp(FDBigInteger other) {
         int aSize = nWords + offset;
         int bSize = other.nWords + other.offset;
         if (aSize > bSize) {
@@ -997,11 +997,11 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @return A negative value, zero, or a positive value according to the
      * result of the comparison.
      */
-    /* @
+    /*@
      @ requires p5 >= 0 && p2 >= 0;
      @ ensures \result == (this.value() < pow52(p5, p2) ? -1 : this.value() >  pow52(p5, p2) ? +1 : 0);
      @*/
-    public /* @ pure @*/ int cmpPow52(int p5, int p2) {
+    public /*@ pure @*/ int cmpPow52(int p5, int p2) {
         if (p5 == 0) {
             int wordcount = p2 >> 5;
             int bitcount = p2 & 0x1f;
@@ -1033,10 +1033,10 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param y The second addend of the sum to compare.
      * @return -1, 0, or 1 according to the result of the comparison.
      */
-    /* @
+    /*@
      @ ensures \result == (this.value() < x.value() + y.value() ? -1 : this.value() > x.value() + y.value() ? +1 : 0);
      @*/
-    public /* @ pure @*/ int addAndCmp(FDBigInteger x, FDBigInteger y) {
+    public /*@ pure @*/ int addAndCmp(FDBigInteger x, FDBigInteger y) {
         FDBigInteger big;
         FDBigInteger small;
         int xSize = x.size();
@@ -1106,7 +1106,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
     /**
      * Makes this <code>FDBigInteger</code> immutable.
      */
-    /* @
+    /*@
      @ assignable this.isImmutable;
      @ ensures this.isImmutable;
      @*/
@@ -1120,7 +1120,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param i The factor by which to multiply this <code>FDBigInteger</code>.
      * @return This <code>FDBigInteger</code> multiplied by an integer.
      */
-    /* @
+    /*@
      @ requires this.value() == 0;
      @ assignable \nothing;
      @ ensures \result == this;
@@ -1146,7 +1146,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param other The <code>FDBigInteger</code> factor by which to multiply.
      * @return The product of this and the parameter <code>FDBigInteger</code>s.
      */
-    /* @
+    /*@
      @ requires this.value() == 0;
      @ assignable \nothing;
      @ ensures \result == this;
@@ -1187,7 +1187,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param other The <code>FDBigInteger</code> to add.
      * @return The sum of the <code>FDBigInteger</code>s.
      */
-    /* @
+    /*@
      @ assignable \nothing;
      @ ensures \result.value() == \old(this.value() + other.value());
      @*/
@@ -1238,12 +1238,12 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param addend The value to add to the product of this
      * <code>FDBigInteger</code> and <code>iv</code>.
      */
-    /* @
+    /*@
      @ requires this.value()*UNSIGNED(iv) + UNSIGNED(addend) < ((\bigint)1) << ((this.data.length + this.offset)*32);
      @ assignable this.data[*];
      @ ensures this.value() == \old(this.value()*UNSIGNED(iv) + UNSIGNED(addend));
      @*/
-    private /* @ helper @*/ void multAddMe(int iv, int addend) {
+    private /*@ helper @*/ void multAddMe(int iv, int addend) {
         long v = iv & LONG_MASK;
         // unroll 0th iteration, doing addition.
         long p = v * (data[0] & LONG_MASK) + (addend & LONG_MASK);
@@ -1273,11 +1273,11 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param S The <code>FDBigInteger</code> parameter.
      * @return <code>this - q*S</code>.
      */
-    /* @
+    /*@
      @ ensures nWords == 0 ==> offset == 0;
      @ ensures nWords > 0 ==> data[nWords - 1] != 0;
      @*/
-    /* @
+    /*@
      @ requires 0 < q && q <= (1L << 31);
      @ requires data != null;
      @ requires 0 <= nWords && nWords <= data.length && offset >= 0;
@@ -1299,7 +1299,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      @ assignable \nothing;
      @ ensures \result == 0;
      @*/
-    private /* @ helper @*/ long multDiffMe(long q, FDBigInteger S) {
+    private /*@ helper @*/ long multDiffMe(long q, FDBigInteger S) {
         long diff = 0L;
         if (q != 0) {
             int deltaSize = S.offset - this.offset;
@@ -1347,7 +1347,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param dst The product array.
      * @return The final carry of the multiplication.
      */
-    /* @
+    /*@
      @ requires src.length >= srcLen && dst.length >= srcLen;
      @ assignable dst[0 .. srcLen - 1];
      @ ensures 0 <= \result && \result < 10;
@@ -1372,7 +1372,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param value The constant factor by which to multiply.
      * @param dst The product array.
      */
-    /* @
+    /*@
      @ requires src.length >= srcLen && dst.length >= srcLen + 1;
      @ assignable dst[0 .. srcLen];
      @ ensures AP(dst, srcLen + 1) == \old(AP(src, srcLen) * UNSIGNED(value));
@@ -1398,7 +1398,7 @@ public /* @ spec_bigint_math @*/ class FDBigInteger {
      * @param v1 The upper 32 bits of the long factor.
      * @param dst The product array.
      */
-    /* @
+    /*@
      @ requires src != dst;
      @ requires src.length >= srcLen && dst.length >= srcLen + 2;
      @ assignable dst[0 .. srcLen + 1];

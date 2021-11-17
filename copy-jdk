@@ -1,0 +1,18 @@
+#! /bin/bash
+
+from=$1
+to=$2
+
+echo COPYING $from TO $to
+cp -pR $from/* $to/
+
+echo COMPARING AND ADJUSTING
+for d in src test make ; do
+  diff -r $from/$d $to/$d > log1
+  grep -v '$from' log1 | sed -e 's/Only in //' | sed -e 'sx: x/x' > log2
+  rm -r `cat log2`
+  diff -r $from/$d $to/$d 
+done
+rm log1 log2
+diff -r $from $to
+echo DONE

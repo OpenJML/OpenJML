@@ -44,7 +44,6 @@ import static com.sun.tools.javac.code.Flags.*;
 import static com.sun.tools.javac.code.Kinds.*;
 import static com.sun.tools.javac.code.Kinds.Kind.*;
 import static com.sun.tools.javac.code.TypeTag.TYPEVAR;
-import static com.sun.tools.javac.tree.JCTree.Tag.VARDEF;
 
 /** Resolves field, method and constructor header, and constructs corresponding Symbols.
  *
@@ -58,12 +57,12 @@ public class MemberEnter extends JCTree.Visitor {
 
     private final Enter enter;
     private final Log log;
-    protected final Check chk; // OPENJML - private to protected
-    protected final Attr attr; // OPENJML - private to protected
+    private final Check chk;
+    private final Attr attr;
     private final Symtab syms;
-    protected final Annotate annotate; // OPENJML - private to protected
-    protected final Types types; // OPENJML - private to protected
-    protected final DeferredLintHandler deferredLintHandler; // OPENJML - private to protected
+    private final Annotate annotate;
+    private final Types types;
+    private final DeferredLintHandler deferredLintHandler;
 
     public static MemberEnter instance(Context context) {
         MemberEnter instance = context.get(memberEnterKey);
@@ -157,7 +156,7 @@ public class MemberEnter extends JCTree.Visitor {
     /** Enter field and method definitions and process import
      *  clauses, catching any completion failure exceptions.
      */
-    public void memberEnter(JCTree tree, Env<AttrContext> env) { // OPENJML - protected to public
+    protected void memberEnter(JCTree tree, Env<AttrContext> env) {
         Env<AttrContext> prevEnv = this.env;
         try {
             this.env = env;
@@ -181,7 +180,7 @@ public class MemberEnter extends JCTree.Visitor {
         MethodSymbol m = new MethodSymbol(0, tree.name, null, enclScope.owner);
         m.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, m, tree);
         tree.sym = m;
-        
+
         //if this is a default method, add the DEFAULT flag to the enclosing interface
         if ((tree.mods.flags & DEFAULT) != 0) {
             m.owner.flags_field |= DEFAULT;
@@ -217,10 +216,9 @@ public class MemberEnter extends JCTree.Visitor {
             m.flags_field |= Flags.VARARGS;
 
         localEnv.info.scope.leave();
-        visitMethodDefHelper(tree, m, enclScope, localEnv); // OPENJML - replace next few lines to allow extending
-//        if (chk.checkUnique(tree.pos(), m, enclScope)) {
-//        	enclScope.enter(m);
-//        }
+        if (chk.checkUnique(tree.pos(), m, enclScope)) {
+        enclScope.enter(m);
+        }
 
         annotate.annotateLater(tree.mods.annotations, localEnv, m, tree.pos());
         // Visit the signature of the method. Note that
@@ -251,22 +249,10 @@ public class MemberEnter extends JCTree.Visitor {
         return localEnv;
     }
 
-    // OPENJML extracted from the method below in order to override
-    public boolean visitVarDefIsStatic(JCVariableDecl tree, Env<AttrContext> env) {
-        return ((tree.mods.flags & STATIC) != 0 ||
-                ((env.info.scope.owner.flags() & INTERFACE) != 0));
-    }
-    
-    protected static boolean isStatic(Env<AttrContext> env) {
-        return env.outer != null && env.info.staticLevel > env.outer.info.staticLevel;
-    }
-
-
     public void visitVarDef(JCVariableDecl tree) {
         Env<AttrContext> localEnv = env;
-        if (visitVarDefIsStatic(tree,env)) {  // OPENJML
-//        if ((tree.mods.flags & STATIC) != 0 ||
-//            (env.info.scope.owner.flags() & INTERFACE) != 0) {
+        if ((tree.mods.flags & STATIC) != 0 ||
+            (env.info.scope.owner.flags() & INTERFACE) != 0) {
             localEnv = env.dup(tree, env.info.dup());
             localEnv.info.staticLevel++;
         }
@@ -310,8 +296,6 @@ public class MemberEnter extends JCTree.Visitor {
                 v.setLazyConstValue(initEnv(tree, initEnv), attr, tree);
             }
         }
-        visitFieldDefHelper(tree, v, enclScope, localEnv, tree.mods.annotations); // OPENJML - added to allow overriding some functionality
-/*
         if (chk.checkUnique(tree.pos(), v, enclScope)) {
             chk.checkTransparentVar(tree.pos(), v, enclScope);
             enclScope.enter(v);
@@ -319,37 +303,14 @@ public class MemberEnter extends JCTree.Visitor {
             // if this is a parameter or a field obtained from a record component, enter it
             enclScope.enter(v);
         }
-*/
 
+        annotate.annotateLater(tree.mods.annotations, localEnv, v, tree.pos());
         if (!tree.isImplicitlyTyped()) {
             annotate.queueScanTreeAndTypeAnnotate(tree.vartype, localEnv, v, tree.pos());
         }
 
         v.pos = tree.pos;
     }
-
-    // OPENJML - added to allow overriding some functionality
-    protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, WriteableScope enclScope, Env<AttrContext> localEnv) {
-       if (chk.checkUnique(tree.pos(), m, enclScope)) {
-            enclScope.enter(m);
-            return true;
-        } else {
-        	return false;
-        }
-    }
-
-    // OPENJML - added to allow overriding some functionality
-    protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, WriteableScope enclScope, Env<AttrContext> env, List<JCAnnotation> annotations) {
-        if (chk.checkUnique(tree.pos(), v, enclScope)) {
-            chk.checkTransparentVar(tree.pos(), v, enclScope);
-            enclScope.enter(v);
-        } else if (v.owner.kind == MTH || (v.flags_field & (Flags.PRIVATE | Flags.FINAL | Flags.GENERATED_MEMBER | Flags.RECORD)) != 0) {
-            // if this is a parameter or a field obtained from a record component, enter it
-            enclScope.enter(v);
-        }
-        annotate.annotateLater(annotations, env, v, tree.pos());
-    }
-
     // where
     void checkType(JCTree tree, Type type, Error errorKey) {
         if (!tree.type.isErroneous() && !types.isSameType(tree.type, type)) {
