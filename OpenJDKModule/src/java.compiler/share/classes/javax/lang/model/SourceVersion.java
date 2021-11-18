@@ -246,7 +246,7 @@ public enum SourceVersion {
      * {@return the latest source version that can be modeled}
      */
     public static SourceVersion latest() {
-        return RELEASE_16;
+        return RELEASE_17;
     }
 
     private static final SourceVersion latestSupported = getLatestSupported();
@@ -261,7 +261,7 @@ public enum SourceVersion {
     private static SourceVersion getLatestSupported() {
         int intVersion = Runtime.version().feature();
         return (intVersion >= 11) ?
-            valueOf("RELEASE_" + Math.min(16, intVersion)):
+            valueOf("RELEASE_" + Math.min(17, intVersion)):
             RELEASE_10;
     }
 

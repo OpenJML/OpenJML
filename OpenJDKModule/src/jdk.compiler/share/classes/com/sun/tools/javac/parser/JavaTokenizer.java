@@ -205,7 +205,9 @@ public class JavaTokenizer extends UnicodeReader {
      */
     protected void lexError(DiagnosticFlag flags, int pos, JCDiagnostic.Error key) {
         log.error(flags, pos, key);
-        tk = TokenKind.ERROR;
+        if (flags != DiagnosticFlag.SOURCE_LEVEL) {
+            tk = TokenKind.ERROR;
+        }
         errPos = pos;
     }
 
@@ -923,9 +925,11 @@ public class JavaTokenizer extends UnicodeReader {
                         skipToEOLN();
 
                         // OPENJML - the guard that was here prevented processing a line comment at the end of a file
-                        // that had no terminating newline. The guard is unnecessary in any, given the
+                        // that had no terminating newline. The guard is unnecessary in anyi case, given the
                         // success of accept and skipToEOLN
-                        comments = appendComment(comments, processComment(pos, position(), CommentStyle.LINE));
+                        //if (isAvailable()) {
+                            comments = appendComment(comments, processComment(pos, position(), CommentStyle.LINE));
+                        //}
                         break;
                     } else if (accept('*')) { // (Spec. 3.7)
                         boolean isEmpty = false;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,6 +26,7 @@
 #include "runtime/os.hpp"
 #include "oops/oop.hpp"
 #include "utilities/align.hpp"
+#include "concurrentTestRunner.inline.hpp"
 #include "unittest.hpp"
 
 namespace {
@@ -338,8 +339,6 @@ TEST_VM(VirtualSpace, disable_large_pages) {
   EXPECT_NO_FATAL_FAILURE(test_virtual_space_actual_committed_space(10 * M, 5 * M,  Commit));
   EXPECT_NO_FATAL_FAILURE(test_virtual_space_actual_committed_space(10 * M, 10 * M, Commit));
 }
-<<<<<<< HEAD
-=======
 
 
 // ========================= concurrent virtual space memory tests
@@ -681,4 +680,3 @@ TEST_VM(VirtualSpace, os_virtual_space_concurrent) {
   ConcurrentTestRunner testRunner(&runnable, 5, 3000);
   testRunner.run();
 }
->>>>>>> openjdk-src

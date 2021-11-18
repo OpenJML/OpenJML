@@ -25,6 +25,7 @@
 #include "memory/allocation.hpp"
 #include "memory/resourceArea.hpp"
 #include "runtime/os.hpp"
+#include "runtime/thread.hpp"
 #include "utilities/globalDefinitions.hpp"
 #include "utilities/macros.hpp"
 #include "utilities/ostream.hpp"
@@ -150,7 +151,8 @@ TEST(os, test_random) {
 }
 
 #ifdef ASSERT
-TEST_VM_ASSERT_MSG(os, page_size_for_region_with_zero_min_pages, "sanity") {
+TEST_VM_ASSERT_MSG(os, page_size_for_region_with_zero_min_pages,
+                   "assert.min_pages > 0. failed: sanity") {
   size_t region_size = 16 * os::vm_page_size();
   os::page_size_for_region_aligned(region_size, 0); // should assert
 }
@@ -449,7 +451,7 @@ struct NUMASwitcher {
 //  On debug this would assert. Test that too.
 //  On other platforms, we are unable to recognize bad ranges.
 #ifdef ASSERT
-TEST_VM_ASSERT_MSG(os, release_bad_ranges, "bad release") {
+TEST_VM_ASSERT_MSG(os, release_bad_ranges, ".*bad release") {
 #else
 TEST_VM(os, release_bad_ranges) {
 #endif
@@ -526,7 +528,7 @@ TEST_VM(os, show_mappings_small_range) {
 TEST_VM(os, show_mappings_full_range) {
   // Reserve a small range and fill it with a marker string, should show up
   // on implementations displaying range snippets
-  char* p = os::reserve_memory(1 * M, mtInternal);
+  char* p = os::reserve_memory(1 * M, false, mtInternal);
   if (p != nullptr) {
     if (os::commit_memory(p, 1 * M, false)) {
       strcpy(p, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
@@ -699,8 +701,6 @@ TEST_VM(os, pagesizes_test_print) {
   pss.print_on(&ss);
   ASSERT_EQ(strcmp(expected, buffer), 0);
 }
-<<<<<<< HEAD
-=======
 
 TEST_VM(os, dll_address_to_function_and_library_name) {
   char tmp[1024];
@@ -809,4 +809,3 @@ TEST_VM(os, iso8601_time) {
   // Canary should still be intact
   EXPECT_EQ(buffer[os::iso8601_timestamp_size], 'X');
 }
->>>>>>> openjdk-src

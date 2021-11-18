@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.ArrayList;
 
 import jdk.test.lib.apps.LingeredApp;
+import jdk.test.lib.Platform;
 import jdk.test.lib.util.CoreUtils;
 import jtreg.SkippedException;
 
@@ -75,14 +76,21 @@ import jtreg.SkippedException;
  */
 
 public class ClhsdbFindPC {
+    static LingeredApp theApp = null;
+    static String coreFileName = null;
+    static ClhsdbLauncher test = null;
 
     private static void testFindPC(boolean withXcomp, boolean withCore) throws Exception {
-        LingeredApp theApp = null;
-        String coreFileName = null;
         try {
-            ClhsdbLauncher test = new ClhsdbLauncher();
+            String linesep = System.getProperty("line.separator");
+            String segvAddress = null;
+            List<String> cmds = null;
+            String cmdStr = null;
+            Map<String, List<String>> expStrMap = null;
 
-            theApp = new LingeredAppWithTrivialMain();
+            test = new ClhsdbLauncher();
+
+            theApp = new LingeredApp();
             theApp.setForceCrash(withCore);
             if (withXcomp) {
                 LingeredApp.startApp(theApp, "-Xcomp");
@@ -97,24 +105,38 @@ public class ClhsdbFindPC {
             }
             System.out.println("with pid " + theApp.getPid());
 
-            // Get the core file name if we are debugging a core instead of live process
             if (withCore) {
-                coreFileName = CoreUtils.getCoreFileLocation(theApp.getOutput().getStdout());
+                String crashOutput = theApp.getOutput().getStdout();
+                // Get the core file name if we are debugging a core instead of live process
+                coreFileName = CoreUtils.getCoreFileLocation(crashOutput, theApp.getPid());
+                // Get the SEGV Address from the following line:
+                //  #  SIGSEGV (0xb) at pc=0x00007f20a897f7f4, pid=8561, tid=8562
+                String[] parts = crashOutput.split(" pc=");
+                String[] tokens = parts[1].split(",");
+                segvAddress = tokens[0];
+
+                // Test the 'findpc' command passing in the SEGV address
+                cmds = new ArrayList<String>();
+                cmdStr = "findpc " + segvAddress;
+                cmds.add(cmdStr);
+                expStrMap = new HashMap<>();
+                if (Platform.isOSX()) {
+                    // OSX will only find addresses in JVM libraries, not user or system libraries
+                    expStrMap.put(cmdStr, List.of("In unknown location"));
+                } else { // symbol lookups not supported with OSX live process
+                    expStrMap.put(cmdStr, List.of("Java_jdk_test_lib_apps_LingeredApp_crash"));
+                }
+                runTest(withCore, cmds, expStrMap);
             }
 
-            // Run 'jstack -v' command to get the findpc address
-            List<String> cmds = List.of("jstack -v");
-            String output;
-            if (withCore) {
-                output = test.runOnCore(coreFileName, cmds, null, null);
-            } else {
-                output = test.run(theApp.getPid(), cmds, null, null);
-            }
+            // Run 'jstack -v' command to get the pc and other useful values
+            cmds = List.of("jstack -v");
+            String jStackOutput = runTest(withCore, cmds, null);
 
             // Extract pc address from the following line:
-            //   - LingeredAppWithTrivialMain.main(java.lang.String[]) @bci=1, line=33, pc=0x00007ff18ff519f0, ...
+            //   - LingeredApp.steadyState(java.lang.Object) @bci=1, line=33, pc=0x00007ff18ff519f0, ...
             String pcAddress = null;
-            String[] parts = output.split("LingeredAppWithTrivialMain.main");
+            String[] parts = jStackOutput.split("LingeredApp.steadyState");
             String[] tokens = parts[1].split(" ");
             for (String token : tokens) {
                 if (token.contains("pc")) {
@@ -125,17 +147,17 @@ public class ClhsdbFindPC {
                 }
             }
             if (pcAddress == null) {
-                throw new RuntimeException("Cannot find LingeredAppWithTrivialMain.main pc in output");
+                throw new RuntimeException("Cannot find LingeredApp.steadyState pc in output");
             }
 
-            // Test the 'findpc' command passing in the pc obtained from above
+            // Test the 'findpc' command passing in the pc obtained from jstack above
             cmds = new ArrayList<String>();
-            String cmdStr = "findpc " + pcAddress;
+            cmdStr = "findpc " + pcAddress;
             cmds.add(cmdStr);
-            Map<String, List<String>> expStrMap = new HashMap<>();
+            expStrMap = new HashMap<>();
             if (withXcomp) {
                 expStrMap.put(cmdStr, List.of(
-                            "In code in NMethod for LingeredAppWithTrivialMain.main",
+                            "In code in NMethod for jdk/test/lib/apps/LingeredApp.steadyState",
                             "content:",
                             "oops:",
                             "frame size:"));
@@ -143,11 +165,8 @@ public class ClhsdbFindPC {
                 expStrMap.put(cmdStr, List.of(
                             "In interpreter codelet"));
             }
+            runTest(withCore, cmds, expStrMap);
 
-<<<<<<< HEAD
-            if (withCore) {
-                test.runOnCore(coreFileName, cmds, expStrMap, null);
-=======
             // Run findpc on a Method*. We can find one in the jstack output. For example:
             // - LingeredApp.steadyState(java.lang.Object) @bci=1, line=33, pc=..., Method*=0x0000008041000208 ...
             // This is testing the PointerFinder support for C++ MetaData types.
@@ -219,9 +238,45 @@ public class ClhsdbFindPC {
                 } else { // address -> symbol lookups not supported with OSX live process
                     expStrMap.put(cmdStr, List.of("In unknown location"));
                 }
->>>>>>> openjdk-src
             } else {
-                test.run(theApp.getPid(), cmds, expStrMap, null);
+                expStrMap.put(cmdStr, List.of("vtable for JavaThread"));
+            }
+            String findpcOutput = runTest(withCore, cmds, expStrMap);
+
+            // Determine if we have symbol support. Currently we assume yes except on windows.
+            boolean hasSymbols = true;
+            if (Platform.isWindows()) {
+                if (findpcOutput.indexOf("jvm!JavaThread::`vftable'") == -1) {
+                    hasSymbols = false;
+                }
+            }
+
+            // Run "findsym MaxJNILocalCapacity". The output should look something like:
+            //   0x00007eff8e1a0da0: <jdk-dir>/lib/server/libjvm.so + 0x1d81da0
+            String symbol = "MaxJNILocalCapacity";
+            cmds = List.of("findsym " + symbol);
+            expStrMap = new HashMap<>();
+            if (!hasSymbols) {
+                expStrMap.put(cmdStr, List.of("Symbol not found"));
+            }
+            String findsymOutput = runTest(withCore, cmds, expStrMap);
+            // Run findpc on the result of "findsym MaxJNILocalCapacity". The output
+            // should look something like:
+            //   Address 0x00007eff8e1a0da0: MaxJNILocalCapacity
+            if (hasSymbols) {
+                parts = findsymOutput.split("findsym " + symbol + linesep);
+                parts = parts[1].split(":");
+                String findsymAddress = parts[0].split(linesep)[0];
+                cmdStr = "findpc " + findsymAddress;
+                cmds = List.of(cmdStr);
+                expStrMap = new HashMap<>();
+                if (Platform.isOSX() && !withCore) {
+                    // address -> symbol lookups not supported with OSX live process
+                    expStrMap.put(cmdStr, List.of("Address " + findsymAddress + ": In unknown location"));
+                } else {
+                    expStrMap.put(cmdStr, List.of("Address " + findsymAddress + ": .*" + symbol));
+                }
+                runTest(withCore, cmds, expStrMap);
             }
         } catch (SkippedException se) {
             throw se;
@@ -231,6 +286,16 @@ public class ClhsdbFindPC {
             if (!withCore) {
                 LingeredApp.stopApp(theApp);
             }
+        }
+    }
+
+    private static String runTest(boolean withCore, List<String> cmds, Map<String, List<String>> expStrMap)
+        throws Exception
+    {
+        if (withCore) {
+            return test.runOnCore(coreFileName, cmds, expStrMap, null);
+        } else {
+            return test.run(theApp.getPid(), cmds, expStrMap, null);
         }
     }
 

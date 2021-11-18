@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2016, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,7 +22,10 @@
  */
 
 #include "precompiled.hpp"
+#include "compiler/compiler_globals.hpp"
+#include "gc/shared/gc_globals.hpp"
 #include "runtime/globals.hpp"
+#include "runtime/globals_extension.hpp"
 #include "runtime/flags/flagSetting.hpp"
 #include "runtime/flags/jvmFlag.hpp"
 #include "runtime/flags/jvmFlagAccess.hpp"
@@ -70,8 +73,6 @@ TEST_VM(FlagGuard, double_flag) {
 TEST_VM(FlagGuard, ccstr_flag) {
   TEST_FLAG(PerfDataSaveFile, ccstr, "/a/random/path");
 }
-<<<<<<< HEAD
-=======
 
 
 // SharedArchiveConfigFile is used only during "java -Xshare:dump", so
@@ -116,4 +117,3 @@ TEST_VM(FlagAccess, wrong_format) {
   ASSERT_EQ((get_flag<JVM_FLAG_TYPE(size_t)>  ("MaxRAMPercentage")), JVMFlag::WRONG_FORMAT);
   ASSERT_EQ((get_flag<JVM_FLAG_TYPE(double)>  ("MaxRAMPercentage")), JVMFlag::SUCCESS);
 }
->>>>>>> openjdk-src

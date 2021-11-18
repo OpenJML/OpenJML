@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -428,6 +428,9 @@ public class TreeInfo {
             JCTry t = (JCTry) tree;
             return endPos((t.finalizer != null) ? t.finalizer
                           : (t.catchers.nonEmpty() ? t.catchers.last().body : t.body));
+        } else if (tree.hasTag(SWITCH) &&
+                   ((JCSwitch) tree).endpos != Position.NOPOS) {
+            return ((JCSwitch) tree).endpos;
         } else if (tree.hasTag(SWITCH_EXPRESSION) &&
                    ((JCSwitchExpression) tree).endpos != Position.NOPOS) {
             return ((JCSwitchExpression) tree).endpos;
@@ -444,7 +447,6 @@ public class TreeInfo {
     public static int getStartPos(JCTree tree) {
         if (tree == null)
             return Position.NOPOS;
-        if ((tree.getTag() == null || tree.getTag() == NO_TAG) && tree instanceof org.jmlspecs.openjml.JmlTree.IJmlTree) return tree.getStartPosition(); // OPENJMLM added
 
         switch(tree.getTag()) {
             case MODULEDEF: {
@@ -736,7 +738,7 @@ public class TreeInfo {
         return trees.stream().map(t -> TreeInfo.diagnosticPositionFor(sym, t)).filter(t -> t != null).findFirst().get();
     }
 
-    private static class DeclScanner extends TreeScanner implements org.jmlspecs.openjml.visitors.IJmlVisitor {
+    private static class DeclScanner extends TreeScanner {
         final Symbol sym;
 
         DeclScanner(final Symbol sym) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2016, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -40,29 +40,16 @@ public class ProtectionDomainVerificationTest {
         // -Xlog:protectiondomain=trace
         ProcessBuilder pb = ProcessTools.createJavaProcessBuilder("-Xlog:protectiondomain=trace",
                                                                   "-Xmx128m",
-<<<<<<< HEAD
-                                                                  Hello.class.getName());
-        OutputAnalyzer out = new OutputAnalyzer(pb.start());
-        out.shouldContain("[protectiondomain] Checking package access");
-        out.shouldContain("[protectiondomain] pd set count = #");
-=======
                                                                   "-Djava.security.manager=allow",
                                                                   Hello.class.getName(), "security_manager");
         new OutputAnalyzer(pb.start())
         .shouldHaveExitValue(0)
         .shouldContain("[protectiondomain] Checking package access")
         .shouldContain("[protectiondomain] adding protection domain for class");
->>>>>>> openjdk-src
 
         // -Xlog:protectiondomain=debug
         pb = ProcessTools.createJavaProcessBuilder("-Xlog:protectiondomain=debug",
                                                                   "-Xmx128m",
-<<<<<<< HEAD
-                                                                  Hello.class.getName());
-        out = new OutputAnalyzer(pb.start());
-        out.shouldContain("[protectiondomain] Checking package access");
-        out.shouldNotContain("pd set count = #");
-=======
                                                                   "-Djava.security.manager=allow",
                                                                   Hello.class.getName(), "security_manager");
         new OutputAnalyzer(pb.start())
@@ -79,11 +66,14 @@ public class ProtectionDomainVerificationTest {
         .shouldHaveExitValue(0)
         .shouldNotContain("[protectiondomain] Checking package access")
         .shouldNotContain("pd set count = #");
->>>>>>> openjdk-src
     }
 
     public static class Hello {
         public static void main(String[] args) {
+            if (args.length == 1) {
+              // Need a security manager to trigger logging.
+              System.setSecurityManager(new SecurityManager());
+            }
             System.out.print("Hello!");
         }
     }

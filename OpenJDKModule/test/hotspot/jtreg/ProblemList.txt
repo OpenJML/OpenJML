@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2021, Oracle and/or its affiliates. All rights reserved.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -41,7 +41,6 @@
 # :hotspot_compiler
 
 compiler/ciReplay/TestSAServer.java 8029528 generic-all
-compiler/codecache/jmx/PoolsIndependenceTest.java 8167015 generic-all
 compiler/compilercontrol/jcmd/ClearDirectivesFileStackTest.java 8225370 generic-all
 compiler/jvmci/compilerToVM/GetFlagValueTest.java 8204459 generic-all
 compiler/jvmci/jdk.vm.ci.code.test/src/jdk/vm/ci/code/test/NativeCallTest.java 8262901 macosx-aarch64
@@ -94,17 +93,12 @@ runtime/cds/appcds/jigsaw/modulepath/ModulePathAndCP_JFR.java 8253437 windows-x6
 runtime/cds/DeterministicDump.java 8253495 generic-all
 runtime/InvocationTests/invokevirtualTests.java 8271125 generic-all
 runtime/jni/terminatedThread/TestTerminatedThread.java 8219652 aix-ppc64
-<<<<<<< HEAD
-runtime/ReservedStack/ReservedStackTest.java 8231031 generic-all
-containers/docker/TestJFRWithJMX.java 8256417 linux-5.4.17-2011.5.3.el8uek.x86_64
-=======
 runtime/os/TestTracePageSizes.java#no-options 8267460 linux-aarch64
 runtime/os/TestTracePageSizes.java#explicit-large-page-size 8267460 linux-aarch64
 runtime/os/TestTracePageSizes.java#compiler-options 8267460 linux-aarch64
 runtime/os/TestTracePageSizes.java#with-G1 8267460 linux-aarch64
 runtime/os/TestTracePageSizes.java#with-Parallel 8267460 linux-aarch64
 runtime/os/TestTracePageSizes.java#with-Serial 8267460 linux-aarch64
->>>>>>> openjdk-src
 
 #############################################################################
 
@@ -112,6 +106,7 @@ runtime/os/TestTracePageSizes.java#with-Serial 8267460 linux-aarch64
 
 serviceability/sa/sadebugd/DebugdConnectTest.java 8239062,8270326 macosx-x64,macosx-aarch64
 serviceability/sa/TestRevPtrsForInvokeDynamic.java 8241235 generic-all
+resourcehogs/serviceability/sa/TestHeapDumpForLargeArray.java 8262386 generic-all
 
 serviceability/jvmti/HeapMonitor/MyPackage/HeapMonitorStatIntervalTest.java 8214032 generic-all
 serviceability/jvmti/HeapMonitor/MyPackage/HeapMonitorStatArrayCorrectnessTest.java 8224150 generic-all
@@ -147,8 +142,6 @@ vmTestbase/nsk/monitoring/ThreadMXBean/ThreadInfo/Deadlock/JavaDeadlock001/TestD
 
 vmTestbase/nsk/jdi/HiddenClass/events/events001.java                 8257705 generic-all
 vmTestbase/nsk/jdi/ThreadReference/stop/stop001/TestDescription.java 7034630 generic-all
-vmTestbase/nsk/jdi/VirtualMachine/redefineClasses/redefineclasses021/TestDescription.java 8065773 generic-all
-vmTestbase/nsk/jdi/VirtualMachine/redefineClasses/redefineclasses023/TestDescription.java 8065773 generic-all
 
 vmTestbase/metaspace/gc/firstGC_10m/TestDescription.java 8208250 generic-all
 vmTestbase/metaspace/gc/firstGC_50m/TestDescription.java 8208250 generic-all

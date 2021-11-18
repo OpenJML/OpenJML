@@ -94,6 +94,7 @@ import sun.security.util.SecurityConstants;
  *
  * @since 9
  * @see Class#getModule()
+ * @jls 7.7 Module Declarations
  */
 
 public final class Module implements AnnotatedElement {
@@ -173,6 +174,7 @@ public final class Module implements AnnotatedElement {
      * @return {@code true} if this is a named module
      *
      * @see ClassLoader#getUnnamedModule()
+     * @jls 7.7.5 Unnamed Modules
      */
     public boolean isNamed() {
         return name != null;

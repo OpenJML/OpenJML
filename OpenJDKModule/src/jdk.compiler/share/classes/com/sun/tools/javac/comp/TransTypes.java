@@ -26,8 +26,6 @@
 package com.sun.tools.javac.comp;
 
 
-import javax.tools.JavaFileObject;
-
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Attribute.TypeCompound;
 import com.sun.tools.javac.code.Source.Feature;
@@ -920,13 +918,8 @@ public class TransTypes extends TreeTranslator {
         }
 
         Env<AttrContext> myEnv = enter.getEnv(c);
-
         if (myEnv == null || (c.flags_field & TYPE_TRANSLATED) != 0) {
             return;
-        }
-        if (myEnv.tree instanceof org.jmlspecs.openjml.JmlTree.JmlClassDecl) {
-        	var d = (org.jmlspecs.openjml.JmlTree.JmlClassDecl)myEnv.tree;
-        	if (d.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) return; 
         }
         c.flags_field |= TYPE_TRANSLATED;
 

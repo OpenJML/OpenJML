@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1994, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1994, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -1426,7 +1426,9 @@ public class File
      * file from one filesystem to another, it might not be atomic, and it
      * might not succeed if a file with the destination abstract pathname
      * already exists.  The return value should always be checked to make sure
-     * that the rename operation was successful.
+     * that the rename operation was successful.  As instances of {@code File}
+     * are immutable, this File object is not changed to name the destination
+     * file or directory.
      *
      * <p> Note that the {@link java.nio.file.Files} class defines the {@link
      * java.nio.file.Files#move move} method to move or rename a file in a
@@ -2259,8 +2261,8 @@ public class File
      * @see java.nio.file.Files#isSameFile(Path,Path)
      */
     public boolean equals(Object obj) {
-        if ((obj != null) && (obj instanceof File)) {
-            return compareTo((File)obj) == 0;
+        if (obj instanceof File file) {
+            return compareTo(file) == 0;
         }
         return false;
     }

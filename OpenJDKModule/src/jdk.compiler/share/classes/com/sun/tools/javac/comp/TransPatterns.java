@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -40,7 +40,6 @@ import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Types;
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCConditional;
@@ -58,7 +57,6 @@ import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
 import com.sun.tools.javac.tree.JCTree.Tag;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeTranslator;
-import com.sun.tools.javac.util.Assert;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
@@ -69,7 +67,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.HashMap;
 
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Type.ClassType;
@@ -597,9 +594,8 @@ public class TransPatterns extends TreeTranslator {
 
     @Override
     public void visitIdent(JCIdent tree) {
-    	// if (tree.sym == null) System.out.println("NULLSYM " + tree.name); // FIXME null can happen for org in JML annotations
         VarSymbol bindingVar = null;
-        if (tree.sym != null && (tree.sym.flags() & Flags.MATCH_BINDING) != 0) {
+        if ((tree.sym.flags() & Flags.MATCH_BINDING) != 0) {
             bindingVar = bindingContext.getBindingFor((BindingSymbol)tree.sym);
         }
         if (bindingVar == null) {
@@ -765,7 +761,7 @@ public class TransPatterns extends TreeTranslator {
 
         public BasicBindingContext() {
             this.parent = bindingContext;
-            this.hoistedVarMap = new HashMap<>();
+            this.hoistedVarMap = new LinkedHashMap<>();
         }
 
         @Override

@@ -106,9 +106,8 @@ public class TreeTranslator extends JCTree.Visitor {
     /**  Visitor method: translate a list of catch clauses in try statements.
      */
     public List<JCAnnotation> translateAnnotations(List<JCAnnotation> trees) {
-        for (List<JCAnnotation> l = trees; l.nonEmpty(); l = l.tail) {
-        	l.head = translate(l.head);
-        }
+        for (List<JCAnnotation> l = trees; l.nonEmpty(); l = l.tail)
+            l.head = translate(l.head);
         return trees;
     }
 

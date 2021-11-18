@@ -162,7 +162,7 @@ public class LogManager {
     // open for props.getProperties() to be called before the construcor
     // of Hashtable is actually completed).
     private volatile Properties props = new Properties();
-    private final static Level defaultLevel = Level.INFO;
+    private static final Level defaultLevel = Level.INFO;
 
     // LoggerContext for system loggers and user loggers
     private final LoggerContext systemContext = new SystemLoggerContext();
@@ -1158,7 +1158,7 @@ public class LogManager {
     //   - minimum: 0.02 ms
     //   - maximum: 10.9 ms
     //
-    private final static int MAX_ITERATIONS = 400;
+    private static final int MAX_ITERATIONS = 400;
     final void drainLoggerRefQueueBounded() {
         for (int i = 0; i < MAX_ITERATIONS; i++) {
             if (loggerRefQueue == null) {
@@ -2565,7 +2565,7 @@ public class LogManager {
      *
      * @since 1.5
      */
-    public final static String LOGGING_MXBEAN_NAME
+    public static final String LOGGING_MXBEAN_NAME
         = "java.util.logging:type=Logging";
 
     /**

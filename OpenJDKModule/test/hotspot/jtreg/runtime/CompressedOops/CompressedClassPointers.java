@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -97,19 +97,18 @@ public class CompressedClassPointers {
             "-Xshare:off",
             "-XX:+VerifyBeforeGC", "-version");
         OutputAnalyzer output = new OutputAnalyzer(pb.start());
-        if (testNarrowKlassBase() && !Platform.isAix()) {
-            // AIX: the heap cannot be placed below 32g. The first attempt to
-            // place the CCS behind the heap fails (luckily). Subsequently CCS
-            // is successfully placed below 32g. So we get 0x0 as narrow klass
-            // base.
+        if (testNarrowKlassBase() && !Platform.isPPC() && !Platform.isOSX()) {
+            // PPC: in most cases the heap cannot be placed below 32g so there
+            // is room for ccs and narrow klass base will be 0x0. Exception:
+            // Linux 4.1.42 or earlier (see ELF_ET_DYN_BASE in JDK-8244847).
+            // For simplicity we exclude PPC.
+            // OSX: similar.
             output.shouldNotContain("Narrow klass base: 0x0000000000000000");
             output.shouldContain("Narrow klass shift: 0");
         }
         output.shouldHaveExitValue(0);
     }
 
-<<<<<<< HEAD
-=======
     // Settings as in largeHeapTest() except for max heap size. We make max heap
     // size even larger such that it cannot fit into lower 32G but not too large
     // for compressed oops.
@@ -134,7 +133,6 @@ public class CompressedClassPointers {
         output.shouldHaveExitValue(0);
     }
 
->>>>>>> openjdk-src
     // Using large paged heap, metaspace uses small pages.
     public static void largePagesForHeapTest() throws Exception {
         ProcessBuilder pb = ProcessTools.createJavaProcessBuilder(
@@ -322,6 +320,7 @@ public class CompressedClassPointers {
         smallHeapTest();
         smallHeapTestWith1G();
         largeHeapTest();
+        largeHeapAbove32GTest();
         largePagesForHeapTest();
         heapBaseMinAddressTest();
         sharingTest();

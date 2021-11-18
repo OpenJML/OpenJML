@@ -27,13 +27,8 @@
 
 class planets/OuterPlanets {
   0xCAFEBABE;
-<<<<<<< HEAD
-  65535; // minor version
-  60; // version
-=======
   0; // minor version
   61; // version
->>>>>>> openjdk-src
   [20] { // Constant Pool
     ; // first element is empty
     Method #2 #3; // #1     at 0x0A

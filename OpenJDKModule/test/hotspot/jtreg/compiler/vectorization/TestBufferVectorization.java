@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,13 +30,6 @@
  * @requires vm.flagless
  * @requires vm.compiler2.enabled & vm.debug == true
  * @requires os.arch=="x86" | os.arch=="i386" | os.arch=="amd64" | os.arch=="x86_64" | os.arch=="aarch64"
-<<<<<<< HEAD
- * @run main compiler.vectorization.TestBufferVectorization array
- * @run main compiler.vectorization.TestBufferVectorization arrayOffset
- * @run main compiler.vectorization.TestBufferVectorization buffer
- * @run main compiler.vectorization.TestBufferVectorization bufferHeap
- * @run main compiler.vectorization.TestBufferVectorization bufferDirect
-=======
  *
  * @run driver compiler.vectorization.TestBufferVectorization array
  * @run driver compiler.vectorization.TestBufferVectorization arrayOffset
@@ -44,10 +37,12 @@
  * @run driver compiler.vectorization.TestBufferVectorization bufferHeap
  * @run driver compiler.vectorization.TestBufferVectorization bufferDirect
  * @run driver compiler.vectorization.TestBufferVectorization arrayView
->>>>>>> openjdk-src
  */
 
 package compiler.vectorization;
+
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -64,6 +59,7 @@ public class TestBufferVectorization {
     final static int offset = buffer.arrayOffset();
     final static IntBuffer heap_buffer_byte_to_int = ByteBuffer.allocate(N * Integer.BYTES).order(ByteOrder.nativeOrder()).asIntBuffer();
     final static IntBuffer direct_buffer_byte_to_int = ByteBuffer.allocateDirect(N * Integer.BYTES).order(ByteOrder.nativeOrder()).asIntBuffer();
+    final static VarHandle VH_arr_view = MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.nativeOrder()).withInvokeExactBehavior();
     final static String arch = System.getProperty("os.arch");
 
     interface Test {
@@ -166,43 +162,41 @@ public class TestBufferVectorization {
         }
     }
 
+    static class TestArrayView implements Test {
+        final byte[] b_arr = new byte[N * Integer.BYTES];
+
+        public void init() {
+            for (int k = 0; k < N; k++) {
+                VH_arr_view.set(b_arr, k, k);
+            }
+        }
+
+        public void run() {
+            for (int k = 0; k < b_arr.length; k += 4) {
+                int v = (int) VH_arr_view.get(b_arr, k);
+                VH_arr_view.set(b_arr, k, v + 1);
+            }
+        }
+
+        public void verify() {
+            init(); // reset
+            // Save initial INT values
+            final int[] i_arr = new int[N];
+            for (int k = 0; k < i_arr.length; k++) {
+                i_arr[k] = (int) VH_arr_view.get(b_arr, k * Integer.BYTES);
+            }
+            run();  // run compiled code
+            for (int k = 0; k < i_arr.length; k++) {
+                int v = (int) VH_arr_view.get(b_arr, k * Integer.BYTES);
+                if (v != (i_arr[k] + 1)) {
+                    throw new RuntimeException(" Invalid result: VH_arr_view.get(b_arr, " + (k * Integer.BYTES) + "): " + v + " != " + (i_arr[k] + 1));
+                }
+            }
+        }
+    }
+
     public static void main(String[] args) {
         if (args.length == 0) {
-<<<<<<< HEAD
-            throw new RuntimeException(" Missing test name: array, arrayOffset, buffer, bufferHeap, bufferDirect");
-        }
-
-        Test te;
-        switch (args[0]) {
-            case "array":
-                te = new TestArray();
-                break;
-            case "arrayOffset":
-                te = new TestArrayOffset(offset);
-                break;
-            case "buffer":
-                te = new TestBuffer(buffer);
-                break;
-            case "bufferHeap":
-                te = new TestBuffer(heap_buffer_byte_to_int);
-                break;
-            case "bufferDirect":
-                te = new TestBuffer(direct_buffer_byte_to_int);
-                break;
-            default:
-                throw new RuntimeException(" Unknown test: " + args[0]);
-        }
-
-        te.init();
-        for (int i = 0; i < ITER; i++) {
-            te.run();
-        }
-        te.verify();
-
-        if (args.length == 1) {
-            verify_vectors(te, args[0]);
-        }
-=======
             throw new RuntimeException(" Missing test name: array, arrayOffset, buffer, bufferHeap, bufferDirect, arrayView");
         } else if (args.length == 1) {
             verify_vectors(args[0]);
@@ -224,7 +218,6 @@ public class TestBufferVectorization {
             te.verify();
         }
 
->>>>>>> openjdk-src
     }
 
     static void verify_vectors(String testName) {

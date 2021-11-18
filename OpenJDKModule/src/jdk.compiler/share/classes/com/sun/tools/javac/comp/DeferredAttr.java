@@ -157,7 +157,7 @@ public class DeferredAttr extends JCTree.Visitor {
                         JCExpression clazz = copy(t.clazz, p);
                         List<JCExpression> args = copy(t.args, p);
                         JCClassDecl def = null;
-                        return make.at(t.pos).SpeculativeNewClass(encl, typeargs, clazz, args, def, t.def != null);
+                        return make.at(t.pos).SpeculativeNewClass(encl, typeargs, clazz, args, def, t.def != null || t.classDeclRemoved());
                     } else {
                         return super.visitNewClass(node, p);
                     }
@@ -191,8 +191,7 @@ public class DeferredAttr extends JCTree.Visitor {
                     return result;
                 }
             };
-        } else { // OPENJML _ NOT SURE THIS ELSE BRANCH GOES WITH OPENJDK17
-            treeCopier = new TreeCopier<Void>(make) {
+            /*treeCopier = new TreeCopier<Void>(make) {
                 @Override @DefinedBy(Api.COMPILER_TREE)
                 public JCTree visitNewClass(NewClassTree node, Void p) {
                     JCNewClass t = (JCNewClass) node;
@@ -235,8 +234,7 @@ public class DeferredAttr extends JCTree.Visitor {
                     result.pos = t.pos;
                     return result;
                 }
-            };
-        }
+            };*/
         deferredCopier = new TypeMapping<Void> () {
                 @Override
                 public Type visitType(Type t, Void v) {

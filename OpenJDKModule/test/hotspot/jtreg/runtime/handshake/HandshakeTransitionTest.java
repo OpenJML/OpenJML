@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -32,12 +32,7 @@ import jdk.test.lib.process.OutputAnalyzer;
  * @requires vm.debug
  * @library /testlibrary /test/lib
  * @build HandshakeTransitionTest
-<<<<<<< HEAD
- * @run driver ClassFileInstaller sun.hotspot.WhiteBox
- * @run main/othervm/native -Xbootclasspath/a:. -XX:+UnlockDiagnosticVMOptions -XX:+WhiteBoxAPI HandshakeTransitionTest
-=======
  * @run main/native HandshakeTransitionTest
->>>>>>> openjdk-src
  */
 
 public class HandshakeTransitionTest {

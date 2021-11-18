@@ -137,8 +137,6 @@ public enum Option {
         }
     },
 
-    DOCLINT_FORMAT("--doclint-format", "opt.doclint.format", EXTENDED, BASIC, ONEOF, "html5"),
-
     // -nowarn is retained for command-line backward compatibility
     NOWARN("-nowarn", "opt.nowarn", STANDARD, BASIC) {
         @Override
@@ -997,7 +995,7 @@ public enum Option {
      * @param log the log
      * @param kind  the kind of options to select
      */
-    public static void showHelp(Log log, OptionKind kind) { // OPENJML Private to public
+    private static void showHelp(Log log, OptionKind kind) {
         Comparator<Option> comp = new Comparator<Option>() {
             final Collator collator = Collator.getInstance(Locale.US);
             { collator.setStrength(Collator.PRIMARY); }

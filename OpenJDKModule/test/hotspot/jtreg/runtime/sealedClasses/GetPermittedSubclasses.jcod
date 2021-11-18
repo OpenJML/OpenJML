@@ -28,13 +28,8 @@
 //
 class NoLoadSubclasses {
   0xCAFEBABE;
-<<<<<<< HEAD
-  65535; // minor version
-  60; // version
-=======
   0; // minor version
   61; // version
->>>>>>> openjdk-src
   [18] { // Constant Pool
     ; // first element is empty
     Method #2 #3; // #1     at 0x0A
@@ -172,13 +167,8 @@ class ExistingClassFile {
 // this does not cause an exception to get thrown.
 class NoSubclasses {
   0xCAFEBABE;
-<<<<<<< HEAD
-  65535; // minor version
-  60; // version
-=======
   0; // minor version
   61; // version
->>>>>>> openjdk-src
   [14] { // Constant Pool
     ; // first element is empty
     Method #2 #3; // #1     at 0x0A
@@ -248,13 +238,8 @@ class NoSubclasses {
 // PermittedSubtypes attribute cannot be subclass-ed.
 class SubClass {
   0xCAFEBABE;
-<<<<<<< HEAD
-  65535; // minor version
-  60; // version
-=======
   0; // minor version
   61; // version
->>>>>>> openjdk-src
   [13] { // Constant Pool
     ; // first element is empty
     Method #2 #3; // #1     at 0x0A
@@ -399,13 +384,8 @@ class OldClassFile {
 // should throw ClassFormatError.
 class BadPermittedAttr {
   0xCAFEBABE;
-<<<<<<< HEAD
-  65535; // minor version
-  60; // version
-=======
   0; // minor version
   61; // version
->>>>>>> openjdk-src
   [18] { // Constant Pool
     ; // first element is empty
     Method #2 #3; // #1     at 0x0A
@@ -482,13 +462,8 @@ class BadPermittedAttr {
 //
 class SealedButFinal {
   0xCAFEBABE;
-<<<<<<< HEAD
-  65535; // minor version
-  60; // version
-=======
   0; // minor version
   61; // version
->>>>>>> openjdk-src
   [18] { // Constant Pool
     ; // first element is empty
     Method #2 #3; // #1     at 0x0A
@@ -565,13 +540,8 @@ class SealedButFinal {
 //
 class BadPermittedSubclassEntry {
   0xCAFEBABE;
-<<<<<<< HEAD
-  65535; // minor version
-  60; // version
-=======
   0; // minor version
   61; // version
->>>>>>> openjdk-src
   [18] { // Constant Pool
     ; // first element is empty
     Method #2 #3; // #1     at 0x0A
@@ -647,13 +617,8 @@ class BadPermittedSubclassEntry {
 //
 class EmptyPermittedSubclassEntry {
   0xCAFEBABE;
-<<<<<<< HEAD
-  65535; // minor version
-  60; // version
-=======
   0; // minor version
   61; // version
->>>>>>> openjdk-src
   [18] { // Constant Pool
     ; // first element is empty
     Method #2 #3; // #1     at 0x0A
