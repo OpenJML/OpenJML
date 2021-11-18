@@ -128,7 +128,7 @@ public class JavaCompiler {
         return version("full"); // mm.mm.oo[-milestone]-build
     }
 
-    private static final String versionRBName = "com.sun.tools.javac.resources.version";
+    public static String versionRBName = "com.sun.tools.javac.resources.version"; // OPENJML - changed from private final to just public
     private static ResourceBundle versionRB;
 
     private static String version(String key) {
@@ -570,7 +570,7 @@ public class JavaCompiler {
         return log.nerrors;
     }
 
-    protected final <T> Queue<T> stopIfError(CompileState cs, Queue<T> queue) {
+    protected <T> Queue<T> stopIfError(CompileState cs, Queue<T> queue) { // OPENJML - removed final
         return shouldStop(cs) ? new ListBuffer<T>() : queue;
     }
 

@@ -88,7 +88,7 @@ public class Arguments {
     private Set<String> classNames;
     private Set<Path> files;
     private Map<Option, String> deferredFileManagerOptions;
-    private Set<JavaFileObject> fileObjects;
+    public Set<JavaFileObject> fileObjects; // OPENJML private to public
     private boolean emptyAllowed;
     private final Options options;
 

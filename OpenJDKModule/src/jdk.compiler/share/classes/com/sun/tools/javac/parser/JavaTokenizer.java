@@ -77,7 +77,7 @@ public class JavaTokenizer extends UnicodeReader {
     /**
      * The log to be used for error reporting. Copied from scanner factory.
      */
-    private final Log log;
+    protected final Log log; // OPENJML - private to protected
 
     /**
      * The token factory. Copied from scanner factory.
@@ -529,7 +529,7 @@ public class JavaTokenizer extends UnicodeReader {
      *
      * @param pos  position of the first character in literal.
      */
-    private void scanFraction(int pos) {
+    protected void scanFraction(int pos) { // OPENJML - private to protected
         skipIllegalUnderscores();
 
         if (digit(pos, 10) >= 0) {
@@ -667,7 +667,7 @@ public class JavaTokenizer extends UnicodeReader {
     /**
      * Read an identifier. (Spec. 3.8)
      */
-    private void scanIdent() {
+    protected void scanIdent() { // OPENJML - private to protected
         putThenNext();
 
         do {
@@ -742,7 +742,7 @@ public class JavaTokenizer extends UnicodeReader {
      *
      * @return true if ch can be part of an operator.
      */
-    private boolean isSpecial(char ch) {
+    protected boolean isSpecial(char ch) { // OPENJML - private to protected
         switch (ch) {
         case '!': case '%': case '&': case '*': case '?':
         case '+': case '-': case ':': case '<': case '=':
@@ -758,7 +758,7 @@ public class JavaTokenizer extends UnicodeReader {
     /**
      * Read longest possible sequence of special characters and convert to token.
      */
-    private void scanOperator() {
+    protected void scanOperator() { // OPENJML - private to protected
         while (true) {
             put();
             TokenKind newtk = tokens.lookupKind(sb.toString());
@@ -927,9 +927,10 @@ public class JavaTokenizer extends UnicodeReader {
                         // OPENJML - the guard that was here prevented processing a line comment at the end of a file
                         // that had no terminating newline. The guard is unnecessary in anyi case, given the
                         // success of accept and skipToEOLN
-                        //if (isAvailable()) {
+                        // FIXME - is this comment obsolete? Cuyrrent OpenJML does not change OpenJDK
+                        if (isAvailable()) {
                             comments = appendComment(comments, processComment(pos, position(), CommentStyle.LINE));
-                        //}
+                        }
                         break;
                     } else if (accept('*')) { // (Spec. 3.7)
                         boolean isEmpty = false;
@@ -1112,6 +1113,7 @@ public class JavaTokenizer extends UnicodeReader {
      * @return new list with comment prepended to the existing list.
      */
     List<Comment> appendComment(List<Comment> comments, Comment comment) {
+    	if (comment == null) return comments; // OPENJML -- added so that comments could be ignored
         return comments == null ?
                 List.of(comment) :
                 comments.prepend(comment);

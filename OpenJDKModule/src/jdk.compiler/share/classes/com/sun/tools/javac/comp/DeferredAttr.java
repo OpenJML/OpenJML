@@ -84,7 +84,7 @@ public class DeferredAttr extends JCTree.Visitor {
     protected static final Context.Key<DeferredAttr> deferredAttrKey = new Context.Key<>();
 
     final Annotate annotate;
-    final Attr attr;
+    public final Attr attr; // OPENJML - package to public
     final ArgumentAttr argumentAttr;
     final Check chk;
     final JCDiagnostic.Factory diags;
@@ -146,52 +146,9 @@ public class DeferredAttr extends JCTree.Visitor {
             };
 
         // For speculative attribution, skip the class definition in <>.
-        treeCopier =
-            new TreeCopier<Void>(make) {
-                @Override @DefinedBy(Api.COMPILER_TREE)
-                public JCTree visitNewClass(NewClassTree node, Void p) {
-                    JCNewClass t = (JCNewClass) node;
-                    if (TreeInfo.isDiamond(t)) {
-                        JCExpression encl = copy(t.encl, p);
-                        List<JCExpression> typeargs = copy(t.typeargs, p);
-                        JCExpression clazz = copy(t.clazz, p);
-                        List<JCExpression> args = copy(t.args, p);
-                        JCClassDecl def = null;
-                        return make.at(t.pos).SpeculativeNewClass(encl, typeargs, clazz, args, def, t.def != null || t.classDeclRemoved());
-                    } else {
-                        return super.visitNewClass(node, p);
-                    }
-                }
-
-                @Override @DefinedBy(Api.COMPILER_TREE)
-                public JCTree visitMemberReference(MemberReferenceTree node, Void p) {
-                    JCMemberReference t = (JCMemberReference) node;
-                    JCExpression expr = copy(t.expr, p);
-                    List<JCExpression> typeargs = copy(t.typeargs, p);
-                    /** once the value for overloadKind is determined for a copy, it can be safely forwarded to
-                     *  the copied tree, we want to profit from that
-                     */
-                    JCMemberReference result = new JCMemberReference(t.mode, t.name, expr, typeargs) {
-                        @Override
-                        public void setOverloadKind(OverloadKind overloadKind) {
-                            OverloadKind previous = t.getOverloadKind();
-                            if (previous == null || previous == OverloadKind.ERROR) {
-                                t.setOverloadKind(overloadKind);
-                            } else {
-                                Assert.check(previous == overloadKind || overloadKind == OverloadKind.ERROR);
-                            }
-                        }
-
-                        @Override
-                        public OverloadKind getOverloadKind() {
-                            return t.getOverloadKind();
-                        }
-                    };
-                    result.pos = t.pos;
-                    return result;
-                }
-            };
-            /*treeCopier = new TreeCopier<Void>(make) {
+        if (org.jmlspecs.openjml.Main.useJML) {
+        treeCopier = // OPENJML - change the next line to use Jml tools
+            new org.jmlspecs.openjml.visitors.JmlTreeCopier(context, org.jmlspecs.openjml.JmlTree.Maker.instance(context)) {
                 @Override @DefinedBy(Api.COMPILER_TREE)
                 public JCTree visitNewClass(NewClassTree node, Void p) {
                     JCNewClass t = (JCNewClass) node;
@@ -234,7 +191,55 @@ public class DeferredAttr extends JCTree.Visitor {
                     result.pos = t.pos;
                     return result;
                 }
-            };*/
+            };
+        } else {
+
+        treeCopier =
+            new TreeCopier<Void>(make) {
+                @Override @DefinedBy(Api.COMPILER_TREE)
+                public JCTree visitNewClass(NewClassTree node, Void p) {
+                    JCNewClass t = (JCNewClass) node;
+                    if (TreeInfo.isDiamond(t)) {
+                        JCExpression encl = copy(t.encl, p);
+                        List<JCExpression> typeargs = copy(t.typeargs, p);
+                        JCExpression clazz = copy(t.clazz, p);
+                        List<JCExpression> args = copy(t.args, p);
+                        JCClassDecl def = null;
+                        return make.at(t.pos).SpeculativeNewClass(encl, typeargs, clazz, args, def, t.def != null);
+                    } else {
+                        return super.visitNewClass(node, p);
+                    }
+                }
+
+                @Override @DefinedBy(Api.COMPILER_TREE)
+                public JCTree visitMemberReference(MemberReferenceTree node, Void p) {
+                    JCMemberReference t = (JCMemberReference) node;
+                    JCExpression expr = copy(t.expr, p);
+                    List<JCExpression> typeargs = copy(t.typeargs, p);
+                    /** once the value for overloadKind is determined for a copy, it can be safely forwarded to
+                     *  the copied tree, we want to profit from that
+                     */
+                    JCMemberReference result = new JCMemberReference(t.mode, t.name, expr, typeargs) {
+                        @Override
+                        public void setOverloadKind(OverloadKind overloadKind) {
+                            OverloadKind previous = t.getOverloadKind();
+                            if (previous == null || previous == OverloadKind.ERROR) {
+                                t.setOverloadKind(overloadKind);
+                            } else {
+                                Assert.check(previous == overloadKind || overloadKind == OverloadKind.ERROR);
+                            }
+                        }
+
+                        @Override
+                        public OverloadKind getOverloadKind() {
+                            return t.getOverloadKind();
+                        }
+                    };
+                    result.pos = t.pos;
+                    return result;
+                }
+            };
+        }
         deferredCopier = new TypeMapping<Void> () {
                 @Override
                 public Type visitType(Type t, Void v) {
@@ -573,6 +578,12 @@ public class DeferredAttr extends JCTree.Visitor {
                     }
                     super.scan(tree);
                 }
+
+                @Override 
+                public void visitTree(JCTree tree) {
+                	// OPENJML ignoring, to bypass JML subtresss, instead of an Assertion error -- FIXME - might hide some errors
+                }
+
             }
 
             DeferredAttrDiagHandler(Log log, JCTree newTree) {

@@ -473,7 +473,7 @@ public class Log extends AbstractLog {
      * source name and pos.
      */
     protected boolean shouldReport(JavaFileObject file, int pos) {
-        if (file == null)
+        if (file == null || alwaysReport) // OPENJML - added
             return true;
 
         Pair<JavaFileObject,Integer> coords = new Pair<>(file, pos);
@@ -483,12 +483,14 @@ public class Log extends AbstractLog {
         return shouldReport;
     }
 
+    public static boolean alwaysReport = false; // OPENJML - added for debugging -- FIXME - still needed?
+
     /** Returns true if a diagnostics needs to be reported.
      */
     private boolean shouldReport(JCDiagnostic d) {
         JavaFileObject file = d.getSource();
 
-        if (file == null)
+        if (file == null || alwaysReport) // OPENJML
             return true;
 
         if (!shouldReport(file, d.getIntPosition()))
@@ -658,7 +660,7 @@ public class Log extends AbstractLog {
     @Override
     public void report(JCDiagnostic diagnostic) {
         diagnosticHandler.report(diagnostic);
-    	if (System.getenv("STACK") != null && (diagnostic.getKind() == JCDiagnostic.Kind.ERROR
+    	if (System.getenv("STACK") != null && (diagnostic.getKind() == JCDiagnostic.Kind.ERROR // OPENJML - check on STACK
     			  || diagnostic.getKind() == JCDiagnostic.Kind.WARNING)) new RuntimeException().printStackTrace(System.out);
      }
 
@@ -857,4 +859,8 @@ public class Log extends AbstractLog {
         return String.format((java.util.Locale)null, fmt, args);
     }
 
+    // OPENJML = added to allow resetting the record of errors already issued
+    public void resetRecord() {
+        this.recorded.clear();
+    }
 }

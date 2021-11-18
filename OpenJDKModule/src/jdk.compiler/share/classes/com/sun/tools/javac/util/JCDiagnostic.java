@@ -308,7 +308,7 @@ public class JCDiagnostic implements Diagnostic<JavaFileObject> {
         /**
          * Create a new warning key.
          */
-        Warning warningKey(String code, Object... args) {
+        public Warning warningKey(String code, Object... args) { // OPENJML - package to public
             return (Warning)DiagnosticInfo.of(WARNING, prefix, code, args);
         }
 
@@ -495,9 +495,11 @@ public class JCDiagnostic implements Diagnostic<JavaFileObject> {
 
         /** The diagnostic code (i.e. 'cannot.resolve.sym'); together with {@code prefix} it forms
          * the full resource key. */
+        public // OPENJML -- package to public -- FIXME - why not use getter methods
         String code;
 
         /** The diagnostic arguments. */
+        public // OPENJML -- package to public -- FIXME - why not use getter methods
         Object[] args;
 
         private DiagnosticInfo(DiagnosticType type, String prefix, String code, Object... args) {

@@ -57,12 +57,12 @@ public class MemberEnter extends JCTree.Visitor {
 
     private final Enter enter;
     private final Log log;
-    private final Check chk;
-    private final Attr attr;
+    protected final Check chk; // OPENJML - private to protected
+    protected final Attr attr; // OPENJML - private to protected
     private final Symtab syms;
-    private final Annotate annotate;
-    private final Types types;
-    private final DeferredLintHandler deferredLintHandler;
+    protected final Annotate annotate; // OPENJML - private to protected
+    protected final Types types; // OPENJML - private to protected
+    protected final DeferredLintHandler deferredLintHandler; // OPENJML - private to protected
 
     public static MemberEnter instance(Context context) {
         MemberEnter instance = context.get(memberEnterKey);
@@ -156,7 +156,7 @@ public class MemberEnter extends JCTree.Visitor {
     /** Enter field and method definitions and process import
      *  clauses, catching any completion failure exceptions.
      */
-    protected void memberEnter(JCTree tree, Env<AttrContext> env) {
+    public void memberEnter(JCTree tree, Env<AttrContext> env) { // OPENJML - protected to public
         Env<AttrContext> prevEnv = this.env;
         try {
             this.env = env;
@@ -216,9 +216,10 @@ public class MemberEnter extends JCTree.Visitor {
             m.flags_field |= Flags.VARARGS;
 
         localEnv.info.scope.leave();
-        if (chk.checkUnique(tree.pos(), m, enclScope)) {
-        enclScope.enter(m);
-        }
+        visitMethodDefHelper(tree, m, enclScope, localEnv); // OPENJML - replace next few lines to allow extending
+//        if (chk.checkUnique(tree.pos(), m, enclScope)) {
+//        	enclScope.enter(m);
+//        }
 
         annotate.annotateLater(tree.mods.annotations, localEnv, m, tree.pos());
         // Visit the signature of the method. Note that
@@ -249,10 +250,17 @@ public class MemberEnter extends JCTree.Visitor {
         return localEnv;
     }
 
+    // OPENJML extracted from the method below in order to override
+    public boolean visitVarDefIsStatic(JCVariableDecl tree, Env<AttrContext> env) {
+        return ((tree.mods.flags & STATIC) != 0 ||
+                ((env.info.scope.owner.flags() & INTERFACE) != 0));
+    }
+    
     public void visitVarDef(JCVariableDecl tree) {
         Env<AttrContext> localEnv = env;
-        if ((tree.mods.flags & STATIC) != 0 ||
-            (env.info.scope.owner.flags() & INTERFACE) != 0) {
+        if (visitVarDefIsStatic(tree,env)) {  // OPENJML
+//        if ((tree.mods.flags & STATIC) != 0 ||
+//            (env.info.scope.owner.flags() & INTERFACE) != 0) {
             localEnv = env.dup(tree, env.info.dup());
             localEnv.info.staticLevel++;
         }
@@ -296,14 +304,15 @@ public class MemberEnter extends JCTree.Visitor {
                 v.setLazyConstValue(initEnv(tree, initEnv), attr, tree);
             }
         }
-        if (chk.checkUnique(tree.pos(), v, enclScope)) {
+        visitFieldDefHelper(tree, v, enclScope, localEnv, tree.mods.annotations); // OPENJML - added to allow overriding some functionality
+/*      if (chk.checkUnique(tree.pos(), v, enclScope)) {
             chk.checkTransparentVar(tree.pos(), v, enclScope);
             enclScope.enter(v);
         } else if (v.owner.kind == MTH || (v.flags_field & (Flags.PRIVATE | Flags.FINAL | Flags.GENERATED_MEMBER | Flags.RECORD)) != 0) {
             // if this is a parameter or a field obtained from a record component, enter it
             enclScope.enter(v);
         }
-
+*/
         annotate.annotateLater(tree.mods.annotations, localEnv, v, tree.pos());
         if (!tree.isImplicitlyTyped()) {
             annotate.queueScanTreeAndTypeAnnotate(tree.vartype, localEnv, v, tree.pos());

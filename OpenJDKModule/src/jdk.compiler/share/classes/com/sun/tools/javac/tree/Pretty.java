@@ -46,6 +46,30 @@ import static com.sun.tools.javac.tree.JCTree.Tag.*;
  */
 public class Pretty extends JCTree.Visitor {
 
+    // OPENJML add a factory mechanism
+    // The pretty-printer is called in situations (e.g. toString()) in which
+    // a compilation context is not readily available.  So to be least 
+    // invasive, we just define a factory that does not depend on the context
+    // (so it will be global to all compilation instances).  For simplicity
+    // we just put the factory in the class itself.
+    protected static Pretty cachedInstance = null;
+    
+    public static void preRegister(final Context context) {
+        cachedInstance = new Pretty(null,false); 
+    }
+
+    /** Get the Pretty instance for this context. 
+     * @param out the Writer to which to send output
+     * @param sourceOutput if true, makes compilable source code
+     * @return a new pretty-printer
+     * */
+    public static Pretty instance(Writer out, boolean sourceOutput) {
+        // guard this because legacy tools might not preRegister
+        if (cachedInstance == null)
+            cachedInstance = new Pretty(out,sourceOutput);
+        return cachedInstance.inst(out,sourceOutput);
+    }
+ 
     public Pretty(Writer out, boolean sourceOutput) {
         this.out = out;
         this.sourceOutput = sourceOutput;
@@ -56,11 +80,11 @@ public class Pretty extends JCTree.Visitor {
      *  the output even though that detail would not be valid java
      *  source.
      */
-    private final boolean sourceOutput;
+    protected boolean sourceOutput; // OPENJML - private to protected, removed final
 
     /** The output stream on which trees are printed.
      */
-    Writer out;
+    protected Writer out; // OPENJML - package to protected
 
     /** Indentation width (can be reassigned from outside).
      */
@@ -83,28 +107,28 @@ public class Pretty extends JCTree.Visitor {
      * A string sequence to be used when Pretty output should be constrained
      * to fit into a given size
      */
-    private final static String trimSequence = "[...]";
+    private static final String trimSequence = "[...]";
 
     /**
      * Max number of chars to be generated when output should fit into a single line
      */
-    private final static int PREFERRED_LENGTH = 20;
+    private static final int PREFERRED_LENGTH = 20;
 
     /** Align code to be indented to left margin.
      */
-    void align() throws IOException {
+    protected void align() throws IOException {// OPENJML - package to protected
         for (int i = 0; i < lmargin; i++) out.write(" ");
     }
 
     /** Increase left margin by indentation width.
      */
-    void indent() {
+    public void indent() { // OPENJML - package to public
         lmargin = lmargin + width;
     }
 
     /** Decrease left margin by indentation width.
      */
-    void undent() {
+    public void undent() { // OPENJML - package to public
         lmargin = lmargin - width;
     }
 
@@ -113,7 +137,7 @@ public class Pretty extends JCTree.Visitor {
      *  @param contextPrec    The precedence level in force so far.
      *  @param ownPrec        The new precedence level.
      */
-    void open(int contextPrec, int ownPrec) throws IOException {
+    protected void open(int contextPrec, int ownPrec) throws IOException { // OPENJML - package to protected
         if (ownPrec < contextPrec) out.write("(");
     }
 
@@ -122,7 +146,7 @@ public class Pretty extends JCTree.Visitor {
      *  @param contextPrec    The precedence level we revert to.
      *  @param ownPrec        The inner precedence level.
      */
-    void close(int contextPrec, int ownPrec) throws IOException {
+    protected void close(int contextPrec, int ownPrec) throws IOException { // OPENJML - package to protected
         if (ownPrec < contextPrec) out.write(")");
     }
 
@@ -164,23 +188,23 @@ public class Pretty extends JCTree.Visitor {
         }
     }
 
-    String lineSep = System.getProperty("line.separator");
+    public String lineSep = System.getProperty("line.separator"); // OPENJML - package to public
 
     /* ************************************************************************
      * Traversal methods
      *************************************************************************/
 
     /** Exception to propagate IOException through visitXYZ methods */
-    private static class UncheckedIOException extends Error {
+    public static class UncheckedIOException extends Error { // OPENJML - private to public
         static final long serialVersionUID = -4032692679158424751L;
-        UncheckedIOException(IOException e) {
+        public UncheckedIOException(IOException e) { // OPENJML - package to public
             super(e.getMessage(), e);
         }
     }
 
     /** Visitor argument: the current precedence level.
      */
-    int prec;
+    protected int prec;  // OPENJML - package to protected
 
     /** Visitor method: print expression tree.
      *  @param prec  The current precedence level.
@@ -460,6 +484,7 @@ public class Pretty extends JCTree.Visitor {
             if (tree.directives == null) {
                 print(";");
             } else {
+                print(" ");
                 printBlock(tree.directives);
             }
             println();
@@ -1010,7 +1035,7 @@ public class Pretty extends JCTree.Visitor {
     public void visitIf(JCIf tree) {
         try {
             print("if ");
-            if (tree.cond != null && tree.cond.hasTag(PARENS)) {
+            if (tree.cond != null && tree.cond.hasTag(PARENS)) { // OPENJML test for null added for robustness against bad trees
                 printExpr(tree.cond);
             } else {
                 print("(");
@@ -1246,7 +1271,7 @@ public class Pretty extends JCTree.Visitor {
         }
     }
 
-    public String operatorName(JCTree.Tag tag) {
+    public static String operatorName(JCTree.Tag tag) { // OPENJML - made static
         switch(tag) {
             case POS:     return "+";
             case NEG:     return "-";

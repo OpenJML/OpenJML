@@ -89,9 +89,9 @@ public class Check {
     private final Enter enter;
     private final DeferredAttr deferredAttr;
     private final Infer infer;
-    private final Types types;
+    public final Types types; // OPENJML - private to public
     private final TypeAnnotations typeAnnotations;
-    private final JCDiagnostic.Factory diags;
+    public final JCDiagnostic.Factory diags; // OPENJML - private to public
     private final JavaFileManager fileManager;
     private final Source source;
     private final Target target;
@@ -655,7 +655,7 @@ public class Check {
         }
     }
     //where
-        private boolean is292targetTypeCast(JCTypeCast tree) {
+        protected boolean is292targetTypeCast(JCTypeCast tree) { // OPENJML - private to protected
             boolean is292targetTypeCast = false;
             JCExpression expr = TreeInfo.skipParens(tree.expr);
             if (expr.hasTag(APPLY)) {

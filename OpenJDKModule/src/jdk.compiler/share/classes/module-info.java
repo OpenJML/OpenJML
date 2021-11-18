@@ -105,34 +105,34 @@ module jdk.compiler {
 //        jdk.jshell;
     exports com.sun.tools.javac.resources to
         jdk.jshell;
-    exports com.sun.tools.javac.code to
-        jdk.javadoc,
-        jdk.jshell;
-    exports com.sun.tools.javac.comp to
-        jdk.javadoc,
-        jdk.jshell;
-    exports com.sun.tools.javac.file to
-        jdk.jdeps,
-        jdk.javadoc;
+//    exports com.sun.tools.javac.code to
+//        jdk.javadoc,
+//        jdk.jshell;
+//    exports com.sun.tools.javac.comp to
+//        jdk.javadoc,
+//        jdk.jshell;
+//    exports com.sun.tools.javac.file to
+//        jdk.jdeps,
+//        jdk.javadoc;
     exports com.sun.tools.javac.jvm to
         jdk.javadoc;
-    exports com.sun.tools.javac.main to
-        jdk.javadoc,
-        jdk.jshell;
+//    exports com.sun.tools.javac.main to
+//        jdk.javadoc,
+//        jdk.jshell;
     exports com.sun.tools.javac.model to
         jdk.javadoc;
-    exports com.sun.tools.javac.parser to
-        jdk.jshell;
+//    exports com.sun.tools.javac.parser to
+//        jdk.jshell;
     exports com.sun.tools.javac.platform to
         jdk.jdeps,
         jdk.javadoc;
-    exports com.sun.tools.javac.tree to
-        jdk.javadoc,
-        jdk.jshell;
-    exports com.sun.tools.javac.util to
-        jdk.jdeps,
-        jdk.javadoc,
-        jdk.jshell;
+//    exports com.sun.tools.javac.tree to
+//        jdk.javadoc,
+//        jdk.jshell;
+//    exports com.sun.tools.javac.util to
+//        jdk.jdeps,
+//        jdk.javadoc,
+//        jdk.jshell;
     exports jdk.internal.shellsupport.doc to
         jdk.jshell;
 

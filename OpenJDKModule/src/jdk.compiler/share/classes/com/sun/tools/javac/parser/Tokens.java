@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,6 +25,7 @@
 
 package com.sun.tools.javac.parser;
 
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.function.Predicate;
 import java.util.Map;
@@ -32,12 +33,7 @@ import java.util.Map;
 import com.sun.tools.javac.api.Formattable;
 import com.sun.tools.javac.api.Messages;
 import com.sun.tools.javac.parser.Tokens.Token.Tag;
-import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.Name;
-import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.Filter;
-import com.sun.tools.javac.util.ListBuffer;
-import com.sun.tools.javac.util.Names;
+import com.sun.tools.javac.util.*;
 
 /** A class that defines codes/utilities for Java source tokens
  *  returned from lexical analysis.
@@ -49,20 +45,16 @@ import com.sun.tools.javac.util.Names;
  */
 public class Tokens {
 
+    public static interface ITokenKind { // OPENJML - added this interface to be able to extend it
+        String name();
+    }
+
     private final Names names;
 
     /**
      * Keyword array. Maps name indices to Token.
      */
-    private final TokenKind[] key;
-
-    /**  The number of the last entered keyword.
-     */
-    private int maxKey = 0;
-
-    /** The names of all tokens.
-     */
-    private Name[] tokenName = new Name[TokenKind.values().length];
+    private Map<String, TokenKind> keywords = new HashMap<>();
 
     public static final Context.Key<Tokens> tokensKey = new Context.Key<>();
 
@@ -77,24 +69,11 @@ public class Tokens {
         context.put(tokensKey, this);
         names = Names.instance(context);
         for (TokenKind t : TokenKind.values()) {
-            if (t.name != null)
-                enterKeyword(t.name, t);
-            else
-                tokenName[t.ordinal()] = null;
+            if (t.name != null) {
+                names.fromString(t.name);
+                keywords.put(t.name, t);
+            }
         }
-
-        key = new TokenKind[maxKey+1];
-        for (int i = 0; i <= maxKey; i++) key[i] = TokenKind.IDENTIFIER;
-        for (TokenKind t : TokenKind.values()) {
-            if (t.name != null)
-                key[tokenName[t.ordinal()].getIndex()] = t;
-        }
-    }
-
-    private void enterKeyword(String s, TokenKind token) {
-        Name n = names.fromString(s);
-        tokenName[token.ordinal()] = n;
-        if (n.getIndex() > maxKey) maxKey = n.getIndex();
     }
 
     /**
@@ -103,18 +82,20 @@ public class Tokens {
      * identifier token is returned.
      */
     TokenKind lookupKind(Name name) {
-        return (name.getIndex() > maxKey) ? TokenKind.IDENTIFIER : key[name.getIndex()];
+        TokenKind t = keywords.get(name.toString());
+        return (t != null) ? t : TokenKind.IDENTIFIER;
     }
 
     TokenKind lookupKind(String name) {
-        return lookupKind(names.fromString(name));
+        TokenKind t = keywords.get(name);
+        return (t != null) ? t : TokenKind.IDENTIFIER;
     }
 
     /**
      * This enum defines all tokens used by the javac scanner. A token is
      * optionally associated with a name.
      */
-    public enum TokenKind implements Formattable, Predicate<TokenKind> {
+    public enum TokenKind implements Formattable, Predicate<TokenKind>, ITokenKind { // OPENJML - added ITokenKind
         EOF(),
         ERROR(),
         IDENTIFIER(Tag.NAMED),
@@ -321,7 +302,8 @@ public class Tokens {
         }
 
         /** The token kind */
-        public final TokenKind kind;
+        public final TokenKind kind; // OPENJML - changed to interface to allow extension; also corresponding changes to the use of kind
+        public final ITokenKind ikind; // OPENJML - changed to interface to allow extension; also corresponding changes to the use of kind
 
         /** The start position of this token */
         public final int pos;
@@ -332,8 +314,18 @@ public class Tokens {
         /** Comment reader associated with this token */
         public final List<Comment> comments;
 
-        Token(TokenKind kind, int pos, int endPos, List<Comment> comments) {
+        Token(TokenKind kind, int pos, int endPos, List<Comment> comments) { // OPENJML - changed to ITokenKind to allow extension
+            this.ikind = kind;
             this.kind = kind;
+            this.pos = pos;
+            this.endPos = endPos;
+            this.comments = comments;
+            checkKind();
+        }
+
+        Token(ITokenKind ikind, int pos, int endPos, List<Comment> comments) { // OPENJML - changed to ITokenKind to allow extension
+            this.ikind = ikind;
+            this.kind = ikind instanceof TokenKind ? (TokenKind)ikind : TokenKind.CUSTOM;
             this.pos = pos;
             this.endPos = endPos;
             this.comments = comments;
@@ -414,7 +406,7 @@ public class Tokens {
         }
     }
 
-    final static class NamedToken extends Token {
+    static final class NamedToken extends Token {
         /** The name of this token */
         public final Name name;
 
@@ -456,7 +448,7 @@ public class Tokens {
         }
     }
 
-    final static class NumericToken extends StringToken {
+    static final class NumericToken extends StringToken {
         /** The 'radix' value of this token */
         public final int radix;
 

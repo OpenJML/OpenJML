@@ -299,12 +299,12 @@ public class TypeEnter implements Completer {
         protected abstract void runPhase(Env<AttrContext> env);
     }
 
-    private final ImportsPhase completeClass = new ImportsPhase();
+    public final ImportsPhase completeClass = new ImportsPhase(); // OPENJML - private to public
     private Phase topLevelPhase;
 
     /**Analyze import clauses.
      */
-    private final class ImportsPhase extends Phase {
+    public final class ImportsPhase extends Phase { // OPENJML - private to public
 
         public ImportsPhase() {
             super(CompletionCause.IMPORTS_PHASE, new HierarchyPhase());
@@ -332,7 +332,7 @@ public class TypeEnter implements Completer {
                 sym.owner.complete();
         }
 
-        private void resolveImports(JCCompilationUnit tree, Env<AttrContext> env) {
+        public void resolveImports(JCCompilationUnit tree, Env<AttrContext> env) { // OPENJML - private to public
             if (tree.starImportScope.isFilled()) {
                 // we must have already processed this toplevel
                 return;
@@ -456,7 +456,7 @@ public class TypeEnter implements Completer {
          *  @param tsym          The class or package the members of which are imported.
          *  @param env           The env in which the imported classes will be entered.
          */
-        private void importAll(JCImport imp,
+        public void importAll(JCImport imp, // OPENJML - private to public
                                final TypeSymbol tsym,
                                Env<AttrContext> env) {
             env.toplevel.starImportScope.importAll(types, tsym.members(), typeImportFilter, imp, cfHandler);
@@ -932,7 +932,7 @@ public class TypeEnter implements Completer {
             }
         }
 
-        void enterThisAndSuper(ClassSymbol sym, Env<AttrContext> env) {
+        public void enterThisAndSuper(ClassSymbol sym, Env<AttrContext> env) { // OPENJML - package to public
             ClassType ct = (ClassType)sym.type;
             // enter symbols for 'this' into current scope.
             VarSymbol thisSym =
@@ -985,7 +985,7 @@ public class TypeEnter implements Completer {
 
     /** Enter member fields and methods of a class
      */
-    private final class MembersPhase extends AbstractMembersPhase {
+    public final class MembersPhase extends AbstractMembersPhase { // OPENJML - private to public
 
         public MembersPhase() {
             super(CompletionCause.MEMBERS_PHASE, null);

@@ -223,6 +223,7 @@ public class Symtab {
     public final Type switchBootstrapsType;
     public final Type valueBasedType;
     public final Type valueBasedInternalType;
+    public final Type jmlPrimitiveType; // OPENJML
 
     /** The symbol representing the length field of an array.
      */

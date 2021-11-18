@@ -310,6 +310,9 @@ public class Resolve {
         return isAccessible(env, c, false);
     }
 
+    protected long flags(Symbol sym) { // OPENJML
+    	return sym.flags();
+    }
     public boolean isAccessible(Env<AttrContext> env, TypeSymbol c, boolean checkInner) {
 
         /* 15.9.5.1: Note that it is possible for the signature of the anonymous constructor
@@ -324,7 +327,7 @@ public class Resolve {
         }
 
         boolean isAccessible = false;
-        switch ((short)(c.flags() & AccessFlags)) {
+        switch ((short)(flags(sym) & AccessFlags)) { // OPENJML
             case PRIVATE:
                 isAccessible =
                     env.enclClass.sym.outermostClass() ==
@@ -616,6 +619,7 @@ public class Resolve {
              l = l.tail) {
             if (l.head.hasTag(FORALL)) instNeeded = true;
         }
+
         if (instNeeded) {
             return infer.instantiateMethod(env,
                                     tvars,
@@ -1140,7 +1144,7 @@ public class Resolve {
                 formals2 = formals2.tail;
                 actuals = actuals.isEmpty() ? actuals : actuals.tail;
             }
-       }
+        }
 
        /**
         * Create a method check context to be used during the most specific applicability check
@@ -1413,7 +1417,7 @@ public class Resolve {
             return diagnostic;
         }
     }
-    
+
 /* ***************************************************************************
  *  Symbol lookup
  *  the following naming conventions for arguments are used
@@ -1443,7 +1447,7 @@ public class Resolve {
         Symbol bestSoFar = varNotFound;
         Symbol sym;
         for (Symbol s : c.members().getSymbolsByName(name)) {
-            if (s.kind == VAR && (s.flags_field & SYNTHETIC) == 0 && symbolOK(s)) {
+            if (s.kind == VAR && (s.flags_field & SYNTHETIC) == 0 && symbolOK(s)) { // OPENJML added symbolOK check
                 return isAccessible(env, site, s)
                     ? s : new AccessError(env, site, s);
             }
@@ -1493,7 +1497,7 @@ public class Resolve {
         while (env1.outer != null) {
             Symbol sym = null;
             for (Symbol s : env1.info.scope.getSymbolsByName(name)) {
-                if (s.kind == VAR && (s.flags_field & SYNTHETIC) == 0 && symbolOK(s)) {
+                if (s.kind == VAR && (s.flags_field & SYNTHETIC) == 0 && symbolOK(s)) { // OPENJML added symbolOK check
                     sym = s;
                     if (staticOnly) {
                         return new StaticError(sym);
@@ -1505,7 +1509,7 @@ public class Resolve {
             if (sym == null) {
                 sym = findField(env1, env1.enclClass.sym.type, name, env1.enclClass.sym);
             }
-            if (sym.exists() && symbolOK(sym)) {
+            if (sym.exists() && symbolOK(sym)) { // OPENJML added symbolOK check
                 if (staticOnly &&
                         sym.kind == VAR &&
                         sym.owner.kind == TYP &&
@@ -1530,7 +1534,7 @@ public class Resolve {
         Symbol origin = null;
         for (Scope sc : new Scope[] { env.toplevel.namedImportScope, env.toplevel.starImportScope }) {
             for (Symbol currentSymbol : sc.getSymbolsByName(name)) {
-            	if (!symbolOK(currentSymbol)) continue;
+            	if (!symbolOK(currentSymbol)) continue; // OPENJML added symbolOK check
                 if (currentSymbol.kind != VAR)
                     continue;
                 // invariant: sym.kind == Symbol.Kind.VAR
@@ -1735,7 +1739,7 @@ public class Resolve {
         }
     }
     //where
-    private boolean signatureMoreSpecific(List<Type> actuals, Env<AttrContext> env, Type site, Symbol m1, Symbol m2, boolean useVarargs) {
+    proected boolean signatureMoreSpecific(List<Type> actuals, Env<AttrContext> env, Type site, Symbol m1, Symbol m2, boolean useVarargs) { // OPENJML - private to protected
         noteWarner.clear();
         int maxLength = Math.max(
                             Math.max(m1.type.getParameterTypes().length(), actuals.length()),
@@ -1791,7 +1795,7 @@ public class Resolve {
             boolean useVarargs,
             boolean abstractok) {
         for (Symbol s : sc.getSymbolsByName(name, new LookupFilter(abstractok))) {
-        	if (!symbolOK(s)) continue;
+        	if (!symbolOK(s)) continue; // OPENJML added
             bestSoFar = selectBest(env, site, argtypes, typeargtypes, s,
                     bestSoFar, allowBoxing, useVarargs);
         }
@@ -1862,7 +1866,7 @@ public class Resolve {
 
         InterfaceLookupPhase iphase = InterfaceLookupPhase.ABSTRACT_OK;
         for (TypeSymbol s : superclasses(intype)) {
-        	if (!symbolOK(s)) continue;
+        	if (!symbolOK(s)) continue; // OPENJML added
             bestSoFar = findMethodInScope(env, site, name, argtypes, typeargtypes,
                     s.members(), bestSoFar, allowBoxing, useVarargs, true);
             if (name == names.init) return bestSoFar;
@@ -1881,7 +1885,7 @@ public class Resolve {
         for (InterfaceLookupPhase iphase2 : InterfaceLookupPhase.values()) {
             //keep searching for abstract methods
             for (Type itype : itypes[iphase2.ordinal()]) {
-            	if (!symbolOK(itype.tsym)) continue;
+            	if (!symbolOK(itype.tsym)) continue; // OPENJML added
                 if (!itype.isInterface()) continue; //skip j.l.Object (included by Types.closure())
                 if (iphase2 == InterfaceLookupPhase.DEFAULT_OK &&
                         (itype.tsym.flags() & DEFAULT) == 0) continue;
@@ -2232,7 +2236,7 @@ public class Resolve {
                                    Name name,
                                    TypeSymbol c) {
         for (Symbol sym : c.members().getSymbolsByName(name)) {
-            if (sym.kind == TYP && symbolOK(sym)) {
+            if (sym.kind == TYP && symbolOK(sym)) { // OPENJML added symbolOK()
                 return isAccessible(env, site, sym)
                     ? sym
                     : new AccessError(env, site, sym);
@@ -2265,7 +2269,7 @@ public class Resolve {
              bestSoFar.kind != AMBIGUOUS && l.nonEmpty();
              l = l.tail) {
             sym = findMemberType(env, site, name, l.head.tsym);
-            if (!symbolOK(sym)) continue;
+            if (!symbolOK(sym)) continue; // OPENJML added call of symbolOK()
             if (!bestSoFar.kind.isResolutionError() &&
                 !sym.kind.isResolutionError() &&
                 sym.owner != bestSoFar.owner)
@@ -2291,7 +2295,7 @@ public class Resolve {
                           TypeSymbol c) {
         Symbol sym = findImmediateMemberType(env, site, name, c);
 
-        if (sym != typeNotFound && symbolOK(sym))
+        if (sym != typeNotFound && symbolOK(sym))// OPENJML added call of symbolOK()
             return sym;
 
         return findInheritedMemberType(env, site, name, c);
@@ -2307,6 +2311,7 @@ public class Resolve {
         Symbol bestSoFar = typeNotFound;
         for (Symbol s : scope.getSymbolsByName(name)) {
             Symbol sym = loadClass(env, s.flatName(), recoveryLoadClass);
+            if (!symbolOK(sym)) continue; // OPENJML added to allow derived class to disallow symbols
             if (bestSoFar.kind == TYP && sym.kind == TYP &&
                 bestSoFar != sym)
                 return new AmbiguityError(bestSoFar, sym);
@@ -2315,6 +2320,14 @@ public class Resolve {
         }
         return bestSoFar;
     }
+
+    /** This hook method is added so that derived classes can add their
+     * own spin on whether the entry may be returned as the result of the lookup.
+     */
+    protected boolean symbolOK(Symbol e) { // OPENJML - added this hook method
+        return true;
+    }
+
 
     Symbol findTypeVar(Env<AttrContext> env, Name name, boolean staticOnly) {
         for (Symbol sym : env.info.scope.getSymbolsByName(name)) {
@@ -2458,7 +2471,7 @@ public class Resolve {
                     !pck.exists() && !env.info.attributionMode.isSpeculative ?
                         doRecoveryLoadClass : noRecovery;
             Symbol sym = loadClass(env, fullname, recoveryLoadClass);
-            if (sym.exists() && symbolOK(sym)) {
+            if (sym.exists() && symbolOK(sym)) {// OPENJML added call of symbolOK()
                 // don't allow programs to use flatnames
                 if (name == sym.name) return sym;
             }
@@ -2620,6 +2633,15 @@ public class Resolve {
     LogResolveHelper basicLogResolveHelper = new LogResolveHelper() {
         public boolean resolveDiagnosticNeeded(Type site, List<Type> argtypes, List<Type> typeargtypes) {
             return !site.isErroneous();
+        }
+        public List<Type> getArgumentTypes(ResolveError errSym, Symbol accessedSym, Name name, List<Type> argtypes) {
+            return argtypes;
+        }
+    };
+
+    LogResolveHelper silentLogResolveHelper = new LogResolveHelper() {
+        public boolean resolveDiagnosticNeeded(Type site, List<Type> argtypes, List<Type> typeargtypes) {
+            return false;
         }
         public List<Type> getArgumentTypes(ResolveError errSym, Symbol accessedSym, Name name, List<Type> argtypes) {
             return argtypes;
@@ -2895,7 +2917,7 @@ public class Resolve {
                                     typeargtypes, allowBoxing,
                                     useVarargs);
         chk.checkDeprecated(pos, env.info.scope.owner, sym);
-        chk.checkPreview(pos, sym);
+        chk.checkPreview(pos, env.info.scope.owner, sym);
         return sym;
     }
 
@@ -2960,7 +2982,7 @@ public class Resolve {
                                boolean useVarargs) {
         Symbol sym = findDiamond(env, site, argtypes, typeargtypes, allowBoxing, useVarargs);
         chk.checkDeprecated(pos, env.info.scope.owner, sym);
-        chk.checkPreview(pos, sym);
+        chk.checkPreview(pos, env.info.scope.owner, sym);
         return sym;
     }
 
@@ -3770,7 +3792,7 @@ public class Resolve {
         for (Type t1 : types.interfaces(t)) {
             boolean shouldAdd = true;
             for (Type t2 : types.directSupertypes(t)) {
-                if (t1 != t2 && types.isSubtypeNoCapture(t2, t1)) {
+                if (t1 != t2 && !t2.hasTag(ERROR) && types.isSubtypeNoCapture(t2, t1)) {
                     shouldAdd = false;
                 }
             }
@@ -3862,7 +3884,7 @@ public class Resolve {
         logResolveError(error, tree.pos(), env.enclClass.sym, env.enclClass.type, null, null, null);
     }
     //where
-    private void logResolveError(ResolveError error,
+    protected void logResolveError(ResolveError error, // OPENJML - private to protected
             DiagnosticPosition pos,
             Symbol location,
             Type site,

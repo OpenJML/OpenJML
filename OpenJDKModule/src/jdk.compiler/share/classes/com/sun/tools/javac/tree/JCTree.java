@@ -452,10 +452,10 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
     }
     
     
-    boolean printParser = System.getenv("PARSER") != null;
+    boolean printParser = System.getenv("PARSER") != null; // OPENJML
     
-    public JCTree() {
-    	if (printParser) System.out.println("Constructing " + this.getClass());
+    public JCTree() { // OPENJML - added constructor
+    	if (printParser) System.out.println("Constructing " + this.getClass()); // OPENJML
     }
 
     /** Set position field and return this tree.
@@ -564,6 +564,11 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         }
 
         @DefinedBy(Api.COMPILER_TREE)
+        public JCModuleDecl getModule() {
+            return getModuleDecl();
+        }
+
+        @DefinedBy(Api.COMPILER_TREE)
         public JCPackageDecl getPackage() {
             // PackageDecl must be the first entry if it exists
             if (!defs.isEmpty() && defs.head.hasTag(PACKAGEDEF))
@@ -603,9 +608,12 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         @DefinedBy(Api.COMPILER_TREE)
         public List<JCTree> getTypeDecls() {
             List<JCTree> typeDefs;
-            for (typeDefs = defs; !typeDefs.isEmpty(); typeDefs = typeDefs.tail)
-                if (!typeDefs.head.hasTag(PACKAGEDEF) && !typeDefs.head.hasTag(IMPORT))
+            for (typeDefs = defs; !typeDefs.isEmpty(); typeDefs = typeDefs.tail) {
+                if (!typeDefs.head.hasTag(MODULEDEF)
+                        && !typeDefs.head.hasTag(PACKAGEDEF) && !typeDefs.head.hasTag(IMPORT)) {
                     break;
+                }
+            }
             return typeDefs;
         }
         @Override @DefinedBy(Api.COMPILER_TREE)

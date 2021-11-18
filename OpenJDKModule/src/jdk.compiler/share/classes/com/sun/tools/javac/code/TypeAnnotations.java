@@ -251,7 +251,7 @@ public class TypeAnnotations {
         return AnnotationType.NONE;
     }
 
-    private class TypeAnnotationPositions extends TreeScanner {
+    protected class TypeAnnotationPositions extends TreeScanner { // OPENJML private to protected 
 
         private final boolean sigOnly;
 

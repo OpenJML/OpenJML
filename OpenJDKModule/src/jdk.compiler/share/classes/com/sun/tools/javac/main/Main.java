@@ -76,11 +76,11 @@ public class Main {
 
     /** The writer to use for normal output.
      */
-    PrintWriter stdOut;
+    public PrintWriter stdOut; // OPENJML - package to public
 
     /** The writer to use for diagnostic output.
      */
-    PrintWriter stdErr;
+    public PrintWriter stdErr; // OPENJML - package to public
 
     /** The log to use for diagnostic output.
      */
@@ -92,7 +92,7 @@ public class Main {
      */
     boolean apiMode;
 
-    private static final String ENV_OPT_NAME = "JDK_JAVAC_OPTIONS";
+    public static final String ENV_OPT_NAME = "JDK_JAVAC_OPTIONS"; // OPENJML - private to public
 
     /** Result codes.
      */
@@ -300,7 +300,7 @@ public class Main {
             fileManager.handleOption(Option.MULTIRELEASE.primaryName, list.iterator());
         }
 
-        postOptionProcessing();
+        postOptionProcessing(); // OPENJML added
         
         // init JavaCompiler
         JavaCompiler comp = JavaCompiler.instance(context);
@@ -337,6 +337,7 @@ public class Main {
             return Result.SYSERR;
         } catch (FatalError ex) {
             feMessage(ex, options);
+            org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.FatalError",ex); // OPENJML
             return Result.SYSERR;
         } catch (AnnotationProcessingError ex) {
             apMessage(ex);
@@ -349,6 +350,7 @@ public class Main {
                 bugMessage(iae);
             }
             printArgsToFile = true;
+            org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.IllegalAccessError",iae); // OPENJML
             return Result.ABNORMAL;
         } catch (Throwable ex) {
             // Nasty.  If we've already reported an error, compensate
@@ -357,6 +359,7 @@ public class Main {
             if (comp == null || comp.errorCount() == 0 || options.isSet("dev"))
                 bugMessage(ex);
             printArgsToFile = true;
+            org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.Throwable",ex); // OPENJML
             return Result.ABNORMAL;
         } finally {
             if (printArgsToFile) {
@@ -372,8 +375,8 @@ public class Main {
         }
     }
     
-    protected void postOptionProcessing() {}
-    protected void adjustArgs(Arguments args)  {}
+    protected void postOptionProcessing() {} // OPENJML added
+    protected void adjustArgs(Arguments args)  {} // OPENJML added
 
     void printArgumentsToFile(String... params) {
         Path out = Paths.get(String.format("javac.%s.args",
@@ -428,7 +431,7 @@ public class Main {
 
     /** Print a message reporting an internal error.
      */
-    void bugMessage(Throwable ex) {
+    protected void bugMessage(Throwable ex) { // OPENJML - package to protected
         log.printLines(PrefixKind.JAVAC, "msg.bug", JavaCompiler.version());
         ex.printStackTrace(log.getWriter(WriterKind.NOTICE));
     }

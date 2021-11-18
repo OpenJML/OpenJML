@@ -103,11 +103,11 @@ public class Annotate {
     private final Attribute theUnfinishedDefaultValue;
     private final boolean allowRepeatedAnnos;
     private final String sourceName;
-    public Context context;
+    public Context context; // OPENJML added
     
     protected Annotate(Context context) {
         context.put(annotateKey, this);
-        this.context = context;
+        this.context = context; // OPENJML added
         attr = Attr.instance(context);
         chk = Check.instance(context);
         cfolder = ConstFold.instance(context);
@@ -384,7 +384,7 @@ public class Annotate {
                     && types.isSameType(c.type, syms.previewFeatureType)) {
                 toAnnotate.flags_field |= Flags.PREVIEW_API;
                 if (isAttributeTrue(c.member(names.essentialAPI))) {
-                    toAnnotate.flags_field |= Flags.PREVIEW_ESSENTIAL_API;
+                    toAnnotate.flags_field |= Flags.PREVIEW_REFLECTIVE;
                 }
             }
 
@@ -1075,7 +1075,7 @@ public class Annotate {
      * We need to use a TreeScanner, because it is not enough to visit the top-level
      * annotations. We also need to visit type arguments, etc.
      */
-    private class TypeAnnotate extends TreeScanner {
+    protected class TypeAnnotate extends TreeScanner { // OPENJML - private to protected
         private final Env<AttrContext> env;
         private final Symbol sym;
         private DiagnosticPosition deferPos;
