@@ -352,8 +352,8 @@ public class JmlResolve extends Resolve {
             super(abstractOk);
         }
 
-        public boolean accepts(Symbol s) {
-            if (!super.accepts(s)) return false;
+        public boolean test(Symbol s) {
+            if (!super.test(s)) return false;
             if (utils.isJML(s.flags()) && !allowJML()) return false;
             return true;
         }

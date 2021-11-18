@@ -1234,7 +1234,7 @@ public class Attr extends JCTree.Visitor {
                 annotate.flush();
 
                 // Attribute method body.
-                attribStat(tree.body, localEnv);
+                attribMethodBody(tree.body, localEnv); // OPENJML - to allow overriding
             }
 
             localEnv.info.scope.leave();
@@ -1245,6 +1245,12 @@ public class Attr extends JCTree.Visitor {
         }
     }
     
+    protected void attribMethodBody(JCBlock body, Env<AttrContext>  env) { // OPENJML - added to allow overriding
+        attribStat(body, env);
+    }
+    
+    protected void saveMethodEnv(MethodSymbol msym, Env<AttrContext> env) {}  // OPENJML - added for overriding
+
     public boolean requireBody(JCMethodDecl tree) { return true; } // OPENJML -- added for extension
 
     public void visitVarDef(JCVariableDecl tree) {
@@ -4271,6 +4277,8 @@ public class Attr extends JCTree.Visitor {
         result = checkId(tree, env1.enclClass.sym.type, sym, env, resultInfo);
     }
 
+    protected void visitSelectHelper(JCFieldAccess tree) {} // OPENJML - added for overriding
+
     public void visitSelect(JCFieldAccess tree) {
         // Determine the expected kind of the qualifier expression.
         KindSelector skind = KindSelector.NIL;
@@ -4313,6 +4321,8 @@ public class Attr extends JCTree.Visitor {
         env.info.selectSuper =
             sitesym != null &&
             sitesym.name == names._super;
+
+        visitSelectHelper(tree); // OPENJML
 
         // Determine the symbol represented by the selection.
         env.info.pendingResolutionPhase = null;
@@ -5570,13 +5580,6 @@ public class Attr extends JCTree.Visitor {
         /** Check that an appropriate serialVersionUID member is defined. */
         private void checkSerialVersionUID(JCClassDecl tree, ClassSymbol c, Env<AttrContext> env) {
 
-            // Check if @SuppressWarnings("serial") is an annotation of serialVersionUID.
-            // See JDK-8231622 for more information.
-            Lint lint = env.info.lint.augment(svuid);
-            if (lint.isSuppressed(LintCategory.SERIAL)) {
-                return;
-            }
-
             // check for presence of serialVersionUID
             VarSymbol svuid = null;
             for (Symbol sym : c.members().getSymbolsByName(names.serialVersionUID)) {
@@ -5589,6 +5592,13 @@ public class Attr extends JCTree.Visitor {
             if (svuid == null) {
                 if (!c.isRecord())
                     log.warning(LintCategory.SERIAL, tree.pos(), Warnings.MissingSVUID(c));
+                return;
+            }
+
+            // Check if @SuppressWarnings("serial") is an annotation of serialVersionUID.
+            // See JDK-8231622 for more information.
+            Lint lint = env.info.lint.augment(svuid);
+            if (lint.isSuppressed(LintCategory.SERIAL)) {
                 return;
             }
 

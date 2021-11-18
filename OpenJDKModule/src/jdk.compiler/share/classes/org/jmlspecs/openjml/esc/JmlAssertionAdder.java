@@ -5946,7 +5946,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     selector = addImplicitConversion(switchExpr,syms.intType,selector);
                 }
             }
-        	boolean hasDefault = that.cases.stream().anyMatch(cs -> cs.pats.isEmpty());
+        	boolean hasDefault = that.cases.stream().anyMatch(cs -> cs.labels.isEmpty());
             if (!split || currentSplit == null || rac || infer) {
                 JCSwitch sw = M.at(that).Switch(selector, null);
                 ((JmlSwitchStatement)sw).split = ((JmlSwitchStatement)that).split;
@@ -5957,16 +5957,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 for (JCCase c: that.cases) {
                     continuation = Continuation.CONTINUE;
                     JCCase cc;
-                    if (c.pats == null || c.pats.isEmpty()) {
+                    if (c.labels == null || c.labels.isEmpty()) {
                     	JCBlock b = convertIntoBlock(c,c.stats);
                         b.stats = b.stats.prepend(traceableComment(c,c,"default:",null));
-                        cc = M.at(c.pos).Case(c.caseKind, List.<JCExpression>nil(),b.stats, null);
+                        cc = M.at(c.pos).Case(c.caseKind, List.<JCCaseLabel>nil(),b.stats, null);
                         combined = Continuation.CONTINUE;
                     } else {
-                    	JCExpression pat = (rac && c.pats.get(0) instanceof JCIdent) ? c.pats.get(0) : convertExpr(c.pats.get(0));
+                    	JCExpression pat = (rac && c.labels.get(0) instanceof JCIdent) ? (JCIdent)c.labels.get(0) : convertExpr((JCIdent)c.labels.get(0));
                     	JCBlock b = convertIntoBlock(c,c.stats);
-                        b.stats = b.stats.prepend(traceableComment(c,c,("case " + c.pats.get(0) + ":"),null));
-                        cc = M.at(c.pos).Case(c.caseKind, List.<JCExpression>of(pat),b.stats, null);
+                        b.stats = b.stats.prepend(traceableComment(c,c,("case " + c.labels.get(0) + ":"),null));
+                        cc = M.at(c.pos).Case(c.caseKind, List.<JCCaseLabel>of(pat),b.stats, null);
                     }
 // FIXME-- and handle more than one pat
                     cases.add(cc);
@@ -5990,16 +5990,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // cs = null in the case of no default case
                     // FIXME - only works for traditional enums or ints, not strings or patterns
                     JCExpression cond = null;
-                    if (cs != null && !cs.pats.isEmpty()) {
-                    	for (var pat: cs.pats) {
-                    		JCExpression e = treeutils.makeEquality(pat.pos,selector,convertExpr(pat));
+                    if (cs != null && !cs.labels.isEmpty()) {
+                    	for (var pat: cs.labels) {
+                    		JCExpression e = treeutils.makeEquality(pat.pos,selector,convertExpr((JCExpression)pat)); // FIMXE _ pat might not be an expression
                         	cond = cond == null ? e : treeutils.makeOr(that, cond, e);
                     	}
                     } else {
                         // default
                         for (JCCase c: that.cases) {
-                            for (var pat: c.pats) { 
-                            	JCExpression e = treeutils.makeEquality(pat.pos,convertCopy(selector),convertExpr(pat));
+                            for (var pat: c.labels) { 
+                            	JCExpression e = treeutils.makeEquality(pat.pos,convertCopy(selector),convertExpr((JCExpression)pat)); // FIXME - pat might be a pattern not an expression
                             	cond = cond == null ? e : treeutils.makeOr(that, cond, e);
                            }
                         }

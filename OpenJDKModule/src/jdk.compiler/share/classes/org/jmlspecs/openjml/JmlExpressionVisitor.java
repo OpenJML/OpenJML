@@ -82,6 +82,10 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     public R visitAnnotatedType(AnnotatedTypeTree node, P p)                            { return shouldNotBeCalled(node); }
     public R visitMemberReference(MemberReferenceTree node, P p)                        { return shouldNotBeCalled(node); }
     public R visitIntersectionType(IntersectionTypeTree node, P p)                      { return shouldNotBeCalled(node); }
+    public R visitParenthesizedPattern(ParenthesizedPatternTree node, P p)              { return shouldNotBeCalled(node); } // FIXME - perhaps should be but not implemented
+    public R visitGuardedPattern(GuardedPatternTree node, P p)                          { return shouldNotBeCalled(node); } // FIXME - perhaps should be but not implemented
+    public R visitDefaultCaseLabel(DefaultCaseLabelTree node, P p)                      { return shouldNotBeCalled(node); } // FIXME - perhaps should be but not implemented
+
 
     public R visitOther(Tree node, P p) { return shouldNotBeCalled(node); }
     

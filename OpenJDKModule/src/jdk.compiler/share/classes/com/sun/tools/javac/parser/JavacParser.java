@@ -109,7 +109,7 @@ public class JavacParser implements Parser {
     private Preview preview;
 
     /** The name table. */
-    protected Names names;  // OPENJML - private to public
+    public Names names;  // OPENJML - private to public
 
     /** End position mappings container */
     protected final AbstractEndPosTable endPosTable;
@@ -2217,7 +2217,7 @@ public class JavacParser implements Parser {
      * <code>annotations</code> is the list of annotations targeting
      * the expression <code>t</code>.
      */
-    public JCExpression bracketsOpt(JCExpression t,  // OPENJML - private to public
+    private JCExpression bracketsOpt(JCExpression t,
             List<JCAnnotation> annotations) {
         List<JCAnnotation> nextLevelAnnotations = typeAnnotationsOpt();
 
@@ -2241,7 +2241,7 @@ public class JavacParser implements Parser {
 
     /** BracketsOpt = [ "[" "]" { [Annotations] "[" "]"} ]
      */
-    private JCExpression bracketsOpt(JCExpression t) {
+    public JCExpression bracketsOpt(JCExpression t) { // OPENJML _ private to public
         return bracketsOpt(t, List.nil());
     }
 
@@ -2895,8 +2895,8 @@ public class JavacParser implements Parser {
             accept(LBRACE);
             List<JCCase> cases = switchBlockStatementGroups();
             JCSwitch t = to(F.at(pos).Switch(selector, cases));
-            accept(RBRACE);
             t.endpos = token.endPos;
+            accept(RBRACE);
             return t;
         }
         case SYNCHRONIZED: {
@@ -3666,6 +3666,10 @@ public class JavacParser implements Parser {
         }
     }
 
+    protected JCTree checkForJmlDeclaration(JCModifiers mods, boolean checkForImports) { // OPENJML - added for overriding
+    	return null;
+    }
+
     /** CompilationUnit = [ { "@" Annotation } PACKAGE Qualident ";"] {ImportDeclaration} {TypeDeclaration}
      */
     public JCTree.JCCompilationUnit parseCompilationUnit() {
@@ -3979,14 +3983,6 @@ public class JavacParser implements Parser {
     protected JCClassDecl recordDeclaration(JCModifiers mods, Comment dc) {
         int pos = token.pos;
         nextToken();
-        mods.flag-                if (typeName != names.var) {
--                    reportSyntaxError(elemType.pos, Errors.RestrictedTypeNotAllowedHere(typeName));
--                } else if (type.hasTag(TYPEARRAY) && !compound) {
-+                if (type.hasTag(TYPEARRAY) && !compound) {
-                     //error - 'var' and arrays
--                    reportSyntaxError(elemType.pos, Errors.RestrictedTypeNotAllowedArray(typeName));
-+                    reportSyntaxError(pos, Errors.RestrictedTypeNotAllowedArray(typeName));
-s |= Flags.RECORD;
         Name name = typeName();
 
         List<JCTypeParameter> typarams = typeParametersOpt();

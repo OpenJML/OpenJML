@@ -997,12 +997,12 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(tree,e); }
     }
 
-//    @Override
-//    public void printModifiers(JCModifiers mods) throws IOException {
-//        printAnnotations(mods.annotations);
-//        printJmlModifiers(mods);
-//        printFlags(mods.flags & ~INTERFACE & ~RECORD);
-//    }
+    // @Override
+    public void printModifiers(JCModifiers mods) throws IOException {
+        printAnnotations(mods.annotations);
+        printJmlModifiers(mods);
+        printFlags(mods.flags & ~INTERFACE & ~RECORD);
+    }
     
     public void printJmlModifiers(JCModifiers mods) throws IOException {
         for (JmlToken t: ((JmlModifiers)mods).jmlmods) {
@@ -1016,15 +1016,15 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         }
     }
     
-//    public void visitModifiers(JCModifiers mods) {
-//        try {
-//            printAnnotations(mods.annotations);
-//            printJmlModifiers(mods);
-//            printFlags(mods.flags);
-//        } catch (IOException e) {
-//            throw new UncheckedIOException(e);
-//        }
-//    }
+    public void visitModifiers(JCModifiers mods) {
+        try {
+            printAnnotations(mods.annotations);
+            printJmlModifiers(mods);
+            printFlags(mods.flags);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
 
     

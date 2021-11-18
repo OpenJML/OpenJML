@@ -570,11 +570,11 @@ public class JavaCompiler {
         return log.nerrors;
     }
 
-    protected <T> Queue<T> stopIfError(CompileState cs, Queue<T> queue) { // OPENJML - removed final
+    protected final <T> Queue<T> stopIfError(CompileState cs, Queue<T> queue) {
         return shouldStop(cs) ? new ListBuffer<T>() : queue;
     }
 
-    protected final <T> List<T> stopIfError(CompileState cs, List<T> list) {
+    protected <T> List<T> stopIfError(CompileState cs, List<T> list) { // OPENJML - removed final
         return shouldStop(cs) ? List.nil() : list;
     }
 

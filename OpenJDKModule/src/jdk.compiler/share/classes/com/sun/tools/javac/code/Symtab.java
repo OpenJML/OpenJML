@@ -223,7 +223,7 @@ public class Symtab {
     public final Type switchBootstrapsType;
     public final Type valueBasedType;
     public final Type valueBasedInternalType;
-    public final Type jmlPrimitiveType; // OPENJML
+    public Type jmlPrimitiveType = null; // OPENJML
 
     /** The symbol representing the length field of an array.
      */
@@ -591,6 +591,7 @@ public class Symtab {
         switchBootstrapsType = enterClass("java.lang.runtime.SwitchBootstraps");
         valueBasedType = enterClass("jdk.internal.ValueBased");
         valueBasedInternalType = enterSyntheticAnnotation("jdk.internal.ValueBased+Annotation");
+        jmlPrimitiveType = enterClass("org.jmlspecs.lang.IJmlPrimitiveType"); // OPENJML
 
         synthesizeEmptyInterfaceIfMissing(autoCloseableType);
         synthesizeEmptyInterfaceIfMissing(cloneableType);

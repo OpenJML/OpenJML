@@ -471,7 +471,7 @@ public class JmlTree {
         }
         
         @Override
-        public JmlCase Case(CaseKind caseKind, List<JCExpression> pats,
+        public JmlCase Case(CaseKind caseKind, List<JCCaseLabel> pats,
                             List<JCStatement> stats, JCTree body) {
             return new JmlCase(caseKind, pats, stats, body);
         }
@@ -2132,7 +2132,7 @@ public class JmlTree {
     public static class JmlCase extends JCCase {
         
         public JCExpression check;
-        public JmlCase(CaseKind caseKind, List<JCExpression> pats,
+        public JmlCase(CaseKind caseKind, List<JCCaseLabel> pats,
                 List<JCStatement> stats, JCTree body) {
             super(caseKind, pats, stats, body);
             check = null;

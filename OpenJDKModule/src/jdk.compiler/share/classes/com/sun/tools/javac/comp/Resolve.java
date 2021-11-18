@@ -327,7 +327,7 @@ public class Resolve {
         }
 
         boolean isAccessible = false;
-        switch ((short)(flags(sym) & AccessFlags)) { // OPENJML
+        switch ((short)(flags(c) & AccessFlags)) { // OPENJML
             case PRIVATE:
                 isAccessible =
                     env.enclClass.sym.outermostClass() ==
@@ -1739,7 +1739,7 @@ public class Resolve {
         }
     }
     //where
-    proected boolean signatureMoreSpecific(List<Type> actuals, Env<AttrContext> env, Type site, Symbol m1, Symbol m2, boolean useVarargs) { // OPENJML - private to protected
+    protected boolean signatureMoreSpecific(List<Type> actuals, Env<AttrContext> env, Type site, Symbol m1, Symbol m2, boolean useVarargs) { // OPENJML - private to protected
         noteWarner.clear();
         int maxLength = Math.max(
                             Math.max(m1.type.getParameterTypes().length(), actuals.length()),

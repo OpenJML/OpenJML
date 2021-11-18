@@ -47,7 +47,7 @@ public class UnicodeReader {
      * Buffer containing characters from source file. May contain extraneous characters
      * beyond this.length.
      */
-    protected private final char[] buffer; // OPENJML - private to protected
+    protected final char[] buffer; // OPENJML - private to protected
 
     /**
      * Length of meaningful content in buffer.
