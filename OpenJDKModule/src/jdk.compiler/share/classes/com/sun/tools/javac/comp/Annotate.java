@@ -105,11 +105,11 @@ public class Annotate {
     private final Attribute theUnfinishedDefaultValue;
     private final boolean allowRepeatedAnnos;
     private final String sourceName;
-    public Context context;
+    public Context context;  // OPENJML added
     
     protected Annotate(Context context) {
         context.put(annotateKey, this);
-        this.context = context;
+        this.context = context; // OPENJML added
         attr = Attr.instance(context);
         chk = Check.instance(context);
         cfolder = ConstFold.instance(context);
