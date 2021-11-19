@@ -82,7 +82,7 @@ post:
 	mkdir $(REL)
 	cp -pRL build/*release/jdk $(REL)
 	if [ `uname` = 'Darwin' ]; then echo Mac ; export S=macos ; elif [ `uname` = 'Linux' ]; then echo Linux; export S=linux ; else echo Win; export S=windows ; fi ;\
-	    cp -pR ../../Solvers/Solvers-$$S $(REL)
+	cp -pR ../../Solvers/Solvers-$$S $(REL)
 	cp -pR ../../Specs/specs $(REL)
 	cp -pR release-files/* $(REL)
 	chmod ugo+x $(REL)/openjml
