@@ -587,7 +587,7 @@ public class Symtab {
         typeDescriptorType = enterClass("java.lang.invoke.TypeDescriptor");
         recordType = enterClass("java.lang.Record");
         valueBasedType = enterClass("jdk.internal.ValueBased");
-        jmlPrimitiveType = enterClass("org.jmlspecs.lang.IJmlPrimitiveType");
+        jmlPrimitiveType = enterClass("org.jmlspecs.lang.IJmlPrimitiveType"); // OPENJML
 
         synthesizeEmptyInterfaceIfMissing(autoCloseableType);
         synthesizeEmptyInterfaceIfMissing(cloneableType);

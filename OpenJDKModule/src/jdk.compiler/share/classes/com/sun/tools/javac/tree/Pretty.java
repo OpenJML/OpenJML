@@ -70,17 +70,6 @@ public class Pretty extends JCTree.Visitor {
         return cachedInstance.inst(out,sourceOutput);
     }
     
-    /** Returns a new pretty printer of the dynamic type but with
-     * reset parameters
-     * @param out the Writer to which to send output
-     * @param sourceOutput if true, makes compilable source code
-     * @return a new pretty-printer
-     */
-    protected Pretty inst(Writer out, boolean sourceOutput) {
-        return new Pretty(out,sourceOutput);
-    }
-
-    
     public Pretty(Writer out, boolean sourceOutput) {
         this.out = out;
         this.sourceOutput = sourceOutput;
