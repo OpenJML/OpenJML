@@ -120,7 +120,7 @@ public class JmlTree {
         JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> cases);
         JmlMethodClauseDecl JmlMethodClauseDecl(String keyword, IJmlClauseKind t, List<JCTree.JCVariableDecl> decls);
         JmlMethodClauseExpr JmlMethodClauseExpr(String keyword, IJmlClauseKind t, JCTree.JCExpression e);
-        JmlMethodClauseCallable JmlMethodClauseCallable(JmlStoreRefKeyword keyword);
+        JmlMethodClauseCallable JmlMethodClauseCallable(JmlSingleton keyword);
         JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlMethodSig> methodSignatures);
         JmlMethodClauseConditional JmlMethodClauseConditional(String keyword, IJmlClauseKind kind, JCTree.JCExpression e, JCTree.JCExpression predicate);
         JmlMethodClauseSignals JmlMethodClauseSignals(String keyword, IJmlClauseKind kind, JCTree.JCVariableDecl var, JCTree.JCExpression e);
@@ -144,8 +144,8 @@ public class JmlTree {
         JmlStatementLoopExpr JmlStatementLoopExpr(IJmlClauseKind t, JCTree.JCExpression e);
         JmlStatementLoopModifies JmlStatementLoopModifies(IJmlClauseKind t, List<JCTree.JCExpression> e);
         JmlStatementSpec JmlStatementSpec(JmlMethodSpecs specs);
-        JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
-        JmlStoreRefKeyword JmlStoreRefKeyword(IJmlClauseKind t);
+//        JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
+//        JmlStoreRefKeyword JmlStoreRefKeyword(IJmlClauseKind t);
         JmlStoreRefListExpression JmlStoreRefListExpression(JmlTokenKind t, List<JCExpression> list);
         JmlTuple JmlTuple(java.util.List<JCExpression> list);
         JmlTypeClauseConditional JmlTypeClauseConditional(JCModifiers mods, IJmlClauseKind token, JCTree.JCIdent ident, JCTree.JCExpression p);
@@ -742,15 +742,15 @@ public class JmlTree {
             return new JmlTuple(pos,list);
         }
 
-        @Override
-        public JmlStoreRefKeyword JmlStoreRefKeyword(IJmlClauseKind t) {
-            return new JmlStoreRefKeyword(pos,t);
-        }
-
-        @Override
-        public JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi) {
-            return new JmlStoreRefArrayRange(pos,expr,lo,hi);
-        }
+//        @Override
+//        public JmlStoreRefKeyword JmlStoreRefKeyword(IJmlClauseKind t) {
+//            return new JmlStoreRefKeyword(pos,t);
+//        }
+//
+//        @Override
+//        public JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi) {
+//            return new JmlStoreRefArrayRange(pos,expr,lo,hi);
+//        }
 
         @Override
         public JmlTypeClauseExpr JmlTypeClauseExpr(JCModifiers mods, String keyword, IJmlClauseKind token, JCTree.JCExpression e) {
@@ -832,7 +832,7 @@ public class JmlTree {
         }
         
         @Override
-        public JmlMethodClauseCallable JmlMethodClauseCallable(JmlStoreRefKeyword keyword) {
+        public JmlMethodClauseCallable JmlMethodClauseCallable(JmlSingleton keyword) {
         	return new JmlMethodClauseCallable(pos,keyword,null);
         }
         
@@ -2332,11 +2332,11 @@ public class JmlTree {
      */
     public static class JmlMethodClauseCallable extends JmlMethodClause {
 
-        public JmlStoreRefKeyword keyword;
+        public JmlSingleton keyword;
         public List<JmlMethodSig> methodSignatures;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlMethodClauseCallable(int pos, JmlStoreRefKeyword keyword, List<JmlMethodSig> methodSignatures) {
+        protected JmlMethodClauseCallable(int pos, JmlSingleton keyword, List<JmlMethodSig> methodSignatures) {
             super(pos, CallableClauseExtension.callableID, CallableClauseExtension.callableClause);
             this.keyword = keyword;
             this.methodSignatures = methodSignatures;

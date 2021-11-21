@@ -78,7 +78,7 @@ escaccessible.java    - 23/0 #
 escall2.java          - 30/0 #- testInvariant1 sometimes timesout
 escall3.java          - 55/0 #
 escbitvector.java     - 12/0 #
-esccallable.java      - 31/1 [implementation of nowarn]
+esccallable.java      - 32/0 #
 esccode.java          - 9/0  #
 escconstructor.java   - 5/0  #
 escenums.java         - 16/1 - escenums.enumSwitch feasibility !!!!!!!!!!!!!!!!

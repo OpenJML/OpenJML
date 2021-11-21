@@ -1462,7 +1462,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             checkAccessEnabled= false;
             if (tree != null) {
                 super.scan(tree);
-                if (rac && eresult != null && eresult.type != null && jmltypes.isJmlType(eresult.type)) eresult.type = jmltypes.repSym((JmlType)eresult.type).type;
+                if (rac && eresult != null && eresult.type != null && jmltypes.isJmlType(eresult.type)) {
+                	if (!(eresult.type instanceof JmlType)) {
+                		System.out.println("BAD CONVERSION " + eresult.type + " " + eresult.type.getClass());
+                		Utils.dumpStack();
+                	}
+                	eresult.type = jmltypes.repSym((JmlType)eresult.type).type;
+                }
                 saveMapping(tree,eresult);
             }
         } finally {
@@ -6798,9 +6804,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * is allowed.
      */
     protected
-    JCExpression accessAllowed(JmlStoreRefKeyword storeref, JCExpression pstoreref) {
-        DiagnosticPosition pos = storeref;
-        IJmlClauseKind token = storeref.kind;
+    JCExpression accessAllowed(DiagnosticPosition pos, IJmlClauseKind token, JCExpression pstoreref) {
         if (token == notspecifiedKind) token = everythingKind;
         if (token == nothingKind) return treeutils.trueLit; 
         if (pstoreref instanceof JmlStoreRefKeyword) {
@@ -6808,6 +6812,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (token == everythingKind && ptoken == everythingKind) return treeutils.trueLit;
             if (token == everythingKind && ptoken == notspecifiedKind) return treeutils.trueLit;
             if (token == everythingKind && ptoken == nothingKind) return treeutils.falseLit;
+
+        } else if (pstoreref instanceof JmlSingleton) {
+                IJmlClauseKind ptoken = ((JmlSingleton)pstoreref).kind;
+                if (token == everythingKind && ptoken == everythingKind) return treeutils.trueLit;
+                if (token == everythingKind && ptoken == notspecifiedKind) return treeutils.trueLit;
+                if (token == everythingKind && ptoken == nothingKind) return treeutils.falseLit;
 
         } else if (pstoreref instanceof JCIdent) {
             if (token == everythingKind) return treeutils.falseLit; 
@@ -6822,7 +6832,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (token == everythingKind) return treeutils.falseLit; 
 
         }
-        utils.error(pos,"esc.not.implemented", "Assignability comparison: " + storeref + " vs. " + pstoreref);
+        utils.error(pos,"esc.not.implemented", "Assignability comparison: " + token + " vs. " + pstoreref);
         return treeutils.falseLit;
     }
     
@@ -6839,6 +6849,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (ptoken == notspecifiedKind) return treeutils.trueLit;
             if (ptoken == everythingKind) return treeutils.trueLit;
             if (ptoken == nothingKind) return treeutils.falseLit;
+
+        } else if (pstoreref instanceof JmlSingleton sing) {
+            IJmlClauseKind ptoken = sing.kind;
+            if (ptoken == notspecifiedKind) return treeutils.trueLit;
+            if (ptoken == everythingKind) return treeutils.trueLit;
+            if (ptoken == nothingKind) return treeutils.falseLit;
+
 
         } else if (id.name == names._this) {
             return treeutils.trueLit;
@@ -6935,6 +6952,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (ptoken == everythingKind) return treeutils.trueLit;
             if (ptoken == nothingKind) return isLocal;
 
+        } else if (pfac instanceof JmlSingleton) {
+        	IJmlClauseKind ptoken = ((JmlSingleton)pfac).kind;
+        	if (ptoken == nothingKind) return treeutils.falseLit;
+        	if (ptoken == notspecifiedKind) return treeutils.trueLit;
+        	if (ptoken == everythingKind) return treeutils.trueLit;
+
         } else if (pfac instanceof JCIdent) {
             JCIdent pid = (JCIdent)pfac;
             if (!isContainedIn(fa.sym,pid.sym)) return isLocal;
@@ -7026,7 +7049,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return treeutils.falseLit; 
             
         }
-        utils.error(pos,"esc.not.implemented", "Assignability comparison: " + fa + " vs. " + pfac);
+        utils.error(pos,"esc.not.implemented", "Assignability comparison: " + fa + " vs. " + pfac + " " + pfac.getClass());
         return treeutils.falseLit;
     }
 
@@ -7045,27 +7068,85 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (ptoken == notspecifiedKind) return treeutils.trueLit;
             if (ptoken == everythingKind) return treeutils.trueLit;
 
+        } else if (pstoreref instanceof JmlSingleton pts) {
+        	IJmlClauseKind ptoken = pts.kind;
+        	if (ptoken == nothingKind) return treeutils.falseLit;
+        	if (ptoken == notspecifiedKind) return treeutils.trueLit;
+        	if (ptoken == everythingKind) return treeutils.trueLit;
+
         } else if (pstoreref instanceof JCIdent) {
             return treeutils.falseLit; 
 
         } else if (pstoreref instanceof JCFieldAccess) {
             return treeutils.falseLit; 
             
-        } else if (pstoreref instanceof JCArrayAccess) {
-            JCArrayAccess paa = (JCArrayAccess)pstoreref;
+        } else if (pstoreref instanceof JCArrayAccess pa) {
+        	JCArrayAccess paa = pa;
             JCExpression a1 = convertAssignable(aa.indexed, targetThisExpr, true);
-            JCExpression e = treeutils.makeOld(pos,paa.indexed);
-            if (rac) e = convertAssignable(e, baseThisExpr, true);
-            JCExpression result = treeutils.makeEqObject(posp, a1, e);
-            if (paa.index == null ) return result;
-            if (aa.index == null) return treeutils.falseLit;
-            currentThisExpr = targetThisExpr;
-            a1 = convertJML(aa.index); // Already converted FIXME?
-            currentThisExpr = baseThisExpr;
-            result = treeutils.makeAnd(posp,result,
-                    treeutils.makeBinary(posp,JCTree.Tag.EQ,treeutils.inteqSymbol,a1,convertAssignableClause(paa.index)));
-            currentThisExpr = savedExpr;
-            return result;
+            if (paa.index instanceof JmlRange range) { // FIXME - should check on type
+                JCExpression condition = treeutils.trueLit;
+                while (true) {
+                    JCExpression addedcondition;
+                    if (aa.index == null) {
+                        currentThisExpr = baseThisExpr;
+                        if (range.lo == null && range.hi == null) addedcondition = treeutils.trueLit;
+                        else if (range.hi == null) {
+                            addedcondition = treeutils.makeBinary(pos.getPreferredPosition(), JCTree.Tag.EQ, treeutils.inteqSymbol, convertAssignableClause(range.lo),treeutils.zero);
+                        }
+                        
+                        // FIXME - compare paa.hi to array.length, paa.lo to zero if not null
+                        else return treeutils.falseLit;
+                    } else {
+                        currentThisExpr = targetThisExpr;
+                        JCExpression aat = convert(aa.index); //  FIXME - already converted?
+                        currentThisExpr = baseThisExpr;
+                        if (range.hi == null) {
+                            addedcondition = treeutils.makeBinary(posp,JCTree.Tag.LE,treeutils.intleSymbol,
+                                    range.lo == null ? treeutils.zero : convertAssignableClause(range.lo),
+                                    aat);
+                        } else if (range.hi == range.lo) {
+                            addedcondition = treeutils.makeBinary(posp,JCTree.Tag.EQ,treeutils.inteqSymbol,
+                                    convertAssignableClause(range.lo),
+                                    aat);
+                        } else {
+                            JCExpression loCondition = treeutils.makeBinary(posp,JCTree.Tag.LE,treeutils.intleSymbol,
+                            		range.lo == null ? treeutils.zero : convertAssignableClause(range.lo),
+                                    aat);
+                            addedcondition = treeutils.makeAnd(posp,
+                                        loCondition,
+                                        treeutils.makeBinary(posp, JCTree.Tag.LE,treeutils.intleSymbol,
+                                                                aat, convertAssignableClause(range.hi))
+                                                        );
+                        }
+                    }
+                    condition = treeutils.makeAndSimp(posp,condition,addedcondition);
+                    if (!(paa.indexed instanceof JCArrayAccess)) break;
+                    if (!(aa.indexed instanceof JCArrayAccess)) return treeutils.falseLit;
+                    paa = (JCArrayAccess)paa.indexed;
+                    aa = (JCArrayAccess)aa.indexed;
+                }
+                currentThisExpr = targetThisExpr;
+                a1 = convertJML(aa.indexed);
+                currentThisExpr = baseThisExpr;
+                JCExpression arrayConverted = convertAssignableClause(paa.indexed);
+                if (rac) arrayConverted = convertJML(arrayConverted); // FIXME - why is this done twice?
+                JCExpression result = treeutils.makeAnd(posp, treeutils.makeEqObject(posp, a1, arrayConverted), condition);
+                currentThisExpr = savedExpr;
+                return result;
+            } else {
+            	JCExpression e = treeutils.makeOld(pos,paa.indexed);
+            	e = convertAssignable(e, baseThisExpr, true);  // FIXME - should this just be convertJML ?
+            	JCExpression result = treeutils.makeEqObject(posp, a1, e);
+            	if (paa.index == null ) return result;
+            	if (aa.index == null) return treeutils.falseLit;
+            	currentThisExpr = targetThisExpr;
+            	a1 = convertJML(aa.index); // Already converted FIXME?
+            	currentThisExpr = baseThisExpr;
+            	result = treeutils.makeAnd(posp,result,
+            			treeutils.makeBinary(posp,JCTree.Tag.EQ,treeutils.inteqSymbol,a1,convertAssignableClause(paa.index)));
+            	currentThisExpr = savedExpr;
+            	return result;
+            }
             
         } else if (pstoreref instanceof JmlStoreRefArrayRange) {
             JmlStoreRefArrayRange paa = (JmlStoreRefArrayRange)pstoreref;
@@ -7209,8 +7290,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected 
     JCExpression accessAllowed(JCExpression storeref, JCExpression pstoreref,
             JCExpression baseThisExpr, JCExpression targetThisExpr) {
-        if (storeref instanceof JmlStoreRefKeyword) {
-            return accessAllowed((JmlStoreRefKeyword)storeref,pstoreref);
+        if (storeref instanceof JmlStoreRefKeyword srk) {
+            return accessAllowed(storeref, srk.kind,pstoreref);
+
+        } else if (storeref instanceof JmlSingleton sing) {
+                return accessAllowed(storeref,sing.kind,pstoreref);
 
         } else if (storeref instanceof JCIdent) {
             return accessAllowed((JCIdent)storeref,pstoreref,baseThisExpr,targetThisExpr);
@@ -7510,8 +7594,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else {
                 // FIXME - ASSIGNABLEs coming in are already converted
                 // but at least some ACCESSIBLEs are not
-                JCExpression sc = clauseType == accessibleClause ? convertAssignable(storeref,targetThisExpr,false) : storeref;
+            	if (orig.toString().equals("b") || clauseType != accessibleClause) {
+            	//if (clauseType == accessibleClause) System.out.println("CONVERTING " + orig + " " + storeref + " " + targetThisExpr);
+            	//if (clauseType == accessibleClause) Utils.dumpStack();
+                //JCExpression sc = clauseType == accessibleClause ? convertAssignable(storeref,targetThisExpr,true) : storeref;
+                JCExpression sc = storeref;
                 asg = isFreshlyAllocated(assignPosition,sc); // convertAssignable(storeref,(VarSymbol)baseThisSym)); // FIXME _ base or target
+            	}
             }
         } finally {
             convertingAssignable = saved;
@@ -7550,11 +7639,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (clauseType == accessibleClause && anyAssignableClause != null) {
                 // FIXME - this branch looks wrong
                 pstorerefs = ((JmlMethodClauseStoreRef)anyAssignableClause).list;
-                if (clauseType == accessibleClause) pstorerefs = List.<JCExpression>of(M.JmlStoreRefKeyword(everythingKind));
+                if (clauseType == accessibleClause) pstorerefs = List.<JCExpression>of(M.JmlSingleton(everythingKind));
             } else if (methodDecl.sym.isConstructor() && clauseType == assignableClauseKind) {
-                pstorerefs = List.<JCExpression>of(M.JmlStoreRefKeyword(nothingKind));
+                pstorerefs = List.<JCExpression>of(M.JmlSingleton(nothingKind));
             } else {
-                pstorerefs = List.<JCExpression>of(M.JmlStoreRefKeyword(everythingKind));
+                pstorerefs = List.<JCExpression>of(M.JmlSingleton(everythingKind));
             }
             try {
                 for (JCExpression pstoreref: pstorerefs) {
@@ -7827,6 +7916,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // FIXME - not sure how to detect this
         if (methodDecl == null || methodDecl.body == null) return;
         
+        // GO through all of the caller's spec cases, testing that the call is legitimate for each one
         // If there are no specification cases, then the default is that 
         // everything is callable
         var mspecs = specs.getDenestedSpecs(methodDecl.sym);
@@ -7853,17 +7943,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         } else {
                             asg = treeutils.falseLit;
                             for (JmlMethodSig sig: c.methodSignatures) {
-                                if (sig.methodSymbol != sym) continue;
-                                asg = null;
-                                break;
+                                if (sig.methodSymbol == sym) { asg = null; break; }
                             }
                         }
                     }
-                    // If there are no assignable clauses at all, 
-                    // then we use a default assignable clause.
+                    // asg == null means OK
                     if (asg == null) {
                         // OK
-                    } else { // asg is false
+                    } else { // asg is false, but under the current precondition
                         asg = treeutils.makeNot(mclause.pos, pre);
                         asg = makeAssertionOptional(asg);
                         String msg = sym == null ? everythingID : utils.qualifiedMethodSig((MethodSymbol)sym);
@@ -9242,6 +9329,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 anyAccessibleClauses = true;
                                             }
                                         } else if (clause.clauseKind == CallableClauseExtension.callableClause) {
+                                        	// We have already checked, at the beginning of visitApply, that the callee is callable
+                                        	// Here we check that anything listed in the in callee's spec cases is callable
                                             anyCallableClauses = true;
                                             JmlMethodClauseCallable callableClause = (JmlMethodClauseCallable)clause;
                                             if (callableClause.keyword != null) {
@@ -9267,16 +9356,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     } catch (JmlNotImplementedException e) {
                                         notImplemented(clause.keyword + " clause containing ",e); // FIXME - clause source
                                     } catch (Exception e) {
+                                    	e.printStackTrace(System.out);
                                     	utils.unexpectedException(e,  "Frame clauses for " + mpsym.owner + "." + mpsym);
                                     } finally {
                                         log.useSource(prevSource);
                                     }
                                 }
-                                if (cs.block == null) { // no defaults if rthere is a model program,
+                                if (cs.block == null) { // no defaults if there is a model program,
                                     if (!anyCallableClauses) {
                                         // The callee is implicitly callable \everything,
                                         // so the caller must be also be implicitly callable \everything
-                                        checkThatMethodIsCallable(cs, null);
+                                        checkThatMethodIsCallable(that, null);
                                     }
                                 }
                                 JCBlock bl = popBlock(cs,check2); // Ending the assignable tests block
@@ -9575,7 +9665,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 if (loc.lo != null) addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, loXout, loc.lo));
                                                 if (loc.hi != null) addAssume(location,Label.IMPLICIT_ASSUME, treeutils.makeEquality(location.pos, hiXout, loc.hi));
 
-                                                JmlStoreRefArrayRange newloc = M.at(loc.pos).JmlStoreRefArrayRange(arrayXout,loXout,hiXout); // FIXME - switch to factory
+                                                JCExpression range = M.at(loc.pos).JmlRange(loXout,hiXout); // FIXME - type
+                                                JCExpression newloc = M.at(loc.pos).Indexed(arrayXout,range);
                                                 newloc.pos = loc.pos;
                                                 newloc.setType(loc.type);
                                                 newlist.add(newloc);
@@ -11553,7 +11644,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression convertedRhs = convertExpr(that.rhs);
             convertedRhs = addImplicitConversion(that,convertedLhs.type, convertedRhs);
 
-            assignIdentHelper(that,id,that.rhs,convertedLhs,convertedRhs);
+            assignIdentHelper(that,id, that.rhs,convertedLhs,convertedRhs);
             saveMappingOverride(that, eresult);
 
         } else if (that.lhs instanceof JCFieldAccess) {
@@ -13182,8 +13273,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        checkAccess(JmlTokenKind.ACCESSIBLE, that.indexed, that.indexed, indexed, currentThisId, currentThisId);
 
         JCExpression index = null;
-        if (that.indexed.type instanceof Type.ArrayType) {
-        	if (that.index.type == rangeType.getType(context,Enter.instance(context).getTopLevelEnv(classDecl.toplevel))) {
+        // FIXME - better test for array type
+        if (that.indexed.type instanceof Type.ArrayType || that.indexed.type.toString().startsWith("org.jmlspecs.lang.array")) {
+        	var rt = rangeType.getType(context,Enter.instance(context).getTopLevelEnv(classDecl.toplevel));
+        	if (that.index.type == rt) {
         		var ta = indexed;
         		if (that.index instanceof JmlRange) {
         			var range = (JmlRange)that.index;
@@ -13195,10 +13288,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         				result = eresult = aa;
         			} else {
         				JCExpression tl = convertExpr(range.lo);
-        				result = eresult = M.at(that).JmlStoreRefArrayRange(
+        				result = eresult = M.at(that).Indexed(
         						ta,
-        						tl,
-        						(range.lo == range.hi) ? tl : convertExpr(range.hi)
+        						M.at(that).JmlRange(
+        								tl,
+        								(range.lo == range.hi) ? tl : convertExpr(range.hi)
+        						).setType(rt)
         						).setType(that.type);
         			}
         		} else {
@@ -13606,7 +13701,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             
             // FIXME - are we expecting fully-qualified arguments?
-            if (checkAccessEnabled) checkAccess(accessibleClause, that, that, that, currentThisExpr, currentThisExpr);
+            if (checkAccessEnabled) {
+            	var trlhs = convertAssignable(that, currentThisExpr, true, log.currentSourceFile());
+            	checkAccess(accessibleClause, that, that, trlhs, currentThisExpr, currentThisExpr);
+            }
             // Lookup if there is some other translation of the id. For example, 
             // this could be a translation of the formal from the specification 
             // in a parent class mapped to the formal in the target class. It
@@ -15076,7 +15174,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // This is partly because the array index may depend on the loop variable, which is also havoced.
                     // But the test for whether the index is in range occurs before the invariants are assumed,
                     // which would put the index back in range.
-                    if (newtarget == null) newtarget = M.at(target.pos).JmlStoreRefArrayRange(aa.indexed,null,null).setType(target.type);
+                    if (newtarget == null) {
+                    	var rt = rangeType.getType(context,Enter.instance(context).getTopLevelEnv(classDecl.toplevel));
+                    	JCExpression range = M.at(target.pos).JmlRange(null,null).setType(rt);
+                    	newtarget = M.at(target.pos).Indexed(aa.indexed,range).setType(target.type);
+                    }
                 } else {
                     newtarget = target;
                 }
@@ -16150,6 +16252,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             oldenv = (JCIdent)that.args.get(1);
                         }
                         that.labelProperties = labelPropertiesStore.get(oldenv.name);
+                        //System.out.println("OLD " + that + " " + oldenv + " " + oldenv.name + " "  + that.labelProperties);
+                        //System.out.println(labelPropertiesStore.map.keySet());
+                        //System.out.println(labelPropertiesStore.get(oldenv.name));
+                        //System.out.println(labelPropertiesStore.get(oldenv.name).name);
 
                         {
                             // FIXME - need to set the above scenario up for all labels
@@ -17632,7 +17738,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     public static String assumeKey(JmlMethodDecl m, String split) {
         if (m == null) return null;
-        return m.sym.owner.toString() + m.sym.toString() + split;
+        return String.valueOf(m.sym.hashCode())+ "#" + split;
     }
     
     public java.util.List<JmlStatementExpr> getAssumeChecks(JmlMethodDecl m, String skey) {
@@ -17794,29 +17900,31 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
-        JCExpression ta = convertExpr(that.expression);
-        if (that.lo == that.hi && that.lo != null) {
-            JCExpression tl = convertExpr(that.lo);
-            JmlBBArrayAccess aa = new JmlBBArrayAccess(null,ta,tl);
-            aa.pos = that.pos;
-            aa.type = that.type;
-            result = eresult = aa;
-        } else {
-            JCExpression tl = convertExpr(that.lo);
-            result = eresult = M.at(that).JmlStoreRefArrayRange(
-                    ta,
-                    tl,
-                    (that.lo == that.hi) ? tl : convertExpr(that.hi)
-                    ).setType(that.type);
-        }
+    	log.error(that.pos,"jml.message","Should not be visiting a JmlStoreRefArrayRange: " + that);
+//        JCExpression ta = convertExpr(that.expression);
+//        if (that.lo == that.hi && that.lo != null) {
+//            JCExpression tl = convertExpr(that.lo);
+//            JmlBBArrayAccess aa = new JmlBBArrayAccess(null,ta,tl);
+//            aa.pos = that.pos;
+//            aa.type = that.type;
+//            result = eresult = aa;
+//        } else {
+//            JCExpression tl = convertExpr(that.lo);
+//            result = eresult = M.at(that).JmlStoreRefArrayRange(
+//                    ta,
+//                    tl,
+//                    (that.lo == that.hi) ? tl : convertExpr(that.hi)
+//                    ).setType(that.type);
+//        }
     }
 
     // OK
     @Override
     public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
-        eresult = that;
-        if (fullTranslation) eresult = M.at(that).JmlStoreRefKeyword(that.kind);
-        result = eresult;
+    	log.error(that.pos,"jml.message","Should not be visiting a JmlStoreRefKeyword: " + that);
+//        eresult = that;
+//        if (fullTranslation) eresult = M.at(that).JmlStoreRefKeyword(that.kind);
+//        result = eresult;
     }
 
     // OK

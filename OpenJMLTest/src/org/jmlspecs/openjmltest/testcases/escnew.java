@@ -2086,7 +2086,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testConstantFolding3() {
-    	main.addOptions("-show","-method=m","-checkFeasibility=debug");
+    	//main.addOptions("-show","-method=m","-checkFeasibility=debug");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 

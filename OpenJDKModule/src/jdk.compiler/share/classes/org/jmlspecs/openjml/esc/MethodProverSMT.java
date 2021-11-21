@@ -497,7 +497,7 @@ public class MethodProverSMT {
                         
                         ++feasibilityCheckNumber;
                         if (feasibilityCheckNumber != stat.associatedPos) {
-                            utils.note(false, "XXX");
+                            utils.note(false, "Mismatched feasibilty number: "+ feasibilityCheckNumber + " vs. " + stat.associatedPos);
                         }
                         if (feasibilityCheckNumber < startFeasibilityCheck) continue;
                         if (prevErrors != log.nerrors) break;

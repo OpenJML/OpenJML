@@ -574,20 +574,22 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that, Void p) {
-        JmlStoreRefArrayRange copy = M.at(that.pos).JmlStoreRefArrayRange(
-                copy(that.expression,p),
-                copy(that.lo,p),
-                copy(that.hi,p));
-        copy.type = that.type;
-        return copy;
+//        JmlStoreRefArrayRange copy = M.at(that.pos).JmlStoreRefArrayRange(
+//                copy(that.expression,p),
+//                copy(that.lo,p),
+//                copy(that.hi,p));
+//        copy.type = that.type;
+//        return copy;
+    	return null;
     }
 
     @Override
     public JCTree visitJmlStoreRefKeyword(JmlStoreRefKeyword that, Void p) {
-        JmlStoreRefKeyword copy = M.at(that.pos).JmlStoreRefKeyword(
-                that.kind);
-        copy.type = that.type;
-        return copy;
+//        JmlStoreRefKeyword copy = M.at(that.pos).JmlStoreRefKeyword(
+//                that.kind);
+//        copy.type = that.type;
+//        return copy;
+    	return null;
     }
 
     @Override

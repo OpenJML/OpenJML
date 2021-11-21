@@ -326,9 +326,8 @@ public class typeclauses extends TCBase {
     @Test
     public void testRepresents10() {
         helpTCF("A.java","public class A {\n //@ model int i; represents x[3] = 0;\n}"
-                ,"/A.java:2: error: Array ranges are not permitted in a represents clause",30
                 ,"/A.java:2: error: cannot find symbol"+eol+"  symbol:   variable x"+eol+"  location: class A",30
-                ,"/A.java:2: error: Represents target with wild-card index must be an array: x[3]",30
+                ,"/A.java:2: error: Array elements are not permitted in a represents clause",30
                );
     }
     

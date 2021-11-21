@@ -363,6 +363,7 @@ public class escnewassignable extends EscBase {
 
     @Test
     public void testAssignable8() {
+//    	main.addOptions("-show","method=m1good");
         //Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

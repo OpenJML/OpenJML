@@ -1038,6 +1038,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - review this
     //boolean extraEnv = false;
     public void visitJmlMethodInvocation(JmlMethodInvocation that) { 
+    	//if (that.kind != null && that.kind.keyword == oldID) System.out.println("JMI " + that + " " + that.labelProperties);
         if (that.name != null) {
             scanList(that.args);
             result = that;
@@ -1232,29 +1233,132 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 }
                 // FIXME - symbols added after this havoc \everything will not have new incarnations???
             }
-        } else if (storeref instanceof JCArrayAccess) { // Array Access
-            JCArrayAccess aa = (JCArrayAccess)storeref;
+        } else if (storeref instanceof JmlSingleton sing) {
+            IJmlClauseKind t = sing.kind;
+            if (t == everythingKind || t == notspecifiedKind) {
+                for (VarSymbol vsym: currentMap.keySet()) {
+                    // Local variables are not affected by havoc \everything
+                    // The owner of a local symbol is a MethodSymbol
+                    // Also, final fields are not affected by havoc \everything
+                    if (vsym.owner instanceof ClassSymbol &&
+                            (vsym.flags() & Flags.FINAL) != Flags.FINAL &&
+                            !vsym.name.toString().equals(Strings.isAllocName) &&
+                            !vsym.name.toString().equals(Strings.allocName)) {
+                        newIdentIncarnation(vsym, storeref.pos);
+                    }
+                }
+                // FIXME - symbols added after this havoc \everything will not have new incarnations???
+            }
+        } else if (storeref instanceof JCArrayAccess aa) { // Array Access
             int sp = storeref.pos;
             JCIdent arr = getArrayIdent(syms.intType,aa.type,aa.pos);
             JCExpression ex = aa.indexed;
             JCExpression index = aa.index;
-            JCIdent nid = newArrayIncarnation(syms.intType,aa.type,sp);
-            
-            scan(ex); ex = result;
-            scan(index); index = result;
-            
-            JmlBBArrayAccess rhs = new JmlBBArrayAccess(nid,ex,index);
-            rhs.pos = sp;
-            rhs.type = aa.type;
-            JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,rhs);
-            expr.pos = sp;
-            expr.type = aa.type;
-            treeutils.copyEndPosition(expr, aa);
+            if (!(index instanceof JmlRange)) { // FIXME - should actually check the type
+            	JCIdent nid = newArrayIncarnation(syms.intType,aa.type,sp);
 
-            // FIXME - set line and source
-            addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
-            //log.error(storeref.pos,"jml.internal","Ignoring unknown kind of storeref in havoc: " + storeref);
-        } else if (storeref instanceof JmlStoreRefArrayRange) { // Array Access
+            	scan(ex); ex = result;
+            	scan(index); index = result;
+
+            	JmlBBArrayAccess rhs = new JmlBBArrayAccess(nid,ex,index);
+            	rhs.pos = sp;
+            	rhs.type = aa.type;
+            	JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,rhs);
+            	expr.pos = sp;
+            	expr.type = aa.type;
+            	treeutils.copyEndPosition(expr, aa);
+
+            	// FIXME - set line and source
+            	addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
+            	//log.error(storeref.pos,"jml.internal","Ignoring unknown kind of storeref in havoc: " + storeref);
+            } else {
+            	JmlRange range = (JmlRange)aa.index;
+                Type indexType = JmlTypes.instance(context).BIGINT;
+                if (range.lo == range.hi && range.lo != null) {
+                    // Single element
+                    JCExpression lo = range.lo;
+                    JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
+                    
+                    scan(ex); ex = result;
+                    scan(index); index = result;
+                    
+                    Name nm = names.fromString("__BBtmp_" + (++unique));
+                    JCVariableDecl decl = treeutils.makeVarDef(aa.type, nm, null, sp);
+                    JCIdent id = treeutils.makeIdent(sp,decl.sym);
+                    addDeclaration(id);
+                    
+                    JmlBBArrayAccess rhs = new JmlBBArrayAccess(nid,ex,index);
+                    rhs.pos = sp;
+                    rhs.type = aa.type;
+                    JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,id);
+                    expr.pos = sp;
+                    expr.type = aa.type;
+                    treeutils.copyEndPosition(expr, aa);
+
+                    // FIXME - set line and source
+                    addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
+                } else {
+                    JCArrayAccess aaorig = aa;
+                    // FIXME
+//                    while (ex instanceof JmlStoreRefArrayRange && ((JmlStoreRefArrayRange)ex).lo == null && ((JmlStoreRefArrayRange)ex).hi == null) { 
+//                        aa = (JmlStoreRefArrayRange)ex; ex = aa.expression;
+//                    }
+                    if (range.lo == null && range.hi == null) {
+                        // Entire array
+                        JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
+
+                        scan(ex); ex = result;
+
+                        JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,null,null);
+                        expr.pos = sp;
+                        expr.type = aa.type;
+                        treeutils.copyEndPosition(expr, aa);
+
+                        // FIXME - set line and source
+                        addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
+                    } else {
+                        // First havoc entire array
+                        // Range of array
+                        JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
+
+                        scan(ex); ex = result;
+
+                        JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,null,null);
+                        expr.pos = sp;
+                        expr.type = aa.type;
+                        treeutils.copyEndPosition(expr, aa);
+                        // FIXME - set line and source
+                        addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
+
+                        int p = aa.pos;
+                        scan(range.lo);
+                        JCExpression lo = result;
+                        JCVariableDecl decl = treeutils.makeVarDef(syms.intType, names.fromString("_JMLARANGE_" + (++unique)), null, p);
+                        JCIdent ind = treeutils.makeIdent(p, decl.sym);
+                        JCExpression comp = treeutils.makeBinary(p,JCTree.Tag.LT,treeutils.intltSymbol,ind,lo);
+                        JCExpression newelem = new JmlBBArrayAccess(nid,ex,ind);
+                        newelem.pos = p;
+                        newelem.type = aa.type;
+                        JCExpression oldelem = new JmlBBArrayAccess(arr,ex,ind);
+                        oldelem.pos = p;
+                        oldelem.type = aa.type;
+                        JCExpression eq = treeutils.makeEquality(p,newelem,oldelem);
+
+                        if (range.hi != null) {
+                            scan(range.hi);
+                            JCExpression hi = result;
+                            comp = treeutils.makeOr(p, comp, treeutils.makeBinary(p,JCTree.Tag.LT,treeutils.intltSymbol,hi,ind));
+                        }
+
+                        // FIXME - set line and source
+                        expr = factory.at(p).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,eq);
+                        expr.setType(syms.booleanType);
+                        addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
+                        //log.warning(storeref.pos,"jml.internal","Ignoring unknown kind of storeref in havoc: " + storeref);
+                    }
+                }
+            }
+        } else if (storeref instanceof JmlStoreRefArrayRange) { // Array Access // FIXME - OBSOLETE
             int sp = storeref.pos;
             JmlStoreRefArrayRange aa = (JmlStoreRefArrayRange)storeref;
             Type indexType = JmlTypes.instance(context).indexType(aa.expression.type);

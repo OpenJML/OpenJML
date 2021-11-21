@@ -4386,7 +4386,6 @@ public class esc2 extends EscBase {
                         + "  }\n" 
                         + "}"
                         ,"/tt/TestJava.java:4: error: Expected a comma or right parenthesis here",38
-                        ,"/tt/TestJava.java:4: error: Incorrectly formed or terminated assert statement near here",38
                 );
     }
 
