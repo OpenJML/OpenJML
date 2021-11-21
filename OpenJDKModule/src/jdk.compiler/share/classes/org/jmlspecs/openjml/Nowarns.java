@@ -82,11 +82,11 @@ public class Nowarns {
      */
     // FIXME - this is an inefficient lookup, and in the following method
     public boolean suppress(DiagnosticSource file, int pos, String label) {
-    	//boolean pr = label.contains("Invariant");
+    	//boolean pr = label.contains("Callable");
         int line = file.getLineNumber(pos);
-    	//if (pr) System.out.println("SUPPRESS? " + label + " " + line + " " + file.getFile());
+    	//if (pr) System.out.println("SUPPRESS? " + label + " " + pos + " " + line + " " + file.getFile());
         for (Item i: nowarns) {
-        	//if (pr && i.label.contains("Invariant")) System.out.println("  ITEM " + i.label + " " + i.line + " " + i.source.getFile());
+        	//if (pr && i.label.contains("Callable")) System.out.println("  ITEM " + i.label + " " + i.line + " " + i.source.getFile());
             if (i.label != null && !label.equals(i.label)) {
                 // continue
             } else if (i.source == null) {

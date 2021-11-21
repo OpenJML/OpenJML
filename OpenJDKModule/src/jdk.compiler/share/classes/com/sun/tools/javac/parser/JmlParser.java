@@ -34,6 +34,7 @@ import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
 import org.jmlspecs.openjml.ext.InlinedLoopStatement;
 import org.jmlspecs.openjml.ext.JMLPrimitiveTypes;
 import org.jmlspecs.openjml.ext.MatchExt;
+import org.jmlspecs.openjml.ext.MiscExpressions;
 import org.jmlspecs.openjml.ext.Modifiers;
 
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
@@ -1191,7 +1192,7 @@ public class JmlParser extends JavacParser {
         		// The missing semi-colon is reported by the caller
         		break;
         	} else {
-        		syntaxError(pos(), null, "jml.missing.comma");
+        		syntaxError(pos(), null, "jml.missing.comma.rp");
         		if (e == null) break;
         	}
         }
@@ -1707,22 +1708,25 @@ public class JmlParser extends JavacParser {
 
     // FIXME - move to extensions?
     /** Parses a storeRefKeyword or returns null (with no error message) */
-    public JmlStoreRefKeyword parseOptStoreRefKeyword() {
+    public JmlSingleton parseOptStoreRefKeyword() {
         int p = pos();
         if (tokenIsId(nothingID)) {
-            JmlStoreRefKeyword s = to(jmlF.at(p).JmlStoreRefKeyword(nothingKind));
-            nextToken();
-            return s;
+        	return (JmlSingleton)nothingKind.parse(null, nothingID, nothingKind, this);
+//            var s = to(jmlF.at(p).JmlSingleton(nothingKind));
+//            nextToken();
+//            return s;
         }
         if (tokenIsId(everythingID)) {
-            JmlStoreRefKeyword s = to(jmlF.at(p).JmlStoreRefKeyword(everythingKind));
-            nextToken();
-            return s;
+        	return (JmlSingleton)everythingKind.parse(null, everythingID, everythingKind, this);
+//            var s = to(jmlF.at(p).JmlSingleton(everythingKind));
+//            nextToken();
+//            return s;
         }
         if (tokenIsId(notspecifiedID)) {
-            JmlStoreRefKeyword s = to(jmlF.at(p).JmlStoreRefKeyword(notspecifiedKind));
-            nextToken();
-            return s;
+        	return (JmlSingleton)notspecifiedKind.parse(null, notspecifiedID, notspecifiedKind, this);
+//            var s = to(jmlF.at(p).JmlSingleton(notspecifiedKind));
+//            nextToken();
+//            return s;
         }
         return null;
     }
@@ -1849,7 +1853,7 @@ public class JmlParser extends JavacParser {
                 nextToken();
                 if (token.kind == RBRACKET) {
                     nextToken();
-                    t = toP(jmlF.at(t.pos).JmlStoreRefArrayRange(t, null, null));
+                    t = toP(jmlF.at(t.pos).Indexed(t, jmlF.at(t.pos).JmlRange(null,null)));
                     continue;
                 } else {
                     utils.error(pos(), endPos(), "jml.expected.rbracket.star");
@@ -1857,34 +1861,39 @@ public class JmlParser extends JavacParser {
                     break;
                 }
             } else {
-                JCExpression lo = parseExpression();
+                JCExpression index = parseExpression(); // parses an index or a range
                 if (token.kind == RBRACKET) {
-                    t = to(jmlF.at(t.pos).JmlStoreRefArrayRange(t, lo, lo));
+                    if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+                    	if (index instanceof JmlRange r && r.lo != null && r.hi == null) {
+                    		utils.warning(token.pos,"jml.not.strict","storeref with implied end-of-range: " + index);
+                    	}
+                      } 
+                    t = to(jmlF.at(t.pos).Indexed(t, index));
                     nextToken();
                     continue;
-                } else if (!strictId && jmlTokenKind() == DOT_DOT) {
-                    nextToken();
-                    JCExpression hi = null;
-                    int rbracketPos = pos();
-                    if (token.kind == STAR) {
-                        nextToken();
-                    } else if (token.kind == RBRACKET) {
-                        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
-                            utils.warning(rbracketPos,"jml.not.strict","storeref with implied end-of-range (a[i..])");
-                        }
-                        // OK - missing hi end implies end of array
-                    } else {
-                        hi = parseExpression();
-                    }
-                    if (token.kind == RBRACKET) {
-                        t = to(jmlF.at(t.pos).JmlStoreRefArrayRange(t, lo, hi));
-                        nextToken();
-                    } else {
-                        utils.error(pos(), endPos(), "jml.expected.rbracket");
-                        skipToCommaOrSemi();
-                        break;
-                    }
-                    continue;
+//                } else if (!strictId && jmlTokenKind() == DOT_DOT) {
+//                    nextToken();
+//                    JCExpression hi = null;
+//                    int rbracketPos = pos();
+//                    if (token.kind == STAR) {
+//                        nextToken();
+//                    } else if (token.kind == RBRACKET) {
+//                        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+//                            utils.warning(rbracketPos,"jml.not.strict","storeref with implied end-of-range (a[i..])");
+//                        }
+//                        // OK - missing hi end implies end of array
+//                    } else {
+//                        hi = parseExpression();
+//                    }
+//                    if (token.kind == RBRACKET) {
+//                        t = to(jmlF.at(t.pos).Indexed(t, jmlF.at(t.pos).JmlRange(lo, hi)));
+//                        nextToken();
+//                    } else {
+//                        utils.error(pos(), endPos(), "jml.expected.rbracket");
+//                        skipToCommaOrSemi();
+//                        break;
+//                    }
+//                    continue;
                 } else {
                     utils.error(pos(), endPos(),
                             "jml.invalid.expression.succeeding.token");
@@ -2280,10 +2289,13 @@ public class JmlParser extends JavacParser {
                     return jmlF.at(p).Erroneous();
                 } else if (kind instanceof IJmlClauseKind.SingletonKind) {
                 	return (JCExpression)kind.parse(null, id, kind, this);
-                } else if (kind instanceof org.jmlspecs.openjml.ext.JMLPrimitiveTypes.JmlTypeKind) {
-                	return ((org.jmlspecs.openjml.ext.JMLPrimitiveTypes.JmlTypeKind)kind).parse(null, id, kind, this); // could be type or expression
-                } else if (inExprMode() && kind instanceof IJmlClauseKind.ExpressionKind) {
-                	JCExpression tt = ((IJmlClauseKind.ExpressionKind)kind).parse(null, id, kind, this);
+                } else if (kind instanceof org.jmlspecs.openjml.ext.JMLPrimitiveTypes.JmlTypeKind tk) {
+                	return tk.parse(null, id, kind, this); // could be type or expression
+                } else if (inExprMode() && kind instanceof IJmlClauseKind.ExpressionKind ek) {
+                	JCExpression tt = ek.parse(null, id, kind, this);
+                	return term3Rest(tt, typeArgs);
+                } else if (inTypeMode() && kind == MiscExpressions.typelcKind && kind instanceof IJmlClauseKind.ExpressionKind ek) {
+                	JCExpression tt = ek.parse(null, id, kind, this);
                 	return term3Rest(tt, typeArgs);
                 } else if (inTypeMode()) {
                 	utils.error(p, endPos(), "jml.message",

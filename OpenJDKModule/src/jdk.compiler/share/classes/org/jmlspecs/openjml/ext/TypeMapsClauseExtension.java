@@ -67,38 +67,13 @@ public class TypeMapsClauseExtension extends JmlExtension {
         /** Parses the target portion (before the \\into) of a maps clause */
         public JCExpression parseMapsTarget() {
             int p = parser.pos();
-            if (parser.token().kind != IDENTIFIER) {
-                utils.error(parser.pos(), parser.endPos(), "jml.expected", "an identifier");
-                parser.skipThroughSemi();
-                return toP(parser.jmlF.at(p).Erroneous());
-            }
-            Name n = parser.ident();
-            JCExpression result = parser.to(parser.jmlF.at(p).Ident(n));
-            if (parser.token().kind == LBRACKET) {
-                result = parser.parseArrayRangeExpr(result, false);
-            }
-            if (parser.token().kind == DOT) {
-                parser.nextToken();
-                if (parser.token().kind == STAR) {
-                    parser.nextToken();
-                    n = null;
-                } else if (parser.token().kind == IDENTIFIER) {
-                    n = parser.ident();
-                } else {
-                    utils.error(parser.pos(), parser.endPos(), "jml.ident.or.star.after.dot");
-                    parser.skipThroughSemi();
-                    return toP(parser.jmlF.at(p).Erroneous());
-                }
-                // Caution: Java will not expect n to be null
-                // It is null to denote a wildcard selector
-                result = parser.to(parser.jmlF.at(p).Select(result, n));
-            } else if (!(result instanceof JmlStoreRefArrayRange)) {
-                utils.error(parser.pos(), parser.endPos(), "jml.expected",
-                        "a . to select a field");
-                parser.skipThroughSemi();
-                return parser.to(parser.jmlF.at(p).Erroneous());
-            }
-            return result;
+        	JCExpression target = parser.parseExpression();
+        	if (target instanceof JCTree.JCIdent) return target;
+        	if (target instanceof JCTree.JCArrayAccess) return target;
+        	if (target instanceof JCTree.JCFieldAccess) return target;
+            utils.error(parser.pos(), parser.endPos(), "jml.expected", "an identifier, field access or array access");
+            parser.skipThroughSemi();
+            return toP(parser.jmlF.at(p).Erroneous());
         }
 
         

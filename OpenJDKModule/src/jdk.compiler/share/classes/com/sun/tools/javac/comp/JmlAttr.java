@@ -2008,7 +2008,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 defaultClause = null;
             } else if (pure != null || (constructorDefault.equals("pure") && msym.isConstructor())) {
                 int pos = pure != null ? pure.pos : cs.pos;
-                JmlStoreRefKeyword kw = jmlMaker.at(pos).JmlStoreRefKeyword(nothingKind);
+                var kw = jmlMaker.at(pos).JmlSingleton(nothingKind);
                 defaultClause = jmlMaker.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                         List.<JCExpression>of(kw));
 //            } else if (decl.sym.isConstructor()) {
@@ -2019,7 +2019,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
 //                        List.<JCExpression>of(jmlMaker.at(cs.pos).Select(t,(Name)null)));
             } else {
-                JmlStoreRefKeyword kw = jmlMaker.at(cs.pos).JmlStoreRefKeyword(everythingKind);
+                var kw = jmlMaker.at(cs.pos).JmlSingleton(everythingKind);
                 defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                         List.<JCExpression>of(kw));
             }
@@ -2042,7 +2042,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         List.<JCExpression>of(t,jmlMaker.Select(t,(Name)null)));
             } else {
                 defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClause,
-                        List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(everythingKind)));
+                        List.<JCExpression>of(jmlMaker.JmlSingleton(everythingKind)));
             }
             if (defaultClause != null) {
                 defaultClause.sourcefile = log.currentSourceFile();
@@ -2200,8 +2200,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     signalsClause = jmlMaker.at(m.pos).JmlMethodClauseSignals(signalsID,signalsClauseKind,signalClauseVar,treeutils.falseLit);
                     exlist.add(signalsClause);
                     exlist.add(jmlMaker.at(m.pos).JmlMethodClauseExpr(ensuresID,ensuresClauseKind,treeutils.falseLit));
+//                    exlist.add(jmlMaker.JmlMethodClauseStoreRef(assignableID,assignableClauseKind,
+//                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(nothingKind))));
                     exlist.add(jmlMaker.JmlMethodClauseStoreRef(assignableID,assignableClauseKind,
-                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(nothingKind))));
+                            List.<JCExpression>of(jmlMaker.JmlSingleton(nothingKind))));
                 } else {
                     excRequires.expression = treeutils.makeBitOr(m.pos,
                             excRequires.expression, nn.expression);
@@ -2255,7 +2257,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     // So if there is an assignable clause the elements of the clause
                     // may only be members of the class
                     for (JCTree tt: asg.list) {
-                        if (tt instanceof JmlSingleton && ((JmlSingleton)tt).kind == nothingKind) {
+                        if (tt instanceof JmlSingleton k && k.kind == nothingKind) {
+                            // OK
+                        } else if (tt instanceof JmlStoreRefKeyword k && k.kind == nothingKind) {
                                 // OK
                         } else if (tt instanceof JCIdent) {
                             // non-static Simple identifier is OK
@@ -2279,14 +2283,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                             if (!ok) utils.error(tt,"jml.pure.constructor",tt.toString());
                         } else {
                             // FIXME - also allow this.*  or super.* ?
-                            utils.error(tt,"jml.pure.constructor",tt.toString() + " " + tt.getClass());
+                            utils.error(tt,"jml.pure.constructor",tt.toString());
                         }
                     }
                 } else {
                     for (JCTree tt: asg.list) {
                         if (tt instanceof JmlStoreRefKeyword &&
-                            ((JmlStoreRefKeyword)tt).kind == nothingKind) {
-                                // OK
+                                ((JmlStoreRefKeyword)tt).kind == nothingKind) {
+                                    // OK
+                        } else if (tt instanceof JmlSingleton key &&
+                                    key.kind == nothingKind) {
+                                        // OK
                         } else if (isFunction(decl.sym)) {
                             utils.error(tt,"jml.function.method",tt.toString());
                         } else {
@@ -2987,25 +2994,37 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JCIdent id = (JCIdent)tree.ident;
                 type = attribExpr(id, env, Type.noType);
                 sym = id.sym;
-            } else if (tree.ident instanceof JCArrayAccess) {
-            	//var aa = (JCArrayAccess)tree.ident;
-                utils.error(tree.ident, "jml.message", "Array elements are not permitted in a represents clause");
-                return;
-            } else if (tree.ident instanceof JmlStoreRefArrayRange) {
-            	var aa = (JmlStoreRefArrayRange)tree.ident;
-            	if (aa.hi != null || aa.lo != null) {
-                    utils.error(tree.ident, "jml.message", "Array ranges are not permitted in a represents clause");
-            	}
-            	Type t = attribExpr(aa.expression,env,Type.noType);
-            	if (!(t instanceof ArrayType)) {
-            		utils.error(aa, "jml.message", "Represents target with wild-card index must be an array: " + tree.ident);
-            		type = types.createErrorType(t);
+            } else if (tree.ident instanceof JCArrayAccess aa) {
+            	Type t = tree.ident.type = attribExpr(aa.indexed,env,Type.noType);
+            	if (aa.index instanceof JmlRange range) {
+                	if (range.hi != null || range.lo != null) {
+                        utils.error(tree.ident, "jml.message", "Array ranges are not permitted in a represents clause");
+                	}
+                	if (!(t instanceof ArrayType)) {
+                		// FIXME - I don't understand this message  or why it is here
+                		utils.error(aa, "jml.message", "Represents target with wild-card index must be an array: " + tree.ident);
+                		type = types.createErrorType(t);
+                	} else {
+                		type = ((ArrayType)t).elemtype;
+                	}
             	} else {
-            		type = ((ArrayType)t).elemtype;
+            		utils.error(tree.ident, "jml.message", "Array elements are not permitted in a represents clause");
             	}
-            	// FIXME - sym?
-            } else if (tree.ident instanceof JCFieldAccess) {
-            	var fa = (JCFieldAccess)tree.ident;
+                return;
+//            } else if (tree.ident instanceof JmlStoreRefArrayRange) {
+//            	var aa = (JmlStoreRefArrayRange)tree.ident;
+//            	if (aa.hi != null || aa.lo != null) {
+//                    utils.error(tree.ident, "jml.message", "Array ranges are not permitted in a represents clause");
+//            	}
+//            	Type t = attribExpr(aa.expression,env,Type.noType);
+//            	if (!(t instanceof ArrayType)) {
+//            		utils.error(aa, "jml.message", "Represents target with wild-card index must be an array: " + tree.ident);
+//            		type = types.createErrorType(t);
+//            	} else {
+//            		type = ((ArrayType)t).elemtype;
+//            	}
+//            	// FIXME - sym?
+            } else if (tree.ident instanceof JCFieldAccess fa) {
             	type = attribExpr(fa,env,Type.noType);
                 utils.error(tree.ident, "jml.message", "Field accesses are not permitted in a represents clause");
                 return;
