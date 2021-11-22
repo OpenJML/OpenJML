@@ -1918,10 +1918,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     if (c.token == null && decl != null) mods = c.modifiers = decl.mods;
                     ListBuffer<JmlMethodClause> cl = new ListBuffer<JmlMethodClause>();
                     cl.appendList(commonClauses);  // FIXME - appending the same ASTs to each spec case - is this sharing OK
+                    //System.out.println("DESUGARING CASE " + c);
                     ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,msym,mods);
                     for (JmlSpecificationCase cs: newcases) {
                         addDefaultClauses(decl, mods, msym, pure, cs, nnexpr);
                     }
+                    //System.out.println("DESUGARED " + newcases);
                     allcases.appendList(newcases);
                 }
                 for (JmlSpecificationCase c: methodSpecs.impliesThatCases) {
@@ -1996,11 +1998,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
         }
         ListBuffer<JmlMethodClause> newClauseList = new ListBuffer<>();
-        {
-        	// JmlAssertionAdder expects the first requires cause to be params nonnull test, even if it is 'true'
-        	var req = jmlMaker.at(cs.pos).JmlMethodClauseExpr(requiresID, requiresClauseKind, nnexpr);
-        	newClauseList.add(req);
-        }
         if (!hasAssignableClause && cs.block == null) {
             JmlMethodClause defaultClause;
             if (findMod(mods,Modifiers.INLINE) != null) {
@@ -2067,7 +2064,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                    List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
 //      newClauseList.add(defaultClause);
 //        }
-        cs.clauses = cs.clauses.appendList(newClauseList);
+
+        // JmlAssertionAdder expects the first requires clause to be params nonnull test, even if it is 'true'
+        	// FIXME - where?
+        var req = jmlMaker.at(cs.pos).JmlMethodClauseExpr(requiresID, requiresClauseKind, nnexpr);
+        cs.clauses = cs.clauses.appendList(newClauseList).prepend(req);
     }
     
     

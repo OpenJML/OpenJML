@@ -2173,6 +2173,11 @@ public class SMTTranslator extends JmlTreeScanner {
 
     @Override
     public void visitBinary(JCBinary tree) {
+    	if (tree.lhs == null) System.out.println("NULL LHS IN " + tree);
+    	else if (tree.lhs.type == null) System.out.println("NULL LHS TYPE IN " + tree);
+    	if (tree.rhs == null) System.out.println("NULL RHS IN " + tree);
+    	else if (tree.rhs.type == null) System.out.println("NULL RHS TYPE IN " + tree);
+    	try {
         JCTree.Tag op = tree.getTag();
         IExpr lhs = convertExpr(tree.lhs);
         IExpr rhs = convertExpr(tree.rhs);
@@ -2435,6 +2440,10 @@ public class SMTTranslator extends JmlTreeScanner {
             default:
                 log.error("jml.internal","Don't know how to translate expression to SMTLIB: " + JmlPretty.write(tree));
                 throw new RuntimeException();
+        }
+        } catch (Exception e) {
+        	System.out.println("EXCEPTION IN SUBEXPR OF " + tree);
+        	throw e;
         }
     }
 
