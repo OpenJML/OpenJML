@@ -2216,6 +2216,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //            }
 //        }
         that.lhs = convertExpr(that.lhs);
+        if (that.rhs instanceof JmlRange) System.out.println("RANGE? " + that);
         that.rhs = convertExpr(that.rhs);
         result = that; 
     }
@@ -2240,9 +2241,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         result = that; 
     }
     
-    // FIXME - review
     @Override public void visitJmlRange(JmlRange that) {
-        notImpl(that);
+    	convertExpr(that.lo);
+    	convertExpr(that.hi);
+    	result = that;
     }
 
     // FIXME - review

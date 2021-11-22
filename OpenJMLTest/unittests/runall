@@ -28,7 +28,7 @@ cd $(dirname "$BASH_SOURCE")
 sleep 300
 ./run-summary log-escfunc+	"28/0"  escfunction escgeneric  &
 ./run-summary log-escinclau+	"104/0" escinclause escinline esclocation escnewBoxing escnewassignable escnowarn escoption escprimitivetypes escreadable escstrings  &
-./run-summary log-escvis  	"59/0" escvisibility escvisibility1  &
+./run-summary log-escvis  	"59/0"  escvisibility escvisibility1  &
 ./run-summary log-escnew   	"64/1"  escnew &
 ./run-summary log-escnew2   	"35/0"  escnew2 &
 ./run-summary log-escnew3   	"63/1"  escnew3 &
