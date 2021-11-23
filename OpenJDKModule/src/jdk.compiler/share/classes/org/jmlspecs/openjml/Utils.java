@@ -912,6 +912,10 @@ public class Utils {
         return ct.isPrimitive() || jmltypes().isJmlType(ct) || isExtensionValueType(ct);
     }
 
+    public boolean isJavaOrJmlPrimitiveOrVoidType(Type ct) {
+        return ct.isPrimitiveOrVoid() || jmltypes().isJmlType(ct) || isExtensionValueType(ct);
+    }
+
     public boolean isPrimitiveOrVoidType(Type ct) {
         return ct.isPrimitiveOrVoid() || jmltypes().isJmlType(ct) || isExtensionValueType(ct);
     }

@@ -1216,6 +1216,21 @@ public class JmlParser extends JavacParser {
     		parsingLocationList = saved;
     	}
     }
+    
+    JCExpression lambdaStatement(List<JCVariableDecl> args, int pos, int pos2) {
+        var e = super.lambdaStatement(args,  pos,  pos2);
+        if (e instanceof JmlLambda) ((JmlLambda)e).sourceLocation = log.currentSourceFile();
+        else System.out.println("EXPECTED JMLLAMBDA"); // FIXME
+        return e;
+    }
+
+    JCExpression lambdaExpression(List<JCVariableDecl> args, int pos) {
+        var e = super.lambdaExpression(args,  pos);
+        if (e instanceof JmlLambda) ((JmlLambda)e).sourceLocation = log.currentSourceFile();
+        else System.out.println("EXPECTED JMLLAMBDA");  // FIXME
+        return e;
+    }
+
 
     protected JCExpression term3Rest(JCExpression t,
             List<JCExpression> typeArgs) {

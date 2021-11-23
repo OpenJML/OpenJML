@@ -3612,6 +3612,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         			}
 
         			c.accept(this);
+        		} catch (JmlInternalAbort|PropagatedException e) {
+        			throw e;
         		} catch (Exception e) {
         			System.out.println("EXCEPTION-JmlMethodSpecs " + e);
         			e.printStackTrace(System.out);
@@ -4085,6 +4087,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	return super.condType(positions, condTypes);
     }
 
+    @Override
+    public void visitBinary(JCBinary that) {
+    	super.visitBinary(that);
+    	if (that.getTag() != Tag.EQ && that.getTag() != Tag.NE) return;
+    	if ((utils.isExtensionValueType(that.lhs.type) || utils.isExtensionValueType(that.rhs.type))
+    			&& !jmltypes.isSameType(that.rhs.type,that.lhs.type)) {
+    		utils.error(that, "jml.message", "Values of JML primitive types may only be compared to each other: "
+    				+ that.lhs.type + " vs. " + that.rhs.type);
+    	}
+    }
     
     @Override
     public void visitJmlBinary(JmlBinary that) {  // FIXME - how do we handle unboxing, casting
@@ -7240,6 +7252,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    			System.out.println("SPECIFICATIONEXCEPTION");
 //    			e.printStackTrace(System.out);
 //    			Utils.dumpStack();
+    		} catch (JmlInternalAbort|PropagatedException e) {
+    			throw e;
     		} catch (Exception e) {
     			System.out.println("EXCEPTION");
     			e.printStackTrace(System.out);
@@ -7255,11 +7269,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			currentQueryContext = savedQuery;
     			jmlresolve.setAllowJML(prevAllowJML);
     		}
+//    		if (JmlCompiler.instance(context).errorCount() > 0) {
+//    			String msg = "Aborting because of type or parse error in specs: " + msym.owner + "." + msym;
+//    			utils.error("jml.message", msg);
+//    			throw new SpecificationException();
+//    		}
     		utils.note(true, "    Attributed specs for " + msym.owner + " " + msym);
     	} catch (SpecificationException e) {
-    		throw new PropagatedException(e);
-    	} catch (PropagatedException e) {
+    		throw new JmlInternalAbort();
+    	} catch (JmlInternalAbort|PropagatedException e) {
     		// continue to clean exit - already reported
+    		throw e;
     	} catch (Exception e) {
     		utils.unexpectedException("Exception while attributing method specs: " + msym.owner + "." + msym, e);
     	} finally {

@@ -107,6 +107,7 @@ public class JmlOption {
     public static final JmlOption PROVER = new JmlOption("-prover",true,null,"The prover to use to check verification conditions",null);
     public static final JmlOption PROVEREXEC = new JmlOption("-exec",true,null,"The prover executable to use",null);
     public static final JmlOption LOGIC = new JmlOption("-logic",true,"ALL","The SMT logic to use (default ALL)",null);
+    public static final JmlOption SMT = new JmlOption("-smt",true,null,"A file to write the smt command file to",null);
 
     public static final JmlOption NONNULLBYDEFAULT = new JmlOption("-nonnullByDefault",false,false,"Makes references non_null by default","-nullableByDefault=false");
     public static final JmlOption NULLABLEBYDEFAULT = new JmlOption("-nullableByDefault",false,false,"Makes references nullable by default",null);
