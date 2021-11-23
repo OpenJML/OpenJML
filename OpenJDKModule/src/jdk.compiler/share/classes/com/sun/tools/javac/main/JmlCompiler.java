@@ -364,7 +364,7 @@ public class JmlCompiler extends JavaCompiler {
                 esc.initCounts();
         	    for (Env<AttrContext> env: envs) esc(env); // Transforms and proves
         	} catch (PropagatedException e) {
-        		// cancelation - catch and continue
+        		// cancelation or error in specifications parsed on demand - catch and continue
         	} finally {
                 String summary = esc.reportCounts();
                 if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode) utils.note(false,summary);

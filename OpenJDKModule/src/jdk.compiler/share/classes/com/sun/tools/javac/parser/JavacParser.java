@@ -100,7 +100,7 @@ public class JavacParser implements Parser {
 
     /** The log to be used for error diagnostics.
      */
-    private Log log;
+    public Log log; // OPENJML private to public
 
     /** The Source language setting. */
     private Source source;

@@ -87,6 +87,7 @@ JML options:
   -prover                    The prover to use to check verification conditions
   -exec                      The prover executable to use
   -logic                     The SMT logic to use (default ALL)
+  -smt                       A file to write the smt command file to
   -nonnullByDefault          Makes references non_null by default [-nullableByDefault=false]
   -nullableByDefault         Makes references nullable by default
   -code-math                 Arithmetic mode for Java code (code, safe, bigint)

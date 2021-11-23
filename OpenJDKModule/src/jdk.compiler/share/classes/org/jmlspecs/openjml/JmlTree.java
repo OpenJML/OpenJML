@@ -3931,6 +3931,7 @@ public class JmlTree {
     public static class JmlLambda extends JCLambda {
         public JCExpression jmlType;
         public JCIdent literal;
+        public JavaFileObject sourceLocation;
         
         public JmlLambda(List<JCVariableDecl> params,
                 JCTree body, JCExpression jmlType) {

@@ -252,6 +252,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.paramKind = that.paramKind;
         copy.polyKind = that.polyKind;
         copy.target = that.target; // FIXME - should make new copies?
+        copy.sourceLocation = ((JmlLambda)that).sourceLocation;
         return copy;
     }
 
