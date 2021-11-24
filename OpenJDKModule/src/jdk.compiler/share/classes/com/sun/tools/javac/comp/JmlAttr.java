@@ -1857,7 +1857,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		var p = iter == null ? null : iter.next();
         		var pos = p == null ? Position.NOPOS : p.pos;
         		var s = syms.next();
-        		boolean nn = specs.isNonNullFormal(param.type, i, msp, msym);
+        		boolean nn = specs.isCheckNonNullFormal(param.type, i, msp, msym);
         		if (nn) {
         			JCIdent e = treeutils.makeIdent(pos, s!=null ? s :p != null ? p.sym : param);
         			//System.out.println("USING SYM " + e.name + " " + e.sym + " " + e.sym.hashCode() + " : " + Objects.hashCode(s) + " " + Objects.hashCode(p.sym) + " " + Objects.hashCode(param));

@@ -2005,7 +2005,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-        //if (assertCount == 47) Utils.dumpStack();
+        //if (assertCount == 140) Utils.dumpStack();
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
         JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? (classDecl == null ? null : classDecl.sym) : methodDecl.sym,translatedExpr);
@@ -8814,7 +8814,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 		var calleeSpecs = specs.getSpecs(calleeMethodSym);
                 		for (int i=0; i<calleeMethodSym.params.size(); i++) {
                 			VarSymbol v = calleeMethodSym.params.get(i);
-                			boolean nn = specs.isNonNullFormal(v.type, i, calleeSpecs, calleeMethodSym);
+                			boolean nn = specs.isCheckNonNullFormal(v.type, i, calleeSpecs, calleeMethodSym);
                 			if (nn) {
                 				// FIXME - why this if?
                 				if (calleeSpecs.specDecl == null) {
@@ -9014,10 +9014,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         }
                                 } else if (ct == requiresClauseKind) {
                                     // FIXME - need to include the requires expression in the condition for the sake of old expressions - also below
-                                        JmlMethodClauseExpr mce = (JmlMethodClauseExpr)clause;
+                                        JmlMethodClauseExpr requiresClause = (JmlMethodClauseExpr)clause;
 //                                        JCExpression e = convertJML(mce.expression,pre,false); // Might throw an exception
 //                                        prex = treeutils.makeAndSimp(mce.expression.pos, prex, e);
-                                        if (mcc == null) mcc = mce;
+                                        if (mcc == null) mcc = requiresClause;
                                         clauseToReference = (JmlMethodClauseExpr)clause;
                                         if (clauseIds.containsKey(clause)) {
                                             prex = clauseIds.get(clause);
@@ -9041,7 +9041,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         checkAccessEnabled = false;  // FIXME _ review what this is for
                                         ListBuffer<JCStatement> check = null;
                                         try {
-                                            JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
+                                            JCExpression ex = requiresClause.expression;
                                             addTraceableComment(ex,clause.toString());
                                             JCExpression nextPreExpr;
                                             JCBlock thenbl, elsebl;
@@ -9132,6 +9132,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         calleePreconditions.put(cs,preId); // Add to the list of spec cases, in order of declaration
                         pre = preId;
                         combinedPrecondition = treeutils.makeOrSimp(pre.pos, combinedPrecondition, pre);
+                        
                         //addStat(treeutils.makeUtilsMethodStat(pre.pos, "reportBoolean", treeutils.makeStringLiteral(that.pos, "C"), combinedPrecondition));
                         if (esc) {
                             String nm = "_$CPRE__" + preconditionDetailLocal + "_" + preconditionDetail2;
@@ -9824,7 +9825,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // Add invariants on the type of the return value only if normal termination
                     ListBuffer<JCStatement> check6 = pushBlock();
                     if (esc && !utils.isJavaOrJmlPrimitiveType(retType)) {
-                        boolean nnull = specs.isNonNullReturn(retType, calleeMethodSym);
+                        boolean nnull = specs.isCheckNonNullReturn(retType, calleeMethodSym);
                     	//System.out.println("RET TYPE " + calleeMethodSym + " " + calleeMethodSym.type + " " + calleeMethodSym.getReturnType() + " " + retType + " " + nnull);
                         addStat(comment(that,"Return is non-null: " + calleeMethodSym + " " + nnull, null));
                     	if (nnull) {
@@ -18386,7 +18387,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         						classDecl.name, 
         						null, 
         						classDecl.sym);
-        				methodDecl = //M.MethodDef(msym, null,null);
+        				methodDecl = //M.MethodDef(msym, null,n)ull);
         						new JmlMethodDecl(
         								M.Modifiers(flags, M.Annotations(List.<com.sun.tools.javac.code.Attribute.Compound>nil())),
         								classDecl.name,
