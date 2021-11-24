@@ -363,6 +363,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testForEach3c() {
     	//main.addOptions("-show","-method=m");
+    	// nullable by default so list might be null
         helpTCX("tt.TestJava"," class A {  /*@ spec_bigint_math */ void m(java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ assert sum == 0; \n"

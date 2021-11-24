@@ -41,7 +41,7 @@ public class esc1 extends EscBase {
         main.addOptions("-nullableByDefault"); // Because the tests were written
                                                 // this way
         main.addOptions("-code-math=bigint","-spec-math=bigint");
-    	main.addOptions("-no-require-white-space");
+        main.addOptions("-no-require-white-space");
         // main.addOptions("-trace");
         // JmlEsc.escdebug = true;
         // org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -320,7 +320,7 @@ public class esc1 extends EscBase {
     public void testForEach2() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava",
-        		  "package tt; import java.util.*; \n"
+                  "package tt; import java.util.*; \n"
                 + "public class TestJava { \n"
                 + "  //@ public normal_behavior  ensures true;\n"
                 + "  public void m2() {\n"
@@ -372,55 +372,59 @@ public class esc1 extends EscBase {
     @Test
     public void testForEach2a2() {
         main.addOptions("-escMaxWarnings=1");
-        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
-                + "public class TestJava { \n"
+        helpTCX("tt.TestJava", 
+                """
+                package tt; import java.util.*;
+                public class TestJava {
 
-                + "  //@ public normal_behavior  ensures true;\n" 
-                + "  public void m2() {\n" // Line 10
-                + "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
-                + "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
-                + "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
-                + "    Map.Entry<String,String> k; \n"
-                + "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
-                + "    //@ loop_invariant values == v; \n"
-                + "    for (; it.hasNext(); values.add(k) ) {\n"  // FIXME - why need k ! null below since implied by second conjunct
-                + "        k = it.next();  //@ assume k != null && \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
-                        // FIXME - problems if we have erased type names
-                + "    }\n" 
-                + "  }\n"
+                  //@ public behavior  ensures true;
+                  public void m2() {
+                    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>();
+                    //@ assume values != null; set values.containsNull = true;
+                    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>();
+                    Iterator<Map.Entry<String,String>> it = a.iterator();
+                    Map.Entry<String,String> k;
+                    //@ ghost List<Map.Entry<String,String>> v = values; // Line 10
+                    //@ loop_invariant values == v;
+                    for (; it.hasNext(); values.add(k) ) {
+                        k = it.next();  
+                        //@ assert k != null ==> \\typeof(k) <: \\type(Map.Entry<String,String>);
+                        //@ assert k != null;
+                    }
+                  }
+                  public TestJava() {}
 
-
-                + "  public TestJava() {}"
-
-                + "}"
-
+                }
+                """
         );
     }
     @Test
     public void testForEach2a2a() {
         main.addOptions("-escMaxWarnings=1");
-        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
-                + "public class TestJava { \n"
+        helpTCX("tt.TestJava", 
+                """
+                package tt; import java.util.*;
+                public class TestJava {
 
-                + "  //@ public normal_behavior  ensures true;\n" 
-                + "  public void m2a() {\n"
-                + "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
-                + "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
-                + "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
-                + "    Map.Entry<String,String> k;\n"
-                + "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
-                + "    // @ loop_invariant values == v; \n"
-                + "    if (it.hasNext()) {\n" 
-                + "        k = it.next();  //@ assume k != null &&  \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
-                                // FIXME - problems if we have erased type names
-                + "        values.add(k); \n"
-                                // FIXME - problems if we have erased type names
-                + "    }\n" 
-                + "  }\n"
+                  //@ public behavior  ensures true;
+                  public void m2a() {
+                    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); 
+                    //@ set values.containsNull = false;
+                    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); 
+                    Iterator<Map.Entry<String,String>> it = a.iterator();
+                    Map.Entry<String,String> k;
+                    //@ ghost List<Map.Entry<String,String>> v = values;
+                    //@ loop_invariant values == v;
+                    while (it.hasNext()) {
+                        k = it.next();
+                        //@ assert k != null;
+                        values.add(k);
+                    }
+                  }
 
-                + "  public TestJava() {}"
-
-                + "}"
+                  public TestJava() {}
+                }
+                """
 
         );
     }
@@ -430,7 +434,7 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
                 + "public class TestJava { \n"
 
-                + "  //@ public normal_behavior  ensures true;\n" 
+                + "  //@ public behavior  ensures true;\n" 
                 + "  public void m3() {\n" 
                 + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
                 + "    Integer k = Integer.valueOf(1);\n"
@@ -449,9 +453,9 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
                 + "public class TestJava { \n"
 
-                + "  //@ public normal_behavior  ensures true;\n"
+                + "  //@ public behavior  ensures true;\n"
                 + "  public void m4() {\n"
-                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
+                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = false; \n"
                 + "    Integer k = 0;\n" 
                 + "    values.add(k);\n" 
                 + "  }\n"
@@ -459,6 +463,29 @@ public class esc1 extends EscBase {
                 + "  public TestJava() {}"
 
                 + "}"
+
+        );
+    }
+    @Test
+    public void testForEach2a4b() {
+        main.addOptions("-escMaxWarnings=1");
+        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ public behavior  ensures true;\n"
+                + "  public void m4() {\n"
+                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = false; \n"
+                + "    /*@ nullable */ Integer k = null;\n" 
+                + "    values.add(k);\n" 
+                + "  }\n"
+
+                + "  public TestJava() {}"
+
+                + "}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method m4",15
+                ,"$SPECS/java/util/List.jml:117: warning: Associated declaration",13
+                ,"$SPECS/java/util/Collection.jml:140: warning: Precondition conjunct is false: containsNull || o != null",33
+                ,"$SPECS/java/util/List.jml:108: warning: Precondition conjunct is false: containsNull || o != null",33
 
         );
     }
@@ -986,7 +1013,7 @@ public class esc1 extends EscBase {
         main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n"
-        		+ "  public static TestJava p;\n"
+                + "  public static TestJava p;\n"
 
                 + "  //@ requires p != null && p != this;\n"
                 + "  //@ modifies \\everything;\n"
@@ -1076,7 +1103,7 @@ public class esc1 extends EscBase {
         main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n"
                 + "public class TestJava { \n"
-        		+ "  int k; static int sk;\n"
+                + "  int k; static int sk;\n"
                 + "  int[] a; static int[] sa;\n"
 
                 + "  //@ modifies \\everything;\n"
@@ -1122,8 +1149,8 @@ public class esc1 extends EscBase {
     public void testAssignables1d() {
         main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n" 
-        		+ "public class TestJava { \n" 
-        		+ "  int k; static int sk;\n"
+                + "public class TestJava { \n" 
+                + "  int k; static int sk;\n"
                 + "  int[] a; static int[] sa;\n"
 
                 + "  //@ modifies \\everything;\n"
@@ -1327,9 +1354,9 @@ public class esc1 extends EscBase {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava",
                 "package tt; \n"
-                		+ "public class TestJava { \n"
-                		+ "  public int k;\n"
-                		+ "  public static int sk;\n"
+                        + "public class TestJava { \n"
+                        + "  public int k;\n"
+                        + "  public static int sk;\n"
 
                         + "  //@ modifies k,sk;\n" 
                         + "  public void m1() {\n" 
@@ -2068,9 +2095,9 @@ public class esc1 extends EscBase {
     @Test
     public void testNonNull() {
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
-        		+ "public class TestJava { \n"
+                + "public class TestJava { \n"
                 + "  //@ requires ii == 10;\n"
-        		+ "  //@ ensures true;\n"
+                + "  //@ ensures true;\n"
                 + "  public /*@ non_null */Object inst(int ii) { return null; }\n"
                 + "  //@ requires ii == 10;\n"
                 + "  //@ ensures true;\n"
@@ -2134,7 +2161,7 @@ public class esc1 extends EscBase {
     public void testNonNull4() {
         main.addOptions("-nullableByDefault=false");
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
-        		+ "public class TestJava { \n"
+                + "public class TestJava { \n"
                 + "  //@ requires ii == 10;\n"
                 + "  //@ ensures true;\n"
                 + "  public Object inst(int ii) { return null; }\n"
@@ -2753,7 +2780,7 @@ public class esc1 extends EscBase {
     @Test
     public void testArrays() {
         helpTCX("tt.TestJava", 
-        		  "package tt; import org.jmlspecs.annotation.*; \n"
+                  "package tt; import org.jmlspecs.annotation.*; \n"
                 + "public class TestJava { \n"
                 + "  public void inst2(int/*@non_null*/[] a) { /*@assume a.length == 10;*//*@ assume a[1] == 2; */  /*@ assert a[1] == 2; */ }\n" // OK
                 + "  public void inst2a(int/*@non_null*/[] a) { /*@assume a.length == 10;*//*@ assume a[1] == 2; */  /*@ assert a[1] == 3; */ }\n" // BAD
@@ -3178,11 +3205,11 @@ public class esc1 extends EscBase {
 //        expectedExit = 1;
 //        helpTCX("tt.TestJava",
 //                "package tt; \n"
-//                		+ "public class TestJava { \n"
-//                		+ "  public static int m() { \n"
-//                		+ "    int c = c+1; \n"
+//                        + "public class TestJava { \n"
+//                        + "  public static int m() { \n"
+//                        + "    int c = c+1; \n"
 //                        + "    //@ assert c == 1; \n"
-//                		+ "    return c; \n"
+//                        + "    return c; \n"
 //                        + "  }\n"
 //                        + "}",
 //                "/tt/TestJava.java:4: error: variable c might not have been initialized", 13);
@@ -3411,10 +3438,10 @@ public class esc1 extends EscBase {
 //        //main.addOptions("-logic=AUFNIA");
 //        helpTCX("tt.TestJava",
 //                "package tt; \n"
-//                		+ "/*@ nullable_by_default */ public class TestJava { \n"
-//                		+ "  int j;\n"
+//                        + "/*@ nullable_by_default */ public class TestJava { \n"
+//                        + "  int j;\n"
 //                        + "  public static void m(TestJava o) { \n"
-//                		+ "    //@ assume o.j == 1; \n"
+//                        + "    //@ assume o.j == 1; \n"
 //                        + "  }\n  "
 //                        + "  public static void m1(int[] a) { \n"
 //                        + "    //@ assume a[0] == 1; \n"
@@ -3816,11 +3843,11 @@ public class esc1 extends EscBase {
 //    @Test
 //    public void testSignals1() {
 //        helpTCX("tt.TestJava",
-//        		  "package tt; \n"
+//                  "package tt; \n"
 //                + "public class TestJava { \n"
-//        	    + "  static public int i;\n"
+//                + "  static public int i;\n"
 //                + "  //@ requires i >= 0;\n"
-//        		+ "  //@ ensures i>0;\n"
+//                + "  //@ ensures i>0;\n"
 //                + "  //@ signals (Exception e) i == 0;\n"
 //                + "  public void m1() throws Exception {\n"
 //                + "    if (i==0) throw new Exception();\n" + "  }\n"
@@ -3839,11 +3866,11 @@ public class esc1 extends EscBase {
 //    @Test
 //    public void testSignals2() {
 //        helpTCX("tt.TestJava", "package tt; \n"
-//        		+ "public class TestJava { \n"
-//        		+ "  static public int i;\n"
+//                + "public class TestJava { \n"
+//                + "  static public int i;\n"
 //                + "  //@ requires i >= 0;\n"
-//        		+ "  //@ ensures i>0;\n"
-//        		+ "  //@ signals (Exception e) i == 0;\n" // OK
+//                + "  //@ ensures i>0;\n"
+//                + "  //@ signals (Exception e) i == 0;\n" // OK
 //                + "  public void m2() throws Exception {\n"
 //                + "    if (i==0) throw new Exception();\n"
 //                + "  }\n"
@@ -4005,13 +4032,13 @@ public class esc1 extends EscBase {
 //    public void testConstraint9() {
 //        expectedExit = 1;
 //        helpTCX("tt.TestJava",
-//        		  "package tt; \n"
+//                  "package tt; \n"
 //                + "public class TestJava { \n"
-//        	    + "  static public int i;\n"
+//                + "  static public int i;\n"
 //                + "  //@ public constraint i > \\old(i) for TestJava();\n"
-//        	    + "  public TestJava() {\n"
+//                + "  public TestJava() {\n"
 //                + "  }\n"
-//        	    + "}",
+//                + "}",
 //                "/tt/TestJava.java:4: error: Constructors are not allowed as methods in non-static constraint clauses", 41);
 //    }
 //
@@ -4748,7 +4775,7 @@ public class esc1 extends EscBase {
 //
 //    @Test
 //    public void testChainedCompare() {
-//    	expectedExit = 1;
+//        expectedExit = 1;
 //        helpTCX("tt.TestJava",
 //                          "package tt; \n" 
 //                        + "public class TestJava  { \n" 
@@ -4872,11 +4899,11 @@ public class esc1 extends EscBase {
 //    
 //    @Test
 //    public void testJMLDataGroup() {
-//    	helpTCX("tt.C",
-//    			"package tt; /*@ non_null_by_default */ public class C {\n"
-//    			+ "    //@ public model JMLDataGroup g;\n"
-//    			+ "}\n"
-//    			);
+//        helpTCX("tt.C",
+//                "package tt; /*@ non_null_by_default */ public class C {\n"
+//                + "    //@ public model JMLDataGroup g;\n"
+//                + "}\n"
+//                );
 //    }
 
 }

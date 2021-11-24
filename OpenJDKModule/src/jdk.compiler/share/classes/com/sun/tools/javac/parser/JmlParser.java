@@ -139,6 +139,11 @@ public class JmlParser extends JavacParser {
     public int endPos() {
         return token.endPos;
     }
+    
+    /** Just to make the valoue public */
+    public AbstractEndPosTable endPosTable() {
+    	return endPosTable; 
+    }
 
     /** Returns true if the current token is a JML modifier, but not a type annotation */
     public boolean isJmlModifier() {

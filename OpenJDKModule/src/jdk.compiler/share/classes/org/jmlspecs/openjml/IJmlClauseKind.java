@@ -421,7 +421,7 @@ public abstract class IJmlClauseKind {
             if (parser.token().kind == TokenKind.LPAREN) {
                 return parser.syntaxError(p, null, "jml.no.args.allowed", jt.name());
             } else {
-                JmlSingleton e = parser.maker().at(p).JmlSingleton(jt);
+                JmlSingleton e = toP(parser.maker().at(p).JmlSingleton(jt));
                 e.kind = this;
                 checkParse(parser,e,stringRep);
                 return e;

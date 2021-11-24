@@ -2249,7 +2249,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             /*@nullable*/ JavaFileObject associatedSource, 
             /*@nullable*/ JCExpression info,
             Object ... args) {
-    	if (translatedExpr.toString().contains("_JML__tmp138 != null")) Utils.dumpStack();
+    	//if (translatedExpr.toString().contains("_JML__tmp138 != null")) Utils.dumpStack();
         JmlStatementExpr stt = null;
         if ((infer || esc)) {
             if (label != Label.ASSUME_CHECK && currentStatements != null 
@@ -2336,7 +2336,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected String uniqueTempString() {
-        //if (uniqueCount == 40) Utils.dumpStack();
+        //if (uniqueCount == 11) Utils.dumpStack();
         return Strings.tmpVarString + (uniqueCount++);
     }
 
@@ -11202,6 +11202,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 convert(e);
                 return eresult;
             }
+            if (types.isSameType(expr.type, annotatedNewtype)) {
+            	convert(expr);
+            	return eresult;
+            }
         }
         
         // FIXME - change to utils.isPrimitiveType
@@ -11339,7 +11343,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         if (!newIsPrim && isPrim) {
             // boxing: Integer = int and the like
-            JCExpression id = createBoxingStatsAndExpr(expr,newtype,true);
+
+        	JCExpression id = createBoxingStatsAndExpr(expr,newtype,true);
             eresult = id;
 
         } else {
@@ -11701,8 +11706,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCArrayAccess aa = (JCArrayAccess)(that.lhs);
             JCExpression array = convertExpr(aa.indexed);
             JCExpression e;
-            if (!utils.isJavaOrJmlPrimitiveType(that.lhs.type)) {
-            	System.out.println("ARRAY TYPE " + that + " " + that.lhs.type);
+            if (!utils.isJavaOrJmlPrimitiveType(aa.indexed.type)) {
             	e = treeutils.makeNeqObject(array.pos, array, treeutils.nullLit);
             	addJavaCheck(aa,e,Label.POSSIBLY_NULL_DEREFERENCE,Label.UNDEFINED_NULL_DEREFERENCE,"java.lang.NullPointerException");
             }
@@ -13250,28 +13254,30 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // FIXME - for now we don't check undefinedness inside quantified expressions
         JCExpression ind = that.indexed;
         Symbol sym = null;
-        boolean checkNull = true;
         if (ind instanceof JCFieldAccess) sym = ((JCFieldAccess)ind).sym;
         if (ind instanceof JCIdent) sym = ((JCIdent)ind).sym;
-        if (sym instanceof VarSymbol) {
-            VarSymbol vsym = (VarSymbol)sym;
-            checkNull = !(attr.isNonNull(vsym) && isModel(vsym));
-        }
-        if (utils.isJavaOrJmlPrimitiveType(that.indexed.type)) checkNull = false;
-        if (checkNull) {
-            JCExpression nonnull = treeutils.makeNeqObject(that.indexed.pos, indexed, 
-                    treeutils.makeNullLiteral(that.indexed.getEndPosition(log.currentSource().getEndPosTable())));
-            addJavaCheck(that,nonnull,Label.POSSIBLY_NULL_DEREFERENCE,Label.UNDEFINED_NULL_DEREFERENCE,"java.lang.NullPointerException");
-        }
 
         // FIXME _ readable?
 //        checkAccess(JmlTokenKind.ACCESSIBLE, that.indexed, that.indexed, indexed, currentThisId, currentThisId);
 
         JCExpression index = null;
         // FIXME - better test for array type
-        if (that.indexed.type instanceof Type.ArrayType || that.indexed.type.toString().startsWith("org.jmlspecs.lang")) { // FIXME should be instancesof org.jmlspecs.lang.IJmlIntArrayLike
-        	//System.out.println("INDEXED " + that.index + " " + that.index.type + " " + (that.index.type == rt) + " " + that.index.getClass() + " " + jmltypes.isAnyIntegral(that.index.type));
-        	if (!jmltypes.isAnyIntegral(that.index.type)) {
+        if (that.indexed.type instanceof Type.ArrayType ) { // FIXME should be instancesof org.jmlspecs.lang.IJmlIntArrayLike
+        	// This is a regular Java array index expression, with either an integral index that must be in range
+        	// or a range value
+        	
+            boolean checkNull = true;
+            if (sym instanceof VarSymbol) {
+                VarSymbol vsym = (VarSymbol)sym;
+                checkNull = !(attr.isNonNull(vsym) && isModel(vsym));
+            }
+            if (checkNull) {
+                JCExpression nonnull = treeutils.makeNeqObject(that.indexed.pos, indexed, 
+                        treeutils.makeNullLiteral(that.indexed.getEndPosition(log.currentSource().getEndPosTable())));
+                addJavaCheck(that,nonnull,Label.POSSIBLY_NULL_DEREFERENCE,Label.UNDEFINED_NULL_DEREFERENCE,"java.lang.NullPointerException");
+            }
+
+            if (!jmltypes.isAnyIntegral(that.index.type)) {
         		// A range value
             	var rt = rangeType.getType(context,Enter.instance(context).getTopLevelEnv(classDecl.toplevel));
         		var ta = indexed;
@@ -13294,13 +13300,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         						).setType(that.type);
         			}
         		} else {
-        			// Should not happen
+        			// Should not happen, at least not yet
         		}
     			return;
        		
-        	} else {
-                index = convertExpr(that.index);
-                if (that.indexed.type instanceof Type.ArrayType) index = addImplicitConversion(index,syms.intType,index);
+        	} else if (that.indexed.type instanceof Type.ArrayType) { // Don't do these tests for JML types
+        		index = convertExpr(that.index);
+        		if (that.indexed.type instanceof Type.ArrayType) index = addImplicitConversion(index,syms.intType,index);
         		Number n = integralLiteral(index);
         		if (n != null && n.longValue() >= 0) {
         			addStat(comment(index,"Constant index is non-negative: " + n.longValue(),log.currentSourceFile()));
@@ -13311,16 +13317,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         					index);
         			addJavaCheck(that,compare,Label.POSSIBLY_NEGATIVEINDEX,Label.UNDEFINED_NEGATIVEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
         		}
-        		if (that.indexed.type instanceof Type.ArrayType) { // Don't do this test for JML types
-            		JCExpression length = treeutils.makeLength(that.indexed,indexed);
-        			JCExpression compare = treeutils.makeBinary(that.pos, JCTree.Tag.GT, treeutils.intgtSymbol, length, 
-        					index); // We use GT to preserve the textual order of the subexpressions
-        			addJavaCheck(that,compare,Label.POSSIBLY_TOOLARGEINDEX,Label.UNDEFINED_TOOLARGEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
-        		}
+        		JCExpression length = treeutils.makeLength(that.indexed,indexed);
+        		JCExpression compare = treeutils.makeBinary(that.pos, JCTree.Tag.GT, treeutils.intgtSymbol, length, 
+        				index); // We use GT to preserve the textual order of the subexpressions
+        		addJavaCheck(that,compare,Label.POSSIBLY_TOOLARGEINDEX,Label.UNDEFINED_TOOLARGEINDEX,"java.lang.ArrayIndexOutOfBoundsException");
         	}
         } else {
-        	log.error(that.pos,"jml.message","Internal error: should have reported a non-array type here");
-        	// FIXME - need a recovery mechanism here
+        	// In this case, the 'array' is a value type (a JML extension), so no checks for nullity or range.
+        	// In fact the index might be any type
+        	// So nothing to do here except convert the index
+    		index = convertExpr(that.index);
         }
         
 
@@ -13374,7 +13380,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression selected;
         Symbol s = convertSymbol(that.sym);
         JCExpression trexpr = that.getExpression();
-        
         if (pureCopy) {
             if (s != null) {
                 result = eresult = treeutils.makeSelect(that.pos, trexpr, s);
@@ -13426,7 +13431,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!utils.isJMLStatic(s) && (!(that.selected instanceof JCIdent) || !localVariables.containsKey(((JCIdent)that.selected).sym))) {
                 if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
                     // continue
-                } else if (utils.isJavaOrJmlPrimitiveType(that.selected.type)) {
+                } else if (!utils.isJavaOrJmlPrimitiveType(that.selected.type)) {
                     JCExpression nonnull = treeutils.trueLit;
                     if (!utils.isJavaOrJmlPrimitiveType(selected.type)) nonnull = treeutils.makeNotNull(that.pos, selected); 
                     if (selected.toString().contains(Strings.newObjectVarString)) nonnull = treeutils.trueLit;
@@ -13885,7 +13890,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean traceInfo = esc;
         if (that.type == null) System.out.println("NULLTYPE " + that.pos + " " + that);
         boolean stringType = esc && types.isSameType(that.type,syms.stringType);
-        boolean makeCopy = (traceInfo || fullTranslation || stringType || pureCopy);
+        boolean makeCopy = !splitExpressions && (traceInfo || fullTranslation || stringType || pureCopy);
+        makeCopy = makeCopy || stringType; // FIXM - really shjould make variables in the prologue for all string values
         JCIdent id = null;
         if (makeCopy) {
             JCLiteral init = treeutils.makeDuplicateLiteral(that.pos, that);
@@ -13895,6 +13901,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return;
             }
             id = newTemp(init);
+        } else {
+        	result = eresult = that;
+        	return;
         }
         if (traceInfo) {
             // This block is only needed for tracing
@@ -18287,7 +18296,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         				stat = M.at(that).VarDef(that.sym,init);
         				stat.ident = newident;
         				JCExpression nn = null;
-        				if (init != null && !init.type.isPrimitive() 
+        				if (init != null 
         						&& !utils.isJavaOrJmlPrimitiveType(init.type) 
         						&& !isKnownNonNull(that.init) && !isKnownNonNull(init)
         						&& specs.isNonNull(that.sym)) {
@@ -18302,7 +18311,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         				}
         				if (inClassDecl) methodDecl = (JmlMethodDecl)M.MethodDef(attr.makeInitializerMethodSymbol(that.mods.flags, JmlEnter.instance(context).getEnv(classDecl.sym)), null);
         				if (nn != null) addAssert(that,Label.POSSIBLY_NULL_INITIALIZATION,nn,that.name);
-        				if (esc && !that.type.isPrimitive() && !utils.isJavaOrJmlPrimitiveType(that.type)) {
+        				if (esc && !utils.isJavaOrJmlPrimitiveType(that.type)) {
         					addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
         							treeutils.makeIdent(that.pos, that.sym), 
         							that.type));
@@ -18319,7 +18328,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         				if (stat != null && esc && !(that.type instanceof Type.ArrayType) && jmltypes.isArray(that.type)) {
         					JCExpression inv = getInvariantAll(that, that.type, treeutils.makeIdent(that.pos, that.sym));
         					if (inv != null) inv.type = syms.booleanType; else inv = treeutils.trueLit;
-        					addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeAnd(that.pos,treeutils.makeNotNull(that.pos, treeutils.makeIdent(that.pos, that.sym)),inv));
+        					JCExpression nn = utils.isJavaOrJmlPrimitiveType(that.type)? treeutils.trueLit
+        							: treeutils.makeNotNull(that.pos, treeutils.makeIdent(that.pos, that.sym));
+        					addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeAndSimp(that.pos,nn,inv));
         				}
         				checkAccessEnabled = pv;
         			}
@@ -19207,7 +19218,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 currentStatements = ignore;
                                 //addStat(comment(clause));
                                 // Note - convertJML uses resultExpr and currentThisExpr and paramActuals
+                                //System.out.println("CONVERTING " + enclause.expression + " WITH " + condition);
                                 JCExpression e = convertNoSplit(enclause.expression, condition, false);
+                                //System.out.println("MAX FOR " + enclause + " IS " + e);
                                 if (treeutils.isFalseLit(e)) {
                                     JCExpression not = treeutils.makeNot(pre.pos, convertCopy(pre));
                                     falses = falses == null ? not : treeutils.makeAndSimp(falses.pos, falses, not);
