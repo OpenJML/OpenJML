@@ -19,7 +19,6 @@ public class compilationUnit extends ParseBase {
 
     @Override
     public void setUp() throws Exception {
-//        noCollectDiagnostics = true;
 //        jmldebug = true;
         super.setUp();
     }

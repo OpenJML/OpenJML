@@ -49,7 +49,7 @@ abstract public class ParseBase extends JmlTestCase {
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         sfac = ScannerFactory.instance(context);
         fac = ParserFactory.instance(context);
-        print = false;
+        print = true;
         jml = false;
     }
 

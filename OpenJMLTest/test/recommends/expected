@@ -6,10 +6,10 @@ Starting proof of Test.Test() with prover !!!!
 STARTING PROOF OF Test.Test()
 /*@
   public behavior
+    requires true; 
     assignable \nothing; 
     signals () false; 
     signals_only \nothing; 
-    requires true; 
     accessible this, this.*; 
  */
 
@@ -26,18 +26,18 @@ Starting proof of Test.m1(Test) with prover !!!!
 STARTING PROOF OF Test.m1(Test)
 /*@
   public behavior
+    requires true; 
     requires !(o != null); 
     signals_only NullPointerException; 
     signals (java.lang.Exception) \exception instanceof NullPointerException && !(o != null); 
     ensures false; 
     assignable \nothing; 
-    requires true; 
     accessible \everything; 
 also
   public 
+    requires true; 
     requires o != null; 
     signals_only java.lang.RuntimeException; 
-    requires true; 
     assignable \everything; 
     accessible \everything; 
  */
@@ -55,18 +55,18 @@ Starting proof of Test.m2(Test) with prover !!!!
 STARTING PROOF OF Test.m2(Test)
 /*@
   public behavior
+    requires true; 
     requires !(o != null); 
     signals_only NullPointerException; 
     signals (java.lang.Exception) \exception instanceof NullPointerException && !(o != null); 
     ensures false; 
     assignable \nothing; 
-    requires true; 
     accessible \everything; 
 also
   public 
+    requires true; 
     requires o != null; 
     signals_only java.lang.RuntimeException; 
-    requires true; 
     assignable \everything; 
     accessible \everything; 
  */
@@ -84,21 +84,21 @@ Starting proof of Test.m3(Test,int) with prover !!!!
 STARTING PROOF OF Test.m3(Test,int)
 /*@
   public behavior
+    requires true; 
     requires i >= 0; 
     requires !(o != null) | !(i < 10); 
     signals_only NullPointerException, ArrayIndexOutOfBoundsException; 
     signals (java.lang.Exception) \exception instanceof NullPointerException && !(o != null) || \exception instanceof ArrayIndexOutOfBoundsException && !(i < 10); 
     ensures false; 
     assignable \nothing; 
-    requires true; 
     accessible \everything; 
 also
   public 
+    requires true; 
     requires i >= 0; 
     requires o != null; 
     requires i < 10; 
     signals_only java.lang.RuntimeException; 
-    requires true; 
     assignable \everything; 
     accessible \everything; 
  */
@@ -118,19 +118,19 @@ Starting proof of Test.m4(Test,Test) with prover !!!!
 STARTING PROOF OF Test.m4(Test,Test)
 /*@
   public behavior
+    requires true; 
     requires !(o != null) | !(i != null); 
     signals_only NullPointerException, NullPointerException; 
     signals (java.lang.Exception) \exception instanceof NullPointerException && !(o != null) || \exception instanceof NullPointerException && !(i != null); 
     ensures false; 
     assignable \nothing; 
-    requires true; 
     accessible \everything; 
 also
   public 
+    requires true; 
     requires o != null; 
     requires i != null; 
     signals_only java.lang.RuntimeException; 
-    requires true; 
     assignable \everything; 
     accessible \everything; 
  */
@@ -148,19 +148,19 @@ Starting proof of Test.m5(Test,Test) with prover !!!!
 STARTING PROOF OF Test.m5(Test,Test)
 /*@
   public behavior
+    requires true; 
     requires !(o != null) | !(i != null); 
     signals_only NullPointerException, RuntimeException; 
     signals (java.lang.Exception) \exception instanceof NullPointerException && !(o != null) || \exception instanceof RuntimeException && !(i != null); 
     ensures false; 
     assignable \nothing; 
-    requires true; 
     accessible \everything; 
 also
   public 
+    requires true; 
     requires o != null; 
     requires i != null; 
     signals_only java.lang.RuntimeException; 
-    requires true; 
     assignable \everything; 
     accessible \everything; 
  */
@@ -179,19 +179,19 @@ Starting proof of Test.m6(Test,Test) with prover !!!!
 STARTING PROOF OF Test.m6(Test,Test)
 /*@
   public behavior
+    requires true; 
     requires !(o != null) | !(i != null); 
     signals_only RuntimeException, NullPointerException; 
     signals (java.lang.Exception) \exception instanceof RuntimeException && !(o != null) || \exception instanceof NullPointerException && !(i != null); 
     ensures false; 
     assignable \nothing; 
-    requires true; 
     accessible \everything; 
 also
   public 
+    requires true; 
     requires o != null; 
     requires i != null; 
     signals_only java.lang.RuntimeException; 
-    requires true; 
     assignable \everything; 
     accessible \everything; 
  */
@@ -210,18 +210,18 @@ Starting proof of Test.m7(Test,Test) with prover !!!!
 STARTING PROOF OF Test.m7(Test,Test)
 /*@
   public behavior
+    requires true; 
     requires !(o != null); 
     signals_only RuntimeException; 
     signals (java.lang.Exception) \exception instanceof RuntimeException && !(o != null); 
     ensures false; 
     assignable \nothing; 
-    requires true; 
     accessible \everything; 
 also
   public 
+    requires true; 
     requires o != null; 
     signals_only java.lang.RuntimeException; 
-    requires true; 
     assignable \everything; 
     accessible \everything; 
  */
@@ -239,19 +239,19 @@ Starting proof of Test.m8(Test,Test) with prover !!!!
 STARTING PROOF OF Test.m8(Test,Test)
 /*@
   public behavior
+    requires true; 
     requires !(o != null) | !(i != null); 
     signals_only RuntimeException, NullPointerException; 
     signals (java.lang.Exception) \exception instanceof RuntimeException && !(o != null) || \exception instanceof NullPointerException && !(i != null); 
     ensures false; 
     assignable \nothing; 
-    requires true; 
     accessible \everything; 
 also
   public 
+    requires true; 
     requires o != null; 
     requires i != null; 
     signals_only java.lang.RuntimeException; 
-    requires true; 
     assignable \everything; 
     accessible \everything; 
  */
@@ -269,20 +269,20 @@ Starting proof of Test.m9(Test,Test) with prover !!!!
 STARTING PROOF OF Test.m9(Test,Test)
 /*@
   public behavior
+    requires true; 
     requires !(o != null) | !(i != null); 
     signals_only NullPointerException, NullPointerException; 
     signals (java.lang.Exception) \exception instanceof NullPointerException && !(o != null) || \exception instanceof NullPointerException && !(i != null); 
     ensures false; 
     assignable \nothing; 
-    requires true; 
     accessible \everything; 
 also
   public 
+    requires true; 
     requires o != null; 
     requires i != null; 
     ensures 0 <= o.f < 10 && i.f < 10 ==> \result < 20; 
     signals_only java.lang.RuntimeException; 
-    requires true; 
     assignable \everything; 
     accessible \everything; 
  */

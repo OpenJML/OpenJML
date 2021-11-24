@@ -1425,7 +1425,6 @@ public class escnew extends EscBase {
 
     @Test  // FIXME - problem is an infinite loop with use of consistentWithEquals - invariants use it, but the invariants are part of the specs for the (model pure) consistentWithEquals method
     public void testSelect() {
-    	//main.addOptions("-show","-method=m4ok");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
