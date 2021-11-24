@@ -1616,6 +1616,11 @@ public class JmlSpecs {
         return null;
     }
 
+    public boolean isCheckNonNullFormal(Type type, int i,  MethodSpecs calleeSpecs, MethodSymbol msym) {
+    	// Extension type values are always non-null, but we do not check for that
+    	if (utils.isExtensionValueType(type)) return false;
+    	return isNonNullFormal(type, i, calleeSpecs, msym);
+    }
 
     @SuppressWarnings("unchecked")
 	public boolean isNonNullFormal(Type type, int i, MethodSpecs calleeSpecs, MethodSymbol msym) {
@@ -1639,6 +1644,13 @@ public class JmlSpecs {
     	}
     	return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
     }
+    
+	public boolean isCheckNonNullReturn(Type type, MethodSymbol msym) {
+    	// Extension type values are always non-null, but we do not check for that
+    	if (utils.isExtensionValueType(type)) return false;
+    	return isNonNullReturn(type, msym);
+    }
+		
     
     @SuppressWarnings("unchecked")
 	public boolean isNonNullReturn(Type type, MethodSymbol msym) {
