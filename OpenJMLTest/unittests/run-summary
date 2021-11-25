@@ -3,7 +3,7 @@
 f=$1; shift
 s=$1; shift
 r=$(./runtests $* 2>&1 | tee $f | grep failures)
-expfailures=$(echo $s | sed -e 'sx^[^/]*/xx' | td -d '"' )
+expfailures=$(echo $s | sed -e 'sx^[^/]*/xx' | tr -d '"' )
 actfailures=$(echo $r | sed -e 's/^.*timeouts,//' | sed -e 's/failures,.*$//' | tr -d ' ' )
-if [ "$expfailures" != "$actfailures" ]; then m="<<<<<<<<<<<<" ; else m="" ;fi
+if [ "$expfailures" != "$actfailures" ]; then m="<<<<<<<<<<<< $expfailures vs. $actfailures" ; else m="" ;fi
 echo -e "$f\t" `./runtests $* 2>&1 | tee $f | grep failures` ": expected $s $m"

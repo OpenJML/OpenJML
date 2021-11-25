@@ -1619,6 +1619,7 @@ public class JmlSpecs {
     public boolean isCheckNonNullFormal(Type type, int i,  MethodSpecs calleeSpecs, MethodSymbol msym) {
     	// Extension type values are always non-null, but we do not check for that
     	if (utils.isExtensionValueType(type)) return false;
+    	if ((msym.owner.flags() & Flags.ENUM) !=  0 && msym.name.equals(names.valueOf)) return false;
     	return isNonNullFormal(type, i, calleeSpecs, msym);
     }
 
