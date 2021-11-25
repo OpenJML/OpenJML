@@ -414,6 +414,8 @@ public class MethodProverSMT {
             	if (verbose) log.getWriter(WriterKind.NOTICE).println("EXECUTION"); //$NON-NLS-1$
             	String filename = JmlOption.value(context, JmlOption.SMT);
             	if (filename != null && filename.isEmpty()) filename = "out.smt2";
+            	String name = utils.methodName(methodDecl.sym);
+            	if (filename != null) filename = filename.replace("%_", name);
             	try (var fw = filename == null ? null : new java.io.FileWriter(new java.io.File(filename))) {
             		if (fw != null) {
             			var sw = new java.io.StringWriter();

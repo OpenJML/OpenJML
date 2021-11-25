@@ -1,0 +1,1 @@
+ARGS+="  -smt=out.smt2 "

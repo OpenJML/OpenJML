@@ -2249,7 +2249,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             /*@nullable*/ JavaFileObject associatedSource, 
             /*@nullable*/ JCExpression info,
             Object ... args) {
-    	//if (translatedExpr.toString().contains("_JML__tmp138 != null")) Utils.dumpStack();
+    	//if (translatedExpr.toString().contains("_JML__tmp118 == EE.AA")) Utils.dumpStack();
         JmlStatementExpr stt = null;
         if ((infer || esc)) {
             if (label != Label.ASSUME_CHECK && currentStatements != null 
@@ -3684,11 +3684,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             int pos = 0;
-            if (csym.isEnum()) {
+            if (false && csym.isEnum()) { // FIXME - these are already added in the parser?
                 ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
                 JCVariableDecl fdecl = newTempDecl(tspecs.decl, csym.type);
                 JCIdent fid = treeutils.makeIdent(pos, fdecl.sym);
-                JCExpression or = null;
+                JCExpression or = treeutils.makeEqNull(pos,fid);
                 JCExpression ort = null;
                 JCIdent tid = treeutils.makeIdent(pos,"this",csym.type);
                 tid.sym.owner = csym;
