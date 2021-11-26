@@ -12061,7 +12061,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             visitAssignopHelper(b,true);
             saveMapping(that.getExpression(),eresult);
             result = eresult = id;
-        } else if (tag == JCTree.Tag.NEG || tag == JCTree.Tag.COMPL || tag == JCTree.Tag.POS) {
+        } else if (tag == JCTree.Tag.NEG) {
+        	if (jmltypes.isSameType(that.arg.type, syms.doubleType) && that.arg instanceof JCLiteral lit) {
+        		JCLiteral nlit = (JCLiteral)convertCopy(lit);
+        		nlit.value = -((Double)lit.value);
+        		result = eresult = convertExpr(nlit);
+        	} else if (jmltypes.isSameType(that.arg.type, syms.floatType) && that.arg instanceof JCLiteral lit) {
+        		JCLiteral nlit = (JCLiteral)convertCopy(lit);
+        		nlit.value = -((Float)lit.value);
+        		result = eresult = convertExpr(nlit);
+        	} else {
+        		result = eresult = currentArithmeticMode.rewriteUnary(this, that);
+        	}
+    		if (splitExpressions) result = eresult = newTemp(eresult);
+        } else if (tag == JCTree.Tag.COMPL || tag == JCTree.Tag.POS) {
             result = eresult = currentArithmeticMode.rewriteUnary(this, that);
             if (splitExpressions) result = eresult = newTemp(eresult);
         } else {
@@ -13882,6 +13895,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    result = eresult = e;
 		}
 	}
+	
+	boolean encapsulated = false;
 
     // OK
     @Override
@@ -13893,6 +13908,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean stringType = esc && types.isSameType(that.type,syms.stringType);
         boolean makeCopy = !splitExpressions && (traceInfo || fullTranslation || stringType || pureCopy);
         makeCopy = makeCopy || stringType; // FIXM - really shjould make variables in the prologue for all string values
+
+        JCExpression etype = null;
+        if (!encapsulated) {
+        	if (types.isSameType(that.type, syms.doubleType)) {
+        		etype = M.Ident(names.fromString("Double")); // FIXME - should use fully qualified type
+        	} else if (types.isSameType(that.type, syms.floatType)) {
+        		etype = M.Ident(names.fromString("Float")); // FIXME - should use fully qualified type
+        	}
+        	if (etype != null && splitExpressions) { // FIXME - still need the assumption even if !splitExpressions
+        		JCFieldAccess fa = M.Select(etype, names.fromString("isFinite"));
+        		JCMethodInvocation app = M.Apply(null, fa, List.<JCExpression>of(that));
+        		encapsulated = true;
+        		attr.attribExpr(app, Enter.instance(context).getTopLevelEnv(classDecl.toplevel));
+        		addAssume(that, Label.IMPLICIT_ASSUME, convertExpr(app));
+        		encapsulated = false;
+        	}
+        }
+
         JCIdent id = null;
         if (makeCopy) {
             JCLiteral init = treeutils.makeDuplicateLiteral(that.pos, that);

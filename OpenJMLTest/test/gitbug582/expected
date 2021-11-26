@@ -1,6 +1,3 @@
-test/gitbug582/StudentSimple2_3.java:38: warning: A non-pure method is being called where it is not permitted: java.util.List.add(E)
-    @            enrolments.equals(\old(enrolments).add(e));
-                                                       ^
 Proving methods in Simpler
 Starting proof of Simpler.Simpler() with prover !!!!
 Feasibility check - end of preconditions : OK
@@ -59,6 +56,3 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of courseman.baderrs.StudentSimple2_3.removeEnrolmentGood(Object) with prover !!!! - no warnings
 Completed proving methods in courseman.baderrs.StudentSimple2_3
-Note: test/gitbug582/StudentSimple2_3.java uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
-1 warning
