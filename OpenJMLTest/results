@@ -25,9 +25,9 @@ test/gitbug450b : Actual output differs from expected expected1 <<<<<<<<<<<<<<<<
 test/gitbug582 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< sometimes times out
 test/gitbug672 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### diamond type inference
 test/gitbug673 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< models classes
-test/gitbug673 : Expected exit code 0 but got 1                                                             ???
+test/gitbug673 : Expected exit code 0 but got 1                                                             [fp]
 test/gitbug722 : Actual output differs from expected                                                        ???
-test/gitbug732 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ???
+test/gitbug732 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
 test/gitbug735 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### [fp]
 test/gitbug738 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### recursive use of not-well-founded method
 test/implicitIteration:                                                                                    ???

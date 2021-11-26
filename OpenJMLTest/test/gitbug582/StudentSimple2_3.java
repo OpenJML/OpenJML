@@ -34,10 +34,10 @@ public class StudentSimple2_3 {
   
   /*@
     @ requires e != null;
-    @ ensures !\old(enrolments).contains(e) ==> 
-    @            enrolments.equals(\old(enrolments).add(e));
+    @ ensures !\old(enrolments.contains(e)) ==> 
+    @            enrolments.values == \old(enrolments.values).add(e);
     @*/
-  public void addEnrolment(Object e) { // THIS WILL NOT PROVE - SPECS are incorrect and not pure
+  public void addEnrolment(Object e) { 
     if (!enrolments.contains(e))
       enrolments.add(e);
   }
