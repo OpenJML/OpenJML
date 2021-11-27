@@ -130,7 +130,7 @@ racdemoexamples.javaa - 1/0  #
 racfeatures.java      - 3/0  #
 racfiles.java         - 25/41  ?????
 racnew.java           - 129/14 -- model methods, not implemented, invariant trace 
-racnew2.java          - 73/2  ?????
+racnew2.java          - 75/0 #
 racnew3.java          - 21/0 #
 racnewLoops.java      - 20/0 #
 racnewWithSpecs.java  - 1/0 #
