@@ -1,1 +1,1 @@
-ARGS+=" -nullableByDefault "
+ARGS+=" -nullableByDefault -method=forth "
