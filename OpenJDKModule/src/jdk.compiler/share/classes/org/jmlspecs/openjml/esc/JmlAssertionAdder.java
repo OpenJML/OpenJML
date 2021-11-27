@@ -1461,9 +1461,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             checkAccessEnabled= false;
             if (tree != null) {
                 super.scan(tree);
-                if (rac && eresult != null && eresult.type != null && jmltypes.isJmlType(eresult.type)) {
+                if (rac && eresult != null && eresult.type != null && eresult.type != Type.noType && jmltypes.isJmlType(eresult.type)) {
                 	if (!(eresult.type instanceof JmlType)) {
-                		System.out.println("BAD CONVERSION " + eresult.type + " " + eresult.type.getClass());
+                		System.out.println("BAD CONVERSION " + tree + " " + receiver + " " + eresult.type + " " + eresult.type.getClass());
                 		Utils.dumpStack();
                 	}
                 	eresult.type = jmltypes.repSym((JmlType)eresult.type).type;
@@ -9265,8 +9265,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                           if (mpsym != calleeMethodSym && cs.code) continue;
                           JavaFileObject prev = log.useSource(cs.source());
                           JCExpression pre = calleePreconditions.get(cs);
+                          if (pre == null) continue; // anonymous class without specs
                           //System.out.println("CS-Q " + mpsym.owner + " " + mpsym + " " + cs.hashCode() + " " + cs);
-                          if (pre == null) System.out.println("NULLPREC " + mpsym.owner + " " + mpsym + " " + cs.hashCode() + " " + cs + " # " + calleePreconditions);
                           if (treeutils.isFalseLit(pre)) continue;
                           var check8 = pushBlock();
                           try {
@@ -9570,7 +9570,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                       if (mpsym != calleeMethodSym && cs.code) continue;
                       if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
                       if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
-                      JCExpression precond = calleePreconditions.get(cs); // FIXME - REVIEW this - can be null for constructors of anonymous classes
+                      JCExpression precond = calleePreconditions.get(cs); // Can be null for constructors of anonymous classes
                       JCExpression pre = precond != null ? convertCopy(precond) : treeutils.trueLit;
                       if (treeutils.isFalseLit(pre)) continue;
                       addStat(comment(that, "... Adding havoc statements: spec case: " + cs,null));
@@ -9995,13 +9995,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (!utils.jmlvisible(mpsym,classDecl.sym, mpsym.owner,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
                         if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
                         if (mpsym != calleeMethodSym && cs.code) continue;
+                        //System.out.println("GET CALLEE PRE " + mpsym.owner + " " + mpsym + " " + classType + " " + cs.hashCode() + " " + calleePreconditions.get(cs) + " " + cs);
+                        JCExpression pre = convertCopy(calleePreconditions.get(cs));
+                        if (pre == null) continue; // anonymous class
+                        if (treeutils.isFalseLit(pre)) continue; // Don't bother with postconditions if corresponding precondition is explicitly false 
+                        condition = pre; // FIXME - is this right? what about the havoc statement?
                         ListBuffer<JCStatement> ensuresStats = new ListBuffer<JCStatement>();
                         ListBuffer<JCStatement> exsuresStats = new ListBuffer<JCStatement>();
                         ensuresStats.add(comment(cs,"CASE " + cs, cs.sourcefile));
                         exsuresStats.add(comment(cs,"CASE " + cs, cs.sourcefile));
-                        JCExpression pre = convertCopy(calleePreconditions.get(cs));
-                        if (treeutils.isFalseLit(pre)) continue; // Don't bother with postconditions if corresponding precondition is explicitly false 
-                        condition = pre; // FIXME - is this right? what about the havoc statement?
 
                         currentStatements = ensuresStats;
                         for (JmlMethodClause clause : cs.clauses) {
@@ -16244,7 +16246,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             }
                             LabelProperties lp = labelPropertiesStore.get(label);
                             currentStatements = lp.labeledStatement.extraStatements;
-                            
                             heapCount = lp.heapCount;
                             JCExpression arg = (that.args.get(0));
                             if (!convertingAssignable && arg instanceof JCArrayAccess && (

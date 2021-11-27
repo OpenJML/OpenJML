@@ -1,5 +1,5 @@
 import java.util.ArrayList;
-// This version is fails to verify forth() but shows a bug in the positions of error messages
+// This version is a working version.
 public class ListSeq<E extends Object> implements Seq<E> {
 
     // Private Mutable State
@@ -31,6 +31,10 @@ public class ListSeq<E extends Object> implements Seq<E> {
     }
 
     // Interface Seq
+    /*@ also requires !pastEnd();
+    @   writes _pos;
+    @   ensures pastEnd() ==> ( \old(pos()).equals(length()) );
+    @*/
     @Override
     public void forth() {
         if (pastEnd()) return;

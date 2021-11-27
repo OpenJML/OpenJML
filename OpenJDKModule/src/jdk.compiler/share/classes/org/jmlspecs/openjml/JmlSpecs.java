@@ -1057,6 +1057,8 @@ public class JmlSpecs {
                     com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,nothingKind)));
             if (sym.isConstructor()) {
                 JCAnnotation annotation = org.jmlspecs.openjml.Utils.instance(context).modToAnnotationAST(Modifiers.PURE, pos, pos);
+                var envv = ((JmlAttr)attr).tlenv; // Enter.instance(context).getEnv();
+                attr.attribAnnotationTypes(com.sun.tools.javac.util.List.<JCAnnotation>of(annotation), envv);
                 JCFieldAccess fa = (JCTree.JCFieldAccess)annotation.annotationType;
                 fa.sym = JmlAttr.instance(context).modToAnnotationSymbol.get(Modifiers.PURE);
                 annotation.type = fa.type = fa.sym.type;

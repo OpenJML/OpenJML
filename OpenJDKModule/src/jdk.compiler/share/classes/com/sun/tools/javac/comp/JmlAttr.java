@@ -353,6 +353,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public ClassSymbol createClass(String fqName) {
         return classReader.enterClass(names.fromString(fqName));
     }
+    
+    public Env<AttrContext> tlenv = null;
  
     /** Overrides the super class call in order to perform JML checks on class
      * modifiers.  (Actually, the work was moved to attribClassBody since attribClass
@@ -399,6 +401,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
             Env<AttrContext> eee = typeEnvs.get(c);
             if (eee != null) { // FIXME - is null an error? is null for annotations like SpecPublic, for example, but no attribution is needed either, since there are no spec files.
+        		tlenv = eee;
                 JavaFileObject prevv = log.useSource(eee.toplevel.sourcefile);
                 try {
 //                	attribAnnotationTypes(classSpecs.modifiers.annotations, eee);
@@ -1085,7 +1088,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	return !noBodyOK;
     }
     
-    /** Overridden to set the source file correctly and to set the tdype field */
+    /** Overridden to set the source file correctly and to set the type field */
     public void attribAnnotationTypes(List<JCAnnotation> annotations, // OPENJML package to public
             Env<AttrContext> env) {
     	var prev = log.currentSourceFile();

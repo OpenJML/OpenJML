@@ -98,7 +98,11 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlMethodInvocation(JmlMethodInvocation that) {
-            visitApply(that);
+        	if (that.meth != null) {
+        		visitApply(that);
+        	} else {
+        		that.args.forEach(a -> { if (a.type != null) scan(a); });
+        	}
         }
 
         @Override
@@ -493,7 +497,11 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlMethodInvocation(JmlMethodInvocation that) {
-            visitApply(that);
+        	if (that.meth != null) {
+        		visitApply(that);
+        	} else {
+        		that.args.forEach(a -> { if (a.type != null) scan(a); });
+        	}
         }
 
         @Override
@@ -904,7 +912,11 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlMethodInvocation(JmlMethodInvocation that) {
-            visitApply(that);
+        	if (that.meth != null) {
+        		visitApply(that);
+        	} else {
+        		that.args.forEach(a -> { if (a.type != null) scan(a); });
+        	}
         }
 
         @Override

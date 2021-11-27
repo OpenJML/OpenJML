@@ -11,8 +11,8 @@ cd $(dirname "$BASH_SOURCE")
 
 ./run-summary log-racmost           "101/0"	racArithmeticModes racdemoexamples racfeatures racJML racnew3 racnewLoops racnewWithSpecs racsystem &
 ./run-summary log-racfiles     	"25/41" racfiles  &
-./run-summary log-racnew       	"128/15" racnew  &
-./run-summary log-racnew2      	"73/2"	racnew2 &
+./run-summary log-racnew       	"129/14" racnew  &
+./run-summary log-racnew2      	"75/0"	racnew2 &
 ./run-summary log-racreadable	"0/2"	racreadable & 
 
 ./run-summary log-access+  	"151/4" access arith assignable compilationUnit compiler deprecation  &
@@ -45,7 +45,7 @@ sleep 300
 ./run-summary log-scanner      	"80/3"	scanner  &
 ./run-summary log-typecheck	"181/0"	typechecking &
 ./run-summary log-typeclause	"123/0"	typeclauses  &
-./run-summary log-SpecsBase    	"???"	SpecsBase  &
+./run-summary log-SpecsBase    	"310/?"	SpecsBase  &
 ./run-summary log-SpecsEsc     	"3/0"	SpecsEsc  &
 
 
