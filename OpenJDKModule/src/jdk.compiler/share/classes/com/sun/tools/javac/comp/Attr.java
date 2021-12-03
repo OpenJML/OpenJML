@@ -2777,7 +2777,7 @@ public class Attr extends JCTree.Visitor {
         chk.validate(tree.typeargs, localEnv);
     }
 
-    protected boolean okAsEnum(Type c) { return true; } // OPENJML _ added to allow overwriting
+    protected boolean okAsEnum(Type c) { return true; } // OPENJML - added to allow overwriting
 
         // where
         private void visitAnonymousClassDefinition(JCNewClass tree, JCExpression clazz, Type clazztype,
@@ -4581,7 +4581,7 @@ public class Attr extends JCTree.Visitor {
             checkEnumInitializer(tree, env, v);
         }
         
-        boolean allowForwardRef = false; // OPENJML _ added for extension
+        boolean allowForwardRef = false; // OPENJML - added for extension
 
         /**
          * Returns the enclosing init environment associated with this env (if any). An init env
@@ -5410,7 +5410,7 @@ public class Attr extends JCTree.Visitor {
             typeAnnotations.organizeTypeAnnotationsBodies(tree, false);
 
             // Check type annotations applicability rules
-            validateTypeAnnotations(tree, false); // OPENJML - allow skipping body
+            validateTypeAnnotations(tree, false);
         }
     }
         // where
