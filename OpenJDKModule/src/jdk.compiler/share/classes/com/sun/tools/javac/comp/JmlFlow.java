@@ -791,64 +791,58 @@ public class JmlFlow extends Flow  {
 //            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlStoreRefArrayRange");
         }
 
-//        @Override
-//        public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
-//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseConditional");
-//        }
-//
-//        @Override
-//        public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
-//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseConstraint");
-//        }
-//
-//        @Override
-//        public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseDecl");
-//        }
-//
-//        @Override
-//        public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
-//         // ignore call
-//            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseExpr");
-//        }
-//
-//        @Override
-//        public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
-//         // ignore call
-//            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseIn");
-//        }
-//
-//        @Override
-//        public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
-//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseInitializer");
-//        }
-//
-//        @Override
-//        public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
-//         // ignore call
-//            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseMaps");
-//        }
-//
-//        @Override
-//        public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
-//         // ignore call
-//            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseMonitorsFor");
-//        }
-//
-//        @Override
-//        public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
-//         // ignore call
-//            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseRepresents");
-//        }
-//
-//        public void visitJmlMethodSig(JmlMethodSig that) {
-//         // ignore call
-//            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlConstraintMethodSig");
-//        }
-//
-//        public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
-//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlModelProgramStatement");
-//        }
+        @Override
+        public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
+        	// no need to analyze
+        }
+
+        @Override
+        public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
+        	// no need to analyze
+        }
+
+        @Override
+        public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
+        	// no need to analyze
+        }
+
+        @Override
+        public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
+        	// no need to analyze
+        }
+
+        @Override
+        public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
+        	// no need to analyze
+        }
+
+        @Override
+        public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
+        	// no need to analyze
+        }
+
+        @Override
+        public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
+        	// no need to analyze
+        }
+
+        @Override
+        public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
+        	// no need to analyze
+        }
+
+        @Override
+        public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) {
+        	// no need to analyze
+        }
+
+        public void visitJmlMethodSig(JmlMethodSig that) {
+        	// no need to analyze
+        }
+
+        public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
+            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlModelProgramStatement");
+        }
         
      // Instead of overriding visitClassDef (which does a lot of processing), a hook
         // (moreClassDef) was added into the middle of its implementation; this hook does
