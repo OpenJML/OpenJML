@@ -1299,38 +1299,40 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
                 } else {
                     JCArrayAccess aaorig = aa;
-                    // FIXME
-//                    while (ex instanceof JmlStoreRefArrayRange && ((JmlStoreRefArrayRange)ex).lo == null && ((JmlStoreRefArrayRange)ex).hi == null) { 
-//                        aa = (JmlStoreRefArrayRange)ex; ex = aa.expression;
-//                    }
+                    JCArrayAccess aaa = aa;
+                    while (range.lo == null && range.hi == null && aa.indexed instanceof JCArrayAccess ax) { 
+                    	if (!(ax.index instanceof JmlRange r)) break;
+                        aaa = ax;
+                        range = r;
+                    }
                     if (range.lo == null && range.hi == null) {
                         // Entire array
-                        JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
+                        JCIdent nid = newArrayIncarnation(indexType,aaa.type,sp);
 
                         scan(ex); ex = result;
 
                         JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,null,null);
                         expr.pos = sp;
-                        expr.type = aa.type;
-                        treeutils.copyEndPosition(expr, aa);
+                        expr.type = aaa.type;
+                        treeutils.copyEndPosition(expr, aaa);
 
                         // FIXME - set line and source
                         addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
                     } else {
                         // First havoc entire array
                         // Range of array
-                        JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
+                        JCIdent nid = newArrayIncarnation(indexType,aaa.type,sp);
 
                         scan(ex); ex = result;
 
                         JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,null,null);
                         expr.pos = sp;
-                        expr.type = aa.type;
-                        treeutils.copyEndPosition(expr, aa);
+                        expr.type = aaa.type;
+                        treeutils.copyEndPosition(expr, aaa);
                         // FIXME - set line and source
                         addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
 
-                        int p = aa.pos;
+                        int p = aaa.pos;
                         scan(range.lo);
                         JCExpression lo = result;
                         JCVariableDecl decl = treeutils.makeVarDef(syms.intType, names.fromString("_JMLARANGE_" + (++unique)), null, p);
@@ -1338,10 +1340,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                         JCExpression comp = treeutils.makeBinary(p,JCTree.Tag.LT,treeutils.intltSymbol,ind,lo);
                         JCExpression newelem = new JmlBBArrayAccess(nid,ex,ind);
                         newelem.pos = p;
-                        newelem.type = aa.type;
+                        newelem.type = aaa.type;
                         JCExpression oldelem = new JmlBBArrayAccess(arr,ex,ind);
                         oldelem.pos = p;
-                        oldelem.type = aa.type;
+                        oldelem.type = aaa.type;
                         JCExpression eq = treeutils.makeEquality(p,newelem,oldelem);
 
                         if (range.hi != null) {
