@@ -5,6 +5,7 @@
 package org.jmlspecs.openjml.visitors;
 
 import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.RecommendsClause;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner.Continuation;
@@ -321,7 +322,7 @@ public interface IJmlVisitor extends IVisitor {
         scan(tree.expression);
     }
 
-    default public void visitJmlVariableDecl(JmlVariableDecl tree)         {}
+    default public void visitJmlVariableDecl(JmlVariableDecl tree)         {} // FIXME or comment
 
     default public void visitJmlWhileLoop(JmlWhileLoop tree) {
         scan(tree.loopSpecs);

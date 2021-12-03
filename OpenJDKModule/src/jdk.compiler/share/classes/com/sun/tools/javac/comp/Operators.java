@@ -158,7 +158,6 @@ public class Operators {
      * Entry point for resolving a binary operator given an operator tag and a pair of argument types.
      */
     public OperatorSymbol resolveBinary(DiagnosticPosition pos, JCTree.Tag tag, Type op1, Type op2) { // OPENJML - package to public
-    	if (System.getenv("DEB")!=null) System.out.println("RESOLVEBINARY " + " " + tag + " " + op1 + " " + op2);
     	return resolve(tag,
                 binaryOperators,
                 binop -> binop.test(op1, op2),
@@ -173,7 +172,6 @@ public class Operators {
      */
     private <O> OperatorSymbol resolve(Tag tag, Map<Name, List<O>> opMap, Predicate<O> opTestFunc,
                        Function<O, OperatorSymbol> resolveFunc, Supplier<OperatorSymbol> noResultFunc) {
-    	if (System.getenv("DEB")!=null) System.out.println("MAP " + opMap.get(operatorName(tag)));
         return opMap.get(operatorName(tag)).stream()
                 .filter(opTestFunc)
                 .map(resolveFunc)
@@ -634,7 +632,6 @@ public class Operators {
         private ComparisonKind getKind(Type arg1, Type arg2) {
             boolean arg1Primitive = arg1.isPrimitive();
             boolean arg2Primitive = arg2.isPrimitive();
-            if (System.getenv("DEB") != null) System.out.println("GETKIND " + arg1 + " " + arg2 + " " + arg1Primitive + " " + arg2Primitive);
             if (arg1Primitive && arg2Primitive) {
                 return ComparisonKind.NUMERIC_OR_BOOLEAN;
             } else if (arg1Primitive) {
