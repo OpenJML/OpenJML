@@ -44,6 +44,7 @@ import com.sun.tools.javac.code.Kinds.KindName;
 import com.sun.tools.javac.code.Scope.WriteableScope;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.comp.Enter.UnenterScanner;
+import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.resources.CompilerProperties.Errors;
 import com.sun.tools.javac.tree.JCTree;
@@ -1345,55 +1346,53 @@ public class JmlEnter extends Enter {
     	while (csymbol.owner instanceof ClassSymbol) csymbol = (ClassSymbol)csymbol.owner;
 
     	JmlSpecs.SpecsStatus tsp = JmlSpecs.instance(context).status(csymbol);
-    	if (tsp.less(JmlSpecs.SpecsStatus.QUEUED)) {
-    		requestSpecsForSelfAndParents(csymbol);
-    	} else if (utils.verbose()) {
-    		if (tsp == JmlSpecs.SpecsStatus.QUEUED) utils.note(true,"Requesting specs " + csymbol + ", but specs already in progress");
-    		else                                    utils.note(true,"Requesting specs " + csymbol + ", but specs already loaded or attributed");
-    	}
-
-    }
-
-    private void requestSpecsForSelfAndParents(ClassSymbol csymbol) {
-    	// The binary Java class itself is already loaded - it is needed to produce the classSymbol itself
-
-    	if (!binaryEnterTodo.contains(csymbol)) {
-    		nestingLevel++;
-    		try {
-    			// It can happen that the specs are loaded during the loading of the super class 
-    			// since complete() may be called on the class in order to fetch its superclass,
-    			// or during the loading of any other class that happens to mention the type.
-    			// So we recheck here, before reentering the class in the todo list
-    			if (JmlSpecs.instance(context).status(csymbol) != JmlSpecs.SpecsStatus.NOT_LOADED) return;
-
-    			// Classes are prepended to the todo list in reverse order, so that parent classes
-    			// have specs read first.
-
-    			// Note that nested classes are specified in the same source file as their enclosing classes
-    			// Everything within a specification text file is loaded together
-
-        		if (utils.verbose()) utils.note("Queueing specs request for " + csymbol + " [" + nestingLevel + "]");
-        		
-    			JmlSpecs.instance(context).setStatus(csymbol, JmlSpecs.SpecsStatus.QUEUED);
-    			binaryEnterTodo.prepend(csymbol);
-
-    			for (Type t: csymbol.getInterfaces()) {
-    				requestSpecsForSelfAndParents((ClassSymbol)t.tsym);
-    			}
-    			if (csymbol.getSuperclass() != Type.noType) { // Object has noType as a superclass
-    				requestSpecsForSelfAndParents((ClassSymbol)csymbol.getSuperclass().tsym);
-    			}
-
-    		} finally {
-    			nestingLevel --;
+    	if (utils.verbose()) System.out.println("Requesting for " + csymbol + " " + tsp + " " + binaryEnterTodo.contains(csymbol) + " " + System.identityHashCode(csymbol) + " " + csymbol.hashCode() +  " " + System.identityHashCode(ClassReader.instance(context).enterClass(names.fromString("java.lang.Object"))));
+    	if (!tsp.less(JmlSpecs.SpecsStatus.QUEUED)) {
+    		if (utils.verbose()) {
+    			if (tsp == JmlSpecs.SpecsStatus.QUEUED) utils.note(true,"Requesting specs " + csymbol + ", but specs already in progress");
+    			else                                    utils.note(true,"Requesting specs " + csymbol + ", but specs already loaded or attributed");
     		}
+    	} else {
+        	// The binary Java class itself is already loaded - it is needed to produce the classSymbol itself
+
+        	if (!binaryEnterTodo.contains(csymbol)) {
+        		nestingLevel++;
+        		try {
+        			// It can happen that the specs are loaded during the loading of the super class 
+        			// since complete() may be called on the class in order to fetch its superclass,
+        			// or during the loading of any other class that happens to mention the type.
+        			// So we recheck here, before reentering the class in the todo list
+        			if (JmlSpecs.instance(context).status(csymbol) != JmlSpecs.SpecsStatus.NOT_LOADED) return;
+
+        			// Classes are prepended to the todo list in reverse order, so that parent classes
+        			// have specs read first.
+
+        			// Note that nested classes are specified in the same source file as their enclosing classes
+        			// Everything within a specification text file is loaded together
+
+            		
+        			JmlSpecs.instance(context).setStatus(csymbol, JmlSpecs.SpecsStatus.QUEUED);
+            		if (utils.verbose()) utils.note("Queueing specs request for " + csymbol + " [" + nestingLevel + "]" + " " + binaryEnterTodo.contains(csymbol) + " " + csymbol.hashCode());
+        			binaryEnterTodo.prepend(csymbol);
+
+        			for (Type t: csymbol.getInterfaces()) {
+        				requestSpecs((ClassSymbol)t.tsym);
+        			}
+        			if (csymbol.getSuperclass() != Type.noType) { // Object has noType as a superclass
+        				requestSpecs((ClassSymbol)csymbol.getSuperclass().tsym);
+        			}
+
+        		} finally {
+        			nestingLevel --;
+        		}
+        	}
+
+        	// This nesting level is used to be sure we do not start processing a class, 
+        	// say a superclass, before we have finished loading specs for a given class
+        	if (nestingLevel==0) completeBinaryEnterTodo();
     	}
-
-    	// This nesting level is used to be sure we do not start processing a class, 
-    	// say a superclass, before we have finished loading specs for a given class
-    	if (nestingLevel==0) completeBinaryEnterTodo();
-
     }
+
 
     ListBuffer<ClassSymbol> binaryEnterTodo = new ListBuffer<ClassSymbol>();
     
@@ -1407,7 +1406,7 @@ public class JmlEnter extends Enter {
 			var sourceEnv = getEnv(csymbol);
 			JmlCompilationUnit javaCU = sourceEnv == null ? null : (JmlCompilationUnit)sourceEnv.toplevel;
 			JmlClassDecl javaDecl = sourceEnv == null ? null : (JmlClassDecl)sourceEnv.tree;
-			if (utils.verbose()) utils.note("Dequeued to enter specs: " + csymbol + " " + specs.status(csymbol) + (javaCU==null?" (binary)":(" (" + javaCU.sourcefile + ")")));
+			if (utils.verbose()) utils.note("Dequeued to enter specs: " + csymbol + " " + specs.status(csymbol) + " " + csymbol.hashCode() + " " + (javaCU==null?" (binary)":(" (" + javaCU.sourcefile + ")")));
 //    		if (csymbol.type instanceof Type.ErrorType) {
 //        		continue; // A bad type causes crashes later on
 //    		}

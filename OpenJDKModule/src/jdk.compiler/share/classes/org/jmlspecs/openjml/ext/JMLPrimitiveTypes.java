@@ -4,17 +4,12 @@ import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
-import org.jmlspecs.openjml.ext.MiscExtensions.NoTypeMisc;
 
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Kinds.KindSelector;
 import com.sun.tools.javac.comp.AttrContext;
-import com.sun.tools.javac.comp.Enter;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
-import com.sun.tools.javac.comp.Attr.ResultInfo;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -28,6 +23,7 @@ public class JMLPrimitiveTypes extends JmlExtension {
 	public static class JmlTypeKind extends IJmlClauseKind {
 		public String typename; // expected to be in org.jmlspecs.lang
 		Type type = null; // lazily filled in; depends on context; only  implemented for a single context
+		Context context = null; // context for type
 		
 		public JmlTypeKind(String keyword, String typename) {
 			super(keyword);
@@ -35,7 +31,8 @@ public class JMLPrimitiveTypes extends JmlExtension {
 		}
 		
 		public Type getType(Context context, Env<AttrContext> env) {
-			if (type == null) {
+			if (type == null || context != this.context) {
+				this.context = context;
 				JCIdent id = JmlTree.Maker.instance(context).Ident(Names.instance(context).fromString(typename));
 				type = JmlAttr.instance(context).attribType(id, env);
 			}

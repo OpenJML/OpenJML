@@ -290,7 +290,7 @@ public class Enter extends JCTree.Visitor {
             annotate.blockAnnotations();
             tree.accept(this);
         	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCCompilationUnit cu) System.out.println("Entered CU " + cu.sourcefile + " " + result);
-        	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl d) System.out.println("Entered class " + d.name + " " + result);
+        	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl d) System.out.println("Entered class " + d.sym.hashCode() + " " + d.name + " " + result);
             return result;
         }  catch (CompletionFailure ex) {
             return chk.completionError(tree.pos(), ex);
