@@ -125,8 +125,8 @@ public class Utils {
     	try {
     		if (interfaceForPrimitiveTypes == null) {
     			Names n = Names.instance(context);
-    			var pi = Symtab.instance(context).getPackagesForName(n.fromString("org.jmlspecs.lang")).iterator();
-        	    interfaceForPrimitiveTypes = Symtab.instance(context).enterClass(pi.next().modle,n.fromString("org.jmlspecs.lang.IJmlPrimitiveType")).type;
+    			Symbol.ModuleSymbol m = Symtab.instance(context).getModule(n.fromString("java.base"));
+        	    interfaceForPrimitiveTypes = Symtab.instance(context).enterClass(m,n.fromString("org.jmlspecs.lang.IJmlPrimitiveType")).type;
     		}
     		return interfaceForPrimitiveTypes;
     	} finally {
@@ -932,7 +932,7 @@ public class Utils {
     // Includes self
     public java.util.List<ClassSymbol> parents(TypeSymbol ct, boolean includeEnclosingClasses) {
         ArrayList<ClassSymbol> interfaces = new ArrayList<ClassSymbol>(20);
-        if (isPrimitiveType(ct)) {
+        if (isJavaOrJmlPrimitiveType(ct.type)) {
             interfaces.add((ClassSymbol)ct);
             return interfaces;
         }
@@ -960,14 +960,15 @@ public class Utils {
                 while (sym instanceof MethodSymbol) sym = sym.owner;
                 if (sym instanceof ClassSymbol) todo.add((ClassSymbol)sym); // FIXME - can this be an interface?
             }
-            todo.add((ClassSymbol)cc.getSuperclass().tsym);
+            var sc = cc.getSuperclass().tsym;
+            if (sc != null) todo.add((ClassSymbol)sc);
             classes.add(0,cc);
         }
         for (ClassSymbol ccc: classes) {
             List<Type> ifs = ccc.getInterfaces();
             for (Type ifc : ifs) {
                 ClassSymbol sym = (ClassSymbol)ifc.tsym;
-               if (interfaceSet.add(sym)) interfaces.add(sym);
+                if (interfaceSet.add(sym)) interfaces.add(sym);
             }
         }
         // FIXME - the interfaces are not in a good order

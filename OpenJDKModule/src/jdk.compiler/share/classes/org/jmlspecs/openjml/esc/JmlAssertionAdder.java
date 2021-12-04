@@ -14548,8 +14548,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
             }
-            if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlClassDecl-A " + that.typeSpecs);
-            if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlClassDecl-B " + specs.getSpecs(that.sym));
 
             
             // THis will recursively check nested classes and for each class, checks the constructors, methods, and static initialization.
@@ -14557,13 +14555,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // However, for rac, we potentially modify each declaration, in order, so all declarations are scanned here.
             for (JCTree t: that.defs) {
                 if (rac || t instanceof JmlClassDecl || t instanceof JmlMethodDecl) {
-                    if (org.jmlspecs.openjml.Utils.debug()) {
-                    	System.out.println("JAA-visitJmlClassDecl-C " + that.sym + " " + t);
-                    	if (t instanceof JmlMethodDecl) {
-                    		var msym = ((JmlMethodDecl)t).sym;
-                        	System.out.println("JAA-visitJmlClassDecl-CC " + specs.status(msym) + " " + specs.get(msym));
-                    	}
-                    }
+//                    if (org.jmlspecs.openjml.Utils.debug()) {
+//                    	System.out.println("JAA-visitJmlClassDecl-C " + that.sym + " " + t);
+//                    	if (t instanceof JmlMethodDecl) {
+//                    		var msym = ((JmlMethodDecl)t).sym;
+//                        	System.out.println("JAA-visitJmlClassDecl-CC " + specs.status(msym) + " " + specs.get(msym));
+//                    	}
+//                    }
                     //try { // FIXME - not working reliably yet -- need to completely skip not implemented clauses
                     	scan(t);
 //                    } catch (JmlNotImplementedException e) {
@@ -15954,7 +15952,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (classDefs != null) classDefs.add(that); // FIXME - should make a fresh copy of the declaration
             return;
         }
-        if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlMethodDecl-A " + that.sym.owner + that.sym);
+        if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlMethodDecl-A " + that.sym.owner + that.sym + " " + System.identityHashCode(ClassReader.instance(context).enterClass(names.fromString("java.lang.Object"))));
         
         Translations saved_t = translations;
         String saved_original = originalSplit;
@@ -16061,7 +16059,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             translations = saved_t;
             originalSplit = saved_original;
             currentSplit = saved_current;
-            if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlMethodDecl-Z " + that.sym.owner + that.sym);
+            if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlMethodDecl-Z " + that.sym.owner + that.sym + " " + System.identityHashCode(ClassReader.instance(context).enterClass(names.fromString("java.lang.Object"))));
         }
         
     }
