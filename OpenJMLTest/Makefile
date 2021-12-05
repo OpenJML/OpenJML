@@ -19,6 +19,9 @@ openjml-clean:
 openjml:
 	(cd ${ROOT}/../OpenJDKModule; make openjml)
 
+release:
+	(cd ${ROOT}/../OpenJDKModule; make release)
+
 T=temp-release
 
 prep:
