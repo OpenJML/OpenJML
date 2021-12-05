@@ -2055,6 +2055,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         	JCDiagnostic diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING, 
         			showRacSource ? log.currentSource() : DiagnosticSource.NO_SOURCE, codepos, "rac." + label, args);
             String msg = diag.toString().replace("warning: ", "verify: ").trim();
+            // With showRacSource = true, The diag above both the line information and the position within the source line.
+            // With sho9wRacSource = false, it includes neight
+            // But for showRacSource=false, we still want the line information.
+            if (!showRacSource) msg = utils.locationString(codepos.getPreferredPosition(), log.currentSourceFile()) + " " + msg;
             JCExpression emsg;
             if (racarg != null) {
                 int k = msg.indexOf(JmlTree.eol);

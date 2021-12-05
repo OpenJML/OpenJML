@@ -1,3 +1,5 @@
 START
 ../testfiles/testRac/A.java:4: verify: JML assertion is false
+        //@ assert args.length != 2;
+            ^
 END
