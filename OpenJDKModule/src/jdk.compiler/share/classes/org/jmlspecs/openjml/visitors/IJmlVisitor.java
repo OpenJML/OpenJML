@@ -5,12 +5,17 @@
 package org.jmlspecs.openjml.visitors;
 
 import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.ext.RecommendsClause;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner.Continuation;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCLambda;
+import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.Log;
 
 /**
  * This is an interface for Visitors to JML and Java nodes; it extends IVisitor
@@ -53,29 +58,101 @@ public interface IJmlVisitor extends IVisitor {
 
     default public void visitJmlClassDecl(JmlClassDecl tree)               {}
 
-    default public void visitJmlMethodSig(JmlMethodSig tree)               {}
+    default public void visitJmlMethodSig(JmlMethodSig tree) {
+        scan(tree.expression);
+        scan(tree.argtypes);
+    }
 
     default public void visitJmlDoWhileLoop(JmlDoWhileLoop tree) {
         scan(tree.loopSpecs);
         visitDoLoop(tree);
     }
+
+    default public void visitJmlEnhancedForLoop(JmlEnhancedForLoop tree) {
+        scan(tree.loopSpecs);
+        visitForeachLoop(tree);
+    }
+
+    default public void visitJmlForLoop(JmlForLoop tree) {
+        scan(tree.loopSpecs);
+        visitForLoop(tree);
+    }
+
+
+    default public void visitJmlGroupName(JmlGroupName tree) {
+        scan(tree.selection);
+    }
+
+    default public void visitJmlImport(JmlImport tree) {
+        visitImport(tree);
+    }
     
-    default public void visitJmlEnhancedForLoop(JmlEnhancedForLoop tree)   {}
-    default public void visitJmlForLoop(JmlForLoop tree)                   {}
-    default public void visitJmlGroupName(JmlGroupName tree)               {}
-    default public void visitJmlImport(JmlImport tree)                     {}
-    default public void visitJmlInlinedLoop(JmlInlinedLoop tree)           {}
-    default public void visitJmlLabeledStatement(JmlLabeledStatement tree) {}
-    default public void visitJmlLblExpression(JmlLblExpression tree)       {}
-    default public void visitJmlMatchExpression(JmlMatchExpression tree)   {}
-    default public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {}
-    default public void visitJmlMethodClauseConditional(JmlMethodClauseConditional tree) {}
-    default public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree) {}
-    default public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {}
-    default public void visitJmlMethodClauseGroup(JmlMethodClauseGroup tree) {}
-    default public void visitJmlMethodClauseSignals(JmlMethodClauseSignals tree) {}
-    default public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {}
-    default public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) {}
+    default public void visitJmlInlinedLoop(JmlInlinedLoop tree)           {
+    	// do nothing
+    }
+
+    default public void visitJmlLabeledStatement(JmlLabeledStatement tree) {
+//        scan(tree.extraStatements.toList());
+        scan(tree.body);
+    }
+    
+    default public void visitJmlLblExpression(JmlLblExpression tree) {
+        scan(tree.expression);
+    }
+
+    default public void visitJmlMatchExpression(JmlMatchExpression tree) {
+        scan(tree.expression);
+        for (JmlMatchExpression.MatchCase c: tree.cases) {
+            scan(c.caseExpression);
+            scan(c.value);
+        }
+    }
+
+    default public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
+        scan(tree.keyword);
+        scan(tree.methodSignatures);
+    }
+
+    default public void visitJmlMethodClauseConditional(JmlMethodClauseConditional tree) {
+        scan(tree.expression);
+        scan(tree.predicate);
+    }
+
+    default public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree) {
+        for (JCTree.JCVariableDecl s: tree.decls) {
+            scan(s);
+        }
+    }
+
+    default public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
+        scan(tree.expression);
+        if (tree instanceof RecommendsClause.Node) {
+            RecommendsClause.Node n = (RecommendsClause.Node)tree;
+            scan(n.exceptionType);
+        }
+    }
+
+    default public void visitJmlMethodClauseGroup(JmlMethodClauseGroup tree) {
+        if(tree.cases==null){
+            return;
+        }
+        for (JCTree t: tree.cases) {
+            scan(t);
+        }
+    }
+
+    default public void visitJmlMethodClauseSignals(JmlMethodClauseSignals tree) {
+        scan(tree.expression);
+    }
+
+    default public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {
+        scan(tree.list);
+    }
+
+    default public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) {
+        scan(tree.list);
+    }
+
     default public void visitJmlMethodDecl(JmlMethodDecl tree)             {}
     default public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
         scan(tree.args);
@@ -107,7 +184,7 @@ public interface IJmlVisitor extends IVisitor {
         scan(tree.racexpr);
         scan(tree.triggers);
     }
-    
+
     default public void visitJmlSetComprehension(JmlSetComprehension tree) {
         scan(tree.newtype);
         scan(tree.variable);
@@ -120,7 +197,18 @@ public interface IJmlVisitor extends IVisitor {
     default public void visitJmlSingleton(JmlSingleton tree) {
     	// do nothing - no children to scan
     }
-    default public void visitJmlSpecificationCase(JmlSpecificationCase tree){}
+
+    default public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
+//		var prev = context == null ? null : Log.instance(context).useSource(tree.sourcefile);
+//		try {
+	        scan(tree.modifiers);
+	        scan(tree.clauses);
+	        scan(tree.block);
+//		} finally {
+//			if (context != null) Log.instance(context).useSource(prev);
+//		}
+//   	
+    }
 
     default public void visitJmlStatement(JmlStatement tree) {
         scan(tree.statement);
@@ -129,30 +217,117 @@ public interface IJmlVisitor extends IVisitor {
         for (JCExpression e: tree.expressions) scan(e);
     }
     
-    default public void visitJmlStatementDecls(JmlStatementDecls tree)     {}
+    default public void visitJmlStatementDecls(JmlStatementDecls tree) {
+        for (JCTree.JCStatement s : tree.list) {
+            scan(s);
+        }
+    }
+
     default public void visitJmlStatementExpr(JmlStatementExpr tree) {
         scan(tree.expression);
         scan(tree.optionalExpression);
     }
     
-    default public void visitJmlStatementHavoc(JmlStatementHavoc tree)       {}
-    default public void visitJmlStatementLoopExpr(JmlStatementLoopExpr tree)       {}
-    default public void visitJmlStatementLoopModifies(JmlStatementLoopModifies tree)       {}
-    default public void visitJmlStatementSpec(JmlStatementSpec tree)       {}
-    default public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange tree){}
-    default public void visitJmlStoreRefKeyword(JmlStoreRefKeyword tree)   {}
-    default public void visitJmlStoreRefListExpression(JmlStoreRefListExpression tree){}
-    default public void visitJmlTuple(JmlTuple tree)                       {}
-    default public void visitJmlTypeClauseConditional(JmlTypeClauseConditional tree) {}
-    default public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint tree) {}
-    default public void visitJmlTypeClauseDecl(JmlTypeClauseDecl tree)     {}
-    default public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree)     {}
-    default public void visitJmlTypeClauseIn(JmlTypeClauseIn tree)         {}
-    default public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer tree) {}
-    default public void visitJmlTypeClauseMaps(JmlTypeClauseMaps tree)     {}
-    default public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor tree) {}
-    default public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents tree) {}
-    default public void visitJmlVariableDecl(JmlVariableDecl tree)         {}
-    default public void visitJmlWhileLoop(JmlWhileLoop tree)               {}
+    default public void visitJmlStatementHavoc(JmlStatementHavoc tree) {
+        scan(tree.storerefs);
+    }
+
+    default public void visitJmlStatementLoopExpr(JmlStatementLoopExpr tree) {
+        scan(tree.expression);
+    }
+
+    default public void visitJmlStatementLoopModifies(JmlStatementLoopModifies tree) {
+        scan(tree.storerefs);
+    }
+
+    default public void visitJmlStatementSpec(JmlStatementSpec tree) {
+        scan(tree.statementSpecs);
+        scan(tree.statements);
+    }
+    
+    default public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange tree) {
+        scan(tree.expression);
+        scan(tree.lo);
+        scan(tree.hi);
+    }
+
+    default public void visitJmlStoreRefKeyword(JmlStoreRefKeyword tree) {
+        // nothing to scan
+    }
+
+    default public void visitJmlStoreRefListExpression(JmlStoreRefListExpression tree) {
+        for (JCTree t: tree.list) {
+            scan(t);
+        }
+    }
+    
+    default public void visitJmlTuple(JmlTuple tree) {
+        for (JCExpression e: tree.values) 
+            scan(e);
+    }
+    
+    default public void visitJmlTypeClauseConditional(JmlTypeClauseConditional tree) {
+        scan(tree.modifiers);
+        scan(tree.identifier);
+        scan(tree.expression);
+    }
+
+    default public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint tree) {
+        scan(tree.modifiers);
+        scan(tree.expression);
+        scan(tree.sigs);
+    }
+
+    default public void visitJmlTypeClauseDecl(JmlTypeClauseDecl tree) {
+        scan(tree.modifiers);
+        scan(tree.decl);
+    }
+
+    default public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree) {
+        scan(tree.modifiers);
+        scan(tree.expression);
+    }
+
+    default public void visitJmlTypeClauseIn(JmlTypeClauseIn tree) {
+        scan(tree.modifiers);
+        for (JmlGroupName g: tree.list) {
+            scan(g);
+        }
+    }
+
+    default public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer tree) {
+        scan(tree.modifiers);
+        scan(tree.specs);
+    }
+
+    default public void visitJmlTypeClauseMaps(JmlTypeClauseMaps tree) {
+        scan(tree.modifiers);
+        scan(tree.expression);
+        for (JmlGroupName g: tree.list) {
+            scan(g);
+        }
+    }
+
+    default public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor tree) {
+        scan(tree.modifiers);
+        scan(tree.identifier);
+        for (JCTree.JCExpression e: tree.list) {
+            scan(e);
+        }
+    }
+
+    default public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents tree) {
+        scan(tree.modifiers);
+        scan(tree.ident);
+        scan(tree.expression);
+    }
+
+    default public void visitJmlVariableDecl(JmlVariableDecl tree)         {} // FIXME or comment
+
+    default public void visitJmlWhileLoop(JmlWhileLoop tree) {
+        scan(tree.loopSpecs);
+        visitWhileLoop(tree);
+    }
+
 
 }

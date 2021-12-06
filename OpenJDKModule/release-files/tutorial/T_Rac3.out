@@ -1,0 +1,3 @@
+T_Rac1.java:5: verify: JML assertion is false
+    //@ assert args.length == 1;
+        ^

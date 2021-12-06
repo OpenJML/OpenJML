@@ -29,8 +29,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.Utils;
-
 import com.sun.tools.javac.code.Lint.LintCategory;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticFlag;
 import com.sun.tools.javac.util.JCDiagnostic.Error;

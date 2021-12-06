@@ -214,7 +214,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * it is significant. The field is initialized from a user option and not meant
      * to be set externally.
      */
-    protected boolean showRacSource;
+    protected int showRacSource;
     
     /** If true, then in the RAC translation, assume statements and assumptions
      * implied by JML are checked as if they were assert statements.
@@ -590,7 +590,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** (Public API) Reinitializes the object to start a new class or compilation unit or method */
     public void initialize() {
-        this.showRacSource = JmlOption.isOption(context,JmlOption.RAC_SHOW_SOURCE);
+    	String ss = JmlOption.value(context,JmlOption.RAC_SHOW_SOURCE);
+        this.showRacSource = "none".equals(ss) ? 0 : "line".equals(ss) ? 1 : 2;
         this.racCheckAssumeStatements = JmlOption.isOption(context,JmlOption.RAC_CHECK_ASSUMPTIONS);
         this.javaChecks = esc || (rac && JmlOption.isOption(context,JmlOption.RAC_JAVA_CHECKS));
         this.boogie = false; // esc && JmlOption.isOption(context,JmlOption.BOOGIE);
@@ -2053,8 +2054,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression racarg = null;
             if (args != null && args.length > 0 && args[0] instanceof JCExpression) { racarg = (JCExpression)args[0]; args = new Object[0]; }
         	JCDiagnostic diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING, 
-        			showRacSource ? log.currentSource() : DiagnosticSource.NO_SOURCE, codepos, "rac." + label, args);
+        			showRacSource == 2 ? log.currentSource() : DiagnosticSource.NO_SOURCE, codepos, "rac." + label, args);
             String msg = diag.toString().replace("warning: ", "verify: ").trim();
+            // With showRacSource = true, The diag above both the line information and the position within the source line.
+            // With sho9wRacSource = false, it includes neight
+            // But for showRacSource=false, we still want the line information.
+            if (showRacSource == 1) msg = utils.locationString(codepos.getPreferredPosition(), log.currentSourceFile()) + " " + msg;
             JCExpression emsg;
             if (racarg != null) {
                 int k = msg.indexOf(JmlTree.eol);
@@ -2073,13 +2078,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 emsg = treeutils.makeStringLiteral(translatedExpr.pos,msg);
             }
             if (associatedPos != null) {
+            	var ds = new DiagnosticSource(associatedSource != null ? associatedSource : log.currentSourceFile(),null);
                 diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING,
-                            showRacSource ? (new DiagnosticSource(associatedSource != null ? associatedSource : log.currentSourceFile(),null))
-                            		: DiagnosticSource.NO_SOURCE, 
+                            showRacSource  == 2? ds : DiagnosticSource.NO_SOURCE, 
                             associatedPos, 
-                            Utils.testingMode && !showRacSource? "jml.associated.decl" : "jml.associated.decl.cf",
+                            Utils.testingMode && showRacSource != 2 ? "jml.associated.decl" : "jml.associated.decl.cf",
                             utils.locationString(codepos.getPreferredPosition()));
-                String msg2 = JmlTree.eol + diag.toString().replace("warning: ", "verify: ").trim();
+                String loc = (showRacSource != 1) ? "" : (utils.locationString(associatedPos, ds.getFile()) + " ") ;
+                String msg2 = JmlTree.eol + loc + diag.toString().replace("warning: ", "verify: ").trim();
                 emsg = treeutils.makeUtilsMethodCall(emsg.pos, "concat", emsg, treeutils.makeStringLiteral(translatedExpr.pos,msg2));
             }
             JCStatement stt;
@@ -14539,8 +14545,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
             }
-            if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlClassDecl-A " + that.typeSpecs);
-            if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlClassDecl-B " + specs.getSpecs(that.sym));
 
             
             // THis will recursively check nested classes and for each class, checks the constructors, methods, and static initialization.
@@ -14548,13 +14552,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // However, for rac, we potentially modify each declaration, in order, so all declarations are scanned here.
             for (JCTree t: that.defs) {
                 if (rac || t instanceof JmlClassDecl || t instanceof JmlMethodDecl) {
-                    if (org.jmlspecs.openjml.Utils.debug()) {
-                    	System.out.println("JAA-visitJmlClassDecl-C " + that.sym + " " + t);
-                    	if (t instanceof JmlMethodDecl) {
-                    		var msym = ((JmlMethodDecl)t).sym;
-                        	System.out.println("JAA-visitJmlClassDecl-CC " + specs.status(msym) + " " + specs.get(msym));
-                    	}
-                    }
+//                    if (org.jmlspecs.openjml.Utils.debug()) {
+//                    	System.out.println("JAA-visitJmlClassDecl-C " + that.sym + " " + t);
+//                    	if (t instanceof JmlMethodDecl) {
+//                    		var msym = ((JmlMethodDecl)t).sym;
+//                        	System.out.println("JAA-visitJmlClassDecl-CC " + specs.status(msym) + " " + specs.get(msym));
+//                    	}
+//                    }
                     //try { // FIXME - not working reliably yet -- need to completely skip not implemented clauses
                     	scan(t);
 //                    } catch (JmlNotImplementedException e) {
@@ -15945,7 +15949,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (classDefs != null) classDefs.add(that); // FIXME - should make a fresh copy of the declaration
             return;
         }
-        if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlMethodDecl-A " + that.sym.owner + that.sym);
+        if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlMethodDecl-A " + that.sym.owner + that.sym + " " + System.identityHashCode(ClassReader.instance(context).enterClass(names.fromString("java.lang.Object"))));
         
         Translations saved_t = translations;
         String saved_original = originalSplit;
@@ -16052,7 +16056,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             translations = saved_t;
             originalSplit = saved_original;
             currentSplit = saved_current;
-            if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlMethodDecl-Z " + that.sym.owner + that.sym);
+            if (org.jmlspecs.openjml.Utils.debug()) System.out.println("JAA-visitJmlMethodDecl-Z " + that.sym.owner + that.sym + " " + System.identityHashCode(ClassReader.instance(context).enterClass(names.fromString("java.lang.Object"))));
         }
         
     }

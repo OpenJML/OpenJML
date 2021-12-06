@@ -72,7 +72,7 @@ REL=release-temp
 
 ## Used in the github build.yml action
 
-release: clean version openjml post
+release: clean version openjml jmlruntime.jar post
 
 version:
 	./version.sh
@@ -80,19 +80,21 @@ version:
 post:
 	rm -rf $(REL)
 	mkdir $(REL)
+	cp -pRL jmlruntime.jar $(REL)
 	cp -pRL build/*release/jdk $(REL)
 	if [ `uname` = 'Darwin' ]; then echo Mac ; export S=macos ; elif [ `uname` = 'Linux' ]; then echo Linux; export S=linux ; else echo Win; export S=windows ; fi ;\
 	cp -pR ../../Solvers/Solvers-$$S $(REL)
 	cp -pR ../../Specs/specs $(REL)
 	cp -pR release-files/* $(REL)
 	chmod ugo+x $(REL)/openjml
+	chmod ugo+x $(REL)/openjml-java
 	(cd $(REL); zip -qr ./openjml.zip * )
 
 trial:
 	$(REL)/openjml -version
 	$(REL)/openjml -esc -progress $(REL)/demos/Max.java
 
-# Tests a recently created release (releae-temp/openjml.zip)
+# Tests a recently created release (release-temp/openjml.zip)
 release-test:
 	@ $(topdir)/../OpenJMLTest/releaseTests/runtests
 
@@ -100,7 +102,6 @@ release-test:
 
 openjml: .FORCE
 	NOJML= make
-	##make jmlruntime.jar
 
 smt:
 	if [ -e $(mkfile_dir)/../../../jSMTLIB/SMT ]; then \
@@ -109,15 +110,17 @@ smt:
 	    cp -Rp $(mkfile_dir)/../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; \
 	fi
 
-jmlruntime.jar:
-	cp -r bin-runtime/* temp2
-	cp -r ${ANNOTATIONS}/bin/* temp2
-	touch temp2/JMLRUNTIME_MARKER
-	## jmlruntime.jar has bin-runtime, the annotations, and the marker file JMLRUNTIME_MARKER
-	## If Java is incorrectly setup, the jar command fails - so we check it this first time
-	(cd temp2; jar -cf ../${TEMPJAR}/jmlruntime.jar . ) || exit 1
-	rm -rf temp2
-	echo "   " jmlruntime.jar created
+jmlruntime.jar: .FORCE
+	@mkdir templib
+	@mkdir -p templib/org/jmlspecs/runtime
+	@cp build/*/jdk/modules/java.base/org/jmlspecs/runtime/*.class templib/org/jmlspecs/runtime
+	@cp -r ../../JmlAnnotations/bin/* templib
+	@touch templib/JMLRUNTIME_MARKER
+	@## jmlruntime.jar has bin-runtime, the annotations, and the marker file JMLRUNTIME_MARKER
+	@## If Java is incorrectly setup, the jar command fails - so we check it this first time
+	@(cd templib; jar -cf ../jmlruntime.jar . ) || exit 1
+	@rm -rf templib
+	@echo "   " jmlruntime.jar created
 
 ## Misc helpful targets
 

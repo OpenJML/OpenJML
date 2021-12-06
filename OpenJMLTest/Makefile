@@ -8,16 +8,20 @@ ROOT=${mkfile_dir}
 ### The following is the OpenJML tests
 
 openjml-test: prep
-	( cd ${ROOT}/scripttests; ./escfiles-sort)
+	make release-tests 
+	make tutorial-test > log-tutorial-test
 	( cd ${ROOT}/unittests; source ./runall  )
+	( cd ${ROOT}/scripttests; ./escfiles-sort)
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
-	make release-tests
 
 openjml-clean:
-	(cd ${ROOT}/../OpenJDKModule; make clean openjml)
+	(cd ${ROOT}/../OpenJDKModule; make clean openjml jmlruntime.jar )
 
 openjml:
-	(cd ${ROOT}/../OpenJDKModule; make openjml)
+	(cd ${ROOT}/../OpenJDKModule; make openjml jmlruntime.jar )
+
+release:
+	(cd ${ROOT}/../OpenJDKModule; make release)
 
 T=temp-release
 
@@ -31,29 +35,8 @@ prep:
 
 tutorial-test:
 	@ ( echo Testing tutorial files ;\
-	    cd $(mkfile_dir)/../OpenJDKModule/release-files/tutorial; \
-	    X=0 ;\
-	    for f in *.java ; do \
-		o=`echo $$f | sed -e 's/java/out/'`; \
-		c=`cat $$f | head -1 | sed -e 'sx//[ ]*xx' ` ;\
-		../../$$c > log ;\
-		e=$$? ;\
-		if [ -e $$o ]; then  \
-			if [ $$e -eq "0" ]; then \
-			    X=1; echo $$f "has out file but exit code of 0" ;\
-			fi ;\
-			diff log $$o ; z=$$? ; \
-			if [ $$z -ne "0" ]; then  \
-			    X=1; echo $$f "has wrong output" ; \
-			fi ;\
-		elif [ -n "$( cat log )" ]; then \
-			echo "OK example has output: " $$f ;\
-			cat log ;\
-		elif [ $$e -ne "0" ]; then \
-			X=1; echo "OK example has unexpected exit code: " $$f $$e ; \
-		fi ; \
-	    done ; \
-	    exit $$X \
+	    cd $(mkfile_dir)/../../openjml.github.io/tutorial; \
+	    ./test \
 	)
 
 release-tests:

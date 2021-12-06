@@ -191,7 +191,7 @@ public class assignable extends TCBase {
     @Test
     public void testAssignableBad3() {
         helpTCF("A.java","public class A { int[] k; Object b; Object[] o; \n//@ assignable k b, this.;\n void m(boolean b) {} }"
-                ,"/A.java:2: error: Missing comma or otherwise ill-formed type name",18
+                ,"/A.java:2: error: Missing comma or right parenthesis or otherwise ill-formed expression",18
                 ,"/A.java:2: error: Expected an identifier or star after the dot",25
                 );
     }

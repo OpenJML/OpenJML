@@ -1666,7 +1666,7 @@ public class Flow {
      * effectively-final local variables/parameters.
      */
 
-    public class AssignAnalyzer extends BaseAnalyzer {
+    public class AssignAnalyzer extends BaseAnalyzer implements org.jmlspecs.openjml.visitors.IJmlVisitor {
 
         /** The set of definitely assigned variables.
          */
