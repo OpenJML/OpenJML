@@ -94,7 +94,7 @@ trial:
 	$(REL)/openjml -version
 	$(REL)/openjml -esc -progress $(REL)/demos/Max.java
 
-# Tests a recently created release (releae-temp/openjml.zip)
+# Tests a recently created release (release-temp/openjml.zip)
 release-test:
 	@ $(topdir)/../OpenJMLTest/releaseTests/runtests
 

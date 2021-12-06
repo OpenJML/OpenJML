@@ -1,0 +1,5 @@
+T_RacJavaCheck.java:4: verify: JML attempt to create an array with negative size
+    int[] array = new int[-1];
+                          ^
+Exception in thread "main" java.lang.NegativeArraySizeException: -1
+	at T_RacJavaCheck.main(T_RacJavaCheck.java:4)
