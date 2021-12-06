@@ -1288,7 +1288,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         		if (r.lo == null && r.hi == null) {
             		// Entire array
 
-
+            		scan(ex); ex = result;
             		JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,null,null);
             		expr.pos = sp;
             		expr.type = aa.type;
@@ -1337,15 +1337,57 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             	}
             } else {
             	// A 2D (at least) array range
+            	// FIXME - this is not a correct havocing for a[*][*]. It is not clear how to implement it.
+            	// Here is the problem illustrated for int[][]. In SMT there is a heap for int[][] arrays (call it B -- maps REF to int->(REF->(int->T)) where T is the element type of the array) 
+            	// and a heap for int[] arrays (call it A -- maps REF to int->T where T is the element type of the array, here int)
+            	// x[i] is translated as (select (select A x) i)
+            	// x[i] = v is translated as A' = (store A x (store (select A x) i v))
+            	// For two dimensions:
+            	// a[i][j] is (select (select A e j) where e = (select (select B a) i)
+            	// a[i][j] = v is A' = (store A e (store (select A e) j v))  where e = (select (select B a) i)
+            	// Note that we have a new heap A' but B is unchanged
+            	// So for havoc a[*][*] we want A' = (store A e' *) that is a modified version of A that is different just at all the instances of 
+            	// (select (select B a) i) for all indices i 
         		int p = aa.pos;
+                JCIdent arr2 = getArrayIdent(indexType,ax.type,aa.pos);
         		JCIdent nid = newArrayIncarnation(indexType,ax.type,sp);
         		
         		// Havoc entire 2D array
         		scan(ax.indexed); 
         		JCExpression axi = result;
         		
-        		JCVariableDecl decl = treeutils.makeVarDef(syms.intType, names.fromString("_JMLARANGE_" + (++unique)), null, p);
+        		JCExpression expr = new JmlBBArrayAssignment(nid,arr2,axi,null,null);
+        		expr.pos = sp;
+        		expr.type = aa.type;
+        		treeutils.copyEndPosition(expr, aa);
+        		result = expr;
+                addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
+        		
+                JCExpression lo = treeutils.makeZeroEquivalentLit(p,JmlTypes.instance(context).BIGINT);
+                JCVariableDecl decl = treeutils.makeVarDef(syms.intType, names.fromString("_JMLARANGE_" + (++unique)), null, p);
+                JCIdent ind = treeutils.makeIdent(p, decl.sym);
+                JCExpression comp = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,lo,ind);
+                JCExpression newelem = new JmlBBArrayAccess(nid,axi,ind);
+                newelem.pos = p;
+                newelem.type = aa.type;
+                JCExpression oldelem = new JmlBBArrayAccess(arr2,axi,ind);
+                oldelem.pos = p;
+                oldelem.type = aa.type;
+                JCExpression eq = treeutils.makeNeqObject(p,newelem,treeutils.nullLit);
+                JCExpression len = treeutils.makeEquality(p,treeutils.makeLength(aa, newelem),treeutils.makeLength(aa, oldelem));
 
+//                if (aa.hi != null) {
+//                    scan(aa.hi);
+//                    JCExpression hi = result;
+//                    comp = treeutils.makeOr(p, comp, treeutils.makeBinary(p,JCTree.Tag.LT,treeutils.intltSymbol,hi,ind));
+//                }
+
+                // FIXME - set line and source
+                expr = factory.at(p).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,
+                				treeutils.makeAnd(p, eq, len));
+                expr.setType(syms.booleanType);
+                addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
+                
         		
         		// old array axi[*][*] ; new array nid[*][*]
         		
@@ -1863,7 +1905,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     		((JmlBBArrayAccess)that).arraysId = arr;
     		result = that;
     	} else {
-    		utils.warning(that,"jml.internal","Did not expect a JCArrayAccess node in BasicBlocker2.visitIndexed");
+    		utils.warning(that,"jml.internal","Did not expect this node in BasicBlocker2.visitIndexed: " + that + " " + that.getClass());
     		result = new JmlBBArrayAccess(arr,indexed,index);
     	}
     }
