@@ -134,96 +134,96 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 		}
     }
 
-    public void visitJmlMethodSig(JmlMethodSig that) {
-        scan(that.expression);
-        scan(that.argtypes);
-    }
-
-    public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
-        scan(that.loopSpecs);
-        visitDoLoop(that);
-    }
-
-    public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
-        scan(that.loopSpecs);
-        visitForeachLoop(that);
-    }
-
-    public void visitJmlForLoop(JmlForLoop that) {
-        scan(that.loopSpecs);
-        visitForLoop(that);
-    }
-
-    public void visitJmlGroupName(JmlGroupName tree) {
-        scan(tree.selection);
-    }
-
-    public void visitJmlImport(JmlImport that) {
-        visitImport(that);
-    }
-    
-    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-//        scan(that.extraStatements.toList());
-        scan(that.body);
-    }
-    
-    public void visitJmlLblExpression(JmlLblExpression that) {
-        scan(that.expression);
-    }
-
-    public void visitJmlMatchExpression(JmlMatchExpression that) {
-        scan(that.expression);
-        for (JmlMatchExpression.MatchCase c: that.cases) {
-            scan(c.caseExpression);
-            scan(c.value);
-        }
-    }
-
-    public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
-        scan(tree.keyword);
-        scan(tree.methodSignatures);
-    }
-
-    public void visitJmlMethodClauseConditional(JmlMethodClauseConditional tree) {
-        scan(tree.expression);
-        scan(tree.predicate);
-    }
-
-    public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree) {
-        for (JCTree.JCVariableDecl s: tree.decls) {
-            scan(s);
-        }
-    }
-
-    public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
-        scan(tree.expression);
-        if (tree instanceof RecommendsClause.Node) {
-            RecommendsClause.Node n = (RecommendsClause.Node)tree;
-            scan(n.exceptionType);
-        }
-    }
-
-    public void visitJmlMethodClauseGroup(JmlMethodClauseGroup tree) {
-        if(tree.cases==null){
-            return;
-        }
-        for (JCTree t: tree.cases) {
-            scan(t);
-        }
-    }
-
-    public void visitJmlMethodClauseSignals(JmlMethodClauseSignals tree) {
-        scan(tree.expression);
-    }
-
-    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {
-        scan(tree.list);
-    }
-
-    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) {
-        scan(tree.list);
-    }
-
+//    public void visitJmlMethodSig(JmlMethodSig that) {
+//        scan(that.expression);
+//        scan(that.argtypes);
+//    }
+//
+//    public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
+//        scan(that.loopSpecs);
+//        visitDoLoop(that);
+//    }
+//
+//    public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) {
+//        scan(that.loopSpecs);
+//        visitForeachLoop(that);
+//    }
+//
+//    public void visitJmlForLoop(JmlForLoop that) {
+//        scan(that.loopSpecs);
+//        visitForLoop(that);
+//    }
+//
+//    public void visitJmlGroupName(JmlGroupName tree) {
+//        scan(tree.selection);
+//    }
+//
+//    public void visitJmlImport(JmlImport that) {
+//        visitImport(that);
+//    }
+//    
+//    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
+////        scan(that.extraStatements.toList());
+//        scan(that.body);
+//    }
+//    
+//    public void visitJmlLblExpression(JmlLblExpression that) {
+//        scan(that.expression);
+//    }
+//
+////    public void visitJmlMatchExpression(JmlMatchExpression that) {
+//        scan(that.expression);
+//        for (JmlMatchExpression.MatchCase c: that.cases) {
+//            scan(c.caseExpression);
+//            scan(c.value);
+//        }
+//    }
+//
+//    public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
+//        scan(tree.keyword);
+//        scan(tree.methodSignatures);
+//    }
+//
+//    public void visitJmlMethodClauseConditional(JmlMethodClauseConditional tree) {
+//        scan(tree.expression);
+//        scan(tree.predicate);
+//    }
+//
+//    public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree) {
+//        for (JCTree.JCVariableDecl s: tree.decls) {
+//            scan(s);
+//        }
+//    }
+//
+//    public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
+//        scan(tree.expression);
+//        if (tree instanceof RecommendsClause.Node) {
+//            RecommendsClause.Node n = (RecommendsClause.Node)tree;
+//            scan(n.exceptionType);
+//        }
+//    }
+//
+//    public void visitJmlMethodClauseGroup(JmlMethodClauseGroup tree) {
+//        if(tree.cases==null){
+//            return;
+//        }
+//        for (JCTree t: tree.cases) {
+//            scan(t);
+//        }
+//    }
+//
+//    public void visitJmlMethodClauseSignals(JmlMethodClauseSignals tree) {
+//        scan(tree.expression);
+//    }
+//
+//    public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {
+//        scan(tree.list);
+//    }
+//
+//    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) {
+//        scan(tree.list);
+//    }
+//
     public void visitJmlMethodDecl(JmlMethodDecl that) {
     	var prev = context == null ? null : Log.instance(context).useSource(that.sourcefile);
 		try {
@@ -285,143 +285,129 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     
     // public void visitJmlSingleton(JmlSingleton that);
 
-    public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
-		var prev = context == null ? null : Log.instance(context).useSource(tree.sourcefile);
-		try {
-	        scan(tree.modifiers);
-	        scan(tree.clauses);
-	        scan(tree.block);
-		} finally {
-			if (context != null) Log.instance(context).useSource(prev);
-		}
-    }
+//    public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
+//		var prev = context == null ? null : Log.instance(context).useSource(tree.sourcefile);
+//		try {
+//	        scan(tree.modifiers);
+//	        scan(tree.clauses);
+//	        scan(tree.block);
+//		} finally {
+//			if (context != null) Log.instance(context).useSource(prev);
+//		}
+//    }
 
     //public void visitJmlStatement(JmlStatement tree);
     
-    /** inlined_loop statement */
-    public void visitJmlInlinedLoop(JmlInlinedLoop that) {
-    }
+//    /** inlined_loop statement */
+//    public void visitJmlInlinedLoop(JmlInlinedLoop that) {
+//    }
 
     //public void visitJmlStatementShow(JmlStatementShow tree);
     
-    public void visitJmlStatementDecls(JmlStatementDecls tree) {
-        for (JCTree.JCStatement s : tree.list) {
-            scan(s);
-        }
-    }
+//    public void visitJmlStatementDecls(JmlStatementDecls tree) {
+//        for (JCTree.JCStatement s : tree.list) {
+//            scan(s);
+//        }
+//    }
 
     //public void visitJmlStatementExpr(JmlStatementExpr tree);
 
-    public void visitJmlStatementHavoc(JmlStatementHavoc tree) {
-        scan(tree.storerefs);
-    }
+//    public void visitJmlStatementHavoc(JmlStatementHavoc tree) {
+//        scan(tree.storerefs);
+//    }
 
-    public void visitJmlStatementLoopExpr(JmlStatementLoopExpr tree) {
-        scan(tree.expression);
-    }
+//    public void visitJmlStatementLoopExpr(JmlStatementLoopExpr tree) {
+//        scan(tree.expression);
+//    }
     
-    public void visitJmlStatementLoopModifies(JmlStatementLoopModifies tree) {
-        scan(tree.storerefs);
-    }
+//    public void visitJmlStatementLoopModifies(JmlStatementLoopModifies tree) {
+//        scan(tree.storerefs);
+//    }
     
-    public void visitJmlStatementSpec(JmlStatementSpec tree) {
-        scan(tree.statementSpecs);
-        scan(tree.statements);
-    }
-    
-    public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
-        scan(that.expression);
-        scan(that.lo);
-        scan(that.hi);
-    }
+//    public void visitJmlStatementSpec(JmlStatementSpec tree) {
+//        scan(tree.statementSpecs);
+//        scan(tree.statements);
+//    }
+//    
+//    public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
+//        scan(that.expression);
+//        scan(that.lo);
+//        scan(that.hi);
+//    }
+//
+//    public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
+//        // nothing to scan
+//    }
+//
+//    public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
+//        for (JCTree t: that.list) {
+//            scan(t);
+//        }
+//    }
+//    
+//    @Override
+//    public void visitJmlTuple(JmlTuple that) {
+//        for (JCExpression e: that.values) 
+//            scan(e);
+//    }
+//    
 
-    public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
-        // nothing to scan
-    }
-
-    public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
-        for (JCTree t: that.list) {
-            scan(t);
-        }
-    }
-    
-    @Override
-    public void visitJmlTuple(JmlTuple that) {
-        for (JCExpression e: that.values) 
-            scan(e);
-    }
-    
-    @Override
-    public void visitLambda(JCLambda that) {
-        super.visitLambda(that);
-        scan(((JmlLambda)that).jmlType);
-    }
-
-    @Override
-    public void visitNewClass(JCNewClass that) {
-        scan(that.encl);
-        scan(that.typeargs);
-        scan(that.clazz);
-        scan(that.args);
-        scan(that.def);
-    }
-
-    public void visitJmlTypeClauseConditional(JmlTypeClauseConditional tree) {
-        scan(tree.modifiers);
-        scan(tree.identifier);
-        scan(tree.expression);
-    }
-
-    public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint tree) {
-        scan(tree.modifiers);
-        scan(tree.expression);
-        scan(tree.sigs);
-    }
-
-    public void visitJmlTypeClauseDecl(JmlTypeClauseDecl tree) {
-        scan(tree.modifiers);
-        scan(tree.decl);
-    }
-
-    public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree) {
-        scan(tree.modifiers);
-        scan(tree.expression);
-    }
-
-    public void visitJmlTypeClauseIn(JmlTypeClauseIn tree) {
-        scan(tree.modifiers);
-        for (JmlGroupName g: tree.list) {
-            scan(g);
-        }
-    }
-
-    public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer tree) {
-        scan(tree.modifiers);
-        scan(tree.specs);
-    }
-
-    public void visitJmlTypeClauseMaps(JmlTypeClauseMaps tree) {
-        scan(tree.modifiers);
-        scan(tree.expression);
-        for (JmlGroupName g: tree.list) {
-            scan(g);
-        }
-    }
-
-    public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor tree) {
-        scan(tree.modifiers);
-        scan(tree.identifier);
-        for (JCTree.JCExpression e: tree.list) {
-            scan(e);
-        }
-    }
-
-    public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents tree) {
-        scan(tree.modifiers);
-        scan(tree.ident);
-        scan(tree.expression);
-    }
-
+//    public void visitJmlTypeClauseConditional(JmlTypeClauseConditional tree) {
+//        scan(tree.modifiers);
+//        scan(tree.identifier);
+//        scan(tree.expression);
+//    }
+//
+//    public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint tree) {
+//        scan(tree.modifiers);
+//        scan(tree.expression);
+//        scan(tree.sigs);
+//    }
+//
+//    public void visitJmlTypeClauseDecl(JmlTypeClauseDecl tree) {
+//        scan(tree.modifiers);
+//        scan(tree.decl);
+//    }
+//
+//    public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree) {
+//        scan(tree.modifiers);
+//        scan(tree.expression);
+//    }
+//
+//    public void visitJmlTypeClauseIn(JmlTypeClauseIn tree) {
+//        scan(tree.modifiers);
+//        for (JmlGroupName g: tree.list) {
+//            scan(g);
+//        }
+//    }
+//
+//    public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer tree) {
+//        scan(tree.modifiers);
+//        scan(tree.specs);
+//    }
+//
+//    public void visitJmlTypeClauseMaps(JmlTypeClauseMaps tree) {
+//        scan(tree.modifiers);
+//        scan(tree.expression);
+//        for (JmlGroupName g: tree.list) {
+//            scan(g);
+//        }
+//    }
+//
+//    public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor tree) {
+//        scan(tree.modifiers);
+//        scan(tree.identifier);
+//        for (JCTree.JCExpression e: tree.list) {
+//            scan(e);
+//        }
+//    }
+//
+//    public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents tree) {
+//        scan(tree.modifiers);
+//        scan(tree.ident);
+//        scan(tree.expression);
+//    }
+//
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         visitVarDef(that);
         if (scanMode == AST_SPEC_MODE) {
@@ -438,9 +424,10 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         }
     }
 
-    public void visitJmlWhileLoop(JmlWhileLoop that) {
-        scan(that.loopSpecs);
-        visitWhileLoop(that);
-    }
+//    public void visitJmlWhileLoop(JmlWhileLoop that) {
+//        scan(that.loopSpecs);
+//        visitWhileLoop(that);
+//    }
+//
     
 }

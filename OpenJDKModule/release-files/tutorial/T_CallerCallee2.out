@@ -1,0 +1,22 @@
+T_CallerCallee.java:12: verify: The prover cannot establish an assertion (Precondition: T_CallerCallee.java:26:) in method caller2
+     boolean b1 = lessThanDouble(-1, -2);
+                                ^
+T_CallerCallee.java:26: verify: Associated declaration: T_CallerCallee.java:12:
+  public boolean lessThanDouble(int x, int y) {
+                 ^
+T_CallerCallee.java:24: verify: Precondition conjunct is false: y >= 0
+  //@ requires x > y && y >= 0;
+                          ^
+T_CallerCallee.java:16: verify: The prover cannot establish an assertion (Precondition: T_CallerCallee.java:26:) in method caller3
+     boolean b2 = lessThanDouble(2, 2);
+                                ^
+T_CallerCallee.java:26: verify: Associated declaration: T_CallerCallee.java:16:
+  public boolean lessThanDouble(int x, int y) {
+                 ^
+T_CallerCallee.java:24: verify: Precondition conjunct is false: x > y
+  //@ requires x > y && y >= 0;
+                 ^
+T_CallerCallee.java:21: verify: The prover cannot establish an assertion (Assert) in method caller4
+     //@ assert b == true;
+         ^
+7 verification failures

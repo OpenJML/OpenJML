@@ -1,0 +1,10 @@
+T_WellDefined1.java:5: verify: The prover cannot establish an assertion (Assert) in method example
+    //@ assert a[i] == 0;
+        ^
+T_WellDefined1.java:5: verify: The prover cannot establish an assertion (UndefinedNegativeIndex) in method example
+    //@ assert a[i] == 0;
+                ^
+T_WellDefined1.java:5: verify: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method example
+    //@ assert a[i] == 0;
+                ^
+3 verification failures

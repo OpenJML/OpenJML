@@ -125,7 +125,7 @@ JML options:
   -benchmarks                ESC: Collects solver communications
   -typeQuants                ESC: Introduces quantified assertions for type variables (true, false, or auto)
   -solver-seed               ESC: Seed to initialize solver's random number generation
-  -racShowSource             RAC: Error messages will include source information
+  -racShowSource             RAC: Error messages will include source information (none,line,source)
   -racCheckAssumptions       RAC: Enables runtime checking that assumptions hold
   -racJavaChecks             RAC: Enables explicit checking of Java language checks
   -racCompileToJavaAssert    RAC: Compiles JML checks as Java asserts
@@ -133,7 +133,6 @@ JML options:
   -racMissingModelFieldRepSource RAC: action when a model field has no representation (zero,warn,skip)
   -racMissingModelFieldRepBinary RAC: action when a model field for a binary class has no representation (zero,warn,skip)
   -properties                Specifies the path to the properties file
-  -properties-default        Specifies the path to the default properties file
   -defaults                  Specifies various default behaviors: constructor:pure|everything
   -staticInitWarning         Warns about missing static_initializer clauses
   -determinism               Experimental: enables better determinism

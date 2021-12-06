@@ -890,7 +890,7 @@ public class JmlSpecs {
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
         spec.csymbol = type;
         specsTypes.put(type,spec);
-        specsStatus.put(type, SpecsStatus.SPECS_LOADED);
+        setStatus(type, SpecsStatus.SPECS_LOADED);
         if (utils.verbose()) utils.note("      Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
     }
     

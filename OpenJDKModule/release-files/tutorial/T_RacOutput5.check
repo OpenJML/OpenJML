@@ -1,0 +1,2 @@
+
+openjml -rac -racCompileToJavaAssert T_RacOutput.java && openjml-java -ea -cp . T_RacOutput 2>&1 | diff - T_RacOutput5.out

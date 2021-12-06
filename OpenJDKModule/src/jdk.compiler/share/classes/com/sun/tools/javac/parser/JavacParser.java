@@ -3362,7 +3362,7 @@ public class JavacParser implements Parser {
      *  @param reqInit  Is an initializer always required?
      *  @param dc       The documentation comment for the variable declarations, or null.
      */
-    public JCVariableDecl variableDeclaratorRest(int pos, JCModifiers mods, JCExpression type, Name name, // OPENJML - pacakge to public
+    public JCVariableDecl variableDeclaratorRest(int pos, JCModifiers mods, JCExpression type, Name name, // OPENJML - package to public
                                   boolean reqInit, Comment dc, boolean localDecl, boolean compound) {
         type = bracketsOpt(type);
         JCExpression init = null;
