@@ -8,10 +8,11 @@ ROOT=${mkfile_dir}
 ### The following is the OpenJML tests
 
 openjml-test: prep
-	( cd ${ROOT}/scripttests; ./escfiles-sort)
+	make release-tests 
+	make tutorial-test > log-tutorial-test
 	( cd ${ROOT}/unittests; source ./runall  )
+	( cd ${ROOT}/scripttests; ./escfiles-sort)
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
-	make release-tests
 
 openjml-clean:
 	(cd ${ROOT}/../OpenJDKModule; make clean openjml jmlruntime.jar )
