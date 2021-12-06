@@ -7093,7 +7093,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         
         } else if (callerSRItem instanceof JCArrayAccess) {
         	// trItem is already converted (FIXME - check this -- in every case?)
-        	System.out.println("COMPARING-B " + trItem + " " + callerSRItem );
+        	//System.out.println("COMPARING-B " + trItem + " " + callerSRItem );
             var ex = accessHelper(trItem, callerSRItem, callerThisExpr, itemThisExpr, trItemClass);
             currentThisExpr = savedExpr;
             return ex;
@@ -7110,7 +7110,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     		if (aa.index instanceof JmlRange) r = true;
     		else r = containsRange(aa.indexed);
     	}
-		System.out.println("CONTAINSRANGE " + e + " " + r);
+		//System.out.println("CONTAINSRANGE " + e + " " + r);
 		return r;
     }
     
@@ -7119,7 +7119,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     		var condition = accessHelper(trItem.indexed, callerAA.indexed, callerThisExpr, itemThisExpr, trItemClass);
     		int posp = trItem.pos;
     		DiagnosticPosition pos = trItem;
-    		if (treeutils.isFalseLit(condition)) {
+    		if (!treeutils.isFalseLit(condition)) {
             	currentThisExpr = itemThisExpr;
                 JCExpression ax = convertJML(trItem.indexed);
             	JCExpression aalo;
@@ -7160,7 +7160,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 condition = treeutils.makeAndSimp(posp,condition,indexCondition);
     		}
-    		System.out.println("AH " + trIteme + " " + callerSRItem + " " + condition);
+    		//System.out.println("AH " + trIteme + " " + callerSRItem + " " + condition);
             return condition;
     	} else if (trIteme instanceof JCFieldAccess trfa && callerSRItem instanceof JCFieldAccess cfa && trfa.sym == cfa.sym) {
     		return accessHelper(trfa.selected, cfa.selected, callerThisExpr, itemThisExpr, trItemClass);
@@ -13351,9 +13351,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 checkNull = !(attr.isNonNull(vsym) && isModel(vsym));
             }
             if (checkNull) {
-                JCExpression nonnull = treeutils.makeNeqObject(that.indexed.pos, indexed, 
-                        treeutils.makeNullLiteral(that.indexed.getEndPosition(log.currentSource().getEndPosTable())));
-                addJavaCheck(that,nonnull,Label.POSSIBLY_NULL_DEREFERENCE,Label.UNDEFINED_NULL_DEREFERENCE,"java.lang.NullPointerException");
+            	if (ind instanceof JCArrayAccess aind && aind.index instanceof JmlRange) {
+            		// FIXME - should ensure that all elements in range are non-null
+            	} else {
+            		JCExpression nonnull = treeutils.makeNeqObject(that.indexed.pos, indexed, 
+            				treeutils.makeNullLiteral(that.indexed.getEndPosition(log.currentSource().getEndPosTable())));
+            		addJavaCheck(that,nonnull,Label.POSSIBLY_NULL_DEREFERENCE,Label.UNDEFINED_NULL_DEREFERENCE,"java.lang.NullPointerException");
+            	}
             }
 
             if (!jmltypes.isAnyIntegral(that.index.type)) {
