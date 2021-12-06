@@ -246,7 +246,21 @@ public class JmlOption {
 //    public static final JmlOption MODEL_FIELD_NO_REP = new JmlOption("-modelFieldNoRep",true,"zero","RAC action when a model field has no represents clause (zero,ignore,warn)",null);
 //    ROOTS("-roots",false,false,"Enables the Reflective Object-Oriented Testing System---w00t!",null);
 
-    public static final JmlOption RAC_SHOW_SOURCE = new JmlOption("-racShowSource",false,true,"RAC: Error messages will include source information",null);
+    public static final JmlOption RAC_SHOW_SOURCE = new JmlOption("-racShowSource",true,"source","RAC: Error messages will include source information (none,line,source)",null) {
+    	public boolean check(Context context, boolean negate) {
+    		JmlOptions options = JmlOptions.instance(context);
+            String val = options.get(optionName());
+            if (val == null || val.isEmpty()) {
+                options.put(optionName(),(String)defaultValue());
+            } else if("none".equals(val) || "line".equals(val) || "source".equals(val)) {
+            } else {
+                Utils.instance(context).warning("jml.message","Command-line argument error: Expected 'none', 'line' or 'source' for -racShowSource: " + val);
+                options.put(optionName(),(String)defaultValue());
+            	return false;
+            }
+            return true;
+    	}
+    };
     public static final JmlOption RAC_CHECK_ASSUMPTIONS = new JmlOption("-racCheckAssumptions",false,false,"RAC: Enables runtime checking that assumptions hold",null);
     public static final JmlOption RAC_JAVA_CHECKS = new JmlOption("-racJavaChecks",false,false,"RAC: Enables explicit checking of Java language checks",null);
     public static final JmlOption RAC_COMPILE_TO_JAVA_ASSERT = new JmlOption("-racCompileToJavaAssert",false,false,"RAC: Compiles JML checks as Java asserts",null);
@@ -255,7 +269,7 @@ public class JmlOption {
     public static final JmlOption RAC_MISSING_MODEL_FIELD_REP_BINARY = new JmlOption("-racMissingModelFieldRepBinary",true,"skip","RAC: action when a model field for a binary class has no representation (zero,warn,skip)",null);
 
     public static final JmlOption PROPERTIES = new JmlOption("-properties",true,null,"Specifies the path to the properties file",null);
-    public static final JmlOption PROPERTIES_DEFAULT = new JmlOption("-properties-default",true,null,"Specifies the path to the default properties file",null);
+//    public static final JmlOption PROPERTIES_DEFAULT = new JmlOption("-properties-default",true,null,"Specifies the path to the default properties file",null);
 
     public static final JmlOption DEFAULTS = new JmlOption("-defaults",true,"","Specifies various default behaviors: constructor:pure|everything",null);
     public static final JmlOption STATIC_INIT_WARNING = new JmlOption("-staticInitWarning",false,true,"Warns about missing static_initializer clauses",null);

@@ -121,7 +121,7 @@ ${RTH} testOK1 "$OJ -noPurityCheck -specspath . B.java" || RES=$(($RES+1))
 ## rac
 rm -rf rac
 mkdir -p rac
-${RTH} testRac "$OJ -rac -no-racShowSource -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ -rac -racShowSource=line -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
 echo RAC-OK
 #echo java -classpath "rac${Z}${RT}" A
 java -classpath "rac${Z}${RT}" A  > racactual
@@ -143,7 +143,7 @@ echo RAC-ST with openjml-java
 ${JV} -classpath "rac${Z}" -Dorg.jmlspecs.openjml.racshowstack A 1 2 > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack-openjml || { RES=$(($RES+1)); }
 
-${RTH} testRac "$OJ -rac -racShowSource -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ -rac -racShowSource=source -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
 echo RAC-SIMPLE with source
 java -classpath "rac${Z}${RT}" A 1 2  > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' | diff - ../releaseTests/testRac/expected-simple-source || { RES=$(($RES+1)); }

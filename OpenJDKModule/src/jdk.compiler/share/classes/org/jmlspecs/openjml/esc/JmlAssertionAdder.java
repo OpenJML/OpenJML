@@ -214,7 +214,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * it is significant. The field is initialized from a user option and not meant
      * to be set externally.
      */
-    protected boolean showRacSource;
+    protected int showRacSource;
     
     /** If true, then in the RAC translation, assume statements and assumptions
      * implied by JML are checked as if they were assert statements.
@@ -590,7 +590,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** (Public API) Reinitializes the object to start a new class or compilation unit or method */
     public void initialize() {
-        this.showRacSource = JmlOption.isOption(context,JmlOption.RAC_SHOW_SOURCE);
+    	String ss = JmlOption.value(context,JmlOption.RAC_SHOW_SOURCE);
+        this.showRacSource = "none".equals(ss) ? 0 : "line".equals(ss) ? 1 : 2;
         this.racCheckAssumeStatements = JmlOption.isOption(context,JmlOption.RAC_CHECK_ASSUMPTIONS);
         this.javaChecks = esc || (rac && JmlOption.isOption(context,JmlOption.RAC_JAVA_CHECKS));
         this.boogie = false; // esc && JmlOption.isOption(context,JmlOption.BOOGIE);
@@ -2053,12 +2054,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression racarg = null;
             if (args != null && args.length > 0 && args[0] instanceof JCExpression) { racarg = (JCExpression)args[0]; args = new Object[0]; }
         	JCDiagnostic diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING, 
-        			showRacSource ? log.currentSource() : DiagnosticSource.NO_SOURCE, codepos, "rac." + label, args);
+        			showRacSource == 2 ? log.currentSource() : DiagnosticSource.NO_SOURCE, codepos, "rac." + label, args);
             String msg = diag.toString().replace("warning: ", "verify: ").trim();
             // With showRacSource = true, The diag above both the line information and the position within the source line.
             // With sho9wRacSource = false, it includes neight
             // But for showRacSource=false, we still want the line information.
-            if (!showRacSource) msg = utils.locationString(codepos.getPreferredPosition(), log.currentSourceFile()) + " " + msg;
+            if (showRacSource == 1) msg = utils.locationString(codepos.getPreferredPosition(), log.currentSourceFile()) + " " + msg;
             JCExpression emsg;
             if (racarg != null) {
                 int k = msg.indexOf(JmlTree.eol);
@@ -2077,13 +2078,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 emsg = treeutils.makeStringLiteral(translatedExpr.pos,msg);
             }
             if (associatedPos != null) {
+            	var ds = new DiagnosticSource(associatedSource != null ? associatedSource : log.currentSourceFile(),null);
                 diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING,
-                            showRacSource ? (new DiagnosticSource(associatedSource != null ? associatedSource : log.currentSourceFile(),null))
-                            		: DiagnosticSource.NO_SOURCE, 
+                            showRacSource  == 2? ds : DiagnosticSource.NO_SOURCE, 
                             associatedPos, 
-                            Utils.testingMode && !showRacSource? "jml.associated.decl" : "jml.associated.decl.cf",
+                            Utils.testingMode && showRacSource != 2 ? "jml.associated.decl" : "jml.associated.decl.cf",
                             utils.locationString(codepos.getPreferredPosition()));
-                String msg2 = JmlTree.eol + diag.toString().replace("warning: ", "verify: ").trim();
+                String loc = (showRacSource != 1) ? "" : (utils.locationString(associatedPos, ds.getFile()) + " ") ;
+                String msg2 = JmlTree.eol + loc + diag.toString().replace("warning: ", "verify: ").trim();
                 emsg = treeutils.makeUtilsMethodCall(emsg.pos, "concat", emsg, treeutils.makeStringLiteral(translatedExpr.pos,msg2));
             }
             JCStatement stt;

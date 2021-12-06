@@ -1,0 +1,2 @@
+
+openjml -rac -racShowSource=none T_RacOutput.java && openjml-java -cp . T_RacOutput 2>&1 | diff - T_RacOutput4a.out

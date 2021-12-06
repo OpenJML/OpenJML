@@ -850,25 +850,25 @@ public class Utils {
         	} // FIXME - the above does not work for option names with . or - in them
         }
         
-        // TODO: Review the following
-        // check if -properties or -properties-default option is set.
-        {
-            String properties_file = JmlOption.value(context,JmlOption.PROPERTIES_DEFAULT);            
-           
-            if (properties_file != null && !properties_file.isEmpty()) {
-                try {
-                    boolean found = readProps(properties,properties_file);
-                    if (verbose) {
-                        if (found) noticeWriter.println("Properties read from file: " + properties_file);
-                        else noticeWriter.println("No properties file option found: " + properties_file);
-                    }
-                } catch (java.io.IOException e) {
-                    noticeWriter.println("Failed to read property file " + properties_file); // FIXME - review
-                }
-            } else {
-                if (verbose) noticeWriter.println("No properties file option is set");
-            }
-        }
+//        // TODO: Review the following
+//        // check if -properties or -properties-default option is set.
+//        {
+//            String properties_file = JmlOption.value(context,JmlOption.PROPERTIES_DEFAULT);            
+//           
+//            if (properties_file != null && !properties_file.isEmpty()) {
+//                try {
+//                    boolean found = readProps(properties,properties_file);
+//                    if (verbose) {
+//                        if (found) noticeWriter.println("Properties read from file: " + properties_file);
+//                        else noticeWriter.println("No properties file option found: " + properties_file);
+//                    }
+//                } catch (java.io.IOException e) {
+//                    noticeWriter.println("Failed to read property file " + properties_file); // FIXME - review
+//                }
+//            } else {
+//                if (verbose) noticeWriter.println("No properties file option is set");
+//            }
+//        }
 
         if (verbose) {
             // Print out the properties

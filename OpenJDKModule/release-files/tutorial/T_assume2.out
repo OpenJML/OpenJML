@@ -1,0 +1,4 @@
+T_assume2.java:5: verify: The prover cannot establish an assertion (Assert) in method example
+    //@ assert false;
+        ^
+1 verification failure

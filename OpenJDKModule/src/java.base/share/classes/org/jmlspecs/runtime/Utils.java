@@ -27,9 +27,9 @@ import org.jmlspecs.runtime.JmlAssertionError.Precondition;
  * @author David Cok
  */
 public class Utils {
-    public static int numVerificationErrors = 0;
-    
-	public static final String RUNTIME = "org.jmlspecs.runtime";
+    public static int numVerificationErrors = 0;   
+
+    public static final String RUNTIME = "org.jmlspecs.runtime";
     public static final String ASSERTION_FAILURE = "assertionFailureL"; // Must match the method name
     public static final String ASSERTION_FAILURE_EX = "assertionFailureE"; // Must match the method name
     public static final String REPORT_EXCEPTION = "reportException"; // must match method name
@@ -37,25 +37,27 @@ public class Utils {
     /** Determines whether to report assertion failures as exceptions (true)
      * or error messages (false).
      */
-    public static boolean useExceptions = System.getProperty("org.jmlspecs.openjml.racexceptions") != null;
+    public static boolean useExceptions = "exception".equals(System.getProperty("org.jmlspecs.openjml.rac")) ||
+    		System.getProperty("org.jmlspecs.openjml.racexceptions") != null;
     
     /** Determines whether to report assertion failures as java assertions (true)
      * or error messages (false).
      */
-    public static boolean useJavaAssert = System.getProperty("org.jmlspecs.openjml.racjavaassert") != null;
+    public static boolean useJavaAssert = "assert".equals(System.getProperty("org.jmlspecs.openjml.rac")) ||
+    		System.getProperty("org.jmlspecs.openjml.racjavaassert") != null;
+
+    /** If true, then error messages reporting assertion failures are 
+     * accompanied with a stack trace to log.errorWriter.
+     */
+    public static boolean showStack = "stack".equals(System.getProperty("org.jmlspecs.openjml.rac")) ||
+    		System.getProperty("org.jmlspecs.openjml.racshowstack") != null;
     
     /** If defined, gives the exit code to use if there are RAC errors */
     public static String racExitCodeString = "org.jmlspecs.openjml.racexitcode";
     
-    /** If true, then error messages reporting assertion failures are 
-     * accompanied with a stack trace to log.errorWriter.
-     */
-    public static boolean showStack = System.getProperty("org.jmlspecs.openjml.racshowstack") != null;
-    
     // FIXME - what are these for - are they used?
     static final public String invariantMethodString = "_JML$$$checkInvariant";
     static final public String staticinvariantMethodString = "_JML$$$checkStaticInvariant";
-
     
     /** Reports a JML assertion without a specific label indicating the kind of assertion failure */
     public static void assertionFailure(String message) {
@@ -80,14 +82,13 @@ public class Utils {
         countVerificationErrors();
         if (useExceptions) {
             throw createException(message,label);
+        } else if (showStack) { 
+        	Error e = createException(message,label);
+        	e.printStackTrace(System.out); // Keep the new expressions on line 47 or some test results will change
         } else if (useJavaAssert) {
             assert false: message;
-        } else { 
-            System.out.println(message); System.out.flush();
-            if (showStack) { 
-                Error e = createException(message,label);
-                e.printStackTrace(System.out); // Keep the new expressions on line 47 or some test results will change
-            }
+       } else {
+        	System.out.println(message); System.out.flush();
         }
     }
     
