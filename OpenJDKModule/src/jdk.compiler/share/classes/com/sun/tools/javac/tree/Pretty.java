@@ -199,7 +199,7 @@ public class Pretty extends JCTree.Visitor {
         }
     }
 
-    public static String lineSep = System.getProperty("line.separator"); // OPENJML - pacakge to public
+    public static String lineSep = System.getProperty("line.separator"); // OPENJML - package to public
 
     /* ************************************************************************
      * Traversal methods

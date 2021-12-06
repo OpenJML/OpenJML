@@ -287,6 +287,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         		newargs[2] = "org.jmlspecs.openjml.Main";
         		method.invoke(null, new Object[] { newargs });
         	} catch (Exception e) {
+        		System.out.println("Main exiting with exception");
         		e.printStackTrace(System.out);
         		System.exit(3);
         	}

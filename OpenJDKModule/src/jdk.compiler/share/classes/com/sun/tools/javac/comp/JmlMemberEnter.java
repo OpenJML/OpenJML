@@ -1213,8 +1213,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, WriteableScope enclScope, Env<AttrContext> env, List<JCAnnotation> annotations) {
        	if (tree.sym.owner instanceof ClassSymbol && tree != ((JmlVariableDecl)tree).specsDecl && null != ((JmlVariableDecl)tree).specsDecl) {
-       		System.out.println("VFDH " + tree.sym + " " + tree.sym.owner + " " + annotations + ":: " + ((JmlVariableDecl)tree).specsDecl.mods.annotations
-       				+ " " + tree + "::" + ((JmlVariableDecl)tree).specsDecl + " " + tree.hashCode() + "::" + ((JmlVariableDecl)tree).specsDecl.hashCode());
+//       		System.out.println("VFDH " + tree.sym + " " + tree.sym.owner + " " + annotations + ":: " + ((JmlVariableDecl)tree).specsDecl.mods.annotations
+//       				+ " " + tree + "::" + ((JmlVariableDecl)tree).specsDecl + " " + tree.hashCode() + "::" + ((JmlVariableDecl)tree).specsDecl.hashCode());
        		annotations = annotations.appendList(((JmlVariableDecl)tree).specsDecl.mods.annotations);
     	}
     	super.visitFieldDefHelper(tree, v, enclScope, env, annotations);

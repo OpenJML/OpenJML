@@ -119,7 +119,6 @@ public class JmlEsc extends JmlTreeScanner {
         	utils.progress(1,1,"Operation not performed because of parse or type errors");
             Main.instance(context).canceled = true;
             count(IProverResult.ERROR);
-            throw e;
         } catch (Main.JmlCanceledException e) {
             // Canceled
             Main.instance(context).canceled = true;

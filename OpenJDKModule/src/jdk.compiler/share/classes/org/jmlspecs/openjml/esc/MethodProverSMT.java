@@ -412,7 +412,19 @@ public class MethodProverSMT {
             } else {
             	// Try the prover
             	if (verbose) log.getWriter(WriterKind.NOTICE).println("EXECUTION"); //$NON-NLS-1$
-            	try {
+            	String filename = JmlOption.value(context, JmlOption.SMT);
+            	if (filename != null && filename.isEmpty()) filename = "out.smt2";
+            	String name = utils.methodName(methodDecl.sym);
+            	if (filename != null) filename = filename.replace("%%",utils.qualifiedMethodSig(methodDecl.sym)).replace("%_", name);
+            	try (var fw = filename == null ? null : new java.io.FileWriter(new java.io.File(filename))) {
+            		if (fw != null) {
+            			var sw = new java.io.StringWriter();
+            			org.smtlib.sexpr.Printer.WithLines.write(sw,script);
+            			fw.write("; Proof attempt for " + utils.qualifiedMethodSig(methodDecl.sym));
+            			String s = sw.toString();
+            			int i = s.lastIndexOf(')');
+            			fw.write(sw.toString(),1,i-1); // Removes the enclosing parentheses
+            		}
             		solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
             	} catch (Exception e) {
             		// Not sure there is anything to worry about, but just in case
@@ -497,7 +509,7 @@ public class MethodProverSMT {
                         
                         ++feasibilityCheckNumber;
                         if (feasibilityCheckNumber != stat.associatedPos) {
-                            utils.note(false, "XXX");
+                            utils.note(false, "Mismatched feasibilty number: "+ feasibilityCheckNumber + " vs. " + stat.associatedPos);
                         }
                         if (feasibilityCheckNumber < startFeasibilityCheck) continue;
                         if (prevErrors != log.nerrors) break;

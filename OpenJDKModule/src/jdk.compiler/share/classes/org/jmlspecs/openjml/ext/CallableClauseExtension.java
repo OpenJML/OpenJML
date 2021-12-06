@@ -4,7 +4,7 @@ import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
-import org.jmlspecs.openjml.JmlTree.JmlStoreRefKeyword;
+import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -34,7 +34,7 @@ public class CallableClauseExtension extends JmlExtension {
             parser.warnNotImplemented(pp, keyword, "JmlParser");
             parser.nextToken();
 
-            JmlStoreRefKeyword refkeyword = parser.parseOptStoreRefKeyword();
+            JmlSingleton refkeyword = parser.parseOptStoreRefKeyword();
             List<JmlMethodSig> sigs = null;
             if (refkeyword == null) {
                 sigs = parseMethodNameList();

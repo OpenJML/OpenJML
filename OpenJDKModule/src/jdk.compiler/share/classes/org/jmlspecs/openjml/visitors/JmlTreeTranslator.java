@@ -354,6 +354,13 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
+    @Override
+    public void visitJmlRange(JmlRange that) {
+    	JmlRange r = that;
+    	r.lo = translate(that.lo);
+    	r.hi = translate(that.hi);
+    	result = r;
+    }
 
     @Override
     public void visitJmlSetComprehension(JmlSetComprehension that) {

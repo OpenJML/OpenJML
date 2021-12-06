@@ -23,6 +23,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 //import org.jmlspecs.openjml.JmlClearTypes;
 import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -351,6 +352,9 @@ public class JmlCompiler extends JavaCompiler {
         }
         if (utils.check) {
         	//JmlCheckSpecs.instance(context).check();
+        	if (JmlOption.includes(context,JmlOption.SHOW,"program")) { 
+        		envs.stream().forEach(e->System.out.println(e.toplevel.toString()));
+        	}
             return results; // Empty list - do nothing more
         } else if (utils.doc) {
             return results; // Empty list - do nothing more
@@ -360,7 +364,7 @@ public class JmlCompiler extends JavaCompiler {
                 esc.initCounts();
         	    for (Env<AttrContext> env: envs) esc(env); // Transforms and proves
         	} catch (PropagatedException e) {
-        		// cancelation - catch and continue
+        		// cancelation or error in specifications parsed on demand - catch and continue
         	} finally {
                 String summary = esc.reportCounts();
                 if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode) utils.note(false,summary);

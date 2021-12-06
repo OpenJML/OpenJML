@@ -62,6 +62,8 @@ public class Test {
         //@ assume a[2][3] ==7;
         //@ havoc a[*][*];
         //@ assert a.length == 5;  // OK
+        //@ assert a[1].length == 6;  // OK
+        //@ assert a[2].length == 7;  // OK
     }
     
     public static void mm2b(int[][] a) {
@@ -71,8 +73,12 @@ public class Test {
         //@ assume a[1].length == 6;
         //@ assume a[2].length == 7;
         //@ assume a[2][3] ==7;
+    	int[][] b = a;
+    	int[] a1 = a[1];
         //@ havoc a[*][*];
-        //@ assert a[1].length == 6;  // FAILS
+    	//@ assert b == a;
+    	//@ assert a[1] == a1; // FIXME - SHOULD NOT FAIL
+    	
     }
     
     public static void mm2c(int[][] a) {
@@ -81,9 +87,10 @@ public class Test {
         //@ assume a[1] != null && a[2] != null;
         //@ assume a[1].length == 6;
         //@ assume a[2].length == 7;
-        //@ assume a[2][3] ==7;
+        //@ assume a[2][3] == 7;
         //@ havoc a[*][*];
-        //@ assert a[2].length == 7 ==> a[2][3] ==7;  // FAILS
+        //@ assert a[2].length == 7;
+    	//@ assert a[2][3] == 7;  // FAILS
     }
     
     public static void mm3(int[][] a) {

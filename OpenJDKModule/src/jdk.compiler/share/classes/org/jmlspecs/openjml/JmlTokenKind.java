@@ -121,11 +121,11 @@ public enum JmlTokenKind implements ITokenKind {
      */
     public final static Map<String,JmlTokenKind> backslashTokens = new HashMap<String,JmlTokenKind>();
     
-    /** This is a map from string to token for all of the tokens, and includes defined synonyms. */
-    public final static Map<String,JmlTokenKind> allTokens = new HashMap<>();
+//    /** This is a map from string to token for all of the tokens, and includes defined synonyms. */
+//    public final static Map<String,JmlTokenKind> allTokens = new HashMap<>();
     
     
-    public final static EnumSet<JmlTokenKind> jmloperators = EnumSet.range(EQUIVALENCE, LOCK_LE);
+//    public final static EnumSet<JmlTokenKind> jmloperators = EnumSet.range(EQUIVALENCE, LOCK_LE);
     
     
     
@@ -134,8 +134,8 @@ public enum JmlTokenKind implements ITokenKind {
         for (JmlTokenKind t: EnumSet.range(BSPRE,BSBIGINT)) {
             backslashTokens.put(t.internedName(),t);
         }
-        for (JmlTokenKind t: JmlTokenKind.values()) {
-            allTokens.put(t.internedName(),t);
-        }
+//        for (JmlTokenKind t: JmlTokenKind.values()) {
+//            allTokens.put(t.internedName(),t);
+//        }
     }
 }

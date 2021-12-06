@@ -50,7 +50,7 @@ public class esccallable extends EscBase {
                 +"}"
                 ,anyorder(seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: tt.TestJava.n() is not callable",22
                                 ,"/tt/TestJava.java:3: warning: Associated declaration",7)
-                         ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",15
+                         ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",22
                                  ,"/tt/TestJava.java:3: warning: Associated declaration",7)
                                  )
                 );
@@ -67,7 +67,7 @@ public class esccallable extends EscBase {
                 +"}"
                 ,anyorder(seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: tt.TestJava.p() is not callable",15
                                 ,"/tt/TestJava.java:3: warning: Associated declaration",7)
-                                ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",8
+                                ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",15
                                         ,"/tt/TestJava.java:3: warning: Associated declaration",7)
                           )
                 );
@@ -85,7 +85,7 @@ public class esccallable extends EscBase {
                 +"class B { public static void n() {} };\n"
                 ,anyorder(seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: tt.B.n() is not callable",17
                                 ,"/tt/TestJava.java:3: warning: Associated declaration",7)
-                         ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",8
+                         ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",17
                                  ,"/tt/TestJava.java:3: warning: Associated declaration",7)
                          )
                 );
@@ -103,7 +103,7 @@ public class esccallable extends EscBase {
                 +"class B { public static void n() {} };\n"
                 ,anyorder(seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: tt.B.n() is not callable",17
                                 ,"/tt/TestJava.java:3: warning: Associated declaration",7)
-                         ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",8
+                         ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",17
                                  ,"/tt/TestJava.java:3: warning: Associated declaration",7)
                         )
                 );
@@ -114,13 +114,11 @@ public class esccallable extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable TestJava.n;\n"
-                +"  void m() { B.n(); }  //@ nowarn Callable;\n"
+                +"  void m() { B.n(); }  //@ nowarn Callable;\n" // There would be a warning, but it is suppressed
                 +"  static void n() {}\n"
                 +"  void p() {}\n"
                 +"}\n"
                 +"class B { public static void n() {} };\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",8
-                ,"/tt/TestJava.java:3: warning: Associated declaration",7
                 );
     }
 
@@ -279,7 +277,7 @@ public class esccallable extends EscBase {
                 +"}\n"
                 ,anyorder(seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: tt.TestJava.n(int) is not callable",15
                             ,"/tt/TestJava.java:3: warning: Associated declaration",7)
-                          ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",8
+                          ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",15
                                     ,"/tt/TestJava.java:3: warning: Associated declaration",7)
                            )
                 );
@@ -294,7 +292,7 @@ public class esccallable extends EscBase {
                 +"  void n(int i) {}\n" // default callable everything
                 +"  void n(Object o) {}\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",8
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",15
                 ,"/tt/TestJava.java:3: warning: Associated declaration",7
                 );
     }
@@ -428,7 +426,7 @@ public class esccallable extends EscBase {
                 +"}\n"
                 ,anyorder(seq("/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Callable) in method m: tt.TestJava.n() is not callable",32
                                 ,"/tt/TestJava.java:6: warning: Associated declaration",7)
-                            ,seq("/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",8
+                            ,seq("/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",32
                                     ,"/tt/TestJava.java:6: warning: Associated declaration",7)
                         )
                 );
@@ -445,7 +443,7 @@ public class esccallable extends EscBase {
                 +"  void m(boolean b) { if (b) n(); }\n"
                 +"  void n() {}\n" // default callable everything
                 +"}\n"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",8
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Callable) in method m: \\everything is not callable",31
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }

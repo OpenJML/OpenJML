@@ -120,7 +120,7 @@ public class JmlTree {
         JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> cases);
         JmlMethodClauseDecl JmlMethodClauseDecl(String keyword, IJmlClauseKind t, List<JCTree.JCVariableDecl> decls);
         JmlMethodClauseExpr JmlMethodClauseExpr(String keyword, IJmlClauseKind t, JCTree.JCExpression e);
-        JmlMethodClauseCallable JmlMethodClauseCallable(JmlStoreRefKeyword keyword);
+        JmlMethodClauseCallable JmlMethodClauseCallable(JmlSingleton keyword);
         JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlMethodSig> methodSignatures);
         JmlMethodClauseConditional JmlMethodClauseConditional(String keyword, IJmlClauseKind kind, JCTree.JCExpression e, JCTree.JCExpression predicate);
         JmlMethodClauseSignals JmlMethodClauseSignals(String keyword, IJmlClauseKind kind, JCTree.JCVariableDecl var, JCTree.JCExpression e);
@@ -133,6 +133,7 @@ public class JmlTree {
         JmlModelProgramStatement JmlModelProgramStatement(JCTree item);
         JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt, Name id);
         JmlQuantifiedExpr JmlQuantifiedExpr(IJmlClauseKind kind, List<JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression predicate);
+        JmlRange JmlRange(JCExpression lo, JCExpression hi);
         JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate);
         JmlSingleton JmlSingleton(IJmlClauseKind jt);
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, IJmlClauseKind t, IJmlClauseKind also, List<JmlMethodClause> clauses, JCBlock block);
@@ -143,8 +144,8 @@ public class JmlTree {
         JmlStatementLoopExpr JmlStatementLoopExpr(IJmlClauseKind t, JCTree.JCExpression e);
         JmlStatementLoopModifies JmlStatementLoopModifies(IJmlClauseKind t, List<JCTree.JCExpression> e);
         JmlStatementSpec JmlStatementSpec(JmlMethodSpecs specs);
-        JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
-        JmlStoreRefKeyword JmlStoreRefKeyword(IJmlClauseKind t);
+//        JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
+//        JmlStoreRefKeyword JmlStoreRefKeyword(IJmlClauseKind t);
         JmlStoreRefListExpression JmlStoreRefListExpression(JmlTokenKind t, List<JCExpression> list);
         JmlTuple JmlTuple(java.util.List<JCExpression> list);
         JmlTypeClauseConditional JmlTypeClauseConditional(JCModifiers mods, IJmlClauseKind token, JCTree.JCIdent ident, JCTree.JCExpression p);
@@ -451,6 +452,10 @@ public class JmlTree {
             return new JmlPrimitiveTypeTree(pos,((JmlType)t).jmlTypeTag(), t.tsym.name); // FIXME - not sure this is right primitive types
         }
 
+        @Override
+        public JmlRange JmlRange(JCExpression lo, JCExpression hi) {
+        	return new JmlRange(pos, lo, hi);
+        }
         
         /** Creates JML expressions from tokens without arguments (e.g. \result)*/
         @Override
@@ -737,15 +742,15 @@ public class JmlTree {
             return new JmlTuple(pos,list);
         }
 
-        @Override
-        public JmlStoreRefKeyword JmlStoreRefKeyword(IJmlClauseKind t) {
-            return new JmlStoreRefKeyword(pos,t);
-        }
-
-        @Override
-        public JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi) {
-            return new JmlStoreRefArrayRange(pos,expr,lo,hi);
-        }
+//        @Override
+//        public JmlStoreRefKeyword JmlStoreRefKeyword(IJmlClauseKind t) {
+//            return new JmlStoreRefKeyword(pos,t);
+//        }
+//
+//        @Override
+//        public JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi) {
+//            return new JmlStoreRefArrayRange(pos,expr,lo,hi);
+//        }
 
         @Override
         public JmlTypeClauseExpr JmlTypeClauseExpr(JCModifiers mods, String keyword, IJmlClauseKind token, JCTree.JCExpression e) {
@@ -827,7 +832,7 @@ public class JmlTree {
         }
         
         @Override
-        public JmlMethodClauseCallable JmlMethodClauseCallable(JmlStoreRefKeyword keyword) {
+        public JmlMethodClauseCallable JmlMethodClauseCallable(JmlSingleton keyword) {
         	return new JmlMethodClauseCallable(pos,keyword,null);
         }
         
@@ -2327,11 +2332,11 @@ public class JmlTree {
      */
     public static class JmlMethodClauseCallable extends JmlMethodClause {
 
-        public JmlStoreRefKeyword keyword;
+        public JmlSingleton keyword;
         public List<JmlMethodSig> methodSignatures;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlMethodClauseCallable(int pos, JmlStoreRefKeyword keyword, List<JmlMethodSig> methodSignatures) {
+        protected JmlMethodClauseCallable(int pos, JmlSingleton keyword, List<JmlMethodSig> methodSignatures) {
             super(pos, CallableClauseExtension.callableID, CallableClauseExtension.callableClause);
             this.keyword = keyword;
             this.methodSignatures = methodSignatures;
@@ -2541,7 +2546,7 @@ public class JmlTree {
 
         /** The list of store-ref expressions in the clause */
         public List<JCExpression> list;
-
+        
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlMethodClauseStoreRef(int pos, String keyword, IJmlClauseKind clauseType, List<JCExpression> list) {
             super(pos, keyword, clauseType);
@@ -2776,6 +2781,44 @@ public class JmlTree {
             } else {
                 System.out.println("A JmlQuantifiedExpr expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; // return super.accept(v,d);
+            }
+        }
+    }
+    
+    public static class JmlRange extends JmlExpression {
+    	public /*@ nullable */ JCExpression lo;
+    	public /*@ nullable */ JCExpression hi;
+    	public boolean hiExclusive = false;
+    	
+    	protected JmlRange(int pos, JCExpression lo, JCExpression hi) {
+    		this.pos = pos;
+    		this.lo = lo;
+    		this.hi = hi;
+    	}
+    	
+        @Override
+        public int getEndPosition(EndPosTable endPosTable) {
+            return hi == null ? pos : hi.getEndPosition(endPosTable);
+        }
+
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlRange(this); 
+            } else {
+                v.visitTree(this);
+            }
+        }
+
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlRange(this,d); 
+            } else {
+            	//return (R)kind.typecheck((com.sun.tools.javac.comp.JmlAttr)((Attr)v).attr, this, (Env<AttrContext>)d);
+                System.out.println("A JmlRange expects a JmlTreeVisitor, not a " + v.getClass() + " " + this);
+                new RuntimeException().printStackTrace(System.out);
+                return null; //return super.accept(v,d);
             }
         }
     }
@@ -3888,6 +3931,7 @@ public class JmlTree {
     public static class JmlLambda extends JCLambda {
         public JCExpression jmlType;
         public JCIdent literal;
+        public JavaFileObject sourceLocation;
         
         public JmlLambda(List<JCVariableDecl> params,
                 JCTree body, JCExpression jmlType) {

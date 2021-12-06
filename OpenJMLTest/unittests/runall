@@ -1,4 +1,5 @@
 #! /bin/bash
+shopt -s expand_aliases
 
 n=`ps -ef | grep runtests | wc -l`
 if [ $n != "1" ]; then
@@ -9,49 +10,63 @@ fi
 
 cd $(dirname "$BASH_SOURCE")
 
-./run-summary log-racmost           "101/0"	racArithmeticModes racdemoexamples racfeatures racJML racnew3 racnewLoops racnewWithSpecs racsystem &
+alias lsc="ps au | grep summary | grep -v grep | awk '{ print \$13 }' | sort -u | wc -l"
+alias lst="ps au | grep summary | grep -v grep | awk '{ print \$13 }' | sort -u"
+##alias wt="while [ \$(lsc) -gt 5 ]; do echo Waiting \$(lsc); sleep 30; done; echo proceeding \$(lsc)" 
+alias wt="while [ \$(lsc) -gt 5 ]; do sleep 30; done" 
+
+## The sleeps are inserted so we don't try to run all of the tasks at once
+
+./run-summary log-racmost       "101/0"	racArithmeticModes racdemoexamples racfeatures racJML racnew3 racnewLoops racnewWithSpecs racsystem &
 ./run-summary log-racfiles     	"25/41" racfiles  &
-./run-summary log-racnew       	"128/15" racnew  &
-./run-summary log-racnew2      	"73/2"	racnew2 &
+./run-summary log-racnew       	"129/14" racnew  &
+./run-summary log-racnew2      	"75/0"	racnew2 &
 ./run-summary log-racreadable	"0/2"	racreadable & 
 
 ./run-summary log-access+  	"151/4" access arith assignable compilationUnit compiler deprecation  &
+wt
 ./run-summary log-binaries 	"5/1"	binaries  &
 ./run-summary log-bugs     	"23/0"	bugs  &
 ./run-summary log-esc1     	"91/0"  esc1  &
+wt
 ./run-summary log-esc2     	"109/0" esc2  &
 #./run-summary log-escarith+ 	"56/17" escArithmeticModes escArithmeticModes2  &
 ./run-summary log-escbv     	"12/0"  escbitvector  &
 ./run-summary log-escConst+ 	"68/0"  escConstantFields escCounterexamples escaccessible esccode escconstructor  &
-./run-summary log-escall+   	"85/0"  escall2 escall3   &
-./run-summary log-esccallable	"31/1"  esccallable   &
-sleep 300
+wt
+./run-summary log-escall2   	"30/0"  escall2   &
+./run-summary log-escall3   	"55/0"  escall3   &
+./run-summary log-esccallable	"32/0"  esccallable   &
+wt
 ./run-summary log-escfunc+	"28/0"  escfunction escgeneric  &
 ./run-summary log-escinclau+	"104/0" escinclause escinline esclocation escnewBoxing escnewassignable escnowarn escoption escprimitivetypes escreadable escstrings  &
-./run-summary log-escnew+   	"158/1" escnew escnew2 escvisibility escvisibility1  &
+./run-summary log-escvis  	"59/0"  escvisibility escvisibility1  &
+wt
+./run-summary log-escnew   	"64/1"  escnew &
+./run-summary log-escnew2   	"35/0"  escnew2 &
 ./run-summary log-escnew3   	"63/1"  escnew3 &
+wt
 ./run-summary log-esclambdas   	"25/3"  esclambdas  &
 ./run-summary log-escm         	"13/0"  escm   &
 ./run-summary log-expr+        	"64/0"  expressions escJML flow  &
+wt
 ./run-summary log-generics     	"13/2"  generics   &
 ./run-summary log-harness	"0/5"	harnesstests &
 ./run-summary log-inter+       	"159/0"	internalSpecs jmltypes lblexpression methodspecs modelghost namelookup notspecified nowarn positions prettyprinting purity  &
-sleep 300
+wt
 ./run-summary log-matchClass	"49/3"  matchClasses  &
 ./run-summary log-modifiers    	"192/0" modifiers  &
-./run-summary log-redundant+   	"108/1"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
+./run-summary log-redundant+   	"107/2"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
 ./run-summary log-scanner      	"80/3"	scanner  &
+wt
 ./run-summary log-typecheck	"181/0"	typechecking &
 ./run-summary log-typeclause	"123/0"	typeclauses  &
-./run-summary log-SpecsBase    	"???"	SpecsBase  &
+./run-summary log-SpecsBase    	"310/?"	SpecsBase  &
 ./run-summary log-SpecsEsc     	"3/0"	SpecsEsc  &
 
 
-n=`ps -ef | grep runtests | wc -l`
-while [ $n != "1" ]; do
-  ##echo still running:
-  ##ps -ef | grep runtests
-  sleep 60
-  n=`ps -ef | grep runtests | wc -l`
+while [ $(lsc) -gt "0" ]; do
+  ##echo still running: `lst`
+  sleep r230
 done
 echo Completed

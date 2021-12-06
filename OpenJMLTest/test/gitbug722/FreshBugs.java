@@ -25,8 +25,9 @@ public class FreshBugs {
     Object oo = new Object(); // oo is non_null
    
     /*@
+      requires o != null;
       ensures \fresh(\result);
-      ensures \fresh(\result.payload_); // OK
+      ensures !\fresh(\result.payload_); // OK
     */
      Node ok_test0() {
         Node n = new Node(o, null);
@@ -45,7 +46,7 @@ public class FreshBugs {
     /*@
        ensures \fresh(\result);
      */
-     Node fresh_bug() {
+     Node fresh_bug() { // FAILS, because Node writes \everything, including oo, so oo is possibly null
        Node n = new Node(new Object());
        return n;
      }

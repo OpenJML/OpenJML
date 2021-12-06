@@ -4,8 +4,26 @@ test/gitbug497/IVec.java:15: error: ')' expected
 test/gitbug497/IVec.java:30: error: illegal start of type
       @       && (\exists int i; 0 <= i && i < right.length; 
               ^
-test/gitbug497/IVec.java:31: error: <identifier> expected
+test/gitbug497/IVec.java:30: error: Token \exists is not a type
+      @       && (\exists int i; 0 <= i && i < right.length; 
+                  ^
+test/gitbug497/IVec.java:30: error: ';' expected
+      @       && (\exists int i; 0 <= i && i < right.length; 
+                         ^
+test/gitbug497/IVec.java:30: error: illegal start of type
+      @       && (\exists int i; 0 <= i && i < right.length; 
+                                 ^
+test/gitbug497/IVec.java:30: error: <identifier> expected
+      @       && (\exists int i; 0 <= i && i < right.length; 
+                                       ^
+test/gitbug497/IVec.java:30: error: > expected
+      @       && (\exists int i; 0 <= i && i < right.length; 
+                                                           ^
+test/gitbug497/IVec.java:31: error: ']' expected
       @                           right[i] == 0); @*/
-                                               ^
+                                        ^
+test/gitbug497/IVec.java:31: error: ';' expected
+      @                           right[i] == 0); @*/
+                                         ^
 Operation not performed because of parse or type errors
-3 errors
+9 errors

@@ -61,9 +61,9 @@ public class JmlDeferredAttr extends DeferredAttr implements IJmlVisitor {
         //result = attr.result;
     }
     
+    // FIXME - this is likely not needed
     public void visitJmlSingleton(JmlSingleton that) {
     	scan(that);
-    	System.out.println("VISITING " + that + " " + that.type);
     }
 
     // FIXME?

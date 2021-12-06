@@ -957,7 +957,7 @@ public class escall3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  public void m1bad(/*@ nullable*/ int[] a, int i) {\n"
+                +"  public void m1bad( int /*@ nullable*/[] a, int i) {\n"
                 +"      a[1] = 9;\n"
                 +"  }\n"
                 
@@ -1211,7 +1211,6 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testMethodWithConstructorNameOK() {
-    	//main.addOptions("-verbose","-trace","-ce");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

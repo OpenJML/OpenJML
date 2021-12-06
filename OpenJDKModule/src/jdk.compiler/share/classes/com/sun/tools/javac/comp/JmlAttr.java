@@ -40,6 +40,7 @@ import static org.jmlspecs.openjml.ext.StatementLocationsExtension.*;
 import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
+import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
 import org.jmlspecs.openjml.ext.RecommendsClause;
 import static org.jmlspecs.openjml.ext.ShowStatement.*;
 import com.sun.tools.javac.main.JmlCompiler;
@@ -352,6 +353,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public ClassSymbol createClass(String fqName) {
         return classReader.enterClass(names.fromString(fqName));
     }
+    
+    public Env<AttrContext> tlenv = null;
  
     /** Overrides the super class call in order to perform JML checks on class
      * modifiers.  (Actually, the work was moved to attribClassBody since attribClass
@@ -398,6 +401,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
             Env<AttrContext> eee = typeEnvs.get(c);
             if (eee != null) { // FIXME - is null an error? is null for annotations like SpecPublic, for example, but no attribution is needed either, since there are no spec files.
+        		tlenv = eee;
                 JavaFileObject prevv = log.useSource(eee.toplevel.sourcefile);
                 try {
 //                	attribAnnotationTypes(classSpecs.modifiers.annotations, eee);
@@ -1084,7 +1088,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	return !noBodyOK;
     }
     
-    /** Overridden to set the source file correctly and to set the tdype field */
+    /** Overridden to set the source file correctly and to set the type field */
     public void attribAnnotationTypes(List<JCAnnotation> annotations, // OPENJML package to public
             Env<AttrContext> env) {
     	var prev = log.currentSourceFile();
@@ -1856,7 +1860,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		var p = iter == null ? null : iter.next();
         		var pos = p == null ? Position.NOPOS : p.pos;
         		var s = syms.next();
-        		boolean nn = specs.isNonNullFormal(param.type, i, msp, msym);
+        		boolean nn = specs.isCheckNonNullFormal(param.type, i, msp, msym);
         		if (nn) {
         			JCIdent e = treeutils.makeIdent(pos, s!=null ? s :p != null ? p.sym : param);
         			//System.out.println("USING SYM " + e.name + " " + e.sym + " " + e.sym.hashCode() + " : " + Objects.hashCode(s) + " " + Objects.hashCode(p.sym) + " " + Objects.hashCode(param));
@@ -1917,10 +1921,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     if (c.token == null && decl != null) mods = c.modifiers = decl.mods;
                     ListBuffer<JmlMethodClause> cl = new ListBuffer<JmlMethodClause>();
                     cl.appendList(commonClauses);  // FIXME - appending the same ASTs to each spec case - is this sharing OK
+                    //System.out.println("DESUGARING CASE " + c);
                     ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,msym,mods);
                     for (JmlSpecificationCase cs: newcases) {
                         addDefaultClauses(decl, mods, msym, pure, cs, nnexpr);
                     }
+                    //System.out.println("DESUGARED " + newcases);
                     allcases.appendList(newcases);
                 }
                 for (JmlSpecificationCase c: methodSpecs.impliesThatCases) {
@@ -1995,11 +2001,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
         }
         ListBuffer<JmlMethodClause> newClauseList = new ListBuffer<>();
-        {
-        	// JmlAssertionAdder expects the first requires cause to be params nonnull test, even if it is 'true'
-        	var req = jmlMaker.at(cs.pos).JmlMethodClauseExpr(requiresID, requiresClauseKind, nnexpr);
-        	newClauseList.add(req);
-        }
         if (!hasAssignableClause && cs.block == null) {
             JmlMethodClause defaultClause;
             if (findMod(mods,Modifiers.INLINE) != null) {
@@ -2007,7 +2008,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 defaultClause = null;
             } else if (pure != null || (constructorDefault.equals("pure") && msym.isConstructor())) {
                 int pos = pure != null ? pure.pos : cs.pos;
-                JmlStoreRefKeyword kw = jmlMaker.at(pos).JmlStoreRefKeyword(nothingKind);
+                var kw = jmlMaker.at(pos).JmlSingleton(nothingKind);
                 defaultClause = jmlMaker.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                         List.<JCExpression>of(kw));
 //            } else if (decl.sym.isConstructor()) {
@@ -2018,7 +2019,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
 //                        List.<JCExpression>of(jmlMaker.at(cs.pos).Select(t,(Name)null)));
             } else {
-                JmlStoreRefKeyword kw = jmlMaker.at(cs.pos).JmlStoreRefKeyword(everythingKind);
+                var kw = jmlMaker.at(cs.pos).JmlSingleton(everythingKind);
                 defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                         List.<JCExpression>of(kw));
             }
@@ -2041,7 +2042,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         List.<JCExpression>of(t,jmlMaker.Select(t,(Name)null)));
             } else {
                 defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClause,
-                        List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(everythingKind)));
+                        List.<JCExpression>of(jmlMaker.JmlSingleton(everythingKind)));
             }
             if (defaultClause != null) {
                 defaultClause.sourcefile = log.currentSourceFile();
@@ -2066,7 +2067,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                    List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
 //      newClauseList.add(defaultClause);
 //        }
-        cs.clauses = cs.clauses.appendList(newClauseList);
+
+        // JmlAssertionAdder expects the first requires clause to be params nonnull test, even if it is 'true'
+        	// FIXME - where?
+        var req = jmlMaker.at(cs.pos).JmlMethodClauseExpr(requiresID, requiresClauseKind, nnexpr);
+        cs.clauses = cs.clauses.appendList(newClauseList).prepend(req);
     }
     
     
@@ -2199,8 +2204,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     signalsClause = jmlMaker.at(m.pos).JmlMethodClauseSignals(signalsID,signalsClauseKind,signalClauseVar,treeutils.falseLit);
                     exlist.add(signalsClause);
                     exlist.add(jmlMaker.at(m.pos).JmlMethodClauseExpr(ensuresID,ensuresClauseKind,treeutils.falseLit));
+//                    exlist.add(jmlMaker.JmlMethodClauseStoreRef(assignableID,assignableClauseKind,
+//                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(nothingKind))));
                     exlist.add(jmlMaker.JmlMethodClauseStoreRef(assignableID,assignableClauseKind,
-                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(nothingKind))));
+                            List.<JCExpression>of(jmlMaker.JmlSingleton(nothingKind))));
                 } else {
                     excRequires.expression = treeutils.makeBitOr(m.pos,
                             excRequires.expression, nn.expression);
@@ -2254,12 +2261,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     // So if there is an assignable clause the elements of the clause
                     // may only be members of the class
                     for (JCTree tt: asg.list) {
-                        if (tt instanceof JmlStoreRefKeyword) {
-                            if (((JmlStoreRefKeyword)tt).kind == nothingKind) {
+                        if (tt instanceof JmlSingleton k && k.kind == nothingKind) {
+                            // OK
+                        } else if (tt instanceof JmlStoreRefKeyword k && k.kind == nothingKind) {
                                 // OK
-                            } else {
-                                utils.error(m,"jml.pure.constructor",tt.toString());
-                            }
                         } else if (tt instanceof JCIdent) {
                             // non-static Simple identifier is OK
                             // If the owner of the field is an interface, it
@@ -2288,8 +2293,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 } else {
                     for (JCTree tt: asg.list) {
                         if (tt instanceof JmlStoreRefKeyword &&
-                            ((JmlStoreRefKeyword)tt).kind == nothingKind) {
-                                // OK
+                                ((JmlStoreRefKeyword)tt).kind == nothingKind) {
+                                    // OK
+                        } else if (tt instanceof JmlSingleton key &&
+                                    key.kind == nothingKind) {
+                                        // OK
                         } else if (isFunction(decl.sym)) {
                             utils.error(tt,"jml.function.method",tt.toString());
                         } else {
@@ -2637,14 +2645,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** Overridden in order to be sure that the type specs are attributed. */
     public Type attribType(JCTree tree, Env<AttrContext> env) { // FIXME _ it seems this will automatically happen - why not?
-        Type result;
-        if (tree instanceof JCIdent && ((JCIdent)tree).name.charAt(0) == '\\') {
+    	Type result;
+    	IJmlClauseKind k;
+        if (tree instanceof JCIdent && (k=Extensions.findKeyword(((JCIdent)tree).name)) instanceof JMLPrimitiveTypes.JmlTypeKind) {
             // Backslash identifier -- user added type
-            JCIdent id = (JCIdent)tree;
-            JCIdent t = jmlMaker.at(tree.pos).Ident(names.fromString(id.name.toString().substring(1)));
+        	JMLPrimitiveTypes.JmlTypeKind kt = (JMLPrimitiveTypes.JmlTypeKind)k;
+            JCIdent t = jmlMaker.at(tree.pos).Ident(names.fromString(kt.typename));
             result = super.attribType(t,env);
-            id.type = t.type;
-            id.sym = t.sym;
+            tree.type = result;
         } else {
             result = super.attribType(tree,env);
         }
@@ -2990,25 +2998,37 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JCIdent id = (JCIdent)tree.ident;
                 type = attribExpr(id, env, Type.noType);
                 sym = id.sym;
-            } else if (tree.ident instanceof JCArrayAccess) {
-            	//var aa = (JCArrayAccess)tree.ident;
-                utils.error(tree.ident, "jml.message", "Array elements are not permitted in a represents clause");
-                return;
-            } else if (tree.ident instanceof JmlStoreRefArrayRange) {
-            	var aa = (JmlStoreRefArrayRange)tree.ident;
-            	if (aa.hi != null || aa.lo != null) {
-                    utils.error(tree.ident, "jml.message", "Array ranges are not permitted in a represents clause");
-            	}
-            	Type t = attribExpr(aa.expression,env,Type.noType);
-            	if (!(t instanceof ArrayType)) {
-            		utils.error(aa, "jml.message", "Represents target with wild-card index must be an array: " + tree.ident);
-            		type = types.createErrorType(t);
+            } else if (tree.ident instanceof JCArrayAccess aa) {
+            	Type t = tree.ident.type = attribExpr(aa.indexed,env,Type.noType);
+            	if (aa.index instanceof JmlRange range) {
+                	if (range.hi != null || range.lo != null) {
+                        utils.error(tree.ident, "jml.message", "Array ranges are not permitted in a represents clause");
+                	}
+                	if (!(t instanceof ArrayType)) {
+                		// FIXME - I don't understand this message  or why it is here
+                		utils.error(aa, "jml.message", "Represents target with wild-card index must be an array: " + tree.ident);
+                		type = types.createErrorType(t);
+                	} else {
+                		type = ((ArrayType)t).elemtype;
+                	}
             	} else {
-            		type = ((ArrayType)t).elemtype;
+            		utils.error(tree.ident, "jml.message", "Array elements are not permitted in a represents clause");
             	}
-            	// FIXME - sym?
-            } else if (tree.ident instanceof JCFieldAccess) {
-            	var fa = (JCFieldAccess)tree.ident;
+                return;
+//            } else if (tree.ident instanceof JmlStoreRefArrayRange) {
+//            	var aa = (JmlStoreRefArrayRange)tree.ident;
+//            	if (aa.hi != null || aa.lo != null) {
+//                    utils.error(tree.ident, "jml.message", "Array ranges are not permitted in a represents clause");
+//            	}
+//            	Type t = attribExpr(aa.expression,env,Type.noType);
+//            	if (!(t instanceof ArrayType)) {
+//            		utils.error(aa, "jml.message", "Represents target with wild-card index must be an array: " + tree.ident);
+//            		type = types.createErrorType(t);
+//            	} else {
+//            		type = ((ArrayType)t).elemtype;
+//            	}
+//            	// FIXME - sym?
+            } else if (tree.ident instanceof JCFieldAccess fa) {
             	type = attribExpr(fa,env,Type.noType);
                 utils.error(tree.ident, "jml.message", "Field accesses are not permitted in a represents clause");
                 return;
@@ -3595,6 +3615,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         			}
 
         			c.accept(this);
+        		} catch (JmlInternalAbort|PropagatedException e) {
+        			throw e;
         		} catch (Exception e) {
         			System.out.println("EXCEPTION-JmlMethodSpecs " + e);
         			e.printStackTrace(System.out);
@@ -3652,13 +3674,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        // these JML methods, so it should not technically be needed.
         Env<AttrContext> localEnv = env;
         
-        if (!(tree.kind instanceof IJmlClauseKind.ExpressionKind)) {
-        	utils.error(tree,"jml.message","Expected a " + tree.kind + "to be a IJmlClauseKind.Expression");
-        	result = tree.type = syms.errType;
-        } else {
+//        if (!(tree.kind instanceof IJmlClauseKind.ExpressionKind)) {
+//        	utils.error(tree,"jml.message","Expected a " + tree.kind + "to be a IJmlClauseKind.Expression");
+//        	result = tree.type = syms.errType;
+//        } else {
         	Type ttt = tree.kind.typecheck(this, tree, localEnv);
         	result = check(tree, ttt, KindSelector.VAL, resultInfo);
-        }
+//        }
     }
     
     public void saveEnvForLabel(Name label, Env<AttrContext> env) {
@@ -4002,6 +4024,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = check(that, t, KindSelector.VAL, resultInfo);
     }
     
+    public void visitJmlRange(JmlRange that) {
+    	if (that.lo != null) {
+    		Type t = attribExpr(that.lo, env, Type.noType);
+    		if (!t.isIntegral() && t != jmltypes.BIGINT) {
+    			utils.error(that.lo, "jml.message", "Expected an integral type, not " + t);
+    		}
+    	}
+    	if (that.hi != null) {
+    		Type t = attribExpr(that.hi, env, Type.noType);
+    		if (!t.isIntegral() && t != jmltypes.BIGINT) {
+    			utils.error(that.hi, "jml.message", "Expected an integral type, not " + t);
+    		}
+    	}
+    	result = that.type = JMLPrimitiveTypes.rangeType.getType(context,env);
+    }
+    
 //    public void visitJmlFunction(JmlFunction that) {
 //        // Actually, I don't think this gets called.  It would get called through
 //        // visitApply.
@@ -4052,6 +4090,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	return super.condType(positions, condTypes);
     }
 
+    @Override
+    public void visitBinary(JCBinary that) {
+    	super.visitBinary(that);
+    	if (that.getTag() != Tag.EQ && that.getTag() != Tag.NE) return;
+    	if ((utils.isExtensionValueType(that.lhs.type) || utils.isExtensionValueType(that.rhs.type))
+    			&& !jmltypes.isSameType(that.rhs.type,that.lhs.type)) {
+    		utils.error(that, "jml.message", "Values of JML primitive types may only be compared to each other: "
+    				+ that.lhs.type + " vs. " + that.rhs.type);
+    	}
+    }
     
     @Override
     public void visitJmlBinary(JmlBinary that) {  // FIXME - how do we handle unboxing, casting
@@ -5049,12 +5097,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (jmltypes.isArray(atype))
                 owntype = jmltypes.elemtype(atype);
             else if (!atype.hasTag(ERROR))
-                utils.error(tree, "array.req.but.found", atype);
-            if (jmltypes.isIntArray(atype) && !jmltypes.isAnyIntegral(t) && !t.isErroneous()) {
-                utils.error(tree, "jml.message", "Expected an integral type as an index, not " + t.toString());
+                utils.error(tree.indexed, "array.req.but.found", atype);
+            if (t == rangeType.getType(context,env)) {
+            	if (!(tree.index instanceof JmlRange)) {
+            		utils.error(tree.index,"jml.message", "Index ranges are implemented only for explicit range expressions (using ..)");
+            	}
+            } else {
+            	if (jmltypes.isIntArray(atype) && !jmltypes.isAnyIntegral(t) && !t.isErroneous()) {
+            		utils.error(tree.index, "jml.message", "Expected an integral type as an index, not " + t.toString());
+            	}
             }
-            if (!pkind().contains(KindSelector.VAR)) owntype = types.capture(owntype);
-            result = check(tree, owntype, KindSelector.VAR, resultInfo);
+        	if (!pkind().contains(KindSelector.VAR)) owntype = types.capture(owntype);
+        	result = check(tree, owntype, KindSelector.VAR, resultInfo);
 
         } else {
             super.visitIndexed(tree);
@@ -5322,7 +5376,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // This is a store-ref with a wild-card field
             // FIXME - the following needs some review
             attribTree(tree.selected, env, new ResultInfo(KindSelector.of(KindSelector.TYP,KindSelector.VAR), Infer.anyPoly));
-            result = tree.type = Type.noType;
+            result = tree.type = locsetType.getType(context,env);
         } else if (tree.name.toString().startsWith("_$T")) {
             attribTree(tree.selected, env, new ResultInfo(KindSelector.VAR, Infer.anyPoly));
             int n = Integer.parseInt(tree.name.toString().substring(3));
@@ -7201,6 +7255,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    			System.out.println("SPECIFICATIONEXCEPTION");
 //    			e.printStackTrace(System.out);
 //    			Utils.dumpStack();
+    		} catch (JmlInternalAbort|PropagatedException e) {
+    			throw e;
     		} catch (Exception e) {
     			System.out.println("EXCEPTION");
     			e.printStackTrace(System.out);
@@ -7216,11 +7272,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			currentQueryContext = savedQuery;
     			jmlresolve.setAllowJML(prevAllowJML);
     		}
+//    		if (JmlCompiler.instance(context).errorCount() > 0) {
+//    			String msg = "Aborting because of type or parse error in specs: " + msym.owner + "." + msym;
+//    			utils.error("jml.message", msg);
+//    			throw new SpecificationException();
+//    		}
     		utils.note(true, "    Attributed specs for " + msym.owner + " " + msym);
     	} catch (SpecificationException e) {
-    		throw new PropagatedException(e);
-    	} catch (PropagatedException e) {
+    		throw new JmlInternalAbort();
+    	} catch (JmlInternalAbort|PropagatedException e) {
     		// continue to clean exit - already reported
+    		throw e;
     	} catch (Exception e) {
     		utils.unexpectedException("Exception while attributing method specs: " + msym.owner + "." + msym, e);
     	} finally {
@@ -7399,6 +7461,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         public void visitJmlNewClass(JmlNewClass tree)                 { visitTree(tree); }
         public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree tree){ visitTree(tree); }
         public void visitJmlQuantifiedExpr(JmlQuantifiedExpr tree)     { visitTree(tree); }
+        public void visitJmlRange(JmlRange tree)                       { visitTree(tree); }
         public void visitJmlSetComprehension(JmlSetComprehension tree) { visitTree(tree); }
         public void visitJmlSingleton(JmlSingleton tree)               { visitTree(tree); }
         public void visitJmlSpecificationCase(JmlSpecificationCase tree){ visitTree(tree); }

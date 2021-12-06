@@ -1,5 +1,5 @@
 import java.util.ArrayList;
-
+// This version is fails to verify forth() but shows a bug in the positions of error messages
 public class ListSeq<E extends Object> implements Seq<E> {
 
     // Private Mutable State

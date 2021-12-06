@@ -41,6 +41,7 @@ import static org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.TypeInitializerClauseExtension.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
+import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
 //import org.osgi.framework.Bundle;
 //import org.w3c.dom.Element;
 
@@ -889,7 +890,7 @@ public class JmlSpecs {
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
         spec.csymbol = type;
         specsTypes.put(type,spec);
-        specsStatus.put(type, SpecsStatus.SPECS_LOADED);
+        setStatus(type, SpecsStatus.SPECS_LOADED);
         if (utils.verbose()) utils.note("      Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
@@ -1056,6 +1057,8 @@ public class JmlSpecs {
                     com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,nothingKind)));
             if (sym.isConstructor()) {
                 JCAnnotation annotation = org.jmlspecs.openjml.Utils.instance(context).modToAnnotationAST(Modifiers.PURE, pos, pos);
+                var envv = ((JmlAttr)attr).tlenv; // Enter.instance(context).getEnv();
+                attr.attribAnnotationTypes(com.sun.tools.javac.util.List.<JCAnnotation>of(annotation), envv);
                 JCFieldAccess fa = (JCTree.JCFieldAccess)annotation.annotationType;
                 fa.sym = JmlAttr.instance(context).modToAnnotationSymbol.get(Modifiers.PURE);
                 annotation.type = fa.type = fa.sym.type;
@@ -1615,6 +1618,12 @@ public class JmlSpecs {
         return null;
     }
 
+    public boolean isCheckNonNullFormal(Type type, int i,  MethodSpecs calleeSpecs, MethodSymbol msym) {
+    	// Extension type values are always non-null, but we do not check for that
+    	if (utils.isExtensionValueType(type)) return false;
+    	if ((msym.owner.flags() & Flags.ENUM) !=  0 && msym.name.equals(names.valueOf)) return false;
+    	return isNonNullFormal(type, i, calleeSpecs, msym);
+    }
 
     @SuppressWarnings("unchecked")
 	public boolean isNonNullFormal(Type type, int i, MethodSpecs calleeSpecs, MethodSymbol msym) {
@@ -1638,6 +1647,13 @@ public class JmlSpecs {
     	}
     	return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
     }
+    
+	public boolean isCheckNonNullReturn(Type type, MethodSymbol msym) {
+    	// Extension type values are always non-null, but we do not check for that
+    	if (utils.isExtensionValueType(type)) return false;
+    	return isNonNullReturn(type, msym);
+    }
+		
     
     @SuppressWarnings("unchecked")
 	public boolean isNonNullReturn(Type type, MethodSymbol msym) {

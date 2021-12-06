@@ -1,0 +1,4 @@
+T_frame1.java:23: verify: The prover cannot establish an assertion (Assert) in method test
+    //@ assert counter2 == 0;
+        ^
+1 verification failure

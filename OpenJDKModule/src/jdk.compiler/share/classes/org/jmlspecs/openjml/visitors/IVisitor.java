@@ -4,9 +4,14 @@
  */
 package org.jmlspecs.openjml.visitors;
 
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlLambda;
 import org.jmlspecs.openjml.JmlTree.JmlNewClass;
 
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.Log;
 
 /**
  * This class is an interface to the JDK Visitor class. Too bad OpenJDK does not
@@ -16,7 +21,22 @@ import com.sun.tools.javac.tree.JCTree.*;
  * @author David Cok
  */
 public interface IVisitor {
-        public void visitTopLevel(JCCompilationUnit that)    ;
+	default public void scan(JCTree tree) {
+	}
+	
+	default public void scan(List<? extends JCTree> trees) {
+		for (var tree: trees) scan(tree);
+	}
+
+    default public void scan(Iterable<? extends JCTree> list) { 
+        if (list != null)
+          for (JCTree t: list) scan(t);
+    }
+
+    default public void visitTopLevel(JCCompilationUnit that) {
+    	for (var d: that.defs) scan(d);
+    }
+
         public void visitImport(JCImport that)               ;
         public void visitClassDef(JCClassDecl that)          ;
         public void visitMethodDef(JCMethodDecl that)        ;
@@ -42,7 +62,6 @@ public interface IVisitor {
         public void visitThrow(JCThrow that)                 ;
         public void visitAssert(JCAssert that)               ;
         public void visitApply(JCMethodInvocation that)      ;
-        public void visitNewClass(JCNewClass that)           ;
         public void visitNewArray(JCNewArray that)           ;
         public void visitParens(JCParens that)               ;
         public void visitAssign(JCAssign that)               ;
@@ -66,5 +85,19 @@ public interface IVisitor {
         public void visitErroneous(JCErroneous that)         ;
         public void visitLetExpr(LetExpr that)               ;
         public void visitReference(JCMemberReference that)   ;
-        public void visitLambda(JCLambda that)               ;
+        
+        default public void visitLambda(JCLambda that) {
+            visitLambda(that);
+            scan(((JmlLambda)that).jmlType);
+        }
+
+        default public void visitNewClass(JCNewClass that) {
+            scan(that.encl);
+            scan(that.typeargs);
+            scan(that.clazz);
+            scan(that.args);
+            scan(that.def);
+        }
+
+
 }

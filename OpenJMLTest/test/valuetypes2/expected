@@ -7,34 +7,34 @@ Starting proof of Locset.newLocSetIsEmpty() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Locset.newLocSetIsEmpty() with prover !!!! - no warnings
-Starting proof of Locset.singleton(org.jmlspecs.lang.location) with prover !!!!
+Starting proof of Locset.singleton(location) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Locset.singleton(org.jmlspecs.lang.location) with prover !!!! - no warnings
-Starting proof of Locset.addBumpsSize(org.jmlspecs.lang.locset,org.jmlspecs.lang.location) with prover !!!!
+Completed proof of Locset.singleton(location) with prover !!!! - no warnings
+Starting proof of Locset.addBumpsSize(locset,location) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Locset.addBumpsSize(org.jmlspecs.lang.locset,org.jmlspecs.lang.location) with prover !!!! - no warnings
-Starting proof of Locset.addDoesNotChangeSize(org.jmlspecs.lang.locset,org.jmlspecs.lang.location) with prover !!!!
+Completed proof of Locset.addBumpsSize(locset,location) with prover !!!! - no warnings
+Starting proof of Locset.addDoesNotChangeSize(locset,location) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Locset.addDoesNotChangeSize(org.jmlspecs.lang.locset,org.jmlspecs.lang.location) with prover !!!! - no warnings
-Starting proof of Locset.addRemove(org.jmlspecs.lang.locset,org.jmlspecs.lang.location) with prover !!!!
+Completed proof of Locset.addDoesNotChangeSize(locset,location) with prover !!!! - no warnings
+Starting proof of Locset.addRemove(locset,location) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Locset.addRemove(org.jmlspecs.lang.locset,org.jmlspecs.lang.location) with prover !!!! - no warnings
-Starting proof of Locset.addNoChange(org.jmlspecs.lang.locset,org.jmlspecs.lang.location) with prover !!!!
+Completed proof of Locset.addRemove(locset,location) with prover !!!! - no warnings
+Starting proof of Locset.addNoChange(locset,location) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Locset.addNoChange(org.jmlspecs.lang.locset,org.jmlspecs.lang.location) with prover !!!! - no warnings
-Starting proof of Locset.addRemoveA(org.jmlspecs.lang.locset,org.jmlspecs.lang.location) with prover !!!!
+Completed proof of Locset.addNoChange(locset,location) with prover !!!! - no warnings
+Starting proof of Locset.addRemoveA(locset,location) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Locset.addRemoveA(org.jmlspecs.lang.locset,org.jmlspecs.lang.location) with prover !!!! - no warnings
-Starting proof of Locset.addRemoveB(org.jmlspecs.lang.locset,org.jmlspecs.lang.location) with prover !!!!
+Completed proof of Locset.addRemoveA(locset,location) with prover !!!! - no warnings
+Starting proof of Locset.addRemoveB(locset,location) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Locset.addRemoveB(org.jmlspecs.lang.locset,org.jmlspecs.lang.location) with prover !!!! - no warnings
+Completed proof of Locset.addRemoveB(locset,location) with prover !!!! - no warnings
 Starting proof of Locset.m() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

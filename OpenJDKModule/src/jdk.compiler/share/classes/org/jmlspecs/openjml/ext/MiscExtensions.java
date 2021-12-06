@@ -51,12 +51,6 @@ public class MiscExtensions extends JmlExtension {
         }
     };
     
-    public static final String nothingID = "\\nothing";
-    public static final IJmlClauseKind nothingKind = new NoTypeMisc(nothingID);
-    
-    public static final String everythingID = "\\everything";
-    public static final IJmlClauseKind everythingKind = new NoTypeMisc(everythingID);
-    
     public static final String constructorID = "constructor";
     public static final IJmlClauseKind constructorKind = new NoTypeMisc(constructorID);
     
