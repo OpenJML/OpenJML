@@ -2,7 +2,7 @@
 //@ pure immutable nullable_by_default
 abstract class testtype implements IJmlPrimitiveType {
     
-    //@ axiom (\forall testtype t; t != null; t.suc().prev() == t);
+    //@ axiom (\forall testtype t; ; t.suc().prev() == t);
     
     static public /*@ non_null */ testtype zero;
     

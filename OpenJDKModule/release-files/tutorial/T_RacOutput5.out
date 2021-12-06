@@ -1,0 +1,5 @@
+Exception in thread "main" java.lang.AssertionError: T_RacOutput.java:10: verify: JML assertion is false
+    //@ assert len == 1;
+        ^
+	at T_RacOutput.checkArgs(T_RacOutput.java:10)
+	at T_RacOutput.main(T_RacOutput.java:5)

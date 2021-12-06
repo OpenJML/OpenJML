@@ -1,0 +1,1 @@
+ARGS+="  -smt=out.smt2 -method=TestEnum -show -checkFeasibility=debug "

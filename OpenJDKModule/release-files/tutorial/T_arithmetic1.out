@@ -1,0 +1,4 @@
+T_arithmetic1.java:5: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method increment: overflow in int sum
+    return i+1;
+            ^
+1 verification failure

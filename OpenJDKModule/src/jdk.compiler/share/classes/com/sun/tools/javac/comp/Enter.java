@@ -29,6 +29,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.tools.JavaFileObject;
+
+import org.jmlspecs.openjml.Utils;
+
 import javax.tools.JavaFileManager;
 
 import com.sun.tools.javac.code.*;
@@ -279,16 +282,15 @@ public class Enter extends JCTree.Visitor {
      *  @param env     The environment visitor argument.
      */
     Type classEnter(JCTree tree, Env<AttrContext> env) {
-    	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCCompilationUnit) System.out.println("Entering " + ((JCCompilationUnit)tree).sourcefile);
-    	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl) System.out.println("Entering " + ((JCClassDecl)tree).name);
-    	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl && ((JCClassDecl)tree).name.toString().contains("Abstract")) System.out.println("Entering " + ((JCClassDecl)tree).name + " " + ((JCClassDecl)tree).mods);
+    	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCCompilationUnit cu) System.out.println("Entering CU " + cu.sourcefile);
+    	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl d) System.out.println("Entering class " + d.name);
         Env<AttrContext> prevEnv = this.env;
         try {
             this.env = env;
             annotate.blockAnnotations();
             tree.accept(this);
-        	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCCompilationUnit) System.out.println("Entered " + ((JCCompilationUnit)tree).sourcefile + " " + result);
-        	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl) System.out.println("Entered " + ((JCClassDecl)tree).name + " " + result);
+        	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCCompilationUnit cu) System.out.println("Entered CU " + cu.sourcefile + " " + result);
+        	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl d) System.out.println("Entered class " + d.sym.hashCode() + " " + d.name + " " + result);
             return result;
         }  catch (CompletionFailure ex) {
             return chk.completionError(tree.pos(), ex);
@@ -505,12 +507,11 @@ public class Enter extends JCTree.Visitor {
         // Add non-local class to uncompleted, to make sure it will be
         // completed later.
         if (!c.isDirectlyOrIndirectlyLocal() && uncompleted != null) uncompleted.append(c);
-//      System.err.println("entering " + c.fullname + " in " + c.owner);//DEBUG
 
         // Recursively enter all member classes.
         classEnter(tree.defs, localEnv);
 
-//        Assert.checkNonNull(c.modle, c.sourcefile.toString());
+//        Assert.checkNonNull(c.modle, c.sourcefile.toString());  // OPENJML - FIXME - who commented this out, OPENJML or OPENJDK?
 
         result = c.type;
     }

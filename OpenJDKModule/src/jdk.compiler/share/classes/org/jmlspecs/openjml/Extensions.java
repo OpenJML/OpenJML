@@ -169,6 +169,9 @@ public class Extensions {
             // Field-like extensions
             ArrayFieldExtension.class,
             
+            // Types
+            JMLPrimitiveTypes.class,
+            
             LineAnnotationClauses.class,
             MatchExt.class,
             StatementLocationsExtension.class,

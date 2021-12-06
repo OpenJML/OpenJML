@@ -170,7 +170,7 @@ public class racnew extends RacBase {
     }
     
     @Test public void testNonnullPrecondition() {
-        main.addOptions("-racShowSource=true");
+        main.addOptions("-racShowSource=source");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n" + 
                 "public static void main(String[] args) { \n" +
                 " m(null,1); \n" +
@@ -332,8 +332,8 @@ public class racnew extends RacBase {
                 "}"
                 ,"org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:14: verify: JML postcondition is false"
                 ,"/tt/TestJava.java:10: Associated declaration"
-                ,"\tat java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:129)"
-                ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:82)"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locA
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locB
                 ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - should be line 14
                 ,"\tat tt.TestJava.main(TestJava.java:5)"
                 );
@@ -1344,7 +1344,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testInvariant() { 
-        main.addOptions("-racShowSource=true");
+        main.addOptions("-racShowSource=source");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ public invariant i == 0;\n"
                 +"public void m(); \n"

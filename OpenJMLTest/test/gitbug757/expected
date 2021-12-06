@@ -1,0 +1,10 @@
+Proving methods in AssignableTest
+Starting proof of AssignableTest.AssignableTest() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of AssignableTest.AssignableTest() with prover !!!! - no warnings
+Starting proof of AssignableTest.set(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of AssignableTest.set(int) with prover !!!! - no warnings
+Completed proving methods in AssignableTest

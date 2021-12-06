@@ -1,0 +1,4 @@
+T_assert3.java:12: verify: The prover cannot establish an assertion (Assert) in method example
+    assert neg < 0; // A Java assert statement (but interpreted by JML)
+    ^
+1 verification failure

@@ -19,7 +19,6 @@ public class compilationUnit extends ParseBase {
 
     @Override
     public void setUp() throws Exception {
-//        noCollectDiagnostics = true;
 //        jmldebug = true;
         super.setUp();
     }
@@ -296,7 +295,7 @@ public class compilationUnit extends ParseBase {
                 JmlSpecificationCase.class, 14,14,35,
                 JmlModifiers.class, -1,-1,-1,
                 JmlMethodClauseCallable.class, 14,14,35,
-                JmlStoreRefKeyword.class, 23,23,31,
+                JmlSingleton.class, 23,23,31,
                 
                 JmlModifiers.class, -1,-1,-1,
                 JCPrimitiveTypeTree.class, 39,39,43,
@@ -317,7 +316,7 @@ public class compilationUnit extends ParseBase {
                 JmlSpecificationCase.class, 14,14,35,
                 JmlModifiers.class, -1,-1,-1,
                 JmlMethodClauseCallable.class, 14,14,35,
-                JmlStoreRefKeyword.class, 23,23,34,
+                JmlSingleton.class, 23,23,34,
                 
                 JmlModifiers.class, -1,-1,-1,
                 JCPrimitiveTypeTree.class, 39,39,43,

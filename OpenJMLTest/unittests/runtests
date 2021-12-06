@@ -19,5 +19,9 @@ cd $R
 rm -f *.class
 CP=".:../src:$JUNIT"
 
-( NOJML= $NJAVAC -Xlint:unchecked -cp $CP Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java ) || exit 1
+while ! NOJML= $NJAVAC -Xlint:unchecked -cp $CP Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java  ; do
+   # Build can fail because of race conditions betweencompiles then multiple runtests are started at once
+   echo Build failed for $@
+   sleep 10
+done
 ( cd ..; OPENJML_ROOT="$ROOT/../../Solvers" $NJAVA -cp unittests:src:$JUNIT Test $@ 2>&1 )

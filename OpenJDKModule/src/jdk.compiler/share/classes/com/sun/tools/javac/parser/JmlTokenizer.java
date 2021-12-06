@@ -614,16 +614,13 @@ public class JmlTokenizer extends JavadocTokenizer {
                 super.scanIdent();  // tk and name are set
                 // assuming that token() is Token.IDENTIFIER
                 String seq = name.toString();
-                JmlTokenKind t = JmlTokenKind.backslashTokens.get(seq);
-                if (t != null) {
+                jmlTokenKind = JmlTokenKind.backslashTokens.get(seq);
+                jmlTokenClauseKind = Extensions.allKinds.get(seq);
+                if (jmlTokenKind != null) {
                 	// TODO - any backslash tokens remaining in JmlToken -- they should all be moved to ext
                     tk = TokenKind.CUSTOM;
-                    jmlTokenKind = t;
-                    jmlTokenClauseKind = Extensions.allKinds.get(seq);
                 } else {
                     tk = TokenKind.IDENTIFIER;
-                    jmlTokenKind = null;
-                    jmlTokenClauseKind = Extensions.allKinds.get(seq);
                     if (jmlTokenClauseKind == null) {
                     	jmlError(ep, position(), "jml.bad.backslash.token", seq); // sets ERROR token
                     }

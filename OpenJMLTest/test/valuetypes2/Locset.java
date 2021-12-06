@@ -1,5 +1,5 @@
 //@ model import org.jmlspecs.lang.set;
-
+// FIXME - don't think this is relevant anymore
 //@ pure
 public class Locset {
     

@@ -9,6 +9,7 @@ test/buggyRandomNumbers : Actual output differs from expected <<<<<<<<<<<<<<<<<<
 test/datatype : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< datatype implementation incomplete
 test/datatype : Expected exit code 0 but got 1
 test/enums1 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### quantifier problem over non-functions?
+test/esc2DArray
 test/esc2DTranspose : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### ?????
 test/escConsInfeasible Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< infeasibility
 test/escDouble : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
@@ -19,35 +20,32 @@ test/escFPcompose : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 test/escRawdingA : Killed                                                                                  ???
 test/escRawdingB : (Skipped) Actual output differs from expected expected1 expected2 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< feasibilty problem
 test/escStrings : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### switch on strings
-test/factorial: <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [one method times out, it appears]
 test/gcdcalculator:                                                                                        ???
 test/gitbug450b : Actual output differs from expected expected1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< can't unroll forloops
-test/gitbug582 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< sometimes times out
 test/gitbug672 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### diamond type inference
 test/gitbug673 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< models classes
-test/gitbug673 : Expected exit code 0 but got 1                                                             ???
-test/gitbug722 : Actual output differs from expected                                                        ???
-test/gitbug732 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ???
+test/gitbug673 : Expected exit code 0 but got 1                                                             [fp]
+test/gitbug732 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
 test/gitbug735 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### [fp]
 test/gitbug738 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### recursive use of not-well-founded method
-test/implicitIteration:                                                                                    ???
-test/implicitIterationA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ???
 test/preold : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< labels in preconditions
 test/preold : Expected exit code 0 but got 1
 test/preold2 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< labels in preconditions
 test/primeNumbers : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### ?????
 test/sfbug396 Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-test/sfbug402  : Actual output differs from expected expected-compile <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< infeasibility
-test/sfbug402a : Actual output differs from expected expected-compile <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< infeasibility
+test/sfbug402  : Actual output differs from expected expected-compile <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< problem with message location
+test/sfbug402a : Actual output differs from expected expected-compile <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< problem with message location
 test/sfbug420X : Actual output differs from expected expected-compile expected-run <<<<<<<<<<<<<<<<<<<<<<<< needs to implement represents for derived classes
+test/sfbug420e
 test/sfbug420eOK : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< problem with inherited spec translation *******************
 test/streams : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### ?????
 test/valuestrings : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< inequality of equal-length strings
-test/valuetypes2 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< \locset
-test/valuetypes2 : Expected exit code 0 but got 1
 test/verifythis-2019-1 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ???
 
-
+esc2DArray
+escEnum
+access+ -- assignable
+esc1
 
 QueryPure.java       - 10/32 TODO
 QuerySecret.java     - 21/34 TODO
@@ -58,13 +56,13 @@ SpecsRac.java
 access.java          - 28/0 #
 api.java
 arith.java           - 1/0  #
-assignable.java      - 43/0 #
+assignable.java      - 43/0 # [2 parse error corrections to make - access+ ] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 binaries.java        - 5/1    [model class in library class]
 bugs.java            - 23/0  #
 compilationUnit.java - 15/0  #
-compiler.java.       - 60/4   (2-ignore Java specs)   2-parse nested model classes <<<<<<<
+compiler.java.       - 60/4   (access+: 2-ignore Java specs)   2-parse nested model classes <<<<<<<
 deprecation.java.    - 4/0   #
-esc1.java            - 91/0 # [parse @ for \old]
+esc1.java            - 89/2    [ 2 foreach/values problems] 
 esc2.java            - 109/0 #  [ sometimes testEnumStaticInitializer2 feasibility fails ]
 escArithmeticModes.java    - 29/5 TODO (JUnit Assumption)
 escArithmeticModes2.java   - 27/12 TODO (JUnit assumption; mod arithmetic)
@@ -78,10 +76,10 @@ escaccessible.java    - 23/0 #
 escall2.java          - 30/0 #- testInvariant1 sometimes timesout
 escall3.java          - 55/0 #
 escbitvector.java     - 12/0 #
-esccallable.java      - 31/1 [implementation of nowarn]
+esccallable.java      - 32/0 #
 esccode.java          - 9/0  #
 escconstructor.java   - 5/0  #
-escenums.java         - 16/1 - escenums.enumSwitch feasibility !!!!!!!!!!!!!!!!
+escenums.java         - 16/1 - escenums.enumSwitch feasibility, in redundanat+ !!!!!!!!!!!!!!!!
 escfeatures.java      -         TODO
 escfiles.java         -  Done separately
 escfilesTrace.java    -         TODO
@@ -129,8 +127,8 @@ racJML.java           - 10/0 #
 racdemoexamples.javaa - 1/0  #
 racfeatures.java      - 3/0  #
 racfiles.java         - 25/41  ?????
-racnew.java           - 128/15  ????? 
-racnew2.java          - 73/2  ?????
+racnew.java           - 129/14 -- model methods, not implemented, invariant trace 
+racnew2.java          - 75/0 #
 racnew3.java          - 21/0 #
 racnewLoops.java      - 20/0 #
 racnewWithSpecs.java  - 1/0 #
@@ -140,7 +138,7 @@ racsystem.java        - 9/0  #
 redundant.java         - 10/0 #
 scanner.java           - 80/3 [unicode, embedded comment]
 statements.java        - 44/0 #
-strict.java            - 16/0 #
+strict.java            - 15/1 [strict storeref -- in redundant+ ]
 strongarm.java
 sysclasses.java        - 1/0  #
 typechecking.java            - 181/0 #

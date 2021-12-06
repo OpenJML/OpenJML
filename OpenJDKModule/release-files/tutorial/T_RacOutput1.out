@@ -1,0 +1,4 @@
+T_RacOutput.java:10: verify: JML assertion is false
+    //@ assert len == 1;
+        ^
+END

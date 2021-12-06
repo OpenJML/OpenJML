@@ -1,7 +1,6 @@
 Proving methods in ListSeq
 Starting proof of ListSeq.ListSeq(E @NonNull []) with prover !!!!
 Feasibility check - end of preconditions : OK
-Feasibility check - after explicit assume statement : OK
 Feasibility check - at program exit : OK
 Completed proof of ListSeq.ListSeq(E @NonNull []) with prover !!!! - no warnings
 Starting proof of ListSeq.forth() with prover !!!!
@@ -37,7 +36,7 @@ test/sfbug402a/ListSeq.java:34: warning: The prover cannot establish an assertio
                            ^
 test/sfbug402a/ListSeq.java:20: warning: Associated declaration
         for (E element : elements) {
-            ^
+             ^
 test/sfbug402a/Seq.java:27: warning: The prover cannot establish an assertion (UndefinedNullUnbox) in method forth
     //@ ensures !\result == (pos() <= length());
                  ^
@@ -84,7 +83,7 @@ test/sfbug402a/ListSeq.java:34: warning: The prover cannot establish an assertio
                            ^
 test/sfbug402a/ListSeq.java:20: warning: Associated declaration
         for (E element : elements) {
-            ^
+             ^
 test/sfbug402a/ListSeq.java:40: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method pos
         if (pastEnd()) throw new IndexOutOfBoundsException("There is no position past the end of the sequence.");
                    ^
