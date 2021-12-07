@@ -80,6 +80,9 @@ version:
 tutorial:
 	cp -pR ../../openjml.github.io/tutorial/*.java release-files/tutorial
 
+annotation:
+	cp -pR ../../JMLAnnotations/src/org  src/java.base/share/classes
+
 post:
 	rm -rf $(REL)
 	mkdir $(REL)
@@ -117,7 +120,7 @@ jmlruntime.jar: .FORCE
 	@mkdir templib
 	@mkdir -p templib/org/jmlspecs/runtime
 	@cp build/*/jdk/modules/java.base/org/jmlspecs/runtime/*.class templib/org/jmlspecs/runtime
-	@cp -r ../../JmlAnnotations/bin/* templib
+	@cp build/*/jdk/modules/java.base/org/jmlspecs/annotation/*.class templib/org/jmlspecs/runtime
 	@touch templib/JMLRUNTIME_MARKER
 	@## jmlruntime.jar has bin-runtime, the annotations, and the marker file JMLRUNTIME_MARKER
 	@## If Java is incorrectly setup, the jar command fails - so we check it this first time
