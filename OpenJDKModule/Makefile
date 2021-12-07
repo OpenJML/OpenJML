@@ -77,6 +77,9 @@ release: clean version openjml jmlruntime.jar post
 version:
 	./version.sh
 
+tutorial:
+	cp -pR ../../openjml.github.io/tutorial/*.java release-files/tutorial
+
 post:
 	rm -rf $(REL)
 	mkdir $(REL)
