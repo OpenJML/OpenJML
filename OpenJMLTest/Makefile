@@ -9,7 +9,7 @@ ROOT=${mkfile_dir}
 
 openjml-test: prep
 	make release-tests 
-	make tutorial-test > log-tutorial-test
+	make tutorial-tests > log-tutorial-tests
 	( cd ${ROOT}/unittests; source ./runall  )
 	( cd ${ROOT}/scripttests; ./escfiles-sort)
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
@@ -33,7 +33,7 @@ prep:
 	echo "import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }" > $T/C.java
 	echo "import org.jmlspecs.annotation.*; public class D { @Pure int m() { return 0; } }" > $T/D.java
 
-tutorial-test:
+tutorial-tests:
 	@ ( echo Testing tutorial files ;\
 	    cd $(mkfile_dir)/../../openjml.github.io/tutorial; \
 	    ./test \
