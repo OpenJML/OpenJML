@@ -38,7 +38,7 @@ unzip openjml.zip > /dev/null
 OJ=`pwd`/openjml
 JV=`pwd`/openjml-java
 RT=`pwd`/jmlruntime.jar
-echo Testing release build unziped at $OJ
+echo Testing release build unzipped from $ZIP
 
 elif [ -z "$OJ" ]; then
 ## NOZIP was set to a null string; test the current build
@@ -112,7 +112,7 @@ ${RTH} testJmlBad3 "$OJ -check -java" || RES=$(($RES+1))
 echo "public class A { /*@ invariant 0; */ }" > A.java
 echo "public class B { /*@ invariant true; */ }" > B.java
 echo "import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }" > C.java
-echo "import org.jmlspecs.annotation.*; public class D { @Pure int m() { return 0; } }" > D.java
+echo "import org.jmlspecs.annotation.*; public class D { @Pure public static void main (@NonNull String... args) { System.out.println(\"END\");  } }" > D.java
 
 
 ## Checks a valid file using java -jar
@@ -122,6 +122,8 @@ ${RTH} testOK1 "$OJ -noPurityCheck -specspath . B.java" || RES=$(($RES+1))
 rm -rf rac
 mkdir -p rac
 ${RTH} testRac "$OJ -rac -racShowSource=line -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ -rac -racShowSource=line -noPurityCheck -d rac -classpath . D.java" || { RES=$(($RES+1)); }
+echo FILES ; ls ; find . -name A.java ; find . -name D.java; cat D.java; find . -name 'D.class'
 echo RAC-OK
 #echo java -classpath "rac${Z}${RT}" A
 java -classpath "rac${Z}${RT}" A  > racactual
@@ -138,15 +140,23 @@ tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/exp
 echo RAC-ST
 java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.racshowstack A 1 2 > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack || { RES=$(($RES+1)); }
+echo RAC-NOLIB
+java -classpath "rac" A 1 2 > racactual 2>&1
+tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-nolib || { RES=$(($RES+1)); }
 
 echo RAC-ST with openjml-java
-${JV} -classpath "rac${Z}" -Dorg.jmlspecs.openjml.racshowstack A 1 2 > racactual
+${JV} -classpath "rac" -Dorg.jmlspecs.openjml.racshowstack A 1 2 > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack-openjml || { RES=$(($RES+1)); }
 
 ${RTH} testRac "$OJ -rac -racShowSource=source -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
 echo RAC-SIMPLE with source
 java -classpath "rac${Z}${RT}" A 1 2  > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' | diff - ../releaseTests/testRac/expected-simple-source || { RES=$(($RES+1)); }
+
+## Checks using annotations with built-in java - should be OK; annotations are not actually needed at runtime
+echo RAC java with annotations
+java -cp rac D > racactual
+tr -d '\r' < racactual | sed -e 'sx\\x/xg' | diff - ../releaseTests/testRac/expected-annotations || { RES=$(($RES+1)); }
 
 ## This checks verbose output - which changes too often to put in the 
 ## regular test suite

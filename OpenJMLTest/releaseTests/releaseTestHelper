@@ -8,7 +8,7 @@ echo TESTING ${TESTNAME}
 
 mkdir -p ${TESTLOC}/${TESTNAME}
 
-${CMD} 2>&1 | grep -v "Note: " | tr -d '\r' | tr '\\' '/' > ${TESTLOC}/${TESTNAME}/actual
+bash -c "${CMD}" 2>&1 | grep -v "Note: " | tr -d '\r' | tr '\\' '/' > ${TESTLOC}/${TESTNAME}/actual
 
 LRES=1
 if [[ "${NOSTDDOCLET}" != "" ]] ; then

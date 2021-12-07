@@ -73,6 +73,7 @@ REL=release-temp
 ## Used in the github build.yml action
 
 release: clean version openjml jmlruntime.jar post
+	../OpenJMLTest/releaseTests/runtests
 
 version:
 	./version.sh
@@ -121,6 +122,7 @@ jmlruntime.jar: .FORCE
 	@mkdir -p templib/org/jmlspecs/runtime
 	@mkdir -p templib/org/jmlspecs/annotation
 	@cp build/*/jdk/modules/java.base/org/jmlspecs/runtime/*.class templib/org/jmlspecs/runtime
+	@ ## Annotations are generally not needed at runtime, but they are included just in case one is executed in the future
 	@cp build/*/jdk/modules/java.base/org/jmlspecs/annotation/*.class templib/org/jmlspecs/annotation
 	@touch templib/JMLRUNTIME_MARKER
 	@## jmlruntime.jar has bin-runtime, the annotations, and the marker file JMLRUNTIME_MARKER

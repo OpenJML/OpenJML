@@ -1,0 +1,8 @@
+START
+Exception in thread "main" java.lang.NoClassDefFoundError: org/jmlspecs/runtime/Utils
+	at A.main(A.java:1)
+Caused by: java.lang.ClassNotFoundException: org.jmlspecs.runtime.Utils
+	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641)
+	at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188)
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:520)
+	... 1 more
