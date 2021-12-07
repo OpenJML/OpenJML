@@ -119,8 +119,9 @@ smt:
 jmlruntime.jar: .FORCE
 	@mkdir templib
 	@mkdir -p templib/org/jmlspecs/runtime
+	@mkdir -p templib/org/jmlspecs/annotation
 	@cp build/*/jdk/modules/java.base/org/jmlspecs/runtime/*.class templib/org/jmlspecs/runtime
-	@cp build/*/jdk/modules/java.base/org/jmlspecs/annotation/*.class templib/org/jmlspecs/runtime
+	@cp build/*/jdk/modules/java.base/org/jmlspecs/annotation/*.class templib/org/jmlspecs/annotation
 	@touch templib/JMLRUNTIME_MARKER
 	@## jmlruntime.jar has bin-runtime, the annotations, and the marker file JMLRUNTIME_MARKER
 	@## If Java is incorrectly setup, the jar command fails - so we check it this first time
