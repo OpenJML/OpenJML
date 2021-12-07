@@ -9,7 +9,7 @@ and other resources.
 
 The OpenJML tool is currently up to date with openjdk-17-ga (as of 7 December 2021).
 
-The website for the Java Modeling Language itself is [here](https://www.jmlspecs.org) and discussions about language features and semantics are on the issues list of the [JML Reference Manual project](https://github.com/JavaModelingLanguage/RefMan).
+The website for the Java Modeling Language itself is [here](http://www.jmlspecs.org) and discussions about language features and semantics are on the issues list of the [JML Reference Manual project](https://github.com/JavaModelingLanguage/RefMan).
 
 Releases numbered 0.16.X and following are installed simply by unzipping the downloaded release file into an empty directory of the user's choice.
 The release includes the executable file ``openjml``, which implements OpenJML, the executable ``openjml-java``, which is a build of Java 17 that incorporates the OpenJML runtime library and can be used to run programs compiled with `openjml` to include runtime assertion checks.
