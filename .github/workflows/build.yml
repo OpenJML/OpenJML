@@ -63,7 +63,7 @@ jobs:
         echo Version $ver
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"master-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
-	echo Create release with id $id
+        echo Created release with id $id
     - name: Build OpenJML release on Windows
       if: runner.os == 'Windows'
       run: |
@@ -98,7 +98,7 @@ jobs:
 	# upload to the wrong release, causing the newer build to fail because of a duplicate asset
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
-	echo Uploading $f to id $id at url $$upload_url
+        echo Uploading $f to id $id at url $upload_url
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f" 
     - name: Check current GitHub release number against version.txt
       run: |
