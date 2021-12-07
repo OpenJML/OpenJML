@@ -73,7 +73,6 @@ REL=release-temp
 ## Used in the github build.yml action
 
 release: clean version openjml jmlruntime.jar post
-	../OpenJMLTest/releaseTests/runtests
 
 version:
 	./version.sh
