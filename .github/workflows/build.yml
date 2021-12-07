@@ -87,15 +87,15 @@ jobs:
       run: |
         make -C OpenJML/OpenJDKModule release-test
     - name: Load OpenJML build into GitHub release
+	# Here we get the id of the most recent release, which should have been created by now by one of the jobs
+	# Race problem: if a new relesae build is started before a previous one has completed, the earlier build will get the id of the later release and
+	# upload to the wrong release, causing the newer build to fail because of a duplicate asset
       run: |
         cd OpenJML
         export ver=`cat version.txt`
         cd OpenJDKModule/release-temp
         export f=openjml-${{ matrix.os }}-${ver}.zip
         mv *.zip $f
-	# Get the id of the most recent release, which should have been created by now by one of the jobs
-	# Race problem: if a new relesae build is started before a previous one has completed, the earlier build will get the id of the later release and
-	# upload to the wrong release, causing the newer build to fail because of a duplicate asset
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
         echo Uploading $f to id $id at url $upload_url
