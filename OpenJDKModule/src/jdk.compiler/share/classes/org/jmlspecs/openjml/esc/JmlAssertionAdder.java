@@ -2342,7 +2342,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected String uniqueTempString() {
-        //if (uniqueCount == 11) Utils.dumpStack();
+        //if (uniqueCount == 340) Utils.dumpStack();
         return Strings.tmpVarString + (uniqueCount++);
     }
 
@@ -7166,7 +7166,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     		return accessHelper(trfa.selected, cfa.selected, callerThisExpr, itemThisExpr, trItemClass);
     	} else {
     		if (containsRange(trIteme) || containsRange(callerSRItem)) return treeutils.falseLit;
+    		currentThisExpr = itemThisExpr;
     		JCExpression ax = convertJML(trIteme);
+    		currentThisExpr = callerThisExpr;
             JCExpression px = convertWithOld(callerSRItem);
             JCExpression condition = treeutils.makeEqObject(trIteme.pos, ax, px);
     		return condition;
@@ -7227,6 +7229,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
         
     JCExpression convertWithOld(JCExpression e) {
+    	if (e.toString().contains("missing")) Utils.dumpStack();
         boolean saved = isPostcondition;
         try {
             JCExpression ee = treeutils.makeOld(e,e);
@@ -7590,6 +7593,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if ((trItem instanceof JCIdent) && ((JCIdent)trItem).sym.owner instanceof Symbol.MethodSymbol) return treeutils.trueLit; 
         if (currentFresh != null && (trItem instanceof JCFieldAccess) && ((JCFieldAccess)trItem).sym == currentFresh.sym) return treeutils.trueLit; 
 
+        var savedThisExpr = currentThisExpr;
         JCExpression isLocal = treeutils.falseLit;
         if (methodDecl.sym.isConstructor() && trItem instanceof JCFieldAccess)  {
             JCFieldAccess fa = (JCFieldAccess)trItem;
@@ -7650,6 +7654,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 if (mclause.clauseKind == assignableClauseKind && anyAssignableClause != null) anyAssignableClause = mclause;
             } catch (JmlNotImplementedException e) {
+            	currentThisExpr = savedThisExpr;
                 notImplemented("assignable/accessible clause containing ",e); // FIXME - clause source
             }
         }
@@ -7679,9 +7684,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     treeutils.makeOrSimp(trItem.pos,asg,nasg);
                 }
             } catch (JmlNotImplementedException e) {
+            	currentThisExpr = savedThisExpr;
                 notImplemented("assignable/accessible clause containing ",e); // FIXME - clause source
             }
         }
+    	currentThisExpr = savedThisExpr;
         asg = treeutils.makeOrSimp(asg.pos, asg, isLocal);
         if (asg != treeutils.trueLit && speccasePrecondition != null) {
             return treeutils.makeImpliesSimp(trItem.pos, speccasePrecondition, asg);
@@ -13897,10 +13904,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         baseExpr = treeutils.makeSelect(that.pos, baseExpr, enclFieldSym);  // FIXME - does not work for more than one level
                     }
                     if (newfa == null) {
+                    	// FIXME - already tested for static
                         if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
                         else newfa = treeutils.makeSelect(that.pos, currentThisExpr, sym);
                     }
                 } else {
+                	// FIXME - already tested for static
                     if (utils.isJMLStatic(sym)) newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
                     else newfa = treeutils.makeSelect(that.pos, currentThisExpr, sym);
                 }
