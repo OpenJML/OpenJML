@@ -3,39 +3,9 @@
 cd $(dirname "$BASH_SOURCE")
 
 if [ -e ../../../../openjml.github.io/tutorial ]; then
-  cp ../../../../openjml.github.io/tutorial/*.java ../../../../openjml.github.io/tutorial/*.out .
+  (cd ../../../../openjml.github.io/tutorial; ./test )
+  cp ../../../../openjml.github.io/tutorial/*.java  .
 elif [ -e ../../../../../openjml.github.io/tutorial ]; then
-  cp ../../../../../openjml.github.io/tutorial/*.java ../../../../../openjml.github.io/tutorial/*.out .
+  (cd ../../../../../openjml.github.io/tutorial; ./test )
+  cp ../../../../../openjml.github.io/tutorial/*.java  .
 fi
-
-T=temp_tutorial
-
-for f in *.java; do
-  cmd="`head -1 $f | sed -e sx//xx -e s^openjml^../../openjml^`"
-  echo $cmd
-  $cmd > $T
-  stat=$?
-  out=`echo $f | sed -e s/java/out/`
-  if [ -s $T ]; then
-    if [ -e $out ] ; then
-      diff $T $out
-      if [ $? -ne 0 ]; then
-        echo ERROR: Actual and expected outputs differ: $f
-      fi
-      if [ $stat -eq 0 ]; then
-        echo ERROR: Output but a non-zero exit code: $f
-      fi
-    else 
-      echo ERROR: There is output but there is no expected output file: $f
-      cat $T
-    fi
-  else
-    if [ -e $out ]; then
-      echo ERROR: There is expected output but there is no actual output file: $f
-    else
-      if [ $stat -ne 0 ]; then
-        echo ERROR: No output but a non-zero exit code: $f
-      fi
-    fi
-  fi
-done

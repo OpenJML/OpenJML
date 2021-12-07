@@ -1,2 +1,0 @@
-
-openjml -rac T_RacOutput.java && openjml-java -cp . -Dorg.jmlspecs.openjml.rac=stack  T_RacOutput 2>&1 | diff - T_RacOutput2.out
