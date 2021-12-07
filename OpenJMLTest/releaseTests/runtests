@@ -123,7 +123,6 @@ rm -rf rac
 mkdir -p rac
 ${RTH} testRac "$OJ -rac -racShowSource=line -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
 ${RTH} testRac "$OJ -rac -racShowSource=line -noPurityCheck -d rac -classpath . D.java" || { RES=$(($RES+1)); }
-echo FILES ; ls ; find . -name A.java ; find . -name D.java; cat D.java; find . -name 'D.class'
 echo RAC-OK
 #echo java -classpath "rac${Z}${RT}" A
 java -classpath "rac${Z}${RT}" A  > racactual
@@ -142,7 +141,7 @@ java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.racshowstack A 1 2 > racac
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack || { RES=$(($RES+1)); }
 echo RAC-NOLIB
 java -classpath "rac" A 1 2 > racactual 2>&1
-tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-nolib || { RES=$(($RES+1)); }
+tr -d '\r' < racactual | sed -e 'sx\\x/xg' | head -4 |  diff - ../releaseTests/testRac/expected-nolib || { RES=$(($RES+1)); }
 
 echo RAC-ST with openjml-java
 ${JV} -classpath "rac" -Dorg.jmlspecs.openjml.racshowstack A 1 2 > racactual
