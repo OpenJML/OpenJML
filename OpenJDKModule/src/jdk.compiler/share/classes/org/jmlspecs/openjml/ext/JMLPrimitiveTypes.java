@@ -51,7 +51,7 @@ public class JMLPrimitiveTypes extends JmlExtension {
 	
 	public static final String rangeID = "\\range";
 	
-	public static final JmlTypeKind rangeType = new JmlTypeKind(rangeID, "range") {
+	public static final JmlTypeKind rangeTypeKind = new JmlTypeKind(rangeID, "range") {
 		@Override
 		public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
 			init(parser);
@@ -61,7 +61,7 @@ public class JMLPrimitiveTypes extends JmlExtension {
 
 	public static final String locsetId = "\\locset";
 
-	public static final JmlTypeKind locsetType = new JmlTypeKind(locsetId,"locset") {
+	public static final JmlTypeKind locsetTypeKind = new JmlTypeKind(locsetId,"locset") {
 		@Override
 		public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
 			// TODO Auto-generated method stub

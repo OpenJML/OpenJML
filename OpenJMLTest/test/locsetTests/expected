@@ -1,0 +1,14 @@
+test/locsetTests/Test.java:11: error: The arguments of \set_union must have type locset, not int
+		//@ ghost \locset f4 = \set_union(\locset(this.*),0);
+		                                                  ^
+test/locsetTests/Test.java:14: error: A \subset expression must have two arguments, not 3
+		//@ ghost boolean bb = \subset(f1,f3,f5) || \subset(f1) || \subset(f1,0);
+		                              ^
+test/locsetTests/Test.java:14: error: A \subset expression must have two arguments, not 1
+		//@ ghost boolean bb = \subset(f1,f3,f5) || \subset(f1) || \subset(f1,0);
+		                                                   ^
+test/locsetTests/Test.java:14: error: The arguments of \subset must have type locset, not int
+		//@ ghost boolean bb = \subset(f1,f3,f5) || \subset(f1) || \subset(f1,0);
+		                                                                      ^
+Operation not performed because of parse or type errors
+4 errors

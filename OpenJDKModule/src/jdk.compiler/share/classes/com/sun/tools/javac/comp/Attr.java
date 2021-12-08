@@ -1360,7 +1360,7 @@ public class Attr extends JCTree.Visitor {
         return lis.badInferenceMsg;
     }
 
-    static class LocalInitScanner extends TreeScanner {
+    static class LocalInitScanner extends org.jmlspecs.openjml.visitors.JmlTreeScanner { // OPENJML - replaced TreeScanner with JmlTreeScanner to allow var in ghost decls
         Fragment badInferenceMsg = null;
         boolean needsTarget = true;
 

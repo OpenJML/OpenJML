@@ -13398,7 +13398,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             if (!jmltypes.isAnyIntegral(that.index.type)) {
         		// A range value
-            	var rt = rangeType.getType(context,Enter.instance(context).getTopLevelEnv(classDecl.toplevel));
+            	var rt = rangeTypeKind.getType(context,Enter.instance(context).getTopLevelEnv(classDecl.toplevel));
         		var ta = indexed;
         		if (that.index instanceof JmlRange) {
         			var range = (JmlRange)that.index;
@@ -15321,7 +15321,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // But the test for whether the index is in range occurs before the invariants are assumed,
                     // which would put the index back in range.
                     if (newtarget == null) {
-                    	var rt = rangeType.getType(context,Enter.instance(context).getTopLevelEnv(classDecl.toplevel));
+                    	var rt = rangeTypeKind.getType(context,Enter.instance(context).getTopLevelEnv(classDecl.toplevel));
                     	JCExpression range = M.at(target.pos).JmlRange(null,null).setType(rt);
                     	newtarget = M.at(target.pos).Indexed(aa.indexed,range).setType(target.type);
                     }

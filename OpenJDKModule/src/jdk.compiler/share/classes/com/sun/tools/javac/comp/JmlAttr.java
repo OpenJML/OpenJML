@@ -4037,7 +4037,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			utils.error(that.hi, "jml.message", "Expected an integral type, not " + t);
     		}
     	}
-    	result = that.type = JMLPrimitiveTypes.rangeType.getType(context,env);
+    	result = that.type = JMLPrimitiveTypes.rangeTypeKind.getType(context,env);
     }
     
 //    public void visitJmlFunction(JmlFunction that) {
@@ -5098,7 +5098,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 owntype = jmltypes.elemtype(atype);
             else if (!atype.hasTag(ERROR))
                 utils.error(tree.indexed, "array.req.but.found", atype);
-            if (t == rangeType.getType(context,env)) {
+            if (t == rangeTypeKind.getType(context,env)) {
             	if (!(tree.index instanceof JmlRange)) {
             		utils.error(tree.index,"jml.message", "Index ranges are implemented only for explicit range expressions (using ..)");
             	}
@@ -5376,7 +5376,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // This is a store-ref with a wild-card field
             // FIXME - the following needs some review
             attribTree(tree.selected, env, new ResultInfo(KindSelector.of(KindSelector.TYP,KindSelector.VAR), Infer.anyPoly));
-            result = tree.type = locsetType.getType(context,env);
+            result = tree.type = locsetTypeKind.getType(context,env);
         } else if (tree.name.toString().startsWith("_$T")) {
             attribTree(tree.selected, env, new ResultInfo(KindSelector.VAR, Infer.anyPoly));
             int n = Integer.parseInt(tree.name.toString().substring(3));
