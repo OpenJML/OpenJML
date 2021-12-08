@@ -130,7 +130,7 @@ public class Test {
         
         if (i > 0) {
             j = 10;
-            //@ halt
+            //@ halt ;
             //@ assert j == 11; // IGNORED
         }
         //@ assert i < 0; // FAILS
@@ -140,7 +140,7 @@ public class Test {
         
         if (i > 0) {
             j = 10;
-            //@ halt
+            //@ halt ;
             //@ assert j == 11; // IGNORED
         }
         //@ assert i <= 0; // SUCCEEDS
@@ -150,7 +150,7 @@ public class Test {
         
         if (i > 0) {
             j = 10;
-            //@ halt
+            //@ halt ;
             //@ assert j == 11; // IGNORED
         } else {
             //@ halt

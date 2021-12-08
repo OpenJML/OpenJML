@@ -54,7 +54,7 @@ public class EndStatement extends JmlExtension {
             parser.nextToken();
 
             JmlStatement st = toP(parser.maker().at(pp).JmlStatement(clauseType, null));
-            wrapup(st,clauseType,true,false);
+            wrapup(st,clauseType,false,false);
             return st;
 
         }
