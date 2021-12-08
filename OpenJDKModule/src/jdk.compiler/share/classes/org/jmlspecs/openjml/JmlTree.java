@@ -974,6 +974,7 @@ public class JmlTree {
         /** Returns the file object containing the source code for the AST node */
         /*@nullable*/ JavaFileObject source();
         /*@nullable*/ void setSource(JavaFileObject jfo);
+        DiagnosticPosition pos();
     }
     
     /** This class adds some JML specific information to the JCCompilationUnit toplevel node. */
