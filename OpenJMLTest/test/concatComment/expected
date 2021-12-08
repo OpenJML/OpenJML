@@ -1,0 +1,9 @@
+test/concatComment/Test.java:14: warning: Inserting missing semicolon at the end of a requires statement
+//@ requires true
+                 ^
+test/concatComment/Test.java:16: error: illegal start of type
+//@    || false;
+       ^
+Operation not performed because of parse or type errors
+1 error
+1 warning
