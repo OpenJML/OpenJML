@@ -39,6 +39,8 @@ public class racnew extends RacBase {
     @Test public void testJavaExit() {
         expectedRACExit = 5;
         helpTCX("tt.TestJavaExit","package tt; public class TestJavaExit { public static void main(String[] args) { System.exit(5); }}"
+        		,"verify: JML diverges assertion is false"
+        		,"verify: Associated declaration"
                 );
     }
 
