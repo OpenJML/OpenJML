@@ -213,13 +213,18 @@ public class JmlScanner extends Scanner {
     @Override
     public void nextToken() {
     	super.nextToken();
+    	// The following logic concatenates consecuive JML annotations, if there is only ignorable material between them
+    	while (jmlToken() != null && jmlToken().jmlkind == JmlTokenKind.ENDJMLCOMMENT) {
+    		token(1);
+    		if (!savedJml.get(0)) break;
+    		super.nextToken();
+    	}
         if (!savedJml.isEmpty()) {
             jmlForCurrentToken = savedJml.remove(0);
         } else {
         	jmlForCurrentToken = ((JmlTokenizer)tokenizer).jml();
         }
     	if (scannerDebug) System.out.println("TOKEN " + jmlForCurrentToken + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
-    	if (scannerDebug && token.toString().equals("final")) org.jmlspecs.openjml.Utils.dumpStack();
     }
 
     public Token token(int lookahead) {
