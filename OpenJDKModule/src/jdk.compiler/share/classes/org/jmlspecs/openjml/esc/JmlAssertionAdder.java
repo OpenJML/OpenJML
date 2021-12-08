@@ -39,7 +39,7 @@ import static org.jmlspecs.openjml.ext.FrameExpressions.*;
 import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
 import static org.jmlspecs.openjml.ext.Operators.*;
 import static org.jmlspecs.openjml.ext.LineAnnotationClauses.*;
-import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.requiresClauseKind;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
@@ -785,6 +785,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
+    ListBuffer<Pair<JCExpression,JmlSource>> divergesExpressions = null;
+    
     /** Internal method to do the method body conversion */
     protected JCBlock convertMethodBodyNoInit(JmlMethodDecl pmethodDecl, JmlClassDecl pclassDecl) {
         JmlOptions.instance(context).pushOptions(pmethodDecl.mods);
@@ -818,6 +820,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         activeExceptions = new HashSet<>();
         findActiveExceptions(pmethodDecl);
         
+    	var savedDivergesExpressions = divergesExpressions;
+    	divergesExpressions = new ListBuffer<>();
         //System.out.println("Translating " + pmethodDecl.sym.toString());
 
         allocCounter = 0;
@@ -1037,7 +1041,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCBlock bl = popBlock(methodDecl,check);
                 
                 if (!pureCopy) {
-                    addPreConditions(initialStatements,collector);
+                    addPreConditions(initialStatements,collector,divergesExpressions);
                     addStat(mark);
                     markLocation(preLabel.name,initialStatements,mark);
                 }
@@ -1099,7 +1103,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // Other checks will be created during addPrePostConditions
             ListBuffer<JCStatement> check = pushBlock(); // FIXME - should we have a try block?
             if (!pureCopy) {
-                addPreConditions(initialStatements,collector);
+                addPreConditions(initialStatements,collector,divergesExpressions);
                 ListBuffer<JCStatement> check3 = pushBlock();
                 addAssumeCheck(methodDecl,currentStatements,Strings.preconditionAssumeCheckDescription); // FIXME - use a smaller highlight range than the whole method - perhaps the specs?
                 JCStatement preconditionAssumeCheck = popBlock(methodDecl,check3);
@@ -1260,6 +1264,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.allocCounter = savedAllocCounter;
             this.nestedCallLocation = savedNestedCallLocation;
             this.activeExceptions = savedActiveExceptions;
+        	this.divergesExpressions = savedDivergesExpressions;
             JmlOptions.instance(context).popOptions();
         }
     }
@@ -4001,7 +4006,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Computes and adds checks for all the pre and postcondition clauses. */
     // FIXME - review this
-    protected void addPreConditions(ListBuffer<JCStatement> initialStats, ClassCollector collector) {
+    protected void addPreConditions(ListBuffer<JCStatement> initialStats, ClassCollector collector, ListBuffer<Pair<JCExpression,JmlSource>> divergesExpressions) {
         
         JCMethodDecl methodDecl = this.methodDecl;
         int pos = methodDecl.pos;
@@ -4172,6 +4177,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JavaFileObject prev = log.useSource(scase.source());
                 try {
                     JCExpression preexpr = null;
+                    JCExpression diverges = null;
+                    JmlSource divergesPosition = scase;
                     for (JmlMethodClause clause : scase.clauses) {
                         IJmlClauseKind ct = clause.clauseKind;
                         if (ct == MethodDeclClauseExtension.oldClause || ct == MethodDeclClauseExtension.forallClause) {
@@ -4222,6 +4229,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 saveMapping(decl, id);
                                 clauseIds.put(clause, id);
                             }
+                        } else if (ct == divergesClauseKind) {
+                        	divergesPosition = (JmlMethodClauseExpr)clause;
+                            JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
+                            diverges = diverges == null ? ex : treeutils.makeAndSimp(ex, diverges, ex);
                         } else if (ct == requiresClauseKind) {
                             JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
                             addTraceableComment(ex,clause.toString());
@@ -4310,7 +4321,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         combinedPrecondition = treeutils.makeBitOr(scase.pos, combinedPrecondition, preident);
                     }
                     combinedPreconditionSource = scase.sourcefile;
-                    elseExpression = treeutils.makeBitOr(scase.pos, elseExpression, preident);;
+                    elseExpression = treeutils.makeBitOr(scase.pos, elseExpression, preident);
+                    {
+                    	if (diverges == null) diverges = treeutils.falseLit;
+                    	JCExpression e = treeutils.makeAnd(diverges.pos, preident, treeutils.makeOld(treeutils.makeNot(diverges, diverges)));
+                    	divergesExpressions.add(new Pair<>(e,divergesPosition));
+                    }
                 } finally {
                     log.useSource(prev);
                 }
@@ -4933,26 +4949,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 }
                             }
 
-                        } else if (ct == MethodExprClauseExtensions.divergesClause) {
-                            
-                            {
-                                // FIXME _ implement
-                                JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
-                                if (!treeutils.isTrueLit(ex)) { // Avoid complaints or any implementation if the expression is 'true'
-                                    currentStatements = ensuresStats; 
-                                    axiomBlock = ensuresAxiomBlock;
-                                    ListBuffer<JCStatement> ch = pushBlock();
-                                    try {
-                                        addTraceableComment(ex,clause.toString());
-                                        ex = convertJML(ex,preident,true);
-                                        ex = treeutils.makeImplies(clause.pos, preident, ex);
-                                        //addAssert(methodDecl,Label.SIGNALS,ex,currentStatements,clause,clause.sourcefile);
-                                    } finally {
-                                        popBlock(clause,ch);
-                                    }
-                                    notImplemented(clause,clause.keyword + " clause", clause.source());
-                                }
-                            }
+//                        } else if (ct == MethodExprClauseExtensions.divergesClauseKind) {
+//                            
+//                            {
+//                                // FIXME _ implement
+//                                JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
+//                                if (!treeutils.isTrueLit(ex)) { // Avoid complaints or any implementation if the expression is 'true'
+//                                    currentStatements = ensuresStats; 
+//                                    axiomBlock = ensuresAxiomBlock;
+//                                    ListBuffer<JCStatement> ch = pushBlock();
+//                                    try {
+//                                        addTraceableComment(ex,clause.toString());
+//                                        ex = convertJML(ex,preident,true);
+//                                        ex = treeutils.makeImplies(clause.pos, preident, ex);
+//                                        //addAssert(methodDecl,Label.SIGNALS,ex,currentStatements,clause,clause.sourcefile);
+//                                    } finally {
+//                                        popBlock(clause,ch);
+//                                    }
+//                                }
+//                            }
 
                         } else if (ct == MethodConditionalClauseExtension.workingspaceClause || ct == MethodConditionalClauseExtension.durationClause) {
                             
@@ -9030,6 +9045,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         boolean noModel = false;
                         JavaFileObject prev = log.useSource(cs.source());
                         try {
+                        	JCExpression diverges = null;
+                        	JmlSource divergesPosition = cs;
                             JmlMethodClauseExpr mcc = null; // Remember the first clause in the specification case
                             int preconditionDetailLocal3 = 0;
                             for (JmlMethodClause clause : cs.clauses) {
@@ -9082,6 +9099,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             clauseIds.put(clause, id);
 
                                         }
+                                } else if (ct == divergesClauseKind) {
+                                	// FIXME - visibility?
+                                	divergesPosition = clause;
+                                    JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
+                                	diverges = diverges == null ? ex : treeutils.makeAndSimp(ex, diverges, ex);
                                 } else if (ct == requiresClauseKind) {
                                     // FIXME - need to include the requires expression in the condition for the sake of old expressions - also below
                                         JmlMethodClauseExpr requiresClause = (JmlMethodClauseExpr)clause;
@@ -9171,6 +9193,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 }
                             }
                             pre = prex;
+                            if (diverges != null) {
+                            	diverges = treeutils.makeAnd(diverges.pos, pre, treeutils.makeNot(diverges, diverges));
+                            	for (var callerDiverges: divergesExpressions) {
+                            		JCExpression e = convertJML(treeutils.makeImplies(diverges.pos, callerDiverges.first, diverges));
+                            		addAssert(divergesPosition.pos(), Label.DIVERGES, e, callerDiverges.second.pos(), callerDiverges.second.source());
+                            	}
+                            }
                         } catch (NoModelMethod e) {
                             pre = treeutils.falseLit;
                             noModel = true;
