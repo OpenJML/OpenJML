@@ -1825,6 +1825,8 @@ public class JmlTreeUtils {
  	   return a;
     }
 
-
+//    public JCExpression makeLocsetUnion(DiagnosticPosition pos, List<JCExpression> locsetExprs) {
+//    	var e = makeJmlMethodInvocation(pos, null, null, locsetExprs);
+//    }
     
 }

@@ -1,0 +1,5 @@
+test/rangeTest2/R.java:5: error: Index ranges are implemented only for explicit range expressions (using ..)
+//@ writes a[r];
+             ^
+Operation not performed because of parse or type errors
+1 error

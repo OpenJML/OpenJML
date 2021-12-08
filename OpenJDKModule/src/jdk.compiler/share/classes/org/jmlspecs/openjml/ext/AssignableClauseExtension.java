@@ -67,7 +67,7 @@ public class AssignableClauseExtension extends JmlExtension {
                 parser.syntaxError(parser.pos(), null, "jml.use.nothing.assignable"); // FIXME - fix to use keyword
                 parser.nextToken(); // skip over the SEMI
             } else {
-                list = parser.parseLocationList();
+                try { list = parser.parseLocationList(); } catch (Exception e) { System.out.println("EXC " + e); }
                 if (parser.token().kind == SEMI) {
                     // OK, go on
                 } else if (parser.jmlTokenKind() == ENDJMLCOMMENT) {
