@@ -1,0 +1,31 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m1(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m1(int) with prover !!!! - no warnings
+Starting proof of Test.m2(int) with prover !!!!
+test/diverges/Test.java:28: warning: The prover cannot establish an assertion (Diverges) in method m2
+	//@ diverges true;
+	    ^
+test/diverges/Test.java:12: warning: Associated declaration
+	//@  diverges false;
+	     ^
+Completed proof of Test.m2(int) with prover !!!! - with warnings
+Starting proof of Test.m3(int) with prover !!!!
+test/diverges/Test.java:28: warning: The prover cannot establish an assertion (Diverges) in method m3
+	//@ diverges true;
+	    ^
+test/diverges/Test.java:18: warning: Associated declaration
+	//@  diverges false;
+	     ^
+Completed proof of Test.m3(int) with prover !!!! - with warnings
+Starting proof of Test.abort() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.abort() with prover !!!! - no warnings
+Completed proving methods in Test
+4 warnings
