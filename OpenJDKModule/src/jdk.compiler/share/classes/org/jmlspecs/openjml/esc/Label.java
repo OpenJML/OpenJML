@@ -161,6 +161,9 @@ public class Label {
     /** Used for asserts generated from writable clauses */
     /*@ non_null*/ public final static Label WRITABLE = new Label("Writable-if");
     
+    /** Used for asserts generated from diverges clauses */
+    /*@ non_null*/ public final static Label DIVERGES = new Label("Diverges");
+    
     /** Used for asserts generated from assignable clauses */
     /*@ non_null*/ public final static Label ASSIGNABLE = new Label("Assignable");
     
