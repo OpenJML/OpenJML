@@ -19099,6 +19099,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        
 //    }
     
+    public class Copier extends org.jmlspecs.openjml.visitors.JmlTreeCopier {
+
+		public Copier(Context context, Maker maker) {
+			super(context, maker);
+		}
+
+	    @Override
+	    public JCTree visitAnnotation(AnnotationTree that, Void p) {
+	        // Only needed for a full tree copy
+	        // A JCAnnotation is a kind of JCExpression
+//	        if (fullTranslation) {
+	            var t = super.visitAnnotation(that,p);
+	            treeutils.copyEndPosition(t,(JCAnnotation)that);
+	            return t;
+//	        } else {
+//	            result = eresult = that;
+//	        }
+	    }
+
+    }
+    
     public static class WellDefined {
         public MethodSymbol sym;
         public JCExpression wellDefinedExpression;
