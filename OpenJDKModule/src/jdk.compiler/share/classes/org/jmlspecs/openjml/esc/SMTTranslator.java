@@ -97,6 +97,7 @@ public class SMTTranslator extends JmlTreeScanner {
           protected ISort realSort;
     final protected ISort stringSort;
     final protected ISort intsetSort;
+          protected ISort rangeSort;
     final protected IExpr.ISymbol distinctSym;
     final protected IExpr.ISymbol andSym;
     final protected IExpr.ISymbol orSym;
@@ -260,6 +261,21 @@ public class SMTTranslator extends JmlTreeScanner {
             ICommand c = new C_assert(F.fcn(distinctSym, a));
             commands.add(c);
         }
+    }
+    
+    String rangeTypeName = "|RANGE|";
+    String rangefcn = "|range:cons|";
+    String lofcn = "|range:lo|";
+    String hifcn = "|range:hi|";
+    
+    protected void addRange(SMT smt) {
+        addCommand(smt,"(declare-sort "+rangeTypeName+" 0)");
+        addCommand(smt,"(declare-fun "+rangefcn+" (Int Int) "+rangeTypeName+")");
+        addCommand(smt,"(declare-fun "+lofcn+" ("+rangeTypeName+") Int)");
+        addCommand(smt,"(declare-fun "+hifcn+" ("+rangeTypeName+") Int)");
+        addCommand(smt,"(assert (forall ((i Int)(j Int)) (= i ("+lofcn+" ("+rangefcn+" i j))))) ");
+        addCommand(smt,"(assert (forall ((i Int)(j Int)) (= j ("+hifcn+" ("+rangefcn+" i j))))) ");
+        rangeSort = F.createSortExpression(F.symbol("|RANGE|"));
     }
     
     /** Adds all the definitions and axioms regarding the types used in the program */
@@ -941,6 +957,7 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         
         addReals(smt);
+        addRange(smt);
         
         int loc = addTypeModel(smt);
         
@@ -1796,6 +1813,8 @@ public class SMTTranslator extends JmlTreeScanner {
         		return F.createSortExpression(arraySym, intSort, s1);
            	} else if (ts.equals("org.jmlspecs.lang.intset")) {
         		return intsetSort;
+           	} else if (ts.equals("org.jmlspecs.lang.range")) {
+        		return rangeSort;
            	} else if (t.isParameterized()) {
            		List<ISort> args = new LinkedList<ISort>();
            		t.getTypeArguments().forEach(tt -> args.add(convertSort(tt)));
@@ -2787,7 +2806,14 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tree.selected != null) {
             JCExpression object = tree.selected;
             Symbol field = tree.sym;
-            if (field.name != names.length) {
+            if (object.type.toString().startsWith("org.jmlspecs.lang.range")) {
+            	IExpr sel = convertExpr(object);
+            	if (field.name.toString().contains("lo")) {
+            		result = F.fcn(F.symbol(lofcn),sel);
+            	} else {
+            		result = F.fcn(F.symbol(hifcn),sel);
+            	}
+            } else if (field.name != names.length) {
                 // Non-length selection
                 String encName;
                 if (Utils.instance(context).isJMLStatic(field) || true) {
@@ -3029,7 +3055,9 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) { notImpl(that); } // FIXME - maybe
     @Override public void visitJmlSetComprehension(JmlSetComprehension that)   { notImpl(that); }
     @Override public void visitJmlSingleton(JmlSingleton that)                 { notImpl(that); }
-    @Override public void visitJmlRange(JmlRange that)                         { notImpl(that); }
+    @Override public void visitJmlRange(JmlRange that) { 
+    	result = F.fcn(F.symbol(rangefcn), convertExpr(that.lo), convertExpr(that.hi));
+    }
 
     @Override public void visitLetExpr(LetExpr that) { 
         

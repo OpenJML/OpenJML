@@ -786,6 +786,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 log.error(tree.pos, "jml.message", "Assignment not permitted for indexed immutable JML primitives");
             }
         }
+        if (tree.lhs instanceof JCFieldAccess fa) {
+        	if (fa.selected.type.tsym instanceof ClassSymbol cs) {
+        		var sp = specs.getSpecs(cs);
+        		var m = utils.findMod(sp.modifiers, Modifiers.IMMUTABLE);
+                if (m != null) {
+                    utils.error(tree.pos, "jml.message", "Fields of an object with immutable type may not be modified: " + tree.lhs + " (" + fa.selected.type + ")");
+        			utils.error(m.sourcefile, m, "jml.associated.decl.cf", utils.locationString(tree.pos));
+                }
+        	}
+        }
         if (tree.lhs.type instanceof JmlListType) {
             JmlListType lhst = (JmlListType)tree.lhs.type;
             if (!(tree.rhs.type instanceof JmlListType)) {
@@ -1457,7 +1467,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            	matchf |= (specf & Flags.SYNCHRONIZED); // binary files do not seem to always have the synchronized modifier?  FIXME
 //            	long diffs = (matchf ^ specf)&Flags.MethodFlags;
 //            	if (diffs != 0) {
-//            		boolean isEnum = (javaClassSymbol.flags() & Flags.ENUM) != 0;
+//  )          		boolean isEnum = (javaClassSymbol.flags() & Flags.ENUM) != 0;
 //            		if ((Flags.NATIVE & matchf & ~specf)!= 0) diffs &= ~Flags.NATIVE;
 //            		if (isInterface) diffs &= ~Flags.PUBLIC & ~Flags.ABSTRACT;
 //            		if (isEnum && match.isConstructor()) { specMethodDecl.mods.flags |= (matchf & 7); diffs &= ~7; } // FIXME - should only do this if specs are default

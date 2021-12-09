@@ -530,5 +530,8 @@ public class racfiles extends RacBase {
         helpTCF("test/valuestrings","test/valuestrings","JmlStringTest");
     }
 
-
+    @Test
+    public void range() {
+    	helpTCF("test/rangeTest","test/rangeTest","R");
+    }
 }
