@@ -11751,10 +11751,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCFieldAccess newfa;
             if (!utils.isJMLStatic(fa.sym)) {
                 JCExpression obj = convertExpr(fa.selected);
-                JCExpression e = treeutils.makeNeqObject(obj.pos, obj, treeutils.nullLit);
-                addJavaCheck(that.lhs,e,Label.POSSIBLY_NULL_DEREFERENCE,Label.UNDEFINED_NULL_DEREFERENCE,"java.lang.NullPointerException");
-                if(!infer){
-                    checkRW(writableClause,fa.sym,obj,fa);
+                if (!utils.isExtensionValueType(fa.selected.type)) {
+                	JCExpression e = treeutils.makeNeqObject(obj.pos, obj, treeutils.nullLit);
+                	addJavaCheck(that.lhs,e,Label.POSSIBLY_NULL_DEREFERENCE,Label.UNDEFINED_NULL_DEREFERENCE,"java.lang.NullPointerException");
+                	if(!infer){
+                		checkRW(writableClause,fa.sym,obj,fa);
+                	}
                 }
 
                 newfa = treeutils.makeSelect(that.pos, convertCopy(obj), fa.sym);
@@ -17495,7 +17497,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlRange(JmlRange that) {
     	result = eresult = M.at(that.pos).JmlRange(convert(that.lo),convert(that.hi)).setType(that.type);
-    	System.out.println("CONVERTED " + that + " TO " + eresult);
     }
 
     // OK
