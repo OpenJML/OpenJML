@@ -33,6 +33,7 @@ import org.jmlspecs.openjml.ext.TypeInitializerClauseExtension;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.Completer;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
@@ -46,13 +47,16 @@ import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.comp.Enter.UnenterScanner;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.JmlCompiler;
+import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.resources.CompilerProperties.Errors;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 
 /** 
  * This class extends Enter, which has the job of creating symbols for all the
@@ -151,6 +155,8 @@ public class JmlEnter extends Enter {
     /** A cached value of the Utils tool */
     /*@non_null*/
     final protected Utils utils;
+    
+    public Env<AttrContext> tlenv;
 
     /** Don't call this: use instance() instead.
      * Creates an instance of the JmlEnter tool in the given context; note that
@@ -162,6 +168,32 @@ public class JmlEnter extends Enter {
         super(context); // automatically registers the new object
         this.context = context;
         this.utils = Utils.instance(context);
+        var m = JmlTree.Maker.instance(context);
+        var q = m.QualIdent("org","jmlspecs","lang");
+        var p = m.PackageDecl(List.<JCAnnotation>nil(),  q);
+////        JCCompilationUnit cu = m.TopLevel(List.<JCTree>of(p));
+////        cu.modle = Symtab.instance(context).getModule(Names.instance(context).fromString("java.base"));
+//        var s = m.QualIdent("org","jmlspecs","lang","*");
+//        var i = m.Import(s,false);
+//        JCCompilationUnit cu = m.TopLevel(List.<JCTree>of(p));
+//        cu.modle = Symtab.instance(context).unnamedModule;
+//        cu.packge = p.packge = syms.enterPackage(cu.modle, TreeInfo.fullName(p.pid));
+//        try { cu.sourcefile = new DelegatedFileObject(); } catch (java.net.URISyntaxException e) {}
+////        visitTopLevel(cu);
+//        this.tlenv = topLevelEnv(cu);
+//        
+//       var mdl = Symtab.instance(context).getModule(Names.instance(context).fromString("java.base"));
+//       ClassSymbol cs = Symtab.instance(context).getClass(mdl, Names.instance(context).fromString("org.jmlspecs.lang.JMLDataGroup"));
+//       ClassReader.instance(context).
+//       ((PackageSymbol)cs.owner).
+//       var clenv = classEnv(cs);
+//       this.tlenv = topLevelEnv(clenv.toplevel);
+    }
+    
+    public static class DelegatedFileObject extends javax.tools.SimpleJavaFileObject {
+    	public DelegatedFileObject() throws java.net.URISyntaxException {
+    		super(new java.net.URI("file:///A.java"),JavaFileObject.Kind.SOURCE);
+    	}
     }
     
     /** Returns the unique instance of Enter for the given context. */
@@ -198,11 +230,20 @@ public class JmlEnter extends Enter {
 			utils.error("jml.internal","Encountered an unexpected JCCompilationUnit instead of a JmlCompilationUnit in JmlEnter.visitTopeLevel");
 			return;
 		}
-    	JavaFileObject prevSource = log.useSource(tree.sourcefile);
+		// tree.sourcefile can be null for fabricated files, but otherwise should nver be
+    	JavaFileObject prevSource = tree.sourcefile == null ? null : log.useSource(tree.sourcefile);
     	try {
     		super.visitTopLevel(tree);
+    		if (tlenv == null) {
+    			// tlenv is for saving an Env that is just for resolving global fully-qualified names
+    			// We just grab the first one that comes along
+    			// FIXME - there ought to be a better way to do this, as part of initialization, but nothing worked so far
+    			Env<AttrContext> e = topLevelEnv(tree);
+    			while (e.outer != null) {e = e.outer; }
+    			tlenv = e;
+    		}
         } finally {
-            log.useSource(prevSource);
+            if (prevSource != null) log.useSource(prevSource);
         }
     }
 

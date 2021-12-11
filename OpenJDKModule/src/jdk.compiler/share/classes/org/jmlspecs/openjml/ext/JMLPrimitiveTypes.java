@@ -9,6 +9,7 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
@@ -30,11 +31,12 @@ public class JMLPrimitiveTypes extends JmlExtension {
 			this.typename = typename;
 		}
 		
-		public Type getType(Context context, Env<AttrContext> env) {
+		public Type getType(Context context) {
+			// Caching the type (which depends on context) for general use
 			if (type == null || context != this.context) {
 				this.context = context;
-				JCIdent id = JmlTree.Maker.instance(context).Ident(Names.instance(context).fromString(typename));
-				type = JmlAttr.instance(context).attribType(id, env);
+				JCExpression id = JmlTree.Maker.instance(context).QualIdent("org","jmlspecs","lang",typename);
+				type = JmlAttr.instance(context).attribType(id, JmlEnter.instance(context).tlenv);
 			}
 			return type;
 		}

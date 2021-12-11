@@ -13400,7 +13400,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             if (!jmltypes.isAnyIntegral(that.index.type)) {
         		// A range value
-            	var rt = rangeTypeKind.getType(context,Enter.instance(context).getTopLevelEnv(classDecl.toplevel));
+            	var rt = rangeTypeKind.getType(context);
         		var ta = indexed;
         		if (that.index instanceof JmlRange) {
         			var range = (JmlRange)that.index;
@@ -15323,7 +15323,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // But the test for whether the index is in range occurs before the invariants are assumed,
                     // which would put the index back in range.
                     if (newtarget == null) {
-                    	var rt = rangeTypeKind.getType(context,Enter.instance(context).getTopLevelEnv(classDecl.toplevel));
+                    	var rt = rangeTypeKind.getType(context);
                     	JCExpression range = M.at(target.pos).JmlRange(null,null).setType(rt);
                     	newtarget = M.at(target.pos).Indexed(aa.indexed,range).setType(target.type);
                     }
@@ -18089,6 +18089,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
 
+    // OK
+    @Override
+    public void visitJmlStoreRef(JmlStoreRef that) {
+        if (pureCopy) {
+            result = eresult = M.at(that).JmlStoreRef(that).setType(that.type);
+            ((JmlStoreRef)eresult).source = that.source;
+            return;
+        } else {
+            JmlStoreRef sr = M.at(that.pos).JmlStoreRef(that);
+            sr.expression = convert(sr.expression);
+            sr.receiver = convert(that.receiver);
+            sr.range = convert(sr.range);
+        }
+    }
+
     // OK - readable and writable clauses
     @Override
     public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
@@ -19546,6 +19561,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return list;
         }
         
+        @Override
+        public  /*@ nullable */ java.util.List<JmlStatementExpr> visitJmlStoreRef(JmlStoreRef node, Void p) {
+        	/*@ nullable */ java.util.List<JmlStatementExpr> e=null,ee=null,eee=null;
+        	if (node.expression != null) e = node.expression.accept(this, p);
+        	if (node.receiver != null) ee = node.receiver.accept(this, p);
+        	if (node.range != null) eee = node.range.accept(this, p);
+        	if (e == null && ee == null && eee == null) return null;
+        	var list = new java.util.LinkedList();
+        	if (e != null) list.addAll(e);
+        	if (ee != null) list.addAll(ee);
+        	if (eee != null) list.addAll(eee);
+        	return list;
+        }
         
         
         @Override

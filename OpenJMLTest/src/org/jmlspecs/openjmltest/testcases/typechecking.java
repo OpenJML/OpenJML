@@ -1116,7 +1116,15 @@ public class typechecking extends TCBase {
                 ,"/Test.java:4: warning: Do not include a datagroup in itself: height",22
                 ,"/Test.java:4: warning: Do not include a datagroup in itself: height",22
         );
-        
+    }
+    
+    @Test public void testComment() {
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+    		    "  /*@ ghost String s = \"asdf */\"; */\n"+
+    		    "}\n"
+    			,"",0
+    		);
     }
     
     @Test public void testBug6a() {
