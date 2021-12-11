@@ -67,13 +67,14 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlStatementShow(JmlStatementShow that, P p)       ;
     R visitJmlStatementDecls(JmlStatementDecls that, P p)     ;
     R visitJmlStatementExpr(JmlStatementExpr that, P p)       ;
-    R visitJmlStatementHavoc(JmlStatementHavoc that, P p)       ;
-    R visitJmlStatementLoopExpr(JmlStatementLoopExpr that, P p)       ;
-    R visitJmlStatementLoopModifies(JmlStatementLoopModifies that, P p)       ;
+    R visitJmlStatementHavoc(JmlStatementHavoc that, P p)     ;
+    R visitJmlStatementLoopExpr(JmlStatementLoopExpr that, P p);
+    R visitJmlStatementLoopModifies(JmlStatementLoopModifies that, P p);
     R visitJmlStatementSpec(JmlStatementSpec that, P p)       ;
     R visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that, P p);
     R visitJmlStoreRefKeyword(JmlStoreRefKeyword that, P p)   ;
     R visitJmlStoreRefListExpression(JmlStoreRefListExpression that, P p);
+    R visitJmlStoreRef(JmlStoreRef that, P p)                  ;
     R visitJmlTuple(JmlTuple that, P p)                       ;
     R visitJmlTypeClauseConditional(JmlTypeClauseConditional that, P p) ;
     R visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that, P p) ;
