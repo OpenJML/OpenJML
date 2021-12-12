@@ -2004,7 +2004,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 hasAssignableClause = true; 
             } else if (ct == SignalsOnlyClauseExtension.signalsOnlyClauseKind) { 
                 hasSignalsOnlyClause = true; 
-            } else if (ct == accessibleClause) { 
+            } else if (ct == accessibleClauseKind) { 
                 hasAccessibleClause = true; 
             } else if (ct == CallableClauseExtension.callableClause) { 
                 hasCallableClause = true; 
@@ -2048,10 +2048,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JCIdent t = jmlMaker.Ident(names._this);
                 t.type = msym.owner.type;
                 t.sym = msym.owner;
-                defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClause,
+                defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClauseKind,
                         List.<JCExpression>of(t,jmlMaker.Select(t,(Name)null)));
             } else {
-                defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClause,
+                defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClauseKind,
                         List.<JCExpression>of(jmlMaker.JmlSingleton(everythingKind)));
             }
             if (defaultClause != null) {

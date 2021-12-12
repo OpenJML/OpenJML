@@ -28,11 +28,11 @@ public class AssignableClauseExtension extends JmlExtension {
         public String name() { return assignableID; }
     };
     
-    public static final IJmlClauseKind accessibleClause = new LocationSetClauseType(accessibleID) {
+    public static final IJmlClauseKind accessibleClauseKind = new LocationSetClauseType(accessibleID) {
         public String name() { return accessibleID; }
     };
     
-    public static final IJmlClauseKind capturesClause = new LocationSetClauseType(capturesID) {
+    public static final IJmlClauseKind capturesClauseKind = new LocationSetClauseType(capturesID) {
         public String name() { return capturesID; }
     };
     
@@ -41,7 +41,7 @@ public class AssignableClauseExtension extends JmlExtension {
         synonym("assigns",assignableClauseKind);
         synonym("writes",assignableClauseKind);
         synonym("modifiable",assignableClauseKind);
-        synonym("reads",accessibleClause);
+        synonym("reads",accessibleClauseKind);
     }
     
     public static class LocationSetClauseType extends IJmlClauseKind.MethodSpecClauseKind {
