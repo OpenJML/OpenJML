@@ -981,30 +981,26 @@ public class esc1 extends EscBase {
                 + "  public int k; public static int sk;\n" + "  public static TestJava p;\n"
 
                 + "  //@ requires p != null && p != this;\n" + "  //@ modifies \\everything;\n"
-                + "  public void m1() {\n" + "    //@ assume this.k == 0;\n" + "    c1(p);\n" // havoc
-                                                                                                // p.*,
-                                                                                                // including
-                                                                                                // p.k,
-                                                                                                // but
-                                                                                                // p
-                                                                                                // !=
-                                                                                                // this
+                + "  public void m1() {\n" 
+                + "    //@ assume this.k == 0;\n" 
+                + "    c1(p);\n" // havoc p.*, including p.k, but p != this
                 + "    //@ assert this.k == 0;\n" // OK
                 + "  }\n"
 
-                + "  //@ requires p != null && p != this;\n" + "  //@ modifies \\everything;\n"
-                + "  public void m1a() {\n" + "    //@ assume sk == 0;\n" + "    c1(p);\n" // havoc
-                                                                                            // p.*
-                                                                                            // does
-                                                                                            // not
-                                                                                            // include
-                                                                                            // sk
+                + "  //@ requires p != null && p != this;\n" 
+                + "  //@ modifies \\everything;\n"
+                + "  public void m1a() {\n" 
+                + "    //@ assume sk == 0;\n" + "    c1(p);\n" // havoc p.* does not include sk
                 + "    //@ assert sk == 0;\n" // OK
                 + "  }\n"
 
-                + "  //@ requires o != null;\n" + "  //@ modifies o.*;\n" + "  public void c1(TestJava o) { } \n"
+                + "  //@ requires o != null;\n" 
+                + "  //@ modifies o.*;\n" 
+                + "  public void c1(TestJava o) { } \n"
 
-                + "  //@ requires o != null;\n" + "  //@ modifies TestJava.*;\n" + "  public void c2(TestJava o) { } \n"
+                + "  //@ requires o != null;\n" 
+                + "  //@ modifies TestJava.*;\n" 
+                + "  public void c2(TestJava o) { } \n"
                 + "}");
     }
 
@@ -1394,7 +1390,7 @@ public class esc1 extends EscBase {
                         + "  //@ modifies sk;\n" 
                         + "  public void c1(int i) { } \n"
 
-                        + "  //@ requires i == 10;\n" 
+                        + "  //@ requires i == 10 && t != null;\n" 
                         + "  //@ modifies t.k;\n" 
                         + "  //@ also requires i == 0;\n"
                         + "  //@ modifies \\nothing;\n" 
@@ -1439,7 +1435,7 @@ public class esc1 extends EscBase {
                         + "  //@ requires i == 0;\n" + "  //@ modifies k;\n" + "  //@ also requires i > 0;\n"
                         + "  //@ modifies sk;\n" + "  public void c1(int i) { } \n"
 
-                        + "  //@ requires i == 10;\n" + "  //@ modifies t.k;\n" + "  //@ also requires i == 0;\n"
+                        + "  //@ requires i == 10 && t != null;\n" + "  //@ modifies t.k;\n" + "  //@ also requires i == 0;\n"
                         + "  //@ modifies \\nothing;\n" + "  public void c2(int i, TestJava t) {}\n"
 
                         + "  //@ requires a!=null && 0<=i && i<a.length;\n" + "  //@ modifies a[i];\n"
@@ -1498,7 +1494,7 @@ public class esc1 extends EscBase {
                         + "  //@ modifies sk;\n" 
                         + "  public void c1(int i) { } \n"
 
-                        + "  //@ requires i == 10;\n" 
+                        + "  //@ requires i == 10 && t != null;\n" 
                         + "  //@ modifies t.k;\n" 
                         + "  //@ also requires i == 0;\n"
                         + "  //@ modifies \\nothing;\n" 
