@@ -14,8 +14,12 @@ import javax.lang.model.type.TypeKind;
 
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.Main.JmlCanceledException;
+import org.jmlspecs.openjml.Utils.JmlNotImplementedException;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.ext.JMLPrimitiveTypes;
+import org.jmlspecs.openjml.ext.LocsetExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
 
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
@@ -50,9 +54,11 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
+import com.sun.tools.sjavac.Source;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Position;
+import com.sun.tools.javac.util.PropagatedException;
 
 /** This class holds a number of utility functions that create fragments of AST trees
  * (using a factory); the created trees are fully type and symbol attributed and so
@@ -373,6 +379,13 @@ public class JmlTreeUtils {
         return tree;
     }
     
+    public JCIdent makeThis(DiagnosticPosition pos, Symbol sym) {
+    	JCIdent id = factory.at(pos).Ident(names._this);
+    	id.sym = sym;
+    	id.type = sym.type;
+    	return id;
+    }
+    
 //    public void replaceQuestionMarks(JCExpression tree) {
 //        if (!(tree instanceof JCTypeApply)) return;
 //        List<JCExpression> args = ((JCTypeApply)tree).arguments;
@@ -394,6 +407,11 @@ public class JmlTreeUtils {
      */
     public JCLiteral makeLit(int pos, Type type, Object value) {
         return factory.at(pos).Literal(type.getTag(), value).setType(type.constType(value));
+    }
+    
+    public JCExpression makeBigintLit(int pos, int v) {
+        return factory.at(pos).Literal(TypeTag.INT, v).setType(syms.intType.constType(v));
+        //return factory.TypeCast(JmlTypes.instance(context).BIGINT, e);
     }
     
     /** Returns true if the argument is a boolean Literal with value true */
@@ -1044,6 +1062,13 @@ public class JmlTreeUtils {
         return fa;
     }
 
+    /** Makes an attributed AST for the length operation on an array less 1. */
+    public JCExpression makeLengthM1(DiagnosticPosition pos, JCExpression array) {
+        JCFieldAccess fa = (JCFieldAccess)factory.at(pos).Select(array, syms.lengthVar);
+        fa.type = JmlTypes.instance(context).BIGINT;
+        return makeBinary(pos, JCTree.Tag.MINUS, fa, one); // FIXME Perhaps have to make this a BIGINT 1
+    }
+
 //    /** Makes the AST for a catch block; the name of the exception variable is
 //     * that of the 'caughtException' name defined in the constructor; the catch
 //     * block itself is initialized with no statements; the type of the exception
@@ -1353,6 +1378,15 @@ public class JmlTreeUtils {
         ListBuffer<JCExpression> a = new ListBuffer<JCExpression>();
         a.appendArray(args);
         JmlMethodInvocation call = factory.at(pos).JmlMethodInvocation(token, a.toList());
+        call.type = type;
+        call.meth = null;
+        call.typeargs = null;
+        call.varargsElement = null;
+        return call;
+    }
+    
+    public JmlMethodInvocation makeJmlMethodInvocation(DiagnosticPosition pos, IJmlClauseKind token, Type type, List<JCExpression> args) {
+        JmlMethodInvocation call = factory.at(pos).JmlMethodInvocation(token, args);
         call.type = type;
         call.meth = null;
         call.typeargs = null;
@@ -1825,6 +1859,114 @@ public class JmlTreeUtils {
  	   return a;
     }
 
-
+    public JCExpression makeLocsetUnion(DiagnosticPosition pos, List<JCExpression> locsetExprs) {
+    	return makeJmlMethodInvocation(pos, LocsetExtensions.unionKind, JMLPrimitiveTypes.locsetTypeKind.getType(context), locsetExprs);
+    }
     
+    public JCExpression makeLocset(JCExpression e) {
+    	return makeJmlMethodInvocation(e, JMLPrimitiveTypes.locsetTypeKind, JMLPrimitiveTypes.locsetTypeKind.getType(context), e);
+    }
+    
+     public JCExpression convertAssignableToLocsetExpression(JmlSource pos, List<JCExpression> list) {
+    	var locsetType = JMLPrimitiveTypes.locsetTypeKind.getType(context);
+		var previousSource = log.useSource(pos.source());
+    	ListBuffer<JCExpression> locsets = new ListBuffer<>();
+    	try {
+    		for (JCExpression e: list) {
+    			if (e instanceof JCIdent id) {
+    				if (e.type == locsetType) {
+    					JmlStoreRef sr = factory.at(e.pos).JmlStoreRef(false, null,  e,  null,  null,  null);
+    					locsets.add(sr);
+    				} else if (id.sym instanceof VarSymbol v) {
+    					JmlStoreRef sr = factory.at(e.pos).JmlStoreRef(false, v,  null,  null,  null,  null);
+    					locsets.add(sr);
+    				} else {
+    					// skip presuming an error already given
+    					if (utils.jmlverbose == Utils.JMLVERBOSE) log.error(id.pos, "jml.message", "Not a VarSymbol: " + id.sym);
+    				}
+    			} else if (e instanceof JCArrayAccess aa) {
+    				JmlRange r;
+    				if (aa.index == null) {
+    					r = factory.at(aa.index).JmlRange(makeZeroEquivalentLit(aa.pos, JmlTypes.instance(context).BIGINT), makeLengthM1(e.pos(), aa.indexed));
+    				} else if (!(aa.index instanceof JmlRange rr)) {
+    					r = factory.at(aa.index).JmlRange(aa.index,aa.index);
+    				} else {
+    					r = factory.at(aa.index).JmlRange(rr.lo!=null? rr.lo: makeZeroEquivalentLit(rr.pos, JmlTypes.instance(context).BIGINT),
+    							rr.hi != null ? rr.hi : makeLengthM1(e.pos(), aa.indexed));
+    				}
+    				JmlStoreRef sr = factory.at(e.pos).JmlStoreRef(false, null,  null,  aa.indexed,  r,  null);
+    				locsets.add(sr);
+    			} else if (e instanceof JCFieldAccess fa) {
+    				if (fa.name == null) {
+    					JCExpression s = fa.selected;
+    					if (s instanceof JCIdent id && id.sym instanceof VarSymbol) {
+    						JmlStoreRef sr = factory.at(e.pos).JmlStoreRef(false, null,  null,  fa.selected,  null,  List.<VarSymbol>nil());
+    						locsets.add(sr);
+    					} else if (s instanceof JCFieldAccess id && id.sym instanceof VarSymbol) {
+    						JmlStoreRef sr = factory.at(e.pos).JmlStoreRef(false, null,  null,  fa.selected,  null,  List.<VarSymbol>nil());
+    						locsets.add(sr);
+    					}
+    					// FIXME *, expand model fields
+    				} else if (e.type == locsetType) {
+    					JmlStoreRef sr = factory.at(e.pos).JmlStoreRef(false, null,  e,  null,  null,  null);
+    					locsets.add(sr);
+    				} else {
+    					if (fa.sym instanceof VarSymbol v) {
+    						JmlStoreRef sr = factory.at(e.pos).JmlStoreRef(false, null,  null,  
+    								v.isStatic() ? null : fa.selected,  null,  List.<VarSymbol>of(v));
+    						locsets.add(sr);
+    					} else {
+    						// skip presuming an error already given
+    						if (utils.jmlverbose == Utils.JMLVERBOSE) log.error(fa.pos, "jml.message", "Not a VarSymbol: " + fa.sym);
+    					}
+    				}
+    			} else if (e instanceof JmlSingleton s) {
+    				if (s.kind == JMLPrimitiveTypes.everythingKind) {
+    					return factory.at(e.pos).JmlStoreRef(true, null,  null,  null,  null,  null).setType(locsetType);
+    				} else if (s.kind == JMLPrimitiveTypes.nothingKind) {
+    					// skip
+    				} else {
+    					// skip presuming an error already given
+    					if (utils.jmlverbose == Utils.JMLVERBOSE) log.error(s.pos, "jml.message", "Not a store-ref expression: " + e);
+    				}
+    			} else if (e.type != locsetType) {
+					// skip presuming an error already given
+					if (utils.jmlverbose == Utils.JMLVERBOSE) log.error(e.pos, "jml.message", "expected a \\locset type: " + e + " " + e.type);
+    			} else if (e instanceof JmlMethodInvocation mi && mi.kind == LocsetExtensions.unionKind) {
+    				locsets.addAll(mi.args);
+    				// FIXME - unfold recursively
+    			} else {
+    				JmlStoreRef sr = factory.at(e.pos).JmlStoreRef(false, null,  e,  null,  null,  null);
+    				locsets.add(sr);
+    			}
+    		}
+    	} catch (PropagatedException|JmlNotImplementedException|JmlCanceledException e) {
+    		throw e;
+    	} catch (Exception e) { 
+    		utils.error("jml.internal.notsobad", "Unexpected exception while handling frame conditions: " + e.getMessage());
+    		Utils.dumpStack();
+    	} finally {
+    		log.useSource(previousSource);
+    	}
+    	javax.tools.JavaFileObject jfo = pos.source();
+    	for (var ls: locsets) { ((JmlStoreRef)ls).source = jfo; ls.type = locsetType; }
+    	JCExpression e = makeLocsetUnion(pos.pos(), locsets.toList());
+		return factory.at(e.pos).JmlStoreRef(false, null,  e,  null,  null,  null).setType(locsetType);
+    }
+     
+     public boolean hasWildOrRange(JCExpression e) {
+    	 if (e instanceof JCFieldAccess fa) {
+    		 if (fa.name == null) return true;
+    		 else return hasWildOrRange(fa.selected);
+    	 } else if (e instanceof JCArrayAccess aa) {
+    		 if (aa.index instanceof JmlRange r && (r.lo != r.hi || r.lo == null)) return true;
+    		 return hasWildOrRange(aa.indexed);
+    	 } else {
+    		 return false;
+    	 }
+     }
+     
+     public JCExpression makeSubset(DiagnosticPosition pos, JCExpression small, JCExpression big) {
+    	 return makeJmlMethodInvocation(pos, LocsetExtensions.subsetKind, syms.booleanType, small, big);
+     }
 }

@@ -41,8 +41,13 @@ public interface IVisitor {
         public void visitClassDef(JCClassDecl that)          ;
         public void visitMethodDef(JCMethodDecl that)        ;
         public void visitVarDef(JCVariableDecl that)         ;
-        public void visitSkip(JCSkip that)                   ;
-        public void visitBlock(JCBlock that)                 ;
+        
+	default public void visitSkip(JCSkip that) {
+	}
+	
+    default public void visitBlock(JCBlock that) {
+    	for (var s: that.stats) scan(s);
+    }
         public void visitDoLoop(JCDoWhileLoop that)          ;
         public void visitWhileLoop(JCWhileLoop that)         ;
         public void visitForLoop(JCForLoop that)             ;

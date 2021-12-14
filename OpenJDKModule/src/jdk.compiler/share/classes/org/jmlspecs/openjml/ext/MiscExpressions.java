@@ -14,7 +14,7 @@ import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlExtension;
-import org.jmlspecs.openjml.ext.FunctionLikeExpressions.AnyArgBooleanExpressions;
+import org.jmlspecs.openjml.ext.FunctionLikeExpressions.AnyArgBooleanExpression;
 
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Symtab;
@@ -96,7 +96,7 @@ public class MiscExpressions extends JmlExtension {
     };
 
     public static final String freshID = "\\fresh";
-    public static final IJmlClauseKind freshKind = new AnyArgBooleanExpressions(freshID){
+    public static final IJmlClauseKind freshKind = new AnyArgBooleanExpression(freshID){
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
@@ -123,7 +123,7 @@ public class MiscExpressions extends JmlExtension {
     };
 
     public static final String allocID = "\\isAllocated";
-    public static final IJmlClauseKind allocKind = new AnyArgBooleanExpressions(allocID){
+    public static final IJmlClauseKind allocKind = new AnyArgBooleanExpression(allocID){
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;

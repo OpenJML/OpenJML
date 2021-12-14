@@ -187,8 +187,8 @@ public class FunctionLikeExpressions extends JmlExtension {
         }        
     };
 
-    public static class AnyArgExpressions extends IJmlClauseKind.FunctionLikeExpressionKind {
-        public AnyArgExpressions(String name) { super(name); }
+    public static class AnyArgExpression extends IJmlClauseKind.FunctionLikeExpressionKind {
+        public AnyArgExpression(String name) { super(name); }
         
         // Unless overridden this returns the type of the first argument as the expression type
         @Override
@@ -203,8 +203,8 @@ public class FunctionLikeExpressions extends JmlExtension {
         }        
     };
     
-    public static class AnyArgBooleanExpressions extends AnyArgExpressions {
-        public AnyArgBooleanExpressions(String name) { super(name); }
+    public static class AnyArgBooleanExpression extends AnyArgExpression {
+        public AnyArgBooleanExpression(String name) { super(name); }
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
@@ -230,7 +230,7 @@ public class FunctionLikeExpressions extends JmlExtension {
     public static final IJmlClauseKind nowarnKind = new OneArgExpression(bsnowarnID);
 
     public static final String notModifiedID = "\\not_modified";
-    public static final IJmlClauseKind notModifiedKind = new AnyArgBooleanExpressions(notModifiedID) {
+    public static final IJmlClauseKind notModifiedKind = new AnyArgBooleanExpression(notModifiedID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
@@ -244,7 +244,7 @@ public class FunctionLikeExpressions extends JmlExtension {
     };
     
     public static final String concatID = "\\concat";
-    public static final IJmlClauseKind concatKind = new AnyArgExpressions(concatID) {
+    public static final IJmlClauseKind concatKind = new AnyArgExpression(concatID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
@@ -284,7 +284,7 @@ public class FunctionLikeExpressions extends JmlExtension {
     };
     
     public static final String invariantForID = "\\invariant_for";
-    public static final IJmlClauseKind invariantForKind = new AnyArgBooleanExpressions(invariantForID) {
+    public static final IJmlClauseKind invariantForKind = new AnyArgBooleanExpression(invariantForID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
@@ -305,7 +305,7 @@ public class FunctionLikeExpressions extends JmlExtension {
     };
     
     public static final String nonnullelementsID = "\\nonnullelements";
-    public static final IJmlClauseKind nonnullelementsKind = new AnyArgBooleanExpressions(nonnullelementsID) {
+    public static final IJmlClauseKind nonnullelementsKind = new AnyArgBooleanExpression(nonnullelementsID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
@@ -387,7 +387,7 @@ public class FunctionLikeExpressions extends JmlExtension {
     };
     
     public static final String keyID = "\\key";
-    public static final IJmlClauseKind keyKind = new AnyArgBooleanExpressions(keyID) {
+    public static final IJmlClauseKind keyKind = new AnyArgBooleanExpression(keyID) {
         
         @Override
         public JCExpression parse(JCModifiers mods, String name, IJmlClauseKind kind, JmlParser parser) {

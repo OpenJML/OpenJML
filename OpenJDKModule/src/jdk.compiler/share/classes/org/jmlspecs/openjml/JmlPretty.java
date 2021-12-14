@@ -16,6 +16,7 @@ import java.util.Iterator;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
+import org.jmlspecs.openjml.ext.JMLPrimitiveTypes;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
 import org.jmlspecs.openjml.ext.Operators;
@@ -948,6 +949,53 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 printExpr(expr);
             }
             print(')');
+        } catch (IOException e) { perr(that,e); }
+
+    }
+
+    public void visitJmlStoreRef(JmlStoreRef that) {
+        try {
+        	if (that.isEverything) {
+        		print(JMLPrimitiveTypes.everythingKind.keyword);
+        	} else if (that.local != null) {
+        		print(that.local.toString());
+        	} else if (that.expression != null) {
+        		printExpr(that.expression);
+        	} else if (that.range != null) {
+        		printExpr(that.receiver);
+        		print('[');
+        		printExpr(that.range);
+        		print(']');
+        	} else if (that.fields == null) {
+        		if (that.receiver == null) {
+        			Type t = that.fields.head.owner.type;
+        			print(t.toString());
+        		} else {
+        			print(that.receiver);
+        		}
+        		print(".*");
+       		
+        	} else if (!that.fields.isEmpty()) {
+        		if (that.receiver == null) {
+        			Type t = that.fields.head.owner.type;
+        			print(t.toString());
+        		} else {
+        			print(that.receiver);
+        		}
+        		print(".");
+        		if (that.fields.size() == 1) {
+        			print(that.fields.head.toString());
+        		} else {
+        			print("{");
+        			print(that.fields.head.toString());
+        			boolean first = true;
+        			for (var f: that.fields) {
+        				print(first ? "{" : ","); first = false;
+        				print(f.toString());
+        			}
+        			print("}");
+        		}
+        	}
         } catch (IOException e) { perr(that,e); }
 
     }
