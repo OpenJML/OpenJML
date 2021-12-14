@@ -15,10 +15,10 @@ openjml-test: prep
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
 
 openjml-clean:
-	(cd ${ROOT}/../OpenJDKModule; make clean openjml jmlruntime.jar )
+	(cd ${ROOT}/../OpenJDKModule; make clean version openjml jmlruntime.jar )
 
 openjml:
-	(cd ${ROOT}/../OpenJDKModule; make openjml jmlruntime.jar )
+	(cd ${ROOT}/../OpenJDKModule; make version openjml jmlruntime.jar )
 
 release:
 	(cd ${ROOT}/../OpenJDKModule; make release)
@@ -39,7 +39,7 @@ tutorial-tests:
 	    ./test \
 	)
 
-release-tests:
+release-tests: 
 	@ echo Running release tests with current development build
 	@ NOZIP= $(ROOT)releaseTests/runtests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 
