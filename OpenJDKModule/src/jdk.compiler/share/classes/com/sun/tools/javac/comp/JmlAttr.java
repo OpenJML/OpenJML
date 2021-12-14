@@ -786,6 +786,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 log.error(tree.pos, "jml.message", "Assignment not permitted for indexed immutable JML primitives");
             }
         }
+        if (tree.lhs instanceof JCFieldAccess fa) {
+        	if (fa.selected.type.tsym instanceof ClassSymbol cs) {
+        		var sp = specs.getSpecs(cs);
+        		var m = utils.findMod(sp.modifiers, Modifiers.IMMUTABLE);
+                if (m != null) {
+                    utils.error(tree.pos, "jml.message", "Fields of an object with immutable type may not be modified: " + tree.lhs + " (" + fa.selected.type + ")");
+        			utils.error(m.sourcefile, m, "jml.associated.decl.cf", utils.locationString(tree.pos));
+                }
+        	}
+        }
         if (tree.lhs.type instanceof JmlListType) {
             JmlListType lhst = (JmlListType)tree.lhs.type;
             if (!(tree.rhs.type instanceof JmlListType)) {
@@ -1457,7 +1467,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            	matchf |= (specf & Flags.SYNCHRONIZED); // binary files do not seem to always have the synchronized modifier?  FIXME
 //            	long diffs = (matchf ^ specf)&Flags.MethodFlags;
 //            	if (diffs != 0) {
-//            		boolean isEnum = (javaClassSymbol.flags() & Flags.ENUM) != 0;
+//  )          		boolean isEnum = (javaClassSymbol.flags() & Flags.ENUM) != 0;
 //            		if ((Flags.NATIVE & matchf & ~specf)!= 0) diffs &= ~Flags.NATIVE;
 //            		if (isInterface) diffs &= ~Flags.PUBLIC & ~Flags.ABSTRACT;
 //            		if (isEnum && match.isConstructor()) { specMethodDecl.mods.flags |= (matchf & 7); diffs &= ~7; } // FIXME - should only do this if specs are default
@@ -1994,7 +2004,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 hasAssignableClause = true; 
             } else if (ct == SignalsOnlyClauseExtension.signalsOnlyClauseKind) { 
                 hasSignalsOnlyClause = true; 
-            } else if (ct == accessibleClause) { 
+            } else if (ct == accessibleClauseKind) { 
                 hasAccessibleClause = true; 
             } else if (ct == CallableClauseExtension.callableClause) { 
                 hasCallableClause = true; 
@@ -2038,10 +2048,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JCIdent t = jmlMaker.Ident(names._this);
                 t.type = msym.owner.type;
                 t.sym = msym.owner;
-                defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClause,
+                defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClauseKind,
                         List.<JCExpression>of(t,jmlMaker.Select(t,(Name)null)));
             } else {
-                defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClause,
+                defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClauseKind,
                         List.<JCExpression>of(jmlMaker.JmlSingleton(everythingKind)));
             }
             if (defaultClause != null) {
@@ -3439,8 +3449,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     }
                 }
             }
-
         }
+        var sr = treeutils.convertAssignableToLocsetExpression(tree,tree.list);
+//        System.out.println("SRLIST " + sr);
         jmlenv = jmlenv.pop();
         // FIXME - check the result
     }
@@ -4037,7 +4048,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			utils.error(that.hi, "jml.message", "Expected an integral type, not " + t);
     		}
     	}
-    	result = that.type = JMLPrimitiveTypes.rangeType.getType(context,env);
+    	result = that.type = JMLPrimitiveTypes.rangeTypeKind.getType(context);
     }
     
 //    public void visitJmlFunction(JmlFunction that) {
@@ -5098,7 +5109,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 owntype = jmltypes.elemtype(atype);
             else if (!atype.hasTag(ERROR))
                 utils.error(tree.indexed, "array.req.but.found", atype);
-            if (t == rangeType.getType(context,env)) {
+            if (t == rangeTypeKind.getType(context)) {
             	if (!(tree.index instanceof JmlRange)) {
             		utils.error(tree.index,"jml.message", "Index ranges are implemented only for explicit range expressions (using ..)");
             	}
@@ -5376,7 +5387,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // This is a store-ref with a wild-card field
             // FIXME - the following needs some review
             attribTree(tree.selected, env, new ResultInfo(KindSelector.of(KindSelector.TYP,KindSelector.VAR), Infer.anyPoly));
-            result = tree.type = locsetType.getType(context,env);
+            result = tree.type = locsetTypeKind.getType(context);
         } else if (tree.name.toString().startsWith("_$T")) {
             attribTree(tree.selected, env, new ResultInfo(KindSelector.VAR, Infer.anyPoly));
             int n = Integer.parseInt(tree.name.toString().substring(3));

@@ -4389,7 +4389,7 @@ public class esc2 extends EscBase {
                 );
     }
 
-    @Test
+    @Test // This test has lots of solutions, hence the assume statement
     public void testNewLblSytax() {
         expectedExit = 0;
         main.addOptions("-nonnullByDefault");
@@ -4397,6 +4397,7 @@ public class esc2 extends EscBase {
                 "package tt; \n" 
                         + "public abstract class TestJava  { \n" 
                         + "  public void m0(int i, int j) {\n"
+                        + "      //@ assume i == 0;\n"
                         + "      //@ assert (\\lbl I i) + \\lbl(J,j) == 0; \n" 
                         + "  }\n" 
                         + "}"
