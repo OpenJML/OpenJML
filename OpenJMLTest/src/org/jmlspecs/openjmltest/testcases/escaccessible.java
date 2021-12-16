@@ -174,11 +174,10 @@ public class escaccessible extends EscBase {
 
     @Test
     public void testAccessibleAA1() {
- //   	main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires a != null && 0 <= i && i < a.length;\n"
-                +"  // @ accessible a,i,a[*];\n"
+                +"  //@ accessible a,i,a[*];\n"
                 +"  int m() { return a[i]; }\n"
                 +"  int i,j;\n"
                 +"  int[] a; int[] b; TestJava() { a = b = new int[1]; } \n"
@@ -201,6 +200,7 @@ public class escaccessible extends EscBase {
 
     @Test
     public void testAccessibleAA3() {
+    	//main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires a != null && 0 <= i && i < a.length;\n"

@@ -164,6 +164,9 @@ public class Label {
     /** Used for asserts generated from diverges clauses */
     /*@ non_null*/ public final static Label DIVERGES = new Label("Diverges");
     
+    /** Used for asserts generated from captures clauses */
+    /*@ non_null*/ public final static Label CAPTURES = new Label("Captures");
+    
     /** Used for asserts generated from assignable clauses */
     /*@ non_null*/ public final static Label ASSIGNABLE = new Label("Assignable");
     
@@ -299,8 +302,11 @@ public class Label {
     /** Used to designate a possible ArrayStoreException because of an array assignment */
     /*@ non_null*/ public final static Label POSSIBLY_BAD_ARRAY_ASSIGNMENT = new Label("PossiblyBadArrayAssignment");
 
-    /** Used flor checks of compatible specifications for functional interfaces */
+    /** Used for checks of compatible specifications for functional interfaces */
     /*@ non_null*/ public final static Label POSSIBLY_INCOMPATIBLE_FUNCTIONAL_SPECS = new Label("PossiblyIncompatibleFunctionalSpecs");
+
+    /** Used for casees that likely indicate an internal error or unimplemented option */
+    /*@ non_null*/ public final static Label UNKNOWN = new Label("Unknown");
 
 
 

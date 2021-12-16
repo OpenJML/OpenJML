@@ -611,7 +611,8 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 copy(that.expression,p),
                 copy(that.receiver,p),
                 copy(that.range,p),
-                List.<Symbol.VarSymbol>nil().appendList(that.fields)
+                List.<Symbol.VarSymbol>nil().appendList(that.fields),
+                that.anyField
                 );
         copy.source = that.source;
         copy.type = that.type;

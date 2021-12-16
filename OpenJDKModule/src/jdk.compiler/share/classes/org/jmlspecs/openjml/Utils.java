@@ -989,6 +989,18 @@ public class Utils {
         return interfaces;
     }
     
+    public com.sun.tools.javac.util.List<VarSymbol> collectFields(ClassSymbol baseType, java.util.function.Predicate<VarSymbol> a) {
+    	com.sun.tools.javac.util.ListBuffer<VarSymbol> list = new com.sun.tools.javac.util.ListBuffer<VarSymbol>();
+   	    for (var cc : parents(baseType, false)) {
+   	    	for (var sym : cc.getEnclosedElements()) {
+   	    		if (sym instanceof VarSymbol vs && a.test(vs)) list.add(vs);
+   	    	}
+   	    }
+   	    return list.toList();
+    }
+    
+
+    
     private ClassSymbol objectSym = null;
 
     // Includes self // FIXME -  review for order

@@ -147,7 +147,7 @@ public class JmlTree {
 //        JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
 //        JmlStoreRefKeyword JmlStoreRefKeyword(IJmlClauseKind t);
         JmlStoreRefListExpression JmlStoreRefListExpression(JmlTokenKind t, List<JCExpression> list);
-        JmlStoreRef JmlStoreRef(boolean isEverything, VarSymbol local, JCExpression expression, JCExpression receiver, JmlRange range, List<VarSymbol> fields);
+        JmlStoreRef JmlStoreRef(boolean isEverything, VarSymbol local, JCExpression expression, JCExpression receiver, JmlRange range, List<VarSymbol> fields, boolean anyField);
 
         JmlTuple JmlTuple(java.util.List<JCExpression> list);
         JmlTypeClauseConditional JmlTypeClauseConditional(JCModifiers mods, IJmlClauseKind token, JCTree.JCIdent ident, JCTree.JCExpression p);
@@ -740,12 +740,12 @@ public class JmlTree {
         }
 
         @Override
-        public JmlStoreRef JmlStoreRef(boolean isEverything, VarSymbol local, JCExpression expression, JCExpression receiver, JmlRange range, List<VarSymbol> fields) {
-            return new JmlStoreRef(pos,isEverything, local, expression, receiver, range, fields);
+        public JmlStoreRef JmlStoreRef(boolean isEverything, VarSymbol local, JCExpression expression, JCExpression receiver, JmlRange range, List<VarSymbol> fields, boolean anyField) {
+            return new JmlStoreRef(pos,isEverything, local, expression, receiver, range, fields, anyField);
         }
 
         public JmlStoreRef JmlStoreRef(JmlStoreRef that) {
-            return JmlStoreRef(that.isEverything, that.local, that.expression, that.receiver, that.range, that.fields);
+            return JmlStoreRef(that.isEverything, that.local, that.expression, that.receiver, that.range, that.fields, that.anyField);
         }
 
         @Override
@@ -3446,7 +3446,7 @@ public class JmlTree {
      */
     public static class JmlStoreRef extends JmlExpression {
     	
-    	protected JmlStoreRef(int pos, boolean isEverything, VarSymbol local, JCExpression expression, JCExpression receiver, JmlRange range, List<VarSymbol> fields) {
+    	protected JmlStoreRef(int pos, boolean isEverything, VarSymbol local, JCExpression expression, JCExpression receiver, JmlRange range, List<VarSymbol> fields, boolean anyField) {
     		this.pos = pos;
     		this.isEverything = isEverything;
     		this.local = local;
@@ -3454,6 +3454,7 @@ public class JmlTree {
     		this.receiver = receiver;
     		this.range = range;
     		this.fields = fields;
+    		this.anyField = anyField;
     	}
     	
     	public JavaFileObject source;
@@ -3471,6 +3472,7 @@ public class JmlTree {
     	/*@ nullable */ public JCExpression receiver;
     	/*@ nullable */ public JmlRange range;
     	/*@ nullable */ public List<VarSymbol> fields;
+    	public boolean anyField = false;
 
     	@Override
 		public void accept(Visitor v) {

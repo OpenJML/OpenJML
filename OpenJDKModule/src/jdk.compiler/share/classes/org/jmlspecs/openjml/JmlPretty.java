@@ -966,7 +966,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         		print('[');
         		printExpr(that.range);
         		print(']');
-        	} else if (that.fields == null) {
+        	} else if (that.anyField) {
         		if (that.receiver == null) {
         			Type t = that.fields.head.owner.type;
         			print(t.toString());
