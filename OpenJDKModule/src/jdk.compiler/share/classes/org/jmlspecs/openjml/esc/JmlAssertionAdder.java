@@ -819,6 +819,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Set<Type> savedActiveExceptions = activeExceptions;
         activeExceptions = new HashSet<>();
         findActiveExceptions(pmethodDecl);
+        this.currentEnv = this.currentEnv.pushEnvCopy();
         
     	var savedDivergesExpressions = divergesExpressions;
     	divergesExpressions = new ListBuffer<>();
@@ -1267,6 +1268,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.nestedCallLocation = savedNestedCallLocation;
             this.activeExceptions = savedActiveExceptions;
         	this.divergesExpressions = savedDivergesExpressions;
+        	this.currentEnv = this.currentEnv.popEnv();
             JmlOptions.instance(context).popOptions();
         }
     }
@@ -1658,6 +1660,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return convertJML(that, treeutils.trueLit, false);
     }
 
+    public /*@nullable*/ JCExpression convertJML(/*@nullable*/ JCExpression that, TranslationEnv trenv) {
+    	var savedThis = currentThisExpr;
+    	var savedLabel = oldenv;
+    	currentThisExpr = trenv.receiver;
+    	oldenv = trenv.label;
+    	try {
+        	return convertJML(that, treeutils.trueLit, false);
+    	} finally {
+    		currentThisExpr = savedThis;
+    		oldenv = savedLabel;
+    	}
+    }
+
     
     /** Applies convertJML to a list of nno-postcondition expressions, returning the new list. */
     public /*@nullable*/ List<JCExpression> convertJML(/*@nullable*/ List<JCExpression> trees) {
@@ -2013,7 +2028,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-        //if (assertCount == 140) Utils.dumpStack();
+        //if (assertCount == 87 || assertCount == 89) Utils.dumpStack("Assertion " + assertID);
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
         JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? (classDecl == null ? null : classDecl.sym) : methodDecl.sym,translatedExpr);
@@ -4154,23 +4169,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // We need this even if names have not changed, because the parameters 
             // will have been attributed with different symbols.
             paramActuals = specParamsToActuals(denestedSpecs, methodDecl, parentMethodSym);
-//            paramActuals = new HashMap<Object,JCExpression>();
-//            if (denestedSpecs.decl != null) {
-//                Iterator<VarSymbol> iter = denestedSpecs.decl.sym.params.iterator();
-//                for (JCVariableDecl dp: methodDecl.params) {
-//                    VarSymbol specSym = iter.next();
-//                    System.out.println("MAPPING " + specSym + " " + specSym.hashCode() + " TO " + dp.sym + " " + dp.hashCode());
-//                    paramActuals.put(specSym,treeutils.makeIdent(dp.pos, dp.sym));
-//                }
-//            } else { // denested specs may not have a declaration if the method is automatically generated (e.g. default constructor, Enum.values() etc.)
-//                Iterator<VarSymbol> iter = parentMethodSym.params.iterator();
-//                for (JCVariableDecl dp: methodDecl.params) {
-//                    VarSymbol newsym = iter.next();
-//                    System.out.println("MAPPINGB " + newsym + " " + newsym.hashCode() + " TO " + dp.sym + " " + dp.hashCode());
-//                   paramActuals.put(newsym,treeutils.makeIdent(dp.pos, dp.sym));
-//                }
-//            }
-
             heapCount = preheapcount;
             Map<JmlMethodClause,JCExpression> clauseIds = new HashMap<>();
             elseExpression = treeutils.falseLit;
@@ -4386,6 +4384,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void handleFrameConditions(JmlMethodDecl methodDecl, ListBuffer<JCStatement> initialStatements) {
     	// This just checks that the frame conditions are well-defined
     	pushBlock(initialStatements);
+    	addStat(comment(methodDecl,"Check that assignable, accessible, captures clauses are well-defined",null));
         for (MethodSymbol parentMethodSym: utils.parents(methodDecl.sym)) {
             if (parentMethodSym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
             JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(parentMethodSym);
@@ -4400,7 +4399,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 	if (!(clause instanceof JmlMethodClauseStoreRef sc)) continue;
                 	anyClauses = true;
                 	var list = sc.list;
-                	var locsetExpr = treeutils.convertAssignableToLocsetExpression(sc, list);
+                	var locsetExpr = treeutils.convertAssignableToLocsetExpression(sc, list, (ClassSymbol)methodDecl.sym.owner);
                 	convertJML(locsetExpr); // This is just to get all the well-definedness checks 
                 }
                 JCBlock b = popBlock(scase);
@@ -11702,7 +11701,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
               addAssert(pos, Label.POSSIBLY_NULL_ASSIGNMENT, e);
           }
         }
-        checkAccess(assignableClauseKind, pos, id, lhs, classDecl.type, currentThisExpr, currentThisExpr);
+        //checkAccess(assignableClauseKind, pos, id, lhs, classDecl.type, currentThisExpr, currentThisExpr);
+        checkAccess2(assignableClauseKind, id, lhs, true);
         checkRW(writableClause,id.sym,currentThisExpr,id);
 
         JCExpressionStatement st = treeutils.makeAssignStat(pos.getPreferredPosition(),  lhs, rhs);
@@ -11716,6 +11716,81 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (lhs instanceof JCFieldAccess) havocModelFields((JCFieldAccess)lhs);
         result = eresult = r;
         saveMappingOverride(id, eresult);
+    }
+    
+    public void checkAccess2(IJmlClauseKind kind, JCExpression lhsUnconverted, JCExpression lhs, boolean isConverted) {
+    	DiagnosticPosition pos = lhsUnconverted;
+    	TranslationEnv callerEnv = currentEnv.pushEnvCopy();
+    	callerEnv.receiver = currentThisExpr;
+    	callerEnv.label = preLabel;
+    	JmlStoreRef sr = null;
+    	try {
+    		if (lhs instanceof JCIdent id) {
+    			if (id.sym.owner instanceof ClassSymbol) {
+    				if (methodDecl.sym.isConstructor()) return;// OK to set a field of 'this' inside a constructor
+    				sr = M.at(pos).JmlStoreRef(false,null,null,id.sym.isStatic()? null : currentThisExpr,null,List.<VarSymbol>of((VarSymbol)id.sym),false);
+    			} else {
+    				sr = M.at(pos).JmlStoreRef(false,(VarSymbol)id.sym,null,currentThisExpr,null,null,false);
+    			}
+    		} else if (lhs instanceof JCFieldAccess fa) {
+				sr = M.at(pos).JmlStoreRef(false,null,null,fa.selected,null,List.<VarSymbol>of((VarSymbol)fa.sym),false);
+    		} else if (lhs instanceof JCArrayAccess aa) {
+    			JmlRange r;
+    			if (aa.index == null) {
+    				r = M.at(aa).JmlRange(treeutils.makeIntLiteral(aa, 0), null);
+    			} else if (aa.index instanceof JmlRange rr) {
+    				r = rr;
+    			} else {
+    				r = M.at(aa).JmlRange(aa.index, aa.index);
+    			}
+				sr = M.at(pos).JmlStoreRef(false,null,null,aa.indexed,r,null,false);
+    		} else {
+    			// ERROR
+    		}
+    		var kindLabel = kind == assignableClauseKind ? Label.ASSIGNABLE : kind == accessibleClauseKind ? Label.ACCESSIBLE :
+				kind == capturesClauseKind ? Label.CAPTURES : Label.UNKNOWN;
+    		// FIXME - need inherited specs
+    		
+            for (MethodSymbol parentMethodSym: utils.parents(methodDecl.sym)) {
+                if (parentMethodSym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
+                JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(parentMethodSym);
+                //System.out.println("ADDPRE " + methodDecl.sym + " " + parentMethodSym.owner + " " + parentMethodSym + " # " + denestedSpecs);
+                if (denestedSpecs == null) continue;
+                //denestedSpecs.decl.params.forEach(p -> System.out.println("  PARAM " + p.name + " " + p.type + " " + p.sym.name + " " + p.sym.type));
+                //denestedSpecs.decl.sym.params.forEach(p -> System.out.println("  PARAM-SYM " + p + " " + p.hashCode() + " " + p.name + " " + p.type));
+
+                // Set up the map from parameter symbol of the overridden method to 
+                // corresponding parameter of the target method.
+                // We need this even if names have not changed, because the parameters 
+                // will have been attributed with different symbols.
+                paramActuals = specParamsToActuals(denestedSpecs, methodDecl, parentMethodSym);
+                //heapCount = preheapcount;
+                Map<JmlMethodClause,JCExpression> clauseIds = new HashMap<>();
+                elseExpression = treeutils.falseLit;
+                for (JmlSpecificationCase specCase : denestedSpecs.cases) {
+
+                	if (!doSpecificationCase(methodDecl, methodDecl.sym, specCase)) continue;
+                	JCExpression precondition = preconditions.get(specCase);
+                	for (var clause: specCase.clauses) {
+                		if (clause.clauseKind == kind) {
+                			pushBlock();
+                			//System.out.println("CHECKING " + sr + " VS " + clause);
+                			var lsexpr = treeutils.convertAssignableToLocsetExpression(clause, ((JmlMethodClauseStoreRef)clause).list, (ClassSymbol)methodDecl.sym.owner);
+                			JCExpression ss = treeutils.makeSubset(sr, sr, lsexpr);
+                			JCExpression convertedCondition = simplifySubset(ss,callerEnv,isConverted);
+                			//System.out.println("   CONDITION " + convertedCondition);
+                			convertedCondition = conditionedAssertion(convertedCondition,convertedCondition); // FIXME - verify that we need this
+                			convertedCondition = makeAssertionOptional(convertedCondition);
+                			if (!treeutils.isTrueLit(convertedCondition)) addAssert(lhsUnconverted,kindLabel,convertedCondition,clause,clause.sourcefile,lhsUnconverted);
+                			var bl = popBlock(clause);
+                			if (!treeutils.isTrueLit(convertedCondition)) addStat(M.at(clause).If(precondition, bl, null));
+                		}
+                	}
+                }
+    		}
+    	} finally {
+    		callerEnv.popEnv();
+    	}
     }
     
     // FIXME - review
@@ -11779,8 +11854,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             assignIdentHelper(that,id, that.rhs,convertedLhs,convertedRhs);
             saveMappingOverride(that, eresult);
 
-        } else if (that.lhs instanceof JCFieldAccess) {
-            JCFieldAccess fa = (JCFieldAccess)(that.lhs);
+        } else if (that.lhs instanceof JCFieldAccess fa) {
             JCFieldAccess newfa;
             if (!utils.isJMLStatic(fa.sym)) {
                 JCExpression obj = convertExpr(fa.selected);
@@ -11793,6 +11867,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
 
                 newfa = treeutils.makeSelect(that.pos, convertCopy(obj), fa.sym);
+                
                 //Map<JCTree,Integer> table = log.currentSource().getEndPosTable();
                 //log.noticeWriter.println("FA " + fa.getStartPosition() + " " + fa.getEndPosition(table) + " " + newfa.getStartPosition() + " " + newfa.getEndPosition(table));
             } else {
@@ -11810,6 +11885,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 newfa = treeutils.makeSelect(that.pos, obj, fa.sym);
                 
             }
+            checkAccess2(assignableClauseKind,fa,newfa,true);
             JCExpression rhs = convertExpr(that.rhs);
             rhs = addImplicitConversion(that,that.lhs.type, rhs);
             if (rhs instanceof JCTree.JCMemberReference) {
@@ -11827,7 +11903,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 
             // FIXME _ use checkAssignable
-            checkAccess(assignableClauseKind, that, fa, newfa, methodDecl.sym.owner.type, currentThisExpr, currentThisExpr); // FIXME - should the second argument be newfa?
+            //checkAccess(assignableClauseKind, that, fa, newfa, methodDecl.sym.owner.type, currentThisExpr, currentThisExpr); // FIXME - should the second argument be newfa?
 
             JCExpressionStatement st = treeutils.makeAssignStat(that.pos, newfa, rhs);
             addStat( st );
@@ -11837,10 +11913,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             havocModelFields(newfa);
             saveMapping(that.lhs, eresult);
                
-        } else if (that.lhs instanceof JCArrayAccess) {
+        } else if (that.lhs instanceof JCArrayAccess aa) {
             // that.lhs.getPreferredPosition() is the position of the [ in 
             // the array access expression
-            JCArrayAccess aa = (JCArrayAccess)(that.lhs);
             JCExpression array = convertExpr(aa.indexed);
             JCExpression e;
             if (!utils.isJavaOrJmlPrimitiveType(aa.indexed.type)) {
@@ -11862,7 +11937,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
                 // FIXME - test this 
                 if(!infer){
-                    checkAccess(assignableClauseKind, that, aa, newfaa, methodDecl.sym.owner.type, currentThisExpr, currentThisExpr);
+                    checkAccess2(assignableClauseKind, that.lhs, newfaa, true);
+                    //checkAccess(assignableClauseKind, that, aa, newfaa, methodDecl.sym.owner.type, currentThisExpr, currentThisExpr);
                 }
             } else if (jmltypes.isIntArray(array.type)){
                 index = addImplicitConversion(index,jmltypes.BIGINT,index);
@@ -12011,8 +12087,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 rhs = currentArithmeticMode.rewriteBinary(this, (JCBinary)rhs, true);
             }
 
-
-            checkAccess(assignableClauseKind, that, lhs, lhs, methodDecl.sym.owner.type, currentThisExpr, currentThisExpr);
+            checkAccess2(assignableClauseKind, lhs, lhs, false);
+            //checkAccess(assignableClauseKind, that, lhs, lhs, methodDecl.sym.owner.type, currentThisExpr, currentThisExpr);
             checkRW(writableClause,((JCIdent)lhs).sym,currentThisExpr,lhs);
 
             // Note that we need to introduce the temporary since the rhs contains
@@ -13513,7 +13589,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addAssume(that,Label.IMPLICIT_ASSUME,e1);
                 }
             }
-            if (!pureCopy && !translatingJML) checkAccess(accessibleClauseKind, that, that, aa, classDecl.type, currentThisExpr, currentThisExpr);
+            if (!pureCopy && !translatingJML) {
+            	checkAccess2(accessibleClauseKind, that, aa, true);
+            	//checkAccess(accessibleClauseKind, that, that, aa, classDecl.type, currentThisExpr, currentThisExpr);
+            }
             result = eresult = save;
         }
 
@@ -13566,7 +13645,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addAssume(that,Label.IMPLICIT_ASSUME, treeutils.makeAnd(that,bina,binb));
         }
         checkRW(readableClause,that.sym,trexpr,that);
-        if (!convertingAssignable && checkAccessEnabled) checkAccess(accessibleClauseKind, that, that, newfa, classDecl.type, currentThisExpr, currentThisExpr);
+        if (!convertingAssignable && checkAccessEnabled) {
+        	checkAccess2(accessibleClauseKind, that, newfa, true);
+        	//checkAccess(accessibleClauseKind, that, that, newfa, classDecl.type, currentThisExpr, currentThisExpr);
+        }
         if (localVariables.containsKey(s)) {
             eee = newfa;
         } else if ((infer || esc) && s != null && s.name == names._class) {
@@ -13866,7 +13948,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // FIXME - are we expecting fully-qualified arguments?
             if (checkAccessEnabled) {
             	var trlhs = convertAssignable(that, currentThisExpr, true, log.currentSourceFile());
-            	checkAccess(accessibleClauseKind, that, that, trlhs, classDecl.type, currentThisExpr, currentThisExpr);
+            	// We don't care about type names -- the name of the type in new T() comes here
+            	if (that.sym instanceof VarSymbol) checkAccess2(accessibleClauseKind, that, that, false);
+            	//checkAccess(accessibleClauseKind, that, that, trlhs, classDecl.type, currentThisExpr, currentThisExpr);
             }
 //            System.out.println("VISITIDENT-H " + that + " " + inOldEnv + " " + oldenv);
             // Lookup if there is some other translation of the id. For example, 
@@ -14590,6 +14674,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else { // rac
                 this.currentThisExpr = treeutils.makeIdent(classDecl.pos,that.thisSymbol);
             }
+            this.currentEnv.receiver = this.currentThisExpr;
 
             this.classDefs = new ListBuffer<JCTree>();
             this.currentStatements = null;
@@ -19606,6 +19691,177 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return newsym;
     }
     
+    public JCExpression simplifySubset(JCExpression that, TranslationEnv targetEnv, boolean isSmallerConverted) {
+   	    if (!(that instanceof JmlMethodInvocation mi && mi.kind == LocsetExtensions.subsetKind)) {
+   	    	// ERROR
+   		    return null; 
+   	    }
+   	    JCExpression smaller = mi.args.head;
+   	    JCExpression bigger = mi.args.tail.head;
+   	    return simplifySubset(smaller, bigger, targetEnv, isSmallerConverted);
+    }
+
+    public JCExpression simplifySubset(JCExpression smaller, JCExpression bigger, TranslationEnv targetEnv, boolean isSmallerConverted) {
+    	if (smaller instanceof JmlStoreRef sr) {
+    		if (sr.isEverything) {
+    			// \everything
+    			return containsEverything(smaller, targetEnv, bigger);
+    			
+    		} else if (sr.local != null) {
+    			// local variable
+    			return containsLocal(smaller, targetEnv, sr.local, bigger);
+    			
+    		} else if (sr.expression != null) {
+    			// general expression
+    			if (sr.expression instanceof JmlMethodInvocation mi) {
+    				if (mi.kind == LocsetExtensions.unionKind) {
+    					JCExpression e = treeutils.makeBooleanLiteral(sr.expression,  false);
+    					for (JCExpression arg: mi.args) {
+    						var ee = simplifySubset(arg, bigger, targetEnv, isSmallerConverted);
+    						e = treeutils.makeAndSimp(arg, e, ee);
+    					}
+    					return e;
+    				} else if (mi.kind == oldKind) {
+    					var newenv = targetEnv.pushEnvCopy();
+    					newenv.label = mi.args.size() == 1 ? null : (JCIdent)mi.args.get(1);
+    					return simplifySubset(smaller, mi.args.head, newenv, isSmallerConverted);
+    				}
+    			} 
+    			{
+    				JCExpression e = containsEverything(smaller, targetEnv, bigger);
+    				if (treeutils.isTrueLit(e)) return e;
+    				// FIXME - unsimplifiable
+    				return treeutils.makeSubset(smaller, sr, treeutils.makeOld(smaller, bigger, targetEnv.label));
+    			}
+    			
+    		} else if (sr.receiver != null && sr.range != null) {
+    			// array elements
+    			return containsArray(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.range, bigger);
+    		} else {
+    			// fields
+    			return containsField(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.fields, bigger);
+    		}
+    	} else {
+    		// ERROR
+			return treeutils.makeBooleanLiteral(smaller.getPreferredPosition(), false);
+    	}
+    }
+    
+    
+    public JCExpression expand(DiagnosticPosition pos, TranslationEnv targetEnv, JCExpression srexpr, java.util.function.Function<JCExpression,JCExpression> a) {
+    	if (srexpr instanceof JmlMethodInvocation mi && mi.kind == LocsetExtensions.unionKind) {
+    		JCExpression e = treeutils.makeBooleanLiteral(pos, false);
+    		for (JCExpression ee: mi.args) {
+    			var eee = a.apply(ee);
+    			e = treeutils.makeOrSimp(pos.getPreferredPosition(), e, eee);
+    		}
+    		return e;
+    	} else if (srexpr instanceof JmlMethodInvocation mi && mi.kind == oldKind) {
+    		var newenv = targetEnv.pushEnvCopy();
+    		newenv.label = (JCIdent)mi.args.get(1);
+    		return expand(pos, newenv, mi.args.head, a);
+    	} else {
+    		// ERROR
+			return treeutils.makeBooleanLiteral(pos, false);
+    	}
+    }
+    
+    public JCExpression containsEverything(DiagnosticPosition pos, TranslationEnv targetEnv, JCExpression bigger) {
+    	if (bigger instanceof JmlStoreRef sr) {
+    		if (sr.expression != null) {
+    			return expand(pos, targetEnv, sr.expression, s->containsEverything(pos,targetEnv,s));
+    		} else {
+    			return treeutils.makeBooleanLiteral(pos, sr.isEverything);
+    		}
+    	} else {
+    		// ERROR
+			return treeutils.makeBooleanLiteral(pos, false);
+    	}
+    }
+    
+    public JCExpression containsLocal(DiagnosticPosition pos, TranslationEnv targetEnv, VarSymbol vsym, JCExpression bigger) {
+    	if (bigger instanceof JmlStoreRef sr) {
+    		//System.out.println("LOCAL " + vsym + " " + sr.isEverything + " " + sr.expression + " " + sr.local + " " + targetEnv.label + " " + vsym.owner.getClass());
+    		if (sr.isEverything) {
+    			return treeutils.makeBooleanLiteral(pos, true);
+    		} else if (targetEnv.label == preLabel) {
+    			// The target is in the pre-state and we have a local variable
+    			return treeutils.makeBooleanLiteral(pos, true);
+    		} else if (sr.expression != null) {
+    			return expand(pos, targetEnv, sr.expression, s-> containsLocal(pos, targetEnv, vsym, s));
+    		} else {
+        		return treeutils.makeBooleanLiteral(pos, sr.local == vsym);
+    		}
+    	} else {
+    		// ERROR
+			return treeutils.makeBooleanLiteral(pos, false);
+    	}
+    }
+    
+    public JCExpression containsField(DiagnosticPosition pos, TranslationEnv targetEnv, boolean isSmallerConverted, JCExpression receiver, List<VarSymbol> fields, JCExpression bigger) {
+    	if (bigger instanceof JmlStoreRef sr) {
+    		if (sr.isEverything) {
+    			return treeutils.makeBooleanLiteral(pos, true);
+    		} else if (sr.fields != null) {
+        		JCExpression e = treeutils.makeBooleanLiteral(pos, true);
+    			for (var v: fields) {
+    				if (sr.fields.stream().anyMatch(f -> v==f)) {
+    					var ee = v.isStatic() ? treeutils.makeBooleanLiteral(pos,  true)
+    							: treeutils.makeEqObject(pos.getPreferredPosition(), isSmallerConverted ? receiver : convertJML(receiver), convertJML(sr.receiver, targetEnv));
+    					e = treeutils.makeAnd(pos, e, ee);
+    				} else {
+    	    			return treeutils.makeBooleanLiteral(pos, false);
+    				}
+    			}
+    			return e;
+    		} else if (sr.local != null) {
+    			if (sr.local.owner instanceof TypeSymbol) {
+    				// A field with implicit this as receiver
+            		JCExpression e = treeutils.makeBooleanLiteral(pos, true);
+        			for (var v: fields) {
+        				if (sr.local == v) {
+        					var ee = treeutils.makeEqObject(pos.getPreferredPosition(), isSmallerConverted ? receiver : convertJML(receiver), targetEnv.receiver);
+        					e = treeutils.makeAnd(pos, e, ee);
+        				} else {
+        	    			return treeutils.makeBooleanLiteral(pos, false);
+        				}
+        			}
+        			return e;
+    			} else {
+    				// An actual local field FIXME - in the target now
+        			return treeutils.makeBooleanLiteral(pos, false);
+    			}
+    		} else if (sr.expression != null) {
+    			return expand(pos, targetEnv, sr.expression, s->containsField(pos, targetEnv, isSmallerConverted, receiver, fields, s));
+    		} else {
+    			return treeutils.makeBooleanLiteral(pos, false);
+    		}
+    	} else {
+    		// ERROR
+			return treeutils.makeBooleanLiteral(pos, false);
+    	}
+    }
+    
+    public JCExpression containsArray(DiagnosticPosition pos, TranslationEnv targetEnv, boolean isSmallerConverted, JCExpression receiver, JmlRange range, JCExpression bigger) {
+    	if (bigger instanceof JmlStoreRef sr) {
+    		if (sr.isEverything) {
+    			return treeutils.makeBooleanLiteral(pos, true);
+    		} else if (sr.receiver != null && sr.range != null) {
+				var e1 = treeutils.makeEqObject(pos.getPreferredPosition(), isSmallerConverted ? receiver : convertJML(receiver), convertJML(sr.receiver, targetEnv));
+				var e2 = treeutils.makeBinary(pos, JCTree.Tag.LE, convertJML(sr.range.lo, targetEnv), isSmallerConverted ? range.lo : convertJML(range.lo));
+				var e3 = treeutils.makeBinary(pos, JCTree.Tag.LE, isSmallerConverted ? range.hi : convertJML(range.hi), convertJML(sr.range.hi,targetEnv));
+				return treeutils.makeAnd(pos,  e1,  treeutils.makeAnd(pos, e2, e3));
+    		} else if (sr.expression != null) {
+    			return expand(pos, targetEnv, sr.expression, s->containsArray(pos, targetEnv, isSmallerConverted, receiver, range, s));
+    		} else {
+    			return treeutils.makeBooleanLiteral(pos, false);
+    		}
+    	} else {
+    		// ERROR
+			return treeutils.makeBooleanLiteral(pos, false);
+    	}
+    }
+    
     
     public /*@ nullable */ java.util.List<JmlStatementExpr> getWellDefinedAsserts(JCExpression expr, Map<Object, JCExpression> replacements) {
         WellDefinedCheck check = new WellDefinedCheck(replacements);
@@ -20155,6 +20411,36 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     		// do nothing
     	}
     }
+ 
+    
+    // This class encapsulates information about the environment in which a translation is being performed.
+    // It is helpful because the visit methods do not take an auxiliary argument in which such informatino could be passed.
+    public static class TranslationEnv implements Cloneable {
+    	public TranslationEnv() {}
+    	public TranslationEnv(TranslationEnv t) {
+    		receiver = t.receiver;
+    		label = t.label;
+    	}
+
+        public TranslationEnv popEnv() {
+        	//System.out.println("POPENV " + this.hashCode() + " TO " + previousEnv.hashCode());
+        	return previousEnv;
+        }
+        
+        public TranslationEnv pushEnvCopy() {
+        	var t = new TranslationEnv(this);
+        	t.previousEnv = this;
+        	//System.out.println("PUSHENV " + this.hashCode() + " TO " + t.hashCode());
+        	return t;
+        }
+
+    	
+    	/*@ nullable */ public JCExpression receiver; // what 'this' is currently. null in a static environment
+    	/*@ nullable */ public JCIdent label;         // the current heap state. null means the current state
+    	/*@ nullable */ TranslationEnv previousEnv;
+    }
+    
+    TranslationEnv currentEnv = new TranslationEnv();
     
 }
 
