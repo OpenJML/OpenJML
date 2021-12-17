@@ -36,7 +36,6 @@ public class esc1 extends EscBase {
 
     @Override
     public void setUp() throws Exception {
-        // noCollectDiagnostics = true;
         super.setUp();
         main.addOptions("-nullableByDefault"); // Because the tests were written
                                                 // this way
@@ -978,9 +977,11 @@ public class esc1 extends EscBase {
     public void testAssignables4a() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
-                + "  public int k; public static int sk;\n" + "  public static TestJava p;\n"
+                + "  public int k; public static int sk;\n" 
+        		+ "  public static TestJava p;\n"
 
-                + "  //@ requires p != null && p != this;\n" + "  //@ modifies \\everything;\n"
+                + "  //@ requires p != null && p != this;\n" 
+                + "  //@ assigns  \\everything;\n"
                 + "  public void m1() {\n" 
                 + "    //@ assume this.k == 0;\n" 
                 + "    c1(p);\n" // havoc p.*, including p.k, but p != this
@@ -988,18 +989,19 @@ public class esc1 extends EscBase {
                 + "  }\n"
 
                 + "  //@ requires p != null && p != this;\n" 
-                + "  //@ modifies \\everything;\n"
+                + "  //@ assigns  \\everything;\n"
                 + "  public void m1a() {\n" 
-                + "    //@ assume sk == 0;\n" + "    c1(p);\n" // havoc p.* does not include sk
+                + "    //@ assume sk == 0;\n" 
+                + "    c1(p);\n" // havoc p.* does not include sk
                 + "    //@ assert sk == 0;\n" // OK
                 + "  }\n"
 
                 + "  //@ requires o != null;\n" 
-                + "  //@ modifies o.*;\n" 
+                + "  //@ assigns  o.*;\n" 
                 + "  public void c1(TestJava o) { } \n"
 
                 + "  //@ requires o != null;\n" 
-                + "  //@ modifies TestJava.*;\n" 
+                + "  //@ assigns  TestJava.*;\n" 
                 + "  public void c2(TestJava o) { } \n"
                 + "}");
     }
