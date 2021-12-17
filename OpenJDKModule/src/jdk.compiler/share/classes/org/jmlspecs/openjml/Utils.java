@@ -1163,7 +1163,7 @@ public class Utils {
     	}
     	if (s instanceof VarSymbol) {
     		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((VarSymbol)s);
-    		return hasMod(tspecs.mods, Modifiers.SPEC_PUBLIC);
+    		return tspecs != null && hasMod(tspecs.mods, Modifiers.SPEC_PUBLIC);  // FIXME - why does this need the !=null guard
     	}
     	if (s instanceof MethodSymbol) {
     		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((MethodSymbol)s);
@@ -1252,6 +1252,7 @@ public class Utils {
                 if (isJMLStatic(s) != forStatic) continue;
                 if ((s.flags() & Flags.FINAL) != 0) continue;
                 if (!includeDataGroups && jmltypes().isOnlyDataGroup(s.type)) continue;
+                //System.out.println("LVF " + owner + " " + base + " " + csym + " " + s);
                 if (!jmlvisible(s,base,csym,s.flags()&Flags.AccessFlags,baseVisibility)) continue; // FIXME - jml access flags? on base and on target?
                 list.add((Symbol.VarSymbol)s);
             }

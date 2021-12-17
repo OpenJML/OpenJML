@@ -938,6 +938,7 @@ public class JmlSpecs {
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
 		specsFields.put(m, spec);
         setStatus(m, SpecsStatus.SPECS_LOADED);
+    	//if (m.owner.toString().contains("Throwable")) System.out.println("            Saving field specs for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
     	if (utils.verbose()) utils.note("            Saving field specs for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
     }
     
