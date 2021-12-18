@@ -1955,6 +1955,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				scan(((JCBlock) stat).stats);
 			else
 				scan(stat);
+		} catch (Exception e) {
+			e.printStackTrace(System.out);
+			throw e;
 		} finally {
 			return popBlock(pos, check);
 		}
@@ -4412,6 +4415,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCStatement st = M.at(p).If(bin, bl, null);
 		initialStatements.add(st);
 	}
+	
+	// FIXME - can we unite the next two methods
 
 	public Map<Object, JCExpression> specParamsToActuals(JmlMethodSpecs denestedSpecs, JCMethodDecl javaMethodDecl,
 			MethodSymbol javaMethodSym) {
@@ -4436,6 +4441,125 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		return paramActuals;
 	}
+	
+	public Map<Object, JCExpression> mapFormals(JCMethodDecl to, JCMethodDecl from) {
+		if (to.sym == from.sym)
+			return paramActuals;
+		var fromIter = from.params.iterator();
+		var toIter = to.params.iterator();
+		var newMap = paramActuals == null ? new HashMap<Object, JCExpression>() : new HashMap<>(paramActuals);
+		while (fromIter.hasNext() && toIter.hasNext()) {
+			var fromSym = fromIter.next().sym;
+			var toDecl = toIter.next();
+			var toSym = toDecl.sym;
+			newMap.put(fromSym, M.at(toDecl.pos).Ident(toSym));
+		}
+		if (fromIter.hasNext() || toIter.hasNext()) {
+			// ERROR - mis matched lengths
+		}
+		var oldMap = paramActuals;
+		paramActuals = newMap;
+		return oldMap;
+	}
+
+	public static record Info(MethodSymbol parentMethodSymbol, JmlSpecificationCase specCase, Map<Object,JCExpression> paramActuals) {}
+
+	public class SpecCaseIterable implements Iterable<Info> {
+		MethodSymbol methodSymbol;
+		public SpecCaseIterable(MethodSymbol methodSymbol) {
+			this.methodSymbol = methodSymbol;
+		}
+		@Override
+		public SpecCaseIterator iterator() { return new SpecCaseIterator(methodSymbol); }
+	}
+	
+	public class SpecCaseIterator implements Iterator<Info> {
+		
+		Iterator<MethodSymbol> methodIterator;
+		Iterator<JmlSpecificationCase> specCaseIterator = null;
+		
+		MethodSymbol methodSymbol;
+		MethodSymbol parentMethodSymbol;
+		JmlSpecificationCase specCase;
+		Map<Object,JCExpression> paramActuals;
+		JavaFileObject previousFile;
+		
+		public SpecCaseIterator(MethodSymbol methodSymbol) {
+			//System.out.println("CREATING ITERATOR " + methodSymbol);
+			this.methodSymbol = methodSymbol;
+			methodIterator = utils.parents(methodSymbol).iterator();
+			parentMethodSymbol = null;
+			previousFile = log.currentSourceFile();
+			//System.out.println("DONE ITERATOR " + methodSymbol);
+		}
+		
+		public void cleanup() {
+			log.useSource(previousFile);
+		}
+
+		@Override
+		public boolean hasNext() {
+			while (true) {
+				if (specCaseIterator == null) {
+					if (!methodIterator.hasNext()) {
+						cleanup();
+						//System.out.println("HASNEXT-FALSE " + methodSymbol);
+						return false;
+					}
+					parentMethodSymbol = methodIterator.next();
+					if (parentMethodSymbol.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
+					JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(parentMethodSymbol);
+					specCaseIterator = denestedSpecs.cases.iterator();
+					paramActuals = specParamsToActuals(denestedSpecs, methodDecl, parentMethodSymbol);
+				}
+				if (!specCaseIterator.hasNext()) {
+					specCaseIterator = null;
+					continue;
+				}
+				specCase = specCaseIterator.next();
+				if (!doSpecificationCase(methodDecl, parentMethodSymbol, specCase)) continue;
+				log.useSource(specCase.source());
+				//System.out.println("HASNEXT-TRUE " + methodSymbol);
+				return true;
+			}
+		}
+
+		@Override
+		public Info next() {
+			//System.out.println("NEXT " + methodSymbol + " " + parentMethodSymbol + " " + specCase);
+			return new Info(parentMethodSymbol,specCase,paramActuals);
+		}
+		
+		
+//		for (MethodSymbol parentMethodSym : utils.parents(methodDecl.sym)) {
+//			if (parentMethodSym.params == null)
+//				continue; // FIXME - we should do something better? or does this mean binary with no
+//							// specs?
+//			JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(parentMethodSym);
+//			// System.out.println("ADDPRE " + methodDecl.sym + " " + parentMethodSym.owner +
+//			// " " + parentMethodSym + " # " + denestedSpecs);
+//			if (denestedSpecs == null)
+//				continue;
+//			// denestedSpecs.decl.params.forEach(p -> System.out.println(" PARAM " + p.name
+//			// + " " + p.type + " " + p.sym.name + " " + p.sym.type));
+//			// denestedSpecs.decl.sym.params.forEach(p -> System.out.println(" PARAM-SYM " +
+//			// p + " " + p.hashCode() + " " + p.name + " " + p.type));
+//
+//			// Set up the map from parameter symbol of the overridden method to
+//			// corresponding parameter of the target method.
+//			// We need this even if names have not changed, because the parameters
+//			// will have been attributed with different symbols.
+//			paramActuals = specParamsToActuals(denestedSpecs, methodDecl, parentMethodSym);
+//			heapCount = preheapcount;
+//			Map<JmlMethodClause, JCExpression> clauseIds = new HashMap<>();
+//			elseExpression = treeutils.falseLit;
+//			for (JmlSpecificationCase scase : denestedSpecs.cases) {
+//				if (!doSpecificationCase(methodDecl, parentMethodSym, scase)) continue;
+//				JavaFileObject prev = log.useSource(scase.source());
+//
+		
+	}
+
 
 	/** Computes and adds checks for all the pre and postcondition clauses. */
 	// FIXME - review this
@@ -4835,52 +4959,52 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// This just checks that the frame conditions are well-defined
 		pushBlock(initialStatements);
 		addStat(comment(methodDecl, "Check that assignable, accessible, captures clauses are well-defined", null));
-		for (MethodSymbol parentMethodSym : utils.parents(methodDecl.sym)) {
-			if (parentMethodSym.params == null)
-				continue; // FIXME - we should do something better? or does this mean binary with no
-							// specs?
-			JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(parentMethodSym);
-			if (denestedSpecs == null)
-				continue;
-			paramActuals = specParamsToActuals(denestedSpecs, methodDecl, parentMethodSym);
-			for (JmlSpecificationCase scase : denestedSpecs.cases) {
-				if (!doSpecificationCase(methodDecl, parentMethodSym, scase)) continue;
+		SpecCaseIterable specCases = new SpecCaseIterable(methodDecl.sym);
+		for (var info: specCases) {
+			var parentMethodSym = info.parentMethodSymbol;
+			var scase = info.specCase();
+			paramActuals = info.paramActuals();
+			
+//		for (MethodSymbol parentMethodSym : utils.parents(methodDecl.sym)) {
+//			if (parentMethodSym.params == null)
+//				continue; // FIXME - we should do something better? or does this mean binary with no
+//							// specs?
+//			JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(parentMethodSym);
+//			if (denestedSpecs == null) continue;
+//			paramActuals = specParamsToActuals(denestedSpecs, methodDecl, parentMethodSym);
+//			for (JmlSpecificationCase scase : denestedSpecs.cases) {
+//				if (!doSpecificationCase(methodDecl, parentMethodSym, scase)) continue;
 				JCIdent preid = preconditions.get(scase);
 				pushBlock();
 				boolean anyClauses = false;
 				for (var clause : scase.clauses) {
-					if (!(clause instanceof JmlMethodClauseStoreRef sc))
-						continue;
+					if (!(clause instanceof JmlMethodClauseStoreRef sc)) continue;
 					addStat(comment(methodDecl, "   Checking " + clause, null));
 					anyClauses = true;
 					var list = sc.list;
-					var locsetExpr = convertAssignableToLocsetExpression(sc, list, (ClassSymbol) methodDecl.sym.owner,
-							currentThisExpr);
+					var locsetExpr = convertAssignableToLocsetExpression(sc, list, (ClassSymbol) methodDecl.sym.owner, currentThisExpr);
 					// System.out.println("HFC " + locsetExpr);
-					convertJML(locsetExpr); // This is just to get all the well-definedness
-																		// checks
+					convertJML(locsetExpr); // This is just to get all the well-definedness checks
 				}
 				JCBlock b = popBlock(scase);
 				if (anyClauses)
 					addStat(M.at(scase).If(preid, b, null));
-			}
+//			}
 		}
 		// FIXME - for RAC we need to wrap in a try block
 		popBlock();
 	}
 
 	// methodDecl - base method that is being translated
-	// msym - symbol for the method or overriding method to which specs belong
+	// parentMethodSym - symbol for the method or overriding method to which spec case belongs
 	// scase - the particular specification case
 	public boolean doSpecificationCase(JCMethodDecl methodDecl, MethodSymbol parentMethodSym, JmlSpecificationCase scase) {
-		if (!utils.jmlvisible(parentMethodSym, methodDecl.sym.owner, parentMethodSym.owner, scase.modifiers.flags, methodDecl.mods.flags))
-			return false;
-		if (parentMethodSym != methodDecl.sym && scase.code)
-			return false;
+		if (!utils.jmlvisible(parentMethodSym, methodDecl.sym.owner, parentMethodSym.owner, scase.modifiers.flags, methodDecl.mods.flags)) return false;
+		if (parentMethodSym != methodDecl.sym && scase.code)  return false;
 		return true;
 	}
 
-	/** This just tests wither the type is explicitly a JMLDataGroup */
+	/** This just tests whether the type is explicitly a JMLDataGroup */
 	public boolean isDataGroup(Type type) {
 		return type.toString().contains("JMLDataGroup"); // FIXME - something better than string comparison?
 	}
@@ -8137,26 +8261,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return fa;
 	}
 
-	public Map<Object, JCExpression> mapFormals(JCMethodDecl to, JCMethodDecl from) {
-		if (to.sym == from.sym)
-			return paramActuals;
-		var fromIter = from.params.iterator();
-		var toIter = to.params.iterator();
-		var newMap = paramActuals == null ? new HashMap<Object, JCExpression>() : new HashMap<>(paramActuals);
-		while (fromIter.hasNext() && toIter.hasNext()) {
-			var fromSym = fromIter.next().sym;
-			var toDecl = toIter.next();
-			var toSym = toDecl.sym;
-			newMap.put(fromSym, M.at(toDecl.pos).Ident(toSym));
-		}
-		if (fromIter.hasNext() || toIter.hasNext()) {
-			// ERROR - mis matched lengths
-		}
-		var oldMap = paramActuals;
-		paramActuals = newMap;
-		return oldMap;
-	}
-
 	/**
 	 * Add assertions that the lhs is allowed to be written to or read from.
 	 * 
@@ -9702,16 +9806,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// Collect all the methods overridden by the method being called, including the
 			// method itself
 			Type rt = dynamicTypes.get(convertedReceiver);
-			if (rt == null)
-				rt = receiverType;
+			if (rt == null) rt = receiverType;
 			// In the case of a call inside a lambda expression that is the argument of a
 			// method (cf gitbug550)
 			// rt is just a typevar with an upper bound of Object (the type of the outer
 			// call) rather than
-			// a resolved type. Not sure how to get the resolved tdype, so do the next line
+			// a resolved type. Not sure how to get the resolved type, so do the next line
 			// as a fallback FIXME
-			if (rt instanceof Type.TypeVar)
-				rt = calleeMethodSym.owner.type;
+			if (rt instanceof Type.TypeVar) rt = calleeMethodSym.owner.type;
 			java.util.List<Pair<MethodSymbol, Type>> overridden = parents(calleeMethodSym, rt);
 			// // The following line is needed for the case of new object expression with an
 			// anonymous class without a constructor
@@ -10642,6 +10744,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					for (Pair<MethodSymbol, Type> pair : overridden) {
 						MethodSymbol mpsym = pair.first;
 						Type classType = pair.second;
+//					for (var info: new SpecCaseIterable(calleeMethodSym)) {
+//						MethodSymbol mpsym = info.parentMethodSymbol();
+//						Type classType = mpsym.owner.type;
+						
 						if (mpsym.isConstructor() && mpsym.owner.isAnonymous() && mpsym == calleeMethodSym
 								&& that instanceof JmlNewClass) {
 							MethodSymbol m = findParentConstructor((JmlNewClass) that);
