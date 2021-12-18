@@ -1917,17 +1917,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // A list in which to collect clauses
             ListBuffer<JmlMethodClause> commonClauses = new ListBuffer<JmlMethodClause>();
 
-    		boolean inliningCall = methodSpecs != null && methodSpecs.decl != null && methodSpecs.decl.mods != null
-    				&& findMod(methodSpecs.decl.mods, Modifiers.INLINE) != null;
-            
-            
             // Desugar any specification cases
             JmlMethodSpecs newspecs;
             JCModifiers mods = methodSpecs.decl == null ? null : methodSpecs.decl.mods;
-            if (inliningCall) {
-            	newspecs = methodSpecs;
-            	// do not add default clauses
-            } else if (!methodSpecs.cases.isEmpty()) {
+            if (!methodSpecs.cases.isEmpty()) {
                 ListBuffer<JmlSpecificationCase> allcases = new ListBuffer<JmlSpecificationCase>();
                 ListBuffer<JmlSpecificationCase> allitcases = new ListBuffer<JmlSpecificationCase>();
                 ListBuffer<JmlSpecificationCase> allfecases = new ListBuffer<JmlSpecificationCase>();
@@ -1997,7 +1990,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     protected void addDefaultClauses(JmlMethodDecl decl, JCModifiers mods, MethodSymbol msym, JCAnnotation pure, JmlSpecificationCase cs, JCExpression nnexpr) {
-        String constructorDefault = JmlOption.defaultsValue(context,"constructor","everything");
+		boolean inliningCall = mods != null && findMod(mods, Modifiers.INLINE) != null;
+		if (inliningCall) return;
+		String constructorDefault = JmlOption.defaultsValue(context,"constructor","everything");
         boolean hasAssignableClause = false;
         boolean hasAccessibleClause = false;
         boolean hasCallableClause = false;
