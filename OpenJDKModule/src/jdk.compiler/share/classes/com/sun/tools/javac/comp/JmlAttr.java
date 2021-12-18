@@ -41,7 +41,6 @@ import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
-import org.jmlspecs.openjml.ext.RecommendsClause;
 import static org.jmlspecs.openjml.ext.ShowStatement.*;
 import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.parser.JmlToken;
@@ -1918,12 +1917,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // A list in which to collect clauses
             ListBuffer<JmlMethodClause> commonClauses = new ListBuffer<JmlMethodClause>();
 
+    		boolean inliningCall = methodSpecs != null && methodSpecs.decl != null && methodSpecs.decl.mods != null
+    				&& findMod(methodSpecs.decl.mods, Modifiers.INLINE) != null;
             
             
             // Desugar any specification cases
             JmlMethodSpecs newspecs;
             JCModifiers mods = methodSpecs.decl == null ? null : methodSpecs.decl.mods;
-            if (!methodSpecs.cases.isEmpty()) {
+            if (inliningCall) {
+            	newspecs = methodSpecs;
+            	// do not add default clauses
+            } else if (!methodSpecs.cases.isEmpty()) {
                 ListBuffer<JmlSpecificationCase> allcases = new ListBuffer<JmlSpecificationCase>();
                 ListBuffer<JmlSpecificationCase> allitcases = new ListBuffer<JmlSpecificationCase>();
                 ListBuffer<JmlSpecificationCase> allfecases = new ListBuffer<JmlSpecificationCase>();
