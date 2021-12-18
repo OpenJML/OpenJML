@@ -1023,7 +1023,22 @@ public class JmlTreeUtils {
     }
 
     /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
+    public JCExpression makeImplies(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
+        return makeBinary(pos,JCTree.Tag.OR,orSymbol,
+                makeNot(pos,lhs), rhs);
+    }
+
+    /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
     public JCExpression makeImpliesSimp(int pos, JCExpression lhs, JCExpression rhs) {
+        if (isTrueLit(lhs) || isTrueLit(rhs)) return rhs;
+        else if (isFalseLit(lhs)) return makeBooleanLiteral(pos,true);
+        else if (isTrueLit(rhs)) return makeNot(pos,lhs);
+        return makeBinary(pos,JCTree.Tag.OR,orSymbol,
+                makeNot(pos,lhs), rhs);
+    }
+
+    /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
+    public JCExpression makeImpliesSimp(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
         if (isTrueLit(lhs) || isTrueLit(rhs)) return rhs;
         else if (isFalseLit(lhs)) return makeBooleanLiteral(pos,true);
         else if (isTrueLit(rhs)) return makeNot(pos,lhs);

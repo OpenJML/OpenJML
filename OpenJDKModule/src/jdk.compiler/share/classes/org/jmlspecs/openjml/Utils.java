@@ -993,6 +993,7 @@ public class Utils {
     	com.sun.tools.javac.util.ListBuffer<VarSymbol> list = new com.sun.tools.javac.util.ListBuffer<VarSymbol>();
    	    for (var cc : parents(baseType, false)) {
    	    	for (var sym : cc.getEnclosedElements()) {
+   	    		//System.out.println("COLLECT " + sym + " " + sym.getClass() + " " + (sym instanceof VarSymbol vs && a.test(vs)));
    	    		if (sym instanceof VarSymbol vs && a.test(vs)) list.add(vs);
    	    	}
    	    }

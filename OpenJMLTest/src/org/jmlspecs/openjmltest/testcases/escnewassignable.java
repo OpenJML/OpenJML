@@ -247,10 +247,10 @@ public class escnewassignable extends EscBase {
                 +"    x = 0 ;\n"
                 +"  }\n"
 
-                +"  //@ requires true; \n"  // TODO check that the semantics of JML is that assignable clauses may be split like this
-                +"  //@ assignable y; \n"
+                +"  //@ requires true; \n" 
+                +"  //@ assignable y; \n" // ERROR - cannot split assignable clauses - result is intersection
                 +"  //@ assignable this.*; \n"
-                +"  public void m0good(int i) {\n"
+                +"  public void m00bad(int i) {\n"
                 +"    x = 0 ;\n"
                 +"  }\n"
 
@@ -269,6 +269,8 @@ public class escnewassignable extends EscBase {
                 ,"/tt/TestJava.java:12: warning: Associated declaration",7
                 ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Assignable) in method m0bad: x",7
                 ,"/tt/TestJava.java:29: warning: Associated declaration",7
+                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (Assignable) in method m00bad: x",7
+                ,"/tt/TestJava.java:36: warning: Associated declaration",7
                 );
     }
 

@@ -2046,12 +2046,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (findMod(mods,Modifiers.INLINE) != null) {
                 // If inlined, do not add any clauses
                 defaultClause = null;
-            } else if (msym.isConstructor()) {
-                JCIdent t = jmlMaker.Ident(names._this);
-                t.type = msym.owner.type;
-                t.sym = msym.owner;
-                defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClauseKind,
-                        List.<JCExpression>of(t,jmlMaker.Select(t,(Name)null)));
             } else {
                 defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClauseKind,
                         List.<JCExpression>of(jmlMaker.JmlSingleton(everythingKind)));
