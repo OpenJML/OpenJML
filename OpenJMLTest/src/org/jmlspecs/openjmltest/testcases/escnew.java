@@ -2264,7 +2264,6 @@ public class escnew extends EscBase {
 
     @Test 
     public void testOldInAssign() {
-//    	main.addOptions("-show","-method=m2");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 

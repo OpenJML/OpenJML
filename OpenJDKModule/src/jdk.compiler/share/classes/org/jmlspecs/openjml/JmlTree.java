@@ -32,6 +32,7 @@ import com.sun.tools.javac.code.JmlType;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Scope.NamedImportScope;
 import com.sun.tools.javac.code.Scope.StarImportScope;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
@@ -147,7 +148,7 @@ public class JmlTree {
 //        JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
 //        JmlStoreRefKeyword JmlStoreRefKeyword(IJmlClauseKind t);
         JmlStoreRefListExpression JmlStoreRefListExpression(JmlTokenKind t, List<JCExpression> list);
-        JmlStoreRef JmlStoreRef(boolean isEverything, VarSymbol local, JCExpression expression, JCExpression receiver, JmlRange range, List<VarSymbol> fields, boolean anyField);
+        JmlStoreRef JmlStoreRef(boolean isEverything, Symbol local, JCExpression expression, JCExpression receiver, JmlRange range, List<VarSymbol> fields, boolean anyField);
 
         JmlTuple JmlTuple(java.util.List<JCExpression> list);
         JmlTypeClauseConditional JmlTypeClauseConditional(JCModifiers mods, IJmlClauseKind token, JCTree.JCIdent ident, JCTree.JCExpression p);
@@ -740,7 +741,7 @@ public class JmlTree {
         }
 
         @Override
-        public JmlStoreRef JmlStoreRef(boolean isEverything, VarSymbol local, JCExpression expression, JCExpression receiver, JmlRange range, List<VarSymbol> fields, boolean anyField) {
+        public JmlStoreRef JmlStoreRef(boolean isEverything, Symbol local, JCExpression expression, JCExpression receiver, JmlRange range, List<VarSymbol> fields, boolean anyField) {
             return new JmlStoreRef(pos,isEverything, local, expression, receiver, range, fields, anyField);
         }
 
@@ -3446,10 +3447,10 @@ public class JmlTree {
      */
     public static class JmlStoreRef extends JmlExpression {
     	
-    	protected JmlStoreRef(int pos, boolean isEverything, VarSymbol local, JCExpression expression, JCExpression receiver, JmlRange range, List<VarSymbol> fields, boolean anyField) {
+    	protected JmlStoreRef(int pos, boolean isEverything, Symbol local, JCExpression expression, JCExpression receiver, JmlRange range, List<VarSymbol> fields, boolean anyField) {
     		this.pos = pos;
     		this.isEverything = isEverything;
-    		this.local = local;
+    		this.local = local; // Might be 'this'
     		this.expression = expression;
     		this.receiver = receiver;
     		this.range = range;
@@ -3467,7 +3468,7 @@ public class JmlTree {
     	// isEverything=false, local null, range null, expression null, receiver nonnull: a set of non-final fields of the instance
     	// isEverything=false, local null, range null, expression null, receiver null: a set of static non-final fields
     	public boolean isEverything;
-    	/*@ nullable */ public VarSymbol local;
+    	/*@ nullable */ public Symbol local;
     	/*@ nullable */ public JCExpression expression;
     	/*@ nullable */ public JCExpression receiver;
     	/*@ nullable */ public JmlRange range;
