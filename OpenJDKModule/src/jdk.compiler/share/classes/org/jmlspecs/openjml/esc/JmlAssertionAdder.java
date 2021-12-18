@@ -8223,8 +8223,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						}
 					} finally {
 						JCBlock bl = popBlock(c, ch);
-						if (!bl.stats.isEmpty())
-							addStat(M.at(c.pos).If(pre, bl, null));
+						if (!bl.stats.isEmpty()) addStat(M.at(c.pos).If(pre, bl, null));
 						log.useSource(prev);
 						paramActuals = oldMap;
 					}
@@ -8575,6 +8574,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	
 	public JCExpression freshTest(DiagnosticPosition pos, JCExpression obj, int freshnessReferenceCount) {
 		if (rac) return null; // freshness not supported by rac
+		if (utils.isJavaOrJmlPrimitiveType(obj.type)) return null; // no test for primitive types
 		if (freshnessReferenceCount >= 0 && obj instanceof JCIdent id && (id.name == names._this || id.name == names._super || id.name.toString().equals(Strings.THIS))) return treeutils.makeBooleanLiteral(pos, false);
 		JCExpression allocCountExpr = M.at(pos).Select(obj, allocSym).setType(syms.intType);
 		JCExpression isfresh = treeutils.makeBinary(pos, JCTree.Tag.GT, allocCountExpr,
@@ -13356,6 +13356,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		TranslationEnv callerEnv = currentEnv.pushEnvCopy();
 		callerEnv.receiver = currentThisExpr;
 		callerEnv.label = preLabel;
+		JavaFileObject prev = log.currentSourceFile();
 		try {
 			if (lhs instanceof JCIdent id && id.sym.owner instanceof ClassSymbol && methodDecl.sym.isConstructor()) return;// OK to set a field of 'this' inside a constructor
 			var srlist = makeJmlStoreRef(pos, lhs, (ClassSymbol)methodDecl.sym.owner, currentThisExpr);
@@ -13381,43 +13382,50 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// corresponding parameter of the target method.
 					// We need this even if names have not changed, because the parameters
 					// will have been attributed with different symbols.
-					paramActuals = specParamsToActuals(denestedSpecs, methodDecl, parentMethodSym);
+					//paramActuals = specParamsToActuals(denestedSpecs, methodDecl, parentMethodSym);
+					var oldMap = mapFormals(methodDecl, denestedSpecs.decl);
 					// heapCount = preheapcount;
 					Map<JmlMethodClause, JCExpression> clauseIds = new HashMap<>();
 					elseExpression = treeutils.falseLit;
-					for (JmlSpecificationCase specCase : denestedSpecs.cases) {
+					try {
+						for (JmlSpecificationCase specCase : denestedSpecs.cases) {
 
-						if (!doSpecificationCase(methodDecl, parentMethodSym, specCase)) continue;
-						JCExpression precondition = preconditions.get(specCase);
-						if (precondition == null) {
-							System.out.println("NULL PECONDITION FOR " + methodDecl.sym + " " + parentMethodSym + " " + specCase);
-							precondition = treeutils.trueLit; // Not correct, but just error recovery
-						}
-						for (var clause : specCase.clauses) {
-							if (clause.clauseKind == kind) {
-								pushBlock();
-								//System.out.println("CHECKING " + sr + " VS " + clause + " " + kind);
-								var lsexpr = convertAssignableToLocsetExpression(clause,
-										((JmlMethodClauseStoreRef) clause).list, (ClassSymbol) methodDecl.sym.owner,
-										callerEnv.receiver);
-								JCExpression ss = treeutils.makeSubset(sr, sr, lsexpr);
-								JCExpression convertedCondition = simplifySubset(ss, callerEnv, isConverted);
-								//System.out.println(" CONDITION " + convertedCondition);
-								convertedCondition = conditionedAssertion(convertedCondition, convertedCondition); // FIXME - verify that we need this
-								convertedCondition = makeAssertionOptional(convertedCondition);
-								if (!treeutils.isTrueLit(convertedCondition))
-									addAssert(pos, kindLabel, convertedCondition, clause, clause.sourcefile,
-											lhsUnconverted);
-								var bl = popBlock(clause);
-								if (!treeutils.isTrueLit(convertedCondition))
-									addStat(M.at(clause).If(precondition, bl, null));
+							if (!doSpecificationCase(methodDecl, parentMethodSym, specCase)) continue;
+							log.useSource(specCase.source());
+							JCExpression precondition = preconditions.get(specCase);
+							if (precondition == null) {
+								System.out.println("NULL PECONDITION FOR " + methodDecl.sym + " " + parentMethodSym + " " + specCase);
+								precondition = treeutils.trueLit; // Not correct, but just error recovery
+							}
+							for (var clause : specCase.clauses) {
+								if (clause.clauseKind == kind) {
+									pushBlock();
+									//System.out.println("CHECKING " + sr + " VS " + clause + " " + kind);
+									var lsexpr = convertAssignableToLocsetExpression(clause,
+											((JmlMethodClauseStoreRef) clause).list, (ClassSymbol) methodDecl.sym.owner,
+											callerEnv.receiver);
+									JCExpression ss = treeutils.makeSubset(sr, sr, lsexpr);
+									JCExpression convertedCondition = simplifySubset(ss, callerEnv, isConverted);
+									//System.out.println(" CONDITION " + convertedCondition);
+									convertedCondition = conditionedAssertion(convertedCondition, convertedCondition); // FIXME - verify that we need this
+									convertedCondition = makeAssertionOptional(convertedCondition);
+									if (!treeutils.isTrueLit(convertedCondition))
+										addAssert(pos, kindLabel, convertedCondition, clause, clause.sourcefile,
+												lhsUnconverted);
+									var bl = popBlock(clause);
+									if (!treeutils.isTrueLit(convertedCondition))
+										addStat(M.at(clause).If(precondition, bl, null));
+								}
 							}
 						}
+					} finally {
+						paramActuals = oldMap;
 					}
 				}
 			}
 		} finally {
 			callerEnv.popEnv();
+			log.useSource(prev);
 		}
 	}
 
