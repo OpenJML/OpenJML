@@ -559,20 +559,20 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { \n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  public void m1x(Object[] a) {\n"
                 + "    //@ assume \\nonnullelements(a);\n" 
                 + "    //@ assume a.length > 1;\n"
                 + "    //@ assert a[0] != null;\n" // OK
                 + "  }\n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  public void m11(Object[] a) {\n"
                 + "    //@ assume \\nonnullelements(a);\n" 
                 + "    //@ assert a != null;\n" // OK
                 + "  }\n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  public void m11a(/*@ non_null */ Object[] a) {\n"
                 + "    //@ assume \\nonnullelements(a);\n" 
                 + "    //@ assert a == null;\n" // BAD
@@ -588,7 +588,7 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { \n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  public void m1a(Object[] a) {\n"
                 + "    //@ assume a != null && a.length > 1;\n" 
                 + "    //@ assert a[0] != null;\n" // BAD
@@ -605,7 +605,7 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { \n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  public void m2(Object[] a) {\n"
                 + "    //@ assume a != null && a.length == 0;\n" 
                 + "    //@ assert \\nonnullelements(a);\n" // OK
@@ -620,7 +620,7 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { \n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  public void m22(Object[] a) {\n"
                 + "    //@ assume a != null && a.length == 0;\n"
                 + "    //@ assert (\\forall int i; 0<=i && i<a.length; a[i] != null);\n" // OK
@@ -636,21 +636,21 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { \n"
 
-                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
+                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); assigns \\everything;\n"
                 + "  public void m3(Object[] a) {\n" 
                 + "    //@ assume a != null && a.length == 1;\n"
                 + "    a[0] = new Object();\n" 
                 + "    //@ assert \\nonnullelements(a);\n" // OK
                 + "  }\n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  public void m33(Object[] a) {\n"
                 + "    //@ assume a != null && a.length == 1;\n" 
                 + "    //@ assume a[0] != null;\n"
                 + "    //@ assert \\nonnullelements(a);\n" // OK
                 + "  }\n"
 
-                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
+                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); assigns \\everything;\n"
                 + "  public void m4(Object[] a) {\n" 
                 + "    //@ assume a != null && a.length == 2;\n"
                 + "    a[0] = new Object();\n" 
@@ -669,7 +669,7 @@ public class esc1 extends EscBase {
                 + "public class TestJava { \n"
 
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  public void m44(Object[] a) {\n"
                 + "    //@ assume a != null && a.length == 2;\n" 
                 + "    //@ assume a[0] != null;\n"
@@ -677,7 +677,7 @@ public class esc1 extends EscBase {
                 + "    //@ assert \\nonnullelements(a);\n" // OK
                 + "  }\n"
 
-                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
+                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); assigns \\everything;\n"
                 + "  public void m4a(Object[] a) {\n" 
                 + "    //@ assume a != null && a.length == 3;\n"
                 + "    a[0] = new Object();\n" 
@@ -685,14 +685,14 @@ public class esc1 extends EscBase {
                 + "    //@ assert \\nonnullelements(a);\n" // BAD
                 + "  }\n"
 
-                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
+                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); assigns \\everything;\n"
                 + "  public void m5(Object[] a) {\n" 
                 + "    //@ assume \\nonnullelements(a) && a.length == 3;\n"
                 + "    a[0] = new Object();\n" 
                 + "    //@ assert \\nonnullelements(a);\n" // OK
                 + "  }\n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  public void m5a(Object[] a) {\n"
                 + "    //@ assume a != null && a.length == 3;\n" 
                 + "    a[0] = null;\n"
@@ -708,37 +708,37 @@ public class esc1 extends EscBase {
 //    public void testNotModified() {
 //        helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
 //
-//                + "  //@ requires i == 5;\n" + "  //@ modifies \\everything;\n" + "  public void m1(int i) {\n"
+//                + "  //@ requires i == 5;\n" + "  //@ assigns \\everything;\n" + "  public void m1(int i) {\n"
 //                + "    i = 5;\n" + "    //@ assert \\not_modified(i);\n" // OK
 //                + "  }\n"
 //
-//                + "  //@ modifies \\everything;\n" + "  public void m1a(int i) {\n" + "    i = 5;\n"
+//                + "  //@ assigns \\everything;\n" + "  public void m1a(int i) {\n" + "    i = 5;\n"
 //                + "    //@ assert \\not_modified(i);\n" // BAD
 //                + "  }\n"
 //
 //                + "  public int i;\n" + "  public static int si;\n" + "  //@ ghost public int gi;\n"
 //
-//                + "  //@ requires i == 5;\n" + "  //@ modifies \\everything;\n" + "  public void m2() {\n"
+//                + "  //@ requires i == 5;\n" + "  //@ assigns \\everything;\n" + "  public void m2() {\n"
 //                + "    i = 5;\n" + "    //@ assert \\not_modified(i);\n" // OK
 //                + "  }\n"
 //
-//                + "  //@ modifies \\everything;\n" + "  public void m2a() {\n" + "    i = 5;\n"
+//                + "  //@ assigns \\everything;\n" + "  public void m2a() {\n" + "    i = 5;\n"
 //                + "    //@ assert \\not_modified(i);\n" // BAD
 //                + "  }\n"
 //
-//                + "  //@ requires si == 5;\n" + "  //@ modifies \\everything;\n" + "  public void m3() {\n"
+//                + "  //@ requires si == 5;\n" + "  //@ assigns \\everything;\n" + "  public void m3() {\n"
 //                + "    si = 5;\n" + "    //@ assert \\not_modified(si);\n" // OK
 //                + "  }\n"
 //
-//                + "  //@ modifies \\everything;\n" + "  public void m3a() {\n" + "    si = 5;\n"
+//                + "  //@ assigns \\everything;\n" + "  public void m3a() {\n" + "    si = 5;\n"
 //                + "    //@ assert \\not_modified(si);\n" // BAD
 //                + "  }\n"
 //
-//                + "  //@ requires gi == 5;\n" + "  //@ modifies \\everything;\n" + "  public void m4() {\n"
+//                + "  //@ requires gi == 5;\n" + "  //@ assigns \\everything;\n" + "  public void m4() {\n"
 //                + "    //@ set gi = 5;\n" + "    //@ assert \\not_modified(gi);\n" // OK
 //                + "  }\n"
 //
-//                + "  //@ modifies \\everything;\n" + "  public void m4a() {\n" + "    //@ set gi = 5;\n"
+//                + "  //@ assigns \\everything;\n" + "  public void m4a() {\n" + "    //@ set gi = 5;\n"
 //                + "    //@ assert \\not_modified(gi);\n" // BAD
 //                + "  }\n"
 //
@@ -757,26 +757,26 @@ public class esc1 extends EscBase {
 //                + "  public static /*@ nullable */ TestJava t;\n"
 //
 //                + "  //@ requires t != null;\n" 
-//                + "  //@ modifies \\everything;\n" 
+//                + "  //@ assigns \\everything;\n" 
 //                + "  public void m0() {\n"
 //                + "    //@ assert \\not_modified(t.i);\n" // OK
 //                + "  }\n"
 //
 //                + "  //@ requires t != null;\n" 
-//                + "  //@ modifies \\everything;\n" 
+//                + "  //@ assigns \\everything;\n" 
 //                + "  public void m1a() {\n"
 //                + "    t = null;\n" 
 //                + "    //@ assert \\not_modified(t.i) ? true: true;\n" // BAD
 //                + "  }\n"
 //
 //                + "  //@ requires t == null;\n" 
-//                + "  //@ modifies \\everything;\n" 
+//                + "  //@ assigns \\everything;\n" 
 //                + "  public void m1b() {\n"
 //                + "    t = new TestJava();\n" 
 //                + "    //@ assert \\not_modified(t.i) ? true: true;\n" // OK
 //                + "  }\n"
 //
-//                + "  //@ modifies \\everything;\n" 
+//                + "  //@ assigns \\everything;\n" 
 //                + "  public void m1c() {\n"
 //                + "    //@ assert \\not_modified(t.i) ? true: true;\n" // BAD
 //                + "  }\n"
@@ -796,50 +796,50 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" + "abstract public class TestJava { \n"
 
                 + "  //@ requires p != null && p != this;\n" 
-                + "  //@ modifies \\everything;\n"
+                + "  //@ assigns \\everything;\n"
                 + "  public void m1(Object p) {\n" 
                 + "    Object pp = c1(p);\n"   // result is fresh
                 + "    //@ assert pp != p;\n" // OK
                 + "    //@ assert pp != this;\n" // OK
                 + "  }\n"
 
-                + "  //@ requires p != null && p != this;\n" + "  //@ modifies \\everything;\n"
+                + "  //@ requires p != null && p != this;\n" + "  //@ assigns \\everything;\n"
                 + "  public void m2(Object p) {\n" + "    Object pp = c2(p);\n" + "    //@ assert pp != p;\n" // BAD
                 + "  }\n"
 
-                + "  //@ requires p != null && p != this;\n" + "  //@ modifies \\everything;\n"
+                + "  //@ requires p != null && p != this;\n" + "  //@ assigns \\everything;\n"
                 + "  public void m3(Object p) {\n" + "    Object pp = c2(p);\n" + "    //@ assert pp != this;\n" // BAD
                                                                                                                     // //
                                                                                                                     // Line
                                                                                                                     // 20
                 + "  }\n"
 
-                + "  //@ requires p != null && p != this;\n" + "  //@ modifies \\everything;\n"
+                + "  //@ requires p != null && p != this;\n" + "  //@ assigns \\everything;\n"
                 + "  public void m4(Object p) {\n" + "    Object pp = c1(p);\n" + "    Object q = new Object();\n"
                 + "    //@ assert pp != q;\n" // OK
                 + "  }\n"
 
                 + "  //@ requires p != null && p != this;\n" 
-                + "  //@ modifies \\everything;\n" // Line 30                                                                                                // 30
+                + "  //@ assigns \\everything;\n" // Line 30                                                                                                // 30
                 + "  public void m5(Object p) {\n" 
                 + "    Object pp = c2(p);\n" 
                 + "    Object q = new Object();\n"
                 + "    //@ assert pp != q;\n" // OK
                 + "  }\n"
 
-                + "  //@ modifies \\everything;\n" + "  //@ ensures \\result != null && \\fresh(\\result);\n"
+                + "  //@ assigns \\everything;\n" + "  //@ ensures \\result != null && \\fresh(\\result);\n"
                 + "  //@ ensures \\result != p && \\result != this;\n" + "  public Object m6(Object p) {\n"
                 + "    return new Object();\n" // Line 40
                 + "  }\n"
 
-                + "  //@ modifies \\everything;\n" + "  //@ ensures \\result == null;\n" // BAD
+                + "  //@ assigns \\everything;\n" + "  //@ ensures \\result == null;\n" // BAD
                 + "  public Object m6a(Object p) {\n" + "    return new Object();\n" + "  }\n"
 
-                + "  //@ modifies \\everything;\n" + "  //@ ensures \\result != null && \\fresh(\\result);\n"
+                + "  //@ assigns \\everything;\n" + "  //@ ensures \\result != null && \\fresh(\\result);\n"
                 + "  //@ ensures \\result == p || \\result == this;\n" // BAD
                 + "  public Object m6b(Object p) {\n" + "    return new Object();\n" + "  }\n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  //@ ensures \\result != null && !\\fresh(\\result);\n" // BAD
                 + "  public Object m6c(Object p) {\n" 
                 + "    return new Object();\n" 
@@ -850,105 +850,105 @@ public class esc1 extends EscBase {
                 + "  static Object so;\n"
                 + "  //@ static ghost Object soo;\n"
 
-                + "  //@ modifies \\nothing;\n" 
+                + "  //@ assigns \\nothing;\n" 
                 + "  public void m7(Object p) {\n" 
                 + "    Object pp = c1(p);\n"
                 + "    //@ assert pp != o && pp != oo;\n" // OK
                 + "  }\n"
 
-                + "  //@ modifies \\nothing;\n" 
+                + "  //@ assigns \\nothing;\n" 
                 + "  public void m7a(Object p) {\n" 
                 + "    Object pp = c2(p);\n"
                 + "    //@ assert pp != o;\n" // BAD
                 + "  }\n"
 
-                + "  //@ modifies \\nothing;\n" 
+                + "  //@ assigns \\nothing;\n" 
                 + "  public void m7b(Object p) {\n" 
                 + "    Object pp = c2(p);\n"
                 + "    //@ assert pp != oo;\n" // BAD
                 + "  }\n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  public void m7c(Object p) {\n" 
                 + "    Object pp = c1ex(p);\n"  // fresh result, but oo is not modified
                 + "    //@ assert pp != oo;\n" // OK
                 + "  }\n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  public void m7cx(Object p) {\n" 
                 + "    Object pp = c1e(p);\n"  // fresh result, but oo is possibly modified and possibly to the same thing
                 + "    //@ assert pp != oo;\n" // FAILS
                 + "  }\n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  public void m7d(Object p) {\n" 
                 + "    Object pp = c2e(p);\n"  // not-necessarily fresh result
                 + "    //@ assert pp != o;\n" // BAD
                 + "  }\n"
 
-                + "  //@ modifies \\nothing;\n" 
+                + "  //@ assigns \\nothing;\n" 
                 + "  public void m8(Object p) {\n" 
                 + "    Object pp = c1(p);\n"
                 + "    //@ assert pp != so && pp != soo;\n" // OK
                 + "  }\n"
 
-                + "  //@ modifies \\nothing;\n" 
+                + "  //@ assigns \\nothing;\n" 
                 + "  public void m8a(Object p) {\n" 
                 + "    Object pp = c2(p);\n"
                 + "    //@ assert pp != so;\n" // BAD
                 + "  }\n"
 
-                + "  //@ modifies \\nothing;\n" 
+                + "  //@ assigns \\nothing;\n" 
                 + "  public void m8b(Object p) {\n"
                 + "    Object pp = c2(p);\n"
                 + "    //@ assert pp != soo;\n" // BAD -- \result might have been set to soo
                 + "  }\n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  public void m8c(Object p) {\n" 
                 + "    Object pp = c1e(p);\n" // fresh result, but soo might be modified also
                 + "    //@ assert pp != soo;\n" // FAILS
                 + "  }\n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  public void m8d(Object p) {\n" 
                 + "    Object pp = c1e(p);\n" // fresh result, but so might be modified also
                 + "    //@ assert pp != so;\n" // FAILS
                 + "  }\n"
 
-                + "  //@ modifies \\nothing;\n" 
+                + "  //@ assigns \\nothing;\n" 
                 + "  public void m9a(Object p) {\n" 
                 + "    Object pp = c1n(p);\n" // if pp is allowed to be null, then it might equal o or oo
                 + "    //@ assert pp != o && pp != oo;\n" // BAD
                 + "  }\n"
 
-                + "  //@ modifies \\nothing;\n"
+                + "  //@ assigns \\nothing;\n"
                 + "  public void m9b(Object p) {\n"
                 + "    Object pp = c1n(p);\n"
                 + "    //@ assert pp != so && pp != soo;\n" // BAD
                 + "  }\n"
 
-                + "  //@ modifies \\nothing;\n" 
+                + "  //@ assigns \\nothing;\n" 
                 + "  //@ ensures \\fresh(\\result);\n"
                 + "  abstract public Object c1(Object o); \n"
 
-                + "  //@ modifies \\nothing;\n" 
+                + "  //@ assigns \\nothing;\n" 
                 + "  //@ ensures \\result == null || \\fresh(\\result);\n"
                 + "  abstract public Object c1n(Object o); \n"
 
-                + "  //@ modifies \\nothing;\n" 
+                + "  //@ assigns \\nothing;\n" 
                 + "  //@ ensures true;\n" 
                 + "  abstract public Object c2(Object o); \n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  //@ ensures \\result != null && \\fresh(\\result);\n"
                 + "  abstract public Object c1e(Object o); \n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  //@ ensures true;\n"
                 + "  abstract public Object c2e(Object o); \n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  //@ ensures \\result != null && \\fresh(\\result) && oo == \\old(oo);\n"
                 + "  abstract public Object c1ex(Object o); \n"
 
@@ -1014,7 +1014,7 @@ public class esc1 extends EscBase {
                 + "  public static TestJava p;\n"
 
                 + "  //@ requires p != null && p != this;\n"
-                + "  //@ modifies \\everything;\n"
+                + "  //@ assigns \\everything;\n"
                 + "  public void m2a() {\n"
                 + "    //@ assume k == 0;\n"
                 + "    c1(this);\n" // havoc
@@ -1022,7 +1022,7 @@ public class esc1 extends EscBase {
                 + "  }\n"
 
                 + "  //@ requires p != null && p != this;\n"
-                + "  //@ modifies \\everything;\n"
+                + "  //@ assigns \\everything;\n"
                 + "  public void m2b() {\n"
                 + "    //@ assume sk == 0;\n"
                 + "    c1(this);\n" // havoc this.*, not static fields
@@ -1030,11 +1030,11 @@ public class esc1 extends EscBase {
                 + "  }\n"
 
                 + "  //@ requires o != null;\n"
-                + "  //@ modifies o.*;\n"
+                + "  //@ assigns o.*;\n"
                 + "  public void c1(TestJava o) { } \n"
 
                 + "  //@ requires o != null;\n"
-                + "  //@ modifies TestJava.*;\n"
+                + "  //@ assigns TestJava.*;\n"
                 + "  public void c2(TestJava o) { } \n"
                 + "}", "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m2a",
                 9);
@@ -1046,7 +1046,7 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n" + "  public static TestJava p;\n"
 
-                + "  //@ requires p != null && p != this;\n" + "  //@ modifies \\everything;\n"
+                + "  //@ requires p != null && p != this;\n" + "  //@ assigns \\everything;\n"
                 + "  public void m3() {\n" + "    //@ assume k == 0;\n" + "    c2(this);\n" // havoc
                                                                                             // TestJava.*
                                                                                             // does
@@ -1057,7 +1057,7 @@ public class esc1 extends EscBase {
                 + "    //@ assert k == 0;\n" // OK
                 + "  }\n"
 
-                + "  //@ requires p != null && p != this;\n" + "  //@ modifies \\everything;\n"
+                + "  //@ requires p != null && p != this;\n" + "  //@ assigns \\everything;\n"
                 + "  public void m3a() {\n" + "    //@ assume sk == 0;\n" + "    c2(this);\n" // havoc
                                                                                                 // TestJava.*
                                                                                                 // does
@@ -1067,9 +1067,9 @@ public class esc1 extends EscBase {
                 + "    //@ assert sk == 0;\n" // FAILS
                 + "  }\n"
 
-                + "  //@ requires o != null;\n" + "  //@ modifies o.*;\n" + "  public void c1(TestJava o) { } \n"
+                + "  //@ requires o != null;\n" + "  //@ assigns o.*;\n" + "  public void c1(TestJava o) { } \n"
 
-                + "  //@ requires o != null;\n" + "  //@ modifies TestJava.*;\n" + "  public void c2(TestJava o) { } \n"
+                + "  //@ requires o != null;\n" + "  //@ assigns TestJava.*;\n" + "  public void c2(TestJava o) { } \n"
                 + "}", "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m3a",
                 9);
     }
@@ -1081,7 +1081,7 @@ public class esc1 extends EscBase {
                 + "  int k; static int sk;\n"
                 + "  int[] a; static int[] sa;\n"
 
-                + "  //@ modifies \\everything;\n" 
+                + "  //@ assigns \\everything;\n" 
                 + "  public void m1x() {\n" 
                 + "    //@ assume k == 0;\n"
                 + "    c1(1);\n" 
@@ -1089,9 +1089,9 @@ public class esc1 extends EscBase {
                 + "  }\n"
 
                 + "  //@ requires i == 0;\n" 
-                + "  //@ modifies \\everything;\n"
+                + "  //@ assigns \\everything;\n"
                 + "  //@ also requires i > 0;\n"
-                + "  //@ modifies \\nothing;\n" 
+                + "  //@ assigns \\nothing;\n" 
                 + "  public void c1(int i) { } \n" 
                 + "}");
     }
@@ -1104,7 +1104,7 @@ public class esc1 extends EscBase {
                 + "  int k; static int sk;\n"
                 + "  int[] a; static int[] sa;\n"
 
-                + "  //@ modifies \\everything;\n"
+                + "  //@ assigns \\everything;\n"
                 + "  public void m1a() {\n"
                 + "    //@ assume k == 0;\n"
                 + "    c1(0);\n"
@@ -1112,9 +1112,9 @@ public class esc1 extends EscBase {
                 + "  }\n"
 
                 + "  //@ requires i == 0;\n"
-                + "  //@ modifies \\everything;\n"
+                + "  //@ assigns \\everything;\n"
                 + "  //@ also requires i > 0;\n"
-                + "  //@ modifies \\nothing;\n"
+                + "  //@ assigns \\nothing;\n"
                 + "  public void c1(int i) { } \n"
                 + "}",
                 "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m1a", 9);
@@ -1128,7 +1128,7 @@ public class esc1 extends EscBase {
                 + "  int k; static int sk;\n"
                 + "  int[] a; static int[] sa;\n"
 
-                + "  //@ modifies \\everything;\n"
+                + "  //@ assigns \\everything;\n"
                 + "  public void m2() {\n"
                 + "    //@ assume sk == 0;\n"
                 + "    c1(1);\n"
@@ -1136,9 +1136,9 @@ public class esc1 extends EscBase {
                 + "  }\n"
 
                 + "  //@ requires i == 0;\n"
-                + "  //@ modifies \\everything;\n"
+                + "  //@ assigns \\everything;\n"
                 + "  //@ also requires i > 0;\n"
-                + "  //@ modifies \\nothing;\n"
+                + "  //@ assigns \\nothing;\n"
                 + "  public void c1(int i) { } \n"
                 + "}");
     }
@@ -1151,7 +1151,7 @@ public class esc1 extends EscBase {
                 + "  int k; static int sk;\n"
                 + "  int[] a; static int[] sa;\n"
 
-                + "  //@ modifies \\everything;\n"
+                + "  //@ assigns \\everything;\n"
                 + "  public void m2a() {\n"
                 + "    //@ assume sk == 0;\n"
                 + "    c1(0);\n"
@@ -1159,9 +1159,9 @@ public class esc1 extends EscBase {
                 + "  }\n"
 
                 + "  //@ requires i == 0;\n"
-                + "  //@ modifies \\everything;\n"
+                + "  //@ assigns \\everything;\n"
                 + "  //@ also requires i > 0;\n"
-                + "  //@ modifies \\nothing;\n"
+                + "  //@ assigns \\nothing;\n"
                 + "  public void c1(int i) { } \n"
                 + "}",
                 "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m2a", 9);
@@ -1176,7 +1176,7 @@ public class esc1 extends EscBase {
                 + "  public int[] a; static public int[] sa;\n"
 
                 + "  //@ requires a != null && a.length > 10;\n"
-                + "  //@ modifies \\everything;\n"
+                + "  //@ assigns \\everything;\n"
                 + "  public void m3() {\n"
                 + "    //@ assume a[0] == 0;\n"
                 + "    c1(1);\n"
@@ -1184,9 +1184,9 @@ public class esc1 extends EscBase {
                 + "  }\n"
 
                 + "  //@ requires i == 0;\n"
-                + "  //@ modifies \\everything;\n"
+                + "  //@ assigns \\everything;\n"
                 + "  //@ also requires i > 0;\n"
-                + "  //@ modifies \\nothing;\n"
+                + "  //@ assigns \\nothing;\n"
                 + "  public void c1(int i) { } \n" + "}");
     }
 
@@ -1199,17 +1199,17 @@ public class esc1 extends EscBase {
                 + "  public int[] a; public static int[] sa;\n"
 
                 + "  //@ requires a != null && a.length > 10;\n"
-                + "  //@ modifies \\everything;\n"
+                + "  //@ assigns \\everything;\n"
                 + "  public void m3a() {\n"
                 + "    //@ assume a[0] == 0;\n"
-                + "    c1(0);\n" // modifies everything
+                + "    c1(0);\n" // assigns everything
                 + "    //@ assert a[0] == 0;\n" // FAILS
                 + "  }\n"
 
                 + "  //@ requires i == 0;\n"
-                + "  //@ modifies \\everything;\n"
+                + "  //@ assigns \\everything;\n"
                 + "  //@ also requires i > 0;\n"
-                + "  //@ modifies \\nothing;\n"
+                + "  //@ assigns \\nothing;\n"
                 + "  public void c1(int i) { } \n"
                 + "}",
                 anyorder(
@@ -1229,12 +1229,12 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n" + "  public int[] a; public static int[] sa;\n"
 
-                + "  //@ requires sa != null && sa.length > 10;\n" + "  //@ modifies \\everything;\n"
+                + "  //@ requires sa != null && sa.length > 10;\n" + "  //@ assigns \\everything;\n"
                 + "  public void m4() {\n" + "    //@ assume sa[0] == 0;\n" + "    c1(1);\n"
                 + "    //@ assert sa[0] == 0;\n" + "  }\n"
 
-                + "  //@ requires i == 0;\n" + "  //@ modifies \\everything;\n" + "  //@ also requires i > 0;\n"
-                + "  //@ modifies \\nothing;\n" + "  public void c1(int i) { } \n" + "}");
+                + "  //@ requires i == 0;\n" + "  //@ assigns \\everything;\n" + "  //@ also requires i > 0;\n"
+                + "  //@ assigns \\nothing;\n" + "  public void c1(int i) { } \n" + "}");
     }
 
     @Test
@@ -1243,13 +1243,13 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n" + "  public int[] a; public static int[] sa;\n"
 
-                + "  //@ requires sa != null && sa.length > 10;\n" + "  //@ modifies \\everything;\n"
+                + "  //@ requires sa != null && sa.length > 10;\n" + "  //@ assigns \\everything;\n"
                 + "  public void m4a() {\n" + "    //@ assume sa[0] == 0;\n" + "    c1(0);\n"
                 + "    //@ assert sa[0] == 0;\n" // FAILS
                 + "  }\n"
 
-                + "  //@ requires i == 0;\n" + "  //@ modifies \\everything;\n" + "  //@ also requires i > 0;\n"
-                + "  //@ modifies \\nothing;\n" + "  public void c1(int i) { } \n" + "}"
+                + "  //@ requires i == 0;\n" + "  //@ assigns \\everything;\n" + "  //@ also requires i > 0;\n"
+                + "  //@ assigns \\nothing;\n" + "  public void c1(int i) { } \n" + "}"
         // Should be just three messages, but in an arbitrary order
                 ,
                 anyorder(
@@ -1266,12 +1266,12 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n" + "  public int[] a; public static int[] sa;\n"
 
-                + "  //@ requires sa != null && sa.length > 10;\n" + "  //@ modifies \\everything;\n"
+                + "  //@ requires sa != null && sa.length > 10;\n" + "  //@ assigns \\everything;\n"
                 + "  public void m5() {\n" + "    //@ assume a == \\old(a);\n" + "    c1(1);\n"
                 + "    //@ assert a == \\old(a);\n" + "  }\n"
 
-                + "  //@ requires i == 0;\n" + "  //@ modifies \\everything;\n" + "  //@ also requires i > 0;\n"
-                + "  //@ modifies \\nothing;\n" + "  public void c1(int i) { } \n" + "}");
+                + "  //@ requires i == 0;\n" + "  //@ assigns \\everything;\n" + "  //@ also requires i > 0;\n"
+                + "  //@ assigns \\nothing;\n" + "  public void c1(int i) { } \n" + "}");
     }
 
     @Test
@@ -1280,13 +1280,13 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n" + "  public int[] a; public static int[] sa;\n"
 
-                + "  //@ requires sa != null && sa.length > 10;\n" + "  //@ modifies \\everything;\n"
+                + "  //@ requires sa != null && sa.length > 10;\n" + "  //@ assigns \\everything;\n"
                 + "  public void m5a() {\n" + "    //@ assume a == \\old(a);\n" + "    c1(0);\n"
                 + "    //@ assert a == \\old(a);\n" // FAILS
                 + "  }\n"
 
-                + "  //@ requires i == 0;\n" + "  //@ modifies \\everything;\n" + "  //@ also requires i > 0;\n"
-                + "  //@ modifies \\nothing;\n" + "  public void c1(int i) { } \n" + "}",
+                + "  //@ requires i == 0;\n" + "  //@ assigns \\everything;\n" + "  //@ also requires i > 0;\n"
+                + "  //@ assigns \\nothing;\n" + "  public void c1(int i) { } \n" + "}",
                 "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m5a", 9);
     }
 
@@ -1296,11 +1296,11 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  int k; static int sk;\n"
                 + "  int[] a; static int[] sa;\n"
 
-                + "  //@ modifies \\everything;\n" + "  public void m6(/*@ non_null*/TestJava t) {\n"
+                + "  //@ assigns \\everything;\n" + "  public void m6(/*@ non_null*/TestJava t) {\n"
                 + "    //@ assume t.k == 0;\n" + "    c1(1);\n" + "    //@ assert t.k == 0;\n" + "  }\n"
 
-                + "  //@ requires i == 0;\n" + "  //@ modifies \\everything;\n" + "  //@ also requires i > 0;\n"
-                + "  //@ modifies \\nothing;\n" + "  public void c1(int i) { } \n" + "}");
+                + "  //@ requires i == 0;\n" + "  //@ assigns \\everything;\n" + "  //@ also requires i > 0;\n"
+                + "  //@ assigns \\nothing;\n" + "  public void c1(int i) { } \n" + "}");
     }
 
     @Test
@@ -1309,12 +1309,12 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  int k; static int sk;\n"
                 + "  int[] a; static int[] sa;\n"
 
-                + "  //@ modifies \\everything;\n" + "  public void m6a(/*@ non_null*/TestJava t) {\n"
+                + "  //@ assigns \\everything;\n" + "  public void m6a(/*@ non_null*/TestJava t) {\n"
                 + "    //@ assume t.k == 0;\n" + "    c1(0);\n" + "    //@ assert t.k == 0;\n" // FAILS
                 + "  }\n"
 
-                + "  //@ requires i == 0;\n" + "  //@ modifies \\everything;\n" + "  //@ also requires i > 0;\n"
-                + "  //@ modifies \\nothing;\n" + "  public void c1(int i) { } \n" + "}",
+                + "  //@ requires i == 0;\n" + "  //@ assigns \\everything;\n" + "  //@ also requires i > 0;\n"
+                + "  //@ assigns \\nothing;\n" + "  public void c1(int i) { } \n" + "}",
                 "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m6a", 9);
     }
 
@@ -1324,12 +1324,12 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  int k; static int sk;\n"
                 + "  int[] a; static int[] sa;\n"
 
-                + "  //@ modifies \\everything;\n" + "  public void m7() {\n" + "    c1(1);\n"
+                + "  //@ assigns \\everything;\n" + "  public void m7() {\n" + "    c1(1);\n"
                 + "    //@ assert sk == \\old(sk);\n" // Should be OK
                 + "  }\n"
 
-                + "  //@ requires i == 0;\n" + "  //@ modifies \\everything;\n" + "  //@ also requires i > 0;\n"
-                + "  //@ modifies \\nothing;\n" + "  public void c1(int i) { } \n" + "}");
+                + "  //@ requires i == 0;\n" + "  //@ assigns \\everything;\n" + "  //@ also requires i > 0;\n"
+                + "  //@ assigns \\nothing;\n" + "  public void c1(int i) { } \n" + "}");
     }
 
     @Test
@@ -1338,12 +1338,12 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  int k; static int sk;\n"
                 + "  int[] a; static int[] sa;\n"
 
-                + "  //@ modifies \\everything;\n" + "  public void m7a() {\n" + "    c1(0);\n"
+                + "  //@ assigns \\everything;\n" + "  public void m7a() {\n" + "    c1(0);\n"
                 + "    //@ assert sk == \\old(sk);\n" // FAILS
                 + "  }\n"
 
-                + "  //@ requires i == 0;\n" + "  //@ modifies \\everything;\n" + "  //@ also requires i > 0;\n"
-                + "  //@ modifies \\nothing;\n" + "  public void c1(int i) { } \n" + "}",
+                + "  //@ requires i == 0;\n" + "  //@ assigns \\everything;\n" + "  //@ also requires i > 0;\n"
+                + "  //@ assigns \\nothing;\n" + "  public void c1(int i) { } \n" + "}",
                 "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m7a", 9);
     }
 
@@ -1356,28 +1356,28 @@ public class esc1 extends EscBase {
                         + "  public int k;\n"
                         + "  public static int sk;\n"
 
-                        + "  //@ modifies k,sk;\n" 
+                        + "  //@ assigns k,sk;\n" 
                         + "  public void m1() {\n" 
                         + "    //@ assume k == 0 && sk == 0;\n"
                         + "    c1(0);\n" 
                         + "    //@ assert sk == 0;\n" 
                         + "  }\n"
 
-                        + "  //@ modifies k,sk;\n" 
+                        + "  //@ assigns k,sk;\n" 
                         + "  public void m1a() {\n" 
                         + "    //@ assume k == 0 && sk == 0;\n"
                         + "    c1(1);\n" 
                         + "    //@ assert sk == 0;\n" // FAILS
                         + "  }\n"
 
-                        + "  //@ modifies k,sk;\n" 
+                        + "  //@ assigns k,sk;\n" 
                         + "  public void m2() {\n" 
                         + "    //@ assume k == 0 && sk == 0;\n"
                         + "    c1(1);\n" 
                         + "    //@ assert k == 0;\n"
                         + "  }\n"
 
-                        + "  //@ modifies k,sk;\n" 
+                        + "  //@ assigns k,sk;\n" 
                         + "  public void m2a() {\n" 
                         + "    //@ assume k == 0 && sk == 0;\n"
                         + "    c1(0);\n" 
@@ -1387,23 +1387,23 @@ public class esc1 extends EscBase {
                         + "  public static int[] a; public int[] b;\n"
 
                         + "  //@ requires i == 0;\n" 
-                        + "  //@ modifies k;\n" 
+                        + "  //@ assigns k;\n" 
                         + "  //@ also requires i > 0;\n"
-                        + "  //@ modifies sk;\n" 
+                        + "  //@ assigns sk;\n" 
                         + "  public void c1(int i) { } \n"
 
                         + "  //@ requires i == 10 && t != null;\n" 
-                        + "  //@ modifies t.k;\n" 
+                        + "  //@ assigns t.k;\n" 
                         + "  //@ also requires i == 0;\n"
-                        + "  //@ modifies \\nothing;\n" 
+                        + "  //@ assigns \\nothing;\n" 
                         + "  public void c2(int i, TestJava t) {}\n"
 
                         + "  //@ requires a!=null && 0<=i && i<a.length;\n" 
-                        + "  //@ modifies a[i];\n"
+                        + "  //@ assigns a[i];\n"
                         + "  public void c3(int i) {}\n" 
                         
                         + "  //@ requires b!=null && 0<=i && i<b.length;\n"
-                        + "  //@ modifies b[i];\n" 
+                        + "  //@ assigns b[i];\n" 
                         + "  public void c4(int i) {}\n" 
                         + "}",
                 "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m1a", 9,
@@ -1417,32 +1417,32 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava",
                 "package tt; \n" + "public class TestJava { \n" + "  public int k;\n" + "  public static int sk;\n"
 
-                        + "  //@ modifies k,sk;\n" + "  public void m3() {\n" + "    //@ assume k == 0 && sk == 0;\n"
+                        + "  //@ assigns k,sk;\n" + "  public void m3() {\n" + "    //@ assume k == 0 && sk == 0;\n"
                         + "    c2(0,this);\n" + "    //@ assert k == 0;\n" + "  }\n"
 
-                        + "  //@ modifies k,sk;\n" + "  public void m3a() {\n" + "    //@ assume k == 0 && sk == 0;\n"
+                        + "  //@ assigns k,sk;\n" + "  public void m3a() {\n" + "    //@ assume k == 0 && sk == 0;\n"
                         + "    c2(10,this);\n" + "    //@ assert k == 0;\n" // FAILS
                         + "  }\n"
 
                         + "  public static int[] a; public int[] b;\n" + "  //@ requires a != null && a.length == 5;\n"
-                        + "  //@ modifies a[0];\n" + "  public void m4() {\n"
+                        + "  //@ assigns a[0];\n" + "  public void m4() {\n"
                         + "    //@ assume a[0] == 0 && a[1] == 1;\n" + "    c3(0);\n" + "    //@ assert a[1] == 1;\n"
                         + "  }\n"
 
-                        + "  //@ requires a != null && a.length == 5;\n" + "  //@ modifies a[0];\n"
+                        + "  //@ requires a != null && a.length == 5;\n" + "  //@ assigns a[0];\n"
                         + "  public void m4a() {\n" + "    //@ assume a[0] == 0 && a[1] == 1;\n" + "    c3(0);\n"
                         + "    //@ assert a[0] == 0;\n" // FAILS
                         + "  }\n"
 
-                        + "  //@ requires i == 0;\n" + "  //@ modifies k;\n" + "  //@ also requires i > 0;\n"
-                        + "  //@ modifies sk;\n" + "  public void c1(int i) { } \n"
+                        + "  //@ requires i == 0;\n" + "  //@ assigns k;\n" + "  //@ also requires i > 0;\n"
+                        + "  //@ assigns sk;\n" + "  public void c1(int i) { } \n"
 
-                        + "  //@ requires i == 10 && t != null;\n" + "  //@ modifies t.k;\n" + "  //@ also requires i == 0;\n"
-                        + "  //@ modifies \\nothing;\n" + "  public void c2(int i, TestJava t) {}\n"
+                        + "  //@ requires i == 10 && t != null;\n" + "  //@ assigns t.k;\n" + "  //@ also requires i == 0;\n"
+                        + "  //@ assigns \\nothing;\n" + "  public void c2(int i, TestJava t) {}\n"
 
-                        + "  //@ requires a!=null && 0<=i && i<a.length;\n" + "  //@ modifies a[i];\n"
+                        + "  //@ requires a!=null && 0<=i && i<a.length;\n" + "  //@ assigns a[i];\n"
                         + "  public void c3(int i) {}\n" + "  //@ requires b!=null && 0<=i && i<b.length;\n"
-                        + "  //@ modifies b[i];\n" + "  public void c4(int i) {}\n" + "}",
+                        + "  //@ assigns b[i];\n" + "  public void c4(int i) {}\n" + "}",
                 "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m3a", 9,
                 "/tt/TestJava.java:30: warning: The prover cannot establish an assertion (Assert) in method m4a", 9);
     }
@@ -1460,7 +1460,7 @@ public class esc1 extends EscBase {
                         + "  public static int[] a; public int[] b;\n"
 
                         + "  //@ requires b != null && b.length == 5;\n" 
-                        + "  //@ modifies b[0];\n"
+                        + "  //@ assigns b[0];\n"
                         + "  public void m5() {\n" 
                         + "    //@ assume b[0] == 0 && b[1] == 1;\n" 
                         + "    c4(0);\n"
@@ -1468,50 +1468,50 @@ public class esc1 extends EscBase {
                         + "  }\n"
 
                         + "  //@ requires b != null && b.length == 5;\n" 
-                        + "  //@ modifies b[0];\n"
+                        + "  //@ assigns b[0];\n"
                         + "  public void m5a() {\n" 
                         + "    //@ assume b[0] == 0 && b[1] == 1;\n" 
                         + "    c4(0);\n"
                         + "    //@ assert b[0] == 0;\n" // FAILS
                         + "  }\n"
 
-                        + "  //@ requires b != null && b.length == 5;\n" 
-                        + "  //@ modifies b[0];\n"
+                        + "  //@ requires b != null && b.length == 5;\n" // Line 20
+                        + "  //@ assigns b[0];\n"
                         + "  public void m6a() {\n" 
                         + "    //@ assume b[0] == 0 && b[1] == 1;\n" 
-                        + "    c3(0);\n" // changes a - get a null deference warning
+                        + "    c3(0);\n" // changes a[0] - also get a null deference warning
                         + "  }\n"
 
                         + "  //@ requires a != null && b != null && b.length == 5  && a.length ==5;\n"
-                        + "  //@ modifies a[0],b[0];\n" 
+                        + "  //@ assigns a[0],b[0];\n" 
                         + "  public void m6() {\n"
                         + "    //@ assume b[0] == 0 && b[1] == 1;\n" 
-                        + "    c3(0);\n"  // changes a - now ok
+                        + "    c3(0);\n"  // changes a[0] - now ok
                         + "    //@ assert b[1] == 1;\n" 
                         + "  }\n"
 
                         + "  //@ requires i == 0;\n" 
-                        + "  //@ modifies k;\n" 
+                        + "  //@ assigns k;\n" 
                         + "  //@ also requires i > 0;\n"
-                        + "  //@ modifies sk;\n" 
+                        + "  //@ assigns sk;\n" 
                         + "  public void c1(int i) { } \n"
 
                         + "  //@ requires i == 10 && t != null;\n" 
-                        + "  //@ modifies t.k;\n" 
-                        + "  //@ also requires i == 0;\n"
-                        + "  //@ modifies \\nothing;\n" 
+                        + "  //@ assigns t.k;\n" 
+                        + "  //@ also requires i == 0;\n" // Line 40
+                        + "  //@ assigns \\nothing;\n" 
                         + "  public void c2(int i, TestJava t) {}\n"
 
                         + "  //@ requires a!=null && 0<=i && i<a.length;\n" 
-                        + "  //@ modifies a[i];\n"
+                        + "  //@ assigns a[i];\n"
                         + "  public void c3(int i) {}\n" 
                         + "  //@ requires b!=null && 0<=i && i<b.length;\n"
-                        + "  //@ modifies b[i];\n" 
+                        + "  //@ assigns b[i];\n" 
                         + "  public void c4(int i) {}\n" + "}",
                 seq("/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m5a", 9,
                   anyorder(
                     seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m6a: a[i]",7
-                      , "/tt/TestJava.java:20: warning: Associated declaration", 7
+                      , "/tt/TestJava.java:21: warning: Associated declaration", 7
                       ),
                     seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m6a",7
                       , "/tt/TestJava.java:45: warning: Associated declaration", 15
@@ -1532,27 +1532,27 @@ public class esc1 extends EscBase {
                 + "     a = new int[10];\n" 
                 + "  }\n"
 
-                + "  //@ modifies a[*];\n" 
+                + "  //@ assigns a[*];\n" 
                 + "  public void m1() {\n" 
                 + "    //@ assume a[0] == 0 && a[2] == 2;\n"
                 + "    c1();\n" 
                 + "    //@ assert a[0] == 0;\n" 
                 + "  }\n"
 
-                + "  //@ modifies a[*];\n" 
+                + "  //@ assigns a[*];\n" 
                 + "  public void m1a() {\n" 
                 + "    //@ assume a[0] == 0 && a[2] == 2;\n"
                 + "    c1();\n" 
                 + "    //@ assert a[2] == 3;\n" // FAILS
                 + "  }\n"
 
-                + "  //@ modifies a[2 .. 4];\n" 
+                + "  //@ assigns a[2 .. 4];\n" 
                 + "  public void c1() { } \n"
 
-                + "  //@ modifies a[*];\n" 
+                + "  //@ assigns a[*];\n" 
                 + "  public void c2() {}\n"
 
-                + "  //@ modifies a[2 .. ];\n" 
+                + "  //@ assigns a[2 .. ];\n" 
                 + "  public void c3() {}\n" 
                 + "}",
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m1a", 9);
@@ -1570,27 +1570,27 @@ public class esc1 extends EscBase {
                 + "     a = new int[10];\n" 
                 + "  }\n"
 
-                + "  //@ modifies a[*];\n" 
+                + "  //@ assigns a[*];\n" 
                 + "  public void m2a() {\n" 
                 + "    //@ assume a[0] == 0 && a[2] == 2;\n"
                 + "    c2();\n" 
                 + "    //@ assert a[0] == 0;\n" // FAILS
                 + "  }\n"
 
-                + "  //@ modifies a[*];\n" 
+                + "  //@ assigns a[*];\n" 
                 + "  public void m2b() {\n" 
                 + "    //@ assume a[0] == 0 && a[2] == 2;\n"
                 + "    c2();\n" 
                 + "    //@ assert a[2] == 2;\n" // FAILS
                 + "  }\n"
 
-                + "  //@ modifies a[2 .. 4];\n" 
+                + "  //@ assigns a[2 .. 4];\n" 
                 + "  public void c1() { } \n"
 
-                + "  //@ modifies a[*];\n" 
+                + "  //@ assigns a[*];\n" 
                 + "  public void c2() {}\n"
 
-                + "  //@ modifies a[2 .. ];\n" 
+                + "  //@ assigns a[2 .. ];\n" 
                 + "  public void c3() {}\n" 
                 + "}",
                 "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method m2a", 9,
@@ -1609,27 +1609,27 @@ public class esc1 extends EscBase {
                 + "     a = new int[10];\n" 
                 + "  }\n"
 
-                + "  //@ modifies a[*];\n" 
+                + "  //@ assigns a[*];\n" 
                 + "  public void m3() {\n" 
                 + "    //@ assume a[0] == 0 && a[2] == 2;\n"
                 + "    c3();\n" 
                 + "    //@ assert a[0] == 0;\n" 
                 + "  }\n"
 
-                + "  //@ modifies a[*];\n" 
+                + "  //@ assigns a[*];\n" 
                 + "  public void m3a() {\n" 
                 + "    //@ assume a[0] == 0 && a[9] == 2;\n"
                 + "    c3();\n" 
                 + "    //@ assert a[9] == 2;\n" // FAILS
                 + "  }\n"
 
-                + "  //@ modifies a[2 .. 4];\n" 
+                + "  //@ assigns a[2 .. 4];\n" 
                 + "  public void c1() { } \n"
 
-                + "  //@ modifies a[*];\n" 
+                + "  //@ assigns a[*];\n" 
                 + "  public void c2() {}\n"
 
-                + "  //@ modifies a[2 .. ];\n" 
+                + "  //@ assigns a[2 .. ];\n" 
                 + "  public void c3() {}\n" + "}",
                 "/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m3a", 9);
     }
@@ -1639,9 +1639,9 @@ public class esc1 extends EscBase {
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  public static final int fa = 13;\n"
                 + "  public static int a = 15;\n"
 
-                + "  //@ modifies \\everything;\n" + "  public void z() {\n" + "  }\n"
+                + "  //@ assigns \\everything;\n" + "  public void z() {\n" + "  }\n"
 
-                + "  //@ modifies \\everything;\n" + "  public void m1() {\n" + "    //@ assume a == 15 && fa == 13;\n"
+                + "  //@ assigns \\everything;\n" + "  public void m1() {\n" + "    //@ assume a == 15 && fa == 13;\n"
                 + "    z();\n" + "    //@ assert fa == 13;\n" // Should be OK
                 + "    //@ assert a == 15;\n" // Should fail
                 + "  }\n"
@@ -1659,18 +1659,18 @@ public class esc1 extends EscBase {
                 + "    //@ assert fa == 15;\n" // OK
                 + "    fb = 16;\n" + "  }\n"
 
-                + "  //@ modifies \\everything;\n" + "  public void m1() {\n" + "    //@ assert fsa == 13;\n" // Should
+                + "  //@ assigns \\everything;\n" + "  public void m1() {\n" + "    //@ assert fsa == 13;\n" // Should
                                                                                                                 // be
                                                                                                                 // OK
                 + "    //@ assert fa == 15;\n" // Should be OK
                 + "  }\n"
 
-                + "  //@ modifies \\everything;\n" + "  public void m2() {\n" + "    //@ assert a == 17;\n" // Not
+                + "  //@ assigns \\everything;\n" + "  public void m2() {\n" + "    //@ assert a == 17;\n" // Not
                                                                                                             // necessarily
                                                                                                             // OK
                 + "  }\n"
 
-                + "  //@ modifies \\everything;\n" + "  public void m3() {\n" + "    //@ assert fb == 16;\n" // Not
+                + "  //@ assigns \\everything;\n" + "  public void m3() {\n" + "    //@ assert fb == 16;\n" // Not
                                                                                                                 // necessarily
                                                                                                                 // OK
                 + "  }\n"
@@ -1683,45 +1683,45 @@ public class esc1 extends EscBase {
     public void testMethodCallsWithExceptions() {
         helpTCX("tt.TestJava",
                 "package tt; \n" + "/*@ code_bigint_math*/  public class TestJava { \n" + "  public static int k;\n"
-                        + "  //@ requires i >= 0;\n" + "  //@ modifies k;\n" + "  //@ ensures k == 10;\n"
+                        + "  //@ requires i >= 0;\n" + "  //@ assigns k;\n" + "  //@ ensures k == 10;\n"
                         + "  //@ signals (Exception e) k<0; signals_only Exception;\n"
                         + "  public void m1(int i) throws RuntimeException {\n" + "    m(i);\n" + "    k = 10;\n"
-                        + "  }\n" + "  //@ requires i >= 0;\n" + "  //@ modifies k;\n" + "  //@ ensures k == 10;\n"
+                        + "  }\n" + "  //@ requires i >= 0;\n" + "  //@ assigns k;\n" + "  //@ ensures k == 10;\n"
                         + "  //@ signals (Exception e) k==-11;\n" + "  //@ signals_only Exception;\n"
                         + "  public void m2(int i) {\n" + "    m(1);\n" + "    m(2);\n" + "    k = 10;\n" // Line
                                                                                                             // 20
                         + "  }\n"
 
-                        + "  //@ requires i >= 0;\n" + "  //@ modifies k;\n" + "  //@ ensures k == 10;\n"
+                        + "  //@ requires i >= 0;\n" + "  //@ assigns k;\n" + "  //@ ensures k == 10;\n"
                         + "  //@ signals (Exception e) k==-12;\n" + "  //@ signals_only Exception;\n"
                         + "  public void m3(int i) {\n" + "    m(0);\n" + "    m(2);\n" + "    k = 10;\n" + "  }\n"
 
-                        + "  //@ requires i >= 0;\n" + "  //@ modifies k;\n" + "  //@ ensures k == 10;\n"
+                        + "  //@ requires i >= 0;\n" + "  //@ assigns k;\n" + "  //@ ensures k == 10;\n"
                         + "  //@ signals (Exception e) k==-13;\n" // FAILS
                         + "  //@ signals_only Exception;\n" + "  public void m3a(int i) {\n" + "    m(0);\n"
                         + "    m(2);\n" // FAILS
                         + "    k = 10;\n" // Line 40
                         + "  }\n"
 
-                        + "  //@ requires i >= 0;\n" + "  //@ modifies k;\n" + "  //@ ensures \\result == 12;\n"
+                        + "  //@ requires i >= 0;\n" + "  //@ assigns k;\n" + "  //@ ensures \\result == 12;\n"
                         + "  //@ signals (Exception e) false;\n" + "  public int m4(int i) {\n"
                         + "    return 10+m(0)+m(0);\n" + "  }\n"
 
-                        + "  //@ requires i >= 0;\n" + "  //@ modifies k;\n" // Line
+                        + "  //@ requires i >= 0;\n" + "  //@ assigns k;\n" // Line
                                                                                 // 50
                         + "  //@ ensures false;\n" + "  //@ signals (Exception e) k == -11;\n"
                         + "  //@ signals_only Exception;\n" + "  public int m5(int i) {\n"
                         + "    return 10+m(1)+m(0);\n" + "  }\n"
 
-                        + "  //@ requires i >= 0;\n" + "  //@ modifies k;\n" + "  //@ ensures false;\n"
+                        + "  //@ requires i >= 0;\n" + "  //@ assigns k;\n" + "  //@ ensures false;\n"
                         + "  //@ signals (Exception e) k == -12;\n" // Line 60
                         + "  //@ signals_only Exception;\n" + "  public int m6(int i) {\n"
                         + "    return 10+m(0)+m(2);\n" + "  }\n"
 
-                        + "  //@ requires i == 0;\n" + "  //@ modifies k;\n" + "  //@ ensures k>0 && \\result == i+1;\n"
+                        + "  //@ requires i == 0;\n" + "  //@ assigns k;\n" + "  //@ ensures k>0 && \\result == i+1;\n"
                         + "  //@ signals (Exception e) false;\n" + "  //@ also \n" + "  //@ requires i > 0;\n" // Line
                                                                                                                 // 70
-                        + "  //@ modifies k;\n" + "  //@ ensures false;\n" + "  //@ signals (Exception e) k == -10-i;\n"
+                        + "  //@ assigns k;\n" + "  //@ ensures false;\n" + "  //@ signals (Exception e) k == -10-i;\n"
                         + "  //@ signals_only Exception;\n" + "  public int m(int i) {\n" + "    if (i > 0) {\n"
                         + "      k = -10-i;\n" + "      throw new RuntimeException();\n" + "    }\n" + "    k = 1;\n"
                         + "    return i+1;\n" + "  }\n" + "}",
@@ -1985,7 +1985,7 @@ public class esc1 extends EscBase {
                  + "/*@ code_java_math*/ public class TestJava { \n" 
                  + "  static public  int i;\n"
                  + "  //@ static public constraint i > \\old(i);\n" 
-                 + "  //@ modifies i;\n"
+                 + "  //@ assigns i;\n"
                  + "  //@ ensures true;\n" 
                  + "  public static void bok() { i = i - 1; }\n" 
                  + "}"
@@ -2000,8 +2000,8 @@ public class esc1 extends EscBase {
     public void testOld2Math() {
         helpTCX("tt.TestJava",
                 "package tt; \n" + "/*@ code_bigint_math*/ public class TestJava { \n" + "  static public int i;\n"
-                        + "  //@ modifies i;\n" + "  //@ ensures i == \\old(i)+2;\n"
-                        + "  public static void bok() { i = i + 1; i = i + 1;}\n" + "  //@ modifies i;\n"
+                        + "  //@ assigns i;\n" + "  //@ ensures i == \\old(i)+2;\n"
+                        + "  public static void bok() { i = i + 1; i = i + 1;}\n" + "  //@ assigns i;\n"
                         + "  //@ ensures i == \\old(i+1);\n" 
                         + "  public static void bbad() { i = i - 1; }\n" 
                         + "}"
@@ -2016,10 +2016,10 @@ public class esc1 extends EscBase {
                 "package tt; \n" 
                         + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" 
                         + "  static public int i;\n"
-                        + "  //@ modifies i;\n" 
+                        + "  //@ assigns i;\n" 
                         + "  //@ ensures i == \\old(i)+2;\n"
                         + "  public static void bok() { i = i + 1; i = i + 1;}\n" 
-                        + "  //@ modifies i;\n"
+                        + "  //@ assigns i;\n"
                         + "  //@ ensures i == \\old(i+1);\n" 
                         + "  public static void bbad() { i = i - 1; }\n" 
                         + "}"
@@ -2037,16 +2037,16 @@ public class esc1 extends EscBase {
 //                          "package tt; \n" 
 //                        + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" 
 //                        + "  static public int i;\n"
-//                        + "  //@ modifies i;\n" 
+//                        + "  //@ assigns i;\n" 
 //                        + "  //@ ensures i == \\old(i)+2;\n"
 //                        + "  public static void bok() { x: i = i + 1; /*@ assert i == i@x + 1 && i == (i+1)@x; */ i = i + 1;}\n" 
-//                        + "  //@ modifies i;\n"
+//                        + "  //@ assigns i;\n"
 //                        + "  //@ ensures i == \\old(i+1);\n" 
 //                        + "  public static void bbad() { i = i - 1; /*@ assert i == i@x + 1; */ }\n" // ERROR
-//                        + "  //@ modifies i;\n" 
+//                        + "  //@ assigns i;\n" 
 //                        + "  public void bok2() { x: i = i + 1; /*@ assert i == this.i@x + 1; */ i = i + 1;}\n" 
 //                        + "  //@ requires a.length > 10 && a[0] >= 0;\n" 
-//                        + "  //@ modifies i;\n" 
+//                        + "  //@ assigns i;\n" 
 //                        + "  public static void bok3(int[] a) { x: i = i + 1; /*@ assert a[0]@x > -1; */ i = i + 1;}\n" 
 //                        + "}"
 //                ,"/tt/TestJava.java:9: error: There is no label named x", 60
@@ -2320,12 +2320,12 @@ public class esc1 extends EscBase {
     @Test
     public void testMethodCall() {
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
-                + "  static public int j;\n" + "  //@ requires i>0;\n" + "  //@ modifies j;\n"
+                + "  static public int j;\n" + "  //@ requires i>0;\n" + "  //@ assigns j;\n"
                 + "  //@ ensures j == -i;\n" + "  static public void m(int i) { j = -i; }\n" + "  //@ requires i>1; \n"
-                + "  //@ modifies j;\n" + "  //@ ensures \\result == -i;\n"
-                + "  public int inst(boolean b, int i) { m(i); return j; }\n" + "  //@ modifies j;\n"
+                + "  //@ assigns j;\n" + "  //@ ensures \\result == -i;\n"
+                + "  public int inst(boolean b, int i) { m(i); return j; }\n" + "  //@ assigns j;\n"
                 + "  //@ ensures \\result == j;\n" + "  public int instbad(boolean b, int i) { m(i); return j; }\n"
-                + "  //@ modifies j;\n" + "  //@ ensures \\result == i;\n"
+                + "  //@ assigns j;\n" + "  //@ ensures \\result == i;\n"
                 + "  public int instbad2(boolean b, int i) { m(1); return j; }\n" + "}"
                 ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Precondition) in method instbad",43
                 ,"/tt/TestJava.java:7: warning: Associated declaration", 22
@@ -2344,20 +2344,20 @@ public class esc1 extends EscBase {
                 + "  public int j;\n" 
                 
                 + "  //@ requires i>0;\n" 
-                + "  //@ modifies j;\n" 
+                + "  //@ assigns j;\n" 
                 + "  //@ ensures j == -i;\n"
                 + "  public void m(int i) { j = -i; }\n" 
                 
                 + "  //@ requires i>1; \n" 
-                + "  //@ modifies j;\n"
+                + "  //@ assigns j;\n"
                 + "  //@ ensures \\result == -i;\n" 
                 + "  public int inst(boolean b, int i) { m(i); return j; }\n"
                 
-                + "  //@ modifies j;\n" 
+                + "  //@ assigns j;\n" 
                 + "  //@ ensures \\result == j;\n"
                 + "  public int instbad(boolean b, int i) { m(i); return j; }\n" 
                 
-                + "  //@ modifies j;\n"
+                + "  //@ assigns j;\n"
                 + "  //@ ensures \\result == i;\n" 
                 + "  public int instbad2(boolean b, int i) { m(1); return j; }\n"
                 + "}"
@@ -2375,32 +2375,32 @@ public class esc1 extends EscBase {
                         + "/*@ code_bigint_math*/ public class TestJava { \n"
                         + "  static public int j;\n" 
                         + "  //@ requires i>0;\n" 
-                        + "  //@ modifies j;\n"
+                        + "  //@ assigns j;\n"
                         + "  //@ ensures j == i+1 && \\result == j;\n"
                         + "  static public int m(int i) { j = i+1; return j; }\n" 
                         + "  //@ requires i>1; \n"
-                        + "  //@ modifies j;\n" 
+                        + "  //@ assigns j;\n" 
                         + "  //@ ensures \\result == \\old(i)+1;\n"
                         + "  public int inst(boolean b, int i) { m(i); m(i); m(i); return j; }\n"
                         + "  //@ requires i>1; \n" 
-                        + "  //@ modifies j;\n" 
+                        + "  //@ assigns j;\n" 
                         + "  //@ ensures \\result == \\old(i)+3;\n"
                         + "  public int inst2(boolean b, int i) { m(m(m(i))); return j; }\n" 
                         + "  //@ requires i>1; \n"
-                        + "  //@ modifies j;\n" 
+                        + "  //@ assigns j;\n" 
                         + "  //@ ensures \\result == 3*i+4;\n" 
                         + "  //@ ensures j == i + 1;\n"
                         + "  public int inst3(boolean b, int i) { return m(m(i) + m(i)) + m(i); }\n"
                         + "  //@ requires i>1; \n" 
-                        + "  //@ modifies j;\n" 
+                        + "  //@ assigns j;\n" 
                         + "  //@ ensures \\result == \\old(i);\n"
                         + "  public int instx(boolean b, int i) { m(i); m(i); m(i); return j; }\n"
                         + "  //@ requires i>1; \n" 
-                        + "  //@ modifies j;\n" 
+                        + "  //@ assigns j;\n" 
                         + "  //@ ensures \\result == \\old(i)+4;\n"
                         + "  public int instx2(boolean b, int i) { m(m(m(i))); return j; }\n" 
                         + "  //@ requires i>1; \n"
-                        + "  //@ modifies j;\n" // Line 30
+                        + "  //@ assigns j;\n" // Line 30
                         + "  //@ ensures \\result == 3*i+4;\n" 
                         + "  //@ ensures j == i + 2;\n"
                         + "  public int instx3(boolean b, int i) { return m(m(i) + m(i)) + m(i); }\n" + "}"
@@ -2425,39 +2425,39 @@ public class esc1 extends EscBase {
                         + "  //@ assignable \\nothing; ensures \\result == j;\n" 
                         + "  public int m() { return j; }\n"
 
-                        + "  //@ modifies j,sj;\n" 
+                        + "  //@ assigns j,sj;\n" 
                         + "  //@ ensures \\result == \\old(j);\n"
                         + "  public int nold() { return j; }\n"
 
-                        + "  //@ modifies j,sj;\n" 
+                        + "  //@ assigns j,sj;\n" 
                         + "  //@ ensures \\result == j;\n"
                         + "  public int n() { return j; }\n"
 
-                        + "  //@ modifies j,sj;\n" 
+                        + "  //@ assigns j,sj;\n" 
                         + "  //@ ensures \\result == sj;\n"
                         + "  public int sn() { return sj; }\n"
 
                         + "  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3;\n"
-                        + "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" 
+                        + "  //@ assigns j,sj,o.j,o.sj,p.j,p.sj;\n" 
                         + "  //@ ensures \\result == 6;\n"
                         + "  public int inst() { return o.m() + p.m() + j; }\n" // Line 20
 
                         + "  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3 && o!=this && p!= this;\n"
-                        + "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" 
+                        + "  //@ assigns j,sj,o.j,o.sj,p.j,p.sj;\n" 
                         + "  //@ ensures \\result == 6;\n"
                         + "  public int instok() { int jj = j; /*@ assert (\\lbl OJ o.j) + (\\lbl PJ p.j) + (\\lbl JJ j) == 6; */ return o.nold() + p.nold() + jj; }\n"   
                         // o.n and p.n modify o.j and p.j, returned value is before mod
 
                         + "  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3;\n"
-                        + "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" 
+                        + "  //@ assigns j,sj,o.j,o.sj,p.j,p.sj;\n" 
                         + "  //@ ensures \\result == 6;\n"
                         + "  public int instbadx() { return o.n() + p.n() + j; }\n" // returned value is after modification
 
-                        + "  //@ modifies j,sj;\n" + "  //@ ensures \\result == 6;\n"
-                        + "  public int instbad() { return n() + j; }\n" // n() modifies this.j
+                        + "  //@ assigns j,sj;\n" + "  //@ ensures \\result == 6;\n"
+                        + "  public int instbad() { return n() + j; }\n" // n() assigns this.j
 
                         + "  //@ requires o!=null && p != null && sj == 3;\n"
-                        + "  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n" 
+                        + "  //@ assigns j,sj,o.j,o.sj,p.j,p.sj;\n" 
                         + "  //@ ensures \\result == 9;\n"
                         + "  public int instbad2() { return o.sn() + p.sn() + sj; }\n" 
                         + "}"
@@ -3492,7 +3492,7 @@ public class esc1 extends EscBase {
 //    }
 //
 //    /** Tests whether undefinedness is caught in various JML constructions */
-//    // TODO - loop invariants, variants, represents, signals, modifies
+//    // TODO - loop invariants, variants, represents, signals, assigns
 //    // TODO - old constructs, quantifications, set comprehension, pure methods -
 //    // check other JMl expressions
 //    @Test
