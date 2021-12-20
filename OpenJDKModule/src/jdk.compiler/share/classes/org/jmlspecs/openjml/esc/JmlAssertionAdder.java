@@ -10654,7 +10654,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				} else if (convertedReceiver instanceof JCLambda) {
 					addStat(comment(that, "... Not checking assignables when inlining a lambda " + calleeMethodSym,
 							null));
-				} else {
+				} else if (!rac) {
 					IArithmeticMode savedArithmeticMode = currentArithmeticMode;
 					TranslationEnv calleeEnv = new TranslationEnv(newThisId,null,allocCounter,calleeMethodSym);
 
@@ -10739,7 +10739,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 													try {
 														//System.out.println("CURRENTTHIS " + currentThisExpr + " " + newThisId);
 														//System.out.println("PARAMACTUALS " + paramActuals);
-														allowed = checkAccess2(clause.clauseKind, that, item, item, false, allowed, false, calleeEnv);
+														allowed = checkAccess2(clause.clauseKind, that, item, item, false, 
+																treeutils.makeBooleanLiteral(item, true), false, calleeEnv);
 														//System.out.println("ALLOWED " + allowed);
 														checkAccess2(clause.clauseKind, that, item, item, false, allowed, true, null);
 													} catch (Exception e) {
@@ -13367,6 +13368,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			boolean isConverted, JCExpression guard, boolean emitAsserts, TranslationEnv targetEnv) {
 		//System.out.println("CHECKACCESS@ " + lhs + " " + guard + " " + emitAsserts + " " + targetEnv);
 		JCExpression okCondition = emitAsserts ? null : treeutils.makeBooleanLiteral(pos, true);
+		if (rac) return okCondition;
 		TranslationEnv callerEnv = currentEnv.pushEnvCopy();
 		callerEnv.receiver = explicitThisId;
 		callerEnv.label = preLabel;
