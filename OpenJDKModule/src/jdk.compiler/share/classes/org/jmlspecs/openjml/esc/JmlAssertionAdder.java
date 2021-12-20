@@ -2576,7 +2576,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected String uniqueTempString() {
-		//if (uniqueCount == 39) Utils.dumpStack();
+		//if (uniqueCount == 164) Utils.dumpStack();
 		return Strings.tmpVarString + (uniqueCount++);
 	}
 
@@ -4443,6 +4443,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 	
 	public Map<Object, JCExpression> mapFormals(JCMethodDecl to, JCMethodDecl from) {
+		//System.out.println("MAPFORMALS " + to.sym + " FROM " + from.sym);
 		if (to.sym == from.sym)
 			return paramActuals;
 		var fromIter = from.params.iterator();
@@ -8678,6 +8679,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	
 	public JCExpression freshTest(DiagnosticPosition pos, JCExpression obj, int freshnessReferenceCount) {
 		if (rac) return null; // freshness not supported by rac
+		//System.out.println("FRESH " + obj + " " + obj.type + " " + utils.isJavaOrJmlPrimitiveType(obj.type));
 		if (utils.isJavaOrJmlPrimitiveType(obj.type)) return null; // no test for primitive types
 		//if (freshnessReferenceCount >= 0 && obj instanceof JCIdent id && (id.name == names._this || id.name == names._super || id.name.toString().equals(Strings.THIS))) return treeutils.makeBooleanLiteral(pos, false);
 		JCExpression allocCountExpr = M.at(pos).Select(obj, allocSym).setType(syms.intType);
@@ -10691,6 +10693,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							continue; // FIXME - not sure about this - should get a default?
 
 						paramActuals = mapParamActuals.get(mpsym);
+						//System.out.println("PARAMACTUALS-A " + mpsym + " " + paramActuals);
 						currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(mpsym, true);
 
 						for (JmlSpecificationCase cs : calleeSpecs.cases) {
@@ -10735,6 +10738,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 													}
 													try {
 														//System.out.println("CURRENTTHIS " + currentThisExpr + " " + newThisId);
+														//System.out.println("PARAMACTUALS " + paramActuals);
 														allowed = checkAccess2(clause.clauseKind, that, item, item, false, allowed, false, calleeEnv);
 														//System.out.println("ALLOWED " + allowed);
 														checkAccess2(clause.clauseKind, that, item, item, false, allowed, true, null);
@@ -13400,7 +13404,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// We need this even if names have not changed, because the parameters
 					// will have been attributed with different symbols.
 					//paramActuals = specParamsToActuals(denestedSpecs, methodDecl, parentMethodSym);
-					var oldMap = mapFormals(methodDecl, denestedSpecs.decl);
+					//System.out.println("PARAMACTUALS-BA " + paramActuals);
+//					var oldMap = mapFormals(methodDecl, denestedSpecs.decl);
+					//System.out.println("PARAMACTUALS-BB " + paramActuals);
 					// heapCount = preheapcount;
 					elseExpression = treeutils.falseLit;
 					try {
@@ -13441,7 +13447,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							}
 						}
 					} finally {
-						paramActuals = oldMap;
+//						paramActuals = oldMap;
+						//System.out.println("PARAMACTUALS-C " + paramActuals);
 					}
 				}
 			}
@@ -14282,6 +14289,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				|| optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD;
 		boolean bit = optag == JCTree.Tag.BITAND || optag == JCTree.Tag.BITOR || optag == JCTree.Tag.BITXOR;
 
+		//System.out.println("VISIT-BINARY " + that);
+		//if (that.toString().contains("length != null")) Utils.dumpStack();
 		if (pureCopy) {
 			JCExpression lhs = convertExpr(that.getLeftOperand());
 			JCExpression rhs = convertExpr(that.getRightOperand());
@@ -15502,8 +15511,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			treeutils.copyEndPosition(result, that);
 			return;
 		}
-		if (!(s instanceof Symbol.TypeSymbol))
-			trexpr = convertExpr(trexpr);
+		//System.out.println("VISIT-SELECT " + that + " " + that.sym + " " + s + " " + s.getClass() + " " + trexpr);
+		if (!(s instanceof Symbol.TypeSymbol)) trexpr = convertExpr(trexpr);
 		JCFieldAccess newfa = null;
 		Symbol sym = s;
 		JCExpression eee = null;
@@ -15540,6 +15549,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			eee = newfa;
 		} else if ((infer || esc) && s != null && s.name == names._class) {
 			eee = treeutils.makeJavaTypelc(that.selected);
+//		} else if (that.sym == allocSym) {
+//			eee = M.at(that.pos).Select(trexpr, that.sym);
 		} else if (translatingJML && s == null) {
 			// This can happen while scanning a store-ref x.*
 			JCExpression sel = trexpr; // FIXME - what if static; what if not a variable
@@ -15698,6 +15709,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		treeutils.copyEndPosition(result, that);
 		if (!utils.isJavaOrJmlPrimitiveType(that.selected.type)) {
+//			System.out.println("VISIT-SELECT-Y " + that.selected.type + " " + !utils.isJavaOrJmlPrimitiveType(that.selected.type) + " " + translatingJML + " " + s + " " + specs.isNonNull(s));
 			if (translatingJML && !pureCopy && s instanceof VarSymbol && specs.isNonNull(s)) {
 				JCExpression nn = treeutils.makeNeqObject(that.pos, eee, treeutils.nullLit);
 				addToCondition(that.pos, nn);
@@ -15745,7 +15757,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			transferInfo(that, id);
 			return;
 		}
-		//System.out.println("VISITING-IDENT " + that + " " + oldenv + " " + inOldEnv); 
+//		System.out.println("VISIT-IDENT " + that + " " + oldenv + " " + inOldEnv); 
 		if (utils.rac && inOldEnv && utils.isExprLocal(that.sym.flags())) {
 			// FIXME - thiz should be allopwed if the whole qukantifier expression is in the
 			// same old context
@@ -15821,7 +15833,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		if (!translatingLHS)
 			checkRW(readableClause, that.sym, currentThisExpr, that);
-//        System.out.println("VISITIDENT-D " + that + " " + inOldEnv + " " + oldenv);
+//        System.out.println("VISITIDENT-D " + that + " " + inOldEnv + " " + oldenv + " " + eresult + " " + translatingJML);
 
 		try {
 			// If we are translating the postcondition then parameters
@@ -15832,6 +15844,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				//		+ sym + " " + sym.owner + " " + sym.owner.getClass() + " " + isFormal(sym, methodDecl.sym));
 				if (!isPostcondition) {
 					JCExpression actual = paramActuals == null ? null : paramActuals.get(sym);
+//					System.out.println("VISIT-IDENT-DD " + sym + " " + actual+ " " + paramActuals);
 					if (actual != null) {
 						// Replicate the AST so we are not sharing ASTs across multiple
 						// instances of the original ID.
@@ -15885,6 +15898,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			if (utils.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable && !reps.contains(sym)) {
 				translateModelField(currentThisExpr, that, sym, newfa);
+//	            System.out.println("VISITIDENT-F " + that + " " + eresult);
 				return;
 			}
 
@@ -15897,6 +15911,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					checkAccess2(accessibleClauseKind, that, that, that, false, treeutils.trueLit, true, null);
 				// checkAccess(accessibleClauseKind, that, that, trlhs, classDecl.type,
 				// currentThisExpr, currentThisExpr);
+//	            System.out.println("VISITIDENT-H " + that + " " + eresult);
 			}
 //            System.out.println("VISITIDENT-H " + that + " " + inOldEnv + " " + oldenv);
 			// Lookup if there is some other translation of the id. For example,
@@ -15931,15 +15946,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (sym.owner != methodDecl.sym) {
 					Name nm = that.name;
 					for (JCTree t : classDecl.defs) {
-						if (!(t instanceof JmlVariableDecl))
-							continue;
+						if (!(t instanceof JmlVariableDecl)) continue;
 						JmlVariableDecl vd = (JmlVariableDecl) t;
-						if (vd.name != nm)
-							continue;
-						if (!attr.isCaptured(vd))
-							continue;
+						if (vd.name != nm) continue;
+						if (!attr.isCaptured(vd)) continue;
 						result = eresult = M.at(vd.pos).Select(currentThisExpr, vd.sym);
 						eresult.type = vd.type;
+//			            System.out.println("VISITIDENT-K " + that + " " + eresult);
 						break;
 					}
 				}
@@ -15952,19 +15965,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else if (currentThisExpr instanceof JCIdent && sym == ((JCIdent) currentThisExpr).sym) {
 				// 'this' - leave it as it is
 				result = eresult = convertCopy(currentThisExpr);
+//	            System.out.println("VISITIDENT-L " + that + " " + eresult);
 
 			} else if (that.name == names._this) {
 				result = eresult = currentThisExpr != null ? convertCopy(currentThisExpr) : convertCopy(that);
 
 			} else if (that.name == names._super) {
-				result = eresult = currentThisExpr != null ? convertCopy(currentThisExpr) : convertCopy(that); // FIXME
-																												// -
-																												// want
-																												// this
-																												// instead
-																												// of
-																												// super
-
+				result = eresult = currentThisExpr != null ? convertCopy(currentThisExpr) : convertCopy(that);
+				
 			} else if (that.name.equals(heapVarName)) {
 				result = eresult = convertCopy(that);
 
@@ -15974,6 +15982,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// If the input id is a type variable (that.type instanceof Type.TypeVar)
 				// then makeType creates a new JCIdent, as is appropriate.
 				result = eresult = treeutils.makeType(that.pos, t);
+//	            System.out.println("VISITIDENT-N " + that + " " + eresult);
 
 //            } else if (sym instanceof Symbol.MethodSymbol) {
 //                {
@@ -16046,6 +16055,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    addAssume(that,Label.NULL_FIELD,e);
 //                }
 				result = eresult = fa;
+//	            System.out.println("VISITIDENT-PP " + that + " " + eresult);
 
 			} else {
 //               System.out.println("VISITIDENT-Q " + that + " " + inOldEnv + " " + oldenv);
@@ -16060,6 +16070,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					addAssume(that, Label.NULL_FIELD, e);
 				}
 				result = eresult = fa;
+//	            System.out.println("VISITIDENT-QQ " + that + " " + eresult);
 			}
 //            System.out.println("VISITIDENT-T " + that + " " + inOldEnv + " " + oldenv);
 			treeutils.copyEndPosition(eresult, that);
@@ -16081,6 +16092,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				else
 					result = eresult = convertCopy(eresult);
 			}
+//            System.out.println("VISITIDENT-W " + that + " " + eresult);
 
 		} finally {
 			// Note that since 'this' is a ClassSymbol, not a VarSymbol, no check for
@@ -16089,6 +16101,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (translatingJML && !utils.isJavaOrJmlPrimitiveType(that.type) && sym instanceof VarSymbol
 					&& specs.isNonNull(sym) && eresult != null && !(eresult instanceof JCLambda)
 					&& !(eresult instanceof JCMemberReference)) {
+//				System.out.println("VISIT-IDENT-Z " + that + " " + eresult);
 				JCExpression nn = treeutils.makeNotNull(that.pos, eresult);
 				addToCondition(that.pos, nn);
 			}
@@ -21964,7 +21977,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else if (sr.receiver != null && sr.range != null) {
 				// array elements
 				JCExpression ft = freshTest(smaller, sr.receiver, targetEnv.allocCount);
+//				System.out.println("ARRAYELE " + sr + " " + sr.receiver + " " + sr.receiver.type + " " + allocCounter + " " + targetEnv.allocCount + " " + ft);
 				ft = convertJML(ft); // Convert in current (smaller) environment
+//				System.out.println("CONVERTED FT " + ft);
 				JCExpression ok = containsArray(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.range, bigger);
 				return ft == null ? ok : treeutils.makeOr(smaller,  ft,  ok);
 			} else {
