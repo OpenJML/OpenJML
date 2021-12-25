@@ -2977,7 +2977,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (receiver != null && !utils.isJavaOrJmlPrimitiveType(receiver.type)) {
 				addAssume(pos, Label.INVARIANT, treeutils.makeNotNull(pos, receiver));
 			}
-			JCExpression e = getInvariant(pos, classDecl.type, basetype, receiver); // FIXME - is classDecl always the
+			JCExpression e = getInvariant(pos, classDecl.type, basetype, receiver, true); // FIXME - is classDecl always the
 																					// calling environment?
 			// e is null if there is no invariant (implicitly true)
 			if (e != null)
@@ -17510,7 +17510,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								"TODO: Skipping assuming invariants of all the havoced array elements: " + item,
 								log.currentSourceFile()));
 					} else {
-						JCExpression e = getInvariantAll(item, item.type, item); // FIXME - is item.type the resolved
+						JCExpression e = getInvariantAll(item, item.type, item, true); // FIXME - is item.type the resolved
 																					// type?
 						if (e != null)
 							addAssume(item, Label.IMPLICIT_ASSUME, e); // if e is null, there is no invariant expression
@@ -18745,23 +18745,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				that.kind = distinctKind;
 				break;
 			}
-			case invariantForID: {
+			
+			case invariantForID:
+			case staticInvariantForID:
+			{
 				boolean saved = inInvariantFor;
 				inInvariantFor = true;
-				JCExpression res = null;
-				try {
-					for (JCExpression arg : that.args) {
-						JCExpression a = treeutils.isATypeTree(arg) ? null
-								: convertJML(arg, condition, this.isPostcondition);
-						JCExpression e = getInvariantAll(that, arg.type, a);
-						res = e == null ? res : res == null ? e : treeutils.makeAnd(that, res, e);
-					}
-					if (res == null)
-						res = treeutils.trueLit;
-					result = eresult = res;
-				} finally {
-					inInvariantFor = saved;
-				}
+				result = eresult = that.kind.assertionConversion(this, that);
+				inInvariantFor = saved;
 				break;
 			}
 			case bigintMathID:
@@ -19089,17 +19080,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return treeutils.makeAnd(p, treeutils.makeNotNull(p, arg), e);
 	}
 
-	/* @nullable */ JCExpression getInvariantAll(DiagnosticPosition pos, Type baseType, JCExpression obj) {
+	// Get the conjunction of invariants of the type t and all its supertypes, with receiver obj. If obj == null, only static invaraints are conjoined.
+	// If visibility is considered, invariants are included if visible from type baseType.
+	/* @nullable */ public JCExpression getInvariantAll(DiagnosticPosition pos, Type baseType, JCExpression obj, boolean considerVisibility) {
 		JCExpression res = null;
 		for (Type ty : parents(baseType, true)) { // FIXME - make sure parents() works for TypeVar
-			JCExpression e = getInvariant(pos, baseType, ty, obj);
+			JCExpression e = getInvariant(pos, baseType, ty, obj, considerVisibility);
 			res = e == null ? res : res == null ? e : treeutils.makeAnd(pos, res, e);
 		}
 		return res;
 	}
 
-	/* @nullable */ JCExpression getInvariant(/* @non_null */ DiagnosticPosition pos, /* @non_null */ Type base,
-			/* @non_null */ Type t, /* @nullable */ JCExpression obj) {
+	// Get the conjunction of invariants of the type t, with receiver obj. If obj == null, only static invaraints are conjoined.
+	// If visibility is considered, invariants are included if visible from type baseType.
+	/* @nullable */ public JCExpression getInvariant(/* @non_null */ DiagnosticPosition pos, /* @non_null */ Type base,
+			/* @non_null */ Type t, /* @nullable */ JCExpression obj, boolean considerVisibility) {
 		if (!(t.tsym instanceof ClassSymbol))
 			return null;
 		TypeSpecs tspecs = specs.getSpecs((ClassSymbol) t.tsym);
@@ -19110,7 +19105,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			for (JmlTypeClause clause : tspecs.clauses) {
 				if (clause.clauseType != invariantClause)
 					continue;
-				if (!utils.jmlvisible(base.tsym, t.tsym, clause.modifiers.flags))
+				if (considerVisibility && !utils.jmlvisible(base.tsym, t.tsym, clause.modifiers.flags))
 					continue;
 				if (obj == null && !hasStatic(clause.modifiers))
 					continue;
@@ -20799,7 +20794,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						if (stat != null && esc && !(that.type instanceof Type.ArrayType)
 								&& jmltypes.isArray(that.type)) {
 							JCExpression inv = getInvariantAll(that, that.type,
-									treeutils.makeIdent(that.pos, that.sym));
+									treeutils.makeIdent(that.pos, that.sym), true);
 							if (inv != null)
 								inv.type = syms.booleanType;
 							else

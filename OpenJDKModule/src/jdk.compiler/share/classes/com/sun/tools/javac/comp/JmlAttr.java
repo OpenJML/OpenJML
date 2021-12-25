@@ -7162,6 +7162,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return super.check(tree, found, ownkind, resultInfo);
     } 
     
+    public Env<AttrContext> addStatic(Env<AttrContext> env) {
+    	env.info.staticLevel++;
+    	return env;
+    }
+    
+    public Env<AttrContext> removeStatic(Env<AttrContext> env) {
+    	env.info.staticLevel--;
+    	return env;
+    }
+    
     @Override
     protected void saveMethodEnv(MethodSymbol msym, Env<AttrContext> env) {
 //    	if (org.jmlspecs.openjml.Main.useJML && !utils.rac && !env.enclClass.sym.isAnnotationType()) {
