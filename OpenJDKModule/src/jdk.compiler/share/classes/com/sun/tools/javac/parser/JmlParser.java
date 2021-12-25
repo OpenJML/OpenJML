@@ -1216,6 +1216,33 @@ public class JmlParser extends JavacParser {
         return args.toList();
     }
     
+    public List<JCExpression> parseTypeList() {
+        ListBuffer<JCExpression> args = new ListBuffer<>();
+        while (true) {
+        	var e = parseType();
+        	if (e != null) {
+        		if (e instanceof JCErroneous) {
+            		if (!(token.kind == COMMA || token.kind == SEMI || token.kind == RPAREN)) nextToken();
+        		} else {
+            		args.append(e);
+        		}
+        	}
+        	if (token.kind == COMMA) {
+        		nextToken();
+        		continue;
+        	} else if (token.kind == SEMI || token.kind == RPAREN) {
+        		break;
+        	} else if (jmlTokenKind() == ENDJMLCOMMENT) {
+        		syntaxError(pos(), null, "jml.missing.comma.rp");
+        		break;
+        	} else {
+        		syntaxError(pos(), null, "jml.missing.comma.rp");
+        		if (e == null) break;
+        	}
+        }
+        return args.toList();
+    }
+    
     private boolean parsingLocationList = false;
     
     public List<JCExpression> parseLocationList() {
