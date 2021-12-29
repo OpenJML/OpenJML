@@ -3473,6 +3473,7 @@ public class JmlTree {
     	/*@ nullable */ public JCExpression receiver;
     	/*@ nullable */ public JmlRange range;
     	/*@ nullable */ public List<VarSymbol> fields;
+    	/*@ nullable */ public List<JmlStoreRef> modelFieldContents = null;
     	public boolean anyField = false;
 
     	@Override
