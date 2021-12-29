@@ -8822,19 +8822,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else {
 				//System.out.println("CNVID " + id + " " + id.sym.getClass() + " " + id.sym.owner.getClass() + " "
 				//		+ id.sym.isStatic());
-				if (id.sym instanceof VarSymbol && id.sym.owner instanceof TypeSymbol) {
+				if (id.sym instanceof VarSymbol v && id.sym.owner instanceof TypeSymbol) {
 					if (utils.isJMLStatic(id.sym)) {
 						sr = M.at(e.pos).JmlStoreRef(false, null, null,
-								null, 
-										null, List.<VarSymbol>of((VarSymbol) id.sym), false);
+								null, null, List.<VarSymbol>of(v), false);
 					} else {
 						JCIdent t = M.at(pos).Ident(names._this);
 						t.sym = baseClassSym;
 						t.setType(baseClassSym.type);
 						sr = M.at(e.pos).JmlStoreRef(false, null, null,
-								t, 
-								null, List.<VarSymbol>of((VarSymbol) id.sym), false);
+								t, null, List.<VarSymbol>of(v), false);
 					}
+					sr.modelFieldContents = collectModelFieldContents(baseClassSym, sr.receiver, v);
 				} else { // Local variable or 'this'
 					sr = M.at(e.pos).JmlStoreRef(false, id.sym, null, null, null, null, false);
 					//System.out.println("LOCAL " + id + " " + id.sym + " " + sr);
@@ -8869,7 +8868,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						&& (id.name == names._this || id.name == names._super));
 				//System.out.println("STAT" + fa + " " + sym + " " + sym.getClass() + " " + isStatic);
 
-				List<VarSymbol> fields = utils.collectFields(baseClassSym,
+				List<VarSymbol> fields = utils.collectFields(isStatic ? (ClassSymbol)sym : baseClassSym,
 						f -> !f.isFinal() && (utils.isJMLStatic(f) == isStatic));
 				if (isStatic) {
 					sr = M.at(e.pos).JmlStoreRef(false, null, null, null, null, fields, true);
@@ -8882,6 +8881,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else {
 				if (fa.sym instanceof VarSymbol v) {
 					sr = M.at(e.pos).JmlStoreRef(false, null, null, utils.isJMLStatic(v) ? null : fa.selected, null, List.<VarSymbol>of(v), false);
+					sr.modelFieldContents = collectModelFieldContents(baseClassSym, sr.receiver, v);
 					//System.out.println("FA " + fa + " " + fa.selected + " " + v.isStatic() +  " " + utils.isJMLStatic(v) + " " + v);
 				} else {
 					// skip presuming an error already given
@@ -9208,7 +9208,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// Without this an argument that is just an Ident or a Literal
 				// and is not used ends up without its value captured for
 				// tracing <<< THis all is no longer true I think, at least for literals
-				if (!(a instanceof JCLiteral) && typeLiteral(a) == null)
+				if (!(a instanceof JCLiteral) && treeutils.typeLiteral(a) == null)
 					a = newTemp(a);
 			}
 			out.add(a);
@@ -10482,7 +10482,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										}
 										if (prex == null || treeutils.isTrueLit(prex)) {
 											addStat(thenbl);
-											if (isLiteral(convertedEx))
+											if (treeutils.isLiteral(convertedEx))
 												nextPreExpr = convertedEx;
 										} else {
 											addStat(M.at(ex.pos).If(prex, thenbl, elsebl));
@@ -12608,7 +12608,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			dims.add(ex);
 			neg: if (!pureCopy && ex != null) {
 				// TODO: Also bigint?
-				Number n = integralLiteral(ex);
+				Number n = treeutils.integralLiteral(ex);
 				if (n != null && n.longValue() >= 0) {
 					addStat(comment(ex, "Constant array size is non-negative: " + n.longValue(),
 							log.currentSourceFile()));
@@ -14420,8 +14420,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression lhs = convertExpr(that.getLeftOperand());
 			JCExpression rhs = convertExpr(that.getRightOperand());
 //            applyingLambda = savedApplyingLambda;
-			Number n = integralLiteral(lhs);
-			Number nn = integralLiteral(rhs);
+			Number n = treeutils.integralLiteral(lhs);
+			Number nn = treeutils.integralLiteral(rhs);
 			if (n != null && nn != null) {
 				Boolean b = null;
 				if (optag == JCTree.Tag.EQ)
@@ -14446,8 +14446,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				result = eresult = treeutils.makeBooleanLiteral(that.pos, optag == JCTree.Tag.NE);
 				return;
 			}
-			if (equality && ((treeutils.isNullLit(rhs) && typeLiteral(lhs) != null)
-					|| (treeutils.isNullLit(lhs) && typeLiteral(rhs) != null))) {
+			if (equality && ((treeutils.isNullLit(rhs) && treeutils.typeLiteral(lhs) != null)
+					|| (treeutils.isNullLit(lhs) && treeutils.typeLiteral(rhs) != null))) {
 				result = eresult = treeutils.makeBooleanLiteral(that.pos, optag == JCTree.Tag.NE);
 				return;
 			}
@@ -14644,8 +14644,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			JCExpression lhs = convertExpr(that.getLeftOperand());
 			JCExpression rhs = convertExpr(that.getRightOperand());
-			if (equality && ((treeutils.isNullLit(rhs) && typeLiteral(lhs) != null)
-					|| (treeutils.isNullLit(lhs) && typeLiteral(rhs) != null))) {
+			if (equality && ((treeutils.isNullLit(rhs) && treeutils.typeLiteral(lhs) != null)
+					|| (treeutils.isNullLit(lhs) && treeutils.typeLiteral(rhs) != null))) {
 				result = eresult = treeutils.makeBooleanLiteral(that.pos, optag == JCTree.Tag.NE);
 				return;
 			}
@@ -15299,55 +15299,35 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		iff.accept(this);
 	}
 
-	boolean isLiteral(JCExpression e) {
-		if (e instanceof JCLiteral)
-			return true;
-		return null != typeLiteral(e);
-	}
+//	boolean isLiteral(JCExpression e) {
+//		if (e instanceof JCLiteral) return true;
+//		return null != typeLiteral(e);
+//	}
+//
+//	boolean isNullLiteral(JCExpression e) {
+//		return (e instanceof JCLiteral lit && lit.type.getTag() == TypeTag.BOT);
+//	}
+//
+//	Boolean booleanLiteral(JCExpression e) {
+//		if (e instanceof JCLiteral) {
+//			JCLiteral lit = (JCLiteral) e;
+//			if (lit.value instanceof Boolean)
+//				return (Boolean) lit.value;
+//			if (e.type.baseType() == syms.booleanType && lit.value instanceof Integer)
+//				return 0 != (Integer) lit.value;
+//		}
+//		return null;
+//	}
 
-	boolean isNullLiteral(JCExpression e) {
-		return (e instanceof JCLiteral && ((JCLiteral) e).type.getTag() == TypeTag.BOT);
-	}
-
-	Boolean booleanLiteral(JCExpression e) {
-		if (e instanceof JCLiteral) {
-			JCLiteral lit = (JCLiteral) e;
-			if (lit.value instanceof Boolean)
-				return (Boolean) lit.value;
-			if (e.type == syms.booleanType && lit.value instanceof Integer)
-				return 0 != (Integer) lit.value;
-		}
-		return null;
-	}
-
-	Number integralLiteral(JCExpression e) {
-		if (e instanceof JCLiteral) {
-			JCLiteral lit = (JCLiteral) e;
-			if (lit.value instanceof Number && jmltypes.isAnyIntegral(lit.type))
-				return (Number) lit.value;
-		}
-		return null;
-	}
-
-	Type typeLiteral(JCExpression e) {
-		if (e instanceof JmlMethodInvocation) {
-			JmlMethodInvocation lit = (JmlMethodInvocation) e;
-			if (lit.kind == typelcKind)
-				return lit.args.head.type;
-		}
-		return null;
-	}
-
-	Number floatingLiteral(JCExpression e) {
-		if (e instanceof JCLiteral) {
-			JCLiteral lit = (JCLiteral) e;
-			if (lit.value instanceof Double)
-				return (Number) lit.value;
-			if (lit.value instanceof Float)
-				return (Number) lit.value;
-		}
-		return null;
-	}
+//	Number integralLiteral(JCExpression e) {
+//		if (e instanceof JCLiteral) {
+//			JCLiteral lit = (JCLiteral) e;
+//			if (lit.value instanceof Number number && jmltypes.isAnyIntegral(lit.type))
+//				return number;
+//		}
+//		return null;
+//	}
+//
 
 	// OK
 	@Override
@@ -15420,7 +15400,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				index = convertExpr(that.index);
 				if (that.indexed.type instanceof Type.ArrayType)
 					index = addImplicitConversion(index, syms.intType, index);
-				Number n = integralLiteral(index);
+				Number n = treeutils.integralLiteral(index);
 				if (n != null && n.longValue() >= 0) {
 					addStat(comment(index, "Constant index is non-negative: " + n.longValue(),
 							log.currentSourceFile()));
@@ -16224,7 +16204,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			// Use the literal instead of the temp in order to make optimizations
 			// and constant folding, for some types. Keep the temp above for tracing.
-			if (that.type == syms.booleanType || that.type.isNumeric()) {
+			if (that.type.baseType() == syms.booleanType || that.type.isNumeric()) {
 				result = eresult = that; // FIXME - what about bigint, real, null
 			} else {
 				result = eresult = id;
@@ -16401,7 +16381,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			case impliesID: {// P ==> Q is !P || Q
 				if (translatingJML)
 					addToCondition(that.pos, lhs);
-				Boolean b = booleanLiteral(lhs);
+				Boolean b = treeutils.booleanLiteral(lhs);
 				if (b != null && !b) {
 					eresult = treeutils.makeBooleanLiteral(lhs.pos, true);
 				} else if (rac) { // temp = true; if (P) { temp = Q; }
@@ -16500,8 +16480,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			case equivalenceID: {
 				rhs = convertExpr(that.rhs);
 				rhs = addImplicitConversion(that.rhs, that.type, rhs);
-				Boolean b = booleanLiteral(lhs);
-				Boolean bb = booleanLiteral(rhs);
+				Boolean b = treeutils.booleanLiteral(lhs);
+				Boolean bb = treeutils.booleanLiteral(rhs);
 				if (b != null) {
 					result = eresult = (b ? rhs
 							: bb != null ? treeutils.makeBooleanLiteral(that, !bb) : treeutils.makeNot(that, rhs));
@@ -16518,8 +16498,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			case inequivalenceID: {
 				rhs = convertExpr(that.rhs);
 				rhs = addImplicitConversion(that.rhs, that.type, rhs);
-				Boolean b = booleanLiteral(lhs);
-				Boolean bb = booleanLiteral(rhs);
+				Boolean b = treeutils.booleanLiteral(lhs);
+				Boolean bb = treeutils.booleanLiteral(rhs);
 				if (b != null) {
 					result = eresult = (!b ? rhs
 							: bb != null ? treeutils.makeBooleanLiteral(that, !bb) : treeutils.makeNot(that, rhs));
@@ -16542,8 +16522,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			case subtypeofID: // JML subtype
 			case subtypeofeqID: {// JML subtype
 				rhs = convertExpr(that.rhs);
-				Type lt = typeLiteral(lhs);
-				Type rt = typeLiteral(rhs);
+				Type lt = treeutils.typeLiteral(lhs);
+				Type rt = treeutils.typeLiteral(rhs);
 				if (lt != null && rt != null) {
 					boolean b = types.isSubtype(lt, rt);
 					eresult = treeutils.makeBooleanLiteral(that, b);
@@ -16563,8 +16543,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			case jsubtypeofID: // Java subtype
 			case jsubtypeofeqID: {// Java subtype
 				rhs = convertExpr(that.rhs);
-				Type lt = typeLiteral(lhs);
-				Type rt = typeLiteral(rhs);
+				Type lt = treeutils.typeLiteral(lhs);
+				Type rt = treeutils.typeLiteral(rhs);
 				if (lt != null && rt != null) {
 					boolean b = types.isSubtype(lt, rt);
 					eresult = treeutils.makeBooleanLiteral(that, b);
@@ -22130,6 +22110,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				var e3 = treeutils.makeBinary(pos, JCTree.Tag.LE, isSmallerConverted ? range.hi : convertJML(range.hi),
 						convertJML(sr.range.hi, targetEnv));
 				return treeutils.makeAnd(pos, e1, treeutils.makeAnd(pos, e2, e3));
+			} else if (sr.fields != null) {
+				//System.out.println("CARR " + receiver + " " + range + " " + sr + " : " + sr.modelFieldContents);
+				JCExpression r = treeutils.makeBooleanLiteral(pos, false);
+				if (sr.modelFieldContents != null) {
+					for (var srr: sr.modelFieldContents) {
+						var rr = containsArray(pos, targetEnv, isSmallerConverted, receiver, range, srr);
+						//System.out.println("CARR-A " + srr + " " + r + " : " + rr);
+						r = treeutils.makeBitOrSimp(pos, r, rr);
+						//System.out.println("CARR-B " + srr + " " + r );
+					}
+				}
+				//System.out.println("CARR-Z " + sr + " " + r);
+				return r;
 			} else if (sr.expression != null) {
 				return expand(pos, targetEnv, sr.expression,
 						s -> containsArray(pos, targetEnv, isSmallerConverted, receiver, range, s));
@@ -22140,6 +22133,40 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// ERROR
 			return treeutils.makeBooleanLiteral(pos, false);
 		}
+	}
+	
+	public List<JmlStoreRef> collectModelFieldContents(ClassSymbol rootClass, JCExpression receiver, VarSymbol modelField) {
+		ListBuffer<JmlStoreRef> maps = new ListBuffer<>();
+		for (Type t : parents(rootClass.type, false)) {
+			if (jmltypes.isSubtype(t, modelField.owner.type)) {
+				for (Symbol s : t.tsym.getEnclosedElements()) {
+					if (s instanceof VarSymbol vs) {
+						JmlSpecs.FieldSpecs fs = specs.getSpecs(vs);
+						if (fs != null) for (var cl : fs.list) {
+							if (cl instanceof JmlTypeClauseMaps m) {
+								for (JmlGroupName g : m.list) {
+									if (isContainedIn(g.sym, modelField)) {
+										var srs= makeJmlStoreRef(m.expression, m.expression, rootClass);
+										maps.addAll(srs);
+									}
+								}
+							}
+							if (cl instanceof JmlTypeClauseIn m) {
+								for (JmlGroupName g : m.list) {
+									if (isContainedIn(g.sym, modelField)) {
+										JmlStoreRef sr = M.at(cl).JmlStoreRef(false,null,null,receiver,null, List.<VarSymbol>of(vs),false);
+										maps.add(sr);
+									}
+								}
+							}
+						}
+
+					}
+				}
+			}
+		}
+		//System.out.println("COLLECTED " + modelField + " : " + maps);
+		return maps.toList();
 	}
 
 	public /* @ nullable */ java.util.List<JmlStatementExpr> getWellDefinedAsserts(JCExpression expr,
