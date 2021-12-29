@@ -205,6 +205,73 @@ public class typechecking extends TCBase {
                 "/A.java:2: error: incompatible types: java.lang.Object cannot be converted to boolean",16);
     }
 
+    @Test public void testStaticInvariantFor1() {
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\static_invariant_for(Integer);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor2() {
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\static_invariant_for(Integer,Object);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor2a() {
+    	main.addOptions("-lang=jml");
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\static_invariant_for(Integer,Object);\n}}"
+        		,"/A.java:2: error: A \\static_invariant_for expression expects just 1 argument, not 2",33
+        		);
+    }
+
+    @Test public void testStaticInvariantFor3() {
+        helpTCF("A.java","public class A { Integer i; void m() { \n//@ assert \\static_invariant_for(java.lang.Integer);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor4() {
+        helpTCF("A.java","public class A { void m() { \n//@ assume \\static_invariant_for(java.util.List);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor5() {
+        helpTCF("A.java","public class A { void m() { \n//@ assume \\static_invariant_for(java.util.List<Integer>);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor6() {
+        helpTCF("A.java","public class A<T> { void m() { \n//@ assume \\static_invariant_for(A<Integer>);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor7() {
+        helpTCF("A.java","public class A<T> { void m() { \n//@ assume \\static_invariant_for(A<T>);\n}}"
+        		,"/A.java:2: error: non-static type variable T cannot be referenced from a static context",36
+        		);
+    }
+
+    @Test public void testStaticInvariantFor8() {
+        helpTCF("A.java","public class A<T> { void m() { \n//@ assume \\static_invariant_for(A);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor9() {
+        helpTCF("A.java","public class A<T> { void m() { \n//@ assume \\static_invariant_for(int);\n}}"
+        		,"/A.java:2: error: The argument of \\static_invariant_for must be a reference type name: int",34
+        		);
+    }
+
+    @Test public void testStaticInvariantFor10() {
+        helpTCF("A.java","public class A<T> { void m() { \n//@ assume \\static_invariant_for(\\bigint);\n}}"
+        		,"/A.java:2: error: The argument of \\static_invariant_for must be a reference type name: \\bigint",34
+        		);
+    }
+
+    @Test public void testStaticInvariantFor11() {
+        helpTCF("A.java","public class A<T> { static int k = 0; void m() { \n//@ assume \\static_invariant_for(k);\n}}"
+        		,"/A.java:2: error: cannot find symbol\n  symbol:   class k\n  location: class A<T>",34
+        		,"/A.java:2: error: The argument of \\static_invariant_for must be a reference type name: k",34
+        		);
+    }
+
     @Test public void testInvariantFor1() {
         helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for(i);\n}}"
         		);
