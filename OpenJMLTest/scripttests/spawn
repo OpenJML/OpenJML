@@ -18,6 +18,7 @@ while [ $i -lt $ntotal ]; do
 
 done
 
+jobs -r
 echo `jobs -r | wc -l` jobs running
 wait
 echo Completed
