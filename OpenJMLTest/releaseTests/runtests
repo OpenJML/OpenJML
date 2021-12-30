@@ -23,38 +23,38 @@ rm -rf temp-release
 mkdir temp-release
 cd temp-release
 
-if [ -z ${NOZIP+x} ]; then
-## if NOZIP is not set, then test the most recent release zip
+if [ -z "${NOZIP+x}" ]; then
+## if NOZIP is not set, then test a release zip
 
-ZIP=../../OpenJDKModule/release-temp/openjml.zip
-if [ -e "$ZIP" ]; then
-  cp $ZIP .
-else
-  echo "Zip file not found" $ZIP "cwd=" `pwd` 
-  exit 1
-fi
+  ZIP=../../OpenJDKModule/release-temp/openjml.zip
+  if [ -e "$ZIP" ]; then
+    cp $ZIP .
+  else
+    echo "Zip file not found" $ZIP "cwd=" `pwd` 
+    exit 1
+  fi
   
-unzip openjml.zip > /dev/null
-OJ=`pwd`/openjml
-JV=`pwd`/openjml-java
-RT=`pwd`/jmlruntime.jar
-echo Testing release build unzipped from $ZIP
+  unzip openjml.zip > /dev/null
+  OJ=`pwd`/openjml
+  JV=`pwd`/openjml-java
+  RT=`pwd`/jmlruntime.jar
+  echo Testing release build unzipped from $ZIP
 
-elif [ -z "$OJ" ]; then
-## NOZIP was set to a null string; test the current build
+elif [ -z "$NOZIP" ]; then
+## NOZIP was set to a empty string; test the current build
 
-OJ=`pwd`/../../OpenJDKModule/openjml
-JV=`pwd`/../../OpenJDKModule/openjml-java
-RT=`pwd`/../../OpenJDKModule/jmlruntime.jar
-echo "Testing current build at $OJ"
+  OJ=`pwd`/../../OpenJDKModule/openjml
+  JV=`pwd`/../../OpenJDKModule/openjml-java
+  RT=`pwd`/../../OpenJDKModule/jmlruntime.jar
+  echo "Testing current build at $OJ"
 
 else
 ## NOZIP was set to something, use that as the openjml to test
 
-OJ="$NOZIP"
-JV="$NOZIP"-java
-RT=`pwd`/../../OpenJDKModule/jmlruntime.jar
-echo "Testing executable at $OJ"
+  OJ="$NOZIP"
+  JV="$NOZIP"-java
+  RT=`pwd`/../../OpenJDKModule/jmlruntime.jar
+  echo "Testing executable at $OJ"
 
 fi
 
