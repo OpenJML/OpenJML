@@ -310,6 +310,7 @@ public class escaccessible extends EscBase {
 
     @Test
     public void testAccessibleConditional3() {
+    	//main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires b;\n"
