@@ -26,6 +26,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 import org.jmlspecs.openjml.JmlTree.JmlSource;
+import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Kinds.KindSelector;
@@ -203,7 +204,9 @@ public abstract class IJmlClauseKind {
      * recover as best it can.  [ FIXME - return JCErroneous?]
      */
     abstract public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser);
-    
+
+    public JCExpression assertionConversion(JmlAssertionAdder aa, JCExpression expr) { return null; }
+
     protected void init(JmlParser parser) {
         Context c = context = parser.context ;
         this.syms = Symtab.instance(c);
@@ -341,6 +344,7 @@ public abstract class IJmlClauseKind {
     public static abstract class ExpressionKind extends IJmlClauseKind {
         public ExpressionKind(String keyword) { super(keyword); }
         abstract public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser);
+        public JCExpression assertionConversion(JmlAssertionAdder aa, JCExpression expr) { return null; }
     }
     
     /** This class is used for JML expressions that have a standard function-call

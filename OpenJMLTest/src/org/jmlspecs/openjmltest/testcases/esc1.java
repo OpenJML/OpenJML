@@ -803,19 +803,25 @@ public class esc1 extends EscBase {
                 + "    //@ assert pp != this;\n" // OK
                 + "  }\n"
 
-                + "  //@ requires p != null && p != this;\n" + "  //@ assigns \\everything;\n"
-                + "  public void m2(Object p) {\n" + "    Object pp = c2(p);\n" + "    //@ assert pp != p;\n" // BAD
+                + "  //@ requires p != null && p != this;\n"
+                + "  //@ assigns \\everything;\n"
+                + "  public void m2(Object p) {\n"
+                + "    Object pp = c2(p);\n"
+                + "    //@ assert pp != p;\n" // BAD
                 + "  }\n"
 
-                + "  //@ requires p != null && p != this;\n" + "  //@ assigns \\everything;\n"
-                + "  public void m3(Object p) {\n" + "    Object pp = c2(p);\n" + "    //@ assert pp != this;\n" // BAD
-                                                                                                                    // //
-                                                                                                                    // Line
-                                                                                                                    // 20
+                + "  //@ requires p != null && p != this;\n"
+                + "  //@ assigns \\everything;\n"
+                + "  public void m3(Object p) {\n"
+                + "    Object pp = c2(p);\n"
+                + "    //@ assert pp != this;\n" // BAD // Line 20
                 + "  }\n"
 
-                + "  //@ requires p != null && p != this;\n" + "  //@ assigns \\everything;\n"
-                + "  public void m4(Object p) {\n" + "    Object pp = c1(p);\n" + "    Object q = new Object();\n"
+                + "  //@ requires p != null && p != this;\n"
+                + "  //@ assigns \\everything;\n"
+                + "  public void m4(Object p) {\n"
+                + "    Object pp = c1(p);\n"
+                + "    Object q = new Object();\n"
                 + "    //@ assert pp != q;\n" // OK
                 + "  }\n"
 
@@ -827,17 +833,25 @@ public class esc1 extends EscBase {
                 + "    //@ assert pp != q;\n" // OK
                 + "  }\n"
 
-                + "  //@ assigns \\everything;\n" + "  //@ ensures \\result != null && \\fresh(\\result);\n"
-                + "  //@ ensures \\result != p && \\result != this;\n" + "  public Object m6(Object p) {\n"
+                + "  //@ assigns \\everything;\n"
+                + "  //@ ensures \\result != null && \\fresh(\\result);\n"
+                + "  //@ ensures \\result != p && \\result != this;\n"
+                + "  public Object m6(Object p) {\n"
                 + "    return new Object();\n" // Line 40
                 + "  }\n"
 
-                + "  //@ assigns \\everything;\n" + "  //@ ensures \\result == null;\n" // BAD
-                + "  public Object m6a(Object p) {\n" + "    return new Object();\n" + "  }\n"
+                + "  //@ assigns \\everything;\n"
+                + "  //@ ensures \\result == null;\n" // BAD
+                + "  public Object m6a(Object p) {\n"
+                + "    return new Object();\n"
+                + "  }\n"
 
-                + "  //@ assigns \\everything;\n" + "  //@ ensures \\result != null && \\fresh(\\result);\n"
+                + "  //@ assigns \\everything;\n"
+                + "  //@ ensures \\result != null && \\fresh(\\result);\n"
                 + "  //@ ensures \\result == p || \\result == this;\n" // BAD
-                + "  public Object m6b(Object p) {\n" + "    return new Object();\n" + "  }\n"
+                + "  public Object m6b(Object p) {\n"
+                + "    return new Object();\n"
+                + "  }\n"
 
                 + "  //@ assigns \\everything;\n" 
                 + "  //@ ensures \\result != null && !\\fresh(\\result);\n" // BAD
@@ -1415,34 +1429,61 @@ public class esc1 extends EscBase {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava",
-                "package tt; \n" + "public class TestJava { \n" + "  public int k;\n" + "  public static int sk;\n"
+                "package tt; \n"
+                		+ "public class TestJava { \n"
+                		+ "  public int k;\n"
+                		+ "  public static int sk;\n"
 
-                        + "  //@ assigns k,sk;\n" + "  public void m3() {\n" + "    //@ assume k == 0 && sk == 0;\n"
-                        + "    c2(0,this);\n" + "    //@ assert k == 0;\n" + "  }\n"
-
-                        + "  //@ assigns k,sk;\n" + "  public void m3a() {\n" + "    //@ assume k == 0 && sk == 0;\n"
-                        + "    c2(10,this);\n" + "    //@ assert k == 0;\n" // FAILS
+                        + "  //@ assigns k,sk;\n"
+                        + "  public void m3() {\n"
+                        + "    //@ assume k == 0 && sk == 0;\n"
+                        + "    c2(0,this);\n"
+                        + "    //@ assert k == 0;\n"
                         + "  }\n"
 
-                        + "  public static int[] a; public int[] b;\n" + "  //@ requires a != null && a.length == 5;\n"
-                        + "  //@ assigns a[0];\n" + "  public void m4() {\n"
-                        + "    //@ assume a[0] == 0 && a[1] == 1;\n" + "    c3(0);\n" + "    //@ assert a[1] == 1;\n"
+                        + "  //@ assigns k,sk;\n"
+                        + "  public void m3a() {\n"
+                        + "    //@ assume k == 0 && sk == 0;\n"
+                        + "    c2(10,this);\n"
+                        + "    //@ assert k == 0;\n" // FAILS
                         + "  }\n"
 
-                        + "  //@ requires a != null && a.length == 5;\n" + "  //@ assigns a[0];\n"
-                        + "  public void m4a() {\n" + "    //@ assume a[0] == 0 && a[1] == 1;\n" + "    c3(0);\n"
+                        + "  public static int[] a; public int[] b;\n"
+                        + "  //@ requires a != null && a.length == 5;\n"
+                        + "  //@ assigns a[0];\n"
+                        + "  public void m4() {\n"
+                        + "    //@ assume a[0] == 0 && a[1] == 1;\n"
+                        + "    c3(0);\n"
+                        + "    //@ assert a[1] == 1;\n"
+                        + "  }\n"
+
+                        + "  //@ requires a != null && a.length == 5;\n"
+                        + "  //@ assigns a[0];\n"
+                        + "  public void m4a() {\n"
+                        + "    //@ assume a[0] == 0 && a[1] == 1;\n"
+                        + "    c3(0);\n"
                         + "    //@ assert a[0] == 0;\n" // FAILS
                         + "  }\n"
 
-                        + "  //@ requires i == 0;\n" + "  //@ assigns k;\n" + "  //@ also requires i > 0;\n"
-                        + "  //@ assigns sk;\n" + "  public void c1(int i) { } \n"
+                        + "  //@ requires i == 0;\n"
+                        + "  //@ assigns k;\n"
+                        + "  //@ also requires i > 0;\n"
+                        + "  //@ assigns sk;\n"
+                        + "  public void c1(int i) { } \n"
 
-                        + "  //@ requires i == 10 && t != null;\n" + "  //@ assigns t.k;\n" + "  //@ also requires i == 0;\n"
-                        + "  //@ assigns \\nothing;\n" + "  public void c2(int i, TestJava t) {}\n"
+                        + "  //@ requires i == 10 && t != null;\n"
+                        + "  //@ assigns t.k;\n"
+                        + "  //@ also requires i == 0;\n"
+                        + "  //@ assigns \\nothing;\n"
+                        + "  public void c2(int i, TestJava t) {}\n"
 
-                        + "  //@ requires a!=null && 0<=i && i<a.length;\n" + "  //@ assigns a[i];\n"
-                        + "  public void c3(int i) {}\n" + "  //@ requires b!=null && 0<=i && i<b.length;\n"
-                        + "  //@ assigns b[i];\n" + "  public void c4(int i) {}\n" + "}",
+                        + "  //@ requires a!=null && 0<=i && i<a.length;\n"
+                        + "  //@ assigns a[i];\n"
+                        + "  public void c3(int i) {}\n"
+                        + "  //@ requires b!=null && 0<=i && i<b.length;\n"
+                        + "  //@ assigns b[i];\n"
+                        + "  public void c4(int i) {}\n"
+                        + "}",
                 "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m3a", 9,
                 "/tt/TestJava.java:30: warning: The prover cannot establish an assertion (Assert) in method m4a", 9);
     }
