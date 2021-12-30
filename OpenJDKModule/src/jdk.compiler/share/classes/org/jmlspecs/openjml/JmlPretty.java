@@ -966,35 +966,18 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         		print('[');
         		printExpr(that.range);
         		print(']');
-        	} else if (that.anyField) {
-        		if (that.receiver == null) {
-        			Type t = that.fields.head.owner.type;
-        			print(t.toString());
-        		} else {
-        			print(that.receiver);
-        		}
-        		print(".*");
+        	} else if (that.originalStoreRef != null) {
+        		printExpr(that.originalStoreRef);
        		
-        	} else if (!that.fields.isEmpty()) {
+        	} else if (that.field != null) {
         		if (that.receiver == null) {
-        			Type t = that.fields.head.owner.type;
+        			Type t = that.field.owner.type;
         			print(t.toString());
         		} else {
         			print(that.receiver);
         		}
         		print(".");
-        		if (that.fields.size() == 1) {
-        			print(that.fields.head.toString());
-        		} else {
-        			print("{");
-        			print(that.fields.head.toString());
-        			boolean first = true;
-        			for (var f: that.fields) {
-        				print(first ? "{" : ","); first = false;
-        				print(f.toString());
-        			}
-        			print("}");
-        		}
+        		print(that.field.toString());
         	}
         } catch (IOException e) { perr(that,e); }
 

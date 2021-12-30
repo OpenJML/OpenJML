@@ -993,17 +993,60 @@ public class JmlTreeUtils {
         return lhs;
     }
 
-    Boolean booleanLiteral(JCExpression e) {
-        if (e instanceof JCLiteral) {
-            JCLiteral lit = (JCLiteral)e;
-            if (lit.value instanceof Boolean) return (Boolean)lit.value;
-            if (e.type == syms.booleanType && lit.value instanceof Integer) return 0 != (Integer)lit.value;
+	public boolean isLiteral(JCExpression e) {
+		if (e instanceof JCLiteral) return true;
+		return null != typeLiteral(e);
+	}
+
+	public Number integralLiteral(JCExpression e) {
+		if (e instanceof JCLiteral) {
+			JCLiteral lit = (JCLiteral) e;
+			if (lit.value instanceof Number number && types.isAnyIntegral(lit.type))
+				return number;
+		}
+		return null;
+	}
+
+	public Number floatingLiteral(JCExpression e) {
+		if (e instanceof JCLiteral lit) {
+			if (lit.value instanceof Double d) return d;
+			if (lit.value instanceof Float f) return f;
+		}
+		return null;
+	}
+
+	public Type typeLiteral(JCExpression e) {
+		if (e instanceof JmlMethodInvocation) {
+			JmlMethodInvocation lit = (JmlMethodInvocation) e;
+			if (lit.kind == typelcKind)
+				return lit.args.head.type;
+		}
+		return null;
+	}
+
+    public Boolean booleanLiteral(JCExpression e) {
+        if (e instanceof JCLiteral lit) {
+            if (lit.value instanceof Boolean b) return b;
+            if (e.type.baseType() == syms.booleanType && lit.value instanceof Integer i) return 0 != i;
         }
         return null;
     }
 
     /** Makes an attributed attributed AST for a non-short-circuit boolean OR expression */
     public JCExpression makeBitOrSimp(int pos, JCExpression lhs, JCExpression ... rhs) {
+        for (JCExpression r: rhs) {
+            Boolean bl = booleanLiteral(lhs);
+            if (bl != null && bl) return lhs;
+            if (bl != null && !bl) { lhs = r; continue; }
+            Boolean b = booleanLiteral(r);
+            if (b != null && b) return r;
+            if (b != null && !b) continue;
+            lhs = makeBinary(pos,JCTree.Tag.BITOR,bitorSymbol,lhs,r);
+        }
+        return lhs;
+    }
+
+    public JCExpression makeBitOrSimp(DiagnosticPosition pos, JCExpression lhs, JCExpression ... rhs) {
         for (JCExpression r: rhs) {
             Boolean bl = booleanLiteral(lhs);
             if (bl != null && bl) return lhs;
