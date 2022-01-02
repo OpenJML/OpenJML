@@ -1194,6 +1194,33 @@ public class typechecking extends TCBase {
     		);
     }
     
+    @Test public void testSpillover1() {
+    	expectedExit = 0;
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+                "//@ requires i \n"+
+    		    "//@    > 0\n"+
+                "//@   ; ensures \\result > \n"+
+    		    "//@   0\n"+
+    		    "  public int m(int i) { return i;} \n"+
+    		    "}\n"
+    			,"/Test.java:5: warning: Inserting missing semicolon at the end of a ensures statement",8
+    		);
+    }
+    
+    @Test public void testSpillover2() {
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+                "//@ requires i \n"+
+    		    "//@    > 0\n"+
+                "//@   ensures \\result > \n"+
+    		    "//@   0\n"+
+    		    "  public int m(int i) { return i;} \n"+
+    		    "}\n"
+    			,"/Test.java:4: error: Incorrectly formed or terminated requires statement near here",7
+    		);
+    }
+    
     @Test public void testBug6a() {
         helpTCF("Test.java","public class Test {\n"
                 +"private final int my_height; /*@ in height; @*/\n"

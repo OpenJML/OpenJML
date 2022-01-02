@@ -57,7 +57,7 @@ public class JavaTokenizer extends UnicodeReader {
     /**
      * If true then prints token information after each nextToken().
      */
-    private static final boolean scannerDebug = false;
+    public static boolean scannerDebug = false;
 
     /**
      * Sentinal for non-value.
@@ -400,6 +400,7 @@ public class JavaTokenizer extends UnicodeReader {
         isTextBlock = accept("\"\"\"");
 
         if (isTextBlock) {
+        	if (scannerDebug) System.out.println("STARTING TEXT BLOCK");
             // Check if preview feature is enabled for text blocks.
             checkSourceLevel(pos, Feature.TEXT_BLOCKS);
 
@@ -417,6 +418,7 @@ public class JavaTokenizer extends UnicodeReader {
             // While characters are available.
             while (isAvailable()) {
                 if (accept("\"\"\"")) {
+                	if (scannerDebug) System.out.println("ENDING TEXT BLOCK");
                     return;
                 }
 
@@ -435,12 +437,14 @@ public class JavaTokenizer extends UnicodeReader {
                 }
             }
         } else {
+        	if (scannerDebug) System.out.println("STARTING STRING " + position() + " " + length());
             // Skip first quote.
             next();
 
             // While characters are available.
             while (isAvailable()) {
                 if (accept('\"')) {
+                	if (scannerDebug) System.out.println("ENDING STRING " + position() + " " + length());
                     return;
                 }
 
@@ -453,7 +457,8 @@ public class JavaTokenizer extends UnicodeReader {
                     scanLitChar(pos);
                 }
             }
-        }
+        	if (scannerDebug) System.out.println("UNCLOSED STRING " + position() + " " + length());
+       }
 
         // String ended without close delimiter sequence.
         lexError(pos, isTextBlock ? Errors.UnclosedTextBlock : Errors.UnclosedStrLit);
@@ -778,7 +783,7 @@ public class JavaTokenizer extends UnicodeReader {
         isTextBlock = false;
         hasEscapeSequences = false;
 
-        int pos;
+        int pos = -1;
         List<Comment> comments = null;
 
         try {
@@ -803,6 +808,7 @@ public class JavaTokenizer extends UnicodeReader {
                     next();
                     accept('\n');
                     processLineTerminator(pos, position());
+                    if (tk == TokenKind.CUSTOM) break loop;
                     break;
 
                 case 'A': case 'B': case 'C': case 'D': case 'E':
@@ -1063,6 +1069,7 @@ public class JavaTokenizer extends UnicodeReader {
                     } catch (Exception ex) {
                         // Error already reported, just use unstripped string.
                     }
+                    if (scannerDebug) System.out.println("TEXT BLOCK ::" + string + "::");
                 }
 
                 // Translate escape sequences if present.

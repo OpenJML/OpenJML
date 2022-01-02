@@ -208,22 +208,33 @@ public class JmlScanner extends Scanner {
     // printed out as scanned. The fact that SCANNER is defined is cached here so it is not looked up
     // in the system properties map on every token. If you like both the declaration of scannerDebug
     // and the override of nextToken my be deleted for production code.
-    public boolean scannerDebug = System.getenv("SCANNER") !=null;
+    public boolean scannerDebug = System.getenv("SCANNER") != null;
+    {
+    	JavaTokenizer.scannerDebug = scannerDebug;
+    }
     
     @Override
     public void nextToken() {
     	super.nextToken();
-    	// The following logic concatenates consecuive JML annotations, if there is only ignorable material between them
-    	while (jmlToken() != null && jmlToken().jmlkind == JmlTokenKind.ENDJMLCOMMENT) {
-    		token(1);
-    		if (!savedJml.get(0)) break;
-    		super.nextToken();
-    	}
         if (!savedJml.isEmpty()) {
             jmlForCurrentToken = savedJml.remove(0);
         } else {
         	jmlForCurrentToken = ((JmlTokenizer)tokenizer).jml();
         }
+        if (scannerDebug && false) System.out.println("LOOKAHEADS " + savedTokens.size() + " " + savedJml.size());
+    	// The following logic concatenates consecutive JML annotations, if there is only ignorable material between them
+    	while (jmlToken() != null && jmlToken().jmlkind == JmlTokenKind.ENDJMLCOMMENT) {
+    		var t = token(1);
+    		if (scannerDebug) System.out.println("TOKEN AFTER ENDJML " + savedJml.get(0) + " " + t.pos + " " + t + " " + t.kind + " " + t.ikind);
+    		if (!savedJml.get(0)) break;
+    		super.nextToken();
+            if (!savedJml.isEmpty()) {
+                jmlForCurrentToken = savedJml.remove(0);
+            } else {
+            	jmlForCurrentToken = ((JmlTokenizer)tokenizer).jml();
+            }
+            if (scannerDebug && false) System.out.println("LOOKAHEADS " + savedTokens.size() + " " + savedJml.size());
+    	}
     	if (scannerDebug) System.out.println("TOKEN " + jmlForCurrentToken + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
     }
 
@@ -234,6 +245,7 @@ public class JmlScanner extends Scanner {
             for (int i = savedTokens.size() ; i < lookahead ; i ++) {
                 savedTokens.add(tokenizer.readToken());
                 savedJml.add(((JmlTokenizer)tokenizer).jml());
+                if (scannerDebug) System.out.println("LOOKAHEAD " + savedTokens.size() + " " + savedTokens.get(savedTokens.size()-1) + " " + savedJml.size() + " " + savedJml.get(savedJml.size()-1));
             }
             return savedTokens.get(lookahead - 1);
         }
