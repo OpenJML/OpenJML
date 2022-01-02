@@ -6,6 +6,7 @@ package com.sun.tools.javac.parser;
 
 import java.nio.CharBuffer;
 import java.util.Set;
+import java.util.Stack;
 
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
@@ -159,8 +160,6 @@ public class JmlTokenizer extends JavadocTokenizer {
             return super.processComment(pos,endPos,style);
         }
         
-        
-        
         // Skip the first two characters (the comment marker))
         int commentStart = pos;
         reset(pos);
@@ -240,6 +239,7 @@ public class JmlTokenizer extends JavadocTokenizer {
         // Either there were no optional keys or we found the right ones, so continue to process the comment
         while (accept('@')) {} // Gobble up all leading @s
         int p = position();
+        if (scannerDebug) System.out.println("PROCESS JML COMMENT " + p);
         if (accept('#')) {
         	// Inlined Java code
         	// If the # is followed by -, then lines are skipped until another # comment
@@ -284,8 +284,18 @@ public class JmlTokenizer extends JavadocTokenizer {
             jmlcommentstyle = style;
             jml = true;
         }
+//        if (jmlcommentstyle == CommentStyle.BLOCK) {
+//        	System.out.println("PUSHING LENGTH " + length + " " + endPos);
+//        	ends.push(length);
+//            length = endPos; 
+//        }
         return null; // Tell the caller to ignore the comment - that is, to not consider it a regular comment
     }
+    
+    protected boolean isAvailable() { return position < length; }
+    public int length() { return length; }
+    protected int length = super.length();
+    public Stack<Integer> ends = new Stack<>();
 
     /** Checks comment nesting and resets to position after the comment; only call this for
      * valid JML comments, whether processed or not */
@@ -337,9 +347,10 @@ public class JmlTokenizer extends JavadocTokenizer {
         //   jmlToken, jmlTokenKind, bp, ch, endPos, tk, name
         boolean initialJml = jml;
         int pos, endPos;
-        while (true) { // The loop is just so we can easily skip a token and sscan the next one with a 'continue' 
+        while (true) { // The loop is just so we can easily skip a token and scan the next one with a 'continue' 
             jmlTokenKind = null;
             jmlTokenClauseKind = null;
+            tk = null;
             Token t = super.readToken(); // Sets tk, May modify jmlTokenKind
             pos = t.pos;
             endPos = t.endPos;
@@ -369,7 +380,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                 if (jmlTokenClauseKind == Operators.endjmlcommentKind) {
                     JmlToken jmlToken = new JmlToken(jmlTokenKind, jmlTokenClauseKind, t);
                     // FIXME - source field?
-                    // if initialJml == true and now the token is ENDJMLCOMMENT, then we had 
+                    // if initialJml == false and now the token is ENDJMLCOMMENT, then we had 
                     // an empty comment. We don't return a token in that case.
                     if (!returnEndOfCommentTokens || !initialJml) continue; // Go get next token
                     if (skippingTokens >= 0 && t.kind != TokenKind.EOF) continue;
@@ -429,6 +440,8 @@ public class JmlTokenizer extends JavadocTokenizer {
                     jmlTokenClauseKind = Operators.endjmlcommentKind;
                     jml = false;
                     endPos = position();
+//                    length = ends.pop();
+//                	System.out.println("POPPED LENGTH " + length + " " + endPos);
                     if (!returnEndOfCommentTokens || !initialJml) continue;
                 }
             } else if (tk == TokenKind.LPAREN && get() == '*') {
@@ -547,7 +560,7 @@ public class JmlTokenizer extends JavadocTokenizer {
      */
     @Override
     protected void processLineTerminator(int pos, int endPos) {
-    	tk = null;
+
         if (jml) {
             if (jmlcommentstyle == CommentStyle.LINE) {
                 jml = false;
@@ -556,12 +569,19 @@ public class JmlTokenizer extends JavadocTokenizer {
                     jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
                     jmlTokenClauseKind = Operators.endjmlcommentKind;
                 }
+            } else if (tk == Tokens.TokenKind.STRINGLITERAL) {
+            	int p = position();
+                while (Character.isWhitespace(get())) next();
+                if (is('@')) {
+                    while (is('@')) next();
+                } else {
+                	reset(p); // FIXME - may not be correct if the character just read is a ascii or unicode backslash
+                }
+
             } else {
                 // skip any whitespace followed by @ symbols
-                while (Character.isWhitespace(get()))
-                    next();
-                while (get() == '@')
-                    next();
+                while (Character.isWhitespace(get())) next();
+                while (is('@')) next();
             }
         }
         super.processLineTerminator(pos, endPos);
