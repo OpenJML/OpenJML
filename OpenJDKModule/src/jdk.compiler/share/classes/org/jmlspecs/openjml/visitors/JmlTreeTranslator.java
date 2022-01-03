@@ -487,6 +487,16 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
+    public void visitJmlStoreRef(JmlStoreRef that) {
+        JmlStoreRef r = that;
+        r.expression = translate(that.expression);
+        r.receiver = translate(that.receiver);
+        r.range = translate(that.range);
+        // Not translating pos, token, type, source, local, fields
+        result = r;
+    }
+
+    @Override
     public void visitJmlTuple(JmlTuple that) {
         JmlTuple r = that;
         r.values = translate(that.values);

@@ -45,6 +45,7 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     abstract public R visitUnary(UnaryTree node, P p);
     abstract public R visitVariable(VariableTree node, P p);
     abstract public R visitLambdaExpression(LambdaExpressionTree node, P p);
+    abstract public R visitJmlStoreRef(JmlStoreRef node, P p);
 
     public R visitAnnotation(AnnotationTree node, P p)                                  { return shouldNotBeCalled(node); }
     public R visitAssert(AssertTree node, P p)                                          { return shouldNotBeCalled(node); }

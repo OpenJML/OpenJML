@@ -261,6 +261,12 @@ public interface IJmlVisitor extends IVisitor {
         }
     }
     
+    default public void visitJmlStoreRef(JmlStoreRef tree) {
+    	scan(tree.expression);
+    	scan(tree.receiver);
+    	scan(tree.range);
+    }
+    
     default public void visitJmlTuple(JmlTuple tree) {
         for (JCExpression e: tree.values) 
             scan(e);

@@ -14,8 +14,12 @@ import javax.lang.model.type.TypeKind;
 
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.Main.JmlCanceledException;
+import org.jmlspecs.openjml.Utils.JmlNotImplementedException;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.ext.JMLPrimitiveTypes;
+import org.jmlspecs.openjml.ext.LocsetExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
 
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
@@ -42,6 +46,7 @@ import com.sun.tools.javac.comp.JmlOperators;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlToken;
+import com.sun.tools.javac.resources.javac;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
@@ -50,9 +55,11 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
+import com.sun.tools.sjavac.Source;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Position;
+import com.sun.tools.javac.util.PropagatedException;
 
 /** This class holds a number of utility functions that create fragments of AST trees
  * (using a factory); the created trees are fully type and symbol attributed and so
@@ -373,6 +380,13 @@ public class JmlTreeUtils {
         return tree;
     }
     
+    public JCIdent makeThis(DiagnosticPosition pos, Symbol sym) {
+    	JCIdent id = factory.at(pos).Ident(names._this);
+    	id.sym = sym;
+    	id.type = sym.type;
+    	return id;
+    }
+    
 //    public void replaceQuestionMarks(JCExpression tree) {
 //        if (!(tree instanceof JCTypeApply)) return;
 //        List<JCExpression> args = ((JCTypeApply)tree).arguments;
@@ -394,6 +408,11 @@ public class JmlTreeUtils {
      */
     public JCLiteral makeLit(int pos, Type type, Object value) {
         return factory.at(pos).Literal(type.getTag(), value).setType(type.constType(value));
+    }
+    
+    public JCExpression makeBigintLit(int pos, int v) {
+        return factory.at(pos).Literal(TypeTag.INT, v).setType(syms.intType.constType(v));
+        //return factory.TypeCast(JmlTypes.instance(context).BIGINT, e);
     }
     
     /** Returns true if the argument is a boolean Literal with value true */
@@ -974,17 +993,60 @@ public class JmlTreeUtils {
         return lhs;
     }
 
-    Boolean booleanLiteral(JCExpression e) {
-        if (e instanceof JCLiteral) {
-            JCLiteral lit = (JCLiteral)e;
-            if (lit.value instanceof Boolean) return (Boolean)lit.value;
-            if (e.type == syms.booleanType && lit.value instanceof Integer) return 0 != (Integer)lit.value;
+	public boolean isLiteral(JCExpression e) {
+		if (e instanceof JCLiteral) return true;
+		return null != typeLiteral(e);
+	}
+
+	public Number integralLiteral(JCExpression e) {
+		if (e instanceof JCLiteral) {
+			JCLiteral lit = (JCLiteral) e;
+			if (lit.value instanceof Number number && types.isAnyIntegral(lit.type))
+				return number;
+		}
+		return null;
+	}
+
+	public Number floatingLiteral(JCExpression e) {
+		if (e instanceof JCLiteral lit) {
+			if (lit.value instanceof Double d) return d;
+			if (lit.value instanceof Float f) return f;
+		}
+		return null;
+	}
+
+	public Type typeLiteral(JCExpression e) {
+		if (e instanceof JmlMethodInvocation) {
+			JmlMethodInvocation lit = (JmlMethodInvocation) e;
+			if (lit.kind == typelcKind)
+				return lit.args.head.type;
+		}
+		return null;
+	}
+
+    public Boolean booleanLiteral(JCExpression e) {
+        if (e instanceof JCLiteral lit) {
+            if (lit.value instanceof Boolean b) return b;
+            if (e.type.baseType() == syms.booleanType && lit.value instanceof Integer i) return 0 != i;
         }
         return null;
     }
 
     /** Makes an attributed attributed AST for a non-short-circuit boolean OR expression */
     public JCExpression makeBitOrSimp(int pos, JCExpression lhs, JCExpression ... rhs) {
+        for (JCExpression r: rhs) {
+            Boolean bl = booleanLiteral(lhs);
+            if (bl != null && bl) return lhs;
+            if (bl != null && !bl) { lhs = r; continue; }
+            Boolean b = booleanLiteral(r);
+            if (b != null && b) return r;
+            if (b != null && !b) continue;
+            lhs = makeBinary(pos,JCTree.Tag.BITOR,bitorSymbol,lhs,r);
+        }
+        return lhs;
+    }
+
+    public JCExpression makeBitOrSimp(DiagnosticPosition pos, JCExpression lhs, JCExpression ... rhs) {
         for (JCExpression r: rhs) {
             Boolean bl = booleanLiteral(lhs);
             if (bl != null && bl) return lhs;
@@ -1004,7 +1066,22 @@ public class JmlTreeUtils {
     }
 
     /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
+    public JCExpression makeImplies(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
+        return makeBinary(pos,JCTree.Tag.OR,orSymbol,
+                makeNot(pos,lhs), rhs);
+    }
+
+    /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
     public JCExpression makeImpliesSimp(int pos, JCExpression lhs, JCExpression rhs) {
+        if (isTrueLit(lhs) || isTrueLit(rhs)) return rhs;
+        else if (isFalseLit(lhs)) return makeBooleanLiteral(pos,true);
+        else if (isTrueLit(rhs)) return makeNot(pos,lhs);
+        return makeBinary(pos,JCTree.Tag.OR,orSymbol,
+                makeNot(pos,lhs), rhs);
+    }
+
+    /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
+    public JCExpression makeImpliesSimp(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
         if (isTrueLit(lhs) || isTrueLit(rhs)) return rhs;
         else if (isFalseLit(lhs)) return makeBooleanLiteral(pos,true);
         else if (isTrueLit(rhs)) return makeNot(pos,lhs);
@@ -1042,6 +1119,13 @@ public class JmlTreeUtils {
         JCFieldAccess fa = (JCFieldAccess)factory.at(pos).Select(array, syms.lengthVar);
         fa.type = syms.intType;
         return fa;
+    }
+
+    /** Makes an attributed AST for the length operation on an array less 1. */
+    public JCExpression makeLengthM1(DiagnosticPosition pos, JCExpression array) {
+        JCFieldAccess fa = (JCFieldAccess)factory.at(pos).Select(array, syms.lengthVar);
+        fa.type = JmlTypes.instance(context).BIGINT;
+        return makeBinary(pos, JCTree.Tag.MINUS, fa, one); // FIXME Perhaps have to make this a BIGINT 1
     }
 
 //    /** Makes the AST for a catch block; the name of the exception variable is
@@ -1227,6 +1311,15 @@ public class JmlTreeUtils {
         return m;
     }
     
+    /** Makes an \old expression */
+    public JCMethodInvocation makeOld(DiagnosticPosition pos, JCExpression arg, JCIdent label) {
+        JmlMethodInvocation m;
+        m = factory.at(pos).JmlMethodInvocation(oldKind, List.<JCExpression>of(arg, label));
+        m.type = arg.type;
+        m.kind = oldKind;
+        return m;
+    }
+    
     public JCMethodInvocation makeOld(DiagnosticPosition pos, JCExpression arg, JmlAssertionAdder.LabelProperties labelprop) {
         JmlMethodInvocation m;
         JCIdent id = makeIdent(pos.getStartPosition(), labelprop.name,null);
@@ -1239,6 +1332,10 @@ public class JmlTreeUtils {
     
     public JCMethodInvocation makeOld(JCExpression arg) {
         return makeOld(arg,arg);
+    }
+
+    public JCMethodInvocation makeOld(JCExpression arg, JCIdent label) {
+        return label == null ? makeOld(arg.pos(),arg) : makeOld(arg,arg,label);
     }
 
    
@@ -1353,6 +1450,15 @@ public class JmlTreeUtils {
         ListBuffer<JCExpression> a = new ListBuffer<JCExpression>();
         a.appendArray(args);
         JmlMethodInvocation call = factory.at(pos).JmlMethodInvocation(token, a.toList());
+        call.type = type;
+        call.meth = null;
+        call.typeargs = null;
+        call.varargsElement = null;
+        return call;
+    }
+    
+    public JmlMethodInvocation makeJmlMethodInvocation(DiagnosticPosition pos, IJmlClauseKind token, Type type, List<JCExpression> args) {
+        JmlMethodInvocation call = factory.at(pos).JmlMethodInvocation(token, args);
         call.type = type;
         call.meth = null;
         call.typeargs = null;
@@ -1825,6 +1931,31 @@ public class JmlTreeUtils {
  	   return a;
     }
 
-
+    public JCExpression makeLocsetUnion(DiagnosticPosition pos, List<JCExpression> locsetExprs) {
+    	return makeJmlMethodInvocation(pos, LocsetExtensions.unionKind, JMLPrimitiveTypes.locsetTypeKind.getType(context), locsetExprs);
+    }
     
+    public JCExpression makeLocset(JCExpression e) {
+    	return makeJmlMethodInvocation(e, JMLPrimitiveTypes.locsetTypeKind, JMLPrimitiveTypes.locsetTypeKind.getType(context), e);
+    }
+    
+     
+     public boolean hasWildOrRange(JCExpression e) {
+    	 if (e instanceof JCFieldAccess fa) {
+    		 if (fa.name == null) return true;
+    		 else return hasWildOrRange(fa.selected);
+    	 } else if (e instanceof JCArrayAccess aa) {
+    		 if (aa.index instanceof JmlRange r && (r.lo != r.hi || r.lo == null)) return true;
+    		 return hasWildOrRange(aa.indexed);
+    	 } else {
+    		 return false;
+    	 }
+     }
+     
+     public JCExpression makeSubset(DiagnosticPosition pos, JCExpression small, JCExpression big) {
+    	 return makeJmlMethodInvocation(pos, LocsetExtensions.subsetKind, syms.booleanType, small, big);
+     }
+     
+     
+     
 }

@@ -16,6 +16,7 @@ import java.util.Iterator;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
+import org.jmlspecs.openjml.ext.JMLPrimitiveTypes;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
 import org.jmlspecs.openjml.ext.Operators;
@@ -948,6 +949,36 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 printExpr(expr);
             }
             print(')');
+        } catch (IOException e) { perr(that,e); }
+
+    }
+
+    public void visitJmlStoreRef(JmlStoreRef that) {
+        try {
+        	if (that.isEverything) {
+        		print(JMLPrimitiveTypes.everythingKind.keyword);
+        	} else if (that.local != null) {
+        		print(that.local.toString());
+        	} else if (that.expression != null) {
+        		printExpr(that.expression);
+        	} else if (that.range != null) {
+        		printExpr(that.receiver);
+        		print('[');
+        		printExpr(that.range);
+        		print(']');
+        	} else if (that.originalStoreRef != null) {
+        		printExpr(that.originalStoreRef);
+       		
+        	} else if (that.field != null) {
+        		if (that.receiver == null) {
+        			Type t = that.field.owner.type;
+        			print(t.toString());
+        		} else {
+        			print(that.receiver);
+        		}
+        		print(".");
+        		print(that.field.toString());
+        	}
         } catch (IOException e) { perr(that,e); }
 
     }

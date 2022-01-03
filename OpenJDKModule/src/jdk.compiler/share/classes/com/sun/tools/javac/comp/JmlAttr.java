@@ -41,7 +41,6 @@ import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
-import org.jmlspecs.openjml.ext.RecommendsClause;
 import static org.jmlspecs.openjml.ext.ShowStatement.*;
 import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.parser.JmlToken;
@@ -786,6 +785,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 log.error(tree.pos, "jml.message", "Assignment not permitted for indexed immutable JML primitives");
             }
         }
+        if (tree.lhs instanceof JCFieldAccess fa) {
+        	if (fa.selected.type.tsym instanceof ClassSymbol cs) {
+        		var sp = specs.getSpecs(cs);
+        		var m = utils.findMod(sp.modifiers, Modifiers.IMMUTABLE);
+                if (m != null) {
+                    utils.error(tree.pos, "jml.message", "Fields of an object with immutable type may not be modified: " + tree.lhs + " (" + fa.selected.type + ")");
+        			utils.error(m.sourcefile, m, "jml.associated.decl.cf", utils.locationString(tree.pos));
+                }
+        	}
+        }
         if (tree.lhs.type instanceof JmlListType) {
             JmlListType lhst = (JmlListType)tree.lhs.type;
             if (!(tree.rhs.type instanceof JmlListType)) {
@@ -1457,7 +1466,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            	matchf |= (specf & Flags.SYNCHRONIZED); // binary files do not seem to always have the synchronized modifier?  FIXME
 //            	long diffs = (matchf ^ specf)&Flags.MethodFlags;
 //            	if (diffs != 0) {
-//            		boolean isEnum = (javaClassSymbol.flags() & Flags.ENUM) != 0;
+//  )          		boolean isEnum = (javaClassSymbol.flags() & Flags.ENUM) != 0;
 //            		if ((Flags.NATIVE & matchf & ~specf)!= 0) diffs &= ~Flags.NATIVE;
 //            		if (isInterface) diffs &= ~Flags.PUBLIC & ~Flags.ABSTRACT;
 //            		if (isEnum && match.isConstructor()) { specMethodDecl.mods.flags |= (matchf & 7); diffs &= ~7; } // FIXME - should only do this if specs are default
@@ -1908,8 +1917,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // A list in which to collect clauses
             ListBuffer<JmlMethodClause> commonClauses = new ListBuffer<JmlMethodClause>();
 
-            
-            
             // Desugar any specification cases
             JmlMethodSpecs newspecs;
             JCModifiers mods = methodSpecs.decl == null ? null : methodSpecs.decl.mods;
@@ -1983,7 +1990,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     protected void addDefaultClauses(JmlMethodDecl decl, JCModifiers mods, MethodSymbol msym, JCAnnotation pure, JmlSpecificationCase cs, JCExpression nnexpr) {
-        String constructorDefault = JmlOption.defaultsValue(context,"constructor","everything");
+		boolean inliningCall = mods != null && findMod(mods, Modifiers.INLINE) != null;
+		if (inliningCall) return;
+		String constructorDefault = JmlOption.defaultsValue(context,"constructor","everything");
         boolean hasAssignableClause = false;
         boolean hasAccessibleClause = false;
         boolean hasCallableClause = false;
@@ -1994,7 +2003,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 hasAssignableClause = true; 
             } else if (ct == SignalsOnlyClauseExtension.signalsOnlyClauseKind) { 
                 hasSignalsOnlyClause = true; 
-            } else if (ct == accessibleClause) { 
+            } else if (ct == accessibleClauseKind) { 
                 hasAccessibleClause = true; 
             } else if (ct == CallableClauseExtension.callableClause) { 
                 hasCallableClause = true; 
@@ -2006,18 +2015,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (findMod(mods,Modifiers.INLINE) != null) {
                 // If inlined, do not add any clauses
                 defaultClause = null;
-            } else if (pure != null || (constructorDefault.equals("pure") && msym.isConstructor())) {
-                int pos = pure != null ? pure.pos : cs.pos;
-                var kw = jmlMaker.at(pos).JmlSingleton(nothingKind);
-                defaultClause = jmlMaker.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
-                        List.<JCExpression>of(kw));
-//            } else if (decl.sym.isConstructor()) {
-//                // FIXME - or should this just be \nothing
-//                JCIdent t = jmlMaker.Ident(names._this);
-//                t.type = decl.sym.owner.type;
-//                t.sym = decl.sym.owner;
-//                defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
-//                        List.<JCExpression>of(jmlMaker.at(cs.pos).Select(t,(Name)null)));
+            } else if (pure != null || constructorDefault.equals("pure")) {
+            	if (decl.sym.isConstructor()) {
+                    // FIXME - or should this just be \nothing
+                    JCIdent t = jmlMaker.Ident(names._this);
+                    t.type = decl.sym.owner.type;
+                    t.sym = decl.sym.owner;
+                    defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
+                            List.<JCExpression>of(jmlMaker.at(cs.pos).Select(t,(Name)null)));
+            	} else {
+                    int pos = pure != null ? pure.pos : cs.pos;
+                    var kw = jmlMaker.at(pos).JmlSingleton(nothingKind);
+                    defaultClause = jmlMaker.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
+                            List.<JCExpression>of(kw));
+            	}
             } else {
                 var kw = jmlMaker.at(cs.pos).JmlSingleton(everythingKind);
                 defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
@@ -2034,14 +2045,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (findMod(mods,Modifiers.INLINE) != null) {
                 // If inlined, do not add any clauses
                 defaultClause = null;
-            } else if (msym.isConstructor()) {
-                JCIdent t = jmlMaker.Ident(names._this);
-                t.type = msym.owner.type;
-                t.sym = msym.owner;
-                defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClause,
-                        List.<JCExpression>of(t,jmlMaker.Select(t,(Name)null)));
             } else {
-                defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClause,
+                defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClauseKind,
                         List.<JCExpression>of(jmlMaker.JmlSingleton(everythingKind)));
             }
             if (defaultClause != null) {
@@ -3439,8 +3444,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     }
                 }
             }
-
         }
+//        var sr = treeutils.convertAssignableToLocsetExpression(tree,tree.list);
+//        System.out.println("SRLIST " + sr);
         jmlenv = jmlenv.pop();
         // FIXME - check the result
     }
@@ -4037,7 +4043,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			utils.error(that.hi, "jml.message", "Expected an integral type, not " + t);
     		}
     	}
-    	result = that.type = JMLPrimitiveTypes.rangeType.getType(context,env);
+    	result = that.type = JMLPrimitiveTypes.rangeTypeKind.getType(context);
     }
     
 //    public void visitJmlFunction(JmlFunction that) {
@@ -5098,7 +5104,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 owntype = jmltypes.elemtype(atype);
             else if (!atype.hasTag(ERROR))
                 utils.error(tree.indexed, "array.req.but.found", atype);
-            if (t == rangeType.getType(context,env)) {
+            if (t == rangeTypeKind.getType(context)) {
             	if (!(tree.index instanceof JmlRange)) {
             		utils.error(tree.index,"jml.message", "Index ranges are implemented only for explicit range expressions (using ..)");
             	}
@@ -5376,7 +5382,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // This is a store-ref with a wild-card field
             // FIXME - the following needs some review
             attribTree(tree.selected, env, new ResultInfo(KindSelector.of(KindSelector.TYP,KindSelector.VAR), Infer.anyPoly));
-            result = tree.type = locsetType.getType(context,env);
+            result = tree.type = locsetTypeKind.getType(context);
         } else if (tree.name.toString().startsWith("_$T")) {
             attribTree(tree.selected, env, new ResultInfo(KindSelector.VAR, Infer.anyPoly));
             int n = Integer.parseInt(tree.name.toString().substring(3));
@@ -7155,6 +7161,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         return super.check(tree, found, ownkind, resultInfo);
     } 
+    
+    public Env<AttrContext> addStatic(Env<AttrContext> env) {
+    	env.info.staticLevel++;
+    	return env;
+    }
+    
+    public Env<AttrContext> removeStatic(Env<AttrContext> env) {
+    	env.info.staticLevel--;
+    	return env;
+    }
     
     @Override
     protected void saveMethodEnv(MethodSymbol msym, Env<AttrContext> env) {

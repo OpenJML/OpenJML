@@ -48,7 +48,7 @@ public class TypeMapsClauseExtension extends JmlExtension {
                         parser.getEndPos(mods), "jml.no.mods.allowed",
                         mapsClause.name());
             parser.nextToken(); // skip over the maps token
-            JCExpression e = parseMapsTarget();
+            JCExpression e = parser.parseStoreRef(false);
             ListBuffer<JmlGroupName> glist;
             if (parser.jmlTokenClauseKind() != intoKind) {
                 utils.error(parser.pos(), parser.endPos(), "jml.expected",

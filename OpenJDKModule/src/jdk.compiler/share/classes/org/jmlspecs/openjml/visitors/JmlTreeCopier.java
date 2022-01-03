@@ -13,6 +13,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.JmlTree.JmlMatchExpression.MatchCase;
 
 import com.sun.source.tree.*;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeCopier;
 import com.sun.tools.javac.tree.JCTree.*;
@@ -634,6 +635,22 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlStoreRefListExpression copy = M.at(that.pos).JmlStoreRefListExpression(
                 that.token,
                 copy(that.list,p));
+        copy.type = that.type;
+        return copy;
+    }
+
+    @Override
+    public JCTree visitJmlStoreRef(JmlStoreRef that, Void p) {
+        JmlStoreRef copy = M.at(that.pos).JmlStoreRef(
+                that.isEverything,
+                that.local,
+                copy(that.expression,p),
+                copy(that.receiver,p),
+                copy(that.range,p),
+                that.field,
+                that.originalStoreRef
+                );
+        copy.source = that.source;
         copy.type = that.type;
         return copy;
     }
