@@ -57,7 +57,7 @@ wt
 ./run-summary log-matchClass	"49/3"  matchClasses  &
 ./run-summary log-modifiers    	"192/0" modifiers  &
 ./run-summary log-redundant+   	"107/2"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
-./run-summary log-scanner      	"80/3"	scanner  &
+./run-summary log-scanner      	"82/1"	scanner  &
 wt
 ./run-summary log-typecheck	"181/0"	typechecking &
 ./run-summary log-typeclause	"123/0"	typeclauses  &

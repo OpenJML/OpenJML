@@ -391,7 +391,7 @@ public class JavaTokenizer extends UnicodeReader {
      *
      * @param pos  position of the first character in literal.
      */
-    private void scanString(int pos) {
+    protected void scanString(int pos) { // OPENJML - private to protected
         // Assume the best.
         tk = Tokens.TokenKind.STRINGLITERAL;
         // Track the end of first line for error recovery.
@@ -923,7 +923,7 @@ public class JavaTokenizer extends UnicodeReader {
                         skipToEOLN();
 
                         // OPENJML - the guard that was here prevented processing a line comment at the end of a file
-                        // that had no terminating newline. The guard is unnecessary in any, given the
+                        // that had no terminating newline. The guard is unnecessary in any case, given the
                         // success of accept and skipToEOLN
                         comments = appendComment(comments, processComment(pos, position(), CommentStyle.LINE));
                         break;
