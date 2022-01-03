@@ -6,7 +6,8 @@ public class Test {
 	public boolean b; //@ in d;
 	public static boolean bb;
 	
-	//@ assignable b, bb, this.b, Test.bb, this.*, this.bb, this.d, a[1], a[2..3], a[*], a[1..*], a[2..3];
+	//@ requires a.length > 5;
+	//@ assignable b, bb, this.b, Test.bb, Test.*, this.*, this.bb, this.d, a[1], a[2..3], a[*], a[1..*], a[2..3];
 	public void m() {
 		
 	}
