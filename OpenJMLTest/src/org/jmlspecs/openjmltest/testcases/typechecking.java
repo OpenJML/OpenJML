@@ -1186,11 +1186,66 @@ public class typechecking extends TCBase {
     }
     
     @Test public void testComment() {
+    	expectedExit = 1;
     	helpTCF("Test.java",
     			"public class Test {\n"+
     		    "  /*@ ghost String s = \"asdf */\"; */\n"+
     		    "}\n"
-    			,"",0
+    			,"/Test.java:2: error: Unclosed string literal at end of JML annotation",30
+    			,"/Test.java:2: error: unclosed string literal",32
+    			,"/Test.java:4: error: reached end of file while parsing",1
+    		);
+    }
+    
+    @Test public void testComment2() {
+    	expectedExit = 1;
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+    	    		    "  /*@ ghost int i = 0; /* comment */\n"+
+    	    		    "  /*@ ghost int j = 0; */\n"+
+    	    		    "  /*@ ghost int k = 0; */\n"+
+    		    "}\n"
+    			,"/Test.java:2: error: Block comments may not be embedded inside JML block comments",24
+    		);
+    }
+    
+    @Test public void testComment3() {
+    	expectedExit = 1;
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+    	    		    "  /*@ ghost int i = 0;\n"+
+    	    		    "    @ ghost String j = \"  ; \n"+
+    	    		    "    @ ghost int k = 0; */\n"+
+    		    "}\n"
+    			,"/Test.java:3: error: unclosed string literal",24
+    		);
+    }
+    
+    @Test public void testSpillover1() {
+    	expectedExit = 0;
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+                "//@ requires i \n"+
+    		    "//@    > 0\n"+
+                "//@   ; ensures \\result > \n"+
+    		    "//@   0\n"+
+    		    "  public int m(int i) { return i;} \n"+
+    		    "}\n"
+    			,"/Test.java:5: warning: Inserting missing semicolon at the end of a ensures statement",8
+    		);
+    }
+    
+    @Test public void testSpillover2() {
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+                "//@ requires i \n"+
+    		    "//@    > 0\n"+
+                "//@   ensures \\result > \n"+
+    		    "//@   0\n"+
+    		    "  public int m(int i) { return i;} \n"+
+    		    "}\n"
+    			,"/Test.java:3: error: Incorrectly formed or terminated requires statement near here -- perhaps a missing semicolon",11
+    			,"/Test.java:5: warning: Inserting missing semicolon at the end of a ensures statement",8
     		);
     }
     

@@ -1,0 +1,9 @@
+test/options/TestOptions.java:4: warning: The prover cannot establish an assertion (Assert) in method n
+    //@ assert false;
+        ^
+Starting proof of TestOptions.m() with prover !!!!
+test/options/TestOptions.java:9: warning: The prover cannot establish an assertion (Assert) in method m
+    //@ assert false;
+        ^
+Completed proof of TestOptions.m() with prover !!!! - with warnings
+2 warnings
