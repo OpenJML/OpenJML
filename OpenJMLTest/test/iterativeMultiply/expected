@@ -1,0 +1,18 @@
+Proving methods in IterativeMultiply
+Starting proof of IterativeMultiply.IterativeMultiply() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IterativeMultiply.IterativeMultiply() with prover !!!! - no warnings
+Starting proof of IterativeMultiply.mul(\bigint,\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IterativeMultiply.mul(\bigint,\bigint) with prover !!!! - no warnings
+Starting proof of IterativeMultiply.mula(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IterativeMultiply.mula(int,int) with prover !!!! - no warnings
+Starting proof of IterativeMultiply.mulbv(\bigint,\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IterativeMultiply.mulbv(\bigint,\bigint) with prover !!!! - no warnings
+Completed proving methods in IterativeMultiply

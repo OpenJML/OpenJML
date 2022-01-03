@@ -1,0 +1,14 @@
+Proving methods in T
+Starting proof of T.T() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.T() with prover !!!! - no warnings
+Starting proof of T.m(int[],int[][]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.m(int[],int[][]) with prover !!!! - no warnings
+Starting proof of T.mm(int[][]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.mm(int[][]) with prover !!!! - no warnings
+Completed proving methods in T
