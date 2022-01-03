@@ -1,0 +1,8 @@
+test/textBlock2/Test.java:5: error: unclosed text block
+			"""
+			^
+test/textBlock2/Test.java:8: error: ';' expected
+			ghi
+			   ^
+Operation not performed because of parse or type errors
+2 errors

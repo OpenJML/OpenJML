@@ -4656,18 +4656,20 @@ public class esc2 extends EscBase {
                         + "  //@   requires true; \n"
                         + "  public static void m(int i, int j) {\n"
                         + "     //@ show i;\n"
-                        + "     //@ show i\n"  // WARNING
-                        + "     //@ show i i;\n" // ERROR
+                        + "     //@ show ijk\n"  // ERROR
+                        + "     //@ show i ijk;\n" // ERROR
                         + "     //@ show;\n"     
-                        + "     //@ show i\n"  // WARNING
+                        + "     //@ show ijk\n"  // ERROR
                         + "     //@ show %;\n"   // ERROR
+                        + "     //@ show ijk show ijk;\n"   // ERROR
                         + "  }\n"
                         + "}\n"
-                        ,"/tt/TestJava.java:8: warning: Inserting missing semicolon at the end of a show statement",16
+                        ,"/tt/TestJava.java:8: error: Incorrectly formed or terminated show statement near here -- perhaps a missing semicolon",18
                         ,"/tt/TestJava.java:9: error: Incorrectly formed or terminated show statement near here",17
-                        ,"/tt/TestJava.java:11: warning: Inserting missing semicolon at the end of a show statement",16
+                        ,"/tt/TestJava.java:11: error: Incorrectly formed or terminated show statement near here -- perhaps a missing semicolon",18
                         ,"/tt/TestJava.java:12: error: illegal start of expression",15
                         ,"/tt/TestJava.java:12: error: illegal start of expression",16
+                        ,"/tt/TestJava.java:13: error: Incorrectly formed or terminated show statement near here -- perhaps a missing semicolon",19
                         );
     }
 

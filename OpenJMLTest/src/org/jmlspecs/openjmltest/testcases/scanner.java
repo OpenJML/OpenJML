@@ -368,7 +368,9 @@ public class scanner extends JmlTestCase {
     @Test public void testEmbeddedJMLComment3() {
         helpScanner("/*@requires /*@ requires */ public   */ public",
                 new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML,PUBLIC,STAR,SLASH,PUBLIC,EOF},
-                new int[] {3,11,16,24,25,27,28,34,37,38,38,39,40,46,46,46});
+                new int[] {3,11,16,24,25,27,28,34,37,38,38,39,40,46,46,46},
+                1);
+        checkMessages("/TEST.java:1: error: Block comments may not be embedded inside JML block comments",13);
     }
 
     /** Test an embedded JML comment */
@@ -387,9 +389,11 @@ public class scanner extends JmlTestCase {
 
     /** Test an embedded JML comment */
     @Test public void testEmbeddedJMLComment5() {
-        helpScanner("//@requires /*@ requires\n public   */ public  ",
-                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML,PUBLIC,STAR, SLASH,PUBLIC,EOF},
-                null);
+        helpScanner("//@requires /*@ requires\n public    */ public ",
+                new ITokenKind[]{IDENTIFIER,EJML,PUBLIC,STAR, SLASH,PUBLIC,EOF},
+                new int[] {3,11,24,25,26,32,36,37,37,38,39,45,46,46},
+                1);
+        checkMessages("/TEST.java:1: error: Embedded block comment must terminate within the JML line comment",13);
     }
 
     /** Test an embedded Java comment */
@@ -408,11 +412,11 @@ public class scanner extends JmlTestCase {
 
     /** Test an embedded JML comment */
     @Test public void testEmbeddedJavaComment3() { 
-        helpScanner("//@requires /* requires ensures \n signals */ modifies ",
-                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EOF},
-                new int[]{3,11,45,53,54,54},
+        helpScanner("//@requires /* ensures \n signals */ modifies ",
+                new ITokenKind[]{IDENTIFIER,EJML,IDENTIFIER,STAR,SLASH,IDENTIFIER,EOF},
+                new int[]{3,11,23,24,25,32,33,34,34,35,36,44,45,45},
                 1);
-        checkMessages("/TEST.java:1: error: Java block comment must terminate within the JML line comment",13);
+        checkMessages("/TEST.java:1: error: Embedded block comment must terminate within the JML line comment",13);
     }
 
     /** Test an embedded Java comment */
@@ -426,7 +430,9 @@ public class scanner extends JmlTestCase {
     @Test public void testEmbeddedJavaComment6() {
         helpScanner("/*@requires /* modifies \n ensures */ ensures */ signals ",
                 new ITokenKind[]{IDENTIFIER,EJML,IDENTIFIER,STAR,SLASH,IDENTIFIER,EOF},
-                new int[]{3,11,34,36,37,44,45,46,46,47,48,55,55,55});
+                new int[]{3,11,34,36,37,44,45,46,46,47,48,55,56,56},
+                1);
+        checkMessages("/TEST.java:1: error: Block comments may not be embedded inside JML block comments",13);
     }
 
     @Test public void testLineComment1() {

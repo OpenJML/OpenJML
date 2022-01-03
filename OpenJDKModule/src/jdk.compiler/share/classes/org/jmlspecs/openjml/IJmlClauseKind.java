@@ -233,6 +233,11 @@ public abstract class IJmlClauseKind {
         } else if (parser.token().ikind == ENDJMLCOMMENT) {
             // FIXME - was -2 here, why?
             if (requireSemicolon) warning(parser.pos(), parser.endPos(), "jml.missing.semi", clauseType.name());
+        } else if (parser.token().kind != SEMI && parser.token().kind == TokenKind.IDENTIFIER && Extensions.findKeyword(parser.token().name()) != null) {
+        	int p = parser.pos();
+        	var t = scanner.prevToken();
+        	if (t.ikind == ENDJMLCOMMENT) p = t.pos;
+            error(p, p, "jml.bad.construct.missing.semi", clauseType.name() + " statement");
         } else if (parser.token().kind != SEMI) {
             error(parser.pos(), parser.endPos(), "jml.bad.construct", clauseType.name() + " statement");
             parser.skipThroughSemi();
@@ -240,7 +245,7 @@ public abstract class IJmlClauseKind {
             parser.nextToken(); // advance to the token after the semi
         }
         parser.toP(statement);
-        parser.acceptEndJML();
+        parser.acceptEndJML(); // accepts any end-jml-comment tokens, if present
     }
     
     /** Derived classes implement this method to do any typechecking of the tree, which should have
