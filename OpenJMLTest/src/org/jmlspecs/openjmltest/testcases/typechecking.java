@@ -205,6 +205,73 @@ public class typechecking extends TCBase {
                 "/A.java:2: error: incompatible types: java.lang.Object cannot be converted to boolean",16);
     }
 
+    @Test public void testStaticInvariantFor1() {
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\static_invariant_for(Integer);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor2() {
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\static_invariant_for(Integer,Object);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor2a() {
+    	main.addOptions("-lang=jml");
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\static_invariant_for(Integer,Object);\n}}"
+        		,"/A.java:2: error: A \\static_invariant_for expression expects just 1 argument, not 2",33
+        		);
+    }
+
+    @Test public void testStaticInvariantFor3() {
+        helpTCF("A.java","public class A { Integer i; void m() { \n//@ assert \\static_invariant_for(java.lang.Integer);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor4() {
+        helpTCF("A.java","public class A { void m() { \n//@ assume \\static_invariant_for(java.util.List);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor5() {
+        helpTCF("A.java","public class A { void m() { \n//@ assume \\static_invariant_for(java.util.List<Integer>);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor6() {
+        helpTCF("A.java","public class A<T> { void m() { \n//@ assume \\static_invariant_for(A<Integer>);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor7() {
+        helpTCF("A.java","public class A<T> { void m() { \n//@ assume \\static_invariant_for(A<T>);\n}}"
+        		,"/A.java:2: error: non-static type variable T cannot be referenced from a static context",36
+        		);
+    }
+
+    @Test public void testStaticInvariantFor8() {
+        helpTCF("A.java","public class A<T> { void m() { \n//@ assume \\static_invariant_for(A);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor9() {
+        helpTCF("A.java","public class A<T> { void m() { \n//@ assume \\static_invariant_for(int);\n}}"
+        		,"/A.java:2: error: The argument of \\static_invariant_for must be a reference type name: int",34
+        		);
+    }
+
+    @Test public void testStaticInvariantFor10() {
+        helpTCF("A.java","public class A<T> { void m() { \n//@ assume \\static_invariant_for(\\bigint);\n}}"
+        		,"/A.java:2: error: The argument of \\static_invariant_for must be a reference type name: \\bigint",34
+        		);
+    }
+
+    @Test public void testStaticInvariantFor11() {
+        helpTCF("A.java","public class A<T> { static int k = 0; void m() { \n//@ assume \\static_invariant_for(k);\n}}"
+        		,"/A.java:2: error: cannot find symbol\n  symbol:   class k\n  location: class A<T>",34
+        		,"/A.java:2: error: The argument of \\static_invariant_for must be a reference type name: k",34
+        		);
+    }
+
     @Test public void testInvariantFor1() {
         helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for(i);\n}}"
         		);
@@ -1116,7 +1183,70 @@ public class typechecking extends TCBase {
                 ,"/Test.java:4: warning: Do not include a datagroup in itself: height",22
                 ,"/Test.java:4: warning: Do not include a datagroup in itself: height",22
         );
-        
+    }
+    
+    @Test public void testComment() {
+    	expectedExit = 1;
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+    		    "  /*@ ghost String s = \"asdf */\"; */\n"+
+    		    "}\n"
+    			,"/Test.java:2: error: Unclosed string literal at end of JML annotation",30
+    			,"/Test.java:2: error: unclosed string literal",32
+    			,"/Test.java:4: error: reached end of file while parsing",1
+    		);
+    }
+    
+    @Test public void testComment2() {
+    	expectedExit = 1;
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+    	    		    "  /*@ ghost int i = 0; /* comment */\n"+
+    	    		    "  /*@ ghost int j = 0; */\n"+
+    	    		    "  /*@ ghost int k = 0; */\n"+
+    		    "}\n"
+    			,"/Test.java:2: error: Block comments may not be embedded inside JML block comments",24
+    		);
+    }
+    
+    @Test public void testComment3() {
+    	expectedExit = 1;
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+    	    		    "  /*@ ghost int i = 0;\n"+
+    	    		    "    @ ghost String j = \"  ; \n"+
+    	    		    "    @ ghost int k = 0; */\n"+
+    		    "}\n"
+    			,"/Test.java:3: error: unclosed string literal",24
+    		);
+    }
+    
+    @Test public void testSpillover1() {
+    	expectedExit = 0;
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+                "//@ requires i \n"+
+    		    "//@    > 0\n"+
+                "//@   ; ensures \\result > \n"+
+    		    "//@   0\n"+
+    		    "  public int m(int i) { return i;} \n"+
+    		    "}\n"
+    			,"/Test.java:5: warning: Inserting missing semicolon at the end of a ensures statement",8
+    		);
+    }
+    
+    @Test public void testSpillover2() {
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+                "//@ requires i \n"+
+    		    "//@    > 0\n"+
+                "//@   ensures \\result > \n"+
+    		    "//@   0\n"+
+    		    "  public int m(int i) { return i;} \n"+
+    		    "}\n"
+    			,"/Test.java:3: error: Incorrectly formed or terminated requires statement near here -- perhaps a missing semicolon",11
+    			,"/Test.java:5: warning: Inserting missing semicolon at the end of a ensures statement",8
+    		);
     }
     
     @Test public void testBug6a() {

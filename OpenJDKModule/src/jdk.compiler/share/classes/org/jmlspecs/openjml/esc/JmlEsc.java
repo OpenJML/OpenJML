@@ -189,6 +189,7 @@ public class JmlEsc extends JmlTreeScanner {
      */
     @Override
     public void visitMethodDef(/*@non_null*/ JCMethodDecl decl) {
+    	//System.out.println("VISITING METHOD " + decl.sym.owner + " " + decl.sym);
         if (decl.sym.isConstructor() && decl.sym.owner.isAnonymous()) {
             // Constructors for anonymous classes are not explicit. They are checked
             // in the course of instantiating the anonymous object.
@@ -288,6 +289,7 @@ public class JmlEsc extends JmlTreeScanner {
         
         String proverToUse = pickProver();
         
+        //System.out.println("DOING " + utils.abbrevMethodSig(methodDecl.sym));
         utils.progress(0,1,"Starting proof of " + utils.abbrevMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         long methodStart = System.currentTimeMillis();
         log.resetRecord();
@@ -367,6 +369,7 @@ public class JmlEsc extends JmlTreeScanner {
         } finally {
         	if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);
         	if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult(proverToUse,IProverResult.COMPLETED,methodDecl.sym));
+            //System.out.println("END " + utils.abbrevMethodSig(methodDecl.sym));
         }
         return res;
     }

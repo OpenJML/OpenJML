@@ -8,11 +8,15 @@ import static com.sun.tools.javac.code.Kinds.*;
 import static com.sun.tools.javac.code.Kinds.KindSelector.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.requiresClauseKind;
 import static org.jmlspecs.openjml.ext.RecommendsClause.*;
+import static com.sun.tools.javac.parser.Tokens.TokenKind;
+import static com.sun.tools.javac.parser.Tokens.TokenKind.LPAREN;
+import static com.sun.tools.javac.parser.Tokens.TokenKind.RPAREN;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Symtab;
@@ -29,7 +33,8 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.tree.JCTree.JCErroneous;
+import com.sun.tools.javac.util.*;
 
 public class FunctionLikeExpressions extends JmlExtension {
 
@@ -187,8 +192,8 @@ public class FunctionLikeExpressions extends JmlExtension {
         }        
     };
 
-    public static class AnyArgExpressions extends IJmlClauseKind.FunctionLikeExpressionKind {
-        public AnyArgExpressions(String name) { super(name); }
+    public static class AnyArgExpression extends IJmlClauseKind.FunctionLikeExpressionKind {
+        public AnyArgExpression(String name) { super(name); }
         
         // Unless overridden this returns the type of the first argument as the expression type
         @Override
@@ -203,8 +208,41 @@ public class FunctionLikeExpressions extends JmlExtension {
         }        
     };
     
-    public static class AnyArgBooleanExpressions extends AnyArgExpressions {
-        public AnyArgBooleanExpressions(String name) { super(name); }
+    public static class AnyArgBooleanExpression extends AnyArgExpression {
+        public AnyArgBooleanExpression(String name) { super(name); }
+        
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
+            super.typecheck(attr, expr, localEnv);
+            return Symtab.instance(context).booleanType;
+        }
+    }
+
+    public static class TypeArgBooleanExpression extends AnyArgExpression {
+        public TypeArgBooleanExpression(String name) { super(name); }
+        
+        @Override
+        public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
+            init(parser);
+            int start = parser.pos();
+            parser.nextToken();
+            int paren = parser.pos();
+            if (parser.token().kind != LPAREN) {
+                return parser.syntaxError(paren, List.<JCTree> nil(),
+                        "jml.args.required", this.name());
+            } else {
+                parser.nextToken();
+            	var args = parser.parseTypeList();
+            	JmlMethodInvocation ee = toP(parser.maker().at(paren).JmlMethodInvocation(clauseKind, args));
+            	ee.startpos = start;
+                if (parser.token().kind != RPAREN) {
+                	log.error(parser.pos(), "jml.message", "Expected a closing right parenthesis");
+                } else {
+                    parser.nextToken();
+                }
+            	return ee;
+            }
+        }
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
@@ -230,7 +268,7 @@ public class FunctionLikeExpressions extends JmlExtension {
     public static final IJmlClauseKind nowarnKind = new OneArgExpression(bsnowarnID);
 
     public static final String notModifiedID = "\\not_modified";
-    public static final IJmlClauseKind notModifiedKind = new AnyArgBooleanExpressions(notModifiedID) {
+    public static final IJmlClauseKind notModifiedKind = new AnyArgBooleanExpression(notModifiedID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
@@ -244,7 +282,7 @@ public class FunctionLikeExpressions extends JmlExtension {
     };
     
     public static final String concatID = "\\concat";
-    public static final IJmlClauseKind concatKind = new AnyArgExpressions(concatID) {
+    public static final IJmlClauseKind concatKind = new AnyArgExpression(concatID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
@@ -284,7 +322,7 @@ public class FunctionLikeExpressions extends JmlExtension {
     };
     
     public static final String invariantForID = "\\invariant_for";
-    public static final IJmlClauseKind invariantForKind = new AnyArgBooleanExpressions(invariantForID) {
+    public static final IJmlClauseKind invariantForKind = new AnyArgBooleanExpression(invariantForID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
@@ -302,10 +340,53 @@ public class FunctionLikeExpressions extends JmlExtension {
             }
             return Symtab.instance(context).booleanType;
         }
+        @Override public JCExpression assertionConversion(JmlAssertionAdder aa, JCExpression expr) {
+            JmlMethodInvocation that = (JmlMethodInvocation)expr;
+			JCExpression res = null;
+			for (JCExpression arg : that.args) {
+				JCExpression a = aa.treeutils.isATypeTree(arg) ? null
+						: aa.convertJML(arg, aa.treeutils.trueLit, false);
+				JCExpression e = aa.getInvariantAll(that, arg.type, a, true);
+				res = e == null ? res : res == null ? e : aa.treeutils.makeAnd(that, res, e);
+			}
+			if (res == null) res = aa.treeutils.trueLit;
+        	return res;
+        }
+    };
+    
+    public static final String staticInvariantForID = "\\static_invariant_for";
+    public static final IJmlClauseKind staticInvariantForKind = new TypeArgBooleanExpression(staticInvariantForID) {
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
+            JmlMethodInvocation expr = (JmlMethodInvocation)tree;
+            int n = expr.args.size();
+            if (n != 1 && requireStrictJML()) {
+                error(tree.pos(), "jml.one.arg", staticInvariantForID, n);
+            }
+            localEnv = attr.addStatic(localEnv);
+            for (JCExpression arg: expr.args) {
+                attr.attribTree(arg, localEnv, attr.new ResultInfo(KindSelector.of(TYP), Infer.anyPoly));
+                if (utils.isJavaOrJmlPrimitiveType(arg.type)) {
+                    error(arg.pos(),"jml.ref.type.required",name(),arg.type);
+                }
+            }
+            localEnv = attr.removeStatic(localEnv);
+            return Symtab.instance(context).booleanType;
+        }
+        @Override public JCExpression assertionConversion(JmlAssertionAdder aa, JCExpression expr) {
+            JmlMethodInvocation that = (JmlMethodInvocation)expr;
+ 			JCExpression res = null;
+ 			for (JCExpression arg : that.args) {
+ 				JCExpression e = aa.getInvariant(that, arg.type, arg.type, null, false);
+ 				res = e == null ? res : res == null ? e : aa.treeutils.makeAnd(that, res, e);
+ 			}
+ 			if (res == null) res = aa.treeutils.trueLit;
+         	return res;
+         }
     };
     
     public static final String nonnullelementsID = "\\nonnullelements";
-    public static final IJmlClauseKind nonnullelementsKind = new AnyArgBooleanExpressions(nonnullelementsID) {
+    public static final IJmlClauseKind nonnullelementsKind = new AnyArgBooleanExpression(nonnullelementsID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
@@ -387,7 +468,7 @@ public class FunctionLikeExpressions extends JmlExtension {
     };
     
     public static final String keyID = "\\key";
-    public static final IJmlClauseKind keyKind = new AnyArgBooleanExpressions(keyID) {
+    public static final IJmlClauseKind keyKind = new AnyArgBooleanExpression(keyID) {
         
         @Override
         public JCExpression parse(JCModifiers mods, String name, IJmlClauseKind kind, JmlParser parser) {

@@ -661,7 +661,7 @@ public class JmlParser extends JavacParser {
                     if (S.jml()) utils.setJML(mods); // Added this to mark declarations in JML annotations
                     return List.of(classOrRecordOrInterfaceOrEnumDeclaration(mods, dc));
                 } else {
-                    JCExpression t = parseType();
+                    JCExpression t = parseType(true);
                     startOfDeclaration(mods);
                     ListBuffer<JCStatement> stats =
                             variableDeclarators(mods, t, new ListBuffer<JCStatement>(), false); // FIXME - is false correcct?
@@ -1187,7 +1187,13 @@ public class JmlParser extends JavacParser {
         ListBuffer<JCExpression> args = new ListBuffer<>();
         while (true) {
         	var e = parseExpression();
-        	if (e != null) args.append(e);
+        	if (e != null) {
+        		if (e instanceof JCErroneous) {
+            		if (!(token.kind == COMMA || token.kind == SEMI || token.kind == RPAREN)) nextToken();
+        		} else {
+            		args.append(e);
+        		}
+        	}
         	if (token.kind == COMMA) {
         		nextToken();
         		continue;
@@ -1207,6 +1213,33 @@ public class JmlParser extends JavacParser {
 //            JCExpression e = parseExpression();
 //            args.append(e); // e might be a JCErroneous
 //        }
+        return args.toList();
+    }
+    
+    public List<JCExpression> parseTypeList() {
+        ListBuffer<JCExpression> args = new ListBuffer<>();
+        while (true) {
+        	var e = parseType();
+        	if (e != null) {
+        		if (e instanceof JCErroneous) {
+            		if (!(token.kind == COMMA || token.kind == SEMI || token.kind == RPAREN)) nextToken();
+        		} else {
+            		args.append(e);
+        		}
+        	}
+        	if (token.kind == COMMA) {
+        		nextToken();
+        		continue;
+        	} else if (token.kind == SEMI || token.kind == RPAREN) {
+        		break;
+        	} else if (jmlTokenKind() == ENDJMLCOMMENT) {
+        		syntaxError(pos(), null, "jml.missing.comma.rp");
+        		break;
+        	} else {
+        		syntaxError(pos(), null, "jml.missing.comma.rp");
+        		if (e == null) break;
+        	}
+        }
         return args.toList();
     }
     
@@ -2126,7 +2159,7 @@ public class JmlParser extends JavacParser {
         	int dotpos = pos();
         	nextToken();
         	if (jmlTokenKind() != JmlTokenKind.DOT_DOT) {
-        		JMLPrimitiveTypes.rangeType.parse(null, null,JMLPrimitiveTypes.rangeType, this);
+        		JMLPrimitiveTypes.rangeTypeKind.parse(null, null,JMLPrimitiveTypes.rangeTypeKind, this);
         		return jmlF.at(dotpos).JmlRange(null,null);
         	}
         } else {
@@ -2144,7 +2177,7 @@ public class JmlParser extends JavacParser {
         	} else {
         	    tt = term1Cond();
         	}
-        	JMLPrimitiveTypes.rangeType.parse(null, null,JMLPrimitiveTypes.rangeType, this);
+        	JMLPrimitiveTypes.rangeTypeKind.parse(null, null,JMLPrimitiveTypes.rangeTypeKind, this);
         	return jmlF.at(dotpos).JmlRange(t,tt);
         } else {
             return t;

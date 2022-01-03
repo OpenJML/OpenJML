@@ -32,6 +32,7 @@ import com.sun.tools.javac.code.JmlType;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Scope.NamedImportScope;
 import com.sun.tools.javac.code.Scope.StarImportScope;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
@@ -147,6 +148,8 @@ public class JmlTree {
 //        JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
 //        JmlStoreRefKeyword JmlStoreRefKeyword(IJmlClauseKind t);
         JmlStoreRefListExpression JmlStoreRefListExpression(JmlTokenKind t, List<JCExpression> list);
+        JmlStoreRef JmlStoreRef(boolean isEverything, Symbol local, JCExpression expression, JCExpression receiver, JmlRange range, VarSymbol field, JCExpression originalStoreRef);
+
         JmlTuple JmlTuple(java.util.List<JCExpression> list);
         JmlTypeClauseConditional JmlTypeClauseConditional(JCModifiers mods, IJmlClauseKind token, JCTree.JCIdent ident, JCTree.JCExpression p);
         JmlTypeClauseConstraint JmlTypeClauseConstraint(JCModifiers mods, JCExpression e, List<JmlMethodSig> sigs);
@@ -735,6 +738,15 @@ public class JmlTree {
         @Override
         public JmlStoreRefListExpression JmlStoreRefListExpression(JmlTokenKind t, List<JCExpression> list) {
             return new JmlStoreRefListExpression(pos,t,list);
+        }
+
+        @Override
+        public JmlStoreRef JmlStoreRef(boolean isEverything, Symbol local, JCExpression expression, JCExpression receiver, JmlRange range, VarSymbol field, JCExpression originalStoreRef) {
+            return new JmlStoreRef(pos,isEverything, local, expression, receiver, range, field, originalStoreRef);
+        }
+
+        public JmlStoreRef JmlStoreRef(JmlStoreRef that) {
+            return JmlStoreRef(that.isEverything, that.local, that.expression, that.receiver, that.range, that.field, that.originalStoreRef);
         }
 
         @Override
@@ -3428,6 +3440,59 @@ public class JmlTree {
                 return null; //return super.accept(v,d);
             }
         }
+    }
+    
+    /** A portmanteau of all store-ref expressions, once they have been attributed as such.
+     * So this class is not a result of parsing.
+     */
+    public static class JmlStoreRef extends JmlExpression {
+    	
+    	protected JmlStoreRef(int pos, boolean isEverything, Symbol local, JCExpression expression, JCExpression receiver, JmlRange range, VarSymbol field, JCExpression originalStoreRef) {
+    		this.pos = pos;
+    		this.isEverything = isEverything;
+    		this.local = local; // Might be 'this'
+    		this.expression = expression;
+    		this.receiver = receiver;
+    		this.range = range;
+    		this.field = field;
+    		this.originalStoreRef = originalStoreRef;
+    	}
+    	
+    	public JavaFileObject source;
+    	
+    	// Cases:
+    	// isEverything=true, other fields null: \everything
+    	// isEverything=false, local nonnull; others null: a local variable
+    	// isEverything=false, expression nonull; others null: a locset expression (expression.type is \locset
+    	// isEverything=false, range nonnull, receiver nonnull, expression null, fields null: an array range or isngle index
+    	// isEverything=false, local null, range null, expression null, receiver nonnull: a set of non-final fields of the instance
+    	// isEverything=false, local null, range null, expression null, receiver null: a set of static non-final fields
+    	public boolean isEverything;
+    	/*@ nullable */ public Symbol local;
+    	/*@ nullable */ public JCExpression expression;
+    	/*@ nullable */ public JCExpression receiver;
+    	/*@ nullable */ public JmlRange range;
+    	/*@ nullable */ public VarSymbol field;
+    	public JCExpression originalStoreRef = null;
+
+    	@Override
+		public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlStoreRef(this); 
+            } else {
+                System.out.println("A JmlStoreRefKeyword expects an IJmlVisitor, not a " + v.getClass());
+                //super.accept(v);
+            }
+		}
+		@Override
+		public <R, D> R accept(TreeVisitor<R, D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlStoreRef(this, d);
+            } else {
+                System.out.println("A JmlStoreRefKeyword expects an JmlTreeVisitor, not a " + v.getClass());
+                return null; //return super.accept(v,d);
+            }
+		}
     }
 
     /** Represents a nothing, everything or informal comment token */

@@ -989,6 +989,19 @@ public class Utils {
         return interfaces;
     }
     
+    public com.sun.tools.javac.util.List<VarSymbol> collectFields(ClassSymbol baseType, java.util.function.Predicate<VarSymbol> a) {
+    	com.sun.tools.javac.util.ListBuffer<VarSymbol> list = new com.sun.tools.javac.util.ListBuffer<VarSymbol>();
+   	    for (var cc : parents(baseType, false)) {
+   	    	for (var sym : cc.getEnclosedElements()) {
+   	    		//System.out.println("COLLECT " + sym + " " + sym.getClass() + " " + (sym instanceof VarSymbol vs && a.test(vs)));
+   	    		if (sym instanceof VarSymbol vs && a.test(vs)) list.add(vs);
+   	    	}
+   	    }
+   	    return list.toList();
+    }
+    
+
+    
     private ClassSymbol objectSym = null;
 
     // Includes self // FIXME -  review for order
@@ -1151,7 +1164,7 @@ public class Utils {
     	}
     	if (s instanceof VarSymbol) {
     		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((VarSymbol)s);
-    		return hasMod(tspecs.mods, Modifiers.SPEC_PUBLIC);
+    		return tspecs != null && hasMod(tspecs.mods, Modifiers.SPEC_PUBLIC);  // FIXME - why does this need the !=null guard
     	}
     	if (s instanceof MethodSymbol) {
     		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((MethodSymbol)s);
@@ -1198,8 +1211,6 @@ public class Utils {
         flags &= Flags.AccessFlags;
         methodFlags &= Flags.AccessFlags;
         
-        //boolean isPublic = null != JmlSpecs.instance(context).fieldSpecHasAnnotation((Symbol.VarSymbol)s,JmlTokenKind.SPEC_PUBLIC);
-        
         // If target is public, then it is jml-visible, since everyone can see it
         if (flags == Flags.PUBLIC) return true;
         if (flags == 0 && parent.isInterface()) return true;
@@ -1240,6 +1251,7 @@ public class Utils {
                 if (isJMLStatic(s) != forStatic) continue;
                 if ((s.flags() & Flags.FINAL) != 0) continue;
                 if (!includeDataGroups && jmltypes().isOnlyDataGroup(s.type)) continue;
+                //System.out.println("LVF " + owner + " " + base + " " + csym + " " + s);
                 if (!jmlvisible(s,base,csym,s.flags()&Flags.AccessFlags,baseVisibility)) continue; // FIXME - jml access flags? on base and on target?
                 list.add((Symbol.VarSymbol)s);
             }
