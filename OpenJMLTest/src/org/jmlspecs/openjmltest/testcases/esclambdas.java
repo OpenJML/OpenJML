@@ -21,7 +21,6 @@ public class esclambdas extends EscBase {
     
     @Override
     public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
         super.setUp();
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -74,7 +73,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable2() {
-    	main.addOptions("-code-math=java"); // Just to avoid ovcerflow errors
+    	main.addOptions("-code-math=java"); // Just to avoid overflow errors
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -90,7 +89,7 @@ public class esclambdas extends EscBase {
                 +"    //@ inlined_loop;\n"
                 +"    a.forEach(m->m.bump());\n"
                 +"  }\n"
-                                
+                               
                 +"}"
                 ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",19
                 );

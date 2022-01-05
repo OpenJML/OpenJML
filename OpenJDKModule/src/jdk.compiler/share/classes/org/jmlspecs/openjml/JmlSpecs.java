@@ -1020,7 +1020,7 @@ public class JmlSpecs {
         ms.decl = decl;
         ms.deSugared = null;
         JCTree.JCModifiers mods = M.at(pos).Modifiers(sym.flags() & Flags.AccessFlags);
-        if (decl != null) mods = decl.mods;
+        if (decl != null) mods = decl.mods; // Caution -- these are now aliased
         MethodSpecs mspecs = new MethodSpecs(mods,ms); // FIXME - empty instead of null modifiers?
         
         List<MethodSymbol> parents = utils.parents(sym);
@@ -1226,8 +1226,6 @@ public class JmlSpecs {
         mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
         if (decl == null) mspecs.cases.deSugared = mspecs.cases;
         if (isPureL && !isPureA) mspecs.mods.annotations = addPureAnnotation(pos, mspecs.mods.annotations);
-
-        //if (Utils.debug()) System.out.println("DEFAULTSPECS " + sym + " " + cs.hashCode());
         return mspecs;
     }
     
@@ -1257,8 +1255,8 @@ public class JmlSpecs {
     
     public com.sun.tools.javac.util.List<JCAnnotation> addAnnotation(int pos, ModifierKind mk, com.sun.tools.javac.util.List<JCAnnotation> annots) {
         JmlTree.Maker F = JmlTree.Maker.instance(context);
-        JmlAnnotation pure = makeAnnotation(pos, F, mk);
-        return annots.append(pure);
+        JmlAnnotation a = makeAnnotation(pos, F, mk);
+        return annots.append(a);
     }
     
     public JmlAnnotation makePureAnnotation(int pos, boolean withType, JmlTree.Maker F) {

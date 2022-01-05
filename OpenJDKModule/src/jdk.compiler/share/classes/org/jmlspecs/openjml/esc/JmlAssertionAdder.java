@@ -52,6 +52,7 @@ import static org.jmlspecs.openjml.ext.TypeInClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension.*;
 import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
 
+import org.jmlspecs.openjml.visitors.JmlTreeCopier;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.jmlspecs.openjml.visitors.JmlTreeSubstitute;
 
@@ -292,6 +293,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** The Name used for the result of a method */
 	final protected Name resultName;
+	
+	final protected Copier copier;
 
 	/** The symbol for the variable that holds the result of a method */
 	protected VarSymbol resultSym = null;
@@ -647,6 +650,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		this.exceptionNameCall = names.fromString(Strings.exceptionCallVarString);
 		this.terminationName = names.fromString(Strings.terminationVarString);
 		this.reader = ClassReader.instance(context);
+		this.copier = new Copier(context,M);
 		// this.reader.init(syms); // FIXME?
 		this.utilsClass = !rac ? null : reader.enterClass(names.fromString(Strings.runtimeUtilsFQName));
 		this.preLabel = treeutils.makeIdent(Position.NOPOS, Strings.preLabelBuiltin, syms.intType); // Type does not
@@ -1627,7 +1631,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		try {
 			pureCopy = true;
 			splitExpressions = false;
-			return convert(tree);
+			return copier.copy(tree,null);
 		} finally {
 			pureCopy = savedCopy;
 			splitExpressions = savedSplit;
@@ -1645,12 +1649,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			pureCopy = true;
 			splitExpressions = false;
 			pushBlock();
-			ListBuffer<T> newlist = new ListBuffer<T>();
-			for (T t : trees) {
-				newlist.add(convert(t));
-			}
+			var newlist = copier.copy(trees,null);
 			popBlock();
-			return newlist.toList();
+			return newlist;
 		} finally {
 			pureCopy = savedCopy;
 			splitExpressions = savedSplit;
@@ -1667,10 +1668,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			pureCopy = true;
 			splitExpressions = false;
 			pushBlock();
-			ListBuffer<T> newlist = new ListBuffer<T>();
-			for (T t : trees) {
-				newlist.add(convert(t));
-			}
+			var newlist = copier.copy(trees,null);
 			popBlock();
 			return newlist;
 		} finally {
@@ -1686,11 +1684,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		try {
 			pureCopy = true;
 			splitExpressions = false;
-			java.util.List<T> newlist = new java.util.LinkedList<T>();
-			for (T t : trees) {
-				newlist.add(convert(t));
-			}
-			return newlist;
+			return copier.copy(trees,null);
 		} finally {
 			pureCopy = savedCopy;
 			splitExpressions = savedSplit;
@@ -7291,6 +7285,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		result = addStat(M.at(that).Return(retValue).setType(that.type));
 	}
+	
+	@Override
+	public void visitYield(JCYield that) {
+		result = that; // FIXME
+	}
 
 	// OK
 	// FIXME - review for esc
@@ -8472,8 +8471,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					System.out.println("APPLYHELPER-B " + calleeMethodSym.owner + " " + calleeMethodSym + " "
 							+ specs.status(calleeMethodSym));
 
-			} else if (meth instanceof JCFieldAccess) {
-				JCFieldAccess fa = (JCFieldAccess) meth;
+			} else if (meth instanceof JCFieldAccess fa) {
 				if (fa.selected instanceof JCIdent && ((JCIdent) fa.selected).name == names._this) {
 					// We make a special case of this so that when 'this' is explicitly used in a
 					// parent class,
@@ -11043,7 +11041,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			List<JCExpression> trArgs, Type resultType) {
 		if (convertedReceiver instanceof JCTree.JCLambda) {
 			// Now need to apply the lambda to its arguments, by substitution
-			JCTree bl = (((JCTree.JCLambda) convertedReceiver).body);
+			JCTree bl = ((JCTree.JCLambda) convertedReceiver).body;
 			JavaFileObject lambdaSource = ((JmlTree.JmlLambda) convertedReceiver).sourceLocation;
 			JCBlock block = null;
 			if (bl instanceof JCBlock) {
@@ -11071,7 +11069,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 				VarSymbol oldSymbol = resultSym;
 				JCExpression saved = currentThisExpr;
-				currentThisExpr = lambdaLiterals.get(convertedReceiver.toString()).second;
+				currentThisExpr = lambdaLiterals.get(((JmlLambda)convertedReceiver).literal.toString()).second;
 				JavaFileObject prev = null;
 				try {
 					if (lambdaSource != null)
@@ -14654,8 +14652,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (actual != null) {
 				// Replicate the AST so we are not sharing ASTs across multiple
 				// instances of the original ID.
-//                System.out.println("VISITIDENT-K " + that + " " + inOldEnv + " " + oldenv);
 				result = eresult = convertCopy(actual);
+                //System.out.println("VISITIDENT-K " + that + " " + eresult);
 				eresult.pos = that.pos;
 				treeutils.copyEndPosition(eresult, that);
 
@@ -18050,7 +18048,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				ListBuffer<JCStatement> check = pushBlock(); // B // enclosing block, except for declaration of
 																// accumulator
 				try {
-					pureCopy = false;
+//					pureCopy = false;
 					for (Bound bound : bounds) {
 
 						JCVariableDecl indexdef = treeutils.makeVarDef(bound.decl.type, bound.decl.name, methodDecl.sym,
@@ -20154,8 +20152,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     public class Copier extends org.jmlspecs.openjml.visitors.JmlTreeCopier {
 
-		public Copier(Context context, Maker maker) {
+		public Copier(Context context, JmlTree.Maker maker) {
 			super(context, maker);
+		}
+		
+		public JCTree copy(JCTree that) {
+			return copy(that,null);
+		}
+
+		public JCExpression copy(JCExpression that) {
+			return copy(that,null);
 		}
 
 	    @Override
@@ -20170,7 +20176,38 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //	            result = eresult = that;
 //	        }
 	    }
-
+	    
+	    @Override
+	    public JCTree visitLambda(JCLambda that, Void p) {
+	    	ListBuffer<JCStatement> check = pushBlock(); // To swallow and ignore the addStat of a block in visitBlock which no longer happens
+	    	boolean saved = translatingJML;
+	    	translatingJML = false;
+	    	JmlLambda nthat = M.at(that.pos).JmlLambda(copy(that.params, null), copy(that.body, null), copy(((JmlLambda) that).jmlType));
+	    	nthat.type = that.type;
+	    	nthat.literal = (JCIdent)copy(((JmlLambda) that).literal);
+	    	nthat.sourceLocation = ((JmlLambda) that).sourceLocation;
+	    	result = eresult = nthat;
+	    	translatingJML = saved;
+	    	popBlock(that, check);
+	    	//System.out.println("COPY LAMBDA " + that + " " + nthat);
+	    	return nthat;
+	    }
+	    @Override
+	    public JCTree visitLambdaExpression(LambdaExpressionTree node, Void p) {
+	    	ListBuffer<JCStatement> check = pushBlock(); // To swallow and ignore the addStat of a block in visitBlock which no longer happens
+	    	boolean saved = translatingJML;
+	    	translatingJML = false;
+	    	JmlLambda that = (JmlLambda)node;
+	    	JmlLambda nthat = M.at(that.pos).JmlLambda(copy(that.params, null), copy(that.body, null), copy(((JmlLambda) that).jmlType));
+	    	nthat.type = that.type;
+	    	nthat.literal = (JCIdent)copy(((JmlLambda) that).literal);
+	    	nthat.sourceLocation = ((JmlLambda) that).sourceLocation;
+	    	result = eresult = nthat;
+	    	translatingJML = saved;
+	    	popBlock(that, check);
+	    	//System.out.println("COPY LAMBDAEXPR " + that + " " + nthat);
+	    	return nthat;
+	    }
     }
     
 
