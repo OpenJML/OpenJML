@@ -242,7 +242,10 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                     print(" }@*/");
                 }
                 if (jthat.literal != null) {
+                	print("[");
                     jthat.literal.accept(this);
+                	print("]");
+                    super.visitLambda(that);
                 } else {
                     super.visitLambda(that);
                 }
@@ -1015,12 +1018,12 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 tree.annotationType.toString();
             boolean isJml = s.startsWith(Strings.jmlAnnotationPackage);
             if (useJmlModifier && isJml) {
-                for (IJmlClauseKind k : Extensions.allKinds.values()) {
-                    if (k instanceof ModifierKind && ((ModifierKind)k).fullAnnotation.equals(s)) {
-                        print("/*@ " + ((ModifierKind)k).keyword + " */");
-                        return;
-                    }
-                }
+//                for (IJmlClauseKind k : Extensions.allKinds.values()) {
+//                    if (k instanceof ModifierKind && ((ModifierKind)k).fullAnnotation.equals(s)) {
+//                        print("/*@ " + ((ModifierKind)k).keyword + " */");
+//                        return;
+//                    }
+//                }
 //                for (JmlTokenKind t: JmlTokenKind.values()) {
 //                    if (t.annotationType != null && t.annotationType.toString().substring("interface ".length()).equals(s)) {
 //                        print("/*@ " + t.internedName() + " */");

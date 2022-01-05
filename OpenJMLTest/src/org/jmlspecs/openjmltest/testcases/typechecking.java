@@ -569,7 +569,7 @@ public class typechecking extends TCBase {
 
     @Test public void testQuantifierA() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n //@ requires m( (\\exists int i; 0 < i && i <10; m(i)) ); \n/*@ pure*/boolean m(int k) { return false; }\n }",
-                "/A.java:3: error: incompatible types: boolean cannot be converted to int",51);
+                "/A.java:3: error: incompatible types: boolean cannot be converted to int",19);
     }
   
     @Test public void testSetCompB() {
@@ -591,7 +591,7 @@ public class typechecking extends TCBase {
 
     @Test public void testQuantifierB() {
         helpTCF("A.java","public class A {  \n  //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \nboolean m(int k) { return false; }\n }",
-                "/A.java:2: error: incompatible types: boolean cannot be converted to int",60);
+                "/A.java:2: error: incompatible types: boolean cannot be converted to int",28);
     }
   
     @Test public void testQuantifierB2() {
@@ -633,7 +633,7 @@ public class typechecking extends TCBase {
 
     @Test public void testQuantifierC() {
         helpTCF("A.java","public class A {  \n  boolean m(int k) { //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \n return false; }\n }",
-                "/A.java:2: error: incompatible types: boolean cannot be converted to int",79
+                "/A.java:2: error: incompatible types: boolean cannot be converted to int",47
                 );
     }
     
@@ -661,7 +661,7 @@ public class typechecking extends TCBase {
     
     @Test public void testQuantifierD() {
         helpTCF("A.java","public class A { //@ ghost int j;\n  \n  boolean m(int k) { //@ set j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \n return false; }\n }"
-                ,"/A.java:3: error: incompatible types: boolean cannot be converted to int",70
+                ,"/A.java:3: error: incompatible types: boolean cannot be converted to int",38
                 );
     }
     
@@ -669,12 +669,12 @@ public class typechecking extends TCBase {
     
     @Test public void testQuantifier() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n /*@ pure*/ boolean m(int i) { return false; }\n//@ invariant m( (\\exists int i; 0 < i && i <10; m(i)) ); \n }",
-                "/A.java:4: error: incompatible types: boolean cannot be converted to int",51);
+                "/A.java:4: error: incompatible types: boolean cannot be converted to int",19);
     }
     
     @Test public void testQuantifier1() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n /*@ pure*/ boolean m(int i) { return false; }\n//@ invariant m( (\\forall int i; 0 < i && i <10; m(i)) ); \n }",
-                "/A.java:4: error: incompatible types: boolean cannot be converted to int",51);
+                "/A.java:4: error: incompatible types: boolean cannot be converted to int",19);
     }
     
     @Test public void testQuantifier2() {

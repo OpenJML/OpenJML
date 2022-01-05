@@ -18,7 +18,7 @@ alias wt="while [ \$(lsc) -gt 5 ]; do sleep 30; done"
 ## The sleeps are inserted so we don't try to run all of the tasks at once
 
 ./run-summary log-racmost       "101/0"	racArithmeticModes racdemoexamples racfeatures racJML racnew3 racnewLoops racnewWithSpecs racsystem &
-./run-summary log-racfiles     	"25/41" racfiles  &
+./run-summary log-racfiles     	"27/40" racfiles  &
 ./run-summary log-racnew       	"129/14" racnew  &
 ./run-summary log-racnew2      	"75/0"	racnew2 &
 ./run-summary log-racreadable	"0/2"	racreadable & 
@@ -61,7 +61,7 @@ wt
 wt
 ./run-summary log-typecheck	"181/0"	typechecking &
 ./run-summary log-typeclause	"123/0"	typeclauses  &
-./run-summary log-SpecsBase    	"310/?"	SpecsBase  &
+./run-summary log-SpecsBase    	"283/28"	SpecsBase  &
 ./run-summary log-SpecsEsc     	"3/0"	SpecsEsc  &
 
 
