@@ -98,8 +98,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     
     /** Deep copy of a list of nodes */
     public <T extends JCTree> ListBuffer<T> copy(/*@nullable*/ ListBuffer<T> trees, Void p) {
-        if (trees == null)
-            return null;
+        if (trees == null) return null;
         ListBuffer<T> lb = new ListBuffer<T>();
         for (T tree: trees)
             lb.append(copy(tree, p));
@@ -108,8 +107,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     /** Deep copy of a list of nodes */
     public <T extends JCTree> java.util.List<T> copy(/*@ nullable */ java.util.List<T> trees, Void p) {
-        if (trees == null)
-            return null;
+        if (trees == null) return null;
         java.util.List<T> lb = new java.util.LinkedList<T>();
         for (T tree: trees)
             lb.add(copy(tree, p));
@@ -118,8 +116,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     /** Deep copy of a list of nodes */
     public <T extends JCTree> com.sun.tools.javac.util.List<T> copy(/*@ nullable */ com.sun.tools.javac.util.List<T> trees, Void p) {
-        if (trees == null)
-            return null;
+        if (trees == null) return null;
         ListBuffer<T> lb = new ListBuffer<T>();
         for (T tree: trees)
             lb.append(copy(tree, p));

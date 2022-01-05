@@ -1601,58 +1601,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 * Does a pure copy of the tree.
 	 */
 	public /* @nullable */ <T extends JCTree> T copy(/* @nullable */ T tree) {
-		boolean savedSplit = splitExpressions;
-		pushBlock();
-		try {
-			splitExpressions = false;
-			return copier.copy(tree,null);
-		} finally {
-			splitExpressions = savedSplit;
-			popBlock();
-		}
+		return copier.copy(tree,null);
 	}
 
 	/** Does a pure copy of the list of trees */
 	public <T extends JCTree> List<T> copy(List<T> trees) {
-		if (trees == null)
-			return null;
-		boolean savedSplit = splitExpressions;
-		try {
-			splitExpressions = false;
-			pushBlock();
-			var newlist = copier.copy(trees,null);
-			popBlock();
-			return newlist;
-		} finally {
-			splitExpressions = savedSplit;
-		}
+		return copier.copy(trees,null);
 	}
 
 	/** Does a pure copy of the list of trees */
 	public <T extends JCTree> ListBuffer<T> copy(ListBuffer<T> trees) {
-		if (trees == null)
-			return null;
-		boolean savedSplit = splitExpressions;
-		try {
-			splitExpressions = false;
-			pushBlock();
-			var newlist = copier.copy(trees,null);
-			popBlock();
-			return newlist;
-		} finally {
-			splitExpressions = savedSplit;
-		}
+		return copier.copy(trees,null);
 	}
 
 	/** Does a pure copy of the list of trees */
 	public <T extends JCTree> java.util.List<T> copy(java.util.List<T> trees) {
-		boolean savedSplit = splitExpressions;
-		try {
-			splitExpressions = false;
-			return copier.copy(trees,null);
-		} finally {
-			splitExpressions = savedSplit;
-		}
+		return copier.copy(trees,null);
 	}
 
 	public IArithmeticMode pushArithMode() {
