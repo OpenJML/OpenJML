@@ -27,14 +27,12 @@ public class LineAnnotationClauses extends JmlExtension {
     public static final String allowID = "allow";
     public static final String forbidID = "forbid";
     public static final String ignoreID = "ignore";
-    public static final String nowarnID = "nowarn";
+    //public static final String nowarnID = "nowarn";
     public static final IJmlClauseKind allowClauseKind = new ExceptionLineAnnotationKind(allowID);
     public static final IJmlClauseKind forbidClauseKind = new ExceptionLineAnnotationKind(forbidID);
     public static final IJmlClauseKind ignoreClauseKind = new ExceptionLineAnnotationKind(ignoreID);
     
-    // We use ExceptionLineAnnotationKind for nowarn annotations in order to share the scan method,
-    // even though it is handled differently and does not hold a list of exceptions
-    public static final IJmlClauseKind nowarnClauseKind = new ExceptionLineAnnotationKind(nowarnID);
+    //public static final IJmlClauseKind nowarnClauseKind = new ExceptionLineAnnotationKind(nowarnID);
     
     
     public static class ExceptionLineAnnotationKind extends IJmlClauseKind.LineAnnotationKind {
@@ -50,15 +48,11 @@ public class LineAnnotationClauses extends JmlExtension {
                 int tokenPos = tokenizer.pos();
                 Token t = tokenizer.readToken();
                 if (t.kind == TokenKind.SEMI || t.ikind == JmlTokenKind.ENDJMLCOMMENT) {
-                    // No labels - for nowarn this means suppress everything
-                    // Indicate this with null
-                    if (clauseKind == nowarnClauseKind) Nowarns.instance(context).addItem(Log.instance(context).currentSource(),keywordPos,null);
-                    else {
-                    	// For allow, forbid, ignore, this means RuntimeException
-                        JCExpression qid = M.Ident(Names.instance(context).fromString("RuntimeException"));
-                        qid.pos = tokenPos;;
-                    	exprs.add(qid);
-                    }
+                    // No labels
+                	// For allow, forbid, ignore, this means RuntimeException
+                	JCExpression qid = M.Ident(Names.instance(context).fromString("RuntimeException"));
+                	qid.pos = tokenPos;;
+                	exprs.add(qid);
                 } else {
                     while (tokenizer.jml() && t.kind != TokenKind.SEMI && t.ikind != JmlTokenKind.ENDJMLCOMMENT) {
                         if (t.kind != TokenKind.IDENTIFIER){
@@ -71,9 +65,7 @@ public class LineAnnotationClauses extends JmlExtension {
                         Name name = t.name();
                         int p = t.pos;
                         t = tokenizer.readToken();
-                        if (clauseKind == nowarnClauseKind) {
-                            Nowarns.instance(context).addItem(Log.instance(context).currentSource(),tokenPos,name.toString());
-                        } else {
+                        {
                             JCExpression qid = M.Ident(name);
                             qid.pos = p;
                             while (t.kind == TokenKind.DOT) {
@@ -98,14 +90,14 @@ public class LineAnnotationClauses extends JmlExtension {
                 }
                 if (tokenizer.jmlTokenKind == JmlTokenKind.ENDJMLCOMMENT) { 
                 	// allow optional semicolon without a warning
-                    //utils.warning(t.pos, "jml.line.annotation.with.no.semicolon");
+                    utils.warning(t.pos, "jml.line.annotation.with.no.semicolon");
                     // Here we are swallowing the end of comment - we normally 
                     // expect that token in the stream. However if there is just a 
                     // nowarn, the Java scanner will not expect a standalone ENDJMLCOMMENT
                     // FIXME - check the case of //@ some JML stuff ; nowarn xx 
                     // or with /*@  -- does this parse OK
                 }
-                if (clauseKind != nowarnClauseKind) {
+                {
                     ExceptionLineAnnotation a = new ExceptionLineAnnotation();
                     a.line = tokenizer.getLineMap().getLineNumber(keywordPos);
                     a.clauseKind = clauseKind;

@@ -35,6 +35,7 @@ import javax.tools.JavaFileObject;
 public class scanner extends JmlTestCase {
 
     final static JmlTokenKind EJML = ENDJMLCOMMENT;
+    final static JmlTokenKind SJML = STARTJMLCOMMENT;
     
     ScannerFactory fac;
     
@@ -238,15 +239,15 @@ public class scanner extends JmlTestCase {
     /** Tests JML operators */
     @Test public void testOperators() {
         helpScanner("/*@ ==> <== <: <==> <=!=> <- */",
-                new ITokenKind[]{IMPLIES,REVERSE_IMPLIES,SUBTYPE_OF,EQUIVALENCE,INEQUIVALENCE,LEFT_ARROW,EJML},
-                new int[]{4,7, 8,11, 12,14, 15,19, 20,25, 26,28, 29,31});
+                new ITokenKind[]{SJML,IMPLIES,REVERSE_IMPLIES,SUBTYPE_OF,EQUIVALENCE,INEQUIVALENCE,LEFT_ARROW,EJML},
+                new int[]{0,3,4,7, 8,11, 12,14, 15,19, 20,25, 26,28, 29,31});
     }
     
     /** Tests the Java operators related to JML operators */
     @Test public void testOperators1() {
         helpScanner("/*@ ==  <=  <  */",
-                new ITokenKind[]{EQEQ,LTEQ,LT,EJML},
-                new int[]{4,6,8,10,12,13,15,17});
+                new ITokenKind[]{SJML,EQEQ,LTEQ,LT,EJML},
+                new int[]{0,3,4,6,8,10,12,13,15,17});
     }
     
     /** Tests JML operators when in Java land */
@@ -258,25 +259,25 @@ public class scanner extends JmlTestCase {
     
     @Test public void testOperators3() {
         helpScanner("/*@ <<< <<<= <: <:= @ */",
-                new ITokenKind[]{WF_LT,WF_LE,SUBTYPE_OF,SUBTYPE_OF_EQ, MONKEYS_AT,EJML},
-                new int[]{4,7, 8,12, 13,15, 16,19, 20,21, 22,24});
+                new ITokenKind[]{SJML,WF_LT,WF_LE,SUBTYPE_OF,SUBTYPE_OF_EQ, MONKEYS_AT,EJML},
+                new int[]{0,3,4,7, 8,12, 13,15, 16,19, 20,21, 22,24});
     }
     @Test public void testBadOperator() {
         helpScanner("/*@ <=! + */",
-                new ITokenKind[]{LTEQ,BANG,PLUS,EJML},
-                new int[]{4,6,6,7,8,9,10,12});
+                new ITokenKind[]{SJML,LTEQ,BANG,PLUS,EJML},
+                new int[]{0,3,4,6,6,7,8,9,10,12});
     }
 
     @Test public void testBadOperator2() {
         helpScanner("/*@ <=!= + */",
-                new ITokenKind[]{LTEQ,BANGEQ,PLUS,EJML},
-                new int[]{4,6,6,8,9,10,11,13});
+                new ITokenKind[]{SJML,LTEQ,BANGEQ,PLUS,EJML},
+                new int[]{0,3,4,6,6,8,9,10,11,13});
     }
 
     @Test public void testArrow() {  // Now a Java operator, but in JML context
         helpScanner("/*@ -> */",
-                new ITokenKind[]{ARROW,EJML},
-                new int[]{4,6,7,9});
+                new ITokenKind[]{SJML,ARROW,EJML},
+                new int[]{0,3,4,6,7,9});
     }
 
     @Test public void testArrow2() {  // Now a Java operator, in Java context
@@ -292,35 +293,35 @@ public class scanner extends JmlTestCase {
     /** Test that a backslash token is found */
     @Test public void testBackslash() {
         helpScanner("/*@ \\result */",
-                new ITokenKind[]{IDENTIFIER,EJML},
+                new ITokenKind[]{SJML,IDENTIFIER,EJML},
                 null);
     }
     
     /** Test that two immediately consecutive backslash tokens are found */
     @Test public void testBackslash1() {
         helpScanner("/*@ \\result\\result */",
-                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML},
+                new ITokenKind[]{SJML,IDENTIFIER,IDENTIFIER,EJML},
                 null);
     }
     
     /** Test that backslash tokens are found immediately after a line termination */
     @Test public void testBackslash2() {
         helpScanner("/*@ \\result \n\\result*/",
-                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML},
+                new ITokenKind[]{SJML,IDENTIFIER,IDENTIFIER,EJML},
                 null);
     }
     
     /** Test that a backslash token without the backslash is a regular identifier */
     @Test public void testBackslash3() {
         helpScanner("/*@ \\result result*/",
-                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML},
+                new ITokenKind[]{SJML,IDENTIFIER,IDENTIFIER,EJML},
                 null);
     }
     
     /** Test for an invalid backslash identifier */
     @Test public void testBackslash5() {
         helpScanner("/*@ \\xyz result*/",
-                new ITokenKind[]{ERROR,IDENTIFIER,EJML},
+                new ITokenKind[]{SJML,ERROR,IDENTIFIER,EJML},
                 null,
                 1);
         checkMessages("/TEST.java:1: error: This backslash token is unknown: \\xyz",5);
@@ -329,7 +330,7 @@ public class scanner extends JmlTestCase {
     /** Test for a JML backslash with no identifier */
     @Test public void testBackslash6() {
         helpScanner("/*@ \\ \\result*/",
-                new ITokenKind[]{ERROR,IDENTIFIER,EJML},
+                new ITokenKind[]{SJML,ERROR,IDENTIFIER,EJML},
                 null,
                 1);
         checkMessages("/TEST.java:1: error: A backslash in a JML comment expects to be followed by a valid identifier",5);
@@ -346,29 +347,29 @@ public class scanner extends JmlTestCase {
     /** Test a mismatched comment ending */
     @Test public void testMisMatchedJMLComment() {
         helpScanner("//@*/ requires",
-                new ITokenKind[]{STAR,SLASH,IDENTIFIER,EOF},
+                new ITokenKind[]{SJML,STAR,SLASH,IDENTIFIER,EOF},
                 null);
     }
 
     /** Test an empty line comment */
     @Test public void testEmptyComment() {
         helpScanner("//\n//@requires",
-                new ITokenKind[]{IDENTIFIER,EOF},
+                new ITokenKind[]{SJML,IDENTIFIER,EOF},
                 null);
     }
 
     /** Test an embedded JML comment */
     @Test public void testEmbeddedJMLComment() {
         helpScanner("//@requires //@ requires",
-                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EOF},
+                new ITokenKind[]{SJML,IDENTIFIER,IDENTIFIER,EOF},
                 null);
     }
 
     /** Test an embedded JML comment */
     @Test public void testEmbeddedJMLComment3() {
         helpScanner("/*@requires /*@ requires */ public   */ public",
-                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML,PUBLIC,STAR,SLASH,PUBLIC,EOF},
-                new int[] {3,11,16,24,25,27,28,34,37,38,38,39,40,46,46,46},
+                new ITokenKind[]{SJML,IDENTIFIER,IDENTIFIER,EJML,PUBLIC,STAR,SLASH,PUBLIC,EOF},
+                new int[] {0,3,3,11,16,24,25,27,28,34,37,38,38,39,40,46,46,46},
                 1);
         checkMessages("/TEST.java:1: error: Block comments may not be embedded inside JML block comments",13);
     }
@@ -376,22 +377,22 @@ public class scanner extends JmlTestCase {
     /** Test an embedded JML comment */
     @Test public void testEmbeddedJMLComment4() {
         helpScanner("/*@requires //@ requires  \n requires */ public",
-                new ITokenKind[]{IDENTIFIER,IDENTIFIER,IDENTIFIER,EJML,PUBLIC,EOF},
-                new int[] {3,11,16,24,28,36,37,39,40,46,46,46});
+                new ITokenKind[]{SJML,IDENTIFIER,IDENTIFIER,IDENTIFIER,EJML,PUBLIC,EOF},
+                new int[] {0,3,3,11,16,24,28,36,37,39,40,46,46,46});
     }
 
     /** Test an embedded JML comment */
     @Test public void testEmbeddedJMLComment2() {
         helpScanner("/*@requires //@ requires */ public",
-                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML,PUBLIC,EOF},
+                new ITokenKind[]{SJML,IDENTIFIER,IDENTIFIER,EJML,PUBLIC,EOF},
                 null);
     }
 
     /** Test an embedded JML comment */
     @Test public void testEmbeddedJMLComment5() {
         helpScanner("//@requires /*@ requires\n public    */ public ",
-                new ITokenKind[]{IDENTIFIER,EJML,PUBLIC,STAR, SLASH,PUBLIC,EOF},
-                new int[] {3,11,24,25,26,32,36,37,37,38,39,45,46,46},
+                new ITokenKind[]{SJML,IDENTIFIER,EJML,PUBLIC,STAR, SLASH,PUBLIC,EOF},
+                new int[] {0,3,3,11,24,25,26,32,36,37,37,38,39,45,46,46},
                 1);
         checkMessages("/TEST.java:1: error: Embedded block comment must terminate within the JML line comment",13);
     }
@@ -399,22 +400,22 @@ public class scanner extends JmlTestCase {
     /** Test an embedded Java comment */
     @Test public void testEmbeddedJavaComment() {
         helpScanner("//@requires // requires",
-                new ITokenKind[]{IDENTIFIER,EOF},
+                new ITokenKind[]{SJML,IDENTIFIER,EOF},
                 null);
     }
 
     /** Test an embedded JML comment */
     @Test public void testEmbeddedJavaComment2() {
         helpScanner("//@requires /* requires */ ensures ",
-                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EOF},
-                new int[] {3,11,27,34,35,35});
+                new ITokenKind[]{SJML,IDENTIFIER,IDENTIFIER,EOF},
+                new int[] {0,3,3,11,27,34,35,35});
     }
 
     /** Test an embedded JML comment */
     @Test public void testEmbeddedJavaComment3() { 
         helpScanner("//@requires /* ensures \n signals */ modifies ",
-                new ITokenKind[]{IDENTIFIER,EJML,IDENTIFIER,STAR,SLASH,IDENTIFIER,EOF},
-                new int[]{3,11,23,24,25,32,33,34,34,35,36,44,45,45},
+                new ITokenKind[]{SJML,IDENTIFIER,EJML,IDENTIFIER,STAR,SLASH,IDENTIFIER,EOF},
+                new int[]{0,3,3,11,23,24,25,32,33,34,34,35,36,44,45,45},
                 1);
         checkMessages("/TEST.java:1: error: Embedded block comment must terminate within the JML line comment",13);
     }
@@ -422,60 +423,60 @@ public class scanner extends JmlTestCase {
     /** Test an embedded Java comment */
     @Test public void testEmbeddedJavaComment4() {
         helpScanner("/*@requires // modifies \n ensures */ signals ",
-                new ITokenKind[]{IDENTIFIER,IDENTIFIER,EJML,IDENTIFIER,EOF},
-                new int[]{3,11,26,33,34,36,37,44,45,45});
+                new ITokenKind[]{SJML,IDENTIFIER,IDENTIFIER,EJML,IDENTIFIER,EOF},
+                new int[]{0,3,3,11,26,33,34,36,37,44,45,45});
     }
 
     /** Test an embedded Java comment (which ends a JML block comment) */
     @Test public void testEmbeddedJavaComment6() {
         helpScanner("/*@requires /* modifies \n ensures */ ensures */ signals ",
-                new ITokenKind[]{IDENTIFIER,EJML,IDENTIFIER,STAR,SLASH,IDENTIFIER,EOF},
-                new int[]{3,11,34,36,37,44,45,46,46,47,48,55,56,56},
+                new ITokenKind[]{SJML,IDENTIFIER,EJML,IDENTIFIER,STAR,SLASH,IDENTIFIER,EOF},
+                new int[]{0,3,3,11,34,36,37,44,45,46,46,47,48,55,56,56},
                 1);
         checkMessages("/TEST.java:1: error: Block comments may not be embedded inside JML block comments",13);
     }
 
     @Test public void testLineComment1() {
-        helpScanner("//@ requires",new ITokenKind[]{IDENTIFIER,EOF},null);
+        helpScanner("//@ requires",new ITokenKind[]{SJML,IDENTIFIER,EOF},null);
     }
 
     // NOTE: The scanner absorbs ending whitespace into the EOF.
     @Test public void testLineComment2() {
-        helpScanner("//@ requires\n",new ITokenKind[]{IDENTIFIER,EJML},null);
+        helpScanner("//@ requires\n",new ITokenKind[]{SJML,IDENTIFIER,EJML},null);
     }
 
     /** Test that a line comment ends with a NL character */
     @Test public void testLineComment3() {
         helpScanner("//@ requires\n ",
-                new ITokenKind[]{IDENTIFIER,EJML},
-                new int[]{4,12,12,13});
+                new ITokenKind[]{SJML,IDENTIFIER,EJML},
+                new int[]{0,3,4,12,12,13});
     }
 
     /** Test that a line comment ends with a CR character */
     @Test public void testLineComment4() {
         helpScanner("//@ requires\r ",
-                new ITokenKind[]{IDENTIFIER,EJML},
+                new ITokenKind[]{SJML,IDENTIFIER,EJML},
                 null);
     }
 
     /** Test that a line comment ends with a CR NL combination */
     @Test public void testLineComment5() {
         helpScanner("//@ requires\r\n",
-                new ITokenKind[]{IDENTIFIER,EJML},
+                new ITokenKind[]{SJML,IDENTIFIER,EJML},
                 null);
     }
 
     /** Test that JML identifiers are not found after a JML line comment ends*/
     @Test public void testLineComment6() {
         helpScanner("//@ requires\nrequires",
-                new ITokenKind[]{IDENTIFIER,EJML,IDENTIFIER},
+                new ITokenKind[]{SJML,IDENTIFIER,EJML,IDENTIFIER},
                 null);
     }
     
     /** Test that an @ at the end of a line comment is found */
     @Test public void testLineComment7() {
         helpScanner("//@ requires @\n ",
-                new ITokenKind[]{IDENTIFIER,MONKEYS_AT,EJML},
+                new ITokenKind[]{SJML,IDENTIFIER,MONKEYS_AT,EJML},
                 null);
     }
     
@@ -489,21 +490,21 @@ public class scanner extends JmlTestCase {
     /** Test an empty JML line comment */
     @Test public void testLineComment9() {
         helpScanner("//@\nrequires ",
-                new ITokenKind[]{IDENTIFIER},
+                new ITokenKind[]{SJML,EJML,IDENTIFIER},
                 null);
     }
     
     /** Test an empty JML line comment */
     @Test public void testLineComment10() {
         helpScanner("//@@@@@\nrequires ",
-                new ITokenKind[]{IDENTIFIER},
-                null);
+                new ITokenKind[]{SJML,EJML,IDENTIFIER},
+                new int[] {0,7,7,8,8,16});
     }
     
     /** Test a bad backslash */
     @Test public void testLineComment11() {
         helpScanner("//@@x\\@@@\nrequires ",
-                new ITokenKind[]{IDENTIFIER,ERROR,MONKEYS_AT,MONKEYS_AT,MONKEYS_AT,EJML,IDENTIFIER},
+                new ITokenKind[]{SJML,IDENTIFIER,ERROR,MONKEYS_AT,MONKEYS_AT,MONKEYS_AT,EJML,IDENTIFIER},
                 null,1);
         checkMessages("/TEST.java:1: error: A backslash in a JML comment expects to be followed by a valid identifier",6);
     }
@@ -511,71 +512,71 @@ public class scanner extends JmlTestCase {
     /** Test a bad backslash */
     @Test public void testLineComment11a() {
         helpScanner("//@@\\@x@@\nrequires ",
-                new ITokenKind[]{ERROR,MONKEYS_AT,IDENTIFIER,MONKEYS_AT,MONKEYS_AT,EJML,IDENTIFIER},
+                new ITokenKind[]{SJML,ERROR,MONKEYS_AT,IDENTIFIER,MONKEYS_AT,MONKEYS_AT,EJML,IDENTIFIER},
                 null,1);
         checkMessages("/TEST.java:1: error: A backslash in a JML comment expects to be followed by a valid identifier",5);
     }
     
-//    @Test public void testMultiLine() {
-//        helpScanner("/*@ requires\nrequires@*/",
-//                new ITokenKind[]{REQUIRES,REQUIRES,EJML},
-//                null);
-//    }
-//
-//    @Test public void testMultiLine1() {
-//        helpScanner("/*@ requires\n  requires@*/",
-//                new ITokenKind[]{REQUIRES,REQUIRES,EJML},
-//                null);
-//    }
-//
-//    @Test public void testMultiLine2() {
-//        helpScanner("/*@ requires\n@requires@*/",
-//                new ITokenKind[]{REQUIRES,REQUIRES,EJML},
-//                null);
-//    }
-//
-//    @Test public void testMultiLine3() {
-//        helpScanner("/*@ requires\n@@@requires@*/",
-//                new ITokenKind[]{REQUIRES,REQUIRES,EJML},
-//                null);
-//    }
-//
-//    @Test public void testMultiLine4() {
-//        helpScanner("/*@ requires\n @requires@*/",
-//                new ITokenKind[]{REQUIRES,REQUIRES,EJML},
-//                null);
-//    }
-//
-//    @Test public void testMultiLine5() {
-//        helpScanner("/*@ requires\n  @@@requires@*/",
-//                new ITokenKind[]{REQUIRES,REQUIRES,EJML},
-//                null);
-//    }
+    @Test public void testMultiLine() {
+        helpScanner("/*@ requires\nrequires@*/",
+                new ITokenKind[]{SJML,IDENTIFIER,IDENTIFIER,EJML},
+                null);
+    }
+
+    @Test public void testMultiLine1() {
+        helpScanner("/*@ requires\n  requires@*/",
+                new ITokenKind[]{SJML,IDENTIFIER,IDENTIFIER,EJML},
+                null);
+    }
+
+    @Test public void testMultiLine2() {
+        helpScanner("/*@ requires\n@requires@*/",
+                new ITokenKind[]{SJML,IDENTIFIER,IDENTIFIER,EJML},
+                null);
+    }
+
+    @Test public void testMultiLine3() {
+        helpScanner("/*@ requires\n@@@requires@*/",
+                new ITokenKind[]{SJML,IDENTIFIER,IDENTIFIER,EJML},
+                null);
+    }
+
+    @Test public void testMultiLine4() {
+        helpScanner("/*@ requires\n @requires@*/",
+                new ITokenKind[]{SJML,IDENTIFIER,IDENTIFIER,EJML},
+                null);
+    }
+
+    @Test public void testMultiLine5() {
+        helpScanner("/*@ requires\n  @@@requires@*/",
+                new ITokenKind[]{SJML,IDENTIFIER,IDENTIFIER,EJML},
+                null);
+    }
 
     @Test public void testMultiLineError() {
         helpScanner("/*@ \\result\n  @@@\\xyz@*/",
-                new ITokenKind[]{IDENTIFIER,ERROR,EJML,EOF},
-                new int[]{4,11,17,21,21,24,24,24},
+                new ITokenKind[]{SJML,IDENTIFIER,ERROR,EJML,EOF},
+                new int[]{0,3,4,11,17,21,21,24,24,24},
                 1);
         checkMessages("/TEST.java:2: error: This backslash token is unknown: \\xyz",6);
     }
 
     @Test public void testInformalComment() {
         helpScanner("/*@ \\result(* requires *)*/",
-                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EJML},
-                new int[]{4,11,11,25,25,27},
+                new ITokenKind[]{SJML,IDENTIFIER,INFORMAL_COMMENT,EJML},
+                new int[]{0,3,4,11,11,25,25,27},
                 0);
     }
     @Test public void testInformalComment2() {
         helpScanner("/*@ \\result(* requires *****)*/",
-                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EJML},
-                new int[]{4,11,11,29,29,31},
+                new ITokenKind[]{SJML,IDENTIFIER,INFORMAL_COMMENT,EJML},
+                new int[]{0,3,4,11,11,29,29,31},
                 0);
     }
     @Test public void testInformalComment3() {
         helpScanner("/*@ \\result(* requires **** *)*/",
-                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EJML},
-                new int[]{4,11,11,30,30,32},
+                new ITokenKind[]{SJML,IDENTIFIER,INFORMAL_COMMENT,EJML},
+                new int[]{0,3,4,11,11,30,30,32},
                 0);
     }
     
@@ -583,8 +584,8 @@ public class scanner extends JmlTestCase {
     // Testing an unclosed informal comment in a BLOCK comment
     @Test public void testInformalComment4() {
         helpScanner("/*@ \\result(* requires **** */",
-                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EJML},
-                new int[]{4,11,11,28,28,30},
+                new ITokenKind[]{SJML,IDENTIFIER,INFORMAL_COMMENT,EJML},
+                new int[]{0,3,4,11,11,28,28,30},
                 1);
         checkMessages("/TEST.java:1: error: The informal expression is not closed",13);
     }
@@ -592,17 +593,17 @@ public class scanner extends JmlTestCase {
     // Testing an unclosed informal comment in a BLOCK comment
     @Test public void testInformalComment4a() {
         helpScanner("/*@ \\result(* requires *\n*** */",
-                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EJML},
-                new int[]{4,11,11,29,29,31},
+                new ITokenKind[]{SJML,IDENTIFIER,INFORMAL_COMMENT,EJML},
+                new int[]{0,3,4,11,11,29,29,31},
                 1);
         checkMessages("/TEST.java:1: error: The informal expression is not closed",13);
     }
     
-    // Testing an unclosed informal comment in a BLOCK comment
+    // Testing an unclosed informal comment in an unclosed BLOCK comment
     @Test public void testInformalComment4b() {
-        helpScanner("/*@ \\result(* requires *\n*** ",
+        helpScanner("/*@ \\result(* requires *\n***  ",
                 new ITokenKind[]{ERROR,EOF},
-                null, //new int[]{4,11,11,30,30,31},
+                new int[]{0,30,30,30},
                 1);
         checkMessages("/TEST.java:1: error: unclosed comment",1);
     }
@@ -610,8 +611,8 @@ public class scanner extends JmlTestCase {
     // Testing an unclosed informal comment in a LINE comment
     @Test public void testInformalComment5() {
         helpScanner("//@ \\result(* requires **** \n public",
-                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EJML,PUBLIC,EOF},
-                new int[]{4,11,11,28,28,29,30,36,36,36},
+                new ITokenKind[]{SJML,IDENTIFIER,INFORMAL_COMMENT,EJML,PUBLIC,EOF},
+                new int[]{0,3,4,11,11,28,28,29,30,36,36,36},
                 1);
         checkMessages("/TEST.java:1: error: The informal expression is not closed",13);
     }
@@ -619,8 +620,8 @@ public class scanner extends JmlTestCase {
     // Testing an unclosed informal comment in a LINE comment
     @Test public void testInformalComment5a() {
         helpScanner("//@ \\result(* requires *****",
-                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,EOF},
-                new int[]{4,11,11,28,28,28},
+                new ITokenKind[]{SJML,IDENTIFIER,INFORMAL_COMMENT,EOF},
+                new int[]{0,3,4,11,11,28,28,28},
                 1);
         checkMessages("/TEST.java:1: error: The informal expression is not closed",13);
     }
@@ -628,8 +629,8 @@ public class scanner extends JmlTestCase {
     // Testing an unclosed informal comment in a LINE comment
     @Test public void testInformalComment6() {
         helpScanner("//@ \\result(* requires ***\"*) \" requires\n",
-                new ITokenKind[]{IDENTIFIER,INFORMAL_COMMENT,ERROR,EJML},
-                new int[]{4,11,11,29,30,40,40,41},
+                new ITokenKind[]{SJML,IDENTIFIER,INFORMAL_COMMENT,ERROR,EJML},
+                new int[]{0,3,4,11,11,29,30,40,40,41},
                 1);
         checkMessages("/TEST.java:1: error: unclosed string literal",31);
     }
@@ -686,8 +687,8 @@ public class scanner extends JmlTestCase {
     
     @Test public void testDotDot() {
         helpScanner("//@ ..",
-                new ITokenKind[]{DOT_DOT,EOF},
-                new int[]{4,6,6,6},
+                new ITokenKind[]{SJML,DOT_DOT,EOF},
+                new int[]{0,3,4,6,6,6},
                 0);
     }
     
@@ -700,7 +701,7 @@ public class scanner extends JmlTestCase {
     
     @Test public void testDotDot2a() {
         helpScanner("//@ 123..456;",
-                new ITokenKind[]{INTLITERAL,DOT_DOT,INTLITERAL,SEMI,EOF},
+                new ITokenKind[]{SJML,INTLITERAL,DOT_DOT,INTLITERAL,SEMI,EOF},
                 null,
                 0);
     }
@@ -756,7 +757,7 @@ public class scanner extends JmlTestCase {
  
     @Test public void testDotDot9() {
         helpScanner("//@ 0xApA\n ",
-                new ITokenKind[]{DOUBLELITERAL,IDENTIFIER,EJML,EOF},
+                new ITokenKind[]{SJML,DOUBLELITERAL,IDENTIFIER,EJML,EOF},
                 null,
                 1);
         checkMessages("/TEST.java:1: error: malformed floating point literal",5);
@@ -764,7 +765,7 @@ public class scanner extends JmlTestCase {
  
     @Test public void testDotDot10() {
         helpScanner("//@ 1.0eZ \n ",
-                new ITokenKind[]{DOUBLELITERAL,IDENTIFIER,EJML,EOF},
+                new ITokenKind[]{SJML,DOUBLELITERAL,IDENTIFIER,EJML,EOF},
                 null,
                 1);
         checkMessages("/TEST.java:1: error: malformed floating point literal",5);
@@ -772,7 +773,7 @@ public class scanner extends JmlTestCase {
  
     @Test public void testDotDot11() {
         helpScanner("//@ 0xA.0pZ\n ",
-                new ITokenKind[]{DOUBLELITERAL,IDENTIFIER,EJML,EOF},
+                new ITokenKind[]{SJML,DOUBLELITERAL,IDENTIFIER,EJML,EOF},
                 null,
                 1);
         checkMessages("/TEST.java:1: error: malformed floating point literal",5);
@@ -780,7 +781,7 @@ public class scanner extends JmlTestCase {
  
     @Test public void testDotDot12() {
         helpScanner("//@ 0xA.Z\n ",
-                new ITokenKind[]{DOUBLELITERAL,IDENTIFIER,EJML,EOF},
+                new ITokenKind[]{SJML,DOUBLELITERAL,IDENTIFIER,EJML,EOF},
                 null,
                 1);
         checkMessages("/TEST.java:1: error: malformed floating point literal",5);
@@ -871,6 +872,18 @@ public class scanner extends JmlTestCase {
 //                0);
 //    }
 
+    @Test public void testLeadingPosition() {
+        helpScanner(" int //@@@@@ requires ",
+                new ITokenKind[]{INT,SJML,IDENTIFIER},
+                new int[] {1,4,5,12,13,21});
+    }
+    
+    @Test public void testLeadingPosition2() {
+        helpScanner(" int /*@@@@@ requires @@*/",
+                new ITokenKind[]{INT,SJML,IDENTIFIER,EJML},
+                new int[] {1,4,5,12,13,21,22,26});
+    }
+    
 
 
 }

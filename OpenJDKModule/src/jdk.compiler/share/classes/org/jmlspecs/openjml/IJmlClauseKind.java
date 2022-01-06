@@ -236,7 +236,7 @@ public abstract class IJmlClauseKind {
         } else if (parser.token().kind != SEMI && parser.token().kind == TokenKind.IDENTIFIER && Extensions.findKeyword(parser.token().name()) != null) {
         	int p = parser.pos();
         	var t = scanner.prevToken();
-        	if (t.ikind == ENDJMLCOMMENT) p = t.pos;
+        	p = t.endPos;
             error(p, p, "jml.bad.construct.missing.semi", clauseType.name() + " statement");
         } else if (parser.token().kind != SEMI) {
             error(parser.pos(), parser.endPos(), "jml.bad.construct", clauseType.name() + " statement");

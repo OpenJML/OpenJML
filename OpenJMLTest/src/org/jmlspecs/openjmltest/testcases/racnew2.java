@@ -982,103 +982,103 @@ public class racnew2 extends RacBase {
         );        
     }
     
-    @Test public void testNoWarn() { 
-        helpTCX("tt.A","package tt; public class A { \n"
-                +"static public int i = 0;  \n "
-                +"//@ ensures i == 0; \n "
-                +"static public void m(int j) { i = j; }  \n "
-                +"public static void main(String[] args) { \n"
-                +"m(1); \n"
-                +"System.out.println(\"MID\"); \n"
-                +"m(2); //@ nowarn Postcondition; \n"
-                +"System.out.println(\"MID\"); \n"
-                +"m(3); //@ nowarn; \n"
-                +"System.out.println(\"MID\"); \n"
-                +"m(4); //@ nowarn InvariantExit; \n"
-                +"System.out.println(\"MID\"); \n"
-                +"m(5); //@ nowarn InvariantExit,Postcondition; \n"
-                +"System.out.println(\"END\"); \n"
-                +"}}"
-                ,"/tt/A.java:4: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
-                ,"/tt/A.java:6: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration: /tt/A.java:6:"
-                ,"MID"
-                ,"/tt/A.java:4: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
-                ,"MID"
-                ,"/tt/A.java:4: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
-                ,"MID"
-                ,"/tt/A.java:4: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
-                ,"/tt/A.java:12: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration: /tt/A.java:12:"
-                ,"MID"
-                ,"/tt/A.java:4: JML postcondition is false"
-                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
-                ,"END"
-                );
-    }
-
-
-    @Test public void testNoWarn1() { 
-        helpTCX("tt.A","package tt; public class A { \n"
-                +"//@ public invariant i == 0; \n "
-                +"public int i = 0;  \n "
-                +"void m(int j) { i = j; }  //@ nowarn InvariantExit; \n "
-                +"public static void main(String[] args) { \n"
-                +"new A().m(1); //@ nowarn InvariantExit, InvariantReenterCaller \n"
-                +"System.out.println(\"END\"); \n"
-                +"}}"
-                ,"END"
-                );
-    }
-
-    @Test public void testNoWarn2() { 
-        helpTCX("tt.A","package tt; public class A { \n"
-                +"//@ public invariant i == 0; \n"
-                +"public int i = 0;  \n"
-                +"void m(int j) { i = j; }  //@ nowarn ; \n"
-                +"public static void main(String[] args) { \n"
-                +"new A().m(1); //@ nowarn \n"
-                +"System.out.println(\"END\"); \n"
-                +"}}"
-                ,"END"
-                );
-    }
-
-    @Test public void testNoWarn3() { 
-        helpTCX("tt.A","package tt; public class A { \n"
-                +"//@ public invariant i == 0; \n "
-                +"public int i = 0;  \n "
-                +"void m(int j) { i = j; }  //@ nowarn Precondition ; \n "
-                +"public static void main(String[] args) { \n"
-                +"new A().m(1); \n"
-                +"System.out.println(\"END\"); \n"
-                +"}}"
-                ,"/tt/A.java:4: verify: JML invariant is false on leaving method tt.A.m(int)"
-                ,"/tt/A.java:2: verify: Associated declaration: /tt/A.java:4:"
-                ,"/tt/A.java:6: verify: JML invariant is false on leaving method tt.A.m(int), returning to tt.A.main(java.lang.String[])"
-                ,"/tt/A.java:2: verify: Associated declaration: /tt/A.java:6:"
-                ,"/tt/A.java:6: verify: JML caller invariant is false on reentering calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m(int))"
-                ,"/tt/A.java:2: verify: Associated declaration: /tt/A.java:6:"
-                ,"END"
-                );
-    }
-
-    @Test public void testNoWarn4() { 
-        helpTCX("tt.A","package tt; public class A { \n"
-                +"//@ invariant i == 0; \n "
-                +"int i = 0;  \n "
-                +"void m(int j) { i = j; }  //@ nowarn Precondition, InvariantExit; \n "
-                +"public static void main(String[] args) { \n"
-                +"new A().m(1); //@ nowarn InvariantExit, InvariantReenterCaller ; \n"
-                +"System.out.println(\"END\"); \n"
-                +"}}"
-                ,"END"
-                );
-    }
+//    @Test public void testNoWarn() { 
+//        helpTCX("tt.A","package tt; public class A { \n"
+//                +"static public int i = 0;  \n "
+//                +"//@ ensures i == 0; \n "
+//                +"static public void m(int j) { i = j; }  \n "
+//                +"public static void main(String[] args) { \n"
+//                +"m(1); \n"
+//                +"System.out.println(\"MID\"); \n"
+//                +"m(2); //@ nowarn Postcondition; \n"
+//                +"System.out.println(\"MID\"); \n"
+//                +"m(3); //@ nowarn; \n"
+//                +"System.out.println(\"MID\"); \n"
+//                +"m(4); //@ nowarn InvariantExit; \n"
+//                +"System.out.println(\"MID\"); \n"
+//                +"m(5); //@ nowarn InvariantExit,Postcondition; \n"
+//                +"System.out.println(\"END\"); \n"
+//                +"}}"
+//                ,"/tt/A.java:4: JML postcondition is false"
+//                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
+//                ,"/tt/A.java:6: JML postcondition is false"
+//                ,"/tt/A.java:3: Associated declaration: /tt/A.java:6:"
+//                ,"MID"
+//                ,"/tt/A.java:4: JML postcondition is false"
+//                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
+//                ,"MID"
+//                ,"/tt/A.java:4: JML postcondition is false"
+//                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
+//                ,"MID"
+//                ,"/tt/A.java:4: JML postcondition is false"
+//                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
+//                ,"/tt/A.java:12: JML postcondition is false"
+//                ,"/tt/A.java:3: Associated declaration: /tt/A.java:12:"
+//                ,"MID"
+//                ,"/tt/A.java:4: JML postcondition is false"
+//                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
+//                ,"END"
+//                );
+//    }
+//
+//
+//    @Test public void testNoWarn1() { 
+//        helpTCX("tt.A","package tt; public class A { \n"
+//                +"//@ public invariant i == 0; \n "
+//                +"public int i = 0;  \n "
+//                +"void m(int j) { i = j; }  //@ nowarn InvariantExit; \n "
+//                +"public static void main(String[] args) { \n"
+//                +"new A().m(1); //@ nowarn InvariantExit, InvariantReenterCaller \n"
+//                +"System.out.println(\"END\"); \n"
+//                +"}}"
+//                ,"END"
+//                );
+//    }
+//
+//    @Test public void testNoWarn2() { 
+//        helpTCX("tt.A","package tt; public class A { \n"
+//                +"//@ public invariant i == 0; \n"
+//                +"public int i = 0;  \n"
+//                +"void m(int j) { i = j; }  //@ nowarn ; \n"
+//                +"public static void main(String[] args) { \n"
+//                +"new A().m(1); //@ nowarn \n"
+//                +"System.out.println(\"END\"); \n"
+//                +"}}"
+//                ,"END"
+//                );
+//    }
+//
+//    @Test public void testNoWarn3() { 
+//        helpTCX("tt.A","package tt; public class A { \n"
+//                +"//@ public invariant i == 0; \n "
+//                +"public int i = 0;  \n "
+//                +"void m(int j) { i = j; }  //@ nowarn Precondition ; \n "
+//                +"public static void main(String[] args) { \n"
+//                +"new A().m(1); \n"
+//                +"System.out.println(\"END\"); \n"
+//                +"}}"
+//                ,"/tt/A.java:4: verify: JML invariant is false on leaving method tt.A.m(int)"
+//                ,"/tt/A.java:2: verify: Associated declaration: /tt/A.java:4:"
+//                ,"/tt/A.java:6: verify: JML invariant is false on leaving method tt.A.m(int), returning to tt.A.main(java.lang.String[])"
+//                ,"/tt/A.java:2: verify: Associated declaration: /tt/A.java:6:"
+//                ,"/tt/A.java:6: verify: JML caller invariant is false on reentering calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m(int))"
+//                ,"/tt/A.java:2: verify: Associated declaration: /tt/A.java:6:"
+//                ,"END"
+//                );
+//    }
+//
+//    @Test public void testNoWarn4() { 
+//        helpTCX("tt.A","package tt; public class A { \n"
+//                +"//@ invariant i == 0; \n "
+//                +"int i = 0;  \n "
+//                +"void m(int j) { i = j; }  //@ nowarn Precondition, InvariantExit; \n "
+//                +"public static void main(String[] args) { \n"
+//                +"new A().m(1); //@ nowarn InvariantExit, InvariantReenterCaller ; \n"
+//                +"System.out.println(\"END\"); \n"
+//                +"}}"
+//                ,"END"
+//                );
+//    }
 
     @Test public void testReceiver1() { 
         helpTCX("tt.A","package tt; public class A { \n"

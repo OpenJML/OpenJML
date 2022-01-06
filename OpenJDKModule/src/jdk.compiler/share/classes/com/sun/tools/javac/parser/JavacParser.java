@@ -3503,7 +3503,6 @@ public class JavacParser implements Parser {
             log.error(token.pos, Errors.RecordComponentAndOldArraySyntax);
         }
         type = bracketsOpt(type);
-
         return toP(F.at(pos).VarDef(mods, name, type, null));
     }
 
