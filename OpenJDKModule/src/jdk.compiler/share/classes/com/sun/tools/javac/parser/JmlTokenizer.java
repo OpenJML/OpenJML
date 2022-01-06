@@ -299,6 +299,10 @@ public class JmlTokenizer extends JavadocTokenizer {
         }
         
         if (!jml) {
+            tk = TokenKind.CUSTOM;
+            jmlTokenKind = JmlTokenKind.STARTJMLCOMMENT;
+            jmlTokenClauseKind = Operators.startjmlcommentKind;
+
             // We initialize state and proceed to process the comment as JML text
             jmlcommentstyle = style;
             jml = true;
@@ -307,6 +311,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             	endBlockComment = endPos-2; 
             }
         } else {
+        	tk = null;
             // We are already in a JML comment - so we have an embedded comment.
             // The action is to just ignore the embedded comment start
             // characters that we just scanned.

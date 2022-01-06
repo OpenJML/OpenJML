@@ -213,27 +213,31 @@ public class JmlScanner extends Scanner {
     	JavaTokenizer.scannerDebug = scannerDebug;
     }
     
-    @Override
-    public void nextToken() {
-    	super.nextToken();
+    private void advance() {
         if (!savedJml.isEmpty()) {
             jmlForCurrentToken = savedJml.remove(0);
         } else {
         	jmlForCurrentToken = ((JmlTokenizer)tokenizer).jml();
         }
-        if (scannerDebug && false) System.out.println("LOOKAHEADS " + savedTokens.size() + " " + savedJml.size());
+    }
+    
+    @Override
+    public void nextToken() {
+    	super.nextToken(); advance(); // Can't put the super call in advance(), unfortuantely
+        if (scannerDebug && false) System.out.println("LOOKAHEADS " + token + " " + savedTokens.size() + " " + savedJml.size());
     	// The following logic concatenates consecutive JML annotations, if there is only ignorable material between them
     	while (jmlToken() != null && jmlToken().jmlkind == JmlTokenKind.ENDJMLCOMMENT) {
+        	var saved = prevToken();
     		var t = token(1);
-    		if (scannerDebug) System.out.println("TOKEN AFTER ENDJML " + savedJml.get(0) + " " + t.pos + " " + t + " " + t.kind + " " + t.ikind);
+    		if (scannerDebug) System.out.println("TOKEN AFTER ENDJML " + token + " :: " + savedJml.get(0) + " " + t.pos + " " + t + " " + t.kind + " " + t.ikind + " " + (t.ikind == JmlTokenKind.STARTJMLCOMMENT));
     		if (!savedJml.get(0)) break;
-    		super.nextToken();
-            if (!savedJml.isEmpty()) {
-                jmlForCurrentToken = savedJml.remove(0);
-            } else {
-            	jmlForCurrentToken = ((JmlTokenizer)tokenizer).jml();
-            }
-            if (scannerDebug && false) System.out.println("LOOKAHEADS " + savedTokens.size() + " " + savedJml.size());
+    		if (t.ikind == JmlTokenKind.STARTJMLCOMMENT) {
+    			if (scannerDebug) System.out.println("SKIPPING START JML");
+    			super.nextToken(); advance(); // gets the start token
+    			super.nextToken(); advance(); // gets the next token, skipping the end and start combination
+    			prevToken = saved; // But keep the previous token as if the end-start combination did not exist
+    		}
+            if (scannerDebug) System.out.println("LOOKAHEADS-Z " + token + " :: " + savedTokens.size() + " " + savedJml.size());
     	}
     	if (scannerDebug) System.out.println("TOKEN " + jmlForCurrentToken + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
     }

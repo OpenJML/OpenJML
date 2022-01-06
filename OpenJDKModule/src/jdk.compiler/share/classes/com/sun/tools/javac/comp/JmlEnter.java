@@ -1237,7 +1237,7 @@ public class JmlEnter extends Enter {
 					} else {
 						if (!isSameCU) {
 							utils.error(vdecl, "jml.message", "This JML field declaration conflicts with an existing field with the same name: " + vdecl.name + " (owner: " + csym +")");
-							utils.error(javaVDecl.source(),javaVDecl, "jml.associated.decl.cf", utils.locationString(vdecl.pos, log.currentSourceFile()));
+							if (javaVDecl != null) utils.error(javaVDecl.source(),javaVDecl, "jml.associated.decl.cf", utils.locationString(vdecl.pos, log.currentSourceFile()));
 						}
 						return;
 					}

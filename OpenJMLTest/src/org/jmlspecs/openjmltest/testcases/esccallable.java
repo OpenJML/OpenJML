@@ -109,44 +109,44 @@ public class esccallable extends EscBase {
                 );
     }
 
-    @Test
-    public void testBasicCallable6a() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  //@ callable TestJava.n;\n"
-                +"  void m() { B.n(); }  //@ nowarn Callable;\n" // There would be a warning, but it is suppressed
-                +"  static void n() {}\n"
-                +"  void p() {}\n"
-                +"}\n"
-                +"class B { public static void n() {} };\n"
-                );
-    }
-
-    @Test
-    public void testBasicCallable6b() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  //@ callable TestJava.n; //@ nowarn Callable;\n"
-                +"  void m() { B.n(); } \n"
-                +"  static void n() {}\n"
-                +"  void p() {}\n"
-                +"}\n"
-                +"class B { public static void n() {} };\n"
-                );
-    }
-
-    @Test
-    public void testBasicCallable6c() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  //@ callable TestJava.n;\n"
-                +"  void m() { B.n(); }  //@ nowarn Callable;\n"
-                +"  static void n() {}\n"
-                +"  void p() {}\n"
-                +"}\n"
-                +"class B { public static void n() {} }; //@ nowarn Callable;\n"
-                );
-    }
+//    @Test
+//    public void testBasicCallable6a() {
+//        helpTCX("tt.TestJava","package tt; \n"
+//                +"public class TestJava { \n"
+//                +"  //@ callable TestJava.n;\n"
+//                +"  void m() { B.n(); }  //@ nowarn Callable;\n" // There would be a warning, but it is suppressed
+//                +"  static void n() {}\n"
+//                +"  void p() {}\n"
+//                +"}\n"
+//                +"class B { public static void n() {} };\n"
+//                );
+//    }
+//
+//    @Test
+//    public void testBasicCallable6b() {
+//        helpTCX("tt.TestJava","package tt; \n"
+//                +"public class TestJava { \n"
+//                +"  //@ callable TestJava.n; //@ nowarn Callable;\n"
+//                +"  void m() { B.n(); } \n"
+//                +"  static void n() {}\n"
+//                +"  void p() {}\n"
+//                +"}\n"
+//                +"class B { public static void n() {} };\n"
+//                );
+//    }
+//
+//    @Test
+//    public void testBasicCallable6c() {
+//        helpTCX("tt.TestJava","package tt; \n"
+//                +"public class TestJava { \n"
+//                +"  //@ callable TestJava.n;\n"
+//                +"  void m() { B.n(); }  //@ nowarn Callable;\n"
+//                +"  static void n() {}\n"
+//                +"  void p() {}\n"
+//                +"}\n"
+//                +"class B { public static void n() {} }; //@ nowarn Callable;\n"
+//                );
+//    }
 
     @Test
     public void testBasicCallable7() {
