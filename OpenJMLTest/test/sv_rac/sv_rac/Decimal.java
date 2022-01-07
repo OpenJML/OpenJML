@@ -668,7 +668,7 @@ package sv_rac;
             decPart *= signe;        
             intPart += retenue;        
         }   
-    }//@ nowarn;
+    }
     
     /**
      * Multiplication of the Decimal by a entere part e and a decimal part f
@@ -744,7 +744,7 @@ package sv_rac;
         
         
         add((short) 0, temp);        
-    }//@ nowarn;
+    }
     
     static short setShort(byte[] array, short offset, short value) {
     	array[offset++] = (byte)((value >> 8) & 0xFF);

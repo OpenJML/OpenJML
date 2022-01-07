@@ -12,7 +12,7 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
-import com.sun.tools.javac.parser.JmlTokenizer;
+import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
@@ -27,91 +27,87 @@ public class LineAnnotationClauses extends JmlExtension {
     public static final String allowID = "allow";
     public static final String forbidID = "forbid";
     public static final String ignoreID = "ignore";
-    public static final String nowarnID = "nowarn";
+    //public static final String nowarnID = "nowarn";
     public static final IJmlClauseKind allowClauseKind = new ExceptionLineAnnotationKind(allowID);
     public static final IJmlClauseKind forbidClauseKind = new ExceptionLineAnnotationKind(forbidID);
     public static final IJmlClauseKind ignoreClauseKind = new ExceptionLineAnnotationKind(ignoreID);
     
-    // We use ExceptionLineAnnotationKind for nowarn annotations in order to share the scan method,
-    // even though it is handled differently and does not hold a list of exceptions
-    public static final IJmlClauseKind nowarnClauseKind = new ExceptionLineAnnotationKind(nowarnID);
+    //public static final IJmlClauseKind nowarnClauseKind = new ExceptionLineAnnotationKind(nowarnID);
     
     
     public static class ExceptionLineAnnotationKind extends IJmlClauseKind.LineAnnotationKind {
         public ExceptionLineAnnotationKind(String keyword) { super(keyword); }
         
         @Override
-        public void scan(int keywordPos, String keyword, IJmlClauseKind clauseKind, JmlTokenizer tokenizer) {
-            Context context = tokenizer.context;
+        public void scan(int keywordPos, String keyword, IJmlClauseKind clauseKind, JmlScanner scanner) {
+            Context context = scanner.context;
             JmlFactory M = JmlTree.Maker.instance(context);
             utils = Utils.instance(context);
             java.util.List<JCExpression> exprs = new java.util.LinkedList<>();
             try {
-                int tokenPos = tokenizer.pos();
-                Token t = tokenizer.readToken();
+                int tokenPos = scanner.token().pos;
+                Token t = scanner.advance();
                 if (t.kind == TokenKind.SEMI || t.ikind == JmlTokenKind.ENDJMLCOMMENT) {
-                    // No labels - for nowarn this means suppress everything
-                    // Indicate this with null
-                    if (clauseKind == nowarnClauseKind) Nowarns.instance(context).addItem(Log.instance(context).currentSource(),keywordPos,null);
-                    else {
-                    	// For allow, forbid, ignore, this means RuntimeException
-                        JCExpression qid = M.Ident(Names.instance(context).fromString("RuntimeException"));
-                        qid.pos = tokenPos;;
-                    	exprs.add(qid);
-                    }
+                    // Empty list
+                	// For allow, forbid, ignore, this means RuntimeException
+                	JCExpression qid = M.Ident(Names.instance(context).fromString("RuntimeException"));
+                	qid.pos = tokenPos;
+                	exprs.add(qid);
                 } else {
-                    while (tokenizer.jml() && t.kind != TokenKind.SEMI && t.ikind != JmlTokenKind.ENDJMLCOMMENT) {
+                    while (scanner.jml() && t.kind != TokenKind.SEMI && t.ikind != JmlTokenKind.ENDJMLCOMMENT) {
                         if (t.kind != TokenKind.IDENTIFIER){
                             // Bad statement or missing terminating semicolon
-                            tokenizer.jmlError(t.pos, tokenizer.errPos(), "jml.bad.line.annotation");
+                            scanner.jmltokenizer.jmlError(t.pos, scanner.jmltokenizer.errPos(), "jml.bad.line.annotation");
                             // expected identifier
-                            tokenizer.skipThroughChar(';');
+                            // skip to semi
+                            while (scanner.token().kind != TokenKind.SEMI && scanner.token().ikind != JmlTokenKind.ENDJMLCOMMENT) scanner.advance();
                             return;
                         }
                         Name name = t.name();
                         int p = t.pos;
-                        t = tokenizer.readToken();
-                        if (clauseKind == nowarnClauseKind) {
-                            Nowarns.instance(context).addItem(Log.instance(context).currentSource(),tokenPos,name.toString());
-                        } else {
+                        t = scanner.advance();
+                        {
                             JCExpression qid = M.Ident(name);
                             qid.pos = p;
                             while (t.kind == TokenKind.DOT) {
-                                t = tokenizer.readToken();
+                                t = scanner.advance();
                                 if (t.kind != TokenKind.IDENTIFIER){
                                     // Bad statement or missing terminating semicolon
-                                    tokenizer.jmlError(t.pos, tokenizer.errPos(), "jml.bad.line.annotation");
+                                    scanner.jmltokenizer.jmlError(t.pos, scanner.jmltokenizer.errPos(), "jml.bad.line.annotation");
                                     // expected identifier
-                                    tokenizer.skipThroughChar(';');
+                                    // skip to semi
+                                    while (scanner.token().kind != TokenKind.SEMI && scanner.token().ikind != JmlTokenKind.ENDJMLCOMMENT) scanner.advance();
                                     return;
                                 }
                                 qid = M.Select(qid, t.name());
                                 qid.pos = t.pos;
-                                t = tokenizer.readToken();
+                                t = scanner.advance();
                             }
                             exprs.add(qid);
                         }
                         if (t.kind == TokenKind.COMMA){
-                            t = tokenizer.readToken();
+                            t = scanner.advance();
                         }
                     }
                 }
-                if (tokenizer.jmlTokenKind == JmlTokenKind.ENDJMLCOMMENT) { 
+                if (t.ikind == JmlTokenKind.ENDJMLCOMMENT) { 
                 	// allow optional semicolon without a warning
-                    //utils.warning(t.pos, "jml.line.annotation.with.no.semicolon");
+                //    utils.warning(t.pos, "jml.line.annotation.with.no.semicolon");
                     // Here we are swallowing the end of comment - we normally 
                     // expect that token in the stream. However if there is just a 
                     // nowarn, the Java scanner will not expect a standalone ENDJMLCOMMENT
                     // FIXME - check the case of //@ some JML stuff ; nowarn xx 
                     // or with /*@  -- does this parse OK
+                } else {
+                	scanner.advance(); // read semi
                 }
-                if (clauseKind != nowarnClauseKind) {
+                {
                     ExceptionLineAnnotation a = new ExceptionLineAnnotation();
-                    a.line = tokenizer.getLineMap().getLineNumber(keywordPos);
+                    a.line = scanner.jmltokenizer.getLineMap().getLineNumber(keywordPos);
                     a.clauseKind = clauseKind;
                     a.keywordPos = keywordPos;
                     a.exceptionTypes = exprs;
-                    tokenizer.lineAnnotations.add(a);
+                    scanner.lineAnnotations.add(a);
                 }
             } finally {
             }

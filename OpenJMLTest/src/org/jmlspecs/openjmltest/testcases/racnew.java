@@ -159,17 +159,17 @@ public class racnew extends RacBase {
                 );
     }
     
-    /** Failed precondition with nowarn */
-    @Test public void testPrecondition2NoWarn() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(0); //@ nowarn Precondition;\n" +
-                "System.out.println(\"END\"); }\n" +
-                " /*@ requires i != 0; */ //@ nowarn Precondition;\n" +
-                " static void m(int i) {} \n" +
-                "}"
-                ,"END"
-                );
-    }
+//    /** Failed precondition with nowarn */
+//    @Test public void testPrecondition2NoWarn() {
+//        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+//                "m(0); //@ nowarn Precondition;\n" +
+//                "System.out.println(\"END\"); }\n" +
+//                " /*@ requires i != 0; */ //@ nowarn Precondition;\n" +
+//                " static void m(int i) {} \n" +
+//                "}"
+//                ,"END"
+//                );
+//    }
     
     @Test public void testNonnullPrecondition() {
         main.addOptions("-racShowSource=source");
@@ -265,16 +265,16 @@ public class racnew extends RacBase {
                 );
     }
 
-    @Test public void testPostcondition1Nowarn() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                " m(1); System.out.println(\"END\"); } /*@ nowarn Postcondition;*/\n" +
-                " static int k = 0; \n" +
-                " /*@ ensures k == 0; */ \n"+
-                " static int m(int i) { k = i; return 13; }/*@ nowarn Postcondition;*/ " +
-                "}"
-                ,"END"
-                );
-    }
+//    @Test public void testPostcondition1Nowarn() {
+//        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+//                " m(1); System.out.println(\"END\"); } /*@ nowarn Postcondition;*/\n" +
+//                " static int k = 0; \n" +
+//                " /*@ ensures k == 0; */ \n"+
+//                " static int m(int i) { k = i; return 13; }/*@ nowarn Postcondition;*/ " +
+//                "}"
+//                ,"END"
+//                );
+//    }
 
     @Test public void testPostcondition2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +

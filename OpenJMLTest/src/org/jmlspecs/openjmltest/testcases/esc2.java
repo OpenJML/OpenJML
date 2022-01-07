@@ -4669,7 +4669,7 @@ public class esc2 extends EscBase {
                         ,"/tt/TestJava.java:11: error: Incorrectly formed or terminated show statement near here -- perhaps a missing semicolon",18
                         ,"/tt/TestJava.java:12: error: illegal start of expression",15
                         ,"/tt/TestJava.java:12: error: illegal start of expression",16
-                        ,"/tt/TestJava.java:13: error: Incorrectly formed or terminated show statement near here -- perhaps a missing semicolon",19
+                        ,"/tt/TestJava.java:13: error: Incorrectly formed or terminated show statement near here -- perhaps a missing semicolon",18
                         );
     }
 
@@ -4825,7 +4825,8 @@ public class esc2 extends EscBase {
                         + "  public int iii;\n"
                         + "  public void m(/*@ nullable */ TestJava t) {\n"
                         + "  int i = t.iii //@ allow NullPointerException; \n"
-                        + "  ;\n\n"
+                        + "  ;\n"
+                        + "\n"
                         + "  int j = t.iii; //@ forbid NullPointerException; \n"
                         + "  k = t.iii; //@ forbid ; \n"
                         + "  k = t.iii; //@ forbid NullPointerException \n"

@@ -7,6 +7,6 @@ class C {
 
   void m() {
     int i = zero();
-    if (i==42) { //@ reachable ; }
+    if (i==42) { /*@ reachable ; */ }
   }
 }
