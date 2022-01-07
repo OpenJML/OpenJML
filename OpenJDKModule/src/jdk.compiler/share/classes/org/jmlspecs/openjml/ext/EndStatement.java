@@ -154,6 +154,10 @@ public class EndStatement extends JmlExtension {
             if (begin != null) {
                 // Has a begin statement, so we read statement until an end
                 while (true) {
+                	if (parser.jmlTokenClauseKind() == Operators.startjmlcommentKind &&
+                			parser.jmlTokenClauseKind(scanner.token(1)) == EndStatement.endClause) {
+                		parser.nextToken();
+                	}
                     if (parser.jmlTokenClauseKind() == EndStatement.endClause) {
                         Extensions.findSM(endID).parse(mods, endID, endClause, parser);
                         break;

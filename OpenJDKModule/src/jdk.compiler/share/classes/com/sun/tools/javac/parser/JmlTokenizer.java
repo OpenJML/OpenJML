@@ -15,7 +15,6 @@ import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlOptions;
-import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExtensions;
 import org.jmlspecs.openjml.ext.Operators;
@@ -61,12 +60,6 @@ public class JmlTokenizer extends JavadocTokenizer {
     /** The compilation context with which this instance was created */
     public Context         context;
 
-    /** A temporary reference to the instance of the nowarn collector for the context. */
-    /*@ non_null */ public Nowarns nowarns;
-    
-    /** Collects line annotations */
-    public java.util.List<ExceptionLineAnnotation> lineAnnotations = new java.util.LinkedList<>();
-
     /**
      * A flag that, when true, causes all JML comments to be ignored; it is
      * set on construction according to a command-line option.
@@ -107,7 +100,6 @@ public class JmlTokenizer extends JavadocTokenizer {
     protected JmlTokenizer(JmlScanner.JmlFactory fac, char[] input, int inputLength) {
         super(fac, input, inputLength);
         context = fac.context;
-        nowarns = Nowarns.instance(context);
     }
     
     /**
@@ -120,7 +112,6 @@ public class JmlTokenizer extends JavadocTokenizer {
     protected JmlTokenizer(JmlScanner.JmlFactory fac, CharBuffer buffer) {
         super(fac, buffer);
         context = fac.context;
-        nowarns = Nowarns.instance(context);
     }
     
     /** True if the tokenizer is in a JML comment, false otherwise */
@@ -420,15 +411,6 @@ public class JmlTokenizer extends JavadocTokenizer {
                 }
             }
 
-            if (t.kind == TokenKind.IDENTIFIER && jml && !inLineAnnotation) {
-                String id = t.name().toString();
-                IJmlClauseKind lak = org.jmlspecs.openjml.Extensions.allKinds.get(id);
-                if (lak instanceof IJmlClauseKind.LineAnnotationKind) {
-                    scanLineAnnotation(position(), id, lak);
-                    continue;
-                }
-            }
-
             if (tk == TokenKind.STAR && get() == '/'
                 && jmlcommentstyle == CommentStyle.BLOCK) {
                 // We're in a BLOCK comment and we scanned a * and the next
@@ -553,29 +535,6 @@ public class JmlTokenizer extends JavadocTokenizer {
         }
     }
     
-    private boolean inLineAnnotation = false;
-
-    /** This method presumes the NOWARN token has been read and handles the names
-     * within the nowarn, reading through the terminating semicolon or end of JML comment
-     */
-    public void scanLineAnnotation(int pos, String id, IJmlClauseKind ckind) {
-        inLineAnnotation = true;
-        ((IJmlClauseKind.LineAnnotationKind)ckind).scan(pos, id, ckind, this);
-        inLineAnnotation = false;
-    }
-
-    /**
-     * This method is called internally when a nowarn lexical pragma is scanned;
-     * it is called once for each label in the pragma.
-     * 
-     * @param file The file being scanned
-     * @param pos The 0-based character position of the label
-     * @param label The label in the pragma
-     */
-    protected void handleNowarn(DiagnosticSource file, int pos, String label) {
-        nowarns.addItem(file,pos,label);
-    }
-
     /**
      * Overrides the superclass method in order to denote a backslash as
      * special. This lets scanOperator detect the JML backslash keywords.

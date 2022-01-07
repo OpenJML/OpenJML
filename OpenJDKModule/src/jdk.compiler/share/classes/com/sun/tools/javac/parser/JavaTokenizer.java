@@ -400,7 +400,7 @@ public class JavaTokenizer extends UnicodeReader {
         isTextBlock = accept("\"\"\"");
 
         if (isTextBlock) {
-        	if (scannerDebug) System.out.println("STARTING TEXT BLOCK");
+        	if (scannerDebug) System.out.println("STARTING TEXT BLOCK " + position());
             // Check if preview feature is enabled for text blocks.
             checkSourceLevel(pos, Feature.TEXT_BLOCKS);
 
@@ -429,6 +429,7 @@ public class JavaTokenizer extends UnicodeReader {
 
                     // Record first line terminator for error recovery.
                     if (firstEOLN == NOT_FOUND) {
+                    	if (scannerDebug) System.out.println("EOLN TEXT BLOCK " + position());
                         firstEOLN = position();
                     }
                 } else {
@@ -466,6 +467,7 @@ public class JavaTokenizer extends UnicodeReader {
         if (firstEOLN  != NOT_FOUND) {
             // Reset recovery position to point after text block open delimiter sequence.
             reset(firstEOLN);
+        	if (scannerDebug) System.out.println("RESETTING TEXT BLOCK " + firstEOLN + " " + position());
         }
     }
 
