@@ -8,10 +8,9 @@ import java.nio.CharBuffer;
 import java.util.Map;
 import java.util.Set;
 
-//import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
-//import org.jmlspecs.openjml.Nowarns;
-//import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
 import com.sun.tools.javac.parser.Tokens.NamedToken;
@@ -133,10 +132,10 @@ public class JmlScanner extends Scanner {
     }
 
     /** The compilation context */
-    protected Context context;
+    public Context context;
 
     /** A reference to the tokenizer being used */
-    protected JmlTokenizer jmltokenizer;
+    public JmlTokenizer jmltokenizer;
 
     /** Set to true internally while the scanner is within a JML comment */
     public boolean       jml() {
@@ -156,9 +155,11 @@ public class JmlScanner extends Scanner {
     protected java.util.List<Boolean> savedJml = new java.util.LinkedList<Boolean>();
     
     protected boolean jmlForCurrentToken;
+    
+    /** Collects line annotations */
+    public java.util.List<ExceptionLineAnnotation> lineAnnotations = new java.util.LinkedList<>();
 
-
-    /**
+   /**
      * Creates a new scanner, but you should use JmlFactory.newScanner() to get
      * one, not this constructor.<P>
 
@@ -213,31 +214,52 @@ public class JmlScanner extends Scanner {
     	JavaTokenizer.scannerDebug = scannerDebug;
     }
     
-    private void advance() {
-        if (!savedJml.isEmpty()) {
+    public Token advance() {
+    	super.nextToken(); 
+    	if (!savedJml.isEmpty()) {
             jmlForCurrentToken = savedJml.remove(0);
         } else {
         	jmlForCurrentToken = ((JmlTokenizer)tokenizer).jml();
         }
+    	return token;
     }
     
     @Override
     public void nextToken() {
-    	super.nextToken(); advance(); // Can't put the super call in advance(), unfortuantely
-        if (scannerDebug && false) System.out.println("LOOKAHEADS " + token + " " + savedTokens.size() + " " + savedJml.size());
-    	// The following logic concatenates consecutive JML annotations, if there is only ignorable material between them
-    	while (jmlToken() != null && jmlToken().jmlkind == JmlTokenKind.ENDJMLCOMMENT) {
-        	var saved = prevToken();
-    		var t = token(1);
-    		if (scannerDebug) System.out.println("TOKEN AFTER ENDJML " + token + " :: " + savedJml.get(0) + " " + t.pos + " " + t + " " + t.kind + " " + t.ikind + " " + (t.ikind == JmlTokenKind.STARTJMLCOMMENT));
-    		if (!savedJml.get(0)) break;
-    		if (t.ikind == JmlTokenKind.STARTJMLCOMMENT) {
-    			if (scannerDebug) System.out.println("SKIPPING START JML");
-    			super.nextToken(); advance(); // gets the start token
-    			super.nextToken(); advance(); // gets the next token, skipping the end and start combination
-    			prevToken = saved; // But keep the previous token as if the end-start combination did not exist
+    	outer: while(true) {
+    		advance();
+    		while (true) {
+    			// The following logic concatenates consecutive JML annotations, if there is only ignorable material between them
+    			while (jmlToken() != null && jmlToken().jmlkind == JmlTokenKind.ENDJMLCOMMENT) {
+    				var saved = prevToken();
+    				var t = token(1);
+    				if (scannerDebug) System.out.println("TOKEN AFTER ENDJML " + token + " :: " + savedJml.get(0) + " " + t.pos + " " + t + " " + t.kind + " " + t.ikind + " " + (t.ikind == JmlTokenKind.STARTJMLCOMMENT));
+    				if (!savedJml.get(0)) break;
+    				if (t.ikind == JmlTokenKind.STARTJMLCOMMENT) {
+    					if (scannerDebug) System.out.println("SKIPPING START JML");
+    					advance(); // gets the start token
+    					advance(); // gets the next token, skipping the end and start combination
+    					prevToken = saved; // But keep the previous token as if the end-start combination did not exist
+    				}
+    				if (scannerDebug) System.out.println("LOOKAHEADS-Z " + token + " :: " + savedTokens.size() + " " + savedJml.size());
+    			}
+    			if (jmlForCurrentToken && token.ikind == JmlTokenKind.STARTJMLCOMMENT && token(1).kind == TokenKind.IDENTIFIER 
+    					&& org.jmlspecs.openjml.Extensions.allKinds.get(token(1).name().toString()) instanceof IJmlClauseKind.LineAnnotationKind) {
+    				if (scannerDebug) System.out.println("See the beginning of a line annotation");
+    				continue outer;
+    			}
+    			if (jmlForCurrentToken && token.kind == TokenKind.IDENTIFIER) { 
+    				String id = token.name().toString();
+    				IJmlClauseKind clk = org.jmlspecs.openjml.Extensions.allKinds.get(id);
+    				if (clk instanceof IJmlClauseKind.LineAnnotationKind lak) {
+    					lak.scan(token.pos, id, lak, this);
+    					if (scannerDebug) System.out.println("Scanned a line annotation");
+    	                if (jml() && token().ikind != JmlTokenKind.ENDJMLCOMMENT) continue; 
+    					continue outer;
+    				}
+    			}
+        		break outer;
     		}
-            if (scannerDebug) System.out.println("LOOKAHEADS-Z " + token + " :: " + savedTokens.size() + " " + savedJml.size());
     	}
     	if (scannerDebug) System.out.println("TOKEN " + jmlForCurrentToken + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
     }

@@ -314,7 +314,7 @@ public abstract class IJmlClauseKind {
             throw new UnsupportedOperationException();
         }
 
-        abstract public void scan(int keywordPos, String keyword, IJmlClauseKind clauseKind, JmlTokenizer tokenizer);
+        abstract public void scan(int keywordPos, String keyword, IJmlClauseKind clauseKind, JmlScanner scanner);
 
         /** A class that is a record of an instance of a line annotation.
          * A line annotation is captured by the scanner, not the parser,

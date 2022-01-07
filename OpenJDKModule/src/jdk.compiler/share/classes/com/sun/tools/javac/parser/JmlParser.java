@@ -551,8 +551,8 @@ public class JmlParser extends JavacParser {
     @Override
     public JCClassDecl classDeclaration(JCModifiers mods, Comment dc) {
         JCClassDecl cd = super.classDeclaration(mods, dc);
-        ((JmlClassDecl)cd).lineAnnotations = ((JmlTokenizer)S.tokenizer).lineAnnotations;
-        ((JmlTokenizer)S.tokenizer).lineAnnotations = new java.util.LinkedList<>();
+        ((JmlClassDecl)cd).lineAnnotations = S.lineAnnotations;
+        S.lineAnnotations = new java.util.LinkedList<>();
         return cd;
     }
 
