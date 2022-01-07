@@ -427,8 +427,15 @@ public class JmlTree {
             return tree;
         }
 
-        
-        /** Creates a variable declaration from its components; captures the sourcefile
+        @Override
+        public JmlVariableDecl ReceiverVarDef(JCModifiers mods, JCExpression nameexpr, JCExpression vartype) {
+            JmlVariableDecl tree = new JmlVariableDecl(mods, nameexpr, vartype);
+            tree.pos = pos;
+            tree.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
+            return tree;
+        }
+
+       /** Creates a variable declaration from its components; captures the sourcefile
          * from the current value in the log; no symbol created. */
         @Override
         public JmlVariableDecl VarDef(JCModifiers mods,
@@ -1462,6 +1469,13 @@ public class JmlTree {
             fieldSpecs = null;
             sourcefile = null;
         }
+        
+        protected JmlVariableDecl(JCModifiers mods,
+        		JCExpression nameexpr,
+        		JCExpression vartype) {
+        	super(mods, nameexpr, vartype);
+        }
+
         
         /** The source this variable was declared in (model variable may be declared
          * in a source file different than the class that owns the model variable)

@@ -29,7 +29,7 @@ import com.sun.tools.javac.tree.JCTree;
 // implemented, and we could not extend that.
 // TODO - we should think about how to re-design JmlToken so that it is extensible.
 public enum JmlTokenKind implements ITokenKind {
-//    STARTJMLCOMMENT("<JMLSTART>"),
+    STARTJMLCOMMENT("<JMLSTART>"),
     ENDJMLCOMMENT("<JMLEND>"),
     
     // These are statement types

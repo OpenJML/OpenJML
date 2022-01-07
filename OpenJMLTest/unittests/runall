@@ -39,7 +39,7 @@ wt
 ./run-summary log-esccallable	"32/0"  esccallable   &
 wt
 ./run-summary log-escfunc+	"28/0"  escfunction escgeneric  &
-./run-summary log-escinclau+	"104/0" escinclause escinline esclocation escnewBoxing escnewassignable escnowarn escoption escprimitivetypes escreadable escstrings  &
+./run-summary log-escinclau+	"104/0" escinclause escinline esclocation escnewBoxing escnewassignable escoption escprimitivetypes escreadable escstrings  &
 ./run-summary log-escvis  	"59/0"  escvisibility escvisibility1  &
 wt
 ./run-summary log-escnew   	"64/1"  escnew &
@@ -52,7 +52,7 @@ wt
 wt
 ./run-summary log-generics     	"13/2"  generics   &
 ./run-summary log-harness	"5/0"	harnesstests &
-./run-summary log-inter+       	"159/0"	internalSpecs jmltypes lblexpression methodspecs modelghost namelookup notspecified nowarn positions prettyprinting purity  &
+./run-summary log-inter+       	"159/0"	internalSpecs jmltypes lblexpression methodspecs modelghost namelookup notspecified positions prettyprinting purity  &
 wt
 ./run-summary log-matchClass	"49/3"  matchClasses  &
 ./run-summary log-modifiers    	"192/0" modifiers  &

@@ -551,8 +551,8 @@ public class JmlParser extends JavacParser {
     @Override
     public JCClassDecl classDeclaration(JCModifiers mods, Comment dc) {
         JCClassDecl cd = super.classDeclaration(mods, dc);
-        ((JmlClassDecl)cd).lineAnnotations = ((JmlTokenizer)S.tokenizer).lineAnnotations;
-        ((JmlTokenizer)S.tokenizer).lineAnnotations = new java.util.LinkedList<>();
+        ((JmlClassDecl)cd).lineAnnotations = S.lineAnnotations;
+        S.lineAnnotations = new java.util.LinkedList<>();
         return cd;
     }
 
@@ -589,92 +589,100 @@ public class JmlParser extends JavacParser {
             // then we proceed to parse it as a (JML) statement
             String id = null;
             IJmlClauseKind anyext = null;
-            if (S.jml() && token.kind == TokenKind.IDENTIFIER) {
-                id = token.name().toString();
-                anyext = Extensions.allKinds.get(id);
-            }
-            if (anyext != null) {
-                IJmlClauseKind ext = Extensions.findSM(id);
-                if (ext != null) {
-                    JCStatement s;
-                    if (ext instanceof IJmlClauseKind.MethodClauseKind
-                            || ext == EndStatement.refiningClause) {
-                        s = (JCStatement)EndStatement.refiningClause.parse(null, id, ext, this);
-                    } else if (isLoopSpec(ext)) {
-                    	s = parseLoopWithSpecs();
-                    } else {
-                    	// FIXME - change this to not have to parse one loop spec first -- move to extensions
-                        s = (JCStatement)ext.parse(null, id, ext, this);
-                        while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
-//                        if (s instanceof JmlStatementLoop) {
-//                            s = parseLoopWithSpecs((JmlStatementLoop)s, true);
-//                        } else 
-                        if (id.equals(EndStatement.beginID)) {
-                            utils.error(s, "jml.message", "Improperly nested spec-end pair");
-                        } else if (id.equals(EndStatement.endID)) {
-                            utils.error(s, "jml.message", "Improperly nested spec-end pair");
-                        }
-                    }
-                    if (s == null) return List.<JCStatement>nil();
-                    return List.<JCStatement>of(s);
-                }
-                IJmlClauseKind cl = Extensions.findKeyword(token);
-                if (cl instanceof IJmlClauseKind.ClassLikeKind) {
-                    return List.<JCStatement>of((JmlDatatypeDecl)cl.parse(null, cl.keyword, cl, this));
-                }
-                // If the identifier is not the beginning of a JML statement, then
-                // it might be the type that begins a declaration (or it could be a
-                // misspelled JML key word)
-            }
-            // FIXME - I would expect token to always be a JmlToken, even if it just wraps a Java token
-            if (!(token instanceof JmlToken) && anyext == null) {
-                JCExpression replacementType = null;
-                if (token.kind == TokenKind.BANG) {  // TODO - is this still part of extended JML?
-                    replacementType = unannotatedType(false);
-                }
-                boolean inJml = S.jml();
-                List<JCStatement> stats = super.blockStatement();
-                if (replacementType != null) {
-                    for (JCStatement s: stats)  insertReplacementType(s,replacementType);
-                    replacementType = null;
-                }
-                if (inJml) {
-                    for (JCStatement s: stats) {
-                        if (s instanceof JCVariableDecl) {
-                            // OK
-                        } else if (s instanceof JCClassDecl || s instanceof JmlAbstractStatement || s instanceof JCSkip) {
-                            // OK
-                        } else if (!inJmlDeclaration && !inModelProgram && !inLocalOrAnonClass) { // FIXME - unsure of this test
-                            utils.error(s.pos, "jml.expected.decl.or.jml");
-                        }
-                    }
-                }
-                return stats;
-            }
-            if (anyext instanceof ModifierKind) {
-                // MAINTENCE: Copied from JavacParser.blockStatement, FINAL case
-                Comment dc = token.comment(CommentStyle.JAVADOC);
-                JCModifiers mods = modifiersOpt();
-                if (token.kind == INTERFACE ||
-                        token.kind == CLASS ||
-                        token.kind == ENUM) {
-                    if (S.jml()) utils.setJML(mods); // Added this to mark declarations in JML annotations
-                    return List.of(classOrRecordOrInterfaceOrEnumDeclaration(mods, dc));
-                } else {
-                    JCExpression t = parseType(true);
-                    startOfDeclaration(mods);
-                    ListBuffer<JCStatement> stats =
-                            variableDeclarators(mods, t, new ListBuffer<JCStatement>(), false); // FIXME - is false correcct?
-                    // A "LocalVariableDeclarationStatement" subsumes the terminating semicolon
-                    storeEnd(stats.last(), token.endPos);
-                    accept(SEMI);
-                    return stats.toList();
-                }
-            } else if (jmlTokenClauseKind(token) == Operators.endjmlcommentKind) {
-                if (S.jml()) throw new AssertionError("Thought jml was always false at this point");
-                S.setJml(false); // TOOD _ already false?
-                nextToken();
-                continue;
+            jml: if (S.jml()) {
+            	while (isStartJml(token)) nextToken();
+            	if (!S.jml()) break jml; // Empty JML comment
+            	if (token.kind == TokenKind.IDENTIFIER) {
+            		id = token.name().toString();
+            		anyext = Extensions.allKinds.get(id);
+            	}
+            	try {
+            	if (anyext != null) {
+            		IJmlClauseKind ext = Extensions.findSM(id);
+            		if (ext != null) {
+            			JCStatement s;
+            			if (ext instanceof IJmlClauseKind.MethodClauseKind
+            					|| ext == EndStatement.refiningClause) {
+            				s = (JCStatement)EndStatement.refiningClause.parse(null, id, ext, this);
+            			} else if (isLoopSpec(ext)) {
+            				s = parseLoopWithSpecs();
+            			} else {
+            				// FIXME - change this to not have to parse one loop spec first -- move to extensions
+            				s = (JCStatement)ext.parse(null, id, ext, this);
+            				while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
+            				//                        if (s instanceof JmlStatementLoop) {
+            				//                            s = parseLoopWithSpecs((JmlStatementLoop)s, true);
+            				//                        } else 
+            				if (id.equals(EndStatement.beginID)) {
+            					utils.error(s, "jml.message", "Improperly nested spec-end pair");
+            				} else if (id.equals(EndStatement.endID)) {
+            					utils.error(s, "jml.message", "Improperly nested spec-end pair");
+            				}
+            			}
+            			if (s == null) return List.<JCStatement>nil();
+            			return List.<JCStatement>of(s);
+            		}
+            		IJmlClauseKind cl = Extensions.findKeyword(token);
+            		if (cl instanceof IJmlClauseKind.ClassLikeKind) {
+            			return List.<JCStatement>of((JmlDatatypeDecl)cl.parse(null, cl.keyword, cl, this));
+            		}
+            		// If the identifier is not the beginning of a JML statement, then
+            		// it might be the type that begins a declaration (or it could be a
+            		// misspelled JML key word)
+            	}
+            	// FIXME - I would expect token to always be a JmlToken, even if it just wraps a Java token
+            	if (!(token instanceof JmlToken) && anyext == null) {
+            		JCExpression replacementType = null;
+            		if (token.kind == TokenKind.BANG) {  // TODO - is this still part of extended JML?
+            			replacementType = unannotatedType(false);
+            		}
+            		boolean inJml = S.jml();
+            		List<JCStatement> stats = super.blockStatement();
+            		if (replacementType != null) {
+            			for (JCStatement s: stats)  insertReplacementType(s,replacementType);
+            			replacementType = null;
+            		}
+            		if (inJml) {
+            			for (JCStatement s: stats) {
+            				if (s instanceof JCVariableDecl) {
+            					// OK
+            				} else if (s instanceof JCClassDecl || s instanceof JmlAbstractStatement || s instanceof JCSkip) {
+            					// OK
+            				} else if (!inJmlDeclaration && !inModelProgram && !inLocalOrAnonClass) { // FIXME - unsure of this test
+            					utils.error(s.pos, "jml.expected.decl.or.jml");
+            				}
+            			}
+            		}
+            		return stats;
+            	}
+            	if (anyext instanceof ModifierKind) {
+            		// MAINTENCE: Copied from JavacParser.blockStatement, FINAL case
+            		Comment dc = token.comment(CommentStyle.JAVADOC);
+            		JCModifiers mods = modifiersOpt();
+            		if (token.kind == INTERFACE ||
+            				token.kind == CLASS ||
+            				token.kind == ENUM) {
+            			if (S.jml()) utils.setJML(mods); // Added this to mark declarations in JML annotations
+            			return List.of(classOrRecordOrInterfaceOrEnumDeclaration(mods, dc));
+            		} else {
+            			JCExpression t = parseType(true);
+            			startOfDeclaration(mods);
+            			ListBuffer<JCStatement> stats =
+            					variableDeclarators(mods, t, new ListBuffer<JCStatement>(), false); // FIXME - is false correcct?
+            			// A "LocalVariableDeclarationStatement" subsumes the terminating semicolon
+            			storeEnd(stats.last(), token.endPos);
+            			accept(SEMI);
+            			return stats.toList();
+            		}
+            	} else if (isEndJml(token)) {
+            		if (S.jml()) throw new AssertionError("Thought jml was always false at this point");
+            		S.setJml(false); // TOOD _ already false?
+            		nextToken();
+            		continue;
+            	}
+            	} finally {
+            		while (isEndJml(token)) nextToken();
+            	}
             }
             // Nothing JML -- parse a Java statement
             return super.blockStatement();
@@ -929,6 +937,10 @@ public class JmlParser extends JavacParser {
 
         ListBuffer<JCTree> list = new ListBuffer<JCTree>();
         loop: while (token.ikind != TokenKind.RBRACE) {
+            if (jmlTokenKind() == JmlTokenKind.STARTJMLCOMMENT) {
+            	nextToken();
+            	continue;
+            }
             JmlVariableDecl mostRecentVarDecl = currentVariableDecl;
             currentVariableDecl = null;
 
@@ -993,6 +1005,9 @@ public class JmlParser extends JavacParser {
                     skipThroughSemi();
                     continue;
                 }
+            } else if (jmlTokenClauseKind() == org.jmlspecs.openjml.ext.Operators.startjmlcommentKind) {
+            	nextToken();
+            	continue;
             } else if (S.jml() && id != null && Extensions.findSM(id) != null && !"set".equals(id)) {
                 utils.error(pos(), endPos(),
                         "jml.illegal.token.for.declaration", id);
@@ -1962,6 +1977,7 @@ public class JmlParser extends JavacParser {
     	ListBuffer<JCAnnotation> annos = new ListBuffer<>();
     	while (true) {
     		while (S.jml()) {
+    			if (isStartJml(token)) { nextToken(); continue; }
     			var mm = Extensions.findKeyword(token);
     			if (!(mm instanceof ModifierKind)) break;
     			var m = (ModifierKind)mm;
@@ -1984,6 +2000,15 @@ public class JmlParser extends JavacParser {
     		if (lst.isEmpty()) return annos.toList();
     		annos.appendList(lst);
     	}
+    }
+    
+    public boolean isStartJml(Token token) {
+        return token.ikind == JmlTokenKind.STARTJMLCOMMENT;
+    }
+
+    public boolean isEndJml(Token token) {
+        return token.ikind == JmlTokenKind.ENDJMLCOMMENT;
+        // jmlTokenClauseKind(token) == Operators.endjmlcommentKind
     }
 
 
@@ -2022,9 +2047,15 @@ public class JmlParser extends JavacParser {
         acceptEndJML(); // In some cases we allow Java modifiers in JML annotations (e.g. final)
         //System.out.println("IN JML MOD OPT " + S.jml() + " " + token + " " + token.kind + " " + isJmlModifier());
         while (S.jml() && (token.kind == CUSTOM || isJmlModifier())) {
+        	while (jmlTokenClauseKind() == Operators.startjmlcommentKind) { nextToken(); }
             int lastPos = token.endPos;
             partial = jmlModifiersOpt(partial);
             storeEnd(partial, lastPos);
+            if (token.kind == TokenKind.FINAL) {
+            	partial.flags |= Flags.FINAL;
+            	nextToken();
+            	acceptEndJML();
+            }
             if (token.kind == CUSTOM) break;
             partial = super.modifiersOpt(partial);
             acceptEndJML(); // In some cases we allow Java modifiers in JML annotations (e.g. final)
@@ -2331,6 +2362,7 @@ public class JmlParser extends JavacParser {
     public JCExpression term3() {
         List<JCExpression> typeArgs = null;
         int p = pos(); // Position of the keyword
+        while (isStartJml(token)) nextToken();
         if (token.kind == IDENTIFIER) {
         	// FIXME - generally handle backslash type identifiers; verify type or expression
             String id = token.name().toString();

@@ -140,7 +140,7 @@ public class statements extends TCBase {
 
     @Test public void testAssert4() {
         helpTCF("A.java"," class A { Object o; void m() { \n /*@ assume true assert false;*/\n  \n}}"
-                ,"/A.java:2: error: Incorrectly formed or terminated assume statement near here -- perhaps a missing semicolon",18
+                ,"/A.java:2: error: Incorrectly formed or terminated assume statement near here -- perhaps a missing semicolon",17
                 );
     }
 
