@@ -335,5 +335,4 @@ public interface IJmlVisitor extends IVisitor {
         visitWhileLoop(tree);
     }
 
-
 }

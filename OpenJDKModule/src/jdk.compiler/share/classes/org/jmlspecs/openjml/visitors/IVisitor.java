@@ -86,7 +86,7 @@ public interface IVisitor {
         public void visitWildcard(JCWildcard that)           ;
         public void visitTypeBoundKind(TypeBoundKind that)   ;
         public void visitAnnotation(JCAnnotation that)       ;
-        public void visitModifiers(JCModifiers that)         ;
+        default public void visitModifiers(JCModifiers that)         {}
         public void visitErroneous(JCErroneous that)         ;
         public void visitLetExpr(LetExpr that)               ;
         public void visitReference(JCMemberReference that)   ;

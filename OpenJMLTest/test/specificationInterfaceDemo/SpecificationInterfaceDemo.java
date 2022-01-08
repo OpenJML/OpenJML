@@ -26,10 +26,10 @@ public class SpecificationInterfaceDemo {
   }
 
   //@   requires z > 0;
-  //@   assignable f.applyFrame;
+  //@   assignable ffff.applyFrame;
   //@   ensures \result != null && \result > 0;
-  public Integer mok(/*@{ PositivePureFunction }@*/ Function<Integer,Integer> f, Integer z) {
-    return f.apply(z);
+  public Integer mok(/*@ [PositivePureFunction]@*/ Function<Integer,Integer> ffff, Integer z) {
+    return ffff.apply(z);
   }
 
   int zz;
@@ -41,7 +41,7 @@ public class SpecificationInterfaceDemo {
   }
 
   //@   requires z > 0;
-  public void mok2(/*@{ PositivePureFunction }@*/ Function<Integer,Integer> f, Integer z) {
+  public void mok2(/*@[ PositivePureFunction ]*/ Function<Integer,Integer> f, Integer z) {
     zz = 0;
     Integer k = f.apply(z);
     //@ assert zz == 0; // OK because apply is known to be pure
