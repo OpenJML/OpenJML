@@ -9,7 +9,6 @@ test/buggyRandomNumbers : Actual output differs from expected <<<<<<<<<<<<<<<<<<
 test/datatype : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< datatype implementation incomplete
 test/datatype : Expected exit code 0 but got 1
 test/enums1 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### quantifier problem over non-functions?
-test/esc2DArray
 test/esc2DTranspose : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### ?????
 test/escConsInfeasible Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< infeasibility
 test/escDouble : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
@@ -42,10 +41,21 @@ test/streams : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 test/valuestrings : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< inequality of equal-length strings
 test/verifythis-2019-1 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ???
 
-esc2DArray
+
 escEnum
 access+ -- assignable
 esc1
+
+
+escAssigns2 -- position
+factorial
+implicitIteration
+misplaced
+options
+sfbug402b
+sfbug420a,b,c,d,f
+textBlock4
+
 
 QueryPure.java       - 10/32 TODO
 QuerySecret.java     - 21/34 TODO

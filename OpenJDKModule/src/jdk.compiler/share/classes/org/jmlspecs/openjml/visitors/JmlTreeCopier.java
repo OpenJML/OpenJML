@@ -1004,7 +1004,11 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     public JCTree visitModifiers(ModifiersTree node, Void p) {
-        return super.visitModifiers(node,p).setType(((JCTree)node).type);
+        JmlModifiers copy = (JmlModifiers) super.visitModifiers(node,p).setType(((JCTree)node).type);
+        copy.pos = ((JCModifiers)node).pos;
+        copy.jmlmods = ((JmlModifiers)node).jmlmods;
+        copy.anyModsInJava = ((JmlModifiers)node).anyModsInJava;
+        return copy;
     }
 
     public JCTree visitNewArray(NewArrayTree node, Void p) {
@@ -1074,6 +1078,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         for (var t: ((JmlModifiers)node).jmlmods) {
         	copy.add(t.copy());
         }
+        copy.anyModsInJava = ((JmlModifiers)node).anyModsInJava;
         return copy;
     }
 

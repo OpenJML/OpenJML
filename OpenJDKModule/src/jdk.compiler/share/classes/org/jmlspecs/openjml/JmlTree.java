@@ -1110,6 +1110,8 @@ public class JmlTree {
     
     public static class JmlModifiers extends JCModifiers {
     	
+    	public boolean anyModsInJava = false;
+    	
     	public java.util.List<JmlToken> jmlmods = new java.util.LinkedList<>();
     	
         public JmlModifiers(long flags, List<JCAnnotation> annotations, java.util.List<JmlToken> jmlmods) {
@@ -1148,15 +1150,15 @@ public class JmlTree {
             }
         }
         
-        @Override
-        public String toString() {
-        	StringBuilder sb = new StringBuilder();
-    		for (var kk: jmlmods) {
-    			sb.append(kk.toString());
-    			sb.append(" ");
-    		}
-            return sb.toString();
-        }    
+//        @Override
+//        public String toString() {
+//        	StringBuilder sb = new StringBuilder();
+//    		for (var kk: jmlmods) {
+//    			sb.append(kk.toString());
+//    			sb.append(" ");
+//    		}
+//            return sb.toString();
+//        }    
     }
     
     /** This class represents model program choose and choose_if statements. */

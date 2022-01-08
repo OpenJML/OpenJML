@@ -1908,7 +1908,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JmlSpecs.MethodSpecs jms = JmlSpecs.instance(context).defaultSpecs(msp.cases.decl, msym, Position.NOPOS);
                 msp.mods.flags |= jms.mods.flags;
                 if (jms.mods.annotations != msp.mods.annotations) msp.mods.annotations = msp.mods.annotations.appendList(jms.mods.annotations);
-                ((JmlModifiers)msp.mods).jmlmods.addAll(((JmlModifiers)jms.mods).jmlmods);
+                if (((JmlModifiers)msp.mods).jmlmods != ((JmlModifiers)jms.mods).jmlmods) ((JmlModifiers)msp.mods).jmlmods.addAll(((JmlModifiers)jms.mods).jmlmods);
                 msp.cases = jms.cases;
             }
             JmlMethodSpecs methodSpecs = msp.cases;
