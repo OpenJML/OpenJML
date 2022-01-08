@@ -3,7 +3,7 @@ public class Test {
    
    //@ assignable k;
    //@ ensures k == 1;
-   public void mm(/*@ {B} */ A b) {
+   public void mm(/*@ [B] */ A b) {
        k = 1;
        b.m();
    }

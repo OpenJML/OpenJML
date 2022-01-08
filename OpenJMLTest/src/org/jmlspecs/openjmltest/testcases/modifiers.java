@@ -976,7 +976,7 @@ public class modifiers extends TCBase {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  //@ public requires true;\n" +
                 "  void m() {} }"
-                ,"/A.java:2: error: No modifiers are allowed prior to a lightweight specification case",14
+                ,"/A.java:2: error: No modifiers are allowed prior to a lightweight specification case",7
                 );
     }
      
@@ -984,7 +984,7 @@ public class modifiers extends TCBase {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  //@ pure requires true;\n" +
                 "  void m() {} }"
-                ,"/A.java:2: error: No modifiers are allowed prior to a lightweight specification case",12
+                ,"/A.java:2: error: No modifiers are allowed prior to a lightweight specification case",7
                 );
     }
      
