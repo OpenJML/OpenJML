@@ -676,10 +676,7 @@ public class JmlParser extends JavacParser {
             	}
             	// FIXME - I would expect token to always be a JmlToken, even if it just wraps a Java token
             	if (!(token instanceof JmlToken) && anyext == null) {
-            		JCExpression replacementType = null;
-            		if (token.kind == TokenKind.BANG) {  // TODO - is this still part of extended JML?
-            			replacementType = unannotatedType(false);
-            		}
+            		JCExpression replacementType = parseOptionalReplacementType(); // Needed for local variable declarations -- removes leading jml comment or left bracket
             		boolean inJml = S.jml();
             		List<JCStatement> stats = super.blockStatement();
             		if (replacementType != null) {
@@ -981,7 +978,8 @@ public class JmlParser extends JavacParser {
 
         ListBuffer<JCTree> list = new ListBuffer<JCTree>();
         loop: while (token.ikind != TokenKind.RBRACE) {
-            if (jmlTokenKind() == JmlTokenKind.STARTJMLCOMMENT) {
+        	// Skip over any JML start tokens
+            if (isStartJml(token)) {
             	nextToken();
             	continue;
             }
@@ -989,13 +987,14 @@ public class JmlParser extends JavacParser {
             currentVariableDecl = null;
 
             Comment dc = token.comment(CommentStyle.JAVADOC);
-//            if (jmlTokenKind() == ENDJMLCOMMENT) {
-//                nextToken(); // swallows the ENDJMLCOMMENT
-//                currentVariableDecl = mostRecentVarDecl;
-//                break loop;
-//            }
+
+            // Get any modifiers (legal or not)
             mods = modifiersOpt(mods);
-            List<JCAnnotation> typeAnns = null;//typeAnnotationsOpt();
+            
+            // Get type annotations?
+            List<JCAnnotation> typeAnns = null; // typeAnnotationsOpt();
+            
+            // Get the keyword for the JML clause, if any
             int pos = pos();
             JmlTokenKind jt = jmlTokenKind();
             if (jt != null && !isJmlTypeToken(jt) && currentMethodSpecs != null && !startOfMethodSpecs(token)) {
@@ -1004,20 +1003,30 @@ public class JmlParser extends JavacParser {
             }
             IJmlClauseKind ct = null;
             String id = null;
+            if (token.kind == TokenKind.SEMI && !isNone(mods)) {
+            	utils.error(token.pos, "jml.message", "Orphaned modifiers found before an empty declaration");
+            }
+            
+            // Look up the keyword
             if (S.jml() && token.kind == TokenKind.IDENTIFIER) {
                 id = token.name().toString();
                 ct = Extensions.findTM(id);
             }
             if (ct != null) {
-            	if (typeAnns != null) {
-            		if (!typeAnns.isEmpty()) utils.error(typeAnns.head, "jml.message", "Type annotations are not permitted here");
-            		typeAnns = null;
-            	}
+            	// It is something JML - but only type or method specification clauses
                 if (startOfMethodSpecs(token)) {
+                	// Method specs
                     currentMethodSpecs = parseMethodSpecs(mods);
+                    if (((JmlModifiers)mods).anyModsInJava) {
+                    	utils.error(currentMethodSpecs.pos,  "jml.message", "A method specification incorrectly follows non-JML modifiers");
+                    }
                     mods = pushBackModifiers;
                 } else if (startOfTypeSpec(token)) {
+                	// Type specs
                     JCTree tc = parseTypeSpecs(mods);
+                    if (((JmlModifiers)mods).anyModsInJava) {
+                    	utils.error(tc.pos,  "jml.message", "A JML clause incorrectly follows non-JML modifiers");
+                    }
                     mods = null;
                     if (tc instanceof JmlTypeClause && currentMethodSpecs != null) {
                         utils.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + ((JmlTypeClause)tc).clauseType.name() + " clause (ignored)");
@@ -1044,34 +1053,35 @@ public class JmlParser extends JavacParser {
                         list.append(tc);
                     }
                 } else if (utils.findMod(mods,Modifiers.MODEL) == null && utils.findMod(mods,Modifiers.GHOST) == null) {
+                	// FIXME _ what could this be
                     utils.error(token.pos, "jml.illegal.token.for.declaration", id);
                     skipThroughSemi();
                     mods = null;
+                } else {
+                	// internal error -- token recognized by findTM but starts neither a method or type spec
                 }
                 continue;
-            } else if (jmlTokenClauseKind() == org.jmlspecs.openjml.ext.Operators.startjmlcommentKind) {
+            } else if (isStartJml(token)) { // FIXME - is this needed - modifiersOpt reads any start or end JML tokens
             	nextToken();
             	continue;
             } else if (S.jml() && id != null && Extensions.findSM(id) != null && !"set".equals(id)) {
-                utils.error(pos(), endPos(),
-                        "jml.illegal.token.for.declaration", id);
+                utils.error(pos(), endPos(), "jml.illegal.token.for.declaration", id);
                 skipThroughSemi(); // FIXME - or right brace?
                 mods = null;
                 break;
 
             }
+            // Possibly Java, possibly JML but then is a ghost or model declaration
             if (jt == null || isJmlTypeToken(jt)) {
-            	// A method or variable declaration with a JML (back-slash) type
+            	// Either a Java declaration or a JML declaration that starts with a JML type
                 boolean startsInJml = S.jml();
                 List<JCTree>  t;
                 if (startsInJml && !inLocalOrAnonClass) {
                     boolean prevInJmlDeclaration = inJmlDeclaration;
-                    inJmlDeclaration = true;
-                    if (token.kind == TokenKind.BANG) {
-                        replacementType = unannotatedType(false);
-                        inJmlDeclaration = false;
-                        startsInJml = false;
-                    }
+                    // Parse any replacement type early because otherwise it appears we are in JML
+                    replacementType = parseOptionalReplacementType();
+                    inJmlDeclaration = S.jml();
+                    startsInJml = S.jml();
                     if (token.kind == TokenKind.SEMI && currentMethodSpecs != null) {
                         utils.error(token.pos, "jml.message", "Method specs preceding an empty declaration are ignored");
                         currentMethodSpecs = null;
@@ -1084,6 +1094,9 @@ public class JmlParser extends JavacParser {
                         boolean inJml = S.jml();
                         t = super.classOrInterfaceOrRecordBodyDeclaration(mods, className, isInterface, isRecord);
                         if (inJml) acceptEndJML();
+                        if (inJml && ((JmlModifiers)mods).anyModsInJava) {
+                        	utils.error(t.head.pos,  "jml.message", "A JML declaration incorrectly follows non-JML modifiers");
+                        }
                         if (isInterface && t.head instanceof JmlMethodDecl) {
                             JmlMethodDecl md = (JmlMethodDecl)t.head;
                             if (utils.hasMod(md.mods,Modifiers.MODEL)
@@ -1099,7 +1112,6 @@ public class JmlParser extends JavacParser {
                         utils.error(token.pos, "jml.message", "Method specs preceding an empty declaration are ignored");
                         currentMethodSpecs = null;
                     }
-                    // no longer in JML
                     boolean inJml = S.jml();
                     t = super.classOrInterfaceOrRecordBodyDeclaration(mods, className, isInterface, isRecord);
                     if (inJml) acceptEndJML();
@@ -1230,6 +1242,18 @@ public class JmlParser extends JavacParser {
     List<JCAnnotation> savedTypeAnnotations = null;
 
 
+    public JCExpression parseOptionalReplacementType() {
+        JCExpression r = null;
+        while (isStartJml(token)) nextToken();
+        if (token.kind == TokenKind.LBRACKET) {
+        	nextToken();
+            r = unannotatedType(false);
+            accept(TokenKind.RBRACKET);
+            acceptEndJML();
+        }
+        return r;
+    }
+    
     /**
      * This parses a comma-separated list of expressions; the last expression in
      * the list parses until it can parse no more - the caller needs to check
@@ -1387,26 +1411,23 @@ public class JmlParser extends JavacParser {
     
     @Override
     public JCExpression unannotatedType(boolean allowVar) {
-        JCExpression replacementType = null;
-        boolean isBrace = S.jml() && token.kind == TokenKind.LBRACE;
-        if (isBrace || token.kind==TokenKind.BANG) {
+        while (isStartJml(token)) nextToken();
+        boolean isBrace = S.jml() && token.kind == TokenKind.LBRACKET;
+        if (isBrace) {
+        	this.replacementType = null;
         	try {
         		// We need to be in non-JML mode so that we don't interpret
         		nextToken();
-        		replacementType = super.unannotatedType(allowVar);
+        		this.replacementType = super.unannotatedType(allowVar);
         	} finally {
-        		if (isBrace) accept(TokenKind.RBRACE);
+        		if (isBrace) accept(TokenKind.RBRACKET);
         		if (token.ikind != JmlTokenKind.ENDJMLCOMMENT) {
         			utils.error(token.pos,"jml.bad.construct","JML construct");
         		}
         		skipThroughEndOfJML();
         	}
-        	if (!isBrace) {
-        		return replacementType;
-        	}
         }
         JCExpression type = super.unannotatedType(allowVar);
-        this.replacementType = replacementType;
         return type;
     }
 
@@ -1522,14 +1543,12 @@ public class JmlParser extends JavacParser {
 
     // [ also ] [ modifiers ] [ | behavior | normal_behavior |
     // exceptional_behavior ] [ clause ]*
-    public JmlSpecificationCase parseSpecificationCase(JCModifiers mods,
-            boolean exampleSection) {
+    public JmlSpecificationCase parseSpecificationCase(JCModifiers mods, boolean exampleSection) {
         IJmlClauseKind also = null;
         IJmlClauseKind ext = methodSpecKeyword();
         if (ext == alsoClause || ext == elseClause) {
             if (!isNone(mods)) {
-                utils.warning(mods.getStartPosition(), endPos(),
-                        "jml.no.mods.allowed", ext.keyword);
+                utils.warning(mods.getStartPosition(), endPos(), "jml.no.mods.allowed", ext.keyword);
                 mods = null;
             }
             also = ext;
@@ -1580,6 +1599,10 @@ public class JmlParser extends JavacParser {
             //            skipThroughSemi();
             //            // Call it lightweight
         } else {
+            if (ext != null && !isNone(mods) && !((JmlModifiers)mods).anyModsInJava) {
+                utils.error(mods,"jml.no.mods.lightweight");
+                mods = null;
+            }
             ext = null;
             if (code) utils.warning(codePos, "jml.misplaced.code");
             // lightweight
@@ -2150,15 +2173,16 @@ public class JmlParser extends JavacParser {
     		} else {
     			var p = token.pos;
     			boolean inJML = S.jml();
+    			var saved = mods.anyModsInJava;
     			mods = (JmlModifiers)super.modifiersOpt(mods);
     			if (p != token.pos) {
     				// read something
-    				if (!inJML) mods.anyModsInJava = true;
+    				mods.anyModsInJava = saved || !inJML;
                 	if (firstpos == Position.NOPOS) firstpos = mods.pos = p;
-                	//System.out.println("JAVA " + p + " " + token.pos + " " + mods.pos);
     				// already advanced
     				continue;
     			} else {
+    				mods.anyModsInJava = saved;
     				// nothing read -- so no more modifiers of any kind
     			    break;
     			}

@@ -40,7 +40,7 @@ public class Interval implements IntSet {
                     inclusive = true;
                 }
             }
-            //@ contains(i);
+            //@ contains(i); // Intentional error - used to crash
         }
     }
 
@@ -61,7 +61,7 @@ public class Interval implements IntSet {
             ub = i-1;
             inclusive = false;
         }
-        //@ !contains(i);
+        //@ !contains(i); // Intentional error - used to crash
     }
 
     public /*@ pure @*/ int size() {
