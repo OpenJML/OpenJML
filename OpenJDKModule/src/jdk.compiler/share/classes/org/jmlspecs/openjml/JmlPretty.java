@@ -1426,6 +1426,21 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         that.item.accept(this);
     }
 
+    @Override
+    public void visitModifiers(JCModifiers that) {
+        try {
+            printAnnotations(that.annotations);
+        	StringBuilder sb = new StringBuilder();
+    		for (var kk: ((JmlModifiers)that).jmlmods) {
+    			print(kk.toString());
+    			print(" ");
+    		}
+            printFlags(that.flags);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+    
     // Enables printing of things like:
     //
     // [jmlrac:../demos/Test.java:1]\t %line

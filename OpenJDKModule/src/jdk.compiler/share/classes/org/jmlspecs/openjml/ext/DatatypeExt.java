@@ -93,7 +93,7 @@ public class DatatypeExt extends JmlExtension {
                 while (parser.token().kind != TokenKind.RBRACE && parser.token().kind != TokenKind.EOF) {
                     // Parse a method
                     
-                    List<JCTree> t = parser.classOrInterfaceOrRecordBodyDeclaration(datatypeName,false,false);
+                    List<JCTree> t = parser.classOrInterfaceOrRecordBodyDeclaration(mods, datatypeName,false,false);
                     // check that this is a method
                     if (t != null && !t.isEmpty()) defs.add(t.head);
                 }

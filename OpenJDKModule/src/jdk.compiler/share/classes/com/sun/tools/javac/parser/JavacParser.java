@@ -3549,7 +3549,7 @@ public class JavacParser implements Parser {
         }
     }
     
-    protected JCTree checkForJmlDeclaration(JCModifiers mods, boolean checkForImports) {
+    protected JCTree checkForJmlDeclaration(boolean checkForImports) {
     	return null;
     }
 
@@ -3594,7 +3594,7 @@ public class JavacParser implements Parser {
             }
             JCTree t;
             do {
-            	t = checkForJmlDeclaration(mods, checkForImports); // OPENJML - added
+            	t = checkForJmlDeclaration(checkForImports); // OPENJML - added
             	if (t != null) { defs.append(t); seenImport |= (t instanceof JCImport); mods = null; } // OPENJML - added
             } while (t != null); // OPENJML - added
 
@@ -4042,8 +4042,7 @@ public class JavacParser implements Parser {
                     hasStructuralErrors = true;
                 }
                 wasError = false;
-                defs.appendList(classOrInterfaceOrRecordBodyDeclaration(enumName,
-                                                                false, false));
+                defs.appendList(classOrInterfaceOrRecordBodyDeclaration(null, enumName, false, false));
                 if (token.pos <= endPosTable.errorEndPos) {
                     // error recovery
                    skip(false, true, true, false);
@@ -4146,7 +4145,7 @@ public class JavacParser implements Parser {
         }
         ListBuffer<JCTree> defs = new ListBuffer<>();
         while (token.kind != RBRACE && token.kind != EOF) {
-            defs.appendList(classOrInterfaceOrRecordBodyDeclaration(className, isInterface, isRecord));
+            defs.appendList(classOrInterfaceOrRecordBodyDeclaration(null, className, isInterface, isRecord)); // OPENJML - added a parameter mods for cases in which they are parsed before calling this method
             if (token.pos <= endPosTable.errorEndPos) {
                // error recovery
                skip(false, true, true, false);
@@ -4185,14 +4184,14 @@ public class JavacParser implements Parser {
      *      )
      *
      */
-    protected List<JCTree> classOrInterfaceOrRecordBodyDeclaration(Name className, boolean isInterface, boolean isRecord) {
+    protected List<JCTree> classOrInterfaceOrRecordBodyDeclaration(JCModifiers mods, Name className, boolean isInterface, boolean isRecord) {
         if (token.kind == SEMI) {
             nextToken();
             return List.nil();
         } else {
             Comment dc = token.comment(CommentStyle.JAVADOC);
             int pos = token.pos;
-            JCModifiers mods = modifiersOpt();
+            mods = mods != null ? mods : modifiersOpt();
             if (token.kind == CLASS ||
                 allowRecords && isRecordStart() ||
                 token.kind == INTERFACE ||
