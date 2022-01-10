@@ -145,7 +145,7 @@ public class Extensions {
             SignalsOnlyClauseExtension.class, 
             
             // Statements
-            EndStatement.class, 
+            Refining.class, 
             GhostModelStatement.class,
             InlinedLoopStatement.class, 
             ReachableStatement.class, 
