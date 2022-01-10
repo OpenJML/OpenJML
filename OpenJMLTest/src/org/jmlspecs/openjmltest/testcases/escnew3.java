@@ -915,7 +915,7 @@ public class escnew3 extends EscBase {
                               + "     //@ assert \\old(k,c) == 12;\n"
                               + "    }\n"
                               + "}"
-                              ,"/tt/TestJava.java:5: error: There is no label named a", 24 
+                              ,"/tt/TestJava.java:5: error: Unknown label: a", 24 
                               ,"/tt/TestJava.java:9: error: label b already in use", 26
                               );
                       
