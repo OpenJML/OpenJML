@@ -3286,6 +3286,7 @@ public class JmlTree {
         public List<JCIdent> exports;
         public List<JCVariableDecl> decls;
         public List<JCStatement> newStatements;
+        public Name label;
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatementSpec(int pos, JmlMethodSpecs statementSpecs) {  // FIXME - fix constructors and copiers
@@ -3294,6 +3295,7 @@ public class JmlTree {
             this.exports = List.<JCIdent>nil();
             this.decls = null;
             this.newStatements = null;
+            this.label = null;
         }
     
         @Override
