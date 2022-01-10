@@ -5,7 +5,7 @@
 package org.jmlspecs.openjml;
 
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
-import static org.jmlspecs.openjml.ext.EndStatement.*;
+import static org.jmlspecs.openjml.ext.Refining.*;
 
 import java.io.StringWriter;
 import java.util.HashMap;

@@ -18127,7 +18127,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				translatingJML = saved;
 				condition = null;
 			}
-		} else if (that.clauseType == EndStatement.endClause) {
+		} else if (that.clauseType == Refining.endClause) {
 			// do nothing -- this should be part of a JmlStatementSpec
 		} else {
 			String msg = "Unknown token in JmlAssertionAdder.visitJmlStatement: " + that.keyword;
