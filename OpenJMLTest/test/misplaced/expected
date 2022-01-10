@@ -1,0 +1,23 @@
+test/misplaced/BadMod.java:4: error: A JML declaration incorrectly follows non-JML modifiers
+  //@ ghost static int f; // ERROR
+                       ^
+test/misplaced/BadMod.java:8: error: A method specification incorrectly follows non-JML modifiers
+  //@ requires true;  // ERROR
+      ^
+test/misplaced/BadMod.java:11: error: No modifiers are allowed prior to a lightweight specification case
+  //@ public requires true; // ERROR - no modifiers allowed
+      ^
+test/misplaced/BadMod.java:15: error: A method specification incorrectly follows non-JML modifiers
+  //@ normal_behavior ensures true; // ERROR
+      ^
+test/misplaced/BadMod.java:23: error: A JML clause incorrectly follows non-JML modifiers
+  //@ invariant true; // ERROR
+      ^
+test/misplaced/BadMod.java:25: error: Orphaned modifiers found before an empty declaration
+  public ; // ERROR
+         ^
+test/misplaced/BadMod.java:27: error: Orphaned modifiers found before an empty declaration
+  //@ pure ; // ERROR
+           ^
+Operation not performed because of parse or type errors
+7 errors
