@@ -143,6 +143,7 @@ public class Refining extends JmlExtension {
             }
             ste = parser.jmlF.at(pos).JmlStatementSpec(specs);
             ste.exports = exports.toList();
+ //           ste.label = parser.names.fromString("`SSL"+pos); 
             parser.storeEnd(ste, parser.getEndPos(specs));
 
             JCStatement begin = null;

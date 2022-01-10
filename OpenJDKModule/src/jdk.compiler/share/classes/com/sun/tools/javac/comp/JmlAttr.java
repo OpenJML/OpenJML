@@ -44,6 +44,8 @@ import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
 import static org.jmlspecs.openjml.ext.ShowStatement.*;
 import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.parser.JmlToken;
+
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -250,6 +252,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public Type JMLIntArrayLike;
     public Type JMLPrimitive;
     
+    public Name oldLabel;
+    public Name hereLabel;
+    public Name preLabel;
+    
     // The following fields are stacked as the environment changes as one
     // visits down the tree.
         
@@ -307,6 +313,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         this.jmltypes = (JmlTypes)super.types;  // same as super.types
         //this.classReader.init(syms);
         this.jmlresolve = (JmlResolve)super.rs;
+        
+        this.oldLabel = names.fromString("\\Old");
+        this.preLabel = names.fromString("\\Pre");
+        this.hereLabel = names.fromString("\\Here");
+        jmlenv.currentOldLabel = preLabel;
         
         // Caution, because of circular dependencies among constructors of the
         // various tools, it can happen that syms is not fully constructed at this
@@ -1226,7 +1237,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void attribMethodBody(JCBlock body, Env<AttrContext>  env) {
         saveEnvForLabel(null, env);
-        saveEnvForLabel(names.empty, env);
+        saveEnvForLabel(this.preLabel, env);
         boolean savedAttributeSpecs = this.attribJmlDecls;
         this.attribJmlDecls = true;
         attribStat(body, env);
@@ -3694,20 +3705,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public Env<AttrContext> envForLabel(DiagnosticPosition pos, Name label, Env<AttrContext> oldenv) {
-        if (oldenv == null) oldenv = enclosingMethodEnv;
-        if (label != null) {
+        if (enclosingMethodEnv == null) {
+            // Just a precaution
+            utils.warning(pos,"jml.internal","Unsupported context for pre-state reference (anonymous class? initializer block?): " + label + ".  Please report the program.");
+        } else if (label != null) {
             Env<AttrContext> labelenv = labelEnvs.get(label);
             if (labelenv == null) {
                 utils.error(pos,"jml.unknown.label",label);
             } else {
                 oldenv = labelenv;
             }
-        }
-        if (enclosingMethodEnv == null) {
-            // Just a precaution
-            utils.warning(pos,"jml.internal","Unsupported context for pre-state reference (anonymous class? initializer block?): " + label + ".  Please report the program.");
-            oldenv = env;
-            //
         }
         return oldenv;
     }
@@ -3888,11 +3895,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** This handles JML statements that give method-type specs for method body statements. */
     public void visitJmlStatementSpec(JmlTree.JmlStatementSpec tree) {
+        tree.label = names.fromString("`SSL"+tree.pos); 
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         jmlenv = jmlenv.pushCopy();
         jmlenv.currentClauseKind = null;
         boolean saved = isRefining;
-        isRefining = false;
+        isRefining = false; // FIXME - why false? put in jmlenv?
+        saveEnvForLabel(tree.label, env);
+        jmlenv.currentBlockContract = tree;
+        jmlenv.currentOldLabel = tree.label;
         if (tree.statements != null) {
             jmlresolve.setAllowJML(false);
             attribStats(tree.statements,env);
@@ -4052,12 +4063,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        result = that.type = Type.noType;
 //    }
     
+    public final String[] predefinedLabels = { "Pre", "Old", "Here"};
+    
     public Name checkLabel(JCTree tr) {
         if (tr.getTag() != JCTree.Tag.IDENT) {
         	utils.error(tr,"jml.bad.label");
             return null;
         } else {
             Name label = ((JCTree.JCIdent)tr).getName();
+            if (labelEnvs.get(label) == null) {
+            	String s = label.toString();
+            	boolean bs = !s.isEmpty() && s.charAt(0) == '\\';
+            	final String sf = bs ? s.substring(1) : s;
+            	if (!Arrays.stream(predefinedLabels).anyMatch(ss->ss.equals(sf))) {
+            		utils.error(tr,  "jml.message", "Unknown label: " + label);
+            		return null;
+            	}
+            	if (!bs) label = names.fromString("\\"+s);
+            };
             return label;
         }
 
@@ -7510,7 +7533,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public class JmlEnv {
     	public JmlEnv previous;
-    	public Name currentLabel; // null is here, names.empty is start of body
+    	public Name currentLabel; // null is here
+    	public Name currentOldLabel; // current interpretation of Old
 
         /** This field stores the clause type when a clause is visited (before 
          * visiting its components), in order that various clause-type-dependent
@@ -7539,29 +7563,37 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         /** This value is valid within a Signals clause */
         public Type currentExceptionType = null;
         
+        //@ nullable
+        public JmlStatementSpec currentBlockContract;
+
+        
     	public JmlEnv() {
     		previous = null;
     		currentLabel = null;
+    		currentOldLabel = preLabel;
     		currentClauseKind = null;
     		inPureEnvironment = false;
     		inExpressionScope = false;
     		jmlVisibility = -1;
     		representsHead = null;
+    		currentBlockContract = null;
     	}
     	
     	public JmlEnv(JmlEnv e) {
+    		previous = e;
     		currentLabel = e.currentLabel;
+    		currentOldLabel = e.currentOldLabel;
     		currentClauseKind = e.currentClauseKind;
     		inPureEnvironment = e.inPureEnvironment;
     		inExpressionScope = e.inExpressionScope;
     		jmlVisibility = e.jmlVisibility;
     		representsHead = e.representsHead;
+    		currentBlockContract= e.currentBlockContract;
     	}
     	
     	public JmlEnv pushCopy() {
     		var j = new JmlEnv(this);
     		//System.out.println("PUSHCOPY " + this.hashCode() + " " + jmlenv.hashCode() + " " + j.hashCode());
-    		j.previous = this;
     		JmlAttr.this.jmlenv = j;
     		return j;
     	}

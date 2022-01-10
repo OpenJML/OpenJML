@@ -516,6 +516,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 * the pre-state, otherwise it is the JCIdent of the label in the \old statement
 	 */
 	/* @nullable */ protected JCIdent oldenv;
+	
+	/** The current interpretation of \Old. Starts out as \Pre, but can point to
+	 * a statement contract or the prestate of a callee.
+	 */
+	public JCIdent currentOldEnv = null;
 
 	/**
 	 * The \old label to use for the pre-state; note that the prestate is usually
@@ -657,10 +662,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		this(context, esc, rac, false);
 	}
 
-	/**
-	 * (Public API) Reinitializes the object to start a new class or compilation
-	 * unit or method
-	 */
 	public void initialize() {
 		String ss = JmlOption.value(context, JmlOption.RAC_SHOW_SOURCE);
 		this.showRacSource = "none".equals(ss) ? 0 : "line".equals(ss) ? 1 : 2;
@@ -673,6 +674,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		this.preconditions.clear();
 		this.treeMap.clear();
 		this.oldenv = null;
+		this.currentOldEnv = M.at(Position.NOPOS).Ident(attr.preLabel);
 		this.heapCount = this.topHeapCount = 0;
 		this.heapVarName = names.fromString("_heap__"); // FIXME - cf. BasicBlocker2
 		this.applyNesting = 0;
@@ -6035,8 +6037,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public static class LabelProperties {
 		int allocCounter;
 		int heapCount;
-		JmlLabeledStatement labeledStatement;
+		JCStatement labeledStatement;
 		public Name name;
+		public ListBuffer<JCStatement> extraStats() {
+			if (labeledStatement instanceof JmlLabeledStatement s) return s.extraStatements;
+			return null;
+		}
 	}
 
 	public static class LabelPropertyStore {
@@ -6067,7 +6073,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	protected LabelPropertyStore labelPropertiesStore = new LabelPropertyStore();
 
-	protected LabelProperties recordLabel(Name labelName, JmlLabeledStatement stat) {
+	protected LabelProperties recordLabel(Name labelName, JCStatement stat) {
 		LabelProperties lp = new LabelProperties();
 		labelPropertiesStore.put(labelName, lp);
 		lp.labeledStatement = stat;
@@ -8131,6 +8137,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		Symbol savedEnclosingClass = this.enclosingClass;
 		Map<TypeSymbol, Type> savedTypeVarMapping = this.typevarMapping;
 		Map<TypeSymbol, Type> newTypeVarMapping = this.typevarMapping;
+		var savedCurrentOldEnv = currentOldEnv;
 
 		nestedCallLocation = null;
 
@@ -9281,6 +9288,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				markLocation(calllabel, currentStatements, stat);
 			}
+			currentOldEnv = M.at(that).Ident(calllabel);
 			if (Utils.debug())
 				System.out.println("APPLYHELPER-R " + calleeMethodSym.owner + " " + calleeMethodSym);
 
@@ -10577,6 +10585,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			nestedCallLocation = savedNestedCallLocation;
 			applyNesting--;
 			this.calleePreconditions = savedPreexpressions;
+			currentOldEnv = savedCurrentOldEnv;
 			if (rac) {
 				outerDeclarations.addAll(currentStatements);
 				currentStatements = outerDeclarations;
@@ -16754,8 +16763,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        } else {
 		// FIXME _ I don;'t beklieve the use of currentStsatements is correct here
 //            ListBuffer<JCStatement> list = labelProperties.get(label.name).activeOldLists;
-		JmlLabeledStatement labelStat = labelPropertiesStore.get(label.name).labeledStatement;
-		labelStat.extraStatements.add(stat);
+		JCStatement labelStat = labelPropertiesStore.get(label.name).labeledStatement;
+		if (labelStat instanceof JmlLabeledStatement s) s.extraStatements.add(stat);
 //            if (list != null) {
 //                list.add(stat);
 //            } else {
@@ -16791,7 +16800,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JmlLabeledStatement stat = M.at(that).JmlLabeledStatement(hereLabelName, null, null);
 					recordLabel(hereLabelName, stat);
 				}
-//                System.out.println("OLD " + that);
 				JCIdent savedEnv = oldenv;
 				// FIXME _ this implementation is not adequate for checking postconditions with
 				// \old from callers
@@ -16800,17 +16808,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				inOldEnv = true;
 				int savedHeap = heapCount;
 				try {
+					Name label = null;
+					if (that.args.size() == 2) {
+						label = ((JCIdent) that.args.get(1)).name;
+						oldenv = (JCIdent) that.args.get(1);
+					} else {
+						label = k == StateExpressions.preKind ? attr.preLabel : attr.oldLabel;
+					}
+					if (label == attr.oldLabel) {
+						label = currentOldEnv.name;
+					}
+					if (oldenv == null) oldenv = M.at(that.pos).Ident(label);
+	                //System.out.println("OLD " + that + " " + currentOldEnv + " " + label + " " + oldenv);
+					LabelProperties lp = labelPropertiesStore.get(label);
+					that.labelProperties = lp;
+
 					if (rac) {
 						pushBlock();
 						try {
-							Name label = null;
-							if (that.args.size() == 2) {
-								label = ((JCIdent) that.args.get(1)).name;
-							} else {
-								label = oldLabel.name;
-							}
-							LabelProperties lp = labelPropertiesStore.get(label);
-							currentStatements = lp.labeledStatement.extraStatements;
+							currentStatements = lp.extraStats();
 							heapCount = lp.heapCount;
 							JCExpression arg = (that.args.get(0));
 							if (!convertingAssignable && arg instanceof JCArrayAccess
@@ -16854,14 +16870,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							popBlock();
 						}
 					} else { // esc
-						if (that.args.size() == 1) {
-							// FIXME - default depdns on location
-							oldenv = oldLabel; // FIXME - could have a constant name for this
-						} else {
-							// The second argument is a label, held as a JCIdent
-							oldenv = (JCIdent) that.args.get(1);
-						}
-						that.labelProperties = labelPropertiesStore.get(oldenv.name);
 //                        System.out.println("OLD " + that + " " + oldenv + " " + oldenv.name + " "  + that.labelProperties);
 						// System.out.println(labelPropertiesStore.map.keySet());
 						// System.out.println(labelPropertiesStore.get(oldenv.name));
@@ -18414,15 +18422,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		result = st;
 		assumingPostConditions = saved;
 	}
+	
+	JmlStatementSpec innerStatementSpec = null;
 
 	// OK
 	@Override
 	public void visitJmlStatementSpec(JmlStatementSpec that) {
-
+		JmlStatementSpec savedInner = innerStatementSpec;
+		innerStatementSpec = that;
+		var savedCurrentOldEnv = currentOldEnv;
+		currentOldEnv = M.at(that).Ident(that.label);
+		
+		recordLabel(that.label, that);
+		markLocation(that.label, currentStatements, that);
 		if (rac || infer || currentSplit == null) {
 			// Ignore
 			convert(that.statements);
 			result = null;
+			innerStatementSpec = savedInner;
 			return;
 		}
 
@@ -18520,6 +18537,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					null));
 			continuation = Continuation.HALT;
 		}
+		innerStatementSpec = savedInner;
+		currentOldEnv = savedCurrentOldEnv;
 		result = null;
 	}
 
@@ -19211,7 +19230,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		heapCount = savedHeapCount;
 	}
 
-	protected void markLocation(Name label, ListBuffer<JCStatement> list, JmlLabeledStatement marker) {
+	protected void markLocation(Name label, ListBuffer<JCStatement> list, JCStatement marker) {
 		Location loc = new Location(list, marker);
 		locations.put(label, loc);
 		LabelProperties lp = labelPropertiesStore.get(label);
