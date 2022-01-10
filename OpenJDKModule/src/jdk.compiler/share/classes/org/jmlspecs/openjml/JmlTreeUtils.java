@@ -1312,9 +1312,10 @@ public class JmlTreeUtils {
     }
     
     /** Makes an \old expression */
-    public JCMethodInvocation makeOld(DiagnosticPosition pos, JCExpression arg, JCIdent label) {
+    public JCMethodInvocation makeOld(DiagnosticPosition pos, JCExpression arg, Name label) {
         JmlMethodInvocation m;
-        m = factory.at(pos).JmlMethodInvocation(oldKind, List.<JCExpression>of(arg, label));
+        JCIdent id = factory.at(pos).Ident(label);
+        m = factory.at(pos).JmlMethodInvocation(oldKind, List.<JCExpression>of(arg, id));
         m.type = arg.type;
         m.kind = oldKind;
         return m;
@@ -1334,7 +1335,7 @@ public class JmlTreeUtils {
         return makeOld(arg,arg);
     }
 
-    public JCMethodInvocation makeOld(JCExpression arg, JCIdent label) {
+    public JCMethodInvocation makeOld(JCExpression arg, Name label) {
         return label == null ? makeOld(arg.pos(),arg) : makeOld(arg,arg,label);
     }
 
