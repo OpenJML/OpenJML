@@ -9585,7 +9585,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JCBlock bl = M.at(that.pos).Block(0L, stats);
 				if (!resultSym.type.isPrimitiveOrVoid() && !utils.isJavaOrJmlPrimitiveType(resultSym.type)) {
 					JCExpression isNotFresh = treeutils.makeNot(that.pos,
-							makeFreshExpression(that, resultExpr, attr.oldLabel));
+							makeFreshExpression(that, resultExpr, currentOldEnv.name));
 					JCStatement stat = M.at(that.pos).If(isNotFresh, bl, null);
 					ensuresStatsOuter.add(stat);
 				} else {
@@ -18379,7 +18379,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		innerStatementSpec = that;
 		var savedCurrentOldEnv = currentOldEnv;
 		currentOldEnv = M.at(that).Ident(that.label);
-	
+
 		recordLabel(that.label, that);
 		markLocation(that.label, currentStatements, that);
 		if (rac || infer || currentSplit == null) {
