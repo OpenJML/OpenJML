@@ -314,9 +314,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         //this.classReader.init(syms);
         this.jmlresolve = (JmlResolve)super.rs;
         
-        this.oldLabel = names.fromString("\\Old");
-        this.preLabel = names.fromString("\\Pre");
-        this.hereLabel = names.fromString("\\Here");
+        this.oldLabel = names.fromString(Strings.oldLabelBuiltin);
+        this.preLabel = names.fromString(Strings.preLabelBuiltin);
+        this.hereLabel = names.fromString(Strings.hereLabelBuiltin);
         jmlenv.currentOldLabel = preLabel;
         
         // Caution, because of circular dependencies among constructors of the
