@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1113,7 +1114,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			lp.name = attr.preLabel;
 			labelPropertiesStore.put(attr.preLabel, lp);
 			JmlLabeledStatement mark = M.JmlLabeledStatement(attr.preLabel, null, null);
-			labelPropertiesStore.put(oldLabel.name, lp);
+			labelPropertiesStore.put(attr.oldLabel, lp);
 			oldStatements = mark.extraStatements;
 			undoLabels = true;
 
@@ -1331,7 +1332,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			if (undoLabels) {
 				labelPropertiesStore.pop(attr.preLabel);
-				labelPropertiesStore.pop(oldLabel.name);
+				labelPropertiesStore.pop(attr.oldLabel);
 			}
 
 			this.assumeCheckCount = prevAssumeCheckCount;
@@ -9260,7 +9261,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				addStat(stat);
 				LabelProperties lp = recordLabel(calllabel, stat);
 				lp.allocCounter = preAllocCounter;
-				labelPropertiesStore.put(oldLabel.name, lp);
+				labelPropertiesStore.put(attr.oldLabel, lp);
 				labelPushed = true;
 
 				oldStatements = currentStatements;
@@ -9586,7 +9587,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JCBlock bl = M.at(that.pos).Block(0L, stats);
 				if (!resultSym.type.isPrimitiveOrVoid() && !utils.isJavaOrJmlPrimitiveType(resultSym.type)) {
 					JCExpression isNotFresh = treeutils.makeNot(that.pos,
-							makeFreshExpression(that, resultExpr, oldLabel.name));
+							makeFreshExpression(that, resultExpr, attr.oldLabel));
 					JCStatement stat = M.at(that.pos).If(isNotFresh, bl, null);
 					ensuresStatsOuter.add(stat);
 				} else {
@@ -10554,7 +10555,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			oldStatements = savedOldStatements;
 			condition = savedCondition;
 			if (labelPushed)
-				labelPropertiesStore.pop(oldLabel.name);
+				labelPropertiesStore.pop(attr.oldLabel);
 			currentFresh = savedFresh;
 			enclosingMethod = savedEnclosingMethod;
 			enclosingClass = savedEnclosingClass;
@@ -17103,7 +17104,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						// could be a.*, a[*], a[i..j]
 						throw new JmlNotImplementedException(that, that.token.internedName());
 					}
-					and = and == null ? bin : treeutils.makeAnd(that.pos, and, bin);
+					and = and == null ? bin : treeutils.makeBitAnd(that.pos, and, bin);
 				}
 				result = eresult = convertExpr(and);
 				break;
@@ -17335,13 +17336,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else if (label.toString().isEmpty()) {
 				// ERROR _ FIXME - forgot to insert a LabelProperties for Pre
 				ac = 0;
+				utils.error(trarg,  "jml.internal", "Obsolete empty label string");
 			} else if (label.toString().equals("LoopBodyBegin")) {
 				// Happens when a fresh expression referencing this label is in a loop_invariant
 				// The checking of the loop invariant before the loop begins occurs before the
 				// label
 				ac = allocCounter;
 			} else {
-				// ERROR - FIXME
+				utils.error(trarg,  "jml.internal", "No label properties structure found for label " + label);
+				Utils.dumpStack();
 				ac = 0;
 			}
 		}
