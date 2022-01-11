@@ -9250,7 +9250,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// must be after computations of 'OLD' clauses but before processing the
 			// assignable clauses
 			Name calllabel = null;
-			if (!translatingJML) {
+			if (splitExpressions) { //if (!translatingJML) {
 				JCBlock bl = M.at(that).Block(0L, com.sun.tools.javac.util.List.<JCStatement>nil());
 				String label = "_JMLCALL_" + that.pos + "_" + (uniqueCount++);
 				calllabel = names.fromString(label);
@@ -9268,6 +9268,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				markLocation(calllabel, currentStatements, stat);
 			}
 			currentOldEnv = M.at(that).Ident(calllabel);
+			//System.out.println("CURRENTOLDENV-B " + currentOldEnv.name + " " + calllabel + " " + allocCounter + " " + preAllocCounter);
 			if (Utils.debug())
 				System.out.println("APPLYHELPER-R " + calleeMethodSym.owner + " " + calleeMethodSym);
 
@@ -14294,7 +14295,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// actual);
 					if (actual == null) actual = treeutils.makeIdent(that.pos, sym); // FIXME - if it is a formal there shuld always be
 																		// a mapping
-					result = eresult = treeutils.makeOld(that, actual, labelPropertiesStore.get(attr.preLabel));
+					result = eresult = treeutils.makeOld(that, actual, labelPropertiesStore.get(currentOldEnv.name));
 					//System.out.println("VISITIDENT-EE " + that + " " + oldenv + " " + isPostcondition + " " + eresult);
 					treeutils.copyEndPosition(eresult, that);
 					return;
@@ -14302,7 +14303,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (rac && isPostcondition && isFormal(sym, methodDecl.sym)) {
 					// Name nm = utils.isJMLTop(sym.flags()) ? names.fromString("Precondition") :
 					// preLabel.name;
-					JCExpression e = treeutils.makeOld(that, treeutils.makeIdent(that.pos, sym), labelPropertiesStore.get(attr.preLabel));
+					JCExpression e = treeutils.makeOld(that, treeutils.makeIdent(that.pos, sym), labelPropertiesStore.get(currentOldEnv.name));
 					isPostcondition = false;
 					result = eresult = convertExpr(e);
 					isPostcondition = true;
@@ -16778,19 +16779,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// FIXME - also it does not work for rac at labelled locations
 				int savedHeap = heapCount;
 				try {
-					Name label = null;
-					if (that.args.size() == 2) {
-						label = ((JCIdent) that.args.get(1)).name;
-						oldenv = ((JCIdent) that.args.get(1)).name;
-					} else {
-						label = k == StateExpressions.preKind ? attr.preLabel : attr.oldLabel;
-					}
-					if (label == attr.oldLabel) {
-						label = currentOldEnv.name;
-					}
-					if (oldenv == null) oldenv = label;
+					oldenv = normalizeLabel(that.args.size()>1?that.args.get(1):null, k == StateExpressions.preKind ? attr.preLabel : attr.oldLabel, that );
 	                //System.out.println("OLD " + that + " " + currentOldEnv + " " + label + " " + oldenv);
-					LabelProperties lp = labelPropertiesStore.get(label);
+					LabelProperties lp = labelPropertiesStore.get(oldenv);
 					that.labelProperties = lp;
 
 					if (rac) {
@@ -16808,7 +16799,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								JCExpression a = treeutils.copyArray(that.pos, ad);
 								JCVariableDecl d = newTempDecl(arg, a.type);
 								d.init = a;
-								oldarrays.put(label, sym, d);
+								oldarrays.put(oldenv, sym, d);
 								currentStatements.add(d); // This decl is used in postconditions - cannot currently be
 															// put into Pre extra material
 
@@ -17107,24 +17098,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				break;
 			}
 			case freshID: {
-				Name label = attr.oldLabel;
-				if (that.args.size() > 1) {
-					JCExpression lb = that.args.get(1);
-					if (lb instanceof JCLiteral) {
-						// FIXME - I don't think a string is allowed by type-checking
-						String s = ((JCLiteral) lb).value.toString();
-						label = names.fromString(s);
-						if (labelPropertiesStore.get(label) == null)
-							label = attr.oldLabel;
-					} else {
-						label = ((JCIdent) lb).name;
-					}
-					if (labelPropertiesStore.get(label) == null) {
-						utils.error(lb, "jml.message", "Label " + label + " is not in scope here");
-						result = eresult = treeutils.trueLit;
-						break;
-					}
+				if (currentOldEnv.name == null) {
+					// Likely a model method in a method spec clause that has a fresh expression -- which is dubious
 				}
+				Name label = normalizeLabel(that.args.size() > 1 ? that.args.get(1) : null, attr.oldLabel, that);
 				if (rac) {
 					throw new JmlNotImplementedException(that, that.kind.name());
 				} else {
@@ -17133,30 +17110,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				break;
 			}
 			case allocID: {
-				Name label = oldenv == null ? hereLabelName : oldenv; // Default is current location
-				if (that.args.size() > 1) {
-					try {
-						JCExpression lb = that.args.get(1);
-						if (lb instanceof JCLiteral) {
-							// FIXME - I don't think a string is allowed by type-checking
-							String s = ((JCLiteral) lb).value.toString();
-							label = names.fromString(s);
-							if (labelPropertiesStore.get(label) == null)
-								label = attr.oldLabel;
-						} else {
-							label = ((JCIdent) lb).name;
-						}
-						if (labelPropertiesStore.get(label) == null) {
-							utils.error(lb, "jml.message", "Label " + label + " is not in scope here");
-							result = eresult = treeutils.trueLit;
-							break;
-						}
-					} catch (Exception e) {
-						utils.error(that, "jml.message", "Label " + label + " is not valid or not in scope here");
-						result = eresult = treeutils.trueLit;
-						break;
-					}
-				}
+				Name label = normalizeLabel(that.args.size() > 1 ? that.args.get(1) : null, attr.oldLabel, that);
 				if (rac) {
 					throw new JmlNotImplementedException(that, that.kind.name());
 				} else {
@@ -17262,6 +17216,30 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				throw new JmlNotImplementedException(that, that.token.internedName());
 			}
 		result = eresult;
+	}
+	
+	public Name normalizeLabel(JCExpression arg, Name defaultLabel, DiagnosticPosition altpos) {
+		Name label;
+		if (arg != null) {
+			label = ((JCIdent)arg).name;
+		} else {
+			label = defaultLabel;
+		}
+		if (label == attr.oldLabel) label = currentOldEnv.name;
+		if (labelPropertiesStore.get(label) == null) {
+			String s = label.toString();
+			if (Arrays.stream(attr.predefinedLabels).anyMatch(ss->ss.equals(s))) {
+				label = names.fromString("\\"+s);
+			} else {
+				// This problem should have been found in JmlAttr
+				utils.error(arg!=null?arg:altpos, "jml.message", "Label " + label + " is not in scope here");
+				result = eresult = treeutils.trueLit;
+				return null;
+			}
+			if (label == attr.oldLabel) label = currentOldEnv.name;
+		}
+		if (label == attr.hereLabel) label = null;
+		return label;
 	}
 
 	JCExpression makeFreshExpression(DiagnosticPosition pos, JCExpression trarg, /* @ nullable */ Name label) {
@@ -18401,7 +18379,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		innerStatementSpec = that;
 		var savedCurrentOldEnv = currentOldEnv;
 		currentOldEnv = M.at(that).Ident(that.label);
-		
+	
 		recordLabel(that.label, that);
 		markLocation(that.label, currentStatements, that);
 		if (rac || infer || currentSplit == null) {
