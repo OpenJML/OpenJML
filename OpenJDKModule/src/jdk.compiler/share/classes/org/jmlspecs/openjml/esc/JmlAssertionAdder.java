@@ -528,7 +528,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 * the beginning of a method, but during translation of method call specs, it is
 	 * is the state just before the method call
 	 */
-	protected JCIdent oldLabel;
 	protected Name hereLabelName;
 	protected Name loopinitLabelName;
 	protected Name loopbodyLabelName;
@@ -646,8 +645,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		this.copier = new Copier(context,M);
 		// this.reader.init(syms); // FIXME?
 		this.utilsClass = !rac ? null : reader.enterClass(names.fromString(Strings.runtimeUtilsFQName));
-		this.oldLabel = treeutils.makeIdent(Position.NOPOS, Strings.oldLabelBuiltin, syms.intType); // Type does not
-																									// matter
 		this.hereLabelName = names.fromString(Strings.hereLabelBuiltin);
 		this.loopinitLabelName = names.fromString(Strings.loopinitLabelBuiltin);
 		this.loopbodyLabelName = names.fromString(Strings.loopbodyLabelBuiltin);
@@ -17110,7 +17107,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				break;
 			}
 			case freshID: {
-				Name label = oldLabel.name;
+				Name label = attr.oldLabel;
 				if (that.args.size() > 1) {
 					JCExpression lb = that.args.get(1);
 					if (lb instanceof JCLiteral) {
@@ -17118,7 +17115,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						String s = ((JCLiteral) lb).value.toString();
 						label = names.fromString(s);
 						if (labelPropertiesStore.get(label) == null)
-							label = oldLabel.name;
+							label = attr.oldLabel;
 					} else {
 						label = ((JCIdent) lb).name;
 					}
@@ -17145,7 +17142,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							String s = ((JCLiteral) lb).value.toString();
 							label = names.fromString(s);
 							if (labelPropertiesStore.get(label) == null)
-								label = oldLabel.name;
+								label = attr.oldLabel;
 						} else {
 							label = ((JCIdent) lb).name;
 						}
