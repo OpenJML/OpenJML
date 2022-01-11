@@ -131,7 +131,7 @@ public class typechecking extends TCBase {
     @Test public void testOld5() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\pre(b,k);\n}}",
                 "/A.java:2: error: A \\pre expression expects just 1 argument, not 2",16
-                ,"/A.java:2: error: There is no label named k",19);
+                );
     }
 
     @Test public void testOld6() {
@@ -141,7 +141,7 @@ public class typechecking extends TCBase {
 
     @Test public void testOld7() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\old(b,k);\n}}"
-                ,"/A.java:2: error: There is no label named k",19);
+                ,"/A.java:2: error: Unknown label: k",19);
     }
 
     @Test public void testOld8() {
@@ -943,7 +943,8 @@ public class typechecking extends TCBase {
     }
     
     @Test public void testFresh2() {
-        helpTCF("A.java","public class A { Object o,oo; //@ ensures \\fresh(o,oo); \n void m() {}  \n }"
+        helpTCF("A.java","public class A { Object o; //@ ensures \\fresh(o,oo); \n void m() {}  \n }"
+        		,"/A.java:1: error: Unknown label: oo",49
                 );
     }
     

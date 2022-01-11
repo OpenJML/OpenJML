@@ -174,5 +174,36 @@ public class SingletonExpressions extends JmlExtension {
     static {
         Extensions.allKinds.put("\\index", countKind);
     }
+    
+    public static class LabelKind extends IJmlClauseKind.SingletonExpressionKind {
+    	public LabelKind(String name) { super(name); }
+        @Override
+        public JCTree.JCExpression parse(JCTree.JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
+            init(parser);
+//            IJmlClauseKind jt = parser.jmlTokenClauseKind();
+            int p = parser.pos();
+//            String stringRep = parser.getScanner().chars();
+//            parser.nextToken();
+//            if (parser.token().kind == TokenKind.LPAREN) {
+//                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.name());
+//            } else {
+//                JmlSingleton e = toP(parser.maker().at(p).JmlSingleton(jt));
+//                e.kind = this;
+//                checkParse(parser,e,stringRep);
+//                return e;
+//            }
+            return parser.maker().at(p).Ident(parser.ident());
+        }
+       @Override
+        public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
+            return null;
+        }
+    };
+    public static final String preLabelID = "\\Pre";
+    public static final LabelKind preLabelKind = new LabelKind(preLabelID);
+    public static final String oldLabelID = "\\Old";
+    public static final LabelKind oldLabelKind = new LabelKind(oldLabelID);
+    public static final String hereLabelID = "\\Here";
+    public static final LabelKind hereLabelKind = new LabelKind(hereLabelID);
 }
 

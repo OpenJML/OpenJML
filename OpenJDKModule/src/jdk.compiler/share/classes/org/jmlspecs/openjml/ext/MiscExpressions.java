@@ -103,8 +103,7 @@ public class MiscExpressions extends JmlExtension {
             int n = expr.args.size();
             if (n != 1 && n != 2) {
                utils.error(tree,"jml.wrong.number.args",name(),"1 or 2",n);
-            }
-            if (n > 0) {
+            } else {
                 if (n > 1) attr.checkLabel(expr.args.get(1));
                 JCExpression arg = expr.args.get(0);
                 Type tt = attr.attribExpr(arg, localEnv);

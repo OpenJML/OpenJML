@@ -30,8 +30,8 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
 // FIXME - combine this with other statements
-public class EndStatement extends JmlExtension {
-	public EndStatement() {}
+public class Refining extends JmlExtension {
+	public Refining() {}
 
     public static final String endID = "end";
     public static final String beginID = "begin";
@@ -100,7 +100,7 @@ public class EndStatement extends JmlExtension {
             int pos = parser.pos();
             JmlStatementSpec ste;
             ListBuffer<JCIdent> exports = new ListBuffer<>();
-            if (clauseType == EndStatement.refiningClause) {
+            if (clauseType == Refining.refiningClause) {
                 parser.nextToken();
                 IJmlClauseKind ext = parser.methodSpecKeywordS();
                 if (ext == alsoClause) { // jmlTokenKind() == JmlTokenKind.ALSO) {
@@ -143,10 +143,11 @@ public class EndStatement extends JmlExtension {
             }
             ste = parser.jmlF.at(pos).JmlStatementSpec(specs);
             ste.exports = exports.toList();
+ //           ste.label = parser.names.fromString("`SSL"+pos); 
             parser.storeEnd(ste, parser.getEndPos(specs));
 
             JCStatement begin = null;
-            if (parser.jmlTokenClauseKind() == EndStatement.beginClause) {
+            if (parser.jmlTokenClauseKind() == Refining.beginClause) {
                 begin = (JCStatement)Extensions.findSM(beginID).parse(mods, beginID, beginClause, parser);
             }
             ListBuffer<JCStatement> stats = new ListBuffer<>();
@@ -155,10 +156,10 @@ public class EndStatement extends JmlExtension {
                 // Has a begin statement, so we read statement until an end
                 while (true) {
                 	if (parser.jmlTokenClauseKind() == Operators.startjmlcommentKind &&
-                			parser.jmlTokenClauseKind(scanner.token(1)) == EndStatement.endClause) {
+                			parser.jmlTokenClauseKind(scanner.token(1)) == Refining.endClause) {
                 		parser.nextToken();
                 	}
-                    if (parser.jmlTokenClauseKind() == EndStatement.endClause) {
+                    if (parser.jmlTokenClauseKind() == Refining.endClause) {
                         Extensions.findSM(endID).parse(mods, endID, endClause, parser);
                         break;
                     }
@@ -175,7 +176,7 @@ public class EndStatement extends JmlExtension {
                 if (stat == null || stat.isEmpty()) {
                     error(ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
                     return null;
-                } else if (stat.head instanceof JmlAbstractStatement && stat.head.toString() == EndStatement.beginID) {
+                } else if (stat.head instanceof JmlAbstractStatement && stat.head.toString() == Refining.beginID) {
                     error(stat.head, "jml.message", "Statement specs may not precede a JML statement clause");
                     return stat.head;
                 }

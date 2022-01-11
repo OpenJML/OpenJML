@@ -24,7 +24,7 @@ import org.jmlspecs.openjml.ext.RecommendsClause;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 import org.jmlspecs.openjml.visitors.IJmlVisitor;
 
-import static org.jmlspecs.openjml.ext.EndStatement.*;
+import static org.jmlspecs.openjml.ext.Refining.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.TypeInClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeMapsClauseExtension.*;

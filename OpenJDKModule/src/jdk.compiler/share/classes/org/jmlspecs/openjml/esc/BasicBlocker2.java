@@ -32,7 +32,7 @@ import static org.jmlspecs.openjml.ext.ReachableStatement.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.Functional.*;
 import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
-import org.jmlspecs.openjml.ext.EndStatement;
+import org.jmlspecs.openjml.ext.Refining;
 import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
@@ -1585,7 +1585,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     }
     
     public void visitJmlStatement(JmlStatement that) {
-        if (that.clauseType == EndStatement.endClause) {
+        if (that.clauseType == Refining.endClause) {
             // Modeled after vistReturn
             if (!remainingStatements.isEmpty()) {
                 JCStatement stat = remainingStatements.get(0);

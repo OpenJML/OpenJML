@@ -312,6 +312,7 @@ public class escnew extends EscBase {
     // Tests use of \old token in called methods
     @Test
     public void testPostcondition5() {
+//    	main.addOptions("-show","-method=m1");
     	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
     	helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
