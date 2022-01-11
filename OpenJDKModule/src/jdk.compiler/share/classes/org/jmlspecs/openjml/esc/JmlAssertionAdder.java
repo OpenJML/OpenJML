@@ -6029,11 +6029,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public static class LabelProperties {
 		int allocCounter;
 		int heapCount;
-		JCStatement labeledStatement;
+		JmlLabeledStatement labeledStatement;
 		public Name name;
 		public ListBuffer<JCStatement> extraStats() {
-			if (labeledStatement instanceof JmlLabeledStatement s) return s.extraStatements;
-			return null;
+			return labeledStatement.extraStatements;
 		}
 	}
 
@@ -6065,7 +6064,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	protected LabelPropertyStore labelPropertiesStore = new LabelPropertyStore();
 
-	protected LabelProperties recordLabel(Name labelName, JCStatement stat) {
+	protected LabelProperties recordLabel(Name labelName, JmlLabeledStatement stat) {
 		LabelProperties lp = new LabelProperties();
 		labelPropertiesStore.put(labelName, lp);
 		lp.labeledStatement = stat;
@@ -14096,7 +14095,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						e.sym = s;
 						e.type = that.type;
 						JCExpression ee = e;
-						if (evalStateLabel != null) {
+						if (evalStateLabel != null && !rac) {
 							ee = makeOld(e.pos, e, evalStateLabel);
 						}
 						JCExpression nl = treeutils.makeNullLiteral(that.pos);
@@ -14290,13 +14289,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					if (actual == null) actual = treeutils.makeIdent(that.pos, sym); // FIXME - if it is a formal there shuld always be
 																		// a mapping
 					result = eresult = treeutils.makeOld(that, actual, labelPropertiesStore.get(currentOldLabel));
-					//System.out.println("VISITIDENT-EE " + that + " " + oldenv + " " + isPostcondition + " " + eresult);
 					treeutils.copyEndPosition(eresult, that);
 					return;
 				}
 				if (rac && isPostcondition && isFormal(sym, methodDecl.sym)) {
-					// Name nm = utils.isJMLTop(sym.flags()) ? names.fromString("Precondition") :
-					// preLabel.name;
+					//System.out.println("VISITIDENT-RAC-POST " + that + " " + evalStateLabel + " " + isPostcondition + " " + eresult);
 					JCExpression e = treeutils.makeOld(that, treeutils.makeIdent(that.pos, sym), labelPropertiesStore.get(currentOldLabel));
 					isPostcondition = false;
 					result = eresult = convertExpr(e);
@@ -14490,7 +14487,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 //            System.out.println("VISITIDENT-T " + that + " " + oldenv);
 			treeutils.copyEndPosition(eresult, that);
-			if (evalStateLabel != null) {
+			if (evalStateLabel != null && !rac) {
 //            	System.out.println("IDENT_OLDENV-A " + that + " " + eresult);
 				// FIXME - the old may imappropriately encapsulate the receiver
 				result = eresult = makeOld(that.pos, eresult, evalStateLabel);
@@ -16731,8 +16728,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        } else {
 		// FIXME _ I don;'t beklieve the use of currentStsatements is correct here
 //            ListBuffer<JCStatement> list = labelProperties.get(label.name).activeOldLists;
-		JCStatement labelStat = labelPropertiesStore.get(label).labeledStatement;
-		if (labelStat instanceof JmlLabeledStatement s) s.extraStatements.add(stat);
+		labelPropertiesStore.get(label).labeledStatement.extraStatements.add(stat);
 //            if (list != null) {
 //                list.add(stat);
 //            } else {
@@ -16778,15 +16774,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					LabelProperties lp = labelPropertiesStore.get(evalStateLabel);
 					that.labelProperties = lp;
 
-					if (rac) {
+					JCExpression arg = that.args.get(0);
+					if (evalStateLabel == null) {
+						eresult = convertExpr(arg);
+					} else if (rac) {
 						pushBlock();
+						var saved = evalStateLabel;
 						try {
+							evalStateLabel = null;
 							currentStatements = lp.extraStats();
 							heapCount = lp.heapCount;
-							JCExpression arg = (that.args.get(0));
-							if (evalStateLabel == null) {
-								eresult = arg;
-							} else if (!convertingAssignable && arg instanceof JCArrayAccess
+							if (!convertingAssignable && arg instanceof JCArrayAccess
 									&& (((JCArrayAccess) arg).indexed instanceof JCIdent
 											|| ((JCArrayAccess) arg).indexed instanceof JCFieldAccess)) {
 								JCArrayAccess aa = (JCArrayAccess) arg;
@@ -16823,28 +16821,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								eresult = id;
 							}
 						} finally {
+							evalStateLabel = saved;
 							popBlock();
 						}
 					} else { // esc
 //                        System.out.println("OLD " + that + " " + oldenv + " " + oldenv.name + " "  + that.labelProperties);
-						// System.out.println(labelPropertiesStore.map.keySet());
-						// System.out.println(labelPropertiesStore.get(oldenv.name));
-						// System.out.println(labelPropertiesStore.get(oldenv.name).name);
 
-						{
-							// FIXME - need to set the above scenario up for all labels
-							// FIXME - shouldn't true be condition here
-							JCExpression arg = convertExpr(that.args.get(0)); // convert is affected by oldenv
-							// We have to wrap this in an old (even though it sometimes wraps twice)
-							// in order to get arrays properly resolved
-							if (evalStateLabel == null) {
-								eresult = arg;
-							} else {
-								JmlMethodInvocation a = makeOld(that.pos, arg, evalStateLabel);
-								a.labelProperties = that.labelProperties;
-								eresult = a;
-							}
-						}
+						arg = convertExpr(that.args.get(0)); // convert is affected by oldenv
+						// We have to wrap this in an old (even though it sometimes wraps twice)
+						// in order to get arrays properly resolved  // TODO: Is this still true?
+						JmlMethodInvocation a = makeOld(that.pos, arg, evalStateLabel);
+						a.labelProperties = that.labelProperties;
+						eresult = a;
 					}
 				} finally {
 					evalStateLabel = savedEnv;
@@ -17060,8 +17048,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					if (arg instanceof JCIdent) {
 						JCExpression copy = copy(arg);
 						JCExpression old = makeOld(arg.pos, copy, earlierState);
-						if (rac)
-							old = convertJML(old);
+//						if (rac)
+//							old = convertJML(old);
 						bin = treeutils.makeEquality(arg.pos, arg, old);
 					} else if (arg instanceof JCFieldAccess && ((JCFieldAccess) arg).name != null) {
 						JCExpression copy = copy(arg);
@@ -17071,8 +17059,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						JCArrayAccess ar = (JCArrayAccess) arg;
 						JCExpression copy = copy(ar);
 						JCExpression old = makeOld(arg.pos, copy, earlierState);
-						if (rac)
-							old = convertJML(old);
+//						if (rac)
+//							old = convertJML(old);
 						bin = treeutils.makeEquality(arg.pos, ar, old);
 					} else if (arg instanceof JmlStoreRefArrayRange) { // Apparently even single indexes are parsed into
 																		// ranges
@@ -17082,8 +17070,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							expr.type = arg.type;
 							JCExpression copy = copy(expr);
 							JCExpression old = makeOld(arg.pos, copy, earlierState);
-							if (rac)
-								old = convertJML(old);
+//							if (rac)
+//								old = convertJML(old);
 							bin = treeutils.makeEquality(arg.pos, expr, old);
 						} else {
 							throw new JmlNotImplementedException(that, that.token.internedName());
@@ -19178,7 +19166,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		heapCount = savedHeapCount;
 	}
 
-	protected void markLocation(Name label, ListBuffer<JCStatement> list, JCStatement marker) {
+	protected void markLocation(Name label, ListBuffer<JCStatement> list, JmlLabeledStatement marker) {
 		Location loc = new Location(list, marker);
 		locations.put(label, loc);
 		LabelProperties lp = labelPropertiesStore.get(label);
