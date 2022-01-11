@@ -512,16 +512,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected boolean isPostcondition;
 
 	/**
-	 * Used to note the environment (i.e., \old label) under which we are currently
+	 * Used to note the environment (e.g., \old label) under which we are currently
 	 * evaluating expressions; null indicates the current state; the value preLabel indicates
 	 * the pre-state, etc.
 	 */
-	/* @nullable */ protected Name oldenv;
+	/*@ nullable */ 
+	public Name evalStateLabel;
 	
 	/** The current interpretation of \Old. Starts out as \Pre, but can point to
 	 * a statement contract or the prestate of a callee.
 	 */
-	public JCIdent currentOldEnv = null;
+	/*@ nullable */ 
+	public Name currentOldLabel = null;
 
 	/**
 	 * The \old label to use for the pre-state; note that the prestate is usually
@@ -668,8 +670,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		this.precount = 0;
 		this.preconditions.clear();
 		this.treeMap.clear();
-		this.oldenv = null;
-		this.currentOldEnv = M.at(Position.NOPOS).Ident(attr.preLabel);
+		this.evalStateLabel = null;
+		this.currentOldLabel = attr.preLabel;
 		this.heapCount = this.topHeapCount = 0;
 		this.heapVarName = names.fromString("_heap__"); // FIXME - cf. BasicBlocker2
 		this.applyNesting = 0;
@@ -1678,14 +1680,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public /* @nullable */ JCExpression convertJML(/* @nullable */ JCExpression that, TranslationEnv trenv) {
 		var savedThis = currentThisExpr;
-		var savedLabel = oldenv;
+		var savedLabel = evalStateLabel;
 		currentThisExpr = trenv.receiver;
-		oldenv = trenv.label;
+		evalStateLabel = trenv.label;
 		try {
 			return convertJML(that, treeutils.trueLit, true);
 		} finally {
 			currentThisExpr = savedThis;
-			oldenv = savedLabel;
+			evalStateLabel = savedLabel;
 		}
 	}
 
@@ -3553,10 +3555,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										// System.out.println("CONVERTED REP " + r);
 										r = addImplicitConversion(r, rep.ident.type, r);
 										JCExpression e = treeutils.makeSelect(that.pos, translatedSelector, varsym);
-										if (oldenv != null) {
+										if (evalStateLabel != null) {
 											JmlMethodInvocation ee = treeutils.makeJmlMethodInvocation(that.pos(),
-													oldKind, e.type, e, M.at(that.pos).Ident(oldenv));
-											ee.labelProperties = labelPropertiesStore.get(oldenv);
+													oldKind, e.type, e, M.at(that.pos).Ident(evalStateLabel));
+											ee.labelProperties = labelPropertiesStore.get(evalStateLabel);
 											e = ee;
 										}
 										e = treeutils.makeBinary(that.pos, JCTree.Tag.EQ, e, r);
@@ -8114,7 +8116,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		Symbol savedEnclosingClass = this.enclosingClass;
 		Map<TypeSymbol, Type> savedTypeVarMapping = this.typevarMapping;
 		Map<TypeSymbol, Type> newTypeVarMapping = this.typevarMapping;
-		var savedCurrentOldEnv = currentOldEnv;
+		var savedCurrentOldLabel = currentOldLabel;
 
 		nestedCallLocation = null;
 
@@ -9262,7 +9264,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				markLocation(calllabel, currentStatements, stat);
 			}
-			currentOldEnv = M.at(that).Ident(calllabel);
+			currentOldLabel = calllabel;
 			//System.out.println("CURRENTOLDENV-B " + currentOldEnv.name + " " + calllabel + " " + allocCounter + " " + preAllocCounter);
 			if (Utils.debug())
 				System.out.println("APPLYHELPER-R " + calleeMethodSym.owner + " " + calleeMethodSym);
@@ -9579,8 +9581,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				});
 				JCBlock bl = M.at(that.pos).Block(0L, stats);
 				if (!resultSym.type.isPrimitiveOrVoid() && !utils.isJavaOrJmlPrimitiveType(resultSym.type)) {
-					JCExpression isNotFresh = treeutils.makeNot(that.pos,
-							makeFreshExpression(that, resultExpr, currentOldEnv.name));
+					JCExpression isNotFresh = treeutils.makeNot(that.pos, makeFreshExpression(that, resultExpr, currentOldLabel));
 					JCStatement stat = M.at(that.pos).If(isNotFresh, bl, null);
 					ensuresStatsOuter.add(stat);
 				} else {
@@ -9689,9 +9690,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						addStat(comment(that, "... Adding havoc statements: spec case: " + cs, null));
 						JavaFileObject prev = log.useSource(cs.source());
 						var check9 = pushBlock();
-						var savedOldEnv = oldenv;
+						var savedOldEnv = evalStateLabel;
 						try {
-							oldenv = calleeEnv.label;
+							evalStateLabel = calleeEnv.label;
 							if (pre == treeutils.falseLit)
 								continue; // Don't bother with checks if corresponding precondition is explicitly false
 							condition = pre; // FIXME - is this right? what about the havoc statement?
@@ -9853,7 +9854,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							System.out.println("UNEXPECTED EXCEPTION " + e);
 							e.printStackTrace(System.out);
 						} finally {
-							oldenv = savedOldEnv;
+							evalStateLabel = savedOldEnv;
 							JCBlock bl = popBlock(cs, check9);
 							if (numCases == 1 && !rac)
 								addStat(bl);
@@ -10554,7 +10555,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			nestedCallLocation = savedNestedCallLocation;
 			applyNesting--;
 			this.calleePreconditions = savedPreexpressions;
-			currentOldEnv = savedCurrentOldEnv;
+			currentOldLabel = savedCurrentOldLabel;
 			if (rac) {
 				outerDeclarations.addAll(currentStatements);
 				currentStatements = outerDeclarations;
@@ -10634,8 +10635,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// FIXME - actually should add these into whatever environment is operative
 
 			if (bl == null) {
-			} else if (oldenv != null) {
-				escAddToOldList(oldenv, bl);
+			} else if (evalStateLabel != null) {
+				escAddToOldList(evalStateLabel, bl);
 			} else if (nonignoredStatements != null) {
 				nonignoredStatements.add(bl);
 			} else if (axiomBlock != null) {
@@ -10659,8 +10660,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					e = treeutils.makeMethodInvocation(that, null, s, convertedArgs);
 				else
 					e = treeutils.makeIdent(that, s);
-				if (oldenv != null)
-					e = makeOld(e.pos, e, oldenv);
+				if (evalStateLabel != null)
+					e = makeOld(e.pos, e, evalStateLabel);
 				e = condition == null ? e : conditionedAssertion(condition, e); // FIXME - why is the condition the
 																				// location
 				if (assumingPureMethod) {
@@ -12569,8 +12570,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	public JCExpression wrapForOld(int pos, JCExpression arg) {
-		if (oldenv == null) return arg;
-		return makeOld(pos, arg, oldenv);
+		if (evalStateLabel == null) return arg;
+		return makeOld(pos, arg, evalStateLabel);
 	}
 
 	public JCExpression foldConstants(JCBinary that) {
@@ -13921,8 +13922,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		int p = pos.getPreferredPosition();
 		if (expr instanceof JCLiteral) {
 		} // no need to wrap in an old
-		else if (oldenv != null)
-			expr = makeOld(p, expr, oldenv);
+		else if (evalStateLabel != null)
+			expr = makeOld(p, expr, evalStateLabel);
 		if (condition != null)
 			expr = treeutils.makeImpliesSimp(p, condition, expr);
 		return expr;
@@ -14021,8 +14022,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			selected = trexpr;
 			JCFieldAccess fa = treeutils.makeSelect(that.pos, selected, s);
 			eee = fa;
-			if (oldenv != null) {
-				eee = makeOld(that.pos, eee, oldenv);
+			if (evalStateLabel != null) {
+				eee = makeOld(that.pos, eee, evalStateLabel);
 			}
 //        } else if (translatingJML) {
 //            selected = convertExpr(that.selected);
@@ -14095,8 +14096,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						e.sym = s;
 						e.type = that.type;
 						JCExpression ee = e;
-						if (oldenv != null) {
-							ee = makeOld(e.pos, e, oldenv);
+						if (evalStateLabel != null) {
+							ee = makeOld(e.pos, e, evalStateLabel);
 						}
 						JCExpression nl = treeutils.makeNullLiteral(that.pos);
 						treeutils.copyEndPosition(nl, ee);
@@ -14124,8 +14125,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCFieldAccess fa = treeutils.makeSelect(that.pos, selected, s);
 			fa.type = that.type; // in rac the type can be changed to a representation type
 			eee = fa;
-			if (oldenv != null && !translatingLHS) {
-				eee = makeOld(that.pos, eee, oldenv); // FIXME - will make overly nested \old expressions
+			if (evalStateLabel != null && !translatingLHS) {
+				eee = makeOld(that.pos, eee, evalStateLabel); // FIXME - will make overly nested \old expressions
 			}
 			eee = (!var || convertingAssignable || !splitExpressions || rac) ? eee : newTemp(eee);
 		}
@@ -14173,7 +14174,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 
 		//		System.out.println("VISIT-IDENT " + that + " " + oldenv); 
-		if (utils.rac && oldenv != null && utils.isExprLocal(that.sym.flags())) {
+		if (utils.rac && evalStateLabel != null && utils.isExprLocal(that.sym.flags())) {
 			// FIXME - thiz should be allopwed if the whole qukantifier expression is in the
 			// same old context
 			String message = "quantifier variable inside a \\old or \\pre expression: " + that.toString();
@@ -14288,7 +14289,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// actual);
 					if (actual == null) actual = treeutils.makeIdent(that.pos, sym); // FIXME - if it is a formal there shuld always be
 																		// a mapping
-					result = eresult = treeutils.makeOld(that, actual, labelPropertiesStore.get(currentOldEnv.name));
+					result = eresult = treeutils.makeOld(that, actual, labelPropertiesStore.get(currentOldLabel));
 					//System.out.println("VISITIDENT-EE " + that + " " + oldenv + " " + isPostcondition + " " + eresult);
 					treeutils.copyEndPosition(eresult, that);
 					return;
@@ -14296,7 +14297,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (rac && isPostcondition && isFormal(sym, methodDecl.sym)) {
 					// Name nm = utils.isJMLTop(sym.flags()) ? names.fromString("Precondition") :
 					// preLabel.name;
-					JCExpression e = treeutils.makeOld(that, treeutils.makeIdent(that.pos, sym), labelPropertiesStore.get(currentOldEnv.name));
+					JCExpression e = treeutils.makeOld(that, treeutils.makeIdent(that.pos, sym), labelPropertiesStore.get(currentOldLabel));
 					isPostcondition = false;
 					result = eresult = convertExpr(e);
 					isPostcondition = true;
@@ -14489,10 +14490,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 //            System.out.println("VISITIDENT-T " + that + " " + oldenv);
 			treeutils.copyEndPosition(eresult, that);
-			if (oldenv != null) {
+			if (evalStateLabel != null) {
 //            	System.out.println("IDENT_OLDENV-A " + that + " " + eresult);
 				// FIXME - the old may imappropriately encapsulate the receiver
-				result = eresult = makeOld(that.pos, eresult, oldenv);
+				result = eresult = makeOld(that.pos, eresult, evalStateLabel);
 //            	System.out.println("IDENT_OLDENV-Z " + that + " " + eresult);
 				treeutils.copyEndPosition(eresult, that);
 			}
@@ -14538,8 +14539,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
 		// FIXME - should we check accessibility for model fields
 		JCExpression e = newfa;
-		if (oldenv != null && !translatingLHS)
-			e = makeOld(that.pos, newfa, oldenv);
+		if (evalStateLabel != null && !translatingLHS)
+			e = makeOld(that.pos, newfa, evalStateLabel);
 		if (!rac) {
 			result = eresult = e;
 		}
@@ -16762,19 +16763,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			case oldID:
 			case preID:
 			case pastID: {
-				if (oldenv == null) {
+				if (evalStateLabel == null) {
 					JmlLabeledStatement stat = M.at(that).JmlLabeledStatement(hereLabelName, null, null);
 					recordLabel(hereLabelName, stat);
 				}
-				var savedEnv = oldenv;
+				var savedEnv = evalStateLabel;
 				// FIXME _ this implementation is not adequate for checking postconditions with
 				// \old from callers
 				// FIXME - also it does not work for rac at labelled locations
 				int savedHeap = heapCount;
 				try {
-					oldenv = normalizeLabel(that.args.size()>1?that.args.get(1):null, k == StateExpressions.preKind ? attr.preLabel : attr.oldLabel, that );
+					evalStateLabel = normalizeLabel(that.args.size()>1?that.args.get(1):null, k == StateExpressions.preKind ? attr.preLabel : attr.oldLabel, that );
 	                //System.out.println("OLD " + that + " " + currentOldEnv + " " + label + " " + oldenv);
-					LabelProperties lp = labelPropertiesStore.get(oldenv);
+					LabelProperties lp = labelPropertiesStore.get(evalStateLabel);
 					that.labelProperties = lp;
 
 					if (rac) {
@@ -16792,7 +16793,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								JCExpression a = treeutils.copyArray(that.pos, ad);
 								JCVariableDecl d = newTempDecl(arg, a.type);
 								d.init = a;
-								oldarrays.put(oldenv, sym, d);
+								oldarrays.put(evalStateLabel, sym, d);
 								currentStatements.add(d); // This decl is used in postconditions - cannot currently be
 															// put into Pre extra material
 
@@ -16834,14 +16835,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							JCExpression arg = convertExpr(that.args.get(0)); // convert is affected by oldenv
 							// We have to wrap this in an old (even though it sometimes wraps twice)
 							// in order to get arrays properly resolved
-							JmlMethodInvocation a = makeOld(that.pos, arg, oldenv);
+							JmlMethodInvocation a = makeOld(that.pos, arg, evalStateLabel);
 							a.labelProperties = that.labelProperties;
 							eresult = a;
 						}
 					}
 				} finally {
-					oldenv = savedEnv;
-					if (oldenv == null) {
+					evalStateLabel = savedEnv;
+					if (evalStateLabel == null) {
 						labelPropertiesStore.pop(hereLabelName);
 					}
 					heapCount = savedHeap;
@@ -17091,7 +17092,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				break;
 			}
 			case freshID: {
-				if (currentOldEnv.name == null) {
+				if (currentOldLabel == null) {
 					// Likely a model method in a method spec clause that has a fresh expression -- which is dubious
 				}
 				Name label = normalizeLabel(that.args.size() > 1 ? that.args.get(1) : null, attr.oldLabel, that);
@@ -17218,7 +17219,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} else {
 			label = defaultLabel;
 		}
-		if (label == attr.oldLabel) label = currentOldEnv.name;
+		if (label == attr.oldLabel) label = currentOldLabel;
 		if (labelPropertiesStore.get(label) == null) {
 			String s = label.toString();
 			if (Arrays.stream(attr.predefinedLabels).anyMatch(ss->ss.equals(s))) {
@@ -17229,7 +17230,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				result = eresult = treeutils.trueLit;
 				return null;
 			}
-			if (label == attr.oldLabel) label = currentOldEnv.name;
+			if (label == attr.oldLabel) label = currentOldLabel;
 		}
 		if (label == attr.hereLabel) label = null;
 		return label;
@@ -17282,7 +17283,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            // FIXME - explain why this is different than the above - this would be the postcondition for the method
 //            e = allocCounterGT(pos, exprCopy, ac);
 ////        }
-		Name current = oldenv == null ? hereLabelName : oldenv;
+		Name current = evalStateLabel == null ? hereLabelName : evalStateLabel;
 		return treeutils.makeAnd(pos, makeAllocExpression(pos, arg, current),
 				treeutils.makeNot(pos, makeAllocExpression(pos, arg, label)));
 	}
@@ -18370,8 +18371,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public void visitJmlStatementSpec(JmlStatementSpec that) {
 		JmlStatementSpec savedInner = innerStatementSpec;
 		innerStatementSpec = that;
-		var savedCurrentOldEnv = currentOldEnv;
-		currentOldEnv = M.at(that).Ident(that.label);
+		var savedCurrentOldLabel = currentOldLabel;
+		currentOldLabel = that.label;
 
 		recordLabel(that.label, that);
 		markLocation(that.label, currentStatements, that);
@@ -18478,7 +18479,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			continuation = Continuation.HALT;
 		}
 		innerStatementSpec = savedInner;
-		currentOldEnv = savedCurrentOldEnv;
+		currentOldLabel = savedCurrentOldLabel;
 		result = null;
 	}
 
@@ -19630,7 +19631,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected Name newNameForCallee(int pos, MethodSymbol msym, boolean useheap) {
-		int heap = oldenv != null ? labelPropertiesStore.get(oldenv).heapCount : heapCount;
+		int heap = evalStateLabel != null ? labelPropertiesStore.get(evalStateLabel).heapCount : heapCount;
 		return names
 				.fromString(utils.qualifiedName(msym).replace('.', '_') + (!useheap ? "_" : "_H" + heap + "_") + pos);
 	}
@@ -19647,7 +19648,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// ListBuffer<JCStatement> savedForAxioms = null;
 	protected JCBlock addMethodAxioms(DiagnosticPosition callLocation, MethodSymbol msym,
 			java.util.List<Pair<MethodSymbol, Type>> overridden, Type receiverType, Type returnType) {
-		int hc = oldenv == null ? heapCount : labelPropertiesStore.get(oldenv).heapCount;
+		int hc = evalStateLabel == null ? heapCount : labelPropertiesStore.get(evalStateLabel).heapCount;
 		// if (utils.debug() || true) System.out.println("ADDMETHODAXIOMS "+
 		// " " + hc + " " + + heapCount + " " + heapCountForAxioms + " " + msym + " " +
 		// axiomsAdded);
@@ -20050,28 +20051,28 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	Map<Integer, Map<Symbol, MethodSymbol>> heapMethods = new HashMap<>();
 
 	public MethodSymbol getNewMethodSymbol(MethodSymbol msym) {
-		Integer hc = oldenv == null ? heapCount : labelPropertiesStore.get(oldenv).heapCount;
+		Integer hc = evalStateLabel == null ? heapCount : labelPropertiesStore.get(evalStateLabel).heapCount;
 		Map<Symbol, MethodSymbol> mm = heapMethods.get(hc);
 		if (mm == null) {
 			heapMethods.put(hc, mm = new HashMap<Symbol, MethodSymbol>());
 		}
 		MethodSymbol ms = mm.get(msym);
 		if (utils.debug())
-			System.out.println("GETMETHODNAME " + oldenv + " " + hc + " " + msym + " " + ms);
+			System.out.println("GETMETHODNAME " + evalStateLabel + " " + hc + " " + msym + " " + ms);
 		return ms;
 	}
 
 	public MethodSymbol makeAndSaveNewMethodName(MethodSymbol msym, Type returnType, boolean isFunction,
 			JmlMethodSpecs calleeSpecs, int calleeDeclPos, List<Type> newParamTypes) {
 
-		Integer hc = oldenv == null ? heapCount : labelPropertiesStore.get(oldenv).heapCount;
+		Integer hc = evalStateLabel == null ? heapCount : labelPropertiesStore.get(evalStateLabel).heapCount;
 		Map<Symbol, MethodSymbol> mm = heapMethods.get(hc);
 		if (mm == null) {
 			heapMethods.put(hc, mm = new HashMap<Symbol, MethodSymbol>());
 		}
 		MethodSymbol newsym = mm.get(msym);
 		if (utils.debug() && newsym != null)
-			System.out.println("NEWMETHODNAME ALREADY " + oldenv + " " + hc + " " + msym + " " + newsym);
+			System.out.println("NEWMETHODNAME ALREADY " + evalStateLabel + " " + hc + " " + msym + " " + newsym);
 		if (newsym != null)
 			return newsym;
 		// Create the symbol for the new method
@@ -20093,7 +20094,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// Save the symbol
 		mm.put(msym, newsym);
 		if (utils.debug())
-			System.out.println("NEWMETHODNAME " + oldenv + " " + hc + " " + msym + " " + newsym);
+			System.out.println("NEWMETHODNAME " + evalStateLabel + " " + hc + " " + msym + " " + newsym);
 		return newsym;
 	}
 
