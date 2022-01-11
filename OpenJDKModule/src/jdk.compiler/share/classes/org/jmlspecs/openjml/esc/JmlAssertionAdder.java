@@ -15047,7 +15047,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public JmlMethodInvocation makeOld(int pos, JCExpression arg, Name label, LabelProperties labelProperties) {
 		JmlMethodInvocation m;
-		if (label == null || label.toString().isEmpty()) {
+		if (label == null || label == names.empty) { // TODO: Actually should never be empty
 			m = M.at(pos).JmlMethodInvocation(oldKind, List.<JCExpression>of(arg));
 		} else {
 			JCIdent id = M.at(pos).Ident(label);
@@ -17330,8 +17330,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			lp = labelPropertiesStore.get(label);
 			if (lp != null) {
 				ac = lp.allocCounter;
-			} else if (label.toString().isEmpty()) {
-				// ERROR _ FIXME - forgot to insert a LabelProperties for Pre
+			} else if (label == names.empty) {
 				ac = 0;
 				utils.error(trarg,  "jml.internal", "Obsolete empty label string");
 			} else if (label.toString().equals("LoopBodyBegin")) {
