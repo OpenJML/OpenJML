@@ -6,7 +6,7 @@ cd $(dirname "${BASH_SOURCE[0]}")
 
 files="$( ls ../test | grep -v '^rac' | comm -23 - skips | sort | sed -e 'sx^x../test/x' )"
 
-threads=6
+threads=5
 if [ $# -gt 0 ]; then
   if [ "$1" = "-t" ]; then
     threads=$2

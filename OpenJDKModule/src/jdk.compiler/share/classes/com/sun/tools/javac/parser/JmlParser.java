@@ -23,7 +23,7 @@ import org.jmlspecs.openjml.IJmlClauseKind.TypeAnnotationKind;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.AssignableClauseExtension;
 import org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl;
-import org.jmlspecs.openjml.ext.EndStatement;
+import org.jmlspecs.openjml.ext.Refining;
 import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
@@ -646,8 +646,8 @@ public class JmlParser extends JavacParser {
             		if (ext != null) {
             			JCStatement s;
             			if (ext instanceof IJmlClauseKind.MethodClauseKind
-            					|| ext == EndStatement.refiningClause) {
-            				s = (JCStatement)EndStatement.refiningClause.parse(null, id, ext, this);
+            					|| ext == Refining.refiningClause) {
+            				s = (JCStatement)Refining.refiningClause.parse(null, id, ext, this);
             			} else if (isLoopSpec(ext)) {
             				s = parseLoopWithSpecs();
             			} else {
@@ -657,9 +657,9 @@ public class JmlParser extends JavacParser {
             				//                        if (s instanceof JmlStatementLoop) {
             				//                            s = parseLoopWithSpecs((JmlStatementLoop)s, true);
             				//                        } else 
-            				if (id.equals(EndStatement.beginID)) {
+            				if (id.equals(Refining.beginID)) {
             					utils.error(s, "jml.message", "Improperly nested spec-end pair");
-            				} else if (id.equals(EndStatement.endID)) {
+            				} else if (id.equals(Refining.endID)) {
             					utils.error(s, "jml.message", "Improperly nested spec-end pair");
             				}
             			}
@@ -801,7 +801,7 @@ public class JmlParser extends JavacParser {
     JCStatement parseRefining(int pos, IJmlClauseKind jt) {
         JmlStatementSpec ste;
         ListBuffer<JCIdent> exports = new ListBuffer<>();
-        if (jt == EndStatement.refiningClause) {
+        if (jt == Refining.refiningClause) {
             nextToken();
             IJmlClauseKind ext = methodSpecKeywordS();
             if (ext == alsoClause) { // jmlTokenKind() == JmlTokenKind.ALSO) {
@@ -824,9 +824,9 @@ public class JmlParser extends JavacParser {
                 }
                 nextToken();
             }
-        } else if (jt == EndStatement.beginClause) {
+        } else if (jt == Refining.beginClause) {
             utils.error(pos, "jml.message", "Improperly nested spec-end pair");
-        } else if (jt == EndStatement.endClause) {
+        } else if (jt == Refining.endClause) {
             utils.error(pos, "jml.message", "Improperly nested spec-end pair");
         } else {
             utils.warning(pos(),"jml.refining.required");
@@ -850,12 +850,12 @@ public class JmlParser extends JavacParser {
         if (stat == null || stat.isEmpty()) {
             utils.error(ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
             return null;
-        } else if (stat.head instanceof JmlAbstractStatement && stat.head.toString() == EndStatement.beginID) {
+        } else if (stat.head instanceof JmlAbstractStatement && stat.head.toString() == Refining.beginID) {
             utils.error(stat.head, "jml.message", "Statement specs may not precede a JML statement clause");
             return stat.head;
         }
         ListBuffer<JCStatement> stats = new ListBuffer<>();
-        if (stat.head instanceof JmlStatement && ((JmlStatement)stat.head).clauseType == EndStatement.beginClause) {
+        if (stat.head instanceof JmlStatement && ((JmlStatement)stat.head).clauseType == Refining.beginClause) {
             JCStatement begin = stat.head;
             // Has a begin statement, so we read statement until an end
             while (true) {
@@ -863,13 +863,13 @@ public class JmlParser extends JavacParser {
                 if (stat.isEmpty()) {
                     utils.error(begin, "jml.message", "Expected an 'end' statement to match the begin statement before the end of block");
                     break;
-                } else if (stat.get(0) instanceof JmlStatement && ((JmlStatement)stat.get(0)).clauseType == EndStatement.endClause) {
+                } else if (stat.get(0) instanceof JmlStatement && ((JmlStatement)stat.get(0)).clauseType == Refining.endClause) {
                     break;
                 } else {
                     stats.addAll(stat);
                 }
             }
-        } else if (stat.head instanceof JmlStatement && ((JmlStatement)stat.head).clauseType == EndStatement.beginClause) {
+        } else if (stat.head instanceof JmlStatement && ((JmlStatement)stat.head).clauseType == Refining.beginClause) {
             utils.error(ste, "jml.message", "Improperly nested spec-end pair");
         } else if (stat.isEmpty()) {
             utils.error(ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
