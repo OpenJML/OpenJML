@@ -16773,8 +16773,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// FIXME - also it does not work for rac at labelled locations
 				int savedHeap = heapCount;
 				try {
-					evalStateLabel = normalizeLabel(that.args.size()>1?that.args.get(1):null, k == StateExpressions.preKind ? attr.preLabel : attr.oldLabel, that );
-	                //System.out.println("OLD " + that + " " + currentOldEnv + " " + label + " " + oldenv);
+					var labelArg = that.args.size()>1?that.args.get(1):null;
+					evalStateLabel = normalizeLabel(labelArg, k == StateExpressions.preKind ? attr.preLabel : attr.oldLabel, that );
 					LabelProperties lp = labelPropertiesStore.get(evalStateLabel);
 					that.labelProperties = lp;
 
@@ -16784,7 +16784,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							currentStatements = lp.extraStats();
 							heapCount = lp.heapCount;
 							JCExpression arg = (that.args.get(0));
-							if (!convertingAssignable && arg instanceof JCArrayAccess
+							if (evalStateLabel == null) {
+								eresult = arg;
+							} else if (!convertingAssignable && arg instanceof JCArrayAccess
 									&& (((JCArrayAccess) arg).indexed instanceof JCIdent
 											|| ((JCArrayAccess) arg).indexed instanceof JCFieldAccess)) {
 								JCArrayAccess aa = (JCArrayAccess) arg;
@@ -16835,9 +16837,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							JCExpression arg = convertExpr(that.args.get(0)); // convert is affected by oldenv
 							// We have to wrap this in an old (even though it sometimes wraps twice)
 							// in order to get arrays properly resolved
-							JmlMethodInvocation a = makeOld(that.pos, arg, evalStateLabel);
-							a.labelProperties = that.labelProperties;
-							eresult = a;
+							if (evalStateLabel == null) {
+								eresult = arg;
+							} else {
+								JmlMethodInvocation a = makeOld(that.pos, arg, evalStateLabel);
+								a.labelProperties = that.labelProperties;
+								eresult = a;
+							}
 						}
 					}
 				} finally {
@@ -18364,6 +18370,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		assumingPostConditions = saved;
 	}
 	
+	/** Keeps track of the innermost statement spec */
 	JmlStatementSpec innerStatementSpec = null;
 
 	// OK
@@ -18373,9 +18380,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		innerStatementSpec = that;
 		var savedCurrentOldLabel = currentOldLabel;
 		currentOldLabel = that.label;
+		JCStatement lst = M.at(that.pos).Labelled(that.label, M.at(that.pos).Skip());
+		convert(lst);
 
-		recordLabel(that.label, that);
-		markLocation(that.label, currentStatements, that);
 		if (rac || infer || currentSplit == null) {
 			// Ignore
 			convert(that.statements);

@@ -108,10 +108,9 @@ public class StateExpressions extends JmlExtension {
                 	if (label != null) t = null;
                 }
             }
-            
-            if (label == attr.oldLabel) {
-            	label = attr.jmlenv.currentOldLabel;
-            }
+            if (label == attr.hereLabel) label = null;
+            if (label == attr.oldLabel) label = attr.jmlenv.currentOldLabel;
+
             //System.out.println("OLD " + label + " " + attr.jmlenv.currentOldLabel + " " + that);
             
             // FIXME - it is possible for a variable to have a different type at a previous label?

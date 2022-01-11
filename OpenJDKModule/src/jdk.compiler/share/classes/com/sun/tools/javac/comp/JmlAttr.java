@@ -5028,6 +5028,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     protected void checkVisibility(DiagnosticPosition pos, long jmlVisibility, Symbol sym, JCExpression selected) {
+        if (jmlenv.currentBlockContract != null) return;
         if (jmlVisibility != -1) {
             long v = (sym.flags() & Flags.AccessFlags);
             if (sym instanceof ClassSymbol) {
@@ -5053,7 +5054,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     v = Flags.PUBLIC;
                 }
             }
-            
+                        
             if (jmlenv.currentClauseKind == invariantClause || jmlenv.currentClauseKind == constraintClause) {
                 // An ident used in an invariant must have the same visibility as the invariant clause - no more, no less
                 // Is the symbol more visible? OK if the symbol is not a modifiable variable
