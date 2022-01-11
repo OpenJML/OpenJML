@@ -1111,7 +1111,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			lp.name = attr.preLabel;
 			labelPropertiesStore.put(attr.preLabel, lp);
 			JmlLabeledStatement mark = M.JmlLabeledStatement(attr.preLabel, null, null);
-			labelPropertiesStore.put(attr.oldLabel, lp);
 			oldStatements = mark.extraStatements;
 			undoLabels = true;
 
@@ -1329,7 +1328,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			if (undoLabels) {
 				labelPropertiesStore.pop(attr.preLabel);
-				labelPropertiesStore.pop(attr.oldLabel);
 			}
 
 			this.assumeCheckCount = prevAssumeCheckCount;
@@ -8143,7 +8141,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		JCExpression convertedReceiver = null;
 		MethodSymbol calleeMethodSym = null; // The method symbol of the callee method or constructor
-		boolean labelPushed = false;
 		try {
 			// Translate the method name, and determine the receiver for the method call
 
@@ -9258,8 +9255,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				addStat(stat);
 				LabelProperties lp = recordLabel(calllabel, stat);
 				lp.allocCounter = preAllocCounter;
-				labelPropertiesStore.put(attr.oldLabel, lp);
-				labelPushed = true;
 
 				oldStatements = currentStatements;
 
@@ -10552,8 +10547,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			currentThisExpr = savedThisExpr;
 			oldStatements = savedOldStatements;
 			condition = savedCondition;
-			if (labelPushed)
-				labelPropertiesStore.pop(attr.oldLabel);
 			currentFresh = savedFresh;
 			enclosingMethod = savedEnclosingMethod;
 			enclosingClass = savedEnclosingClass;
