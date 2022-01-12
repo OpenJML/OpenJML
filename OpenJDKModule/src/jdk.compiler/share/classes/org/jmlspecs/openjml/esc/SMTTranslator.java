@@ -1491,7 +1491,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         IExpr exx = convertExpr(treeutils.falseLit);
                         stack.push(exx);
                     } else {
-                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.clauseType.name());
+                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.clauseType.keyword());
                         break;
                     }
                 } else {
@@ -1645,7 +1645,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         IExpr exx = convertExpr(treeutils.falseLit);
                         stack.push(exx);
                     } else {
-                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.clauseType.name());
+                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.clauseType.keyword());
                         break;
                     }
                 } else {
@@ -3102,7 +3102,7 @@ public class SMTTranslator extends JmlTreeScanner {
             IExpr range = result;
             scan(that.value);
             IExpr value = result;
-            switch (that.kind.name()) {
+            switch (that.kind.keyword()) {
             case QuantifiedExpressions.qforallID:
                 if (range != null) value = F.fcn(impliesSym,range,value);
                 if (typeConstraint != null && (that.range == null || treeutils.isTrueLit(that.range))) value = F.fcn(impliesSym, typeConstraint, value);
@@ -3124,7 +3124,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 }
                 break;
             default:
-                notImplWarn(that, "JML Quantified expression using " + that.kind.name());
+                notImplWarn(that, "JML Quantified expression using " + that.kind.keyword());
                 ISymbol sym = F.symbol(makeBarEnclosedString(that));
                 addConstant(sym,convertSort(that.type),null);
                 result = sym;

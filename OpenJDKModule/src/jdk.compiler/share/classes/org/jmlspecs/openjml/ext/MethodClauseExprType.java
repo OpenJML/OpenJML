@@ -39,9 +39,11 @@ public class MethodClauseExprType extends IJmlClauseKind.MethodSpecClauseKind {
         int pe = parser.endPos();
         
         parser.nextToken();
-        JCExpression e = parser.parsePredicateOrNotSpecified();
+        var n = parser.parseOptionalName();
+        JCExpression e = parser.parseExpression();
         JmlMethodClauseExpr cl = parser.maker().at(pp).JmlMethodClauseExpr(keyword, clauseType, e);
         wrapup(cl, clauseType, true, true);
+        cl.name = n;
         return cl;
     }
     

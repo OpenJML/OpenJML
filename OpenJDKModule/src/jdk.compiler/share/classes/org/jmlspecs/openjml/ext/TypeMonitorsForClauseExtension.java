@@ -33,6 +33,7 @@ public class TypeMonitorsForClauseExtension extends JmlExtension {
             int pp = parser.pos();
             init(parser);
             parser.nextToken();
+            Name nn = parser.parseOptionalName();
             List<JCExpression> elist = List.<JCExpression>nil();
             Name n;
             int identPos = parser.pos();

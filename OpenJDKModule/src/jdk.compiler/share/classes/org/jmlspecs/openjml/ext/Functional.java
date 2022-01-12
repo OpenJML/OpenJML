@@ -84,7 +84,7 @@ public class Functional extends JmlExtension {
                     // is a Functional interface; the rest have to agree
                     // with its formal arguments.
                     if (tree.args.size() == 0) {
-                        error(tree, kind.name() + " must have at least one argument");
+                        error(tree, kind.keyword() + " must have at least one argument");
                     }
                     ListBuffer<Type> argtypesBuf = new ListBuffer<>();
                     attr.attribArgs(tree.args, localEnv, argtypesBuf);

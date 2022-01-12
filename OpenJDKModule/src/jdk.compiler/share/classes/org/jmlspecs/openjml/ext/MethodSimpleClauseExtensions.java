@@ -50,7 +50,7 @@ public class MethodSimpleClauseExtensions extends JmlExtension {
     public static final IJmlClauseKind codeClause = new MethodKeywordClauseType(codeID);
     
     public static final IJmlClauseKind declClause = new MethodKeywordClauseType("jml declaration") {
-        @Override public String name() { return "jml declaration"; }
+        @Override public String keyword() { return "jml declaration"; }
     };
     
     static {

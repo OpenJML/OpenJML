@@ -75,9 +75,9 @@ public abstract class IJmlClauseKind {
 
     public String keyword = null;
 
-    public String name() { return keyword; }
+    public String keyword() { return keyword; }
     
-    public String toString() { return name(); }
+    public String toString() { return keyword(); }
     
     /** If true, is a method or type spec clause kind within which \old without a label can be used (e.g. ensures)
     */
@@ -232,14 +232,14 @@ public abstract class IJmlClauseKind {
         	// either the end-of-jml or the start of the next JML clause/statement
         } else if (parser.token().ikind == ENDJMLCOMMENT) {
             // FIXME - was -2 here, why?
-            if (requireSemicolon) warning(parser.pos(), parser.endPos(), "jml.missing.semi", clauseType.name());
+            if (requireSemicolon) warning(parser.pos(), parser.endPos(), "jml.missing.semi", clauseType.keyword());
         } else if (parser.token().kind != SEMI && parser.token().kind == TokenKind.IDENTIFIER && Extensions.findKeyword(parser.token().name()) != null) {
         	int p = parser.pos();
         	var t = scanner.prevToken();
         	p = t.endPos;
-            error(p, p, "jml.bad.construct.missing.semi", clauseType.name() + " statement");
+            error(p, p, "jml.bad.construct.missing.semi", clauseType.keyword() + " statement");
         } else if (parser.token().kind != SEMI) {
-            error(parser.pos(), parser.endPos(), "jml.bad.construct", clauseType.name() + " statement");
+            error(parser.pos(), parser.endPos(), "jml.bad.construct", clauseType.keyword() + " statement");
             parser.skipThroughSemi();
         } else {
             parser.nextToken(); // advance to the token after the semi
@@ -261,7 +261,7 @@ public abstract class IJmlClauseKind {
     /** Issue warning if strictness is required -- e.g. call this if an extension is being used */
     public void strictCheck(JmlParser parser, JCTree e) {
         if (requireStrictJML()) {
-            utils.warning(e,"jml.not.strict",name());
+            utils.warning(e,"jml.not.strict",keyword());
         }
     }
 
@@ -398,7 +398,7 @@ public abstract class IJmlClauseKind {
          * of checkParse() -- for the case of exactly one argument.
          */
         public void checkOneArg(JmlParser parser, JmlMethodInvocation e) {
-            checkNumberArgs(parser, e, (n)->(n==1), "jml.one.arg", e.kind.name());
+            checkNumberArgs(parser, e, (n)->(n==1), "jml.one.arg", e.kind.keyword());
         }
         
         public void typecheckHelper(JmlAttr attr, List<JCExpression> args, Env<AttrContext> localEnv) {
@@ -428,7 +428,7 @@ public abstract class IJmlClauseKind {
             String stringRep = parser.getScanner().chars();
             parser.nextToken();
             if (parser.token().kind == TokenKind.LPAREN) {
-                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.name());
+                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.keyword());
             } else {
                 JmlSingleton e = toP(parser.maker().at(p).JmlSingleton(jt));
                 e.kind = this;
@@ -458,7 +458,7 @@ public abstract class IJmlClauseKind {
             String stringRep = parser.getScanner().chars();
             parser.nextToken();
             if (parser.token().kind == TokenKind.LPAREN) {
-                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.name());
+                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.keyword());
             } else {
                 JmlSingleton e = toP(parser.maker().at(p).JmlSingleton(jt));
                 e.kind = this;

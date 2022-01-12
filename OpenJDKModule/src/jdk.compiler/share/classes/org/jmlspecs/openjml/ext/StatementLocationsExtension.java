@@ -48,7 +48,8 @@ public class StatementLocationsExtension extends JmlExtension {
             int pp = parser.pos();
             int pe = parser.endPos();
             
-            parser.nextToken();
+            parser.nextToken(); // skipping keyword
+            var n = parser.parseOptionalName();
 
             ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
             if (parser.token().kind == SEMI) {

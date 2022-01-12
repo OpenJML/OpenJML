@@ -27,7 +27,7 @@ public class TypeInClauseExtension extends JmlExtension {
         JmlTypeClauseIn parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
             if (!parser.isNone(mods))
-                error(mods, "jml.no.mods.allowed", inClause.name());
+                error(mods, "jml.no.mods.allowed", inClause.keyword());
             init(parser);
             parser.nextToken(); // skip over the in token
             ListBuffer<JmlGroupName> list = parser.parseGroupNameList();

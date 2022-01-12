@@ -25,7 +25,7 @@ import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.RecommendsClause.*;
 import static org.jmlspecs.openjml.ext.MethodDeclClauseExtension.*;
-import static org.jmlspecs.openjml.ext.MethodConditionalClauseExtension.*;
+import static org.jmlspecs.openjml.ext.MethodResourceClauseExtension.*;
 import static org.jmlspecs.openjml.ext.CallableClauseExtension.*;
 import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
 import static org.jmlspecs.openjml.ext.SignalsClauseExtension.*;
@@ -2867,7 +2867,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             utils.error(a,"jml.conflicting.modifiers","instance","static");
         }
         attribAnnotationTypes(mods.annotations,env);
-        switch (token.name()) {
+        switch (token.keyword()) {
             case axiomID:
                 allAllowed(mods.annotations,noAnnotations,where);
                 break;
@@ -3294,7 +3294,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         savedMethodClauseOutputEnv = this.env;
         jmlenv.currentClauseKind = tree.clauseKind;
         Type t = null;
-        switch (tree.clauseKind.name()) {
+        switch (tree.clauseKind.keyword()) {
             case "recommends":
                 t = tree.clauseKind.typecheck(this,tree,env);
                 break;
@@ -3349,7 +3349,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional tree) {
         if (tree.predicate != null) attribExpr(tree.predicate, env, syms.booleanType);
-        switch (tree.clauseKind.name()) {
+        switch (tree.clauseKind.keyword()) {
             case durationID:
             case workingspaceID:
                 attribExpr(tree.expression, env, syms.longType);
@@ -3470,7 +3470,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             attribExpr(t,env,Type.noType);
         }
         if (!postClauses.contains(jmlenv.currentClauseKind)) {
-            log.error(that.pos+1, "jml.misplaced.token", that.token.internedName(), jmlenv.currentClauseKind == null ? "jml declaration" : jmlenv.currentClauseKind.name());
+            log.error(that.pos+1, "jml.misplaced.token", that.token.internedName(), jmlenv.currentClauseKind == null ? "jml declaration" : jmlenv.currentClauseKind.keyword());
         }
         result = check(that, syms.booleanType, KindSelector.VAL, resultInfo);
     }
@@ -4132,7 +4132,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitJmlBinary(JmlBinary that) {  // FIXME - how do we handle unboxing, casting
-        switch (that.op.name()) {
+        switch (that.op.keyword()) {
             case equivalenceID:
             case inequivalenceID:
             case impliesID:
@@ -4218,7 +4218,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
 
             default:
-                utils.error(that.pos(),"jml.unknown.operator",that.op.name(),"JmlAttr");
+                utils.error(that.pos(),"jml.unknown.operator",that.op.keyword(),"JmlAttr");
                 break;
         }
         result = check(that, result, KindSelector.VAL, resultInfo);
@@ -4500,7 +4500,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JCVariableDecl firstDecl = null;
             ListBuffer<JCStatement> bodyStats = new ListBuffer<JCStatement>();
 
-            switch (q.kind.name()) {
+            switch (q.kind.keyword()) {
             case qforallID:
             case qexistsID: 
                 break;
@@ -4977,7 +4977,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         			&& interpretInPreState(tree,jmlenv.currentClauseKind)
         			) {
         		String k = (jmlenv.currentClauseKind == requiresClauseKind) ? "preconditions: " :
-        			(jmlenv.currentClauseKind.name() + " clauses: ");
+        			(jmlenv.currentClauseKind.keyword() + " clauses: ");
         		k += tree.toString();
         		if (tree.sym.name != names._this)
         			utils.error(tree,"jml.message","Implicit references to 'this' are not permitted in constructor " + k);
@@ -5061,30 +5061,30 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (jmlVisibility != v && moreOrEqualVisibleThan(v,jmlVisibility) 
                         && sym instanceof VarSymbol && !utils.isExprLocal(sym.flags()) && !special(v,sym)
                         && (sym.flags() & Flags.FINAL)==0 ) { 
-                    utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.name());
+                    utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.keyword());
                 }
                 // Is the symbol less visible? not OK
                 if (jmlVisibility != v && !moreOrEqualVisibleThan(v,jmlVisibility)
                         && !utils.isExprLocal(sym.flags()) && !special(v,sym)) { 
-                    utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.name());
+                    utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.keyword());
                 }
             } else if (jmlenv.currentClauseKind == representsClause) {
                 //log.error(tree.pos,"jml.internal","Case not handled in JmlAttr.visitIdent: " + jmlenv.currentClauseKind.internedName());
                 if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
-                    utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.name());
+                    utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.keyword());
                 }
 
             } else if (jmlenv.currentClauseKind == inClause) {
                 // In    V type x; //@ in y;
                 // identifier y must be at least as visible as x (i.e., as V)
                 if (!moreOrEqualVisibleThan(v,jmlVisibility)) {
-                    utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.name());
+                    utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.keyword());
                 }
 
             } else if (jmlenv.currentClauseKind == ensuresClauseKind || jmlenv.currentClauseKind == signalsClauseKind) {
                 // An identifier mentioned in a clause must be at least as visible as the clause itself.
                 if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
-                    utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.name());
+                    utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.keyword());
                 }
                 
                 if (jmlenv.currentLabel != null && enclosingMethodEnv.enclMethod.sym.isConstructor()) {
@@ -5099,7 +5099,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // Default case -- requires, old, ...
                 // An identifier mentioned in a clause must be at least as visible as the clause itself.
                 if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
-                    utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.name());
+                    utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.keyword());
                 }
 
             }

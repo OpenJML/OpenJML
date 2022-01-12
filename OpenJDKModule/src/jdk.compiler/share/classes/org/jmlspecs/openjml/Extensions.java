@@ -137,7 +137,7 @@ public class Extensions {
             AssignableClauseExtension.class, 
             CallableClauseExtension.class, 
             ChooseClause.class, 
-            MethodConditionalClauseExtension.class,
+            MethodResourceClauseExtension.class,
             MethodDeclClauseExtension.class, 
             MethodExprClauseExtensions.class, 
             MethodSimpleClauseExtensions.class, 

@@ -39,4 +39,5 @@ public class MethodExprClauseExtensions extends JmlExtension {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
     };
+    
 }

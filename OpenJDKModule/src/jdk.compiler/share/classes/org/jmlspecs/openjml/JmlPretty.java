@@ -169,7 +169,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             open(prec, p);
             printExpr(that.lhs, p);
             print(Strings.space);
-            print(that.op.name());
+            print(that.op.keyword());
             print(Strings.space);
             printExpr(that.rhs, p + 1);
             close(prec, p);
@@ -206,7 +206,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         try {
             if (that.kind != null) {
-                print(that.kind.name());
+                print(that.kind.keyword());
                 if (that.javaType &&
                         (that.kind == MiscExpressions.typelcKind || that.kind == FunctionLikeExpressions.typeofKind)
                         ) print("j");
@@ -289,7 +289,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             // NOTE: JML requires that a lbl expression be in parentheses.
             // In this parser the outer parentheses are a JCParens expression.
-            print(that.kind.name());
+            print(that.kind.keyword());
             print(" ");
             print(that.label.toString());
             print(" ");
@@ -367,7 +367,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
         try {
             for (JCTree.JCVariableDecl s: that.decls) {
-                print(useCanonicalName ? that.clauseKind.name() : that.keyword);
+                print(useCanonicalName ? that.clauseKind.keyword() : that.keyword);
                 print(" ");
                 s.accept(this);
                 // The declaration has its own closing semicolon
@@ -377,7 +377,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
         try {
-            print(useCanonicalName ? that.clauseKind.name() : that.keyword);
+            print(useCanonicalName ? that.clauseKind.keyword() : that.keyword);
             print(" ");
             printExpr(that.expression);  // noPrec
             if (that instanceof RecommendsClause.Node) {
@@ -393,7 +393,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
         try {
-            print(useCanonicalName ? that.clauseKind.name() : that.keyword);
+            print(useCanonicalName ? that.clauseKind.keyword() : that.keyword);
             print(" ");
             if (that.keyword != null) {
                 that.keyword.accept(this);
@@ -411,7 +411,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseConditional(JmlMethodClauseConditional that) {
         try {
-            print(useCanonicalName ? that.clauseKind.name() : that.keyword);
+            print(useCanonicalName ? that.clauseKind.keyword() : that.keyword);
             print(" ");
             that.expression.accept(this);
             if (that.predicate != null) {
@@ -425,7 +425,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
         try {
-            print(useCanonicalName ? that.clauseKind.name() : that.keyword);
+            print(useCanonicalName ? that.clauseKind.keyword() : that.keyword);
             print(" ");
             if (that.list.isEmpty()) {
                 print("\\nothing");
@@ -442,7 +442,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
         try {
-            print(useCanonicalName ? that.clauseKind.name() : that.keyword);
+            print(useCanonicalName ? that.clauseKind.keyword() : that.keyword);
             print(" ");
             boolean first = true;
             for (JCTree item: that.list) {
@@ -455,7 +455,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals that) {
         try {
-            print(useCanonicalName ? that.clauseKind.name() : that.keyword);
+            print(useCanonicalName ? that.clauseKind.keyword() : that.keyword);
             print(" (");
             if (that.vardef != null) {
                 that.vardef.vartype.accept(this);
@@ -510,7 +510,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             // FIXME - it appears that the enclosing parentheses are parsed as a Parens
             // expression - is this really right?
-            print(that.kind.name());
+            print(that.kind.keyword());
             print(" "); //$NON-NLS-1$
             boolean first = true;
             for (JCTree.JCVariableDecl n: that.decls) {
@@ -638,7 +638,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlStatement(JmlStatement that) {
         try {
             if (useJMLComments) print ("/*@ ");
-            print(useCanonicalName ? that.clauseType.name() : that.keyword);
+            print(useCanonicalName ? that.clauseType.keyword() : that.keyword);
             print(" ");
             if (that.statement == null) print(": "); // FIXME - why the colon?
             else that.statement.accept(this);
@@ -657,7 +657,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 }
             }
             if (useJMLComments) print ("/*@ ");
-            print(inlinedLoopStatement.name());
+            print(inlinedLoopStatement.keyword());
             //print(useCanonicalName ? that.clauseType.name() : that.keyword);
             print(";");
             if (useJMLComments) print("*/");
@@ -668,7 +668,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlStatementShow(JmlStatementShow that) {
         try {
             if (useJMLComments) print ("/*@ ");
-            print(that.clauseType.name());
+            print(that.clauseType.keyword());
             boolean first = true;
             for (JCExpression e: that.expressions) {
                 if (!first) print(",");
@@ -684,7 +684,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that) {
         try {
             if (useJMLComments) print("//@ ");
-            print(that.clauseType.name());
+            print(that.clauseType.keyword());
             print(" ");
             printExpr(that.expression);
             print(";");
@@ -694,7 +694,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlStatementLoopModifies(JmlStatementLoopModifies that) {
         try {
             if (useJMLComments) print ("//@ ");
-            print(that.clauseType.name());
+            print(that.clauseType.keyword());
 
             print(" ");
             boolean first = true;
@@ -727,7 +727,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 }
             } else {
                 if (useJMLComments) print ("/*@ ");  // FIXME - this is needed in lots more places
-                print(useCanonicalName ? that.clauseType.name() : that.keyword);
+                print(useCanonicalName ? that.clauseType.keyword() : that.keyword);
                 print(" ");
                 if (that.label != null && !sourceOutput) {
                     print(that.label);
@@ -749,7 +749,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlStatementHavoc(JmlStatementHavoc that) {
         try {
             if (useJMLComments) print ("//@ ");
-            print(that.clauseType.name());
+            print(that.clauseType.keyword());
 
             print(" ");
             boolean first = true;
@@ -772,7 +772,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             if (useJMLComments) print("//@ ");
             if (that.modifiers != null) that.modifiers.accept(this);  // includes trailing space if non-empty
-            print(useCanonicalName ? that.clauseType.name() : that.keyword);
+            print(useCanonicalName ? that.clauseType.keyword() : that.keyword);
             print(" ");
             printExpr(that.expression); // TreeInfo.noPrec
             print("; ");
@@ -789,7 +789,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
         try {
             if (useJMLComments) print("//@ ");
-            print(useCanonicalName ? that.clauseType.name() : that.keyword);
+            print(useCanonicalName ? that.clauseType.keyword() : that.keyword);
             Iterator<JmlGroupName> g = that.list.iterator();
             print(" ");
             g.next().accept(this);
@@ -804,7 +804,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
         try {
             if (useJMLComments) print("//@ ");
-            print(useCanonicalName ? that.clauseType.name() : that.keyword);
+            print(useCanonicalName ? that.clauseType.keyword() : that.keyword);
             print(" ");
             print(that.expression);
             print(" \\into");
@@ -836,7 +836,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (that.specs != null) that.specs.accept(this);
             align();
             if (that.modifiers != null) that.modifiers.accept(this);
-            print(useCanonicalName ? that.clauseType.name() : that.keyword);
+            print(useCanonicalName ? that.clauseType.keyword() : that.keyword);
             print(" {}");
             println();
         } catch (IOException e) { perr(that,e); }
@@ -846,7 +846,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             if (useJMLComments) print("//@ ");
             if (that.modifiers != null) that.modifiers.accept(this);  // includes trailing space if non-empty
-            print(useCanonicalName ? that.clauseType.name() : that.keyword);
+            print(useCanonicalName ? that.clauseType.keyword() : that.keyword);
             print(" ");
             printExpr(that.expression);
             if (that.sigs != null && !that.sigs.isEmpty()) {
@@ -869,7 +869,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             if (useJMLComments) print("//@ ");
             if (that.modifiers != null) that.modifiers.accept(this);  // trailing space if non-empty
-            print(useCanonicalName ? that.clauseType.name() : that.keyword);
+            print(useCanonicalName ? that.clauseType.keyword() : that.keyword);
             print(" ");
             printExpr(that.ident);
             print(" = ");
@@ -882,7 +882,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             if (useJMLComments) print("//@ ");
             if (that.modifiers != null) that.modifiers.accept(this);  // trailing space if non-empty
-            print(useCanonicalName ? that.clauseType.name() : that.keyword);
+            print(useCanonicalName ? that.clauseType.keyword() : that.keyword);
             print(" ");
             that.identifier.accept(this);
             if (that.expression != null) {
@@ -897,7 +897,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             if (useJMLComments) print("//@ ");
             if (that.modifiers != null) that.modifiers.accept(this);  // trailing space if non-empty
-            print(useCanonicalName ? that.clauseType.name() : that.keyword);
+            print(useCanonicalName ? that.clauseType.keyword() : that.keyword);
             print(" ");
             that.identifier.accept(this);
             print(" = ");
@@ -938,7 +938,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlStoreRefKeyword(JmlStoreRefKeyword that) {
         try {
-            print(that.kind.name());
+            print(that.kind.keyword());
         } catch (IOException e) { perr(that,e); }
     }
 

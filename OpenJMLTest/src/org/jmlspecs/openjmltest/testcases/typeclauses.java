@@ -263,7 +263,7 @@ public class typeclauses extends TCBase {
     
     @Test
     public void testRepresents4() {
-        helpTCF("A.java","public class A {\n //@ model int i; represents i :0;\n}"
+        helpTCF("A.java","public class A {\n //@ model int i; represents i !0;\n}"
                 ,"/A.java:2: error: A represents clause must have a = or \\such_that after the identifier",32
                 );
     }

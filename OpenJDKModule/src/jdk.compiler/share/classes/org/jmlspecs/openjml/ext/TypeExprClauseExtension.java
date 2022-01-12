@@ -70,6 +70,7 @@ public class TypeExprClauseExtension extends JmlExtension {
                 return tcl;
             } else {
                 parser.nextToken();
+                Name n = parser.parseOptionalName();
                 JCExpression e = parser.parseExpression();
                 Maker M = parser.maker().at(pp);
                 if (mods == null) mods = M.Modifiers(0);
@@ -83,6 +84,7 @@ public class TypeExprClauseExtension extends JmlExtension {
         public JmlTypeClauseConstraint parseConstraint(JCModifiers mods) {
             int pos = parser.pos();
             parser.nextToken();
+            Name n = parser.parseOptionalName();
             JCExpression e = parser.parseExpression();
             List<JmlMethodSig> sigs = null;
             boolean notlist = false;
@@ -153,7 +155,7 @@ public class TypeExprClauseExtension extends JmlExtension {
                 }
 
                 attr.attribExpr(tree.expression, localEnv, syms.booleanType);
-                attr.checkTypeClauseMods(tree,tree.modifiers,tree.clauseType.name() + " clause",tree.clauseType);
+                attr.checkTypeClauseMods(tree,tree.modifiers,tree.clauseType.keyword() + " clause",tree.clauseType);
                 return null;
             } catch (Exception e) {
             	utils.note(tree, "jml.message", "Exception occurred in attributing clause: " + tree);

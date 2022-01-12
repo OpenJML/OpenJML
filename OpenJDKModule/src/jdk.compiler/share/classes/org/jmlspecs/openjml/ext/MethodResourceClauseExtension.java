@@ -16,7 +16,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 
-public class MethodConditionalClauseExtension extends JmlExtension {
+public class MethodResourceClauseExtension extends JmlExtension {
 
     public static final String durationID = "duration";
     public static final String workingspaceID = "working_space";
@@ -34,6 +34,7 @@ public class MethodConditionalClauseExtension extends JmlExtension {
     
     public static final IJmlClauseKind measuredbyClause = new MethodConditionalClauseType(measuredbyID) {
     };
+
     
     public static class MethodConditionalClauseType extends IJmlClauseKind.MethodSpecClauseKind {
         public MethodConditionalClauseType(String keyword) { super(keyword); }
@@ -51,17 +52,17 @@ public class MethodConditionalClauseExtension extends JmlExtension {
             int pp = parser.pos();
 
             parser.nextToken();
+            var n = parser.parseOptionalName();
             JCExpression p = null;
-            JCExpression e = parser.parsePredicateOrNotSpecified();
-            if (parser.token().kind == IF) { // The if is not allowed if the
-                // expression is not_specified, but we test that
-                // during type checking
+            JCExpression e = parser.parseExpression();
+            if (parser.token().kind == IF) {
                 parser.nextToken();
-                p = parser.parseExpression();
+               p = parser.parseExpression();
             }
             JmlMethodClauseConditional res = parser.to(parser.maker().at(pp)
                     .JmlMethodClauseConditional(keyword, clauseType, e, p));
             wrapup(res, clauseType, true, true);
+            res.name = n;
             return res;
 
         }

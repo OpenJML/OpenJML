@@ -1029,7 +1029,7 @@ public class JmlParser extends JavacParser {
                     }
                     mods = null;
                     if (tc instanceof JmlTypeClause && currentMethodSpecs != null) {
-                        utils.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + ((JmlTypeClause)tc).clauseType.name() + " clause (ignored)");
+                        utils.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + ((JmlTypeClause)tc).clauseType.keyword() + " clause (ignored)");
                         currentMethodSpecs = null;
                     }
                     if (tc instanceof JmlTypeClauseIn
@@ -1390,6 +1390,20 @@ public class JmlParser extends JavacParser {
 
     public JCExpression parseQualifiedIdent(boolean allowAnnos) {
         return qualident(allowAnnos);
+    }
+    
+    /** Parses a name and colon, if looking at a Java identifier with a colon as lookahead,
+     * otherwise does nothgin and returns null
+     * @return
+     */
+    public Name parseOptionalName() {
+    	if (token.kind == TokenKind.IDENTIFIER && S.token(1).kind==TokenKind.COLON) {
+    		Name id = ident(); // advances to next token
+    		accept(TokenKind.COLON);
+    		return id;
+    	} else {
+    		return null;
+    	}	
     }
 
 //    public JCExpression parseStoreRefListExpr() {
@@ -2452,7 +2466,7 @@ public class JmlParser extends JavacParser {
     	if (t.kind == TokenKind.RPAREN) return ParensResult.PARENS;
         if (!(t instanceof JmlToken)) return defaultResult;
         IJmlClauseKind jtk = ((JmlToken)t).jmlclausekind;
-        switch (jtk.name()) {
+        switch (jtk.keyword()) {
             case impliesID: case reverseimpliesID: case equivalenceID: case inequivalenceID: case subtypeofID: case subtypeofeqID:
             case jsubtypeofID: case jsubtypeofeqID: case dotdotID: case leftarrowID: case lockleID: case lockltID:
                 return ParensResult.PARENS;
@@ -3015,7 +3029,7 @@ public class JmlParser extends JavacParser {
     }
 
     public static int jmlPrecedence(IJmlClauseKind tkind) {
-        switch (tkind.name()) {
+        switch (tkind.keyword()) {
             // FIXME - check all these precedences
             case equivalenceID: case inequivalenceID:
                 return -2; // TreeInfo.orPrec;  // Between conditional and or
