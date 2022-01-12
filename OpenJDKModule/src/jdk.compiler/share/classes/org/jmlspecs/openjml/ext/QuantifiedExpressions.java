@@ -142,29 +142,45 @@ public class QuantifiedExpressions extends JmlExtension {
             	}
             }
             Type resultType = syms.errType;
+            Type valueType = null;
             try {
                 
                 if (that.range != null) {
                 	that.range.type = attr.attribExpr(that.range, localEnv, syms.booleanType);
+                    attr.check(that.range, that.range.type, KindSelector.VAL, attr.new ResultInfo(KindSelector.VAL, syms.booleanType));
                 }
 
-                Type t;
                 switch (this.keyword()) {
                     case qexistsID:
                     case qforallID:
-                        t = attr.attribExpr(that.value, localEnv, syms.booleanType);
+                        valueType = syms.booleanType;
                         resultType = syms.booleanType;
                         break;
 
+                    case qchooseID:
+                    	valueType = syms.booleanType;
+                        resultType = that.decls.head.type;
+//                   	
+//                    	System.out.println("LOCALENV " + localEnv);
+//                    	System.out.println("DECL " + that.decls.head + " " + that.decls.head.sym + " " + that.decls.head.sym.type + " " + that.decls.head.type);
+//                    	System.out.println("VALUE " + that.value + " " + that.value.getClass());
+//                    	if (that.value instanceof JCTree.JCIdent id) System.out.println("SYM " + id.sym + " " + (id.sym==null?syms.errType:id.sym.type));
+//                        attr.attribExpr(that.value, localEnv, syms.booleanType);
+//                        attr.check(that.value, that.value.type, KindSelector.VAL, attr.new ResultInfo(KindSelector.VAL, syms.booleanType));
+//                        System.out.println("VALUE " + that.value + " " + that.value.getClass());
+//                    	if (that.value instanceof JCTree.JCIdent id) System.out.println("SYM " + id.sym + " " + (id.sym==null?syms.errType:id.sym.type));
+//                        System.out.println("CHOOSE " + that.value + " " + that.value.type + " " + that.decls.head.type);
+                        break;
+
                     case qnumofID:
-                        t = attr.attribExpr(that.value, localEnv, syms.booleanType);
+                        valueType = syms.booleanType;
                         resultType = com.sun.tools.javac.code.JmlTypes.instance(context).BIGINT;
-                        if (utils.rac) resultType = syms.longType;
+                        if (utils.rac) resultType = syms.longType; // FIXME - or BigInteger
                         break;
 
                     case qmaxID:
                     case qminID:
-                        t = attr.attribExpr(that.value, localEnv, Type.noType);
+                    	valueType = Type.noType;
                         resultType = that.value.type;
                         // FIXME - allow this for any Comparable type
                         //                if (!types.unboxedTypeOrType(resultType).isNumeric()) {
@@ -175,18 +191,24 @@ public class QuantifiedExpressions extends JmlExtension {
 
                     case qsumID:
                     case qproductID:
-                        t = attr.attribExpr(that.value, localEnv, Type.noType);
+                    	valueType = Type.noType;
                         resultType = that.value.type;
-                        if (!attr.jmltypes.isNumeric(attr.jmltypes.unboxedTypeOrType(resultType))) {
-                            error(that.value,"jml.bad.quantifer.expression", resultType.toString());
-                            resultType = attr.jmltypes.createErrorType(resultType);
-                        }
                         break;
 
                     default:
                         error(that,"jml.unknown.construct", this.keyword(),"JmlAttr.visitJmlQuantifiedExpr");
                         break;
                 }
+                attr.attribExpr(that.value, localEnv, valueType);
+                if (valueType == Type.noType) resultType = that.value.type;
+                attr.check(that.value, that.value.type, KindSelector.VAL, attr.new ResultInfo(KindSelector.VAL, valueType));
+                if (keyword().equals(qsumID) || keyword().equals(qproductID)) {
+                    if (!attr.jmltypes.isNumeric(attr.jmltypes.unboxedTypeOrType(resultType))) {
+                        error(that.value,"jml.bad.quantifer.expression", resultType.toString());
+                        resultType = attr.jmltypes.createErrorType(resultType);
+                    }
+                }
+
                 resultType = attr.check(that, resultType, KindSelector.VAL, attr.resultInfo);
 
                 if (attr.utils.rac) {
@@ -211,6 +233,8 @@ public class QuantifiedExpressions extends JmlExtension {
     public static final IJmlClauseKind qforallKind = new QuantifiedExpression(qforallID);
     public static final String qexistsID = "\\exists";
     public static final IJmlClauseKind qexistsKind = new QuantifiedExpression(qexistsID);
+    public static final String qchooseID = "\\choose";
+    public static final IJmlClauseKind qchooseKind = new QuantifiedExpression(qchooseID);
     public static final String qnumofID = "\\num_of";
     public static final IJmlClauseKind qnumofKind = new QuantifiedExpression(qnumofID);
     public static final String qsumID = "\\sum";
