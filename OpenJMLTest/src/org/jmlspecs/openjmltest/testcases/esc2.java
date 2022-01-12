@@ -3161,18 +3161,35 @@ public class esc2 extends EscBase {
     }
 
     @Test
-    public void testSetDebug() {
-        main.addOptions("-keys=DEBUG");
+    public void testSet() {
         helpTCX("tt.TestJava",
-                "package tt; \n" + "public class TestJava { \n" + "  public static int m() { \n" + "    int c = 4; \n"
-                        + "    //@ ghost int d = c+1;\n" + "    //@ set d = 10;\n" + "    //@ assert d + c == 14; \n"
-                        + "    return c; \n" + "  }\n" + "  public static int mm() { \n" + "    int c = 4; \n"
-                        + "    //@ ghost int d = c+1;\n" + "    //@ set d = 10;\n" + "    //@ assert d + c == 15; \n"
-                        + "    return c; \n" + "  }\n" + "  public static int q() { \n" + "    int c = 4; \n"
-                        + "    //@ ghost int d = c+1;\n" + "    //@ debug d = 10;\n" + "    //@ assert d + c == 14; \n"
-                        + "    return c; \n" + "  }\n" + "  public static int qq() { \n" + "    int c = 4; \n"
-                        + "    //@ ghost int d = c+1;\n" + "    //@ debug d = 10;\n" + "    //@ assert d + c == 15; \n"
-                        + "    return c; \n" + "  }\n" + "}",
+                "package tt; \n" + "public class TestJava { \n" 
+                		+ "  public static int m() { \n" 
+                		+ "    int c = 4; \n"
+                        + "    //@ ghost int d = c+1;\n" 
+                		+ "    //@ set d = 10;\n" 
+                        + "    //@ assert d + c == 14; \n"
+                        + "    return c; \n" + "  }\n" 
+                		+ "  public static int mm() { \n" 
+                        + "    int c = 4; \n"
+                        + "    //@ ghost int d = c+1;\n" 
+                        + "    //@ set d = 10;\n" 
+                        + "    //@ assert d + c == 15; \n"
+                        + "    return c; \n" + "  }\n" 
+                        + "  public static int q() { \n" 
+                        + "    int c = 4; \n"
+                        + "    //@ ghost int d = c+1;\n" 
+                        + "    //@ set   d = 10;\n" 
+                        + "    //@ assert d + c == 14; \n"
+                        + "    return c; \n" + "  }\n" 
+                        + "  public static int qq() { \n" 
+                        + "    int c = 4; \n"
+                        + "    //@ ghost int d = c+1;\n" 
+                        + "    //@ set   d = 10;\n" 
+                        + "    //@ assert d + c == 15; \n"
+                        + "    return c; \n" 
+                        + "  }\n" 
+                        + "}",
                 "/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method mm", 9,
                 "/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Assert) in method qq", 9);
     }
@@ -3433,7 +3450,6 @@ public class esc2 extends EscBase {
     // check other JMl expressions
     @Test
     public void testUndefinedInSpec3() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
                 + "/*@ nullable_by_default */ public class TestJava { \n" 
                 + "  public int j = 1;\n"
@@ -3448,7 +3464,7 @@ public class esc2 extends EscBase {
                 + "    //@ ghost int i = o.j; \n"    // ERROR
                 + "  }\n  " 
                 + "  public static void m3(TestJava o) { \n"
-                + "    //@ ghost int i; debug i = o.j; \n"  // ERROR
+                + "    //@ ghost int i; set   i = o.j; \n"  // ERROR
                 + "  }\n  " 
                 + "  //@ requires o.j == 1;\n"              // ERROR
                 + "  public static void m4(@Nullable TestJava o) { \n" 

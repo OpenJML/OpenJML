@@ -32,10 +32,8 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 public class SetStatement extends JmlExtension {
 
     public static final String setID = "set";
-    public static final String debugID = "debug";
    
     public static final IJmlClauseKind setClause = new JmlStatementType(setID);
-    public static final IJmlClauseKind debugClause = new JmlStatementType(debugID);
     
 
     public static class JmlStatementType extends IJmlClauseKind.Statement {

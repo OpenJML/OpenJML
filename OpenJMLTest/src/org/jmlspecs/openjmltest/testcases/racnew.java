@@ -1525,15 +1525,14 @@ public class racnew extends RacBase {
     }
     
     @Test public void testModelField() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; //@ in i; \n "
                 +"//@ static model int i; \n "
                 +"//@ static represents i = j+1; \n "
                 +"public static void main(String[] args) { \n"
-                +"//@ debug System.out.println(\"A \" + i); \n"
+                +"//@ set System.out.println(\"A \" + i); \n"
                 +" j = 10; \n"
-                +"//@ debug System.out.println(\"A \" + i); \n"
+                +"//@ set System.out.println(\"A \" + i); \n"
                 +"System.out.println(\"END\"); "
                 +"}"
                 +"//@ static ghost int ii; \n "
@@ -1547,7 +1546,6 @@ public class racnew extends RacBase {
     
     // FIXME - this results of this test are different when run standalone
     @Test public void testModelFieldST() {
-        main.addOptions("-keys=DEBUG");
         expectedNotes = 0;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; //@ in i ; \n "
@@ -1555,9 +1553,9 @@ public class racnew extends RacBase {
                 +"//@ static represents i \\such_that i==j+1; \n "
                 +"//@ static represents i =j+1; \n "
                 +"public static void main(String[] args) { \n"
-                +"//@ debug System.out.println(\"A \" + i); \n"
+                +"//@ set System.out.println(\"A \" + i); \n"
                 +" j = 10; \n"
-                +"//@ debug System.out.println(\"A \" + i); \n"
+                +"//@ set System.out.println(\"A \" + i); \n"
                 +"System.out.println(\"END\"); "
                 +"}"
                 +"//@ static ghost int ii; \n "
@@ -1572,7 +1570,6 @@ public class racnew extends RacBase {
     
     /** Duplicate represents */
     @Test public void testModelField1() {
-        main.addOptions("-keys=DEBUG");
         continueAnyway = true;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; //@ in i;\n "
@@ -1580,9 +1577,9 @@ public class racnew extends RacBase {
                 +"//@ static represents i = j+1; \n "
                 +"//@ static represents i = j; \n "
                 +"public static void main(String[] args) { \n"
-                +"//@ debug System.out.println(\"A \" + i); \n"
+                +"//@ set System.out.println(\"A \" + i); \n"
                 +" j = 10; \n"
-                +"//@ debug System.out.println(\"A \" + i); \n"
+                +"//@ set System.out.println(\"A \" + i); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"/tt/A.java:5: warning: Duplicate represents clause - only the first is used for RAC",13
@@ -1600,17 +1597,16 @@ public class racnew extends RacBase {
     /** Represents with super model field */
     @Test public void testModelField3() {
         continueAnyway = true; // That is, even though there are compile errors
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.PA","package tt; public class PA extends PB { \n"
                 +" int j = 5; //@ in i;\n "
                 +"//@  represents i = j+1; \n "
                 +"public static void main(String[] args) { \n"
                 +"PA a = new PA();\n"
                 +"PB b = new PB();\n"
-                +"//@ debug System.out.println(\"A \" + a.i); \n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"//@ set System.out.println(\"A \" + a.i); \n"
+                +"//@ set System.out.println(\"B \" + b.i); \n"
                 +"b = new PA();\n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"//@ set System.out.println(\"B \" + b.i); \n"
                 +"System.out.println(\"END\");\n"
                 +"}}\n"
                 +"class PB { //@ model  int i; \n}"
@@ -1625,17 +1621,16 @@ public class racnew extends RacBase {
 
     /** Represents with super model field */
     @Test public void testModelField3a() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.PA","package tt; public class PA extends PB { \n"
                 +" int j = 5; //@ in i;\n "
                 +"//@  represents super.i = j+1; \n "
                 +"public static void main(String[] args) { \n"
                 +"PA a = new PA();\n"
                 +"PB b = new PB();\n"
-                +"//@ debug System.out.println(\"A \" + a.i); \n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"//@ set System.out.println(\"A \" + a.i); \n"
+                +"//@ set System.out.println(\"B \" + b.i); \n"
                 +"b = new PA();\n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"//@ set System.out.println(\"B \" + b.i); \n"
                 +"System.out.println(\"END\"); \n"
                 +"}} class PB { //@ model protected int i; }\n"
                 ,"/tt/PA.java:12: warning: JML model field is not implemented: i",39
@@ -1649,15 +1644,14 @@ public class racnew extends RacBase {
 
     /** Using a model field in a field access */
     @Test public void testModelField1a() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.PA","package tt; public class PA { \n"
                 +" static int j = 5; //@ in i;\n "
                 +"//@  model int i; represents i = j; \n"
                 +"public static void main(String[] args) { \n"
                 +"PA a = new PA();\n"
-                +"//@ debug System.out.println(\"A \" + a.i); \n"
+                +"//@ set System.out.println(\"A \" + a.i); \n"
                 +"PB b = new PB();\n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"//@ set System.out.println(\"B \" + b.i); \n"
                 +"System.out.println(\"END\"); "
                 +"}} class PB { //@ model  int i; represents i = PA.j+1; \n\n}"
                 ,"A 5"
@@ -1669,16 +1663,15 @@ public class racnew extends RacBase {
 
     /** Represents with super model field */
     @Test public void testModelField4() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.QA","package tt; public class QA extends QB { \n"
                 +" int j = 5; \n "
                 +"public static void main(String[] args) { \n"
                 +"QA a = new QA();\n"
                 +"QB b = new QB();\n"
-                +"//@ debug System.out.println(\"A \" + a.i); \n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"//@ set System.out.println(\"A \" + a.i); \n"
+                +"//@ set System.out.println(\"B \" + b.i); \n"
                 +"b = new QA();\n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"//@ set System.out.println(\"B \" + b.i); \n"
                 +"System.out.println(\"END\"); \n"
                 +"}} class QB { //@ model  int i; \n}"
                 ,"/tt/QA.java:11: warning: JML model field is not implemented: i",30
@@ -1692,14 +1685,13 @@ public class racnew extends RacBase {
 
     /** Model field with no represents */
     @Test public void testModelField2() {
-        main.addOptions("-keys=DEBUG");
         expectedExit = 0;
         continueAnyway = true;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n"
                 +"//@ static model int i; \n"
                 +"public static void main(String[] args) { \n"
-                +"//@ debug System.out.println(\"A \" + i); \n"
+                +"//@ set System.out.println(\"A \" + i); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"/tt/A.java:3: warning: JML model field is not implemented: i",22
@@ -1710,12 +1702,11 @@ public class racnew extends RacBase {
     
     /** Forall, exists quantifier */
     @Test public void testForallQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; 0<=i && i<=5; i >= 2); \n "
                 +"//@ ghost boolean nn = (\\exists int i; 0<=i && i<=5; i >= 2); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A false true"
@@ -1725,12 +1716,11 @@ public class racnew extends RacBase {
     
     /** Forall, exists quantifier */
     @Test public void testForallQuantifier2() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; 0<=i && i<=5; i >= 0); \n "
                 +"//@ ghost boolean nn = (\\exists int i; 0<=i && i<=5; i >= 6); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A true false"
@@ -1740,12 +1730,11 @@ public class racnew extends RacBase {
     
     /** Forall, exists quantifier */
     @Test public void testForallQuantifier3() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; ; i >= 0); \n "
                 +"//@ ghost boolean nn = (\\exists int i; i == 4; i >= 6); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"/tt/A.java:3: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression",25
@@ -1756,12 +1745,11 @@ public class racnew extends RacBase {
     }
     
     @Test public void testForallQuantifier4() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; 0<i && i<=5; (\\exists int j; 0<=j && j < 5; j<i)); \n "
                 +"//@ ghost boolean nn = (\\forall int i; 0<=i && i<=5; (\\exists int j; 0<=j && j < 5; j<i)); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A true false"
@@ -1771,12 +1759,11 @@ public class racnew extends RacBase {
     
     /** Numof quantifier */
     @Test public void testCountQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n1 = (\\num_of int i; 0 <= i && i <= 5; true); \n "
                 +"//@ ghost long n2 = (\\num_of int i; 0 < i && i < 5; true); \n "
-                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"//@ set System.out.println(\"A \" + n1 + \" \" + n2); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 6 4"
@@ -1786,12 +1773,11 @@ public class racnew extends RacBase {
     
     /** Numof quantifier */
     @Test public void testCountQuantifier3() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n = (\\num_of int i; 0 <= i && i < 5; i >= 2); \n "
                 +"//@ ghost long nn = (\\num_of int i; 0 <= i && i < 5; false); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 3 0"
@@ -1801,13 +1787,12 @@ public class racnew extends RacBase {
     
     /** Numof quantifier */
     @Test public void testCountQuantifierExt() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static int m = 2;\n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n = (\\num_of int i; 0 <= i && i < 5; i >= m); \n "
                 +"//@ ghost long nn = (\\num_of int i; 0 <= i && i < 5; m > 0); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn ); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn ); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 3 5"
@@ -1818,12 +1803,11 @@ public class racnew extends RacBase {
     /** Numof quantifier */
     @Ignore // FIXME - not yet working -- should it be suppoorted?
     @Test public void testCountQuantifierExtA() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static int m = 2;\n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost int nnn = new org.jmlspecs.runtime.Utils.ValueInt() { public int value(final Object[] args) { int count = 0; int lo = (Integer)(args[0]); int hi = (Integer)(args[1]); int i = lo; while (i <= hi) { if (i>=lo && i<=hi) count++; i++; } return count; }}.value(new Object[]{0,5});\n"
-                +"//@ debug System.out.println(\"A \" + nn ); \n"
+                +"//@ set System.out.println(\"A \" + nn ); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 3 5"
@@ -1849,11 +1833,10 @@ public class racnew extends RacBase {
     // FIXME - quantifiers witrh multiple declarations
     /** Numof quantifier */
     @Test public void testCountTwo() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n1 = (\\num_of int i,j; 0 <= i && i <= 5 && 0 <= j && j < i; true); \n "
-                +"//@ debug System.out.println(\"A \" + n1); \n"
+                +"//@ set System.out.println(\"A \" + n1); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"/tt/A.java:3: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression",23
@@ -1864,12 +1847,11 @@ public class racnew extends RacBase {
     
     /** Sum quantifier */
     @Test public void testSumQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost int n = (\\sum int i; 0<i && i<=5; i+1); \n "
                 +"//@ ghost int nn = (\\sum int i; 0<i && i<0; i+1); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 20 0"
@@ -1879,12 +1861,11 @@ public class racnew extends RacBase {
     
     /** Sum quantifier */
     @Test public void testProdQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost int n = (\\product int i; 0<i && i<=5; i+1); \n "
                 +"//@ ghost int nn = (\\product int i; 0<i && i<0; i+1); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 720 1"
@@ -1894,12 +1875,11 @@ public class racnew extends RacBase {
     
     /** Max quantifier */
     @Test public void testMaxQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost int n = (\\max int i; 0<=i && i<=5 && (i%2)==0; i+1); \n "
                 +"//@ ghost int nn = (\\max int i; 0<i && i<0; i+1); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 5 -2147483648"
@@ -1909,13 +1889,12 @@ public class racnew extends RacBase {
     
     /** Max quantifier, with function call */
     @Test public void testMaxQuantifier2() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"  public static int inc(int i) { return i + 10; }\n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost int n = (\\max int i; 0<=i && i<=5 && (i%2)==0; inc(i)); \n "
                 +"//@ ghost int nn = (\\max int i; -9<=i && i<=5 ; Math.abs(i)); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 14 9"
@@ -1925,12 +1904,11 @@ public class racnew extends RacBase {
     
     /**  quantifier over short */
     @Test public void testShortQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost short n1 = (\\max int i; 0<=i && i<=5; (short)(i+10)); \n "
                 +"//@ ghost short n2 = (\\min int i; 0<=i && i<=5; (short)(i+10)); \n "
-                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"//@ set System.out.println(\"A \" + n1 + \" \" + n2); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 15 10"
@@ -1940,12 +1918,11 @@ public class racnew extends RacBase {
     
     /**  quantifier over short */
     @Test public void testShortQuantifierB() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost short n1 = (\\max short i; 2<=i && i<=5; i); \n "
                 +"//@ ghost short n2 = (\\min short i; 2<=i && i<=5; i); \n "
-                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"//@ set System.out.println(\"A \" + n1 + \" \" + n2); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 5 2"
@@ -1955,12 +1932,11 @@ public class racnew extends RacBase {
     
     /**  quantifier over byte */
     @Test public void testByteQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost byte n1 = (\\max int i; 2<=i && i<=5; (byte)i); \n "
                 +"//@ ghost byte n2 = (\\min int i; 2<=i && i<=5; (byte)i); \n "
-                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"//@ set System.out.println(\"A \" + n1 + \" \" + n2); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 5 2"
@@ -1970,12 +1946,11 @@ public class racnew extends RacBase {
     
     /**  quantifier over byte */
     @Test public void testByteQuantifierB() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost byte n1 = (\\max byte i; 2<=i && i<=5; i); \n "
                 +"//@ ghost byte n2 = (\\min byte i; 2<=i && i<=5; i); \n "
-                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"//@ set System.out.println(\"A \" + n1 + \" \" + n2); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 5 2"
@@ -1985,12 +1960,11 @@ public class racnew extends RacBase {
     
     /**  quantifier over long */
     @Test public void testLongQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n1 = (\\max int i; 0<=i && i<=5; (i+10L)); \n "
                 +"//@ ghost long n2 = (\\min int i; 0<=i && i<=5; (i+10L)); \n "
-                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"//@ set System.out.println(\"A \" + n1 + \" \" + n2); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 15 10"
@@ -2000,12 +1974,11 @@ public class racnew extends RacBase {
     
     /**  quantifier over long */
     @Test public void testLongQuantifierB() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n1 = (\\max long i; 0<=i && i<=5; (i+10L)); \n "
                 +"//@ ghost long n2 = (\\min long i; 0<=i && i<=5; (i+10L)); \n "
-                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"//@ set System.out.println(\"A \" + n1 + \" \" + n2); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 15 10"
@@ -2015,12 +1988,11 @@ public class racnew extends RacBase {
     
     /**  quantifier over double */
     @Test public void testDoubleQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost double n1 = (\\max int i; 0<=i && i<=5; (double)(i+10.5)); \n "
                 +"//@ ghost double n2 = (\\min int i; 0<=i && i<=5; (double)(i+10.5)); \n "
-                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"//@ set System.out.println(\"A \" + n1 + \" \" + n2); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 15.5 10.5"
@@ -2030,12 +2002,11 @@ public class racnew extends RacBase {
     
     /**  quantifier over float */
     @Test public void testFloatQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost float n1 = (\\max int i; 0<=i && i<=5; (float)(i+10.5)); \n "
                 +"//@ ghost float n2 = (\\min int i; 0<=i && i<=5; (float)(i+10.5)); \n "
-                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"//@ set System.out.println(\"A \" + n1 + \" \" + n2); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 15.5 10.5"
@@ -2045,12 +2016,11 @@ public class racnew extends RacBase {
     
     /**  quantifier over char */
     @Test public void testCharQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost char n1 = (\\max int i; 'a'<i && i<='q'; (char)i); \n "
                 +"//@ ghost char n2 = (\\min int i; 'a'<i && i<='q'; (char)i); \n "
-                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"//@ set System.out.println(\"A \" + n1 + \" \" + n2); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A q b"
@@ -2060,12 +2030,11 @@ public class racnew extends RacBase {
     
     /**  quantifier over char */
     @Test public void testCharQuantifierB() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost char n1 = (\\max char i; 'a'<i && i<='q'; i); \n "
                 +"//@ ghost char n2 = (\\min char i; 'a'<i && i<='q'; i); \n "
-                +"//@ debug System.out.println(\"A \" + n1 + \" \" + n2); \n"
+                +"//@ set System.out.println(\"A \" + n1 + \" \" + n2); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A q b"
@@ -2075,12 +2044,11 @@ public class racnew extends RacBase {
     
     /** Min quantifier */
     @Test public void testMinQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost int n = (\\min int i; 0<=i && i<=5 && (i%2)==1; i+1); \n "
                 +"//@ ghost int nn = (\\min int i; 0<i && i<0; i+1); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 2 2147483647"
@@ -2090,12 +2058,11 @@ public class racnew extends RacBase {
     
     /** Max quantifier */
     @Test public void testMaxLongQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n = (\\max int i; 0<=i && i<=5 && (i%2)==0; (long)i+1); \n "
                 +"//@ ghost long nn = (\\max int i; 0<i && i<0; i+1); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 5 -2147483648"
@@ -2105,12 +2072,11 @@ public class racnew extends RacBase {
     
     /** Min quantifier */
     @Test public void testMinLongQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost long n = (\\min int i; 0<=i && i<=5 && (i%2)==1; (long)i+1); \n "
                 +"//@ ghost long nn = (\\min int i; 0<i && i<0; i+1); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 2 2147483647"
@@ -2120,12 +2086,11 @@ public class racnew extends RacBase {
     
     /** Max quantifier */
     @Test public void testMaxDoubleQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost double n = (\\max int i; 0<=i && i<=5 && (i%2)==0; (double)i+1); \n "
                 +"//@ ghost double nn = (\\max int i; 0<i && i<0; i+1); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 5.0 -2.147483648E9"
@@ -2135,12 +2100,11 @@ public class racnew extends RacBase {
     
     /** double quantifier */
     @Test public void testMinDoubleQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost double n = (\\min int i; 0<=i && i<=5 && (i%2)==1; (double)i+1); \n "
                 +"//@ ghost double nn = (\\min int i; 0<i && i<0; (double)i+1); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 2.0 1.7976931348623157E308"
@@ -2150,7 +2114,6 @@ public class racnew extends RacBase {
     
     /** boolean quantifier */
     @Test public void testBooleanQuantifier() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A",
         		"""
         		package tt; public class A {
@@ -2160,7 +2123,7 @@ public class racnew extends RacBase {
                     //@ ghost int nn = (\\sum boolean i; !i; (i?2:5));
                     //@ ghost int nnn = (\\sum boolean i; i; (i?2:5));
                     //@ ghost int nnnn = (\\sum boolean i; false; (i?2:5));
-                    //@ debug System.out.println("A " + n + " " + nn + " " + nnn + " " + nnnn);
+                    //@ set System.out.println("A " + n + " " + nn + " " + nnn + " " + nnnn);
                     System.out.println(\"END\");
                   }
         		}
@@ -2173,7 +2136,6 @@ public class racnew extends RacBase {
     /** Object quantifier */
     @Test public void testObjectQuantifier() {
         expectedNotes = 0;
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; import java.util.*; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +" List<Object> list = new LinkedList<Object>();\n"
@@ -2182,7 +2144,7 @@ public class racnew extends RacBase {
                 +"//@ ghost long nn = (\\num_of Object o; list.contains(o) && true; true); \n "
                 +" list.add(oo);\n"
                 +"//@ ghost long nnn = (\\num_of Object o; list.contains(o) && o == oo; true); \n "
-                +"//@ debug System.out.println(\"A \" + n + \" \" + nn + \" \" + nnn); \n"
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn + \" \" + nnn); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"A 0 1 1"
@@ -2199,10 +2161,10 @@ public class racnew extends RacBase {
                 +"public static void main(String[] args) { \n"
                 +"A a = new A();\n"
                 +"tt.B b = new tt.B();\n"
-                +"//@ debug System.out.println(\"A \" + a.i); \n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"// @ debug System.out.println(\"A \" + a.i); \n"
+                +"// @ debug System.out.println(\"B \" + b.i); \n"
                 +"b = new A();\n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"// @ debug System.out.println(\"B \" + b.i); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"/$A/tt/B.java:1: warning: JML model field is not implemented: i",36
@@ -2214,17 +2176,16 @@ public class racnew extends RacBase {
     /** Represents with super model field */
     @Test public void testModelField5() {
         continueAnyway = true;
-        main.addOptions("-keys=DEBUG");
         addMockFile("$A/tt/B.java","package tt; class B{ //@ model int i; \n}");
         helpTCX("tt.A","package tt; public class A extends tt.B { \n"
                 +" int j = 5; \n "
                 +"public static void main(String[] args) { \n"
                 +"A a = new A();\n"
                 +"tt.B b = new tt.B();\n"
-                +"//@ debug System.out.println(\"A \" + a.i); \n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"//@ set System.out.println(\"A \" + a.i); \n"
+                +"//@ set System.out.println(\"B \" + b.i); \n"
                 +"b = new A();\n"
-                +"//@ debug System.out.println(\"B \" + b.i); \n"
+                +"//@ set System.out.println(\"B \" + b.i); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"/$A/tt/B.java:1: warning: JML model field is not implemented: i",36
@@ -2403,7 +2364,6 @@ public class racnew extends RacBase {
     // what about assignable
     // check any problems with grouped clauses
     @Test public void testNotImplemented() {
-        main.addOptions("-keys=DEBUG");
         //print = true;
         expectedExit = 1;
         helpTCX("tt.A","package tt; public class A  { \n"
@@ -2419,7 +2379,7 @@ public class racnew extends RacBase {
                 +"    //@ assume \\duration(true) == 0;\n"
                 +"    //@ ghost long k = \\duration(true);\n"
                 +"    //@ set k = \\duration(true);\n"
-                +"    //@ debug k = \\duration(true);\n"
+                +"    //@ set k = \\duration(true);\n"
                 +"    System.out.println(\"END\"); "
                 +"}\n"
                 +"//@ ghost long z = \\duration(true);\n"

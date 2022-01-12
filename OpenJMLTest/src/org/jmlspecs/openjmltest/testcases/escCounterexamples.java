@@ -420,7 +420,7 @@ public class escCounterexamples extends EscBase {
                 +"      //@ assume k == 98; \n"
                 +"      //@ ghost int kk = 0;\n"
                 +"      //@ set kk = 5;\n"
-                +"      //@ debug kk = 7;\n"
+                +"      //\n"
                 +"      k = 65;\n"
                 +"      //@ set kk = \\old(k) - k;\n"
                 +"      //@ assume (k==k) && (\\lblpos X (k == 65));\n"
