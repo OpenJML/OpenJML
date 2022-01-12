@@ -18048,12 +18048,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	@Override
 	public void visitJmlStatement(JmlStatement that) {
 		result = null;
-		if (that.clauseType == SetStatement.debugClause) {
-			Set<String> keys = JmlOptions.instance(context).commentKeys;
-			if (!keys.contains("DEBUG"))
-				return;
-		}
-		if (that.clauseType == SetStatement.setClause || that.clauseType == SetStatement.debugClause) {
+		if (that.clauseType == SetStatement.setClause) {
 			boolean saved = translatingJML;
 			translatingJML = true;
 			condition = treeutils.trueLit;
