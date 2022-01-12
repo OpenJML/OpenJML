@@ -701,7 +701,8 @@ public class typechecking extends TCBase {
     @Test public void testQuantifier6() {
         helpTCF("A.java","public class A {  \n Object i; Object q = i; //@ ghost Object j; \n boolean m(double i) { return false; }\n//@ invariant (\\product long i; j; i) ; \n }",
                 "/A.java:4: error: incompatible types: java.lang.Object cannot be converted to boolean",33,
-                "/A.java:4: error: incompatible types: long cannot be converted to boolean",16);
+                "/A.java:4: error: incompatible types: long cannot be converted to boolean",16
+                );
     }
     
     @Test public void testQuantifier7() {
@@ -710,7 +711,54 @@ public class typechecking extends TCBase {
                 "/A.java:4: error: incompatible types: long cannot be converted to boolean",16);
     }
 
-    @Test public void testQuantifierInv() {
+    @Test public void testQuantifierChoose() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; 0<i<10; i>5) > 5; */}}"
+
+                );
+    }
+    
+    @Test public void testQuantifierChoose1a() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; 0<i<10; i) > 5; */}}"
+        		,"/A.java:2: error: incompatible types: int cannot be converted to boolean",48
+                );
+    }
+    
+    @Test public void testQuantifierChoose1b() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; 0<i<10; 0) > 5; */}}"
+        		,"/A.java:2: error: incompatible types: int cannot be converted to boolean",48
+                );
+    }
+    
+    @Test public void testQuantifierChoose2a() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; i; i>5) > 5; */}}"
+        		,"/A.java:2: error: incompatible types: int cannot be converted to boolean",40
+                );
+    }
+    
+    @Test public void testQuantifierChoose2b() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; 0; i>5) > 5; */}}"
+        		,"/A.java:2: error: incompatible types: int cannot be converted to boolean",40
+                );
+    }
+    
+    @Test public void testQuantifierChoose3() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; ; i>5) > 5; */}}"
+
+                );
+    }
+    
+    @Test public void testQuantifierChoose4() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; i>5) > 5; */}}"
+
+                );
+    }
+    @Test public void testQuantifierChoose5() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; i>5); */}}"
+        		,"/A.java:2: error: incompatible types: int cannot be converted to boolean",25
+                );
+    }
+    
+   @Test public void testQuantifierInv() {
         helpTCF("A.java","public class A {  \n //@ invariant (\\exists int i; 0 < i && i <10;  i > -1) ; \n //@ static invariant (\\exists int i; 0 < i && i <10;  i > -1) ; \n void m() {}}"
 
                 );
