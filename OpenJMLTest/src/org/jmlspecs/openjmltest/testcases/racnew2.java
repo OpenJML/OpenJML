@@ -927,10 +927,9 @@ public class racnew2 extends RacBase {
     
     /** Checks a model class. */
     @Test public void testModelClass() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " System.out.println(m(1)); \n" +
-                " //@ debug System.out.println(p(new G())); \n" +
+                " //@ set System.out.println(p(new G())); \n" +
                 " System.out.println(\"END\"); } \n" +
                 " static <T> T m(T i) { return i; } \n" +
                 " //@ model static public class G {} \n" +
