@@ -18,9 +18,9 @@ alias wt="while [ \$(lsc) -gt 5 ]; do sleep 30; done"
 ## The sleeps are inserted so we don't try to run all of the tasks at once
 
 ./run-summary log-racmost       "101/0"	racArithmeticModes racdemoexamples racfeatures racJML racnew3 racnewLoops racnewWithSpecs racsystem &
-./run-summary log-racfiles     	"27/40" racfiles  &
-./run-summary log-racnew       	"129/14" racnew  &
-./run-summary log-racnew2      	"75/0"	racnew2 &
+./run-summary log-racfiles     	"26/41" racfiles  &
+./run-summary log-racnew       	"127/14" racnew  &
+./run-summary log-racnew2      	"70/0"	racnew2 &
 ./run-summary log-racreadable	"0/2"	racreadable & 
 
 ./run-summary log-access+  	"151/4" access arith assignable compilationUnit compiler deprecation  &
@@ -36,10 +36,10 @@ wt
 wt
 ./run-summary log-escall2   	"30/0"  escall2   &
 ./run-summary log-escall3   	"55/0"  escall3   &
-./run-summary log-esccallable	"32/0"  esccallable   &
+./run-summary log-esccallable	"29/0"  esccallable   &
 wt
 ./run-summary log-escfunc+	"28/0"  escfunction escgeneric  &
-./run-summary log-escinclau+	"104/0" escinclause escinline esclocation escnewBoxing escnewassignable escoption escprimitivetypes escreadable escstrings  &
+./run-summary log-escinclau+	"91/0" escinclause escinline esclocation escnewBoxing escnewassignable escoption escprimitivetypes escreadable escstrings  &
 ./run-summary log-escvis  	"59/0"  escvisibility escvisibility1  &
 wt
 ./run-summary log-escnew   	"64/1"  escnew &
@@ -52,14 +52,14 @@ wt
 wt
 ./run-summary log-generics     	"13/2"  generics   &
 ./run-summary log-harness	"5/0"	harnesstests &
-./run-summary log-inter+       	"159/0"	internalSpecs jmltypes lblexpression methodspecs modelghost namelookup positions prettyprinting purity  &
+./run-summary log-inter+       	"140/0"	internalSpecs jmltypes lblexpression methodspecs modelghost namelookup positions prettyprinting purity  &
 wt
 ./run-summary log-matchClass	"49/3"  matchClasses  &
 ./run-summary log-modifiers    	"192/0" modifiers  &
-./run-summary log-redundant+   	"107/2"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
-./run-summary log-scanner      	"82/1"	scanner  &
+./run-summary log-redundant+   	"104/2"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
+./run-summary log-scanner      	"90/1"	scanner  &
 wt
-./run-summary log-typecheck	"181/0"	typechecking &
+./run-summary log-typecheck	"207/0"	typechecking &
 ./run-summary log-typeclause	"123/0"	typeclauses  &
 ./run-summary log-SpecsBase    	"283/28"	SpecsBase  &
 ./run-summary log-SpecsEsc     	"3/0"	SpecsEsc  &
