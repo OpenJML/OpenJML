@@ -1225,9 +1225,9 @@ public class MethodProverSMT {
     }
     
     // These strings must mirror the strings used in JmlAsssertionAdder.visitJmlLblExpression
-    private final static String prefix_lblpos = Strings.labelVarString + MiscExpressions.lblposKind.name().substring(1) + "_";
-    private final static String prefix_lblneg = Strings.labelVarString + MiscExpressions.lblnegKind.name().substring(1) + "_";
-    private final static String prefix_lbl = Strings.labelVarString + MiscExpressions.lblanyKind.name().substring(1) + "_";
+    private final static String prefix_lblpos = Strings.labelVarString + MiscExpressions.lblposKind.keyword().substring(1) + "_";
+    private final static String prefix_lblneg = Strings.labelVarString + MiscExpressions.lblnegKind.keyword().substring(1) + "_";
+    private final static String prefix_lbl = Strings.labelVarString + MiscExpressions.lblanyKind.keyword().substring(1) + "_";
 
     public int checkTerminationPosition(String id, int terminationPos) {
         // The BasicBlocker2 implementation creates special RETURN and 

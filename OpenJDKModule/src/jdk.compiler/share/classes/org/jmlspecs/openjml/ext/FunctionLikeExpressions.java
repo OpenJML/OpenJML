@@ -181,7 +181,7 @@ public class FunctionLikeExpressions extends JmlExtension {
             typecheckHelper(attr, tree.args, localEnv);
             int n = tree.args.size();
             if (n != 1) {
-                error(tree.pos(),"jml.one.arg",name(),n);
+                error(tree.pos(),"jml.one.arg",keyword(),n);
             }
             return tree.args.head.type;
         }
@@ -229,7 +229,7 @@ public class FunctionLikeExpressions extends JmlExtension {
             int paren = parser.pos();
             if (parser.token().kind != LPAREN) {
                 return parser.syntaxError(paren, List.<JCTree> nil(),
-                        "jml.args.required", this.name());
+                        "jml.args.required", this.keyword());
             } else {
                 parser.nextToken();
             	var args = parser.parseTypeList();
@@ -275,7 +275,7 @@ public class FunctionLikeExpressions extends JmlExtension {
             super.typecheck(attr, tree, localEnv);
             if (!attr.postClauses.contains(attr.jmlenv.currentClauseKind)) {
                 JmlMethodInvocation expr = (JmlMethodInvocation)tree;
-                log.error(tree.pos, "jml.misplaced.token", expr.kind != null ? expr.kind.name() : expr.token.internedName(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.name());
+                log.error(tree.pos, "jml.misplaced.token", expr.kind != null ? expr.kind.keyword() : expr.token.internedName(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.keyword());
             }
             return Symtab.instance(context).booleanType;
         }
@@ -328,14 +328,14 @@ public class FunctionLikeExpressions extends JmlExtension {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
             int n = expr.args.size();
             if (n != 1 && requireStrictJML()) {
-                error(tree.pos(), "jml.one.arg", name(), n);
+                error(tree.pos(), "jml.one.arg", keyword(), n);
             }
             for (JCExpression arg: expr.args) {
                 attr.attribTree(arg, localEnv, attr.new ResultInfo(KindSelector.of(TYP,VAL), Infer.anyPoly));
                 if (arg.type.isPrimitive()) {
-                    error(arg.pos(),"jml.ref.arg.required",name());
+                    error(arg.pos(),"jml.ref.arg.required",keyword());
                 } else if (requireStrictJML() && attr.treeutils.isATypeTree(arg)) {
-                    error(arg.pos(),"jml.ref.arg.required",name());
+                    error(arg.pos(),"jml.ref.arg.required",keyword());
                 }
             }
             return Symtab.instance(context).booleanType;
@@ -367,7 +367,7 @@ public class FunctionLikeExpressions extends JmlExtension {
             for (JCExpression arg: expr.args) {
                 attr.attribTree(arg, localEnv, attr.new ResultInfo(KindSelector.of(TYP), Infer.anyPoly));
                 if (utils.isJavaOrJmlPrimitiveType(arg.type)) {
-                    error(arg.pos(),"jml.ref.type.required",name(),arg.type);
+                    error(arg.pos(),"jml.ref.type.required",keyword(),arg.type);
                 }
             }
             localEnv = attr.removeStatic(localEnv);
@@ -391,12 +391,12 @@ public class FunctionLikeExpressions extends JmlExtension {
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
             super.typecheck(attr, expr, localEnv);
-            if (expr.args.size() != 1 && requireStrictJML()) error(tree,"jml.one.arg",name(),expr.args.size());
+            if (expr.args.size() != 1 && requireStrictJML()) error(tree,"jml.one.arg",keyword(),expr.args.size());
             for (JCExpression arg: expr.args) {
                 Type argtype = arg.type;
                 // FIXME - argtype is null when there is a DeferredType, in which case no checking is done
                 if (argtype != null && !(argtype instanceof Type.ArrayType) && !argtype.isErroneous()) {
-                    error(arg,"jml.arraytype.required",name(),argtype.toString(),arg.toString());
+                    error(arg,"jml.arraytype.required",keyword(),argtype.toString(),arg.toString());
                 }
             }
             return attr.syms.booleanType;

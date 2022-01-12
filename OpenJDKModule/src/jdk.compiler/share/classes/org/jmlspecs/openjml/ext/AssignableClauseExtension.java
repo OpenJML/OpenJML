@@ -25,15 +25,15 @@ public class AssignableClauseExtension extends JmlExtension {
     public static final String capturesID = "captures";
     
     public static final IJmlClauseKind assignableClauseKind = new LocationSetClauseType(assignableID) {
-        public String name() { return assignableID; }
+        public String keyword() { return assignableID; }
     };
     
     public static final IJmlClauseKind accessibleClauseKind = new LocationSetClauseType(accessibleID) {
-        public String name() { return accessibleID; }
+        public String keyword() { return accessibleID; }
     };
     
     public static final IJmlClauseKind capturesClauseKind = new LocationSetClauseType(capturesID) {
-        public String name() { return capturesID; }
+        public String keyword() { return capturesID; }
     };
     
     static {
@@ -61,6 +61,7 @@ public class AssignableClauseExtension extends JmlExtension {
             int pp = parser.pos();
             
             parser.nextToken();
+            var n = parser.parseOptionalName();
 
             List<JCExpression> list = List.<JCExpression>nil();
             if (parser.token().kind == SEMI) {
@@ -84,6 +85,7 @@ public class AssignableClauseExtension extends JmlExtension {
                 }
             }  // FIXME - fix the above; cf loop_writes
             var cl = parser.maker().at(pp).JmlMethodClauseStoreRef(keyword, clauseType, list);
+            cl.name = n;
             wrapup(cl, clauseType, false, false);
             return cl;
         }

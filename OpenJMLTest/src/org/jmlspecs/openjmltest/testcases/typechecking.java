@@ -1443,6 +1443,70 @@ public class typechecking extends TCBase {
                 ,"/TestJava.java:51: warning: There is no point to a specification case having more visibility than its method",7
                 );
     }
+    
+    @Test public void clauseNames() {
+        helpTCF("TestJava.java",
+        		"""
+        		public class TestJava {
+        	        //@ axiom A: true;
+        	        //@ public invariant B: true;
+                    //@ ghost public int g; // NO LABEL
+                    //@ model public int m; // NO LABEL
+	                public int f; //@ in m; // NO LABEL
+	                public TestJava t; //@ maps t.f \\into m; // NO LABEL
+        	        //@ represents C: m = 0;
+        	        //@ public initially E: true;
+        	        //@ public constraint F: true;
+	                //@ public readable f if true;
+	                //@ public writable f if true;
+	                
+	                //@ public normal_behavior G:
+	                //@   requires H: true;
+	                //@   old int z = 0; // NO LABEL
+	                //@   assignable N: \\nothing;
+	                //@   accessible  R: \\nothing;
+	                //@   ensures I: true;
+	                //@   measured_by T: 0;
+	                //@   callable C: \\nothing;
+	                //@   duration D: 0;
+	                //@   working_space W: 0;
+	                //@ also public exceptional_behavior E:
+	                //@   requires F: false;
+	                //@ also public behavior B:
+	                //@   ensures Q: true;
+	                //@ also implies_that
+	                //@    public normal_behavior YY:
+	                //@      requires ZZ: true;
+	                //@ also for_example
+	                //@       requires UUU: true;
+	                public void m() {
+	                	//@ assert A: true;
+	                	//@ assume B: true;
+	                	//@ check C: true;
+	                	//@ set S: f = 0;
+	                	//@ ghost int yy = 0; // NO LABEL
+	                	
+	                	//@ maintaining X: true;
+	                	//@ loop_modifies Y: \\nothing;
+	                	//@ decreases Z: 0;
+	                	while (true) { break; }
+	                	
+	                	//@ refining
+	                	//@  normal_behavior A:
+	                	//@    requires B: true;
+	                	//@ also exceptional_behavior Q:
+	                	//@    requires B: true;
+	                	//@ also behavior R:
+	                	//@    requires B: true;
+	                	{}
+	                }
+                }
+                """
+                		// FIXME - also model programs and various additional statements
+        				// FIXME - additional kinds of clauses in block contracts
+        );
+   	
+    }
 
     
 }

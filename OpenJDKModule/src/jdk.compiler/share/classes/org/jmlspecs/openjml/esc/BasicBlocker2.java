@@ -1141,7 +1141,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     break;
                 } 
                 default:
-                    log.error(that.pos, "esc.internal.error", "No implementation for this kind of Jml node in BasicBlocker2: " + that.kind.name());
+                    log.error(that.pos, "esc.internal.error", "No implementation for this kind of Jml node in BasicBlocker2: " + that.kind.keyword());
                     
             } else switch (that.token) { 
                 case SUBTYPE_OF:
@@ -1556,7 +1556,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             // This is essential to how counterexample path construction works
             currentBlock.statements.add(that);
         } else if (that.clauseType == assumeClause || that.clauseType == assertClause || that.clauseType == checkClause) {
-            JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.clauseType.name(),that.clauseType,that.label,convertExpr(that.expression));
+            JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.clauseType.keyword(),that.clauseType,that.label,convertExpr(that.expression));
             st.id = that.id;
             st.optionalExpression = convertExpr(that.optionalExpression);
             st.associatedPos = that.associatedPos;
@@ -1580,7 +1580,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             continuation = JmlAssertionAdder.Continuation.HALT;
 
         } else {
-            log.error(that.pos,"esc.internal.error","Unknown token in BasicBlocker2.visitJmlStatementExpr: " + that.clauseType.name());
+            log.error(that.pos,"esc.internal.error","Unknown token in BasicBlocker2.visitJmlStatementExpr: " + that.clauseType.keyword());
         }
     }
     

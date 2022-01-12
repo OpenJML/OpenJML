@@ -734,7 +734,7 @@ public class JmlTree {
         /** Creates JML statements such as set and debug and end */
         @Override
         public JmlStatement JmlStatement(IJmlClauseKind t, JCStatement e) {
-            return new JmlStatement(pos,t.name().toString(),t,e);
+            return new JmlStatement(pos,t.keyword().toString(),t,e);
         }
 
         @Override
@@ -1561,6 +1561,8 @@ public class JmlTree {
     public static abstract class JmlAbstractStatement extends JCTree.JCSkip {
     	protected JmlAbstractStatement() {}
         
+    	public Name name;
+    	
         public String toString() {
             return JmlTree.toString(this);
         }
@@ -2226,6 +2228,7 @@ public class JmlTree {
      */
     abstract public static class JmlMethodClause extends JmlAbstractStatement implements JmlSource {
         public String keyword; // May be a synonym of the canonical keyword
+        public Name name;
         public IJmlClauseKind clauseKind;
         public JavaFileObject sourcefile;  // FIXME - don't think this belongs here
         public JavaFileObject source() { return sourcefile; }
@@ -2400,7 +2403,7 @@ public class JmlTree {
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlMethodClauseDecl(int pos, IJmlClauseKind clauseType, List<JCTree.JCVariableDecl> decls) {
-            super(pos, clauseType.name(), clauseType);
+            super(pos, clauseType.keyword(), clauseType);
             this.decls = decls;
         }
 
@@ -2877,12 +2880,12 @@ public class JmlTree {
 
         @Override
         public String toString() {
-            return kind.name();
+            return kind.keyword();
         }
         
         @Override
         public int getEndPosition(EndPosTable endPosTable) {
-            return pos + kind.name().length();
+            return pos + kind.keyword().length();
         }
 
         @Override
@@ -3014,7 +3017,7 @@ public class JmlTree {
         protected JmlStatement(int pos, String keyword, IJmlClauseKind clauseType, JCTree.JCStatement statement) {
             this.pos = pos;
             this.clauseType = clauseType;
-            this.keyword = clauseType.name();
+            this.keyword = clauseType.keyword();
             this.statement = statement;
         }
     
@@ -3526,7 +3529,7 @@ public class JmlTree {
         
         @Override
         public int getEndPosition(EndPosTable endPosTable) {
-            return pos + kind.name().length();
+            return pos + kind.keyword().length();
         }
 
         @Override
@@ -3589,6 +3592,7 @@ public class JmlTree {
         
         /** The token identifying the kind of clause this represents */
         public String keyword;
+        public Name name;
         public IJmlClauseKind clauseType;
         
         /** The source of this clause, since it might be from a different compilation unit. */
@@ -3838,7 +3842,7 @@ public class JmlTree {
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlTypeClauseInitializer(int pos, IJmlClauseKind token, JCModifiers mods) {
             this.pos = pos;
-            this.keyword = token.name();
+            this.keyword = token.keyword();
             this.clauseType = token;
             this.source = null;
             this.modifiers = mods; 

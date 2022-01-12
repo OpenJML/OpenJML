@@ -31,7 +31,7 @@ public class MiscExtensions extends JmlExtension {
         @Override
         public JCTree parse(JCModifiers mods, String keyword,
                 IJmlClauseKind clauseType, JmlParser parser) {
-            parser.warnNotImplemented(parser.pos(), this.name(),
+            parser.warnNotImplemented(parser.pos(), this.keyword(),
                     "JmlParser.term3(), as type modifiers");
             return super.parse(mods, keyword, clauseType, parser);
         }

@@ -9,6 +9,7 @@ import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
 import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -25,7 +26,6 @@ public class StatementExprExtensions extends JmlExtension {
     public static final String assumeID = "assume";
     public static final String commentID = "comment";
     public static final String useID = "use";
-    public static final String hencebyID = "hence_by";
     public static final String loopinvariantID = "loop_invariant";
     public static final String loopdecreasesID = "loop_decreases";
     
@@ -41,7 +41,6 @@ public class StatementExprExtensions extends JmlExtension {
     };
     
     public static final IJmlClauseKind useClause = new StatementExprType(useID);
-    public static final IJmlClauseKind hencebyClause = new StatementExprType(hencebyID);
     public static final IJmlClauseKind loopinvariantClause = new StatementExprType(loopinvariantID);
     public static final IJmlClauseKind loopdecreasesClause = new StatementExprType(loopdecreasesID);
     
@@ -61,10 +60,11 @@ public class StatementExprExtensions extends JmlExtension {
             int pp = parser.pos();
 
             parser.nextToken(); // skip over the keyword
+            var n = parser.parseOptionalName();
 
             JCExpression t = parser.parseExpression();
             if (t instanceof JCTree.JCErroneous) parser.skipToSemi();
-            String nm = clauseType.name();
+            String nm = clauseType.keyword();
             JmlAbstractStatement ste;
             //if (t instanceof JCTree.JCErroneous) t = JmlTreeUtils.instance(context).trueLit;
             if (clauseType == StatementExprExtensions.loopinvariantClause ||
@@ -104,10 +104,11 @@ public class StatementExprExtensions extends JmlExtension {
             attr.jmlenv = attr.jmlenv.pushCopy();
             attr.jmlenv.inPureEnvironment = true;
             attr.jmlenv.currentClauseKind = tree.clauseType;
+            Type expectedType = tree.clauseType == loopdecreasesClause ? JmlTypes.instance(context).BIGINT : isUse ? Type.noType : syms.booleanType; 
             // unreachable statements have a null expression
             if (tree.expression != null) {
-            	var ty = attr.attribExpr(tree.expression,env,isUse ? Type.noType : syms.booleanType);
-            	tree.expression.type = syms.booleanType; // Set to boolean, even if an error has occurred, to avoid cascading error messages
+            	var ty = attr.attribExpr(tree.expression,env,expectedType);
+            	tree.expression.type = ty != syms.errType ? ty : expectedType;
             }
             if (tree.optionalExpression != null) attr.attribExpr(tree.optionalExpression,env,Type.noType);
             attr.jmlenv = attr.jmlenv.pop();

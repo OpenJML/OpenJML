@@ -33,6 +33,7 @@ public class CallableClauseExtension extends JmlExtension {
             
             parser.warnNotImplemented(pp, keyword, "JmlParser");
             parser.nextToken();
+            var n = parser.parseOptionalName();
 
             JmlSingleton refkeyword = parser.parseOptStoreRefKeyword();
             List<JmlMethodSig> sigs = null;
@@ -46,6 +47,7 @@ public class CallableClauseExtension extends JmlExtension {
                 ec = parser.maker().at(pp).JmlMethodClauseCallable(sigs);
             }
             wrapup(ec, clauseType, true, true);
+            ec.name = n;
             return ec;
         }
         

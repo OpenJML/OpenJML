@@ -149,7 +149,7 @@ public class QuantifiedExpressions extends JmlExtension {
                 }
 
                 Type t;
-                switch (this.name()) {
+                switch (this.keyword()) {
                     case qexistsID:
                     case qforallID:
                         t = attr.attribExpr(that.value, localEnv, syms.booleanType);
@@ -184,7 +184,7 @@ public class QuantifiedExpressions extends JmlExtension {
                         break;
 
                     default:
-                        error(that,"jml.unknown.construct", this.name(),"JmlAttr.visitJmlQuantifiedExpr");
+                        error(that,"jml.unknown.construct", this.keyword(),"JmlAttr.visitJmlQuantifiedExpr");
                         break;
                 }
                 resultType = attr.check(that, resultType, KindSelector.VAL, attr.resultInfo);

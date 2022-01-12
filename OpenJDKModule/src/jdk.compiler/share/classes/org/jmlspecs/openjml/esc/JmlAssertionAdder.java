@@ -2997,7 +2997,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									} catch (NoModelMethod e) {
 										// log.error(clause.pos, "jml.message", e.getMessage());
 									} catch (JmlNotImplementedException e) {
-										notImplemented(clause.clauseType.name() + " clause containing ", e,
+										notImplemented(clause.clauseType.keyword() + " clause containing ", e,
 												clause.source());
 									} finally {
 										// log.useSource(prevSource);
@@ -3358,7 +3358,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						} catch (NoModelMethod e) {
 							// FIXME - what to do.
 						} catch (JmlNotImplementedException e) {
-							notImplemented(clause.clauseType.name() + " clause containing ", e, clause.source());
+							notImplemented(clause.clauseType.keyword() + " clause containing ", e, clause.source());
 						}
 					}
 				} finally {
@@ -3425,7 +3425,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					} catch (NoModelMethod e) {
 						// FIXME - what to do.
 					} catch (JmlNotImplementedException e) {
-						notImplemented(clause.clauseType.name() + " clause containing ", e, clause.source());
+						notImplemented(clause.clauseType.keyword() + " clause containing ", e, clause.source());
 					}
 				}
 			}
@@ -5454,8 +5454,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								}
 							}
 
-						} else if (ct == MethodConditionalClauseExtension.workingspaceClause
-								|| ct == MethodConditionalClauseExtension.durationClause) {
+						} else if (ct == MethodResourceClauseExtension.workingspaceClause
+								|| ct == MethodResourceClauseExtension.durationClause) {
 
 							{
 								// FIXME _ implement
@@ -5486,7 +5486,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						log.useSource(orig);
 						// continue - ignore any clause containing a model field that is not represented
 					} catch (JmlNotImplementedException e) {
-						notImplemented(clause.clauseKind.name() + " clause containing ", e, clause.source());
+						notImplemented(clause.clauseKind.keyword() + " clause containing ", e, clause.source());
 						continue;
 					} finally {
 						conditionAssociatedClause = null;
@@ -14797,7 +14797,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				lhs = addImplicitConversion(that.lhs, syms.booleanType, lhs);
 			}
 			JCExpression rhs, t;
-			switch (that.op.name()) {
+			switch (that.op.keyword()) {
 			case impliesID: {// P ==> Q is !P || Q
 				if (translatingJML)
 					addToCondition(that.pos, lhs);
@@ -16275,7 +16275,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			nm = that.label.toString();
 			preconditionDetailClauses.put(nm, log.currentSourceFile());
 		} else {
-			nm = Strings.labelVarString + that.kind.name().substring(1) + "_" + that.label + "_" + (++lblUnique);
+			nm = Strings.labelVarString + that.kind.keyword().substring(1) + "_" + that.label + "_" + (++lblUnique);
 		}
 		JCIdent id = newTemp(that.getLabelPosition(), nm, expr);
 		id.pos = that.pos;
@@ -16421,7 +16421,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that) {
-		JmlMethodClauseStoreRef mc = M.at(that).JmlMethodClauseStoreRef(that.clauseKind.name(), that.clauseKind,
+		JmlMethodClauseStoreRef mc = M.at(that).JmlMethodClauseStoreRef(that.clauseKind.keyword(), that.clauseKind,
 				convertExprList(that.list));
 		mc.setType(that.type);
 		mc.sourcefile = that.sourcefile;
@@ -16755,7 +16755,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		IJmlClauseKind k = that.kind;
 
 		if (k != null)
-			switch (k.name()) {
+			switch (k.keyword()) {
 			case oldID:
 			case preID:
 			case pastID: {
@@ -17091,7 +17091,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 				Name label = normalizeLabel(that.args.size() > 1 ? that.args.get(1) : null, attr.oldLabel, that);
 				if (rac) {
-					throw new JmlNotImplementedException(that, that.kind.name());
+					throw new JmlNotImplementedException(that, that.kind.keyword());
 				} else {
 					result = eresult = makeFreshExpression(that, convertExpr(that.args.get(0)), label);
 				}
@@ -17100,7 +17100,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			case allocID: {
 				Name label = normalizeLabel(that.args.size() > 1 ? that.args.get(1) : null, attr.oldLabel, that);
 				if (rac) {
-					throw new JmlNotImplementedException(that, that.kind.name());
+					throw new JmlNotImplementedException(that, that.kind.keyword());
 				} else {
 					result = eresult = makeAllocExpression(that, convertExpr(that.args.get(0)), label);
 				}
@@ -17154,7 +17154,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			case onlyAssignedID:
 			case onlyCapturedID:
 				// FIXME - not implemented
-				throw new JmlNotImplementedException(that, that.kind.name());
+				throw new JmlNotImplementedException(that, that.kind.keyword());
 
 			case LocsetExtensions.unionID:
 			case LocsetExtensions.subsetID:
@@ -17163,7 +17163,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			case keyID:
 				// Should never get here
-				throw new JmlNotImplementedException(that, that.kind.name());
+				throw new JmlNotImplementedException(that, that.kind.keyword());
 			}
 		else
 			switch (that.token) {
@@ -17563,7 +17563,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							ListBuffer<JCStatement> checkB = pushBlock(); // Start of guarded block
 							try {
 								JCExpression val = convertNoSplit(that.value);
-								switch (that.kind.name()) {
+								switch (that.kind.keyword()) {
 								case qforallID:
 									// if (guard) { val = convert(value); if (!val) { accumulator = false; break
 									// <label>; }}
@@ -17687,7 +17687,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								default:
 									// popBlock(that); // ignore
 									// popBlock(that); // ignore
-									String msg = "Unknown quantified expression operation: " + that.kind.name();
+									String msg = "Unknown quantified expression operation: " + that.kind.keyword();
 									utils.error(that, "jml.internal", msg);
 									throw new JmlNotImplementedException(that, msg);
 								}
@@ -17991,7 +17991,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    inlinedLoop.countIds.add(id);
 				eresult = that;
 			} else {
-				error(that, "jml.misplaced.count", that.kind.name());
+				error(that, "jml.misplaced.count", that.kind.keyword());
 			}
 
 		} else if (k == elseKind) {
@@ -18025,7 +18025,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 
 		} else {
-			Log.instance(context).error(that.pos, "jml.unknown.construct", that.kind.name(),
+			Log.instance(context).error(that.pos, "jml.unknown.construct", that.kind.keyword(),
 					"JmlAssertionAdder.visitJmlSingleton");
 			eresult = treeutils.makeZeroEquivalentLit(that.pos, that.type); // Not sure continuation will be successful
 																			// in any way
@@ -18064,7 +18064,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} catch (NoModelMethod e) {
 				// Ignore - don't add a statement
 			} catch (JmlNotImplementedException e) {
-				notImplemented(that.clauseType.name() + " statement containing ", e);
+				notImplemented(that.clauseType.keyword() + " statement containing ", e);
 				result = null;
 			} finally {
 				translatingJML = saved;
@@ -18144,7 +18144,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} catch (NoModelMethod e) {
 				// Ignore - don't add a statement
 			} catch (JmlNotImplementedException e) {
-				notImplemented(that.clauseType.name() + " statement containing ", e);
+				notImplemented(that.clauseType.keyword() + " statement containing ", e);
 				result = null;
 			} finally {
 				translatingJML = saved;
@@ -18153,7 +18153,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 
 		} else {
-			String msg = "Unknown token in JmlAssertionAdder.visitJmlStatement: " + that.clauseType.name();
+			String msg = "Unknown token in JmlAssertionAdder.visitJmlStatement: " + that.clauseType.keyword();
 			error(that, msg);
 		}
 	}
@@ -18288,7 +18288,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			}
 		} catch (JmlNotImplementedException e) {
-			notImplemented(that.clauseType.name() + " statement containing ", e);
+			notImplemented(that.clauseType.keyword() + " statement containing ", e);
 		} catch (Exception e) {
 			utils.unexpectedException(e, "JmlAssertionAdder:visitJmlStatementExpr: " + that + " " + that.hashCode()
 					+ " " + that.expression.hashCode() + " " + that.expression.type);
@@ -18752,7 +18752,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				} catch (JmlNotImplementedException ee) {
 					// Can't implement this represents clause because
 					// of some non-translatable expression within it
-					notImplemented(that.clauseType.name() + " clause containing ", ee, that.source());
+					notImplemented(that.clauseType.keyword() + " clause containing ", ee, that.source());
 				} finally {
 					msdecl.body.stats = popBlock(msdecl.body, check).stats;
 				}
@@ -19961,7 +19961,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							} catch (NoModelMethod e) {
 								// Just skip this ensures clause
 							} catch (JmlNotImplementedException e) {
-								notImplemented(clause.clauseKind.name() + " clause containing ", e, clause.source());
+								notImplemented(clause.clauseKind.keyword() + " clause containing ", e, clause.source());
 							} finally {
 								currentStatements = savedForAxioms;
 								// localVariables.remove(heapSym);
