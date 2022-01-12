@@ -3406,13 +3406,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {
         for (JCExpression e: tree.list) {
             e.type = attribTree(e, env, new ResultInfo(KindSelector.TYP, syms.throwableType));
-            if (e instanceof JmlSingleton) {
-                IJmlClauseKind k = ((JmlSingleton)e).kind;
-                if (k == notspecifiedKind) {
-                    utils.error(e, "jml.message", "\\not_specified is not allowed in a signals_only clause");
-                }
-                
-            }
         }
         // FIXME - need to compare these to the exceptions in the method declaration
     }

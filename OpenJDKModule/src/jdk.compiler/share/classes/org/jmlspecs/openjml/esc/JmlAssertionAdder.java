@@ -7395,10 +7395,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// FIXME - what class declaration to use here?
 				java.util.List<JCFieldAccess> clist = datagroupContents(fa, (ClassSymbol) base.owner);
 				newlist.addAll(clist);
-			} else if (item instanceof JmlSingleton && ((JmlSingleton) item).kind == notspecifiedKind) {
-				item = M.at(item).JmlSingleton(everythingKind);
-				newlist.add(item);
-
 			} else {
 				newlist.add(item);
 			}
@@ -7751,8 +7747,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								if (c.keyword.kind == nothingKind) {
 									asg = treeutils.falseLit;
 								} else if (c.keyword.kind == everythingKind) {
-									asg = null;
-								} else if (c.keyword.kind == notspecifiedKind) {
 									asg = null;
 								}
 							} else if (sym == null) {
@@ -9397,8 +9391,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 													if (callableClause.keyword.kind == nothingKind) {
 														// callee is callable \nothing - no problem
 													} else if (callableClause.keyword.kind == everythingKind) {
-														checkThatMethodIsCallable(callableClause.keyword, null);
-													} else if (callableClause.keyword.kind == notspecifiedKind) {
 														checkThatMethodIsCallable(callableClause.keyword, null);
 													}
 												} else {
@@ -18014,7 +18006,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            case BSLOCKSET:
 //            case BSSAME:
 
-		} else if (k == notspecifiedKind || k == nothingKind || k == everythingKind) {
+		} else if (k == nothingKind || k == everythingKind) {
 			eresult = that;
 			if (fullTranslation) {
 				JmlSingleton e = M.at(that).JmlSingleton(that.kind);

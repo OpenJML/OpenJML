@@ -78,7 +78,6 @@ public class PP extends QQ {
     //@ ensures \not_assigned(\everything) || \only_accessed(\everything) || \only_captured(\everything) || \only_assigned(\everything);
     //@ ensures \not_assigned(i) || \only_accessed(i) || \only_captured(i) || \only_assigned(i);
     //@ ensures \not_assigned(i,a[1 ..*]) || \only_accessed(i,a[1 ..]) || \only_captured(i,a[*]) || \only_assigned(i,o.*);
-    //@ ensures \not_assigned(\not_specified) || \only_accessed(\not_specified) || \only_captured(\not_specified) || \only_assigned(\not_specified);
     // FIXME @ ensures \only_called(m,mq);
     int mm() { return 3; }
     
@@ -118,20 +117,6 @@ public class PP extends QQ {
     //@ signals_only \nothing;
     void qq2() {}
     
-    //@ requires \not_specified;
-    //@ ensures \not_specified;
-    //@ diverges \not_specified;
-    //@ signals (Exception) \not_specified;
-    // NOT_JML: @ signals_only \not_specified;
-    //@ assignable \not_specified;
-    //@ accessible \not_specified;
-    //@ callable \not_specified;
-    //@ when \not_specified;
-    //@ measured_by \not_specified;
-    //@ duration \not_specified;
-    //@ working_space \not_specified;
-    //@ captures \not_specified;
-    void sp() {}
 
     int i;
     boolean b;

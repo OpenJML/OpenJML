@@ -2,7 +2,6 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.BANG;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.FOR;
-import static org.jmlspecs.openjml.ext.MiscExtensions.notspecifiedID;
 import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
 
 import javax.tools.JavaFileObject;
@@ -94,7 +93,7 @@ public class TypeExprClauseExtension extends JmlExtension {
                     notlist = true;
                     parser.nextToken();
                 }
-                if (parser.tokenIsId(everythingID,notspecifiedID)) {
+                if (parser.tokenIsId(everythingID)) {
                     parser.nextToken();
                     // This is the default, so we just leave sigs null
                     if (notlist) sigs = new ListBuffer<JmlMethodSig>().toList();

@@ -205,7 +205,6 @@ public class positions extends JmlTestCase {
 //        { new Test(true,"public class A { //@ assignable ##ab . *# ;\n void m(){}}", JCFieldAccess.class, 0)},
 //        { new Test(true,"public class A { //@ assignable ##\\nothing#;\n", JmlStoreRefKeyword.class, 0)},
 //        { new Test(true,"public class A { //@ assignable ##\\everything#;\n", JmlStoreRefKeyword.class, 0)},
-//        { new Test(true,"public class A { //@ assignable ##\\not_specified#;\n", JmlStoreRefKeyword.class, 0)},
 //        { new Test(true,"public class A { //@ assignable ##a, ab . *# ;\n void m(){}}", JmlStoreRefListExpression.class, 0)},
     };
     

@@ -21,7 +21,7 @@ public class escnewassignable extends EscBase {
     // o.x o.oo.x, m(o).x o.*, o.oo.*, m(o).* 
     // a[i].x a[i].* a[*].x a[*].* a[i .. j].x a[i ..*].x a[*..j].x a[*..*].x a[i .. j].* a[i ..*].* a[*..j].* a[*..*].*
     // a[i] a[i..j] a[*] a[i..*] a[*..j] a[*..*]
-    // \everything \nothing \not_specified
+    // \everything \nothing 
     
     public escnewassignable(String options, String solver) {
         super(options,solver);

@@ -1219,7 +1219,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             }
         } else if (storeref instanceof JmlStoreRefKeyword) {
             IJmlClauseKind t = ((JmlStoreRefKeyword)storeref).kind;
-            if (t == everythingKind || t == notspecifiedKind) {
+            if (t == everythingKind) {
                 for (VarSymbol vsym: currentMap.keySet()) {
                     // Local variables are not affected by havoc \everything
                     // The owner of a local symbol is a MethodSymbol
@@ -1235,7 +1235,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             }
         } else if (storeref instanceof JmlSingleton sing) {
             IJmlClauseKind t = sing.kind;
-            if (t == everythingKind || t == notspecifiedKind) {
+            if (t == everythingKind) {
                 for (VarSymbol vsym: currentMap.keySet()) {
                     // Local variables are not affected by havoc \everything
                     // The owner of a local symbol is a MethodSymbol
