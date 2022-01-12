@@ -761,7 +761,6 @@ public class escnew extends EscBase {
 
     @Test
     public void testGhostSet() {
-        main.addOptions(JmlOption.KEYS.optionName(), "DEBUG");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -780,14 +779,14 @@ public class escnew extends EscBase {
                 
                 +"  public void m2bad(int i) {\n"
                 +"      //@ ghost int k = 0;"
-                +"      //@ debug k = 1;\n"
+                +"      //@ set k = 1;\n"
                 +"      //@ assert k == 0; \n"
                 +"  }\n"
                 
                 +"  //@ requires i != 0; \n"
                 +"  public void m2good(int i) {\n"
                 +"      //@ ghost int k = 0;"
-                +"      //@ debug k = 1;\n"
+                +"      //@ set k = 1;\n"
                 +"      //@ assert k == 1; \n"
                 +"  }\n"
 
@@ -811,21 +810,20 @@ public class escnew extends EscBase {
     }
     
     @Test
-    public void testGhostSetNoDebug() {
-        // debug is not enabled 
+    public void testGhostSet2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m2good(int i) {\n"
                 +"      //@ ghost int k = 0;"
-                +"      //@ debug k = 1;\n"
+                +"      //@ \n"
                 +"      //@ assert k == 0; \n"
                 +"  }\n"
                 
                 +"  //@ requires i != 0; \n"
                 +"  public void m2bad(int i) {\n"
                 +"      //@ ghost int k = 0;"
-                +"      //@ debug k = 1;\n"
+                +"      //@ \n"
                 +"      //@ assert k == 1; \n"
                 +"  }\n"
                 
