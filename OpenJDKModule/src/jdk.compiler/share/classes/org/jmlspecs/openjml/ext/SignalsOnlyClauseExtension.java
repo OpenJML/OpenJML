@@ -58,9 +58,6 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
                 } else {
                     parser.nextToken();
                 }
-            } else if (parser.jmlTokenClauseKind() == notspecifiedKind) {
-                parser.syntaxError(parser.pos(), null, "jml.message", "\\not_specified is not permitted in a signals_only clause");
-                parser.skipThroughSemi();
             } else if (parser.token().kind == SEMI) {
                 parser.syntaxError(parser.pos(), null, "jml.use.nothing", keyword);
                 parser.nextToken();

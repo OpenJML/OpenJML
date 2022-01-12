@@ -54,7 +54,7 @@ public class SignalsClauseExtension extends JmlExtension {
                 t = parser.to(M.Ident(parser.names.fromString("java")));
                 t = parser.to(M.Select(t, parser.names.fromString("lang")));
                 t = parser.to(M.Select(t, parser.names.fromString("Exception")));
-                e = parser.parsePredicateOrNotSpecified();
+                e = parser.parseExpression();
             } else {
                 parser.nextToken();
                 // Get type
@@ -73,7 +73,7 @@ public class SignalsClauseExtension extends JmlExtension {
                     if (parser.token().kind == SEMI) {
                         e = toP(parser.maker().at(parser.pos()).Literal(TypeTag.BOOLEAN, 1)); // Boolean.TRUE));
                     } else {
-                        e = parser.parsePredicateOrNotSpecified();
+                        e = parser.parseExpression();
                     }
                 }
             }

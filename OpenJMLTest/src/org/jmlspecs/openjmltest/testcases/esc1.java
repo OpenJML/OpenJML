@@ -482,9 +482,9 @@ public class esc1 extends EscBase {
 
                 + "}"
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method m4",15
-                ,"$SPECS/java/util/List.jml:117: warning: Associated declaration",13
+                ,"$SPECS/java/util/List.jml:116: warning: Associated declaration",13
                 ,"$SPECS/java/util/Collection.jml:140: warning: Precondition conjunct is false: containsNull || o != null",33
-                ,"$SPECS/java/util/List.jml:108: warning: Precondition conjunct is false: containsNull || o != null",33
+                ,"$SPECS/java/util/List.jml:107: warning: Precondition conjunct is false: containsNull || o != null",33
 
         );
     }

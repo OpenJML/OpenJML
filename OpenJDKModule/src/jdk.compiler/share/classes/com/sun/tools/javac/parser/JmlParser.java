@@ -1788,27 +1788,9 @@ public class JmlParser extends JavacParser {
         return Log.instance(context).currentSourceFile();
     }
 
-    /** Parses either a \\not_specified token or a JML expression */
-    public JCExpression parsePredicateOrNotSpecified() {
-        if (jmlTokenClauseKind() == notspecifiedKind) {
-            int pos = pos();
-            nextToken();
-            JmlSingleton e = jmlF.at(pos).JmlSingleton(notspecifiedKind);
-            return toP(e);
-        } else {
-            return parseExpression();
-        }
-    }
 
     /**
-     * Parses a method specification clause that takes a
-     * predicate-or-not-specified argument
-     *
-     * @return the parsed JmlMethodClause
-     */
-
-    /**
-     * Parses ("\\nothing"|"\\everything"|"\\not_specified"| <store-ref> [ ","
+     * Parses ("\\nothing"|"\\everything"| <store-ref> [ ","
      * <store-ref> ]* ) ";" <BR>
      * a store-ref is a JCIdent, a JCSelect (potentially with a null field), or
      * a JmlStoreRefArrayRange; there may be more than one use of a
@@ -1865,12 +1847,6 @@ public class JmlParser extends JavacParser {
         if (tokenIsId(everythingID)) {
         	return (JmlSingleton)everythingKind.parse(null, everythingID, everythingKind, this);
 //            var s = to(jmlF.at(p).JmlSingleton(everythingKind));
-//            nextToken();
-//            return s;
-        }
-        if (tokenIsId(notspecifiedID)) {
-        	return (JmlSingleton)notspecifiedKind.parse(null, notspecifiedID, notspecifiedKind, this);
-//            var s = to(jmlF.at(p).JmlSingleton(notspecifiedKind));
 //            nextToken();
 //            return s;
         }

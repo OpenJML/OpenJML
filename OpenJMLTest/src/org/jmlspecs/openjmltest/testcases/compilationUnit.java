@@ -231,28 +231,26 @@ public class compilationUnit extends ParseBase {
     
     @Test
     public void testRequires() {
-        checkCompilationUnit("class A { /*@ requires true; requires \\not_specified; */ void m(int i) {}}",
-                JmlCompilationUnit.class, 0,0,74,
-                JmlClassDecl.class, 0,0,74,
+        checkCompilationUnit("class A { /*@ requires true; */ void m(int i) {}}",
+                JmlCompilationUnit.class, 0,0,49,
+                JmlClassDecl.class, 0,0,49,
                 JmlModifiers.class, -1,-1,-1,
-                JmlMethodDecl.class, 57,62,73,
+                JmlMethodDecl.class, 32,37,48,
 
-                JmlMethodSpecs.class, 14,14,53,
-                JmlSpecificationCase.class, 14,14,53,
+                JmlMethodSpecs.class, 14,14,28,
+                JmlSpecificationCase.class, 14,14,28,
                 JmlModifiers.class, -1,-1,-1,
                 JmlMethodClauseExpr.class, 14,14,28,
                 JCLiteral.class, 23,23,27,
-                JmlMethodClauseExpr.class, 29,29,53,
-                JmlSingleton.class, 38,38,52,
                 
                 JmlModifiers.class, -1,-1,-1,
-                JCPrimitiveTypeTree.class, 57,57,61,
+                JCPrimitiveTypeTree.class, 32,32,36,
                 // The method name is not an AST
-                JmlVariableDecl.class, 64,68,69,
+                JmlVariableDecl.class, 39,43,44,
                 JmlModifiers.class, -1,-1,-1,
-                JCPrimitiveTypeTree.class, 64,64,67,
+                JCPrimitiveTypeTree.class, 39,39,42,
                 // The parameter name is a Name, not an AST
-                JmlBlock.class, 71,71,73
+                JmlBlock.class, 46,46,48
                 );
         
         checkMessages();
@@ -260,24 +258,22 @@ public class compilationUnit extends ParseBase {
     
     @Test
     public void testEnsures() {
-        checkCompilationUnit("class A { /*@ ensures  true; ensures  \\not_specified; */ void m() {}}",
-                JmlCompilationUnit.class, 0,0,69,
-                JmlClassDecl.class, 0,0,69,
+        checkCompilationUnit("class A { /*@ ensures true; */ void m() {}}",
+                JmlCompilationUnit.class, 0,0,43,
+                JmlClassDecl.class, 0,0,43,
                 JmlModifiers.class, -1,-1,-1,
-                JmlMethodDecl.class, 57,62,68,
+                JmlMethodDecl.class, 31,36,42,
 
-                JmlMethodSpecs.class, 14,14,53,
-                JmlSpecificationCase.class, 14,14,53,
+                JmlMethodSpecs.class, 14,14,27,
+                JmlSpecificationCase.class, 14,14,27,
                 JmlModifiers.class, -1,-1,-1,
-                JmlMethodClauseExpr.class, 14,14,28,
-                JCLiteral.class, 23,23,27,
-                JmlMethodClauseExpr.class, 29,29,53,
-                JmlSingleton.class, 38,38,52,
+                JmlMethodClauseExpr.class, 14,14,27,
+                JCLiteral.class, 22,22,26,
                 
                 JmlModifiers.class, -1,-1,-1,
-                JCPrimitiveTypeTree.class, 57,57,61,
+                JCPrimitiveTypeTree.class, 31,31,35,
                 // The method name is a Name, not an AST
-                JmlBlock.class, 66,66,68
+                JmlBlock.class, 40,40,42
                 );
         
         checkMessages();

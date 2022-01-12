@@ -41,16 +41,6 @@ public class MiscExtensions extends JmlExtension {
         }
     };
 
-    public static final String notspecifiedID = "\\not_specified";
-    public static final IJmlClauseKind notspecifiedKind = new IJmlClauseKind.SingletonKind(notspecifiedID) {
-        // \not_specified can be used in place of an expression, so it needs to return a type. We use an error type
-        // so that no error messages are propagated
-        @Override
-        public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            return attr.syms.errType;
-        }
-    };
-    
     public static final String constructorID = "constructor";
     public static final IJmlClauseKind constructorKind = new NoTypeMisc(constructorID);
     

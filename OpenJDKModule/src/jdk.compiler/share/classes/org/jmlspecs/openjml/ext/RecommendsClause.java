@@ -38,7 +38,7 @@ public class RecommendsClause extends JmlExtension {
             
             int pp = parser.pos();
             parser.nextToken();
-            JCExpression e = parser.parsePredicateOrNotSpecified();
+            JCExpression e = parser.parseExpression();
             JCExpression ex = null;
             if (scanner.token().kind == ELSE) {
                 parser.nextToken();
