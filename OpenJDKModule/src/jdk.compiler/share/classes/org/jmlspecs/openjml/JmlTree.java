@@ -2396,7 +2396,7 @@ public class JmlTree {
     }
     
     
-    /** This class represents a forall or old method specification clause.*/
+    /** This class represents a old method specification clause.*/
     public static class JmlMethodClauseDecl extends JmlMethodClause {
 
         public List<JCTree.JCVariableDecl> decls;

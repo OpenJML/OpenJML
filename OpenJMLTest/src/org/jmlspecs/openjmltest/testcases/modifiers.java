@@ -1094,23 +1094,7 @@ public class modifiers extends TCBase {
                 ,"/A.java:4: error: This JML modifier is not allowed for a set comprehension expression",38
                 );
     }
-     
-    @Test public void testForall() {
-        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ A(int i) {} \n" +
-                "  //@ forall nullable Object o1; \n" +
-                "  //@ forall non_null Object o2; \n" +
-                "  //@ forall readonly Object o3; \n" +
-                "  //@ forall @Nullable Object o4; \n" +
-                "  //@ forall @Pure Object o6; \n" +
-                "  //@ forall pure Object o7; \n" +
-                "  //@ forall final Object o5; \n" +
-                "  void m() {} }"
-                ,"/A.java:6: error: This JML modifier is not allowed for a method specification declaration",14
-                ,"/A.java:7: error: This JML modifier is not allowed for a method specification declaration",14
-                ,"/A.java:8: error: No Java modifiers are allowed in a method specification declaration",14
-                );
-    }
-     
+          
     @Test public void testOld() {
         helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ A(int i) {} \n" +
                 "  //@ old nullable Object o1 = null; \n" +

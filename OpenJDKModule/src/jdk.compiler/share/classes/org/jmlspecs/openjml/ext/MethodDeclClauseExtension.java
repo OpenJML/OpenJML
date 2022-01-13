@@ -21,13 +21,8 @@ import com.sun.tools.javac.util.ListBuffer;
 public class MethodDeclClauseExtension extends JmlExtension  {
 
     public static final String oldID = "old";
-    public static final String forallID = "forall";
     
     public static final IJmlClauseKind oldClause = new MethodClauseDeclType(oldID) {
-        public boolean isPreconditionClause() { return true; }
-    };
-    
-    public static final IJmlClauseKind forallClause = new MethodClauseDeclType(forallID) {
         public boolean isPreconditionClause() { return true; }
     };
     

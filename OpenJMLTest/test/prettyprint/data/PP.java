@@ -135,8 +135,7 @@ public class PP extends QQ {
     @          diverges true;
     @      |}
     @  also protected exceptional_behavior
-    @       forall Object o;
-    @       old int j = k+1;
+    @      old int j = k+1;
     @      requires false;
     @      signals (Exception) true;
     @  also code behavior
@@ -269,7 +268,7 @@ public class PP extends QQ {
    // FIXME - breaks and continues model program statements all allowed to have labels.
    // FIXME - pretty printing assert and assume in model programs
 
-   // TODO: forall and old in method specs
+   // TODO: old in method specs
    
    // TODO: need to test all kinds of statements, including JML statements
    //       labelled, synchronized, throw, local decl, local class,

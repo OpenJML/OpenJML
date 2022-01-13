@@ -1214,9 +1214,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					checkAccessEnabled = pv;
 				}
 			}
-			// mapSymbols contains at least the old and forall symbols declared in
+			// mapSymbols contains at least the old symbols declared in
 			// specification preconditions. If a spec is used in the method body,
-			// (called recursively), old and forall symbols will get a new mapping.
+			// (called recursively), old symbols will get a new mapping.
 			// So we save the current state and restore it before we translate the
 			// postconditions.
 			Map<Symbol, Symbol> savedMapSymbols = pushMapSymbols();
@@ -4571,9 +4571,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						JmlSource divergesPosition = scase;
 						for (JmlMethodClause clause : scase.clauses) {
 							IJmlClauseKind ct = clause.clauseKind;
-							if (ct == MethodDeclClauseExtension.oldClause
-									|| ct == MethodDeclClauseExtension.forallClause) {
-								// NOTE: The name of the variable in the old/forall clause is not changed or
+							if (ct == MethodDeclClauseExtension.oldClause) {
+								// NOTE: The name of the variable in the old clause is not changed or
 								// unique-ified.
 								// If the same name is used if different behaviors, as in this test, the names
 								// will be the same,
@@ -8959,10 +8958,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							int preconditionDetailLocal3 = 0;
 							for (JmlMethodClause clause : cs.clauses) {
 								IJmlClauseKind ct = clause.clauseKind;
-								if (ct == MethodDeclClauseExtension.oldClause
-										|| ct == MethodDeclClauseExtension.forallClause) {
-									if (clauseIds.containsKey(clause))
-										continue; // Don't repeat
+								if (ct == MethodDeclClauseExtension.oldClause) {
+									if (clauseIds.containsKey(clause)) continue; // Don't repeat
 									clauseIds.put(clause, null);
 									for (JCVariableDecl decl : ((JmlMethodClauseDecl) clause).decls) {
 										addTraceableComment(decl, clause.toString());
@@ -19862,10 +19859,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 																									// exception
 									pre = treeutils.makeAndSimp(pre.pos, pre, e);
 								}
-								if (clause.clauseKind == MethodDeclClauseExtension.oldClause
-										|| clause.clauseKind == MethodDeclClauseExtension.forallClause) {
+								if (clause.clauseKind == MethodDeclClauseExtension.oldClause) {
 									notImplemented(clause,
-											"method axioms with old or forall clauses: method " + msym.toString(),
+											"method axioms with old clauses: method " + msym.toString(),
 											clause.source());
 								}
 							} catch (JmlNotImplementedException e) {
