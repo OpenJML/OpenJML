@@ -1253,7 +1253,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // state 2 - start of spec group
         stateTable.put(requiresClauseKind, new int[]{0,-1,-1});
         stateTable.put(oldClause, new int[]{0,-1,-1});
-        stateTable.put(forallClause, new int[]{0,-1,-1});
         stateTable.put(assignableClauseKind, new int[]{1,1,1});
         stateTable.put(ensuresClauseKind, new int[]{1,1,1});
         stateTable.put(signalsClauseKind, new int[]{1,1,1});
@@ -2346,7 +2345,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    }
     
     protected void adjustVarDef(JCVariableDecl tree, Env<AttrContext> localEnv) {
-        if (!forallOldEnv) return;
+        if (!specLocalEnv) return;
         // Undo the super class
         if ((tree.mods.flags & STATIC) != 0 ||
                 (env.enclClass.sym.flags() & INTERFACE) != 0)
@@ -3231,9 +3230,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
-    boolean forallOldEnv = false;
+    boolean specLocalEnv = false;
     
-    /** Attributes forall and old clauses within the specs of a method */
+    /** Attributes old clauses within the specs of a method */
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree) {
         IJmlClauseKind t = tree.clauseKind;
         for (JCTree.JCVariableDecl decl: tree.decls) {
@@ -3248,7 +3247,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 allAllowed(mods.annotations, allowedMethodSpecDeclModifiers, "method specification declaration");
                 if (utils.hasOnly(mods,flags) != 0) log.error(mods.pos,"jml.no.java.mods.allowed","method specification declaration");
                 mods.flags |= flags;
-                forallOldEnv = JmlCheck.instance(context).staticOldEnv;
+                specLocalEnv = JmlCheck.instance(context).staticOldEnv;
                 JmlCheck.instance(context).staticOldEnv = statik;
                 var savedInJmlDeclaration = this.isInJmlDeclaration;
                 this.isInJmlDeclaration = true;
@@ -3263,25 +3262,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 } finally {
                 	this.attribJmlDecls = savedDoJML;
                     this.isInJmlDeclaration = savedInJmlDeclaration;
-                    JmlCheck.instance(context).staticOldEnv = forallOldEnv;
-                    forallOldEnv = false;
+                    JmlCheck.instance(context).staticOldEnv = specLocalEnv;
+                    specLocalEnv = false;
                     if (env.enclMethod.sym.isStatic()) {
                         ((JmlVariableDecl)decl).mods.flags &= ~Flags.STATIC; 
                     }
                 }
                 JCTree.JCExpression init = ((JmlVariableDecl)decl).init;
-                if (t == forallClause) {
-                    if (init != null) utils.error(init,"jml.forall.no.init");
-                } else {
-                    if (init == null) utils.error(((JmlVariableDecl)decl).pos,"jml.old.must.have.init");
-                }
+                if (init == null) utils.error(((JmlVariableDecl)decl).pos,"jml.old.must.have.init");
             } else {
                 utils.error(decl.pos(),"jml.internal.notsobad","Unexpected " + decl.getClass() + " object type in a JmlMethodClauseDecl list");
             }
         }
     }
     
-    // FIXME - test the name lookup with forall and old clauses
+    // FIXME - test the name lookup with old clauses
     
     public Env<AttrContext> savedMethodClauseOutputEnv = null;
 
@@ -3529,9 +3524,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             // Making this sort of local environment restricts the scope of new
             // declarations but does not allow a declaration to hide earlier
-            // declarations.  Thus old and forall declarations may rename
+            // declarations.  Thus old declarations may rename
             // class fields, but may not rename method parameters or earlier old
-            // or forall declarations.
+            // declarations.
             if (env.tree instanceof JmlStatementSpec) {
             	// specification for a statement spec (e.g. in a method body)
             	//System.out.println("SPECCASE-S " + (enclosingMethodEnv!=null));

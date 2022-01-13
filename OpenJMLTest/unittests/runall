@@ -27,7 +27,7 @@ alias wt="while [ \$(lsc) -gt 5 ]; do sleep 30; done"
 wt
 ./run-summary log-binaries 	"5/1"	binaries  &
 ./run-summary log-bugs     	"23/0"	bugs  &
-./run-summary log-esc1     	"91/0"  esc1  &
+./run-summary log-esc1     	"93/0"  esc1  &
 wt
 ./run-summary log-esc2     	"109/0" esc2  &
 #./run-summary log-escarith+ 	"56/17" escArithmeticModes escArithmeticModes2  &
@@ -55,13 +55,13 @@ wt
 ./run-summary log-inter+       	"140/0"	internalSpecs jmltypes lblexpression methodspecs modelghost namelookup positions prettyprinting purity  &
 wt
 ./run-summary log-matchClass	"49/3"  matchClasses  &
-./run-summary log-modifiers    	"192/0" modifiers  &
+./run-summary log-modifiers    	"191/0" modifiers  &
 ./run-summary log-redundant+   	"104/2"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
 ./run-summary log-scanner      	"90/1"	scanner  &
 wt
 ./run-summary log-typecheck	"207/0"	typechecking &
 ./run-summary log-typeclause	"123/0"	typeclauses  &
-./run-summary log-SpecsBase    	"283/28"	SpecsBase  &
+./run-summary log-SpecsBase    	"282/29"	SpecsBase  &
 ./run-summary log-SpecsEsc     	"3/0"	SpecsEsc  &
 
 
