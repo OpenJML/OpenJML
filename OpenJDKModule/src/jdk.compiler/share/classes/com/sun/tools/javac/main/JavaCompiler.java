@@ -634,7 +634,7 @@ public class JavaCompiler {
                 keepComments = true;
                 genEndPos = true;
             }
-            if (org.jmlspecs.openjml.Utils.isJML() && System.getenv("SCANNER") != null)System.out.println("PARSING " + filename);
+            if (org.jmlspecs.openjml.Utils.isJML() && System.getenv("SCANNER") != null) System.out.println("PARSING " + filename);
             Parser parser = parserFactory.newParser(content, keepComments(), genEndPos,
                                 lineDebugInfo, filename.isNameCompatible("module-info", Kind.SOURCE));
             tree = parser.parseCompilationUnit();

@@ -711,14 +711,18 @@ public class JmlSpecs {
      * @return The file found, or null if none found
      */
     //@ nullable
-    public JavaFileObject findSpecFile(ClassSymbol classSym) {
-        String s = classSym.toString().replace('.','/');
+    public JavaFileObject findSpecFile(String classSym) {
+        String s = classSym.replace('.','/');
         String suffix = Strings.specsSuffix; 
         for (Dir dir: getSpecsPath()) {
         	JavaFileObject j = dir.findFile(s + suffix);
         	if (j != null) return j;
         }
         return null;
+    }
+    
+    public JavaFileObject findSpecFile(ClassSymbol classSym) {
+        return findSpecFile(classSym.toString());
     }
     
     /** Finds the first specification file (if any) for the given class.  It

@@ -689,7 +689,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         JmlOperators.preRegister(context);
         JmlSpecs.preRegister(context); // registering the specifications repository
         JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlParsers
-        JmlScanner.JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlScanners
+        JmlScanner.JmlScannerFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlScanners
         JmlTree.Maker.preRegister(context); // registering a JML-aware factory for generating JmlTree nodes
         JmlCompiler.preRegister(context);
         JmlEnter.preRegister(context);
