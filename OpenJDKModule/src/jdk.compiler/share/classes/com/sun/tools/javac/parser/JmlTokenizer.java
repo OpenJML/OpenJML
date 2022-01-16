@@ -97,9 +97,11 @@ public class JmlTokenizer extends JavadocTokenizer {
      * @param inputLength The number of characters to scan
      */
     //@ requires inputLength <= input.length;
-    protected JmlTokenizer(JmlScanner.JmlFactory fac, char[] input, int inputLength) {
+    protected JmlTokenizer(JmlScanner.JmlScannerFactory fac, char[] input, int inputLength, boolean noJML) {
         super(fac, input, inputLength);
         context = fac.context;
+        this.noJML = noJML;
+        //System.out.println("TOKENIZER noJML=" + noJML);
     }
     
     /**
@@ -109,9 +111,11 @@ public class JmlTokenizer extends JavadocTokenizer {
      * @param buffer The character buffer to scan
      */
     // @ requires fac != null && buffer != null;
-    protected JmlTokenizer(JmlScanner.JmlFactory fac, CharBuffer buffer) {
+    public JmlTokenizer(JmlScanner.JmlScannerFactory fac, CharBuffer buffer, boolean noJML) {
         super(fac, buffer);
         context = fac.context;
+        this.noJML = noJML;
+        //System.out.println("TOKENIZER noJML=" + noJML);
     }
     
     /** True if the tokenizer is in a JML comment, false otherwise */

@@ -10,11 +10,13 @@ test/datatype : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<
 test/datatype : Expected exit code 0 but got 1
 test/enums1 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### quantifier problem over non-functions?
 test/esc2DTranspose : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### ?????
+test/escAssigns2 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< just position
 test/escConsInfeasible Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< infeasibility
 test/escDouble : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
 test/escDouble2 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
 test/escDouble2 : Expected exit code 0 but got 1
 test/escDouble3 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
+test/escEnum
 test/escFPcompose : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<###
 test/escRawdingA : Killed                                                                                  ???
 test/escRawdingB : (Skipped) Actual output differs from expected expected1 expected2 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< feasibilty problem
@@ -38,41 +40,29 @@ test/sfbug420X : Actual output differs from expected expected-compile expected-r
 test/sfbug420e
 test/sfbug420eOK : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< problem with inherited spec translation *******************
 test/streams : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### ?????
+test/textBlock4
 test/valuestrings : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< inequality of equal-length strings
 test/verifythis-2019-1 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ???
 
-
-escEnum
-access+ -- assignable
-esc1
-
-
-escAssigns2 -- position
-factorial
-implicitIteration
-misplaced
-options
-sfbug402b
-sfbug420a,b,c,d,f
-textBlock4
+factorial -- sometimes timesout
 
 
 QueryPure.java       - 10/32 TODO
 QuerySecret.java     - 21/34 TODO
 SFBugs.java
-SpecsBase.java       - 283/5 <<<<<<<<<<<<<<<<<<<< Quite a few things to fix - nested classes, Observable...
+SpecsBase.java       - 282/29 <<<<<<<<<<<<<<<<<<<< Quite a few things to fix - nested classes, Observable...
 SpecsEsc.java        - 3/0
 SpecsRac.java
 access.java          - 28/0 #
 api.java
 arith.java           - 1/0  #
-assignable.java      - 43/0 # [2 parse error corrections to make - access+ ] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+assignable.java      - 43/0 #
 binaries.java        - 5/1    [model class in library class]
 bugs.java            - 23/0  #
 compilationUnit.java - 15/0  #
-compiler.java.       - 60/4   (access+: 2-ignore Java specs)   2-parse nested model classes <<<<<<<
+compiler.java.       - 62/2   (access+:  2-parse nested model classes <<<<<<<
 deprecation.java.    - 4/0   #
-esc1.java            - 89/2    [ 2 foreach/values problems] 
+esc1.java            - 91/2    [ 2 foreach/values problems] 
 esc2.java            - 109/0 #  [ sometimes testEnumStaticInitializer2 feasibility fails ]
 escArithmeticModes.java    - 29/5 TODO (JUnit Assumption)
 escArithmeticModes2.java   - 27/12 TODO (JUnit assumption; mod arithmetic)
@@ -117,12 +107,12 @@ escwebexamples.java   -          TODO tests need work
 expressions.java      - 48/0 #
 flow.java             - 9/0  #
 generics.java         - 13/2 (type parameter lookup) [generics.testBinaryGeneric3c,generics.testSimpleGeneric]  ************
-harnesstests.java     - 0/5  [not yet implemented]
+harnesstests.java     - 5/0 #
 internalSpecs.java    - 1/0 #
 jmldoc.java           -          TODO all ignored
 jmltypes.java         - 9/0 #
 lblexpression.java    - 5/0 #
-matchClasses.java     - 49/3 [ignoring specs in Java]
+matchClasses.java     - 52/0 #
 methodspecs.java      - 23/0 #
 modelghost.java       - 36/0 #
 modifiers.java        - 192/0 #
@@ -136,8 +126,8 @@ racArithmeticModes.java- 36/0 #
 racJML.java           - 10/0 #
 racdemoexamples.javaa - 1/0  #
 racfeatures.java      - 3/0  #
-racfiles.java         - 24/42  ?????
-racnew.java           - 129/14 -- model methods, not implemented, invariant trace 
+racfiles.java         - 26/41  ?????
+racnew.java           - 127/14 -- model methods, not implemented, invariant trace 
 racnew2.java          - 75/0 #
 racnew3.java          - 21/0 #
 racnewLoops.java      - 20/0 #
@@ -146,7 +136,7 @@ racnonpublic.java             TODO
 racreadable.java      - 0/2 ??????
 racsystem.java        - 9/0  #
 redundant.java         - 10/0 #
-scanner.java           - 80/3 [unicode, embedded comment]
+scanner.java           - 90/1 [unicode, embedded comment]
 statements.java        - 44/0 #
 strict.java            - 15/1 [strict storeref -- in redundant+ ]
 strongarm.java
