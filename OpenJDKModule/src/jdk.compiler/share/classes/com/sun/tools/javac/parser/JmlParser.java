@@ -615,8 +615,23 @@ public class JmlParser extends JavacParser {
     			|| kind == loopdecreasesClause;
     }
 
-
-    /** Overridden to parse JML statements as statements in a block.
+    public JCBlock block(int pos, long flags) {
+    	var saved = S.jmltokenizer.noJML;
+    	S.jmltokenizer.noJML = false;
+    	
+    	// The body of super.block(pos,flags) is replicated here (potential maintenance problem) because we need to reset noJML
+    	// before we accept RBRACE, in case there is a JML annotation immediately following the RBRACE.
+    	// Even so, there could be a problem if any lookahead tokens are already scanned.
+//    		return super.block(pos,flags);
+        accept(LBRACE);
+        JCBlock t = betweenBraces(pos,flags);
+    	if (saved && !S.savedTokens.isEmpty()) utils.warning(token.pos, "jml.message", "Lookahead present when noJML is reset");
+    	S.jmltokenizer.noJML = saved;
+        accept(RBRACE);
+        return toP(t);
+    }
+    
+     /** Overridden to parse JML statements as statements in a block.
         The parent method returns a list rather than a statement:
         Usually the list contains just one statement.
         If there is an ending construct detected (like a right brace) or an error, the list might be empty.

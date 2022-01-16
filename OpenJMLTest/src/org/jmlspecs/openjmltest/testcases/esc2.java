@@ -4417,9 +4417,9 @@ public class esc2 extends EscBase {
                         + "      //@ assert (\\lbl I i) + \\lbl(J,j) == 0; \n" 
                         + "  }\n" 
                         + "}"
-                        ,"/tt/TestJava.java:4: warning: Label I has value 0",24
-                        ,"/tt/TestJava.java:4: warning: Label J has value ( - 1 )",36
-                        ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m0",11
+                        ,"/tt/TestJava.java:5: warning: Label I has value 0",24
+                        ,"/tt/TestJava.java:5: warning: Label J has value ( - 1 )",36
+                        ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m0",11
                 );
     }
 

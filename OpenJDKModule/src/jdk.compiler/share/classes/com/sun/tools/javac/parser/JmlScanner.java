@@ -65,7 +65,7 @@ public class JmlScanner extends Scanner {
      * have a consistent set of information across all files parsed within a
      * compilation task.
      */
-    public static class JmlFactory extends ScannerFactory {
+    public static class JmlScannerFactory extends ScannerFactory {
 
         /** The unique compilation context with which this factory was created */
         public Context                 context;
@@ -76,7 +76,7 @@ public class JmlScanner extends Scanner {
          *
          * @param context The common context used for this whole compilation
          */
-        protected JmlFactory(Context context) {
+        public JmlScannerFactory(Context context) {
             super(context);
             this.context = context;
         }
@@ -92,7 +92,7 @@ public class JmlScanner extends Scanner {
         	context.put(scannerFactoryKey,
         			new Context.Factory<ScannerFactory>() {
         		public ScannerFactory make(Context context) {
-        			return new JmlScanner.JmlFactory(context);
+        			return new JmlScanner.JmlScannerFactory(context);
         		}
         	});
         }
@@ -173,8 +173,8 @@ public class JmlScanner extends Scanner {
      */
     // @ requires fac != null && input != null;
     // @ requires inputLength <= input.length;
-    protected JmlScanner(JmlFactory fac, char[] input, int inputLength) {
-        super(fac, new JmlTokenizer(fac, input, inputLength));
+    protected JmlScanner(JmlScannerFactory fac, char[] input, int inputLength) {
+        super(fac, new JmlTokenizer(fac, input, inputLength, com.sun.tools.javac.main.JmlCompiler.instance(fac.context).noJML));
         context = fac.context;
         jmltokenizer = (JmlTokenizer)super.tokenizer;
     }
@@ -187,8 +187,8 @@ public class JmlScanner extends Scanner {
      * @param buffer The character buffer to scan
      */
     // @ requires fac != null && buffer != null;
-    protected JmlScanner(JmlFactory fac, CharBuffer buffer) {
-        super(fac, new JmlTokenizer(fac, buffer));
+    protected JmlScanner(JmlScannerFactory fac, CharBuffer buffer) {
+        super(fac, new JmlTokenizer(fac, buffer, com.sun.tools.javac.main.JmlCompiler.instance(fac.context).noJML));
         context = fac.context;
         jmltokenizer = (JmlTokenizer)super.tokenizer;
     }

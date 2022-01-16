@@ -2538,6 +2538,12 @@ public class JavacParser implements Parser {
      */
     JCBlock block(int pos, long flags) {
         accept(LBRACE);
+        JCBlock t = betweenBraces(pos,flags);
+        accept(RBRACE);
+        return toP(t);
+    }
+    
+    public JCBlock betweenBraces(int pos, long flags) {
         List<JCStatement> stats = blockStatements();
         JCBlock t = F.at(pos).Block(flags, stats);
         while (token.kind == CASE || token.kind == DEFAULT) {
@@ -2547,8 +2553,7 @@ public class JavacParser implements Parser {
         // the Block node has a field "endpos" for first char of last token, which is
         // usually but not necessarily the last char of the last token.
         t.endpos = token.pos;
-        accept(RBRACE);
-        return toP(t);
+        return t;
     }
 
     public JCBlock block() {
