@@ -50,6 +50,7 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.Attr;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.CompileStates;
+import com.sun.tools.javac.comp.CompileStates.CompileState;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
@@ -59,7 +60,7 @@ import com.sun.tools.javac.comp.Resolve;
 import com.sun.tools.javac.comp.Todo;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.JavaCompiler;
-import com.sun.tools.javac.comp.CompileStates.CompileState;
+import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
@@ -70,6 +71,8 @@ import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Pair;
 import com.sun.tools.javac.util.PropagatedException;
+
+import static com.sun.tools.javac.parser.Tokens.*;
 
 /**
  * This class extends the JavaCompiler class in order to find and parse
@@ -130,6 +133,75 @@ public class JmlCompiler extends JavaCompiler {
     	return list;
     }
     
+    // This bit of complexity/hackery is due to the following problem. JML states that if there is a .jml file, all the specs in
+    // the .jml file supersede anything in the .java file. So, in that case, any JML annotations in the .java file are ignored;
+    // in fact they are not even required to be parsable. So we need to know whether there is a .jml file to know how to parse
+    // the .java file (since we want to do that in one pass -- not just collect all the JML comments and then parse them later if
+    // they are needed). However, to find the .jml file we need to know what package it is in, and for that we need to find and
+    // interpret the package declaration in the .java file. So we do just enough reading of the .java source (without processing
+    // any JML) to find the package, look for a corresponding .jml file. If there is one, we parse the .java without JML annotations.
+    // If there is no .jml file, we parse the .java with the annotations as the specs.
+    boolean checkForSpecsFile(JavaFileObject filename, CharSequence charSeq) {
+        boolean specFileExists = false;;
+        var charBuf = charSeq instanceof java.nio.CharBuffer cb ? cb : java.nio.CharBuffer.wrap(charSeq);
+    	JmlScanner.JmlScannerFactory fac = (JmlScanner.JmlScannerFactory)JmlScanner.JmlScannerFactory.instance(context);
+        var tokenizer = new com.sun.tools.javac.parser.JmlTokenizer(fac, charBuf, true);
+        Token t;
+    	String name = "";
+        outer:{
+        	while ((t=tokenizer.readToken()) != null) {
+        		if (t.kind == TokenKind.PACKAGE) break ;
+        		if (t.kind == TokenKind.IMPORT) break outer;
+        		if (t.kind == TokenKind.CLASS) break outer;
+        		if (t.kind == TokenKind.LBRACE) break outer;
+        		if (t.kind == TokenKind.EOF) break outer;
+        	}
+    		t = tokenizer.readToken();
+    		if (t.kind != TokenKind.IDENTIFIER) return false; // FIXME - actually an error
+    		name += t.name();
+    		t = tokenizer.readToken();
+        	while (t.kind != TokenKind.SEMI) {
+        		if (t.kind != TokenKind.DOT) return false; // FIXME - actually an error
+        		name += ".";
+        		t = tokenizer.readToken();
+        		if (t.kind != TokenKind.IDENTIFIER) return false; // FIXME - actually an error
+        		name += t.name();
+        		t = tokenizer.readToken();
+        	}
+        	name += ".";
+        }
+    	String s = filename.toUri().getPath();
+    	int k = s.lastIndexOf('/');
+    	s = s.substring(k+1);
+    	k = s.indexOf('.');
+    	s = s.substring(0,k);
+    	name += s;
+    	//System.out.println("SEEKING " + name);
+    	return JmlSpecs.instance(context).findSpecFile(name) != null;
+    }
+    
+    public JCTree.JCCompilationUnit parse(JavaFileObject filename) {
+        JavaFileObject prev = log.useSource(filename);
+        
+        var charSeq = readSource(filename);
+        try {
+        	//System.out.println("CHECKING FOR SPECS FILE FOR " + filename);
+        	if (filename.toUri().getPath().endsWith(".java")) noJML = checkForSpecsFile(filename, charSeq); // Using this field to pass a parameter to the scanner factory is a hack and precludes parallel parsing within a context
+        	//System.out.println("RESULT " + noJML);
+            {
+            	// This block of code is inlined from super.parse(filename) in order to avoid rereading the source file
+                JCTree.JCCompilationUnit t = parse(filename, charSeq);
+                if (t.endPositions != null)
+                    log.setEndPosTable(filename, t.endPositions);
+                return t;
+            }
+        } finally {
+            noJML = false;
+            log.useSource(prev);
+        }
+    }
+    
+    public boolean noJML = false;
     
     /** Parses the specs for a class - used when we need the specs corresponding to a binary file;
      * this may only be called for public top-level classes (the specs for non-public or
@@ -139,7 +211,7 @@ public class JmlCompiler extends JavaCompiler {
      * @return the possibly null parsed compilation unit, as an AST
      */
     /*@Nullable*/
-    public JmlCompilationUnit parseSpecs(Symbol.ClassSymbol typeSymbol) {
+    public JmlCompilationUnit parseSpecs(ClassSymbol typeSymbol) {
         JavaFileObject f = JmlSpecs.instance(context).findSpecFile(typeSymbol);
         if (utils.verbose()) utils.note("Found spec " + typeSymbol + " " + f);
         if (f == null) return null;
@@ -165,7 +237,6 @@ public class JmlCompiler extends JavaCompiler {
         return speccu;
     }
         
-    
     /** Overridden in order to put out some progress information about stopping */
     @Override
     public  <T> List<T> stopIfError(CompileState cs, List<T> list) {
