@@ -2080,7 +2080,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				return null;
 		}
 		String assertID = Strings.assertPrefix + (++assertCount);
-		//if (assertCount == 48 || assertCount == 52) Utils.dumpStack("Assertion " + assertID);
+		//if (assertCount == 78 || assertCount == 77) Utils.dumpStack("Assertion " + assertID);
 		Name assertname = names.fromString(assertID);
 		JavaFileObject dsource = log.currentSourceFile();
 		JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType, assertname,
@@ -7489,7 +7489,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						t.setType(baseClassSym.type);
 						sr = M.at(e.pos).JmlStoreRef(false, null, null, t, null, v, e);
 					}
-					list.addAll(collectModelFieldContents(baseClassSym, sr.receiver, v)); // Does not include itself
+					list.addAll(collectModelFieldContents(sr,baseClassSym, sr.receiver, v)); // Does not include itself
 					//System.out.println("MJSR-A " + e + " : " + list);
 				} else { // Local variable or 'this'
 					sr = M.at(e.pos).JmlStoreRef(false, id.sym, null, null, null, null, e);
@@ -7531,7 +7531,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					sr = M.at(e.pos).JmlStoreRef(false, null, null, fa.selected, null, null, e);
 				}
 				//list.add(sr);
-				list.addAll(collectModelFieldContents((ClassSymbol)(isStatic ? sym : fa.selected.type.tsym), sr.receiver, null));
+				list.addAll(collectModelFieldContents(fa,(ClassSymbol)(isStatic ? sym : fa.selected.type.tsym), sr.receiver, null));
 				//System.out.println("MJSR-B " + e + " : " + list);
 
 			} else if (e.type == locsetType) {
@@ -7544,7 +7544,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					boolean isStatic = utils.isJMLStatic(v);
 					sr = M.at(e.pos).JmlStoreRef(false, null, null, isStatic ? null : fa.selected, null, v, e);
 					list.add(sr);
-					list.addAll(collectModelFieldContents((ClassSymbol)fa.selected.type.tsym, sr.receiver, v)); // Does not include itself
+					list.addAll(collectModelFieldContents(fa,(ClassSymbol)fa.selected.type.tsym, sr.receiver, v)); // Does not include itself
 					//System.out.println("MJSR-C " + fa.selected.type.tsym + " " + e + " : " + list);
 				} else {
 					// skip presuming an error already given
@@ -20281,7 +20281,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 	}
 	
-	public List<JmlStoreRef> collectModelFieldContents(ClassSymbol rootClass, JCExpression receiver, VarSymbol modelField) {
+	public List<JmlStoreRef> collectModelFieldContents(DiagnosticPosition pos, ClassSymbol rootClass, JCExpression receiver, VarSymbol modelField) {
 		//System.out.println("COLLECTING MODEL FIELD CONTENTS " + modelField.owner + " " + modelField + " " + rootClass);
 		ListBuffer<JmlStoreRef> maps = new ListBuffer<>();
 		for (Type t : parents(rootClass.type, false)) {
@@ -20289,7 +20289,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// wild-card field -- include all fields
 				for (Symbol s : t.tsym.getEnclosedElements()) {
 					if (s instanceof VarSymbol vs && !vs.isFinal() && utils.isJMLStatic(vs) == (receiver == null)) {
-						JmlStoreRef sr = M.at(receiver).JmlStoreRef(false,null,null,receiver,null,vs,null);
+						JmlStoreRef sr = M.at(pos).JmlStoreRef(false,null,null,receiver,null,vs,null);
 						maps.add(sr);
 					}
 				}

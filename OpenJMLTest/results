@@ -10,7 +10,6 @@ test/datatype : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<
 test/datatype : Expected exit code 0 but got 1
 test/enums1 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### quantifier problem over non-functions?
 test/esc2DTranspose : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### ?????
-test/escAssigns2 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< just position
 test/escConsInfeasible Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< infeasibility
 test/escDouble : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
 test/escDouble2 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
@@ -21,11 +20,12 @@ test/escFPcompose : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 test/escRawdingA : Killed                                                                                  ???
 test/escRawdingB : (Skipped) Actual output differs from expected expected1 expected2 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< feasibilty problem
 test/escStrings : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### switch on strings
-test/gcdcalculator:                                                                                        ???
 test/gitbug450b : Actual output differs from expected expected1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< can't unroll forloops
 test/gitbug672 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### diamond type inference
 test/gitbug673 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< models classes
 test/gitbug673 : Expected exit code 0 but got 1                                                             [fp]
+test/gitbug718x1
+test/gitbug718x2
 test/gitbug732 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
 test/gitbug735 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### [fp]
 test/gitbug738 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### recursive use of not-well-founded method
@@ -36,6 +36,7 @@ test/primeNumbers : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 test/sfbug396 Killed <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 test/sfbug402  : Actual output differs from expected expected-compile <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< problem with message location
 test/sfbug402a : Actual output differs from expected expected-compile <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< problem with message location
+test/sfbug402b
 test/sfbug420X : Actual output differs from expected expected-compile expected-run <<<<<<<<<<<<<<<<<<<<<<<< needs to implement represents for derived classes
 test/sfbug420e
 test/sfbug420eOK : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< problem with inherited spec translation *******************

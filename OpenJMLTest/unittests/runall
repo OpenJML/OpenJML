@@ -23,7 +23,7 @@ alias wt="while [ \$(lsc) -gt 5 ]; do sleep 30; done"
 ./run-summary log-racnew2      	"70/0"	racnew2 &
 ./run-summary log-racreadable	"0/2"	racreadable & 
 
-./run-summary log-access+  	"151/4" access arith assignable compilationUnit compiler deprecation  &
+./run-summary log-access+  	"153/2" access arith assignable compilationUnit compiler deprecation  &
 wt
 ./run-summary log-binaries 	"5/1"	binaries  &
 ./run-summary log-bugs     	"23/0"	bugs  &
@@ -54,7 +54,7 @@ wt
 ./run-summary log-harness	"5/0"	harnesstests &
 ./run-summary log-inter+       	"140/0"	internalSpecs jmltypes lblexpression methodspecs modelghost namelookup positions prettyprinting purity  &
 wt
-./run-summary log-matchClass	"49/3"  matchClasses  &
+./run-summary log-matchClass	"52/0"  matchClasses  &
 ./run-summary log-modifiers    	"191/0" modifiers  &
 ./run-summary log-redundant+   	"104/2"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
 ./run-summary log-scanner      	"90/1"	scanner  &

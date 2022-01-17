@@ -1,6 +1,6 @@
 // Originally, this submitted example crashed in RAC but passed ESC.
 // The problem was divide by zero in the body of quantifiers, which was
-// nont being c hecked by ESC. Also, the main routine now proves much quicker
+// not being checked by ESC. Also, the main routine now proves much quicker
 // when using an uninterpreted function in place of explicit mod.
 
 public class GCDCalculator{
@@ -32,9 +32,8 @@ public class GCDCalculator{
 
 	//@   requires num1 != 0 && num2 == 0;
 	//@   requires num1 != Integer.MIN_VALUE;
-	//@   //old int tnum1a = Math.abs(num1);  // FIXME: If we eliminnate this old clause, things work, but otherwise not.
-	//@   //ensures \result == \lbl TNUM1a tnum1a;
-	//@   ensures \result == Math.abs(num1);
+	//@   old int tnum1a = Math.abs(num1);  // There was a bug when this old clause was used
+	//@   ensures \result == tnum1a;
     //@ |}
     //@ pure
 	public int GCD(int num1, int num2)throws IllegalArgumentException {
@@ -60,7 +59,6 @@ public class GCDCalculator{
 		}
 
 		if(num1 == 0 || num2 == 0){ 
-		    //@ show \old(num1), \old(num2), num1, num2, num1>num2, Integer.MAX_VALUE;
 			return (num1 > num2) ? num1 : num2;
 		}
 
@@ -74,7 +72,7 @@ public class GCDCalculator{
             		if(div(num1,i) == 0 && div(num2,i) == 0){
                			gcd = i;
 			}
-        	}
+        }
 		return gcd;
 	} 
 
