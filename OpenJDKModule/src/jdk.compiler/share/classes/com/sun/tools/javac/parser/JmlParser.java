@@ -1302,12 +1302,6 @@ public class JmlParser extends JavacParser {
         		if (e == null) break;
         	}
         }
-
-//        while (token.kind == COMMA) {
-//            nextToken();
-//            JCExpression e = parseExpression();
-//            args.append(e); // e might be a JCErroneous
-//        }
         return args.toList();
     }
     
@@ -2727,7 +2721,7 @@ public class JmlParser extends JavacParser {
         }
     }
     
-    private boolean possibleDotStar = false;
+    public boolean possibleDotStar = false;
 
     /** Public wrapper for the benefit of extension clients */
     public JCExpression primaryTrailers(JCExpression t, List<JCExpression> typeArgs) {
