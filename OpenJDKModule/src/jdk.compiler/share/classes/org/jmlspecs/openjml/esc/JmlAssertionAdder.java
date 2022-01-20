@@ -6747,7 +6747,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	@Override
 	public void visitConditional(JCConditional that) {
 		addStat(comment(that, " ... conditional ...", null));
-
 		JCExpression cond = convertExpr(that.cond);
 		if (cond instanceof JCLiteral) {
 			Boolean v = (Boolean) ((JCLiteral) cond).getValue();
@@ -7880,6 +7879,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 
 	protected boolean startInvariants(Symbol csym, DiagnosticPosition pos) {
+		//System.out.println("START INVRIANTS " + csym + " " + translatingJML + " : " + completedInvariants.contains(csym) + " # " + inProcessInvariants.contains(csym));
 		if (completedInvariants.contains(csym))
 			return true; // skip processing
 		if (inProcessInvariants.add(csym))
@@ -7891,8 +7891,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} else if (pos instanceof JmlMethodDecl) {
 			msym = ((JmlMethodDecl) pos).sym;
 		}
-		// utils.warning(pos, "jml.recursive.invariants", msym.toString());
-		// Utils.dumpStack();
 		if (msym != null) {
 			// We add helper to avoid further recursive loops; it is unsound, but we have
 			// already given the error message
@@ -7914,6 +7912,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected void endInvariants(Symbol csym) {
+		//System.out.println("END INVRIANTS " + csym + " " + translatingJML);
 		inProcessInvariants.remove(csym);
 		completedInvariants.add(csym);
 	}
@@ -8061,7 +8060,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Helper method to do the work of visitApply and visitNewObject */
 	protected void applyHelper(JCExpression that) {
-//    	System.out.println("APPLY HELPER: " + that);
+//    	System.out.println("APPLY HELPER: " + splitExpressions + " " + that);
 //    	if (that instanceof JCMethodInvocation) {
 //    		JCMethodInvocation m = (JCMethodInvocation)that;
 //    		JCExpression sel = m.meth instanceof JCFieldAccess ? ((JCFieldAccess)m.meth).selected : currentThisExpr;
@@ -8395,8 +8394,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						"Quantifier bodies may not contain constructors: " + calleeMethodSym.toString());
 				throw new JmlInternalAbort(); // This problem is su[osed to be caught in JmlAttr
 			}
-			boolean addMethodAxioms = nodoTranslations && !calleeIsConstructor && !hasTypeArgs && !isSuperCall
+			boolean addMethodAxioms = calleeIsFunction;
+			addMethodAxioms |= nodoTranslations && !calleeIsConstructor && !hasTypeArgs && !isSuperCall
 					&& !isThisCall;
+			
 //            boolean addMethodAxioms = !rac && !calleeMethodSym.isConstructor() && !hasTypeArgs && !isSuperCall && !isThisCall && isPure(calleeMethodSym)
 //                    && (!calleeMethodSym.getReturnType().isReference() || translatingJML);
 			boolean inlineSpecs = !isRecursive && splitExpressions && localVariables.isEmpty(); // !addMethodAxioms;
@@ -8410,7 +8411,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 //            ListBuffer<JCStatement> saved = currentStatements;
 			oldStatements = currentStatements; // FIXME - why twice
-			initialInvariantCheck(that, isSuperCall, isThisCall, calleeMethodSym, savedThisExpr, newThisExpr, trArgs,
+			if (!addingMethodAxioms) initialInvariantCheck(that, isSuperCall, isThisCall, calleeMethodSym, savedThisExpr, newThisExpr, trArgs,
 					apply);
 
 			List<JCExpression> extendedArgs = extendArguments(that, calleeMethodSym, newThisExpr, trArgs);
@@ -19623,14 +19624,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 * assume (\forall T i; ; (M_WD(heap,i) == P))
 	 */
 	int depth = 0;
+	
+	boolean addingMethodAxioms = false;
 
 	// ListBuffer<JCStatement> savedForAxioms = null;
 	protected JCBlock addMethodAxioms(DiagnosticPosition callLocation, MethodSymbol msym,
 			java.util.List<Pair<MethodSymbol, Type>> overridden, Type receiverType, Type returnType) {
 		int hc = evalStateLabel == null ? heapCount : labelPropertiesStore.get(evalStateLabel).heapCount;
-		// if (utils.debug() || true) System.out.println("ADDMETHODAXIOMS "+
-		// " " + hc + " " + + heapCount + " " + heapCountForAxioms + " " + msym + " " +
-		// axiomsAdded);
+		boolean saved = addingMethodAxioms;
+		addingMethodAxioms = true;
+//		if (utils.debug() || true) System.out.println("ADDMETHODAXIOMS "+
+//				 " " + hc + " " + + heapCount + " " + heapCountForAxioms + " " + msym + " " +
+//				 axiomsAdded);
 		if (!addAxioms(hc, msym)) {
 			return null;
 		} // M.at(Position.NOPOS).Block(0L, List.<JCStatement>nil()); }
@@ -19899,6 +19904,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								// Note - convertJML uses resultExpr and currentThisExpr and paramActuals
 								// System.out.println("CONVERTING " + enclause.expression + " WITH " +
 								// condition);
+								//System.out.println("METHOD AXIOMS " + enclause.expression + " " + condition);
 								JCExpression e = convertNoSplit(enclause.expression, condition, false);
 								// System.out.println("MAX FOR " + enclause + " IS " + e);
 								if (treeutils.isFalseLit(e)) {
@@ -20007,8 +20013,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			splitExpressions = savedSplitExpressions;
 			condition = savedCondition;
 			depth--;
-			if (depth == 0)
-				savedForAxioms = null;
+			if (depth == 0) savedForAxioms = null;
+			addingMethodAxioms = saved;
 		}
 		JCBlock bl = popBlock(null, check);
 		if (collectedAxioms != null) {
@@ -20302,9 +20308,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							JmlSpecs.FieldSpecs fs = specs.getSpecs(vs);
 							if (fs != null) for (var cl : fs.list) {
 								if (cl instanceof JmlTypeClauseMaps m) {
-									//System.out.println("MAPS CLAUSE " + t + " " + s + " " + cl);
 									for (JmlGroupName g : m.list) {
 										if (isContainedIn(g.sym, modelField)) {
+											System.out.println("MAPS CLAUSE " + modelField + " " + m.expression + " " + rootClass);
 											var srs = makeJmlStoreRef(m.expression, m.expression, rootClass);
 											maps.addAll(srs);
 										}
