@@ -514,7 +514,6 @@ public class JmlEnter extends Enter {
 				if (ok) newdefs.add(specDecl);
 				if (ok && javacu != null && javaDecl != specDecl) {
 					var env = specs.get(specDecl.sym).specsEnv;
-					System.out.println("ENV " + specDecl.superSymbol + " " + env);
 					Todo.instance(context).add(env);
 					javacu.defs = javacu.defs.append(specDecl);
 				}
@@ -1344,9 +1343,7 @@ public class JmlEnter extends Enter {
     		return false;
     	}
     	specTypeDeclaration.sym = csym;
-        int nn =  (numJavaTypeParams > numSpecTypeParams) ? numSpecTypeParams : numJavaTypeParams;
-    	//utils.warning(-1, "jml.message", "TYPEPARAMS " + csym + " " + nn + " " + specTypeDeclaration.name );
-        for (int i = 0; i<nn; i++) {
+        for (int i = 0; i< numSpecTypeParams; i++) {
             JCTree.JCTypeParameter specTV = specTypeDeclaration.typarams.get(i);
             var javaTV = (Type.TypeVar)((ClassType)csym.type).getTypeArguments().get(i);
         	//utils.warning(-1, "jml.message", "TV " + csym + " " + i + " " + specTV + " " + javaTV);
@@ -1392,7 +1389,7 @@ public class JmlEnter extends Enter {
     public boolean check(JmlClassDecl specTypeDeclaration, JCExpression e, Type t) {
     	//System.out.println("CHECKING " + e + " " + e.type + " " + t);
     	if (e == null) {
-    		if (t == Type.noType || t == syms.objectType) return true;
+    		if (t == Type.noType || t == syms.objectType || t == syms.annotationType || t.toString().startsWith("java.lang.Enum")) return true;
     		utils.error(specTypeDeclaration.pos,  "jml.message", "Missing super type or interface: " + t);
     		return false;
     	} else if (e.type == null) {
@@ -1618,7 +1615,7 @@ public class JmlEnter extends Enter {
 			var sourceEnv = getEnv(csymbol);
 			JmlCompilationUnit javaCU = sourceEnv == null ? null : (JmlCompilationUnit)sourceEnv.toplevel;
 			JmlClassDecl javaDecl = sourceEnv == null ? null : (JmlClassDecl)sourceEnv.tree;
-			if (utils.verbose()) utils.warning(-1,"jml.message","Dequeued to enter specs: " + csymbol + " " + specs.status(csymbol) + " " + csymbol.hashCode() + " " + (javaCU==null?" (binary)":(" (" + javaCU.sourcefile + ")")));
+			if (utils.verbose()) utils.note("Dequeued to enter specs: " + csymbol + " " + specs.status(csymbol) + " " + csymbol.hashCode() + " " + (javaCU==null?" (binary)":(" (" + javaCU.sourcefile + ")")));
 //    		if (csymbol.type instanceof Type.ErrorType) {
 //        		continue; // A bad type causes crashes later on
 //    		}

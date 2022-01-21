@@ -5,8 +5,7 @@ public class TestPath extends TestPathS {
 ../testfiles/testPath/data-specs/TestPath.jml:1: error: cannot find symbol
 public class TestPath extends TestPathS {
                               ^
-  symbol:   class TestPathS
-  location: class TestPath
+  symbol: class TestPathS
 ../testfiles/testPath/data-specs/TestPath.jml:3: error: cannot find symbol
     //@ requires q; // BAD
                  ^

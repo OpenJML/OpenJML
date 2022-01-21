@@ -1080,10 +1080,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 Symbol sym = tree.constructor;
                 MethodSymbol msym = null;
                 if (sym instanceof MethodSymbol) msym = (MethodSymbol)sym;
-                boolean isAllowed = isPureMethod(msym) || isQueryMethod(msym);
-                if (!isAllowed) {
-                    nonPureWarning(tree, msym);
-                }
+                nonPureWarning(tree, msym);
+//                boolean isAllowed = isPureMethod(msym) || isQueryMethod(msym);
+//                if (!isAllowed) {
+//                    nonPureWarning(tree, msym);
+//                }
             }
 //            Type saved = result;
 //            TypeSymbol tsym = tree.clazz.type.tsym;
