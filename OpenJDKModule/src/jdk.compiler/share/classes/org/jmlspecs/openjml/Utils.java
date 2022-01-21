@@ -108,7 +108,7 @@ public class Utils {
     ///////////////////////////////////////////////////////////////////////////////////////
 
     /** The context applicable for this instance of the Utils class. */
-    protected Context context;
+    public Context context;
     
     /** The Log object - do not use this directly - use log() instead */
     private Log log;

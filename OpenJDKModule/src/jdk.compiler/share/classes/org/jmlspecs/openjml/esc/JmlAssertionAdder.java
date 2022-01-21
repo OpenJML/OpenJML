@@ -3935,7 +3935,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			int pos = 0;
 			if (false && csym.isEnum()) { // FIXME - these are already added in the parser?
 				ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
-				JCVariableDecl fdecl = newTempDecl(tspecs.decl, csym.type);
+				JCVariableDecl fdecl = newTempDecl(tspecs.specDecl, csym.type);
 				JCIdent fid = treeutils.makeIdent(pos, fdecl.sym);
 				JCExpression or = treeutils.makeEqNull(pos, fid);
 				JCExpression ort = null;
@@ -3948,7 +3948,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						JCFieldAccess fa = treeutils.makeSelect(pos, id, s);
 						fa = treeutils.makeSelect(pos, fa, allocSym);
 						JCExpression bin = treeutils.makeBinary(pos, JCTree.Tag.LE, fa, treeutils.zero);
-						addAssume(tspecs.decl, Label.AXIOM, bin, null, null);
+						addAssume(tspecs.specDecl, Label.AXIOM, bin, null, null);
 						id = treeutils.makeIdent(pos, csym);
 						fa = treeutils.makeSelect(pos, id, s);
 						newargs.add(fa);
@@ -3960,9 +3960,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 				newargs.add(treeutils.nullLit);
 				JCExpression dist = M.at(pos).JmlMethodInvocation(distinctKind, newargs.toList());
-				addAssume(tspecs.decl, Label.AXIOM, dist, null, null);
+				addAssume(tspecs.specDecl, Label.AXIOM, dist, null, null);
 				or = M.at(pos).JmlQuantifiedExpr(qforallKind, List.<JCVariableDecl>of(fdecl), treeutils.trueLit, or);
-				addAssume(tspecs.decl, Label.AXIOM, or, null, null);
+				addAssume(tspecs.specDecl, Label.AXIOM, or, null, null);
 				tspecs.clauses = tspecs.clauses.append(M.JmlTypeClauseExpr(M.Modifiers(Flags.PUBLIC | Flags.FINAL),
 						TypeExprClauseExtension.invariantID, TypeExprClauseExtension.invariantClause, ort));
 			}
@@ -4909,11 +4909,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// Assume invariants for the class of each field of the argument
 		JCExpression savedThis = currentThisExpr;
 		JmlSpecs.TypeSpecs cspecs = specs.getSpecs(classSym);
-		if (cspecs.decl == null)
+		if (cspecs.specDecl == null)
 			return;
 		JavaFileObject prevJFO = log.currentSourceFile();
-		log.useSource(cspecs.decl.sourcefile);
-		for (JCTree dd : cspecs.decl.defs) {
+		log.useSource(cspecs.specDecl.sourcefile);
+		for (JCTree dd : cspecs.specDecl.defs) {
 			if (!(dd instanceof JCVariableDecl))
 				continue;
 			JCVariableDecl d = (JCVariableDecl) dd;
@@ -7218,9 +7218,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (!(parent.tsym instanceof ClassSymbol))
 				continue; // TODO - Review - what to do with type variables
 			TypeSpecs tspecs = JmlSpecs.instance(context).getSpecs((ClassSymbol) parent.tsym);
-			if (tspecs.decl == null)
+			if (tspecs.specDecl == null)
 				continue;
-			for (JCTree tree : tspecs.decl.defs) {
+			for (JCTree tree : tspecs.specDecl.defs) {
 				if (tree instanceof JCVariableDecl) {
 					JCVariableDecl vd = (JCVariableDecl) tree;
 					if (isContainedIn(vd.sym, fa.sym)) {
