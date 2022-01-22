@@ -5437,7 +5437,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             result = tree.type = check(tree, t, KindSelector.VAL, resultInfo);
         } else {
             IJmlClauseKind fext = Extensions.findKeyword(tree.name);
-            if (fext instanceof JmlField && this.jmlresolve.allowJML()) {
+            // TODO: Not sure under what conditions resultInfo.pkind might be both VAL and TYP and what would happen then
+            if (fext instanceof JmlField && this.jmlresolve.allowJML() && !resultInfo.pkind.contains(KindSelector.TYP)) {
+            	// <expr>.array
                 Type t = attribExpr(tree.selected, env, Type.noType); // Any type is allowed
                 Type atype = tree.selected.type;
                 if (atype instanceof Type.ArrayType) { 
@@ -5447,17 +5449,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 } else if (atype.isErroneous()) {
                     t = atype;
                 } else {
-//                    log.error(tree,"jml.message","The .array suffix is permitted only for array expressions: " );
-//                    t = types.createErrorType(atype);
-                    super.visitSelect(tree);
-                    // The super call does not always call check... (which assigns the
-                    // determined type to tree.type, particularly if an error occurs,
-                    // so we fill it in
-                    if (tree.type == null) tree.type = result;
-                    t = tree.type;
+                    utils.error(tree,"jml.message","The .array suffix is permitted only for array expressions: " );
+                    t = types.createErrorType(atype);
                 }
                 result = tree.type = check(tree, t, KindSelector.VAL, resultInfo);
             } else {
+            	// <package>.array, or something illegal
                 super.visitSelect(tree);
                 // The super call does not always call check... (which assigns the
                 // determined type to tree.type, particularly if an error occurs,
