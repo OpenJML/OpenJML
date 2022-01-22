@@ -3,6 +3,10 @@ Starting proof of Initializer.Initializer(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Initializer.Initializer(int) with prover !!!! - no warnings
+Starting proof of Initializer.init(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Initializer.init(int) with prover !!!! - no warnings
 Starting proof of Initializer.dupe() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

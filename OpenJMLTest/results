@@ -29,6 +29,10 @@ test/gitbug718x2
 test/gitbug732 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< [fp]
 test/gitbug735 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### [fp]
 test/gitbug738 : No expected output <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<### recursive use of not-well-founded method
+test/gitbug759
+test/hiding
+test/linked1
+test/linked2
 test/preold : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< labels in preconditions
 test/preold : Expected exit code 0 but got 1
 test/preold2 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< labels in preconditions
@@ -107,7 +111,7 @@ escvisibility1.java   - 22/0 #
 escwebexamples.java   -          TODO tests need work
 expressions.java      - 48/0 #
 flow.java             - 9/0  #
-generics.java         - 13/2 (type parameter lookup) [generics.testBinaryGeneric3c,generics.testSimpleGeneric]  ************
+generics.java         - 14/1 (type parameter lookup) [generics.testSimpleGeneric]  ************
 harnesstests.java     - 5/0 #
 internalSpecs.java    - 1/0 #
 jmldoc.java           -          TODO all ignored
@@ -135,7 +139,7 @@ racnewLoops.java      - 20/0 #
 racnewWithSpecs.java  - 1/0 #
 racnonpublic.java             TODO
 racreadable.java      - 0/2 ??????
-racsystem.java        - 9/0  #
+racsystem.java        - 9/0  # <<<<<<< 2 problems
 redundant.java         - 10/0 #
 scanner.java           - 90/1 [unicode, embedded comment]
 statements.java        - 44/0 #

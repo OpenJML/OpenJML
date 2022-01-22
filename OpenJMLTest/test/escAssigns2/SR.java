@@ -6,23 +6,43 @@ public class SR {
   int[] b;
 
   //@ requires b != null && b.length == 5;
-  //@ writes k, t.k, a[1], b[-1] ;
-  void m1(int[] a, SR t) {}
+  //@ assigns k ;
+  void m1a(int[] a, SR t) {}
 
   //@ requires b != null && b.length == 5;
-  //@ writes t.*, a[*], b[*];
-  void m2(int[] a, SR t) {}
+  //@ assigns t.k;
+  void m1b(int[] a, SR t) {}
 
   //@ requires b != null && b.length == 5;
-  //@ writes t.s.*, b[1..5] ;
-  void m3(int[] a, SR t) {}
+  //@ assigns a[1] ;
+  void m1c(int[] a, SR t) {}
 
   //@ requires b != null && b.length == 5;
-  //@ writes b[-1..50] ;
+  //@ assigns  b[-1] ;
+  void m1d(int[] a, SR t) {}
+
+  //@ requires b != null && b.length == 5;
+  //@ assigns t.*;
+  void m2a(int[] a, SR t) {}
+
+  //@ requires b != null && b.length == 5;
+  //@ assigns a[*], b[*];
+  void m2b(int[] a, SR t) {}
+
+  //@ requires b != null && b.length == 5;
+  //@ assigns t.s.* ;
+  void m3a(int[] a, SR t) {}
+
+  //@ requires b != null && b.length == 5;
+  //@ assigns b[1..5] ;
+  void m3b(int[] a, SR t) {}
+
+  //@ requires b != null && b.length == 5;
+  //@ assigns b[-1..50] ;
   void m4(int[] a, SR t) {}
 
   //@ requires b != null && b.length == 5;
-  //@ writes b[1..50] ;
+  //@ assigns b[1..50] ;
   void m5(int[] a, SR t) {}
 
 

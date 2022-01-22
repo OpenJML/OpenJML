@@ -1080,11 +1080,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 Symbol sym = tree.constructor;
                 MethodSymbol msym = null;
                 if (sym instanceof MethodSymbol) msym = (MethodSymbol)sym;
-                nonPureWarning(tree, msym);
-//                boolean isAllowed = isPureMethod(msym) || isQueryMethod(msym);
-//                if (!isAllowed) {
-//                    nonPureWarning(tree, msym);
-//                }
+                boolean isAllowed = isPureMethod(msym) || isQueryMethod(msym);
+                if (!isAllowed) {
+                    nonPureWarning(tree, msym);
+                } else if (jmlenv.currentClauseKind != null) {
+                    utils.error(tree, "jml.message", "Object allocation is not permitted in specification expressions");
+                }
             }
 //            Type saved = result;
 //            TypeSymbol tsym = tree.clazz.type.tsym;

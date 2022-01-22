@@ -7,12 +7,18 @@ public class Initializer {
     public Initializer(int a) {
         this.a = a;
     }
+    
+    //@ ensures \result.a == a;
+    //@ pure
+    public static Initializer init(int a) {
+    	return new Initializer(a);
+    }
 
     /*@ public normal_behavior
       @   requires a < 1000000; assignable a; // limit just to avoid overflow warnings
       @   ensures this.a == \old(this.a) + 1;
       @   ensures \fresh(\result);
-      @   ensures \result.equals(new Initializer(\old(a)));
+      @   ensures \result.equals(Initializer.init(\old(a)));
       @*/
     public Initializer dupe() {
         Initializer other = new Initializer(a);
