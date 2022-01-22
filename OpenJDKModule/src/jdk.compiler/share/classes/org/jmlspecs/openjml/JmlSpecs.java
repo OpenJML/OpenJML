@@ -1438,7 +1438,10 @@ public class JmlSpecs {
             			staticInitializerSpec = (JmlTypeClauseInitializer)t;
             		} else {
             			initializerSpec = (JmlTypeClauseInitializer)t;
-            		}      		
+            		}
+            	} else if (t instanceof JmlTypeClauseConditional) {
+            		// No such clause should be present // FIXME: error message
+            		System.out.println("UNEXPECTED RW CLAUSE " + t);
             	} else if (t instanceof JmlTypeClause) {
             		this.clauses.add((JmlTypeClause)t);
             	}

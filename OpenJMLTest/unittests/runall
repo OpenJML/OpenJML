@@ -21,7 +21,7 @@ alias wt="while [ \$(lsc) -gt 5 ]; do sleep 30; done"
 ./run-summary log-racfiles     	"26/41" racfiles  &
 ./run-summary log-racnew       	"127/14" racnew  &
 ./run-summary log-racnew2      	"69/0"	racnew2 &
-./run-summary log-racreadable	"0/2"	racreadable & 
+./run-summary log-racreadable	"2/0"	racreadable & 
 
 ./run-summary log-access+  	"155/0" access arith assignable compilationUnit compiler deprecation  &
 wt
@@ -61,7 +61,7 @@ wt
 wt
 ./run-summary log-typecheck	"207/0"	typechecking &
 ./run-summary log-typeclause	"123/0"	typeclauses  &
-./run-summary log-SpecsBase    	"282/6"	SpecsBase  &
+./run-summary log-SpecsBase    	"283/5"	SpecsBase  &
 ./run-summary log-SpecsEsc     	"3/0"	SpecsEsc  &
 
 

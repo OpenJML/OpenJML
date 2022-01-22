@@ -55,7 +55,7 @@ factorial -- sometimes timesout
 QueryPure.java       - 10/32 TODO
 QuerySecret.java     - 21/34 TODO
 SFBugs.java
-SpecsBase.java       - 282/29 <<<<<<<<<<<<<<<<<<<< Quite a few things to fix - nested classes, Observable...
+SpecsBase.java       - 283/5 <<<<<<<<<<<<<<<<<<<< Quite a few things to fix - nested classes, use of model library
 SpecsEsc.java        - 3/0
 SpecsRac.java
 access.java          - 28/0 #
