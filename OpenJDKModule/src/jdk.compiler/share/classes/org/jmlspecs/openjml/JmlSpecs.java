@@ -895,7 +895,7 @@ public class JmlSpecs {
         spec.csymbol = type;
         specsTypes.put(type,spec);
         setStatus(type, SpecsStatus.SPECS_LOADED);
-        if (utils.verbose()) utils.note("      Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
+        if (utils.verbose()) utils.note("      Saving class specs for " + type.flatname + (spec.specDecl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
     public void removeSpecs(ClassSymbol type) {
@@ -1371,7 +1371,7 @@ public class JmlSpecs {
          * individual member declarations may come from various places; this is only helpful for modifiers and clauses and initializer blocks
          */
         //@ nullable   // may be null if (a) the class is binary and there are no specs in any source file (so any specs are default or inferred)
-        public JmlClassDecl decl;
+        public JmlClassDecl specDecl;
 
         /** The JML modifiers of the class, possibly combined from various locations */
         public JmlModifiers modifiers;
@@ -1420,7 +1420,7 @@ public class JmlSpecs {
         public TypeSpecs(ClassSymbol csymbol, JavaFileObject file, JmlModifiers mods, ListBuffer<JmlTree.JmlTypeClause> clauses) {
             this.file = file;
             this.csymbol = csymbol;
-            this.decl = null;
+            this.specDecl = null;
             this.modifiers = mods;
             this.clauses = clauses != null ? clauses : new ListBuffer<JmlTypeClause>();
             this.specsEnv = null;
@@ -1429,7 +1429,7 @@ public class JmlSpecs {
         
         public TypeSpecs(JmlClassDecl specdecl, Env<AttrContext> env) {
             this.file = specdecl.source();
-            this.decl = specdecl;
+            this.specDecl = specdecl;
             this.modifiers = (JmlModifiers)specdecl.mods;
             this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
             for (JCTree t: specdecl.defs) {
