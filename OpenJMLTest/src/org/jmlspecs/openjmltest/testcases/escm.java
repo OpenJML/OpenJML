@@ -217,6 +217,7 @@ public class escm extends EscBase {
     
     @Test
     public void testAnon() {
+    	expectedExit = 1;
         helpTCX("tt.TestJava","package tt; \n"
                                 +" import org.jmlspecs.annotation.*; \n"
                                 +"@NonNullByDefault public class TestJava { public int x; \n"
@@ -225,8 +226,9 @@ public class escm extends EscBase {
                                 +"       //@ assert new TestJava() {  public invariant x >= 0; public void mm() { } } != null; \n"  // Line 5
                                 +"  }\n"
                                 +"}\n"
-                                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method mm",74 // FIXME - why would this be? Seems incorrect
-                                ,"/tt/TestJava.java:5: warning: Associated declaration",44
+                                ,"/tt/TestJava.java:5: error: Object allocation is not permitted in specification expressions",19
+//                                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method mm",74 // FIXME - why would this be? Seems incorrect
+//                                ,"/tt/TestJava.java:5: warning: Associated declaration",44
 
                                 );
     }
@@ -234,6 +236,7 @@ public class escm extends EscBase {
     @Test
     public void testAnonX() {
         main.addOptions("-checkFeasibility=exit");
+    	expectedExit = 1;
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { public static int i; \n"
@@ -254,9 +257,12 @@ public class escm extends EscBase {
                 +"  }\n"
 
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: There is no feasible path to program point at program exit in method tt.TestJava.m1(tt.TestJava)",14
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m2",12
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m3",12
+                ,"/tt/TestJava.java:5: error: Object allocation is not permitted in specification expressions",19
+                ,"/tt/TestJava.java:9: error: Object allocation is not permitted in specification expressions",19
+                ,"/tt/TestJava.java:13: error: Object allocation is not permitted in specification expressions",19
+//                ,"/tt/TestJava.java:4: warning: There is no feasible path to program point at program exit in method tt.TestJava.m1(tt.TestJava)",14
+//                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m2",12
+//                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m3",12
         );
     }
 
