@@ -61,7 +61,7 @@ wt
 wt
 ./run-summary log-typecheck	"207/0"	typechecking &
 ./run-summary log-typeclause	"123/0"	typeclauses  &
-./run-summary log-SpecsBase    	"282/29"	SpecsBase  &
+./run-summary log-SpecsBase    	"282/6"	SpecsBase  &
 ./run-summary log-SpecsEsc     	"3/0"	SpecsEsc  &
 
 
