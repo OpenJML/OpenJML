@@ -32,6 +32,7 @@ import org.jmlspecs.openjml.ext.TypeInitializerClauseExtension;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.JmlTypes;
+import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
@@ -57,6 +58,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
+import static com.sun.tools.javac.code.TypeTag.*;
 
 /** 
  * This class extends Enter, which has the job of creating symbols for all the
@@ -546,9 +548,11 @@ public class JmlEnter extends Enter {
 		boolean isModel = utils.hasMod(specDecl.mods, Modifiers.MODEL);
 		boolean isLocal = !(owner instanceof ClassSymbol || owner instanceof PackageSymbol);
 		ClassSymbol csym = javaDecl == null ? null : javaDecl.sym;
+		//if (Utils.isJML()) utils.warning(specDecl, "jml.message", "SPECCLASSENTER " + className + " " + specsEnv);
 		// FIXME - the following may not work correctly for top-level classes whose u=owner is a package, at least in the test environment
 		if (csym == null) csym = (ClassSymbol)owner.members().findFirst(className, s->(s instanceof ClassSymbol && s.owner == owner));
 		boolean ok = false;
+		Env<AttrContext> localEnv = null;
 		try {
 			if (isOwnerJML && isModel) {
 				utils.error(specDecl, "jml.message", "A model type may not contain model declarations: " + specDecl.name + " in " + owner);
@@ -598,9 +602,9 @@ public class JmlEnter extends Enter {
 				var ct = (ClassType)csym.type;
 				if (specDecl.extending != null) ct.supertype_field = specDecl.extending.type;
 				else if ((specDecl.mods.flags & Flags.INTERFACE) == 0) ct.supertype_field = syms.objectType;
+//				specDecl.typarams.forEach(t -> Attr.instance(context).attribType(t,env));
 //				specDecl.implementing.forEach(t -> Attr.instance(context).attribType(t,env));
 //				specDecl.permitting.forEach(t -> Attr.instance(context).attribType(t,env));
-//				specDecl.typarams.forEach(t -> Attr.instance(context).attribType(t,env));
 				csym.members_field = WriteableScope.create(csym);
 				owner.members().enter(csym);
 				if (utils.verbose()) utils.note("Entering JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
@@ -614,8 +618,8 @@ public class JmlEnter extends Enter {
 						if (javaDecl != specDecl) {
 							JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csym);
 							utils.error(specDecl, "jml.message", "This JML class declaration conflicts with a previous JML class: " + specDecl.name + " (owner: " + owner +")");
-							if (tspecs != null && tspecs.decl != null) {
-								utils.error(tspecs.decl.sourcefile, tspecs.decl, "jml.associated.decl.cf", utils.locationString(specDecl.pos, log.currentSourceFile()));
+							if (tspecs != null && tspecs.specDecl != null) {
+								utils.error(tspecs.specDecl.sourcefile, tspecs.specDecl, "jml.associated.decl.cf", utils.locationString(specDecl.pos, log.currentSourceFile()));
 								owner.members().remove(csym);
 							}
 							return ok;
@@ -631,7 +635,7 @@ public class JmlEnter extends Enter {
 					JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csym);
 					utils.error(specDecl, "jml.message", "This class declaration conflicts with a previous JML method: " + specDecl.name + " (owner: " + csym +")");
 					if (tspecs != null) {
-						utils.error(tspecs.decl, "jml.associated.decl.cf", utils.locationString(specDecl.pos, log.currentSourceFile()));
+						utils.error(tspecs.specDecl, "jml.associated.decl.cf", utils.locationString(specDecl.pos, log.currentSourceFile()));
 						owner.members().remove(csym);
 						return ok;
 					}
@@ -657,10 +661,13 @@ public class JmlEnter extends Enter {
 					specDecl.specsDecl = specDecl;
 					if (utils.verbose()) utils.note("Matched class: (self) " + csym + " (owner: " + csym.owner +")" );
 				} else {
-					checkAndEnterTypeParameters(csym,specDecl,specsEnv); // FIXME - just does checking
-					if (utils.verbose()) utils.note("Matched class: " + csym + " (owner: " + csym.owner +")" );
 					specDecl.sym = csym;
 					specDecl.type = csym.type;
+					localEnv = classEnv(specDecl, specsEnv);
+					if (!checkAndEnterTypeParameters(csym,specDecl,localEnv)) {
+						return false;
+					}
+					if (utils.verbose()) utils.note("Matched class: " + csym + " (owner: " + csym.owner +")" );
 					{
 //						if (specDecl.extending != null) {
 //							//if (specDecl.extending instanceof JCTypeApply) ((JCTypeApply)specDecl.extending).arguments.forEach(t -> t.type = Attr.instance(context).attribType(t,env));
@@ -679,7 +686,7 @@ public class JmlEnter extends Enter {
 					specDecl.typarams.get(i).type = csym.type.getTypeArguments().get(i).tsym.type;
 				}
 			}
-			Env<AttrContext> localEnv = classEnv(specDecl, specsEnv);
+			if (localEnv == null) localEnv = classEnv(specDecl, specsEnv);
 			TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localEnv);
 			if (typeEnvs.get(csym) == null) {
 				((ClassType)csym.type).typarams_field = classEnter(specDecl.typarams, localEnv); // FIXME - what does this do???
@@ -749,6 +756,10 @@ public class JmlEnter extends Enter {
     
     public void specsMemberEnter(Symbol owner, JmlClassDecl specDecl, JmlClassDecl javaDecl, boolean isSameCU, Map<Symbol,JCTree> alreadyMatched) {
 		// Already know that jdecl.name matches jdecl.sym.name
+    	var saved = JmlResolve.instance(context).allowJML();
+    	if (utils.hasMod(specDecl.mods, Modifiers.MODEL)) {
+    		JmlResolve.instance(context).setAllowJML(true);
+    	}
 		ClassSymbol csym = specDecl.sym;
 		JmlSpecs specs = JmlSpecs.instance(context);
 		var tspecs = JmlSpecs.instance(context).get(csym);
@@ -816,6 +827,7 @@ public class JmlEnter extends Enter {
 				specsMemberEnter(csym, st, findClass(st.name, javaDecl), isSameCU, alreadyMatched);
 			}
 		}
+		JmlResolve.instance(context).setAllowJML(saved);
     }
     
     public boolean matchAsStrings(Type bin, JCExpression src) {
@@ -1320,6 +1332,7 @@ public class JmlEnter extends Enter {
 //     * @param classEnv the environment which is modified by the addition of any type parameter information
 //     */
     public boolean checkAndEnterTypeParameters(ClassSymbol csym, JmlClassDecl specTypeDeclaration, Env<AttrContext> classEnv) {
+    	//utils.warning(-1, "jml.message", "TYPEPARAMS " + csym + " " + specTypeDeclaration.name + " " + specTypeDeclaration.sym + " " + ((JmlClassDecl)classEnv.tree).name);
     	Env<AttrContext> localEnv = classEnv;
     	//Scope enterScope = enterScope(classEnv);
     	boolean result = true;
@@ -1327,17 +1340,18 @@ public class JmlEnter extends Enter {
     	int numJavaTypeParams = csym.type.getTypeArguments().size();
     	if (numSpecTypeParams != numJavaTypeParams) {
     		utils.error(specTypeDeclaration.source(),specTypeDeclaration.pos(),"jml.mismatched.type.arguments",specTypeDeclaration.name,csym.type.toString());
-    		//log.error(specTypeDeclaration.pos(),"jml.mismatched.type.parameters", specTypeDeclaration.name, csym.fullname, n, javaN);
-    		result = false;
+    		return false;
     	}
-        int nn = numSpecTypeParams; if (numJavaTypeParams < nn) nn = numJavaTypeParams;
-        for (int i = 0; i<nn; i++) {
+    	specTypeDeclaration.sym = csym;
+        for (int i = 0; i< numSpecTypeParams; i++) {
             JCTree.JCTypeParameter specTV = specTypeDeclaration.typarams.get(i);
             var javaTV = (Type.TypeVar)((ClassType)csym.type).getTypeArguments().get(i);
+        	//utils.warning(-1, "jml.message", "TV " + csym + " " + i + " " + specTV + " " + javaTV);
             if (specTV.name != javaTV.tsym.name) {
                 utils.error(specTV.pos(),"jml.mismatched.type.parameter.name", specTypeDeclaration.name, csym.fullname, specTV.name, javaTV.tsym.name);
                 result = false;
             } 
+            if (!result) return result;
             // classEnter will set the type of the Type Variable, but it sets it to 
             // something new for each instance, which causes trouble in type mathcing
             // that I have not figured out. Here we preemptively set the type to be the
@@ -1346,6 +1360,24 @@ public class JmlEnter extends Enter {
             //if (localEnv != null) classEnter(specTV,localEnv); // FIXME - wouldn't this be a duplicate - or is localEnv always null
             //enterScope.enter(javaTV.tsym);
         }
+        
+        var env = classEnv;
+        Env<AttrContext> baseEnv = baseEnv(specTypeDeclaration, env);
+        attribSuperTypes(env, baseEnv);
+        
+        if (!csym.isInterface()) check(specTypeDeclaration, specTypeDeclaration.extending, csym.getSuperclass());
+        var iter = csym.getInterfaces().iterator();
+        for (var iface: specTypeDeclaration.implementing) {
+        	if (!iter.hasNext()) {
+        		check(specTypeDeclaration, iface, null);
+        		break;
+        	}
+        	check(specTypeDeclaration, iface, iter.next() );
+        }
+    	if (iter.hasNext()) {
+    		check(specTypeDeclaration, null, iter.next());
+    	}
+        
 //        for (int i = nn; i<numSpecTypeParams; i++) {
 //            JCTree.JCTypeParameter specTV = specTypeDeclaration.typarams.get(i);
 //            if (localEnv != null) classEnter(specTV,localEnv);
@@ -1353,7 +1385,143 @@ public class JmlEnter extends Enter {
 //        // FIXME need to check that the types have the same bounds
         return result;
     }
+    
+    public boolean check(JmlClassDecl specTypeDeclaration, JCExpression e, Type t) {
+    	//System.out.println("CHECKING " + e + " " + e.type + " " + t);
+    	if (e == null) {
+    		if (t == Type.noType || t == syms.objectType || t == syms.annotationType || t.toString().startsWith("java.lang.Enum")) return true;
+    		utils.error(specTypeDeclaration.pos,  "jml.message", "Missing super type or interface: " + t);
+    		return false;
+    	} else if (e.type == null) {
+    		utils.warning(e, "jml.message", "No type for " + e);
+    	} else if (t == null || !types.isSameType(e.type,t)) {
+    		utils.error(e, "jml.message", "Mismatched types: " + e.type + " vs. " + t);
+    		return false;
+    	}
+    	int numSpecTypeParams = e instanceof JCTypeApply et ? et.arguments.size() : 0;
+    	int numJavaTypeParams = t.getTypeArguments().size();
+    	if (numSpecTypeParams != numJavaTypeParams) {
+    		utils.error(specTypeDeclaration.source(),specTypeDeclaration.pos(),"jml.mismatched.type.arguments",e,t);
+    		return false;
+    	}
+        for (int i = 0; i< numSpecTypeParams; i++) {
+            var specTV = ((JCTypeApply)e).arguments.get(i);
+            Type javaTV = t.getTypeArguments().get(i);
+            if (!types.isSameType(specTV.type, javaTV)) {
+                utils.error(specTV.pos(),"jml.message", "Mismatched type parameters: " + specTV.type + " vs. " + javaTV);
+        		return false;
+            } 
+        } 
+        return true;
+    }
 
+
+    protected void attribSuperTypes(Env<AttrContext> env, Env<AttrContext> baseEnv) {
+    	JmlAttr attr = JmlAttr.instance(context);
+        JCClassDecl tree = env.enclClass;
+        ClassSymbol sym = tree.sym;
+        ClassType ct = (ClassType)sym.type;
+        // Determine supertype.
+        Type supertype;
+        JCExpression extending;
+        //if (org.jmlspecs.openjml.Utils.isJML()) ((JmlAttr)attr).utils.warning(tree.pos,"jml.message","ASUPERTYPES " + tree.name + " " + sym + " " + ct + " " + tree.extending + " : " + tree.implementing);
+
+        if (tree.extending != null) {
+            extending = clearTypeParams(tree.extending);
+            supertype = attr.attribBase(extending, baseEnv, tree, true, false, true);
+            if (supertype == syms.recordType) {
+                log.error(tree, Errors.InvalidSupertypeRecord(supertype.tsym));
+            }
+            tree.extending.type = supertype;
+        } else {
+            extending = null;
+            supertype = ((tree.mods.flags & Flags.ENUM) != 0)
+            ? attr.attribBase(enumBase(tree.pos, sym), baseEnv, tree,
+                              true, false, false)
+            : (sym.fullname == names.java_lang_Object)
+            ? Type.noType
+            : sym.isRecord() ? syms.recordType : syms.objectType;
+        }
+        ct.supertype_field = supertype;
+
+        // Determine interfaces.
+        ListBuffer<Type> interfaces = new ListBuffer<>();
+        ListBuffer<Type> all_interfaces = null; // lazy init
+        List<JCExpression> interfaceTrees = tree.implementing;
+        for (JCExpression iface : interfaceTrees) {
+            //if (org.jmlspecs.openjml.Utils.isJML()) ((JmlAttr)attr).utils.warning(tree.pos,"jml.message","ASUPERTYPES-A " + iface + " " + ct);
+            iface = clearTypeParams(iface);
+            //if (org.jmlspecs.openjml.Utils.isJML()) ((JmlAttr)attr).utils.warning(tree.pos,"jml.message","ASUPERTYPES-B " + iface );
+            Type it = attr.attribBase(iface, baseEnv, tree, false, true, true);
+            //if (org.jmlspecs.openjml.Utils.isJML()) ((JmlAttr)attr).utils.warning(tree.pos,"jml.message","ASUPERTYPES-C " + iface + " " + it);
+            iface.type = it;
+            if (it.hasTag(CLASS)) {
+                interfaces.append(it);
+                if (all_interfaces != null) all_interfaces.append(it);
+            } else {
+                if (all_interfaces == null)
+                    all_interfaces = new ListBuffer<Type>().appendList(interfaces);
+                //all_interfaces.append(modelMissingTypes(baseEnv, it, iface, true));
+            }
+        }
+
+//        // Determine permits.
+//        ListBuffer<Symbol> permittedSubtypeSymbols = new ListBuffer<>();
+//        List<JCExpression> permittedTrees = tree.permitting;
+//        for (JCExpression permitted : permittedTrees) {
+//            Type pt = attr.attribBase(permitted, baseEnv, tree, false, false, false);
+//            permittedSubtypeSymbols.append(pt.tsym);
+//        }
+//
+        if ((sym.flags_field & Flags.ANNOTATION) != 0) {
+            ct.interfaces_field = List.of(syms.annotationType);
+            ct.all_interfaces_field = ct.interfaces_field;
+        }  else {
+            ct.interfaces_field = interfaces.toList();
+            ct.all_interfaces_field = (all_interfaces == null)
+                    ? ct.interfaces_field : all_interfaces.toList();
+        }
+//
+//        /* it could be that there are already some symbols in the permitted list, for the case
+//         * where there are subtypes in the same compilation unit but the permits list is empty
+//         * so don't overwrite the permitted list if it is not empty
+//         */
+//        if (!permittedSubtypeSymbols.isEmpty()) {
+//            sym.permitted = permittedSubtypeSymbols.toList();
+//        }
+//        sym.isPermittedExplicit = !permittedSubtypeSymbols.isEmpty();
+    }
+        //where:
+    protected Env<AttrContext> baseEnv(JCClassDecl tree, Env<AttrContext> env) {
+        WriteableScope baseScope = WriteableScope.create(tree.sym);
+        //import already entered local classes into base scope
+        for (Symbol sym : env.outer.info.scope.getSymbols(Scope.LookupKind.NON_RECURSIVE)) {
+            if (sym.isDirectlyOrIndirectlyLocal()) {
+                baseScope.enter(sym);
+            }
+        }
+        //import current type-parameters into base scope
+        if (tree.typarams != null)
+            for (List<JCTypeParameter> typarams = tree.typarams;
+                 typarams.nonEmpty();
+                 typarams = typarams.tail)
+                baseScope.enter(typarams.head.type.tsym);
+        Env<AttrContext> outer = env.outer; // the base clause can't see members of this class
+        Env<AttrContext> localEnv = outer.dup(tree, outer.info.dup(baseScope));
+        localEnv.baseClause = true;
+        localEnv.outer = outer;
+        localEnv.info.isSelfCall = false;
+        return localEnv;
+    }
+    protected  JCExpression enumBase(int pos, ClassSymbol c) {
+        JCExpression result = make.at(pos).
+            TypeApply(make.QualIdent(syms.enumSym),
+                      List.of(make.Type(c.type)));
+        return result;
+    }
+       protected JCExpression clearTypeParams(JCExpression superType) {
+            return superType;
+        }
 
     protected boolean classNameMatchesFileName(ClassSymbol c, Env<AttrContext> env) {
     	boolean b =  env.toplevel.sourcefile.isNameCompatible(c.name.toString(),

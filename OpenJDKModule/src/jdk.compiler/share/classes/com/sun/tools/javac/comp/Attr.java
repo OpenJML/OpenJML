@@ -886,7 +886,7 @@ public class Attr extends JCTree.Visitor {
      *  @param interfaceExpected true if only an interface is expected here.
      */
     Type attribBase(JCTree tree,
-                    Env<AttrContext> env,
+                    Env<AttrContext> env, JCClassDecl owningTree,
                     boolean classExpected,
                     boolean interfaceExpected,
                     boolean checkExtensible) {

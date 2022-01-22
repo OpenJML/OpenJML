@@ -20,10 +20,10 @@ alias wt="while [ \$(lsc) -gt 5 ]; do sleep 30; done"
 ./run-summary log-racmost       "101/0"	racArithmeticModes racdemoexamples racfeatures racJML racnew3 racnewLoops racnewWithSpecs racsystem &
 ./run-summary log-racfiles     	"26/41" racfiles  &
 ./run-summary log-racnew       	"127/14" racnew  &
-./run-summary log-racnew2      	"70/0"	racnew2 &
+./run-summary log-racnew2      	"69/0"	racnew2 &
 ./run-summary log-racreadable	"0/2"	racreadable & 
 
-./run-summary log-access+  	"153/2" access arith assignable compilationUnit compiler deprecation  &
+./run-summary log-access+  	"155/0" access arith assignable compilationUnit compiler deprecation  &
 wt
 ./run-summary log-binaries 	"5/1"	binaries  &
 ./run-summary log-bugs     	"23/0"	bugs  &
@@ -50,7 +50,7 @@ wt
 ./run-summary log-escm         	"13/0"  escm   &
 ./run-summary log-expr+        	"64/0"  expressions escJML flow  &
 wt
-./run-summary log-generics     	"13/2"  generics   &
+./run-summary log-generics     	"14/1"  generics   &
 ./run-summary log-harness	"5/0"	harnesstests &
 ./run-summary log-inter+       	"140/0"	internalSpecs jmltypes lblexpression methodspecs modelghost namelookup positions prettyprinting purity  &
 wt

@@ -1129,11 +1129,12 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testInvariant2() {
-    	expectedExit = 0;
+    	expectedExit = 1;
         helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ int m() { return 0; } \n" +
                 "  //@ invariant (new A() { int m() { return 5; } }) != null; \n" +
                 "  void p() {} }"
-                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: A..()",18
+                ,"/A.java:2: error: Object allocation is not permitted in specification expressions",18
+//                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: A..()",18
                 );
     }
      
