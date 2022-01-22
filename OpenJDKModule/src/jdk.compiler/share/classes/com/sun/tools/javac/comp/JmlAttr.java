@@ -3222,15 +3222,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 log.error(tree.identifier.pos,"jml.visibility.is.different",Flags.toString(clauseVisibility), Flags.toString(jmlenv.jmlVisibility));
             }
             
-            if (sym.owner != env.enclClass.sym) {
-                log.error(tree.identifier.pos,"jml.ident.not.in.class",sym,sym.owner,env.enclClass.sym);
-            } else {
-                // FIXME _ should this be done elsewhere
-                VarSymbol vsym = (VarSymbol)sym;
-                JmlSpecs.FieldSpecs fs = specs.getSpecs(vsym);
-                //if (fs == null) specs.putSpecs(vsym,fs=new JmlSpecs.FieldSpecs(tree.sym.));
-                fs.list.append(tree);
-            }
+//            if (sym.owner != env.enclClass.sym) {
+//                log.error(tree.identifier.pos,"jml.ident.not.in.class",sym,sym.owner,env.enclClass.sym);
+//            } else {
+//                // FIXME _ should this be done elsewhere
+//                VarSymbol vsym = (VarSymbol)sym;
+//                JmlSpecs.FieldSpecs fs = specs.getSpecs(vsym);
+//                //if (fs == null) specs.putSpecs(vsym,fs=new JmlSpecs.FieldSpecs(tree.sym.));
+//                fs.list.append(tree);
+//            	System.out.println("ADDING TO " + vsym + " " + tree + " " + tree.identifier + " " + tree.identifier.sym + " " + tree.identifier.type);
+//            }
             
             boolean isStatic = sym.isStatic();
             if (isStatic) // ||(env.enclClass.sym.flags() & INTERFACE) != 0) // FIXME - what about interfaces

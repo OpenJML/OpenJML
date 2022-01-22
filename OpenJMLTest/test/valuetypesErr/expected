@@ -1,10 +1,13 @@
 test/valuetypesErr/Arr.java:7: error: illegal conversion: org.jmlspecs.lang.array<java.lang.String> to org.jmlspecs.lang.array<@org.jmlspecs.annotation.NonNull java.lang.Short>
 //@ ghost array<Short> arx = args.array; // ERROR
                                  ^
+test/valuetypesErr/Arr.java:10: error: The .array suffix is permitted only for array expressions: 
+//@ ghost int kk = this.array;
+                       ^
 test/valuetypesErr/Arr.java:13: error: cannot find symbol
 boolean b = a.array;
              ^
   symbol:   variable array
   location: variable a of type Integer[]
 Operation not performed because of parse or type errors
-2 errors
+3 errors

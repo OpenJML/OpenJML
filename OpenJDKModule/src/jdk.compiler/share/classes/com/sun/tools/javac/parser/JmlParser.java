@@ -597,6 +597,24 @@ public class JmlParser extends JavacParser {
         JCClassDecl cd = super.classDeclaration(mods, dc);
         ((JmlClassDecl)cd).lineAnnotations = S.lineAnnotations;
         S.lineAnnotations = new java.util.LinkedList<>();
+        ListBuffer<JCTree> newdefs = new ListBuffer<>();
+        for (var d: cd.defs) {
+        	if (d instanceof JmlTypeClauseConditional ct) {
+        		x: { 
+        			JCIdent id = ct.identifier;
+            		for (var dd: cd.defs) {
+            			if (dd instanceof JmlVariableDecl vd && vd.name == id.name) {
+            				vd.fieldSpecs.list.add(ct);
+            				break x;
+            			}
+            		}
+            		utils.error(id, "jml.message", "The identifier must be a member of the enclosing class: " + id);
+        		}
+        	} else {
+        		newdefs.add(d);
+        	}
+        }
+        cd.defs = newdefs.toList();
         return cd;
     }
 

@@ -18531,14 +18531,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK - readable and writable clauses
 	@Override
 	public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
-		JCModifiers mods = fullTranslation ? convert(that.modifiers) : that.modifiers;
-		JCIdent id = treeutils.makeIdent(that.identifier.pos, that.identifier.sym);
-		JCExpression expr = convertExpr(that.expression);
-		JmlTypeClauseConditional cl = M.at(that).JmlTypeClauseConditional(mods, that.clauseType, id, expr);
-		cl.setType(that.type);
-		cl.source = that.source;
-		classDefs.add(cl);
-		result = cl;
+		// FIXME _ error
+		System.out.println("UNEXPECTED " + that + " : " + that.identifier + " " + that.identifier.sym); Utils.dumpStack();
+		result = null;
 	}
 
 	// OK
