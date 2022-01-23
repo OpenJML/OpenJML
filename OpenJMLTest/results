@@ -65,7 +65,7 @@ assignable.java      - 43/0 #
 binaries.java        - 5/1    [model class in library class]
 bugs.java            - 23/0  #
 compilationUnit.java - 15/0  #
-compiler.java.       - 62/2   (access+:  2-parse nested model classes <<<<<<<
+compiler.java.       - 64/0  #
 deprecation.java.    - 4/0   #
 esc1.java            - 91/2    [ 2 foreach/values problems] 
 esc2.java            - 109/0 #  [ sometimes testEnumStaticInitializer2 feasibility fails ]
@@ -84,7 +84,7 @@ escbitvector.java     - 12/0 #
 esccallable.java      - 32/0 #
 esccode.java          - 9/0  #
 escconstructor.java   - 5/0  #
-escenums.java         - 16/1 - escenums.enumSwitch feasibility, in redundanat+ !!!!!!!!!!!!!!!!
+escenums.java         - 16/1 - escenums.enumSwitch feasibility, in redundant+ !!!!!!!!!!!!!!!!
 escfeatures.java      -         TODO
 escfiles.java         -  Done separately
 escfilesTrace.java    -         TODO
@@ -141,9 +141,9 @@ racnonpublic.java             TODO
 racreadable.java      - 0/2 ??????
 racsystem.java        - 9/0  # <<<<<<< 2 problems
 redundant.java         - 10/0 #
-scanner.java           - 90/1 [unicode, embedded comment]
+scanner.java           - 91/0 #
 statements.java        - 44/0 #
-strict.java            - 15/1 [strict storeref -- in redundant+ ]
+strict.java            - 16/0 #
 strongarm.java
 sysclasses.java        - 1/0  #
 typechecking.java            - 181/0 #

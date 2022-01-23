@@ -335,7 +335,6 @@ public class UnicodeReader {
      */
     protected char next() {
         nextCodePoint();
-    	//if (org.jmlspecs.openjml.Main.useJML)System.out.println(position() + " CHAR " + (int)character + " " + character);
         return character;
     }
 
