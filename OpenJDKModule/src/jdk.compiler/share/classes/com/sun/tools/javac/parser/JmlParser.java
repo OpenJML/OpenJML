@@ -2352,6 +2352,9 @@ public class JmlParser extends JavacParser {
         		tt = null;
         		nextToken();
         	} else if (token.kind == TokenKind.RBRACKET || token.kind == TokenKind.RPAREN) {
+                if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+                	utils.warning(token.pos,"jml.not.strict","storeref with implied end-of-range");
+                }
         		tt = null;
         	} else {
         	    tt = term1Cond();

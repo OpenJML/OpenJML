@@ -149,15 +149,57 @@ public class scanner extends JmlTestCase {
                 null);  
     }
 
-    // FIXME - Java tokenizer recovery from bad character is not robust
     /** Test some unicode  - first backslash is an error */
     @Test public void testSomeUnicode3() {
         helpScanner(
+                " \\\\\\u0041 A",
+                new ITokenKind[]{ERROR,ERROR,IDENTIFIER,IDENTIFIER},
+                new int[]{1,2,2,3,3,9,10,11},
+                2);
+                checkMessages("/TEST.java:1: error: illegal character: '\\'",2
+                		,"/TEST.java:1: error: illegal character: '\\'",3);  
+    }
+    
+    /** Test some unicode  - first backslash is an error */
+    @Test public void testSomeUnicode4() {
+        helpScanner(
+                " \\\\u0041 A",
+                new ITokenKind[]{ERROR,ERROR,IDENTIFIER,IDENTIFIER},
+                new int[]{1,2,2,3,3,8,9,10},
+                2);
+                checkMessages("/TEST.java:1: error: illegal character: '\\'",2
+                		,"/TEST.java:1: error: illegal character: '\\'",3);  
+    }
+    
+    /** Test some unicode  - first backslash is an error */
+    @Test public void testSomeUnicode5() {
+        helpScanner(
+                "\\\\\\u0041 A",
+                new ITokenKind[]{ERROR,ERROR,IDENTIFIER,IDENTIFIER},
+                new int[]{0,1,1,2,2,8,9,10},
+                2);
+                checkMessages("/TEST.java:1: error: illegal character: '\\'",1
+                		,"/TEST.java:1: error: illegal character: '\\'",2);  
+    }
+    
+    /** Test some unicode  - first backslash is an error */
+    @Test public void testSomeUnicode6() {
+        helpScanner(
                 "\\\\u0041 A",
-                new ITokenKind[]{ERROR,IDENTIFIER,IDENTIFIER},
-                new int[]{0,1,1,7,8,9},
-                1);
-                checkMessages("/TEST.java:1: error: illegal character: '\\'",0);  
+                new ITokenKind[]{ERROR,ERROR,IDENTIFIER,IDENTIFIER},
+                new int[]{0,1,1,2,2,7,8,9},
+                2);
+                checkMessages("/TEST.java:1: error: illegal character: '\\'",1
+                		,"/TEST.java:1: error: illegal character: '\\'",2);  
+    }
+    
+    /** Test some unicode  - first backslash is an error */
+    @Test public void testSomeUnicode7() {
+        helpScanner(
+                "\\u0041 A",
+                new ITokenKind[]{IDENTIFIER,IDENTIFIER},
+                new int[]{0,6,7,8},
+                0);
     }
     
     /** This tests that the test harness records if not enough tokens are listed */

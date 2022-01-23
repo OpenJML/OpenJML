@@ -146,7 +146,7 @@ public class strict extends TCBase {
                 " //@ assignable a[0..];\n" +
                 " int m(int[] a) { return 0; \n" +
                 " }}"
-                ,"/A.java:2: warning: The storeref with implied end-of-range (a[i..]) construct is an OpenJML extension to JML and not allowed under " + optjml,22
+                ,"/A.java:2: warning: The storeref with implied end-of-range construct is an OpenJML extension to JML and not allowed under " + optjml,22
                 );
     }
 
