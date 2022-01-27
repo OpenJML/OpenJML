@@ -9,11 +9,7 @@ public class StrangeResult {
    */
 
   public StrangeResult();
-    /*+INFERRED@
-    public normal_behavior
-      
-   */
-
+  
   /*@ pure */ 
   public int h();
 }

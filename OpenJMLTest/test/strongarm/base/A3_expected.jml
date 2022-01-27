@@ -12,11 +12,7 @@ public class A3 {
   int THE_FIELD;
   
   class A3c {
-        /*+INFERRED@
-      normal_behavior
-        
-     */
-
+    
     /*@ pure */ 
     A3c();
     public int ANOTHER_FIELD;
