@@ -1004,7 +1004,7 @@ public class Utils {
     
     private ClassSymbol objectSym = null;
 
-    // Includes self // FIXME -  review for order
+    // Returns all methods that are overridden by the argument
     public java.util.List<MethodSymbol> parents(MethodSymbol m) {
         List<MethodSymbol> methods = new LinkedList<MethodSymbol>();
         if (isJMLStatic(m)) {
@@ -1015,13 +1015,14 @@ public class Utils {
         	// FIXME - the 'true' here should be false -- it seems that model interface enclosed within 
         	// and extending java interfaces do not show those interfaces in getIntrerfaces()
         	// are not getting their 
-            for (ClassSymbol c: parents((ClassSymbol)m.owner, true)) {
+        	var classes = parents((ClassSymbol)m.owner, false);
+            for (ClassSymbol c: classes) {
                for (Symbol mem: c.members().getSymbols(
             		   mem->(mem instanceof MethodSymbol &&
-            				   mem.name.equals(m.name) &&
-            				   (mem == m || m.overrides(mem, c, Types.instance(context), true)))
-            		   )) {
-            	   methods.add((MethodSymbol)mem);
+            				   mem.name.equals(m.name)))) {
+
+            	   boolean ok = m.overrides(mem, (TypeSymbol)m.owner, Types.instance(context), true, false);
+            	   if (ok) methods.add((MethodSymbol)mem);
                 }
             }
         }

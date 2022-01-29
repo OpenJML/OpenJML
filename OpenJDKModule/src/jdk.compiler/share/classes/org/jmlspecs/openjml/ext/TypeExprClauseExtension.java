@@ -116,29 +116,29 @@ public class TypeExprClauseExtension extends JmlExtension {
         }
 
         
-        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
-        	JmlTypeClauseExpr tree = (JmlTypeClauseExpr)expr;
-            boolean isStatic = tree.modifiers != null && attr.isStatic(tree.modifiers);
-            JavaFileObject old = log.useSource(tree.source);
+        public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
+        	JmlTypeClauseExpr clause = (JmlTypeClauseExpr)tree;
+            boolean isStatic = clause.modifiers != null && attr.isStatic(clause.modifiers);
+            JavaFileObject old = log.useSource(clause.source);
             attr.jmlenv = attr.jmlenv.pushCopy();
             VarSymbol previousSecretContext = attr.currentSecretContext;
             boolean prevAllowJML = attr.jmlresolve.setAllowJML(true);
             Env<AttrContext> localEnv = env; // FIXME - here and in constraint, should we make a new local environment?
             try {
                 attr.jmlenv.inPureEnvironment = true;
-                attr.jmlenv.currentClauseKind = tree.clauseType;
+                attr.jmlenv.currentClauseKind = clause.clauseType;
                 // invariant, axiom, initially
                 //if (tree.token == JmlToken.AXIOM) isStatic = true; // FIXME - but have to sort out use of variables in axioms in general
-                if (isStatic) attr.bumpStatic(localEnv);
+                if (isStatic) attr.addStatic(localEnv);
 
-                if (tree.clauseType == invariantClause) {
+                if (clause.clauseType == invariantClause) {
                 	attr.jmlenv.jmlVisibility = -1;
-                	attr.attribAnnotationTypes(tree.modifiers.annotations,env); // Is this needed?
-                    JCAnnotation a = attr.findMod(tree.modifiers,Modifiers.SECRET);
-                    attr.jmlenv.jmlVisibility = tree.modifiers.flags & Flags.AccessFlags;
+                	attr.attribAnnotationTypes(clause.modifiers.annotations,env); // Is this needed?
+                    JCAnnotation a = attr.findMod(clause.modifiers,Modifiers.SECRET);
+                    attr.jmlenv.jmlVisibility = clause.modifiers.flags & Flags.AccessFlags;
                     if (a != null) {
                         if (a.args.size() != 1) {
-                        	utils.error(tree.pos(),"jml.secret.invariant.one.arg");
+                        	utils.error(clause.pos(),"jml.secret.invariant.one.arg");
                         } else {
                             Name datagroup = attr.getAnnotationStringArg(a);
                             if (datagroup != null) {
@@ -152,16 +152,15 @@ public class TypeExprClauseExtension extends JmlExtension {
                         }
                     }
                 }
-
-                attr.attribExpr(tree.expression, localEnv, syms.booleanType);
-                attr.checkTypeClauseMods(tree,tree.modifiers,tree.clauseType.keyword() + " clause",tree.clauseType);
+                attr.attribExpr(clause.expression, localEnv, syms.booleanType);
+                attr.checkTypeClauseMods(clause,clause.modifiers,clause.clauseType.keyword() + " clause",clause.clauseType);
                 return null;
             } catch (Exception e) {
-            	utils.note(tree, "jml.message", "Exception occurred in attributing clause: " + tree);
+            	utils.note(clause, "jml.message", "Exception occurred in attributing clause: " + clause);
             	utils.note("    Env: " + env.enclClass.name + " " + (env.enclMethod==null?"<null method>": env.enclMethod.name));
             	throw e;
             } finally {
-                if (isStatic) attr.decStatic(localEnv);  // FIXME - move this to finally, but does not screw up the checks on the next line?
+                if (isStatic) attr.removeStatic(localEnv);  // FIXME - move this to finally, but does not screw up the checks on the next line?
                 attr.currentSecretContext = previousSecretContext;
                 attr.jmlresolve.setAllowJML(prevAllowJML);
                 attr.jmlenv = attr.jmlenv.pop();

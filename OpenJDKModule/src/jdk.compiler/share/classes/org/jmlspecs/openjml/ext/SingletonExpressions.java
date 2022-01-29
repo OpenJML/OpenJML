@@ -94,7 +94,7 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public void checkParse(JmlParser parser, JmlSingleton e, String rep) {
-            if (this == countKind) strictCheck(parser, e);
+            //if (this == countKind) strictCheck(parser, e); // FIXME - fix this when issue is decided; used in various library specs
         }
     };
     
