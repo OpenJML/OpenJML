@@ -1,0 +1,5 @@
+test/twoFilesB/B.java:1: error: variable k is already defined in class B
+public class B { int k ; /*@ ghost double k; */ }
+                                          ^
+Operation not performed because of parse or type errors
+1 error
