@@ -1,0 +1,7 @@
+test/twoFilesE/A.jml:2: error: cannot find symbol
+public class A { B c;  }
+                 ^
+  symbol:   class B
+  location: class A
+Operation not performed because of parse or type errors
+1 error

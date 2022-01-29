@@ -1,0 +1,2 @@
+FULLCMD="$CMD $BASEARGS -cp $p -specspath $p $ARGS $p/A.java"
+EXIT=1

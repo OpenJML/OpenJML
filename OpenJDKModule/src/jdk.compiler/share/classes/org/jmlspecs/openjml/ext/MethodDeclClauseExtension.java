@@ -47,7 +47,7 @@ public class MethodDeclClauseExtension extends JmlExtension  {
             JCExpression t = parser.parseType();
             boolean prev = parser.setInJmlDeclaration(true); // allows non-ghost declarations
             ListBuffer<JCTree.JCVariableDecl> decls = parser.variableDeclarators(mods, t,
-                    new ListBuffer<JCVariableDecl>(), false); // FIXME - why not true - this is a local decl
+                    new ListBuffer<JCVariableDecl>(), true);
             parser.setInJmlDeclaration(prev);
             JmlMethodClauseDecl res = parser.to(parser.maker().at(pp)
                     .JmlMethodClauseDecl(keyword, clauseType, decls.toList()));

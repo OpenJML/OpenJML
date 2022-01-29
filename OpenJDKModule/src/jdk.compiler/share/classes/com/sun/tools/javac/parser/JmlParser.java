@@ -1586,6 +1586,7 @@ public class JmlParser extends JavacParser {
     // exceptional_behavior ] [ clause ]*
     public JmlSpecificationCase parseSpecificationCase(JCModifiers mods, boolean exampleSection) {
         IJmlClauseKind also = null;
+        int alsoPos = Position.NOPOS;
         IJmlClauseKind ext = methodSpecKeyword();
         if (ext == alsoClause || ext == elseClause) {
             if (!isNone(mods)) {
@@ -1593,6 +1594,7 @@ public class JmlParser extends JavacParser {
                 mods = null;
             }
             also = ext;
+            alsoPos = pos();
             nextToken();
             acceptEndJML();
             // get any modifiers
@@ -1684,6 +1686,7 @@ public class JmlParser extends JavacParser {
         if (ext == null && code) code = false; // Already warned about this
         JmlSpecificationCase j = jmlF.at(pos).JmlSpecificationCase(mods, code,
                 ext, also, clauses.toList(), stat);
+        j.alsoPos = alsoPos;
         j.name = specCaseName;
         storeEnd(j, j.clauses.isEmpty() ? pos + 1 : getEndPos(j.clauses.last()));
         j.sourcefile = currentSourceFile();
