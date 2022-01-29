@@ -121,6 +121,8 @@ public class SpecsBase extends TCBase {
         	if (f.contains("org.jmlspecs.models")) continue; // FIXME - eventually support or delete these
             data.add(new String[]{ f});
         }
+//        data.add(new String[] { "org.hamcrest.Matcher" });
+//        counts.put("org.hamcrest.Matcher", 0);
         return data;
     }
 

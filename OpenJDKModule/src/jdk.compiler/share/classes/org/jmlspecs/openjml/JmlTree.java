@@ -2946,6 +2946,7 @@ public class JmlTree {
 
     /** This class represents a specification case in a method specification */
     public static class JmlSpecificationCase extends JmlAbstractStatement implements JmlSource {
+    	public int alsoPos = Position.NOPOS; // NOPOS if there is no also token
         public JCModifiers modifiers;
         public IJmlClauseKind token;
         public IJmlClauseKind also;

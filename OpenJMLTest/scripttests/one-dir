@@ -10,18 +10,20 @@ if [ ! -e ${home}/../test/$ts ]; then
 fi
 cd ${home}/../test/$ts
 
-if [ -e config ]; then . ./config; fi
 
 if [ -e skip ]; then
     echo Skipping $ts
 elif [ -e rac ]; then
     echo Skipped-rac $ts
 else
-    cd ../..
     p=test/$ts
+    if [ -e config ]; then . ./config; fi
 ##    echo Testing $ts 
-##: $CMD $BASEARGS -specspath $p:$SPECS $ARGS -dir $p
-    $CMD $BASEARGS -specspath $p $ARGS -dir $p > $p/actual 2>&1
+    cd ../..
+    ## If you change the default FULLCMD, you may want to consider if the specialized versions in various test config files should be changed
+    if [ -z "$FULLCMD" ]; then FULLCMD="$CMD $BASEARGS -specspath $p $ARGS -dir $p"; fi
+##: $FULLCMD
+    $FULLCMD > $p/actual 2>&1
     stat=$?
     if [ ! -e $p/actual ]; then echo $p/actual : NO ACTUAL ; fi
     . $home/check-result $p/actual $stat && exit 1

@@ -341,12 +341,13 @@ public class JmlTreeUtils {
         }
     }
     
+    // FIXME - use TreeInfo.symbol() instead?
     public Symbol getSym(JCTree tree) {
         if (tree instanceof JCMethodInvocation) tree = ((JCMethodInvocation)tree).meth;
-        if (tree instanceof JCIdent) {
-            return ((JCIdent)tree).sym;
-        } else if (tree instanceof JCFieldAccess) {
-            return ((JCFieldAccess)tree).sym;
+        if (tree instanceof JCIdent id) {
+            return id.sym;
+        } else if (tree instanceof JCFieldAccess fa) {
+            return fa.sym;
         } else {
             return null;
         }
