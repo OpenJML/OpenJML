@@ -1,0 +1,13 @@
+test/twoFilesD/A.java:3: error: cannot find symbol
+public class A { B bb;  }
+                 ^
+  symbol:   class B
+  location: class A
+test/twoFilesD/q/B.jml:2: error: This JML field declaration conflicts with an existing field with the same name: k (owner: q.B)
+public class B { /*@ model int k;*/ }
+                               ^
+test/twoFilesD/q/B.java:2: error: Associated declaration: test/twoFilesD/q/B.jml:2:
+public class B { int k ;  }
+                     ^
+Operation not performed because of parse or type errors
+3 errors
