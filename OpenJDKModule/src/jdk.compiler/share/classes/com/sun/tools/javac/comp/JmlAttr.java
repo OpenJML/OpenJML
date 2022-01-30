@@ -380,6 +380,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    		return;
 //    	}
     	if (!(c.owner instanceof ClassSymbol || c.owner instanceof PackageSymbol)) {
+    		// A local class
     		var classEnv = typeEnvs.get(c);
     		if (classEnv == null) {
     			// This branch happens for calls to clone() (at least)
@@ -1139,12 +1140,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // FIXME - what else is relaxed?  We should do the check under the right conditions?
         if (m.sym == null) return; // Guards against specification method declarations that are not matched - FIXME
 
+        jmlenv = jmlenv.pushCopy();
+        jmlenv.enclosingMethodDecl = (JmlMethodDecl)m;
+        
         JmlMethodDecl jmethod = (JmlMethodDecl)m;
         Map<Name,Env<AttrContext>> prevLabelEnvs = labelEnvs;
         labelEnvs = new HashMap<Name,Env<AttrContext>>();
 
         var savedEnclosingMethodEnv = enclosingMethodEnv;
-        enclosingMethodEnv = env;
+        enclosingMethodEnv = env; // FIXME - not the method env that super.visitMethodDef creates
         
         VarSymbol previousSecretContext = currentSecretContext;
         VarSymbol previousQueryContext = currentQueryContext;
@@ -1236,6 +1240,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             labelEnvs.clear();
             labelEnvs = prevLabelEnvs;
         	if (utils.verbose()) utils.note("Completed Attributing method " + env.enclClass.sym + " " + m.name);
+        	jmlenv = jmlenv.pop();
         }
     }
     
@@ -2331,16 +2336,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     }
                 } else {
                     for (JCTree tt: asg.list) {
+                    	var p = tt.pos != Position.NOPOS ? tt.pos : asg.pos != Position.NOPOS ? asg.pos : decl != null ? decl.pos : Position.NOPOS;
                         if (tt instanceof JmlStoreRefKeyword &&
                                 ((JmlStoreRefKeyword)tt).kind == nothingKind) {
                                     // OK
                         } else if (tt instanceof JmlSingleton key &&
                                     key.kind == nothingKind) {
                                         // OK
-                        } else if (isFunction(decl.sym)) {
-                            utils.error(tt,"jml.function.method",tt.toString());
+                        } else if (decl != null && isFunction(decl.sym)) {
+                            utils.error(asg.source(),p,"jml.function.method",tt.toString());
                         } else {
-                            utils.error(tt,"jml.pure.method", tt.toString());
+                            utils.error(asg.source(),p,"jml.pure.method", tt.toString() + " in " + msym.owner + "." + msym);
                         }
                     }
                 }
@@ -3181,14 +3187,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 ((env.enclClass.sym.flags() & INTERFACE) != 0 && env.enclMethod == null))
             localEnv.info.staticLevel++;
         return localEnv;
-    }
-    
-    public void bumpStatic(Env<AttrContext> env) {
-        env.info.staticLevel++;
-    }
-    
-    public void decStatic(Env<AttrContext> env) {
-        env.info.staticLevel--;
     }
     
     /** Attributes the monitors_for clause */
@@ -4156,7 +4154,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	super.visitBinary(that);
     	if (that.getTag() != Tag.EQ && that.getTag() != Tag.NE) return;
     	if ((utils.isExtensionValueType(that.lhs.type) || utils.isExtensionValueType(that.rhs.type))
-    			&& !jmltypes.isSameType(that.rhs.type,that.lhs.type)) {
+    			&& !jmltypes.isSameType(jmltypes.erasure(that.rhs.type),jmltypes.erasure(that.lhs.type))) { // FIXME: type parameters are not always retained for expressions (e.g. casts)
     		utils.error(that, "jml.message", "Values of JML primitive types may only be compared to each other: "
     				+ that.lhs.type + " vs. " + that.rhs.type);
     	}
@@ -5119,7 +5117,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.keyword());
                 }
                 
-                if (jmlenv.currentLabel != null && enclosingMethodEnv.enclMethod.sym.isConstructor()) {
+                if (jmlenv.currentLabel != null && jmlenv.enclosingMethodDecl.sym.isConstructor()) {
                     if (sym.owner instanceof ClassSymbol && !sym.isStatic() && 
                             (selected == null || (selected instanceof JCIdent && 
                                  (((JCIdent)selected).name == names._this || ((JCIdent)selected).name == names._super)))) {
@@ -6754,7 +6752,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             specs.getSpecs(that.sym); // Attributing specs, if not already done
 
-            if (((JmlClassDecl)enclosingClassEnv.tree).sym.isInterface()) {
+            if (that.sym.owner.isInterface()) {
                 if (isModel(that.mods)) {
                     if (!isStatic(that.mods) && !isInstance(that.mods)) {
                         utils.warning(that,"jml.message","Model fields in an interface should be explicitly declared either static or instance: " + that.name);
@@ -7226,6 +7224,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	return env;
     }
     
+    public int countStatic(Env<AttrContext> env) {
+        return env.info.staticLevel;
+    }
+    
     public Env<AttrContext> removeStatic(Env<AttrContext> env) {
     	env.info.staticLevel--;
     	return env;
@@ -7270,6 +7272,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		if (sp.specDecl != null) prev = log.useSource(sp.specDecl.sourcefile);
     		this.env = sp.specsEnv;
     		this.enclosingMethodEnv = sp.specsEnv;
+    		jmlenv.enclosingMethodDecl = sp.specDecl;
     		specs.getSpecs((ClassSymbol)msym.owner); // Checking all the type clauses and declarations, if not already done
     		jmlenv.inPureEnvironment = true;
     		if (utils.verbose()) utils.note("    Lint " + msym.owner + " " + msym + " " + (sp.specsEnv.info.lint != null));
@@ -7297,9 +7300,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	                    if (specHasAlso && !methodOverrides) {
     	                        if (!jmethod.name.toString().equals("compareTo") && !jmethod.name.toString().equals("definedComparison")) {// FIXME
     	                            if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
-    	                                utils.error(spec, "jml.extra.also", jmethod.name.toString() );
+    	                                utils.error(spec.alsoPos, "jml.extra.also", jmethod.name.toString() );
     	                            } else {
-    	                                utils.warning(spec, "jml.extra.also", jmethod.name.toString() );
+    	                                utils.warning(spec.alsoPos, "jml.extra.also", jmethod.name.toString() );
     	                            }
     	                        }
     	                    } else if (!specHasAlso && methodOverrides) {
@@ -7605,6 +7608,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         //@ nullable
         public JmlStatementSpec currentBlockContract;
 
+        //@ nullable
+        public JmlMethodDecl enclosingMethodDecl = null;
         
     	public JmlEnv() {
     		previous = null;
@@ -7627,7 +7632,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		inExpressionScope = e.inExpressionScope;
     		jmlVisibility = e.jmlVisibility;
     		representsHead = e.representsHead;
-    		currentBlockContract= e.currentBlockContract;
+    		currentBlockContract = e.currentBlockContract;
+    		enclosingMethodDecl = e.enclosingMethodDecl;
     	}
     	
     	public JmlEnv pushCopy() {
