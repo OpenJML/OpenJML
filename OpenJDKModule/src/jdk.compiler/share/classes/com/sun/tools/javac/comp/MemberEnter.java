@@ -181,7 +181,7 @@ public class MemberEnter extends JCTree.Visitor {
         MethodSymbol m = new MethodSymbol(0, tree.name, null, enclScope.owner);
         m.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, m, tree);
         tree.sym = m;
-        
+
         //if this is a default method, add the DEFAULT flag to the enclosing interface
         if ((tree.mods.flags & DEFAULT) != 0) {
             m.owner.flags_field |= DEFAULT;
@@ -257,11 +257,6 @@ public class MemberEnter extends JCTree.Visitor {
                 ((env.info.scope.owner.flags() & INTERFACE) != 0));
     }
     
-    protected static boolean isStatic(Env<AttrContext> env) {
-        return env.outer != null && env.info.staticLevel > env.outer.info.staticLevel;
-    }
-
-
     public void visitVarDef(JCVariableDecl tree) {
         Env<AttrContext> localEnv = env;
         if (visitVarDefIsStatic(tree,env)) {  // OPENJML
@@ -328,7 +323,7 @@ public class MemberEnter extends JCTree.Visitor {
         v.pos = tree.pos;
     }
 
-    // OPENJML - added to allow overriding some functionality
+    // OPENJML - added to allow overriding some functionality // FIXME - return value not used
     protected boolean visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, WriteableScope enclScope, Env<AttrContext> localEnv) {
     	if (chk.checkUnique(tree.pos(), m, enclScope)) {
     		enclScope.enter(m);

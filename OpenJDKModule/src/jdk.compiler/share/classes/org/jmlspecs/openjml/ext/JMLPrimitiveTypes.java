@@ -36,7 +36,7 @@ public class JMLPrimitiveTypes extends JmlExtension {
 			if (type == null || context != this.context) {
 				this.context = context;
 				JCExpression id = JmlTree.Maker.instance(context).QualIdent("org","jmlspecs","lang",typename);
-				type = JmlAttr.instance(context).attribType(id, JmlEnter.instance(context).tlenv);
+				type = JmlAttr.instance(context).attribType(id, JmlEnter.instance(context).tlenv); // FIXME - this should be improved (and tlenv removed)
 			}
 			return type;
 		}

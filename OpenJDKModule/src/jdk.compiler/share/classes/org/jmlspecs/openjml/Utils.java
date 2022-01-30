@@ -1004,7 +1004,7 @@ public class Utils {
     
     private ClassSymbol objectSym = null;
 
-    // Returns all methods that are overridden by the argument
+    // Returns all methods that are overridden by the argument, including self // FI(XME - review for order
     public java.util.List<MethodSymbol> parents(MethodSymbol m) {
         List<MethodSymbol> methods = new LinkedList<MethodSymbol>();
         if (isJMLStatic(m)) {
@@ -1020,7 +1020,6 @@ public class Utils {
                for (Symbol mem: c.members().getSymbols(
             		   mem->(mem instanceof MethodSymbol &&
             				   mem.name.equals(m.name)))) {
-
             	   boolean ok = m.overrides(mem, (TypeSymbol)m.owner, Types.instance(context), true, false);
             	   if (ok) methods.add((MethodSymbol)mem);
                 }

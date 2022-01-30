@@ -282,15 +282,11 @@ public class Enter extends JCTree.Visitor {
      *  @param env     The environment visitor argument.
      */
     Type classEnter(JCTree tree, Env<AttrContext> env) {
-    	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCCompilationUnit cu) System.out.println("Entering CU " + cu.sourcefile);
-    	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl d) System.out.println("Entering class " + d.name);
         Env<AttrContext> prevEnv = this.env;
         try {
             this.env = env;
             annotate.blockAnnotations();
             tree.accept(this);
-        	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCCompilationUnit cu) System.out.println("Entered CU " + cu.sourcefile + " " + result);
-        	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl d) System.out.println("Entered class " + d.sym.hashCode() + " " + d.name + " " + result);
             return result;
         }  catch (CompletionFailure ex) {
             return chk.completionError(tree.pos(), ex);
@@ -333,6 +329,7 @@ public class Enter extends JCTree.Visitor {
             JCPackageDecl pd = tree.getPackage();
             if (pd != null) {
                 tree.packge = pd.packge = syms.enterPackage(tree.modle, TreeInfo.fullName(pd.pid));
+                setPackageSymbols.scan(pd);
                 if (   pd.annotations.nonEmpty()
                     || pkginfoOpt == PkgInfo.ALWAYS
                     || tree.docComments != null) {
@@ -396,6 +393,31 @@ public class Enter extends JCTree.Visitor {
         log.useSource(prev);
         result = null;
     }
+        //where:
+        //set package Symbols to the package expression:
+        private final TreeScanner setPackageSymbols = new TreeScanner() {
+            Symbol currentPackage;
+
+            @Override
+            public void visitIdent(JCIdent tree) {
+                tree.sym = currentPackage;
+                tree.type = currentPackage.type;
+            }
+
+            @Override
+            public void visitSelect(JCFieldAccess tree) {
+                tree.sym = currentPackage;
+                tree.type = currentPackage.type;
+                currentPackage = currentPackage.owner;
+                super.visitSelect(tree);
+            }
+
+            @Override
+            public void visitPackageDef(JCPackageDecl tree) {
+                currentPackage = tree.packge;
+                scan(tree.pid);
+            }
+        };
 
     @Override
     public void visitClassDef(JCClassDecl tree) {
@@ -472,7 +494,6 @@ public class Enter extends JCTree.Visitor {
         // table, to be retrieved later in memberEnter and attribution.
         Env<AttrContext> localEnv = classEnv(tree, env);
         typeEnvs.put(c, localEnv);
-        if (org.jmlspecs.openjml.Utils.debug()) System.out.println("STORING ENV FOR CLASS " + c + " " + c.hashCode() + " " + (localEnv != null));
 
         // Fill out class fields.
         c.completer = Completer.NULL_COMPLETER; // do not allow the initial completer linger on.
@@ -507,11 +528,12 @@ public class Enter extends JCTree.Visitor {
         // Add non-local class to uncompleted, to make sure it will be
         // completed later.
         if (!c.isDirectlyOrIndirectlyLocal() && uncompleted != null) uncompleted.append(c);
+//      System.err.println("entering " + c.fullname + " in " + c.owner);//DEBUG
 
         // Recursively enter all member classes.
         classEnter(tree.defs, localEnv);
 
-//        Assert.checkNonNull(c.modle, c.sourcefile.toString());  // OPENJML - FIXME - who commented this out, OPENJML or OPENJDK?
+//        Assert.checkNonNull(c.modle, c.sourcefile.toString());
 
         result = c.type;
     }
@@ -587,11 +609,9 @@ public class Enter extends JCTree.Visitor {
             if (typeEnter.completionEnabled) {
                 while (uncompleted.nonEmpty()) {
                     ClassSymbol clazz = uncompleted.next();
-                    if (c == null || c == clazz || prevUncompleted == null) {
-                    	if (org.jmlspecs.openjml.Utils.debug()) System.out.println("Completing class " + clazz);
-                        clazz.complete();   // OPENJML - record classes are filled out in this call
-                    	if (org.jmlspecs.openjml.Utils.debug()) System.out.println("Completed  class " + clazz);
-                    } else
+                    if (c == null || c == clazz || prevUncompleted == null)
+                        clazz.complete();
+                    else
                         // defer
                         prevUncompleted.append(clazz);
                 }

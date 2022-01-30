@@ -836,7 +836,7 @@ public class JmlSpecs {
     	if (status(type).less(SpecsStatus.SPECS_LOADED)) JmlEnter.instance(context).requestSpecs(type);
     	var ts = specsTypes.get(type);
     	if (ts == null) {
-    		ts = new TypeSpecs(type, null, (JmlModifiers)JmlTree.Maker.instance(context).Modifiers(type.flags()), new ListBuffer<>());
+    		ts = new TypeSpecs(type, null, (JmlModifiers)JmlTree.Maker.instance(context).Modifiers(type.flags()), null);
             utils.note(true,"      inserting default class specs for " + type.flatname);
     		specsTypes.put(type,  ts);
     	}
@@ -1362,18 +1362,15 @@ public class JmlSpecs {
         public Env<AttrContext> specsEnv; // The env to use to typecheck the specs
         
         
-        /** The source file for the modifiers, not necessarily for the rest of the specs
-         * if these are the combined specs */
-        //@ nullable   // may be null if there are no specs or only default or inferred specs; only useful for modifiers and clauses and initializer blocks
+        // The source file for the specifications -- not necessarily the same as csymbol.sourcefile
         public JavaFileObject file;
 
-        /** The JmlClassDecl for the specification; note that this is not particularly useful as specifications for
-         * individual member declarations may come from various places; this is only helpful for modifiers and clauses and initializer blocks
+        /** The JmlClassDecl for the specification
          */
-        //@ nullable   // may be null if (a) the class is binary and there are no specs in any source file (so any specs are default or inferred)
+        //@ nullable   // may be null if the class is binary and there is no specification file
         public JmlClassDecl specDecl;
 
-        /** The JML modifiers of the class, possibly combined from various locations */
+        /** The JML modifiers of the class, including JML modifiers */
         public JmlModifiers modifiers;
 
         /** Caches the nullity for the associated class: if null, not yet determined;
@@ -1392,18 +1389,7 @@ public class JmlSpecs {
         /*@ non_null */
         public ListBuffer<JmlTree.JmlTypeClauseDecl> modelFieldMethods = new ListBuffer<JmlTree.JmlTypeClauseDecl>();
 
-        // The following maps are part of the TypeSpecs so that everything associated with a given
-        // type can be disposed of at once (by releasing references to the TypeSpecs instance)
-
-//        /** A map from methods of the class to the specifications for the method. */
-//        /*@ non_null */
-//        public Map<MethodSymbol,MethodSpecs> methods = new HashMap<MethodSymbol,MethodSpecs>();
-//
-//        /** A map from fields of the class to the specifications for the field. */
-//        /*@ non_null */
-//        public Map<VarSymbol,FieldSpecs> fields = new HashMap<VarSymbol,FieldSpecs>();
-//        
-        /** A map from initializer blocks of the class to the specifications for the initializers. */
+        /** A map from initializer blocks of the class to the specifications for the initializers. */ // FIXME - review
         /*@ non_null */
         public Map<JCTree.JCBlock,MethodSpecs> blocks = new HashMap<JCTree.JCBlock,MethodSpecs>();
 
@@ -1417,38 +1403,41 @@ public class JmlSpecs {
         
        
         // Only for the case in which there is no specification file -- that is, default or inferred specs
-        public TypeSpecs(ClassSymbol csymbol, JavaFileObject file, JmlModifiers mods, ListBuffer<JmlTree.JmlTypeClause> clauses) {
+        public TypeSpecs(ClassSymbol csymbol, JavaFileObject file, JmlModifiers mods, Env<AttrContext> env) {
             this.file = file;
             this.csymbol = csymbol;
             this.specDecl = null;
             this.modifiers = mods;
-            this.clauses = clauses != null ? clauses : new ListBuffer<JmlTypeClause>();
-            this.specsEnv = null;
+            this.clauses = new ListBuffer<JmlTypeClause>();
+            this.specsEnv = env;
             this.status = SpecsStatus.SPECS_LOADED;
         }
         
         public TypeSpecs(JmlClassDecl specdecl, Env<AttrContext> env) {
-            this.file = specdecl.source();
-            this.specDecl = specdecl;
-            this.modifiers = (JmlModifiers)specdecl.mods;
-            this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
-            for (JCTree t: specdecl.defs) {
-            	if (t instanceof JmlTypeClauseInitializer) {
-            		if (((JmlTypeClauseInitializer)t).keyword.equals(TypeInitializerClauseExtension.staticinitializerID)) {
-            			staticInitializerSpec = (JmlTypeClauseInitializer)t;
-            		} else {
-            			initializerSpec = (JmlTypeClauseInitializer)t;
-            		}
-            	} else if (t instanceof JmlTypeClauseConditional) {
-            		// No such clause should be present // FIXME: error message
-            		System.out.println("UNEXPECTED RW CLAUSE " + t);
-            	} else if (t instanceof JmlTypeClause) {
-            		this.clauses.add((JmlTypeClause)t);
-            	}
-            }
-            specdecl.typeSpecs = this;
+        	if (specdecl == null) System.out.println("UNEXPECTED NULL SPECDECL");
+        	this.specDecl = specdecl;
+        	this.csymbol = specdecl.sym;
+        	this.file = specdecl.source(); // FIXME - do we need this caching?
+        	this.modifiers = (JmlModifiers)specdecl.mods; // FIXME - need to set mods from java or csymbol
+        	this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
+        	for (JCTree t: specdecl.defs) {
+        		if (t instanceof JmlTypeClauseInitializer) {
+        			if (((JmlTypeClauseInitializer)t).keyword.equals(TypeInitializerClauseExtension.staticinitializerID)) {
+        				staticInitializerSpec = (JmlTypeClauseInitializer)t;  // FIXME - only one each?
+        			} else {
+        				initializerSpec = (JmlTypeClauseInitializer)t;
+        			}
+        		} else if (t instanceof JmlTypeClauseConditional) {
+        			// No such clause should be present // FIXME: error message
+        			System.out.println("UNEXPECTED RW CLAUSE " + t);
+        		} else if (t instanceof JmlTypeClause) {
+        			this.clauses.add((JmlTypeClause)t);
+        		}
+        	}
+        	specdecl.typeSpecs = this; // FIXME - should we really reset this?
             this.specsEnv = env;
             this.status = SpecsStatus.SPECS_LOADED;
+            // FIXME ??? - blocks
         }
         
         public void setEnv(Env<AttrContext> env) {
@@ -1835,10 +1824,11 @@ public class JmlSpecs {
     public boolean isPure(MethodSymbol symbol) {
     	//boolean print = symbol.toString().contains("println");
     	JmlModifiers mods = getSpecsModifiers(symbol);
-    	if (mods == null) return false;
-    	//if (print) System.out.println("MODS " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasMod(mods,  Modifiers.PURE) + " " + utils.hasMod(mods,  Modifiers.FUNCTION)+ " " + symbol.owner + " " + isPure((Symbol.ClassSymbol)symbol.owner));
-    	if (utils.hasMod(mods,  Modifiers.PURE)) return true; 
-    	if (utils.hasMod(mods,  Modifiers.FUNCTION)) return true; 
+    	if (mods != null) {
+    		//if (print) System.out.println("MODS " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasMod(mods,  Modifiers.PURE) + " " + utils.hasMod(mods,  Modifiers.FUNCTION)+ " " + symbol.owner + " " + isPure((Symbol.ClassSymbol)symbol.owner));
+    		if (utils.hasMod(mods,  Modifiers.PURE)) return true; 
+    		if (utils.hasMod(mods,  Modifiers.FUNCTION)) return true; 
+    	}
         return isPure((Symbol.ClassSymbol)symbol.owner);
     }
     
@@ -1908,6 +1898,7 @@ public class JmlSpecs {
         
         public MethodSpecs(JmlMethodDecl specsDecl) { 
             this.mods = specsDecl.mods;
+            this.specDecl = specsDecl;
             if (specsDecl.cases == null) {
                 cases = new JmlMethodSpecs();
                 cases.pos = specsDecl.pos;
@@ -1919,13 +1910,13 @@ public class JmlSpecs {
             status = SpecsStatus.SPECS_LOADED;
         }
         
-        public MethodSpecs(JCTree.JCModifiers mods, JmlMethodSpecs specsDecl) { 
+        public MethodSpecs(JCTree.JCModifiers mods, JmlMethodSpecs methodSpecs) { 
             this.mods = mods;
-            if (specsDecl.cases == null) {
+            if (methodSpecs.cases == null) {
                 cases = new JmlMethodSpecs();
-                cases.pos = specsDecl.pos;
+                cases.pos = methodSpecs.pos;
             } else {
-                cases = specsDecl;
+                cases = methodSpecs;
             }
             specsEnv = null;
             status = SpecsStatus.SPECS_LOADED;

@@ -3490,7 +3490,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// consequently no implementations of model fields
 				// FIXME - need some tests for these options - not sure the binary ones have any
 				// effect here???
-				if (env != null && env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.JML) {
+				if (env != null && env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.JML) { // FIXME - double check whether .jml files have Kind JML or OTHER?? 
 					String opt = JmlOption.value(context, JmlOption.RAC_MISSING_MODEL_FIELD_REP_SOURCE);
 					if ("skip".equals(opt)) {
 						throw new NoModelMethod("No represents clause for model field " + varsym);
@@ -14555,10 +14555,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				etype = M.Ident(names.fromString("Float")); // FIXME - should use fully qualified type
 			}
 			if (etype != null && splitExpressions) { // FIXME - still need the assumption even if !splitExpressions
-				JCFieldAccess fa = M.Select(etype, names.fromString("isFinite"));
+				JCFieldAccess fa = M.Select(etype, names.fromString("isFinite")); // FIXME _ what in the world is this for
 				JCMethodInvocation app = M.Apply(null, fa, List.<JCExpression>of(that));
 				encapsulated = true;
-				attr.attribExpr(app, Enter.instance(context).getTopLevelEnv(classDecl.toplevel));
+				attr.attribExpr(app, Enter.instance(context).getTopLevelEnv(classDecl.toplevel)); // FIXME - just topLevelEnv I think
 				addAssume(that, Label.IMPLICIT_ASSUME, convertExpr(app));
 				encapsulated = false;
 			}
