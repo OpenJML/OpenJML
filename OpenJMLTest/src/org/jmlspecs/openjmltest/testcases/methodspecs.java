@@ -195,7 +195,7 @@ public class methodspecs extends TCBase {
                 +"//@ pure\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:6: error: Pure methods may not assign to any fields: \\everything",16
+                ,"/TEST.java:6: error: Pure methods may not assign to any fields: \\everything in A.m()",16
         );
     }
     
@@ -212,9 +212,9 @@ public class methodspecs extends TCBase {
                 +"//@ pure\n"
                 +"int m() {  return 0; }\n"
                 +"}"
-                ,"/TEST.java:6: error: Pure methods may not assign to any fields: k",16
-                ,"/TEST.java:6: error: Pure methods may not assign to any fields: sk",19
-                ,"/TEST.java:6: error: Pure methods may not assign to any fields: this.k",27
+                ,"/TEST.java:6: error: Pure methods may not assign to any fields: k in A.m()",16
+                ,"/TEST.java:6: error: Pure methods may not assign to any fields: sk in A.m()",19
+                ,"/TEST.java:6: error: Pure methods may not assign to any fields: this.k in A.m()",27
         );
     }
     
