@@ -967,16 +967,28 @@ public class JmlSpecs {
     }
     
     /** Returns loaded specs: modifiers are present; specification cases may be present, 
-     * but are not necessarily attributed.
+     * but are not necessarily attributed; does not fill in default specs, so may return null
+     * if no specification file is found.
      */
-    //@ non_null
+    //@ nullable // FIXME - really?
     public MethodSpecs getLoadedSpecs(MethodSymbol m) {
  //   	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
-    	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) JmlEnter.instance(context).requestSpecs((ClassSymbol)m.owner);
+    	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) {
+    		JmlEnter.instance(context).requestSpecs((ClassSymbol)m.owner);
+        	var ms = specsMethods.get(m);
+    		if (ms == null) setStatus(m, SpecsStatus.SPECS_LOADED);
+//        	if (ms == null) {
+//        		setStatus(m, SpecsStatus.SPECS_LOADED);// So defaultSpecs does not go into an infinite loop
+//                if (utils.verbose()||true) {
+//                	System.out.println("Null specs returned from getLoadedSpecs (inserting defaults) for " + m.owner + " " + m + " " + m.hashCode());
+//                	if (m.toString().equals("append(java.lang.CharSequence)")) Utils.dumpStack();
+//                }
+//        		ms = defaultSpecs(null,m,Position.NOPOS); 
+//        		specsMethods.put(m,ms);
+//        	}
+    	}
     	var ms = specsMethods.get(m);
-        if (ms == null && utils.verbose()) System.out.println("Null specs returned from getLoadedSpecs (inserting defaults) for " + m.owner + " " + m + " " + m.hashCode());
-    	if (ms == null) { ms = defaultSpecs(null,m,Position.NOPOS); specsMethods.put(m,ms); }
-        if (ms == null && utils.verbose()) System.out.println("Null specs returned from getLoadedSpecs (no default) for " + m.owner + " " + m + " " + m.hashCode());
+//        if (ms == null) System.out.println("Null specs returned from getLoadedSpecs (no default) for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
         return ms;
     }
     

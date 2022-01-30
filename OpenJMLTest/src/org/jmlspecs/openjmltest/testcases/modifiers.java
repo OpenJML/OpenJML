@@ -591,7 +591,7 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testLocalClass() {
-        helpTCF("A.java","public class A{ void m() {\n /* @ pure  */ class C {}; } }"
+        helpTCF("A.java","public class A{ void m() {\n /*@ pure  */ class C {}; } }"
                 ); 
         
     }
@@ -626,8 +626,8 @@ public class modifiers extends TCBase {
     
     @Test public void testLocalClass4() {
         helpTCF("A.java","public class A{ void m() {\n /*@ ghost  class C {} */ } }"
-                ,"/A.java:2: error: This JML modifier is not allowed for a local type declaration",6
                 ,"/A.java:2: error: A method or type declaration within a JML annotation must be model",13
+                ,"/A.java:2: error: This JML modifier is not allowed for a local type declaration",6
                 ); 
         
     }
@@ -1025,7 +1025,7 @@ public class modifiers extends TCBase {
                 "  //@ public also behavior requires true;\n" +
                 "  void m() {} }"
                 ,"/A.java:2: warning: No modifiers are allowed prior to a also token",7
-                ,"/A.java:2: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",19
+                ,"/A.java:2: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",14
                 );
     }
      
@@ -1035,7 +1035,7 @@ public class modifiers extends TCBase {
                 "  //@ pure also behavior requires true;\n" +
                 "  void m() {} }"
                 ,"/A.java:2: warning: No modifiers are allowed prior to a also token",7
-                ,"/A.java:2: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",17
+                ,"/A.java:2: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",12
                 );
     }
      

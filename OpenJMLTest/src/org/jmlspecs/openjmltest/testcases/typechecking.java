@@ -61,7 +61,7 @@ public class typechecking extends TCBase {
     	expectedExit = 0;
         helpTC(" class B { void m() {} } class A extends B { /*@ requires true; */ void m() {} /*@ also requires true; */ void n() {}}"
                 ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (B.m())",50
-                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",89
+                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",84
                 );
     }
 
@@ -74,7 +74,7 @@ public class typechecking extends TCBase {
     	expectedExit = 0;
         helpTC(" interface B { void m(); } class A implements B { /*@ public normal_behavior requires true; */ public void m() {} /*@ also requires true; */ void n() {}}"
                 ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (B.m())",62
-                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",124
+                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",119
                 );
     }
 
@@ -87,7 +87,7 @@ public class typechecking extends TCBase {
     	expectedExit = 0;
         helpTC(" interface B { void m(); } interface A extends B { /*@ requires true; */ void m(); /*@ also requires true; */ void n();}"
                 ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (B.m())",56
-                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",93
+                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",88
                 );
     }
 
