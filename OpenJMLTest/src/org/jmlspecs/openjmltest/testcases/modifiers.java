@@ -1025,7 +1025,7 @@ public class modifiers extends TCBase {
                 "  //@ public also behavior requires true;\n" +
                 "  void m() {} }"
                 ,"/A.java:2: warning: No modifiers are allowed prior to a also token",7
-                ,"/A.java:2: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",19
+                ,"/A.java:2: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",14
                 );
     }
      
@@ -1035,7 +1035,7 @@ public class modifiers extends TCBase {
                 "  //@ pure also behavior requires true;\n" +
                 "  void m() {} }"
                 ,"/A.java:2: warning: No modifiers are allowed prior to a also token",7
-                ,"/A.java:2: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",17
+                ,"/A.java:2: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",12
                 );
     }
      
