@@ -5925,21 +5925,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         return false;
     }
-    
+
     public boolean isPureMethod(MethodSymbol symbol) {
+    	return isPureMethod(symbol, true);
+    }
+
+    public boolean isPureMethod(MethodSymbol symbol, boolean okToCallDefaultSpecs) {
         //System.out.println("IPM " + symbol.owner + " " + symbol  );
         java.util.List<MethodSymbol> overrideList = Utils.instance(context).parents(symbol);
         java.util.ListIterator<MethodSymbol> iter = overrideList.listIterator(overrideList.size());
         while (iter.hasPrevious()) {
             MethodSymbol msym = iter.previous();
-            MethodSpecs mspecs = specs.getLoadedSpecs(msym);
-            if (mspecs == null) mspecs = specs.defaultSpecs(null,msym,Position.NOPOS); // FIXME - this should be in a more generic place
+            MethodSpecs mspecs = specs.getLoadedSpecs(msym); // Could be null if we are in the middle of generating defaultSpecs
+            //if (mspecs == null && okToCallDefaultSpecs) mspecs = specs.defaultSpecs(null,msym,Position.NOPOS); // FIXME - this should be in a more generic place
             //System.out.println("IPMA " + symbol.owner + " " + symbol + " " + msym.owner + " " + msym + " " + mspecs);
             if (mspecs == null) {  // FIXME - observed to happen for in gitbug498 for JMLObjectBag.insert
                 // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
                 if (msym.toString().equals("size()") && msym.owner.toString().equals(Strings.jmlSpecsPackage + ".JMLList")) return true;
-                // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
-                return specs.isPure((ClassSymbol)msym.owner);
+                boolean isPure =  specs.isPure((ClassSymbol)msym.owner);
+            	if (isPure) return true;
+            } else {
+            	boolean isPure = specs.isPure(msym); // Also checks enclosing class
+            	if (isPure) return true;
             }
             //System.out.println("IPMB " + symbol.owner + " " + symbol + " " + msym.owner + " " + msym + " " + specs.isPure(msym) );
             boolean isPure = specs.isPure(msym);
