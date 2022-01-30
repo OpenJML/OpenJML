@@ -591,7 +591,7 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testLocalClass() {
-        helpTCF("A.java","public class A{ void m() {\n /* @ pure  */ class C {}; } }"
+        helpTCF("A.java","public class A{ void m() {\n /*@ pure  */ class C {}; } }"
                 ); 
         
     }
@@ -626,8 +626,8 @@ public class modifiers extends TCBase {
     
     @Test public void testLocalClass4() {
         helpTCF("A.java","public class A{ void m() {\n /*@ ghost  class C {} */ } }"
-                ,"/A.java:2: error: This JML modifier is not allowed for a local type declaration",6
                 ,"/A.java:2: error: A method or type declaration within a JML annotation must be model",13
+                ,"/A.java:2: error: This JML modifier is not allowed for a local type declaration",6
                 ); 
         
     }
