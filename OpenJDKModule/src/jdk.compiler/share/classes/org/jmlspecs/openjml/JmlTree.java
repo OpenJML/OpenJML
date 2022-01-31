@@ -1213,6 +1213,9 @@ public class JmlTree {
          * A class declaration in a .jml file will have a null value for this field.
          */
         public /*@Nullable*/ JmlClassDecl specsDecl;
+        
+        /** The Env<> to use for process the specsDecl */
+        public Env<AttrContext> specEnv;
 
         /** This field holds the class-level specifications for the type corresponding
          * to this declaration; it is an alias for the specs that are found in the JmlSpecs database

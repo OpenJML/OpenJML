@@ -385,6 +385,7 @@ public class Enter extends JCTree.Visitor {
                 tree.packge.package_info = c;
                 tree.packge.sourcefile = tree.sourcefile;
             }
+            visitTopLevelHelper(tree); // OPENJML
             classEnter(tree.defs, topEnv);
             if (addEnv) {
                 todo.append(packageEnv);
@@ -393,6 +394,8 @@ public class Enter extends JCTree.Visitor {
         log.useSource(prev);
         result = null;
     }
+    
+    protected void visitTopLevelHelper(JCCompilationUnit sourceCU) {} // OPENJML
         //where:
         //set package Symbols to the package expression:
         private final TreeScanner setPackageSymbols = new TreeScanner() {

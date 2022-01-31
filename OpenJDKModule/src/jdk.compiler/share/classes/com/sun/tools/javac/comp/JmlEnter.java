@@ -158,8 +158,11 @@ public class JmlEnter extends Enter {
     /*@non_null*/
     final protected Utils utils;
     
-    // This is a toplevel environment used for resolving synthetic fully-qualified typenames
+    /** This is a toplevel environment used for resolving synthetic fully-qualified typenames */
     public Env<AttrContext> tlenv;
+    
+    /** Holds the env for the specification file as the tree is walked */
+    public Env<AttrContext> specEnv;
 
     /** Don't call this: use instance() instead.
      * Creates an instance of the JmlEnter tool in the given context; note that
@@ -229,24 +232,38 @@ public class JmlEnter extends Enter {
 			utils.error("jml.internal","Encountered an unexpected JCCompilationUnit instead of a JmlCompilationUnit in JmlEnter.visitTopeLevel");
 			return;
 		}
+		if (compUnit.specsCompilationUnit == null) { 
+			utils.error(tree.sourcefile, tree, "jml.internal", "Every source compilation unit must have an associated specification compilation unit, perhaps itself");
+			compUnit.specsCompilationUnit = compUnit; // Just to recover -- this should have already been assigned
+		}
+		if (compUnit.sourcefile == null) {
+			utils.error("jml.internal", "A JmlCompilationUnit without a sourcefile: " + tree);
+			return;
+		}
 		var prevSource = log.useSource(compUnit.sourcefile);
     	try {
-    		if (compUnit.specsCompilationUnit == null) { System.out.println("NULLSPECCU " + compUnit.sourcefile); Utils.dumpStack(); }
     		tree.defs = matchClasses(tree.defs, compUnit.specsCompilationUnit.defs, compUnit.pid == null ? "default-package" : compUnit.pid.pid.toString());
-    		// tree.sourcefile can be null for fabricated CUs (and they should not need to be parsed), but otherwise should never be
     		super.visitTopLevel(compUnit); // sets useSource for itself
-//    		if (tlenv == null) {
-//    			// tlenv is for saving an Env that is just for resolving global fully-qualified names
-//    			// We just grab the first one that comes along
-//    			// FIXME - there ought to be a better way to do this, as part of initialization, but nothing worked so far
-//    			Env<AttrContext> e = topLevelEnv(tree);
-//    			while (e.outer != null) {e = e.outer; }
-//    			tlenv = e;
-//    		}
+    		if (tlenv == null) {
+    			// tlenv is for saving an Env that is just for resolving global fully-qualified names
+    			// We just grab the first one that comes along
+    			// FIXME - there ought to be a better way to do this, as part of initialization, but nothing worked so far
+    			Env<AttrContext> e = topLevelEnv(tree);
+    			while (e.outer != null) {e = e.outer; }
+    			tlenv = e;
+    		}
         } finally {
             if (prevSource != null) log.useSource(prevSource);
         }
     }
+    
+    // Include matters that are after the sourceCU is processed for module and package, but before its class declarations are visited
+    protected void visitTopLevelHelper(JCCompilationUnit sourceCU) {
+//    	var compUnit = (JmlCompilationUnit)sourceCU;
+//    	compUnit.specsCompilationUnit.packge = compUnit.packge; // package symbol has a sourcefile, which is the source's, not the spec's
+//		specEnv = topLevelEnv(compUnit.specsCompilationUnit);
+    }
+
     
     // The arguments are two lists of trees, one from a .java file and the other from its specification file (either a .jml file or the same .java file).
     // The lists are either top-level classes (owned by a CU) or nested declarations (owned by a class).
@@ -283,6 +300,13 @@ public class JmlEnter extends Enter {
     				//System.out.println("CHECKING " + specDecl.name + " " + utils.isJML(specDecl));
     				Optional<JCTree> m = javaClasses.stream().filter(t -> (t instanceof JmlClassDecl d && d.name == specDecl.name)).findFirst();
     				JmlClassDecl match = (JmlClassDecl)m.orElse(null); // unpack the Optional
+    				if (match != null && match.typarams.size() != specDecl.typarams.size()) {
+    					// Could omit this match in the matching expression above, but here we can give a pointed error message
+    					utils.errorAndAssociatedDeclaration(specDecl.sourcefile, specDecl, match.sourcefile, match,
+    							"jml.message", "A specification class declaration matches a source class declaration with a different number of type parameters: "
+    							+ specDecl.typarams.size() + " vs. " + match.typarams.size() + " for " + specDecl.name);
+    					continue; // disallow the match
+    				}
     				if (match == null) {
     					// No match in the Java list with the same name
     					if (utils.isJML(specDecl.mods)) {
@@ -332,22 +356,23 @@ public class JmlEnter extends Enter {
     
     @Override
     public void visitClassDef(JCClassDecl tree) {
-    	var jmlCD = (JmlClassDecl)tree;
+    	// env is the Env of the enclosing environment
+    	// specEnv is the spec Env of the enclosing spec environment
+    	var sourceCD = (JmlClassDecl)tree;
     	JavaFileObject prevSource = null;
     	try {
-    		if (jmlCD.specsDecl != null) {
-    			prevSource = log.useSource(jmlCD.specsDecl.sourcefile);
-    			// Do the (non-recursive) nested class matching for this class; any JML-only (model) classes are in the output list
-    			// All non-class member matching is done in JmlMemberEnter
-    			tree.defs = matchClasses(tree.defs, ((JmlClassDecl)tree).specsDecl.defs, tree.name.toString());
-    			log.useSource(jmlCD.sourcefile);
-    			super.visitClassDef(tree);
-    			log.useSource(jmlCD.specsDecl.sourcefile);
-    		} else {
-    			// There is a JML file for the compilation unit but nothing for this class
-    			prevSource = log.useSource(jmlCD.sourcefile); // TODO: Not sure this is necessary, but it does not hurt
-    			super.visitClassDef(tree);
+    		if (sourceCD.specsDecl == null) {
+    			utils.error(sourceCD.sourcefile, sourceCD, "jml.internal", "A source class declaration unexpectedly has no specification declaration");
+    			sourceCD.specsDecl = sourceCD; // Purely for recovery -- should have been assigned before
     		}
+    		prevSource = log.useSource(sourceCD.specsDecl.sourcefile);
+    		// Do the (non-recursive) nested class matching for this class; any JML-only (model) classes are in the output list
+    		// All non-class member matching is done in JmlMemberEnter
+    		tree.defs = matchClasses(tree.defs, ((JmlClassDecl)tree).specsDecl.defs, tree.name.toString());
+    		log.useSource(sourceCD.sourcefile);
+    		super.visitClassDef(tree);
+    		sourceCD.specsDecl.sym = tree.sym;
+    		sourceCD.specEnv = sourceCD.specsDecl.specEnv = specEnv;
     	} finally {
     		if (prevSource != null) log.useSource(prevSource);
     	}
@@ -531,26 +556,163 @@ public class JmlEnter extends Enter {
 //    	}
 //    	return adds.toList();
 //    }
+/*
+ *  enter.main() -- also JavaCompiler.readSourceFile
+ *      |       /
+ *      V      /
+ *  complete
+ *      |
+ *      V
+ *  classEnter:List of CUs -- env is null, specEnv is undefined
+ *      |
+ *      V
+ *  [push specEnv, env]
+ *  classEnter(single tree, env) -- env is null, specEnv is undefined, tree is a CU
+ *      |
+ *      V
+ *  [ match all specs to source for the CU's declarations ]
+ *  visitTopLevel(CU) -- env is null, specEnv is undefined
+ *  [ compute package info ]
+ *      |
+ *      V
+ *  [ compute specEnv for enclosing env ]
+ *  classEnter:List of CDs, env is enclosing env
+ *      |
+ *      V
+ *  [pushes specEnv, env]
+ *  classEnter(single tree, env) -- env is enclosing env, specEnv is enclosing spec env, tree is a CD
+ *  [ if tree is a CD, compute specEnv for given cd ]
+ *      |
+ *      V
+ *  [ match all nested classes ]
+ *  visitClassDecl -- env is enclosing env, specEnv is enclosing spec env, tree is a CD
+ *  [ compute class sym , add class to enclosing scope ]
+ *  [ compute class's env, add to typeEnvs map, add type parameters to class's scope ]
+ *  ...
+ *  [ After processing nested classes, set cd.specsDecl.sym ]
+ *      |
+ *      V
+ *  Recurse to classEnter:List of nested CDs, with env the enclosing env for the nested classes,
+ *        specEnv is still the enclosing env of the enclosing env for the list of classes   
+ *      
+ *      
+ *      
+ *      
+ */
+
+    // classEnter can be called during the entering of binary classes (from specsClassEnter), in which case the specDecl field is null
+    <T extends JCTree> List<Type> classEnter(List<T> trees, Env<AttrContext> env) {
+    	// This is after super.classEnter for an individual class or CU has done all the processing (e.g. symbol creation, type parameter entering)
+    	// for that class or CU, and now is calling classEnter on its own nested declarations.
+    	// The env being passed in is for the enclosing environment; we need to compute the specEnv for the enclosing specification file
+    	if (env != null) {
+    		if (env.tree instanceof JmlClassDecl cd) { // class declaration of the enclosing enviroment
+    			if (cd.specsDecl != null) { // 
+    				cd.specsDecl.sym = cd.sym;
+        			specEnv = classEnv(cd.specsDecl, specEnv);
+    			}
+    		} else if (env.tree instanceof JmlCompilationUnit sourceCU) { // enclosing env is a comp unit
+    			sourceCU.specsCompilationUnit.packge = sourceCU.packge; // package symbol has a sourcefile, which is the source's, not the spec's
+    			specEnv = topLevelEnv(sourceCU.specsCompilationUnit);
+    			if (tlenv == null) tlenv = env; //FIXME - a hack to store some top-level environment 
+    		}
+    	}
+    	return super.classEnter(trees, env);
+    }
 
     // Note that the tree may be either a JmlCompilationUnit or a JmlClassDecl; env will be null if tree is a CU
+    // If tree is a class, then env is the env of the containing CU or class
+    // and specEnv is the Env for the specification CU or class of the container
     public Type classEnter(JCTree tree, Env<AttrContext> env) {
     	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCCompilationUnit cu) System.out.println("Entering CU " + cu.sourcefile);
     	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl d) System.out.println("Entering class " + d.name);
-        Type t = super.classEnter(tree, env);
-    	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCCompilationUnit cu) System.out.println("Entered CU " + cu.sourcefile + " " + result);
-    	if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl d) System.out.println("Entered class " + d.sym.hashCode() + " " + d.name + " " + result);
-        if (tree instanceof JmlClassDecl cd) {
-        	// FIXME - not sure these need to be here, should they be in visitClassDef?
-        	var cenv = getEnv(cd.sym);
-        	if (cenv == null) System.out.println("UNEXPECTED NULL ENV " + cd.sym);
-        	if (cd.specsDecl == null) {
-            	System.out.println("UNEXPECTED NULL SPECSDECL " + cd.sym);
-        		JmlSpecs.instance(context).putSpecs((ClassSymbol)cd.sym, 
-        				new JmlSpecs.TypeSpecs((ClassSymbol)cd.sym,  cd.sourcefile, (JmlTree.JmlModifiers)cd.mods, cenv));
-        	} else {
-        		JmlSpecs.instance(context).putSpecs((ClassSymbol)cd.sym, new JmlSpecs.TypeSpecs(cd.specsDecl, env)); // FIXME - this should be an env for the specs class decl
-        	}
-        }
+    	var prevSpecEnv = specEnv;
+    	Type t = null;
+    	try {
+    		t = super.classEnter(tree, env);  // eventually calls tree.accept, assigning env to this.env
+    		if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCCompilationUnit cu) System.out.println("Entered CU " + cu.sourcefile + " " + result);
+    		if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl d) System.out.println("Entered class " + d.sym.hashCode() + " " + d.name + " " + result);
+    		// We call putSpecs for all classes after any duplicates and other incorrect classes have been eliminated
+    		// and after the envs have been computed
+    		if (tree instanceof JmlClassDecl cd) { // cd is the source class declaration
+    			var cenv = getEnv(cd.sym);
+    			if (cenv == null) { // Defensive check
+    				utils.error(cd.sourcefile, cd, "jml.internal", "An 'entered' class that does not have a class symbol");
+    			}
+    			if (cd.specsDecl == null) { // Defensive check
+    				utils.error(cd.sourcefile, cd, "jml.internal", "A source class that does not have a specs class");
+    				cd.specsDecl = cd; // Recovery from an error situation
+    			}
+    			enterScope(prevSpecEnv).enter(cd.sym);
+    			if (cd.specsDecl == null) {
+    				// the cd is a spec tree corresponding to a binary class, and cd.specDecl is null
+        			JmlSpecs.instance(context).putSpecs((ClassSymbol)cd.sym, new JmlSpecs.TypeSpecs(cd.specsDecl, specEnv)); // FIXME - this should be an env for the specs class decl
+
+        			int numSourceTypeParams = ((ClassSymbol)cd.sym).getTypeParameters().size();
+        			int numSpecsTypeParams = cd.typarams.size();
+        			if (numSourceTypeParams != numSpecsTypeParams) {
+        				// This error should not happen because it should have already been caught in matchClasses
+        				utils.errorAndAssociatedDeclaration(cd.specsDecl.sourcefile, cd.specsDecl, cd.sourcefile, cd, 
+        						"jml.message", "Specification declaration has different number of type parameters than the binary: " + cd.sym.owner + " " + cd.name);
+        			} else {
+        				for (int i = 0; i < numSpecsTypeParams; ++i) {
+        					var sourceTP = ((ClassSymbol)cd.sym).getTypeParameters().get(i);
+        					var specsTP = cd.specsDecl.typarams.get(i);
+        					if (sourceTP.name != specsTP.name) {
+        						utils.error(cd.specsDecl.sourcefile, specsTP, 
+        								"jml.message", "Specification type parameter must have the same name as in the source: " + specsTP.name + " vs. " + sourceTP.name + " in " + cd.sym.owner + " " + cd.name);
+        					} else {
+        						Type.TypeVar a = (Type.TypeVar)sourceTP.type;
+        						prevSpecEnv.info.scope.enter(a.tsym);
+        						{
+            						specsTP.type = a;
+        							// FIXME - should check and disallow specsTP that have different bounds or annotations
+        							// That check needs to do type attribution, so it cannot be done in matchClasses
+        							// To avoid crashes later on, here we just override the spec's values with a copy of the source's
+//        							specsTP.annotations = sourceTP.annotations;
+//        							specsTP.bounds = sourceTP.bounds;
+        						}
+        					}
+        					
+        				}
+        			}
+    			} else {
+    				// cd is a source tree and cd.specDecl is its spec
+        			JmlSpecs.instance(context).putSpecs((ClassSymbol)cd.sym, new JmlSpecs.TypeSpecs(cd.specsDecl, specEnv)); // FIXME - this should be an env for the specs class decl
+
+        			int numSourceTypeParams = cd.typarams.size();
+        			int numSpecsTypeParams = cd.specsDecl.typarams.size();
+        			if (numSourceTypeParams != numSpecsTypeParams) {
+        				// This error should not happen because it should have already been caught in matchClasses
+        				utils.errorAndAssociatedDeclaration(cd.specsDecl.sourcefile, cd.specsDecl, cd.sourcefile, cd, 
+        						"jml.message", "Specification declaration has different number of type parameters than source declaration: " + cd.sym.owner + " " + cd.name);
+        			} else {
+        				for (int i = 0; i < numSpecsTypeParams; ++i) {
+        					var sourceTP = cd.typarams.get(i);
+        					var specsTP = cd.specsDecl.typarams.get(i);
+        					if (sourceTP.name != specsTP.name) {
+        						utils.errorAndAssociatedDeclaration(cd.specsDecl.sourcefile, specsTP, cd.sourcefile, sourceTP, 
+        								"jml.message", "Specification type parameter must have the same name as in the source: " + specsTP.name + " vs. " + sourceTP.name + " in " + cd.sym.owner + " " + cd.name);
+        					} else {
+        						Type.TypeVar a = (Type.TypeVar)sourceTP.type;
+        						prevSpecEnv.info.scope.enter(a.tsym); // Need to do this even if cd.specsDecl == cd
+        						if (specsTP != sourceTP) {
+            						specsTP.type = a;
+        							// FIXME - should check and disallow specsTP that have different bounds or annotations
+        							// That check needs to do type attribution, so it cannot be done in matchClasses
+        							// To avoid crashes later on, here we just override the spec's values with a copy of the source's
+        							specsTP.annotations = sourceTP.annotations;
+        							specsTP.bounds = sourceTP.bounds;
+        						}
+        					}
+        					
+        				}
+        			}
+    			}
+    		}
+    	} finally {
+    		specEnv = prevSpecEnv;
+    	}
 		return t;
     }
 
@@ -1102,7 +1264,7 @@ public class JmlEnter extends Enter {
 			// Enter the method in the parent class
 			msym = mdecl.sym; // makeAndEnterMethodSym(mdecl, specsEnv); // Also calls putSpecs
 			enclScope.enter(msym);
-			var sp = specs.getLoadedSpecs(msym);
+			var sp = new JmlSpecs.MethodSpecs(mdecl);
 			sp.javaDecl = null;
 			sp.specDecl = mdecl;
 			sp.javaSym = null;
@@ -1181,7 +1343,7 @@ public class JmlEnter extends Enter {
     		} else if (javaMDecl == null) {
     			if (utils.verbose()) utils.note("Matched method: (binary) " + msym + " (owner: " + msym.owner +")");
     			// No specs entry for msym -- msym is just the symbol created on loading the binary class file
-    			var ssp = specs.getLoadedSpecs(mdecl.sym);
+    			var ssp = new JmlSpecs.MethodSpecs(mdecl);
 //    			if (msym.toString().contains("arraycopy")) {
 //    				System.out.println("JMLENTER-J " + msym + " " + msym.params.head + " " + msym.params.head.hashCode());
 //    				System.out.println("JMLENTER-S " + mdecl.sym + " " + mdecl.sym.params.head + " " + mdecl.sym.params.head.hashCode());

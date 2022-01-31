@@ -364,8 +364,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return classReader.enterClass(names.fromString(fqName));
     }
     
-    public Env<AttrContext> tlenv = null;
- 
     /** Overrides the super class call in order to perform JML checks on class
      * modifiers.  (Actually, the work was moved to attribClassBody since attribClass
      * gets called multiple times for a Class).
@@ -413,7 +411,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
             Env<AttrContext> eee = typeEnvs.get(c);
             if (eee != null) { // FIXME - is null an error? is null for annotations like SpecPublic, for example, but no attribution is needed either, since there are no spec files.
-        		tlenv = eee;
                 JavaFileObject prevv = log.useSource(eee.toplevel.sourcefile);
                 try {
                     var typeSpecs = JmlSpecs.instance(context).getLoadedSpecs(c); // FIXME - is this needed?
@@ -453,7 +450,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                    // If not a .java file
 //                    enter.typeEnvs.remove(c); // FIXME - after flow checking of model methods and classes for binary classes?
 //                }
-//        		checkClassMods(c, (JmlClassDecl)eee.tree, specs.getLoadedSpecs(c), eee);
+        		checkClassMods(c, (JmlClassDecl)eee.tree, specs.getLoadedSpecs(c), eee);
             }
 
         } finally {
@@ -5946,36 +5943,32 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 ////            return findMod(tspecs.modifiers,PURE) != null;
 //    }
     
-    public boolean isPureMethodRaw(MethodSymbol symbol) {
-        java.util.List<MethodSymbol> overrideList = Utils.instance(context).parents(symbol);
-        java.util.ListIterator<MethodSymbol> iter = overrideList.listIterator(overrideList.size());
-        while (iter.hasPrevious()) {
-            MethodSymbol msym = iter.previous();
-            MethodSpecs mspecs = specs.getLoadedSpecs(msym);
-            if (mspecs == null) {  // FIXME - observed to happen for in gitbug498 for JMLObjectBag.insert
-                // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
-                if (msym.toString().equals("size()") && msym.owner.toString().equals(Strings.jmlSpecsPackage + ".JMLList")) return true;
-                // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
-                return specs.isPure((ClassSymbol)msym.owner);
-            }
-            boolean isPure = specs.isPure(msym);
-            if (isPure) return true;
-        }
-        return false;
-    }
+//    public boolean isPureMethodRaw(MethodSymbol symbol) {
+//        java.util.List<MethodSymbol> overrideList = Utils.instance(context).parents(symbol);
+//        java.util.ListIterator<MethodSymbol> iter = overrideList.listIterator(overrideList.size());
+//        while (iter.hasPrevious()) {
+//            MethodSymbol msym = iter.previous();
+//            MethodSpecs mspecs = specs.getLoadedSpecs(msym);
+//            if (mspecs == null) {  // FIXME - observed to happen for in gitbug498 for JMLObjectBag.insert
+//                // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
+//                if (msym.toString().equals("size()") && msym.owner.toString().equals(Strings.jmlSpecsPackage + ".JMLList")) return true;
+//                // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
+//                return specs.isPure((ClassSymbol)msym.owner);
+//            }
+//            boolean isPure = specs.isPure(msym);
+//            if (isPure) return true;
+//        }
+//        return false;
+//    }
 
     public boolean isPureMethod(MethodSymbol symbol) {
-    	return isPureMethod(symbol, true);
-    }
-
-    public boolean isPureMethod(MethodSymbol symbol, boolean okToCallDefaultSpecs) {
         //System.out.println("IPM " + symbol.owner + " " + symbol  );
         java.util.List<MethodSymbol> overrideList = Utils.instance(context).parents(symbol);
         java.util.ListIterator<MethodSymbol> iter = overrideList.listIterator(overrideList.size());
         while (iter.hasPrevious()) {
             MethodSymbol msym = iter.previous();
             MethodSpecs mspecs = specs.getLoadedSpecs(msym); // Could be null if we are in the middle of generating defaultSpecs
-            //if (mspecs == null && okToCallDefaultSpecs) mspecs = specs.defaultSpecs(null,msym,Position.NOPOS); // FIXME - this should be in a more generic place
+            //if (mspecs == nulls) mspecs = specs.defaultSpecs(null,msym,Position.NOPOS); // FIXME - this should be in a more generic place
             //System.out.println("IPMA " + symbol.owner + " " + symbol + " " + msym.owner + " " + msym + " " + mspecs);
             if (mspecs == null) {  // FIXME - observed to happen for in gitbug498 for JMLObjectBag.insert
                 // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
