@@ -381,6 +381,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    	}
     	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS " + c);
     	if (!(c.owner instanceof ClassSymbol || c.owner instanceof PackageSymbol)) {
+    		// A local class
     		var classEnv = typeEnvs.get(c);
     		if (classEnv == null) {
     			// This branch happens for calls to clone() (at least)
@@ -452,7 +453,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                    // If not a .java file
 //                    enter.typeEnvs.remove(c); // FIXME - after flow checking of model methods and classes for binary classes?
 //                }
-        		checkClassMods(c, (JmlClassDecl)eee.tree, specs.getLoadedSpecs(c), eee);
+//        		checkClassMods(c, (JmlClassDecl)eee.tree, specs.getLoadedSpecs(c), eee);
             }
 
         } finally {
@@ -898,7 +899,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     /** Checks the JML modifiers so that only permitted combinations are present. */
     public void checkClassMods(ClassSymbol classSymbol, /*@ nullable */ JmlClassDecl javaDecl, TypeSpecs tspecs, Env<AttrContext> env) { // env should be specsEnv
-        //System.out.println("CHECKCLASSMODS " + classSymbol);
+        //System.out.println("Checking " + javaDecl.name + " in " + javaDecl.sym.owner);
         JavaFileObject prev = log.useSource(tspecs.file);
         checkTypeMatch(classSymbol, tspecs.specDecl);
         Symbol owner = classSymbol.owner;
@@ -1141,12 +1142,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // FIXME - what else is relaxed?  We should do the check under the right conditions?
         if (m.sym == null) return; // Guards against specification method declarations that are not matched - FIXME
 
+        jmlenv = jmlenv.pushCopy();
+        jmlenv.enclosingMethodDecl = (JmlMethodDecl)m;
+        
         JmlMethodDecl jmethod = (JmlMethodDecl)m;
         Map<Name,Env<AttrContext>> prevLabelEnvs = labelEnvs;
         labelEnvs = new HashMap<Name,Env<AttrContext>>();
 
         var savedEnclosingMethodEnv = enclosingMethodEnv;
-        enclosingMethodEnv = env;
+        enclosingMethodEnv = env; // FIXME - not the method env that super.visitMethodDef creates
         
         VarSymbol previousSecretContext = currentSecretContext;
         VarSymbol previousQueryContext = currentQueryContext;
@@ -1238,6 +1242,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             labelEnvs.clear();
             labelEnvs = prevLabelEnvs;
         	if (utils.verbose()) utils.note("Completed Attributing method " + env.enclClass.sym + " " + m.name);
+        	jmlenv = jmlenv.pop();
         }
     }
     
@@ -3024,6 +3029,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * model method, model type, or ghost or model field
      */
     public void visitJmlTypeClauseDecl(JmlTypeClauseDecl tree) {
+    	//System.out.println("ATTR TYPE CLAUSE DECL " + tree);
     	jmlenv = jmlenv.pushCopy();
         JavaFileObject old = log.useSource(tree.source);
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
@@ -3219,14 +3225,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 ((env.enclClass.sym.flags() & INTERFACE) != 0 && env.enclMethod == null))
             localEnv.info.staticLevel++;
         return localEnv;
-    }
-    
-    public void bumpStatic(Env<AttrContext> env) {
-        env.info.staticLevel++;
-    }
-    
-    public void decStatic(Env<AttrContext> env) {
-        env.info.staticLevel--;
     }
     
     /** Attributes the monitors_for clause */
@@ -4194,7 +4192,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	super.visitBinary(that);
     	if (that.getTag() != Tag.EQ && that.getTag() != Tag.NE) return;
     	if ((utils.isExtensionValueType(that.lhs.type) || utils.isExtensionValueType(that.rhs.type))
-    			&& !jmltypes.isSameType(that.rhs.type,that.lhs.type)) {
+    			&& !jmltypes.isSameType(jmltypes.erasure(that.rhs.type),jmltypes.erasure(that.lhs.type))) { // FIXME: type parameters are not always retained for expressions (e.g. casts)
     		utils.error(that, "jml.message", "Values of JML primitive types may only be compared to each other: "
     				+ that.lhs.type + " vs. " + that.rhs.type);
     	}
@@ -5157,7 +5155,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.keyword());
                 }
                 
-                if (jmlenv.currentLabel != null && enclosingMethodEnv.enclMethod.sym.isConstructor()) {
+                if (jmlenv.currentLabel != null && jmlenv.enclosingMethodDecl.sym.isConstructor()) {
                     if (sym.owner instanceof ClassSymbol && !sym.isStatic() && 
                             (selected == null || (selected instanceof JCIdent && 
                                  (((JCIdent)selected).name == names._this || ((JCIdent)selected).name == names._super)))) {
@@ -5965,21 +5963,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         return false;
     }
-    
+
     public boolean isPureMethod(MethodSymbol symbol) {
+    	return isPureMethod(symbol, true);
+    }
+
+    public boolean isPureMethod(MethodSymbol symbol, boolean okToCallDefaultSpecs) {
         //System.out.println("IPM " + symbol.owner + " " + symbol  );
         java.util.List<MethodSymbol> overrideList = Utils.instance(context).parents(symbol);
         java.util.ListIterator<MethodSymbol> iter = overrideList.listIterator(overrideList.size());
         while (iter.hasPrevious()) {
             MethodSymbol msym = iter.previous();
-            MethodSpecs mspecs = specs.getLoadedSpecs(msym);
-            if (mspecs == null) mspecs = specs.defaultSpecs(null,msym,Position.NOPOS); // FIXME - this should be in a more generic place
+            MethodSpecs mspecs = specs.getLoadedSpecs(msym); // Could be null if we are in the middle of generating defaultSpecs
+            //if (mspecs == null && okToCallDefaultSpecs) mspecs = specs.defaultSpecs(null,msym,Position.NOPOS); // FIXME - this should be in a more generic place
             //System.out.println("IPMA " + symbol.owner + " " + symbol + " " + msym.owner + " " + msym + " " + mspecs);
             if (mspecs == null) {  // FIXME - observed to happen for in gitbug498 for JMLObjectBag.insert
                 // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
                 if (msym.toString().equals("size()") && msym.owner.toString().equals(Strings.jmlSpecsPackage + ".JMLList")) return true;
-                // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
-                return specs.isPure((ClassSymbol)msym.owner);
+                boolean isPure =  specs.isPure((ClassSymbol)msym.owner);
+            	if (isPure) return true;
+            } else {
+            	boolean isPure = specs.isPure(msym); // Also checks enclosing class
+            	if (isPure) return true;
             }
             //System.out.println("IPMB " + symbol.owner + " " + symbol + " " + msym.owner + " " + msym + " " + specs.isPure(msym) );
             boolean isPure = specs.isPure(msym);
@@ -6642,6 +6647,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		JmlResolve.instance(context).setAllowJML(prev);
     		utils.error(that, "jml.internal", "Exception while attributing method: " + that);
     		e.printStackTrace(System.out);
+    	} finally {
+    		JmlResolve.instance(context).setAllowJML(prev);
     	}
     }
     
@@ -7265,6 +7272,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	return env;
     }
     
+    public int countStatic(Env<AttrContext> env) {
+        return env.info.staticLevel;
+    }
+    
     public Env<AttrContext> removeStatic(Env<AttrContext> env) {
     	env.info.staticLevel--;
     	return env;
@@ -7310,6 +7321,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		this.env = sp.specsEnv;
     		this.enclosingMethodEnv = sp.specsEnv;
     		specs.getLoadedSpecs((ClassSymbol)msym.owner); // Checking all the type clauses and declarations, if not already done
+    		jmlenv.enclosingMethodDecl = sp.specDecl;
     		jmlenv.inPureEnvironment = true;
     		if (utils.verbose()) utils.note("    Lint " + msym.owner + " " + msym + " " + (sp.specsEnv.info.lint != null));
     		if (utils.verbose()) utils.note("    Specs are " + sp);
@@ -7360,9 +7372,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	                    if (specHasAlso && !methodOverrides) {
     	                        if (!jmethod.name.toString().equals("compareTo") && !jmethod.name.toString().equals("definedComparison")) {// FIXME
     	                            if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
-    	                                utils.error(spec, "jml.extra.also", jmethod.name.toString() );
+    	                                utils.error(spec.alsoPos, "jml.extra.also", jmethod.name.toString() );
     	                            } else {
-    	                                utils.warning(spec, "jml.extra.also", jmethod.name.toString() );
+    	                                utils.warning(spec.alsoPos, "jml.extra.also", jmethod.name.toString() );
     	                            }
     	                        }
     	                    } else if (!specHasAlso && methodOverrides) {
@@ -7668,6 +7680,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         //@ nullable
         public JmlStatementSpec currentBlockContract;
 
+        //@ nullable
+        public JmlMethodDecl enclosingMethodDecl = null;
         
     	public JmlEnv() {
     		previous = null;
@@ -7690,7 +7704,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		inExpressionScope = e.inExpressionScope;
     		jmlVisibility = e.jmlVisibility;
     		representsHead = e.representsHead;
-    		currentBlockContract= e.currentBlockContract;
+    		currentBlockContract = e.currentBlockContract;
+    		enclosingMethodDecl = e.enclosingMethodDecl;
     	}
     	
     	public JmlEnv pushCopy() {
