@@ -299,8 +299,8 @@ public class JmlEnter extends Enter {
 								"jml.message", "duplicate class: " + specDecl.name);
 						continue; // skip the revisedDecls.add
 					}
-					revisedDecls.add(sd);
 				}
+				revisedDecls.add(sd);
 			}
 		} else {
 			//System.out.println("MATCHING CLASSES " + owner);

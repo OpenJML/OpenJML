@@ -119,19 +119,19 @@ import com.sun.tools.javac.util.Position;
  */
 public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
-    protected Context context;
+    final protected Context context;
     
-    protected Utils utils;
-    protected JmlEnter enter;
-    protected JmlResolve resolve;
-    protected Names names;
-    protected JmlTree.Maker jmlF;
-    protected Symtab syms;
-    protected JmlSpecs specs;
-    protected Name modelName;
-    protected Log log;
+    final protected Utils utils;
+    final protected JmlEnter enter;
+    final protected JmlResolve resolve;
+    final protected Names names;
+    final protected JmlTree.Maker jmlF;
+    final protected Symtab syms;
+    final protected JmlSpecs specs;
+    final protected Log log;
+    //final protected Name modelName;
     
-    Name org_jmlspecs_lang;
+    //final public Name org_jmlspecs_lang;
     
     /** True when we are processing declarations that are in a specification file;
      * false when we are in a Java file (even if we are processing specifications)
@@ -145,11 +145,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         this.resolve = JmlResolve.instance(context);
         this.enter = JmlEnter.instance(context);
         this.names = Names.instance(context);
-        this.org_jmlspecs_lang = names.fromString(Strings.jmlSpecsPackage);
+        //this.org_jmlspecs_lang = names.fromString(Strings.jmlSpecsPackage);
         this.jmlF = JmlTree.Maker.instance(context);
         this.syms = Symtab.instance(context);
         this.specs = JmlSpecs.instance(context);
-        this.modelName = names.fromString(Modifiers.MODEL.keyword);
+        //this.modelName = names.fromString(Modifiers.MODEL.keyword);
         this.log = Log.instance(context);
     }
 
@@ -174,10 +174,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      */
     @Override
     // Presumes that the list of trees comes from a class, and that we need to match and enter any JML members
+    // env corresponds to the class that owns the list of trees
     void memberEnter(List<? extends JCTree> trees, Env<AttrContext> env) {
-    	// The env argument is the class env (as obtained from enter.getEnv)
-    	if (trees == null) return; // FIXME - should never happen
-    	if (env.enclClass.defs != trees) System.out.println("NONMATCHING TREES");
+    	if ( trees == null || env == null ) System.out.println("UNEXPECTED NULLS");
+    	if ( env.enclClass.defs != trees ) System.out.println( "List of trees does not match the env" );
     	// It would be easier if we could match all the members, and then give a resolved list to super.memberEnter
     	// However, we need attributed methods in order to match them (fields can be done solely by name).
     	super.memberEnter(trees, env); // Entering all the .java declared trees
