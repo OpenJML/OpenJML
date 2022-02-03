@@ -2632,6 +2632,7 @@ public class Flow {
         }
 
         public void visitNewClass(JCNewClass tree) {
+        	if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("FLOW " + tree);
             scanExpr(tree.encl);
             scanExprs(tree.args);
             scan(tree.def);
@@ -2760,6 +2761,7 @@ public class Flow {
         }
 
         public void visitIdent(JCIdent tree) {
+        	if (org.jmlspecs.openjml.Utils.isJML() && tree.sym == null) System.out.println("FLOW-IDENT " + tree);
             if (tree.sym.kind == VAR) {
                 checkInit(tree.pos(), (VarSymbol)tree.sym);
                 referenced(tree.sym);

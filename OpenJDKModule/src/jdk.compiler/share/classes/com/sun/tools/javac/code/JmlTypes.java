@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.tools.JavaFileObject;
+
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Strings;
@@ -431,7 +433,11 @@ public class JmlTypes extends Types {
     
     @Override
     public boolean checkJML(MethodSymbol msym) { 
-        return Utils.instance(context).isJML(msym.flags());
+    	// Return true if this method is JML or declared in a JML file
+        if (Utils.instance(context).isJML(msym.flags())) return true;
+    	var e = com.sun.tools.javac.comp.Enter.instance(context).getEnv((Symbol.TypeSymbol)msym.owner);
+    	if (e == null || e.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) return true; 
+    	return false;
     }
 
 }

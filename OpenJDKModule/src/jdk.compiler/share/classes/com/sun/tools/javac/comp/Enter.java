@@ -307,6 +307,29 @@ public class Enter extends JCTree.Visitor {
         }
         return ts.toList();
     }
+    
+    <T extends JCTree> List<Type> classTPEnter(List<T> trees, Env<AttrContext> env) {
+        ListBuffer<Type> ts = new ListBuffer<>();
+        for (List<T> l = trees; l.nonEmpty(); l = l.tail) {
+        	var tree = l.head;
+        	Type t = null;
+            Env<AttrContext> prevEnv = this.env;
+            try {
+                this.env = env;
+                annotate.blockAnnotations();
+                tree.accept(this);
+                t = result;
+            }  catch (CompletionFailure ex) {
+                t = chk.completionError(tree.pos(), ex);
+            } finally {
+                annotate.unblockAnnotations();
+                this.env = prevEnv;
+            }
+            if (t != null)
+                ts.append(t);
+        }
+        return ts.toList();
+    }
 
     @Override
     public void visitTopLevel(JCCompilationUnit tree) {
@@ -385,7 +408,6 @@ public class Enter extends JCTree.Visitor {
                 tree.packge.package_info = c;
                 tree.packge.sourcefile = tree.sourcefile;
             }
-            visitTopLevelHelper(tree); // OPENJML
             classEnter(tree.defs, topEnv);
             if (addEnv) {
                 todo.append(packageEnv);
@@ -395,7 +417,6 @@ public class Enter extends JCTree.Visitor {
         result = null;
     }
     
-    protected void visitTopLevelHelper(JCCompilationUnit sourceCU) {} // OPENJML
         //where:
         //set package Symbols to the package expression:
         private final TreeScanner setPackageSymbols = new TreeScanner() {
@@ -522,7 +543,7 @@ public class Enter extends JCTree.Visitor {
         }
 
         // Enter type parameters.
-        ct.typarams_field = classEnter(tree.typarams, localEnv);
+        ct.typarams_field = classTPEnter(tree.typarams, localEnv);
         ct.allparams_field = null;
 
         // install further completer for this type.
@@ -590,6 +611,7 @@ public class Enter extends JCTree.Visitor {
      *  @param trees      The list of trees to be processed.
      */
     public void main(List<JCCompilationUnit> trees) {
+    	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ENTERMAIN " + org.jmlspecs.openjml.Utils.join(" ", trees, cu->cu.sourcefile));
         complete(trees, null);
     }
 

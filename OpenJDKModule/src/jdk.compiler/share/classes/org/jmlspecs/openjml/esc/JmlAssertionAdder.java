@@ -25,6 +25,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
+import org.jmlspecs.openjml.JmlSpecs.SpecsStatus;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.Nowarns.Item;
@@ -836,7 +837,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	int freshnessReferenceCount;
 
 	public void findActiveExceptions(JmlMethodDecl methodDecl) {
-		for (MethodSymbol msym : utils.parents(methodDecl.sym)) {
+		for (MethodSymbol msym : utils.parents(methodDecl.sym,true)) {
 			if (msym.params == null)
 				continue; // FIXME - we should do something better? or does this mean binary with no
 							// specs?
@@ -4331,7 +4332,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		public SpecCaseIterator(MethodSymbol methodSymbol) {
 			//System.out.println("CREATING ITERATOR " + methodSymbol);
 			this.methodSymbol = methodSymbol;
-			methodIterator = utils.parents(methodSymbol).iterator();
+			methodIterator = utils.parents(methodSymbol,true).iterator();
 			parentMethodSymbol = null;
 			previousFile = log.currentSourceFile();
 			//System.out.println("DONE ITERATOR " + methodSymbol);
@@ -4542,7 +4543,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JavaFileObject combinedPreconditionSource = null;
 			addStat(comment(methodDecl, "Assume Preconditions", null));
 			// Iterate over all methods that methodDecl overrides, collecting specs
-			for (MethodSymbol parentMethodSym : utils.parents(methodDecl.sym)) {
+			for (MethodSymbol parentMethodSym : utils.parents(methodDecl.sym,true)) {
 				if (parentMethodSym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
 				JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(parentMethodSym);
 				// System.out.println("ADDPRE " + methodDecl.sym + " " + parentMethodSym.owner +
@@ -5304,7 +5305,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Iterate over all methods that methodDecl overrides, collecting specs
 		boolean sawSomeSpecs = false;
-		for (MethodSymbol parentMethodSym : utils.parents(methodDecl.sym)) {
+		for (MethodSymbol parentMethodSym : utils.parents(methodDecl.sym,true)) {
 			if (parentMethodSym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
 			JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(parentMethodSym);
 			ensuresStats.add(comment(methodDecl, "Asserting postconditions for " + utils.qualifiedMethodSig(parentMethodSym), null));
@@ -8730,7 +8731,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JmlMethodSpecs defaults = JmlSpecs.instance(context).defaultSpecs(methodDecl, methodDecl.sym,
 							methodDecl.pos).cases;
 					s = new JmlSpecs.MethodSpecs(methodDecl.mods, defaults);
-					specs.putSpecs(calleeMethodSym, s, null); // FIXME - are these specs all attributed? Should we mark
+					specs.putAttrSpecs(calleeMethodSym, s); // FIXME - are these specs all attributed? Should we mark
 																// the specs status? will we actually need the specsEnv?
 					s.cases.deSugared = null;
 				} else {
@@ -11904,7 +11905,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							: kind == capturesClauseKind ? Label.CAPTURES : Label.UNKNOWN;
 			//System.out.println("CA2-A " + lhs +  " " + srlist);
 			for (var sr: srlist) {
-				for (MethodSymbol parentMethodSym : utils.parents(methodSym)) {
+				for (MethodSymbol parentMethodSym : utils.parents(methodSym,true)) {
 					//System.out.println("CA2-B " + parentMethodSym);
 					if (parentMethodSym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no
 					// specs?

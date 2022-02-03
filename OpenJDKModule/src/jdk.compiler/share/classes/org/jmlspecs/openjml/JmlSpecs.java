@@ -895,7 +895,7 @@ public class JmlSpecs {
         spec.csymbol = type;
         specsTypes.put(type,spec);
         setStatus(type, SpecsStatus.SPECS_LOADED);
-        if (utils.verbose()) utils.note("      Saving class specs for " + type.flatname + (spec.specDecl == null ? " (null declaration)": " (non-null declaration)"));
+    	if (utils.verbose()) utils.note("      Saving class specs for " + type.flatname + (spec.specDecl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
     public void removeSpecs(ClassSymbol type) {
@@ -907,12 +907,19 @@ public class JmlSpecs {
      * @param m the MethodSymbol of the method whose specs are provided
      * @param spec the specs to associate with the method
      */
-    public void putSpecs(MethodSymbol specSym, MethodSpecs spec, Env<AttrContext> specsEnv) {
+    public void putSpecs(MethodSymbol specSym, MethodSpecs spec) {
+    	//if (specSym.toString().equals("Object()")) { System.out.println("SAVE " + specSym + " " + specSym.hashCode() + " " + specsEnv); Utils.dumpStack(); } 
     	spec.specSym = specSym;
         if (utils.verbose()) utils.note("            Saving method specs for " + specSym.owner + "." + specSym + " " + specSym.hashCode());
-        spec.setEnv(specsEnv);
         specsMethods.put(specSym,spec);
+        setStatus(specSym, SpecsStatus.SPECS_LOADED);
     }
+    
+    public void putAttrSpecs(MethodSymbol specSym, MethodSpecs spec) {
+    	putSpecs(specSym, spec);
+    	setStatus(specSym, SpecsStatus.SPECS_ATTR);
+    }
+
     
     public void dupSpecs(MethodSymbol m, MethodSymbol old) {
     	var spec = getLoadedSpecs(old);
@@ -953,7 +960,9 @@ public class JmlSpecs {
      */
     //@ non_null
     public MethodSpecs getSpecs(MethodSymbol m) {
-    	if (status(m).less(SpecsStatus.SPECS_ATTR)) attr.attrSpecs(m);
+    	if (status(m).less(SpecsStatus.SPECS_ATTR)) {
+    		attr.attrSpecs(m, null);
+    	}
         return specsMethods.get(m);
     }
     
@@ -1008,7 +1017,7 @@ public class JmlSpecs {
             // This can also happen for a method that has no JML declaration or specification in its static class,
             // but does inherit a method (and spec) from a parent class.
             s = defaultSpecs(null,m,Position.NOPOS);
-            putSpecs(m,s,s.specsEnv);
+            putAttrSpecs(m,s);
             s.cases.deSugared = s.cases;
             return s.cases;    // FIXME - this is not actually fully desugared, but we don't have a decl to call deSugarMethodSpecs
         }
@@ -1039,7 +1048,7 @@ public class JmlSpecs {
         if (decl != null) mods = decl.mods; // Caution -- these are now aliased
         MethodSpecs mspecs = new MethodSpecs(mods,ms); // FIXME - empty instead of null modifiers?
         
-        List<MethodSymbol> parents = utils.parents(sym);
+        List<MethodSymbol> parents = utils.parents(sym,true);
         
         if (decl == null) {
             if (parents.size() > 1) {
@@ -1051,7 +1060,7 @@ public class JmlSpecs {
                 mspecs.cases.decl = decl = parentSpecs == null ? null : parentSpecs.cases.decl;
                 mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>nil();
                 mspecs.cases.deSugared = mspecs.cases;
-                JmlSpecs.instance(context).putSpecs(sym, mspecs, null);
+                putAttrSpecs(sym, mspecs);
                 return mspecs;
             } else {
                 // This is a binary method that has no JML declaration and does not override
@@ -1087,7 +1096,7 @@ public class JmlSpecs {
             JCModifiers csm = M.at(pos).Modifiers(mods.flags & Flags.AccessFlags);
             JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false, MethodSimpleClauseExtensions.behaviorClause,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(clp,sig),null);
             mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
-            JmlSpecs.instance(context).putSpecs(sym, mspecs, null);
+            JmlSpecs.instance(context).putSpecs(sym, mspecs); // FIXME - are the specs attributed or not
             return mspecs;
             // FIXME - this case should happen only if parent constructors are pure and have no signals clause
         } else xx: if ((sym.owner.flags() & Flags.ENUM) != 0 && !sym.isConstructor()) {
@@ -1201,7 +1210,7 @@ public class JmlSpecs {
 //            	System.out.println("VALUEOF MSPECS " + mspecs);
 //                System.out.println("VALUEOF DECL " + mspecs.specDecl);
 //            }
-            JmlSpecs.instance(context).putSpecs(sym, mspecs, null);
+            JmlSpecs.instance(context).putSpecs(sym, mspecs); // FIXME - are the specs attributed or not?
             return mspecs;
             
         }
@@ -1370,7 +1379,6 @@ public class JmlSpecs {
     public static class TypeSpecs {
         /** The Symbol for the type these specs belong to*/
         public ClassSymbol csymbol;
-        public SpecsStatus status;
         public Env<AttrContext> specsEnv; // The env to use to typecheck the specs
         
         
@@ -1381,6 +1389,11 @@ public class JmlSpecs {
          */
         //@ nullable   // may be null if the class is binary and there is no specification file
         public JmlClassDecl specDecl;
+
+        /** The JmlClassDecl for the source
+         */
+        //@ nullable   // may be null if the class is binary; may be the same as specDecl if there is source and no .jml
+        public JmlClassDecl javaDecl;
 
         /** The JML modifiers of the class, including JML modifiers */
         public JmlModifiers modifiers;
@@ -1419,15 +1432,21 @@ public class JmlSpecs {
             this.file = file;
             this.csymbol = csymbol;
             this.specDecl = null;
+            this.javaDecl = null;
             this.modifiers = mods;
             this.clauses = new ListBuffer<JmlTypeClause>();
             this.specsEnv = env;
-            this.status = SpecsStatus.SPECS_LOADED;
         }
         
-        public TypeSpecs(JmlClassDecl specdecl, Env<AttrContext> env) {
-        	if (specdecl == null) System.out.println("UNEXPECTED NULL SPECDECL");
+        public TypeSpecs(JmlClassDecl specdecl, JmlClassDecl javadecl, Env<AttrContext> specenv) {
+        	if (specdecl == null) throw new AssertionError("Unexpected null specdecl");
+        	if (javadecl != null && javadecl.specsDecl != specdecl) throw new AssertionError("Mismatched decls");
+        	if (javadecl != null && javadecl.sym != specdecl.sym) throw new AssertionError("Mismatched class symbols");
+        	if (specenv == null || specenv.tree != specdecl) throw new AssertionError("Mismatched spec tree");
+        	//if (javadecl != null && javadecl != Enter.instance(context).getEnv(javadecl.sym).tree) throw new AssertionError("Mismatched java trees");
+        	if (specenv != specdecl.specEnv) throw new AssertionError("Mismatched env");
         	this.specDecl = specdecl;
+        	this.javaDecl = javadecl;
         	this.csymbol = specdecl.sym;
         	this.file = specdecl.source(); // FIXME - do we need this caching?
         	this.modifiers = (JmlModifiers)specdecl.mods; // FIXME - need to set mods from java or csymbol
@@ -1446,9 +1465,8 @@ public class JmlSpecs {
         			this.clauses.add((JmlTypeClause)t);
         		}
         	}
-        	specdecl.typeSpecs = this; // FIXME - should we really reset this?
-            this.specsEnv = env;
-            this.status = SpecsStatus.SPECS_LOADED;
+        	specdecl.typeSpecs = this; // FIXME - should we really reset this?or even cache it?
+            this.specsEnv = specenv;
             // FIXME ??? - blocks
         }
         
@@ -1889,7 +1907,6 @@ public class JmlSpecs {
         mr.secretDatagroup = m.secretDatagroup;
         mr.mods = copier.copy(m.mods,p);
         mr.specsEnv = m.specsEnv;
-        mr.status = m.status;
         return mr;
     }
     
@@ -1906,7 +1923,6 @@ public class JmlSpecs {
         public JmlMethodSpecs cases;
         public Env<AttrContext> javaEnv;
         public Env<AttrContext> specsEnv;
-        public SpecsStatus status;
         
         public MethodSpecs(JmlMethodDecl specsDecl) { 
             this.mods = specsDecl.mods;
@@ -1919,7 +1935,6 @@ public class JmlSpecs {
             }
             cases.decl = specsDecl;
             specsEnv = null;
-            status = SpecsStatus.SPECS_LOADED;
         }
         
         public MethodSpecs(JCTree.JCModifiers mods, JmlMethodSpecs methodSpecs) { 
@@ -1931,7 +1946,6 @@ public class JmlSpecs {
                 cases = methodSpecs;
             }
             specsEnv = null;
-            status = SpecsStatus.SPECS_LOADED;
         }
 
         public void setEnv(Env<AttrContext> env) {
@@ -2032,14 +2046,6 @@ public class JmlSpecs {
 	
 	public void setStatus(Symbol sym, SpecsStatus status) {
 		specsStatus.put(sym, status);
-		if (sym instanceof ClassSymbol) {
-			TypeSpecs t = get((ClassSymbol)sym);
-			if (t != null) t.status = status; // FIXME - do we need this cached value?
-		}
-		if (sym instanceof MethodSymbol) {
-			MethodSpecs t = get((MethodSymbol)sym);
-			if (t != null) t.status = status; // FIXME - do we need this cached value?
-		}
 	}
 
     public static enum SpecsStatus {

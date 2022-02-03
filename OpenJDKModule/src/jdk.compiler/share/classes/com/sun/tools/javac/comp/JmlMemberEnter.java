@@ -194,7 +194,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         			var msp = new JmlSpecs.MethodSpecs(md);
             		md.specsDecl = md;
             		msp.javaDecl = md;
-					specs.putSpecs(md.sym, msp, methodEnv(md, env));
+            		msp.javaEnv = msp.specsEnv = methodEnv(md, env); // FIXME - review this
+					specs.putSpecs(md.sym, msp);
         		}
         	}
         	return;
@@ -262,7 +263,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     					specMethodDecl.type = specMethodDecl.sym.type;
     					var msp = new JmlSpecs.MethodSpecs(specMethodDecl);
     					msp.javaDecl = javaMethodDecl;
-    					specs.putSpecs(specMethodDecl.sym, msp, env);
+    					msp.javaEnv = msp.specsEnv = env;
+    					specs.putSpecs(specMethodDecl.sym, msp);
     					cd.defs = cd.defs.append(specMethodDecl);
     					//System.out.println("NEW JML METHOD " + cd.name + " " + specMethodDecl.name + " " + specMethodDecl.sym  );
     				} else {
@@ -287,7 +289,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         		specMethodDecl.type = javaMethodDecl.type;
                         		var msp = new JmlSpecs.MethodSpecs(specMethodDecl);
                         		msp.javaDecl = javaMethodDecl;
-        						specs.putSpecs(javaMethodDecl.sym, msp, env);
+                        		msp.javaEnv = msp.specsEnv = env;
+        						specs.putSpecs(javaMethodDecl.sym, msp);
             					//System.out.println("MATCHED JAVA METHOD " + cd.name + " " + specMethodDecl.sym + " " + specMethodDecl.sym.hashCode() + " " + specMethodDecl.restype + " " + javaMethodDecl.sym + " " + javaMethodDecl.sym.hashCode());
                         	}
     					} else {
@@ -313,7 +316,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     				var msp = new JmlSpecs.MethodSpecs(md);
     				md.specsDecl = md;
     				msp.javaDecl = md;
-    				specs.putSpecs(md.sym, msp, methodEnv(md, env));
+            		msp.javaEnv = msp.specsEnv = methodEnv(md, env);
+    				specs.putSpecs(md.sym, msp);
     			}
     		}
     	}
@@ -389,8 +393,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //    	if (st != JmlSpecs.SpecsStatus.NOT_LOADED || !enterJML) {
 //    		// The check above is to avoid calling putSpecs during the processing of source files
 //    		// FIXME - it presumes that source files are completely processed before aspec files are queued
-//    		specs.putSpecs(m, new MethodSpecs((JmlMethodDecl)tree), localEnv);
+//    	var sp = new MethodSpecs((JmlMethodDecl)tree);
+//    	sp.specsEnv = localEnv;
+//    		specs.putSpecs(m, sp);
 //    	}
+    	JmlEnter.instance(context).methodEnv = localEnv;
     	if (!enterJML) return true; // FIXME - enterJML can be done away with, I think
     	boolean b = super.visitMethodDefHelper(tree, m, enclScope, localEnv);
         return b;

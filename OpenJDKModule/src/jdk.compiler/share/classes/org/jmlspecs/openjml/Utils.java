@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -28,6 +29,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Stream;
 
 import javax.tools.JavaFileObject;
 
@@ -931,11 +933,17 @@ public class Utils {
 
     // Includes self
     public java.util.List<ClassSymbol> parents(TypeSymbol ct, boolean includeEnclosingClasses) {
+    	return parents(ct, includeEnclosingClasses, true);
+    }
+    public java.util.List<ClassSymbol> parents(TypeSymbol ct, boolean includeEnclosingClasses, boolean includeSelf) {
         ArrayList<ClassSymbol> interfaces = new ArrayList<ClassSymbol>(20);
+        if (objectSym == null) objectSym = (Symbol.ClassSymbol)Symtab.instance(context).objectType.tsym;
+        if (ct == objectSym && !includeSelf) return interfaces;
         if (isJavaOrJmlPrimitiveType(ct.type)) {
-            interfaces.add((ClassSymbol)ct);
+            if (includeSelf) interfaces.add((ClassSymbol)ct);
             return interfaces;
         }
+
         if (ct instanceof Symbol.TypeVariableSymbol) {
             ct = ct.type.getUpperBound().tsym;
             // FIXME - what if bound is also a type variable?
@@ -962,15 +970,18 @@ public class Utils {
             }
             var sc = cc.getSuperclass().tsym;
             if (sc != null) todo.add((ClassSymbol)sc);
+            if (org.jmlspecs.openjml.Utils.isJML() && ct.toString().endsWith("Local")) System.out.println("ADDING " + cc + ":" + todo);
             classes.add(0,cc);
         }
         for (ClassSymbol ccc: classes) {
             List<Type> ifs = ccc.getInterfaces();
+            if (org.jmlspecs.openjml.Utils.isJML() && ct.toString().endsWith("Local")) System.out.println("  IFACES " + ccc + ":" + ifs);
             for (Type ifc : ifs) {
                 ClassSymbol sym = (ClassSymbol)ifc.tsym;
                 if (interfaceSet.add(sym)) interfaces.add(sym);
             }
         }
+        if (!includeSelf) classes.remove(classes.size()-1);
         // FIXME - the interfaces are not in a good order
         int i = 0;
         while (i < interfaces.size()) {
@@ -982,7 +993,6 @@ public class Utils {
                 // FIXME - what about the owners of interfaces
             }
         }
-        if (objectSym == null) objectSym = (Symbol.ClassSymbol)Symtab.instance(context).objectType.tsym;
         classes.remove(objectSym);
         interfaces.addAll(classes);
         interfaces.add(0,objectSym);
@@ -1005,28 +1015,34 @@ public class Utils {
     private ClassSymbol objectSym = null;
 
     // Returns all methods that are overridden by the argument, including self // FI(XME - review for order
-    public java.util.List<MethodSymbol> parents(MethodSymbol m) {
+    public java.util.List<MethodSymbol> parents(MethodSymbol m, boolean includeSelf) {
         List<MethodSymbol> methods = new LinkedList<MethodSymbol>();
         if (isJMLStatic(m)) {
-            methods.add(m); 
+            if (includeSelf) methods.add(m); 
         } else if (m.isConstructor() ) {
-        	methods.add(m);
+        	if (includeSelf) methods.add(m);
         } else {
         	// FIXME - the 'true' here should be false -- it seems that model interface enclosed within 
-        	// and extending java interfaces do not show those interfaces in getIntrerfaces()
-        	// are not getting their 
+        	// and extending java interfaces do not show those interfaces in getInterfaces()
         	var classes = parents((ClassSymbol)m.owner, false);
+        	//if (m.toString().contains("sequential")) System.out.println("CLASSES " + m.owner + " " + m + " " + m.isDefault() + " " + Arrays.toString(classes.toArray()));
             for (ClassSymbol c: classes) {
                for (Symbol mem: c.members().getSymbols(
-            		   mem->(mem instanceof MethodSymbol &&
-            				   mem.name.equals(m.name)))) {
+            		   mem->(mem instanceof MethodSymbol && (includeSelf || m.owner != mem.owner) &&
+            				   mem.name == m.name))) {
             	   boolean ok = m.overrides(mem, (TypeSymbol)m.owner, Types.instance(context), true, false);
+            	   //if (m.toString().contains("sequential")) System.out.println("  CHECKING " + m.owner + "#" + m + " " + mem.owner + "#" + mem + " " + ((MethodSymbol)mem).isDefault() + " " + ok);
             	   if (ok) methods.add((MethodSymbol)mem);
                 }
             }
         }
+ 	    //if (m.toString().contains("sequential")) { System.out.println("  RESULT " + m + " : " + join(",",methods,mm->mm.owner.toString())); Utils.dumpStack(); }
         return methods;
     }
+    
+    public static <T> String join(CharSequence delim, java.util.Collection<T> list) { return String.join(delim, list.stream().map(mm->mm.toString()).collect(java.util.stream.Collectors.toList())); }
+    public static <T,U> String join(CharSequence delim, java.util.Collection<T> list, java.util.function.Function<T,U> f) { return String.join(delim, list.stream().map(mm->f.apply(mm).toString()).collect(java.util.stream.Collectors.toList())); }
+    //public static <T> String join(CharSequence delim, T[] list) { return String.join(delim, Stream.of(list).map(mm->mm.owner.toString()).collect(java.util.stream.Collectors.toList()).toArray()); }
     
     /** Creates the location prefix including the colon without any message;
      * 'pos' is the position in the file given by log().currentSource(). */

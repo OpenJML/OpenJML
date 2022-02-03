@@ -192,6 +192,7 @@ public class JmlCompiler extends JavaCompiler {
         		noJML = specFile != null; // Using the noJML field to pass a parameter to the scanner factory is a hack and precludes parallel parsing within a context
         	}
             {
+            	if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("PARSING " + filename + " " + specFile);
             	// This block of code is inlined (twice) from super.parse(filename) in order to avoid rereading the source file
                 JCTree.JCCompilationUnit javaCU = parse(filename, charSeq);
                 if (javaCU.endPositions != null) log.setEndPosTable(filename, javaCU.endPositions);
@@ -228,6 +229,7 @@ public class JmlCompiler extends JavaCompiler {
     public JmlCompilationUnit parseSpecs(ClassSymbol typeSymbol) {
         JavaFileObject specFile = JmlSpecs.instance(context).findSpecFile(typeSymbol);
         if (utils.verbose()) utils.note("Found spec " + typeSymbol + " " + specFile);
+    	if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("PARSING SPECS " + typeSymbol + " " + specFile);
         if (specFile == null) return null;
 
         var specCU = (JmlCompilationUnit)super.parse(specFile);

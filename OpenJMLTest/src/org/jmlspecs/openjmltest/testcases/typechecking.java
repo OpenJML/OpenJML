@@ -440,7 +440,7 @@ public class typechecking extends TCBase {
     
     @Test public void testMisc1b() {
         helpTC(" class A { /*@ ensures \\result     ; */\nboolean m() { \n//@ int t;\n}}"
-                ,"/TEST.java:3: error: A local declaration within a JML annotation must be ghost", 9 // FIXME - better position
+                ,"/TEST.java:3: error: A local declaration within a JML annotation must be ghost: t in m()", 9 // FIXME - better position
         );
     }
     
@@ -459,13 +459,13 @@ public class typechecking extends TCBase {
     /** Missing model or ghost modifier */
     @Test public void testJmlTypes2() {
         helpTCF("A.java","public class A {  int i; /*@  \\TYPE t; */ } ",
-                "/A.java:1: error: A JML field declaration must be marked either ghost or model: t (owner: A)",37);
+                "/A.java:1: error: A declaration within a JML annotation must be either ghost or model: A.t",37);
     }
 
     /** Wrong position model or ghost modifier */
     @Test public void testJmlTypes3() {
         helpTCF("A.java","import org.jmlspecs.annotation.*; public class A {  @Ghost int i; } ",
-                "/A.java:1: error: A Java field declaration must not be marked either ghost or model: i (owner: A)",53);
+                "/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.i",64); // FIXME - better would be 53
     }
 
     @Test public void testJmlTypes4() {
@@ -1098,9 +1098,9 @@ public class typechecking extends TCBase {
         );
     }
     
-    @Test public void testBadModelImport2a() {
+    @Test public void testBadModelClass2a() {
         helpTCF("A.java","/*@ model */  public class A {\n  \n }"
-                ,"/A.java:1: error: A Java class declaration must not be marked either ghost or model: A (owner: unnamed package)",5
+                ,"/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A",22 // FIXME _ better would be 5
         );
     }
     
@@ -1277,7 +1277,7 @@ public class typechecking extends TCBase {
                 "//@ requires i \n"+
     		    "//@    > 0\n"+
                 "//@   ; ensures \\result > \n"+
-    		    "//@   0\n"+
+    		    "//@   0;\n"+
     		    "  public int m(int i) { return i;} \n"+
     		    "}\n"
     			,"/Test.java:5: warning: Inserting missing semicolon at the end of a ensures statement",8
@@ -1366,6 +1366,30 @@ public class typechecking extends TCBase {
     @Test public void testErrorGitBug609() {
     	addMockFile("$A/B.java","package p; public class B{}");
         helpTCF("A.java","package p; public class A implements Cloneable { private B b; A() { b = new B(); }}"
+                ,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class p.A",58
+				,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class p.A",77
+        		);
+    }
+
+    @Test public void testDefaultsA() {
+        helpTCF("A.java","public class A{}\n" +
+        		"interface B1 { default void m() {} } interface A1 extends B1 { /*@ also requires true; */ default void m(){} }\n" +
+        		"interface B2 { default void m() {} } interface A2 extends B2 { /*@ also requires true; */         void m();  }\n" +
+        		"interface B3 {         void m() ;  } interface A3 extends B3 { /*@ also requires true; */ default void m(){} }\n" +
+        		"interface B4 {         void m() ;  } interface A4 extends B4 { /*@ also requires true; */         void m();  }\n" +
+        		""
+                ,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class p.A",58
+				,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class p.A",77
+        		);
+    }
+
+    @Test public void testDefaultsB() {
+        helpTCF("A.java","public class A{}\n" +
+        		"interface B1 { default void m() {} } interface A1 extends B1 { /*@ requires true; */ default void m(){} }\n" +
+        		"interface B2 { default void m() {} } interface A2 extends B2 { /*@ requires true; */         void m();  }\n" +
+        		"interface B3 {         void m() ;  } interface A3 extends B3 { /*@ requires true; */ default void m(){} }\n" +
+        		"interface B4 {         void m() ;  } interface A4 extends B4 { /*@ requires true; */         void m(); }\n" +
+        		""
                 ,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class p.A",58
 				,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class p.A",77
         		);
