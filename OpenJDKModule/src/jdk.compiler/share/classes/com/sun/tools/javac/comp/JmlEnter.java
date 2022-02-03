@@ -251,7 +251,7 @@ public class JmlEnter extends Enter {
 		}
 		var prevSource = log.useSource(compUnit.sourcefile);
 		try {
-			tree.defs = matchClasses(tree.defs, compUnit.specsCompilationUnit.defs,
+			compUnit.defs = matchClasses(compUnit.defs, compUnit.specsCompilationUnit.defs,
 					compUnit.pid == null ? "default-package" : compUnit.pid.pid.toString());
 			super.visitTopLevel(compUnit);
 		} finally {
@@ -299,15 +299,15 @@ public class JmlEnter extends Enter {
 								"jml.message", "duplicate class: " + specDecl.name);
 						continue; // skip the revisedDecls.add
 					}
+					revisedDecls.add(sd);
 				}
-				revisedDecls.add(sd);
 			}
 		} else {
+			//System.out.println("MATCHING CLASSES " + owner);
 			for (var sd : specClasses) {
 				// System.out.println("CHECKING-A " + sd.getClass());
 				if (sd instanceof JmlClassDecl specDecl) {
-					// System.out.println("CHECKING " + specDecl.name + " " +
-					// utils.isJML(specDecl));
+					//System.out.println("CHECKING " + specDecl.name + " " +	 utils.isJML(specDecl));
 					Optional<JCTree> m = javaClasses.stream()
 							.filter(t -> (t instanceof JmlClassDecl d && d.name == specDecl.name)).findFirst();
 					JmlClassDecl match = (JmlClassDecl) m.orElse(null); // unpack the Optional
@@ -321,6 +321,7 @@ public class JmlEnter extends Enter {
 										+ specDecl.name);
 						continue; // disallow the match
 					}
+					//System.out.println("  MATCH " + (match==null?null:match.name));
 					if (match == null) {
 						// No match in the Java list with the same name
 						if (utils.isJML(specDecl.mods)) {
@@ -360,9 +361,11 @@ public class JmlEnter extends Enter {
 			}
 			for (var jd : javaClasses) {
 				if (jd instanceof JmlClassDecl javaDecl) {
-					if (javaDecl.specsDecl == null)
+					if (javaDecl.specsDecl == null) {
+						// System.out.println ("WAS UNMATCHED " + javaDecl.name);
 						javaDecl.specsDecl = javaDecl; // Java declaration has no specs, no it is its own specs (OK
 														// because it was parsed without JML)
+					}
 					JmlClassDecl match = (JmlClassDecl) javaClasses.stream()
 							.filter(t -> (t instanceof JmlClassDecl d && d.name == javaDecl.name)).findFirst()
 							.orElseThrow();
@@ -635,22 +638,25 @@ public class JmlEnter extends Enter {
 		// processing (e.g. symbol creation, type parameter entering)
 		// for that class or CU, and now is calling classEnter on its own nested
 		// declarations.
-		// The env being passed in is for the enclosing environment; we need to compute
-		// the specEnv for the enclosing specification file
+		// The env being passed in is for the enclosing environment;
+		// we need to compute the specEnv for the enclosing specification file
 		if (env != null) {
-			if (env.tree instanceof JmlClassDecl cd) { // class declaration of the enclosing environment
+			if (env.tree instanceof JmlClassDecl sourceDecl) { // class declaration of the enclosing environment
 				// This is a spot to insert processing after a class has been created (in visitClassDef)
 				// and before any nested classes are processed
 				
 				// cd is the enclosing class for the 'trees' argument
-				if (cd.defs != trees) throw new AssertionError("defs mismatch: " + cd.name + " " + cd.sym);
-				postClassCreation(cd, env, specEnv);
+				if (sourceDecl.defs != trees) throw new AssertionError("defs mismatch: " + sourceDecl.name + " " + sourceDecl.sym);
+				//enterScope(specEnv).enter(sourceDecl.sym); // FIXME - review -= can occur for enums, anonymous classes
+				sourceDecl.specsDecl.sym = sourceDecl.sym; // sym will have the source classfile
+				specEnv = classEnv(sourceDecl.specsDecl, specEnv);
+				postClassCreation(sourceDecl, env, specEnv);
 			} else if (env.tree instanceof JmlCompilationUnit sourceCU) { // enclosing env is a comp unit
 				sourceCU.specsCompilationUnit.packge = sourceCU.packge; // package symbol has a sourcefile, which is the
 																		// source's, not the spec's
 				sourceCU.specsCompilationUnit.modle = sourceCU.modle;
 				sourceCU.specsCompilationUnit.locn = sourceCU.locn;
-				specEnv = topLevelEnv(sourceCU.specsCompilationUnit); // needs packge, cmodle
+				specEnv = topLevelEnv(sourceCU.specsCompilationUnit); // needs packge, modle defined before this call
 				if (tlenv == null) tlenv = specEnv; // A hack to save some top-level environment for resolving global names
 				
 			}
@@ -660,114 +666,68 @@ public class JmlEnter extends Enter {
 	}
 	
 	// env is for sourceDecl 
-    // specCenv is for the container of sourceDecl.specDecl, changed to specEnv for sourceDecl.specDecl at the end
+    // specEnv is for sourceDecl.specDecl
 	public void postClassCreation(JmlClassDecl sourceDecl, Env<AttrContext> env, Env<AttrContext> specEnv) {
 		if (env.tree != sourceDecl) throw new AssertionError("mismatched Java decl: " + sourceDecl.name + " " + sourceDecl.sym);
 		if (sourceDecl.specsDecl == null) throw new AssertionError("null specsdecl: " + sourceDecl.name + " " + sourceDecl.sym + " " + sourceDecl.hashCode());
 		if (sourceDecl.sym == null) throw new AssertionError("null sourceDecl symbol " + sourceDecl.name );
 		JmlClassDecl cd = sourceDecl;
-		{ // cd is the source class declaration
-			sourceDecl.specsDecl.sym = sourceDecl.sym; // sym will have the source classfile
-			sourceDecl.specEnv = sourceDecl.specsDecl.specEnv = specEnv;
+		 // cd is the source class declaration
+		sourceDecl.specEnv = sourceDecl.specsDecl.specEnv = specEnv;
 
-			var localEnv = getEnv(cd.sym);
-			if (localEnv == null) { // Defensive check
-				utils.error(cd.sourcefile, cd, "jml.internal",
-						"An 'entered' class that does not have a stored Env");
-			}
-			if (cd.specsDecl == null) { // Defensive check
-				utils.error(cd.sourcefile, cd, "jml.internal", "A source class that does not have a specs class");
-				cd.specsDecl = cd; // Recovery from an error situation
-			}
-			enterScope(specEnv).enter(cd.sym); // FIXME - review -= can occur for enums, anonymous classes
-//			if (cd.specsDecl == null) {
-//				// the cd is a spec tree corresponding to a binary class, and cd.specDecl is null
-//				cd.specsEnv = localSpecEnv;
-//				JmlSpecs.instance(context).putSpecs((ClassSymbol) cd.sym,
-//						new JmlSpecs.TypeSpecs(cd, null, localSpecEnv));
-//
-//				int numSourceTypeParams = ((ClassSymbol) cd.sym).getTypeParameters().size();
-//				int numSpecsTypeParams = cd.typarams.size();
-//				if (numSourceTypeParams != numSpecsTypeParams) {
-//					// This error should not happen because it should have already been caught in
-//					// matchClasses
-//					utils.errorAndAssociatedDeclaration(cd.specsDecl.sourcefile, cd.specsDecl, cd.sourcefile, cd,
-//							"jml.message",
-//							"Specification declaration has different number of type parameters than the binary: "
-//									+ cd.sym.owner + " " + cd.name);
-//				} else {
-//					for (int i = 0; i < numSpecsTypeParams; ++i) {
-//						var sourceTP = ((ClassSymbol) cd.sym).getTypeParameters().get(i);
-//						var specsTP = cd.specsDecl.typarams.get(i);
-//						if (sourceTP.name != specsTP.name) {
-//							utils.error(cd.specsDecl.sourcefile, specsTP, "jml.message",
-//									"Specification type parameter must have the same name as in the source: "
-//											+ specsTP.name + " vs. " + sourceTP.name + " in " + cd.sym.owner + " "
-//											+ cd.name);
-//						} else if (prevSpecEnv != null) { // FIXME - review cases where prevSpecEnv can be null
-//							Type.TypeVar a = (Type.TypeVar) sourceTP.type;
-//							prevSpecEnv.info.scope.enter(a.tsym);
-//							{
-//								specsTP.type = a;
-//								// FIXME - should check and disallow specsTP that have different bounds or
-//								// annotations
-//								// That check needs to do type attribution, so it cannot be done in matchClasses
-//								// To avoid crashes later on, here we just override the spec's values with a
-//								// copy of the source's
-////    							specsTP.annotations = sourceTP.annotations;
-////    							specsTP.bounds = sourceTP.bounds;
-//							}
-//						}
-//
-//					}
-//				}
-//			} else 
-			{
+		var localEnv = getEnv(cd.sym);
+		if (localEnv == null) { // Defensive check
+			utils.error(cd.sourcefile, cd, "jml.internal",
+					"An 'entered' class that does not have a stored Env");
+		}
+		if (cd.specsDecl == null) { // Defensive check
+			utils.error(cd.sourcefile, cd, "jml.internal", "A source class that does not have a specs class");
+			cd.specsDecl = cd; // Recovery from an error situation
+		}
 
-				specEnv = classEnv(cd.specsDecl, specEnv);
-				if (specEnv.tree != sourceDecl.specsDecl) throw new AssertionError("mismatched Spec decl: " + sourceDecl.name + " " + sourceDecl.specsDecl.name +  " " + specEnv.tree.getClass());
-				cd.specsDecl.specEnv = specEnv;
-				JmlSpecs.instance(context).putSpecs((ClassSymbol) cd.sym, new JmlSpecs.TypeSpecs(cd.specsDecl, cd, specEnv));
-				
-				int numSourceTypeParams = cd.typarams.size();
-				int numSpecsTypeParams = cd.specsDecl.typarams.size();
-				if (numSourceTypeParams != numSpecsTypeParams) {
-					// This error should not happen because it should have already been caught in
-					// matchClasses
-					utils.errorAndAssociatedDeclaration(cd.specsDecl.sourcefile, cd.specsDecl, cd.sourcefile, cd,
-							"jml.message",
-							"Specification declaration has different number of type parameters than source declaration: "
-									+ cd.sym.owner + " " + cd.name);
+
+		if (specEnv.tree != sourceDecl.specsDecl) throw new AssertionError("mismatched Spec decl: " + sourceDecl.name + " " + sourceDecl.specsDecl.name +  " " + specEnv.tree.getClass());
+		cd.specsDecl.specEnv = specEnv;
+		JmlSpecs.instance(context).putSpecs((ClassSymbol) cd.sym, new JmlSpecs.TypeSpecs(cd.specsDecl, cd, specEnv));
+
+		int numSourceTypeParams = cd.typarams.size();
+		int numSpecsTypeParams = cd.specsDecl.typarams.size();
+		if (numSourceTypeParams != numSpecsTypeParams) {
+			// This error should not happen because it should have already been caught in
+			// matchClasses
+			utils.errorAndAssociatedDeclaration(cd.specsDecl.sourcefile, cd.specsDecl, cd.sourcefile, cd,
+					"jml.message",
+					"Specification declaration has different number of type parameters than source declaration: "
+							+ cd.sym.owner + " " + cd.name);
+		} else {
+			for (int i = 0; i < numSpecsTypeParams; ++i) {
+				var sourceTP = cd.typarams.get(i);
+				var specsTP = cd.specsDecl.typarams.get(i);
+				//System.out.println("TYPEPARAMS " + cd.typarams + " # " + cd.specsDecl.typarams);
+				if (sourceTP.name != specsTP.name) {
+					utils.errorAndAssociatedDeclaration(cd.specsDecl.sourcefile, specsTP, cd.sourcefile,
+							sourceTP, "jml.message",
+							"Specification type parameter must have the same name as in the source: "
+									+ specsTP.name + " vs. " + sourceTP.name + " in " + cd.sym.owner + " "
+									+ cd.name);
 				} else {
-					for (int i = 0; i < numSpecsTypeParams; ++i) {
-						var sourceTP = cd.typarams.get(i);
-						var specsTP = cd.specsDecl.typarams.get(i);
-						//System.out.println("TYPEPARAMS " + cd.typarams + " # " + cd.specsDecl.typarams);
-						if (sourceTP.name != specsTP.name) {
-							utils.errorAndAssociatedDeclaration(cd.specsDecl.sourcefile, specsTP, cd.sourcefile,
-									sourceTP, "jml.message",
-									"Specification type parameter must have the same name as in the source: "
-											+ specsTP.name + " vs. " + sourceTP.name + " in " + cd.sym.owner + " "
-											+ cd.name);
-						} else {
-							Type.TypeVar a = (Type.TypeVar) sourceTP.type;
-// FIXME							specEnv.info.scope.enter(a.tsym); // Need to do this even if cd.specsDecl == cd
-							if (specsTP != sourceTP) {
-								specsTP.type = a;
-								// FIXME - should check and disallow specsTP that have different bounds or
-								// annotations
-								// That check needs to do type attribution, so it cannot be done in matchClasses
-								// To avoid crashes later on, here we just override the spec's values with a
-								// copy of the source's
-								specsTP.annotations = sourceTP.annotations;
-								specsTP.bounds = sourceTP.bounds;
-							}
-						}
-						cd.specsDecl.typarams = cd.typarams;
+					Type.TypeVar a = (Type.TypeVar) sourceTP.type;
+					// FIXME							specEnv.info.scope.enter(a.tsym); // Need to do this even if cd.specsDecl == cd
+					if (specsTP != sourceTP) {
+						specsTP.type = a;
+						// FIXME - should check and disallow specsTP that have different bounds or
+						// annotations
+						// That check needs to do type attribution, so it cannot be done in matchClasses
+						// To avoid crashes later on, here we just override the spec's values with a
+						// copy of the source's
+						specsTP.annotations = sourceTP.annotations;
+						specsTP.bounds = sourceTP.bounds;
 					}
 				}
+				cd.specsDecl.typarams = cd.typarams;
 			}
 		}
+
 		// Go on to do nested classes
 	}
 
@@ -780,7 +740,7 @@ public class JmlEnter extends Enter {
 			System.out.println("Entering CU " + cu.sourcefile);
 		if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl d)
 			System.out.println("Entering class " + d.name);
-		if (tree instanceof JmlClassDecl cd && cd.specsDecl != cd) throw new AssertionError("wrong specsDecl-A: " + cd.name + " " + cd.specsDecl);
+		if (tree instanceof JmlClassDecl cd && cd.specsDecl.name != cd.name) throw new AssertionError("wrong specsDecl-A: " + cd.name + " " + cd.specsDecl.name);
 		var prevSpecEnv = specEnv;
 		try {
 			Type t = super.classEnter(tree, env); // eventually calls tree.accept, assigning env to this.env
@@ -874,6 +834,9 @@ public class JmlEnter extends Enter {
 
 		var iter = owner.members().getSymbolsByName(specDecl.name, s->s instanceof ClassSymbol).iterator();
 		ClassSymbol csym = iter.hasNext() ? (ClassSymbol)iter.next() : null;
+		
+//		boolean print = owner.toString().equals("org.jmlspecs.lang");
+//		if (print) System.out.println("SPECSCLASSENTER " + specsEnv.toplevel.sourcefile + " " + csym + " " + getEnv(csym));
 
     	boolean isJML = utils.isJML(specDecl);
 		boolean isOwnerJML = utils.isJML(owner.flags());
@@ -895,20 +858,29 @@ public class JmlEnter extends Enter {
 				// So enter the class in the package or the parent class
 				// FIXME - not positive this is entered in a way that RAC will work or is even correct for attribution
 				if (owner instanceof PackageSymbol powner) {
-					csym = syms.enterClass(powner.modle, specDecl.name, powner);
-					csym.completer = Completer.NULL_COMPLETER;
-					csym.sourcefile = powner.sourcefile; // FIXME: Not positive this is needed
-					// The following cloned from Enter.java
-					if ((specDecl.mods.flags & PUBLIC) != 0 && !classNameMatchesFileName(csym, specsEnv)) {
-						KindName topElement = KindName.CLASS;
-						if ((specDecl.mods.flags & ENUM) != 0) {
-							topElement = KindName.ENUM;
-						} else if ((specDecl.mods.flags & INTERFACE) != 0) {
-							topElement = KindName.INTERFACE;
-						}
-						log.error(specDecl.pos(),
-								Errors.ClassPublicShouldBeInFile(topElement, specDecl.name));
-					}
+					specDecl.specsDecl = specDecl;
+					this.specEnv = specsEnv;
+					classEnter(specDecl, specsEnv);
+					csym = specDecl.sym;
+					csym.complete();
+					csym.flags_field = specDecl.mods.flags | Flags.UNATTRIBUTED;
+					if (utils.verbose()) utils.note("Entering JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
+					return true;
+
+//					csym = syms.enterClass(powner.modle, specDecl.name, powner);
+//					csym.completer = Completer.NULL_COMPLETER;
+//					csym.sourcefile = powner.sourcefile; // FIXME: Not positive this is needed
+//					// The following cloned from Enter.java
+//					if ((specDecl.mods.flags & PUBLIC) != 0 && !classNameMatchesFileName(csym, specsEnv)) {
+//						KindName topElement = KindName.CLASS;
+//						if ((specDecl.mods.flags & ENUM) != 0) {
+//							topElement = KindName.ENUM;
+//						} else if ((specDecl.mods.flags & INTERFACE) != 0) {
+//							topElement = KindName.INTERFACE;
+//						}
+//						log.error(specDecl.pos(),
+//								Errors.ClassPublicShouldBeInFile(topElement, specDecl.name));
+//					}
 				} else { // owner is a ClassSymbol
 					ClassSymbol cowner = (ClassSymbol)owner;
 					specDecl.specsDecl = specDecl;
@@ -919,24 +891,33 @@ public class JmlEnter extends Enter {
 					allowRecursion = true;
 					csym = specDecl.sym;
 //					((ClassType)csym.type).typarams_field = classTPEnter(specDecl.typarams, specsEnv);
-					System.out.println("ENTERED-CLASS " + specDecl.name + " " + csym + " " + specsEnv + " " + cowner.members());
+//					System.out.println("ENTERED-CLASS " + specDecl.name + " " + csym + " " + specsEnv + " " + cowner.members());
 //					csym = syms.enterClass(specsEnv.toplevel.modle, specDecl.name, cowner);
 //					csym.completer = Completer.NULL_COMPLETER;
 //					csym.sourcefile = cowner.sourcefile;
 //					((ClassType)csym.type).typarams_field = List.from(cowner.type.getTypeArguments()); // FIXME - what about additional type parameters?
+
+					// FIXME - are the following needed
+					var ct = (ClassType)csym.type;
+					if (specDecl.extending != null) ct.supertype_field = specDecl.extending.type;
+					else if ((specDecl.mods.flags & Flags.INTERFACE) == 0) ct.supertype_field = syms.objectType;
+//					specDecl.typarams.forEach(t -> Attr.instance(context).attribType(t,env));
+//					specDecl.implementing.forEach(t -> Attr.instance(context).attribType(t,env));
+//					specDecl.permitting.forEach(t -> Attr.instance(context).attribType(t,env));
+					csym.members_field = WriteableScope.create(csym);
+					owner.members().enter(csym);
+					specDecl.sym = csym;
+					specDecl.type = ct;
+					csym.flags_field = specDecl.mods.flags | Flags.UNATTRIBUTED;
+					if (utils.verbose()) utils.note("Entering JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
 				}
-				csym.flags_field = specDecl.mods.flags | Flags.UNATTRIBUTED;
-				var ct = (ClassType)csym.type;
-				if (specDecl.extending != null) ct.supertype_field = specDecl.extending.type;
-				else if ((specDecl.mods.flags & Flags.INTERFACE) == 0) ct.supertype_field = syms.objectType;
-//				specDecl.typarams.forEach(t -> Attr.instance(context).attribType(t,env));
-//				specDecl.implementing.forEach(t -> Attr.instance(context).attribType(t,env));
-//				specDecl.permitting.forEach(t -> Attr.instance(context).attribType(t,env));
-				csym.members_field = WriteableScope.create(csym);
-				owner.members().enter(csym);
-				if (utils.verbose()) utils.note("Entering JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
-				specDecl.sym = csym;
-				specDecl.type = ct;
+				localEnv = getEnv(csym);
+				if (localSpecEnv == null) localSpecEnv = classEnv(specDecl, specsEnv);
+				TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
+				if (typeEnvs.get(csym) == null) {
+					((ClassType)csym.type).typarams_field = classTPEnter(specDecl.typarams, localSpecEnv); // FIXME - what does this do???
+					typeEnvs.put(csym, localEnv);
+				}
 			} else {
 				// owner has a binary class corresponding to specDecl, namely csym
 				if (isJML) {
@@ -956,6 +937,12 @@ public class JmlEnter extends Enter {
 				if (!checkAndEnterTypeParameters(csym,specDecl,localSpecEnv)) return false;
 				// FIXME - be sure that annotations are checked as well
 				if (utils.verbose()) utils.note("Matched to binary class: " + csym + " (owner: " + csym.owner +")" );
+
+				TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
+				{
+					((ClassType)csym.type).typarams_field = classTPEnter(specDecl.typarams, localSpecEnv); // FIXME - what does this do???
+					typeEnvs.put(csym, localSpecEnv);
+				}
 			}
 //			if (specDecl.typarams.size() == ((ClassType)csym.type).typarams_field.size()) {
 //				for (int i = 0; i < specDecl.typarams.length(); ++i) {
@@ -963,13 +950,6 @@ public class JmlEnter extends Enter {
 //					specDecl.typarams.get(i).type = ((ClassType)csym.type).typarams_field.get(i);
 //				}
 //			}
-			localEnv = getEnv(csym);
-			if (localSpecEnv == null) localSpecEnv = classEnv(specDecl, specsEnv);
-			TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
-			if (typeEnvs.get(csym) == null) {
-				((ClassType)csym.type).typarams_field = classTPEnter(specDecl.typarams, localSpecEnv); // FIXME - what does this do???
-				typeEnvs.put(csym, localEnv);
-			}
 			specDecl.sym = csym;
 			//specDecl.javaEnv = localEnv;
 			specDecl.specEnv = localSpecEnv;

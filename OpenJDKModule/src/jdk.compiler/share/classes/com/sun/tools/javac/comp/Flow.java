@@ -2632,7 +2632,6 @@ public class Flow {
         }
 
         public void visitNewClass(JCNewClass tree) {
-        	if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("FLOW " + tree);
             scanExpr(tree.encl);
             scanExprs(tree.args);
             scan(tree.def);

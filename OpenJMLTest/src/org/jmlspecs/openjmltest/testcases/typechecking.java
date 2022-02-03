@@ -60,7 +60,7 @@ public class typechecking extends TCBase {
     @Test public void testAlso1() {
     	expectedExit = 0;
         helpTC(" class B { void m() {} } class A extends B { /*@ requires true; */ void m() {} /*@ also requires true; */ void n() {}}"
-                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (B.m())",50
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())",50
                 ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",84
                 );
     }
@@ -73,7 +73,7 @@ public class typechecking extends TCBase {
     @Test public void testAlso1I() {
     	expectedExit = 0;
         helpTC(" interface B { void m(); } class A implements B { /*@ public normal_behavior requires true; */ public void m() {} /*@ also requires true; */ void n() {}}"
-                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (B.m())",62
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())",62
                 ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",119
                 );
     }
@@ -86,7 +86,7 @@ public class typechecking extends TCBase {
     @Test public void testAlso1II() {
     	expectedExit = 0;
         helpTC(" interface B { void m(); } interface A extends B { /*@ requires true; */ void m(); /*@ also requires true; */ void n();}"
-                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (B.m())",56
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())",56
                 ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",88
                 );
     }
@@ -100,7 +100,7 @@ public class typechecking extends TCBase {
     @Test public void testAlsoObjectBad() {
     	expectedExit = 0;
         helpTC("  interface A { /*@ public normal_behavior requires true; */ String toString();}"
-                ,"/TEST.java:1: warning: Method toString overrides parent class methods and so its specification should begin with 'also' (java.lang.Object.toString())",28
+                ,"/TEST.java:1: warning: Method toString overrides parent class methods and so its specification should begin with 'also' (A.toString() overrides java.lang.Object.toString())",28
                 );
     }
 
@@ -1277,7 +1277,7 @@ public class typechecking extends TCBase {
                 "//@ requires i \n"+
     		    "//@    > 0\n"+
                 "//@   ; ensures \\result > \n"+
-    		    "//@   0;\n"+
+    		    "//@   0\n"+
     		    "  public int m(int i) { return i;} \n"+
     		    "}\n"
     			,"/Test.java:5: warning: Inserting missing semicolon at the end of a ensures statement",8
@@ -1378,20 +1378,21 @@ public class typechecking extends TCBase {
         		"interface B3 {         void m() ;  } interface A3 extends B3 { /*@ also requires true; */ default void m(){} }\n" +
         		"interface B4 {         void m() ;  } interface A4 extends B4 { /*@ also requires true; */         void m();  }\n" +
         		""
-                ,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class p.A",58
-				,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class p.A",77
         		);
     }
 
     @Test public void testDefaultsB() {
+    	expectedExit = 0;
         helpTCF("A.java","public class A{}\n" +
         		"interface B1 { default void m() {} } interface A1 extends B1 { /*@ requires true; */ default void m(){} }\n" +
         		"interface B2 { default void m() {} } interface A2 extends B2 { /*@ requires true; */         void m();  }\n" +
         		"interface B3 {         void m() ;  } interface A3 extends B3 { /*@ requires true; */ default void m(){} }\n" +
         		"interface B4 {         void m() ;  } interface A4 extends B4 { /*@ requires true; */         void m(); }\n" +
         		""
-                ,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class p.A",58
-				,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class p.A",77
+                ,"/A.java:2: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A1.m() overrides B1.m())",68
+                ,"/A.java:3: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A2.m() overrides B2.m())",68
+                ,"/A.java:4: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A3.m() overrides B3.m())",68
+                ,"/A.java:5: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A4.m() overrides B4.m())",68
         		);
     }
 

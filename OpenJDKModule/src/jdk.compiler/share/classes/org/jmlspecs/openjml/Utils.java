@@ -970,12 +970,10 @@ public class Utils {
             }
             var sc = cc.getSuperclass().tsym;
             if (sc != null) todo.add((ClassSymbol)sc);
-            if (org.jmlspecs.openjml.Utils.isJML() && ct.toString().endsWith("Local")) System.out.println("ADDING " + cc + ":" + todo);
             classes.add(0,cc);
         }
         for (ClassSymbol ccc: classes) {
             List<Type> ifs = ccc.getInterfaces();
-            if (org.jmlspecs.openjml.Utils.isJML() && ct.toString().endsWith("Local")) System.out.println("  IFACES " + ccc + ":" + ifs);
             for (Type ifc : ifs) {
                 ClassSymbol sym = (ClassSymbol)ifc.tsym;
                 if (interfaceSet.add(sym)) interfaces.add(sym);
@@ -1581,6 +1579,22 @@ public class Utils {
             warning(pos, key, args);
         } finally {
             if (prev != null) log.useSource(prev);
+        }
+    }
+    
+    public void warningAndAssociatedDeclaration(JavaFileObject source, DiagnosticPosition pos, JavaFileObject assoc, DiagnosticPosition assocpos, String key, Object ... args) {
+        Log log = log();
+        JavaFileObject prev = log.useSource(source);
+        try {
+            warning(pos, key, args);
+        } finally {
+            log.useSource(prev);
+        }
+        prev = log.useSource(assoc);
+        try {
+            warning(assocpos, "jml.associated.decl.cf", locationString(pos, source));
+        } finally {
+            log.useSource(prev);
         }
     }
     

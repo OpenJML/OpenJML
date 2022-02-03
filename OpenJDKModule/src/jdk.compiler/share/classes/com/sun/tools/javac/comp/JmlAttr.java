@@ -377,7 +377,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    		super.attribClass(c);
 //    		return;
 //    	}
-    	if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-A " + c);
+    	boolean print = org.jmlspecs.openjml.Utils.isJML() && c.toString().contains("Enum");
+    	//if (print) System.out.println("ATTRIBCLASS-A " + c);
     	if (!(c.owner instanceof ClassSymbol || c.owner instanceof PackageSymbol)) {
     		// A local class
     		var classEnv = typeEnvs.get(c);
@@ -411,14 +412,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
         	// Loading the specs makes sure that modifiers are present when nested declarations are attributed
         	JmlSpecs.instance(context).getLoadedSpecs(c);
-        	if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-J " + c);
+        	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-J " + c);
         	super.attribClass(c);
-        	if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-K " + c);
+        	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-K " + c);
 
             specs.getSpecs(c); // if not yet attributed, attribute the specs // FIXME - not needed
-        	if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-L " + c + " " + !isUnattributed);
+        	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-L " + c + " " + !isUnattributed);
             if (!isUnattributed) return;
-        	if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-M " + c);
+        	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-M " + c);
 
             // FIXME - do we still need this?
             // Binary files with specs had entries put in the Env map so that the
@@ -448,7 +449,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        		checkClassMods(c, (JmlClassDecl)e.tree, specs.getLoadedSpecs(c), e);
             }
         } catch (Exception e) {
-        	System.out.println("EXCEPTION IN attribClass-Y " + c);
+        	System.out.println("EXCEPTION IN attribClass-Y " + c + " " + c.type);
         	e.printStackTrace(System.out);
         	throw e;
         } finally {
@@ -459,7 +460,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (utils.progress()) context.get(Main.IProgressListener.class).report(2,"typechecked " + c);
             }
             if (utils.verbose()) utils.note("Attributing-complete " + c.fullname + " " + level);
-        	if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-Z " + c);
+        	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-Z " + c);
             if (level == 0) completeTodo();
         }
     }
@@ -493,7 +494,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void completeTodo() {
         level++;
         while (!todo.isEmpty()) {
-        	System.out.println("COMPLETE-TODO " + Utils.join(" ", todo));
             ClassSymbol sym = todo.remove(0);
             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Retrieved for attribution " + sym + " " + todo.size());
             try {
@@ -7394,11 +7394,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
  //   	                        }
     	                    } else if (!specHasAlso && methodOverridesOthers) {
     	                    	var base = parents.get(0); // Expected to be the top of the override chain
-    	                    	String s = base.owner + "." + base;
+    	                    	String s = msym.owner + "." + msym + " overrides " + base.owner + "." + base;
     	                        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
-    	                            utils.warning(spec, "jml.missing.also", specDecl.name.toString(), s);
+    	                            utils.warning(spec.source(), spec,  
+    	                            		"jml.missing.also", specDecl.name.toString(), s);
     	                        } else {
-    	                            utils.warning(spec, "jml.missing.also", specDecl.name.toString(), s);
+    	                            utils.warning(spec.source(), spec, 
+    	                            		"jml.missing.also", specDecl.name.toString(), s);
     	                        }
     	                    }
     	                }

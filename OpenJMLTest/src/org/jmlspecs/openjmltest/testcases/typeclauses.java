@@ -375,6 +375,7 @@ public class typeclauses extends TCBase {
         addMockFile("$A/A.jml","public class A {\n //@ represents i = 0;\n}");
         helpTCF("A.java","public class A {\n int i; \n}"
                 ,"/$A/A.jml:2: error: The target of a represents clause must be a model field: A.i",17
+                ,"/A.java:2: Note: Associated declaration: /$A/A.jml:2:",6
                 );
     }
 
