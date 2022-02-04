@@ -252,7 +252,7 @@ public class JmlEnter extends Enter {
 		var prevSource = log.useSource(compUnit.sourcefile);
 		try {
 			compUnit.defs = matchClasses(compUnit.defs, compUnit.specsCompilationUnit.defs,
-					compUnit.pid == null ? "default-package" : compUnit.pid.pid.toString());
+					compUnit.pid == null ? "" : compUnit.pid.pid.toString());
 			super.visitTopLevel(compUnit);
 		} finally {
 			if (prevSource != null) log.useSource(prevSource);
@@ -311,14 +311,13 @@ public class JmlEnter extends Enter {
 					Optional<JCTree> m = javaClasses.stream()
 							.filter(t -> (t instanceof JmlClassDecl d && d.name == specDecl.name)).findFirst();
 					JmlClassDecl match = (JmlClassDecl) m.orElse(null); // unpack the Optional
+					// Check that the type parameters match because we do not want to 'enter' incorrect type parameters
 					if (match != null && match.typarams.size() != specDecl.typarams.size()) {
 						// Could omit this match in the matching expression above, but here we can give
 						// a pointed error message
 						utils.errorAndAssociatedDeclaration(specDecl.sourcefile, specDecl, match.sourcefile, match,
-								"jml.message",
-								"A specification class declaration matches a source class declaration with a different number of type parameters: "
-										+ specDecl.typarams.size() + " vs. " + match.typarams.size() + " for "
-										+ specDecl.name);
+								"jml.mismatched.type.arguments",
+								utils.nameTP(specDecl), utils.nameTP(match));
 						continue; // disallow the match
 					}
 					//System.out.println("  MATCH " + (match==null?null:match.name));
@@ -331,8 +330,7 @@ public class JmlEnter extends Enter {
 						} else {
 							// unmatched non-model class in the .jml file -- an error
 							utils.error(specDecl.sourcefile, specDecl, "jml.message",
-									"There is no class to match this Java declaration in the specification file: "
-											+ specDecl.name);
+									"There is no class to match this Java declaration in the specification file: " + specDecl.name);
 						}
 					} else {
 						// A match in the Java list with the same name
@@ -403,7 +401,7 @@ public class JmlEnter extends Enter {
 			// Do the (non-recursive) nested class matching for this class; any JML-only
 			// (model) classes are in the output list
 			// All non-class member matching is done in JmlMemberEnter
-			tree.defs = matchClasses(sourceCD.defs, sourceCD.specsDecl.defs, sourceCD.name.toString());
+			tree.defs = matchClasses(sourceCD.defs, sourceCD.specsDecl.defs, env.enclClass.sym.toString());
 			log.useSource(sourceCD.sourcefile);
 			super.visitClassDef(sourceCD);
 		} finally {
@@ -640,29 +638,39 @@ public class JmlEnter extends Enter {
 		// declarations.
 		// The env being passed in is for the enclosing environment;
 		// we need to compute the specEnv for the enclosing specification file
-		if (env != null) {
-			if (env.tree instanceof JmlClassDecl sourceDecl) { // class declaration of the enclosing environment
-				// This is a spot to insert processing after a class has been created (in visitClassDef)
-				// and before any nested classes are processed
-				
-				// cd is the enclosing class for the 'trees' argument
-				if (sourceDecl.defs != trees) throw new AssertionError("defs mismatch: " + sourceDecl.name + " " + sourceDecl.sym);
-				//enterScope(specEnv).enter(sourceDecl.sym); // FIXME - review -= can occur for enums, anonymous classes
-				sourceDecl.specsDecl.sym = sourceDecl.sym; // sym will have the source classfile
-				specEnv = classEnv(sourceDecl.specsDecl, specEnv);
-				postClassCreation(sourceDecl, env, specEnv);
-			} else if (env.tree instanceof JmlCompilationUnit sourceCU) { // enclosing env is a comp unit
-				sourceCU.specsCompilationUnit.packge = sourceCU.packge; // package symbol has a sourcefile, which is the
-																		// source's, not the spec's
-				sourceCU.specsCompilationUnit.modle = sourceCU.modle;
-				sourceCU.specsCompilationUnit.locn = sourceCU.locn;
-				specEnv = topLevelEnv(sourceCU.specsCompilationUnit); // needs packge, modle defined before this call
-				if (tlenv == null) tlenv = specEnv; // A hack to save some top-level environment for resolving global names
-				
+		var prevSpecEnv = specEnv;
+		//System.out.println("SAVING-A " + (specEnv==null?"NULL":specEnv.toplevel.sourcefile));
+		try {
+			if (env != null) {
+				if (env.tree instanceof JmlClassDecl sourceDecl) { // class declaration of the enclosing environment
+					// This is a spot to insert processing after a class has been created (in visitClassDef)
+					// and before any nested classes are processed
+
+					// cd is the enclosing class for the 'trees' argument
+					if (sourceDecl.defs != trees) throw new AssertionError("defs mismatch: " + sourceDecl.name + " " + sourceDecl.sym);
+					//enterScope(specEnv).enter(sourceDecl.sym); // FIXME - review -= can occur for enums, anonymous classes
+					sourceDecl.specsDecl.sym = sourceDecl.sym; // sym will have the source classfile
+					//var m = (specEnv==null?"NULL":specEnv.toplevel.sourcefile);
+					specEnv = classEnv(sourceDecl.specsDecl, specEnv);
+					//System.out.println("CLASS " + specEnv.toplevel.modle + " " + sourceDecl.specsDecl.name + " " + (specEnv==null?"NULL":specEnv.toplevel.sourcefile) + " " + m);
+					postClassCreation(sourceDecl, env, specEnv);
+				} else if (env.tree instanceof JmlCompilationUnit sourceCU) { // enclosing env is a comp unit
+					sourceCU.specsCompilationUnit.packge = sourceCU.packge; // package symbol has a sourcefile, which is the
+					// source's, not the spec's
+					sourceCU.specsCompilationUnit.modle = sourceCU.modle;
+					sourceCU.specsCompilationUnit.locn = sourceCU.locn;
+					specEnv = topLevelEnv(sourceCU.specsCompilationUnit); // needs packge, modle defined before this call
+					//System.out.println("TOPLEVEL " + sourceCU.sourcefile + " " + sourceCU.modle + " " + (specEnv==null?"NULL":specEnv.toplevel.sourcefile));
+					if (tlenv == null) tlenv = specEnv; // A hack to save some top-level environment for resolving global names
+
+				}
 			}
+			if (!allowRecursion) return null;
+			return super.classEnter(trees, env);
+		} finally {
+			specEnv = prevSpecEnv; 
+			//System.out.println("RESTORING-A " + (specEnv==null?"NULL":specEnv.toplevel.sourcefile));
 		}
-		if (!allowRecursion) return null;
-		return super.classEnter(trees, env);
 	}
 	
 	// env is for sourceDecl 
@@ -742,6 +750,7 @@ public class JmlEnter extends Enter {
 			System.out.println("Entering class " + d.name);
 		if (tree instanceof JmlClassDecl cd && cd.specsDecl.name != cd.name) throw new AssertionError("wrong specsDecl-A: " + cd.name + " " + cd.specsDecl.name);
 		var prevSpecEnv = specEnv;
+		//System.out.println("SAVING " + (specEnv==null?"NULL":specEnv.toplevel.sourcefile));
 		try {
 			Type t = super.classEnter(tree, env); // eventually calls tree.accept, assigning env to this.env
 			if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCCompilationUnit cu)
@@ -749,8 +758,12 @@ public class JmlEnter extends Enter {
 			if (org.jmlspecs.openjml.Utils.debug() && tree instanceof JCClassDecl d)
 				System.out.println("Entered class " + d.sym.hashCode() + " " + d.name + " " + result);
 			return t;
+		} catch (Exception e) {
+	        e.printStackTrace(System.out);
+	        throw e;
 		} finally {
 			specEnv = prevSpecEnv;
+			//System.out.println("RESTORING " + (specEnv==null?"NULL":specEnv.toplevel.sourcefile));
 		}
 	}
 
@@ -776,6 +789,7 @@ public class JmlEnter extends Enter {
 
 			var owner = speccu.packge = p;
 			Env<AttrContext> specEnv = topLevelEnv(speccu);
+			//System.out.println("SPECSENTER-TOPLEVEL " + specEnv.toplevel.sourcefile);
             TypeEnter.instance(context).completeClass.resolveImports(speccu, specEnv);
 
 			speccu.defs = specsClassEnter(owner, speccu.defs, specEnv);
@@ -845,6 +859,7 @@ public class JmlEnter extends Enter {
 		//if (Utils.isJML()) utils.warning(specDecl, "jml.message", "SPECCLASSENTER " + className + " " + specsEnv);
 		// FIXME - the following may not work correctly for top-level classes whose u=owner is a package, at least in the test environment
 		boolean ok = false;
+		var prevSpecEnv = specEnv;
 		Env<AttrContext> localSpecEnv = null;
 		Env<AttrContext> localEnv = null;
 		try {
@@ -860,12 +875,13 @@ public class JmlEnter extends Enter {
 				if (owner instanceof PackageSymbol powner) {
 					specDecl.specsDecl = specDecl;
 					this.specEnv = specsEnv;
+					allowRecursion = false;
 					classEnter(specDecl, specsEnv);
+					allowRecursion = true;
 					csym = specDecl.sym;
 					csym.complete();
 					csym.flags_field = specDecl.mods.flags | Flags.UNATTRIBUTED;
 					if (utils.verbose()) utils.note("Entering JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
-					return true;
 
 //					csym = syms.enterClass(powner.modle, specDecl.name, powner);
 //					csym.completer = Completer.NULL_COMPLETER;
@@ -911,12 +927,10 @@ public class JmlEnter extends Enter {
 					csym.flags_field = specDecl.mods.flags | Flags.UNATTRIBUTED;
 					if (utils.verbose()) utils.note("Entering JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
 				}
-				localEnv = getEnv(csym);
 				if (localSpecEnv == null) localSpecEnv = classEnv(specDecl, specsEnv);
 				TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
 				if (typeEnvs.get(csym) == null) {
 					((ClassType)csym.type).typarams_field = classTPEnter(specDecl.typarams, localSpecEnv); // FIXME - what does this do???
-					typeEnvs.put(csym, localEnv);
 				}
 			} else {
 				// owner has a binary class corresponding to specDecl, namely csym
@@ -962,6 +976,7 @@ public class JmlEnter extends Enter {
 			utils.unexpectedException("JmlEnterspecsClassEnter", e);
 			return false;
 		} finally {
+			specEnv = prevSpecEnv;
 		}
 		return true;
     }
@@ -1059,8 +1074,8 @@ public class JmlEnter extends Enter {
 			} else if (t instanceof JmlBlock) {
 				utils.error(t, "jml.initializer.block.allowed");
 				ok = false;
-			} else if (t instanceof JmlTypeClauseInitializer) {
-				if (((JmlTypeClauseInitializer) t).keyword == TypeInitializerClauseExtension.staticinitializerID) {
+			} else if (t instanceof JmlTypeClauseInitializer init) {
+				if (init.keyword == TypeInitializerClauseExtension.staticinitializerID) {
 					if (hasStaticInit) {
 						utils.error(t, "jml.one.initializer.spec.only");
 						ok = false;
@@ -1096,7 +1111,7 @@ public class JmlEnter extends Enter {
 
 		JmlResolve.instance(context).setAllowJML(saved);
 	}
-
+	
 	public boolean matchAsStrings(Type bin, JCExpression src) {
 		String binstr = bin.toString().replaceAll(" ", "");
 		String srcstr = src.toString().replaceAll(" ", "");
@@ -1449,7 +1464,7 @@ public class JmlEnter extends Enter {
 				//if (print) System.out.println("METHOD " + msym.owner + " " + msym + " " + msym.hashCode() + " " + mdecl.sym + " " + mdecl.sym.hashCode() + " " + localEnv + " " + (localEnv.enclMethod != null));
 				specs.putSpecs(msym, ssp);
 				specs.dupSpecs(mdecl.sym, msym);
-				checkMethodMatch(null, msym, mdecl, csym);
+				//checkMethodMatch(null, msym, mdecl, csym);
 			}
 		}
 		var iter = msym.params.iterator();

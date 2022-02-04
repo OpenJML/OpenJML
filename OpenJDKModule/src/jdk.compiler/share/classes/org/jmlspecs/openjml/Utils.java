@@ -1481,6 +1481,11 @@ public class Utils {
         }
     }
 
+    public static String nameTP(JmlClassDecl cd) {
+    	String s = cd.name.toString();
+    	if (cd.typarams == null || cd.typarams.length() == 0) return s;
+    	return s + "<" + join(",",cd.typarams,p->p.name) +">";
+    }
     
     /** This is a predicate that can be used in a debugging condition */
     public static boolean print(String s) {

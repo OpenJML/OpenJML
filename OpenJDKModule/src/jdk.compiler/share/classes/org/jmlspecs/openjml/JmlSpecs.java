@@ -1442,7 +1442,8 @@ public class JmlSpecs {
         	if (specdecl == null) throw new AssertionError("Unexpected null specdecl");
         	if (javadecl != null && javadecl.specsDecl != specdecl) throw new AssertionError("Mismatched decls");
         	if (javadecl != null && javadecl.sym != specdecl.sym) throw new AssertionError("Mismatched class symbols");
-        	if (specenv == null || specenv.tree != specdecl) throw new AssertionError("Mismatched spec tree");
+        	//if (specenv == null) throw new AssertionError("null specenv"); // specenv is null in rac
+        	if (specenv != null && specenv.tree != specdecl) throw new AssertionError("Mismatched spec tree");
         	//if (javadecl != null && javadecl != Enter.instance(context).getEnv(javadecl.sym).tree) throw new AssertionError("Mismatched java trees");
         	if (specenv != specdecl.specEnv) throw new AssertionError("Mismatched env");
         	this.specDecl = specdecl;
@@ -1452,11 +1453,11 @@ public class JmlSpecs {
         	this.modifiers = (JmlModifiers)specdecl.mods; // FIXME - need to set mods from java or csymbol
         	this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
         	for (JCTree t: specdecl.defs) {
-        		if (t instanceof JmlTypeClauseInitializer) {
-        			if (((JmlTypeClauseInitializer)t).keyword.equals(TypeInitializerClauseExtension.staticinitializerID)) {
-        				staticInitializerSpec = (JmlTypeClauseInitializer)t;  // FIXME - only one each?
+        		if (t instanceof JmlTypeClauseInitializer init) {
+        			if (init.keyword.equals(TypeInitializerClauseExtension.staticinitializerID)) {
+        				staticInitializerSpec = init;
         			} else {
-        				initializerSpec = (JmlTypeClauseInitializer)t;
+        				initializerSpec = init;
         			}
         		} else if (t instanceof JmlTypeClauseConditional) {
         			// No such clause should be present // FIXME: error message

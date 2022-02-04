@@ -838,7 +838,6 @@ public class Attr extends JCTree.Visitor {
      */
     public void attribAnnotationTypes(List<JCAnnotation> annotations, // OPENJML package to public
                                Env<AttrContext> env) {
-    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("ATTRIB_AT " + annotations.hashCode() + " " + annotations);
         for (List<JCAnnotation> al = annotations; al.nonEmpty(); al = al.tail) {
             JCAnnotation a = al.head;
             attribType(a.annotationType, env);

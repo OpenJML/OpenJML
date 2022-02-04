@@ -42,6 +42,7 @@ import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.Modifiers;
+import org.jmlspecs.openjml.ext.TypeInitializerClauseExtension;
 
 import com.sun.tools.javac.code.Attribute.Compound;
 import com.sun.tools.javac.code.Flags;
@@ -178,15 +179,24 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     void memberEnter(List<? extends JCTree> trees, Env<AttrContext> env) {
     	if ( trees == null || env == null ) System.out.println("UNEXPECTED NULLS");
     	if ( env.enclClass.defs != trees ) System.out.println( "List of trees does not match the env" );
+    	
+    	JmlClassDecl cd = (JmlClassDecl)env.enclClass;
+		TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(cd.sym, cd.specsDecl.specEnv);
+		// FIXME - the specEnv does not have the same outer env (holdig the class name)
+		//if (cd.name.toString().equals("A")) System.out.println("ENVS-B " + cd.sym + " " + env + " " + cd.specsDecl.specEnv);
+
+
     	// It would be easier if we could match all the members, and then give a resolved list to super.memberEnter
     	// However, we need attributed methods in order to match them (fields can be done solely by name).
     	super.memberEnter(trees, env); // Entering all the .java declared trees
-    	JCClassDecl cd = env.enclClass;
     	JmlClassDecl specsDecl = ((JmlClassDecl)cd).specsDecl;
     	if (specsDecl == null) { System.out.println("UNEXPECTED NULL SPECSDECL"); return; }
     	if (specsDecl == cd) {
+    		boolean isJML = cd.sourcefile.getKind() != JavaFileObject.Kind.SOURCE;
     		// The specification file is the .java file
     		// Any duplicates have already been reported
+    		boolean hasInstanceInit = false;
+    		boolean hasStaticInit = false;
         	for (var t: specsDecl.defs) {
         		if (t instanceof JmlVariableDecl vd) {
 					specs.putSpecs(vd.sym, vd.fieldSpecs);
@@ -196,13 +206,34 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             		msp.javaDecl = md;
             		msp.javaEnv = msp.specsEnv = methodEnv(md, env); // FIXME - review this
 					specs.putSpecs(md.sym, msp);
-        		}
+        		} else if (t instanceof JmlTree.JmlBlock) {
+    				if (isJML) utils.error(specsDecl.source(), t, "jml.initializer.block.allowed");
+    			} else if (t instanceof JmlTree.JmlTypeClauseInitializer init) {
+    				if (init.keyword == TypeInitializerClauseExtension.staticinitializerID) {
+    					if (hasStaticInit) {
+    						utils.error(t, "jml.one.initializer.spec.only");
+    					} else {
+    						hasStaticInit = true;
+    					}
+    				}
+    				if (init.keyword == TypeInitializerClauseExtension.initializerID) {
+    					if (hasInstanceInit) {
+    						utils.error(t, "jml.one.initializer.spec.only");
+    					} else {
+    						hasInstanceInit = true;
+    					}
+    				}
+    			}
         	}
         	return;
     	}
     	//System.out.println("MATCHING MEMBERS "+ cd.name);
+    	var revisedDefs = new ListBuffer<JCTree>();
+		boolean hasStaticInit = false;
+		boolean hasInstanceInit = false;
     	for (var t: specsDecl.defs) {
     		//System.out.println("MATCHING " + t);
+    		boolean ok = true;
     		if (t instanceof JmlVariableDecl specVarDecl) {
     			var match = trees.stream().filter(tt -> (tt instanceof JmlVariableDecl vd && vd.name == specVarDecl.name)).findFirst();
     			if (utils.isJML(specVarDecl)) {
@@ -235,7 +266,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     							} else {
     								utils.error(specVarDecl.vartype, "jml.message", msg);
     							}
-                        		//utils.error(specVarDecl.sourcefile, specVarDecl, "jml.message", "Mismatched types");
+    							ok = false;
+                       		//utils.error(specVarDecl.sourcefile, specVarDecl, "jml.message", "Mismatched types");
                         		//utils.error(javaVarDecl.sourcefile, javaVarDecl, "jml.associated.decl.cf", utils.locationString(specVarDecl, specVarDecl.sourcefile));
                         	} else {
                         		javaVarDecl.specsDecl = specVarDecl;
@@ -249,6 +281,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     					} else {
     						utils.errorAndAssociatedDeclaration(specVarDecl.sourcefile, specVarDecl, javaVarDecl.specsDecl.sourcefile, javaVarDecl.specsDecl, 
     								"jml.duplicate.var.match", cd.sym.flatname + "." + specVarDecl.name);
+    						ok = false;
     					}
     				}
     			}
@@ -270,11 +303,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     				} else {
 						utils.errorAndAssociatedDeclaration(specMethodDecl.sourcefile, specMethodDecl, javaMethodDecl.sourcefile, javaMethodDecl, 
 								"jml.message", "This JML method declaration conflicts with an existing method with the same signature: " + cd.sym.flatname + "." + specMethodDecl.sym);
+						ok = false;
     				}
     			} else {
     				// A Java method declaration in the specification file
     				if (matchSym == null) {
     					utils.error(specMethodDecl.sourcefile, specMethodDecl, "jml.message", "There is no method to match this Java declaration in the specification file: " + cd.sym.flatname + "." + specMethodDecl.sym);
+						ok = false;
     				} else {
     					if (javaMethodDecl.specsDecl == null) {
                         	// FIXME - fix matching of method types
@@ -283,6 +318,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     							String msg = "Type of method " + specMethodDecl.name + " in specification differs from type in source/binary: " + specMethodDecl.type + " vs. " + javaMethodDecl.type;
     							utils.errorAndAssociatedDeclaration(specMethodDecl.sourcefile, specMethodDecl, javaMethodDecl.source(), javaMethodDecl, 
     									"jml.message", msg, javaMethodDecl.pos(), javaMethodDecl.sourcefile);
+    							ok = false;
                         	} else {
                         		javaMethodDecl.specsDecl = specMethodDecl;
                         		specMethodDecl.sym = javaMethodDecl.sym;
@@ -296,11 +332,34 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     					} else {
     						utils.errorAndAssociatedDeclaration(specMethodDecl.sourcefile, specMethodDecl, javaMethodDecl.specsDecl.sourcefile, javaMethodDecl.specsDecl, 
     								"jml.duplicate.method.match", specMethodDecl.sym, cd.sym.flatname);
+    						ok = false;
     					}
     				}
     			}
+			} else if (t instanceof JmlTree.JmlBlock) {
+				utils.error(t, "jml.initializer.block.allowed");
+				ok = false;
+			} else if (t instanceof JmlTree.JmlTypeClauseInitializer init) {
+				if (init.keyword == TypeInitializerClauseExtension.staticinitializerID) {
+					if (hasStaticInit) {
+						utils.error(t, "jml.one.initializer.spec.only");
+						ok = false;
+					} else {
+						hasStaticInit = true;
+					}
+				}
+				if (init.keyword == TypeInitializerClauseExtension.initializerID) {
+					if (hasInstanceInit) {
+						utils.error(t, "jml.one.initializer.spec.only");
+						ok = false;
+					} else {
+						hasInstanceInit = true;
+					}
+				}
     		}
+    		if (ok) revisedDefs.add(t);
     	}
+    	specsDecl.defs = revisedDefs.toList();
     	
     	// Now check for any unmatched Java declarations
     	for (var t: trees) {
@@ -326,7 +385,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     	//   vd.type and md.type are not set; vd.sym and md.sym are set, as are vd.sym.type and md.sym.type
     	//   d.specsDecl is set for each member; iot may be equal to d
     	//   if d.specsDecl is different than d then d.specsDecl.specsDecl is null
-    	//   putSpecs has been called for each member
+    	//   putSpecs has been called for each legitimate member
     }
     
     //public boolean dojml = false; // FIXME - can get rid of this.

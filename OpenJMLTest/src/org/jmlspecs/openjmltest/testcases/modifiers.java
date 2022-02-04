@@ -87,12 +87,12 @@ public class modifiers extends TCBase {
     
     @Test public void testClassMods13b() {
         helpTCF("A.java"," \n public /*@model*/ class A{}"
-                ,"/A.java:2: error: A Java class declaration must not be marked either ghost or model: A (owner: unnamed package)",12);
+                ,"/A.java:2: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A",12);
     }
     
     @Test public void testClassMods13c() {
         helpTCF("A.java","import org.jmlspecs.annotation.*;\n public /*@ @Model*/ class A{}"
-                ,"/A.java:2: error: A Java class declaration must not be marked either ghost or model: A (owner: unnamed package)",13);
+                ,"/A.java:2: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A",13);
     }
     
     @Test public void testClassMods13d() { // No import, so cannot resolve Model
@@ -106,13 +106,13 @@ public class modifiers extends TCBase {
         helpTCF("A.java","\n     public @Model class A{}"
                 ,"/A.java:2: error: cannot find symbol\n"
                 		+ "  symbol: class Model",14
-                		,"/A.java:2: error: A Java class declaration must not be marked either ghost or model: A (owner: unnamed package)",13
+                		,"/A.java:2: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A",13
         		);
     }
     
     @Test public void testClassMods14() {
         helpTCF("A.java","public class A{} \n //@        ghost class B{}\n   class C{}"
-                ,"/A.java:2: error: A JML class declaration must be marked model: B (owner: unnamed package)",19
+                ,"/A.java:2: error: A method or type declaration within a JML annotation must be model: B",19
                 ,"/A.java:2: error: This JML modifier is not allowed for a type declaration", 13
                 );
     }
@@ -125,7 +125,7 @@ public class modifiers extends TCBase {
     
     @Test public void testClassMods14b() {
         helpTCF("A.java","import org.jmlspecs.annotation.*;\n //@  @Ghost class B{}\n public class A {}"
-                ,"/A.java:2: error: A JML class declaration must be marked model: B (owner: unnamed package)",14
+                ,"/A.java:2: error: A method or type declaration within a JML annotation must be model: B",14
                 ,"/A.java:2: error: This JML modifier is not allowed for a type declaration", 7
                 );
     }
@@ -195,13 +195,13 @@ public class modifiers extends TCBase {
     
     @Test public void testOnlyModelClass1() {
         helpTCF("A.java","public class A {}\n //@ class B{}\n\n",
-                "/A.java:2: error: A JML class declaration must be marked model: B (owner: unnamed package)", 6);
+                "/A.java:2: error: A method or type declaration within a JML annotation must be model: B", 6);
     }
     
     @Test public void testOnlyModelClass2() {
         helpTCF("A.java","public class A {}\n public /*@ model*/ class B{}"
                 ,"/A.java:2: error: class B is public, should be declared in a file named B.java", 21
-                ,"/A.java:2: error: A Java class declaration must not be marked either ghost or model: B (owner: unnamed package)", 13
+                ,"/A.java:2: error: A Java declaration (not within a JML annotation) may not be either ghost or model: B", 13
                 );
     }
 
@@ -232,7 +232,7 @@ public class modifiers extends TCBase {
         helpTCF("A.java","public class A {}\n @Model class B{}\n\n"
                 ,"/A.java:2: error: cannot find symbol\n"
                 		+ "  symbol: class Model",3
-                		,"/A.java:2: error: A Java class declaration must not be marked either ghost or model: B (owner: unnamed package)",2
+                		,"/A.java:2: error: A Java declaration (not within a JML annotation) may not be either ghost or model: B",2
                 );
     }
     
@@ -245,7 +245,7 @@ public class modifiers extends TCBase {
     
     @Test public void testOnlyModelClass6a() {
         helpTCF("A.java","import org.jmlspecs.annotation.*;\npublic class A {}\n @Model class B{}\n\n"
-                ,"/A.java:3: error: A Java class declaration must not be marked either ghost or model: B (owner: unnamed package)", 2
+                ,"/A.java:3: error: A Java declaration (not within a JML annotation) may not be either ghost or model: B", 2
                 );
     }
    @Test public void testOnlyModelClass7a() {
@@ -340,7 +340,9 @@ public class modifiers extends TCBase {
     @Test public void testMatchClass2() {
         addMockFile("$A/A.jml","public class A<T> {}");
         helpTCF("A.java","public class A<T,U>{}",
-                "/$A/A.jml:1: error: The type A in the specification matches a Java type A<T,U> with a different number of type arguments", 8);
+                "/$A/A.jml:1: error: The type A<T> in the specification matches a Java type A<T,U> with a different number of type arguments", 8
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",8
+                );
     }
     
     @Test public void testMatchClass3() { // FIXME - this should fail - need to compare the type parameters
@@ -352,7 +354,7 @@ public class modifiers extends TCBase {
     @Test public void testMatchField() {
         addMockFile("$A/A.jml","public class A { int k; }");
         helpTCF("A.java","public class A{}",
-                "/$A/A.jml:1: error: There is no binary field to match this Java declaration in the specification file: k (owner: A)", 22);
+                "/$A/A.jml:1: error: There is no field to match this Java declaration in the specification file: A.k", 22);
     }
     
     @Test public void testMatchField2() {
@@ -374,13 +376,13 @@ public class modifiers extends TCBase {
     @Test public void testMatchField3a() {
         addMockFile("$A/A.jml","public class A { /*@ int k; */}");
         helpTCF("A.java","public class A{}",
-                "/$A/A.jml:1: error: A JML field declaration must be marked either ghost or model: k (owner: A)", 26); 
+                "/$A/A.jml:1: error: A declaration within a JML annotation must be either ghost or model: A.k", 26); 
     }
     
     @Test public void testMatchField4() {
         addMockFile("$A/A.jml","public class A { int k=0; }");
         helpTCF("A.java","public class A{ int k; }",
-                "/$A/A.jml:1: error: Field initializers are not permitted in specification files (A.k)", 24);
+                "/$A/A.jml:1: error: Field initializers are not permitted in specification files: A.k", 24);
     }
     
     @Test public void testMatchField5() {
@@ -393,7 +395,7 @@ public class modifiers extends TCBase {
         addMockFile("$A/A.jml","public class A { boolean k; }");
         helpTCF("A.java","public class A{ int k; }"
                 ,"/$A/A.jml:1: error: Type of field k in specification differs from type in source/binary: boolean vs. int",18
-                ,"/A.java:1: Note: Associated declaration: /$A/A.jml:1:",21
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",21
                 );
     }
     
@@ -401,7 +403,7 @@ public class modifiers extends TCBase {
         addMockFile("$A/A.jml","public class A { String k; }");
         helpTCF("A.java","public class A{ Object k; }",
                 "/$A/A.jml:1: error: Type of field k in specification differs from type in source/binary: java.lang.String vs. java.lang.Object",18
-                ,"/A.java:1: Note: Associated declaration: /$A/A.jml:1:",24
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",24
         		);
     }
     
@@ -414,7 +416,7 @@ public class modifiers extends TCBase {
         addMockFile("$A/A.jml","public class A { Class<String> k; }");
         helpTCF("A.java","public class A{ Class<Object> k; }",
                 "/$A/A.jml:1: error: Type of field k in specification differs from type in source/binary: java.lang.Class<java.lang.String> vs. java.lang.Class<java.lang.Object>", 23
-                ,"/A.java:1: Note: Associated declaration: /$A/A.jml:1:",31
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",31
         		); 
     }
     
@@ -426,9 +428,9 @@ public class modifiers extends TCBase {
     @Test public void testMatchMethod1() { 
         addMockFile("$A/A.jml","public class A { void m(int i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(Object i) {} }",
-                "/$A/A.jml:1: error: There is no binary method to match this Java declaration in the specification file: m (owner: A)\n"
-                + "      A has m(java.lang.Object)\n"
-                + "      A has m(boolean)", 23
+                "/$A/A.jml:1: error: There is no method to match this Java declaration in the specification file: A.m(int)"
+/*                + "      A has m(java.lang.Object)\n"  // FIXME - add the signatures back in?
+                + "      A has m(boolean)"*/, 23
                 ); 
     }
     
@@ -440,9 +442,9 @@ public class modifiers extends TCBase {
     @Test public void testMatchMethod3() { 
         addMockFile("$A/A.jml","public class A { void m(int i, boolean j); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(int i) {} }",
-                "/$A/A.jml:1: error: There is no binary method to match this Java declaration in the specification file: m (owner: A)\n"
-                + "      A has m(int)\n"
-                + "      A has m(boolean)", 23
+                "/$A/A.jml:1: error: There is no method to match this Java declaration in the specification file: A.m(int,boolean)"
+/*                + "      A has m(int)\n"
+                + "      A has m(boolean)"*/, 23
                 ); 
     }
     
@@ -450,13 +452,16 @@ public class modifiers extends TCBase {
         addMockFile("$A/A.jml","public class A { public void m(int i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(int i) { } }",
                 "/$A/A.jml:1: error: The method m in the specification matches a Java method m(int) with different modifiers: public", 30
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",43
                 ); 
     }
     
     @Test public void testMatchMethod5() { 
         addMockFile("$A/A.jml","public class A { public Object m(int i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {}  private java.lang.Object m(int i) { return null; } }",
-                "/$A/A.jml:1: error: The method m in the specification matches a Java method m(int) with different modifiers: public private", 32); 
+                "/$A/A.jml:1: error: The method m in the specification matches a Java method m(int) with different modifiers: public private", 32
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",64
+        		); 
     }
     
     @Test public void testMatchMethod6() {
@@ -497,7 +502,7 @@ public class modifiers extends TCBase {
     
     @Test public void testTopLevelClass3() {
         helpTCF("A.java","/*@ model */ public class A{ }"
-                ,"/A.java:1: error: A Java class declaration must not be marked either ghost or model: A (owner: unnamed package)",5
+                ,"/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A",5
         );
     }
     
@@ -516,7 +521,7 @@ public class modifiers extends TCBase {
     
     @Test public void testTopLevelInterface3() {
         helpTCF("A.java","/*@ model*/ public interface A{ }"
-                ,"/A.java:1: error: A Java class declaration must not be marked either ghost or model: A (owner: unnamed package)",5
+                ,"/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A",5
         );
     }
     
@@ -551,7 +556,7 @@ public class modifiers extends TCBase {
     
     @Test public void testNestedClass5() {
         helpTCF("A.java","public class A{ /*@ model*/ private class B {}}"
-                ,"/A.java:1: error: A Java class declaration must not be marked either ghost or model: B (owner: A)",21
+                ,"/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.B",21
         );
     }
     
@@ -574,7 +579,7 @@ public class modifiers extends TCBase {
     
     @Test public void testNestedInterface4() {
         helpTCF("A.java","public class A{ /*@ model */ public interface B {}}"
-        		,"/A.java:1: error: A Java class declaration must not be marked either ghost or model: B (owner: A)",21
+        		,"/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.B",21
         );
     }
     
@@ -598,7 +603,7 @@ public class modifiers extends TCBase {
     
     @Test public void testLocalClass1() {
         helpTCF("A.java","public class A{ void m() {\n /*@ model  */ class C {}; } }"
-                ,"/A.java:2: error: A Java declaration (not within a JML annotation) may not be either ghost or model",16
+                ,"/A.java:2: error: A Java declaration (not within a JML annotation) may not be either ghost or model: C",6
                 ); 
         
     }
@@ -611,7 +616,7 @@ public class modifiers extends TCBase {
     
     @Test public void testLocalClass2a() {
         helpTCF("A.java","public class A{ void m() {\n /*@         class C {};*/ } }"
-        		,"/A.java:2: error: A method or type declaration within a JML annotation must be model", 14
+        		,"/A.java:2: error: A method or type declaration within a JML annotation must be model: C", 14
                 ); 
         
     }
@@ -626,7 +631,7 @@ public class modifiers extends TCBase {
     
     @Test public void testLocalClass4() {
         helpTCF("A.java","public class A{ void m() {\n /*@ ghost  class C {} */ } }"
-                ,"/A.java:2: error: A method or type declaration within a JML annotation must be model",13
+                ,"/A.java:2: error: A method or type declaration within a JML annotation must be model: C",13
                 ,"/A.java:2: error: This JML modifier is not allowed for a local type declaration",6
                 ); 
         
@@ -854,7 +859,7 @@ public class modifiers extends TCBase {
      
     @Test public void testModelMethod4() {  // 
         helpTCF("A.java","public class A{ /*@ model non_null */  Object m(){ return null;} }"
-                ,"/A.java:1: error: A Java method declaration must not be marked model: m (owner: A)",21
+                ,"/A.java:1: error: A Java method declaration must not be marked model: A.m()",21
                 );
     }
      
@@ -871,7 +876,7 @@ public class modifiers extends TCBase {
      
     @Test public void testModelConstructor1() {
         helpTCF("A.java","public class A{ /*@ model pure  */ A(){} }"
-                ,"/A.java:1: error: A Java method declaration must not be marked model: <init> (owner: A)",21
+                ,"/A.java:1: error: A Java method declaration must not be marked model: A.A()",21
                 );
     }
      
@@ -926,7 +931,7 @@ public class modifiers extends TCBase {
     @Test public void testLocalVar2() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  void m() {\n /*@ ghost non_null */ Object o;} }"
-                ,"/A.java:3: error: A Java local variable declaration (not within a JML annotation) may not be ghost",31
+                ,"/A.java:3: error: A Java local variable declaration (not within a JML annotation) may not be ghost: o in A.m()",31
                 );
     }
      
@@ -940,7 +945,7 @@ public class modifiers extends TCBase {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  void m() {\n /*@ non_null non_null Object o; */} }"
                 ,"/A.java:3: error: org.jmlspecs.annotation.NonNull is not a repeatable annotation type",15
-                ,"/A.java:3: error: A local declaration within a JML annotation must be ghost",31
+                ,"/A.java:3: error: A local declaration within a JML annotation must be ghost: o in A.m()",31
                 );
     }
      
@@ -968,7 +973,7 @@ public class modifiers extends TCBase {
     @Test public void testLocalVar8() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  void m() {\n /*@   Object o; */} }"
-                ,"/A.java:3: error: A local declaration within a JML annotation must be ghost",15
+                ,"/A.java:3: error: A local declaration within a JML annotation must be ghost: o in m()",15
                 );
     }
      

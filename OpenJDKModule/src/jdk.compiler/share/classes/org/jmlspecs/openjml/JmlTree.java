@@ -1399,7 +1399,8 @@ public class JmlTree {
         /** The specs for the block, along with attribution status and env, computed during attribution */
         public JmlSpecs.BlockSpecs blockSpecs; 
 
-        /** The specs for the block, as parsed */
+        /** The specs for the block, as parsed -- can be null, if there are no specs (or empty)*/
+        //@ nullable
         public JmlMethodSpecs specificationCases;
 
         public String docComment = null; // FIXME - clarify why needed
@@ -2615,7 +2616,8 @@ public class JmlTree {
      */
     public static class JmlMethodSpecs extends JmlAbstractStatement {
         /** This is a reference to a parent declaration, in order to have access 
-         * to the parameter and result modifiers
+         * to the parameter and result modifiers; is null if the JmlMethodSpecs
+         * is owned by a block.
          */
         public JmlMethodDecl decl = null;
         

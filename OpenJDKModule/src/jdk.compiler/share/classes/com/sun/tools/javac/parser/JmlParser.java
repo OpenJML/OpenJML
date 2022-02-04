@@ -1179,7 +1179,7 @@ public class JmlParser extends JavacParser {
                             attach(d, dc);
                             d.specificationCases = currentMethodSpecs;
                             if (currentMethodSpecs != null) {
-                                currentMethodSpecs.decl = null; // FIXME - point to the block?
+                                currentMethodSpecs.decl = null; // null means the JmlMethodSpecs belons to a block, not a method
                                 currentMethodSpecs = null;
                             }
 
