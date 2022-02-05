@@ -798,7 +798,7 @@ public class JmlEnter extends Enter {
 			//System.out.println("SPECSENTER-TOPLEVEL " + specEnv.toplevel.sourcefile);
             TypeEnter.instance(context).completeClass.resolveImports(speccu, specEnv);
 
-			speccu.defs = specsClassEnter(owner, speccu.defs, specEnv);
+			speccu.defs = specsListEnter(owner, speccu.defs, specEnv);
 			speccu.defs = specsMembersEnter(owner, speccu.defs);
 		} finally {
 			log.useSource(prev);
@@ -808,7 +808,7 @@ public class JmlEnter extends Enter {
 	// owner is the owner of all the defs (which are specification declarations)
 	// specsEnv corresponds to the owner
 	// Matches all the declarations in specsDefs to binary members of owner, if there is a match
-	public List<JCTree> specsClassEnter(Symbol owner, List<JCTree> specsDefs, Env<AttrContext> specsEnv) {
+	public List<JCTree> specsListEnter(Symbol owner, List<JCTree> specsDefs, Env<AttrContext> specsEnv) {
 		if (specsEnv == null) throw new AssertionError("specsEnv is null " + owner);
 		if (specsEnv.tree instanceof JCCompilationUnit cu && cu.defs != specsDefs) throw new AssertionError("mismatched cus");
 		if (specsEnv.tree instanceof JCCompilationUnit cu && cu.packge != owner) throw new AssertionError("mismatched package sym");
@@ -850,16 +850,14 @@ public class JmlEnter extends Enter {
 		if (specsEnv.tree instanceof JCCompilationUnit cu && cu.packge != owner) throw new AssertionError("mismatched package sym");
 		if (specsEnv.tree instanceof JCClassDecl cd && cd.sym != owner) throw new AssertionError("mismatched cd sym");
 		
-    	Name className = specDecl.name;
-
 		var iter = owner.members().getSymbolsByName(specDecl.name, s->s instanceof ClassSymbol).iterator();
 		ClassSymbol csym = iter.hasNext() ? (ClassSymbol)iter.next() : null;
 		
-		if (debugEnter) System.out.println("enter: Spec class" + specDecl.name + " " + specsEnv.toplevel.sourcefile + " " + csym );
+		if (debugEnter) System.out.println("enter: Spec class" + owner + "." + specDecl.name + " " + specsEnv.toplevel.sourcefile + " " + csym );
 
     	boolean isJML = utils.isJML(specDecl);
-		boolean isOwnerJML = utils.isJML(owner.flags());
-		boolean isLocal = !(owner instanceof ClassSymbol || owner instanceof PackageSymbol);
+//		boolean isOwnerJML = utils.isJML(owner.flags());
+//		boolean isLocal = !(owner instanceof ClassSymbol || owner instanceof PackageSymbol);
 
 		//if (Utils.isJML()) utils.warning(specDecl, "jml.message", "SPECCLASSENTER " + className + " " + specsEnv);
 		// FIXME - the following may not work correctly for top-level classes whose u=owner is a package, at least in the test environment
@@ -869,9 +867,9 @@ public class JmlEnter extends Enter {
 		Env<AttrContext> localEnv = null;
 		try {
 			if (csym == null) {
-				// owner has no binary/source class corresponding to specDecl
+				// owner has no binary class corresponding to specDecl
 				if (!isJML) {
-					utils.error(specDecl, "jml.message", "There is no binary class to match this Java declaration in the specification file: " + className + " (owner: " + owner +")");
+					utils.error(specDecl, "jml.message", "There is no binary class to match this Java declaration in the specification file: " + owner + "." + specDecl.name);
 					return false;
 				}
 				// The specDecl is a JML (model) class and not in the binary
@@ -886,7 +884,8 @@ public class JmlEnter extends Enter {
 					csym = specDecl.sym;
 					csym.complete();
 					csym.flags_field = specDecl.mods.flags | Flags.UNATTRIBUTED;
-					if (debugEnter) System.out.println("Entering JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
+					if (debugEnter) System.out.println("Entering toplevel model class in binary: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass()
+					+ " package: " + powner.members());
 
 //					csym = syms.enterClass(powner.modle, specDecl.name, powner);
 //					csym.completer = Completer.NULL_COMPLETER;
@@ -905,7 +904,7 @@ public class JmlEnter extends Enter {
 				} else { // owner is a ClassSymbol
 					ClassSymbol cowner = (ClassSymbol)owner;
 					specDecl.specsDecl = specDecl;
-					allowRecursion = false;
+					allowRecursion = false; // FIXME - shloud allow recursion, and not do nested defs at end of this method
 					this.specEnv = specsEnv;
 					if (specDecl.specsDecl != specDecl) throw new AssertionError("wrong specsDecl: " + cowner + " " + specDecl.name);
 					classEnter(specDecl, specsEnv);
@@ -925,9 +924,8 @@ public class JmlEnter extends Enter {
 //					specDecl.typarams.forEach(t -> Attr.instance(context).attribType(t,env));
 //					specDecl.implementing.forEach(t -> Attr.instance(context).attribType(t,env));
 //					specDecl.permitting.forEach(t -> Attr.instance(context).attribType(t,env));
-					csym.members_field = WriteableScope.create(csym);
+					csym.members_field = WriteableScope.create(csym); // FIXME - why is this needed
 					owner.members().enter(csym);
-					specDecl.sym = csym;
 					specDecl.type = ct;
 					csym.flags_field = specDecl.mods.flags | Flags.UNATTRIBUTED;
 					if (debugEnter) System.out.println("Entering JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
@@ -975,7 +973,7 @@ public class JmlEnter extends Enter {
 			JmlSpecs.instance(context).putSpecs(csym, tspecs);
 
 			// Do all nested classes, recursively
-			specDecl.defs = specsClassEnter(csym, specDecl.defs, localSpecEnv);
+			specDecl.defs = specsListEnter(csym, specDecl.defs, localSpecEnv);
 		} catch (Exception e) {
 			utils.unexpectedException("JmlEnterspecsClassEnter", e);
 			return false;
@@ -1354,8 +1352,8 @@ public class JmlEnter extends Enter {
 		
 
 		if (msym == null) {
-			// No corresponding Java method
-			if (!isJML) {
+			// No corresponding Java method (and not in a model class)
+			if (!isJML && !isOwnerJML) {
 				String msg = "There is no binary method to match this Java declaration in the specification file: "
 						+ mdecl.name + " (owner: " + csym + ")";
 				for (var s : csym.members().getSymbolsByName(mdecl.name, s -> (s instanceof MethodSymbol))) {
@@ -1431,11 +1429,13 @@ public class JmlEnter extends Enter {
 							msym.enclClass().fullname + "." + msym.toString(), t, msym.getReturnType());
 				}
 			}
-			if (!isModel && mdecl.body != null && ((msym.flags() & Flags.GENERATEDCONSTR) == 0)) {
-				utils.error(mdecl.source(), mdecl.body, "jml.message",
-						"The specification of the method " + csym + "." + msym + " must not have a body");
-				;
-			}
+			
+//			// FIXME - move to Attr
+//			if (!isModel && mdecl.body != null && ((msym.flags() & Flags.GENERATEDCONSTR) == 0)) {
+//				utils.error(mdecl.source(), mdecl.body, "jml.message",
+//						"The specification of the method " + csym + "." + msym + " must not have a body");
+//				;
+//			}
 
 			// Either
 			// 0) There is no Java declaration, just a (model/ghost) spec declaration --

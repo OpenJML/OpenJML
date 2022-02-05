@@ -306,6 +306,17 @@ public class Utils {
         mods.flags |= JMLEXPRLOCAL;
     }
 
+    /** Returns true if the flags indicate this is a generated default constructorn */
+    public boolean isGeneratedConstructor(MethodSymbol methodSym) {
+        return (methodSym.flags() & Flags.GENERATEDCONSTR) != 0;
+    }
+
+    /** Returns true if the file is a specification (.jml) file */
+    public boolean isSpecFile(JavaFileObject file) {
+        // A .jml file is Kind.OTHER, but might (eventually?) be Kind.JML
+        return file.getKind() != JavaFileObject.Kind.SOURCE;
+    }
+
     /** Creates an annotation symbol from the fully qualified name for the
      * annotation; generally the result is cached.
      * @param fullyQualifiedName the fully qualified name

@@ -20,6 +20,7 @@ import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.IJmlClauseKind.MethodSpecClauseKind;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.IJmlClauseKind.TypeAnnotationKind;
+import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.AssignableClauseExtension;
 import org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl;
@@ -1200,7 +1201,6 @@ public class JmlParser extends JavacParser {
                             attach(d, dc);
                             currentVariableDecl = d;
                             currentVariableDecl.fieldSpecs = new JmlSpecs.FieldSpecs(currentVariableDecl);
-
                         } else {
                             if (currentMethodSpecs != null) {
                                 utils.error(tr.pos, "jml.message", "Method specs that do not precede a method declaration are ignored");
@@ -1222,6 +1222,9 @@ public class JmlParser extends JavacParser {
                     }
                     list.append(d);
 
+                } else if (t.head instanceof JmlVariableDecl vd) {
+                    if (vd.fieldSpecs == null) vd.fieldSpecs = new JmlSpecs.FieldSpecs(vd);
+                    
                 } else if (t.head instanceof JmlTypeClauseIn
                         || t.head instanceof JmlTypeClauseMaps) {
                     JCTree tree = t.head;
@@ -1232,10 +1235,10 @@ public class JmlParser extends JavacParser {
                         utils.error(tree.pos(), "jml.misplaced.var.spec",
                                 ((JmlTypeClause) tree).keyword);
                     } else {
-                        if (mostRecentVarDecl.fieldSpecs == null) {
-                            mostRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
-                                    mostRecentVarDecl);
-                        }
+//                        if (mostRecentVarDecl.fieldSpecs == null) {
+//                            mostRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
+//                                    mostRecentVarDecl);
+//                        }
                         mostRecentVarDecl.fieldSpecs.list.append((JmlTypeClause) tree);
                         currentVariableDecl = mostRecentVarDecl;
                     }
