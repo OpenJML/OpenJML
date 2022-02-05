@@ -46,7 +46,7 @@ public class matchClasses  extends TCBase {
     @Test public void testModelC() {
         helpTCF("$A/A.java",
                 "public class A {  } /*@ model */ class B {}"
-                ,"/$A/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: B",34// FIXME - would prefer this is 25
+                ,"/$A/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: B",25
                 );
     }
     
@@ -148,7 +148,7 @@ public class matchClasses  extends TCBase {
     @Test public void testJmlModel4() {
         helpTCF("$A/A.java",
                 "public class A {  } /*@ model */ class B {} "
-                ,"/$A/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: B",34 // FIXME - better as 25
+                ,"/$A/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: B",25
                 );
     }
     
@@ -175,7 +175,7 @@ public class matchClasses  extends TCBase {
         helpTCF("$A/A.java",
                 "public class A { int j; \n/*@ model */ int j;} "
                 ,"/$A/A.java:2: error: variable j is already defined in class A",18
-                ,"/$A/A.java:2: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.j",18 // FIXME: position should be on model
+                ,"/$A/A.java:2: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.j",5
                 );
     }
     

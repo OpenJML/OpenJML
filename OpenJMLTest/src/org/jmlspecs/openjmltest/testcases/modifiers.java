@@ -973,7 +973,7 @@ public class modifiers extends TCBase {
     @Test public void testLocalVar8() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  void m() {\n /*@   Object o; */} }"
-                ,"/A.java:3: error: A local declaration within a JML annotation must be ghost: o in m()",15
+                ,"/A.java:3: error: A local declaration within a JML annotation must be ghost: o in A.m()",15
                 );
     }
      
@@ -1139,15 +1139,26 @@ public class modifiers extends TCBase {
                 "  //@ invariant (new A() { int m() { return 5; } }) != null; \n" +
                 "  void p() {} }"
                 ,"/A.java:2: error: Object allocation is not permitted in specification expressions",18
-//                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: A..()",18
+                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: A..()",18
                 );
     }
      
     @Test public void testInvariant2a() {
-    	expectedExit = 0;
+    	expectedExit = 1;
+        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ A(){ m(); } int m() { return 0; } \n" +
+                "  //@ invariant (new A() { int m() { return 5; } }) != null; \n" +
+                "  void p() {} }"
+                ,"/A.java:2: error: Object allocation is not permitted in specification expressions",18
+                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: A..()",18
+                );
+    }
+     
+    @Test public void testInvariant2b() {
+    	expectedExit = 1;
         helpTCF("A.java","import org.jmlspecs.annotation.*; public class A{ A(int i){} int m() { return 0; } \n" +
                 "  //@ invariant (new A(1) { int m() { return 5; } }) != null; \n" +
                 "  void p() {} }"
+                ,"/A.java:2: error: Object allocation is not permitted in specification expressions",18
                 ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: A..(int)",18
                 );
     }

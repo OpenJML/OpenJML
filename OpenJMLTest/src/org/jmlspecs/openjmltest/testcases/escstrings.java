@@ -296,6 +296,7 @@ public class escstrings extends EscBase {
     /** Tests String charAt operation */
     @Test
     public void testStringCharAt1q() {
+    	main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"

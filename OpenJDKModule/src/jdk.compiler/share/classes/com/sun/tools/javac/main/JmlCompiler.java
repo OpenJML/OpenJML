@@ -133,6 +133,9 @@ public class JmlCompiler extends JavaCompiler {
     	return list;
     }
     
+    static boolean debugParse2 = org.jmlspecs.openjml.Utils.debug("parse+");
+    static boolean debugParse = debugParse2 || org.jmlspecs.openjml.Utils.debug("parse");
+    
     // This bit of complexity/hackery is due to the following problem. JML states that if there is a .jml file, all the specs in
     // the .jml file supersede anything in the .java file. So, in that case, any JML annotations in the .java file are ignored;
     // in fact they are not even required to be parsable. So we need to know whether there is a .jml file to know how to parse
@@ -177,7 +180,7 @@ public class JmlCompiler extends JavaCompiler {
     	k = s.indexOf('.');
     	s = s.substring(0,k);
     	name += s;
-    	//System.out.println("SEEKING " + name);
+    	if (debugParse) System.out.println("parser: Seeking specfile for " + name);
     	return JmlSpecs.instance(context).findSpecFile(name);
     }
     
@@ -204,6 +207,7 @@ public class JmlCompiler extends JavaCompiler {
         	} else {
         		((JmlCompilationUnit)javaCU).specsCompilationUnit = (JmlCompilationUnit)javaCU;
         	}
+        	if (debugParse) System.out.println("parser: Parsed " + filename + " " + specFile);
         	return javaCU;
         	// FIXME - do we need to check/set the module and package in the specs file? (like we do in parseSpecs)
         } finally {
@@ -225,11 +229,12 @@ public class JmlCompiler extends JavaCompiler {
     /*@Nullable*/
     public JmlCompilationUnit parseSpecs(ClassSymbol typeSymbol) {
         JavaFileObject specFile = JmlSpecs.instance(context).findSpecFile(typeSymbol);
-        if (utils.verbose()) utils.note("Found spec " + typeSymbol + " " + specFile);
+    	if (debugParse) System.out.println("parser: Parsing specs " + typeSymbol + " " + specFile);
         if (specFile == null) return null;
 
         var specCU = (JmlCompilationUnit)super.parse(specFile);
 
+    	if (debugParse && specCU == null) System.out.println("parser: Parsing failed: " + specFile);
         if (specCU == null) return null;
         
         // Successful parse. Check that the package is correct.

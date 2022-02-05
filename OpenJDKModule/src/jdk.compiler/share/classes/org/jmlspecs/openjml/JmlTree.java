@@ -1393,8 +1393,13 @@ public class JmlTree {
     /** This class adds some JML specific information to the JCMethodDecl node. */
     public static class JmlBlock extends JCTree.JCBlock implements JmlSource, IInJML {
 
+    	//@ invariant isInitializerBlock ==> sourcefile != null;
+    	
         /** The file containing this declaration */
         public JavaFileObject sourcefile;
+        
+        /** True is the block is an initializer block for a class, false otherwise, e.g., if part of a method or lambda */
+        public boolean isInitializerBlock = false;
 
         /** The specs for the block, along with attribution status and env, computed during attribution */
         public JmlSpecs.BlockSpecs blockSpecs; 

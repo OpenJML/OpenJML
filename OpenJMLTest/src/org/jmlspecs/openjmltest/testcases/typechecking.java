@@ -440,7 +440,7 @@ public class typechecking extends TCBase {
     
     @Test public void testMisc1b() {
         helpTC(" class A { /*@ ensures \\result     ; */\nboolean m() { \n//@ int t;\n}}"
-                ,"/TEST.java:3: error: A local declaration within a JML annotation must be ghost: t in m()", 9 // FIXME - better position
+                ,"/TEST.java:3: error: A local declaration within a JML annotation must be ghost: t in A.m()", 9 
         );
     }
     
@@ -465,7 +465,8 @@ public class typechecking extends TCBase {
     /** Wrong position model or ghost modifier */
     @Test public void testJmlTypes3() {
         helpTCF("A.java","import org.jmlspecs.annotation.*; public class A {  @Ghost int i; } ",
-                "/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.i",64); // FIXME - better would be 53
+                "/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.i",53
+                );
     }
 
     @Test public void testJmlTypes4() {
@@ -1100,7 +1101,7 @@ public class typechecking extends TCBase {
     
     @Test public void testBadModelClass2a() {
         helpTCF("A.java","/*@ model */  public class A {\n  \n }"
-                ,"/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A",22 // FIXME _ better would be 5
+                ,"/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A",5
         );
     }
     

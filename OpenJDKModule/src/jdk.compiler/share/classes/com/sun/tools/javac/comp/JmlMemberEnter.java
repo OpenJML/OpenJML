@@ -206,12 +206,14 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             		msp.javaDecl = md;
             		msp.javaEnv = msp.specsEnv = methodEnv(md, env); // FIXME - review this
 					specs.putSpecs(md.sym, msp);
-        		} else if (t instanceof JmlTree.JmlBlock) {
-    				if (isJML) utils.error(specsDecl.source(), t, "jml.initializer.block.allowed");
+        		} else if (t instanceof JmlTree.JmlBlock block) {
+        			if (block.isInitializerBlock && block.sourcefile.getKind() != JavaFileObject.Kind.SOURCE && !utils.isJML(env.enclClass.mods)) {
+        				utils.error(block.source(), t, "jml.initializer.block.allowed");
+        			}
     			} else if (t instanceof JmlTree.JmlTypeClauseInitializer init) {
     				if (init.keyword == TypeInitializerClauseExtension.staticinitializerID) {
     					if (hasStaticInit) {
-    						utils.error(t, "jml.one.initializer.spec.only");
+    						utils.error(init, "jml.one.initializer.spec.only");
     					} else {
     						hasStaticInit = true;
     					}
@@ -336,13 +338,16 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     					}
     				}
     			}
-			} else if (t instanceof JmlTree.JmlBlock) {
-				utils.error(t, "jml.initializer.block.allowed");
-				ok = false;
+    	        
+    		} else if (t instanceof JmlTree.JmlBlock block) {
+    			if (block.isInitializerBlock && block.sourcefile.getKind() != JavaFileObject.Kind.SOURCE && !utils.isJML(env.enclClass.mods)) {
+    	        	utils.error(block.sourcefile, block, "jml.initializer.block.allowed");
+    	        	ok = false;
+    	        }
 			} else if (t instanceof JmlTree.JmlTypeClauseInitializer init) {
 				if (init.keyword == TypeInitializerClauseExtension.staticinitializerID) {
 					if (hasStaticInit) {
-						utils.error(t, "jml.one.initializer.spec.only");
+						utils.error(specsDecl.source(), t, "jml.one.initializer.spec.only");
 						ok = false;
 					} else {
 						hasStaticInit = true;
@@ -350,7 +355,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 				}
 				if (init.keyword == TypeInitializerClauseExtension.initializerID) {
 					if (hasInstanceInit) {
-						utils.error(t, "jml.one.initializer.spec.only");
+						utils.error(specsDecl.source(), t, "jml.one.initializer.spec.only");
 						ok = false;
 					} else {
 						hasInstanceInit = true;
@@ -1365,7 +1370,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     	if (utils.isJML(tree.mods) || ((JmlVariableDecl)tree).jmltype) JmlResolve.instance(context).setAllowJML(true); // FIXME - does having a jmltype mean that we need JML resolution?
     	try {
     		super.visitVarDef(tree);
+    		//if (tree.sym.type instanceof Type.ClassType ct && ct.tsym instanceof ClassSymbol cs) enter.requestSpecs(cs);
     	} finally {
+    		if (JmlEnter.debugEnter) System.out.println("Entered field " + tree.sym.owner + " " + tree.name);
     		JmlResolve.instance(context).setAllowJML(prev);
     	}
     }

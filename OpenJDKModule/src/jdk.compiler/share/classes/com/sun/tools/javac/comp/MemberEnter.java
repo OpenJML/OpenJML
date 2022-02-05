@@ -321,6 +321,7 @@ public class MemberEnter extends JCTree.Visitor {
         }
 
         v.pos = tree.pos;
+
     }
 
     // OPENJML - added to allow overriding some functionality // FIXME - return value not used

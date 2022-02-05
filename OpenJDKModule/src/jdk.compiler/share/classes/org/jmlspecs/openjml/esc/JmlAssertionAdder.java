@@ -2081,7 +2081,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				return null;
 		}
 		String assertID = Strings.assertPrefix + (++assertCount);
-		//if (assertCount == 78 || assertCount == 77) Utils.dumpStack("Assertion " + assertID);
+		//if (assertCount == 41) Utils.dumpStack("Assertion " + assertID);
 		Name assertname = names.fromString(assertID);
 		JavaFileObject dsource = log.currentSourceFile();
 		JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType, assertname,
@@ -9209,6 +9209,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                                clauseToReference,clauseToReference.source());
 
 					} else {
+//						System.out.println("CALLEE " + calleeMethodSym + " " + calleeMethodSym.owner + " " + that + " " + that.getClass() );
+//						var cns = (MethodSymbol)((JCNewClass)that).constructor;
+//						System.out.println("EXPR " + cns + " " + cns.owner + " " + specs.get(cns) + " " + specs.get(cns).javaDecl);
 						JmlSource loc = mspecs == null ? null : mspecs.specDecl;
 						if (loc == null)
 							loc = clauseToReference;

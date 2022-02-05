@@ -1947,12 +1947,19 @@ public class Utils {
     	e.printStackTrace(System.out);
     }
     
+    static String debugkeys = System.getenv("DEBUG");
     public static boolean debug() {
-    	return System.getenv("PRINT")!=null;
+    	return debugkeys != null;
     }
     
+    public static boolean debug(String key) {
+    	if (debugkeys == null) return false;
+    	return (debugkeys.contains("+"+key) || debugkeys.contains(":all")) && !debugkeys.contains("-"+key);
+    }
+    
+    static boolean verbose = System.getenv("VERBOSE") != null;
     public boolean verbose() {
-    	return jmlverbose >= Utils.JMLVERBOSE || System.getenv("VERBOSE") != null;
+    	return jmlverbose >= Utils.JMLVERBOSE || verbose;
     }
     
     public boolean progress() {
@@ -1963,8 +1970,9 @@ public class Utils {
     	new RuntimeException().printStackTrace(System.out);
     }
     
+    static boolean isjml = System.getenv("NOJML")==null;
     public static boolean isJML() {
-    	return System.getenv("NOJML")==null;
+    	return isjml;
     }
 
     public static void dumpStack(String message) {

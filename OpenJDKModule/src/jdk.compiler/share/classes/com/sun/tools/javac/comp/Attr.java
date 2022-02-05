@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
 import javax.lang.model.element.ElementKind;
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.openjml.JmlTree;
+
 import com.sun.source.tree.CaseTree;
 import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.MemberReferenceTree.ReferenceMode;
@@ -2757,6 +2759,7 @@ public class Attr extends JCTree.Visitor {
             }
 
             if (cdef != null) {
+            	if (cdef instanceof org.jmlspecs.openjml.JmlTree.JmlClassDecl cd) cd.specsDecl = cd; // OPENJML
                 visitAnonymousClassDefinition(tree, clazz, clazztype, cdef, localEnv, argtypes, typeargtypes, pkind);
                 return;
             }
@@ -5135,7 +5138,7 @@ public class Attr extends JCTree.Visitor {
         // UNATTRIBUTED.
         if ((c.flags_field & UNATTRIBUTED) != 0) {
             c.flags_field &= ~UNATTRIBUTED;
-
+            
             // Get environment current at the point of class definition.
             Env<AttrContext> env = typeEnvs.get(c);
             if (c.isSealed() &&

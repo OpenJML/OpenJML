@@ -715,6 +715,7 @@ public class JmlSpecs {
         String s = classSym.replace('.','/');
         String suffix = Strings.specsSuffix; 
         for (Dir dir: getSpecsPath()) {
+        	if (false) System.out.println("parser+: TRYING " + dir + " " + s + suffix);
         	JavaFileObject j = dir.findFile(s + suffix);
         	if (j != null) return j;
         }

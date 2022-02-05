@@ -307,7 +307,6 @@ public class modelghost extends TCBase {
                 "  /*@ ghost */ int m2a;\n" + // BAD
                 "  //@ int q;\n" +  // BAD
                 "}"
-                // Order changed for Java8
                 ,"/A.java:5: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.m2",7
                 ,"/A.java:6: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.m2a",7
                 ,"/A.java:7: error: A declaration within a JML annotation must be either ghost or model: A.q",11

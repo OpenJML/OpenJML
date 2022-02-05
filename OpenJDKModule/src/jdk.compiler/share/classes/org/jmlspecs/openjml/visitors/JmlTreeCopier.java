@@ -198,6 +198,9 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     @Override
     public JCTree visitJmlBlock(JmlBlock that, Void p) {
         JmlBlock r = M.at(that.pos).Block(that.flags,copy(that.stats));
+        r.sourcefile = that.sourcefile;
+        r.isInitializerBlock = that.isInitializerBlock;
+        r.specificationCases = copy(that.specificationCases);
         return r;
     }
 
