@@ -1150,7 +1150,7 @@ public class JmlEnter extends Enter {
 	}
 
 	public MethodSymbol findMethod(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> env) {
-		boolean print = false; // mdecl.name.toString().equals("accept");
+		boolean print =  false;//mdecl.name.toString().equals("charAt");
 		boolean hasTypeParams = mdecl.typarams.length() != 0;
 		boolean useStringComparison = false;
 		if (print)
@@ -1206,21 +1206,18 @@ public class JmlEnter extends Enter {
 		var iter = csym.members().getSymbolsByName(mdecl.name, s -> (s instanceof Symbol.MethodSymbol)).iterator();
 		x: while (iter.hasNext()) {
 			var m = (MethodSymbol) iter.next();
-			if (print)
-				System.out.println(
+			if (print) System.out.println(
 						"CONSIDERING " + m + " " + m.type + " " + m.params.length() + " " + mdecl.params.length() + " "
 								+ m.getTypeParameters().length() + " " + mdecl.getTypeParameters().length());
 			if (m.params.length() != mdecl.params.length())
 				continue;
 			if (m.getTypeParameters().length() != mdecl.getTypeParameters().length())
 				continue;
-			if (print)
-				System.out.println("CONSIDERING-A " + m);
+			if (print) System.out.println("CONSIDERING-A " + m);
 			first = m;
 			count++;
 			if (hasTypeParams) {
-				if (print)
-					System.out.println("COMPARING-TP " + m.type + " " + mdecl.sym.type + " "
+				if (print) System.out.println("COMPARING-TP " + m.type + " " + mdecl.sym.type + " "
 							+ types.isSameType(m.type, mdecl.sym.type));
 //				var atypes = m.type.getTypeArguments();
 //				var btypes = mdecl.sym.type.getTypeArguments();
@@ -1293,7 +1290,7 @@ public class JmlEnter extends Enter {
 	public Env<AttrContext> methodEnv;
 
 	public boolean specsMethodEnter(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> specsEnv) {
-		//boolean print = csym.toString().equals("java.util.Collection") && (mdecl.name.toString().equals("contains") || mdecl.name.toString().equals("parallelStream"));
+		boolean print =  false; // mdecl.name.toString().equals("charAt");
 		boolean isJML = utils.isJML(mdecl);
 		boolean isOwnerJML = utils.isJML(csym.flags());
 		boolean isModel = utils.hasMod(mdecl.mods, Modifiers.MODEL);
@@ -1350,8 +1347,11 @@ public class JmlEnter extends Enter {
 				mdecl.params.get(i).type = mdecl.sym.params.get(i).type;
 			}
 			msym = findMethod(csym, mdecl, specsEnv);
-			//if (msym != null) System.out.println("FOUND " + msym.owner + " " + msym + " " + csym);
+			if (print && msym != null) System.out.println("FOUND " + msym.owner + " " + msym + " " + csym);
+			if (print) System.out.println("HAVE BINARY " + msym.owner + "#" + msym + " " + System.identityHashCode(msym) + " " + msym.type + " " + msym.params.get(0));
+			if (print) System.out.println("HAVE JML " + mdecl.sym.owner + "#" + mdecl.sym + " " + System.identityHashCode(mdecl.sym) + " " + mdecl.sym.type + " " + mdecl.sym.params.get(0));
 		}
+		
 
 		if (msym == null) {
 			// No corresponding Java method
@@ -1468,7 +1468,8 @@ public class JmlEnter extends Enter {
 				ssp.specsEnv = localEnv;
 				//if (print) System.out.println("METHOD " + msym.owner + " " + msym + " " + msym.hashCode() + " " + mdecl.sym + " " + mdecl.sym.hashCode() + " " + localEnv + " " + (localEnv.enclMethod != null));
 				specs.putSpecs(msym, ssp);
-				specs.dupSpecs(mdecl.sym, msym);
+				ssp.specSym = mdecl.sym;
+				specs.dupSpecs(mdecl.sym, msym); // FIXME - not sure this is needed
 				//checkMethodMatch(null, msym, mdecl, csym);
 			}
 		}

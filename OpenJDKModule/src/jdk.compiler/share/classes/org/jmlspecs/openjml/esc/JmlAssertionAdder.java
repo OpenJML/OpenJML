@@ -8062,6 +8062,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Helper method to do the work of visitApply and visitNewObject */
 	protected void applyHelper(JCExpression that) {
+		boolean print = false; // that.toString().contains("charAt(0)");
 //    	System.out.println("APPLY HELPER: " + that);
 //    	if (that instanceof JCMethodInvocation) {
 //    		JCMethodInvocation m = (JCMethodInvocation)that;
@@ -8183,8 +8184,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression trExpr = null; // Will hold the translated method call (for RAC)
 			Type receiverType;
 
-			if (Utils.debug())
-				System.out.println("APPLYHELPER-A " + calleeMethodSym);
+			if (Utils.debug()) System.out.println("APPLYHELPER-A " + calleeMethodSym);
 			if (meth instanceof JCIdent) {
 				receiverType = currentThisExpr != null ? currentThisExpr.type : classDecl.type;
 				convertedReceiver = currentThisExpr;
@@ -8278,6 +8278,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								"java.lang.NullPointerException");
 					}
 				}
+				if (print) System.out.println("APPLY " + calleeMethodSym.owner + "#" + calleeMethodSym + " " + System.identityHashCode(calleeMethodSym));
 
 				JCFieldAccess fameth = (JCFieldAccess) M.at(meth.pos).Select( // Select sets to fa,sym.type, kinstead of
 																				// resolved type
@@ -8292,8 +8293,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				enclosingClass = fa.sym.owner;
 
 			} else if (newclass != null) {
-				if (Utils.debug())
-					System.out.println("APPLYHELPER-NEWCLASS " + calleeMethodSym + " " + newclass);
+				if (Utils.debug()) System.out.println("APPLYHELPER-NEWCLASS " + calleeMethodSym + " " + newclass);
 
 				// FIXME - this does not handle qualified constructors of inner classes
 
@@ -8339,7 +8339,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			nestedCallLocation = that;
 
-			var mspecs = specs.getLoadedSpecs(calleeMethodSym);
+			var mspecs = specs.getSpecs(calleeMethodSym);
+			if (print) System.out.println("MSPECS " + mspecs);
 			boolean inliningCall = mspecs != null && mspecs.specDecl != null && mspecs.specDecl.mods != null
 					&& attr.findMod(mspecs.specDecl.mods, Modifiers.INLINE) != null;
 
@@ -8904,8 +8905,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							}
 						}
 					}
-					if (Utils.debug())
-						System.out.println("APPLYHELPER-N " + calleeMethodSym.owner + " " + calleeMethodSym);
+					if (Utils.debug()) System.out.println("APPLYHELPER-N " + calleeMethodSym.owner + " " + calleeMethodSym);
 
 					// We need to calculate all the preconditions before doing any assignable
 					// clauses because we need to check each assignable clause against all the
@@ -9179,8 +9179,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					clauseIds.clear();
 					elseExpression = savedElseExpression;
 				}
-				if (Utils.debug())
-					System.out.println("APPLYHELPER-P " + calleeMethodSym.owner + " " + calleeMethodSym);
+				if (Utils.debug()) System.out.println("APPLYHELPER-P " + calleeMethodSym.owner + " " + calleeMethodSym);
 
 				if (!anyVisibleSpecCases) {
 					utils.warning(that.pos, "jml.message",
@@ -9235,8 +9234,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} catch (Exception e) {
 				utils.unexpectedException("TETS", e);
 			}
-			if (Utils.debug())
-				System.out.println("APPLYHELPER-Q " + calleeMethodSym.owner + " " + calleeMethodSym);
+			if (Utils.debug()) System.out.println("APPLYHELPER-Q " + calleeMethodSym.owner + " " + calleeMethodSym);
 
 			// Add a label that signifies the state before the method call
 			// This label defines the pre-state for the method call computations, so it
