@@ -4280,7 +4280,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public Type attribTree(JCTree tree, Env<AttrContext> env, ResultInfo resultInfo) { 
     	var t = super.attribTree(tree, env, resultInfo);
-    	if (t instanceof Type.ClassType ct && ct.tsym instanceof ClassSymbol cs) JmlEnter.instance(context).requestSpecs(cs);
+    	if (t instanceof Type.ClassType ct && ct.tsym instanceof ClassSymbol cs && cs.kind != Kinds.Kind.TYP) JmlEnter.instance(context).requestSpecs(cs);
     	return t;
     }
     

@@ -199,7 +199,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     		boolean hasStaticInit = false;
         	for (var t: specsDecl.defs) {
         		if (t instanceof JmlVariableDecl vd) {
-        		    if (vd.sym.owner.toString().contains("VVV") && vd.name.toString().equals("i")) System.out.println("SOURCE-VAR " + vd + " " + vd.fieldSpecs);
 					specs.putSpecs(vd.sym, vd.fieldSpecs);
         		} else if (t instanceof JmlMethodDecl md) {
         			var msp = new JmlSpecs.MethodSpecs(md);

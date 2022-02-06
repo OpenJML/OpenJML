@@ -1153,18 +1153,16 @@ public class JmlParser extends JavacParser {
                 if (!inJmlDeclaration) {
                     for (JCTree tr : t) {
                         JCTree ttr = tr;
-                        if (tr instanceof JmlClassDecl) {
+                        if (tr instanceof JmlClassDecl d) {
                             if (currentMethodSpecs != null) {
                                 utils.error(tr.pos, "jml.message", "Method specs may not precede a class declaration");
                                 currentMethodSpecs = null;
                             }
-                            JmlClassDecl d = (JmlClassDecl) tr;
                             if (startsInJml) utils.setJML(d.mods);
                             //d.toplevel.sourcefile = log.currentSourceFile();
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                             attach(d, dc); // FIXME - already attached I think; here and below
-                        } else if (tr instanceof JmlMethodDecl) {
-                            JmlMethodDecl d = (JmlMethodDecl) tr;
+                        } else if (tr instanceof JmlMethodDecl d) {
                             d.sourcefile = currentSourceFile();
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                             attach(d, dc);
@@ -1174,8 +1172,7 @@ public class JmlParser extends JavacParser {
                                 currentMethodSpecs = null;
                             }
 
-                        } else if (tr instanceof JmlBlock) {
-                            JmlBlock d = (JmlBlock) tr;
+                        } else if (tr instanceof JmlBlock d) {
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                             attach(d, dc);
                             d.specificationCases = currentMethodSpecs;
@@ -1211,19 +1208,21 @@ public class JmlParser extends JavacParser {
                         dc = null;
                         if (ttr != null) list.append(ttr);
                     }
-                } else if (t.head instanceof JmlMethodDecl) {
-                    JmlMethodDecl d = (JmlMethodDecl) t.head;
-                    d.sourcefile = currentSourceFile();
-                    attach(d, dc);
-                    d.cases = currentMethodSpecs;
+                } else if (t.head instanceof JmlMethodDecl md) {
+                    md.sourcefile = currentSourceFile();
+                    attach(md, dc);
+                    md.cases = currentMethodSpecs;
                     if (currentMethodSpecs != null) {
-                        currentMethodSpecs.decl = d;
+                        currentMethodSpecs.decl = md;
                         currentMethodSpecs = null;
                     }
-                    list.append(d);
+                    list.append(md);
 
                 } else if (t.head instanceof JmlVariableDecl vd) {
                     if (vd.fieldSpecs == null) vd.fieldSpecs = new JmlSpecs.FieldSpecs(vd);
+                    vd.sourcefile = currentSourceFile();
+                    attach(vd, dc);
+                    list.append(vd);
                     
                 } else if (t.head instanceof JmlTypeClauseIn
                         || t.head instanceof JmlTypeClauseMaps) {

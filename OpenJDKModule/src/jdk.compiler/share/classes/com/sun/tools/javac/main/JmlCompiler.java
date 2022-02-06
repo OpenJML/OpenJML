@@ -207,7 +207,7 @@ public class JmlCompiler extends JavaCompiler {
         	} else {
         		((JmlCompilationUnit)javaCU).specsCompilationUnit = (JmlCompilationUnit)javaCU;
         	}
-        	if (debugParse) System.out.println("parser: Parsed " + filename + " " + specFile);
+        	if (debugParse) System.out.println("parser: Parsed " + filename + " " + specFile + " " + " Classes: " + Utils.join(" ",javaCU.defs.stream().filter(d->d instanceof JmlClassDecl).map(d->((JmlClassDecl)d).name.toString())));
         	return javaCU;
         	// FIXME - do we need to check/set the module and package in the specs file? (like we do in parseSpecs)
         } finally {

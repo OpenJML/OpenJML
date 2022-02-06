@@ -40,7 +40,7 @@ public class binaries extends TCBase {
                 " class A { \n" +
                 "    java.io.File file; \n" +
                 "}"
-                ,"/$A/java/io/File.jml:3: error: There is no binary method to match this Java declaration in the specification file: m (owner: java.io.File)",14
+                ,"/$A/java/io/File.jml:3: error: There is no binary method to match this Java declaration in the specification file: java.io.File.m",14
         );
     }
     
