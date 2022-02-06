@@ -173,6 +173,8 @@ import com.sun.tools.javac.util.PropagatedException;
  */
 public class JmlSpecs {
     
+    private final static boolean debugSpecs = org.jmlspecs.openjml.Utils.debug("specs");
+    
     /** The prefix of the top-level directory within the JML release jar file
      * containing the specs for various versions of java (e.g. specs15 for 
      * Java 1.5).
@@ -266,10 +268,15 @@ public class JmlSpecs {
     public void initializeSpecsPath() {
         Options options = Options.instance(context);
         String s = JmlOption.value(context,JmlOption.SPECS);
+        if (debugSpecs) System.out.println("specs: specspath option: " + s);
         if (s == null || s.isEmpty()) s = System.getProperty(Strings.specsPathEnvironmentPropertyName);
+        if (debugSpecs) System.out.println("specs: system property: " + s);
         if (s == null || s.isEmpty()) s = options.get(Strings.sourcepathOptionName);
+        if (debugSpecs) System.out.println("specs: sourcepath option: " + s);
         if (s == null || s.isEmpty()) s = options.get(Strings.classpathOptionName);
+        if (debugSpecs) System.out.println("specs: classpath option: " + s);
         if (s == null || s.isEmpty()) s = System.getProperty("java.class.path");
+        if (debugSpecs) System.out.println("specs: java.class.path: " + s);
         if (s == null) s = Strings.empty;
         setSpecsPath(s);
     }
@@ -446,7 +453,7 @@ public class JmlSpecs {
                 }
             }
         }
-        if (verbose) {
+        if (debugSpecs) {
             noticeWriter.print("specspath:");
             for (Dir s: specsDirs) {
                 noticeWriter.print(" ");
@@ -711,8 +718,8 @@ public class JmlSpecs {
      * @return The file found, or null if none found
      */
     //@ nullable
-    public JavaFileObject findSpecFile(String classSym) {
-        String s = classSym.replace('.','/');
+    public JavaFileObject findSpecFile(String classFlatName) {
+        String s = classFlatName.replace('.','/');
         String suffix = Strings.specsSuffix; 
         for (Dir dir: getSpecsPath()) {
         	if (false) System.out.println("parser+: TRYING " + dir + " " + s + suffix);

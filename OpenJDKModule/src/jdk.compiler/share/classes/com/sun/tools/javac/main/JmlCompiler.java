@@ -228,6 +228,7 @@ public class JmlCompiler extends JavaCompiler {
      */
     /*@Nullable*/
     public JmlCompilationUnit parseSpecs(ClassSymbol typeSymbol) {
+        if (debugParse) System.out.println("parser: Seeking specfile for " + typeSymbol);
         JavaFileObject specFile = JmlSpecs.instance(context).findSpecFile(typeSymbol);
     	if (debugParse) System.out.println("parser: Parsing specs " + typeSymbol + " " + specFile);
         if (specFile == null) return null;

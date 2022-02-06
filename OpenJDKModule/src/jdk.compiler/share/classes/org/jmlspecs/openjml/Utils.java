@@ -1958,7 +1958,7 @@ public class Utils {
     	e.printStackTrace(System.out);
     }
     
-    static String debugkeys = System.getenv("DEBUG");
+    static String debugkeys = System.getenv("OJ");
     public static boolean debug() {
     	return debugkeys != null;
     }

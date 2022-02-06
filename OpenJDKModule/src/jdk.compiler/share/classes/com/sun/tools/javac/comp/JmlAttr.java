@@ -499,6 +499,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             	System.out.println("EXCEPTION DURING attribClass of " + sym);
             	e.printStackTrace(System.out);
             	throw e;
+            } finally {
             }
         }
     }
@@ -4280,7 +4281,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public Type attribTree(JCTree tree, Env<AttrContext> env, ResultInfo resultInfo) { 
     	var t = super.attribTree(tree, env, resultInfo);
-    	if (t instanceof Type.ClassType ct && ct.tsym instanceof ClassSymbol cs && cs.kind != Kinds.Kind.TYP) JmlEnter.instance(context).requestSpecs(cs);
+    	if (t instanceof Type.ClassType ct && ct.tsym instanceof ClassSymbol cs) {
+//    	    if (cs.kind == Kinds.Kind.TYP) JmlEnter.instance(context).requestSpecs(cs);
+//    	    else if (cs.kind != Kinds.Kind.ERR) utils.error("jml.internal","Unexpected kind of class symbol: " + cs + " " + cs.kind);
+    	    // We don't have a position for the error message above -- tree is a good position but we aren't sure if the sourcefile is correct
+    	}
     	return t;
     }
     
