@@ -11,6 +11,8 @@ import static com.sun.tools.javac.code.Flags.INTERFACE;
 import static com.sun.tools.javac.code.Flags.PUBLIC;
 
 import java.util.*;
+import java.util.stream.StreamSupport;
+
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlPretty;
@@ -225,6 +227,21 @@ public class JmlEnter extends Enter {
 //    	return nn;
 //    }
 
+//    public void complete(List<JCCompilationUnit> trees, ClassSymbol c) {
+//        if (c == null) {
+//            // called from Enter.main
+//            for (var t: trees) {
+//                var sourceCU = (JmlCompilationUnit)t;
+//                if (sourceCU.modle != Symtab.instance(context).unnamedModule) {
+//                    utils.error(sourceCU.sourcefile,sourceCU.defs.size()==0?sourceCU:sourceCU.defs.get(0), "jml.message",
+//                                            "OpenJML is currently implemented only for source files in the unnamed module: package " + sourceCU.packge + " is in the " + sourceCU.packge.modle + " module");
+//                    return; // abort
+//                }
+//            }
+//        }
+//        super.complete(trees, c);
+//    }
+    
 	/**
 	 * This method is called when a JmlCompilationUnit is in the list of things to
 	 * 'enter'. It visits the designated compilation unit; first it matches class
@@ -668,7 +685,6 @@ public class JmlEnter extends Enter {
 					specEnv = topLevelEnv(sourceCU.specsCompilationUnit); // needs packge, modle defined before this call
 					//System.out.println("TOPLEVEL " + sourceCU.sourcefile + " " + sourceCU.modle + " " + (specEnv==null?"NULL":specEnv.toplevel.sourcefile));
 					if (tlenv == null) tlenv = specEnv; // A hack to save some top-level environment for resolving global names
-
 				}
 			}
 			if (!allowRecursion) return null;
@@ -782,18 +798,48 @@ public class JmlEnter extends Enter {
     	var prev = log.useSource(speccu.sourcefile);
     	var specs = JmlSpecs.instance(context);
 		try {
+		    //Modules.instance(context).initModules(List.<JCCompilationUnit>of(speccu));
 
-			String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
-			Name packageName = names.fromString(flatPackageName);
-			PackageSymbol p = syms.getPackage(syms.unnamedModule,packageName);
-			if (p == null) p = syms.getPackage(syms.java_base,packageName);
-			// FIXME - what about other modules, or user modules
-			if (p == null) {
-				utils.warning(speccu.pid, "jml.message", "Creating new package in unnamed module: " + flatPackageName); // FIXME - figure out haw to create it
-				p = syms.enterPackage(syms.unnamedModule, packageName);
-			}
+//			String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
+//			Name packageName = names.fromString(flatPackageName);
+//			var iter = syms.getPackagesForName(packageName).iterator();
+//			PackageSymbol p;
+//			if (!iter.hasNext()) {
+//			    // No packages with this name
+//	            p = syms.getPackage(syms.unnamedModule,packageName);
+//			} else {
+//			    p = iter.next();
+//			    if (iter.hasNext()) {
+//			        java.util.List<PackageSymbol> list = new ArrayList<PackageSymbol>();
+//			        iter.forEachRemaining(list::add);
+//			        utils.warning(speccu.sourcefile, speccu.pid, "jml.message",
+//			            "Multiple modules contain package " + speccu.pid.pid + ": " + p.modle + " " + utils.join(" ", list, e->e.modle));
+//			    }
+//			}
+//			// FIXME - what about other modules, or user modules
+//			if (p == null) {
+//				utils.warning(speccu.pid, "jml.message", "Creating new package in unnamed module: " + flatPackageName); // FIXME - figure out haw to create it
+//				p = syms.enterPackage(syms.unnamedModule, packageName);
+//			}
+		    
+		    String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
+		    Name packageName = names.fromString(flatPackageName);
+		    // Most spec file for binary files will be for te system library packages in java.base, so try that first
+		    PackageSymbol p = syms.getPackage(syms.java_base,packageName);
+		    if (p == null) {
+		        // Otherwise try the unnamed module
+	            p = syms.getPackage(syms.unnamedModule,packageName);
+		    }
+            //System.out.println("PACKAGE " + packageName + " IS IN " + (p==null?"NULL":p.modle));
+            if (p == null) { // FIXME Dont think this is ever needed
+                utils.warning(speccu.pid, "jml.message", "Creating new package in unnamed module: " + flatPackageName);
+                p = syms.enterPackage(syms.unnamedModule, packageName);
+            }
+            
+            // TODO: Not implementing other modules for now
 
-			var owner = speccu.packge = p;
+            var owner = speccu.packge = p;
+			speccu.modle = p.modle;
 			Env<AttrContext> specEnv = topLevelEnv(speccu);
             TypeEnter.instance(context).completeClass.resolveImports(speccu, specEnv);
 
@@ -887,7 +933,7 @@ public class JmlEnter extends Enter {
 
 					localSpecEnv = classEnv(specDecl, specsEnv);
 					// Put this, super and type parameters in the Spec environment
-                    TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
+//                    TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
                     ((ClassType)csym.type).typarams_field = classTPEnter(specDecl.typarams, localSpecEnv);
 
 	                //					csym = syms.enterClass(powner.modle, specDecl.name, powner);
@@ -953,15 +999,13 @@ public class JmlEnter extends Enter {
 				specDecl.sym = csym;
 				specDecl.type = csym.type;
 				localSpecEnv = classEnv(specDecl, specsEnv);
+                TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
+                typeEnvs.put(csym, localSpecEnv);
 				if (!checkAndEnterTypeParameters(csym,specDecl,localSpecEnv)) return false;
 				// FIXME - be sure that annotations are checked as well
 				if (utils.verbose()) utils.note("Matched to binary class: " + csym + " (owner: " + csym.owner +")" );
 
-				TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
-				{
-					((ClassType)csym.type).typarams_field = classTPEnter(specDecl.typarams, localSpecEnv); // FIXME - what does this do???
-					typeEnvs.put(csym, localSpecEnv);
-				}
+				((ClassType)csym.type).typarams_field = classTPEnter(specDecl.typarams, localSpecEnv); // FIXME - what does this do???
 			}
 //			if (specDecl.typarams.size() == ((ClassType)csym.type).typarams_field.size()) {
 //				for (int i = 0; i < specDecl.typarams.length(); ++i) {
@@ -1025,12 +1069,14 @@ public class JmlEnter extends Enter {
 	public List<JCTree> specsMembersEnter(Symbol owner, List<JCTree> defs) {
 		for (JCTree decl: defs) {
 			if (decl instanceof JmlClassDecl specDecl) {
-                if (specDecl.sym.owner != owner) throw new AssertionError("Mismatched owner");
+			    ClassSymbol cs = specDecl.sym;
+                if (cs.owner != owner) throw new AssertionError("Mismatched owner");
 			    if (utils.isJML(specDecl)) {
-			        specDecl.sym.complete();
+			        cs.complete();
+			        //TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(cs, JmlSpecs.instance(context).getLoadedSpecs(cs).specsEnv);
 			    } else {
 			        specsMemberEnter(specDecl);
-			        specsMembersEnter(specDecl.sym, specDecl.defs);
+			        specsMembersEnter(cs, specDecl.defs);
 			    }
 			}
 		}
@@ -1038,6 +1084,8 @@ public class JmlEnter extends Enter {
 	}
 
 	public void specsMemberEnter(JmlClassDecl specDecl) {
+	    if (debugEnter) System.out.println("enter: Entering members for binary " + specDecl.sym + " : " + 
+	                            Utils.join(" ",specDecl.defs,d->(d instanceof JmlVariableDecl vd ? vd.name : d instanceof JmlMethodDecl md ? md.name : "")));
 		var saved = JmlResolve.instance(context).setAllowJML(utils.isJML(specDecl.mods));
 		ClassSymbol csym = specDecl.sym;
 		Symbol owner = csym.owner;
@@ -1121,6 +1169,7 @@ public class JmlEnter extends Enter {
 		}
 
 		JmlResolve.instance(context).setAllowJML(saved);
+        if (debugEnter) System.out.println("enter: Entered members for binary " + specDecl.sym);
 	}
 	
 	public boolean matchAsStrings(Type bin, JCExpression src) {
@@ -1930,7 +1979,7 @@ public class JmlEnter extends Enter {
 
 		JmlSpecs.SpecsStatus tsp = JmlSpecs.instance(context).status(csymbol);
 		if (debugSpecs)
-			System.out.println("Requesting for " + csymbol + " " + tsp + " " + binaryEnterTodo.contains(csymbol) + " "
+			System.out.println("requestSpecs for " + csymbol + " " + tsp + " " + nestingLevel + " " + binaryEnterTodo.contains(csymbol) + " "
 					+ System.identityHashCode(csymbol) + " " + csymbol.hashCode() + " " + System.identityHashCode(
 							ClassReader.instance(context).enterClass(names.fromString("java.lang.Object"))));
 		if (!tsp.less(JmlSpecs.SpecsStatus.QUEUED)) {

@@ -44,7 +44,7 @@ public class generics extends TCBase {
     /** Test with a binary class*/
     @Test
     public void testBinaryGeneric2() {
-        JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
+        JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"}); // System spec file intentially omitted
         addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection extends java.lang.Iterable {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.jml:2: error: The type Collection in the specification matches a Java type java.util.Collection<E> with a different number of type arguments",8

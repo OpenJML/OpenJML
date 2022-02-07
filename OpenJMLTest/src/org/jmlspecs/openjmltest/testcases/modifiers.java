@@ -1227,25 +1227,34 @@ public class modifiers extends TCBase {
     // TODO - test initializers
     
     @Test public void testBinaryMods() {
-        addMockFile("$A/java/lang/Object.jml",
-        		"package java.lang; public class Object {\n"
-                +"//@ spec_public spec_protected\n"
-                +"public boolean equals(Object o);}");
-        helpTCF("A.java","public class A{ A(int i) {} \n" +
-                "  boolean m() { return new Object().equals(null); } }"
-                ,"/$A/java/lang/Object.jml:2: error: A declaration may not be both spec_public and spec_protected",17
-                ,"/$A/java/lang/Object.jml:2: warning: There is no point to a declaration being both public and spec_protected",17
-                ,"/$A/java/lang/Object.jml:2: warning: There is no point to a declaration being both public and spec_public",5
+        addMockFile("$A/java/util/Locale.jml",
+                "package java.util; final public class Locale implements Cloneable, java.io.Serializable {\n"
+               +"//@ spec_public spec_protected\n"
+               +"public static Locale getDefault();}");
+                 helpTCF("A.java","public class A{ A(int i) {} \n" +
+                                  "  java.util.Locale m() { return java.util.Locale.getDefault(); } }"
+                ,"/$A/java/util/Locale.jml:2: error: A declaration may not be both spec_public and spec_protected",17
+                ,"/$A/java/util/Locale.jml:2: warning: There is no point to a declaration being both public and spec_protected",17
+                ,"/$A/java/util/Locale.jml:2: warning: There is no point to a declaration being both public and spec_public",5
                 );
     }
     
     @Test public void testBinaryModsNN() {
-        addMockFile("$A/java/lang/Object.jml",
-        		"package java.lang; /*@ non_null */ public class Object {\n"
-                +"public boolean equals(Object o);}");
+        addMockFile("$A/java/util/Locale.jml",
+                "package java.util; final public /*@ non_null */ class Locale implements Cloneable, java.io.Serializable {\n"
+               +"public static Locale getDefault();}");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
-                "  boolean m() { return new Object().equals(null); } }"
-                ,"/$A/java/lang/Object.jml:1: error: This JML modifier is not allowed for a type declaration",24
+                         "  java.util.Locale m() { return java.util.Locale.getDefault(); } }"
+                ,"/$A/java/util/Locale.jml:1: error: This JML modifier is not allowed for a type declaration",37
+                );
+    }
+    
+    @Test public void testBinaryModsOK() {
+        addMockFile("$A/java/util/Locale.jml",
+                "package java.util; final public class Locale implements Cloneable, java.io.Serializable {\n"
+                +"public static Locale getDefault();}");
+        helpTCF("A.java","public class A{ A(int i) {} \n" +
+                "  java.util.Locale m() { return java.util.Locale.getDefault(); } }"
                 );
     }
     

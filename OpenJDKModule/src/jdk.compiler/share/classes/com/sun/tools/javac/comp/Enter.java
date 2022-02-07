@@ -334,7 +334,6 @@ public class Enter extends JCTree.Visitor {
     @Override
     public void visitTopLevel(JCCompilationUnit tree) {
 //        Assert.checkNonNull(tree.modle, tree.sourcefile.toString());
-
         JavaFileObject prev = log.useSource(tree.sourcefile);
         boolean addEnv = false;
         boolean isPkgInfo = tree.sourcefile.isNameCompatible("package-info",
@@ -611,7 +610,7 @@ public class Enter extends JCTree.Visitor {
      *  @param trees      The list of trees to be processed.
      */
     public void main(List<JCCompilationUnit> trees) {
-    	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ENTERMAIN " + org.jmlspecs.openjml.Utils.join(" ", trees, cu->cu.sourcefile));
+    	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ENTERMAIN " + org.jmlspecs.openjml.Utils.join(" ", trees, cu->(cu.sourcefile + " " + cu.modle)));
         complete(trees, null);
     }
 
