@@ -1017,7 +1017,7 @@ public class JmlParser extends JavacParser {
             	nextToken();
             	continue;
             }
-            JmlVariableDecl mostRecentVarDecl = currentVariableDecl;
+            JmlVariableDecl mostRecentVarDecl = currentVariableDecl; // Just saves the current value so it can be set to null in most cases
             currentVariableDecl = null;
 
             Comment dc = token.comment(CommentStyle.JAVADOC);
@@ -1069,8 +1069,8 @@ public class JmlParser extends JavacParser {
                     if (tc instanceof JmlTypeClauseIn
                             || tc instanceof JmlTypeClauseMaps) {
                         JCTree tree = tc;
-                        if (tree instanceof JmlTypeClauseIn) {
-                            ((JmlTypeClauseIn) tree).parentVar = mostRecentVarDecl;
+                        if (tree instanceof JmlTypeClauseIn inclause) {
+                            inclause.parentVar = mostRecentVarDecl;
                         }
                         if (mostRecentVarDecl == null) {
                             utils.error(tree.pos(), "jml.misplaced.var.spec",

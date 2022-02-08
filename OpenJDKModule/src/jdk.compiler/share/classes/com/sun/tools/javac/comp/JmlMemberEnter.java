@@ -244,7 +244,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     					// OK: A ghost/model field declaration with no matching name
     					super.memberEnter(specVarDecl, env);
     					specVarDecl.type = specVarDecl.sym.type;
-    					specVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(specVarDecl);
+    					if (specVarDecl.fieldSpecs == null) specVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(specVarDecl);
     					specs.putSpecs(specVarDecl.sym, specVarDecl.fieldSpecs);
     					cd.defs = cd.defs.append(specVarDecl);
     					//System.out.println("NEW JML FIELD " + cd.name + " " + specVarDecl.name + " " + specVarDecl.sym + " " + specVarDecl.type + " " + specVarDecl.vartype + " " + specVarDecl.vartype.type );
@@ -273,11 +273,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         		//utils.error(javaVarDecl.sourcefile, javaVarDecl, "jml.associated.decl.cf", utils.locationString(specVarDecl, specVarDecl.sourcefile));
                         	} else {
                         		javaVarDecl.specsDecl = specVarDecl;
-                        		javaVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(specVarDecl);
         						specVarDecl.sym = javaVarDecl.sym;
         						specVarDecl.type = javaVarDecl.type;
         						specVarDecl.vartype.type = javaVarDecl.type;
-        						specs.putSpecs(javaVarDecl.sym, javaVarDecl.fieldSpecs);
+        						specs.putSpecs(javaVarDecl.sym, specVarDecl.fieldSpecs);
             					//System.out.println("MATCHED JAVA FIELD " + cd.name + " " + vd.name);
                         	}
     					} else {

@@ -152,9 +152,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.specsDecl = that.specsDecl;// FIXME - copy
         copy.cases = copy(that.cases,p);
         copy.methodSpecsCombined = JmlSpecs.copy(that.methodSpecsCombined,p,this);
-//        new JmlSpecs.MethodSpecs( // FIXME - factory
-//                copy(that.methodSpecsCombined.mods,p),
-//                copy(that.methodSpecsCombined.cases,p));
         copy.type = that.type;
         copy.isInitializer = that.isInitializer;
         return copy;
@@ -164,8 +161,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlVariableDecl copy = (JmlVariableDecl)super.visitVariable(that,p);
         copy.sourcefile = that.sourcefile;
         copy.specsDecl = that.specsDecl; // FIXME - repoint to new reference?
-        copy.fieldSpecs = (that.fieldSpecs);// FIXME - copy
-//        copy.fieldSpecsCombined = (that.fieldSpecsCombined); // FIXME - need copy
+        copy.fieldSpecs = that.fieldSpecs;
         copy.sym = that.sym;
         copy.type = that.type;
         return copy;
