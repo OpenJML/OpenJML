@@ -1147,18 +1147,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override 
     public void visitMethodDef(JCMethodDecl m) {
+        var javaMethodDecl = (JmlMethodDecl)m;
+        
     	//System.out.println("VISIT METHOD DEF " + m.name);
-    	if (utils.verbose()) utils.note("Attributing method " + env.enclClass.sym + " " + m.name + " " + ((JmlMethodDecl)m).sourcefile + " " + m);
+    	if (utils.verbose()) utils.note("Attributing method " + env.enclClass.sym + " " + javaMethodDecl.name + " " + javaMethodDecl.sourcefile + " " + javaMethodDecl);
 
         // Setting relax to true keeps super.visitMethodDef from complaining
         // that a method declaration in a spec file does not have a body
         // FIXME - what else is relaxed?  We should do the check under the right conditions?
-        if (m.sym == null) return; // Guards against specification method declarations that are not matched - FIXME
+        if (javaMethodDecl.sym == null) return; // Guards against specification method declarations that are not matched - FIXME
 
         jmlenv = jmlenv.pushCopy();
-        jmlenv.enclosingMethodDecl = (JmlMethodDecl)m;
+        jmlenv.enclosingMethodDecl = javaMethodDecl;
         
-        JmlMethodDecl jmethod = (JmlMethodDecl)m;
+        JmlMethodDecl jmethod = javaMethodDecl;
         Map<Name,Env<AttrContext>> prevLabelEnvs = labelEnvs;
         labelEnvs = new HashMap<Name,Env<AttrContext>>();
 
@@ -1184,10 +1186,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            // Do this before we walk the method body
 //            determineQueryAndSecret(jmethod,ms);
 
-            prevSource = log.useSource(jmethod.source());
-            attribAnnotationTypes(m.mods.annotations,env); // FIXME- CHECK : This is needed at least for the spec files of binary classes
+            prevSource = log.useSource(javaMethodDecl.source());
+            attribAnnotationTypes(javaMethodDecl.mods.annotations,env); // FIXME- CHECK : This is needed at least for the spec files of binary classes
 
-            JmlSpecs.MethodSpecs mspecs = specs.getLoadedSpecs(m.sym);
+            JmlSpecs.MethodSpecs mspecs = specs.getLoadedSpecs(javaMethodDecl.sym);
 //            if (mspecs != null) { // FIXME - is mspecs allowed to be null?
 //            	attrSpecs(jmethod.sym);
 //            	enclosingMethodEnv = mspecs.specsEnv;
@@ -1297,7 +1299,41 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            }
 //            methodSpecs.cases.accept(this);
         }
-        attrSpecs(methodSym, env); // FIXME - use a specEnv?
+        
+        // Having the same parameter names makes more readable specs
+        // FIXME: At the moment we require it -- some improvements in method specEnv is needed to support differing names
+        boolean ok = true;
+        var javaMethodDecl = (JmlMethodDecl)env.enclMethod;
+        var specMethodDecl = methodSpecs.specDecl;
+        if (specMethodDecl != javaMethodDecl) {
+            if (javaMethodDecl.params.size() != specMethodDecl.params.size()) {
+                utils.error(javaMethodDecl.source(), javaMethodDecl, "jml.internal",
+                    "A Java method matches a spec method with different numbers of parameters: "  + javaMethodDecl  );
+            } else {
+                var iter1 = javaMethodDecl.params.iterator();
+                var iter2 = specMethodDecl.params.iterator();
+                while (iter1.hasNext() && iter2.hasNext()) {
+                    var javaParam = iter1.next();
+                    var specParam = iter2.next();
+                    if (javaParam.name != specParam.name) {
+                        ok = false;
+                        utils.error(specMethodDecl.source(), specParam, "jml.message",
+                            "Parameter names in a specification file must match those in the Java source: " 
+                            + specParam.name + " vs. " + javaParam.name);
+                    }
+                }
+                if (iter1.hasNext() || iter2.hasNext()) {
+                    // If this is reached, the method matching in JmlMemberEnter has gone wrong
+                    ok = false;
+                    utils.error(specMethodDecl.source(), specMethodDecl, "jml.internal",
+                        "Unexpectedly have a Java method declaration and its specification counterpart with different numbers of parameters: "
+                        + javaMethodDecl.sym);
+                }
+            }
+        }
+        
+        if (ok) attrSpecs(methodSym, env); // FIXME - use a specsEnv here?
+        else specs.setStatus(methodSym,  JmlSpecs.SpecsStatus.ERROR);
 //    	this.env = prevEnv;
     	
         jmlresolve.setAllowJML(utils.isJML(env.enclMethod));

@@ -298,7 +298,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     					specMethodDecl.type = specMethodDecl.sym.type;
     					var msp = new JmlSpecs.MethodSpecs(specMethodDecl);
     					msp.javaDecl = javaMethodDecl;
+//    					msp.javaEnv = methodEnv(javaMethodDecl, env);
+//    					msp.specsEnv = methodEnv(specMethodDecl, env); // FIXME - should use a specEnv here?
     					msp.javaEnv = msp.specsEnv = env;
+//    					enter.classEnter(specMethodDecl.params, msp.specsEnv); // FIXME - also enter type parameters?
     					specs.putSpecs(specMethodDecl.sym, msp);
     					cd.defs = cd.defs.append(specMethodDecl);
     					//System.out.println("NEW JML METHOD " + cd.name + " " + specMethodDecl.name + " " + specMethodDecl.sym  );
@@ -916,7 +919,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             mtemp = new MethodSymbol(0, tree.name, null, enclScope.owner);
             //m.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, m, tree);
             tree.sym = mtemp;
-            localEnv = methodEnv(tree, env); // FIXME - or getMethodEnv?
+            localEnv = methodEnv(tree, env);
 
             // Compute the method type
             mtemp.type = signature(msym, tree.typarams, tree.params,
