@@ -4,8 +4,8 @@ public class R {
 
 	//@ writes a[r];
 	void m(int[] a) {
-		//@ set var rr = r;
-		//@ set var k = r.lo;
+		//@ ghost var rr = r;
+		//@ ghost var k = r.lo;
 		//@ set r.lo = 5;
 	}
 }

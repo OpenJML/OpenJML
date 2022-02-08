@@ -1441,7 +1441,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
        		annotations = annotations.appendList(((JmlVariableDecl)tree).specsDecl.mods.annotations);
     	}
     	super.visitFieldDefHelper(tree, v, enclScope, env, annotations);
-    	tree.type = tree.vartype.type; // TODO: I don't know why tree.type is not set?
+    	tree.type = v.type;
+    	// Caution: tree.vartype is null if the declared type is 'var'
     }    
     
     
