@@ -1336,7 +1336,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         else specs.setStatus(methodSym,  JmlSpecs.SpecsStatus.ERROR);
 //    	this.env = prevEnv;
     	
-        jmlresolve.setAllowJML(utils.isJML(env.enclMethod));
+        jmlresolve.addAllowJML(utils.isJML(env.enclMethod));
         boolean savedAttributeSpecs = this.attribJmlDecls;
         this.attribJmlDecls = true;
         super.attribMethodSpecsAndBody(methodSym, body, env);
@@ -4117,7 +4117,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         jmlenv.currentBlockContract = tree;
         jmlenv.currentOldLabel = tree.label;
         if (tree.statements != null) {
-            jmlresolve.setAllowJML(false);
+            jmlresolve.setAllowJML(prevAllowJML);
             attribStats(tree.statements,env);
             jmlresolve.setAllowJML(true);
         }
@@ -4328,10 +4328,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void visitJmlBlock(JmlBlock that) {
-    	boolean prev = false;
-    	if (env.enclMethod == null) prev = ((JmlResolve)rs).setAllowJML(utils.isJML(env.enclClass.mods));
+    	boolean prev = jmlresolve.allowJML();
+    	if (!prev && env.enclMethod == null) prev = jmlresolve.setAllowJML(utils.isJML(env.enclClass.mods));
         visitBlock(that);
-        if (env.enclMethod == null) ((JmlResolve)rs).setAllowJML(prev);
+        jmlresolve.setAllowJML(prev);
     }
     
     @Override
@@ -6802,11 +6802,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
 //    	if (utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
-    	boolean prev = JmlResolve.instance(context).setAllowJML(utils.isJML(that));
+    	boolean prev = JmlResolve.instance(context).addAllowJML(utils.isJML(that));
     	try {
     		visitMethodDef(that);
     	} catch (Exception e) {
-    		JmlResolve.instance(context).setAllowJML(prev);
     		utils.error(that, "jml.internal", "Exception while attributing method: " + that);
     		e.printStackTrace(System.out);
     	} finally {
