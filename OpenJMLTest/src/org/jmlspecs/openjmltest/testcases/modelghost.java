@@ -48,7 +48,7 @@ public class modelghost extends TCBase {
     			"public class A { /*@ model int m() { return B.n; } */ B mm() { return B.nn; }}\n" +
     	        "/*@ model class B { public static int n; } */\n"
     		    ,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class A",55
-    		    ,"/A.java:1: error: cannot find symbol\n  symbol:   variable nn\n  location: class B",72
+    		    ,"/A.java:1: error: cannot find symbol\n  symbol:   variable B\n  location: class A",71
     		    );
     }
     

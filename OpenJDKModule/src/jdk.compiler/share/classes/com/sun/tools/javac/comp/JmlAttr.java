@@ -1346,6 +1346,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         else specs.setStatus(methodSym,  JmlSpecs.SpecsStatus.ERROR);
 //    	this.env = prevEnv;
     	
+        jmlresolve.setAllowJML(prevAllow);
         jmlresolve.addAllowJML(utils.isJML(env.enclMethod));
         boolean savedAttributeSpecs = this.attribJmlDecls;
         this.attribJmlDecls = true;

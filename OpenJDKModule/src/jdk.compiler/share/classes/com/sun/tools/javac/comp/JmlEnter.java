@@ -778,7 +778,7 @@ public class JmlEnter extends Enter {
 			if (debugEnter && tree instanceof JCCompilationUnit cu)
 				System.out.println("enter: Entered CU " + cu.sourcefile + " " + t);
 			if (debugEnter && tree instanceof JCClassDecl d)
-				System.out.println("enter: Entered class " + d.sym.hashCode() + " " + d.sym + " " + t);
+				System.out.println("enter: Entered class " + d.sym + " " + t + " " + d.sym.members());
 			return t;
 		} catch (Exception e) {
 	        e.printStackTrace(System.out);

@@ -25,7 +25,7 @@ alias wt="while [ \$(lsc) -gt 5 ]; do sleep 30; done"
 
 ./run-summary log-access+  	"155/0" access arith assignable compilationUnit compiler deprecation  &
 wt
-./run-summary log-binaries 	"5/1"	binaries  &
+./run-summary log-binaries 	"9/0"	binaries  &
 ./run-summary log-bugs     	"23/0"	bugs  &
 ./run-summary log-esc1     	"93/0"  esc1  &
 wt

@@ -466,6 +466,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     	JmlEnter.instance(context).methodEnv = localEnv;
     	if (!enterJML) return true; // FIXME - enterJML can be done away with, I think
     	boolean b = super.visitMethodDefHelper(tree, m, enclScope, localEnv);
+    	if (JmlEnter.debugEnter && b) System.out.println("enter: entered method " + m + " " + org.jmlspecs.openjml.Utils.instance(context).isJML(m.flags()));
         return b;
     }
     
@@ -1374,7 +1375,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     		super.visitVarDef(tree);
     		//if (tree.sym.type instanceof Type.ClassType ct && ct.tsym instanceof ClassSymbol cs) enter.requestSpecs(cs);
     	} finally {
-    		if (JmlEnter.debugEnter) System.out.println("Entered field " + tree.sym.owner + " " + tree.name);
+    		if (JmlEnter.debugEnter) System.out.println("enter: Entered field " + tree.sym.owner + " " + tree.name);
     		JmlResolve.instance(context).setAllowJML(prev);
     	}
     }
