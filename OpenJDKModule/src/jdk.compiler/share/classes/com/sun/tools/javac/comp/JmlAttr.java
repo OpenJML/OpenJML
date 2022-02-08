@@ -716,13 +716,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         			new MethodSymbol(tree.flags | BLOCK | (block.flags & Flags.STATIC) |
         					env.info.scope.owner.flags() & STRICTFP, names.empty, null,
         					env.info.scope.owner);
+        	jmlenv = jmlenv.pushCopy();
+        	jmlenv.enclosingMethodDecl = null;
         	final Env<AttrContext> localEnv =
         			env.dup(tree, env.info.dup(env.info.scope.dupUnshared(fakeOwner)));
-        	if (isStatic(tree.flags)) localEnv.info.staticLevel++;
-        	JmlModifiers mods = jmlMaker.Modifiers(block.flags, null, null); // TODO - allow annotations?
         	//System.out.println("CREATED BLOCK SPEC " + (block.flags & Flags.STATIC) + " " + (block.specificationCases==null) + " " + block.specificationCases);
-        	if (block.specificationCases != null) block.specificationCases.accept(this);
+        	if (block.specificationCases != null) {
+                var prevEnv = this.env;
+                this.env = localEnv;
+                if (isStatic(tree.flags)) localEnv.info.staticLevel++;
+        	    block.specificationCases.accept(this);
+                if (isStatic(tree.flags)) localEnv.info.staticLevel--;
+                this.env = prevEnv;
+        	}
+        	// FIXME - don't think this is needed
+            JmlModifiers mods = jmlMaker.Modifiers(block.flags, null, null); // TODO - allow annotations?
         	block.blockSpecs = new JmlSpecs.BlockSpecs(mods,block.specificationCases, localEnv);
+        	jmlenv = jmlenv.pop();
         }
     }
     
@@ -3754,6 +3764,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             	// specification for a statement spec (e.g. in a method body)
             	//System.out.println("SPECCASE-S " + (enclosingMethodEnv!=null));
             	localEnv = env;
+            } else if (jmlenv.enclosingMethodDecl == null) {
+                // contract for an initialization block
+               localEnv = env; // env already set in visitBlock
             } else if (enclosingMethodEnv != null) {
             	// typical method specification
             	//System.out.println("SPECCASE-A");
@@ -3804,8 +3817,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } finally {
         	// FIXME - why might env be null?
             if (env != null) labelEnvs.put(tree.name,env.dup(tree,env.info.dupUnshared()));
+            if (prevEnv != localEnv) localEnv.info.scope.leave();
             env = prevEnv;
-            if (localEnv != null) localEnv.info.scope.leave();
             jmlenv = jmlenv.pop();
             log.useSource(old);
         }
