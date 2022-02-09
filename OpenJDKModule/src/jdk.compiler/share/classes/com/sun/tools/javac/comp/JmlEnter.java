@@ -1947,7 +1947,7 @@ public class JmlEnter extends Enter {
 		return b;
 	}
 
-	private int nestingLevel = 0;
+	public int nestingLevel = 0;
 
 	public void hold() {
 		nestingLevel++;
@@ -1971,17 +1971,15 @@ public class JmlEnter extends Enter {
 	 * 
 	 * @param csymbol the class whose specs are wanted
 	 */
-	public void requestSpecs(ClassSymbol csymbol) {
+	public boolean requestSpecs(ClassSymbol csymbol) {
 		// Requests for nested classes are changed to a request for their outermost
 		// class
 		while (csymbol.owner instanceof ClassSymbol)
 			csymbol = (ClassSymbol) csymbol.owner;
 
 		JmlSpecs.SpecsStatus tsp = JmlSpecs.instance(context).status(csymbol);
-		if (debugSpecs)
-			System.out.println("requestSpecs for " + csymbol + " " + tsp + " " + nestingLevel + " " + binaryEnterTodo.contains(csymbol) + " "
-					+ System.identityHashCode(csymbol) + " " + csymbol.hashCode() + " " + System.identityHashCode(
-							ClassReader.instance(context).enterClass(names.fromString("java.lang.Object"))));
+		if (debugSpecs) System.out.println("specs: requestSpecs for " + csymbol + " " + tsp + " level=" + nestingLevel + " " + binaryEnterTodo.contains(csymbol)
+			+ " size=" + binaryEnterTodo.size());
 		if (!tsp.less(JmlSpecs.SpecsStatus.QUEUED)) {
 			if (utils.verbose()) {
 				if (tsp == JmlSpecs.SpecsStatus.QUEUED)
@@ -1989,6 +1987,7 @@ public class JmlEnter extends Enter {
 				else
 					if (debugSpecs) System.out.println("specs: Requesting specs " + csymbol + ", but specs already loaded or attributed");
 			}
+			return false;
 		} else {
 			// The binary Java class itself is already loaded - it is needed to produce the
 			// classSymbol itself
@@ -2000,8 +1999,7 @@ public class JmlEnter extends Enter {
 					// since complete() may be called on the class in order to fetch its superclass,
 					// or during the loading of any other class that happens to mention the type.
 					// So we recheck here, before reentering the class in the todo list
-					if (JmlSpecs.instance(context).status(csymbol) != JmlSpecs.SpecsStatus.NOT_LOADED)
-						return;
+					if (JmlSpecs.instance(context).status(csymbol) != JmlSpecs.SpecsStatus.NOT_LOADED) return false;
 
 					// Classes are prepended to the todo list in reverse order, so that parent
 					// classes
@@ -2030,14 +2028,14 @@ public class JmlEnter extends Enter {
 
 			// This nesting level is used to be sure we do not start processing a class,
 			// say a superclass, before we have finished loading specs for a given class
-			if (nestingLevel == 0)
-				completeBinaryEnterTodo();
+			if (nestingLevel == 0) completeBinaryEnterTodo();
+			return true;
 		}
 	}
 
 	ListBuffer<ClassSymbol> binaryEnterTodo = new ListBuffer<ClassSymbol>();
 
-	private void completeBinaryEnterTodo() {
+	public void completeBinaryEnterTodo() {
 		JmlSpecs specs = JmlSpecs.instance(context);
 		while (!binaryEnterTodo.isEmpty()) {
 			ClassSymbol csymbol = binaryEnterTodo.remove();

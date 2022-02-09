@@ -840,13 +840,16 @@ public class JmlSpecs {
         return specsTypes.get(type);
     }
     
-    public TypeSpecs getLoadedSpecs(ClassSymbol type) {
-    	if (status(type).less(SpecsStatus.SPECS_LOADED)) JmlEnter.instance(context).requestSpecs(type);
-    	var ts = specsTypes.get(type);
+    public TypeSpecs getLoadedSpecs(ClassSymbol classSym) {
+    	if (status(classSym).less(SpecsStatus.SPECS_LOADED)) {
+    	    boolean ok = JmlEnter.instance(context).requestSpecs(classSym);
+            //if (!ok) System.out.println("REQUEST TO GET SPECS ONLY QUEUED: " + classSym);
+    	}
+    	var ts = specsTypes.get(classSym);
     	if (ts == null) {
-    		ts = new TypeSpecs(type, null, (JmlModifiers)JmlTree.Maker.instance(context).Modifiers(type.flags()), null);
-            utils.note(true,"      inserting default class specs for " + type.flatname);
-    		specsTypes.put(type,  ts);
+    		ts = new TypeSpecs(classSym, null, (JmlModifiers)JmlTree.Maker.instance(context).Modifiers(classSym.flags()), null);
+            utils.note(true,"      inserting default class specs for " + classSym.flatname);
+    		specsTypes.put(classSym,  ts);
     	}
     	return ts;
     }
@@ -991,8 +994,7 @@ public class JmlSpecs {
     public MethodSpecs getLoadedSpecs(MethodSymbol m) {
  //   	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
     	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) {
-    		JmlEnter.instance(context).requestSpecs((ClassSymbol)m.owner);
-        	var ms = specsMethods.get(m);
+    		var ms = getLoadedSpecs((ClassSymbol)m.owner);
     		if (ms == null) setStatus(m, SpecsStatus.SPECS_LOADED);
 //        	if (ms == null) {
 //        		setStatus(m, SpecsStatus.SPECS_LOADED);// So defaultSpecs does not go into an infinite loop
@@ -1352,7 +1354,7 @@ public class JmlSpecs {
     //@ nullable
     public FieldSpecs getLoadedSpecs(VarSymbol m) {
     	if (m.owner instanceof ClassSymbol && status(m).less(SpecsStatus.SPECS_LOADED)) {
-    		JmlEnter.instance(context).requestSpecs((ClassSymbol)m.owner);
+    		getLoadedSpecs((ClassSymbol)m.owner);
     	}
     	return specsFields.get(m);
     }

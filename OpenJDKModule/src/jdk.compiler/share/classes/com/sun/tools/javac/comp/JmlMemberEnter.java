@@ -1372,6 +1372,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     	boolean prev = JmlResolve.instance(context).allowJML();
     	if (utils.isJML(tree.mods) || ((JmlVariableDecl)tree).jmltype) JmlResolve.instance(context).setAllowJML(true); // FIXME - does having a jmltype mean that we need JML resolution?
     	try {
+    	    //if (tree.toString().contains("Pure")) System.out.println("VVD " + tree + " " + utils.isJML(tree.mods) + " " + JmlResolve.instance(context).allowJML());
     		super.visitVarDef(tree);
     		//if (tree.sym.type instanceof Type.ClassType ct && ct.tsym instanceof ClassSymbol cs) enter.requestSpecs(cs);
     	} finally {

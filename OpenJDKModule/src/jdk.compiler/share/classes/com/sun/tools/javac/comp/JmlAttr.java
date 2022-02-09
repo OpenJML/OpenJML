@@ -3833,6 +3833,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
         	for (JmlSpecificationCase c: tree.cases) {
         		try {
+//        		    long viz = c.modifiers.flags & Flags.AccessFlags;
+//        		    if (c.token == null) viz = jmlenv.enclosingMethodDecl == null ? Flags.PRIVATE : jmlenv.enclosingMethodDecl.mods.flags & Flags.AccessFlags;
+//        		    jmlenv.jmlVisibility = viz;
+        		    
         			// This check is put here rather than inside visitJmlSpecificationCase
         			// so it is not checked for specification cases that are part of a 
         			// refining statement
@@ -5323,6 +5327,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             } else if (jmlenv.currentClauseKind == ensuresClauseKind || jmlenv.currentClauseKind == signalsClauseKind) {
                 // An identifier mentioned in a clause must be at least as visible as the clause itself.
                 if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
+                    System.out.println("VIZ " + sym.owner + " " + sym + " " + v + " " + jmlVisibility);
                     utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.keyword());
                 }
                 
@@ -5681,12 +5686,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 result = tree.type = check(tree, t, KindSelector.VAL, resultInfo);
             } else {
-            	// <package>.array, or something illegal
+            	// <package>.array, or something illegal or the normal case
+                //if (tree.toString().contains("function")) System.out.println("SELECT " + tree + " " + jmlresolve.allowJML());
                 super.visitSelect(tree);
                 // The super call does not always call check... (which assigns the
                 // determined type to tree.type, particularly if an error occurs,
                 // so we fill it in
                 if (tree.type == null) tree.type = result;
+                //if (tree.toString().contains("function")) System.out.println("SELECT-TYPE " + tree + " " + result + " " + result.getClass() + " " + tree.sym.getClass());
+//                if (result instanceof Type.ClassType ct && ct.tsym instanceof ClassSymbol cs) {
+//                    System.out.println("GET SPECS FOR " + cs + " " + specs.status(cs) + " " + JmlEnter.instance(context).nestingLevel);
+//                    specs.getLoadedSpecs(cs);
+//                    JmlEnter.instance(context).completeBinaryEnterTodo();
+//                }
             }
         }
         Type saved = result;
