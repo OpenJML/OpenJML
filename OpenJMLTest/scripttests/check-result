@@ -1,6 +1,7 @@
 
 tst=$(dirname $1)
 actual=$(basename $1)
+nonote=${actual}_nonote
 stat=$2
 mystat=0
 
@@ -16,5 +17,16 @@ for e in $expect ; do
     ##(cat $e | sed -e s/\\\$STRL/10/ -e s#\\\$SPECS#$SPECS# | diff - $actual ) && rm $actual && ( if [ `wc -w <<< $expect`  -gt 1 ]; then echo $tst ": Matched $e"; fi)
     (cat $e | sed -e s/\\\$STRL/10/ -e s#\\\$SPECS#$SPECS# | diff -q - $actual > /dev/null ) && rm $actual && ( if [ `wc -w <<< $expect`  -gt 1 ]; then echo $tst ": Matched $e"; fi) && exit $mystat 
 done
+cat $actual | grep -v "Note" > $nonote
+for e in $expect ; do
+    ##(cat $e | sed -e s/\\\$STRL/10/ -e s#\\\$SPECS#$SPECS# | diff - $actual ) && rm $actual && ( if [ `wc -w <<< $expect`  -gt 1 ]; then echo $tst ": Matched $e"; fi)
+    (cat $e | sed -e s/\\\$STRL/10/ -e s#\\\$SPECS#$SPECS# | diff -q - $nonote > /dev/null ) && rm $actual $nonote && ( if [ `wc -w <<< $expect`  -gt 1 ]; then echo $tst ": Matched $e"; fi) && exit $mystat 
+done
+cat $actual | grep -v "Stopping because of parsing errors" > $nonote
+for e in $expect ; do
+    ##(cat $e | sed -e s/\\\$STRL/10/ -e s#\\\$SPECS#$SPECS# | diff - $actual ) && rm $actual && ( if [ `wc -w <<< $expect`  -gt 1 ]; then echo $tst ": Matched $e"; fi)
+    (cat $e | sed -e s/\\\$STRL/10/ -e s#\\\$SPECS#$SPECS# | diff -q - $nonote > /dev/null ) && rm $actual $nonote && ( if [ `wc -w <<< $expect`  -gt 1 ]; then echo $tst ": Matched $e"; fi) && exit $mystat 
+done
+rm $nonote
 echo $tst ": Actual output differs from" expected*
 exit 1

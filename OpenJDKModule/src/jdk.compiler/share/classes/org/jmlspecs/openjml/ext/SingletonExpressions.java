@@ -38,7 +38,7 @@ public class SingletonExpressions extends JmlExtension {
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
             syms = Symtab.instance(context);
-            JCTree.JCMethodDecl md = localEnv.enclMethod;
+            JCTree.JCMethodDecl md = attr.jmlenv.enclosingMethodDecl;
             JCTree res = md.getReturnType();
             Type t;
             if (res == null || (!res.type.isErroneous() && JmlTypes.instance(context).isSameType(res.type,syms.voidType))) {

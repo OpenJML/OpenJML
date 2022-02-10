@@ -3,7 +3,7 @@ public class A { B c;  }
                  ^
   symbol:   class B
   location: class A
-test/twoFilesF/q/B.jml:2: error: This JML field declaration conflicts with an existing field with the same name: k (owner: q.B)
+test/twoFilesF/q/B.jml:2: error: This JML field declaration conflicts with an existing field with the same name: q.B.k
 public class B { /*@ model int k;*/ }
                                ^
 test/twoFilesF/q/B.java:2: error: Associated declaration: test/twoFilesF/q/B.jml:2:

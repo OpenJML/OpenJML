@@ -117,12 +117,18 @@ public class SpecsBase extends TCBase {
     static public  Collection<String[]> datax() {
         if (!dotests) return new ArrayList<String[]>(0);
         Collection<String[]> data = new ArrayList<String[]>(1000);
-        for (String f: findAllFiles(null)) {
-        	if (f.contains("org.jmlspecs.models")) continue; // FIXME - eventually support or delete these
-            data.add(new String[]{ f});
+        String justone = null;//"org.hamcrest.Matcher";
+        if (justone == null) {
+            // regular case - do all system library .jml files
+            for (String f: findAllFiles(null)) {
+                if (f.contains("org.jmlspecs.models")) continue; // FIXME - eventually support or delete these
+                data.add(new String[]{ f});
+            }
+        } else {
+            // debugging - just do one file
+          data.add(new String[] { justone });
+          counts.put(justone, 1); // !!! Manually set the second argument to the numbre of type arguments
         }
-//        data.add(new String[] { "org.hamcrest.Matcher" });
-//        counts.put("org.hamcrest.Matcher", 0);
         return data;
     }
 

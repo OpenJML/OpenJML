@@ -24,4 +24,6 @@ test/buggyCalculator/buggyCalculator.java:163: warning: Associated declaration
             ^
 Completed proof of buggyCalculator.calculateBad(int,int,char) with prover !!!! - with warnings
 Completed proving methods in buggyCalculator
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
 4 warnings

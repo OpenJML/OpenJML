@@ -342,6 +342,7 @@ public class Resolve {
             case PUBLIC:
                 if (allowModules) {
                     ModuleSymbol currModule = env.toplevel.modle;
+                    if (currModule == null) System.out.println("CURRMODULE " + env.toplevel.sourcefile);
                     currModule.complete();
                     PackageSymbol p = c.packge();
                     isAccessible =

@@ -1269,9 +1269,10 @@ public class JmlFlow extends Flow  {
     @Override 
     public void analyzeTree(Env<AttrContext> env, TreeMaker make) {
     	try {
+    		//System.out.println("JMLFLOW " + env.tree);
     		new JmlAliveAnalyzer().analyzeTree(env, make);
     		new JmlAssignAnalyzer().analyzeTree(env, make);
-    		new JmlFlowAnalyzer().analyzeTree(env, make);
+    		try { new JmlFlowAnalyzer().analyzeTree(env, make);  } catch (Exception e) {} // FIXME _ swallowing exceptions
     		new JmlCaptureAnalyzer().analyzeTree(env, make);
     	} catch (Exception e)  {
     		Utils.instance(context).unexpectedException(e, "FLOW");

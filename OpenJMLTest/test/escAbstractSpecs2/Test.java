@@ -6,10 +6,10 @@ public class Test {
 		
 		//@ public normal_behavior
 		//@   ensures init;
-		//@ model public C(); // ERROR - no such constructor
+		//@ model public C(); // OK - adding a constructor
 		
 		public C(int i) {
-			this(); // ERROR - no such constructor
+			this(); // ERROR - no such constructor outside of JML
 		}
 		
 	}

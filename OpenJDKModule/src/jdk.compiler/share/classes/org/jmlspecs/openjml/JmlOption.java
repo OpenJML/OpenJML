@@ -119,6 +119,7 @@ public class JmlOption {
     public static final JmlOption SPECS = new JmlOption("-specspath",true,null,"Specifies the directory path to search for specification files",null);
     public static final JmlOption CHECKSPECSPATH = new JmlOption("-checkSpecsPath",false,true,"When on (the default), warnings for non-existent specification path directories are issued",null);
     public static final JmlOption PURITYCHECK = new JmlOption("-purityCheck",false,false,"When on (off by default), warnings for use of impure methods from system libraries are issued",null);
+    public static final JmlOption NEWISPURE = new JmlOption("-new-is-pure",false,false,"Allows object allocation in pure expressions",null);
     public static final JmlOption INTERNALSPECS = new JmlOption("-internalSpecs",false,true,"When on (the default), automatically appends the internal specs directory to the specification path",null);
     public static final JmlOption INTERNALRUNTIME = new JmlOption("-internalRuntime",false,true,"When on (the default), automatically appends the internal JML runtime library to the classpath",null);
     public static final JmlOption TIMEOUT = new JmlOption("-timeout",true,null,"Number of seconds to limit any individual proof attempt (default infinite)",null);

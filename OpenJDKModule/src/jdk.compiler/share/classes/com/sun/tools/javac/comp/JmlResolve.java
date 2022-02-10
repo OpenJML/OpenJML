@@ -104,9 +104,15 @@ public class JmlResolve extends Resolve {
      * @return the old value
      */
     public boolean setAllowJML(boolean allowJML) {
+        //if (!allowJML) { System.out.println("SETTING ALLOWJML " + allowJML); Utils.dumpStack(); }
         boolean b = this.allowJML;
         this.allowJML = allowJML;
         return b;
+    }
+    
+    /** Turns on allowJML if the argument is true, but does not turn it off; returns the old setting */
+    public boolean addAllowJML(boolean allowJML) {
+        return setAllowJML(this.allowJML || allowJML);
     }
     
     /** Returns the value of the allowJML flag. */

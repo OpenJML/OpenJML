@@ -643,6 +643,8 @@ public class Symtab {
         c.completer = initialCompleter;
         return c;
     }
+    
+    static boolean readerDebug = org.jmlspecs.openjml.Utils.debug("reader");
 
     /** Create a new toplevel or member class symbol with given name
      *  and owner and enter in `classes' unless already there.
@@ -654,6 +656,7 @@ public class Symtab {
         if (c == null) {
             c = defineClass(name, owner);
             doEnterClass(msym, c);
+            if (readerDebug) System.out.println("reader: Defined class " + name + " " + c);
         } else if ((c.name != name || c.owner != owner) && owner.kind == TYP && c.owner.kind == PCK) {
             // reassign fields of classes that might have been loaded with
             // their flat names.

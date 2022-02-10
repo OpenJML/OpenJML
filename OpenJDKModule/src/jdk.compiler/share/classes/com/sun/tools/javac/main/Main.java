@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -203,6 +203,7 @@ public class Main {
         }
 
         log = Log.instance(context);
+
         if (argv.length == 0) {
             OptionHelper h = new OptionHelper.GrumpyHelper(log) {
                 @Override
@@ -235,7 +236,7 @@ public class Main {
 
         Arguments args = Arguments.instance(context);
         args.init(ownName, allArgs);
-        adjustArgs(args);
+        adjustArgs(args); // OPENJML
 
         if (log.nerrors > 0)
             return Result.CMDERR;
@@ -260,11 +261,11 @@ public class Main {
 
         // init file manager
         fileManager = context.get(JavaFileManager.class);
-        JavaFileManager undel = fileManager instanceof DelegatingJavaFileManager ?
-                ((DelegatingJavaFileManager) fileManager).getBaseFileManager() : fileManager;
-        if (undel instanceof BaseFileManager) {
-            ((BaseFileManager) undel).setContext(context); // reinit with options
-            ok &= ((BaseFileManager) undel).handleOptions(args.getDeferredFileManagerOptions());
+        JavaFileManager undel = fileManager instanceof DelegatingJavaFileManager delegatingJavaFileManager ?
+                delegatingJavaFileManager.getBaseFileManager() : fileManager;
+        if (undel instanceof BaseFileManager baseFileManager) {
+            baseFileManager.setContext(context); // reinit with options
+            ok &= baseFileManager.handleOptions(args.getDeferredFileManagerOptions());
         }
 
         // handle this here so it works even if no other options given
@@ -299,9 +300,8 @@ public class Main {
             List<String> list = List.of(target.multiReleaseValue());
             fileManager.handleOption(Option.MULTIRELEASE.primaryName, list.iterator());
         }
+        postOptionProcessing(); // OPENJML
 
-        postOptionProcessing();
-        
         // init JavaCompiler
         JavaCompiler comp = JavaCompiler.instance(context);
 
@@ -363,7 +363,7 @@ public class Main {
             return Result.ABNORMAL;
         } finally {
             if (printArgsToFile) {
-// FIXME                printArgumentsToFile(argv);
+//                printArgumentsToFile(argv); // OPENJML - turned off
             }
             if (comp != null) {
                 try {
@@ -375,8 +375,8 @@ public class Main {
         }
     }
     
-    protected void postOptionProcessing() {}
-    protected void adjustArgs(Arguments args)  {}
+    protected void postOptionProcessing() {} // OPENJML
+    protected void adjustArgs(Arguments args)  {} // OPENJML
 
     void printArgumentsToFile(String... params) {
         Path out = Paths.get(String.format("javac.%s.args",

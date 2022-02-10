@@ -1213,6 +1213,9 @@ public class JmlTree {
          * A class declaration in a .jml file will have a null value for this field.
          */
         public /*@Nullable*/ JmlClassDecl specsDecl;
+        
+        /** The Env<> to use for process the specsDecl */
+        public Env<AttrContext> specEnv;
 
         /** This field holds the class-level specifications for the type corresponding
          * to this declaration; it is an alias for the specs that are found in the JmlSpecs database
@@ -1390,13 +1393,19 @@ public class JmlTree {
     /** This class adds some JML specific information to the JCMethodDecl node. */
     public static class JmlBlock extends JCTree.JCBlock implements JmlSource, IInJML {
 
+    	//@ invariant isInitializerBlock ==> sourcefile != null;
+    	
         /** The file containing this declaration */
         public JavaFileObject sourcefile;
+        
+        /** True is the block is an initializer block for a class, false otherwise, e.g., if part of a method or lambda */
+        public boolean isInitializerBlock = false;
 
         /** The specs for the block, along with attribution status and env, computed during attribution */
         public JmlSpecs.BlockSpecs blockSpecs; 
 
-        /** The specs for the block, as parsed */
+        /** The specs for the block, as parsed -- can be null, if there are no specs (or empty)*/
+        //@ nullable
         public JmlMethodSpecs specificationCases;
 
         public String docComment = null; // FIXME - clarify why needed
@@ -2612,7 +2621,8 @@ public class JmlTree {
      */
     public static class JmlMethodSpecs extends JmlAbstractStatement {
         /** This is a reference to a parent declaration, in order to have access 
-         * to the parameter and result modifiers
+         * to the parameter and result modifiers; is null if the JmlMethodSpecs
+         * is owned by a block.
          */
         public JmlMethodDecl decl = null;
         

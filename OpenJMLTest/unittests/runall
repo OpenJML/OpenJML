@@ -25,7 +25,7 @@ alias wt="while [ \$(lsc) -gt 5 ]; do sleep 30; done"
 
 ./run-summary log-access+  	"155/0" access arith assignable compilationUnit compiler deprecation  &
 wt
-./run-summary log-binaries 	"5/1"	binaries  &
+./run-summary log-binaries 	"9/0"	binaries  &
 ./run-summary log-bugs     	"23/0"	bugs  &
 ./run-summary log-esc1     	"93/0"  esc1  &
 wt
@@ -44,24 +44,24 @@ wt
 wt
 ./run-summary log-escnew   	"64/1"  escnew &
 ./run-summary log-escnew2   	"35/0"  escnew2 &
-./run-summary log-escnew3   	"63/1"  escnew3 &
+./run-summary log-escnew3   	"64/0"  escnew3 &
 wt
 ./run-summary log-esclambdas   	"25/3"  esclambdas  &
 ./run-summary log-escm         	"13/0"  escm   &
 ./run-summary log-expr+        	"64/0"  expressions escJML flow  &
 wt
-./run-summary log-generics     	"14/1"  generics   &
+./run-summary log-generics     	"15/0"  generics   &
 ./run-summary log-harness	"5/0"	harnesstests &
 ./run-summary log-inter+       	"140/0"	internalSpecs jmltypes lblexpression methodspecs modelghost namelookup positions prettyprinting purity  &
 wt
-./run-summary log-matchClass	"52/0"  matchClasses  &
-./run-summary log-modifiers    	"191/0" modifiers  &
-./run-summary log-redundant+   	"105/1"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
-./run-summary log-scanner      	"91/0"	scanner  &
+./run-summary log-matchClass	"53/0"  matchClasses  &
+./run-summary log-modifiers    	"195/0" modifiers  &
+./run-summary log-redundant+   	"106/0"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
+./run-summary log-scanner      	"95/0"	scanner  &
 wt
-./run-summary log-typecheck	"207/0"	typechecking &
+./run-summary log-typecheck	"209/0"	typechecking &
 ./run-summary log-typeclause	"123/0"	typeclauses  &
-./run-summary log-SpecsBase    	"283/5"	SpecsBase  &
+./run-summary log-SpecsBase    	"285/5"	SpecsBase  &
 ./run-summary log-SpecsEsc     	"3/0"	SpecsEsc  &
 
 

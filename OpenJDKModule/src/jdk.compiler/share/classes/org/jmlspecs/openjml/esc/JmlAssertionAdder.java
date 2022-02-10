@@ -25,6 +25,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
+import org.jmlspecs.openjml.JmlSpecs.SpecsStatus;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.Nowarns.Item;
@@ -836,7 +837,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	int freshnessReferenceCount;
 
 	public void findActiveExceptions(JmlMethodDecl methodDecl) {
-		for (MethodSymbol msym : utils.parents(methodDecl.sym)) {
+		for (MethodSymbol msym : utils.parents(methodDecl.sym,true)) {
 			if (msym.params == null)
 				continue; // FIXME - we should do something better? or does this mean binary with no
 							// specs?
@@ -2080,7 +2081,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				return null;
 		}
 		String assertID = Strings.assertPrefix + (++assertCount);
-		//if (assertCount == 78 || assertCount == 77) Utils.dumpStack("Assertion " + assertID);
+		//if (assertCount == 41) Utils.dumpStack("Assertion " + assertID);
 		Name assertname = names.fromString(assertID);
 		JavaFileObject dsource = log.currentSourceFile();
 		JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType, assertname,
@@ -3490,7 +3491,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// consequently no implementations of model fields
 				// FIXME - need some tests for these options - not sure the binary ones have any
 				// effect here???
-				if (env != null && env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.JML) {
+				if (env != null && env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.JML) { // FIXME - double check whether .jml files have Kind JML or OTHER?? 
 					String opt = JmlOption.value(context, JmlOption.RAC_MISSING_MODEL_FIELD_REP_SOURCE);
 					if ("skip".equals(opt)) {
 						throw new NoModelMethod("No represents clause for model field " + varsym);
@@ -4331,7 +4332,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		public SpecCaseIterator(MethodSymbol methodSymbol) {
 			//System.out.println("CREATING ITERATOR " + methodSymbol);
 			this.methodSymbol = methodSymbol;
-			methodIterator = utils.parents(methodSymbol).iterator();
+			methodIterator = utils.parents(methodSymbol,true).iterator();
 			parentMethodSymbol = null;
 			previousFile = log.currentSourceFile();
 			//System.out.println("DONE ITERATOR " + methodSymbol);
@@ -4542,7 +4543,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JavaFileObject combinedPreconditionSource = null;
 			addStat(comment(methodDecl, "Assume Preconditions", null));
 			// Iterate over all methods that methodDecl overrides, collecting specs
-			for (MethodSymbol parentMethodSym : utils.parents(methodDecl.sym)) {
+			for (MethodSymbol parentMethodSym : utils.parents(methodDecl.sym,true)) {
 				if (parentMethodSym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
 				JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(parentMethodSym);
 				// System.out.println("ADDPRE " + methodDecl.sym + " " + parentMethodSym.owner +
@@ -5304,7 +5305,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Iterate over all methods that methodDecl overrides, collecting specs
 		boolean sawSomeSpecs = false;
-		for (MethodSymbol parentMethodSym : utils.parents(methodDecl.sym)) {
+		for (MethodSymbol parentMethodSym : utils.parents(methodDecl.sym,true)) {
 			if (parentMethodSym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
 			JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(parentMethodSym);
 			ensuresStats.add(comment(methodDecl, "Asserting postconditions for " + utils.qualifiedMethodSig(parentMethodSym), null));
@@ -8061,6 +8062,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Helper method to do the work of visitApply and visitNewObject */
 	protected void applyHelper(JCExpression that) {
+		boolean print = false; // that.toString().contains("charAt(0)");
 //    	System.out.println("APPLY HELPER: " + that);
 //    	if (that instanceof JCMethodInvocation) {
 //    		JCMethodInvocation m = (JCMethodInvocation)that;
@@ -8182,8 +8184,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression trExpr = null; // Will hold the translated method call (for RAC)
 			Type receiverType;
 
-			if (Utils.debug())
-				System.out.println("APPLYHELPER-A " + calleeMethodSym);
+			if (Utils.debug()) System.out.println("APPLYHELPER-A " + calleeMethodSym);
 			if (meth instanceof JCIdent) {
 				receiverType = currentThisExpr != null ? currentThisExpr.type : classDecl.type;
 				convertedReceiver = currentThisExpr;
@@ -8277,6 +8278,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								"java.lang.NullPointerException");
 					}
 				}
+				if (print) System.out.println("APPLY " + calleeMethodSym.owner + "#" + calleeMethodSym + " " + System.identityHashCode(calleeMethodSym));
 
 				JCFieldAccess fameth = (JCFieldAccess) M.at(meth.pos).Select( // Select sets to fa,sym.type, kinstead of
 																				// resolved type
@@ -8291,8 +8293,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				enclosingClass = fa.sym.owner;
 
 			} else if (newclass != null) {
-				if (Utils.debug())
-					System.out.println("APPLYHELPER-NEWCLASS " + calleeMethodSym + " " + newclass);
+				if (Utils.debug()) System.out.println("APPLYHELPER-NEWCLASS " + calleeMethodSym + " " + newclass);
 
 				// FIXME - this does not handle qualified constructors of inner classes
 
@@ -8338,7 +8339,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			nestedCallLocation = that;
 
-			var mspecs = specs.getLoadedSpecs(calleeMethodSym);
+			var mspecs = specs.getSpecs(calleeMethodSym);
+			if (print) System.out.println("MSPECS " + mspecs);
 			boolean inliningCall = mspecs != null && mspecs.specDecl != null && mspecs.specDecl.mods != null
 					&& attr.findMod(mspecs.specDecl.mods, Modifiers.INLINE) != null;
 
@@ -8730,7 +8732,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JmlMethodSpecs defaults = JmlSpecs.instance(context).defaultSpecs(methodDecl, methodDecl.sym,
 							methodDecl.pos).cases;
 					s = new JmlSpecs.MethodSpecs(methodDecl.mods, defaults);
-					specs.putSpecs(calleeMethodSym, s, null); // FIXME - are these specs all attributed? Should we mark
+					specs.putAttrSpecs(calleeMethodSym, s); // FIXME - are these specs all attributed? Should we mark
 																// the specs status? will we actually need the specsEnv?
 					s.cases.deSugared = null;
 				} else {
@@ -8903,8 +8905,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							}
 						}
 					}
-					if (Utils.debug())
-						System.out.println("APPLYHELPER-N " + calleeMethodSym.owner + " " + calleeMethodSym);
+					if (Utils.debug()) System.out.println("APPLYHELPER-N " + calleeMethodSym.owner + " " + calleeMethodSym);
 
 					// We need to calculate all the preconditions before doing any assignable
 					// clauses because we need to check each assignable clause against all the
@@ -9178,8 +9179,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					clauseIds.clear();
 					elseExpression = savedElseExpression;
 				}
-				if (Utils.debug())
-					System.out.println("APPLYHELPER-P " + calleeMethodSym.owner + " " + calleeMethodSym);
+				if (Utils.debug()) System.out.println("APPLYHELPER-P " + calleeMethodSym.owner + " " + calleeMethodSym);
 
 				if (!anyVisibleSpecCases) {
 					utils.warning(that.pos, "jml.message",
@@ -9208,6 +9208,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                                clauseToReference,clauseToReference.source());
 
 					} else {
+//						System.out.println("CALLEE " + calleeMethodSym + " " + calleeMethodSym.owner + " " + that + " " + that.getClass() );
+//						var cns = (MethodSymbol)((JCNewClass)that).constructor;
+//						System.out.println("EXPR " + cns + " " + cns.owner + " " + specs.get(cns) + " " + specs.get(cns).javaDecl);
 						JmlSource loc = mspecs == null ? null : mspecs.specDecl;
 						if (loc == null)
 							loc = clauseToReference;
@@ -9231,8 +9234,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} catch (Exception e) {
 				utils.unexpectedException("TETS", e);
 			}
-			if (Utils.debug())
-				System.out.println("APPLYHELPER-Q " + calleeMethodSym.owner + " " + calleeMethodSym);
+			if (Utils.debug()) System.out.println("APPLYHELPER-Q " + calleeMethodSym.owner + " " + calleeMethodSym);
 
 			// Add a label that signifies the state before the method call
 			// This label defines the pre-state for the method call computations, so it
@@ -11904,7 +11906,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							: kind == capturesClauseKind ? Label.CAPTURES : Label.UNKNOWN;
 			//System.out.println("CA2-A " + lhs +  " " + srlist);
 			for (var sr: srlist) {
-				for (MethodSymbol parentMethodSym : utils.parents(methodSym)) {
+				for (MethodSymbol parentMethodSym : utils.parents(methodSym,true)) {
 					//System.out.println("CA2-B " + parentMethodSym);
 					if (parentMethodSym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no
 					// specs?
@@ -14555,10 +14557,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				etype = M.Ident(names.fromString("Float")); // FIXME - should use fully qualified type
 			}
 			if (etype != null && splitExpressions) { // FIXME - still need the assumption even if !splitExpressions
-				JCFieldAccess fa = M.Select(etype, names.fromString("isFinite"));
+				JCFieldAccess fa = M.Select(etype, names.fromString("isFinite")); // FIXME _ what in the world is this for
 				JCMethodInvocation app = M.Apply(null, fa, List.<JCExpression>of(that));
 				encapsulated = true;
-				attr.attribExpr(app, Enter.instance(context).getTopLevelEnv(classDecl.toplevel));
+				attr.attribExpr(app, Enter.instance(context).getTopLevelEnv(classDecl.toplevel)); // FIXME - just topLevelEnv I think
 				addAssume(that, Label.IMPLICIT_ASSUME, convertExpr(app));
 				encapsulated = false;
 			}

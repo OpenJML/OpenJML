@@ -1,16 +1,8 @@
-test\gitbug450\ArrList.java:15: error: no suitable method found for add(int)
+test/gitbug450/ArrList.java:15: error: incompatible types: int cannot be converted to String
         theList.add(a);
-               ^
-    method Collection.add(String) is not applicable
-      (argument mismatch; int cannot be converted to String)
-    method List.add(String) is not applicable
-      (argument mismatch; int cannot be converted to String)
-    method AbstractCollection.add(String) is not applicable
-      (argument mismatch; int cannot be converted to String)
-    method AbstractList.add(String) is not applicable
-      (argument mismatch; int cannot be converted to String)
-    method ArrayList.add(String) is not applicable
-      (argument mismatch; int cannot be converted to String)
+                    ^
 Operation not performed because of parse or type errors
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
 Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
 1 error

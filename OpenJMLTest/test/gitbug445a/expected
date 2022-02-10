@@ -17,12 +17,7 @@ test/gitbug445a/Pair.java:21: error: cannot find symbol
   location: class Pair<T>
   where T is a type-variable:
     T extends Object declared in class Pair
-test/gitbug445a/MapToAlClient.java:5: warning: A non-pure method is being called where it is not permitted: Pair.getSecond()
-        //@ assert myp.getFirst() == 5 && myp.getSecond() == 4;
-                                                       ^
-test/gitbug445a/PMax.java:4: warning: Method run overrides parent class methods and so its specification should begin with 'also' (Proc.run(T))
-    /*@ assignable maxSeen;
-        ^
 Operation not performed because of parse or type errors
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
 5 errors
-2 warnings

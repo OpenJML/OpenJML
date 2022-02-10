@@ -2760,6 +2760,7 @@ public class Flow {
         }
 
         public void visitIdent(JCIdent tree) {
+        	if (org.jmlspecs.openjml.Utils.isJML() && tree.sym == null) System.out.println("FLOW-IDENT " + tree);
             if (tree.sym.kind == VAR) {
                 checkInit(tree.pos(), (VarSymbol)tree.sym);
                 referenced(tree.sym);

@@ -1,5 +1,5 @@
 test/escAbstractSpecs2/Test.java:12: error: constructor C in class C cannot be applied to given types;
-			this(); // ERROR - no such constructor
+			this(); // ERROR - no such constructor outside of JML
 			^
   required: int
   found:    no arguments
