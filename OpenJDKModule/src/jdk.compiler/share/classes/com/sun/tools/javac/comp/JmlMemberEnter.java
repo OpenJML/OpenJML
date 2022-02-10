@@ -261,7 +261,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     					if (javaVarDecl.specsDecl == null) {
                         	Type specType = (specVarDecl.vartype.type == null) ? attr.attribType(specVarDecl.vartype, env) : specVarDecl.vartype.type; // FIXME - should use the env for the specCU
                         	if (!types.isSameType(javaVarDecl.vartype.type, specType)) {
-    							String msg = "Type of field " + specVarDecl.name + " in specification differs from type in source/binary: " + specType + " vs. " + javaVarDecl.type;
+    							String msg = "Type of field " + cd.sym + "." + specVarDecl.name + " in specification differs from type in source/binary: " + specType + " vs. " + javaVarDecl.sym.type;
     							if (javaVarDecl != null) {
     								utils.errorAndAssociatedDeclaration(specVarDecl.sourcefile, specVarDecl.vartype, javaVarDecl.source(), javaVarDecl, 
     										"jml.message", msg, javaVarDecl.pos(), javaVarDecl.sourcefile);
@@ -288,8 +288,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     			}
     		} else if (t instanceof JmlMethodDecl specMethodDecl) {
     			var matchSym = matchMethod(specMethodDecl, cd.sym, env, false);
-    			var decl = matchSym == null ? null : cd.defs.stream().filter(tt->(tt instanceof JmlMethodDecl md && md.sym == matchSym)).findFirst();
-    			JmlMethodDecl javaMethodDecl = decl == null || decl.isEmpty() ? null : (JmlMethodDecl)decl.get();
+    			var decl = matchSym == null ? null : cd.defs.stream().filter(tt->(tt instanceof JmlMethodDecl md && md.sym == matchSym)).findFirst().orElse(null);
+    			JmlMethodDecl javaMethodDecl = (JmlMethodDecl)decl;
     			if (utils.isJML(specMethodDecl)) {
     				// A JML model method
     				if (matchSym == null) {
@@ -317,10 +317,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     				} else {
     					if (javaMethodDecl.specsDecl == null) {
                         	// FIXME - fix matching of method types
-    						//Type specType = (specMethodDecl.vartype.type == null) ? attr.attribType(specMethodDecl, env) : specMethodDecl.type; // FIXME - should use the env for the specCU
-                        	if (false) {//&& !types.isSameType(javaMethodDecl.vartype.type, specType)) {
-    							String msg = "Type of method " + specMethodDecl.name + " in specification differs from type in source/binary: " + specMethodDecl.type + " vs. " + javaMethodDecl.type;
-    							utils.errorAndAssociatedDeclaration(specMethodDecl.sourcefile, specMethodDecl, javaMethodDecl.source(), javaMethodDecl, 
+    						Type specResultType = (specMethodDecl.restype == null) ? null : attr.attribType(specMethodDecl.restype, env); // FIXME - should use the env for the specCU
+                        	if (specResultType != null && !types.isSameType(javaMethodDecl.restype.type, specResultType)) {
+    							String msg = "The result type of method " + specMethodDecl.sym.owner + "." + specMethodDecl.sym 
+    							                        + " in the specification differs from the type in the source/binary: " 
+    							                        + specMethodDecl.restype.type + " vs. " + matchSym.getReturnType();
+    							utils.errorAndAssociatedDeclaration(specMethodDecl.sourcefile, specMethodDecl.restype, javaMethodDecl.source(), javaMethodDecl, 
     									"jml.message", msg, javaMethodDecl.pos(), javaMethodDecl.sourcefile);
     							ok = false;
                         	} else {

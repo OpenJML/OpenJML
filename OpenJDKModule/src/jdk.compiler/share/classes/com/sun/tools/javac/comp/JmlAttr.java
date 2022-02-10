@@ -915,7 +915,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public ModifierKind[] typeModifiers = new ModifierKind[]{NULLABLE,NON_NULL,BSREADONLY};
 
     /** Checks the JML modifiers so that only permitted combinations are present. */
-    public void checkClassMods(ClassSymbol classSymbol, /*@ nullable */ JmlClassDecl javaDecl, TypeSpecs tspecs, Env<AttrContext> env) { // env should be specsEnv
+    public void checkClassMods(ClassSymbol classSymbol, /*@ nullable */ JmlClassDecl javaDecl, JmlClassDecl specsDecl, TypeSpecs tspecs, Env<AttrContext> env) { // env should be specsEnv
         //System.out.println("Checking " + javaDecl.name + " in " + javaDecl.sym.owner);
         JavaFileObject prev = log.useSource(tspecs.file);
         checkTypeMatch(classSymbol, tspecs.specDecl);
@@ -923,7 +923,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean ownerIsJML = utils.isJML(owner.flags());
         boolean isLocal = !(owner instanceof ClassSymbol ||owner instanceof PackageSymbol);
         JCModifiers specsModifiers = tspecs.modifiers;
-        JmlClassDecl specsDecl = tspecs.specDecl;
 
         boolean inJML = utils.isJML(specsModifiers);
         boolean isModel = utils.hasMod(specsModifiers,Modifiers.MODEL);
@@ -934,7 +933,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } else if (!inJML && isModel) {
         	var loc = utils.findMod(specsModifiers,Modifiers.MODEL);
         	utils.error(tspecs.file,loc,"jml.ghost.model.on.java", classSymbol);
-        } 
+        }
+        
+        if (specsDecl != null) checkAnnotations(javaDecl == null ? null : javaDecl.mods, specsDecl.mods, specsDecl.sym);
+
+        if (specsDecl != null) checkJavaFlags(specsDecl.sym.flags(), javaDecl, specsDecl.mods.flags, specsDecl, specsDecl.sym);
 
         if (specsModifiers == null) {
             // no annotations to check
@@ -954,17 +957,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         checkForConflict(specsModifiers,NON_NULL_BY_DEFAULT,NULLABLE_BY_DEFAULT);
         checkForConflict(specsModifiers,PURE,QUERY);
         {
-         // FIXME - this attribution should be done in the Enter or MemberEnter phase?
+            // FIXME - these checks are already done 
+        // FIXME - this attribution should be done in the Enter or MemberEnter phase? look in checkTypeMatch
             attribAnnotationTypes(specsModifiers.annotations,env); 
-            if (javaDecl != null) {
-                checkSameAnnotations(javaDecl.mods,specsModifiers,"class",classSymbol.toString()); 
-            } else {
-                long flags = classSymbol.flags();
-                JCModifiers m = jmlMaker.Modifiers(flags); // FIXME - should check annotations
-                checkSameAnnotations(m,specsModifiers,"class",classSymbol.toString()); 
-            }
+//            if (javaDecl != null) {
+//                checkSameAnnotations(javaDecl.mods,specsModifiers,"class",classSymbol.toString()); 
+//            } else {
+//                long flags = classSymbol.flags();
+//                JCModifiers m = jmlMaker.Modifiers(flags); // FIXME - should check annotations
+//                checkSameAnnotations(m,specsModifiers,"class",classSymbol.toString()); 
+//            }
             log.useSource(prev);
         }
+
     }
     
     //public void checkTypeMatch(JmlClassDecl javaDecl, JmlClassDecl specsClassDecl) {
@@ -983,35 +988,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // Check that every specification class declaration (e.g. class decl in a .jml file) has
         // Java modifiers that match the modifiers in the Java soursce or class file.
         JmlClassDecl specsDecl = combinedTypeSpecs.specDecl;
-        if (specsDecl != null) {
-            // FIXME - no way to skip the loop if the specsDecl is the javaDecl
-            
-            // Check that modifiers are the same
-            long matchf = javaClassSym.flags();
-            long specf = specsDecl.mods.flags;
-            long diffs = (matchf ^ specf)&Flags.ClassFlags; // Includes whether both are class or both are interface
-            if (diffs != 0) {
-                boolean isInterface = (matchf & Flags.INTERFACE) != 0;
-                boolean isEnum = (matchf & Flags.ENUM) != 0;
-                if ((Flags.ABSTRACT & matchf & ~specf) != 0 && (isInterface||isEnum)) diffs &= ~Flags.ABSTRACT; // FIXME - why for enum?
-                if ((Flags.STATIC & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.STATIC; 
-                if ((Flags.FINAL & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.FINAL; 
-                if ((Flags.FINAL & matchf & ~specf) != 0 && javaClassSym.name.isEmpty()) diffs &= ~Flags.FINAL; // Anonymous classes are implicitly final
-                if (diffs != 0) {
-                    //JavaFileObject prev = log.useSource(specsClassDecl.source());
-                    utils.error(specsDecl.sourcefile, specsDecl.pos(),"jml.mismatched.modifiers", specsClassDecl.name, javaClassSym.fullname, Flags.toString(diffs));  // FIXME - test this
-                    //log.useSource(prev);
-                }
-                // FIXME - how can we tell where in which specs file the mismatched modifiers are
-                // SHould probably check this in the combining step
-            }
-            // FIXME - this is needed, but it is using the environment from the java class, not the 
-            // spec class, and so it is using the import statements in the .java file, not those in the .jml file
-            attribAnnotationTypes(specsClassDecl.mods.annotations, Enter.instance(context).typeEnvs.get(javaClassSym));  // FIXME - this is done later; is it needed here?
-
-            //checkSameAnnotations(javaDecl.mods,specsClassDecl.mods);
-            // FIXME - check that both are Enum; check that both are Annotation
-        }
         if (combinedTypeSpecs.file == null || combinedTypeSpecs.file.getKind() == JavaFileObject.Kind.SOURCE){
             // This is already checked in enterTypeParametersForBinary (for binary classes)
             List<Type> t = ((Type.ClassType)javaClassSym.type).getTypeArguments();
@@ -1023,6 +999,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             // FIXME - check that the names and bounds are the same
             }
+        }
+        
+        if (specsDecl != null) {
+//          // FIXME - this is needed, but it is using the environment from the java class, not the 
+//          // spec class, and so it is using the import statements in the .java file, not those in the .jml file
+          attribAnnotationTypes(specsClassDecl.mods.annotations, Enter.instance(context).typeEnvs.get(javaClassSym));  // FIXME - this is done later; is it needed here?
+
         }
     }
     
@@ -1329,7 +1312,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         ok = false;
                         utils.error(specMethodDecl.source(), specParam, "jml.message",
                             "Parameter names in a specification file must match those in the Java source: " 
-                            + specParam.name + " vs. " + javaParam.name);
+                            + specParam.name + " vs. " + javaParam.name + " in " + methodSym.owner + "." + methodSym);
                     }
                 }
                 if (iter1.hasNext() || iter2.hasNext()) {
@@ -1727,9 +1710,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
 	public void checkMethodJavaModifiersMatch(/* @nullable */ JmlMethodDecl javaMatch, MethodSymbol match,
 			JmlMethodDecl specMethodDecl, ClassSymbol javaClassSymbol) {
-		if (javaMatch == null || javaMatch == specMethodDecl)
-			return;
-		checkAnnotations(javaMatch.mods, specMethodDecl.mods, match);
+
+		checkAnnotations(javaMatch == null ? null : javaMatch.mods, specMethodDecl.mods, match);
 		log.useSource(specMethodDecl.sourcefile); // All logged errors are with respect to positions in the jml file
 		try {
 			if (javaMatch != specMethodDecl) {
@@ -1759,8 +1741,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 						// files
 						utils.errorAndAssociatedDeclaration(specMethodDecl.sourcefile, specMethodDecl,
 								javaMatch.sourcefile, javaMatch,
-								"jml.mismatched.method.modifiers", specMethodDecl.name,
-								match.toString(), Flags.toString(diffs));
+								"jml.mismatched.method.modifiers", match.owner + "." + match,
+								Flags.toString(diffs));
 					}
 				}
 			}
@@ -1799,26 +1781,59 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 	}
 
 	/**
-	 * If thre are specifications in a file separate from the .java file, then any
+	 * If there are specifications in a file separate from the .java file, then any
 	 * annotations in the .java file are ignored. This condition is checked and
 	 * warned about here.
 	 */
 	public void checkAnnotations(JCModifiers javaMods, JCModifiers specMods, Symbol owner) {
-		if (javaMods == specMods)
-			return;
-		for (var a : javaMods.annotations) {
-			if (a instanceof JmlAnnotation) {
-				var aa = (JmlAnnotation) a;
-				if (aa.kind == null)
-					continue;
-				if (!utils.hasMod(specMods, aa.kind)) {
-					String k = owner instanceof ClassSymbol ? "class"
-							: owner instanceof MethodSymbol ? "method" : owner instanceof VarSymbol ? "var" : "";
-					utils.warning(aa.sourcefile, aa, "jml.java.annotation.superseded", k, owner, aa.kind.toString());
-					return;
-				}
-			}
-		}
+
+	    //System.out.println("CHECKING ANNOTATIONS " + owner + " " + javaMods + " # " + specMods);
+	    // If there is an explicit Java declaration and if it has an JML @-annotations and there is
+	    // a .jml file which does not have that annotation, then warn that the annotations in the .java file are ignored
+        if (javaMods != null) for (var a : javaMods.annotations) {
+            if (a instanceof JmlAnnotation) {
+                var aa = (JmlAnnotation) a;
+                if (aa.kind != null) {
+                    if (!utils.hasMod(specMods, aa.kind)) {
+                        String k = owner instanceof ClassSymbol ? "class"
+                            : owner instanceof MethodSymbol ? "method" : owner instanceof VarSymbol ? "var" : "";
+                        utils.warning(aa.sourcefile, aa, "jml.java.annotation.superseded", k, owner, aa.type);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // For each @-annotation in the specification declaration, check that it is also in the .java declaration, 
+        // else issue a warning that there is an extra annotation
+        for (var annotation : specMods.annotations) {
+            if (annotation instanceof JmlAnnotation jmlannotation) {
+                if (jmlannotation.kind != null) continue;
+                if (!utils.hasJavaAnnotation(owner,  jmlannotation)) {
+                    String annotAsString = jmlannotation.type.toString();
+                    if (annotAsString.contains("Override")) continue; // Not retained in binary
+                    if (annotAsString.contains("FunctionalInterface")) continue; // Allow this one to be different
+                    if (annotAsString.contains("SuppressWarnings")) continue; // Allow this one to be different
+                    String kind = owner instanceof ClassSymbol ? "class"
+                            : owner instanceof MethodSymbol ? "method" : owner instanceof VarSymbol ? "var" : "";
+                    utils.warning(jmlannotation.sourcefile, jmlannotation, "jml.message", 
+                        "Specification " + kind + " declaration contains an annotation that the Java declaration does not have: " + annotAsString);
+                }
+            }
+        }
+        
+        // For each @-annotation in the java (binary) declaration, check that it is also in the specification declaration, 
+        // else issue a warning that there is a missing annotation
+        for (var a : owner.getAnnotationMirrors()) {
+            // FIXME - implement this
+//                boolean has = utils.hasMod(specMods, a.type);
+//                if (!has) {
+//                    String k = owner instanceof ClassSymbol ? "class"
+//                            : owner instanceof MethodSymbol ? "method" : owner instanceof VarSymbol ? "var" : "";
+//                    utils.warning(aa.sourcefile, aa, "jml.message", "Java " + k + " declaration (or binary) declares an annotation that the specification does not have: " + aa.toString());
+//                }
+//            }
+        }
 	}
 
     
@@ -2668,34 +2683,141 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    	System.out.println("VAR SYM ANN " + tree.sym.getAnnotationMirrors());
     }
     
-    public void checkVarDecl(JmlVariableDecl specField) {
-    	
-     	// check for no initializer
-    	if (specField.getInitializer() != null && // There is an initializer
-    			specField.sourcefile.getKind() != JavaFileObject.Kind.SOURCE && // Not in a .java file
-    			specField.specsDecl != null && specField.specsDecl != specField && // But there is a .java file
-    			!utils.isJML(specField.mods) && // The decl is not in JML
-    			specField.sym.owner.kind != Kinds.Kind.MTH && // The decl is not a local decl in a method body
-    			!specField.sym.owner.isEnum() // We are not an enum
-    			) {
-    		utils.error(specField.sourcefile,specField.getInitializer(),"jml.no.initializer.in.specs",specField.sym.owner+"."+specField.name);
-    	}
+    public void checkVarDecl(JmlVariableDecl javaField) {
+        var fspecs = specs.getLoadedSpecs(javaField.sym);
+        if (fspecs != null) {
+            var specField = fspecs.decl;
+            // check for no initializer
+            if (specField.getInitializer() != null && // There is an initializer
+                                    utils.isSpecFile(specField.sourcefile) && // Not in a .java file
+                                    javaField != specField && // But there is a .java file
+                                    !utils.isJML(specField.mods) && // The decl is not in JML
+                                    specField.sym.owner.kind != Kinds.Kind.MTH && // The decl is not a local decl in a method body
+                                    !specField.sym.owner.isEnum() // We are not an enum
+                                    ) {
+                utils.error(specField.sourcefile,specField.getInitializer(),"jml.no.initializer.in.specs",specField.sym.owner+"."+specField.name);
+            }
+            if (javaField != null && javaField != specField) checkAnnotations(javaField.mods, specField.mods, javaField.sym.owner);
+        }
     	    	
-    	checkVarMods(specField);
-    	checkTypeMods(specField);
+        checkVarMods(javaField);
+    	checkTypeMods(javaField);
+
+    }
+    
+    public void checkJavaFlags(long javaFlags, JmlSource javaTree, long specflags, JmlSource specTree, Symbol symForFlags) {
+        boolean isInterface = symForFlags.owner.isInterface();
+        // Check that modifiers are the same
+        long matchf = javaFlags;
+        long specf = specflags;
+        matchf |= (specf & Flags.SYNCHRONIZED); // binary files do not seem to always have the synchronized
+                                                // modifier? FIXME - and only for methods
+        long diffs = (matchf ^ specf);
+        String key = null;
+        if (symForFlags instanceof MethodSymbol) {
+            diffs &= Flags.MethodFlags;
+            if (isInterface) {
+                diffs &= ~Flags.PUBLIC;
+                diffs &= ~Flags.ABSTRACT;
+            }
+            key = "jml.mismatched.method.modifiers";
+        }
+        if (symForFlags instanceof ClassSymbol) {
+            isInterface = symForFlags.isInterface();
+            diffs &= Flags.ClassFlags;
+            if (isInterface) {
+                diffs &= ~Flags.PUBLIC;
+                diffs &= ~Flags.ABSTRACT;
+            }
+            boolean isEnum = (javaFlags & Flags.ENUM) != 0;
+            if (isEnum) diffs &= ~Flags.FINAL;
+            key = "jml.mismatched.modifiers";
+        }
+        if (symForFlags instanceof VarSymbol) {
+            diffs &= Flags.VarFlags;
+            if (isInterface) {
+                diffs &= ~Flags.STATIC;
+                diffs &= ~Flags.PUBLIC; // FIXME - this one needs fixing I think -- should instance fields in interfaces be default public? 
+                if ((specf & Flags.FINAL) == 0) diffs &= ~Flags.FINAL;
+            }
+            key = "jml.mismatched.field.modifiers";
+            if ((javaFlags & Flags.PARAMETER) != 0) key = "jml.mismatched.parameter.modifiers";
+        }
+        if (diffs != 0) {
+            boolean isEnum = (javaFlags & Flags.ENUM) != 0;
+            if ((Flags.NATIVE & matchf & ~specf) != 0)
+                diffs &= ~Flags.NATIVE;
+            if (isEnum && symForFlags.isConstructor()) {
+                ((JmlMethodDecl)specTree).mods.flags |= (matchf & 7);
+                diffs &= ~7;
+            } // FIXME - should only do this if specs are default
+            if ((matchf & specf & Flags.ANONCONSTR) != 0 && isEnum) {
+                diffs &= ~2;
+                ((JmlMethodDecl)specTree).mods.flags |= 2;
+            } // enum constructors can have differences
+            if (diffs != 0 && !(symForFlags.isConstructor() && diffs == 3)) {
+                // FIXME - hide this case for now because of default constructors in binary
+                // files
+                if (specTree == null) {
+                    utils.error(javaTree.source(), javaTree.pos(),
+                        key, symForFlags instanceof ClassSymbol cs ? cs : symForFlags.owner + "." + symForFlags,
+                            Flags.toString(diffs));
+               } else {
+                    utils.errorAndAssociatedDeclaration(specTree.source(), specTree.pos(),
+                        javaTree.source(), javaTree.pos(),
+                        key, symForFlags instanceof ClassSymbol cs ? cs : symForFlags.owner + "." + symForFlags,
+                            Flags.toString(diffs));
+                }
+            }
+        }
+        
+        // class mod checks from elsewhere
+//        if (specsDecl != null) {
+//            // FIXME - no way to skip the loop if the specsDecl is the javaDecl
+//            
+//            // Check that modifiers are the same
+//            long matchf = javaClassSym.flags();
+//            long specf = specsDecl.mods.flags;
+//            long diffs = (matchf ^ specf)&Flags.ClassFlags; // Includes whether both are class or both are interface
+//            if (diffs != 0) {
+//                boolean isInterface = (matchf & Flags.INTERFACE) != 0;
+//                boolean isEnum = (matchf & Flags.ENUM) != 0;
+//                if ((Flags.ABSTRACT & matchf & ~specf) != 0 && (isInterface||isEnum)) diffs &= ~Flags.ABSTRACT; // FIXME - why for enum?
+//                if ((Flags.STATIC & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.STATIC; 
+//                if ((Flags.FINAL & matchf & ~specf) != 0 && isEnum) diffs &= ~Flags.FINAL; 
+//                if ((Flags.FINAL & matchf & ~specf) != 0 && javaClassSym.name.isEmpty()) diffs &= ~Flags.FINAL; // Anonymous classes are implicitly final
+//                if (diffs != 0) {
+//                    //JavaFileObject prev = log.useSource(specsClassDecl.source());
+//                    utils.error(specsDecl.sourcefile, specsDecl.pos(),"jml.mismatched.modifiers", specsClassDecl.name, javaClassSym.fullname, Flags.toString(diffs));  // FIXME - test this
+//                    //log.useSource(prev);
+//                }
+//                // FIXME - how can we tell where in which specs file the mismatched modifiers are
+//                // SHould probably check this in the combining step
+//            }
+//            // FIXME - this is needed, but it is using the environment from the java class, not the 
+//            // spec class, and so it is using the import statements in the .java file, not those in the .jml file
+//            attribAnnotationTypes(specsClassDecl.mods.annotations, Enter.instance(context).typeEnvs.get(javaClassSym));  // FIXME - this is done later; is it needed here?
+//
+//            //checkSameAnnotations(javaDecl.mods,specsClassDecl.mods);
+//            // FIXME - check that both are Enum; check that both are Annotation
+//        }
+
 
     }
        
     public void checkVarMods(JmlVariableDecl tree) {
         // tree.type.isErroneous() can be true during resolution of lambda expressions
         if (tree.name == names.error || tree.type == null || tree.type.isErroneous()) return;
-        JCModifiers mods = tree.mods;
+        var mods = tree.mods;
+        long javaflags = tree.sym.flags();
         String kind;
         JavaFileObject prev = log.useSource(tree.source());
-        JCModifiers specmods = mods;
+        long specflags = mods.flags;
+        var specmods = tree.mods;
         JmlVariableDecl treeForMods = tree;
         if (tree.specsDecl != null) {
             specmods = tree.specsDecl.mods;
+            specflags = tree.specsDecl.mods.flags;
             treeForMods = tree.specsDecl;
             prev = log.useSource(tree.specsDecl.source());
             attribAnnotationTypes(specmods.annotations,env);
@@ -2773,6 +2895,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (tree.specsDecl != null) {
                 checkSameAnnotations(tree.mods,tree.specsDecl.mods,kind,tree.name.toString());
             }
+            
+            checkJavaFlags(javaflags, (JmlSource)tree, specflags, tree.specsDecl, tree.sym);
                  
             // Check that types match 
             if (tree.specsDecl != null) { // tree.specsDecl can be null if there is a parsing error
@@ -6920,6 +7044,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             visitVarDef(that);
             
+//            if (that.sym.toString().equals("k") && that.sym.owner.toString().equals("A")) {
+//                System.out.println("JAVA " + that + " " + that.sym.owner.kind);
+//                var fspecs = specs.getLoadedSpecs(that.sym);
+//                System.out.println("SPEC " + fspecs.decl + " " + fspecs.decl.sym + " " + fspecs.decl.sym.owner);
+//            }
             //if (!(that.sym.owner instanceof ClassSymbol) && (jmlenv.currentClauseKind == null || jmlenv.currentClauseKind == declClause)) {
             	checkVarDecl(that);
             //}
@@ -7692,7 +7821,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		this.env = tspecs.specsEnv;
     		this.enclosingClassEnv = enter.getEnv(csym);
     		jmlenv.inPureEnvironment = true;
-    		checkClassMods(csym, tspecs.specDecl, tspecs, tspecs.specsEnv);
+    		checkClassMods(csym, tspecs.javaDecl, tspecs.specDecl, tspecs, tspecs.specsEnv);
     		boolean hasStaticInit = false;
     		boolean hasInstanceInit = false;
     		for (var clause: tspecs.clauses) {

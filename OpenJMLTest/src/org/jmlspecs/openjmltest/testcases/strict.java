@@ -40,13 +40,12 @@ public class strict extends TCBase {
                 );
     }
 
-    @Test
+    @Test // \count is no longer an extension
     public void testIndex() {
         helpTCF("A.java","public class A {\n" +
                 " void m(int[] a) { for (int i: a) {\n" +
                 "    //@ assert \\count == i; \n" +
                 " }}}"
-                ,"/A.java:3: warning: The \\count construct is an OpenJML extension to JML and not allowed under " + optjml,16
                 );
     }
 

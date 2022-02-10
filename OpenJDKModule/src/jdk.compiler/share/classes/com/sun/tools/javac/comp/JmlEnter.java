@@ -2155,11 +2155,11 @@ public class JmlEnter extends Enter {
 					javaSym.enclClass().getQualifiedName() + "." + javaSym.name);
 		}
 
-		long diffs = (javaFlags ^ specFlags) & (isInterface ? Flags.InterfaceVarFlags : Flags.VarFlags);
-		if (diffs != 0) {
-			utils.error(specVarDecl.sourcefile, specVarDecl, "jml.mismatched.field.modifiers", specVarDecl.name,
-					javaClassSymbol + "." + javaSym.name, Flags.toString(diffs));
-		}
+//		long diffs = (javaFlags ^ specFlags) & (isInterface ? Flags.InterfaceVarFlags : Flags.VarFlags);
+//		if (diffs != 0) {
+//			utils.error(specVarDecl.sourcefile, specVarDecl, "jml.mismatched.field.modifiers", specVarDecl.name,
+//					javaClassSymbol + "." + javaSym.name, Flags.toString(diffs));
+//		}
 
 	}
 

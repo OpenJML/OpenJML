@@ -198,7 +198,7 @@ public class matchClasses  extends TCBase {
         addMockFile("$A/A.jml", "public class A { double j; }");
         helpTCF("$A/A.java",
                 "public class A { int j; } "
-                ,"/$A/A.jml:1: error: Type of field j in specification differs from type in source/binary: double vs. int",18
+                ,"/$A/A.jml:1: error: Type of field A.j in specification differs from type in source/binary: double vs. int",18
                 ,"/$A/A.java:1: error: Associated declaration: /$A/A.jml:1:",22
                 );
     }
@@ -327,8 +327,8 @@ public class matchClasses  extends TCBase {
         addMockFile("$A/A.jml", "public class A { double j();  }");
         helpTCF("$A/A.java",
                 "public class A { int j(){return 0;}  } "
-                ,"/$A/A.jml:1: error: The return types of method A.j() are different in the specification and java files: double vs. int",18
-// FIXME - should have an associated declaration
+                ,"/$A/A.jml:1: error: The result type of method A.j() in the specification differs from the type in the source/binary: double vs. int",18
+                ,"/$A/A.java:1: error: Associated declaration: /$A/A.jml:1:",22
                 );
     }
     

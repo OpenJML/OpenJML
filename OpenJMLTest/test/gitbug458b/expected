@@ -1,4 +1,4 @@
-test/gitbug458b/Allocator.jml:9: error: Parameter names in a specification file must match those in the Java source: sizeXYZ vs. sizeABC
+test/gitbug458b/Allocator.jml:9: error: Parameter names in a specification file must match those in the Java source: sizeXYZ vs. sizeABC in Allocator.alloc(int)
 	public static byte[] alloc(int sizeXYZ);
 	                               ^
 Operation not performed because of parse or type errors

@@ -334,7 +334,9 @@ public class modifiers extends TCBase {
     @Test public void testMatchClass() {
         addMockFile("$A/A.jml"," class A {}");
         helpTCF("A.java","public class A{}",
-                "/$A/A.jml:1: error: The type A in the specification matches a Java type A with different modifiers: public", 2);
+                "/$A/A.jml:1: error: The type A in the specification matches a Java type with different modifiers: public", 2
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",8
+                );
     }
     
     @Test public void testMatchClass2() {
@@ -388,13 +390,15 @@ public class modifiers extends TCBase {
     @Test public void testMatchField5() {
         addMockFile("$A/A.jml","public class A { public int k; }");
         helpTCF("A.java","public class A{ protected int k; }",
-                "/$A/A.jml:1: error: The field k in the specification matches a Java field A.k with different modifiers: public protected", 29);
+                "/$A/A.jml:1: error: The field A.k in the specification matches a Java field with different modifiers: public protected", 29
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",31
+                );
     }
 
     @Test public void testMatchField6() { 
         addMockFile("$A/A.jml","public class A { boolean k; }");
         helpTCF("A.java","public class A{ int k; }"
-                ,"/$A/A.jml:1: error: Type of field k in specification differs from type in source/binary: boolean vs. int",18
+                ,"/$A/A.jml:1: error: Type of field A.k in specification differs from type in source/binary: boolean vs. int",18
                 ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",21
                 );
     }
@@ -402,7 +406,7 @@ public class modifiers extends TCBase {
     @Test public void testMatchField7() {  
         addMockFile("$A/A.jml","public class A { String k; }");
         helpTCF("A.java","public class A{ Object k; }",
-                "/$A/A.jml:1: error: Type of field k in specification differs from type in source/binary: java.lang.String vs. java.lang.Object",18
+                "/$A/A.jml:1: error: Type of field A.k in specification differs from type in source/binary: java.lang.String vs. java.lang.Object",18
                 ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",24
         		);
     }
@@ -415,7 +419,7 @@ public class modifiers extends TCBase {
     @Test public void testMatchField9() { 
         addMockFile("$A/A.jml","public class A { Class<String> k; }");
         helpTCF("A.java","public class A{ Class<Object> k; }",
-                "/$A/A.jml:1: error: Type of field k in specification differs from type in source/binary: java.lang.Class<java.lang.String> vs. java.lang.Class<java.lang.Object>", 23
+                "/$A/A.jml:1: error: Type of field A.k in specification differs from type in source/binary: java.lang.Class<java.lang.String> vs. java.lang.Class<java.lang.Object>", 23
                 ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",31
         		); 
     }
@@ -451,33 +455,52 @@ public class modifiers extends TCBase {
     @Test public void testMatchMethod4() { 
         addMockFile("$A/A.jml","public class A { public void m(int i); }");
         helpTCF("A.java","public class A{ void m(boolean i) {} void m(int i) { } }",
-                "/$A/A.jml:1: error: The method m in the specification matches a Java method m(int) with different modifiers: public", 30
+                "/$A/A.jml:1: error: The method A.m(int) in the specification matches a Java method with different modifiers: public", 30
                 ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",43
                 ); 
     }
     
     @Test public void testMatchMethod5() { 
         addMockFile("$A/A.jml","public class A { public Object m(int i); }");
-        helpTCF("A.java","public class A{ void m(boolean i) {}  private java.lang.Object m(int i) { return null; } }",
-                "/$A/A.jml:1: error: The method m in the specification matches a Java method m(int) with different modifiers: public private", 32
+        helpTCF("A.java","public class A{ void m(boolean i) {}  private java.lang.Object m(int i) { return null; } }"
+                ,"/$A/A.jml:1: error: The method A.m(int) in the specification matches a Java method with different modifiers: public private", 32
                 ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",64
         		); 
     }
     
+    // Checks that the match of the specification method does not just fail on the first occurrence of the same method name
     @Test public void testMatchMethod6() {
         addMockFile("$A/A.jml","public class A { public void m(int i); }");
-        helpTCF("A.java","public class A{ void m(boolean i) {}  public String m(int i) { return null; } }",
-                "/$A/A.jml:1: error: There is no binary method to match this Java declaration in the specification file: m (owner: A)\n"
-                + "      A has m(int)\n"
-                + "      A has m(boolean)",30); 
+        helpTCF("A.java","public class A{ void m(boolean i) {}  public String m(int i) { return null; } }"
+                ,"/$A/A.jml:1: error: The result type of method A.m(int) in the specification differs from the type in the source/binary: void vs. java.lang.String",25
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",53
+                ); 
     }
     
+    // Checks that the comparison of resuylt types is OK for constructors
+    @Test public void testMatchMethod6a() {
+        addMockFile("$A/A.jml","public class A { public A(int i); }");
+        helpTCF("A.java","public class A{ public A(int i) {  } }"
+                ); 
+    }
+    
+    // Checks that result type is compared
     @Test public void testMatchMethod7() { 
         addMockFile("$A/A.jml","public class A { public void m(int j, Object k); }");
         helpTCF("A.java","public class A{ void m(boolean i) {}  public String m(int i, Object mm) { return null; } }"
-                ,"/$A/A.jml:1: error: The return types of method A.m(int,java.lang.Object) are different in the specification and java files: void vs. java.lang.String",25
-//                ,"/$A/A.jml:1: error: Parameter 0 of method A.m(int,java.lang.Object) has name i in the .java file but j in the specification (they should be the same)",36
-//                ,"/$A/A.jml:1: error: Parameter 1 of method A.m(int,java.lang.Object) has name mm in the .java file but k in the specification (they should be the same)",46
+                ,"/$A/A.jml:1: error: The result type of method A.m(int,java.lang.Object) in the specification differs from the type in the source/binary: void vs. java.lang.String",25
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:",53
+                // Mismatched types preclude a match and further checking
+                );
+    }
+
+    // Checks that parameter names are compared
+    @Test public void testMatchMethod7b() { 
+        addMockFile("$A/A.jml","public class A { public void m(int j, Object k); }");
+        helpTCF("A.java","public class A{ void m(boolean i) {}  public void m(int i, Object mm) { } }"
+                ,"/$A/A.jml:1: error: Parameter names in a specification file must match those in the Java source: j vs. i in A.m(int,java.lang.Object)",36
+                ,"/$A/A.jml:1: error: Parameter names in a specification file must match those in the Java source: k vs. mm in A.m(int,java.lang.Object)",46
+                // Mismatched parameter names preclude further checking
                 );
     }
 
@@ -1305,7 +1328,7 @@ public class modifiers extends TCBase {
         expectedExit = 0;
         helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
                 "public @Pure class A{}",
-                "/A.java:2: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: class A, annotation pure", 8);
+                "/A.java:2: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: @org.jmlspecs.annotation.Pure on class A", 8);
     }
 
     @Test

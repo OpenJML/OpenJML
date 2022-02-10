@@ -543,10 +543,8 @@ public class Utils {
         return null;
     }
     
-    public boolean hasMod(MethodSymbol msym, ModifierKind kind) {
-    	var mspecs = JmlSpecs.instance(context).getLoadedSpecs(msym);
-    	if (mspecs == null) return false;
-    	return hasMod(mspecs.mods, kind);
+    public boolean hasJavaAnnotation(Symbol sym, JmlAnnotation annotation) {
+    	return sym.getAnnotationMirrors().stream().anyMatch( a-> annotation.type == a.type);
     }
     
     public boolean hasMod(JCModifiers mods, ModifierKind... ata) {

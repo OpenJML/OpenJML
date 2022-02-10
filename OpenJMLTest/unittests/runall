@@ -54,14 +54,14 @@ wt
 ./run-summary log-harness	"5/0"	harnesstests &
 ./run-summary log-inter+       	"140/0"	internalSpecs jmltypes lblexpression methodspecs modelghost namelookup positions prettyprinting purity  &
 wt
-./run-summary log-matchClass	"52/0"  matchClasses  &
-./run-summary log-modifiers    	"191/0" modifiers  &
-./run-summary log-redundant+   	"105/1"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
-./run-summary log-scanner      	"91/0"	scanner  &
+./run-summary log-matchClass	"53/0"  matchClasses  &
+./run-summary log-modifiers    	"195/0" modifiers  &
+./run-summary log-redundant+   	"106/0"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
+./run-summary log-scanner      	"95/0"	scanner  &
 wt
-./run-summary log-typecheck	"207/0"	typechecking &
+./run-summary log-typecheck	"209/0"	typechecking &
 ./run-summary log-typeclause	"123/0"	typeclauses  &
-./run-summary log-SpecsBase    	"283/5"	SpecsBase  &
+./run-summary log-SpecsBase    	"285/5"	SpecsBase  &
 ./run-summary log-SpecsEsc     	"3/0"	SpecsEsc  &
 
 
