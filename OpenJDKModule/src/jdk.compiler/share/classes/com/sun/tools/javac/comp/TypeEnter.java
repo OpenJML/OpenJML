@@ -33,6 +33,9 @@ import java.util.stream.Collectors;
 
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlTree;
+
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Lint.LintCategory;
 import com.sun.tools.javac.code.Scope.ImportFilter;
@@ -324,6 +327,9 @@ public class TypeEnter implements Completer {
             if (sym.owner.kind == PCK) {
                 resolveImports(env.toplevel, env.enclosing(TOPLEVEL));
                 todo.append(env);
+            }
+            if (env.toplevel instanceof org.jmlspecs.openjml.JmlTree.JmlCompilationUnit jcu && jcu.specsCompilationUnit != null) { // OPENJML
+                resolveImports(jcu.specsCompilationUnit, jcu.specsCompilationUnit.topLevelEnv);
             }
 
             if (sym.owner.kind == TYP)

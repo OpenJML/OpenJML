@@ -233,6 +233,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     	var revisedDefs = new ListBuffer<JCTree>();
 		boolean hasStaticInit = false;
 		boolean hasInstanceInit = false;
+		var prev = log.useSource(specsDecl.source());
+		var specEnv = specs.getLoadedSpecs(specsDecl.sym).specsEnv;
     	for (var t: specsDecl.defs) {
     		//System.out.println("MATCHING " + t);
     		boolean ok = true;
@@ -242,7 +244,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     				// Specification field is ghost or model
     				if (match.isEmpty()) {
     					// OK: A ghost/model field declaration with no matching name
-    					super.memberEnter(specVarDecl, env);
+    					super.memberEnter(specVarDecl, specEnv);
     					specVarDecl.type = specVarDecl.sym.type;
     					if (specVarDecl.fieldSpecs == null) specVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(specVarDecl);
     					specs.putSpecs(specVarDecl.sym, specVarDecl.fieldSpecs);
@@ -259,7 +261,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     				} else {
 						JmlVariableDecl javaVarDecl = (JmlVariableDecl)match.get();
     					if (javaVarDecl.specsDecl == null) {
-                        	Type specType = (specVarDecl.vartype.type == null) ? attr.attribType(specVarDecl.vartype, env) : specVarDecl.vartype.type; // FIXME - should use the env for the specCU
+                        	Type specType = (specVarDecl.vartype.type == null) ? attr.attribType(specVarDecl.vartype, specEnv) : specVarDecl.vartype.type;
                         	if (!types.isSameType(javaVarDecl.vartype.type, specType)) {
     							String msg = "Type of field " + cd.sym + "." + specVarDecl.name + " in specification differs from type in source/binary: " + specType + " vs. " + javaVarDecl.sym.type;
     							if (javaVarDecl != null) {
@@ -368,6 +370,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     		}
     		if (ok) revisedDefs.add(t);
     	}
+    	log.useSource(prev);
     	specsDecl.defs = revisedDefs.toList();
     	
     	// Now check for any unmatched Java declarations

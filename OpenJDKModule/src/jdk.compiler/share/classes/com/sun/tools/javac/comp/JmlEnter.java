@@ -675,6 +675,7 @@ public class JmlEnter extends Enter {
 					sourceDecl.specsDecl.sym = sourceDecl.sym; // sym will have the source classfile
 					//var m = (specEnv==null?"NULL":specEnv.toplevel.sourcefile);
 					specEnv = classEnv(sourceDecl.specsDecl, specEnv);
+			        classTPEnter(sourceDecl.typarams, specEnv); // Enter the already typed type-parameters from the source decl so we have the same symbols in source and specs
 					//System.out.println("CLASS " + specEnv.toplevel.modle + " " + sourceDecl.specsDecl.name + " " + (specEnv==null?"NULL":specEnv.toplevel.sourcefile) + " " + m);
 					postClassCreation(sourceDecl, env, specEnv);
 				} else if (env.tree instanceof JmlCompilationUnit sourceCU) { // enclosing env is a comp unit
@@ -683,7 +684,8 @@ public class JmlEnter extends Enter {
 					sourceCU.specsCompilationUnit.modle = sourceCU.modle;
 					sourceCU.specsCompilationUnit.locn = sourceCU.locn;
 					specEnv = topLevelEnv(sourceCU.specsCompilationUnit); // needs packge, modle defined before this call
-					//System.out.println("TOPLEVEL " + sourceCU.sourcefile + " " + sourceCU.modle + " " + (specEnv==null?"NULL":specEnv.toplevel.sourcefile));
+					sourceCU.specsCompilationUnit.topLevelEnv = specEnv;
+                    //System.out.println("TOPLEVEL " + sourceCU.sourcefile + " " + sourceCU.modle + " " + (specEnv==null?"NULL":specEnv.toplevel.sourcefile));
 					if (tlenv == null) tlenv = specEnv; // A hack to save some top-level environment for resolving global names
 				}
 			}
