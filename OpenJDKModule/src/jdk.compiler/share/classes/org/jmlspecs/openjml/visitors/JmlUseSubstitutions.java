@@ -125,7 +125,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                     return;
                 }
 
-                JmlSpecs.MethodSpecs lemmaspecs = specs.getSpecs((Symbol.MethodSymbol)msym);
+                JmlSpecs.MethodSpecs lemmaspecs = specs.getAttrSpecs((Symbol.MethodSymbol)msym);
                 if (lemmaspecs == null) {
                     utils.error(that,"jml.internal","No symbol found for " + meth.toString());
                     return;

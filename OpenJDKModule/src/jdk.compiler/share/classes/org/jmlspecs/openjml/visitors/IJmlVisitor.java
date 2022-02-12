@@ -43,9 +43,10 @@ public interface IJmlVisitor extends IVisitor {
     	scan(tree.lhs);
     	scan(tree.rhs);
     }
-    default public void visitJmlBlock(JmlBlock tree) {
-    	visitBlock(tree);
-    }
+
+//    default public void visitBlock(JmlBlock tree) {
+//    	super.visitBlock(tree);
+//    }
     
     default public void visitJmlChained(JmlChained tree) {
         for (JCTree.JCBinary b: tree.conjuncts) scan(b);
@@ -83,8 +84,8 @@ public interface IJmlVisitor extends IVisitor {
         scan(tree.selection);
     }
 
-    default public void visitJmlImport(JmlImport tree) {
-        visitImport(tree);
+    default public void visitImport(JCTree.JCImport tree) {
+        IVisitor.super.visitImport(tree);
     }
     
     default public void visitJmlInlinedLoop(JmlInlinedLoop tree)           {
@@ -169,9 +170,9 @@ public interface IJmlVisitor extends IVisitor {
         scan(tree.item);
     }
 
-    default public void visitJmlNewClass(JmlNewClass tree)                 {
-        visitNewClass(tree);
-    }
+//    default public void visitNewClass(JCNewClass tree)                 {
+//        IVisitor.super.visitClass(tree);
+//    }
     
     default public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree tree){
         // no children to scan

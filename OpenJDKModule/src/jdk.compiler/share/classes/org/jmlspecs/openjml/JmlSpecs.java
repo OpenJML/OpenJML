@@ -845,7 +845,7 @@ public class JmlSpecs {
     	    boolean ok = JmlEnter.instance(context).requestSpecs(classSym);
             //if (!ok) System.out.println("REQUEST TO GET SPECS ONLY QUEUED: " + classSym);
     	}
-    	var ts = specsTypes.get(classSym);
+    	var ts = get(classSym);
     	if (ts == null) {
     		ts = new TypeSpecs(classSym, null, (JmlModifiers)JmlTree.Maker.instance(context).Modifiers(classSym.flags()), null);
             utils.note(true,"      inserting default class specs for " + classSym.flatname);
@@ -862,17 +862,17 @@ public class JmlSpecs {
     	return getLoadedSpecs(m).modifiers;
     }
     
-    public TypeSpecs getSpecs(ClassSymbol csym) {
+    public TypeSpecs getAttrSpecs(ClassSymbol csym) {
     	if (status(csym).less(SpecsStatus.SPECS_ATTR)) {
     		attr.attrSpecs(csym);
     	}
         return getLoadedSpecs(csym);
     }
     
-    public void getSpecs(Symbol s) {
-    	if (s instanceof ClassSymbol) getSpecs((ClassSymbol)s);
-    	if (s instanceof MethodSymbol) getSpecs((MethodSymbol)s);
-    	if (s instanceof VarSymbol) getSpecs((VarSymbol)s);
+    public void getAttrSpecs(Symbol s) {
+    	if (s instanceof ClassSymbol cs) getAttrSpecs(cs);
+    	if (s instanceof MethodSymbol ms) getAttrSpecs(ms);
+    	if (s instanceof VarSymbol vs) getAttrSpecs(vs);
     }
     
 //    /** Retrieves the specifications for a given type, providing and registering
@@ -970,11 +970,11 @@ public class JmlSpecs {
      * @return the specs of the method
      */
     //@ non_null
-    public MethodSpecs getSpecs(MethodSymbol m) {
+    public MethodSpecs getAttrSpecs(MethodSymbol m) {
     	if (status(m).less(SpecsStatus.SPECS_ATTR)) {
     		attr.attrSpecs(m, null);
     	}
-        return specsMethods.get(m);
+        return get(m);
     }
     
     /** Returns loaded specs: modifiers are present; specification cases may be present, 
@@ -1006,7 +1006,7 @@ public class JmlSpecs {
 //        		specsMethods.put(m,ms);
 //        	}
     	}
-    	var ms = specsMethods.get(m);
+    	var ms = get(m);
 //        if (ms == null) System.out.println("Null specs returned from getLoadedSpecs (no default) for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
         return ms;
     }
@@ -1019,7 +1019,7 @@ public class JmlSpecs {
     
     /** Retrieves attributed, desugared specs */
     public JmlMethodSpecs getDenestedSpecs(MethodSymbol m) {
-        MethodSpecs s = getSpecs(m);
+        MethodSpecs s = getAttrSpecs(m);
         //System.out.println("DENEST " + m + " " + s);
         if (s == null) {
         	// FIXME - recheck the conditions undere which this branch can be taken
@@ -1327,24 +1327,23 @@ public class JmlSpecs {
      * @return the specs of the field, or null if none are present
      */
     //@ nullable
-    public FieldSpecs getSpecs(VarSymbol m) {
-    	if (!(m.owner instanceof ClassSymbol)) return null;
-        ClassSymbol c = (ClassSymbol)m.owner;
+    public FieldSpecs getAttrSpecs(VarSymbol v) {
+    	if (!(v.owner instanceof ClassSymbol c)) return null;
     	getLoadedSpecs(c);
 //    	if (c == null) System.out.println("Unexpected difference - field " + m + " " + m.owner + " " + m.enclClass());
 //    	if (c == null) Utils.dumpStack();
-    	if (status(m).less(SpecsStatus.SPECS_ATTR)) attr.attrSpecs(m);
+    	if (status(v).less(SpecsStatus.SPECS_ATTR)) attr.attrSpecs(v);
 //        TypeSpecs t = specsmap.get(c);
 //        return t == null ? null : t.fields.get(m);
-    	return specsFields.get(m);
+    	return get(v);
     }
     
     /** Returns precisely what is in the current specs data base -- may be null */
     //@ nullable
-    public FieldSpecs get(VarSymbol m) {
+    public FieldSpecs get(VarSymbol v) {
 //        TypeSpecs t = specsmap.get(m.owner);
 //        return t == null ? null : t.fields.get(m);
-    	return specsFields.get(m);
+    	return specsFields.get(v);
     }
     
    /** Retrieves the specs for a given field
@@ -1375,8 +1374,8 @@ public class JmlSpecs {
      * @return the specs of the block, or null if none are present
      */
     //@ nullable
-    public MethodSpecs getSpecs(ClassSymbol sym, JCTree.JCBlock m) {
-        TypeSpecs t = getSpecs(sym);
+    public MethodSpecs getAttrSpecs(ClassSymbol sym, JCTree.JCBlock m) {
+        TypeSpecs t = getAttrSpecs(sym);
         return t.blocks.get(m);
     }
    

@@ -2877,7 +2877,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					ListBuffer<JCStatement> instanceStats = currentStatements;
 					try {
 						ClassSymbol csym = (ClassSymbol) ctype.tsym;
-						JmlSpecs.TypeSpecs tspecs = specs.getSpecs(csym);
+						JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(csym);
 						if (tspecs == null) continue; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
 
 						if (prepost && !isPost && !(isConstructor && types.isSubtype(basetype, ctype))) {
@@ -3107,7 +3107,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		currentThisExpr = currentThis;
 		ListBuffer<JCStatement> check10 = pushBlock();
 		try {
-			for (JmlTypeClause t : specs.getSpecs((ClassSymbol) expr.type.tsym).clauses) {
+			for (JmlTypeClause t : specs.getAttrSpecs((ClassSymbol) expr.type.tsym).clauses) {
 				if (t.clauseType != invariantClause)
 					continue;
 				JavaFileObject prev = log.useSource(t.source);
@@ -3178,7 +3178,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		ListBuffer<JCStatement> check = pushBlock();
 		try {
-			for (JmlTypeClause t : specs.getSpecs(csym).clauses) {
+			for (JmlTypeClause t : specs.getAttrSpecs(csym).clauses) {
 				if (t.clauseType != invariantClause)
 					continue;
 				if (staticOnly && !utils.isJMLStatic(t.modifiers, csym))
@@ -3299,7 +3299,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				checkAccessEnabled = false; // Do not check access in JML clauses
 				try {
 
-					JmlSpecs.TypeSpecs tspecs = specs.getSpecs(csym);
+					JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(csym);
 					if (tspecs == null)
 						continue; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
 
@@ -3403,7 +3403,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			for (ClassSymbol csym : parents) {
 				if (!addAxioms(heapCount, csym))
 					continue;
-				JmlSpecs.TypeSpecs tspecs = specs.getSpecs(csym);
+				JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(csym);
 				if (tspecs == null)
 					continue; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
 
@@ -3468,7 +3468,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				java.util.List<Type> p = parents(staticBasetype, true);
 				ListIterator<Type> iter = p.listIterator(p.size());
 				while (iter.hasPrevious()) {
-					JmlSpecs.TypeSpecs tyspecs = specs.getSpecs((ClassSymbol) iter.previous().tsym);
+					JmlSpecs.TypeSpecs tyspecs = specs.getAttrSpecs((ClassSymbol) iter.previous().tsym);
 					for (JmlTypeClauseDecl x : tyspecs.modelFieldMethods) {
 						if (x.decl instanceof JmlMethodDecl) {
 							JmlMethodDecl md = (JmlMethodDecl) x.decl;
@@ -3524,7 +3524,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				while (iter.hasPrevious()) {
 					TypeSymbol ty = iter.previous().tsym;
 					if (!(ty instanceof ClassSymbol)) continue; // FIXME - could be a TypeVariable
-					TypeSpecs tspecs = specs.getSpecs((ClassSymbol) ty);
+					TypeSpecs tspecs = specs.getAttrSpecs((ClassSymbol) ty);
 					for (JmlTypeClause tc : tspecs.clauses) {
 						if (tc.clauseType == representsClause) {
 							JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents) tc;
@@ -3909,7 +3909,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean prevAddingAxioms = addingAxioms;
 		addingAxioms = true;
 		try {
-			JmlSpecs.TypeSpecs tspecs = specs.getSpecs(csym);
+			JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(csym);
 			if (tspecs == null)
 				return; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
 			for (JmlTypeClause clause : tspecs.clauses) {
@@ -3996,7 +3996,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				addNullnessAllocationTypeCondition(convertedfa, vsym, false);
 			}));
 
-		FieldSpecs fspecs = specs.getSpecs(vsym);
+		FieldSpecs fspecs = specs.getAttrSpecs(vsym);
 //        if (fspecs != null && fspecs.decl.init != null) {
 //        	JCExpression e = fspecs.decl.init;
 //        	if (e instanceof JCLiteral) value = ((JCLiteral)e).value;
@@ -4062,12 +4062,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	public boolean hasStaticInitializer(JmlClassDecl decl) {
-		JmlSpecs.TypeSpecs ts = specs.getSpecs(decl.sym);
+		JmlSpecs.TypeSpecs ts = specs.getAttrSpecs(decl.sym);
 		return ts.staticInitializerSpec != null;
 	}
 
 	public boolean hasStaticInitializer(ClassSymbol sym) {
-		JmlSpecs.TypeSpecs ts = specs.getSpecs(sym);
+		JmlSpecs.TypeSpecs ts = specs.getAttrSpecs(sym);
 		return ts.staticInitializerSpec != null;
 	}
 
@@ -4128,7 +4128,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			}
 		}
-		JmlSpecs.TypeSpecs tspecs = specs.getSpecs(csym);
+		JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(csym);
 		if (tspecs == null)
 			return; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
 
@@ -4148,7 +4148,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected void assumeStaticInvariants(ClassSymbol csym) {
-		JmlSpecs.TypeSpecs tspecs = specs.getSpecs(csym);
+		JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(csym);
 		if (tspecs == null) {
 			utils.error("jml.internal", "Null class specs for " + csym);
 			return; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
@@ -4239,7 +4239,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected void addFeasibility(JmlMethodDecl methodDecl, ListBuffer<JCStatement> initialStatements) {
-		JmlSpecs.MethodSpecs mspecs = specs.getSpecs(methodDecl.sym);
+		JmlSpecs.MethodSpecs mspecs = specs.getAttrSpecs(methodDecl.sym);
 		if (mspecs.cases.feasible == null)
 			return;
 		ListBuffer<JCStatement> check = pushBlock();
@@ -4910,7 +4910,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected void assumeFieldInvariants(ClassSymbol classSym, boolean staticOnly, boolean noFinal) {
 		// Assume invariants for the class of each field of the argument
 		JCExpression savedThis = currentThisExpr;
-		JmlSpecs.TypeSpecs cspecs = specs.getSpecs(classSym);
+		JmlSpecs.TypeSpecs cspecs = specs.getAttrSpecs(classSym);
 		if (cspecs.specDecl == null)
 			return;
 		JavaFileObject prevJFO = log.currentSourceFile();
@@ -4919,7 +4919,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (!(dd instanceof JCVariableDecl))
 				continue;
 			JCVariableDecl d = (JCVariableDecl) dd;
-			specs.getSpecs(d.sym);
+			specs.getAttrSpecs(d.sym);
 			if (utils.isJavaOrJmlPrimitiveType(d.sym.type))
 				continue;
 			if (staticOnly && !utils.isJMLStatic(d.sym))
@@ -5042,7 +5042,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		}
 		// For JML fields
-		for (JCTree dd : specs.getSpecs((ClassSymbol) csym).clauses) {
+		for (JCTree dd : specs.getAttrSpecs((ClassSymbol) csym).clauses) {
 			if (!(dd instanceof JmlTypeClauseDecl))
 				continue;
 			JCTree t = ((JmlTypeClauseDecl) dd).decl;
@@ -5681,7 +5681,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected void addInstanceInitialization(Symbol methodSym) {
-		JmlSpecs.TypeSpecs tspecs = specs.getSpecs(classDecl.sym);
+		JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(classDecl.sym);
 
 		addStat(comment(methodDecl, "Class fields for constructor", null));
 		// First pass sets everything to zero-equivalent
@@ -5699,7 +5699,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected void addInstanceInitializationPass2() {
-		JmlSpecs.TypeSpecs tspecs = specs.getSpecs(classDecl.sym);
+		JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(classDecl.sym);
 
 		// If there is an initializer, use it
 		if (tspecs != null) {
@@ -5755,7 +5755,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected void addStaticInitialization(ClassSymbol csym) {
-		JmlSpecs.TypeSpecs tspecs = specs.getSpecs(csym);
+		JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(csym);
 
 		// If there is a static initializer, use it
 		if (tspecs != null) {
@@ -5874,14 +5874,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitImport(JCImport that) {
-		// OpenJML should never call this, because JCImport nodes should be
-		// replaced by JmlImport nodes. We implement this just in case, but
-		// always produce a JmlImport node
 
 		JCTree qualid = that.qualid;
+        // FIXME - need to rewrite qualid - might have a *; might have a method name
 		if (fullTranslation)
 			qualid = convert(qualid);
-		result = M.at(that).Import(qualid, that.staticImport);
+        result = M.at(that).JmlImport(qualid, that.staticImport, ((JmlImport)that).isModel).setType(that.type);
 	}
 
 	// OK
@@ -7195,7 +7193,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected boolean isContainedIn(Symbol x, Symbol y) {
 		if (x == y) return true;
 		if (currentThisExpr instanceof JCIdent && x == classDecl.thisSymbol && y == ((JCIdent) currentThisExpr).sym) return true;
-		FieldSpecs fs = specs.getSpecs((VarSymbol) x);
+		FieldSpecs fs = specs.getAttrSpecs((VarSymbol) x);
 		if (fs == null) {
 			// null can happen for a private field of a class without source
 			// and without a declaration in the corresponding jml file
@@ -7219,7 +7217,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		for (Type parent : parents(csym.type, false)) {
 			if (!(parent.tsym instanceof ClassSymbol))
 				continue; // TODO - Review - what to do with type variables
-			TypeSpecs tspecs = JmlSpecs.instance(context).getSpecs((ClassSymbol) parent.tsym);
+			TypeSpecs tspecs = JmlSpecs.instance(context).getAttrSpecs((ClassSymbol) parent.tsym);
 			if (tspecs.specDecl == null)
 				continue;
 			for (JCTree tree : tspecs.specDecl.defs) {
@@ -7270,7 +7268,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// System.out.println("TRFA-UP " + " " + seltype + " " + seltype.tsym);
 		}
 		TypeSymbol owner = seltype.tsym;
-		TypeSpecs tspecs = specs.getSpecs((ClassSymbol) owner); // FIXME - we get null specs if owner is a TypeVar --
+		TypeSpecs tspecs = specs.getAttrSpecs((ClassSymbol) owner); // FIXME - we get null specs if owner is a TypeVar --
 																// need a type mapping?
 		if (tspecs != null)
 			for (JmlTypeClause t : tspecs.clauses) {
@@ -7450,7 +7448,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						out.add(fa);
 					}
 					if (s instanceof VarSymbol vs) {
-						JmlSpecs.FieldSpecs fs = specs.getSpecs(vs);
+						JmlSpecs.FieldSpecs fs = specs.getAttrSpecs(vs);
 						if (fs != null)
 							for (var cl : fs.list) {
 								if (cl instanceof JmlTypeClauseMaps m) {
@@ -8340,7 +8338,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			nestedCallLocation = that;
 
-			var mspecs = specs.getSpecs(calleeMethodSym);
+			var mspecs = specs.getAttrSpecs(calleeMethodSym);
 			if (print) System.out.println("MSPECS " + mspecs);
 			boolean inliningCall = mspecs != null && mspecs.specDecl != null && mspecs.specDecl.mods != null
 					&& attr.findMod(mspecs.specDecl.mods, Modifiers.INLINE) != null;
@@ -8726,7 +8724,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (!anyFound && !inliningCall) {
 				// No specs - set default
 
-				JmlSpecs.MethodSpecs s = specs.getSpecs(calleeMethodSym);
+				JmlSpecs.MethodSpecs s = specs.getAttrSpecs(calleeMethodSym);
 				// System.out.println("GETTING SPECS FOR CALLEE " + calleeMethodSym + " " +
 				// calleeMethodSym.hashCode() + " " + s);
 				if (s == null) {
@@ -8768,7 +8766,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								"NULL PARAMS " + calleeMethodSym.owner + " # " + calleeMethodSym.owner.members() + " # "
 										+ calleeMethodSym.owner.members().getSymbols() + " # " + calleeMethodSym);
 					} else {
-						var calleeSpecs = specs.getSpecs(calleeMethodSym);
+						var calleeSpecs = specs.getAttrSpecs(calleeMethodSym);
 						for (int i = 0; i < calleeMethodSym.params.size(); i++) {
 							VarSymbol v = calleeMethodSym.params.get(i);
 							boolean nn = specs.isCheckNonNullFormal(v.type, i, calleeSpecs, calleeMethodSym);
@@ -8830,7 +8828,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 																// needed
 					mapParamActuals.put(mpsym, paramActuals);
 
-					var ssym = specs.getSpecs(mpsym).specSym;
+					var ssym = specs.getAttrSpecs(mpsym).specSym;
 					if (ssym != null) {
 						// Map the formals for this particular method to the corresponding translated
 						// actual argument
@@ -9556,7 +9554,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				final boolean heap = !calleeIsFunction
 						&& !calleeMethodSym1.owner.toString().startsWith("org.jmlspecs.lang");
 				List<JCStatement> stats = collectStats(() -> {
-					JmlMethodDecl mdecl = specs.getSpecs(calleeMethodSym1).cases.decl;
+					JmlMethodDecl mdecl = specs.getAttrSpecs(calleeMethodSym1).cases.decl;
 					int p = (mdecl != null) ? mdecl.pos : 0;
 					Name newMethodName = newNameForCallee(p, calleeMethodSym1, heap);
 					ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
@@ -10620,7 +10618,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public void addMethodAxiomsPlus(JCExpression that, MethodSymbol calleeMethodSym, JCExpression newThisExpr,
 			List<JCExpression> convertedArgs, Type receiverType, java.util.List<Pair<MethodSymbol, Type>> overridden,
 			boolean details) {
-		specs.getSpecs(calleeMethodSym);
+		specs.getAttrSpecs(calleeMethodSym);
 		JCBlock bl = addMethodAxioms(that, calleeMethodSym, overridden, receiverType, that.type);
 		if (details) { // FIXME - document this details check - if it is false, the axioms are dropped
 			// FIXME - actually should add these into whatever environment is operative
@@ -10963,7 +10961,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					resultExpr = localResult;
 					addStat(comment(that, "Inlining method " + calleeMethodSym.toString(), log.currentSourceFile()));
 					// Find definition of method to be inlined
-					JmlSpecs.MethodSpecs m = JmlSpecs.instance(context).getSpecs(calleeMethodSym);
+					JmlSpecs.MethodSpecs m = JmlSpecs.instance(context).getAttrSpecs(calleeMethodSym);
 					JmlMethodDecl mdecl = m.cases.decl;
 					inlineConvertBlock(that, treeutils.trueLit, mdecl.body, "body of method " + calleeMethodSym);
 				}
@@ -11661,7 +11659,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected JCExpression createUnboxingExpr(JCExpression expr) {
 		boolean useMethod = false;
 		ClassType origtype = (ClassType) convertType(expr.type);
-		specs.getSpecs((ClassSymbol) origtype.tsym); // To ensure that model fields are loaded
+		specs.getAttrSpecs((ClassSymbol) origtype.tsym); // To ensure that model fields are loaded
 		Type unboxed = unboxedType(expr.type);
 		TypeTag tag = unboxed.getTag();
 		String origtypeString = origtype.tsym.getSimpleName().toString();
@@ -11695,10 +11693,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				fieldName = "value";
 			Name id = names.fromString(fieldName);
 			Type t = expr.type;
-			specs.getSpecs((ClassSymbol) t.tsym);
+			specs.getAttrSpecs((ClassSymbol) t.tsym);
 			VarSymbol fsym = getField(t, id);
 			if (fsym != null)
-				specs.getSpecs(fsym);
+				specs.getAttrSpecs(fsym);
 
 			if (fsym == null) {
 				utils.error(expr, "jml.message", "Could not find model field " + fieldName + " in " + origtypeString);
@@ -11776,7 +11774,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (!translatingJML && methodDecl != null) {
 			if (sym instanceof VarSymbol && sym.owner instanceof TypeSymbol) {
 				Label lab = rw == readableClause ? Label.READABLE : Label.WRITABLE;
-				FieldSpecs fs = specs.getSpecs((VarSymbol) sym);
+				FieldSpecs fs = specs.getAttrSpecs((VarSymbol) sym);
 				if (fs != null)
 					for (JmlTypeClause clause : fs.list) {
 						if (clause.clauseType == rw) {
@@ -11815,7 +11813,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	private void havocModelFields(JCExpression recv, VarSymbol sym, ListBuffer<JCExpression> havocList) {
-		FieldSpecs fspecs = specs.getSpecs(sym);
+		FieldSpecs fspecs = specs.getAttrSpecs(sym);
 		if (fspecs != null)
 			for (JmlTypeClause tc : fspecs.list) {
 				if (tc.clauseType == inClause) {
@@ -16238,12 +16236,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		result = g;
 	}
 
-	// OK
-	@Override
-	public void visitJmlImport(JmlImport that) {
-		// FIXME - need to rewrite qualid - might have a *; might have a method name
-		result = M.at(that).Import(that.qualid, that.staticImport).setType(that.type);
-	}
 
 	@Override
 	public void visitJmlLabeledStatement(JmlLabeledStatement that) {
@@ -17340,7 +17332,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			/* @non_null */ Type t, /* @nullable */ JCExpression obj, boolean considerVisibility) {
 		if (!(t.tsym instanceof ClassSymbol))
 			return null;
-		TypeSpecs tspecs = specs.getSpecs((ClassSymbol) t.tsym);
+		TypeSpecs tspecs = specs.getAttrSpecs((ClassSymbol) t.tsym);
 		JCExpression saved = currentThisExpr;
 		currentThisExpr = convertJML(obj);
 		JCExpression result = null;
@@ -18664,7 +18656,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// It may not have a corresponding model field; that field might be in a super
 		// class.
 		// If so, we need to construct the synthetic model metehod to hold it.
-		JmlSpecs.TypeSpecs typeSpecs = specs.getSpecs(classDecl.sym);
+		JmlSpecs.TypeSpecs typeSpecs = specs.getAttrSpecs(classDecl.sym);
 		if (sym != null && rac) {
 			String str = Strings.modelFieldMethodPrefix + sym.name.toString();
 			Name name = names.fromString(str);
@@ -18761,7 +18753,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// FIXME - needs review
 	@Override
 	public void visitJmlVariableDecl(JmlVariableDecl that) {
-		specs.getSpecs(that.sym);
+		specs.getAttrSpecs(that.sym);
 		if (!specs.statusOK(that.sym))
 			return; // FIXME - abort
 		JavaFileObject prevSource = log.useSource(that.source());
@@ -20297,7 +20289,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					for (Symbol s : t.tsym.getEnclosedElements()) {
 						//System.out.println("   SYMBOL " + t + " " + s + " " + s.getClass());
 						if (s instanceof VarSymbol vs) {
-							JmlSpecs.FieldSpecs fs = specs.getSpecs(vs);
+							JmlSpecs.FieldSpecs fs = specs.getAttrSpecs(vs);
 							if (fs != null) for (var cl : fs.list) {
 								if (cl instanceof JmlTypeClauseMaps m) {
 									//System.out.println("MAPS CLAUSE " + t + " " + s + " " + cl);
@@ -20649,7 +20641,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 
 		@Override
-		public /* @ nullable */ java.util.List<JmlStatementExpr> visitJmlBlock(JmlBlock that, Void p) {
+		public /* @ nullable */ java.util.List<JmlStatementExpr> visitBlock(BlockTree that, Void p) {
 			// TODO Auto-generated method stub
 			return null;
 		}
@@ -20668,11 +20660,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		@Override
 		public /* @ nullable */ java.util.List<JmlStatementExpr> visitJmlLblExpression(JmlLblExpression that, Void p) {
 			return that.expression.accept(this, p);
-		}
-
-		@Override
-		public /* @ nullable */ java.util.List<JmlStatementExpr> visitJmlNewClass(JmlNewClass that, Void p) {
-			return null; // FIXME
 		}
 
 		@Override
@@ -20908,11 +20895,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		@Override
 		public void visitImport(JCImport tree) {
-			// do nothing
-		}
-
-		@Override
-		public void visitJmlImport(JmlImport tree) {
 			// do nothing
 		}
 

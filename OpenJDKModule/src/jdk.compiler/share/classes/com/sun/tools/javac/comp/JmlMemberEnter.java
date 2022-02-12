@@ -802,7 +802,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         mr.mods.annotations = List.<JCAnnotation>of(utils.modToAnnotationAST(Modifiers.MODEL,modelVarDecl.pos,endpos),
                                                     utils.modToAnnotationAST(Modifiers.PURE,modelVarDecl.pos,endpos)
                 );
-        JmlSpecs.FieldSpecs fspecs = specs.getSpecs(modelVarDecl.sym);
+        JmlSpecs.FieldSpecs fspecs = specs.getLoadedSpecs(modelVarDecl.sym);
         JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);
         tcd.pos = mr.pos;
         tcd.source = fspecs.source();

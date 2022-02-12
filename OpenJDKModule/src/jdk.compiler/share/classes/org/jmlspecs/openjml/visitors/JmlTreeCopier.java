@@ -192,8 +192,10 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
     
     @Override
-    public JCTree visitJmlBlock(JmlBlock that, Void p) {
-        JmlBlock r = M.at(that.pos).Block(that.flags,copy(that.stats));
+    public JCTree visitBlock(BlockTree node, Void p) {
+        JmlBlock that = (JmlBlock)node;
+        JmlBlock r = (JmlBlock)super.visitBlock(that,p).setType(that.type);
+        r.endpos = that.endpos;
         r.sourcefile = that.sourcefile;
         r.isInitializerBlock = that.isInitializerBlock;
         r.specificationCases = copy(that.specificationCases);
@@ -250,14 +252,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return r;
     }
 
-    @Override
-    public JCTree visitJmlImport(JmlImport that, Void p) {
-        JmlImport copy = (JmlImport)visitImport(that,p);
-        copy.isModel = that.isModel;
-        // already done: copy.type = that.type;
-        return copy;
-    }
-
+ 
     @Override
     public JCTree visitJmlInlinedLoop(JmlInlinedLoop that, Void p) {
         JmlInlinedLoop copy = M.at(that.pos).JmlInlinedLoop(copy(that.loopSpecs));
@@ -285,8 +280,11 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     	return copy;
     }
 
-
-    public JmlNewClass visitJmlNewClass(JmlNewClass that, Void p) {
+    @Override
+    public JCTree visitNewClass(NewClassTree tree, Void p) {
+//            return super.visitNewClass(node,p).setType(((JCTree)node).type);
+//            // FIXME - does not copy constructor, varargsElement, constructorType
+        JmlNewClass that = (JmlNewClass)tree;
         JmlNewClass copy = M.at(that.pos).NewClass(
                 copy(that.encl,p), copy(that.typeargs,p), copy(that.clazz,p), copy(that.args,p), copy(that.def,p));
         copy.type = that.type;
@@ -899,13 +897,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return t;
     }
 
-    public JCTree visitBlock(BlockTree node, Void p) {
-        JCTree t = super.visitBlock(node,p).setType(((JCBlock)node).type);
-        ((JCBlock)t).endpos = ((JCBlock)node).endpos;
-        return t;
-    }
-
-    public JCTree visitBreak(BreakTree node, Void p) {
+     public JCTree visitBreak(BreakTree node, Void p) {
         return super.visitBreak(node,p).setType(((JCBreak)node).type);
         // FIXME - need to repoint reference to target
     }
@@ -965,8 +957,12 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return t;
     }
 
+    @Override
     public JCTree visitImport(ImportTree node, Void p) {
-        return super.visitImport(node,p).setType(((JCTree)node).type);
+        JmlImport copy = (JmlImport)super.visitImport(node,p).setType(((JCTree)node).type);
+        copy.isModel = ((JmlImport)node).isModel;
+        // already done: copy.type = that.type;
+        return copy;
     }
     
     public JCTree visitLambdaExpression(LambdaExpressionTree node, Void p) {
@@ -1013,11 +1009,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     public JCTree visitNewArray(NewArrayTree node, Void p) {
         return super.visitNewArray(node,p).setType(((JCTree)node).type);
-    }
-
-    public JCTree visitNewClass(NewClassTree node, Void p) {
-        return super.visitNewClass(node,p).setType(((JCTree)node).type);
-        // FIXME - does not copy constructor, varargsElement, constructorType
     }
 
     public JCTree visitParenthesized(ParenthesizedTree node, Void p) {

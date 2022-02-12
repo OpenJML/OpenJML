@@ -37,7 +37,9 @@ public interface IVisitor {
     	for (var d: that.defs) scan(d);
     }
 
-        public void visitImport(JCImport that)               ;
+    default public void visitImport(JCImport that) {
+        scan(that.qualid);
+    }
         public void visitClassDef(JCClassDecl that)          ;
         public void visitMethodDef(JCMethodDecl that)        ;
         public void visitVarDef(JCVariableDecl that)         ;
