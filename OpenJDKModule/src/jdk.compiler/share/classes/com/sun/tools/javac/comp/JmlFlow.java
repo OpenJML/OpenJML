@@ -117,10 +117,10 @@ public class JmlFlow extends Flow  {
             for (JCTree.JCBinary b: that.conjuncts) scan(b.rhs);
         }
         
-        @Override
-        public void visitJmlBlock(JmlBlock that) {
-            scanStats(that.stats);
-        }
+//        @Override
+//        public void visitBlock(JmlBlock that) {
+//            scanStats(that.stats);
+//        }
         
         @Override
         public void visitJmlChoose(JmlChoose that) {
@@ -516,10 +516,10 @@ public class JmlFlow extends Flow  {
             for (JCTree.JCBinary b: that.conjuncts) scanExpr(b.rhs);
         }
         
-        @Override
-        public void visitJmlBlock(JmlBlock that) {
-            scan(that.stats);
-        }
+//        @Override
+//        public void visitBlock(JmlBlock that) {
+//            scan(that.stats);
+//        }
         
         @Override
         public void visitJmlChoose(JmlChoose that) {
@@ -925,10 +925,10 @@ public class JmlFlow extends Flow  {
             for (JCTree.JCBinary b: that.conjuncts) scan(b.rhs);
         }
         
-        @Override
-        public void visitJmlBlock(JmlBlock that) {
-            scan(that.stats);
-        }
+//        @Override
+//        public void visitBlock(JmlBlock that) {
+//            scan(that.stats);
+//        }
         
        @Override
         public void visitJmlChoose(JmlChoose that) {

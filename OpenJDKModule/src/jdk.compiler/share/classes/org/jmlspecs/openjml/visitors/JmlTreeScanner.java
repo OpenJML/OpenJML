@@ -92,7 +92,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     
     //public void visitJmlChained(JmlChained that);
     
-    //public void visitJmlBlock(JmlBlock that);
+    //public void visitBlock(JmlBlock that);
     
     //public void visitJmlChoose(JmlChoose that);
 

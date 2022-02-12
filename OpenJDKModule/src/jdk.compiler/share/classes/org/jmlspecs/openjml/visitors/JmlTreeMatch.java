@@ -500,9 +500,9 @@ public class JmlTreeMatch extends JmlTreeScanner {
         top = t;
     }
     
-    public void visitJmlBlock(JmlBlock that) {
-        visitBlock(that);
-    }
+//    public void visitJmlBlock(JmlBlock that) {
+//        super.visitBlock(that);
+//    }
     
 //    public void visitJmlChoose(JmlChoose that) {
 //        scan(that.orBlocks);

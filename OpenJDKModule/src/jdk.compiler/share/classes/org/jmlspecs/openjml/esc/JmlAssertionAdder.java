@@ -20649,7 +20649,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 
 		@Override
-		public /* @ nullable */ java.util.List<JmlStatementExpr> visitJmlBlock(JmlBlock that, Void p) {
+		public /* @ nullable */ java.util.List<JmlStatementExpr> visitBlock(BlockTree that, Void p) {
 			// TODO Auto-generated method stub
 			return null;
 		}

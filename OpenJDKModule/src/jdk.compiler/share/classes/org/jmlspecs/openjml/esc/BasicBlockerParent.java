@@ -1556,10 +1556,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         }
     }
     
-    @Override
-    public void visitJmlBlock(JmlBlock that) {
-        visitBlock(that);
-    }
+//    @Override
+//    public void visitBlock(JmlBlock that) {
+//        super.visitBlock(that);
+//    }
     
     /** Finds the statement that a labeled statement labels, stripping off all
      * nested labels.

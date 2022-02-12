@@ -194,13 +194,13 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(that,e); }
     }
 
-    public void visitJmlBlock(JmlBlock that) {
+    public void visitBlock(JmlBlock that) {
 
         if(that.type==null && specOnly){
             return;
         }
 
-        visitBlock(that);
+        super.visitBlock(that);
     }
 
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {

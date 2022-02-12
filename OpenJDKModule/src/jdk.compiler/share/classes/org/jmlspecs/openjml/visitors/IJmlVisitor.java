@@ -43,9 +43,10 @@ public interface IJmlVisitor extends IVisitor {
     	scan(tree.lhs);
     	scan(tree.rhs);
     }
-    default public void visitJmlBlock(JmlBlock tree) {
-    	visitBlock(tree);
-    }
+
+//    default public void visitBlock(JmlBlock tree) {
+//    	super.visitBlock(tree);
+//    }
     
     default public void visitJmlChained(JmlChained tree) {
         for (JCTree.JCBinary b: tree.conjuncts) scan(b);

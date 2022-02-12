@@ -83,7 +83,8 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
-    public void visitJmlBlock(JmlBlock that) {
+    public void visitBlock(JCBlock jcthat) {
+        JmlBlock that = (JmlBlock)jcthat;
         that.stats = translate(that.stats);
         that.specificationCases = translate(that.specificationCases);
         result = that;

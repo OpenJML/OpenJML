@@ -707,6 +707,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // FIXME - what about initializer blocks - they also need an old environment
         // FIXME - this overlaps too much with the superclass method
         
+        boolean prev = jmlresolve.allowJML();
+        if (!prev && env.enclMethod == null) prev = jmlresolve.setAllowJML(utils.isJML(env.enclClass.mods));
         super.visitBlock(tree);
         if (env.info.scope.owner.kind == TYP || env.info.scope.owner.kind == ERR) {
             // An initialization block within a class -- we create a BlockSpecs, now that we know the env
@@ -734,8 +736,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	block.blockSpecs = new JmlSpecs.BlockSpecs(mods,block.specificationCases, localEnv);
         	jmlenv = jmlenv.pop();
         }
-    }
-    
+        jmlresolve.setAllowJML(prev);
+   }
+   
     @Override
     protected void postInitBlock(JCBlock tree, Env<AttrContext> env) {
         JmlSpecs.MethodSpecs msp = JmlSpecs.instance(context).getSpecs(env.enclClass.sym,tree);
@@ -4469,12 +4472,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	return t;
     }
     
-    public void visitJmlBlock(JmlBlock that) {
-    	boolean prev = jmlresolve.allowJML();
-    	if (!prev && env.enclMethod == null) prev = jmlresolve.setAllowJML(utils.isJML(env.enclClass.mods));
-        visitBlock(that);
-        jmlresolve.setAllowJML(prev);
-    }
     
     @Override
     Type condType(List<DiagnosticPosition> positions, List<Type> condTypes) {
@@ -7908,7 +7905,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	}
     	
         public void visitJmlBinary(JmlBinary tree)                     { visitTree(tree); }
-        public void visitJmlBlock(JmlBlock tree)                       { visitTree(tree); }
+        public void visitBlock(JmlBlock tree)                       { visitTree(tree); }
         public void visitJmlChained(JmlChained tree)                   { visitTree(tree); }
         public void visitJmlChoose(JmlChoose tree)                     { visitTree(tree); }
         public void visitJmlClassDecl(JmlClassDecl tree)               { visitTree(tree); }

@@ -192,8 +192,10 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
     
     @Override
-    public JCTree visitJmlBlock(JmlBlock that, Void p) {
-        JmlBlock r = M.at(that.pos).Block(that.flags,copy(that.stats));
+    public JCTree visitBlock(BlockTree node, Void p) {
+        JmlBlock that = (JmlBlock)node;
+        JmlBlock r = (JmlBlock)super.visitBlock(that,p).setType(that.type);
+        r.endpos = that.endpos;
         r.sourcefile = that.sourcefile;
         r.isInitializerBlock = that.isInitializerBlock;
         r.specificationCases = copy(that.specificationCases);
@@ -899,13 +901,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return t;
     }
 
-    public JCTree visitBlock(BlockTree node, Void p) {
-        JCTree t = super.visitBlock(node,p).setType(((JCBlock)node).type);
-        ((JCBlock)t).endpos = ((JCBlock)node).endpos;
-        return t;
-    }
-
-    public JCTree visitBreak(BreakTree node, Void p) {
+     public JCTree visitBreak(BreakTree node, Void p) {
         return super.visitBreak(node,p).setType(((JCBreak)node).type);
         // FIXME - need to repoint reference to target
     }

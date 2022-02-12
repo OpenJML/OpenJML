@@ -52,7 +52,6 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     public R visitAssignment(AssignmentTree node, P p)                                  { return shouldNotBeCalled(node); }
     public R visitCompoundAssignment(CompoundAssignmentTree node, P p)                  { return shouldNotBeCalled(node); }
     public R visitBlock(BlockTree node, P p)                                            { return shouldNotBeCalled(node); }
-    public R visitJmlBlock(BlockTree node, P p)                                         { return shouldNotBeCalled(node); }
     public R visitBreak(BreakTree node, P p)                                            { return shouldNotBeCalled(node); }
     public R visitCase(CaseTree node, P p)                                              { return shouldNotBeCalled(node); }
     public R visitCatch(CatchTree node, P p)                                            { return shouldNotBeCalled(node); }
