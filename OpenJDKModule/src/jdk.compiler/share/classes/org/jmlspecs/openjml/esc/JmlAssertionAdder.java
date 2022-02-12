@@ -406,6 +406,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** A counter that ensures unique variable names (within a method body). */
 	protected int uniqueCount = 0;
+	public int nextUnique() { return uniqueCount++; }
 
 	public boolean useBV;
 
@@ -2430,7 +2431,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	protected String uniqueTempString() {
 		//if (uniqueCount == 164) Utils.dumpStack();
-		return Strings.tmpVarString + (uniqueCount++);
+		return Strings.tmpVarString + nextUnique();
 	}
 
 	protected JmlVariableDecl newTempDecl(DiagnosticPosition pos, Type t) {
@@ -4586,7 +4587,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								for (JCVariableDecl decl : ((JmlMethodClauseDecl) clause).decls) {
 									addTraceableComment(decl, clause.toString());
 									Name name = names.fromString(
-											decl.name.toString() + "__OLD_" + decl.pos + "_" + (uniqueCount++));
+											decl.name.toString() + "__OLD_" + decl.pos + "_" + nextUnique());
 									// JCVariableDecl newdecl = convertCopy(decl);
 									JCVariableDecl newdecl = treeutils.makeDupDecl(decl, methodDecl.sym, name,
 											clause.pos);
@@ -6787,7 +6788,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				result = eresult = convertExpr(that.truepart);
 			} else {
 
-				Name resultname = names.fromString(Strings.conditionalResult + (uniqueCount++));
+				Name resultname = names.fromString(Strings.conditionalResult + nextUnique());
 				JCVariableDecl vdecl = treeutils.makeVarDef(that.type, resultname,
 						methodDecl == null ? classDecl.sym : methodDecl.sym, that.pos);
 				addStat(vdecl);
@@ -8557,7 +8558,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					if (t instanceof Type.TypeVar)
 						t = paramActuals.get(t.toString()).type;
 					JCVariableDecl decl = treeutils.makeVarDef(t,
-							names.fromString(Strings.newObjectVarString + that.pos + "_" + (uniqueCount++)), null,
+							names.fromString(Strings.newObjectVarString + that.pos + "_" + nextUnique()), null,
 							that.pos);
 					addStat(decl);
 					resultSym = decl.sym;
@@ -8967,7 +8968,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										// Name name = names.fromString(decl.name.toString() + "__OLD_" + decl.pos);
 										// JCVariableDecl newdecl = convertCopy(decl);
 										Name name = names.fromString(
-												decl.name.toString() + "__OLD_" + decl.pos + "_" + (uniqueCount++));
+												decl.name.toString() + "__OLD_" + decl.pos + "_" + nextUnique());
 										// FIXME - does the declzaration really need to be duplicated -- it is only used
 										// once
 										JCVariableDecl newdecl = treeutils.makeDupDecl(decl, methodDecl.sym, name,
@@ -9243,7 +9244,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			Name calllabel = null;
 			if (splitExpressions) { //if (!translatingJML) {
 				JCBlock bl = M.at(that).Block(0L, com.sun.tools.javac.util.List.<JCStatement>nil());
-				String label = "_JMLCALL_" + that.pos + "_" + (uniqueCount++);
+				String label = "_JMLCALL_" + that.pos + "_" + nextUnique();
 				calllabel = names.fromString(label);
 				JmlLabeledStatement stat = M.at(that).JmlLabeledStatement(calllabel, null, bl);
 				addStat(stat);
@@ -11167,7 +11168,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// FIXME - Creating a decl and initializing it outside the expression doe snot
 			// work for translatigJML if there is a quantifier expression
 			JCVariableDecl decl = treeutils.makeVarDef(that.type,
-					names.fromString(Strings.newArrayVarString + that.pos), null, that.pos);
+					names.fromString(Strings.newArrayVarString + that.pos + "_" + nextUnique()), null, that.pos);
 			addStat(decl);
 			JCIdent id = treeutils.makeIdent(that.pos, decl.sym);
 
@@ -15623,7 +15624,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// Have an iterable instead of an array, with RAC
 
 			array = convertExpr(that.expr);
-			Name iteratorName = names.fromString("_JML_iterator_" + (uniqueCount++));
+			Name iteratorName = names.fromString("_JML_iterator_" + nextUnique());
 			JCExpression iter = methodCallUtilsExpression(array, "iterator", array);
 			Type restype;
 			restype = iter.type;
@@ -15725,7 +15726,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		int p = pos.getPreferredPosition();
 		if (p < 0)
 			p = 0;
-		Name indexName = names.fromString("index_" + p + "_" + (uniqueCount++));
+		Name indexName = names.fromString("index_" + p + "_" + nextUnique());
 		JCVariableDecl indexDecl = treeutils.makeVarDef(syms.intType, indexName, methodDecl.sym, treeutils.zero);
 		indexDecl.sym.pos = pos.getPreferredPosition();
 		indexDecl.pos = pos.getPreferredPosition();
@@ -15947,7 +15948,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected void loopHelperMakeBody(JCStatement body) {
 		addTraceableComment(body, null, "Begin loop body");
 		JCBlock bodyBlock = M.at(body).Block(0, null);
-		Name label = names.fromString("loopBody_" + body.pos + "_" + (uniqueCount++));
+		Name label = names.fromString("loopBody_" + body.pos + "_" + nextUnique());
 		JCLabeledStatement lab = M.at(body).JmlLabeledStatement(label, null, bodyBlock);
 		continueStack.push(lab);
 		addStat(lab);
@@ -16796,7 +16797,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 							} else {
 								arg = convertExpr(arg); // into label extra statements
-								String s = "_JML___old_" + (uniqueCount++); // FIXME - Put string in Strings
+								String s = "_JML___old_" + nextUnique(); // FIXME - Put string in Strings
 								Name nm = names.fromString(s);
 								JCVariableDecl d = treeutils.makeVarDef(arg.type, nm, methodDecl.sym,
 										treeutils.makeZeroEquivalentLit(arg.pos, arg.type));
@@ -16857,7 +16858,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								int p = arg.pos;
 								// replace \nonnullelements(arg) with (\let temp0 = arg; temp0 != null &&
 								// (\forall int temp; 0 <= temp && temp < temp0.length; temp0[temp] != null);
-								Name nm0 = names.fromString("__JMLtemp" + (uniqueCount++));
+								Name nm0 = names.fromString("__JMLtemp" + nextUnique());
 								JCExpression id0;
 								if (splitExpressions) {
 									JCVariableDecl vd0 = treeutils.makeVariableDecl(nm0, arg.type, convertExpr(arg), p);
@@ -16872,7 +16873,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								// FIXME _ for now don't use a let: there are problems translating it
 								// id0 = arg;
 
-								Name nm = names.fromString("__JMLtemp" + (uniqueCount++));
+								Name nm = names.fromString("__JMLtemp" + nextUnique());
 								JCVariableDecl vd = treeutils.makeVariableDecl(nm, syms.intType, null, p);
 								JCExpression z = treeutils.makeIntLiteral(p, 0);
 								JCExpression id1 = treeutils.makeIdent(p, vd.sym);
@@ -17528,13 +17529,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				Type t = that.type;
 				if (utils.rac && that.type instanceof JmlType)
 					t = syms.longType; // FIXME - stopgap until RAC is working properly on quantifiers
-				Name n = names.fromString("_JML$val$$" + (uniqueCount++));
+				Name n = names.fromString("_JML$val$$" + nextUnique());
 				JCVariableDecl decl = treeutils.makeVarDef(t, n, methodDecl.sym, that.pos);
 				decl.init = treeutils.makeZeroEquivalentLit(that.pos, types.unboxedTypeOrType(t));
 				addStat(decl);
 
 				// Label for the loop, so we can break out of it
-				Name label = names.fromString("__JMLwhile_" + (uniqueCount++));
+				Name label = names.fromString("__JMLwhile_" + nextUnique());
 				ListBuffer<JCStatement> check = pushBlock(); // B // enclosing block, except for declaration of
 																// accumulator
 				try {

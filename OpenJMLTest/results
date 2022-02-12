@@ -163,6 +163,8 @@ typeclauses.java             - 123/0 #
 - check after parser
 - check after attribution
 
+- var not allowed in old clauses
+- check that private methods do not override
 - Fix path to specs and to solvers (e.g. SpecsEsc; -exec not working?)
 - Lambdas
 - records
