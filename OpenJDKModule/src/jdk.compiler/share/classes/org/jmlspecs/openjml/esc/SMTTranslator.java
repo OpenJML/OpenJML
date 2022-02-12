@@ -3202,7 +3202,6 @@ public class SMTTranslator extends JmlTreeScanner {
     // FIXME - what about calls of anonymous classes
     @Override public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
     @Override public void visitImport(JCImport that)               { shouldNotBeCalled(that); }
-    @Override public void visitJmlImport(JmlImport that)                     { shouldNotBeCalled(that); }
     @Override public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }
     @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
     @Override public void visitJmlBinary(JmlBinary that)           { shouldNotBeCalled(that); }

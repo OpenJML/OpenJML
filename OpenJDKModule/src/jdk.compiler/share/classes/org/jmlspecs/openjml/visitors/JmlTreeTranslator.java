@@ -181,8 +181,8 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
-    public void visitJmlImport(JmlImport that) {
-        visitImport(that);
+    public void visitImport(JCImport that) {
+        super.visitImport(that);
         // not translating: isModel, staticImport
     }
 

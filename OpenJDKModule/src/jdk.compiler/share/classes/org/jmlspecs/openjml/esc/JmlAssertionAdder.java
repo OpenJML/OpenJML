@@ -5874,14 +5874,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitImport(JCImport that) {
-		// OpenJML should never call this, because JCImport nodes should be
-		// replaced by JmlImport nodes. We implement this just in case, but
-		// always produce a JmlImport node
 
 		JCTree qualid = that.qualid;
+        // FIXME - need to rewrite qualid - might have a *; might have a method name
 		if (fullTranslation)
 			qualid = convert(qualid);
-		result = M.at(that).Import(qualid, that.staticImport);
+        result = M.at(that).JmlImport(qualid, that.staticImport, ((JmlImport)that).isModel).setType(that.type);
 	}
 
 	// OK
@@ -16238,12 +16236,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		result = g;
 	}
 
-	// OK
-	@Override
-	public void visitJmlImport(JmlImport that) {
-		// FIXME - need to rewrite qualid - might have a *; might have a method name
-		result = M.at(that).Import(that.qualid, that.staticImport).setType(that.type);
-	}
 
 	@Override
 	public void visitJmlLabeledStatement(JmlLabeledStatement that) {
@@ -20908,11 +20900,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		@Override
 		public void visitImport(JCImport tree) {
-			// do nothing
-		}
-
-		@Override
-		public void visitJmlImport(JmlImport tree) {
 			// do nothing
 		}
 

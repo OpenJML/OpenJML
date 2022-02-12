@@ -149,10 +149,10 @@ public class JmlFlow extends Flow  {
         }
         
 
-        @Override
-        public void visitJmlImport(JmlImport that) {
-            visitImport(that);
-        }
+//      @Override
+//      public void visitImport(JCImport that) {
+//          super.visitImport(that);
+//      }
         
         @Override
         public void visitJmlRange(JmlRange that) {
@@ -548,10 +548,10 @@ public class JmlFlow extends Flow  {
         }
         
 
-        @Override
-        public void visitJmlImport(JmlImport that) {
-            visitImport(that);
-        }
+//      @Override
+//      public void visitImport(JCImport that) {
+//          super.visitImport(that);
+//      }
 
         @Override
         public void visitJmlRange(JmlRange that) {
@@ -957,10 +957,10 @@ public class JmlFlow extends Flow  {
         }
         
 
-        @Override
-        public void visitJmlImport(JmlImport that) {
-            visitImport(that);
-        }
+//        @Override
+//        public void visitImport(JCImport that) {
+//            super.visitImport(that);
+//        }
 
         @Override
         public void visitJmlRange(JmlRange that) {

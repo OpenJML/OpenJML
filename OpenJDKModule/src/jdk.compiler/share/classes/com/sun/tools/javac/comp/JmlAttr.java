@@ -4443,8 +4443,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     }
 
-    public void visitJmlImport(JmlImport that) {
-        visitImport(that);
+    public void visitImport(JCImport that) {
+        super.visitImport(that);
         // FIXME - ignoring model
     }
     
@@ -7905,7 +7905,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	}
     	
         public void visitJmlBinary(JmlBinary tree)                     { visitTree(tree); }
-        public void visitBlock(JmlBlock tree)                       { visitTree(tree); }
+        public void visitBlock(JmlBlock tree)                          { visitTree(tree); }
         public void visitJmlChained(JmlChained tree)                   { visitTree(tree); }
         public void visitJmlChoose(JmlChoose tree)                     { visitTree(tree); }
         public void visitJmlClassDecl(JmlClassDecl tree)               { visitTree(tree); }
@@ -7914,7 +7914,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         public void visitJmlEnhancedForLoop(JmlEnhancedForLoop tree)   { visitTree(tree); }
         public void visitJmlForLoop(JmlForLoop tree)                   { visitTree(tree); }
         public void visitJmlGroupName(JmlGroupName tree)               { visitTree(tree); }
-        public void visitJmlImport(JmlImport tree)                     { visitTree(tree); }
+        public void visitImport(JCImport tree)                         { visitTree(tree); }
         public void visitJmlInlinedLoop(JmlInlinedLoop tree)           { visitTree(tree); }
         public void visitJmlLabeledStatement(JmlLabeledStatement tree) { visitTree(tree); }
         public void visitJmlLblExpression(JmlLblExpression tree)       { visitTree(tree); }

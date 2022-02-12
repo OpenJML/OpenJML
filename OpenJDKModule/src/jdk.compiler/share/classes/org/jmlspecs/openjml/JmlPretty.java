@@ -324,15 +324,17 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(that,e); }
     }
 
-    public void visitJmlImport(JmlImport that) {
+    public void visitImport(JCImport that) {
         try {
-            if (useJMLComments && that.isModel) print("//@ ");
-            if (that.isModel) print("model ");
-            print("import ");
-            if (that.staticImport) print("static ");
-            printExpr(that.qualid);
-            print(";");
-            println();
+            boolean isJML = ((JmlImport)that).isModel;
+            if (useJMLComments && isJML) print("//@ ");
+            if (isJML) print("model ");
+            super.visitImport(that);
+//            print("import ");
+//            if (that.staticImport) print("static ");
+//            printExpr(that.qualid);
+//            print(";");
+//            println();
         } catch (IOException e) { perr(that,e); }
     }
 

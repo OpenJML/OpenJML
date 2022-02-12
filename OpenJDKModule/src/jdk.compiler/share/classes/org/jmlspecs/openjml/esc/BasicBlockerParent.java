@@ -1770,7 +1770,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     @Override public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) { shouldNotBeCalled(that); }
 
     // These do not need to be implemented
-    @Override public void visitJmlImport(JmlImport that)                        { shouldNotBeCalled(that); }
     @Override public void visitJmlMethodDecl(JmlMethodDecl that)                { shouldNotBeCalled(that); }
     @Override public void visitJmlStatementSpec(JmlStatementSpec that)          { shouldNotBeCalled(that); }
 

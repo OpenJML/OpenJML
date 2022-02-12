@@ -565,8 +565,8 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        scan(tree.selection);
 //    }
 //
-//    public void visitJmlImport(JmlImport that) {
-//        visitImport(that);
+//    public void visitImport(JCImport that) {
+//        super.visitImport(that);
 //    }
 //    
 //    public void visitJmlLabeledStatement(JmlLabeledStatement that) {

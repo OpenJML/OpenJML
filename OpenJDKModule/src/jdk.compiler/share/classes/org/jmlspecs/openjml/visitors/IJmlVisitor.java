@@ -84,8 +84,8 @@ public interface IJmlVisitor extends IVisitor {
         scan(tree.selection);
     }
 
-    default public void visitJmlImport(JmlImport tree) {
-        visitImport(tree);
+    default public void visitImport(JCTree.JCImport tree) {
+        IVisitor.super.visitImport(tree);
     }
     
     default public void visitJmlInlinedLoop(JmlInlinedLoop tree)           {

@@ -252,14 +252,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return r;
     }
 
-    @Override
-    public JCTree visitJmlImport(JmlImport that, Void p) {
-        JmlImport copy = (JmlImport)visitImport(that,p);
-        copy.isModel = that.isModel;
-        // already done: copy.type = that.type;
-        return copy;
-    }
-
+ 
     @Override
     public JCTree visitJmlInlinedLoop(JmlInlinedLoop that, Void p) {
         JmlInlinedLoop copy = M.at(that.pos).JmlInlinedLoop(copy(that.loopSpecs));
@@ -961,8 +954,12 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return t;
     }
 
+    @Override
     public JCTree visitImport(ImportTree node, Void p) {
-        return super.visitImport(node,p).setType(((JCTree)node).type);
+        JmlImport copy = (JmlImport)super.visitImport(node,p).setType(((JCTree)node).type);
+        copy.isModel = ((JmlImport)node).isModel;
+        // already done: copy.type = that.type;
+        return copy;
     }
     
     public JCTree visitLambdaExpression(LambdaExpressionTree node, Void p) {

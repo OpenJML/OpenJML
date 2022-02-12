@@ -158,8 +158,8 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 //        scan(tree.selection);
 //    }
 //
-//    public void visitJmlImport(JmlImport that) {
-//        visitImport(that);
+//    public void visitImport(JCImport that) {
+//        super.visitImport(that);
 //    }
 //    
 //    public void visitJmlLabeledStatement(JmlLabeledStatement that) {

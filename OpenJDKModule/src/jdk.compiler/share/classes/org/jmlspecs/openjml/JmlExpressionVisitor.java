@@ -102,7 +102,6 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     public R visitJmlEnhancedForLoop(JmlEnhancedForLoop that, P p)                      { return shouldNotBeCalled(that); }
     public R visitJmlForLoop(JmlForLoop that, P p)                                      { return shouldNotBeCalled(that); }
     public R visitJmlGroupName(JmlGroupName that, P p)                                  { return shouldNotBeCalled(that); }
-    public R visitJmlImport(JmlImport that, P p)                                        { return shouldNotBeCalled(that); }
     public R visitJmlnlinedLoop(JmlInlinedLoop that, P p)                               { return shouldNotBeCalled(that); }
     public R visitJmlMethodClauseCallable(JmlMethodClauseCallable that, P p)            { return shouldNotBeCalled(that); }
     public R visitJmlMethodClauseConditional(JmlMethodClauseConditional that, P p)      { return shouldNotBeCalled(that); }
