@@ -40,7 +40,7 @@ public class JmlCheckSpecs extends JmlTreeScanner {
     
     public void check(Symbol s) {
     	//if (s instanceof Symbol.ClassSymbol) System.out.println("CHECKING " + s.owner + " " + s);
-    	specs.getSpecs(s);
+    	specs.getAttrSpecs(s);
     	if (s instanceof ClassSymbol) ((ClassSymbol)s).members().getSymbols().forEach(ss->check(ss));
     }
 

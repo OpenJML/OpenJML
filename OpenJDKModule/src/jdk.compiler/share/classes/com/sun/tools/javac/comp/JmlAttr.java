@@ -619,7 +619,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			// It may also repeat any of the above
     			// This will not include any Java initialization blocks
     			// TODO: Does it include JML initialization specs?
-    			specs.getSpecs(s);
+    			specs.getAttrSpecs(s);
     		}
     		this.attribJmlDecls = saved;
    	}
@@ -741,7 +741,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
    
     @Override
     protected void postInitBlock(JCBlock tree, Env<AttrContext> env) {
-        JmlSpecs.MethodSpecs msp = JmlSpecs.instance(context).getSpecs(env.enclClass.sym,tree);
+        JmlSpecs.MethodSpecs msp = JmlSpecs.instance(context).getAttrSpecs(env.enclClass.sym,tree);
         if (msp != null) {
             JmlMethodSpecs sp = msp.cases;
             attribStat(sp, env);

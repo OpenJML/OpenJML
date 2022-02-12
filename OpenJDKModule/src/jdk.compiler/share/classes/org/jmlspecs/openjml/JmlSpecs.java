@@ -869,7 +869,7 @@ public class JmlSpecs {
         return getLoadedSpecs(csym);
     }
     
-    public void getSpecs(Symbol s) {
+    public void getAttrSpecs(Symbol s) {
     	if (s instanceof ClassSymbol) getAttrSpecs((ClassSymbol)s);
     	if (s instanceof MethodSymbol) getAttrSpecs((MethodSymbol)s);
     	if (s instanceof VarSymbol) getAttrSpecs((VarSymbol)s);
@@ -1374,7 +1374,7 @@ public class JmlSpecs {
      * @return the specs of the block, or null if none are present
      */
     //@ nullable
-    public MethodSpecs getSpecs(ClassSymbol sym, JCTree.JCBlock m) {
+    public MethodSpecs getAttrSpecs(ClassSymbol sym, JCTree.JCBlock m) {
         TypeSpecs t = getAttrSpecs(sym);
         return t.blocks.get(m);
     }
