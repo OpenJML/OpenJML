@@ -472,7 +472,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (t instanceof JCVariableDecl) {
                     JCVariableDecl vdecl = (JCVariableDecl)t;
                     if (vdecl.sym != null) {  // FIXME - WHY WOULD THIS SYM EVER BE NULL?
-                        FieldSpecs fspecs = specs.getSpecs(vdecl.sym);
+                        FieldSpecs fspecs = specs.getAttrSpecs(vdecl.sym);
                         if (fspecs != null) {
                         	attribAnnotationTypes(fspecs.mods.annotations, env);
                             for (JmlTypeClause spec:  fspecs.list) {
@@ -598,7 +598,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     				JCVariableDecl v = (JCVariableDecl)d;
     				if (v.sym != null) { // v.sym == null if there is an error in JmlEnter
     					if (v.type.isReference() && v.type.tsym instanceof ClassSymbol) specs.getSpecs((ClassSymbol)v.type.tsym);
-    					specs.getSpecs(v.sym);
+    					specs.getAttrSpecs(v.sym);
     				}
     			}
     			else if (d instanceof JCClassDecl) {
@@ -2961,7 +2961,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // null FieldSpecs
         if (tree.sym.owner.kind == Kind.TYP) {
             // Check all datagroups that the field is in
-            JmlSpecs.FieldSpecs fspecs = specs.getSpecs(tree.sym);
+            JmlSpecs.FieldSpecs fspecs = specs.getAttrSpecs(tree.sym);
             jmlenv = jmlenv.pushCopy();
             if (fspecs != null) try {
                 for (JmlTypeClause tc: fspecs.list) {
@@ -3065,7 +3065,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         tree.sym = (VarSymbol)sym;
         
-        JmlSpecs.FieldSpecs fspecs = specs.getSpecs((VarSymbol)sym);
+        JmlSpecs.FieldSpecs fspecs = specs.getAttrSpecs((VarSymbol)sym);
         boolean isSpecPublic = utils.hasMod(fspecs.mods,Modifiers.SPEC_PUBLIC);
         boolean isSpecProtected = utils.hasMod(fspecs.mods,Modifiers.SPEC_PROTECTED);
         
@@ -3470,7 +3470,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 specs.getLoadedSpecs((ClassSymbol)sym.owner);
                 if (specs.statusOK((ClassSymbol)sym.owner)) { 
-                	FieldSpecs fspecs = specs.getSpecs((VarSymbol)sym);
+                	FieldSpecs fspecs = specs.getAttrSpecs((VarSymbol)sym);
                 	if (fspecs == null || !isModel(fspecs.mods)) {
                 		utils.error(tree.ident,"jml.represents.expected.model", sym.owner, sym);
                 		if (fspecs != null && fspecs.decl != null) {
@@ -3524,7 +3524,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 log.error(tree.identifier.pos,"jml.ident.not.in.class",sym,sym.owner,env.enclClass.sym);
             } else {
                 // FIXME - should this be done elsewhere?
-                specs.getSpecs((VarSymbol)sym).list.append(tree);
+                specs.getAttrSpecs((VarSymbol)sym).list.append(tree);
             }
             
             // static does not matter here - the expressions in the
@@ -5614,7 +5614,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // If the variable is local to the method, then secret/query rules do not apply
         if (vsym.owner instanceof MethodSymbol) return;
 
-        JmlSpecs.FieldSpecs fspecs = specs.getSpecs(vsym);
+        JmlSpecs.FieldSpecs fspecs = specs.getAttrSpecs(vsym);
         boolean identIsSecret = fspecs != null && findMod(fspecs.mods,Modifiers.SECRET) != null;
         // Rules:
         // If method is open, then ident may not even be read
@@ -5662,7 +5662,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // Returns true if contextSym is contained (transitively) in the varSym datagroup
     protected boolean isContainedInDatagroup(/*@nullable*/ VarSymbol varSym, /*@nullable*/ VarSymbol contextSym) {
         if (varSym == contextSym) return true;
-        JmlSpecs.FieldSpecs fspecs = specs.getSpecs(varSym);
+        JmlSpecs.FieldSpecs fspecs = specs.getAttrSpecs(varSym);
         if (fspecs == null) System.out.println("NO SPECS FOR " + varSym + " " + contextSym);
         for (JmlTypeClause t: fspecs.list) {
             if (t.clauseType == inClause) {  // FIXME - relies on variable IN clauses being attributed before a method that uses them
@@ -7111,7 +7111,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Check the mods after the specs, because the modifier checks depend on
             // the specification clauses being attributed
 
-            specs.getSpecs(that.sym); // Attributing specs, if not already done // Also checks the modifiers
+            specs.getAttrSpecs(that.sym); // Attributing specs, if not already done // Also checks the modifiers
 
             if (that.sym.owner.isInterface()) {
                 if (isModel(that.mods)) {

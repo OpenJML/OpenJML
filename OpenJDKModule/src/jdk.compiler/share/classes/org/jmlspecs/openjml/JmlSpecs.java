@@ -872,7 +872,7 @@ public class JmlSpecs {
     public void getSpecs(Symbol s) {
     	if (s instanceof ClassSymbol) getSpecs((ClassSymbol)s);
     	if (s instanceof MethodSymbol) getSpecs((MethodSymbol)s);
-    	if (s instanceof VarSymbol) getSpecs((VarSymbol)s);
+    	if (s instanceof VarSymbol) getAttrSpecs((VarSymbol)s);
     }
     
 //    /** Retrieves the specifications for a given type, providing and registering
@@ -1327,9 +1327,8 @@ public class JmlSpecs {
      * @return the specs of the field, or null if none are present
      */
     //@ nullable
-    public FieldSpecs getSpecs(VarSymbol m) {
-    	if (!(m.owner instanceof ClassSymbol)) return null;
-        ClassSymbol c = (ClassSymbol)m.owner;
+    public FieldSpecs getAttrSpecs(VarSymbol m) {
+    	if (!(m.owner instanceof ClassSymbol c)) return null;
     	getLoadedSpecs(c);
 //    	if (c == null) System.out.println("Unexpected difference - field " + m + " " + m.owner + " " + m.enclClass());
 //    	if (c == null) Utils.dumpStack();
