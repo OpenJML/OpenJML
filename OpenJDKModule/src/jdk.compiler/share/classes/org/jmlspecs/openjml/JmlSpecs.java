@@ -862,7 +862,7 @@ public class JmlSpecs {
     	return getLoadedSpecs(m).modifiers;
     }
     
-    public TypeSpecs getSpecs(ClassSymbol csym) {
+    public TypeSpecs getAttrSpecs(ClassSymbol csym) {
     	if (status(csym).less(SpecsStatus.SPECS_ATTR)) {
     		attr.attrSpecs(csym);
     	}
@@ -870,7 +870,7 @@ public class JmlSpecs {
     }
     
     public void getSpecs(Symbol s) {
-    	if (s instanceof ClassSymbol) getSpecs((ClassSymbol)s);
+    	if (s instanceof ClassSymbol) getAttrSpecs((ClassSymbol)s);
     	if (s instanceof MethodSymbol) getAttrSpecs((MethodSymbol)s);
     	if (s instanceof VarSymbol) getAttrSpecs((VarSymbol)s);
     }
@@ -1375,7 +1375,7 @@ public class JmlSpecs {
      */
     //@ nullable
     public MethodSpecs getSpecs(ClassSymbol sym, JCTree.JCBlock m) {
-        TypeSpecs t = getSpecs(sym);
+        TypeSpecs t = getAttrSpecs(sym);
         return t.blocks.get(m);
     }
    

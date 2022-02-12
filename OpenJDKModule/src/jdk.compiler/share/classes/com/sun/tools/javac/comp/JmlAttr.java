@@ -415,7 +415,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	JmlSpecs.instance(context).getLoadedSpecs(c);
         	super.attribClass(c);
 
-            specs.getSpecs(c); // if not yet attributed, attribute the specs // FIXME - not needed
+            specs.getAttrSpecs(c); // if not yet attributed, attribute the specs // FIXME - not needed
         	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-L " + c + " " + !isUnattributed);
             if (!isUnattributed) return;
         	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-M " + c);
@@ -554,7 +554,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
             }
             
-            specs.getSpecs(c); // if not yet attributed, attribute the class specs
+            specs.getAttrSpecs(c); // if not yet attributed, attribute the class specs
             
         } finally {
         	this.attribJmlDecls = savedAttribJmlDecls;
@@ -587,7 +587,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     public void attribClassBodySpecs(JmlClassDecl c) {
     	if (debugAttr) System.out.println("Attributing class body specs of " + c.sym + " " + specs.status(c.sym));
-    	specs.getSpecs(c.sym); // Attributing specs, if not already done
+    	specs.getAttrSpecs(c.sym); // Attributing specs, if not already done
     	if (true || !utils.esc) {
     		for (var d: c.defs) {
     			if (d instanceof JCMethodDecl) {
@@ -597,13 +597,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			else if (d instanceof JCVariableDecl) {
     				JCVariableDecl v = (JCVariableDecl)d;
     				if (v.sym != null) { // v.sym == null if there is an error in JmlEnter
-    					if (v.type.isReference() && v.type.tsym instanceof ClassSymbol) specs.getSpecs((ClassSymbol)v.type.tsym);
+    					if (v.type.isReference() && v.type.tsym instanceof ClassSymbol) specs.getAttrSpecs((ClassSymbol)v.type.tsym);
     					specs.getAttrSpecs(v.sym);
     				}
     			}
     			else if (d instanceof JCClassDecl) {
     				var csym = ((JCClassDecl)d).sym;
-    				if (!utils.isJML(csym.flags())) specs.getSpecs(csym);
+    				if (!utils.isJML(csym.flags())) specs.getAttrSpecs(csym);
     			}
     			else if (d instanceof JmlBlock) {
     				JmlBlock bl = (JmlBlock)d;
@@ -823,7 +823,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         if (tree.lhs instanceof JCFieldAccess fa) {
         	if (fa.selected.type.tsym instanceof ClassSymbol cs) {
-        		var sp = specs.getSpecs(cs);
+        		var sp = specs.getAttrSpecs(cs);
         		var m = utils.findMod(sp.modifiers, Modifiers.IMMUTABLE);
                 if (m != null) {
                     utils.error(tree.pos, "jml.message", "Fields of an object with immutable type may not be modified: " + tree.lhs + " (" + fa.selected.type + ")");
@@ -6914,14 +6914,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }        
 
         visitClassDef(that);
-        specs.getSpecs(that.sym); // if not yet attributed, attribute the specs
+        specs.getAttrSpecs(that.sym); // if not yet attributed, attribute the specs
         if (env.enclMethod != null && specs.status(that.sym).less(JmlSpecs.SpecsStatus.SPECS_ATTR)) {
         	utils.warning(that,"jml.message","UNEXPECTED RE-PUTTING LOCAL CLASS SPECS " + that.sym);
         	// Note: We need that.sym in order to register a local class's specs, but the local class
         	// is attributed as a method statement.
         	//((JmlEnter)enter).specsClassEnter(that.sym.owner, that, typeEnvs.get(that.sym), that);
         	specs.putSpecs((ClassSymbol)that.sym, new JmlSpecs.TypeSpecs(that, that, typeEnvs.get(that.sym)));
-        	specs.getSpecs(that.sym);
+        	specs.getAttrSpecs(that.sym);
         	//FIXME - not at all sure about correctness of this branch
         }
         jmlresolve.setAllowJML(saved);
@@ -7623,7 +7623,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 		JavaFileObject prev = null;
 		try {
     		if (utils.verbose()) utils.note("Attributing specs for " + msym.owner + " " + msym);
-    		specs.getSpecs((ClassSymbol)msym.owner);
+    		specs.getAttrSpecs((ClassSymbol)msym.owner);
     		sp = specs.getLoadedSpecs(msym);
     		if (sp == null) {
     			if (utils.verbose()) utils.note("Specs are null for " + msym.owner + "." + msym);
