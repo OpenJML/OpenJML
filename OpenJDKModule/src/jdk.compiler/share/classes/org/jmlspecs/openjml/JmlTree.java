@@ -2107,7 +2107,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitLabeledStatement(this, d);
             } else {
-                System.out.println("A JmlLblExpression expects an JmlTreeVisitor, not a " + v.getClass());
+                System.out.println("A JmlLabeledStatement expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; // return super.accept(v,d);
             }
         }

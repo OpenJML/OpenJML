@@ -6110,7 +6110,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			treeMap.remove(that); // Remove the statement because we are leaving the scope of the label
 		}
 	}
-	
 
 	Type getLambdaReturnType(JCLambda that) {
 		ClassType ctype = (ClassType) that.type;
