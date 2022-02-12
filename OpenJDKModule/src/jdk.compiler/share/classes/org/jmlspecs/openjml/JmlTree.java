@@ -580,11 +580,19 @@ public class JmlTree {
         /** Creates a JML labeled statement */
         @Override
         public JmlLabeledStatement JmlLabeledStatement(Name label, ListBuffer<JCStatement> extra, JCStatement body) {
+            JmlLabeledStatement p = Labelled(label,body);
+            if (extra == null) extra = new ListBuffer<JCStatement>();
+            p.extraStatements = extra;
+            return p;
+        }
+
+        /** Creates a JML labeled statement */
+        @Override
+        public JmlLabeledStatement Labelled(Name label, JCStatement body) {
             if (body == null) body = JmlTree.Maker.instance(context).Block(0L, List.<JCStatement>nil());
             JmlLabeledStatement p = new JmlLabeledStatement(label,body);
             p.pos = pos;
-            if (extra == null) extra = new ListBuffer<JCStatement>();
-            p.extraStatements = extra;
+            p.extraStatements = new ListBuffer<JCStatement>();
             return p;
         }
 
