@@ -162,7 +162,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 //        visitImport(that);
 //    }
 //    
-//    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
+//    public void visitLabelled(JCLabeledStatement that) {
 ////        scan(that.extraStatements.toList());
 //        scan(that.body);
 //    }

@@ -6112,6 +6112,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			treeMap.remove(that); // Remove the statement because we are leaving the scope of the label
 		}
 	}
+	
 
 	Type getLambdaReturnType(JCLambda that) {
 		ClassType ctype = (ClassType) that.type;
@@ -16245,11 +16246,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		result = M.at(that).Import(that.qualid, that.staticImport).setType(that.type);
 	}
 
-	@Override
-	public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-		visitLabelled(that);
-	}
-
 	int lblUnique = 0;
 
 	// OK
@@ -20655,7 +20651,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 
 		@Override
-		public /* @ nullable */ java.util.List<JmlStatementExpr> visitJmlLabeledStatement(JmlLabeledStatement that,
+		public /* @ nullable */ java.util.List<JmlStatementExpr> visitLabeledStatement(LabeledStatementTree that,
 				Void p) {
 			return null;
 		}

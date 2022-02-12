@@ -92,7 +92,7 @@ public interface IJmlVisitor extends IVisitor {
     	// do nothing
     }
 
-    default public void visitJmlLabeledStatement(JmlLabeledStatement tree) {
+    default public void visitLabelled(JCTree.JCLabeledStatement tree) {
 //        scan(tree.extraStatements.toList());
         scan(tree.body);
     }

@@ -4593,11 +4593,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = that.type = syms.booleanType;
     }
     
-    /** 
-     */
-    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-        visitLabelled(that);
-    }
+//    /** 
+//     */
+//    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
+//        visitLabelled(that);
+//    }
     
     /** Attributes a LBL expression.  Note that OpenJML allows an arbitrary
      * type LBL expression, e.g.  (\lbl A expr) .  This should report for the
@@ -7916,7 +7916,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         public void visitJmlGroupName(JmlGroupName tree)               { visitTree(tree); }
         public void visitJmlImport(JmlImport tree)                     { visitTree(tree); }
         public void visitJmlInlinedLoop(JmlInlinedLoop tree)           { visitTree(tree); }
-        public void visitJmlLabeledStatement(JmlLabeledStatement tree) { visitTree(tree); }
+        public void visitLabelled(JCLabeledStatement tree)             { visitTree(tree); }
         public void visitJmlLblExpression(JmlLblExpression tree)       { visitTree(tree); }
         public void visitJmlMatchExpression(JmlMatchExpression tree)   { visitTree(tree); }
         public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) { visitTree(tree); }

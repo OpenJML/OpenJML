@@ -48,11 +48,15 @@ public interface IVisitor {
     default public void visitBlock(JCBlock that) {
     	for (var s: that.stats) scan(s);
     }
+    
+    default public void visitLabelled(JCLabeledStatement tree) {
+        scan(tree.body);
+    }
+
         public void visitDoLoop(JCDoWhileLoop that)          ;
         public void visitWhileLoop(JCWhileLoop that)         ;
         public void visitForLoop(JCForLoop that)             ;
         public void visitForeachLoop(JCEnhancedForLoop that) ;
-        public void visitLabelled(JCLabeledStatement that)   ;
         public void visitSwitch(JCSwitch that)               ;
         public void visitCase(JCCase that)                   ;
         public void visitSynchronized(JCSynchronized that)   ;

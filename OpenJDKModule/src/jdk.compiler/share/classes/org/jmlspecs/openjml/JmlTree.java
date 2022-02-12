@@ -2085,7 +2085,7 @@ public class JmlTree {
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlLabeledStatement(this); 
+                ((IJmlVisitor)v).visitLabelled(this); 
             } else {
                 for (JCStatement s: extraStatements) {
                     s.accept(v);
@@ -2097,7 +2097,7 @@ public class JmlTree {
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlLabeledStatement(this, d);
+                return ((JmlTreeVisitor<R,D>)v).visitLabeledStatement(this, d);
             } else {
                 System.out.println("A JmlLblExpression expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; // return super.accept(v,d);

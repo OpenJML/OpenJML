@@ -301,11 +301,12 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
 
     @Override
-    public JCTree visitJmlLabeledStatement(JmlLabeledStatement that, Void p) {
+    public JCTree visitLabeledStatement(LabeledStatementTree tree, Void p) {
+        var that = (JmlLabeledStatement)tree;
         return M.at(that.pos).JmlLabeledStatement(
                 that.label,
                 copy(that.extraStatements,p),
-                (JCBlock)copy(that.body,p));
+                copy(that.body,p)).setType(that.type);
      }
 
     @Override
@@ -977,10 +978,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         } else {
             return super.visitArrayAccess(node,p).setType(((JCTree)node).type);
         }
-    }
-
-    public JCTree visitLabeledStatement(LabeledStatementTree node, Void p) {
-        return super.visitLabeledStatement(node,p).setType(((JCTree)node).type);
     }
 
     public JCTree visitLiteral(LiteralTree node, Void p) {

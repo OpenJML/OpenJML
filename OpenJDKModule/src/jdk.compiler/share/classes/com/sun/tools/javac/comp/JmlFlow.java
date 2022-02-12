@@ -166,9 +166,9 @@ public class JmlFlow extends Flow  {
         }
 
         @Override
-        public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-            scan(that.extraStatements.toList());
-            scan(that.body);
+        public void visitLabelled(JCTree.JCLabeledStatement that) {
+            scan(((JmlLabeledStatement)that).extraStatements.toList());
+            super.visitLabelled(that);
         }
 
         @Override
@@ -564,9 +564,10 @@ public class JmlFlow extends Flow  {
             // nothing to do
         }
 
-        public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-            scan(that.extraStatements.toList());
-            scan(that.body);
+        @Override
+        public void visitLabelled(JCTree.JCLabeledStatement that) {
+            scan(((JmlLabeledStatement)that).extraStatements.toList());
+            super.visitLabelled(that);
         }
         
         public void visitJmlTuple(JmlTuple that) {
@@ -974,9 +975,9 @@ public class JmlFlow extends Flow  {
         }
 
         @Override
-        public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-            scan(that.extraStatements.toList());
-            scan(that.body);
+        public void visitLabelled(JCTree.JCLabeledStatement that) {
+            scan(((JmlLabeledStatement)that).extraStatements.toList());
+            super.visitLabelled(that);
         }
 
         @Override

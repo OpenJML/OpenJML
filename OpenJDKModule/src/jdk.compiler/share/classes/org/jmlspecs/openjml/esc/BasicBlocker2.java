@@ -935,11 +935,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     // OK
     @Override
-    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
+    public void visitLabelled(JCLabeledStatement that) {
         VarMap map = currentMap.copy();
         if (that.label.toString().equals(Strings.preLabelBuiltin)) premap = map;
         labelmaps.put(that.label,map); // if that.label is null, this is the premap
-        super.visitJmlLabeledStatement(that);
+        super.visitLabelled(that);
     }
     
     // FIXME - REVIEW
