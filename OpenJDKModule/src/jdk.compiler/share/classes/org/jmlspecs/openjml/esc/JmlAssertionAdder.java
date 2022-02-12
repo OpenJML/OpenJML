@@ -20663,11 +20663,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 
 		@Override
-		public /* @ nullable */ java.util.List<JmlStatementExpr> visitJmlNewClass(JmlNewClass that, Void p) {
-			return null; // FIXME
-		}
-
-		@Override
 		public /* @ nullable */ java.util.List<JmlStatementExpr> visitJmlMatchExpression(JmlMatchExpression that,
 				Void p) {
 			return that.expression.accept(this, p);

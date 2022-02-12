@@ -54,7 +54,7 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlMethodDecl(JmlMethodDecl that, P p)             ;
     R visitJmlMethodInvocation(JmlMethodInvocation that, P p) ;
     R visitJmlMethodSpecs(JmlMethodSpecs that, P p)           ;
-    R visitJmlNewClass(JmlNewClass that, P p)                 ;
+    //R visitNewClass(JCNewClass that, P p)                 ;
     R visitJmlModelProgramStatement(JmlModelProgramStatement that, P p);
     R visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that, P p);
     R visitJmlQuantifiedExpr(JmlQuantifiedExpr that, P p)     ;

@@ -17,14 +17,8 @@ alias wt="while [ \$(lsc) -gt 5 ]; do sleep 30; done"
 
 ## The sleeps are inserted so we don't try to run all of the tasks at once
 
-./run-summary log-racmost       "101/0"	racArithmeticModes racdemoexamples racfeatures racJML racnew3 racnewLoops racnewWithSpecs racsystem &
-./run-summary log-racfiles     	"26/41" racfiles  &
-./run-summary log-racnew       	"127/14" racnew  &
-./run-summary log-racnew2      	"69/0"	racnew2 &
-./run-summary log-racreadable	"2/0"	racreadable & 
 
 ./run-summary log-access+  	"155/0" access arith assignable compilationUnit compiler deprecation  &
-wt
 ./run-summary log-binaries 	"9/0"	binaries  &
 ./run-summary log-bugs     	"23/0"	bugs  &
 ./run-summary log-esc1     	"93/0"  esc1  &
@@ -63,7 +57,12 @@ wt
 ./run-summary log-typeclause	"123/0"	typeclauses  &
 ./run-summary log-SpecsBase    	"285/5"	SpecsBase  &
 ./run-summary log-SpecsEsc     	"3/0"	SpecsEsc  &
-
+wt
+./run-summary log-racmost       "101/0"	racArithmeticModes racdemoexamples racfeatures racJML racnew3 racnewLoops racnewWithSpecs racsystem &
+./run-summary log-racfiles     	"26/41" racfiles  &
+./run-summary log-racnew       	"127/14" racnew  &
+./run-summary log-racnew2      	"69/0"	racnew2 &
+./run-summary log-racreadable	"2/0"	racreadable & 
 
 while [ $(lsc) -gt "0" ]; do
   ##echo still running: `lst`

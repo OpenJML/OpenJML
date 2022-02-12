@@ -176,9 +176,9 @@ public class JmlFlow extends Flow  {
             scan(that.expression);
         }
 
-        public void visitJmlNewClass(JmlNewClass that) {
-            visitNewClass(that);
-        }
+//      public void visitNewClass(JCNewClass that) {
+//      super.visitNewClass(that);
+//  }
 
         public void visitJmlMatchExpression(JmlMatchExpression that) {
             scan(that.expression);
@@ -580,9 +580,9 @@ public class JmlFlow extends Flow  {
             scanExpr(that.expression);
         }
 
-        public void visitJmlNewClass(JmlNewClass that) {
-            visitNewClass(that);
-        }
+//        public void visitNewClass(JCNewClass that) {
+//            super.visitNewClass(that);
+//        }
 
         public void visitJmlMatchExpression(JmlMatchExpression that) {
         	System.out.println("visitJmlMatchExpression");
@@ -984,9 +984,9 @@ public class JmlFlow extends Flow  {
             scan(that.expression);
         }
 
-        public void visitJmlNewClass(JmlNewClass that) {
-            visitNewClass(that);
-        }
+//      public void visitNewClass(JCNewClass that) {
+//      super.visitNewClass(that);
+//  }
 
         public void visitJmlMatchExpression(JmlMatchExpression that) {
             scan(that.expression);

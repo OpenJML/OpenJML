@@ -170,9 +170,9 @@ public interface IJmlVisitor extends IVisitor {
         scan(tree.item);
     }
 
-    default public void visitJmlNewClass(JmlNewClass tree)                 {
-        visitNewClass(tree);
-    }
+//    default public void visitNewClass(JCNewClass tree)                 {
+//        IVisitor.super.visitClass(tree);
+//    }
     
     default public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree tree){
         // no children to scan

@@ -4617,9 +4617,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         result = check(that, resultType, KindSelector.VAL, resultInfo);
     }
     
-    public void visitJmlNewClass(JmlNewClass that) {
-        visitNewClass(that);
-    }
+//    public void visitNewClass(JCNewClass that) {
+//        super.visitNewClass(that);
+//    }
 
     public void visitJmlMatchExpression(JmlMatchExpression that) {
         Type seltype = attribExpr(that.expression, env, Type.noType);
@@ -7904,8 +7904,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		new JmlArgumentAttr(context);// self registers
     	}
     	
-        public void visitJmlBinary(JmlBinary tree)                     { visitTree(tree); }
         public void visitBlock(JmlBlock tree)                          { visitTree(tree); }
+        public void visitImport(JCImport tree)                         { visitTree(tree); }
+        public void visitNewClass(JCNewClass tree)                     { visitTree(tree); }
+        public void visitJmlBinary(JmlBinary tree)                     { visitTree(tree); }
         public void visitJmlChained(JmlChained tree)                   { visitTree(tree); }
         public void visitJmlChoose(JmlChoose tree)                     { visitTree(tree); }
         public void visitJmlClassDecl(JmlClassDecl tree)               { visitTree(tree); }
@@ -7914,7 +7916,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         public void visitJmlEnhancedForLoop(JmlEnhancedForLoop tree)   { visitTree(tree); }
         public void visitJmlForLoop(JmlForLoop tree)                   { visitTree(tree); }
         public void visitJmlGroupName(JmlGroupName tree)               { visitTree(tree); }
-        public void visitImport(JCImport tree)                         { visitTree(tree); }
         public void visitJmlInlinedLoop(JmlInlinedLoop tree)           { visitTree(tree); }
         public void visitJmlLabeledStatement(JmlLabeledStatement tree) { visitTree(tree); }
         public void visitJmlLblExpression(JmlLblExpression tree)       { visitTree(tree); }
@@ -7931,7 +7932,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         public void visitJmlMethodInvocation(JmlMethodInvocation tree) { visitTree(tree); }
         public void visitJmlMethodSpecs(JmlMethodSpecs tree)           { visitTree(tree); }
         public void visitJmlModelProgramStatement(JmlModelProgramStatement tree){ visitTree(tree); }
-        public void visitJmlNewClass(JmlNewClass tree)                 { visitTree(tree); }
         public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree tree){ visitTree(tree); }
         public void visitJmlQuantifiedExpr(JmlQuantifiedExpr tree)     { visitTree(tree); }
         public void visitJmlRange(JmlRange tree)                       { visitTree(tree); }

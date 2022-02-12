@@ -93,7 +93,6 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     abstract public R visitJmlRange(JmlRange that, P p)               ;
     abstract public R visitJmlSetComprehension(JmlSetComprehension that, P p) ;
     abstract public R visitJmlSingleton(JmlSingleton that, P p)               ;
-    abstract public R visitJmlNewClass(JmlNewClass that, P p)                 ;
 
     public R visitJmlChoose(JmlChoose that, P p)                                        { return shouldNotBeCalled(that); }
     public R visitJmlClassDecl(JmlClassDecl that, P p)                                  { return shouldNotBeCalled(that); }

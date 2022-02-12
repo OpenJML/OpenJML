@@ -256,8 +256,8 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 //        scan(that.item);
 //    }
 //
-//    public void visitJmlNewClass(JmlNewClass that) {
-//        visitNewClass(that);
+//    public void visitNewClass(JCNewClass that) {
+//        super.visitNewClass(that);
 //    }
 //
 //    public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree tree) {
