@@ -592,7 +592,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		for (var d: c.defs) {
     			if (d instanceof JCMethodDecl) {
     				var msym = ((JCMethodDecl)d).sym;
-    				if (!utils.isJML(msym.flags())) specs.getSpecs(msym);
+    				if (!utils.isJML(msym.flags())) specs.getAttrSpecs(msym);
     			}
     			else if (d instanceof JCVariableDecl) {
     				JCVariableDecl v = (JCVariableDecl)d;
@@ -1240,7 +1240,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                // A warning is already given in JmlMemberEnter.checkMethodMatch
 //            }
 //            System.out.println("GETSPECS-METHOD " + jmethod.sym.owner + "#" + jmethod.sym);
-            specs.getSpecs(jmethod.sym);
+            specs.getAttrSpecs(jmethod.sym);
   
         } catch (Exception e) {
         	utils.note("Exception attributing method " + m + " " + e);
@@ -1991,7 +1991,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // access to the scope at method definition time from within other nestings.
                 boolean prevAllowJML = jmlresolve.setAllowJML(true);
                 Env<AttrContext> prevEnv2 = env;
-                JmlSpecs.MethodSpecs sp = specs.getSpecs(tree.sym);
+                JmlSpecs.MethodSpecs sp = specs.getAttrSpecs(tree.sym);
                 try {
                     env = localEnv;
                 	//if (Utils.debug()) System.out.println("ABOUT TO DO SPECS DIRECTLY " + tree.sym + " " + sp);
@@ -5525,7 +5525,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             pos = ((JCFieldAccess)tree.meth).pos();
         }
         
-        JmlSpecs.MethodSpecs mspecs = specs.getSpecs(msym);
+        JmlSpecs.MethodSpecs mspecs = specs.getAttrSpecs(msym);
         VarSymbol calledSecret = null;
         VarSymbol calledQuery = null;
         boolean calledPure = false;

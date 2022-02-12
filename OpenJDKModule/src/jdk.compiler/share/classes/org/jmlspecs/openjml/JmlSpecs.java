@@ -871,7 +871,7 @@ public class JmlSpecs {
     
     public void getSpecs(Symbol s) {
     	if (s instanceof ClassSymbol) getSpecs((ClassSymbol)s);
-    	if (s instanceof MethodSymbol) getSpecs((MethodSymbol)s);
+    	if (s instanceof MethodSymbol) getAttrSpecs((MethodSymbol)s);
     	if (s instanceof VarSymbol) getAttrSpecs((VarSymbol)s);
     }
     
@@ -970,7 +970,7 @@ public class JmlSpecs {
      * @return the specs of the method
      */
     //@ non_null
-    public MethodSpecs getSpecs(MethodSymbol m) {
+    public MethodSpecs getAttrSpecs(MethodSymbol m) {
     	if (status(m).less(SpecsStatus.SPECS_ATTR)) {
     		attr.attrSpecs(m, null);
     	}
@@ -1019,7 +1019,7 @@ public class JmlSpecs {
     
     /** Retrieves attributed, desugared specs */
     public JmlMethodSpecs getDenestedSpecs(MethodSymbol m) {
-        MethodSpecs s = getSpecs(m);
+        MethodSpecs s = getAttrSpecs(m);
         //System.out.println("DENEST " + m + " " + s);
         if (s == null) {
         	// FIXME - recheck the conditions undere which this branch can be taken
