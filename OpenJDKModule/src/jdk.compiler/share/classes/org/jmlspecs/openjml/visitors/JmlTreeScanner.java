@@ -158,8 +158,8 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 //        scan(tree.selection);
 //    }
 //
-//    public void visitJmlImport(JmlImport that) {
-//        visitImport(that);
+//    public void visitImport(JCImport that) {
+//        super.visitImport(that);
 //    }
 //    
 //    public void visitLabelled(JCLabeledStatement that) {
@@ -256,8 +256,8 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 //        scan(that.item);
 //    }
 //
-//    public void visitJmlNewClass(JmlNewClass that) {
-//        visitNewClass(that);
+//    public void visitNewClass(JCNewClass that) {
+//        super.visitNewClass(that);
 //    }
 //
 //    public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree tree) {

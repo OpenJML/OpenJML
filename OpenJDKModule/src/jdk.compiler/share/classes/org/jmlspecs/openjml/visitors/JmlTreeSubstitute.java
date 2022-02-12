@@ -456,8 +456,9 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
         return super.visitNewArray(node,p).setType(((JCTree)node).type);
     }
 
-    public JCTree visitNewClass(NewClassTree node, Void p) {
-        return super.visitNewClass(node,p).setType(((JCTree)node).type);
+    @Override
+    public JmlNewClass visitNewClass(NewClassTree node, Void p) {
+        return (JmlNewClass)super.visitNewClass(node,p).setType(((JCTree)node).type);
         // FIXME - does not copy constructor, varargsElement, constructorType
     }
 
