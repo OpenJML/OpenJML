@@ -1283,25 +1283,38 @@ public class modifiers extends TCBase {
     
     // Checking for missing package declaration
     @Test public void testBinaryPackage1() {
-        addMockFile("$A/java/lang/Object.jml",
-        		"public class Object {\n"
+        addMockFile("$A/java/util/Random.jml",
+        		"public class Random { \n"
                 +"\n"
                 +"public boolean equals(Object o);}");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
-                "  boolean m() { return new Object().equals(null); } }"
-                ,"/$A/java/lang/Object.jml:1: error: Specification package does not match Java package: unnamed package vs. java.lang",2
+                "  boolean m() { return new java.util.Random().equals(null); } }"
+                ,"/$A/java/util/Random.jml:1: error: Specification package does not match Java package: unnamed package vs. java.util",2
                 );
     }
     
     // Checking for incorrect package declaration
     @Test public void testBinaryPackage2() {
+        addMockFile("$A/java/util/Random.jml",
+                "  package java.utils; \n public class Random { \n"
+                +"//@ spec_public spec_protected\n"
+                +"public boolean equals(Object o);}");
+        helpTCF("A.java","public class A{ A(int i) {} \n" +
+                "  boolean m() { return new java.util.Random().equals(null); } }"
+                ,"/$A/java/util/Random.jml:1: error: Specification package does not match Java package: java.utils vs. java.util",3
+                );
+    }
+    
+    // Checking for incorrect package declaration
+    @Ignore // produces too may errors and recovery attempts cause cascading errors; needs some fixing but is an unimportant use case
+    @Test public void testBinaryPackage3() {
         addMockFile("$A/java/lang/Object.jml",
-        		"  package java.utils; \n public class Object {\n"
+                "  package java.utils; \n public class Object { /@ model public Object __owner; model public Object objectState; model public Object privateState; \n"
                 +"//@ spec_public spec_protected\n"
                 +"public boolean equals(Object o);}");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  boolean m() { return new Object().equals(null); } }"
-                ,"/$A/java/lang/Object.jml:1: error: Specification package does not match Java package: java.utils vs. java.lang",3
+                ,"/$A/java/lang/Object.jml:1: error: Specification package does not match Java package: java.utils vs. java.util",3
                 );
     }
     

@@ -919,7 +919,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol specSym, MethodSpecs spec) {
-    	//if (specSym.toString().equals("Object()")) { System.out.println("SAVE " + specSym + " " + specSym.hashCode() + " " + specsEnv); Utils.dumpStack(); } 
+    	//if (specSym.owner.toString().equals("EEE") && specSym.toString().contains("values()")) { System.out.println("SAVE " + specSym.owner + " " + specSym + " " + spec); Utils.dumpStack();  } 
     	spec.specSym = specSym;
         if (utils.verbose()) utils.note("            Saving method specs for " + specSym.owner + "." + specSym + " " + specSym.hashCode());
         specsMethods.put(specSym,spec);
@@ -1008,6 +1008,16 @@ public class JmlSpecs {
     	}
     	var ms = get(m);
 //        if (ms == null) System.out.println("Null specs returned from getLoadedSpecs (no default) for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
+        return ms;
+    }
+    
+    public MethodSpecs getLoadedOrDefaultSpecs(MethodSymbol m, int pos) {
+        var ms = getLoadedSpecs(m);
+        if (ms == null) {
+            ms = defaultSpecs(null, m, pos);
+            putSpecs(m, ms);
+            setStatus(m, SpecsStatus.SPECS_ATTR);
+        }
         return ms;
     }
     

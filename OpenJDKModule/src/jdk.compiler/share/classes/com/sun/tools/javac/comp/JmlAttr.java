@@ -4113,7 +4113,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         Symbol sym = identOrSelectSym(tree.meth);  // FIXME - use TreeInfo.symbol
         if (sym == null || !(sym instanceof MethodSymbol)) return; // An error happened
         MethodSymbol msym = (MethodSymbol)sym;
-        specs.getLoadedSpecs(msym);
+        var mspecs = specs.getLoadedOrDefaultSpecs(msym, tree.pos);
         if (jmlenv.inPureEnvironment && tree.meth.type != null && tree.meth.type.getTag() != TypeTag.ERROR) {
             // Check that the method being called is pure
             if (msym != null) {

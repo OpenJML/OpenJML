@@ -249,7 +249,8 @@ public class JmlCompiler extends JavaCompiler {
         				"jml.mismatched.package",
         				specpid,
         				p.toString());
-        		return null;
+                specCU.packge = p; // FIXME: Trying to continue causes cascading errors; at least need to fix the pid as well
+        		return null; // Report as no specs
         	} else {
         		specCU.packge = syms.rootPackage;
         	}
