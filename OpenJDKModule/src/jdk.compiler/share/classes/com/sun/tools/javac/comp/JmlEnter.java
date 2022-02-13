@@ -909,21 +909,6 @@ public class JmlEnter extends Enter {
         if (debugEnter) System.out.println("enter: Entered members for binary " + specDecl.sym);
 	}
 	
-//	public boolean matchAsStrings(Type bin, JCExpression src) {
-//		String binstr = bin.toString().replaceAll(" ", "");
-//		String srcstr = src.toString().replaceAll(" ", "");
-//		if (print)
-//			System.out.println("COMPARING-S " + binstr + ":" + srcstr);
-//		if (binstr.equals(srcstr))
-//			return true;
-//		if (binstr.endsWith("." + srcstr))
-//			return true;
-//		return false;
-//	}
-
-//	public void addAttribute(JCAnnotation a, Type t, Env<AttrContext> env) {
-//		a.attribute = annotate.attributeTypeAnnotation(a, t, env);
-//	}
 
 	public void addAttribute(List<JCAnnotation> alist, Type t, Env<AttrContext> env) {
 		for (var a : alist) {
@@ -937,8 +922,6 @@ public class JmlEnter extends Enter {
 			addAttribute(((JCAnnotatedType) at).underlyingType, t, env);
 		}
 	}
-
-    boolean print = false; // Just for debugging
 
 	public MethodSymbol findMethod(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> env) {
 		boolean print =  false;//mdecl.name.toString().equals("charAt");
@@ -1277,44 +1260,6 @@ public class JmlEnter extends Enter {
 		return true;
 	}
 
-	public boolean specsTypeSufficientlyMatches(Type specsType, Type javaType) {
-		// The difficulty here is that TypeVars show up as different types,
-		// and that binary types are erased, so do not have type arguments.
-		// if (sym.name.toString().equals("k")) System.out.println("COMPARING " + sym +
-		// " " + isBinary + " " + specsType + " " + javaType + " " +
-		// (specsType.getClass()));
-		if (types.isSameType(specsType, javaType))
-			return true;
-//    	if ((specsType instanceof Type.TypeVar) != (javaType instanceof Type.TypeVar)) return false;
-//    	if (specsType instanceof Type.TypeVar) return specsType.toString().equals(javaType.toString()); 
-//    	if (!isBinary) return false;
-
-		if (specsType.toString().startsWith(javaType.toString()))
-			return true;
-		return false; // types.isSubtype(specsType, javaType);
-	}
-
-	/** Finds a member field of 'csym' that has the same name as 'vdecl'; 
-	 * if found, attributes the type and annotations of 'vdecl' in the given 'env';
-	 * returns null or the VarSymbol of the found field
-	 */
-	public VarSymbol findVar(ClassSymbol csym, JmlVariableDecl vdecl) {
-		Name vname = vdecl.name;
-		var iter = csym.members().getSymbolsByName(vname, s -> (s instanceof VarSymbol && s.owner == csym)).iterator();
-		if (iter.hasNext()) {
-			Symbol vsym = iter.next();
-			if (iter.hasNext()) {
-				var v = iter.next();
-				// This should never happen - two binary fields with the same name
-				if (vsym.name != names.error)
-					utils.error(vdecl.sourcefile, vdecl, "jml.message", "Unexpectedly found duplicate binary field symbols named " + vname
-							+ " in " + csym + " (" + vsym + " vs. " + v + ")");
-			}
-			return (VarSymbol) vsym;
-		}
-		return null;
-	}
-
 	public boolean specsFieldEnter(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> specsEnv) {
 		// FIXME - error messages need a sourcefile
 		boolean isJML = utils.isJML(vdecl);
@@ -1323,7 +1268,7 @@ public class JmlEnter extends Enter {
 		boolean isGhostOrModel = isGhost || utils.hasMod(vdecl.mods, Modifiers.MODEL);
 		boolean ok = false;
 
-		Symbol.VarSymbol vsym = findVar(csym, vdecl);
+		Symbol.VarSymbol vsym = findVarInBinary(csym, vdecl);
 		try {
 			// FIXME - move to JmlAttr
 			if (isOwnerJML && isGhostOrModel) {
@@ -1453,7 +1398,48 @@ public class JmlEnter extends Enter {
 	}
 
 
-//    // FIXME - needs review
+	/** Finds a member field of 'csym' that has the same name as 'vdecl'; 
+     * if found, attributes the type and annotations of 'vdecl' in the given 'env';
+     * returns null or the VarSymbol of the found field
+     */
+    public VarSymbol findVarInBinary(ClassSymbol csym, JmlVariableDecl vdecl) {
+    	Name vname = vdecl.name;
+    	var iter = csym.members().getSymbolsByName(vname, s -> (s instanceof VarSymbol && s.owner == csym)).iterator();
+    	if (iter.hasNext()) {
+    		Symbol vsym = iter.next();
+    		if (iter.hasNext()) {
+    			var v = iter.next();
+    			// This should never happen - two binary fields with the same name
+    			if (vsym.name != names.error)
+    				utils.error(vdecl.sourcefile, vdecl, "jml.message", "Unexpectedly found duplicate binary field symbols named " + vname
+    						+ " in " + csym + " (" + vsym + " vs. " + v + ")");
+    		}
+    		return (VarSymbol) vsym;
+    	}
+    	return null;
+    }
+
+    /** Returns true iff the two arguments are the same type, modulo remapping of the type parameters
+     */
+    public boolean specsTypeSufficientlyMatches(Type specsType, Type javaType) {
+        // The difficulty here is that TypeVars show up as different types,
+        // and that binary types are erased, so do not have type arguments.
+        // if (sym.name.toString().equals("k")) System.out.println("COMPARING " + sym +
+        // " " + isBinary + " " + specsType + " " + javaType + " " +
+        // (specsType.getClass()));
+        if (types.isSameType(specsType, javaType))
+            return true;
+//      if ((specsType instanceof Type.TypeVar) != (javaType instanceof Type.TypeVar)) return false;
+//      if (specsType instanceof Type.TypeVar) return specsType.toString().equals(javaType.toString()); 
+//      if (!isBinary) return false;
+
+        if (specsType.toString().startsWith(javaType.toString()))
+            return true;
+        return false; // types.isSubtype(specsType, javaType);
+    }
+
+
+    //    // FIXME - needs review
 //    /** Compares the type parameters for the Java class denoted by csym and the 
 //     * type parameters in the given type declaration (typically from a 
 //     * specification file), in the context of the given name environment.
@@ -1772,32 +1758,25 @@ public class JmlEnter extends Enter {
 
 	ListBuffer<ClassSymbol> binaryEnterTodo = new ListBuffer<ClassSymbol>();
 
+	/** This processes the entires on the 'binaryEnterTodo' queue, for each entry it reads the specs (from a .jml file)
+	 * and connects the specs with the binary via 'specsEnter'. This is only for specs connected with binary classes.
+	 * Anything with a source file should go through Enter.main
+	 */
 	public void completeBinaryEnterTodo() {
 		JmlSpecs specs = JmlSpecs.instance(context);
 		while (!binaryEnterTodo.isEmpty()) {
 			ClassSymbol csymbol = binaryEnterTodo.remove();
-			// Specs may be loaded here for either source or binary classes.
-			// We can tell the difference by (a) whether a env has been stored (on entering
-			// the source)
-			// or whether csymbol.sourcefile is a ClassReader.SourceFileObject or something
-			// else.
-
-			// In current implementation. however, specs are parsed along with source when a
-			// class with source file is loaded.
-			// SO currently, we do not get to this point except for binary classes.
-			// And sourceEnv in the next line should always be null
 			var sourceEnv = getEnv(csymbol);
-			JmlCompilationUnit javaCU = null;
-			JmlClassDecl javaDecl = null;
 			if (sourceEnv != null) {
-				javaCU = (JmlCompilationUnit) sourceEnv.toplevel;
-				javaDecl = (JmlClassDecl) sourceEnv.tree;
-				utils.error(javaCU.sourcefile, javaDecl, "jml.internal",
-						"Unexpectedly have a source environment when expecting a binary: " + javaCU.sourcefile);
+			    // This is fairly drastic violation of understood invariants.
+			    // We are reading specs for a binary class; there should be no source AST or Env
+			    JmlCompilationUnit javaCU = (JmlCompilationUnit) sourceEnv.toplevel;
+				utils.error(javaCU.sourcefile, javaCU, "jml.internal",
+						"Unexpectedly have a source environment when expecting a binary: " + csymbol + " " + javaCU.sourcefile);
+				continue;
 			}
 
-			if (debugSpecs) System.out.println("specs: Dequeued to enter specs: " + csymbol + " " + specs.status(csymbol) + " "
-						+ csymbol.hashCode() + " " + (javaCU == null ? " (binary)" : (" (" + javaCU.sourcefile + ")")));
+			if (debugSpecs) System.out.println("specs: Dequeued to enter specs: " + csymbol + " " + specs.status(csymbol) );
 
 			// Last check to see if specs are already present
 			if (JmlSpecs.SpecsStatus.QUEUED.less(specs.status(csymbol))) continue;
@@ -1807,300 +1786,49 @@ public class JmlEnter extends Enter {
 			try {
 				speccu = JmlCompiler.instance(context).parseSpecs(csymbol);
 
-				if (javaCU == null) {
-					if (speccu != null) {
-						speccu.sourceCU = null; // null indicates a binary; non-null a source Java file
-						speccu.specsCompilationUnit = speccu;
-						specsEnter(speccu);
-						csymbol.flags_field |= Flags.UNATTRIBUTED;
-					} else {
-						// No specs -- binary with no .jml file
-						recordEmptySpecs(csymbol); // so we don't keep trying to load it
-						if (org.jmlspecs.openjml.JmlOptions.instance(context).warningKeys.getOrDefault("missing-specs", false)) {
-							utils.warning("jml.message", "[missing-specs] No specifications file found for binary " + csymbol);
-						}
-					}
+				if (speccu != null) {
+				    // There is a specs file for the binary
+				    speccu.sourceCU = null; // null indicates a binary; non-null a source Java file
+				    speccu.specsCompilationUnit = speccu;
+				    specsEnter(speccu);
+				    csymbol.flags_field |= Flags.UNATTRIBUTED; // FIXME - verify that this is needed
 				} else {
-					// Unexpected path: processing a sourceCU should not come through here
-					if (speccu == null) speccu = javaCU;
-					speccu.sourceCU = javaCU; // null indicates a binary; non-null a source Java file
-					javaCU.specsCompilationUnit = speccu;
-					// FIXME - this brAnch not implemented because the source is already read;
-					// cannot just call enter.main because
-					// there already is a binary class entered
+				    // No specs -- binary with no .jml file
+				    recordEmptySpecs(csymbol); // so we don't keep trying to load it
+				    if (org.jmlspecs.openjml.JmlOptions.instance(context).warningKeys.getOrDefault("missing-specs", false)) {
+				        utils.warning("jml.message", "[missing-specs] No specifications file found for binary " + csymbol);
+				    }
 				}
 
 			} finally {
-				if (debugSpecs) System.out.println("specs: Completed entering specs for " + csymbol + (javaCU == null ? " (binary)"
-							: (" (" + javaCU.sourcefile + ")" + " spec: " + speccu.sourcefile)));
+				if (debugSpecs) System.out.println("specs: Completed entering specs for binary " + csymbol + " specfile: " + 
+				                        (speccu == null ? "(no spec file)" : speccu.sourcefile));
 				nestingLevel--;
 			}
 		}
 	}
 
-	// FIXME - unify the recording of empty specs with default specs??
+	/** Records an empty type specs structure, with no spec file or Env, just any Java modifiers */
 	public void recordEmptySpecs(ClassSymbol csymbol) {
     	JmlSpecs.TypeSpecs typespecs = new JmlSpecs.TypeSpecs(csymbol, null, 
     			(JmlTree.JmlModifiers)JmlTree.Maker.instance(context).Modifiers(csymbol.flags()), 
-    			getEnv(csymbol));
+    			null);
     	JmlSpecs.instance(context).putSpecs(csymbol,typespecs);
     }
 
+	/** Overrides Enter.unenter solely to enable scanning over JML AST nodes */
 	@Override
 	public void unenter(JCCompilationUnit topLevel, JCTree tree) {
 		new JmlUnenterScanner(topLevel.modle).scan(tree);
 	}
 
+	/** Extends Enter.UnenterScanner solely to enable scanning over JML AST nodes, via default methods in IJmlVisitor */ 
 	class JmlUnenterScanner extends UnenterScanner implements org.jmlspecs.openjml.visitors.IJmlVisitor {
 
 		public JmlUnenterScanner(ModuleSymbol msym) {
 			super(msym);
 		}
 
-	}
-
-	// FIXME - Move most of this to JmlAttr?
-	public void checkVarMatch(VarSymbol match, JmlVariableDecl specVarDecl,
-			ClassSymbol javaClassSymbol) {
-
-//		checkAnnotations(javaMatch.mods, specVarDecl.mods, match);
-		// Check that the modifiers are the same
-		VarSymbol javaSym = match;
-		long javaFlags = match.flags();
-		boolean isInterface = javaSym.owner.isInterface();
-		long specFlags = specVarDecl.mods.flags;
-		if (isInterface) {
-			if (isInterface && (specFlags & Flags.AccessFlags) == 0)
-				specFlags |= Flags.PUBLIC;
-			long wasFinal = specFlags & Flags.FINAL;
-			if ((specVarDecl.mods.flags & Flags.AccessFlags) == 0)
-				specVarDecl.mods.flags |= Flags.PUBLIC;
-			if (utils.isJML(specFlags)) {
-				if (wasFinal == 0)
-					specVarDecl.mods.flags &= ~Flags.FINAL;
-				if (utils.hasMod(specVarDecl.mods, Modifiers.INSTANCE))
-					specVarDecl.mods.flags &= ~Flags.STATIC;
-			}
-		}
-
-		// check for no initializer
-		if (specVarDecl.getInitializer() != null
-				&& !utils.isJML(specVarDecl.mods) && !specVarDecl.sym.owner.isEnum()) {
-			utils.error(specVarDecl.getInitializer().pos(), "jml.no.initializer.in.specs",
-					javaSym.enclClass().getQualifiedName() + "." + javaSym.name);
-		}
-
-//		long diffs = (javaFlags ^ specFlags) & (isInterface ? Flags.InterfaceVarFlags : Flags.VarFlags);
-//		if (diffs != 0) {
-//			utils.error(specVarDecl.sourcefile, specVarDecl, "jml.mismatched.field.modifiers", specVarDecl.name,
-//					javaClassSymbol + "." + javaSym.name, Flags.toString(diffs));
-//		}
-
-	}
-
-	/**
-	 * If thre are specifications in a file separate from the .java file, then any
-	 * annotations in the .java file are ignored. This condition is checked and
-	 * warned about here.
-	 */
-	public void checkAnnotations(JCModifiers javaMods, JCModifiers specMods, Symbol owner) {
-		if (javaMods == specMods)
-			return;
-		for (var a : javaMods.annotations) {
-			if (a instanceof JmlAnnotation) {
-				var aa = (JmlAnnotation) a;
-				if (aa.kind == null)
-					continue;
-				if (!utils.hasMod(specMods, aa.kind)) {
-					String k = owner instanceof ClassSymbol ? "class"
-							: owner instanceof MethodSymbol ? "method" : owner instanceof VarSymbol ? "var" : "";
-					utils.warning(aa.sourcefile, aa, "jml.java.annotation.superseded", k, owner, aa.kind.toString());
-					return;
-				}
-			}
-		}
-	}
-
-//  /** Checks that the modifiers and annotations in the .java and .jml declarations match appropriately,
-//  * for both the method declaration and any parameter declarations;
-//  * does not do any semantic checks of whether the modifiers or annotations are allowed.
-//  */
-	// FIXME - move to JmlAttr
-	public void checkMethodMatch(/* @nullable */ JmlMethodDecl javaMatch, MethodSymbol match,
-			JmlMethodDecl specMethodDecl, ClassSymbol javaClassSymbol) {
-		if (javaMatch == null || javaMatch == specMethodDecl)
-			return;
-		checkAnnotations(javaMatch.mods, specMethodDecl.mods, match);
-		JavaFileObject prev = log.currentSourceFile();
-		log.useSource(specMethodDecl.sourcefile); // All logged errors are with respect to positions in the jml file
-		try {
-			if (javaMatch != specMethodDecl) {
-				boolean isInterface = match.owner.isInterface();
-				// Check that modifiers are the same
-				long matchf = match.flags();
-				long specf = specMethodDecl.mods.flags;
-				matchf |= (specf & Flags.SYNCHRONIZED); // binary files do not seem to always have the synchronized
-														// modifier? FIXME
-				long diffs = (matchf ^ specf) & Flags.MethodFlags;
-				if (diffs != 0) {
-					boolean isEnum = (javaClassSymbol.flags() & Flags.ENUM) != 0;
-					if ((Flags.NATIVE & matchf & ~specf) != 0)
-						diffs &= ~Flags.NATIVE;
-					if (isInterface)
-						diffs &= ~Flags.PUBLIC & ~Flags.ABSTRACT;
-					if (isEnum && match.isConstructor()) {
-						specMethodDecl.mods.flags |= (matchf & 7);
-						diffs &= ~7;
-					} // FIXME - should only do this if specs are default
-					if ((matchf & specf & Flags.ANONCONSTR) != 0 && isEnum) {
-						diffs &= ~2;
-						specMethodDecl.mods.flags |= 2;
-					} // enum constructors can have differences
-					if (diffs != 0 && !(match.isConstructor() && diffs == 3)) {
-						// FIXME - hide this case for now because of default constructors in binary
-						// files
-						utils.error(specMethodDecl.pos(), "jml.mismatched.method.modifiers", specMethodDecl.name,
-								match.toString(), Flags.toString(diffs));
-					}
-				}
-			}
-
-			if (javaMatch != null) {
-				// Check that parameters have the same modifiers - FIXME - should check this in
-				// the symbol, not just in the Java
-				Iterator<JCVariableDecl> javaiter = javaMatch.params.iterator();
-				Iterator<JCVariableDecl> jmliter = specMethodDecl.params.iterator();
-				while (javaiter.hasNext() && jmliter.hasNext()) {
-					JmlVariableDecl javaparam = (JmlVariableDecl) javaiter.next();
-					JmlVariableDecl jmlparam = (JmlVariableDecl) jmliter.next();
-					javaparam.specsDecl = jmlparam;
-					jmlparam.sym = javaparam.sym;
-					long diffs = (javaparam.mods.flags ^ jmlparam.mods.flags);
-					if (diffs != 0) {
-						utils.errorAndAssociatedDeclaration(specMethodDecl.sourcefile, jmlparam.pos(),
-								javaMatch.sourcefile, javaparam.pos(), "jml.mismatched.parameter.modifiers",
-								jmlparam.name, javaClassSymbol.getQualifiedName() + "." + match.name,
-								Flags.toString(diffs));
-					}
-				}
-				// FIXME - should check names of parameters, names of type parameters
-				if (javaiter.hasNext() || jmliter.hasNext()) {
-					// Just in case -- should never have made a match if the signatures are
-					// different
-					log.error("jml.internal",
-							"Java and jml declarations have different numbers of arguments, even though they have been type matched");
-				}
-			}
-//
-//         // FIXME - we do need to exclude some anonymous classes,  but all of them?
-//         if (!javaClassSymbol.isAnonymous()) checkSameAnnotations(match,specMethodDecl.mods,prev); // FIXME - is prev really the file object for Java
-//         Iterator<JCVariableDecl> jmliter = specMethodDecl.params.iterator();
-//         Iterator<Symbol.VarSymbol> javaiter = match.getParameters().iterator();
-//         while (javaiter.hasNext() && jmliter.hasNext()) {
-//             Symbol.VarSymbol javaparam = javaiter.next();
-//             JmlVariableDecl jmlparam = (JmlVariableDecl)jmliter.next();
-//             checkSameAnnotations(javaparam,jmlparam.mods,prev); // FIXME - is prev really the file object for Java
-//         }
-//
-//
-//
-//         // Check that the return types are the same
-//         if (specMethodDecl.restype != null) { // not a constructor
-//             if (specMethodDecl.restype.type == null) Attr.instance(context).attribType(specMethodDecl.restype, match.enclClass());
-////             if (match.name.toString().equals("defaultEmpty")) {
-////                 log.noticeWriter.println(match.name);
-////             }
-//             Type javaReturnType = match.type.getReturnType();
-//             Type specReturnType = specMethodDecl.restype.type;
-//             if (!Types.instance(context).isSameType(javaReturnType,specReturnType)) {
-//                 // FIXME - when the result type is parameterized in a static method, the java and spec declarations
-//                 // end up with different types for the parameter.  Is this also true for the regular parameters?  
-//                 // FIXME - avoud the probloem for now.
-//                 if (!(specReturnType instanceof Type.TypeVar) && specReturnType.getTypeArguments().isEmpty()
-//                         && (!(specReturnType instanceof Type.ArrayType) || !(((Type.ArrayType)specReturnType).elemtype instanceof Type.TypeVar)) )
-//                     utils.error(specMethodDecl.restype.pos(),"jml.mismatched.return.type",
-//                             match.enclClass().fullname + "." + match.toString(),
-//                             specReturnType, javaReturnType);
-//             }
-//         }
-//
-
-			// Check that parameter names are the same (a JML requirement to avoid having to
-			// rename within specs)
-			if (javaMatch != null) {
-//    			for (int i = 0; i<javaMatch.getParameters().size(); i++) {
-//    				JCTree.JCVariableDecl javaparam = javaMatch.getParameters().get(i);
-//    				JCTree.JCVariableDecl jmlparam = specMethodDecl.params.get(i);
-//    				if (!javaparam.name.equals(jmlparam.name)) {
-//    					utils.error(jmlparam.pos(),"jml.mismatched.param.names",i,
-//    							match.enclClass().fullname + "." + match.toString(),
-//    							javaparam.name, jmlparam.name);
-//    				}
-//    			}
-
-//    		} else {
-//    			// FIXME - do not really need this alternative since without a java Decl there is no body
-//    			for (int i = 0; i<match.getParameters().size(); i++) {
-//    				Symbol.VarSymbol javasym = match.getParameters().get(i);
-//    				JCTree.JCVariableDecl jmlparam = specMethodDecl.params.get(i);
-//    				if (!javasym.name.equals(jmlparam.name)) {
-//    					utils.error(jmlparam.pos(),"jml.mismatched.param.names",i,
-//    							match.enclClass().fullname + "." + match.toString(),
-//    							javasym.name, jmlparam.name);
-//    				}
-//    			}
-			}
-//
-//         // Check that the specification method has no body if it is not a .java file
-//         if (specMethodDecl.body != null && specMethodDecl.sourcefile.getKind() != Kind.SOURCE
-//                 && !((JmlAttr)attr).isModel(specMethodDecl.mods)
-//                 && !inModelTypeDeclaration
-//                 && match.owner == javaClassSymbol   // FIXME - this is here to avoid errors on methods of anonymous classes within specifications within a .jml file - it might not be fully robust
-//                 // FIXME - should test other similar locations - e.g. model classes, model methods, methods within local class declarations in model methods or methods of model classes
-//                 && (specMethodDecl.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
-//             utils.error(specMethodDecl.body.pos(),"jml.no.body.allowed",match.enclClass().fullname + "." + match.toString());
-//         }
-//
-//
-//         // FIXME - from a previous comparison against source
-////         // A specification method may not have a body.  However, the spec
-////         // method declaration may also be identical to the java method (if the
-////         // java file is in the specification sequence) - hence the second test.
-////         // There is an unusual case in which a method declaration is duplicated
-////         // in a .java file (same signature).  In that case, there is already
-////         // an error message, but the duplicate will be matched against the
-////         // first declaration at this point, though they are different
-////         // delcarations (so the second test will be true).  Hence we include the
-////         // 3rd test as well. [ TODO - perhaps we need just the third test and not the second.]
-////         if (specMethodDecl.body != null && match != specMethodDecl
-////                 && match.sourcefile != specMethodDecl.sourcefile
-////                 && (specMethodDecl.mods.flags & (Flags.GENERATEDCONSTR|Flags.SYNTHETIC)) == 0) {
-////             log.error(specMethodDecl.body.pos(),"jml.no.body.allowed",match.sym.enclClass().fullname + "." + match.sym.toString());
-////         }
-////         
-////         // Check that the return types are the same
-////         if (specMethodDecl.restype != null) { // not a constructor
-////             if (specMethodDecl.restype.type == null) Attr.instance(context).attribType(specMethodDecl.restype, match.sym.enclClass());
-//////             if (match.name.toString().equals("defaultEmpty")) {
-//////                 log.noticeWriter.println(match.name);
-//////             }
-////             if (!Types.instance(context).isSameType(match.restype.type,specMethodDecl.restype.type)) {
-////                 // FIXME - when the result type is parameterized in a static method, the java and spec declarations
-////                 // end up with different types for the parameter.  Is this also true for the regular parameters?  
-////                 // FIXME - avoud the probloem for now.
-////                 if (!(specMethodDecl.restype.type.getTypeArguments().head instanceof Type.TypeVar))
-////                 log.error(specMethodDecl.restype.pos(),"jml.mismatched.return.type",
-////                         match.sym.enclClass().fullname + "." + match.sym.toString(),
-////                         specMethodDecl.restype.type,match.restype.type);
-////             }
-////         }
-//
-		} finally {
-			log.useSource(prev);
-		}
-		// FIXME - what about covariant return types ?????
-
-		// FIXME - check that JML annotations are ok
 	}
 
 }
