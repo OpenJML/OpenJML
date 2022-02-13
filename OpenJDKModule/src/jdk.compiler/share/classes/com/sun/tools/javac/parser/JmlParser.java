@@ -289,7 +289,6 @@ public class JmlParser extends JavacParser {
         			}
     			}
     			setTopLevel(jmlcu,jmlcu.defs);
-    			jmlcu.sourceCU = jmlcu;
     		}
     	} catch (Exception e) {
            	var S = getScanner();

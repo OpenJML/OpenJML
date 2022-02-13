@@ -504,7 +504,6 @@ public class JmlEnter extends Enter {
 			for (int i = 0; i < numSpecsTypeParams; ++i) {
 				var sourceTP = sourceDecl.typarams.get(i);
 				var specsTP = specDecl.typarams.get(i);
-				//System.out.println("TYPEPARAMS " + cd.typarams + " # " + cd.specsDecl.typarams);
 				if (sourceTP.name != specsTP.name) {
 					utils.errorAndAssociatedDeclaration(specDecl.sourcefile, specsTP, sourceDecl.sourcefile,
 							sourceTP, "jml.message",
@@ -530,31 +529,26 @@ public class JmlEnter extends Enter {
 		// Go on to do nested classes
 	}
 
-	// Note that the tree may be either a JmlCompilationUnit or a JmlClassDecl; env
-	// will be null if tree is a CU
+	// Note that the tree may be either a JmlCompilationUnit or a JmlClassDecl;
+	// env will be null if tree is a CU
 	// If tree is a class, then env is the env of the containing CU or class
 	// and specEnv is the Env for the specification CU or class of the container
 	public Type classEnter(JCTree tree, Env<AttrContext> env) {
-		if (debugEnter && tree instanceof JCCompilationUnit cu)
-			System.out.println("enter: Entering CU " + cu.sourcefile);
-		if (debugEnter && tree instanceof JCClassDecl d)
-			System.out.println("enter: Entering class " + d.name);
+		if (debugEnter && tree instanceof JCCompilationUnit cu) System.out.println("enter: Entering CU " + cu.sourcefile);
+		if (debugEnter && tree instanceof JCClassDecl d) System.out.println("enter: Entering class " + d.name);
 		if (tree instanceof JmlClassDecl cd && cd.specsDecl.name != cd.name) throw new AssertionError("wrong specsDecl-A: " + cd.name + " " + cd.specsDecl.name);
+
 		var prevSpecEnv = specEnv;
-		//System.out.println("SAVING " + (specEnv==null?"NULL":specEnv.toplevel.sourcefile));
 		try {
 			Type t = super.classEnter(tree, env); // eventually calls tree.accept, assigning env to this.env
-			if (debugEnter && tree instanceof JCCompilationUnit cu)
-				System.out.println("enter: Entered CU " + cu.sourcefile + " " + t);
-			if (debugEnter && tree instanceof JCClassDecl d)
-				System.out.println("enter: Entered class " + d.sym + " " + t + " " + d.sym.members());
+			if (debugEnter && tree instanceof JCCompilationUnit cu) System.out.println("enter: Entered CU " + cu.sourcefile + " " + t);
+			if (debugEnter && tree instanceof JCClassDecl d) System.out.println("enter: Entered class " + d.sym + " " + t + " " + d.sym.members());
 			return t;
 		} catch (Exception e) {
 	        e.printStackTrace(System.out);
 	        throw e;
 		} finally {
 			specEnv = prevSpecEnv;
-			//System.out.println("RESTORING " + (specEnv==null?"NULL":specEnv.toplevel.sourcefile));
 		}
 	}
 
@@ -799,41 +793,15 @@ public class JmlEnter extends Enter {
 		return true;
     }
 
-	public <T> T find(List<T> list, java.util.function.Predicate<T> pred) {
-		if (list != null)
-			for (var item : list) {
-				if (pred.test(item))
-					return item;
-			}
-		return null;
-	}
-
-//	public JmlClassDecl findClass(Name n, Symbol owner) {
-//    	owner.members().stream().filter()
-//		JmlClassDecl jt = null;
-//		if (javaDecl != null) {
-//			for (var d: javaDecl.defs) {
-//				if (d instanceof JmlClassDecl && ((JmlClassDecl)d).name == n) {
-//					jt = (JmlClassDecl)d;
-//					break;
-//				}
+//	public <T> T find(List<T> list, java.util.function.Predicate<T> pred) {
+//		if (list != null)
+//			for (var item : list) {
+//				if (pred.test(item))
+//					return item;
 //			}
-//		}
-//		return jt;
-//    }
-//
-//	public JmlClassDecl findClass(Name n, JmlCompilationUnit javaDecl) {
-//		JmlClassDecl jt = null;
-//		if (javaDecl != null) {
-//			for (var d : javaDecl.defs) {
-//				if (d instanceof JmlClassDecl && ((JmlClassDecl) d).name == n) {
-//					jt = (JmlClassDecl) d;
-//					break;
-//				}
-//			}
-//		}
-//		return jt;
+//		return null;
 //	}
+
 
 	public List<JCTree> specsMembersEnter(Symbol owner, List<JCTree> defs) {
 		for (JCTree decl: defs) {
@@ -941,23 +909,21 @@ public class JmlEnter extends Enter {
         if (debugEnter) System.out.println("enter: Entered members for binary " + specDecl.sym);
 	}
 	
-	public boolean matchAsStrings(Type bin, JCExpression src) {
-		String binstr = bin.toString().replaceAll(" ", "");
-		String srcstr = src.toString().replaceAll(" ", "");
-		if (print)
-			System.out.println("COMPARING-S " + binstr + ":" + srcstr);
-		if (binstr.equals(srcstr))
-			return true;
-		if (binstr.endsWith("." + srcstr))
-			return true;
-		return false;
-	}
+//	public boolean matchAsStrings(Type bin, JCExpression src) {
+//		String binstr = bin.toString().replaceAll(" ", "");
+//		String srcstr = src.toString().replaceAll(" ", "");
+//		if (print)
+//			System.out.println("COMPARING-S " + binstr + ":" + srcstr);
+//		if (binstr.equals(srcstr))
+//			return true;
+//		if (binstr.endsWith("." + srcstr))
+//			return true;
+//		return false;
+//	}
 
-	boolean print = false;
-
-	public void addAttribute(JCAnnotation a, Type t, Env<AttrContext> env) {
-		a.attribute = annotate.attributeTypeAnnotation(a, t, env);
-	}
+//	public void addAttribute(JCAnnotation a, Type t, Env<AttrContext> env) {
+//		a.attribute = annotate.attributeTypeAnnotation(a, t, env);
+//	}
 
 	public void addAttribute(List<JCAnnotation> alist, Type t, Env<AttrContext> env) {
 		for (var a : alist) {
@@ -971,6 +937,8 @@ public class JmlEnter extends Enter {
 			addAttribute(((JCAnnotatedType) at).underlyingType, t, env);
 		}
 	}
+
+    boolean print = false; // Just for debugging
 
 	public MethodSymbol findMethod(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> env) {
 		boolean print =  false;//mdecl.name.toString().equals("charAt");
@@ -1326,25 +1294,22 @@ public class JmlEnter extends Enter {
 		return false; // types.isSubtype(specsType, javaType);
 	}
 
-	public VarSymbol findVar(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> env) {
+	/** Finds a member field of 'csym' that has the same name as 'vdecl'; 
+	 * if found, attributes the type and annotations of 'vdecl' in the given 'env';
+	 * returns null or the VarSymbol of the found field
+	 */
+	public VarSymbol findVar(ClassSymbol csym, JmlVariableDecl vdecl) {
 		Name vname = vdecl.name;
 		var iter = csym.members().getSymbolsByName(vname, s -> (s instanceof VarSymbol && s.owner == csym)).iterator();
 		if (iter.hasNext()) {
-			var vsym = iter.next();
+			Symbol vsym = iter.next();
 			if (iter.hasNext()) {
 				var v = iter.next();
 				// This should never happen - two binary fields with the same name
 				if (vsym.name != names.error)
-					utils.error(vdecl, "jml.message", "Unexpectedly found duplicate binary field symbols named " + vname
-							+ " (" + vsym + " vs. " + v + ")");
+					utils.error(vdecl.sourcefile, vdecl, "jml.message", "Unexpectedly found duplicate binary field symbols named " + vname
+							+ " in " + csym + " (" + vsym + " vs. " + v + ")");
 			}
-			if (vdecl.vartype instanceof JCAnnotatedType) {
-				for (var a : ((JCAnnotatedType) vdecl.vartype).annotations) {
-					a.attribute = annotate.attributeTypeAnnotation(a, syms.annotationType, env);
-				}
-			}
-			Attr.instance(context).attribType(vdecl.vartype, env);
-			annotate.flush();
 			return (VarSymbol) vsym;
 		}
 		return null;
@@ -1357,7 +1322,8 @@ public class JmlEnter extends Enter {
 		boolean isGhost = utils.hasMod(vdecl.mods, Modifiers.GHOST);
 		boolean isGhostOrModel = isGhost || utils.hasMod(vdecl.mods, Modifiers.MODEL);
 		boolean ok = false;
-		Symbol.VarSymbol vsym = findVar(csym, vdecl, specsEnv);
+
+		Symbol.VarSymbol vsym = findVar(csym, vdecl);
 		try {
 			// FIXME - move to JmlAttr
 			if (isOwnerJML && isGhostOrModel) {
@@ -1394,7 +1360,7 @@ public class JmlEnter extends Enter {
 				MemberEnter me = MemberEnter.instance(context);
 				var savedEnv = me.env;
 				me.env = specsEnv;
-				me.visitVarDef(vdecl);
+				me.visitVarDef(vdecl); // Does all necessary type attribution
 				vdecl.vartype.type = vdecl.type = vdecl.sym.type;
 				vsym = vdecl.sym;
 				// if (isGhostOrModel && vsym.owner.isInterface()) {
@@ -1447,7 +1413,16 @@ public class JmlEnter extends Enter {
 									+ csym + "." + vsym);
 				}
 
+				// Attribute the type and annotations of vdecl
+				// FIXME - review this annotation and type attribution code. Did it come from somewhere
+				if (vdecl.vartype instanceof JCAnnotatedType) {
+				    for (var a : ((JCAnnotatedType) vdecl.vartype).annotations) {
+				        a.attribute = annotate.attributeTypeAnnotation(a, syms.annotationType, specsEnv);
+				    }
+				}
 				Type t = Attr.instance(context).attribType(vdecl.vartype, specsEnv);
+				annotate.flush();
+
 				if (t == null) t = vdecl.vartype.type; // FIXME - not sure where attribType puts its result
 				if (!specsTypeSufficientlyMatches(t, vsym.type)) {
 					String msg = "Type of field " + vdecl.name
@@ -1458,37 +1433,25 @@ public class JmlEnter extends Enter {
 				ok = true;
 				vdecl.type = vdecl.vartype.type = vsym.type;
 				vdecl.sym = vsym;
-// FIXME				checkVarMatch(null, vsym, vdecl, csym);
-				// Note - other checks are done in JmlAttr
 
-				if (ok && utils.verbose()) {
-					utils.note("Matched field: " + vsym + " (owner: " + csym + ")");
-				}
+				if (ok && debugEnter) System.out.println("enter: Matched field to binary: " + vsym + " (owner: " + csym + ")");
 			} else {
 				ok = false;
 				vdecl.type = vdecl.vartype.type = vsym.type;
 			}
 		} catch (Throwable t) {
-			utils.error("Exception while entering field from jml for binary: " + csym + "." + vdecl.name);
+			utils.error(vdecl.sourcefile, vdecl, "Exception while entering field from jml for binary: " + csym + "." + vdecl.name);
 			t.printStackTrace(System.out);
 			ok = false;
 		} finally {
 			if (vsym != null) {
 				JmlSpecs.instance(context).putSpecs(vsym, vdecl.fieldSpecs);
-				if (!ok)
-					JmlSpecs.instance(context).setStatus(vsym, JmlSpecs.SpecsStatus.ERROR);
+				if (!ok) JmlSpecs.instance(context).setStatus(vsym, JmlSpecs.SpecsStatus.ERROR);
 			}
 		}
 		return ok;
 	}
 
-//    protected JCExpression findPackageDef(JCCompilationUnit that) {
-//    	for (var tree: that.defs) {
-//    		if (tree instanceof JCPackageDecl) return ((JCPackageDecl)tree).pid;
-//    	}
-//    	return null;
-//    }
-//
 
 //    // FIXME - needs review
 //    /** Compares the type parameters for the Java class denoted by csym and the 
@@ -1736,43 +1699,45 @@ public class JmlEnter extends Enter {
 	/**
 	 * Queues a class for loading specs. Once loaded, JmlSpecs contains the specs
 	 * for each class, method, and field, but they are not yet attributed. This is
-	 * called to load specs for the either the binary or source class
+	 * called to load specs for the binary as in the 
+	 * current implementation, source class spec are parsed and loaded along with the
+	 * source class itself).
+	 * 
+	 * Returns true if the class was actually loaded, false if it was just queued
 	 * 
 	 * @param csymbol the class whose specs are wanted
 	 */
 	public boolean requestSpecs(ClassSymbol csymbol) {
-		// Requests for nested classes are changed to a request for their outermost
-		// class
+		// Requests for nested classes are changed to a request for their outermost class
 		while (csymbol.owner instanceof ClassSymbol)
 			csymbol = (ClassSymbol) csymbol.owner;
 
 		JmlSpecs.SpecsStatus tsp = JmlSpecs.instance(context).status(csymbol);
-		if (debugSpecs) System.out.println("specs: requestSpecs for " + csymbol + " " + tsp + " level=" + nestingLevel + " " + binaryEnterTodo.contains(csymbol)
-			+ " size=" + binaryEnterTodo.size());
+		if (debugSpecs) System.out.println("specs: requestSpecs for " + csymbol + " " + tsp + " level=" + nestingLevel
+		    + " " + binaryEnterTodo.contains(csymbol) + " size=" + binaryEnterTodo.size());
 		if (!tsp.less(JmlSpecs.SpecsStatus.QUEUED)) {
-			if (utils.verbose()) {
-				if (tsp == JmlSpecs.SpecsStatus.QUEUED)
-					if (debugSpecs) System.out.println("specs: Requesting specs " + csymbol + ", but specs already in progress");
-				else
-					if (debugSpecs) System.out.println("specs: Requesting specs " + csymbol + ", but specs already loaded or attributed");
-			}
-			return false;
+		    if (tsp == JmlSpecs.SpecsStatus.QUEUED) {
+		        if (debugSpecs || utils.verbose()) System.out.println("specs: Requesting specs " + csymbol + ", but specs already in progress");
+		        return false;
+		    } else {
+		        if (debugSpecs || utils.verbose()) System.out.println("specs: Requesting specs " + csymbol + ", but specs already loaded or attributed");
+		        return true;
+		    }
 		} else {
-			// The binary Java class itself is already loaded - it is needed to produce the
-			// classSymbol itself
+			// The binary Java class itself is already loaded - it is needed to produce the classSymbol itself
 
 			if (!binaryEnterTodo.contains(csymbol)) {
 				nestingLevel++;
 				try {
-					// It can happen that the specs are loaded during the loading of the super class
-					// since complete() may be called on the class in order to fetch its superclass,
-					// or during the loading of any other class that happens to mention the type.
-					// So we recheck here, before reentering the class in the todo list
-					if (JmlSpecs.instance(context).status(csymbol) != JmlSpecs.SpecsStatus.NOT_LOADED) return false;
+//					// It can happen that the specs are loaded during the loading of the super class
+//					// since complete() may be called on the class in order to fetch its superclass,
+//					// or during the loading of any other class that happens to mention the type.
+//					// So we recheck here, before reentering the class in the todo list
+//				    if (!JmlSpecs.instance(context).status(csymbol).less(JmlSpecs.SpecsStatus.SPECS_LOADED)) return true;
+//				    if (JmlSpecs.instance(context).status(csymbol) != JmlSpecs.SpecsStatus.NOT_LOADED) return false;
 
 					// Classes are prepended to the todo list in reverse order, so that parent
-					// classes
-					// have specs read first.
+					// classes have specs read first.
 
 					// Note that nested classes are specified in the same source file as their
 					// enclosing classes
@@ -1797,8 +1762,11 @@ public class JmlEnter extends Enter {
 
 			// This nesting level is used to be sure we do not start processing a class,
 			// say a superclass, before we have finished loading specs for a given class
-			if (nestingLevel == 0) completeBinaryEnterTodo();
-			return true;
+			if (nestingLevel == 0) {
+			    completeBinaryEnterTodo();
+	            return true;
+			}
+            return false;
 		}
 	}
 
@@ -1837,7 +1805,6 @@ public class JmlEnter extends Enter {
 			nestingLevel++;
 			JmlCompilationUnit speccu = null;
 			try {
-				//if (csymbol.toString().contains("BigInteger")) System.out.println("LOADING SPECS " + csymbol);
 				speccu = JmlCompiler.instance(context).parseSpecs(csymbol);
 
 				if (javaCU == null) {
@@ -1854,9 +1821,8 @@ public class JmlEnter extends Enter {
 						}
 					}
 				} else {
-					// Unexpected path: already have a source CU
-					if (speccu == null)
-						speccu = javaCU;
+					// Unexpected path: processing a sourceCU should not come through here
+					if (speccu == null) speccu = javaCU;
 					speccu.sourceCU = javaCU; // null indicates a binary; non-null a source Java file
 					javaCU.specsCompilationUnit = speccu;
 					// FIXME - this brAnch not implemented because the source is already read;
