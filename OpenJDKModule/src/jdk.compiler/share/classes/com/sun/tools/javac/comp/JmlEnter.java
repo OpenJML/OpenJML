@@ -488,8 +488,7 @@ public class JmlEnter extends Enter {
 
 		JmlSpecs.instance(context).putSpecs((ClassSymbol) sourceDecl.sym, new JmlSpecs.TypeSpecs(specDecl, sourceDecl, specEnv));
 
-		// FIXME - need to attribute and check the super class and interfaces
-		// FIXME - need tests that check these
+		// The superclass and interfaces of specDecl are attributed and checked in JmlAttr.checkClassMods
 		
 		int numSourceTypeParams = sourceDecl.typarams.size();
 		int numSpecsTypeParams = specDecl.typarams.size();
@@ -524,7 +523,6 @@ public class JmlEnter extends Enter {
 						specsTP.bounds = sourceTP.bounds;
 					}
 				}
-				//specDecl.typarams = sourceDecl.typarams;
 			}
 		}
 		// Go on to do nested classes

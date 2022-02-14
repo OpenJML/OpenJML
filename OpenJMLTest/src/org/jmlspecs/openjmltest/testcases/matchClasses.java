@@ -431,6 +431,112 @@ public class matchClasses  extends TCBase {
                 );
     }
     
+    @Test public void testExtending1() {
+        addMockFile("$A/A.jml", "public class A { }");
+        helpTCF("$A/A.java",
+                "public class A extends Number { } "
+            ,"/$A/A.jml:1: error: The specification declaration must declare the same supertype as the source declaration: java.lang.Number",8
+            );
+    }
+    
+    @Test public void testExtending2() {
+        addMockFile("$A/A.jml", "public class A extends Number { }");
+        helpTCF("$A/A.java",
+                "public class A { } "
+            ,"/$A/A.jml:1: error: The specification declaration must declare the same supertype as the source declaration: java.lang.Number vs. java.lang.Object",8
+                );
+    }
+    
+    @Test public void testExtending3() {
+        addMockFile("$A/A.jml", "public class A extends java.util.Random { }");
+        helpTCF("$A/A.java",
+                "public class A extends Number { } "
+            ,"/$A/A.jml:1: error: The specification declaration must declare the same supertype as the source declaration: java.util.Random vs. java.lang.Number",8
+                );
+    }
+    
+    @Test public void testImplementing1() {
+        addMockFile("$A/A.jml", "public class A { }");
+        helpTCF("$A/A.java",
+                "public class A implements java.io.Serializable { } "
+            ,"/$A/A.jml:1: error: The specification declaration must declare the same interfaces as the source declaration: java.io.Serializable",8
+                );
+    }
+    
+    @Test public void testImplementing2() {
+        addMockFile("$A/A.jml", "public class A implements java.io.Serializable { }");
+        helpTCF("$A/A.java",
+                "public class A { } "
+            ,"/$A/A.jml:1: error: The specification declaration must declare the same interfaces as the source declaration: java.io.Serializable",8
+                );
+    }
+    
+    @Test public void testImplementing3() {
+        addMockFile("$A/A.jml", "public class A implements java.io.Serializable { }");
+        helpTCF("$A/A.java",
+                "public class A implements Comparable<A> { } "
+            ,"/$A/A.jml:1: error: The specification declaration must declare the same interfaces as the source declaration: java.lang.Comparable<A>",8
+            ,"/$A/A.jml:1: error: The specification declaration must declare the same interfaces as the source declaration: java.io.Serializable",8
+                );
+    }
+    
+    @Test public void testImplementing4() {
+        addMockFile("$A/A.jml", "public class A implements java.io.Serializable,  Comparable<A> { }");
+        helpTCF("$A/A.java",
+                "public class A implements Comparable<A>,  java.io.Serializable { } "
+                );
+    }
+    
+    @Test public void testImplementing5() {
+        addMockFile("$A/A.jml", "public class A implements java.io.Serializable,  Comparable<A> { }");
+        helpTCF("$A/A.java",
+                "public class A implements AutoCloseable,  java.io.Serializable { } "
+            ,"/$A/A.jml:1: error: The specification declaration must declare the same interfaces as the source declaration: java.lang.AutoCloseable",8
+            ,"/$A/A.jml:1: error: The specification declaration must declare the same interfaces as the source declaration: java.lang.Comparable<A>",8
+                );
+    }
+    
+    @Test public void testInterface1() {
+        addMockFile("$A/A.jml", "public interface A { }");
+        helpTCF("$A/A.java",
+                "public interface A extends java.io.Serializable { } "
+            ,"/$A/A.jml:1: error: The specification declaration must declare the same interfaces as the source declaration: java.io.Serializable",8
+                );
+    }
+    
+    @Test public void testInterface2() {
+        addMockFile("$A/A.jml", "public interface A extends java.io.Serializable { }");
+        helpTCF("$A/A.java",
+                "public interface A { } "
+            ,"/$A/A.jml:1: error: The specification declaration must declare the same interfaces as the source declaration: java.io.Serializable",8
+                );
+    }
+    
+    @Test public void testInterface3() {
+        addMockFile("$A/A.jml", "public interface A extends java.io.Serializable { }");
+        helpTCF("$A/A.java",
+                "public interface A extends Comparable<A> { } "
+            ,"/$A/A.jml:1: error: The specification declaration must declare the same interfaces as the source declaration: java.lang.Comparable<A>",8
+            ,"/$A/A.jml:1: error: The specification declaration must declare the same interfaces as the source declaration: java.io.Serializable",8
+                );
+    }
+    
+    @Test public void testInterface4() {
+        addMockFile("$A/A.jml", "public interface A extends java.io.Serializable,  Comparable<A> { }");
+        helpTCF("$A/A.java",
+                "public interface A extends Comparable<A>,  java.io.Serializable { } "
+                );
+    }
+    
+    @Test public void testInterface5() {
+        addMockFile("$A/A.jml", "public interface A extends java.io.Serializable,  Comparable<A> { }");
+        helpTCF("$A/A.java",
+                "public interface A extends AutoCloseable,  java.io.Serializable { } "
+            ,"/$A/A.jml:1: error: The specification declaration must declare the same interfaces as the source declaration: java.lang.AutoCloseable",8
+            ,"/$A/A.jml:1: error: The specification declaration must declare the same interfaces as the source declaration: java.lang.Comparable<A>",8
+                );
+    }
+    
 
     // FIXME - need all these corresponding tests for nested classes
 }

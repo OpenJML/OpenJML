@@ -938,6 +938,50 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	utils.error(tspecs.file,loc,"jml.ghost.model.on.java", classSymbol);
         }
         
+        if (specsDecl != javaDecl && specsDecl != null) {
+            Env<AttrContext> specEnv = specsDecl.specEnv;
+            Type sup = classSymbol.getSuperclass();
+            if (!classSymbol.isInterface() && sup.getKind() != TypeKind.ERROR) {
+                if (specsDecl.extending != null) {
+                    attribType(specsDecl.extending, specEnv);
+                    if (classSymbol == syms.objectType.tsym || !jmltypes.isSameType(specsDecl.extending.type, sup)) {
+                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "The specification declaration must declare the same supertype as the source declaration: " 
+                                                + specsDecl.extending.type + " vs. " + sup);
+                    }
+                } else {
+                    if (classSymbol == syms.objectType.tsym) {
+                        // OK - no parent class permitted
+                    } else if (classSymbol.toString().contains("java.util.stream.Collector")) {
+                        // OK - FIXME - why do we need this
+                    } else if (sup.tsym != syms.objectType.tsym) {
+                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "The specification declaration must declare the same supertype as the source declaration: " + sup);
+                    }
+                }
+            }
+            if (specsDecl.implementing != null) {
+                List<Type> ifaces = attribTypes(specsDecl.implementing, specEnv);
+                outer: for (var sourceType: classSymbol.getInterfaces()) {
+                    if (sourceType.getKind() == TypeKind.ERROR) continue;
+                    for (var specType: ifaces) {
+                        if (JmlTypes.instance(context).isSameType(sourceType, specType)) {
+                            ListBuffer<Type> newifaces = new ListBuffer<>();
+                            for (var st: ifaces) if (st != specType) newifaces.add(st);
+                            ifaces = newifaces.toList();
+                            continue outer;
+                        }
+                    }
+                    if (sourceType.toString().equals("java.lang.annotation.Annotation")) {
+                        // OK
+                    } else {
+                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "The specification declaration must declare the same interfaces as the source declaration: " + sourceType);
+                    }
+                }
+                if (ifaces.size() != 0) {
+                    utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "The specification declaration must declare the same interfaces as the source declaration: " + ifaces);
+                }
+            }
+
+        }
         if (specsDecl != null) checkAnnotations(javaDecl == null ? null : javaDecl.mods, specsDecl.mods, specsDecl.sym);
 
         if (specsDecl != null) checkJavaFlags(specsDecl.sym.flags(), javaDecl, specsDecl.mods.flags, specsDecl, specsDecl.sym);
