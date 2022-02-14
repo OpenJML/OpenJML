@@ -919,7 +919,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol specSym, MethodSpecs spec) {
-    	//if (specSym.toString().equals("Object()")) { System.out.println("SAVE " + specSym + " " + specSym.hashCode() + " " + specsEnv); Utils.dumpStack(); } 
+    	//if (specSym.owner.toString().equals("EEE") && specSym.toString().contains("values()")) { System.out.println("SAVE " + specSym.owner + " " + specSym + " " + spec); Utils.dumpStack();  } 
     	spec.specSym = specSym;
         if (utils.verbose()) utils.note("            Saving method specs for " + specSym.owner + "." + specSym + " " + specSym.hashCode());
         specsMethods.put(specSym,spec);
@@ -1008,6 +1008,16 @@ public class JmlSpecs {
     	}
     	var ms = get(m);
 //        if (ms == null) System.out.println("Null specs returned from getLoadedSpecs (no default) for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
+        return ms;
+    }
+    
+    public MethodSpecs getLoadedOrDefaultSpecs(MethodSymbol m, int pos) {
+        var ms = getLoadedSpecs(m);
+        if (ms == null) {
+            ms = defaultSpecs(null, m, pos);
+            putSpecs(m, ms);
+            setStatus(m, SpecsStatus.SPECS_ATTR);
+        }
         return ms;
     }
     
@@ -1388,11 +1398,14 @@ public class JmlSpecs {
     public static class TypeSpecs {
         /** The Symbol for the type these specs belong to*/
         public ClassSymbol csymbol;
-        public Env<AttrContext> specsEnv; // The env to use to typecheck the specs
+
+        //@ nullable
+        public Env<AttrContext> specsEnv; // The env to use to typecheck the specs; can be null if there is no spec file
         
         
         // The source file for the specifications -- not necessarily the same as csymbol.sourcefile
-        public JavaFileObject file;
+        //@ nullable
+        public JavaFileObject file; // can be null if there is no spec file for a binary class
 
         /** The JmlClassDecl for the specification
          */
@@ -1404,7 +1417,7 @@ public class JmlSpecs {
         //@ nullable   // may be null if the class is binary; may be the same as specDecl if there is source and no .jml
         public JmlClassDecl javaDecl;
 
-        /** The JML modifiers of the class, including JML modifiers */
+        /** The modifiers of the class, including JML modifiers */
         public JmlModifiers modifiers;
 
         /** Caches the nullity for the associated class: if null, not yet determined;
@@ -1437,14 +1450,14 @@ public class JmlSpecs {
         
        
         // Only for the case in which there is no specification file -- that is, default or inferred specs
-        public TypeSpecs(ClassSymbol csymbol, JavaFileObject file, JmlModifiers mods, Env<AttrContext> env) {
-            this.file = file;
+        public TypeSpecs(ClassSymbol csymbol, /*@ nullable */ JavaFileObject file, JmlModifiers mods, /*@ nullable */ Env<AttrContext> env) {
+            this.file = file; // can be null for binary classes with no spec file
             this.csymbol = csymbol;
             this.specDecl = null;
             this.javaDecl = null;
             this.modifiers = mods;
             this.clauses = new ListBuffer<JmlTypeClause>();
-            this.specsEnv = env;
+            this.specsEnv = env; // can be null for binary classes with no spec file
         }
         
         public TypeSpecs(JmlClassDecl specdecl, JmlClassDecl javadecl, Env<AttrContext> specenv) {

@@ -8339,7 +8339,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			nestedCallLocation = that;
 
 			var mspecs = specs.getAttrSpecs(calleeMethodSym);
-			if (print) System.out.println("MSPECS " + mspecs);
+			if (print) System.out.println("MSPECS " + calleeMethodSym.owner + " " + calleeMethodSym + " " + mspecs);
 			boolean inliningCall = mspecs != null && mspecs.specDecl != null && mspecs.specDecl.mods != null
 					&& attr.findMod(mspecs.specDecl.mods, Modifiers.INLINE) != null;
 
@@ -10143,12 +10143,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							&& !utils.isJavaOrJmlPrimitiveOrVoidType(calleeMethodSym.getReturnType())
 							&& resultExpr != null && meth != null && specs.isNonNull(that.type, calleeMethodSym)) {
 						JCExpression nn = treeutils.makeNotNull(that.pos, resultExpr);
-						var p = mspecs.specDecl != null ? mspecs.specDecl.pos() : that.pos(); // FIXME - sort out cases
+						var p = (mspecs != null && mspecs.specDecl != null) ? mspecs.specDecl.pos() : that.pos(); // FIXME - sort out cases
 																								// where specDecl is
 																								// null -- implicit
 																								// methods like
 																								// Enum.values()?
-						var psource = mspecs.specDecl != null ? mspecs.specDecl.sourcefile : null;
+						var psource = (mspecs != null && mspecs.specDecl != null) ? mspecs.specDecl.sourcefile : null;
 						currentStatements = ensuresStatsOuter;
 						addStat(comment(meth, "Assuming non-null return value in " + methodDecl.sym
 								+ " on return from callee " + calleeMethodSym, null));
@@ -10427,6 +10427,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				typevarMapping = newTypeVarMapping;
 			} catch (Exception eee) {
 				utils.unexpectedException(eee, "APPLY-HELPER");
+				eee.printStackTrace(System.out);
 			}
 			if (Utils.debug())
 				System.out.println("APPLYHELPER-XB " + calleeMethodSym + " ");

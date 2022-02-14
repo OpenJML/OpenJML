@@ -1034,8 +1034,8 @@ public class JmlTree {
         
         public Env<AttrContext> topLevelEnv;
         
-        public boolean isSpecs() { return sourceCU != this; }
-        public boolean forBinary() { return sourceCU != null; }
+        public boolean isSpecs() { return sourcefile.getKind() != JavaFileObject.Kind.SOURCE; }
+        public boolean forBinary() { return sourceCU == null; }
         public JmlCompilationUnit sourceCU = null; // Set to self if a source file
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
