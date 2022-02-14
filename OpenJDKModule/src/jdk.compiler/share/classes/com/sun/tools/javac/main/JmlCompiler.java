@@ -195,20 +195,28 @@ public class JmlCompiler extends JavaCompiler {
         		noJML = specFile != null; // Using the noJML field to pass a parameter to the scanner factory is a hack and precludes parallel parsing within a context
         	}
         	// This block of code is inlined (twice) from super.parse(filename) in order to avoid rereading the source file
-        	JCTree.JCCompilationUnit javaCU = parse(filename, charSeq);
+        	JmlCompilationUnit javaCU = (JmlCompilationUnit)parse(filename, charSeq);
         	if (javaCU.endPositions != null) log.setEndPosTable(filename, javaCU.endPositions);
+        	JmlCompilationUnit specCU = null;
         	if (specFile != null) {
         		noJML = false;
         		log.useSource(specFile);
         		charSeq = readSource(specFile);
-        		JCTree.JCCompilationUnit specCU = parse(specFile, charSeq);
+        		specCU = (JmlCompilationUnit)parse(specFile, charSeq);
         		if (specCU.endPositions != null) log.setEndPosTable(specFile, specCU.endPositions);
-        		((JmlCompilationUnit)javaCU).specsCompilationUnit = (JmlCompilationUnit)specCU;
+                javaCU.specsCompilationUnit = specCU;
+                specCU.specsCompilationUnit = specCU;
+                specCU.sourceCU = javaCU;
+                javaCU.sourceCU = javaCU;
         	} else {
-        		((JmlCompilationUnit)javaCU).specsCompilationUnit = (JmlCompilationUnit)javaCU;
+        		javaCU.specsCompilationUnit = javaCU;
+                javaCU.sourceCU = javaCU;
         	}
         	if (debugParse) System.out.println("parser: Parsed " + filename + " " + specFile + " " + " Classes: " + Utils.join(" ",javaCU.defs.stream().filter(d->d instanceof JmlClassDecl).map(d->((JmlClassDecl)d).name.toString())));
+            org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, javaCU, filename);
+            if (specCU != null) org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, specCU, specFile);
         	return javaCU;
+        	// FIXME - are javaCU and specCU always non-null?
         	// FIXME - do we need to check/set the module and package in the specs file? (like we do in parseSpecs)
         } finally {
             noJML = false;
@@ -258,6 +266,9 @@ public class JmlCompiler extends JavaCompiler {
         	specCU.packge = p;
         }
         specCU.modle = p.modle;
+        specCU.specsCompilationUnit = specCU;
+        specCU.sourceCU = null;
+        org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, specCU, specFile);
         return specCU;
     }
         

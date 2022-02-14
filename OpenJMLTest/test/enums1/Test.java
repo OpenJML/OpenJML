@@ -30,11 +30,20 @@ public class Test {
         //@ assert ev == EEE._JMLvalues;
         //@ assert ev.length == 4;
         //@ assume (\forall EEE ee; ee != null ==> (\exists \bigint i; 0<=i && i<EEE._JMLvalues.length; EEE._JMLvalues[i] == ee));
-        //@ assume (\forall EEE ee; (ee == null || ee == EEE.AA || ee == EEE.BB || ee == EEE.CC || ee == EEE.DD));
-        //@ assert (\forall EEE ee;  (ee == null || ee == EEE.AA || ee == EEE.BB || ee == EEE.CC || ee == EEE.DD)); // FAILS, despite the assumption above
-        //@ assert (\forall EEE ee;  ee != null ==> ( ee == EEE.AA || ee == EEE.BB || ee == EEE.CC || ee == EEE.DD)); // FAILS, despite the assumption above
+        //@ assume (\forall EEE ee; validEnum(ee));
+        //@ assert (\forall EEE ee; validEnum(ee)); // FAILS, despite the assumption above
+        //@ assert (\forall EEE ee; validEnum(ee) ==> (ee == null || ee == EEE.AA || ee == EEE.BB || ee == EEE.CC || ee == EEE.DD)); // FAILS, despite the assumption above
+        //@ assert (\forall EEE ee; validEnum(ee) ==>  ee != null ==> ( ee == EEE.AA || ee == EEE.BB || ee == EEE.CC || ee == EEE.DD)); // FAILS, despite the assumption above
+        //@ assume (\forall EEE ee; ee != null ==> isEnum(ee,ev));
+        //@ assert (\forall EEE ee; ee != null ==> isEnum(ee,ev));
         //@ assume (\forall EEE ee; ee != null ==> (\exists \bigint i; 0<=i && i<ev.length; ev[i] == ee));
-        //@ assert (\forall EEE ee; ee != null ==> (\exists \bigint i; 0<=i && i<ev.length; ev[i] == ee)); // FIXME - failing, even though matches the line above
+        //@ assert (\forall EEE ee; validEnum(ee) ==> ee != null ==> (\exists \bigint i; 0<=i && i<ev.length; ev[i] == ee)); // FIXME - failing, even though matches the line above
     }
+    
+    //@ ensures \result <==> (ee == null || ee == EEE.AA || ee == EEE.BB || ee == EEE.CC || ee == EEE.DD);
+    //@ model pure public static boolean validEnum(nullable  EEE ee);
+    
+    //@ ensures \result ==(\exists \bigint i; 0<=i && i<ev.length; ev[i] == ee);
+    //@ model pure public static boolean isEnum( non_null  EEE ee, EEE[] ev);
     
 }
