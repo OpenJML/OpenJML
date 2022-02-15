@@ -403,10 +403,10 @@ public class FunctionLikeExpressions extends JmlExtension {
                 } else {
                     String s = argtype.toString();
                     // FIXME - find a better way to do these tests
-                    if (s.startsWith("org.jmlspecs.openjml.seq")) {
-                    } else if (s.startsWith("org.jmlspecs.openjml.array")) { // FIXME - are we keeping array?
-                    } else if (s.startsWith("org.jmlspecs.openjml.set")) {
-                    } else if (s.startsWith("org.jmlspecs.openjml.map")) {
+                    if (s.startsWith("org.jmlspecs.lang.seq")) {
+                    } else if (s.startsWith("org.jmlspecs.lang.array")) { // FIXME - are we keeping array?
+                    } else if (s.startsWith("org.jmlspecs.lang.set")) {
+                    } else if (s.startsWith("org.jmlspecs.lang.map")) {
                     } else {
                         error(arg,"jml.arraytype.required",keyword(),argtype.toString(),arg.toString());
                     }
