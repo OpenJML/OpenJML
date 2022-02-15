@@ -33,6 +33,7 @@ public class JmlCheckParsedAST extends JmlTreeScanner {
         var prev = Log.instance(context).useSource(file);
         try {
             var visitor = new JmlCheckParsedAST(context);
+            visitor.scanMode = JmlTreeScanner.AST_JAVA_MODE;
             visitor.check(cu.endPositions != null); // Check this now as endPosTable is needed in every node
             visitor.endPosTable = cu.endPositions;
             visitor.sourcefile = file;
@@ -59,21 +60,33 @@ public class JmlCheckParsedAST extends JmlTreeScanner {
     
     
     @Override
-    public void scan(JCTree t) {
-        check(positionSoFar <= t.getStartPosition());
-        check(t.getStartPosition() <= t.getPreferredPosition());
-        check(t.getPreferredPosition() <= t.getEndPosition(endPosTable));
-        positionSoFar = t.getStartPosition();
-        if (parent != null) {
-            check(parent.getStartPosition() <= t.getStartPosition());
-            check(t.getEndPosition(endPosTable) <= parent.getEndPosition(endPosTable));
-        }
+    public void scan(JCTree t) {  // FIXME - need work on ordering the positions
+        if (t == null) return;
+        int spos = t.getStartPosition();
+        int ppos = t.getPreferredPosition();
+        int epos = t.getEndPosition(endPosTable);
+//        if (spos != com.sun.tools.javac.util.Position.NOPOS) { // FIXME - remove when we have cleaned out all NOPOS
+//            if (!(positionSoFar <= spos) || !(spos <= ppos) || !(ppos <= epos)) System.out.println("POSA " + positionSoFar + " " + spos + " " + ppos + " " + epos + " " + t.getClass() + " " + t + " " + parent.getClass() + " " + parent + " " + System.identityHashCode(t));
+//            check(positionSoFar <= spos);
+//            check(spos <= ppos);
+//            check(ppos <= epos);
+//            positionSoFar = spos;
+//            if (parent != null) {
+//                if (!(parent.getStartPosition() <= spos) || !(epos <= parent.getEndPosition(endPosTable))) System.out.println("POSP " + positionSoFar + " " + spos + " " + ppos + " " + epos + " " + t.getClass() + " " + t + " " + parent.getClass() + " " + parent + " " + System.identityHashCode(t));
+//                check(parent.getStartPosition() <= spos);
+//                check(epos <= parent.getEndPosition(endPosTable));
+//            }
+//        } else {
+//            //System.out.println("POS " + positionSoFar + " " + spos + " " + t.getClass());
+//        }
         var savedParent = parent;
         parent = t;
         super.scan(t);
-        check(positionSoFar <= t.getEndPosition(endPosTable));
-        positionSoFar = parent.getEndPosition(endPosTable);
         parent = savedParent;
+//        if (epos != com.sun.tools.javac.util.Position.NOPOS) { // FIXME - remove when we have cleaned out all NOPOS
+//            check(positionSoFar <= epos);
+//            positionSoFar = epos;
+//        }
     }
     
     @Override
@@ -160,6 +173,7 @@ public class JmlCheckParsedAST extends JmlTreeScanner {
             // not checking: lineMap, docComments
             
         }
+//        super.visitTopLevel(cu); // FIXME - need to cleanup everything before enabling this again
     }
     
     @Override
@@ -171,10 +185,11 @@ public class JmlCheckParsedAST extends JmlTreeScanner {
         check(classDecl.specsDecl == null);
         check(classDecl.specEnv == null);
         check(classDecl.env == null);
-        check(classDecl.typeSpecs != null);
-        check(classDecl.toplevel == this.toplevel);
+        //check(classDecl.typeSpecs != null); // FIXME - what about this?
+ //       check(classDecl.toplevel == this.toplevel);   FIXME
         
         // not checking docComment, lineAnnotations
+        super.visitClassDef(node);
     }
 
     @Override
@@ -186,6 +201,7 @@ public class JmlCheckParsedAST extends JmlTreeScanner {
         check(methodDecl.specsDecl == null);
         
         // not checking docComment
+        super.visitMethodDef(node);
     }
 
     @Override
@@ -199,6 +215,21 @@ public class JmlCheckParsedAST extends JmlTreeScanner {
         // fieldSpecs -- may or may not be null
         
         // not checking docComment
+        super.visitVarDef(node);
+    }
+    
+    @Override
+    public void visitBlock(JCBlock node) {
+        JmlBlock block = (JmlBlock)node;
+        if (parent instanceof JmlClassDecl cd) {
+            check(block.sourcefile == cd.sourcefile);
+            check(block.isInitializerBlock);
+            // FIXME - blockSpecs, specificationCases, _this ?
+        } else {
+            // check(block.sourcefile == null); // FIXME
+            check(!block.isInitializerBlock);
+        }
+        super.visitBlock(node);
     }
 
 }

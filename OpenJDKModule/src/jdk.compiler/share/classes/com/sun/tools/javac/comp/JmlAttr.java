@@ -942,7 +942,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Env<AttrContext> specEnv = specsDecl.specEnv;
             Type sup = classSymbol.getSuperclass();
             if (!classSymbol.isInterface() && sup.getKind() != TypeKind.ERROR) {
-                if (specsDecl.extending != null) {
+                if (classSymbol.isEnum()) {
+                    if ((specsDecl.mods.flags & Flags.ENUM) == 0) {
+                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "The specification declaration must be an enum, because the source/binary is");
+                    }
+                    if (specsDecl.extending != null) {
+                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "An enum may not declare any superclass");
+                    }
+                } else if ((classSymbol.flags() & Flags.RECORD) != 0) {
+                    if ((specsDecl.mods.flags & Flags.RECORD) == 0) {
+                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "The specification declaration must be a record, because the source/binary is");
+                    }
+                    if (specsDecl.extending != null) {
+                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "A record may not declare any superclass");
+                    }
+
+                    // FIXME - any other checks for records?
+                } else if (specsDecl.extending != null) {
                     attribType(specsDecl.extending, specEnv);
                     if (classSymbol == syms.objectType.tsym || !jmltypes.isSameType(specsDecl.extending.type, sup)) {
                         utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "The specification declaration must declare the same supertype as the source declaration: " 
@@ -1018,6 +1034,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
 
     }
+    
     
     //public void checkTypeMatch(JmlClassDecl javaDecl, JmlClassDecl specsClassDecl) {
     public void checkTypeMatch(ClassSymbol javaClassSym, JmlClassDecl specsClassDecl) {
@@ -2951,7 +2968,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 boolean modelOrGhostX = ghostX || hasAnnotation2(tree.sym.type, Modifiers.MODEL);
         		allAllowed(mods.annotations, allowedLocalVarModifiers, kind);
         		if (modsinJML && !ghost  && !isInJmlDeclaration && !ownerInJML && !jmlenv.inExpressionScope) {
-        			if (!utils.isJMLTop(mods)) utils.error(tree.source(),tree.pos,"jml.missing.ghost", tree.sym + " in " + tree.sym.owner.owner + "." + tree.sym.owner);
+        			utils.error(tree.source(),tree.pos,"jml.missing.ghost", tree.sym + " in " + tree.sym.owner.owner + "." + tree.sym.owner);
         		} else if (!modsinJML && ghost) {
         			utils.error(tree.source(),tree.pos,"jml.ghost.on.java", tree.sym + " in " + tree.sym.owner.owner + "." + tree.sym.owner);
         		} else if (modelOrGhostX && jmlenv.inExpressionScope) {

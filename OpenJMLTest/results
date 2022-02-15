@@ -153,15 +153,16 @@ typeclauses.java             - 123/0 #
 
 
 -------------------
-- Enums
+- Bounds in specifications of Enum.jml
 - model imports
-- imports and type paramters for binary spec files
+- imports and type parameters for binary spec files
 = type parameters for methods
 - SpecsBase
 - crash in Flow
+- seq.jml does not work if ghost field is named length
 
-- check after parser
-- check after attribution
+- AST check after entering
+- AST check after attribution
 
 - var not allowed in old clauses
 - check that private methods do not override
