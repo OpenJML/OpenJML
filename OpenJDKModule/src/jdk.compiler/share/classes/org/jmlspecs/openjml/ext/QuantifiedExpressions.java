@@ -114,7 +114,7 @@ public class QuantifiedExpressions extends JmlExtension {
             JmlQuantifiedExpr that = (JmlQuantifiedExpr)tree;
             Env<AttrContext> localEnv = attr.envForExpr(that,env);
             
-            boolean b = ((JmlMemberEnter)attr.memberEnter).setInJml(true);
+//            boolean b = ((JmlMemberEnter)attr.memberEnter).setInJml(true);
             for (JCVariableDecl decl: that.decls) {
                 JCModifiers mods = decl.getModifiers();
                 if (attr.utils.hasOnly(mods,0)!=0) log.error(mods.pos,"jml.no.java.mods.allowed","quantified expression");
@@ -129,7 +129,7 @@ public class QuantifiedExpressions extends JmlExtension {
                 attr.memberEnter.memberEnter(decl, localEnv);
                 decl.type = decl.vartype.type; // FIXME not sure this is needed
             }
-            ((JmlMemberEnter)attr.memberEnter).setInJml(b);
+//            ((JmlMemberEnter)attr.memberEnter).setInJml(b);
             attr.quantifiedExprs.add(that);
             
             if (that.triggers != null && that.triggers.size() > 0) {

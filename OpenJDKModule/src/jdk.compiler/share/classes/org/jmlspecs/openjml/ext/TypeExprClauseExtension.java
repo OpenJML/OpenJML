@@ -72,7 +72,8 @@ public class TypeExprClauseExtension extends JmlExtension {
                 Name n = parser.parseOptionalName();
                 JCExpression e = parser.parseExpression();
                 Maker M = parser.maker().at(pp);
-                if (mods == null) mods = M.Modifiers(0);
+                if (mods == null) { mods = M.Modifiers(0); }
+                if (mods.getEndPosition(parser.endPosTable()) == -1) parser.storeEnd(mods, pp);
                 JmlTypeClauseExpr tcl = parser.to(M.JmlTypeClauseExpr(mods, keyword, clauseType, e));
                 wrapup(tcl, clauseType, true, true);
                 return tcl;
@@ -108,6 +109,7 @@ public class TypeExprClauseExtension extends JmlExtension {
                 }
             }
             if (mods == null) mods = parser.jmlF.at(pos).Modifiers(0);
+            if (mods.getEndPosition(parser.endPosTable()) == -1) parser.storeEnd(mods, pos);
             JmlTypeClauseConstraint tcl = parser.to(parser.jmlF.at(pos).JmlTypeClauseConstraint(
                     mods, e, sigs));
             tcl.notlist = notlist;
