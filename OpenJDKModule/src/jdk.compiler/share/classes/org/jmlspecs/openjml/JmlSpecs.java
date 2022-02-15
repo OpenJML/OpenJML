@@ -1630,7 +1630,7 @@ public class JmlSpecs {
     }
 
     public boolean isNonNull(VarSymbol sym) {
-    	if (!sym.type.isReference()) return false;
+    	if (utils.isJavaOrJmlPrimitiveType(sym.type)) return false;
     	var fspecs = getLoadedSpecs(sym);
     	if (fspecs != null) {
         	if (utils.hasMod(fspecs.mods, Modifiers.NULLABLE)) return false;

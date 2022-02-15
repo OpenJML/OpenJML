@@ -394,9 +394,22 @@ public class FunctionLikeExpressions extends JmlExtension {
             if (expr.args.size() != 1 && requireStrictJML()) error(tree,"jml.one.arg",keyword(),expr.args.size());
             for (JCExpression arg: expr.args) {
                 Type argtype = arg.type;
-                // FIXME - argtype is null when there is a DeferredType, in which case no checking is done
-                if (argtype != null && !(argtype instanceof Type.ArrayType) && !argtype.isErroneous()) {
-                    error(arg,"jml.arraytype.required",keyword(),argtype.toString(),arg.toString());
+                if (argtype == null || argtype.isErroneous()) {
+                    // Already reported as an error
+                } else if (argtype instanceof Type.ArrayType) {
+                    // OK - standard array type
+                } else if (JmlTypes.instance(context).isSubtype(argtype, syms.iterableType)) {
+                    // OK - is a Java collection
+                } else {
+                    String s = argtype.toString();
+                    // FIXME - find a better way to do these tests
+                    if (s.startsWith("org.jmlspecs.lang.seq")) {
+                    } else if (s.startsWith("org.jmlspecs.lang.array")) { // FIXME - are we keeping array?
+                    } else if (s.startsWith("org.jmlspecs.lang.set")) {
+                    } else if (s.startsWith("org.jmlspecs.lang.map")) {
+                    } else {
+                        error(arg,"jml.arraytype.required",keyword(),argtype.toString(),arg.toString());
+                    }
                 }
             }
             return attr.syms.booleanType;

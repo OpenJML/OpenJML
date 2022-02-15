@@ -177,22 +177,25 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     // Presumes that the list of trees comes from a class, and that we need to match and enter any JML members
     // env corresponds to the class that owns the list of trees
     void memberEnter(List<? extends JCTree> trees, Env<AttrContext> env) {
-    	if ( trees == null || env == null ) System.out.println("UNEXPECTED NULLS");
-    	if ( env.enclClass.defs != trees ) System.out.println( "List of trees does not match the env" );
+    	if ( trees == null || env == null) throw new AssertionError("UNEXPECTED NULLS");
+    	if ( env.enclClass.defs != trees ) throw new AssertionError("List of trees does not match the env" );
     	
-    	JmlClassDecl cd = (JmlClassDecl)env.enclClass;
-		TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(cd.sym, cd.specsDecl.specEnv);
-		// FIXME - the specEnv does not have the same outer env (holdig the class name)
-		//if (cd.name.toString().equals("A")) System.out.println("ENVS-B " + cd.sym + " " + env + " " + cd.specsDecl.specEnv);
+    	JmlClassDecl sourceDecl = (JmlClassDecl)env.enclClass;
+        JmlClassDecl specsDecl = sourceDecl.specsDecl;
+        if (specsDecl == null) throw new AssertionError("UNEXPECTED NULL SPECSDECL");
+        
+        TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(sourceDecl.sym, specsDecl.specEnv);
+		
+        // FIXME - the specEnv does not have the same outer env (holding the class name)
+		//System.out.println("MEMENTER " + sourceDecl.sym + " " + env + " " + specsDecl.specEnv);
 
 
     	// It would be easier if we could match all the members, and then give a resolved list to super.memberEnter
     	// However, we need attributed methods in order to match them (fields can be done solely by name).
     	super.memberEnter(trees, env); // Entering all the .java declared trees
-    	JmlClassDecl specsDecl = ((JmlClassDecl)cd).specsDecl;
     	if (specsDecl == null) { System.out.println("UNEXPECTED NULL SPECSDECL"); return; }
-    	if (specsDecl == cd) {
-    		boolean isJML = cd.sourcefile.getKind() != JavaFileObject.Kind.SOURCE;
+    	if (specsDecl == sourceDecl) {
+            boolean isJML = utils.isSpecFile(sourceDecl.sourcefile);
     		// The specification file is the .java file
     		// Any duplicates have already been reported
     		boolean hasInstanceInit = false;
@@ -204,10 +207,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         			var msp = new JmlSpecs.MethodSpecs(md);
             		md.specsDecl = md;
             		msp.javaDecl = md;
-            		msp.javaEnv = msp.specsEnv = methodEnv(md, env); // FIXME - review this
+            		msp.javaEnv = msp.specsEnv = methodEnv(md, env); // FIXME - review this -- needs formals, type parameters
 					specs.putSpecs(md.sym, msp);
         		} else if (t instanceof JmlTree.JmlBlock block) {
-        			if (block.isInitializerBlock && block.sourcefile.getKind() != JavaFileObject.Kind.SOURCE && !utils.isJML(env.enclClass.mods)) {
+        			if (block.isInitializerBlock && utils.isSpecFile(block.sourcefile) && !utils.isJML(env.enclClass.mods)) {
         				utils.error(block.source(), t, "jml.initializer.block.allowed");
         			}
     			} else if (t instanceof JmlTree.JmlTypeClauseInitializer init) {
@@ -248,22 +251,22 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     					specVarDecl.type = specVarDecl.sym.type;
     					if (specVarDecl.fieldSpecs == null) specVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(specVarDecl);
     					specs.putSpecs(specVarDecl.sym, specVarDecl.fieldSpecs);
-    					cd.defs = cd.defs.append(specVarDecl);
+    					sourceDecl.defs = sourceDecl.defs.append(specVarDecl);
     					//System.out.println("NEW JML FIELD " + cd.name + " " + specVarDecl.name + " " + specVarDecl.sym + " " + specVarDecl.type + " " + specVarDecl.vartype + " " + specVarDecl.vartype.type );
     				} else {
 						JmlVariableDecl javaVarDecl = (JmlVariableDecl)match.get();
-						utils.errorAndAssociatedDeclaration(specVarDecl.sourcefile, specVarDecl, javaVarDecl.sourcefile, javaVarDecl, "jml.message", "This JML field declaration conflicts with an existing field with the same name: " + cd.sym.flatname + "." + specVarDecl.name);
+						utils.errorAndAssociatedDeclaration(specVarDecl.sourcefile, specVarDecl, javaVarDecl.sourcefile, javaVarDecl, "jml.message", "This JML field declaration conflicts with an existing field with the same name: " + sourceDecl.sym.flatname + "." + specVarDecl.name);
     				}
     			} else {
     				// Specification field is a Java declaration (in the .jml file)
     				if (match.isEmpty()) {
-    					utils.error(specVarDecl.sourcefile, specVarDecl, "jml.message", "There is no field to match this Java declaration in the specification file: " + cd.sym.flatname + "." + specVarDecl.name);
+    					utils.error(specVarDecl.sourcefile, specVarDecl, "jml.message", "There is no field to match this Java declaration in the specification file: " + sourceDecl.sym.flatname + "." + specVarDecl.name);
     				} else {
 						JmlVariableDecl javaVarDecl = (JmlVariableDecl)match.get();
     					if (javaVarDecl.specsDecl == null) {
                         	Type specType = (specVarDecl.vartype.type == null) ? attr.attribType(specVarDecl.vartype, specEnv) : specVarDecl.vartype.type;
                         	if (!types.isSameType(javaVarDecl.vartype.type, specType)) {
-    							String msg = "Type of field " + cd.sym + "." + specVarDecl.name + " in specification differs from type in source/binary: " + specType + " vs. " + javaVarDecl.sym.type;
+    							String msg = "Type of field " + sourceDecl.sym + "." + specVarDecl.name + " in specification differs from type in source/binary: " + specType + " vs. " + javaVarDecl.sym.type;
     							if (javaVarDecl != null) {
     								utils.errorAndAssociatedDeclaration(specVarDecl.sourcefile, specVarDecl.vartype, javaVarDecl.source(), javaVarDecl, 
     										"jml.message", msg, javaVarDecl.pos(), javaVarDecl.sourcefile);
@@ -283,14 +286,14 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         	}
     					} else {
     						utils.errorAndAssociatedDeclaration(specVarDecl.sourcefile, specVarDecl, javaVarDecl.specsDecl.sourcefile, javaVarDecl.specsDecl, 
-    								"jml.duplicate.var.match", cd.sym.flatname + "." + specVarDecl.name);
+    								"jml.duplicate.var.match", sourceDecl.sym.flatname + "." + specVarDecl.name);
     						ok = false;
     					}
     				}
     			}
     		} else if (t instanceof JmlMethodDecl specMethodDecl) {
-    			var matchSym = matchMethod(specMethodDecl, cd.sym, env, false);
-    			var decl = matchSym == null ? null : cd.defs.stream().filter(tt->(tt instanceof JmlMethodDecl md && md.sym == matchSym)).findFirst().orElse(null);
+    			var matchSym = matchMethod(specMethodDecl, sourceDecl.sym, env, false);
+    			var decl = matchSym == null ? null : sourceDecl.defs.stream().filter(tt->(tt instanceof JmlMethodDecl md && md.sym == matchSym)).findFirst().orElse(null);
     			JmlMethodDecl javaMethodDecl = (JmlMethodDecl)decl;
     			if (utils.isJML(specMethodDecl)) {
     				// A JML model method
@@ -304,17 +307,17 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     					msp.javaEnv = msp.specsEnv = env;
 //    					enter.classEnter(specMethodDecl.params, msp.specsEnv); // FIXME - also enter type parameters?
     					specs.putSpecs(specMethodDecl.sym, msp);
-    					cd.defs = cd.defs.append(specMethodDecl);
+    					sourceDecl.defs = sourceDecl.defs.append(specMethodDecl);
     					//System.out.println("NEW JML METHOD " + cd.name + " " + specMethodDecl.name + " " + specMethodDecl.sym  );
     				} else {
 						utils.errorAndAssociatedDeclaration(specMethodDecl.sourcefile, specMethodDecl, javaMethodDecl.sourcefile, javaMethodDecl, 
-								"jml.message", "This JML method declaration conflicts with an existing method with the same signature: " + cd.sym.flatname + "." + specMethodDecl.sym);
+								"jml.message", "This JML method declaration conflicts with an existing method with the same signature: " + sourceDecl.sym + "." + specMethodDecl.sym);
 						ok = false;
     				}
     			} else {
     				// A Java method declaration in the specification file
     				if (matchSym == null) {
-    					utils.error(specMethodDecl.sourcefile, specMethodDecl, "jml.message", "There is no method to match this Java declaration in the specification file: " + cd.sym.flatname + "." + specMethodDecl.sym);
+    					utils.error(specMethodDecl.sourcefile, specMethodDecl, "jml.message", "There is no method to match this Java declaration in the specification file: " + sourceDecl.sym + "." + specMethodDecl.sym);
 						ok = false;
     				} else {
     					if (javaMethodDecl.specsDecl == null) {
@@ -339,7 +342,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         	}
     					} else {
     						utils.errorAndAssociatedDeclaration(specMethodDecl.sourcefile, specMethodDecl, javaMethodDecl.specsDecl.sourcefile, javaMethodDecl.specsDecl, 
-    								"jml.duplicate.method.match", specMethodDecl.sym, cd.sym.flatname);
+    								"jml.duplicate.method.match", specMethodDecl.sym, sourceDecl.sym);
     						ok = false;
     					}
     				}
@@ -476,55 +479,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
     
 
-//    // FIXME _ not currently used
-//    public void checkForGhostModel(JCModifiers mods, JavaFileObject source, DiagnosticPosition pos) {
-//        JmlAnnotation a = utils.findMod(mods, Modifiers.MODEL);
-//        if (a == null) a = utils.findMod(mods, Modifiers.GHOST);
-//        if (!utils.isJML(mods)) {
-//            if (a != null) utils.error(source, pos, "jml.ghost.model.on.java");
-//        } else {
-//            if (a == null) utils.error(source, pos , "jml.missing.ghost.model");
-//        }
-//    }  
-//    
-//    protected List<JCTree> matchStuff(/*@nullable*/ JmlClassDecl jtree, ClassSymbol csym, Env<AttrContext> env, JmlClassDecl specsDecl) {
-//        Map<Symbol,JCTree> matches = new HashMap<Symbol,JCTree>();
-//        ListBuffer<JCTree> newlist = new ListBuffer<>();
-//        ListBuffer<JCTree> toadd = new ListBuffer<>();
-////        ListBuffer<JCTree> toremove = new ListBuffer<>();
-////        Env<AttrContext> prevEnv = this.env;
-////        this.env = env;
-////
-////        for (JCTree specsMemberDecl: specsDecl.defs) {
-////            if (specsMemberDecl instanceof JmlVariableDecl) {
-////                JmlVariableDecl specsVarDecl = (JmlVariableDecl)specsMemberDecl;
-////                boolean ok = matchAndSetFieldSpecs(jtree, csym, specsVarDecl, matches, jtree == specsDecl);
-////                if (ok) {
-////                    newlist.add(specsVarDecl); // FIXME - are we actually using newlist? should we?
-////                } else {
-////                    toremove.add(specsVarDecl); 
-////                }
-////            } else if (specsMemberDecl instanceof JmlMethodDecl) {
-////                JmlMethodDecl specsMethodDecl = (JmlMethodDecl)specsMemberDecl;
-////                boolean ok = matchAndSetMethodSpecs(jtree, csym, specsMethodDecl, env, matches, jtree == specsDecl);
-////                if (!ok) {
-////                    toremove.add(specsMethodDecl); 
-////                }
-////            } else {
-//////                newlist.add(specsMemberDecl);
-////            }
-////        }
-////        // The following is somewhat inefficient, but it is only called when there are errors
-////        for (JCTree t: toremove.toList()) {
-////            jtree.defs = Utils.remove(jtree.defs, t);
-////        }
-////
-////        this.env = prevEnv;
-////        matches.clear();
-//        return toadd.toList();
-//    }
-
-
 //    /** Finds a Java method declaration matching the given specsMethodDecl in the given class
 //     * <br>returns false if the declaration is to be ignored because it is in error
 //     * <br>if no match and specsVarDecl is not ghost or model, error message issued, null returned
@@ -644,13 +598,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //    }
 //
 //    
-//    public void checkFinalTypeSpecs(JmlSpecs.TypeSpecs tspecs) {
-//        for (JmlTypeClause tc: tspecs.clauses) {
-//            if (tc instanceof JmlTypeClauseInitializer) {
-//            }
-//        }
-//    }
-    
+   
 //    public void addInitializerBlocks(ClassSymbol sym, Env<AttrContext> env) {
 //        JmlClassDecl classDecl = (JmlClassDecl)env.tree;
 //        
@@ -811,15 +759,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         return mr;
     }
     
-//    /** For synthetic methods or methods that do not have occasion to declare
-//     * specs in a specification file, this sets the combined specs to be those
-//     * that are associated with the method declaration itself.
-//     * @param mdecl
-//     */
-//    protected void setDefaultCombinedMethodSpecs(JmlMethodDecl mdecl) {
-//        mdecl.methodSpecsCombined = new JmlSpecs.MethodSpecs(mdecl);
-//        specs.putSpecs(mdecl.sym,mdecl.methodSpecsCombined);
-//    }
 
 //    /** Checks that the jml annotations match Java annotations for annotations not in org.jmlspecs.annotation
 //     * and are a superset of the Java annotations for annotations in org.jmlspecs.annotation) */
@@ -1342,12 +1281,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      */
     public boolean inModelTypeDeclaration = false;
     
-    private boolean isInJml = false;
-    public boolean setInJml(boolean inJml) {
-        boolean b = isInJml;
-        isInJml = inJml;
-        return b;
-    }
+//    private boolean isInJml = false;
+//    public boolean setInJml(boolean inJml) {
+//        boolean b = isInJml;
+//        isInJml = inJml;
+//        return b;
+//    }
 
     @Override
     public void visitMethodDef(JCMethodDecl tree) {
@@ -1361,25 +1300,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
     @Override
     public void visitVarDef(JCVariableDecl tree) {
-//    	JCAnnotatedType atype = null;
-//    	if (tree.vartype instanceof JCAnnotatedType) atype = (JCAnnotatedType)tree.vartype;
-//    	if (atype != null) {
-//    		if (specs.findAnnotation(atype.annotations, Modifiers.NON_NULL) != null) return;
-//    		if (specs.findAnnotation(atype.annotations, Modifiers.NULLABLE) != null) return;
-//    	}
-//    	var nn = specs.defaultNullity(env.enclClass.sym);
-//    	JCAnnotation ann = utils.modToAnnotationAST(nn, tree.pos, tree.pos); // FIXME - better position
-//    	if (atype != null) {
-//    		atype.annotations = atype.annotations.append(ann);
-//    	} else {
-//    		tree.vartype = jmlF.at(tree).AnnotatedType(List.<JCAnnotation>of(ann), tree.vartype);
-//    	}
-    	boolean prev = JmlResolve.instance(context).allowJML();
-    	if (utils.isJML(tree.mods) || ((JmlVariableDecl)tree).jmltype) JmlResolve.instance(context).setAllowJML(true); // FIXME - does having a jmltype mean that we need JML resolution?
+        // FIXME - just because there is a substitute type does not mean everything should be resolved with allowJML???
+        boolean prev = JmlResolve.instance(context).addAllowJML(utils.isJML(tree.mods) || ((JmlVariableDecl)tree).jmltype);
     	try {
-    	    //if (tree.toString().contains("Pure")) System.out.println("VVD " + tree + " " + utils.isJML(tree.mods) + " " + JmlResolve.instance(context).allowJML());
     		super.visitVarDef(tree);
-    		//if (tree.sym.type instanceof Type.ClassType ct && ct.tsym instanceof ClassSymbol cs) enter.requestSpecs(cs);
     	} finally {
     		if (JmlEnter.debugEnter) System.out.println("enter: Entered field " + tree.sym.owner + " " + tree.name);
     		JmlResolve.instance(context).setAllowJML(prev);
@@ -1397,51 +1321,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
 
 
-//    @Override
-//    public void visitVarDef(JCVariableDecl tree) {
-//        long flags = tree.mods.flags;
-//        boolean wasFinal = (flags&Flags.FINAL) != 0;
-//        boolean wasStatic = (flags&Flags.STATIC) != 0;
-//        if ((env.enclClass.mods.flags & INTERFACE) != 0  && utils.isJML(tree.mods)) {
-//            // FIXME - but the @Instance declaration might be in the .jml file
-//            boolean isInstance = JmlAttr.instance(context).isInstance(tree.mods);
-//            if (isInstance && !wasStatic) {
-//            	tree.mods.flags &= ~Flags.STATIC;
-//            	if (tree.sym != null) tree.sym.flags_field = tree.sym.flags() & ~Flags.STATIC;
-//            }
-//        }
-////        boolean prev = resolve.allowJML();
-////        boolean isReplacementType = ((JmlVariableDecl)tree).jmltype;
-////        
-////        if (utils.isJML(tree.mods) || isReplacementType) resolve.setAllowJML(true);
-////        
-//////        boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
-//////        ((JmlCheck)chk).noDuplicateWarn = false;
-//        JavaFileObject prevSource = log.useSource( ((JmlVariableDecl)tree).source());
-//        super.visitVarDef(tree);
-//        
-//        if (tree.sym.owner instanceof ClassSymbol) {
-//        	// local variables and parameters do not have entries in specs
-//        	var jtree = (JmlVariableDecl)tree;
-//        	var fs = jtree.specsDecl.fieldSpecs;
-//        	((JmlVariableDecl)tree).specsDecl.sym = tree.sym;
-//        	if (tree.sym != null) JmlSpecs.instance(context).putSpecs(tree.sym, fs);
-//        }
-//        log.useSource(prevSource);
-//
-//
-//
-//////        ((JmlCheck)chk).noDuplicateWarn = prevChk;
-////        if (utils.isJML(tree.mods)) resolve.setAllowJML(prev);
-////        if (tree.sym == null) {
-////            // A duplicate
-////            env.enclClass.defs = List.filter(env.enclClass.defs,tree);
-////            return;
-////        }
-//        Symbol sym = tree.sym;
-// //       if (specs.getSpecs(tree.sym) != null) utils.warning("jml.internal","Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
-//        JmlVariableDecl jtree = (JmlVariableDecl)tree;
-//    }
     
     protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, WriteableScope enclScope, Env<AttrContext> env, List<JCAnnotation> annotations) {
        	if (tree.sym.owner instanceof ClassSymbol && tree != ((JmlVariableDecl)tree).specsDecl && null != ((JmlVariableDecl)tree).specsDecl) {
@@ -1455,128 +1334,5 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }    
     
     
-    // FIXME - ressurrect these checks and corresponding tests
-
-//    /** Checks that the inheritance relationships in the specification
-//     * declaration match those in the class.  Presumes all types have been
-//     * entered and have symbols assigned.
-//     * @param specTypeDeclaration the spec declaration to check
-//     */
-//    private void checkSpecInheritance(JmlClassDecl specTypeDeclaration) {
-//
-//        ClassSymbol matchingCSymbol = specTypeDeclaration.sym;
-//        
-//        // Check that the package is correct
-//        if (specTypeDeclaration.toplevel.packge != matchingCSymbol.packge()) {
-//            log.error(specTypeDeclaration.toplevel.pid.pos,"jml.mismatched.package",  // TODO _ test this
-//                    specTypeDeclaration.toplevel.packge,matchingCSymbol.packge());
-//        }
-//        // FIXME - use type comparison here
-//        
-//        // Check that the specification has the correct super types
-//        if (!matchingCSymbol.equals(syms.objectType.tsym) && !matchingCSymbol.isInterface()) {
-//            JCTree sup = specTypeDeclaration.extending;
-//            Type suptype = matchingCSymbol.getSuperclass();
-//            Name s = suptype.tsym.getQualifiedName();
-//            if (sup == null && !suptype.tsym.equals(syms.objectType.tsym)) {
-//                log.error("jml.missing.spec.superclass",matchingCSymbol.getQualifiedName().toString(),s.toString());
-//            } else if (sup instanceof JCTree.JCIdent) {
-//                if ( s != null && !s.toString().endsWith(((JCTree.JCIdent)sup).name.toString()) ) {
-//                    log.error("jml.incorrect.spec.superclass",matchingCSymbol.getQualifiedName().toString(),((JCTree.JCIdent)sup).name.toString(),s.toString());
-//                }
-//            } else if (sup instanceof JCTree.JCFieldAccess) {
-//                if ( !s.toString().endsWith(((JCTree.JCFieldAccess)sup).name.toString()) ) {
-//                    log.error("jml.incorrect.spec.superclass",matchingCSymbol.getQualifiedName().toString(),((JCTree.JCFieldAccess)sup).name.toString(),s.toString());
-//                }
-//            }
-//        }
-//
-//        // Check the interfaces
-//
-//        List<Type> interfaces = matchingCSymbol.getInterfaces();
-//        Collection<Type> copy = new LinkedList<Type>();
-//        for (Type t: interfaces) copy.add(t);
-//
-//        for (JCTree.JCExpression e : specTypeDeclaration.implementing) {
-//            // FIXME - should match types
-//            Name nm = null;
-//            if (e instanceof JCTree.JCIdent) {
-//                nm = ((JCTree.JCIdent)e).name;
-//            } else if (e instanceof JCTree.JCFieldAccess) {
-//                nm = ((JCTree.JCFieldAccess)e).name;
-//            } else if (e instanceof JCTree.JCTypeApply){
-//                JCTree.JCExpression ee = e;
-//                while (ee instanceof JCTree.JCTypeApply) ee = ((JCTree.JCTypeApply)ee).clazz;
-//                if (ee instanceof JCTree.JCIdent) nm = ((JCTree.JCIdent)ee).name;
-//                if (ee instanceof JCTree.JCFieldAccess) nm = ((JCTree.JCFieldAccess)ee).name;
-//            } else {
-//                log.noticeWriter.println("UNSUPPORTED IMPLEMENTS TYPE (" + matchingCSymbol + "): " + e.getClass() + " " + e);
-//                // ERROR - FIXME
-//            }
-//            if (nm != null) {
-//                boolean found = false;
-//                java.util.Iterator<Type> iter = copy.iterator();
-//                while (iter.hasNext()) {
-//                    Name nmm = iter.next().tsym.getQualifiedName();
-//                    if (nmm.toString().contains(nm.toString())) {
-//                        iter.remove();
-//                        found = true;
-//                        break;
-//                    }
-//                }
-//                if (!found) {
-//                    log.error("jml.missing.spec.interface",matchingCSymbol.getQualifiedName().toString(),nm.toString());
-//                }
-//            }
-//        }
-//        for (Type t: copy) {
-//            if (t.toString().equals("java.lang.annotation.Annotation") && matchingCSymbol.isInterface()) continue;
-//            log.error("jml.unimplemented.spec.interface",matchingCSymbol.getQualifiedName().toString(),t.toString());
-//        }
-//
-//        // FIXME - should do thte above from resolved symbols
-//        // FIXME - need to check modifiers
-//    }
-
-
-//    // Only used for binary enter
-//
-//    // Only used for entering binary classes
-//    // FIXME - REVIEW
-//
-//
-//    protected void importHelper(JCCompilationUnit tree) {
-//        // Import-on-demand java.lang.   // FIXME - module
-//        importAll(tree.pos, syms.enterPackage(null, names.java_lang), env);
-//        importAll(tree.pos, syms.enterPackage(null, names.fromString(Strings.jmlSpecsPackage)), env);
-//
-//        // Process all import clauses.
-//        memberEnter(tree.defs, env);
-//    }
-//
-//    // FIXME
-//    protected void importAll(int pos,
-//            final TypeSymbol tsym,
-//            Env<AttrContext> env) {
-////        if (tsym.kind == PCK && tsym.members().elems == null && !tsym.exists()) {
-////            // If we can't find org.jmlspecs.lang, exit immediately.
-////            if (((PackageSymbol)tsym).fullname.toString().equals(Strings.jmlSpecsPackage)) {
-////                JCDiagnostic msg = JCDiagnostic.Factory.instance(context).fragment("fatal.err.no." + Strings.jmlSpecsPackage);
-////                throw new FatalError(msg);
-////            }
-////        }
-////        // FIXME - taken from Java8 implementation -- how are imports handled now?
-////        if (tsym.kind == PCK && !tsym.exists()) {
-////            // If we can't find java.lang, exit immediately.
-////            if (((PackageSymbol)tsym).fullname.equals(names.java_lang)) {
-////                JCDiagnostic msg = Log.instance(context).factory().fragment("fatal.err.no.java.lang");
-////                throw new FatalError(msg);
-////            } else {
-////                utils.error(DiagnosticFlag.RESOLVE_ERROR, pos, "doesnt.exist", tsym);
-////            }
-////        }
-////// FIXME        super.importAll(null, tsym, env);
-//    }
-
 
 }

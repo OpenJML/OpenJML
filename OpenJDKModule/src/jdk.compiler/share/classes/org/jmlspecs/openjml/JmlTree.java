@@ -2027,6 +2027,12 @@ public class JmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
+        
+        @Override
+        public int getStartPosition() {
+            return loopSpecs.size() > 0 ? loopSpecs.head.getStartPosition() : pos;
+        }
+
     }
 
     /** This class represents a group in an "in" or "maps" type clause in a class specification */
@@ -3215,7 +3221,7 @@ public class JmlTree {
     
         @Override
         public int getStartPosition() {
-            return expression != null ? expression.getStartPosition() : this.pos;
+            return this.pos;
         }
         
         @Override
@@ -3636,7 +3642,10 @@ public class JmlTree {
         }
         
         public int getStartPosition() {
-            return pos;
+            int p = pos;
+            if (modifiers != null) p = modifiers.getStartPosition();
+            if (p == Position.NOPOS) p = pos;
+            return p;
         }
         
         @Override
@@ -3784,6 +3793,7 @@ public class JmlTree {
             this.modifiers = mods;
             this.clauseType = token;
             this.expression = expression;
+            if (mods.pos == Position.NOPOS) mods.pos = pos;
         }
         
         @Override
@@ -3807,7 +3817,7 @@ public class JmlTree {
         }
         
         public int getStartPosition() {
-            return pos;
+            return modifiers.getStartPosition();
         }
 
     }
