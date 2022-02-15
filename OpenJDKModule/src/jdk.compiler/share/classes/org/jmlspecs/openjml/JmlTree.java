@@ -3809,7 +3809,7 @@ public class JmlTree {
         }
         
         public int getStartPosition() {
-            return pos;
+            return modifiers.getStartPosition();
         }
 
     }
