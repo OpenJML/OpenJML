@@ -183,7 +183,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     	JmlClassDecl sourceDecl = (JmlClassDecl)env.enclClass;
         JmlClassDecl specsDecl = sourceDecl.specsDecl;
         if (specsDecl == null) throw new AssertionError("UNEXPECTED NULL SPECSDECL");
-        JmlClassDecl cd = sourceDecl;
         
         TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(sourceDecl.sym, specsDecl.specEnv);
 		
@@ -196,7 +195,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     	super.memberEnter(trees, env); // Entering all the .java declared trees
     	if (specsDecl == null) { System.out.println("UNEXPECTED NULL SPECSDECL"); return; }
     	if (specsDecl == sourceDecl) {
-            boolean isJML = cd.sourcefile.getKind() != JavaFileObject.Kind.SOURCE;
+            boolean isJML = utils.isSpecFile(sourceDecl.sourcefile);
     		// The specification file is the .java file
     		// Any duplicates have already been reported
     		boolean hasInstanceInit = false;
@@ -208,10 +207,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         			var msp = new JmlSpecs.MethodSpecs(md);
             		md.specsDecl = md;
             		msp.javaDecl = md;
-            		msp.javaEnv = msp.specsEnv = methodEnv(md, env); // FIXME - review this
+            		msp.javaEnv = msp.specsEnv = methodEnv(md, env); // FIXME - review this -- needs formals, type parameters
 					specs.putSpecs(md.sym, msp);
         		} else if (t instanceof JmlTree.JmlBlock block) {
-                    if (block.isInitializerBlock && block.sourcefile.getKind() != JavaFileObject.Kind.SOURCE && !utils.isJML(env.enclClass.mods)) {
+        			if (block.isInitializerBlock && utils.isSpecFile(block.sourcefile) && !utils.isJML(env.enclClass.mods)) {
         				utils.error(block.source(), t, "jml.initializer.block.allowed");
         			}
     			} else if (t instanceof JmlTree.JmlTypeClauseInitializer init) {
@@ -308,7 +307,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     					msp.javaEnv = msp.specsEnv = env;
 //    					enter.classEnter(specMethodDecl.params, msp.specsEnv); // FIXME - also enter type parameters?
     					specs.putSpecs(specMethodDecl.sym, msp);
-    					cd.defs = cd.defs.append(specMethodDecl);
+    					sourceDecl.defs = sourceDecl.defs.append(specMethodDecl);
     					//System.out.println("NEW JML METHOD " + cd.name + " " + specMethodDecl.name + " " + specMethodDecl.sym  );
     				} else {
 						utils.errorAndAssociatedDeclaration(specMethodDecl.sourcefile, specMethodDecl, javaMethodDecl.sourcefile, javaMethodDecl, 
@@ -1282,12 +1281,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      */
     public boolean inModelTypeDeclaration = false;
     
-    private boolean isInJml = false;
-    public boolean setInJml(boolean inJml) {
-        boolean b = isInJml;
-        isInJml = inJml;
-        return b;
-    }
+//    private boolean isInJml = false;
+//    public boolean setInJml(boolean inJml) {
+//        boolean b = isInJml;
+//        isInJml = inJml;
+//        return b;
+//    }
 
     @Override
     public void visitMethodDef(JCMethodDecl tree) {
@@ -1301,9 +1300,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
     @Override
     public void visitVarDef(JCVariableDecl tree) {
-    	boolean prev = JmlResolve.instance(context).allowJML();
-    	if (utils.isJML(tree.mods) || ((JmlVariableDecl)tree).jmltype) JmlResolve.instance(context).setAllowJML(true); // FIXME - does having a jmltype mean that we need JML resolution?
-//        boolean prev = JmlResolve.instance(context).setAllowJML(utils.isJML(tree.mods));
+        // FIXME - just because there is a substitute type does not mean everything should be resolved with allowJML???
+        boolean prev = JmlResolve.instance(context).addAllowJML(utils.isJML(tree.mods) || ((JmlVariableDecl)tree).jmltype);
     	try {
     		super.visitVarDef(tree);
     	} finally {
