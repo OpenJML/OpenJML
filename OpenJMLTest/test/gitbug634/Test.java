@@ -27,6 +27,14 @@ public class Test {
     }
     
     //@ public normal_behavior
+    //@   requires count2 == 100;
+    //@   assignable \everything;
+    //@   ensures NNNN2 == \old(NNNN2) + 20;
+    public void good1() {
+        count2 = 120;
+    }
+    
+    //@ public normal_behavior
     //@   assignable NNNN;
     //@   ensures NNNN == \old(NNNN);  // BOGUS! This should not verify, but it does.
     public void bad2() {
