@@ -7646,6 +7646,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		if (that.meth.type.isErroneous()) {
 			System.out.println("ERRONEOUS TYPE " + that);
+			if (that.meth instanceof JCFieldAccess fa) System.out.println("  RECV " + fa + " " + fa.type);
+			that.args.forEach(a-> System.out.println("  ARG " + a + " " + a.type));
 			return;
 		}
 

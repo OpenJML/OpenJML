@@ -1,6 +1,7 @@
 class W {}
 
 // A singly-linked list with the first element being a 'head' and not part of the list
+// Specified with model methods
 public class Linked {
     //@ public normal_behavior
     //@   ensures \result == (next == null ? seq.<W>empty() : next.values().prepend(next.value));
@@ -15,10 +16,13 @@ public class Linked {
 
     // @ public invariant values().size == size();
     
+    // @ public model \locset nextFields;
+    // @ public model \locset valueFields;
+    
     //@ nullable
-    public Linked next;// @ in size, values; //@ maps next.values \into values; maps next.size \into size;
+    public Linked next;// @ in nextFields; maps next.nextFields \into nextFields;
     //@ nullable
-    public W value; // @ in values;
+    public W value; // @ in valueFields; maps next.valueFields \into valueFields
     
     //@ public normal_behavior
     //@ ensures \result.value == null;
