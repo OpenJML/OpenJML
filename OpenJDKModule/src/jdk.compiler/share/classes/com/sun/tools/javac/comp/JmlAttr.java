@@ -4201,6 +4201,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // a bug in OpenJML's overriding of OpenJDK. In the known case it is a failure to find the identifier that is the receiver of this method call.
             // The class has type parameters but the method does not.
             // So we report an error if no errors were reported in the super.visitApply call.
+            // FIXME - also should figure out how to report the original error message and location
             utils.error(tree,  "jml.message", "Failed to find a type for " + tree + " " + tree.type + " " + result + " " + ((Type.ErrorType)result).getOriginalType());
             String msg = tree.meth instanceof JCFieldAccess fa ? ("    Receiver = " + fa.type ) : "    ";
             for (var a: tree.args) { msg += (" ARG: " + a + " " + a.type); }
