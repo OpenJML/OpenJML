@@ -4127,6 +4127,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // one squeaks through by some means or another
         	utils.error(tree.typeargs.head,"jml.no.typeargs.for.fcn",token.internedName());
         }
+        //System.out.println("VISIT JMLAPPLY " + tree);
         
 //        Env<AttrContext> localEnv = env.dup(tree, env.info.dup( env.info.scope.dup()));
 //        // This local environment is for good measure.  It is normally needed as
@@ -4185,6 +4186,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitApply(JCTree.JCMethodInvocation tree) {
         // Otherwise this is just a Java method application
     	//if (org.jmlspecs.openjml.Main.useJML) System.out.println("VISITAPPLY " + tree);
+        int nerrors = log.nerrors;
     	try {
     		super.visitApply(tree);
     	} catch (Exception e) {
@@ -4193,9 +4195,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (result == null) System.out.println("RESULT NULL");
             if (result.isErroneous()) System.out.println("RESULT ERRONEOUS");
     	}
+        if (result.isErroneous() && nerrors == log.nerrors) {
+            // Some resolution errors are discovered during speculative attribution and not reported then.
+            // FIXME: But sometimes not ever reported (cf. linkedBugs test), though that seems either a bug in OpenJDK or
+            // a bug in OpenJML's overriding of OpenJDK. In the known case it is a failure to find the identifier that is the receiver of this method call.
+            // The class has type parameters but the method does not.
+            // So we report an error if no errors were reported in the super.visitApply call.
+            // FIXME - also should figure out how to report the original error message and location
+            utils.error(tree,  "jml.message", "Failed to find a type for " + tree + " " + tree.type + " " + result + " " + ((Type.ErrorType)result).getOriginalType());
+            String msg = tree.meth instanceof JCFieldAccess fa ? ("    Receiver = " + fa.type ) : "    ";
+            for (var a: tree.args) { msg += (" ARG: " + a + " " + a.type); }
+            utils.error(tree, "jml.message", msg);
+            return;
+        }
         if (result.isErroneous()) return;
         Type savedResult = result;
         
+        // Make sure that we have attributed specs for the method
         Symbol sym = identOrSelectSym(tree.meth);  // FIXME - use TreeInfo.symbol
         if (sym == null || !(sym instanceof MethodSymbol)) return; // An error happened
         MethodSymbol msym = (MethodSymbol)sym;
@@ -4550,7 +4566,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public Type attribTree(JCTree tree, Env<AttrContext> env, ResultInfo resultInfo) { 
     	var t = super.attribTree(tree, env, resultInfo);
-    	if (t instanceof Type.ClassType ct && ct.tsym instanceof ClassSymbol cs) {
+    	if (t instanceof Type.ClassType ct && !t.isErroneous() && ct.tsym instanceof ClassSymbol cs) {
+    	    // If we have just attributed a valid class type, enter a request for the specs for that class
     	    if (cs.kind == Kinds.Kind.TYP) JmlEnter.instance(context).requestSpecs(cs);
     	    else if (cs.kind != Kinds.Kind.ERR) utils.error("jml.internal","Unexpected kind of class symbol: " + cs + " " + cs.kind);
     	    // We don't have a position for the error message above -- tree is a good position but we aren't sure if the sourcefile is correct
@@ -5394,6 +5411,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitIdent(JCIdent tree) {
+        boolean print = false;//tree.toString().contains("oldlinks");
+        if (print) System.out.println("VISITIDENT " + tree);
     	// Attributing an ident can instigate loading of new classes
     	// Every routine is responsible for saving and restoring state
     	// However we save and restore it here even though we don't change it here, defensively
@@ -5415,6 +5434,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		}
         	}
         	super.visitIdent(tree);
+            if (print) System.out.println("VISITIDENT-A " + tree + " " + tree.sym + " " + tree.type + " " + tree.sym.getClass() + " " + tree.sym.owner + " " + 
+        	   tree.sym.owner.getClass() + " " + ((ClassSymbol)tree.sym).sourcefile + " " + env);
         	if (tree.sym == null) {
         		System.out.println("IDENT NULL SYM " + tree + " " + env.info.scope);
         	}
@@ -5852,6 +5873,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitSelect(JCFieldAccess tree) {
+        boolean print = tree.toString().contains("oldlinks");
         if (tree.name == null) {
             // This is a store-ref with a wild-card field
             // FIXME - the following needs some review
@@ -7286,6 +7308,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Attribute the arguments in a method call, returning a list of types;
      * the arguments themselves have their types recorded.
      */
+    // Overridden to make public
     @Override
     public KindSelector attribArgs(KindSelector initialKind, List<JCExpression> trees, Env<AttrContext> env, ListBuffer<Type> argtypes) {
         return super.attribArgs(initialKind, trees, env, argtypes);

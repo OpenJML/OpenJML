@@ -2474,7 +2474,6 @@ public class Attr extends JCTree.Visitor {
             // Compute the result type.
 
             Type restype = mtype.getReturnType();
-            //if (org.jmlspecs.openjml.Main.useJML) System.out.println("RESTYPE " + methName + " : "  + restype);
 
             if (restype.hasTag(WILDCARD))
                 throw new AssertionError(mtype);

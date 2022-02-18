@@ -1038,7 +1038,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - review this
     //boolean extraEnv = false;
     public void visitJmlMethodInvocation(JmlMethodInvocation that) { 
-    	//if (that.kind != null && that.kind.keyword == oldID) System.out.println("JMI " + that + " " + that.labelProperties);
         if (that.name != null) {
             scanList(that.args);
             result = that;
@@ -1059,19 +1058,20 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 {
                     VarMap savedMap = currentMap;
                     try {
-                            Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).name;
-                            //JCIdent label = (JCIdent)that.args.get(1);
-                            currentMap = labelmaps.get(label);
-                            if (currentMap == null) {
-                                // When method axioms are inserted they can appear before the label,
-                                // in which case control flow comes here. SO we are counting on proper
-                                // reporting of out of scope labels earlier.
-                                // This should have already been reported
-                                //log.error(label.pos,"jml.unknown.label",label.name.toString());
-                                // Just use the current map
-                                currentMap = savedMap;
-                            }
-                            that.args.get(0).accept(this);
+                        Name labelArg = that.args.size() == 1 ? JmlAttr.instance(context).preLabel : ((JCIdent)that.args.get(1)).name;
+                        Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).name;
+                        if (label != labelArg) utils.warning(that, "jml.message", "Unexpected mismatched state label names: " + labelArg + " " + label);
+                        currentMap = labelmaps.get(label);
+                        if (currentMap == null) {
+                            // When method axioms are inserted they can appear before the label,
+                            // in which case control flow comes here. SO we are counting on proper
+                            // reporting of out of scope labels earlier.
+                            // This should have already been reported
+                            //log.error(label.pos,"jml.unknown.label",label.name.toString());
+                            // Just use the current map
+                            currentMap = savedMap;
+                        }
+                        that.args.get(0).accept(this);
                     } finally {
                         currentMap = savedMap;
                     }
@@ -1806,8 +1806,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // OK
     @Override
     public void visitIdent(JCIdent that) {
-        if (that.sym instanceof Symbol.VarSymbol){ 
-            Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
+        if (that.sym instanceof Symbol.VarSymbol vsym){ 
             if (localVars.containsKey(vsym)) {
                 that.name = localVars.get(vsym).name;
             } else if (currentMap != null) { // FIXME - why would currentMap ever be null?
