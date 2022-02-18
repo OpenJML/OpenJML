@@ -44,7 +44,7 @@ public class assignable extends TCBase {
 
     @Test
     public void testAssignableField1() {
-    	main.addOptions("-progress");
+    	main.addOptions("--progress");
         helpTC(" class A { int k; boolean b; Object o; \n//@ assignable o.*;\n void m(){} }");
     }
 

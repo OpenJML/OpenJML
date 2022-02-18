@@ -1144,7 +1144,7 @@ public class MethodProverSMT {
                                     loc);
                             tracer.appendln(associatedLocation + " Associated location");
                         }
-                        if (true) { //JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
+                        {
                             IJmlClauseKind tkind = assertStat.associatedClause == null ? null : assertStat.associatedClause.clauseKind;
                             if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind
                             		|| assertStat.label == Label.POSSIBLY_NULL_RETURN) {  // FIXME - actually - any postcondition check

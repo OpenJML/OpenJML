@@ -171,14 +171,18 @@ public class JmlOptions extends Options {
         boolean negate = false;
         if (s.startsWith("-no-")) {
             negate = true;
-            s = s.substring("-no".length());
+            s = s.replace("-no","");
+        }
+        if (s.startsWith("--no-")) {
+            negate = true;
+            s = s.replace("-no","");
         }
         var o = JmlOption.find(s);
         while (o != null && o.synonym() != null) {
             s = o.synonym();
-            if (s.startsWith("-no-")) {
+            if (s.startsWith("-no-") || s.startsWith("--no-")) {
                 negate = !negate;
-                s = s.substring("-no".length());
+                s = s.replace("-no","");
             }
             o = JmlOption.find(s);
         }
@@ -194,7 +198,7 @@ public class JmlOptions extends Options {
                     // be a JDK option with an =, which JDK does not support.
                     // But can't warn about it because in this design we are filtering out
                     // JML options before Java options
-                    // warning(context, "jml.message", "Ignoring command-line argument " + args[i-1] + " which is either misspelled or is a JDK option using = to set an argument (which JDK does not support)");
+                    // Utils.instance(context).warning("jml.message", "Ignoring command-line argument " + arg + " " + s + " " + negate + " which is either misspelled or is a JDK option using = to set an argument (which JDK does not support)");
                     remainingArgs.add(arg);
                     return;
                 } else if (res.isEmpty()) {
@@ -292,7 +296,7 @@ public class JmlOptions extends Options {
         	if (o.defaultValue() instanceof Boolean) {
         		JmlOption.setOption(context, o, !negate);
         	} else {
-        		options.put(s,res);
+        		options.put(o.optionName(),res);
         		// Use negate with call of check later on
         	}
         }

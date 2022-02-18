@@ -12,7 +12,7 @@ public class binaries extends TCBase {
         //noCollectDiagnostics = true;
         //jmldebug = true;
         super.setUp();
-        //main.addOptions("-jmldebug");
+        //main.addOptions("--jmldebug");
     }
 
     /** Tests that a system spec file is loaded from mock files - though this has no error reports to be sure it happened*/

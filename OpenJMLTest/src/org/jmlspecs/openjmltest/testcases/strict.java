@@ -27,7 +27,7 @@ public class strict extends TCBase {
     @Test
     public void testLbl() {
         helpTCF("A.java","public class A {\n" +
-                " //@ ghost int i = (\\lbl A 0);\n }"
+                " //@ ghost int i = (\\lbl A 0);\n }"  // FIXME: Accepted into JML?
                 ,"/A.java:2: warning: The \\lbl construct is an OpenJML extension to JML and not allowed under " + optjml,21
                 );
     }

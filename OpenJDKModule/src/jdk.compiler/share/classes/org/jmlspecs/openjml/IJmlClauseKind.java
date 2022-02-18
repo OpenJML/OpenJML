@@ -474,6 +474,7 @@ public abstract class IJmlClauseKind {
 
     }
     
+    @SuppressWarnings("unchecked")
     public static class ModifierKind extends IJmlClauseKind {
         public String fullAnnotation;
         public com.sun.tools.javac.code.Symbol.ClassSymbol annotationSym = null;
@@ -506,7 +507,7 @@ public abstract class IJmlClauseKind {
             this.strict = strict;
             this.fullAnnotation = annotation.contains(".") ? annotation : ("org.jmlspecs.annotation." + annotation);
             try {
-            	this.clazz = (Class<? extends java.lang.annotation.Annotation>)Class.forName(this.fullAnnotation);
+            	this.clazz = (Class<? extends java.lang.annotation.Annotation>)Class.forName(this.fullAnnotation); // unchecked cast
             } catch (Exception e) {
             	System.out.println("Failed to find annotation class for " + this.fullAnnotation);
             	this.clazz = null;

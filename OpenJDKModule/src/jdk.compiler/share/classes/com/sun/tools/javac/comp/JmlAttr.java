@@ -5555,7 +5555,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             } else if (jmlenv.currentClauseKind == ensuresClauseKind || jmlenv.currentClauseKind == signalsClauseKind) {
                 // An identifier mentioned in a clause must be at least as visible as the clause itself.
                 if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
-                    System.out.println("VIZ " + sym.owner + " " + sym + " " + v + " " + jmlVisibility);
                     utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.keyword());
                 }
                 

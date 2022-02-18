@@ -1918,7 +1918,7 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Issues an error message about bit-vector operations */
     public void notImplBV(DiagnosticPosition pos, String msg) {
         if ("auto".equals(JmlOption.value(context, JmlOption.ESC_BV))) throw new JmlBVException();
-        utils.error(pos, "jml.message","This method uses bit-vector operations and must be run with -escBV=true (or auto) [" + msg + "]");
+        utils.error(pos, "jml.message","This method uses bit-vector operations and must be run with --esc-bv=true (or auto) [" + msg + "]");
         throw new JmlBVException();
     }
     
