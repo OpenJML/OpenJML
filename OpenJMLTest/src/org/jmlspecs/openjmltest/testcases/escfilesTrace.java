@@ -61,12 +61,12 @@ public class escfilesTrace extends EscBase {
     	ignoreNotes = true;
         new File(outDir).mkdirs();
         java.util.List<String> args = new LinkedList<String>();
-        args.add("-esc");
+        args.add("--esc");
         args.add("-noPurityCheck");
         args.add("-jmltesting");
-        if (new File(sourceDirname).isDirectory()) args.add("-dir");
+        if (new File(sourceDirname).isDirectory()) args.add("--dir");
         args.add(sourceDirname);
-        if (solver != null) args.add("-prover="+solver);
+        if (solver != null) args.add("--prover="+solver);
         addOptionsToArgs(options,args);        
         args.addAll(Arrays.asList(opts));
         return args;

@@ -20,7 +20,7 @@ public class arith extends TCBase {
     /** See the FIXME in BigInteger.jml */
     @Test
     public void testSomeJava() {
-        main.addOptions("-specspath",   testspecpath);
+        main.addOptions("--specs-path",   testspecpath);
         JmlOption.setOption(context,JmlOption.PURITYCHECK,false);
         helpTCF("A.java","public class A { java.math.BigInteger list; }");
     }

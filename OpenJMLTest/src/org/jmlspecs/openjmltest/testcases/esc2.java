@@ -4426,7 +4426,7 @@ public class esc2 extends EscBase {
     @Test
     public void testExitInfo2() {
         expectedExit = 0;
-        main.addOptions("-escExitInfo","-escMaxWarnings=10");
+        main.addOptions("-escMaxWarnings=10");
         helpTCX("tt.TestJava",
                           "package tt; //@ nullable_by_default \n" 
                         + "public class TestJava  { \n" 
@@ -4458,7 +4458,7 @@ public class esc2 extends EscBase {
     @Test
     public void testExitInfo() {
         expectedExit = 0;
-        main.addOptions("-escExitInfo","-escMaxWarnings=3");
+        main.addOptions("-escMaxWarnings=3");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -4645,7 +4645,7 @@ public class esc2 extends EscBase {
     @Test
     public void testShowStatement() {
         expectedExit = 0;
-        main.addOptions("-lang=jml");
+        main.addOptions("--lang=jml");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -4656,8 +4656,7 @@ public class esc2 extends EscBase {
                         + "     //@ show i;\n"
                         + "  }\n"
                         + "}\n"
-                        ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under -lang=jml",10
-                        //,"$SPECS/specs/java/util/stream/Stream.jml:$STRL: warning: The \\count construct is an OpenJML extension to JML and not allowed under -lang=jml",37
+                        ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under --lang=jml",10
                   ); 
     }
 

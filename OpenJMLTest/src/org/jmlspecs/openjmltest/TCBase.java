@@ -40,10 +40,10 @@ public abstract class TCBase extends JmlTestCase {
     	testspecpath = testspecpath1;
         testSourcePath = testspecpath1;
         super.setUp();
-        main.addOptions("-specspath",   testspecpath + (!useSystemSpecs ? "" : (z + "$SY") ));
-        main.addOptions("-sourcepath",   testSourcePath);
-        main.addOptions("-classpath",   "src" + z + testSourcePath);
-        if (!useSystemSpecs) main.addOptions("-no-internalSpecs");
+        main.addOptions("--specs-path",   testspecpath + (!useSystemSpecs ? "" : (z + "$SY") ));
+        main.addOptions("--source-path",   testSourcePath);
+        main.addOptions("--class-path",   "src" + z + testSourcePath);
+        if (!useSystemSpecs) main.addOptions("--no-internal-specs");
         main.addOptions(JmlOption.PURITYCHECK.optionName()+"=false");
         specs = JmlSpecs.instance(context);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0

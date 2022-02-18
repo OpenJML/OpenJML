@@ -21,7 +21,7 @@ public class escall2 extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-nullableByDefault"); // Tests were written this way
+        main.addOptions("--nullable-by-default"); // Tests were written this way
     }
 
     @Test
@@ -70,7 +70,6 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNN2Param() {
-//    	main.addOptions("-show","-method=m2");
 //        Assume.assumeTrue(runLongTests);
         helpTCX("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"

@@ -38,7 +38,6 @@ public class escArithmeticModes extends EscBase {
         //noCollectDiagnostics = true;
         super.setUp();
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
-        //main.addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;

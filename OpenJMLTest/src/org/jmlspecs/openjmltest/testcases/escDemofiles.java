@@ -76,10 +76,10 @@ public class escDemofiles extends EscBase {
     public java.util.List<String> setupForFiles(String sourceDirname, String outDir, String ... opts) {
         new File(outDir).mkdirs();
         java.util.List<String> args = new LinkedList<String>();
-        args.add("-esc");
+        args.add("--esc");
         args.add("-jmltesting");
         args.add("-no-purityCheck");
-        args.add("-dir");
+        args.add("--dir");
         args.add(sourceDirname);
         addOptionsToArgs(options,args);
         args.addAll(Arrays.asList(opts));
