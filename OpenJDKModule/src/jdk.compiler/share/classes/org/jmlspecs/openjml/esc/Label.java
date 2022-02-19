@@ -25,12 +25,21 @@ public class Label {
     //@ non_null
     protected final String info;
     
+    /** If false, these assumptions or assertions are not checked by RAC. Used for assumptions that are
+     * purely 'internal' assumptions, such as definitions. */
+    public final boolean racChecked;
+    
     /** Constructs a label object 
      * @param s name of label, alphanumeric only (no spaces)
      */
-    public Label(/*@ non_null */ String s) {
-        this.info = s;
-        map.put(s, this);
+    public Label(/*@ non_null */ String name, boolean checked) {
+        this.info = name;
+        this.racChecked = checked;
+        map.put(name, this);
+    }
+    
+    public Label(/*@ non_null */ String name) {
+        this(name, true);
     }
     
     /** The descriptive name of the Label */
@@ -71,26 +80,20 @@ public class Label {
     /** Used for basic assume statements generated evaluating the receiver object of called methods */
     /*@ non_null*/ public final static Label RECEIVER = new Label("ReceiverValue");
     
-    /** Used for basic assume statements generated from top-level block equations */
-    /*@ non_null*/ public final static Label BLOCKEQ = new Label("BlockEquation");
+    /** Used for assume statements generated from branches (then branch) -- only in ESC (BasicBlocker) */
+    /*@ non_null*/ public final static Label BRANCHT = new Label("BranchThen", false);
     
-    /** Used for assume statements generated from branches (condition) */
-    /*@ non_null*/ public final static Label BRANCHC = new Label("BranchCondition");
+    /** Used for assume statements generated from branches (else branch) -- only in ESC (BasicBlocker) */
+    /*@ non_null*/ public final static Label BRANCHE = new Label("BranchElse", false);
     
-    /** Used for assume statements generated from branches (then branch) */
-    /*@ non_null*/ public final static Label BRANCHT = new Label("BranchThen");
-    
-    /** Used for assume statements generated from branches (else branch) */
-    /*@ non_null*/ public final static Label BRANCHE = new Label("BranchElse");
-    
-    /** Used for assume statements generated from case statements in switch statements */
-    /*@ non_null*/ public final static Label CASECONDITION = new Label("Case");
+    /** Used for assume statements generated from case statements in switch statements -- only in ESC (BasicBlocker) */
+    /*@ non_null*/ public final static Label CASECONDITION = new Label("Case", false);
     
     /** Used for assume statements generated from preconditions */
     /*@ non_null*/ public final static Label PRECONDITION = new Label("Precondition");
     
-    /** Used for assume statements generated from assignable clauses */
-    /*@ non_null*/ public final static Label HAVOC = new Label("Havoc");
+    /** Used for assume statements generated from assignable clauses  -- only in ESC (BasicBlocker)*/
+    /*@ non_null*/ public final static Label HAVOC = new Label("Havoc", false);
     
     /** Used for assume or assert statements generated from invariants */
     /*@ non_null*/ public final static Label INVARIANT = new Label("Invariant");
@@ -128,7 +131,7 @@ public class Label {
     /** Used for assume statements generated to initialize a new array */
     /*@ non_null*/ public final static Label ARRAY_INIT = new Label("ArrayInit");
     
-    /** Used for assume statements generated to determine lbl, lblpos, lblneg expressions */
+    /** Used for assume statements generated to determine lbl expressions */
     /*@ non_null*/ public final static Label LBL = new Label("Lbl");
     
     /** Used for assume statements generated to capture the return value */
@@ -140,11 +143,11 @@ public class Label {
     /** Used for assume statements generated to define auxiliary variables */
     /*@ non_null*/ public final static Label SYN = new Label("Synthetic");
 
-    /** Used for assume statements generated to adjust DSA variables */
-    /*@ non_null*/ public final static Label DSA = new Label("DSA");
+    /** Used for assume statements generated to adjust DSA variables  -- only in ESC (BasicBlocker)*/
+    /*@ non_null*/ public final static Label DSA = new Label("DSA", false);
 
     /** Used for assume statements generated to adjust DSA variables */
-    /*@ non_null*/ public final static Label SOURCEBLOCK = new Label("SOURCEBLOCK");
+    /*@ non_null*/ public final static Label SOURCEBLOCK = new Label("SOURCEBLOCK", false);
 
     /** Used for explicit, user-specified assert statements */
     /*@ non_null*/ public final static Label EXPLICIT_ASSERT = new Label("Assert");
@@ -198,7 +201,7 @@ public class Label {
     /*@ non_null*/ public final static Label SIGNALS_ONLY = new Label("ExceptionList");
     
     /** Used for assume statements generated from uses of pure methods in specifications */
-    /*@ non_null*/ public final static Label METHODAXIOM = new Label("MethodAxiom");
+    /*@ non_null*/ public final static Label METHODAXIOM = new Label("MethodAxiom", false);
     
     /** Used for assert statements generated from constraint checks */
     /*@ non_null*/ public final static Label CONSTRAINT = new Label("Constraint");

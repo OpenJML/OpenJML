@@ -3466,7 +3466,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		try {
 			if (rac) {
 				Name mmName = names.fromString(Strings.modelFieldMethodPrefix + varsym.toString());
-				java.util.List<Type> p = parents(staticBasetype, true);
+				java.util.List<Type> p = parents(staticBasetype, false);
 				ListIterator<Type> iter = p.listIterator(p.size());
 				while (iter.hasPrevious()) {
 					JmlSpecs.TypeSpecs tyspecs = specs.getAttrSpecs((ClassSymbol) iter.previous().tsym);
@@ -3520,7 +3520,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (translatedSelector == null && varsym.owner instanceof ClassSymbol && utils.isJMLStatic(varsym)) {
 					translatedSelector = treeutils.makeType(Position.NOPOS, varsym.owner.type);
 				}
-				java.util.List<Type> p = parents(basetype, true);
+				java.util.List<Type> p = parents(basetype, false);
 				ListIterator<Type> iter = p.listIterator(p.size());
 				while (iter.hasPrevious()) {
 					TypeSymbol ty = iter.previous().tsym;
@@ -5261,7 +5261,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// FIXME - we repeat the computatinos in the normal and exceptinoal branches -
 			// can we avoid that
 			if (!isHelper(methodDecl.sym))
-				for (JCTree dd : classDecl.defs) { // FIXME - review isHelper here
+				for (JCTree dd : classDecl.defs) { // FIXME - review isHelper here, and visibility
 					if (!(dd instanceof JCVariableDecl))
 						continue;
 					JCVariableDecl d = (JCVariableDecl) dd;
@@ -7230,6 +7230,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return false;
 	}
 
+	/** Returns a list of field access expressions that are the contents of 'fa',
+	 * which is presumed to be a datagroup, when viewed from the given class.
+	 * That is all 'in' declarations in 'csym' and its parents that have 'fs' as its target.
+	 */
 	java.util.List<JCFieldAccess> datagroupContents(JCFieldAccess fa, ClassSymbol csym) {
 		java.util.List<JCFieldAccess> list = new LinkedList<>();
 		list.add(fa); // FIXME - I don't think we need this
@@ -7563,7 +7567,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					boolean isStatic = utils.isJMLStatic(v);
 					sr = M.at(e.pos).JmlStoreRef(false, null, null, isStatic ? null : fa.selected, null, v, e);
 					list.add(sr);
-					list.addAll(collectModelFieldContents(fa,(ClassSymbol)fa.selected.type.tsym, sr.receiver, v)); // Does not include itself
+					//list.addAll(collectModelFieldContents(fa,(ClassSymbol)fa.selected.type.tsym, sr.receiver, v)); // Does not include itself
 					//System.out.println("MJSR-C " + fa.selected.type.tsym + " " + e + " : " + list);
 				} else {
 					// skip presuming an error already given
@@ -17307,7 +17311,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// If visibility is considered, invariants are included if visible from type baseType.
 	/* @nullable */ public JCExpression getInvariantAll(DiagnosticPosition pos, Type baseType, JCExpression obj, boolean considerVisibility) {
 		JCExpression res = null;
-		for (Type ty : parents(baseType, true)) { // FIXME - make sure parents() works for TypeVar
+		for (Type ty : parents(baseType, true)) {
 			JCExpression e = getInvariant(pos, baseType, ty, obj, considerVisibility);
 			res = e == null ? res : res == null ? e : treeutils.makeAnd(pos, res, e);
 		}
@@ -19191,80 +19195,117 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/**
 	 * Returns a list of super classes and interfaces, as types; the order is that
-	 * interfaces come before classes and super classes/interfaces come before
-	 * derived ones, with the argument type last.
+	 * Object comes first, then interfaces, and then classes, with super classes/interfaces 
+     * coming before derived ones, with the argument type last. If enclosing types are 
+     * included, the outer type is listed before the inner type. JML Primitive types
+     * have no inheritance and just return a singleton list of itself. The list may
+     * include type variables.
 	 */
-	public java.util.List<Type> parents(Type ct, boolean includeEnclosing) { // FIXME - not implemented for
+	public java.util.List<Type> parents(Type targetClassWithMetadata, boolean includeEnclosing) { // FIXME - not implemented for
 																				// includeEnclosing = true // FIXME -
 																				// unify this with the methods in Utils.
 
 		java.util.List<Type> classes = new LinkedList<Type>();
-		Type cc = ct.stripMetadata();
-		if (utils.isExtensionValueType(cc)) {
-			classes.add(cc);
+		Type targetClass = targetClassWithMetadata.stripMetadata();
+		if (utils.isExtensionValueType(targetClass)) {
+			classes.add(targetClass);
 			return classes;
 		}
-		while (cc != null && cc.getTag() != TypeTag.NONE && cc.getTag() != TypeTag.BOT) {
+		if (targetClass.getTag() == TypeTag.BOT) {
+		    // For a 'null' type
+	        // FIXME - is it OK that that occurs?
+		    // Return an empty list
+            return classes;
+		}
+		Type cc = targetClass; // Loop variable - class being considered
+		// Prepend super classes into the 'classes' list, and optionally the enclosing classes
+		while (cc.getTag() != TypeTag.NONE) { // NONE happens for the supertype of Object
 			classes.add(0, cc);
-			if (cc instanceof Type.ClassType) {
+			if (cc instanceof Type.ClassType cct) {
 				if (includeEnclosing) { // FIXME - only if static?
 					Type t = cc.getEnclosingType();
 					if (t != null && t.getTag() != TypeTag.NONE) {
 						int n = 0;
 						for (Type tt : parents(t, includeEnclosing)) {
-							if (!tt.isInterface())
-								classes.add(n++, tt);
+							if (!tt.isInterface()) {
+							    var iter = classes.iterator();
+							    while (iter.hasNext()) { 
+							        var ttt = iter.next(); 
+							        if (types.isSameType(ttt,tt)) { 
+							            classes.remove(ttt); 
+							            break; 
+							        }
+							    }
+                                classes.add(n++, tt);
+							}
 						}
 					}
 				}
-				Type.ClassType cct = (Type.ClassType) cc;
-				cc = cct.supertype_field;
-				if (cc == null)
-					cc = ((Type.ClassType) cct.tsym.type).supertype_field;
+//                if (!types.isSameType(cct, cct.tsym.type)) System.out.println("NOT SAME TYPE " + cct + " " + cct.tsym + " " + cct.tsym.type);
+				if (cct.tsym instanceof ClassSymbol c) {
+				    cc = c.getSuperclass();
+				} else if (cct.tsym instanceof TypeVariableSymbol tv) {
+				    if (tv.getBounds().size() == 0) {
+				        // Always expect a bound
+				        cc = syms.objectType;
+				    } else {
+				        tv.getBounds().forEach(b->classes.add(0,b));
+				        cc = classes.remove(0);
+				    }
+				} else {
+				    // Unhandled kind of symbol - PackageSymbol, ModuleSymbol
+	                utils.warning("jml.internal",  "Did not expect this kind of symbol when finding parents of " + targetClassWithMetadata + ": " + cct.tsym);
+	                break;
+				}
+//				if (cc == null) System.out.println("NULL SUPER TYPE FIELD OF " + cct + " " + cct.tsym + " " + cct.tsym.type + " " + ((Type.ClassType) cct.tsym.type).supertype_field);
+//				if (cc == null)
+//					cc = ((Type.ClassType) cct.tsym.type).supertype_field;
 
 			} else if (cc instanceof Type.ArrayType) {
 				cc = syms.objectType;
-			} else if (cc instanceof Type.TypeVar) {
-				cc = ((Type.TypeVar) cc).getUpperBound();
+			} else if (cc instanceof Type.TypeVar ctv) {
+				cc = ctv.getUpperBound();
 			} else {
-				cc = null;
+			    utils.warning("jml.message",  "Did not expect this class type when finding parents of " + targetClassWithMetadata + ": " + cc + " " + cc.getClass());
+				break;
 			}
 		}
 
 		java.util.List<Type> interfacesToDo = new LinkedList<Type>();
 		java.util.List<Type> interfaces = new LinkedList<Type>();
 		for (Type cty : classes) {
-			if (!(cty instanceof Type.ClassType))
-				continue;
-			Type.ClassType cct = (Type.ClassType) cty;
-			List<Type> ifs = cct.interfaces_field;
-			if (ifs == null)
-				ifs = ((Type.ClassType) cct.tsym.type).interfaces_field;
-			if (ifs != null)
-				interfacesToDo.addAll(ifs);
-		}
-		x: while (!interfacesToDo.isEmpty()) {
-			Type ifc = interfacesToDo.remove(0);
-			for (Type t : interfaces) {
-				if (types.isSameType(t, ifc))
-					continue x;
+			if (cty instanceof Type.ClassType cct) {
+			    if (cct.tsym instanceof ClassSymbol cctsym) {
+			        List<Type> ifs = cctsym.getInterfaces();
+			        if (cc == null) System.out.println("NULL INTERFACE FIELD OF " + cct);
+			        if (ifs == null)
+			            ifs = ((Type.ClassType) cct.tsym.type).interfaces_field;
+			        if (cc == null) System.out.println("STILL NULL INTERFACE FIELD OF " + cct);
+			        if (ifs != null)
+			            interfacesToDo.addAll(ifs);
+			    }
 			}
-			interfaces.add(0, ifc);
-			List<Type> ints = ((Type.ClassType) ifc.tsym.type).interfaces_field;
-			if (ints != null)
-				for (Type fin : ints) {
-					interfacesToDo.add(fin);
-				}
 		}
+
+		// 'interfacesToDo has all the immediate interfaces of everything in 'classes', with potential duplicates
+		while (!interfacesToDo.isEmpty()) {
+			Type ifc = interfacesToDo.remove(0);
+			// already in the final list?
+			if (interfaces.stream().anyMatch(t -> types.isSameType(t, ifc))) continue;
+			// if not prepend it
+			interfaces.add(0, ifc);
+			// and add all of its direct interface to the todo list
+			List<Type> ints = ((Type.ClassType) ifc.tsym.type).interfaces_field;
+			if (ints != null) interfacesToDo.addAll(ints);
+		}
+		// Now put Object at the front and all other classes at the end
 		if (classes.size() > 0) {
-			Type obj = classes.remove(0); // Makes sure that java.langObject is first
+			Type obj = classes.remove(0);
 			interfaces.addAll(classes);
 			interfaces.add(0, obj);
 		} else {
-			// This is when ct is the nulltype -- FIXME - is it OK that that occurs?
-			// (SpecsEsc)
+		    utils.warning("jml.internal", "Unexpected branch in JmlAssertionAdder.parents " + targetClassWithMetadata);
 		}
-
 		return interfaces;
 	}
 
@@ -20190,8 +20231,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (sr.isEverything) {
 				return treeutils.makeBooleanLiteral(pos, true);
 			} else if (sr.field != null) {
-				if (field == sr.field) {
-				//if (isContainedIn(field, sr.field)) { // FIXME - change to field == sr.field because all model fields have been expanded
+				// If all model fields were expanded we could just compare field == sr.field, but model field
+			    // definitions can be recursive, so we can't always do that expansion
+				if (field == sr.field || isContainedIn(field, sr.field)) {
 					var ee = utils.isJMLStatic(field) ? treeutils.makeBooleanLiteral(pos, true)
 							: treeutils.makeEqObject(pos.getPreferredPosition(),
 									isSmallerConverted ? receiver : convertJML(receiver),
