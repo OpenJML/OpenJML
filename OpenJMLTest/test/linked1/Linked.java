@@ -39,16 +39,13 @@ public class Linked<W> {
     }
     
     //@ public normal_behavior
-    //@   old \bigint oldsize = this.size;
-    //@   old seq<W> oldvalues = this.values;
-    //@   old seq<Linked<W>> oldlinks = this.links;
     //@   assignable this.size, values, links;
     //@   ensures \fresh(this.next);
     //@   ensures this.next.value == t;
     //@   ensures this.next.next == \old(this.next);
-    //@   ensures this.size == oldsize + 1;
-    //@   ensures this.values.equals(oldvalues.prepend(t));
-    //@   ensures this.links.equals(oldlinks.prepend(this.next));
+    //@   ensures this.size == \old(size) + 1;
+    //@   ensures this.values.equals(\old(values).prepend(t));
+    //@   ensures this.links.equals(\old(links).prepend(this.next));
     public void push(W t) {
         Linked v = new Linked(t, next);
         this.next = v;
@@ -56,28 +53,23 @@ public class Linked<W> {
     
     //@ public normal_behavior
     //@   requires next != null;
-    //@   old \bigint oldsize = this.size;
-    //@   old seq<W> oldvalues = this.values;
-    //@   old seq<Linked<W>> oldlinks = this.links;
     //@   assignable size, values, links;
     //@   ensures next == \old(next.next);
-    //@   ensures this.size == oldsize - 1;
-    //@   ensures this.values.equals(oldvalues.tail(1));
-    //@   ensures this.links.equals(oldlinks.tail(1));
+    //@   ensures this.size == \old(size) - 1;
+    //@   ensures this.values.equals(\old(values).tail(1));
+    //@   ensures this.links.equals(\old(links).tail(1));
     public void pop() {
         this.next = this.next.next;
     }
     
     //@ public normal_behavior
     //@   requires 0 <= n < this.size;
-    //@   old \bigint oldsize = this.size;
-    //@   old seq<W> oldvalues = this.values;
     //@   assignable size, values, links;
     //@   ensures n == 0 ==> next == \old(next.next);
     //@   ensures n > 0 ==> next == \old(next);
-    //@   ensures this.size == oldsize - 1;
-    //@   ensures this.values.equals(oldvalues.tail(1));
-    @org.jmlspecs.annotation.Options("--check-feasibility=none")  // FIXME - sometime works, sometimes times out
+    //@   ensures this.size == \old(this.size) - 1;
+    //@   ensures this.values.equals(\old(values).tail(1));
+    // @org.jmlspecs.annotation.Options("--check-feasibility=none")  // FIXME - sometime works, sometimes times out
     public void remove(int n) {
         if (n == 0) {
             this.next = this.next.next;
