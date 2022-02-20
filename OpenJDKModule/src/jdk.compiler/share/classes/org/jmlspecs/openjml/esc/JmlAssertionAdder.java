@@ -187,6 +187,8 @@ import com.sun.tools.javac.util.Log.WriterKind;
 
 public class JmlAssertionAdder extends JmlTreeScanner {
 
+    public static int assertCountCheck = Integer.parseInt(Utils.debugValue("assert=","-1"));
+
 	// Parameters of this instance of JmlAssertionAdder
 
 	/**
@@ -2082,7 +2084,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				return null;
 		}
 		String assertID = Strings.assertPrefix + (++assertCount);
-		//if (assertCount == 385) Utils.dumpStack("Assertion " + assertID);
+		if (assertCount == assertCountCheck) Utils.dumpStack("Assertion " + assertID);
 		Name assertname = names.fromString(assertID);
 		JavaFileObject dsource = log.currentSourceFile();
 		JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType, assertname,
@@ -4832,15 +4834,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JCIdent preid = preconditions.get(scase);
 				pushBlock();
 				boolean anyClauses = false;
+				currentEnv = currentEnv.pushEnvCopy();
 				for (var clause : scase.clauses) {
 					if (!(clause instanceof JmlMethodClauseStoreRef sc)) continue;
+					currentEnv.enclosingClauseKind = sc.clauseKind;
 					addStat(comment(methodDecl, "   Checking " + clause, null));
 					anyClauses = true;
 					var list = sc.list;
-					var locsetExpr = convertAssignableToLocsetExpression(sc, list, (ClassSymbol) methodDecl.sym.owner, currentThisExpr);
-					// System.out.println("HFC " + locsetExpr);
-					convertJML(locsetExpr); // This is just to get all the well-definedness checks
+					//System.out.print("HFC "); list.forEach(s->System.out.print(" " + c)); System.out.println();
+					//					var locsetExpr = convertAssignableToLocsetExpression(sc, list, (ClassSymbol) methodDecl.sym.owner, currentThisExpr);
+//					// System.out.println("HFC " + locsetExpr);
+//					convertJML(locsetExpr); // This is just to get all the well-definedness checks
+					list.forEach(s->convertJML(s));
 				}
+				currentEnv = currentEnv.popEnv();
 				JCBlock b = popBlock(scase);
 				if (anyClauses)
 					addStat(M.at(scase).If(preid, b, null));
@@ -14189,7 +14196,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (translatingJML && s instanceof VarSymbol && specs.isNonNull(s)) {
 				JCExpression nn = treeutils.makeNeqObject(that.pos, eee, treeutils.nullLit);
 				addToCondition(that.pos, nn);
-			} else if (esc && splitExpressions && s.name == names._class) {
+			} else if (esc && splitExpressions && s != null && s.name == names._class) {
 				JCExpression nn = treeutils.makeNeqObject(that.pos, eee, treeutils.nullLit);
 				addAssume(that, Label.IMPLICIT_ASSUME, nn);
 			}
@@ -21007,12 +21014,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			this.label = stateLabel;
 			this.allocCount = allocCount;
 			this.methodSym = methodSym;
+			this.enclosingClauseKind = null;
 		}
 
-		public TranslationEnv(TranslationEnv t) {
-			receiver = t.receiver;
-			label = t.label;
-		}
+//		public TranslationEnv(TranslationEnv t) {
+//			receiver = t.receiver;
+//			label = t.label;
+//			allocCount = t.allocCount;
+//			methodSym = t.methodSym;
+//			enclosingClauseKind = t.enclosingClauseKind;
+//		}
 
 		public TranslationEnv popEnv() {
 			// System.out.println("POPENV " + this.hashCode() + " TO " +
@@ -21021,19 +21032,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 
 		public TranslationEnv pushEnvCopy() {
-			var t = new TranslationEnv(this);
-			t.previousEnv = this;
-			// System.out.println("PUSHENV " + this.hashCode() + " TO " + t.hashCode());
-			return t;
+		    try {
+		        var t = (TranslationEnv)this.clone();
+		        t.previousEnv = this;
+		        // System.out.println("PUSHENV " + this.hashCode() + " TO " + t.hashCode());
+		        return t;
+		    } catch (CloneNotSupportedException e) {
+		        throw new RuntimeException(e);
+		    }
 		}
 
-		/* @ nullable */ public JCExpression receiver;
-		// what 'this' is currently. null in a static environment
-		/* @ nullable */ public Name label;
-		// the current heap state. null means the current state
-		/* @ nullable */ public TranslationEnv previousEnv; 
+        /* @ nullable */ public TranslationEnv previousEnv; 
+		/* @ nullable */ public JCExpression receiver; // what 'this' is currently. null in a static environment
+		/* @ nullable */ public Name label; // the current heap state. null means the current state
 		public int allocCount = 0;
 		public MethodSymbol methodSym;
+		public IJmlClauseKind enclosingClauseKind;
 	}
 
 	TranslationEnv currentEnv = new TranslationEnv();

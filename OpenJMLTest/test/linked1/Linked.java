@@ -12,10 +12,8 @@ public class Linked<W> {
     //@ public represents size = ((next == null) ? (\bigint)0 : 1 + next.size);
     //@ public invariant values.size() == size;
     //@ public invariant links.size() == size;
-    // @ public invariant !links.contains(this);
+    //@ public invariant !links.contains(this);
     
-    // @ model public JMLDataGroup links;
-        
     //@ nullable
     public Linked<W> next;//@ in size, values, links; //@ maps next.values \into values; maps next.size \into size; maps next.links \into links;
     //@ nullable
@@ -52,11 +50,8 @@ public class Linked<W> {
     //@   ensures this.values.equals(oldvalues.prepend(t));
     //@   ensures this.links.equals(oldlinks.prepend(this.next));
     public void push(W t) {
-        //@ assume !links.contains(this);
         Linked v = new Linked(t, next);
-        //@ assert !this.links.contains(v);
         this.next = v;
-        //@ assert !links.contains(this);
     }
     
     //@ public normal_behavior
@@ -70,9 +65,7 @@ public class Linked<W> {
     //@   ensures this.values.equals(oldvalues.tail(1));
     //@   ensures this.links.equals(oldlinks.tail(1));
     public void pop() {
-        //@ assume !links.contains(this);
         this.next = this.next.next;
-        //@ assert !links.contains(this);
     }
     
     //@ public normal_behavior
@@ -84,8 +77,8 @@ public class Linked<W> {
     //@   ensures n > 0 ==> next == \old(next);
     //@   ensures this.size == oldsize - 1;
     //@   ensures this.values.equals(oldvalues.tail(1));
+    @org.jmlspecs.annotation.Options("--check-feasibility=none")
     public void remove(int n) {
-        //@ assert this.next != null;
         if (n == 0) {
             this.next = this.next.next;
         } else {

@@ -1957,14 +1957,21 @@ public class Utils {
     	e.printStackTrace(System.out);
     }
     
-    static String debugkeys = System.getenv("OJ");
+    static String debugstring = System.getenv("OJ");
+    static String[] debugkeys = debugstring == null ? new String[] {} : debugstring.split(",");
     public static boolean debug() {
-    	return debugkeys != null;
+    	return debugstring != null;
     }
     
     public static boolean debug(String key) {
-    	if (debugkeys == null) return false;
-    	return (debugkeys.contains("+"+key) || debugkeys.contains(":all")) && !debugkeys.contains("-"+key);
+        if (debugkeys == null) return false;
+        return Arrays.stream(debugkeys).anyMatch(s->s.equals(key));
+    }
+    
+    public static String debugValue(String key, String def) {
+        if (debugkeys == null) return def;
+        var opt = Arrays.stream(debugkeys).filter(s->s.startsWith(key)).findFirst();
+        return opt.isEmpty() ? def : opt.get().substring(key.length());
     }
     
     static boolean verbose = System.getenv("VERBOSE") != null;
