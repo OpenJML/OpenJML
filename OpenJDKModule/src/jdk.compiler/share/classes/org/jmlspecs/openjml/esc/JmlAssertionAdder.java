@@ -4845,7 +4845,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					//					var locsetExpr = convertAssignableToLocsetExpression(sc, list, (ClassSymbol) methodDecl.sym.owner, currentThisExpr);
 //					// System.out.println("HFC " + locsetExpr);
 //					convertJML(locsetExpr); // This is just to get all the well-definedness checks
-					list.forEach(s->convertJML(s));
+					list.forEach(s->{if (!(s instanceof JmlStoreRefKeyword)) convertJML(s); }); // FIXME - a better test for this?
 				}
 				currentEnv = currentEnv.popEnv();
 				JCBlock b = popBlock(scase);
