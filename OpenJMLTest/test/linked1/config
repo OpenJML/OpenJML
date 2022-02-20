@@ -1,1 +1,1 @@
-ARGS+=" -method=add "
+ARGS+=" -method=remove "

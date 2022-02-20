@@ -17,7 +17,7 @@ public class Linked<W> {
     // @ model public JMLDataGroup links;
         
     //@ nullable
-    public Linked<W> next;//@ in size, values, links; // @ maps next.values \into values; maps next.size \into size;
+    public Linked<W> next;//@ in size, values, links; //@ maps next.values \into values; maps next.size \into size; maps next.links \into links;
     //@ nullable
     public W value; //@ in values;
     
@@ -44,7 +44,7 @@ public class Linked<W> {
     //@   old \bigint oldsize = this.size;
     //@   old seq<W> oldvalues = this.values;
     //@   old seq<Linked<W>> oldlinks = this.links;
-    //@   assignable size, values, links;
+    //@   assignable this.size, values, links;
     //@   ensures \fresh(this.next);
     //@   ensures this.next.value == t;
     //@   ensures this.next.next == \old(this.next);
@@ -89,7 +89,6 @@ public class Linked<W> {
         if (n == 0) {
             this.next = this.next.next;
         } else {
-            //@ halt;
             this.next.remove(n-1);
         }
     }
