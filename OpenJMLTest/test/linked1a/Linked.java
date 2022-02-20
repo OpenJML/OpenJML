@@ -1,0 +1,1 @@
+../linked1/Linked.java
