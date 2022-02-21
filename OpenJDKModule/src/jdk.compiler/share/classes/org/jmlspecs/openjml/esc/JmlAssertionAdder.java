@@ -896,7 +896,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		Set<Type> savedActiveExceptions = activeExceptions;
 		activeExceptions = new HashSet<>();
 		findActiveExceptions(pmethodDecl);
-		this.currentEnv = this.currentEnv.pushEnvCopy();
+		this.currentEnv = this.currentEnv.pushEnvCopy(); // FIXME - or pushCopyInit?
 
 		var savedDivergesExpressions = divergesExpressions;
 		divergesExpressions = new ListBuffer<>();
@@ -20196,7 +20196,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						}
 						return e;
 					} else if (mi.kind == oldKind) {
-						var newenv = targetEnv.pushEnvCopy();
+						var newenv = targetEnv.newEnvCopy();
 						newenv.stateLabel = mi.args.size() == 1 ? null : ((JCIdent) mi.args.get(1)).name;
 						return simplifySubset(smaller, mi.args.head, newenv, isSmallerConverted);
 					}
@@ -20241,7 +20241,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			return e;
 		} else if (srexpr instanceof JmlMethodInvocation mi && mi.kind == oldKind) {
-			var newenv = targetEnv.pushEnvCopy();
+			var newenv = targetEnv.newEnvCopy();
 			newenv.stateLabel = ((JCIdent) mi.args.get(1)).name;
 			return expand(pos, newenv, mi.args.head, a);
 		} else {
@@ -21044,6 +21044,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		        throw new RuntimeException(e);
 		    }
 		}
+
+        public TranslationEnv newEnvCopy() {
+            try {
+                var t = (TranslationEnv)this.clone();
+                t.previousEnv = null;
+                return t;
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
 
 
         public TranslationEnv pushEnvInit() {
