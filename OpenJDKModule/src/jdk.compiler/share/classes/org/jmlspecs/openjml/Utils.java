@@ -102,6 +102,8 @@ import com.sun.tools.javac.util.JCDiagnostic.Warning;
  */
 public class Utils {
     
+    static public boolean debugOptions = Utils.debug("options");
+    
     /** This field is used to restrict output during testing so as to 
      * make test results more deterministic (or to match old test results).
      */
@@ -763,18 +765,18 @@ public class Utils {
     	for (var p: properties.entrySet()) {
     		String k = p.getKey().toString();
     		if (k.startsWith(Strings.optionPropertyPrefix)) {
-    			String kk = "-" + k.substring(Strings.optionPropertyPrefix.length());
+    			String kk = "--" + k.substring(Strings.optionPropertyPrefix.length());
     			JmlOptions.instance(context).processOption(kk, p.getValue().toString());
     		}
     	}
     }
     
     /** Finds OpenJML properties files in pre-defined places, reading their
-     * contents and loading them into the System property set.
+     * contents into the Properties object that is returned.
      */
     public static Properties findProperties(Context context) {
     	
-        boolean verbose = false;
+        boolean verbose = debugOptions;
 
     	if (context == null) context = new Context();
         PrintWriter noticeWriter = Log.instance(context).getWriter(WriterKind.NOTICE);

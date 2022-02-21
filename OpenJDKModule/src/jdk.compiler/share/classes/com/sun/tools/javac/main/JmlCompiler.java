@@ -359,7 +359,8 @@ public class JmlCompiler extends JavaCompiler {
                 infer(env);
             return results;
         } else if (utils.rac) {
-        	for (var env: envs) {
+            utils.warning("jml.message","RAC is not operational (yet) for OpenJML-17");
+        	if (false) for (var env: envs) {
         		var t = env.tree;
         		if (t instanceof JmlClassDecl && ((JmlClassDecl)t).sourcefile.getKind() != JavaFileObject.Kind.SOURCE) continue;
         		env = rac(env);

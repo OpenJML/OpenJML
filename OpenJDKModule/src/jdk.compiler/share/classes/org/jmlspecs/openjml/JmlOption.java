@@ -145,7 +145,7 @@ public class JmlOption {
                 if (!levelstring.isEmpty()) try {
                     Utils.instance(context).jmlverbose = Integer.parseInt(levelstring);
                 } catch (NumberFormatException e) {
-                    Utils.instance(context).warning("jml.message","The value of the " + n + " option or the " + Strings.optionPropertyPrefix + n.substring(1) + " property should be the string representation of an integer: \"" + levelstring + "\"");
+                    Utils.instance(context).warning("jml.message","The value of the " + n + " option or the " + Strings.optionPropertyPrefix + n.substring(2) + " property should be the string representation of an integer: \"" + levelstring + "\"");
                     JmlOptions.instance(context).put(n, "1");
                     return false;
                 }

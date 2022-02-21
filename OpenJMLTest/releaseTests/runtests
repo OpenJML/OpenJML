@@ -79,26 +79,29 @@ ${RTH} testJmlVersion "$OJ -version" || RES=$(($RES+1))
 ## Checks the help message (when there are no arguments)
 ${RTH} testJmlHelpSimp "$OJ" || RES=$(($RES+1))
 
-## Checks the help message (when there is a -help option)
+## Checks the help message (when there is a -? option)
 ${RTH} testJmlHelp "$OJ -?" || RES=$(($RES+1))
 
 ## Checks the help message (when there is a -help option)
 ${RTH} testJmlHelp "$OJ -help" || RES=$(($RES+1))
 
+## Checks the help message (when there is a --help option)
+${RTH} testJmlHelp "$OJ --help" || RES=$(($RES+1))
+
 ## Checks when there is a bad verboseness argument ## FIXME - embedded quotes are not working as expected within the test script
-##${RTH} testJmlBad "$OJ -verboseness \"\"" || RES=$(($RES+1))
+##${RTH} testJmlBad "$OJ --verboseness \"\"" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument
-${RTH} testJmlBad "$OJ -verboseness=" || RES=$(($RES+1))
+${RTH} testJmlBad "$OJ --verboseness=" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness property
 export OPENJML_verboseness=x
-${RTH} testJmlBad2 "$OJ -check" || RES=$(($RES+1))
+${RTH} testJmlBad2 "$OJ --check" || RES=$(($RES+1))
 unset OPENJML_verboseness
 
 ## Checks when there is a bad verboseness property
 echo "org.openjml.option.verboseness=x" > ./openjml.properties
-${RTH} testJmlBad2 "$OJ -check" || RES=$(($RES+1))
+${RTH} testJmlBad2 "$OJ --check" || RES=$(($RES+1))
 rm openjml.properties
 
 ## Checks when there is a bad use of -java
@@ -116,13 +119,15 @@ echo "import org.jmlspecs.annotation.*; public class D { @Pure public static voi
 
 
 ## Checks a valid file using java -jar
-${RTH} testOK1 "$OJ -noPurityCheck -specspath . B.java" || RES=$(($RES+1))
+${RTH} testOK1 "$OJ -noPurityCheck --specs-path . B.java" || RES=$(($RES+1))
 
 ## rac
+##RUNRAC=
+if [[ ! -z ${RUNRAC+z} ]] ; then
 rm -rf rac
 mkdir -p rac
-${RTH} testRac "$OJ -rac -racShowSource=line -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
-${RTH} testRac "$OJ -rac -racShowSource=line -noPurityCheck -d rac -classpath . D.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ --rac --rac-show-source=line -noPurityCheck -d rac -classpath ../testfiles/testRac --specs-path ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ --rac --rac-show-source=line -noPurityCheck -d rac -classpath . D.java" || { RES=$(($RES+1)); }
 echo RAC-OK
 #echo java -classpath "rac${Z}${RT}" A
 java -classpath "rac${Z}${RT}" A  > racactual
@@ -157,16 +162,18 @@ echo RAC java with annotations
 java -cp rac D > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' | diff - ../releaseTests/testRac/expected-annotations || { RES=$(($RES+1)); }
 
+fi
+
 ## This checks verbose output - which changes too often to put in the 
 ## regular test suite
 if [[ "$COKENV" != "" ]] ; then
 ## Checks a valid file with jmlverbose
-${RTH} testOK3 "$OJ -noPurityCheck -specspath . B.java -jmlverbose" || RES=$(($RES+1))
+${RTH} testOK3 "$OJ -noPurityCheck --specs-path . B.java -jmlverbose" || RES=$(($RES+1))
 fi
 
 ## Checks a valid file with no internal specs
 ## FIXME - why does this work?
-${RTH} testOK4 "$OJ -specspath . B.java -noInternalSpecs" || RES=$(($RES+1))
+${RTH} testOK4 "$OJ --specs-path . B.java -noInternalSpecs" || RES=$(($RES+1))
 
 ## Checks a valid file with no internal runtime library - should fail to find annotations
 ## FIXME - is -noInternalRuntime still a usefule/vlid option?
@@ -193,10 +200,10 @@ ${RTH} testRuntime4 "$OJ C.java -noPurityCheck " || RES=$(($RES+1))
 ${RTH} testRuntime5 "$OJ D.java -noPurityCheck " || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc1 "$OJ -noPurityCheck -esc ../testfiles/testEsc/A.java -classpath ../testfiles/testEsc" || RES=$(($RES+1))
+${RTH} testEsc1 "$OJ -noPurityCheck --esc ../testfiles/testEsc/A.java -classpath ../testfiles/testEsc" || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc2 "$OJ -noPurityCheck -esc ../testfiles/testEsc/B.java -classpath ../testfiles/testEsc" || RES=$(($RES+1))
+${RTH} testEsc2 "$OJ -noPurityCheck --esc ../testfiles/testEsc/B.java -classpath ../testfiles/testEsc" || RES=$(($RES+1))
 
 
 ## Checks using no paths - fails to find super class, uses specs in java file
@@ -237,7 +244,7 @@ ${RTH} testPath10 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/Tes
 
 
 ## Checks an invalid file
-${RTH} testCheck1 "$OJ -jmltesting -noPurityCheck -specspath . A.java" || RES=$(($RES+1))
+${RTH} testCheck1 "$OJ -jmltesting -noPurityCheck --specs-path . A.java" || RES=$(($RES+1))
 
 
 ## FIXME - jmldoc & prettyprinying
