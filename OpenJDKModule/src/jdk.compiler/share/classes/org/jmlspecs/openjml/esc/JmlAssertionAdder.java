@@ -4845,7 +4845,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					//					var locsetExpr = convertAssignableToLocsetExpression(sc, list, (ClassSymbol) methodDecl.sym.owner, currentThisExpr);
 //					// System.out.println("HFC " + locsetExpr);
 //					convertJML(locsetExpr); // This is just to get all the well-definedness checks
-					list.forEach(s->{if (!(s instanceof JmlStoreRefKeyword)) convertJML(s); }); // FIXME - a better test for this?
+					var listsr = new LinkedList<JmlStoreRef>();
+					list.forEach(s->listsr.addAll(makeJmlStoreRef(s,s,(ClassSymbol) methodDecl.sym.owner,false)));
+					listsr.forEach(s-> convertJML(s) ); // FIXME - a better test for this?
 				}
 				currentEnv = currentEnv.popEnv();
 				JCBlock b = popBlock(scase);
@@ -13998,7 +14000,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		Symbol s = convertSymbol(that.sym);
 		JCExpression trexpr = that.getExpression();
 
-		//System.out.println("VISIT-SELECT " + that + " " + that.sym + " " + s + " " + s.getClass() + " " + trexpr);
+		//System.out.println("VISIT-SELECT " + that + " " + that.sym + " " + s + " " + trexpr);
 		if (!(s instanceof Symbol.TypeSymbol)) trexpr = convertExpr(trexpr);
 		JCFieldAccess newfa = null;
 		Symbol sym = s;
@@ -14036,20 +14038,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			eee = treeutils.makeJavaTypelc(that.selected);
 //		} else if (that.sym == allocSym) {
 //			eee = M.at(that.pos).Select(trexpr, that.sym);
-		} else if (translatingJML && s == null) {
-			// This can happen while scanning a store-ref x.*
-			JCExpression sel = trexpr; // FIXME - what if static; what if not a variable
-			JCFieldAccess fa = M.Select(sel, (Name) null);
-			fa.pos = that.pos;
-			fa.sym = null;
-			eee = fa;
-		} else if (translatingJML && s instanceof VarSymbol && (utils.isModel(s) || utils.isJML(s.owner.flags()))
-				&& !convertingAssignable && !reps.contains(s)) {
+//		} else if (translatingJML && s == null) {
+//			// This can happen while scanning a store-ref x.*
+//			JCExpression sel = trexpr; // FIXME - what if static; what if not a variable
+//			JCFieldAccess fa = M.Select(sel, (Name) null);
+//			fa.pos = that.pos;
+//			fa.sym = null;
+//			eee = fa;
+		} else if (translatingJML && (s == null || (s instanceof VarSymbol && (utils.isModel(s) || utils.isJML(s.owner.flags()))
+				&& !convertingAssignable && !reps.contains(s)))) {
 			selected = copy(trexpr);
 
 			// FIXME - why must selected be a JCIdent here and below
-			if (!utils.isJMLStatic(s) && (!(that.selected instanceof JCIdent)
-					|| !localVariables.containsKey(((JCIdent) that.selected).sym))) {
+			if (s==null || (!utils.isJMLStatic(s) && (!(that.selected instanceof JCIdent)
+					|| !localVariables.containsKey(((JCIdent) that.selected).sym)))) {
 				if (convertingAssignable && currentFresh != null && selected instanceof JCIdent
 						&& ((JCIdent) selected).sym == currentFresh.sym) {
 					// continue
@@ -14072,7 +14074,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				type = ((Type.TypeVar) type).getUpperBound();
 			// result = eresult = treeutils.makeSelect(that.pos, selected, s);
 			// The following method sets result and eresult
-			addRepresentsAxioms((ClassSymbol) type.tsym, s, that, copy(trexpr));
+			if (s != null) addRepresentsAxioms((ClassSymbol) type.tsym, s, that, copy(trexpr));
 			// The tsym can be a TypeVar
 			return;
 		} else if (s instanceof Symbol.TypeSymbol) {
@@ -18541,7 +18543,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// These are always non-null \locset expressions
 			convertExpr(that.expression);
 		} else {
-			//System.out.println("JSR " + that + " " + that.receiver + " " + that.fields + " " + that.anyField);
+			//System.out.println("JSR " + that + " " + that.receiver + " " + that.field );
 			if (that.receiver != null) {
 				JCExpression exx = treeutils.makeNotNull(that.receiver, that.receiver);
 				exx = convertExpr(exx);
@@ -20647,7 +20649,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 
 			e = treeutils.makeBinary(index.pos, JCTree.Tag.LE, treeutils.intleSymbol, treeutils.zero, sub.copy(index));
-			a = treeutils.makeAssert(aa, Label.UNDEFINED_NEGATIVEINDEX, e);
+			a = treeutils.makeAssert(index, Label.UNDEFINED_NEGATIVEINDEX, e);
 			wellDefined = combine(wellDefined, a);
 
 			e = treeutils.makeLength(aa, sub.copy(array));
