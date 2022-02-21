@@ -20293,7 +20293,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else if (sr.field != null) {
 				// If all model fields were expanded we could just compare field == sr.field, but model field
 			    // definitions can be recursive, so we can't always do that expansion
-				if (field == sr.field || isContainedIn(field, sr.field)) {
+				if (field == sr.field || (field!= null && isContainedIn(field, sr.field))) {
 					var ee = utils.isJMLStatic(field) ? treeutils.makeBooleanLiteral(pos, true)
 							: treeutils.makeEqObject(pos.getPreferredPosition(),
 									isSmallerConverted ? receiver : convertJML(receiver),
@@ -21008,7 +21008,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// This class encapsulates information about the environment in which a
 	// translation is being performed.
 	// It is helpful because the visit methods do not take an auxiliary argument in
-	// which such informatino could be passed.
+	// which such information could be passed.
 	public static class TranslationEnv implements Cloneable {
 		public TranslationEnv() {
 		}
@@ -21030,8 +21030,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //		}
 
 		public TranslationEnv popEnv() {
-			// System.out.println("POPENV " + this.hashCode() + " TO " +
-			// previousEnv.hashCode());
+			// System.out.println("POPENV " + this.hashCode() + " TO " + previousEnv.hashCode());
 			return previousEnv;
 		}
 
@@ -21046,11 +21045,30 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    }
 		}
 
-        /* @ nullable */ public TranslationEnv previousEnv; 
-		/* @ nullable */ public JCExpression receiver; // what 'this' is currently. null in a static environment
-		/* @ nullable */ public Name stateLabel; // the current heap state. null means the current state
+
+        public TranslationEnv pushEnvInit() {
+            var t = new TranslationEnv();
+            t.previousEnv = this;
+            //System.out.println("PUSHENV " + this.hashCode() + " TO " + t.hashCode());
+            return t;
+        }
+
+        /*@ nullable */ public TranslationEnv previousEnv; 
+		/*@ nullable */ public JCExpression receiver; // what 'this' is currently. null in a static environment
+ 
+		/**
+         * Used to note the environment (e.g., \old label) under which we are currently
+         * evaluating expressions; null indicates the current state; the value preLabel indicates
+         * the pre-state, etc.
+         */
+		/*@ nullable */ public Name stateLabel; // the current heap state. null means the current state
 		public int allocCount = 0;
+        
+        /** The method being translated */
 		public MethodSymbol methodSym;
+        
+        /** The clause being translated (null if not in one) */
+        //@ nullable
 		public IJmlClauseKind enclosingClauseKind;
 	}
 
