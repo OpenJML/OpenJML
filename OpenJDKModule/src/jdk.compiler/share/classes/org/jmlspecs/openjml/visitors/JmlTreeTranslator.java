@@ -83,7 +83,8 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
-    public void visitJmlBlock(JmlBlock that) {
+    public void visitBlock(JCBlock jcthat) {
+        JmlBlock that = (JmlBlock)jcthat;
         that.stats = translate(that.stats);
         that.specificationCases = translate(that.specificationCases);
         result = that;
@@ -180,8 +181,8 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
-    public void visitJmlImport(JmlImport that) {
-        visitImport(that);
+    public void visitImport(JCImport that) {
+        super.visitImport(that);
         // not translating: isModel, staticImport
     }
 
@@ -343,14 +344,10 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
-    public void visitNewClass(JCNewClass jthat) {
-        JmlNewClass that = (JmlNewClass)jthat;
-        JmlNewClass r = that;
-        r.encl = translate(that.encl);
-        r.typeargs = translate(that.typeargs);
-        r.clazz = translate(that.clazz);
-        r.args = translate(that.args);
-        r.def = translate(that.def);
+    public void visitNewClass(JCNewClass that) {
+        super.visitNewClass(that);
+        JmlNewClass r = (JmlNewClass)result;
+        r.typeargs = translate(that.typeargs); // FIXME - why doesn't the super class do this?
         result = r;
     }
 
@@ -483,6 +480,16 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         JmlStoreRefListExpression r = that;
         r.list = translate(that.list);
         // Not translating pos, token, type
+        result = r;
+    }
+
+    @Override
+    public void visitJmlStoreRef(JmlStoreRef that) {
+        JmlStoreRef r = that;
+        r.expression = translate(that.expression);
+        r.receiver = translate(that.receiver);
+        r.range = translate(that.range);
+        // Not translating pos, token, type, source, local, fields
         result = r;
     }
 
@@ -620,9 +627,9 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-    public void visitJmlNewClass(JmlNewClass that) {
-        visitNewClass(that);
-    }
+//    public void visitNewClass(JCNewClass that) {
+//        super.visitNewClass(that);
+//    }
 
 
 }

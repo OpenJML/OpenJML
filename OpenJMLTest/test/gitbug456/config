@@ -1,1 +1,1 @@
-ARGS="-exclude=bytebuf.ByteBuf.*"
+ARGS+=" -cp test/gitbug456 -exclude=bytebuf.ByteBuf.* "

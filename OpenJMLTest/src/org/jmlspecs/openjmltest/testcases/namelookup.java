@@ -94,7 +94,7 @@ public class namelookup extends TCBase {
                         " class A { int k;  \n" +
                         "   void m(double k) {}\n" +
                         "}"
-        ,"/$A/A.jml:2: error: This specification declaration of field k has the same name as a previous field declaration",11
+        ,"/$A/A.jml:2: error: This specification declaration of field A.k has the same name as a previous field declaration",11
         ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:2:",16
         ,"/$A/A.jml:3: error: The specification of the method A.m(double) must not have a body",21
         );
@@ -109,7 +109,7 @@ public class namelookup extends TCBase {
         helpTCF("A.java",
                         " class A { int k;  \n" +
                         "}"
-        ,"/$A/A.jml:2: error: This specification declaration of field k has the same name as a previous field declaration",8
+        ,"/$A/A.jml:2: error: This specification declaration of field A.k has the same name as a previous field declaration",8
         ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:2:",16
         );
     }
@@ -125,7 +125,7 @@ public class namelookup extends TCBase {
                         " class A { int k;  \n" +
                         "   void m(double k) {}\n" +
                         "}"
-        ,"/$A/A.jml:2: error: This JML field declaration conflicts with an existing field with the same name: k (owner: A)",21
+        ,"/$A/A.jml:2: error: This JML field declaration conflicts with an existing field with the same name: A.k",21
         ,"/A.java:1: error: Associated declaration: /$A/A.jml:2:",16
         );
     }
@@ -140,7 +140,7 @@ public class namelookup extends TCBase {
                         " class A { int k;  \n" +
                         "   void m(double k) {}\n" +
                         "}"
-        ,"/$A/A.jml:2: error: This specification declaration of field k has the same name as a previous field declaration",8
+        ,"/$A/A.jml:2: error: This specification declaration of field A.k has the same name as a previous field declaration",8
         ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:2:",16
         );
     }
@@ -266,9 +266,9 @@ public class namelookup extends TCBase {
                 "   }\n" +
                 "}"
         ,"/A.java:4: error: incompatible types: int cannot be converted to boolean", 20
+        ,"/A.java:5: error: incompatible types: double cannot be converted to boolean", 21
         ,"/A.java:7: error: incompatible types: int cannot be converted to boolean", 24
         ,"/A.java:8: error: incompatible types: double cannot be converted to boolean", 22
-        ,"/A.java:5: error: incompatible types: double cannot be converted to boolean", 21
         );
     }
 
@@ -282,8 +282,8 @@ public class namelookup extends TCBase {
                 "         //@ assume k(0);\n" + // TYPE ERROR
                 "      }\n" +
                 "}"
-                ,"/A.java:5: error: incompatible types: double cannot be converted to boolean", 22
                 ,"/A.java:3: error: incompatible types: double cannot be converted to boolean", 21
+                ,"/A.java:5: error: incompatible types: double cannot be converted to boolean", 22
         );
     }
 
@@ -364,13 +364,13 @@ public class namelookup extends TCBase {
                 "}\n" +
                 "class C {}\n"
 
-                ,"/A.java:3: error: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
-                ,"/$A/A.jml:12: error: This declaration duplicates an earlier declaration",11
-                ,"/$A/A.jml:2: error: Associated declaration: /$A/A.jml:12:",11
-                ,"/$A/A.jml:14: error: There is no binary class to match this Java declaration in the specification file: BB (owner: A)",11
-                ,"/$A/A.jml:17: error: This declaration duplicates an earlier declaration",1
+                ,"/$A/A.jml:17: error: duplicate class: A",1
                 ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:17:",8
-                ,"/$A/A.jml:18: error: There is no binary class to match this Java declaration in the specification file: B (owner: unnamed package)",1
+                ,"/$A/A.jml:18: error: There is no class to match this Java declaration in the specification file: B",1
+                ,"/$A/A.jml:12: error: duplicate class: AA",11
+                ,"/$A/A.jml:2: error: Associated declaration: /$A/A.jml:12:",11
+                ,"/$A/A.jml:14: error: There is no class to match this Java declaration in the specification file: BB",11 // FIXME - would like to have the prefix
+                ,"/A.java:3: error: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
                 ,"/A.java:5: error: cannot find symbol\n  symbol:   variable B\n  location: class A.AA",23
                 ,"/A.java:6: error: incompatible types: double cannot be converted to boolean",22
         );
@@ -391,11 +391,11 @@ public class namelookup extends TCBase {
                 "public class A {   \n" +
                 "}\n" +
                 ""
-        ,"/$A/A.jml:3: error: This JML class declaration conflicts with an existing binary class with the same name: A (owner: unnamed package)", 11
-        ,"/A.java:1: error: Associated declaration: /$A/A.jml:3:",8
-        ,"/$A/A.jml:5: error: This JML class declaration conflicts with a previous JML class: B (owner: unnamed package)", 11
-        ,"/$A/A.jml:4: error: Associated declaration: /$A/A.jml:5:",11
-        ,"/$A/A.jml:7: error: There is no binary class to match this Java declaration in the specification file: D (owner: unnamed package)",2
+        ,"/$A/A.jml:3: error: This JML class declaration conflicts with an existing Java class with the same name: A", 11
+        ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:3:",8
+        ,"/$A/A.jml:7: error: There is no class to match this Java declaration in the specification file: D",2
+        ,"/$A/A.jml:5: error: duplicate class: B", 11
+        //,"/$A/A.jml:4: error: Associated declaration: /$A/A.jml:5:",11 // FIXME - WOuld be nice to point to the duplicate
         );
     }
  

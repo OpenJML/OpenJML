@@ -37,6 +37,7 @@ public class TypeRWClauseExtension extends JmlExtension {
             int pp = parser.pos();
             init(parser);
             parser.nextToken(); // skip over readable/writable token; current token should now be the identifier
+            Name nn = parser.parseOptionalName();
             Name n;
             JCExpression e;
             JCTree.JCIdent id;
@@ -60,6 +61,7 @@ public class TypeRWClauseExtension extends JmlExtension {
             }
             var t = toP(M.at(pp).JmlTypeClauseConditional(mods, clauseType, id, e));
             wrapup(t, clauseType, true, true);
+            t.name = nn;
             return t;
         }
         

@@ -6,6 +6,7 @@ package com.sun.tools.javac.parser;
 
 import java.nio.CharBuffer;
 import java.util.Set;
+import java.util.Stack;
 
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
@@ -14,7 +15,6 @@ import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlOptions;
-import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExtensions;
 import org.jmlspecs.openjml.ext.Operators;
@@ -60,12 +60,6 @@ public class JmlTokenizer extends JavadocTokenizer {
     /** The compilation context with which this instance was created */
     public Context         context;
 
-    /** A temporary reference to the instance of the nowarn collector for the context. */
-    /*@ non_null */ public Nowarns nowarns;
-    
-    /** Collects line annotations */
-    public java.util.List<ExceptionLineAnnotation> lineAnnotations = new java.util.LinkedList<>();
-
     /**
      * A flag that, when true, causes all JML comments to be ignored; it is
      * set on construction according to a command-line option.
@@ -103,10 +97,11 @@ public class JmlTokenizer extends JavadocTokenizer {
      * @param inputLength The number of characters to scan
      */
     //@ requires inputLength <= input.length;
-    protected JmlTokenizer(JmlScanner.JmlFactory fac, char[] input, int inputLength) {
+    protected JmlTokenizer(JmlScanner.JmlScannerFactory fac, char[] input, int inputLength, boolean noJML) {
         super(fac, input, inputLength);
         context = fac.context;
-        nowarns = Nowarns.instance(context);
+        this.noJML = noJML;
+        //System.out.println("TOKENIZER noJML=" + noJML);
     }
     
     /**
@@ -116,10 +111,11 @@ public class JmlTokenizer extends JavadocTokenizer {
      * @param buffer The character buffer to scan
      */
     // @ requires fac != null && buffer != null;
-    protected JmlTokenizer(JmlScanner.JmlFactory fac, CharBuffer buffer) {
+    public JmlTokenizer(JmlScanner.JmlScannerFactory fac, CharBuffer buffer, boolean noJML) {
         super(fac, buffer);
         context = fac.context;
-        nowarns = Nowarns.instance(context);
+        this.noJML = noJML;
+        //System.out.println("TOKENIZER noJML=" + noJML);
     }
     
     /** True if the tokenizer is in a JML comment, false otherwise */
@@ -150,7 +146,35 @@ public class JmlTokenizer extends JavadocTokenizer {
     @Override
     protected Tokens.Comment processComment(int pos, int endPos, CommentStyle style) {
         //if (org.jmlspecs.openjml.Main.useJML) System.out.println("COMMENT " + pos + " " + endPos + String.valueOf(buffer,pos,endPos-pos));
+        if (scannerDebug) System.out.println("COMMENT " + pos + " " + endPos + style + " " + String.valueOf(buffer,pos,endPos-pos));
 
+        if (jml && jmlcommentstyle == CommentStyle.BLOCK && style == CommentStyle.BLOCK) {
+        	// The nested block will have the same end point as the outer block
+            Utils.instance(context).error(pos,"jml.message",
+            		"Block comments may not be embedded inside JML block comments");
+            endPos -= 2; // TODO: Presumes no unicode for the comment terminator
+        }
+        
+        if (jml && jmlcommentstyle == CommentStyle.LINE && style == CommentStyle.BLOCK) {
+        	reset(pos);
+            do {
+                char cch = next();
+                if (scannerDebug) System.out.println("CHECKING " + position() + cch);
+                if (cch == '\r' || cch == '\n') {
+                    log.error(pos, "jml.message", "Embedded block comment must terminate within the JML line comment");
+                    style = CommentStyle.LINE; // Pretend it ends at the line terminator
+                    endPos = position();
+                	return null;
+                }
+            } while (position() < endPos);
+        	reset(pos);
+        }
+        
+        if (jml && style == CommentStyle.JAVADOC) {
+            log.error(pos, "jml.message", "Javadoc comments are not permitted within JML comments");
+            return null;
+        }
+    
         // The inclusive range pos to endPos-1 does include the opening and closing
         // comment characters.
         // It does not include line ending for line comments, so
@@ -158,8 +182,6 @@ public class JmlTokenizer extends JavadocTokenizer {
         if (noJML || style == CommentStyle.JAVADOC || endPos-pos <= 2) {
             return super.processComment(pos,endPos,style);
         }
-        
-        
         
         // Skip the first two characters (the comment marker))
         int commentStart = pos;
@@ -271,34 +293,43 @@ public class JmlTokenizer extends JavadocTokenizer {
             return super.processComment(pos, endPos, style);
         }
         
-        if (jml) {
+        if (!jml) {
+            tk = TokenKind.CUSTOM;
+            jmlTokenKind = JmlTokenKind.STARTJMLCOMMENT;
+            jmlTokenClauseKind = Operators.startjmlcommentKind;
+
+            // We initialize state and proceed to process the comment as JML text
+            jmlcommentstyle = style;
+            jml = true;
+            if (style == CommentStyle.BLOCK) {
+            	if (scannerDebug) System.out.println("SETTING EBC " + p + " " + (endPos-2) + " " + length());
+            	endBlockComment = endPos-2; 
+            }
+        } else {
+        	tk = null;
             // We are already in a JML comment - so we have an embedded comment.
             // The action is to just ignore the embedded comment start
             // characters that we just scanned.
             
             // do nothing
-            
-        } else {
-
-            // We initialize state and proceed to process the comment as JML text
-            jmlcommentstyle = style;
-            jml = true;
         }
         return null; // Tell the caller to ignore the comment - that is, to not consider it a regular comment
     }
-
+    
+    public int endBlockComment = length();
+    
     /** Checks comment nesting and resets to position after the comment; only call this for
      * valid JML comments, whether processed or not */
     protected void cleanup(int commentStart, int endPos, CommentStyle style) {
-        if (jml && jmlcommentstyle == CommentStyle.LINE && style == CommentStyle.BLOCK) {
-            do {
-                char cch = next();
-                if (cch == '\r' || cch == '\n') {
-                    log.error(commentStart, "jml.message", "Java block comment must terminate within the JML line comment");
-                    break;
-                }
-            } while (position() < endPos);
-        }
+//        if (jml && jmlcommentstyle == CommentStyle.LINE && style == CommentStyle.BLOCK) {
+//            do {
+//                char cch = next();
+//                if (cch == '\r' || cch == '\n') {
+//                    log.error(commentStart, "jml.message", "Java block comment must terminate within the JML line comment");
+//                    break;
+//                }
+//            } while (position() < endPos);
+//        }
     	if (endPos != position()) reset(endPos); // Needed if we abort a comment before completing it
     }
     
@@ -337,9 +368,10 @@ public class JmlTokenizer extends JavadocTokenizer {
         //   jmlToken, jmlTokenKind, bp, ch, endPos, tk, name
         boolean initialJml = jml;
         int pos, endPos;
-        while (true) { // The loop is just so we can easily skip a token and sscan the next one with a 'continue' 
+        while (true) { // The loop is just so we can easily skip a token and scan the next one with a 'continue' 
             jmlTokenKind = null;
             jmlTokenClauseKind = null;
+            tk = null;
             Token t = super.readToken(); // Sets tk, May modify jmlTokenKind
             pos = t.pos;
             endPos = t.endPos;
@@ -369,7 +401,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                 if (jmlTokenClauseKind == Operators.endjmlcommentKind) {
                     JmlToken jmlToken = new JmlToken(jmlTokenKind, jmlTokenClauseKind, t);
                     // FIXME - source field?
-                    // if initialJml == true and now the token is ENDJMLCOMMENT, then we had 
+                    // if initialJml == false and now the token is ENDJMLCOMMENT, then we had 
                     // an empty comment. We don't return a token in that case.
                     if (!returnEndOfCommentTokens || !initialJml) continue; // Go get next token
                     if (skippingTokens >= 0 && t.kind != TokenKind.EOF) continue;
@@ -383,15 +415,6 @@ public class JmlTokenizer extends JavadocTokenizer {
                 }
             }
 
-            if (t.kind == TokenKind.IDENTIFIER && jml && !inLineAnnotation) {
-                String id = t.name().toString();
-                IJmlClauseKind lak = org.jmlspecs.openjml.Extensions.allKinds.get(id);
-                if (lak instanceof IJmlClauseKind.LineAnnotationKind) {
-                    scanLineAnnotation(position(), id, lak);
-                    continue;
-                }
-            }
-
             if (tk == TokenKind.STAR && get() == '/'
                 && jmlcommentstyle == CommentStyle.BLOCK) {
                 // We're in a BLOCK comment and we scanned a * and the next
@@ -399,6 +422,8 @@ public class JmlTokenizer extends JavadocTokenizer {
                 next(); // advance past the /
                 jml = false;
                 endPos = position();
+            	if (scannerDebug) System.out.println("RESETTING EBC " + position() + " " + endBlockComment + " " + length());
+            	endBlockComment = length();
                 jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
                 jmlTokenClauseKind = Operators.endjmlcommentKind;
                 if (!returnEndOfCommentTokens || !initialJml) continue;
@@ -411,7 +436,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                         && (ch == '*' || ch == '@')) {
                     // This may be the end of a BLOCK comment. We have seen a real @;
                     // there may be more @s and then the * and /
-                    while (get() == '@') next();
+                    while (is('@')) next();
                     if (get() != '*') {
                         Utils.instance(context).error(first, position(), "jml.unexpected.at.symbols");
                         return readToken(); // Ignore and get the next token (recursively)
@@ -429,6 +454,8 @@ public class JmlTokenizer extends JavadocTokenizer {
                     jmlTokenClauseKind = Operators.endjmlcommentKind;
                     jml = false;
                     endPos = position();
+                	if (scannerDebug) System.out.println("RESETTING EBC@ " + position() + " " + endBlockComment + " " + length());
+                    endBlockComment = length();
                     if (!returnEndOfCommentTokens || !initialJml) continue;
                 }
             } else if (tk == TokenKind.LPAREN && get() == '*') {
@@ -489,6 +516,14 @@ public class JmlTokenizer extends JavadocTokenizer {
         }
     }
     
+    protected void scanString(int pos) {
+    	super.scanString(pos);
+    	if (jml && position() >= endBlockComment) {
+        	Utils.instance(context).error(endBlockComment,"jml.unclosed.str.lit.end.jml");
+            reset(endBlockComment);
+    	}
+    }
+    
     /** Overrides the Java scanner in order to catch situations in which the
      * first part of a double literal is immediately followed by a dot,
      * e.g. 123.. ; within JML, this should be an int followed by a DOT_DOT token 
@@ -504,29 +539,6 @@ public class JmlTokenizer extends JavadocTokenizer {
         }
     }
     
-    private boolean inLineAnnotation = false;
-
-    /** This method presumes the NOWARN token has been read and handles the names
-     * within the nowarn, reading through the terminating semicolon or end of JML comment
-     */
-    public void scanLineAnnotation(int pos, String id, IJmlClauseKind ckind) {
-        inLineAnnotation = true;
-        ((IJmlClauseKind.LineAnnotationKind)ckind).scan(pos, id, ckind, this);
-        inLineAnnotation = false;
-    }
-
-    /**
-     * This method is called internally when a nowarn lexical pragma is scanned;
-     * it is called once for each label in the pragma.
-     * 
-     * @param file The file being scanned
-     * @param pos The 0-based character position of the label
-     * @param label The label in the pragma
-     */
-    protected void handleNowarn(DiagnosticSource file, int pos, String label) {
-        nowarns.addItem(file,pos,label);
-    }
-
     /**
      * Overrides the superclass method in order to denote a backslash as
      * special. This lets scanOperator detect the JML backslash keywords.
@@ -547,7 +559,7 @@ public class JmlTokenizer extends JavadocTokenizer {
      */
     @Override
     protected void processLineTerminator(int pos, int endPos) {
-    	tk = null;
+
         if (jml) {
             if (jmlcommentstyle == CommentStyle.LINE) {
                 jml = false;
@@ -556,12 +568,19 @@ public class JmlTokenizer extends JavadocTokenizer {
                     jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
                     jmlTokenClauseKind = Operators.endjmlcommentKind;
                 }
+            } else if (tk == Tokens.TokenKind.STRINGLITERAL) {
+            	int p = position();
+                while (Character.isWhitespace(get())) next();
+                if (is('@')) {
+                    while (is('@')) next();
+                } else {
+                	reset(p); // FIXME - may not be correct if the character just read is a ascii or unicode backslash
+                }
+
             } else {
                 // skip any whitespace followed by @ symbols
-                while (Character.isWhitespace(get()))
-                    next();
-                while (get() == '@')
-                    next();
+                while (Character.isWhitespace(get())) next();
+                while (is('@')) next();
             }
         }
         super.processLineTerminator(pos, endPos);

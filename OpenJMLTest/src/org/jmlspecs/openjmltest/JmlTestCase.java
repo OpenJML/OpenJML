@@ -135,7 +135,7 @@ public abstract class JmlTestCase {
             this.print = print;
         }
         
-        /** If true, no notes are collected; some test output contains notes, so this mut generally be false */
+        /** If true, no notes are collected; some test output contains notes, so this must generally be false */
         boolean noNotes;
         /** If true, diagnostics are printed (as well as being collected) */
         boolean print;

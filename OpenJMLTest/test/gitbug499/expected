@@ -1,12 +1,15 @@
 test/gitbug499/Interval.java:43: error: Expected a declaration or a JML construct inside the JML annotation here
-            //@ contains(i);
+            //@ contains(i); // Intentional error - used to crash
                 ^
-test/gitbug499/Interval.java:64: error: Incorrectly formed or terminated JML construct near here
-        //@ !contains(i);
-                     ^
-test/gitbug499/Interval.java:65: error: illegal start of type
-    }
-    ^
+test/gitbug499/Interval.java:64: error: illegal start of type
+        //@ !contains(i); // Intentional error - used to crash
+            ^
+test/gitbug499/Interval.java:64: error: invalid method declaration; return type required
+        //@ !contains(i); // Intentional error - used to crash
+             ^
+test/gitbug499/Interval.java:64: error: <identifier> expected
+        //@ !contains(i); // Intentional error - used to crash
+                       ^
 test/gitbug499/Interval.java:67: error: class, interface, enum, or record expected
     public /*@ pure @*/ int size() {
                         ^
@@ -14,4 +17,4 @@ test/gitbug499/Interval.java:69: error: class, interface, enum, or record expect
     }
     ^
 Operation not performed because of parse or type errors
-5 errors
+6 errors

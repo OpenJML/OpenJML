@@ -140,7 +140,7 @@ public class statements extends TCBase {
 
     @Test public void testAssert4() {
         helpTCF("A.java"," class A { Object o; void m() { \n /*@ assume true assert false;*/\n  \n}}"
-                ,"/A.java:2: error: Incorrectly formed or terminated assume statement near here",18
+                ,"/A.java:2: error: Incorrectly formed or terminated assume statement near here -- perhaps a missing semicolon",17
                 );
     }
 
@@ -187,23 +187,23 @@ public class statements extends TCBase {
                 );
     }
     
-    @Test public void testDebug() {
-        helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; debug m(); \n i = 0; \n}}"
-                );
-    }
-
-    @Test public void testDebug1() {
-        expectedExit = 1;
-        helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; debug m() \n i = 0; \n}}"
-                ,"/A.java:2: error: ';' expected",28
-                );
-    }
-
-    @Test public void testDebug2() {
-        helpTCF("A.java"," class A { Object o; void m() { int i=0; \n //@ ghost int j; debug while (i>0) {}; \n i = 0; \n}}"
-                );
-    }
-
+//    @Test public void testDebug() {
+//        helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; debug m(); \n i = 0; \n}}"
+//                );
+//    }
+//
+//    @Test public void testDebug1() {
+//        expectedExit = 1;
+//        helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; debug m() \n i = 0; \n}}"
+//                ,"/A.java:2: error: ';' expected",28
+//                );
+//    }
+//
+//    @Test public void testDebug2() {
+//        helpTCF("A.java"," class A { Object o; void m() { int i=0; \n //@ ghost int j; debug while (i>0) {}; \n i = 0; \n}}"
+//                );
+//    }
+//
     @Test public void testDecl() {
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; final ghost int k = 0; \n i = 0; \n}}"
                 );

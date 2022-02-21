@@ -21,13 +21,8 @@ import com.sun.tools.javac.util.ListBuffer;
 public class MethodDeclClauseExtension extends JmlExtension  {
 
     public static final String oldID = "old";
-    public static final String forallID = "forall";
     
     public static final IJmlClauseKind oldClause = new MethodClauseDeclType(oldID) {
-        public boolean isPreconditionClause() { return true; }
-    };
-    
-    public static final IJmlClauseKind forallClause = new MethodClauseDeclType(forallID) {
         public boolean isPreconditionClause() { return true; }
     };
     
@@ -52,7 +47,7 @@ public class MethodDeclClauseExtension extends JmlExtension  {
             JCExpression t = parser.parseType();
             boolean prev = parser.setInJmlDeclaration(true); // allows non-ghost declarations
             ListBuffer<JCTree.JCVariableDecl> decls = parser.variableDeclarators(mods, t,
-                    new ListBuffer<JCVariableDecl>(), false); // FIXME - why not true - this is a local decl
+                    new ListBuffer<JCVariableDecl>(), true);
             parser.setInJmlDeclaration(prev);
             JmlMethodClauseDecl res = parser.to(parser.maker().at(pp)
                     .JmlMethodClauseDecl(keyword, clauseType, decls.toList()));

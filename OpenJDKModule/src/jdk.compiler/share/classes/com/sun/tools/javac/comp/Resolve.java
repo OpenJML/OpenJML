@@ -342,6 +342,7 @@ public class Resolve {
             case PUBLIC:
                 if (allowModules) {
                     ModuleSymbol currModule = env.toplevel.modle;
+                    if (currModule == null) System.out.println("CURRMODULE " + env.toplevel.sourcefile);
                     currModule.complete();
                     PackageSymbol p = c.packge();
                     isAccessible =
@@ -2134,6 +2135,8 @@ public class Resolve {
 
     Symbol lookupPackage(Env<AttrContext> env, Name name) {
         PackageSymbol pack = syms.lookupPackage(env.toplevel.modle, name);
+        if (org.jmlspecs.openjml.Utils.isJML() && name.toString().equals("oldlinks")) 
+            System.out.println("LOOKUPPACK " + name + " " + pack + " " + env.toplevel.modle + " " + allowModules + " " + isImportOnDemand(env, name) + " " + env);
 
         if (allowModules && isImportOnDemand(env, name)) {
             if (pack.members().isEmpty()) {

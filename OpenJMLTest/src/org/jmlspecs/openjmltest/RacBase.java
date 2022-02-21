@@ -338,11 +338,11 @@ public abstract class RacBase extends JmlTestCase {
             args.add(outdir);
             args.add("-classpath");
             args.add(cp);
-            args.add("-rac");
+            args.add("--rac");
             args.add("-no-purityCheck");
-            args.add("-code-math=java");
-            args.add("-spec-math=bigint");
-            if (new File(dirname).isDirectory()) args.add("-dir");
+            args.add("--code-math=java");
+            args.add("--spec-math=bigint");
+            if (new File(dirname).isDirectory()) args.add("--dir");
             args.add(dirname);
             args.addAll(Arrays.asList(opts));
             

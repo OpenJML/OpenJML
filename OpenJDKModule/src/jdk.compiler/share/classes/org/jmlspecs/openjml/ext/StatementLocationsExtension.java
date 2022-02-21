@@ -48,34 +48,35 @@ public class StatementLocationsExtension extends JmlExtension {
             int pp = parser.pos();
             int pe = parser.endPos();
             
-            parser.nextToken();
+            parser.nextToken(); // skipping keyword
+            var n = parser.parseOptionalName();
 
             ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
             if (parser.token().kind == SEMI) {
                 parser.syntaxError(parser.pos(), null, "jml.use.nothing.assignable"); // FIXME - fix to use keyword
-                parser.nextToken(); // skip over the SEMI
+//                parser.nextToken(); // skip over the SEMI
             } else {
                 list = parser.parseStoreRefListOrKeyword(false);
-                if (parser.token().kind == SEMI) {
-                    // OK, go on
-                } else if (parser.jmlTokenKind() == ENDJMLCOMMENT) {
-                    parser.syntaxError(parser.pos(), null, "jml.missing.semi");
-                }
+//                if (parser.token().kind == SEMI) {
+//                    // OK, go on
+//                } else if (parser.jmlTokenKind() == ENDJMLCOMMENT) {
+//                    parser.syntaxError(parser.pos(), null, "jml.missing.semi");
+//                }
                 if (list.isEmpty()) {
                     parser.syntaxError(parser.pos(), null, "jml.use.nothing.assignable");
                 }
-                if (parser.token().kind != SEMI) {
-                    // error already reported
-                    parser.skipThroughSemi();
-                } else {
-                    parser.nextToken();
-                }
+//                if (parser.token().kind != SEMI) {
+//                    // error already reported
+//                    parser.skipThroughSemi();
+//                } else {
+//                    parser.nextToken();
+//                }
             }
             // FIXME - refactor to use wrapup
             var st = keyword.equals(havocID) ? (parser.maker().at(pp).JmlHavocStatement(list.toList()))
             					: parser.maker().at(pp).JmlStatementLoopModifies(clauseType, list.toList());
-            //wrapup(st, clauseType, false, false);
-            return toP(st);
+            wrapup(st, clauseType, true, false);
+            return st;
         }
         
         @Override

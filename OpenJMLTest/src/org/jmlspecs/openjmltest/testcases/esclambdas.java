@@ -21,7 +21,6 @@ public class esclambdas extends EscBase {
     
     @Override
     public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
         super.setUp();
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -74,7 +73,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable2() {
-    	main.addOptions("-code-math=java"); // Just to avoid ovcerflow errors
+    	main.addOptions("-code-math=java"); // Just to avoid overflow errors
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -90,7 +89,7 @@ public class esclambdas extends EscBase {
                 +"    //@ inlined_loop;\n"
                 +"    a.forEach(m->m.bump());\n"
                 +"  }\n"
-                                
+                               
                 +"}"
                 ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",19
                 );
@@ -269,8 +268,8 @@ public class esclambdas extends EscBase {
                 +"  //@ assignable field;\n"
                 +"  //@ ensures \\result == j+101;\n"
                 +"  //@ ensures field == j+100;\n"
-                +"  public int m1(/*@{FF}*/ BiFunction<TestJava,Integer,Integer> a, int j) {\n"
-                +"   final /*@{FF}*/ BiFunction<TestJava,Integer,Integer>  b = a;\n"
+                +"  public int m1(/*@[FF]*/ BiFunction<TestJava,Integer,Integer> a, int j) {\n"
+                +"   final /*@[FF]*/ BiFunction<TestJava,Integer,Integer>  b = a;\n"
                 +"    return (int)b.apply(this,(Integer)(j+100));\n"
                 +"  }\n"
 
@@ -288,8 +287,8 @@ public class esclambdas extends EscBase {
                 // the declaration (not signaled by modifiers). If we use a { then it looks like the start of a block.
                 +"  //@ requires j < 1000 && j > -1000;\n"
                 +"  //@ assignable field;\n"
-                +"  public int m3(/*@{FF}*/ BiFunction<TestJava,Integer,Integer> a, int j) {\n"
-                +"    /*@!FF*/ BiFunction<TestJava,Integer,Integer>  b = a;\n"
+                +"  public int m3(/*@[FF]*/ BiFunction<TestJava,Integer,Integer> a, int j) {\n"
+                +"    /*@[FF]*/ BiFunction<TestJava,Integer,Integer>  b = a;\n"
                 +"    return (int)b.apply(this,(Integer)(j+100));\n"
                 +"  }\n"
                                 
@@ -335,9 +334,9 @@ public class esclambdas extends EscBase {
                 +"  public static class C {};\n"
                 +"  //@ model public static class R extends C {};\n"
                 
-                +"  public /*@ nullable {R}*/C field;\n"
+                +"  public /*@ nullable [R]*/C field;\n"
 
-                +"  public void set( /*@{R}*/C f) { field = f; }\n"
+                +"  public void set( /*@[R]*/C f) { field = f; }\n"
                                 
                 +"  //@ public normal_behavior requires true;\n"
                 +"  public void m() {\n"
@@ -356,9 +355,9 @@ public class esclambdas extends EscBase {
                 +"  public static class C {};\n"
                 +"  public static class R extends C {};\n"
                 
-                +"  public /*@ nullable {R}*/C field;\n"
+                +"  public /*@ nullable [R]*/C field;\n"
 
-                +"  public void set( /*@{R}*/C f) { field = f; }\n"
+                +"  public void set( /*@[R]*/C f) { field = f; }\n"
                                 
                 +"  //@ public normal_behavior requires true;\n"
                 +"  public void m() {\n"
@@ -485,12 +484,12 @@ public class esclambdas extends EscBase {
                 +"  }\n"
 
                 +"  //@ public normal_behavior requires true; pure\n"
-                +"  public static boolean  mmm(/*@ {java.util.function.Supplier.Pure<Boolean>}*/ java.util.function.Supplier<Boolean> s) {\n"
+                +"  public static boolean  mmm(/*@ [java.util.function.Supplier.Pure<Boolean>]*/ java.util.function.Supplier<Boolean> s) {\n"
                 +"      return s.get();\n"   // Line 20
                 +"  }\n"
                 
                 +"  //@ public normal_behavior requires true; pure\n"
-                +"  public static boolean  mmmm(/*@ {java.util.function.Supplier.PureNonNull<Boolean>}*/ java.util.function.Supplier<Boolean> s) {\n"
+                +"  public static boolean  mmmm(/*@ [java.util.function.Supplier.PureNonNull<Boolean>]*/ java.util.function.Supplier<Boolean> s) {\n"
                 +"      return s.get();\n"
                 +"  }\n"
                 +"}"
@@ -515,12 +514,12 @@ public class esclambdas extends EscBase {
                 +"  }\n"
 
                 +"  //@ public behavior ensures true; pure\n" 
-                +"  public static /*@!PureSupplier */ java.util.function.Supplier<Integer> m() {\n"
+                +"  public static /*@[PureSupplier] */ java.util.function.Supplier<Integer> m() {\n"
                 +"      return  /*@ ( PureSupplier ) @*/ ()->1;\n"
                 +"  }\n"
                 
                 +"  //@ public behavior ensures true; pure\n" 
-                +"  public static /*@!PureSupplier*/ java.util.function.Supplier<Integer> mm() {\n"
+                +"  public static /*@[PureSupplier]*/ java.util.function.Supplier<Integer> mm() {\n"
                 +"      return ()->1;\n"  // Also OK because the lambda expression conforms to PureSupplier as a functional interface
                 +"  }\n"
                 
@@ -686,7 +685,7 @@ public class esclambdas extends EscBase {
                 +"       //@ assert b == 9 + 7 + 11 + (11+9+11+100);\n"
                 +"  }\n"
                 +"  //@ requires f != null; inline \n"
-                +"  final public int m(int aa, int b, /*@{NNFunction<Integer,Integer>}*/ Function<Integer,Integer> f) {\n"
+                +"  final public int m(int aa, int b, /*@[NNFunction<Integer,Integer>]*/ Function<Integer,Integer> f) {\n"
                 +"       int a = 7; return a + b + f.apply(this.a);"
                 +"  }\n"
                 +"  }\n"
@@ -709,7 +708,7 @@ public class esclambdas extends EscBase {
                 +"  }\n"
                 +"  //@ public model static interface NoException { public normal_behavior ensures true; void run(); } \n"
                 +"  //@ public normal_behavior requires true; { r.run(); } ensures true; \n"
-                +"  public void set(/*@{NoException}*/ Runnable r) {\n"
+                +"  public void set(/*@[NoException]*/ Runnable r) {\n"
                 +"       r.run();"
                 +"  }\n"
                 +"}\n"

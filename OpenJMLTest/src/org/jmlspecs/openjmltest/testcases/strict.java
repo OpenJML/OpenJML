@@ -27,7 +27,7 @@ public class strict extends TCBase {
     @Test
     public void testLbl() {
         helpTCF("A.java","public class A {\n" +
-                " //@ ghost int i = (\\lbl A 0);\n }"
+                " //@ ghost int i = (\\lbl A 0);\n }"  // FIXME: Accepted into JML?
                 ,"/A.java:2: warning: The \\lbl construct is an OpenJML extension to JML and not allowed under " + optjml,21
                 );
     }
@@ -40,13 +40,12 @@ public class strict extends TCBase {
                 );
     }
 
-    @Test
+    @Test // \count is no longer an extension
     public void testIndex() {
         helpTCF("A.java","public class A {\n" +
                 " void m(int[] a) { for (int i: a) {\n" +
                 "    //@ assert \\count == i; \n" +
                 " }}}"
-                ,"/A.java:3: warning: The \\count construct is an OpenJML extension to JML and not allowed under " + optjml,16
                 );
     }
 
@@ -146,7 +145,7 @@ public class strict extends TCBase {
                 " //@ assignable a[0..];\n" +
                 " int m(int[] a) { return 0; \n" +
                 " }}"
-                ,"/A.java:2: warning: The storeref with implied end-of-range (a[i..]) construct is an OpenJML extension to JML and not allowed under " + optjml,22
+                ,"/A.java:2: warning: The storeref with implied end-of-range construct is an OpenJML extension to JML and not allowed under " + optjml,22
                 );
     }
 

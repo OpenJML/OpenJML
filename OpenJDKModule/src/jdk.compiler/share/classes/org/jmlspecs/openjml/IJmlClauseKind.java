@@ -26,6 +26,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 import org.jmlspecs.openjml.JmlTree.JmlSource;
+import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Kinds.KindSelector;
@@ -74,9 +75,9 @@ public abstract class IJmlClauseKind {
 
     public String keyword = null;
 
-    public String name() { return keyword; }
+    public String keyword() { return keyword; }
     
-    public String toString() { return name(); }
+    public String toString() { return keyword(); }
     
     /** If true, is a method or type spec clause kind within which \old without a label can be used (e.g. ensures)
     */
@@ -203,7 +204,9 @@ public abstract class IJmlClauseKind {
      * recover as best it can.  [ FIXME - return JCErroneous?]
      */
     abstract public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser);
-    
+
+    public JCExpression assertionConversion(JmlAssertionAdder aa, JCExpression expr) { return null; }
+
     protected void init(JmlParser parser) {
         Context c = context = parser.context ;
         this.syms = Symtab.instance(c);
@@ -229,15 +232,20 @@ public abstract class IJmlClauseKind {
         	// either the end-of-jml or the start of the next JML clause/statement
         } else if (parser.token().ikind == ENDJMLCOMMENT) {
             // FIXME - was -2 here, why?
-            if (requireSemicolon) warning(parser.pos(), parser.endPos(), "jml.missing.semi", clauseType.name());
+            if (requireSemicolon) warning(parser.pos(), parser.endPos(), "jml.missing.semi", clauseType.keyword());
+        } else if (parser.token().kind != SEMI && parser.token().kind == TokenKind.IDENTIFIER && Extensions.findKeyword(parser.token().name()) != null) {
+        	int p = parser.pos();
+        	var t = scanner.prevToken();
+        	p = t.endPos;
+            error(p, p, "jml.bad.construct.missing.semi", clauseType.keyword() + " statement");
         } else if (parser.token().kind != SEMI) {
-            error(parser.pos(), parser.endPos(), "jml.bad.construct", clauseType.name() + " statement");
+            error(parser.pos(), parser.endPos(), "jml.bad.construct", clauseType.keyword() + " statement");
             parser.skipThroughSemi();
         } else {
             parser.nextToken(); // advance to the token after the semi
         }
         parser.toP(statement);
-        parser.acceptEndJML();
+        parser.acceptEndJML(); // accepts any end-jml-comment tokens, if present
     }
     
     /** Derived classes implement this method to do any typechecking of the tree, which should have
@@ -253,7 +261,7 @@ public abstract class IJmlClauseKind {
     /** Issue warning if strictness is required -- e.g. call this if an extension is being used */
     public void strictCheck(JmlParser parser, JCTree e) {
         if (requireStrictJML()) {
-            utils.warning(e,"jml.not.strict",name());
+            utils.warning(e,"jml.not.strict",keyword());
         }
     }
 
@@ -306,7 +314,7 @@ public abstract class IJmlClauseKind {
             throw new UnsupportedOperationException();
         }
 
-        abstract public void scan(int keywordPos, String keyword, IJmlClauseKind clauseKind, JmlTokenizer tokenizer);
+        abstract public void scan(int keywordPos, String keyword, IJmlClauseKind clauseKind, JmlScanner scanner);
 
         /** A class that is a record of an instance of a line annotation.
          * A line annotation is captured by the scanner, not the parser,
@@ -341,6 +349,7 @@ public abstract class IJmlClauseKind {
     public static abstract class ExpressionKind extends IJmlClauseKind {
         public ExpressionKind(String keyword) { super(keyword); }
         abstract public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser);
+        public JCExpression assertionConversion(JmlAssertionAdder aa, JCExpression expr) { return null; }
     }
     
     /** This class is used for JML expressions that have a standard function-call
@@ -389,7 +398,7 @@ public abstract class IJmlClauseKind {
          * of checkParse() -- for the case of exactly one argument.
          */
         public void checkOneArg(JmlParser parser, JmlMethodInvocation e) {
-            checkNumberArgs(parser, e, (n)->(n==1), "jml.one.arg", e.kind.name());
+            checkNumberArgs(parser, e, (n)->(n==1), "jml.one.arg", e.kind.keyword());
         }
         
         public void typecheckHelper(JmlAttr attr, List<JCExpression> args, Env<AttrContext> localEnv) {
@@ -419,7 +428,7 @@ public abstract class IJmlClauseKind {
             String stringRep = parser.getScanner().chars();
             parser.nextToken();
             if (parser.token().kind == TokenKind.LPAREN) {
-                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.name());
+                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.keyword());
             } else {
                 JmlSingleton e = toP(parser.maker().at(p).JmlSingleton(jt));
                 e.kind = this;
@@ -449,7 +458,7 @@ public abstract class IJmlClauseKind {
             String stringRep = parser.getScanner().chars();
             parser.nextToken();
             if (parser.token().kind == TokenKind.LPAREN) {
-                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.name());
+                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.keyword());
             } else {
                 JmlSingleton e = toP(parser.maker().at(p).JmlSingleton(jt));
                 e.kind = this;
@@ -465,6 +474,7 @@ public abstract class IJmlClauseKind {
 
     }
     
+    @SuppressWarnings("unchecked")
     public static class ModifierKind extends IJmlClauseKind {
         public String fullAnnotation;
         public com.sun.tools.javac.code.Symbol.ClassSymbol annotationSym = null;
@@ -497,7 +507,7 @@ public abstract class IJmlClauseKind {
             this.strict = strict;
             this.fullAnnotation = annotation.contains(".") ? annotation : ("org.jmlspecs.annotation." + annotation);
             try {
-            	this.clazz = (Class<? extends java.lang.annotation.Annotation>)Class.forName(this.fullAnnotation);
+            	this.clazz = (Class<? extends java.lang.annotation.Annotation>)Class.forName(this.fullAnnotation); // unchecked cast
             } catch (Exception e) {
             	System.out.println("Failed to find annotation class for " + this.fullAnnotation);
             	this.clazz = null;

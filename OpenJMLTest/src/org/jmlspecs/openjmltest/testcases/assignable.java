@@ -44,7 +44,7 @@ public class assignable extends TCBase {
 
     @Test
     public void testAssignableField1() {
-    	main.addOptions("-progress");
+    	main.addOptions("--progress");
         helpTC(" class A { int k; boolean b; Object o; \n//@ assignable o.*;\n void m(){} }");
     }
 
@@ -152,9 +152,8 @@ public class assignable extends TCBase {
                 ,"/A.java:2: error: illegal start of expression",18
                 ,"/A.java:2: error: ']' expected",23
                 ,"/A.java:2: error: ']' expected",28
-                ,"/A.java:2: error: An invalid expression or succeeding token near here",28
-                ,"/A.java:2: error: illegal start of expression",32
-                ,"/A.java:2: error: Expected an identifier or star after the dot",37
+                ,"/A.java:2: error: '.class' expected",33
+                ,"/A.java:2: error: <identifier> expected",37
                 ,"/A.java:2: error: Expected an identifier or star after the dot",43
                 ,"/A.java:2: error: Expected an identifier or star after the dot",51
                 );

@@ -31,7 +31,7 @@ public class MiscExtensions extends JmlExtension {
         @Override
         public JCTree parse(JCModifiers mods, String keyword,
                 IJmlClauseKind clauseType, JmlParser parser) {
-            parser.warnNotImplemented(parser.pos(), this.name(),
+            parser.warnNotImplemented(parser.pos(), this.keyword(),
                     "JmlParser.term3(), as type modifiers");
             return super.parse(mods, keyword, clauseType, parser);
         }
@@ -41,16 +41,6 @@ public class MiscExtensions extends JmlExtension {
         }
     };
 
-    public static final String notspecifiedID = "\\not_specified";
-    public static final IJmlClauseKind notspecifiedKind = new IJmlClauseKind.SingletonKind(notspecifiedID) {
-        // \not_specified can be used in place of an expression, so it needs to return a type. We use an error type
-        // so that no error messages are propagated
-        @Override
-        public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            return attr.syms.errType;
-        }
-    };
-    
     public static final String constructorID = "constructor";
     public static final IJmlClauseKind constructorKind = new NoTypeMisc(constructorID);
     

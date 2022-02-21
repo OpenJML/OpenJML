@@ -14,7 +14,7 @@ import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlExtension;
-import org.jmlspecs.openjml.ext.FunctionLikeExpressions.AnyArgBooleanExpressions;
+import org.jmlspecs.openjml.ext.FunctionLikeExpressions.AnyArgBooleanExpression;
 
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Symtab;
@@ -47,7 +47,7 @@ public class MiscExpressions extends JmlExtension {
             int p = parser.pos();
             if (parser.token().kind != LPAREN) {
                 return parser.syntaxError(p, List.<JCTree> nil(),
-                        "jml.args.required", this.name());
+                        "jml.args.required", this.keyword());
             } else {
                 parser.accept(TokenKind.LPAREN);
                 JCExpression e;
@@ -77,7 +77,7 @@ public class MiscExpressions extends JmlExtension {
             // The argument may contain JML constructs
             int n = expr.args.size();
             if (n != 1) {
-                utils.error(tree,"jml.one.arg",name(),n);
+                utils.error(tree,"jml.one.arg",keyword(),n);
             }
             if (n > 0) {
                 JCExpression arg = expr.args.get(0);
@@ -96,25 +96,24 @@ public class MiscExpressions extends JmlExtension {
     };
 
     public static final String freshID = "\\fresh";
-    public static final IJmlClauseKind freshKind = new AnyArgBooleanExpressions(freshID){
+    public static final IJmlClauseKind freshKind = new AnyArgBooleanExpression(freshID){
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
             int n = expr.args.size();
             if (n != 1 && n != 2) {
-               utils.error(tree,"jml.wrong.number.args",name(),"1 or 2",n);
-            }
-            if (n > 0) {
+               utils.error(tree,"jml.wrong.number.args",keyword(),"1 or 2",n);
+            } else {
                 if (n > 1) attr.checkLabel(expr.args.get(1));
                 JCExpression arg = expr.args.get(0);
                 Type tt = attr.attribExpr(arg, localEnv);
                 if (tt.isPrimitive()) {
-                    utils.error(arg,"jml.ref.arg.required", name());
+                    utils.error(arg,"jml.ref.arg.required", keyword());
                 }
                 if (!attr.freshClauses.contains(attr.jmlenv.currentClauseKind)) {
                     // The +1 is to fool the error reporting mechanism into 
                     // allowing other error reports about the same token
-                    utils.error(tree.pos+1, "jml.misplaced.token", name(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.name());
+                    utils.error(tree.pos+1, "jml.misplaced.token", keyword(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.keyword());
                 }
             }
             expr.type = Symtab.instance(context).booleanType;
@@ -123,20 +122,20 @@ public class MiscExpressions extends JmlExtension {
     };
 
     public static final String allocID = "\\isAllocated";
-    public static final IJmlClauseKind allocKind = new AnyArgBooleanExpressions(allocID){
+    public static final IJmlClauseKind allocKind = new AnyArgBooleanExpression(allocID){
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
             int n = expr.args.size();
             if (n != 1 && n != 2) {
-                utils.error(tree,"jml.wrong.number.args",name(),"1 or 2",n);
+                utils.error(tree,"jml.wrong.number.args",keyword(),"1 or 2",n);
             }
             if (n > 0) {
                 if (n > 1) attr.checkLabel(expr.args.get(1));
                 JCExpression arg = expr.args.get(0);
                 Type tt = attr.attribExpr(arg, localEnv);
                 if (tt.isPrimitive()) {
-                    utils.error(arg,"jml.ref.arg.required", name());
+                    utils.error(arg,"jml.ref.arg.required", keyword());
                 }
             }
             return Symtab.instance(context).booleanType;
@@ -176,7 +175,7 @@ public class MiscExpressions extends JmlExtension {
             attr.attribArgs(Kinds.KindSelector.VAL, expr.args, localEnv, argtypesBuf);  // We can't send in Lock as the requested type because Types does not know what to do with it - FIXME: perhaps make a JmlTypes that can handle the new primitives
             int n = expr.args.size();
             if (n != 1) {
-                utils.error(tree,"jml.one.arg",name(),n);
+                utils.error(tree,"jml.one.arg",keyword(),n);
             }
             Type t;
             if (n == 0) t = syms.errType;

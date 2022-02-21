@@ -137,7 +137,7 @@ public class Extensions {
             AssignableClauseExtension.class, 
             CallableClauseExtension.class, 
             ChooseClause.class, 
-            MethodConditionalClauseExtension.class,
+            MethodResourceClauseExtension.class,
             MethodDeclClauseExtension.class, 
             MethodExprClauseExtensions.class, 
             MethodSimpleClauseExtensions.class, 
@@ -145,7 +145,7 @@ public class Extensions {
             SignalsOnlyClauseExtension.class, 
             
             // Statements
-            EndStatement.class, 
+            Refining.class, 
             GhostModelStatement.class,
             InlinedLoopStatement.class, 
             ReachableStatement.class, 

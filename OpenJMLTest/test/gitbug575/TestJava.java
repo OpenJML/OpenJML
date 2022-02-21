@@ -16,7 +16,7 @@ public class TestJava {
         
     }
     
-    //@ requires a.length == 10;
+    //@ requires a.length == 10 && x == 2;
     //@ assignable x, a[x];
     //@ ensures x == 3;
     public void mm() {
@@ -26,7 +26,7 @@ public class TestJava {
     
     //@ requires a.length == 10;
     public void q() {
-        x = 2;
+        x = 8;
         a[0] = 4;
         a[2] = 6;
         a[3] = 7;
@@ -34,15 +34,15 @@ public class TestJava {
         qq();
         //@ assert a[0] == 4;
         //@ assert a[4] == 8;
-        //@ assert x == 4;
+        //@ assert x == 40;
         
     }
     
-    //@ requires a.length == 10;
+    //@ requires a.length == 10 && x == 8;
     //@ assignable x, a[x .. x+1];
-    //@ ensures x == 4;
+    //@ ensures x == 40;
     public void qq() {
-        x = 4;
+        x = 40;
     }
     
     

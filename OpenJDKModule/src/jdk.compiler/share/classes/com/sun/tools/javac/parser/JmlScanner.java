@@ -8,10 +8,9 @@ import java.nio.CharBuffer;
 import java.util.Map;
 import java.util.Set;
 
-//import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
-//import org.jmlspecs.openjml.Nowarns;
-//import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
 import com.sun.tools.javac.parser.Tokens.NamedToken;
@@ -66,7 +65,7 @@ public class JmlScanner extends Scanner {
      * have a consistent set of information across all files parsed within a
      * compilation task.
      */
-    public static class JmlFactory extends ScannerFactory {
+    public static class JmlScannerFactory extends ScannerFactory {
 
         /** The unique compilation context with which this factory was created */
         public Context                 context;
@@ -77,7 +76,7 @@ public class JmlScanner extends Scanner {
          *
          * @param context The common context used for this whole compilation
          */
-        protected JmlFactory(Context context) {
+        public JmlScannerFactory(Context context) {
             super(context);
             this.context = context;
         }
@@ -93,7 +92,7 @@ public class JmlScanner extends Scanner {
         	context.put(scannerFactoryKey,
         			new Context.Factory<ScannerFactory>() {
         		public ScannerFactory make(Context context) {
-        			return new JmlScanner.JmlFactory(context);
+        			return new JmlScanner.JmlScannerFactory(context);
         		}
         	});
         }
@@ -133,10 +132,10 @@ public class JmlScanner extends Scanner {
     }
 
     /** The compilation context */
-    protected Context context;
+    public Context context;
 
     /** A reference to the tokenizer being used */
-    protected JmlTokenizer jmltokenizer;
+    public JmlTokenizer jmltokenizer;
 
     /** Set to true internally while the scanner is within a JML comment */
     public boolean       jml() {
@@ -156,9 +155,11 @@ public class JmlScanner extends Scanner {
     protected java.util.List<Boolean> savedJml = new java.util.LinkedList<Boolean>();
     
     protected boolean jmlForCurrentToken;
+    
+    /** Collects line annotations */
+    public java.util.List<ExceptionLineAnnotation> lineAnnotations = new java.util.LinkedList<>();
 
-
-    /**
+   /**
      * Creates a new scanner, but you should use JmlFactory.newScanner() to get
      * one, not this constructor.<P>
 
@@ -172,8 +173,8 @@ public class JmlScanner extends Scanner {
      */
     // @ requires fac != null && input != null;
     // @ requires inputLength <= input.length;
-    protected JmlScanner(JmlFactory fac, char[] input, int inputLength) {
-        super(fac, new JmlTokenizer(fac, input, inputLength));
+    protected JmlScanner(JmlScannerFactory fac, char[] input, int inputLength) {
+        super(fac, new JmlTokenizer(fac, input, inputLength, com.sun.tools.javac.main.JmlCompiler.instance(fac.context).noJML));
         context = fac.context;
         jmltokenizer = (JmlTokenizer)super.tokenizer;
     }
@@ -186,8 +187,8 @@ public class JmlScanner extends Scanner {
      * @param buffer The character buffer to scan
      */
     // @ requires fac != null && buffer != null;
-    protected JmlScanner(JmlFactory fac, CharBuffer buffer) {
-        super(fac, new JmlTokenizer(fac, buffer));
+    protected JmlScanner(JmlScannerFactory fac, CharBuffer buffer) {
+        super(fac, new JmlTokenizer(fac, buffer, com.sun.tools.javac.main.JmlCompiler.instance(fac.context).noJML));
         context = fac.context;
         jmltokenizer = (JmlTokenizer)super.tokenizer;
     }
@@ -208,18 +209,59 @@ public class JmlScanner extends Scanner {
     // printed out as scanned. The fact that SCANNER is defined is cached here so it is not looked up
     // in the system properties map on every token. If you like both the declaration of scannerDebug
     // and the override of nextToken my be deleted for production code.
-    public boolean scannerDebug = System.getenv("SCANNER") !=null;
+    public boolean scannerDebug = System.getenv("SCANNER") != null;
+    {
+    	JavaTokenizer.scannerDebug = scannerDebug;
+    }
     
-    @Override
-    public void nextToken() {
-    	super.nextToken();
-        if (!savedJml.isEmpty()) {
+    public Token advance() {
+    	super.nextToken(); 
+    	if (!savedJml.isEmpty()) {
             jmlForCurrentToken = savedJml.remove(0);
         } else {
         	jmlForCurrentToken = ((JmlTokenizer)tokenizer).jml();
         }
+    	return token;
+    }
+    
+    @Override
+    public void nextToken() {
+    	outer: while(true) {
+    		advance();
+    		while (true) {
+    			// The following logic concatenates consecutive JML annotations, if there is only ignorable material between them
+    			while (jmlToken() != null && jmlToken().jmlkind == JmlTokenKind.ENDJMLCOMMENT) {
+    				var saved = prevToken();
+    				var t = token(1);
+    				if (scannerDebug) System.out.println("TOKEN AFTER ENDJML " + token + " :: " + savedJml.get(0) + " " + t.pos + " " + t + " " + t.kind + " " + t.ikind + " " + (t.ikind == JmlTokenKind.STARTJMLCOMMENT));
+    				if (!savedJml.get(0)) break;
+    				if (t.ikind == JmlTokenKind.STARTJMLCOMMENT) {
+    					if (scannerDebug) System.out.println("SKIPPING START JML");
+    					advance(); // gets the start token
+    					advance(); // gets the next token, skipping the end and start combination
+    					prevToken = saved; // But keep the previous token as if the end-start combination did not exist
+    				}
+    				if (scannerDebug) System.out.println("LOOKAHEADS-Z " + token + " :: " + savedTokens.size() + " " + savedJml.size());
+    			}
+    			if (jmlForCurrentToken && token.ikind == JmlTokenKind.STARTJMLCOMMENT && token(1).kind == TokenKind.IDENTIFIER 
+    					&& org.jmlspecs.openjml.Extensions.allKinds.get(token(1).name().toString()) instanceof IJmlClauseKind.LineAnnotationKind) {
+    				if (scannerDebug) System.out.println("See the beginning of a line annotation");
+    				continue outer;
+    			}
+    			if (jmlForCurrentToken && token.kind == TokenKind.IDENTIFIER) { 
+    				String id = token.name().toString();
+    				IJmlClauseKind clk = org.jmlspecs.openjml.Extensions.allKinds.get(id);
+    				if (clk instanceof IJmlClauseKind.LineAnnotationKind lak) {
+    					lak.scan(token.pos, id, lak, this);
+    					if (scannerDebug) System.out.println("Scanned a line annotation");
+    	                if (jml() && token().ikind != JmlTokenKind.ENDJMLCOMMENT) continue; 
+    					continue outer;
+    				}
+    			}
+        		break outer;
+    		}
+    	}
     	if (scannerDebug) System.out.println("TOKEN " + jmlForCurrentToken + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
-    	if (scannerDebug && token.toString().equals("final")) org.jmlspecs.openjml.Utils.dumpStack();
     }
 
     public Token token(int lookahead) {
@@ -229,6 +271,7 @@ public class JmlScanner extends Scanner {
             for (int i = savedTokens.size() ; i < lookahead ; i ++) {
                 savedTokens.add(tokenizer.readToken());
                 savedJml.add(((JmlTokenizer)tokenizer).jml());
+                if (scannerDebug) System.out.println("LOOKAHEAD " + savedTokens.size() + " " + savedTokens.get(savedTokens.size()-1) + " " + savedJml.size() + " " + savedJml.get(savedJml.size()-1));
             }
             return savedTokens.get(lookahead - 1);
         }

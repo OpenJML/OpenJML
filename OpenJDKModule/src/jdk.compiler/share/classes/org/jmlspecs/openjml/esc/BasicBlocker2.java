@@ -32,7 +32,7 @@ import static org.jmlspecs.openjml.ext.ReachableStatement.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.Functional.*;
 import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
-import org.jmlspecs.openjml.ext.EndStatement;
+import org.jmlspecs.openjml.ext.Refining;
 import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
@@ -1038,7 +1038,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - review this
     //boolean extraEnv = false;
     public void visitJmlMethodInvocation(JmlMethodInvocation that) { 
-    	//if (that.kind != null && that.kind.keyword == oldID) System.out.println("JMI " + that + " " + that.labelProperties);
         if (that.name != null) {
             scanList(that.args);
             result = that;
@@ -1059,19 +1058,20 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 {
                     VarMap savedMap = currentMap;
                     try {
-                            Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).name;
-                            //JCIdent label = (JCIdent)that.args.get(1);
-                            currentMap = labelmaps.get(label);
-                            if (currentMap == null) {
-                                // When method axioms are inserted they can appear before the label,
-                                // in which case control flow comes here. SO we are counting on proper
-                                // reporting of out of scope labels earlier.
-                                // This should have already been reported
-                                //log.error(label.pos,"jml.unknown.label",label.name.toString());
-                                // Just use the current map
-                                currentMap = savedMap;
-                            }
-                            that.args.get(0).accept(this);
+                        Name labelArg = that.args.size() == 1 ? JmlAttr.instance(context).preLabel : ((JCIdent)that.args.get(1)).name;
+                        Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).name;
+                        if (label != labelArg) utils.warning(that, "jml.message", "Unexpected mismatched state label names: " + labelArg + " " + label);
+                        currentMap = labelmaps.get(label);
+                        if (currentMap == null) {
+                            // When method axioms are inserted they can appear before the label,
+                            // in which case control flow comes here. SO we are counting on proper
+                            // reporting of out of scope labels earlier.
+                            // This should have already been reported
+                            //log.error(label.pos,"jml.unknown.label",label.name.toString());
+                            // Just use the current map
+                            currentMap = savedMap;
+                        }
+                        that.args.get(0).accept(this);
                     } finally {
                         currentMap = savedMap;
                     }
@@ -1141,7 +1141,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     break;
                 } 
                 default:
-                    log.error(that.pos, "esc.internal.error", "No implementation for this kind of Jml node in BasicBlocker2: " + that.kind.name());
+                    log.error(that.pos, "esc.internal.error", "No implementation for this kind of Jml node in BasicBlocker2: " + that.kind.keyword());
                     
             } else switch (that.token) { 
                 case SUBTYPE_OF:
@@ -1219,7 +1219,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             }
         } else if (storeref instanceof JmlStoreRefKeyword) {
             IJmlClauseKind t = ((JmlStoreRefKeyword)storeref).kind;
-            if (t == everythingKind || t == notspecifiedKind) {
+            if (t == everythingKind) {
                 for (VarSymbol vsym: currentMap.keySet()) {
                     // Local variables are not affected by havoc \everything
                     // The owner of a local symbol is a MethodSymbol
@@ -1235,13 +1235,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             }
         } else if (storeref instanceof JmlSingleton sing) {
             IJmlClauseKind t = sing.kind;
-            if (t == everythingKind || t == notspecifiedKind) {
+            if (t == everythingKind) {
                 for (VarSymbol vsym: currentMap.keySet()) {
                     // Local variables are not affected by havoc \everything
                     // The owner of a local symbol is a MethodSymbol
                     // Also, final fields are not affected by havoc \everything
                     if (vsym.owner instanceof ClassSymbol &&
-                            (vsym.flags() & Flags.FINAL) != Flags.FINAL &&
+                            !vsym.isFinal() &&
                             !vsym.name.toString().equals(Strings.isAllocName) &&
                             !vsym.name.toString().equals(Strings.allocName)) {
                         newIdentIncarnation(vsym, storeref.pos);
@@ -1556,7 +1556,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             // This is essential to how counterexample path construction works
             currentBlock.statements.add(that);
         } else if (that.clauseType == assumeClause || that.clauseType == assertClause || that.clauseType == checkClause) {
-            JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.clauseType.name(),that.clauseType,that.label,convertExpr(that.expression));
+            JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.clauseType.keyword(),that.clauseType,that.label,convertExpr(that.expression));
             st.id = that.id;
             st.optionalExpression = convertExpr(that.optionalExpression);
             st.associatedPos = that.associatedPos;
@@ -1580,12 +1580,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             continuation = JmlAssertionAdder.Continuation.HALT;
 
         } else {
-            log.error(that.pos,"esc.internal.error","Unknown token in BasicBlocker2.visitJmlStatementExpr: " + that.clauseType.name());
+            log.error(that.pos,"esc.internal.error","Unknown token in BasicBlocker2.visitJmlStatementExpr: " + that.clauseType.keyword());
         }
     }
     
     public void visitJmlStatement(JmlStatement that) {
-        if (that.clauseType == EndStatement.endClause) {
+        if (that.clauseType == Refining.endClause) {
             // Modeled after vistReturn
             if (!remainingStatements.isEmpty()) {
                 JCStatement stat = remainingStatements.get(0);
@@ -1806,8 +1806,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // OK
     @Override
     public void visitIdent(JCIdent that) {
-        if (that.sym instanceof Symbol.VarSymbol){ 
-            Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
+        if (that.sym instanceof Symbol.VarSymbol vsym){ 
             if (localVars.containsKey(vsym)) {
                 that.name = localVars.get(vsym).name;
             } else if (currentMap != null) { // FIXME - why would currentMap ever be null?
@@ -2208,7 +2207,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // These should not be implemented
     @Override public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
     @Override public void visitImport(JCImport that)               { shouldNotBeCalled(that); }
-    @Override public void visitJmlImport(JmlImport that)                     { shouldNotBeCalled(that); }
     @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
 //    @Override public void visitJmlStatement(JmlStatement that)    { shouldNotBeCalled(that); }
     @Override public void visitJmlStatementSpec(JmlStatementSpec that) { shouldNotBeCalled(that); }

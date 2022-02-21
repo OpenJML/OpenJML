@@ -70,5 +70,8 @@ public class Operators extends JmlExtension {
     public static final String endjmlcommentID = "@*/"; // Also represents a newline at the end of a LINE comment
     public static final IJmlClauseKind endjmlcommentKind = new Operator(endjmlcommentID);
 
+    public static final String startjmlcommentID = "/*@"; // Also represents a newline at the end of a LINE comment
+    public static final IJmlClauseKind startjmlcommentKind = new Operator(startjmlcommentID);
+
 }
 

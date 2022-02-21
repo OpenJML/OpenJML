@@ -2,7 +2,6 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.BANG;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.FOR;
-import static org.jmlspecs.openjml.ext.MiscExtensions.notspecifiedID;
 import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
 
 import javax.tools.JavaFileObject;
@@ -70,9 +69,11 @@ public class TypeExprClauseExtension extends JmlExtension {
                 return tcl;
             } else {
                 parser.nextToken();
+                Name n = parser.parseOptionalName();
                 JCExpression e = parser.parseExpression();
                 Maker M = parser.maker().at(pp);
-                if (mods == null) mods = M.Modifiers(0);
+                if (mods == null) { mods = M.Modifiers(0); }
+                if (mods.getEndPosition(parser.endPosTable()) == -1) parser.storeEnd(mods, pp);
                 JmlTypeClauseExpr tcl = parser.to(M.JmlTypeClauseExpr(mods, keyword, clauseType, e));
                 wrapup(tcl, clauseType, true, true);
                 return tcl;
@@ -83,6 +84,7 @@ public class TypeExprClauseExtension extends JmlExtension {
         public JmlTypeClauseConstraint parseConstraint(JCModifiers mods) {
             int pos = parser.pos();
             parser.nextToken();
+            Name n = parser.parseOptionalName();
             JCExpression e = parser.parseExpression();
             List<JmlMethodSig> sigs = null;
             boolean notlist = false;
@@ -92,7 +94,7 @@ public class TypeExprClauseExtension extends JmlExtension {
                     notlist = true;
                     parser.nextToken();
                 }
-                if (parser.tokenIsId(everythingID,notspecifiedID)) {
+                if (parser.tokenIsId(everythingID)) {
                     parser.nextToken();
                     // This is the default, so we just leave sigs null
                     if (notlist) sigs = new ListBuffer<JmlMethodSig>().toList();
@@ -107,6 +109,7 @@ public class TypeExprClauseExtension extends JmlExtension {
                 }
             }
             if (mods == null) mods = parser.jmlF.at(pos).Modifiers(0);
+            if (mods.getEndPosition(parser.endPosTable()) == -1) parser.storeEnd(mods, pos);
             JmlTypeClauseConstraint tcl = parser.to(parser.jmlF.at(pos).JmlTypeClauseConstraint(
                     mods, e, sigs));
             tcl.notlist = notlist;
@@ -115,29 +118,29 @@ public class TypeExprClauseExtension extends JmlExtension {
         }
 
         
-        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
-        	JmlTypeClauseExpr tree = (JmlTypeClauseExpr)expr;
-            boolean isStatic = tree.modifiers != null && attr.isStatic(tree.modifiers);
-            JavaFileObject old = log.useSource(tree.source);
+        public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
+        	JmlTypeClauseExpr clause = (JmlTypeClauseExpr)tree;
+            boolean isStatic = clause.modifiers != null && attr.isStatic(clause.modifiers);
+            JavaFileObject old = log.useSource(clause.source);
             attr.jmlenv = attr.jmlenv.pushCopy();
             VarSymbol previousSecretContext = attr.currentSecretContext;
             boolean prevAllowJML = attr.jmlresolve.setAllowJML(true);
             Env<AttrContext> localEnv = env; // FIXME - here and in constraint, should we make a new local environment?
             try {
                 attr.jmlenv.inPureEnvironment = true;
-                attr.jmlenv.currentClauseKind = tree.clauseType;
+                attr.jmlenv.currentClauseKind = clause.clauseType;
                 // invariant, axiom, initially
                 //if (tree.token == JmlToken.AXIOM) isStatic = true; // FIXME - but have to sort out use of variables in axioms in general
-                if (isStatic) attr.bumpStatic(localEnv);
+                if (isStatic) attr.addStatic(localEnv);
 
-                if (tree.clauseType == invariantClause) {
+                if (clause.clauseType == invariantClause) {
                 	attr.jmlenv.jmlVisibility = -1;
-                	attr.attribAnnotationTypes(tree.modifiers.annotations,env); // Is this needed?
-                    JCAnnotation a = attr.findMod(tree.modifiers,Modifiers.SECRET);
-                    attr.jmlenv.jmlVisibility = tree.modifiers.flags & Flags.AccessFlags;
+                	attr.attribAnnotationTypes(clause.modifiers.annotations,env); // Is this needed?
+                    JCAnnotation a = attr.findMod(clause.modifiers,Modifiers.SECRET);
+                    attr.jmlenv.jmlVisibility = clause.modifiers.flags & Flags.AccessFlags;
                     if (a != null) {
                         if (a.args.size() != 1) {
-                        	utils.error(tree.pos(),"jml.secret.invariant.one.arg");
+                        	utils.error(clause.pos(),"jml.secret.invariant.one.arg");
                         } else {
                             Name datagroup = attr.getAnnotationStringArg(a);
                             if (datagroup != null) {
@@ -151,16 +154,15 @@ public class TypeExprClauseExtension extends JmlExtension {
                         }
                     }
                 }
-
-                attr.attribExpr(tree.expression, localEnv, syms.booleanType);
-                attr.checkTypeClauseMods(tree,tree.modifiers,tree.clauseType.name() + " clause",tree.clauseType);
+                attr.attribExpr(clause.expression, localEnv, syms.booleanType);
+                attr.checkTypeClauseMods(clause,clause.modifiers,clause.clauseType.keyword() + " clause",clause.clauseType);
                 return null;
             } catch (Exception e) {
-            	utils.note(tree, "jml.message", "Exception occurred in attributing clause: " + tree);
+            	utils.note(clause, "jml.message", "Exception occurred in attributing clause: " + clause);
             	utils.note("    Env: " + env.enclClass.name + " " + (env.enclMethod==null?"<null method>": env.enclMethod.name));
             	throw e;
             } finally {
-                if (isStatic) attr.decStatic(localEnv);  // FIXME - move this to finally, but does not screw up the checks on the next line?
+                if (isStatic) attr.removeStatic(localEnv);  // FIXME - move this to finally, but does not screw up the checks on the next line?
                 attr.currentSecretContext = previousSecretContext;
                 attr.jmlresolve.setAllowJML(prevAllowJML);
                 attr.jmlenv = attr.jmlenv.pop();

@@ -10,7 +10,7 @@ STARTING PROOF OF Test.Test()
     assignable \nothing; 
     signals () false; 
     signals_only \nothing; 
-    accessible this, this.*; 
+    accessible \everything; 
  */
 
 {
@@ -104,7 +104,7 @@ also
  */
 
 {
-  /*@ nullable */
+  @org.jmlspecs.annotation.Nullable
   int[] a = new int[10];
   o.f = a[i];
 }

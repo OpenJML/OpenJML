@@ -898,7 +898,7 @@ public class API implements IAPI {
      */
     @Override
     public /*@non_null*/ TypeSpecs getSpecs(/*@non_null*/ ClassSymbol sym) {
-        return JmlSpecs.instance(context()).getSpecs(sym);
+        return JmlSpecs.instance(context()).getAttrSpecs(sym);
     }
     
     /* (non-Javadoc)
@@ -910,7 +910,7 @@ public class API implements IAPI {
         collectSuperTypes(sym,list);
         JmlSpecs specs = JmlSpecs.instance(context());
         java.util.List<TypeSpecs> tslist = new ArrayList<TypeSpecs>(list.size());
-        for (ClassSymbol c: list) tslist.add(specs.getSpecs(c));
+        for (ClassSymbol c: list) tslist.add(specs.getAttrSpecs(c));
         return tslist;
     }
 
@@ -919,7 +919,7 @@ public class API implements IAPI {
      */
     @Override
     public /*@ non_null */ JmlSpecs.MethodSpecs getSpecs(/*@non_null*/ MethodSymbol sym) {
-        return JmlSpecs.instance(context()).getSpecs(sym);
+        return JmlSpecs.instance(context()).getAttrSpecs(sym);
     }
     
     /* (non-Javadoc)
@@ -936,7 +936,7 @@ public class API implements IAPI {
         collectSuperMethods(msym,list);
         tslist.ensureCapacity(list.size());
         JmlSpecs specs = JmlSpecs.instance(context());
-        for (MethodSymbol c: list) tslist.add(specs.getSpecs(c));
+        for (MethodSymbol c: list) tslist.add(specs.getAttrSpecs(c));
         return tslist;
     }
     
@@ -954,7 +954,7 @@ public class API implements IAPI {
      */
     @Override
     public /*@non_null*/ FieldSpecs getSpecs(/*@non_null*/ VarSymbol sym) {
-        return JmlSpecs.instance(context()).getSpecs(sym);
+        return JmlSpecs.instance(context()).getAttrSpecs(sym);
     }
     
     /* (non-Javadoc)

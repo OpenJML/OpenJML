@@ -12,5 +12,7 @@ test/gitbug636/Test.java:4: error: no suitable constructor found for String(Stri
     constructor String.String(byte[],byte) is not applicable
       (argument mismatch; String cannot be converted to byte[])
 Operation not performed because of parse or type errors
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
 Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
 1 error

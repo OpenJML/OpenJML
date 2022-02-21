@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
 import javax.lang.model.element.ElementKind;
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.openjml.JmlTree;
+
 import com.sun.source.tree.CaseTree;
 import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.MemberReferenceTree.ReferenceMode;
@@ -838,7 +840,6 @@ public class Attr extends JCTree.Visitor {
      */
     public void attribAnnotationTypes(List<JCAnnotation> annotations, // OPENJML package to public
                                Env<AttrContext> env) {
-    	if (org.jmlspecs.openjml.Main.useJML) System.out.println("ATTRIB_AT " + annotations.hashCode() + " " + annotations);
         for (List<JCAnnotation> al = annotations; al.nonEmpty(); al = al.tail) {
             JCAnnotation a = al.head;
             attribType(a.annotationType, env);
@@ -886,7 +887,7 @@ public class Attr extends JCTree.Visitor {
      *  @param interfaceExpected true if only an interface is expected here.
      */
     Type attribBase(JCTree tree,
-                    Env<AttrContext> env,
+                    Env<AttrContext> env, JCClassDecl owningTree,
                     boolean classExpected,
                     boolean interfaceExpected,
                     boolean checkExtensible) {
@@ -1174,7 +1175,6 @@ public class Attr extends JCTree.Visitor {
             for (List<JCExpression> l = tree.thrown; l.nonEmpty(); l = l.tail)
                 chk.checkType(l.head.pos(), l.head.type, syms.throwableType);
 
-            //saveMethodEnv(m, localEnv); // OPENJML - added
             if (tree.body == null) {
                 // Empty bodies are only allowed for
                 // abstract, native, or interface methods, or for methods
@@ -1187,6 +1187,7 @@ public class Attr extends JCTree.Visitor {
                 if (requireBody(tree)) // OPENJML - added for extension
                 if (isDefaultMethod || (tree.sym.flags() & (ABSTRACT | NATIVE)) == 0)
                     log.error(tree.pos(), Errors.MissingMethBodyOrDeclAbstract);
+                attribMethodSpecsAndBody(m, tree.body, localEnv); // OPENJML - to check interface method specs
             } else if ((tree.sym.flags() & (ABSTRACT|DEFAULT|PRIVATE)) == ABSTRACT) {
                 if ((owner.flags() & INTERFACE) != 0) {
                     log.error(tree.body.pos(), Errors.IntfMethCantHaveBody);
@@ -1239,7 +1240,7 @@ public class Attr extends JCTree.Visitor {
                 annotate.flush();
 
                 // Attribute method body.
-                attribMethodBody(tree.body, localEnv);
+                attribMethodSpecsAndBody(m, tree.body, localEnv); // OPENJML - changed
             }
 
             localEnv.info.scope.leave();
@@ -1250,8 +1251,8 @@ public class Attr extends JCTree.Visitor {
         }
     }
     
-    protected void attribMethodBody(JCBlock body, Env<AttrContext>  env) {  // OPENJML - added for overriding
-        attribStat(body, env);
+    protected void attribMethodSpecsAndBody(MethodSymbol methodSym, JCBlock body, Env<AttrContext>  env) {  // OPENJML - added for overriding
+        if (body != null) attribStat(body, env);
     }
     
     protected void saveMethodEnv(MethodSymbol msym, Env<AttrContext> env) {}  // OPENJML - added for overriding
@@ -1360,7 +1361,7 @@ public class Attr extends JCTree.Visitor {
         return lis.badInferenceMsg;
     }
 
-    static class LocalInitScanner extends TreeScanner {
+    static class LocalInitScanner extends org.jmlspecs.openjml.visitors.JmlTreeScanner { // OPENJML - replaced TreeScanner with JmlTreeScanner to allow var in ghost decls
         Fragment badInferenceMsg = null;
         boolean needsTarget = true;
 
@@ -2473,7 +2474,6 @@ public class Attr extends JCTree.Visitor {
             // Compute the result type.
 
             Type restype = mtype.getReturnType();
-            //if (org.jmlspecs.openjml.Main.useJML) System.out.println("RESTYPE " + methName + " : "  + restype);
 
             if (restype.hasTag(WILDCARD))
                 throw new AssertionError(mtype);
@@ -2758,6 +2758,7 @@ public class Attr extends JCTree.Visitor {
             }
 
             if (cdef != null) {
+            	if (cdef instanceof org.jmlspecs.openjml.JmlTree.JmlClassDecl cd) cd.specsDecl = cd; // OPENJML
                 visitAnonymousClassDefinition(tree, clazz, clazztype, cdef, localEnv, argtypes, typeargtypes, pkind);
                 return;
             }
@@ -5136,7 +5137,7 @@ public class Attr extends JCTree.Visitor {
         // UNATTRIBUTED.
         if ((c.flags_field & UNATTRIBUTED) != 0) {
             c.flags_field &= ~UNATTRIBUTED;
-
+            
             // Get environment current at the point of class definition.
             Env<AttrContext> env = typeEnvs.get(c);
             if (c.isSealed() &&

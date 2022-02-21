@@ -23,7 +23,7 @@ public class escaccessible extends EscBase {
     public void setUp() throws Exception {
     	captureOutput = true; // FIXME - why doesn't the 'verification failures' line end up in diagnostics, like it seems the erros and warnings lines do 
     	super.setUp();
-        main.addOptions("-checkAccessible","-no-jmltesting");
+        main.addOptions("--check-accessible","-no-jmltesting");
     }
  
     protected void helpTCX(String classname, String s, Object... expectedResults) {
@@ -174,11 +174,10 @@ public class escaccessible extends EscBase {
 
     @Test
     public void testAccessibleAA1() {
- //   	main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires a != null && 0 <= i && i < a.length;\n"
-                +"  // @ accessible a,i,a[*];\n"
+                +"  //@ accessible a,i,a[*];\n"
                 +"  int m() { return a[i]; }\n"
                 +"  int i,j;\n"
                 +"  int[] a; int[] b; TestJava() { a = b = new int[1]; } \n"

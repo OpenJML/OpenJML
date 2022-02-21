@@ -469,7 +469,7 @@ public abstract class ByteBuffer
      *
      * @return  The new byte buffer
      */
-    /*@ public normal_behavior
+    /*@ also public normal_behavior
       @   assignable \nothing;
       @   ensures \fresh(\result);
       @   ensures \result != null;
@@ -512,7 +512,7 @@ public abstract class ByteBuffer
      *
      * @return  The new byte buffer
      */
-    /*@ public normal_behavior
+    /*@ also public normal_behavior
       @   assignable \nothing;
       @   ensures \fresh(\result);
       @   ensures \result != null;

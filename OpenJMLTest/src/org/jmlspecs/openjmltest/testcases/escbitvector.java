@@ -32,7 +32,7 @@ public class escbitvector extends EscBase {
     // auto BV, with precondition
     @Test 
     public void testBV2() {
-        main.addOptions("-escBV=auto","-logic=ALL");
+        main.addOptions("--esc-bv=auto","--logic=ALL");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -53,7 +53,7 @@ public class escbitvector extends EscBase {
     // BV true, with precondition (sometimes times out)
     @Test 
     public void testBV2a() {
-        main.addOptions("-escBV=true","-logic=ALL","-solver-seed=42");
+        main.addOptions("--esc-bv=true","--logic=ALL","--solver-seed=42");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -75,7 +75,7 @@ public class escbitvector extends EscBase {
     @Test @Ignore // non-deterministically times out
     public void testBV2b() {
         Assume.assumeTrue(runLongTests);
-        main.addOptions("-escBV=true","-logic=ALL");
+        main.addOptions("--esc-bv=true","--logic=ALL");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -97,7 +97,7 @@ public class escbitvector extends EscBase {
     @Test 
     public void testBV1() {
         Assume.assumeTrue(runLongTests);
-        main.addOptions("-logic=ALL");  // Should use BV
+        main.addOptions("--logic=ALL");  // Should use BV
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -120,7 +120,7 @@ public class escbitvector extends EscBase {
     @Test 
     public void testBV1b() {
         expectedExit = 0;
-        main.addOptions("-escBV=false","-logic=ALL");
+        main.addOptions("--esc-bv=false","--logic=ALL");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires n <= Integer.MAX_VALUE-15;\n"
@@ -137,10 +137,10 @@ public class escbitvector extends EscBase {
                 );
     }
     
-    // incorrect escBV option
+    // incorrect -esc-bv option
     @Test 
     public void testBVe1() {
-        main.addOptions("-escBV","-logic=ALL"); // Testing incorrect use of -escBV
+        main.addOptions("--esc-bv","--logic=ALL"); // Testing incorrect use of --esc-bv
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -151,14 +151,14 @@ public class escbitvector extends EscBase {
                 +"  }\n"
                                 
                 +"}"
-                ,"warning: Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: -logic=ALL",-1
+                ,"warning: Command-line argument error: Expected 'auto', 'true' or 'false' for --esc-bv: --logic=ALL",-1
           );
     }
     
-    // incorrect escBV option
+    // incorrect -esc-bv option
     @Test 
     public void testBVe2() {
-        main.addOptions("-escBV=xx","-logic=ALL");  // This should cause an error
+        main.addOptions("--esc-bv=xx","--logic=ALL");  // This should cause an error
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -169,14 +169,14 @@ public class escbitvector extends EscBase {
                 +"  }\n"
                                 
                 +"}"
-                ,"warning: Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: xx",-1
+                ,"warning: Command-line argument error: Expected 'auto', 'true' or 'false' for --esc-bv: xx",-1
          );
     }
     
     // OK option, with precondition
     @Test 
     public void testBVe3() {
-        main.addOptions("-escBV=","-logic=ALL");  // Should revert to auto
+        main.addOptions("--esc-bv=","--logic=ALL");  // Should revert to auto
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -194,11 +194,11 @@ public class escbitvector extends EscBase {
           );
     }
     
-    // another incorrect use of escBV option
+    // another incorrect use of -esc-bv option
     @Test 
     public void testBVe4() {
         expectedExit = 0;
-        main.addOptions("-escBV");
+        main.addOptions("--esc-bv");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -213,7 +213,7 @@ public class escbitvector extends EscBase {
                 +"  }\n"
                                 
                 +"}"
-                ,"warning: The last command-line option expects a parameter: -escBV",-1
+                ,"warning: The last command-line option expects a parameter: --esc-bv",-1
           );
     }
     
@@ -222,7 +222,7 @@ public class escbitvector extends EscBase {
     public void testBVauto() {
         // This test first tries SMT translation without BV, which fails, and then it tries with, and succeeds.
         expectedExit = 0;
-        main.addOptions("-escBV=auto","-method=m1");
+        main.addOptions("--esc-bv=auto","--method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +" class A { \n"
                 +"   //@ requires (i&5) == 1; pure \n"
@@ -243,7 +243,7 @@ public class escbitvector extends EscBase {
     public void testBVauto2() {
         // This test, the same code as above, only tries SMT translation without BV, which fails.
         expectedExit = 1;
-        main.addOptions("-escBV=false","-method=m1");
+        main.addOptions("--esc-bv=false","--method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +" class A { \n"
                 +"   //@ requires (i&5) == 1; pure \n"
@@ -256,8 +256,8 @@ public class escbitvector extends EscBase {
                 +"  }\n"
                                 
                 +"}"  // FIXME - Message repeats for mm and m1, but why optional, why not indicate which method?
-                ,"/tt/TestJava.java:3: error: This method uses bit-vector operations and must be run with -escBV=true (or auto) [Bit-operation BITAND]",19
-                ,optional("/tt/TestJava.java:3: error: This method uses bit-vector operations and must be run with -escBV=true (or auto) [Bit-operation BITAND]",19)
+                ,"/tt/TestJava.java:3: error: This method uses bit-vector operations and must be run with --esc-bv=true (or auto) [Bit-operation BITAND]",19
+                ,optional("/tt/TestJava.java:3: error: This method uses bit-vector operations and must be run with --esc-bv=true (or auto) [Bit-operation BITAND]",19)
           );
     }
     
@@ -266,7 +266,7 @@ public class escbitvector extends EscBase {
     public void testBVauto3() {
         // This test, the same code as above, only tries SMT translation with BV the first time.
         expectedExit = 0;
-        main.addOptions("-escBV=true","-method=m1");
+        main.addOptions("--esc-bv=true","--method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +" class A { \n"
                 +"   //@ requires (i&5) == 1; pure \n"

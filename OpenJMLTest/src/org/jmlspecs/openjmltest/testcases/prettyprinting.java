@@ -178,7 +178,7 @@ public class prettyprinting extends ParseBase {
                 "    a += 5;" + eol +
                 "    /*@ assume a == 6;*/" + eol +
                 "    /*@ assert a == 6;*/" + eol +
-                "    /*@ debug a = 6;*/" + eol +
+                "    /*@ set a = 6;*/" + eol +
                 "    /*@ set a = 6;*/" + eol +
                 "    a += 5;" + eol +
                 "    a -= 5;" + eol +

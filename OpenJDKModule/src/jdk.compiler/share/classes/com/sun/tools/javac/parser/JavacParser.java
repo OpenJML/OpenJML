@@ -2538,6 +2538,12 @@ public class JavacParser implements Parser {
      */
     JCBlock block(int pos, long flags) {
         accept(LBRACE);
+        JCBlock t = betweenBraces(pos,flags);
+        accept(RBRACE);
+        return toP(t);
+    }
+    
+    public JCBlock betweenBraces(int pos, long flags) {
         List<JCStatement> stats = blockStatements();
         JCBlock t = F.at(pos).Block(flags, stats);
         while (token.kind == CASE || token.kind == DEFAULT) {
@@ -2547,8 +2553,7 @@ public class JavacParser implements Parser {
         // the Block node has a field "endpos" for first char of last token, which is
         // usually but not necessarily the last char of the last token.
         t.endpos = token.pos;
-        accept(RBRACE);
-        return toP(t);
+        return t;
     }
 
     public JCBlock block() {
@@ -3503,7 +3508,6 @@ public class JavacParser implements Parser {
             log.error(token.pos, Errors.RecordComponentAndOldArraySyntax);
         }
         type = bracketsOpt(type);
-
         return toP(F.at(pos).VarDef(mods, name, type, null));
     }
 
@@ -3550,7 +3554,7 @@ public class JavacParser implements Parser {
         }
     }
     
-    protected JCTree checkForJmlDeclaration(JCModifiers mods, boolean checkForImports) {
+    protected JCTree checkForJmlDeclaration(boolean checkForImports) {
     	return null;
     }
 
@@ -3595,7 +3599,7 @@ public class JavacParser implements Parser {
             }
             JCTree t;
             do {
-            	t = checkForJmlDeclaration(mods, checkForImports); // OPENJML - added
+            	t = checkForJmlDeclaration(checkForImports); // OPENJML - added
             	if (t != null) { defs.append(t); seenImport |= (t instanceof JCImport); mods = null; } // OPENJML - added
             } while (t != null); // OPENJML - added
 
@@ -4043,8 +4047,7 @@ public class JavacParser implements Parser {
                     hasStructuralErrors = true;
                 }
                 wasError = false;
-                defs.appendList(classOrInterfaceOrRecordBodyDeclaration(enumName,
-                                                                false, false));
+                defs.appendList(classOrInterfaceOrRecordBodyDeclaration(null, enumName, false, false));
                 if (token.pos <= endPosTable.errorEndPos) {
                     // error recovery
                    skip(false, true, true, false);
@@ -4147,7 +4150,7 @@ public class JavacParser implements Parser {
         }
         ListBuffer<JCTree> defs = new ListBuffer<>();
         while (token.kind != RBRACE && token.kind != EOF) {
-            defs.appendList(classOrInterfaceOrRecordBodyDeclaration(className, isInterface, isRecord));
+            defs.appendList(classOrInterfaceOrRecordBodyDeclaration(null, className, isInterface, isRecord)); // OPENJML - added a parameter mods for cases in which they are parsed before calling this method
             if (token.pos <= endPosTable.errorEndPos) {
                // error recovery
                skip(false, true, true, false);
@@ -4186,14 +4189,14 @@ public class JavacParser implements Parser {
      *      )
      *
      */
-    protected List<JCTree> classOrInterfaceOrRecordBodyDeclaration(Name className, boolean isInterface, boolean isRecord) {
+    protected List<JCTree> classOrInterfaceOrRecordBodyDeclaration(JCModifiers mods, Name className, boolean isInterface, boolean isRecord) {
         if (token.kind == SEMI) {
             nextToken();
             return List.nil();
         } else {
             Comment dc = token.comment(CommentStyle.JAVADOC);
             int pos = token.pos;
-            JCModifiers mods = modifiersOpt();
+            mods = mods != null ? mods : modifiersOpt();
             if (token.kind == CLASS ||
                 allowRecords && isRecordStart() ||
                 token.kind == INTERFACE ||

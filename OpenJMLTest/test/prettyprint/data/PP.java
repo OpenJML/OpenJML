@@ -78,7 +78,6 @@ public class PP extends QQ {
     //@ ensures \not_assigned(\everything) || \only_accessed(\everything) || \only_captured(\everything) || \only_assigned(\everything);
     //@ ensures \not_assigned(i) || \only_accessed(i) || \only_captured(i) || \only_assigned(i);
     //@ ensures \not_assigned(i,a[1 ..*]) || \only_accessed(i,a[1 ..]) || \only_captured(i,a[*]) || \only_assigned(i,o.*);
-    //@ ensures \not_assigned(\not_specified) || \only_accessed(\not_specified) || \only_captured(\not_specified) || \only_assigned(\not_specified);
     // FIXME @ ensures \only_called(m,mq);
     int mm() { return 3; }
     
@@ -118,20 +117,6 @@ public class PP extends QQ {
     //@ signals_only \nothing;
     void qq2() {}
     
-    //@ requires \not_specified;
-    //@ ensures \not_specified;
-    //@ diverges \not_specified;
-    //@ signals (Exception) \not_specified;
-    // NOT_JML: @ signals_only \not_specified;
-    //@ assignable \not_specified;
-    //@ accessible \not_specified;
-    //@ callable \not_specified;
-    //@ when \not_specified;
-    //@ measured_by \not_specified;
-    //@ duration \not_specified;
-    //@ working_space \not_specified;
-    //@ captures \not_specified;
-    void sp() {}
 
     int i;
     boolean b;
@@ -150,8 +135,7 @@ public class PP extends QQ {
     @          diverges true;
     @      |}
     @  also protected exceptional_behavior
-    @       forall Object o;
-    @       old int j = k+1;
+    @      old int j = k+1;
     @      requires false;
     @      signals (Exception) true;
     @  also code behavior
@@ -284,7 +268,7 @@ public class PP extends QQ {
    // FIXME - breaks and continues model program statements all allowed to have labels.
    // FIXME - pretty printing assert and assume in model programs
 
-   // TODO: forall and old in method specs
+   // TODO: old in method specs
    
    // TODO: need to test all kinds of statements, including JML statements
    //       labelled, synchronized, throw, local decl, local class,

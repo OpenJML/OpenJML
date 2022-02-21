@@ -1,0 +1,3 @@
+#! /bin/bash
+
+./escfiles-sort | grep -v "No expected output"

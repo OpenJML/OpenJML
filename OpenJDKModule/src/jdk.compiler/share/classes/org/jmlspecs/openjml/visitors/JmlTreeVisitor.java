@@ -30,7 +30,6 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitLetExpr(LetExpr that, P p)                         ;
 
     R visitJmlBinary(JmlBinary that, P p)                     ;
-    R visitJmlBlock(JmlBlock that, P p)                       ;
     R visitJmlChained(JmlChained that, P p)                   ;
     R visitJmlChoose(JmlChoose that, P p)                     ;
     R visitJmlClassDecl(JmlClassDecl that, P p)               ;
@@ -39,7 +38,7 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlEnhancedForLoop(JmlEnhancedForLoop that, P p)   ;
     R visitJmlForLoop(JmlForLoop that, P p)                   ;
     R visitJmlGroupName(JmlGroupName that, P p)               ;
-    R visitJmlImport(JmlImport that, P p)                     ;
+    //R visitJmlImport(JmlImport that, P p)                     ;
     R visitJmlInlinedLoop(JmlInlinedLoop that, P p)           ;
     R visitJmlLabeledStatement(JmlLabeledStatement that, P p) ;
     R visitJmlLblExpression(JmlLblExpression that, P p)       ;
@@ -55,7 +54,7 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlMethodDecl(JmlMethodDecl that, P p)             ;
     R visitJmlMethodInvocation(JmlMethodInvocation that, P p) ;
     R visitJmlMethodSpecs(JmlMethodSpecs that, P p)           ;
-    R visitJmlNewClass(JmlNewClass that, P p)                 ;
+    //R visitNewClass(JCNewClass that, P p)                 ;
     R visitJmlModelProgramStatement(JmlModelProgramStatement that, P p);
     R visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that, P p);
     R visitJmlQuantifiedExpr(JmlQuantifiedExpr that, P p)     ;
@@ -67,13 +66,14 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlStatementShow(JmlStatementShow that, P p)       ;
     R visitJmlStatementDecls(JmlStatementDecls that, P p)     ;
     R visitJmlStatementExpr(JmlStatementExpr that, P p)       ;
-    R visitJmlStatementHavoc(JmlStatementHavoc that, P p)       ;
-    R visitJmlStatementLoopExpr(JmlStatementLoopExpr that, P p)       ;
-    R visitJmlStatementLoopModifies(JmlStatementLoopModifies that, P p)       ;
+    R visitJmlStatementHavoc(JmlStatementHavoc that, P p)     ;
+    R visitJmlStatementLoopExpr(JmlStatementLoopExpr that, P p);
+    R visitJmlStatementLoopModifies(JmlStatementLoopModifies that, P p);
     R visitJmlStatementSpec(JmlStatementSpec that, P p)       ;
     R visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that, P p);
     R visitJmlStoreRefKeyword(JmlStoreRefKeyword that, P p)   ;
     R visitJmlStoreRefListExpression(JmlStoreRefListExpression that, P p);
+    R visitJmlStoreRef(JmlStoreRef that, P p)                  ;
     R visitJmlTuple(JmlTuple that, P p)                       ;
     R visitJmlTypeClauseConditional(JmlTypeClauseConditional that, P p) ;
     R visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that, P p) ;

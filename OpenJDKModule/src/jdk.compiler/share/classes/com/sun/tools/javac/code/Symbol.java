@@ -2093,7 +2093,7 @@ public abstract class Symbol extends AnnoConstruct implements PoolConstant, Elem
                         return true;
                 }
             }
-
+            
             // check for an inherited implementation
             if (((flags() & ABSTRACT) != 0 && requireConcreteIfInherited) ||
                     ((other.flags() & ABSTRACT) == 0 && (other.flags() & DEFAULT) == 0) ||

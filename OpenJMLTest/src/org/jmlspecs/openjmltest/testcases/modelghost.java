@@ -107,19 +107,19 @@ public class modelghost extends TCBase {
                 "  /*@ model */ int p2() {}\n" +  // BAD
                 "  //@ int q();\n" +  // BAD
                 "}"
-                ,"/A.java:4: error: A Java method declaration must not be marked model: m2 (owner: A)",7
-                ,"/A.java:7: error: A Java method declaration must not be marked model: p2 (owner: A)",7
-                ,"/A.java:8: error: A JML method declaration must be marked model: q (owner: A)",11
-                ,"/A.java:12: error: A Java method declaration must not be marked model: m2 (owner: A.II)",7
-                ,"/A.java:15: error: A Java method declaration must not be marked model: p2 (owner: A.II)",7
-                ,"/A.java:16: error: A JML method declaration must be marked model: q (owner: A.II)",11
-                ,"/A.java:20: error: A model type may not contain model declarations: m1 in A.III",13
-                ,"/A.java:22: error: A model type may not contain model declarations: p1 in A.III",13
-                ,"/A.java:27: error: A model type may not contain model declarations: m1 in B",14
-                ,"/A.java:29: error: A model type may not contain model declarations: p1 in B",14
-                ,"/A.java:34: error: A Java method declaration must not be marked model: m2 (owner: C)",7
-                ,"/A.java:37: error: A Java method declaration must not be marked model: p2 (owner: C)",7
-                ,"/A.java:38: error: A JML method declaration must be marked model: q (owner: C)",11
+                ,"/A.java:4: error: A Java method declaration must not be marked model: A.m2()",7
+                ,"/A.java:7: error: A Java method declaration must not be marked model: A.p2()",7
+                ,"/A.java:8: error: A JML method declaration must be marked model: A.q()",11
+                ,"/A.java:12: error: A Java method declaration must not be marked model: A.II.m2()",7
+                ,"/A.java:15: error: A Java method declaration must not be marked model: A.II.p2()",7
+                ,"/A.java:16: error: A JML method declaration must be marked model: A.II.q()",11
+                ,"/A.java:20: error: A model type may not contain model declarations: A.III.m1()",13
+                ,"/A.java:22: error: A model type may not contain model declarations: A.III.p1()",13
+                ,"/A.java:27: error: A model type may not contain model declarations: B.m1()",14
+                ,"/A.java:29: error: A model type may not contain model declarations: B.p1()",14
+                ,"/A.java:34: error: A Java method declaration must not be marked model: C.m2()",7
+                ,"/A.java:37: error: A Java method declaration must not be marked model: C.p2()",7
+                ,"/A.java:38: error: A JML method declaration must be marked model: C.q()",11
                 );
     }
     
@@ -241,15 +241,15 @@ public class modelghost extends TCBase {
                 "  //@  public class D{}\n" + // BAD
                 "}\n"
                 // Java 8
-                ,"/A.java:3: error: A Java class declaration must not be marked either ghost or model: C (owner: A)",7
-                ,"/A.java:4: error: A JML class declaration must be marked model: D (owner: A)", 21
-                ,"/A.java:7: error: A Java class declaration must not be marked either ghost or model: C (owner: A.AA)",9
-                ,"/A.java:8: error: A JML class declaration must be marked model: D (owner: A.AA)", 17
+                ,"/A.java:3: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.C",7
+                ,"/A.java:4: error: A method or type declaration within a JML annotation must be model: A.D", 21
+                ,"/A.java:7: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.AA.C",9
+                ,"/A.java:8: error: A method or type declaration within a JML annotation must be model: A.AA.D", 17
                 ,"/A.java:11: error: A model type may not contain model declarations: B in A.M",19
-                ,"/A.java:15: error: A Java class declaration must not be marked either ghost or model: Y (owner: unnamed package)",5
+                ,"/A.java:15: error: A Java declaration (not within a JML annotation) may not be either ghost or model: Y",5
                 ,"/A.java:18: error: A model type may not contain model declarations: C in Q",17
-                ,"/A.java:23: error: A Java class declaration must not be marked either ghost or model: C (owner: Z)",7
-                ,"/A.java:24: error: A JML class declaration must be marked model: D (owner: Z)", 15
+                ,"/A.java:23: error: A Java declaration (not within a JML annotation) may not be either ghost or model: Z.C",7
+                ,"/A.java:24: error: A method or type declaration within a JML annotation must be model: Z.D", 15
                 // Java 7
 //                ,"/A.java:4: error: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: error: class",21
 //                ,"/A.java:8: error: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: error: class",17
@@ -307,20 +307,19 @@ public class modelghost extends TCBase {
                 "  /*@ ghost */ int m2a;\n" + // BAD
                 "  //@ int q;\n" +  // BAD
                 "}"
-                // Order changed for Java8
-                ,"/A.java:5: error: A Java field declaration must not be marked either ghost or model: m2 (owner: A)",7
-                ,"/A.java:6: error: A Java field declaration must not be marked either ghost or model: m2a (owner: A)",7
-                ,"/A.java:7: error: A JML field declaration must be marked either ghost or model: q (owner: A)",11
-                ,"/A.java:12: error: A Java field declaration must not be marked either ghost or model: m2 (owner: A.II)",7
-                ,"/A.java:13: error: A Java field declaration must not be marked either ghost or model: m2a (owner: A.II)",7
-                ,"/A.java:14: error: A JML field declaration must be marked either ghost or model: q (owner: A.II)",11
+                ,"/A.java:5: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.m2",7
+                ,"/A.java:6: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.m2a",7
+                ,"/A.java:7: error: A declaration within a JML annotation must be either ghost or model: A.q",11
+                ,"/A.java:12: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.II.m2",7
+                ,"/A.java:13: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.II.m2a",7
+                ,"/A.java:14: error: A declaration within a JML annotation must be either ghost or model: A.II.q",11
                 ,"/A.java:18: error: A model type may not contain model declarations: m1 in A.III",15
                 ,"/A.java:19: error: A model type may not contain ghost declarations: m1a in A.III",15
                 ,"/A.java:25: error: A model type may not contain model declarations: m1 in B",14
                 ,"/A.java:25: error: A model type may not contain ghost declarations: m2 in B",28
-                ,"/A.java:31: error: A Java field declaration must not be marked either ghost or model: m2 (owner: C)",7
-                ,"/A.java:32: error: A Java field declaration must not be marked either ghost or model: m2a (owner: C)",7
-                ,"/A.java:33: error: A JML field declaration must be marked either ghost or model: q (owner: C)",11
+                ,"/A.java:31: error: A Java declaration (not within a JML annotation) may not be either ghost or model: C.m2",7
+                ,"/A.java:32: error: A Java declaration (not within a JML annotation) may not be either ghost or model: C.m2a",7
+                ,"/A.java:33: error: A declaration within a JML annotation must be either ghost or model: C.q",11
                 
                 
                 

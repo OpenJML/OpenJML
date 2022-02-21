@@ -5,7 +5,7 @@
 package org.jmlspecs.openjml;
 
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
-import static org.jmlspecs.openjml.ext.EndStatement.*;
+import static org.jmlspecs.openjml.ext.Refining.*;
 
 import java.io.StringWriter;
 import java.util.HashMap;
@@ -32,6 +32,7 @@ import com.sun.tools.javac.code.JmlType;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Scope.NamedImportScope;
 import com.sun.tools.javac.code.Scope.StarImportScope;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
@@ -147,6 +148,8 @@ public class JmlTree {
 //        JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
 //        JmlStoreRefKeyword JmlStoreRefKeyword(IJmlClauseKind t);
         JmlStoreRefListExpression JmlStoreRefListExpression(JmlTokenKind t, List<JCExpression> list);
+        JmlStoreRef JmlStoreRef(boolean isEverything, Symbol local, JCExpression expression, JCExpression receiver, JmlRange range, VarSymbol field, JCExpression originalStoreRef);
+
         JmlTuple JmlTuple(java.util.List<JCExpression> list);
         JmlTypeClauseConditional JmlTypeClauseConditional(JCModifiers mods, IJmlClauseKind token, JCTree.JCIdent ident, JCTree.JCExpression p);
         JmlTypeClauseConstraint JmlTypeClauseConstraint(JCModifiers mods, JCExpression e, List<JmlMethodSig> sigs);
@@ -424,8 +427,15 @@ public class JmlTree {
             return tree;
         }
 
-        
-        /** Creates a variable declaration from its components; captures the sourcefile
+        @Override
+        public JmlVariableDecl ReceiverVarDef(JCModifiers mods, JCExpression nameexpr, JCExpression vartype) {
+            JmlVariableDecl tree = new JmlVariableDecl(mods, nameexpr, vartype);
+            tree.pos = pos;
+            tree.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
+            return tree;
+        }
+
+       /** Creates a variable declaration from its components; captures the sourcefile
          * from the current value in the log; no symbol created. */
         @Override
         public JmlVariableDecl VarDef(JCModifiers mods,
@@ -724,7 +734,7 @@ public class JmlTree {
         /** Creates JML statements such as set and debug and end */
         @Override
         public JmlStatement JmlStatement(IJmlClauseKind t, JCStatement e) {
-            return new JmlStatement(pos,t.name().toString(),t,e);
+            return new JmlStatement(pos,t.keyword().toString(),t,e);
         }
 
         @Override
@@ -735,6 +745,15 @@ public class JmlTree {
         @Override
         public JmlStoreRefListExpression JmlStoreRefListExpression(JmlTokenKind t, List<JCExpression> list) {
             return new JmlStoreRefListExpression(pos,t,list);
+        }
+
+        @Override
+        public JmlStoreRef JmlStoreRef(boolean isEverything, Symbol local, JCExpression expression, JCExpression receiver, JmlRange range, VarSymbol field, JCExpression originalStoreRef) {
+            return new JmlStoreRef(pos,isEverything, local, expression, receiver, range, field, originalStoreRef);
+        }
+
+        public JmlStoreRef JmlStoreRef(JmlStoreRef that) {
+            return JmlStoreRef(that.isEverything, that.local, that.expression, that.receiver, that.range, that.field, that.originalStoreRef);
         }
 
         @Override
@@ -974,6 +993,7 @@ public class JmlTree {
         /** Returns the file object containing the source code for the AST node */
         /*@nullable*/ JavaFileObject source();
         /*@nullable*/ void setSource(JavaFileObject jfo);
+        DiagnosticPosition pos();
     }
     
     /** This class adds some JML specific information to the JCCompilationUnit toplevel node. */
@@ -1006,8 +1026,8 @@ public class JmlTree {
         
         public Env<AttrContext> topLevelEnv;
         
-        public boolean isSpecs() { return sourceCU != this; }
-        public boolean forBinary() { return sourceCU != null; }
+        public boolean isSpecs() { return sourcefile.getKind() != JavaFileObject.Kind.SOURCE; }
+        public boolean forBinary() { return sourceCU == null; }
         public JmlCompilationUnit sourceCU = null; // Set to self if a source file
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
@@ -1065,7 +1085,7 @@ public class JmlTree {
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlImport(this); 
+                ((IJmlVisitor)v).visitImport(this); 
             } else {
                 // unexpectedVisitor(this,v);
                 super.accept(v);
@@ -1075,7 +1095,7 @@ public class JmlTree {
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlImport(this, d);
+                return ((JmlTreeVisitor<R,D>)v).visitImport(this, d);
             } else {
                 // unexpectedVisitor(this,v);
                 return super.accept(v,d);
@@ -1089,6 +1109,8 @@ public class JmlTree {
     }
     
     public static class JmlModifiers extends JCModifiers {
+    	
+    	public boolean anyModsInJava = false;
     	
     	public java.util.List<JmlToken> jmlmods = new java.util.LinkedList<>();
     	
@@ -1128,15 +1150,15 @@ public class JmlTree {
             }
         }
         
-        @Override
-        public String toString() {
-        	StringBuilder sb = new StringBuilder();
-    		for (var kk: jmlmods) {
-    			sb.append(kk.toString());
-    			sb.append(" ");
-    		}
-            return sb.toString();
-        }    
+//        @Override
+//        public String toString() {
+//        	StringBuilder sb = new StringBuilder();
+//    		for (var kk: jmlmods) {
+//    			sb.append(kk.toString());
+//    			sb.append(" ");
+//    		}
+//            return sb.toString();
+//        }    
     }
     
     /** This class represents model program choose and choose_if statements. */
@@ -1191,6 +1213,9 @@ public class JmlTree {
          * A class declaration in a .jml file will have a null value for this field.
          */
         public /*@Nullable*/ JmlClassDecl specsDecl;
+        
+        /** The Env<> to use for process the specsDecl */
+        public Env<AttrContext> specEnv;
 
         /** This field holds the class-level specifications for the type corresponding
          * to this declaration; it is an alias for the specs that are found in the JmlSpecs database
@@ -1368,13 +1393,19 @@ public class JmlTree {
     /** This class adds some JML specific information to the JCMethodDecl node. */
     public static class JmlBlock extends JCTree.JCBlock implements JmlSource, IInJML {
 
+    	//@ invariant isInitializerBlock ==> sourcefile != null;
+    	
         /** The file containing this declaration */
         public JavaFileObject sourcefile;
+        
+        /** True is the block is an initializer block for a class, false otherwise, e.g., if part of a method or lambda */
+        public boolean isInitializerBlock = false;
 
         /** The specs for the block, along with attribution status and env, computed during attribution */
         public JmlSpecs.BlockSpecs blockSpecs; 
 
-        /** The specs for the block, as parsed */
+        /** The specs for the block, as parsed -- can be null, if there are no specs (or empty)*/
+        //@ nullable
         public JmlMethodSpecs specificationCases;
 
         public String docComment = null; // FIXME - clarify why needed
@@ -1403,8 +1434,8 @@ public class JmlTree {
 
         @Override
         public void accept(Visitor v) {
-            if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlBlock(this); 
+            if (v instanceof IJmlVisitor jv) {
+                jv.visitBlock(this); 
             } else {
                 // unexpectedVisitor(this,v);
                 super.accept(v);
@@ -1413,8 +1444,8 @@ public class JmlTree {
 
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
-            if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlBlock(this, d);
+            if (v instanceof JmlTreeVisitor jv) {
+                return (R)jv.visitBlock((BlockTree)this, d);
             } else {
                 // unexpectedVisitor(this,v);
                 return super.accept(v,d);
@@ -1449,6 +1480,13 @@ public class JmlTree {
             fieldSpecs = null;
             sourcefile = null;
         }
+        
+        protected JmlVariableDecl(JCModifiers mods,
+        		JCExpression nameexpr,
+        		JCExpression vartype) {
+        	super(mods, nameexpr, vartype);
+        }
+
         
         /** The source this variable was declared in (model variable may be declared
          * in a source file different than the class that owns the model variable)
@@ -1532,6 +1570,8 @@ public class JmlTree {
     public static abstract class JmlAbstractStatement extends JCTree.JCSkip {
     	protected JmlAbstractStatement() {}
         
+    	public Name name;
+    	
         public String toString() {
             return JmlTree.toString(this);
         }
@@ -1979,6 +2019,12 @@ public class JmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
+        
+        @Override
+        public int getStartPosition() {
+            return loopSpecs.size() > 0 ? loopSpecs.head.getStartPosition() : pos;
+        }
+
     }
 
     /** This class represents a group in an "in" or "maps" type clause in a class specification */
@@ -2197,6 +2243,7 @@ public class JmlTree {
      */
     abstract public static class JmlMethodClause extends JmlAbstractStatement implements JmlSource {
         public String keyword; // May be a synonym of the canonical keyword
+        public Name name;
         public IJmlClauseKind clauseKind;
         public JavaFileObject sourcefile;  // FIXME - don't think this belongs here
         public JavaFileObject source() { return sourcefile; }
@@ -2364,14 +2411,14 @@ public class JmlTree {
     }
     
     
-    /** This class represents a forall or old method specification clause.*/
+    /** This class represents a old method specification clause.*/
     public static class JmlMethodClauseDecl extends JmlMethodClause {
 
         public List<JCTree.JCVariableDecl> decls;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlMethodClauseDecl(int pos, IJmlClauseKind clauseType, List<JCTree.JCVariableDecl> decls) {
-            super(pos, clauseType.name(), clauseType);
+            super(pos, clauseType.keyword(), clauseType);
             this.decls = decls;
         }
 
@@ -2580,7 +2627,8 @@ public class JmlTree {
      */
     public static class JmlMethodSpecs extends JmlAbstractStatement {
         /** This is a reference to a parent declaration, in order to have access 
-         * to the parameter and result modifiers
+         * to the parameter and result modifiers; is null if the JmlMethodSpecs
+         * is owned by a block.
          */
         public JmlMethodDecl decl = null;
         
@@ -2848,12 +2896,12 @@ public class JmlTree {
 
         @Override
         public String toString() {
-            return kind.name();
+            return kind.keyword();
         }
         
         @Override
         public int getEndPosition(EndPosTable endPosTable) {
-            return pos + kind.name().length();
+            return pos + kind.keyword().length();
         }
 
         @Override
@@ -2914,6 +2962,7 @@ public class JmlTree {
 
     /** This class represents a specification case in a method specification */
     public static class JmlSpecificationCase extends JmlAbstractStatement implements JmlSource {
+    	public int alsoPos = Position.NOPOS; // NOPOS if there is no also token
         public JCModifiers modifiers;
         public IJmlClauseKind token;
         public IJmlClauseKind also;
@@ -2985,7 +3034,7 @@ public class JmlTree {
         protected JmlStatement(int pos, String keyword, IJmlClauseKind clauseType, JCTree.JCStatement statement) {
             this.pos = pos;
             this.clauseType = clauseType;
-            this.keyword = clauseType.name();
+            this.keyword = clauseType.keyword();
             this.statement = statement;
         }
     
@@ -3164,7 +3213,7 @@ public class JmlTree {
     
         @Override
         public int getStartPosition() {
-            return expression != null ? expression.getStartPosition() : this.pos;
+            return this.pos;
         }
         
         @Override
@@ -3257,6 +3306,7 @@ public class JmlTree {
         public List<JCIdent> exports;
         public List<JCVariableDecl> decls;
         public List<JCStatement> newStatements;
+        public Name label;
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatementSpec(int pos, JmlMethodSpecs statementSpecs) {  // FIXME - fix constructors and copiers
@@ -3265,6 +3315,7 @@ public class JmlTree {
             this.exports = List.<JCIdent>nil();
             this.decls = null;
             this.newStatements = null;
+            this.label = null;
         }
     
         @Override
@@ -3428,6 +3479,59 @@ public class JmlTree {
             }
         }
     }
+    
+    /** A portmanteau of all store-ref expressions, once they have been attributed as such.
+     * So this class is not a result of parsing.
+     */
+    public static class JmlStoreRef extends JmlExpression {
+    	
+    	protected JmlStoreRef(int pos, boolean isEverything, Symbol local, JCExpression expression, JCExpression receiver, JmlRange range, VarSymbol field, JCExpression originalStoreRef) {
+    		this.pos = pos;
+    		this.isEverything = isEverything;
+    		this.local = local; // Might be 'this'
+    		this.expression = expression;
+    		this.receiver = receiver;
+    		this.range = range;
+    		this.field = field;
+    		this.originalStoreRef = originalStoreRef;
+    	}
+    	
+    	public JavaFileObject source;
+    	
+    	// Cases:
+    	// isEverything=true, other fields null: \everything
+    	// isEverything=false, local nonnull; others null: a local variable
+    	// isEverything=false, expression nonull; others null: a locset expression (expression.type is \locset
+    	// isEverything=false, range nonnull, receiver nonnull, expression null, fields null: an array range or isngle index
+    	// isEverything=false, local null, range null, expression null, receiver nonnull: a set of non-final fields of the instance
+    	// isEverything=false, local null, range null, expression null, receiver null: a set of static non-final fields
+    	public boolean isEverything;
+    	/*@ nullable */ public Symbol local;
+    	/*@ nullable */ public JCExpression expression;
+    	/*@ nullable */ public JCExpression receiver;
+    	/*@ nullable */ public JmlRange range;
+    	/*@ nullable */ public VarSymbol field;
+    	public JCExpression originalStoreRef = null;
+
+    	@Override
+		public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlStoreRef(this); 
+            } else {
+                System.out.println("A JmlStoreRefKeyword expects an IJmlVisitor, not a " + v.getClass());
+                //super.accept(v);
+            }
+		}
+		@Override
+		public <R, D> R accept(TreeVisitor<R, D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlStoreRef(this, d);
+            } else {
+                System.out.println("A JmlStoreRefKeyword expects an JmlTreeVisitor, not a " + v.getClass());
+                return null; //return super.accept(v,d);
+            }
+		}
+    }
 
     /** Represents a nothing, everything or informal comment token */
     // FIXME - is the content of the informal comment stored somewhere?  JmlExpression???
@@ -3442,7 +3546,7 @@ public class JmlTree {
         
         @Override
         public int getEndPosition(EndPosTable endPosTable) {
-            return pos + kind.name().length();
+            return pos + kind.keyword().length();
         }
 
         @Override
@@ -3505,6 +3609,7 @@ public class JmlTree {
         
         /** The token identifying the kind of clause this represents */
         public String keyword;
+        public Name name;
         public IJmlClauseKind clauseType;
         
         /** The source of this clause, since it might be from a different compilation unit. */
@@ -3529,7 +3634,10 @@ public class JmlTree {
         }
         
         public int getStartPosition() {
-            return pos;
+            int p = pos;
+            if (modifiers != null) p = modifiers.getStartPosition();
+            if (p == Position.NOPOS) p = pos;
+            return p;
         }
         
         @Override
@@ -3677,6 +3785,7 @@ public class JmlTree {
             this.modifiers = mods;
             this.clauseType = token;
             this.expression = expression;
+            if (mods.pos == Position.NOPOS) mods.pos = pos;
         }
         
         @Override
@@ -3700,7 +3809,7 @@ public class JmlTree {
         }
         
         public int getStartPosition() {
-            return pos;
+            return modifiers.getStartPosition();
         }
 
     }
@@ -3754,7 +3863,7 @@ public class JmlTree {
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlTypeClauseInitializer(int pos, IJmlClauseKind token, JCModifiers mods) {
             this.pos = pos;
-            this.keyword = token.name();
+            this.keyword = token.keyword();
             this.clauseType = token;
             this.source = null;
             this.modifiers = mods; 
@@ -4000,20 +4109,20 @@ public class JmlTree {
         public Map<Name,JCExpression> capturedExpressions = new HashMap<>();
 
         
-        @Override
-        public void accept(Visitor v) {
-            if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlNewClass(this); 
-            } else {
-                //System.out.println("A JmlNewClass expects an IJmlVisitor, not a " + v.getClass());
-                super.accept(v);
-            }
-        }
+//        @Override
+//        public void accept(Visitor v) {
+//            if (v instanceof IJmlVisitor) {
+//                v.visitNewClass(this); 
+//            } else {
+//                //System.out.println("A JmlNewClass expects an IJmlVisitor, not a " + v.getClass());
+//                super.accept(v);
+//            }
+//        }
     
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlNewClass(this, d);
+                return ((JmlTreeVisitor<R,D>)v).visitNewClass(this, d);
             } else {
                 //System.out.println("A JmlNewClass expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);

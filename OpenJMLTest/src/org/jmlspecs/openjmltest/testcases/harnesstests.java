@@ -18,35 +18,35 @@ public class harnesstests extends TCBase {
     /** Test that harness reports a missing error */
     @Test
     public void testHarness() {
-        helpFailure("Fewer errors observed (0) than expected",
-                " class A {}","X");
+        helpFailure("Fewer errors observed (0) than expected (1)",
+                " class A {}","X",1);
     }
 
     /** Test that harness reports an unexpected error */
     @Test
     public void testHarness1() {
-        helpFailure("More errors observed (3) than expected (0)",
+        helpFailure("More errors observed (1) than expected (0)",
         " class A { QQ }");
     }
 
     /** Test that harness reports a missing argument */
     @Test
     public void testHarness2() {
-        helpFailure("Message 0 mismatch expected:<[]:1: <identifier> exp...> but was:<[/TEST.java]:1: <identifier> exp...>",
-                " class A { QQ }",":1: <identifier> expected");
+        helpFailure("No positions given for message 0",
+                " class A { QQ }","/TEST.java:1: error: <identifier> expected");
     }
 
     /** Test that harness reports a wrong column */
     @Test
     public void testHarness3() {
         helpFailure("Column for message 0 expected:<-1> but was:<14>",
-                " class A { QQ }","/TEST.java:1: <identifier> expected",-1,"",0,"",0);
+                " class A { QQ }","/TEST.java:1: error: <identifier> expected",-1,"",0,"",0);
     }
 
     /** Test that harness reports a mismatched message */
     @Test
     public void testHarness4() {
-        helpFailure("Message 0 mismatch expected:<[X]> but was:<[/TEST.java:1: <identifier> expected]>",
+        helpFailure("Message 0 mismatch expected:<[X]> but was:<[/TEST.java:1: error: <identifier> expected]>",
                 " class A { QQ }","X",0,"",0,"",0);
     }
 

@@ -312,6 +312,7 @@ public class escnew extends EscBase {
     // Tests use of \old token in called methods
     @Test
     public void testPostcondition5() {
+//    	main.addOptions("-show","-method=m1");
     	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
     	helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -760,7 +761,6 @@ public class escnew extends EscBase {
 
     @Test
     public void testGhostSet() {
-        main.addOptions(JmlOption.KEYS.optionName(), "DEBUG");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -779,14 +779,14 @@ public class escnew extends EscBase {
                 
                 +"  public void m2bad(int i) {\n"
                 +"      //@ ghost int k = 0;"
-                +"      //@ debug k = 1;\n"
+                +"      //@ set k = 1;\n"
                 +"      //@ assert k == 0; \n"
                 +"  }\n"
                 
                 +"  //@ requires i != 0; \n"
                 +"  public void m2good(int i) {\n"
                 +"      //@ ghost int k = 0;"
-                +"      //@ debug k = 1;\n"
+                +"      //@ set k = 1;\n"
                 +"      //@ assert k == 1; \n"
                 +"  }\n"
 
@@ -810,21 +810,20 @@ public class escnew extends EscBase {
     }
     
     @Test
-    public void testGhostSetNoDebug() {
-        // debug is not enabled 
+    public void testGhostSet2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m2good(int i) {\n"
                 +"      //@ ghost int k = 0;"
-                +"      //@ debug k = 1;\n"
+                +"      //@ \n"
                 +"      //@ assert k == 0; \n"
                 +"  }\n"
                 
                 +"  //@ requires i != 0; \n"
                 +"  public void m2bad(int i) {\n"
                 +"      //@ ghost int k = 0;"
-                +"      //@ debug k = 1;\n"
+                +"      //@ \n"
                 +"      //@ assert k == 1; \n"
                 +"  }\n"
                 
@@ -1425,6 +1424,7 @@ public class escnew extends EscBase {
 
     @Test  // FIXME - problem is an infinite loop with use of consistentWithEquals - invariants use it, but the invariants are part of the specs for the (model pure) consistentWithEquals method
     public void testSelect() {
+    	//main.addOptions("-show","-method=m4ok");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -2264,7 +2264,6 @@ public class escnew extends EscBase {
 
     @Test 
     public void testOldInAssign() {
-    	//main.addOptions("-show","-method=m1bad");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 

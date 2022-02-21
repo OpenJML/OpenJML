@@ -97,6 +97,7 @@ public class SMTTranslator extends JmlTreeScanner {
           protected ISort realSort;
     final protected ISort stringSort;
     final protected ISort intsetSort;
+          protected ISort rangeSort;
     final protected IExpr.ISymbol distinctSym;
     final protected IExpr.ISymbol andSym;
     final protected IExpr.ISymbol orSym;
@@ -260,6 +261,21 @@ public class SMTTranslator extends JmlTreeScanner {
             ICommand c = new C_assert(F.fcn(distinctSym, a));
             commands.add(c);
         }
+    }
+    
+    String rangeTypeName = "|RANGE|";
+    String rangefcn = "|range:cons|";
+    String lofcn = "|range:lo|";
+    String hifcn = "|range:hi|";
+    
+    protected void addRange(SMT smt) {
+        addCommand(smt,"(declare-sort "+rangeTypeName+" 0)");
+        addCommand(smt,"(declare-fun "+rangefcn+" (Int Int) "+rangeTypeName+")");
+        addCommand(smt,"(declare-fun "+lofcn+" ("+rangeTypeName+") Int)");
+        addCommand(smt,"(declare-fun "+hifcn+" ("+rangeTypeName+") Int)");
+        addCommand(smt,"(assert (forall ((i Int)(j Int)) (= i ("+lofcn+" ("+rangefcn+" i j))))) ");
+        addCommand(smt,"(assert (forall ((i Int)(j Int)) (= j ("+hifcn+" ("+rangefcn+" i j))))) ");
+        rangeSort = F.createSortExpression(F.symbol("|RANGE|"));
     }
     
     /** Adds all the definitions and axioms regarding the types used in the program */
@@ -941,6 +957,7 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         
         addReals(smt);
+        addRange(smt);
         
         int loc = addTypeModel(smt);
         
@@ -1474,7 +1491,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         IExpr exx = convertExpr(treeutils.falseLit);
                         stack.push(exx);
                     } else {
-                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.clauseType.name());
+                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.clauseType.keyword());
                         break;
                     }
                 } else {
@@ -1628,7 +1645,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         IExpr exx = convertExpr(treeutils.falseLit);
                         stack.push(exx);
                     } else {
-                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.clauseType.name());
+                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.clauseType.keyword());
                         break;
                     }
                 } else {
@@ -1796,6 +1813,8 @@ public class SMTTranslator extends JmlTreeScanner {
         		return F.createSortExpression(arraySym, intSort, s1);
            	} else if (ts.equals("org.jmlspecs.lang.intset")) {
         		return intsetSort;
+           	} else if (ts.equals("org.jmlspecs.lang.range")) {
+        		return rangeSort;
            	} else if (t.isParameterized()) {
            		List<ISort> args = new LinkedList<ISort>();
            		t.getTypeArguments().forEach(tt -> args.add(convertSort(tt)));
@@ -1899,7 +1918,7 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Issues an error message about bit-vector operations */
     public void notImplBV(DiagnosticPosition pos, String msg) {
         if ("auto".equals(JmlOption.value(context, JmlOption.ESC_BV))) throw new JmlBVException();
-        utils.error(pos, "jml.message","This method uses bit-vector operations and must be run with -escBV=true (or auto) [" + msg + "]");
+        utils.error(pos, "jml.message","This method uses bit-vector operations and must be run with --esc-bv=true (or auto) [" + msg + "]");
         throw new JmlBVException();
     }
     
@@ -2787,7 +2806,14 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tree.selected != null) {
             JCExpression object = tree.selected;
             Symbol field = tree.sym;
-            if (field.name != names.length) {
+            if (object.type.toString().startsWith("org.jmlspecs.lang.range")) {
+            	IExpr sel = convertExpr(object);
+            	if (field.name.toString().contains("lo")) {
+            		result = F.fcn(F.symbol(lofcn),sel);
+            	} else {
+            		result = F.fcn(F.symbol(hifcn),sel);
+            	}
+            } else if (field.name != names.length) {
                 // Non-length selection
                 String encName;
                 if (Utils.instance(context).isJMLStatic(field) || true) {
@@ -3029,7 +3055,9 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) { notImpl(that); } // FIXME - maybe
     @Override public void visitJmlSetComprehension(JmlSetComprehension that)   { notImpl(that); }
     @Override public void visitJmlSingleton(JmlSingleton that)                 { notImpl(that); }
-    @Override public void visitJmlRange(JmlRange that)                         { notImpl(that); }
+    @Override public void visitJmlRange(JmlRange that) { 
+    	result = F.fcn(F.symbol(rangefcn), convertExpr(that.lo), convertExpr(that.hi));
+    }
 
     @Override public void visitLetExpr(LetExpr that) { 
         
@@ -3074,7 +3102,7 @@ public class SMTTranslator extends JmlTreeScanner {
             IExpr range = result;
             scan(that.value);
             IExpr value = result;
-            switch (that.kind.name()) {
+            switch (that.kind.keyword()) {
             case QuantifiedExpressions.qforallID:
                 if (range != null) value = F.fcn(impliesSym,range,value);
                 if (typeConstraint != null && (that.range == null || treeutils.isTrueLit(that.range))) value = F.fcn(impliesSym, typeConstraint, value);
@@ -3096,7 +3124,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 }
                 break;
             default:
-                notImplWarn(that, "JML Quantified expression using " + that.kind.name());
+                notImplWarn(that, "JML Quantified expression using " + that.kind.keyword());
                 ISymbol sym = F.symbol(makeBarEnclosedString(that));
                 addConstant(sym,convertSort(that.type),null);
                 result = sym;
@@ -3174,7 +3202,6 @@ public class SMTTranslator extends JmlTreeScanner {
     // FIXME - what about calls of anonymous classes
     @Override public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
     @Override public void visitImport(JCImport that)               { shouldNotBeCalled(that); }
-    @Override public void visitJmlImport(JmlImport that)                     { shouldNotBeCalled(that); }
     @Override public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }
     @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
     @Override public void visitJmlBinary(JmlBinary that)           { shouldNotBeCalled(that); }

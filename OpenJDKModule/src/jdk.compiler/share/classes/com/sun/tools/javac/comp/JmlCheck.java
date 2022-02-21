@@ -174,4 +174,12 @@ public class JmlCheck extends Check {
     void varargsDuplicateError(DiagnosticPosition pos, Symbol sym1, Symbol sym2) {
         if (!noDuplicateWarn) super.varargsDuplicateError(pos, sym1, sym2);
     }
+    
+//    void checkAllDefined(DiagnosticPosition pos, Symbol.ClassSymbol c) {
+//    	if (c.toString().equals("java.lang.Character")) {
+//    		System.out.println("CAD " + c + " " + c.sourcefile.getKind() + " " + Enter.instance(context).getEnv(c).toplevel.sourcefile.getKind());
+//    	} else {
+//    		super.checkAllDefined(pos, c);
+//    	}
+//    }
 }

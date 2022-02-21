@@ -263,7 +263,7 @@ public class typeclauses extends TCBase {
     
     @Test
     public void testRepresents4() {
-        helpTCF("A.java","public class A {\n //@ model int i; represents i :0;\n}"
+        helpTCF("A.java","public class A {\n //@ model int i; represents i !0;\n}"
                 ,"/A.java:2: error: A represents clause must have a = or \\such_that after the identifier",32
                 );
     }
@@ -375,6 +375,7 @@ public class typeclauses extends TCBase {
         addMockFile("$A/A.jml","public class A {\n //@ represents i = 0;\n}");
         helpTCF("A.java","public class A {\n int i; \n}"
                 ,"/$A/A.jml:2: error: The target of a represents clause must be a model field: A.i",17
+                ,"/A.java:2: Note: Associated declaration: /$A/A.jml:2:",6
                 );
     }
 
@@ -434,21 +435,21 @@ public class typeclauses extends TCBase {
     }
     
     @Test
-    public void testForall() {
-        helpTCF("A.java","public class A {\n //@ forall int i,j; old boolean k=true, m = false; requires i == 0; \n public void m() {}}"
+    public void testOld() {
+        helpTCF("A.java","public class A {\n //@ old boolean k=true, m = false; requires k; \n public void m() {}}"
                 );
     }
     
     @Test
-    public void testForall2() {
-        helpTCF("A.java","public class A {\n //@ forall int i=0,j; old boolean k, m = false; requires i == 0; \n public void m() {}}"
-                ,"/A.java:2: error: A forall method clause declaration must not have initializers",19
-                ,"/A.java:2: error: A old method clause variable must have an initializer",36
+    public void testOld2() {
+        helpTCF("A.java","public class A {\n //@ old boolean k, m = false; requires i == 0; \n public void m() {}}"
+                ,"/A.java:2: error: A old method clause variable must have an initializer",18
+                ,"/A.java:2: error: cannot find symbol\n  symbol:   variable i\n  location: class A",41
         );
     }
     
     @Test
-    public void testForall3() {
+    public void testOld3() {
         helpTCF("A.java","public class A {\n //@ old int i=true; old boolean m=0; requires i == 0; \n public void m() {}}"
                 ,"/A.java:2: error: incompatible types: boolean cannot be converted to int",16
                 ,"/A.java:2: error: incompatible types: int cannot be converted to boolean",36
@@ -456,51 +457,51 @@ public class typeclauses extends TCBase {
     }
     
     @Test
-    public void testForall4() {
-        helpTCF("A.java","public class A {\n //@ forall int j; old int k=0; requires i+j<k; \n public void m(int i) {}}"
+    public void testOld4() {
+        helpTCF("A.java","public class A {\n //@ old int k=0; requires i<k; \n public void m(int i) {}}"
                 );        // OK
     }
     
     @Test
-    public void testForall5() {
-        helpTCF("A.java","public class A {\n //@ forall boolean j; old boolean  k=true; requires i+j<k; \n public void m(boolean i) {}}"
-                ,"/A.java:2: error: bad operand types for binary operator '+'\n  first type:  boolean\n  second type: boolean",55
+    public void testOld5() {
+        helpTCF("A.java","public class A {\n //@ old boolean j=false; old boolean  k=true; requires i+j<k; \n public void m(boolean i) {}}"
+                ,"/A.java:2: error: bad operand types for binary operator '+'\n  first type:  boolean\n  second type: boolean",58
                 );        
     }
     
     @Test
-    public void testForall6() {
-        helpTCF("A.java","public class A { int i,j,k; \n //@ forall boolean j; old boolean k=true; requires i+j<k; \n public void m(boolean i) {}}"
-                ,"/A.java:2: error: bad operand types for binary operator '+'\n  first type:  boolean\n  second type: boolean",54
+    public void testOld6() {
+        helpTCF("A.java","public class A { int i,j,k; \n //@ old boolean j=true; old boolean k=true; requires i+j<k; \n public void m(boolean i) {}}"
+                ,"/A.java:2: error: bad operand types for binary operator '+'\n  first type:  boolean\n  second type: boolean",56
                 );        
     }
     
     @Test
-    public void testForall7() { // FIXME - this is not the clearest error message - it should refer to the specifications
-        helpTCF("A.java","public class A { \n //@ forall int i; old int k=0   ; requires i<k; \n public void m(int i) {}}"
-                ,"/A.java:2: error: variable i is already defined in method m(int)",17
+    public void testOld7() { // FIXME - this is not the clearest error message - it should refer to the specifications
+        helpTCF("A.java","public class A { \n //@ old int i=0; old int k=0   ; requires i<k; \n public void m(int i) {}}"
+                ,"/A.java:2: error: variable i is already defined in method m(int)",14
                 );        
     }
     
     @Test
-    public void testForall8() { // FIXME - this is not the clearest error message - it should refer to the specifications
-        helpTCF("A.java","public class A { \n //@ forall int k; old int k=0   ; requires i<k; \n public void m(int i) {}}"
-                ,"/A.java:2: error: variable k is already defined in method m(int)",28
+    public void testOld8() { // FIXME - this is not the clearest error message - it should refer to the specifications
+        helpTCF("A.java","public class A { \n //@ old int k=0; old int k=0   ; requires i<k; \n public void m(int i) {}}"
+                ,"/A.java:2: error: variable k is already defined in method m(int)",27
                 );        
     }
     
     @Test
-    public void testForall9() { // FIXME - this is not the clearest error message - it should refer to the specifications
-        helpTCF("A.java","public class A { \n //@ forall int j; old int k=0   ; requires i<k; \n//@{| forall int m; ensures k<m; also ensures k<m; |} \n public void m(int i) {}}"
-                ,"/A.java:3: error: cannot find symbol\n  symbol:   variable m\n  location: class A",49
+    public void testOld9() { // FIXME - this is not the clearest error message - it should refer to the specifications
+        helpTCF("A.java","public class A { \n //@ old int j=1; old int k=0   ; requires i<k; \n//@{| old int m=0; ensures k<m; also ensures k<m; |} \n public void m(int i) {}}"
+                ,"/A.java:3: error: cannot find symbol\n  symbol:   variable m\n  location: class A",48
                 );        
     }
     
     @Test
-    public void testForall10() { // FIXME - this is not the clearest error message - it should refer to the specifications
-        helpTCF("A.java","public class A { \n //@ forall int j; old int k=0   ; requires i<k; \n//@{| forall int k; ensures k<m; also ensures i==0; |} \n public void m(int i) {}}"
-                ,"/A.java:3: error: variable k is already defined in method m(int)",18
-                ,"/A.java:3: error: cannot find symbol\n  symbol:   variable m\n  location: class A",31
+    public void testOld10() { // FIXME - this is not the clearest error message - it should refer to the specifications
+        helpTCF("A.java","public class A { \n //@ old int j=1; old int k=0   ; requires i<k; \n//@{| old int k=0; ensures k<m; also ensures i==0; |} \n public void m(int i) {}}"
+                ,"/A.java:3: error: variable k is already defined in method m(int)",15
+                ,"/A.java:3: error: cannot find symbol\n  symbol:   variable m\n  location: class A",30
                 );        
     }
 
@@ -818,8 +819,8 @@ public class typeclauses extends TCBase {
     @Test
     public void testReadable2() {
         helpTCF("A.java","public class A extends B {Object i,j; static Object k;  //@ readable z if i == null; writable z if i == null; \n } class B { Object z; }"
-                ,"/A.java:1: error: The identifier must be a member of the enclosing class: z is in B instead of A",70
-                ,"/A.java:1: error: The identifier must be a member of the enclosing class: z is in B instead of A",95
+                ,"/A.java:1: error: The identifier must be a member of the enclosing class: z",70
+                ,"/A.java:1: error: The identifier must be a member of the enclosing class: z",95
         );
     }
 

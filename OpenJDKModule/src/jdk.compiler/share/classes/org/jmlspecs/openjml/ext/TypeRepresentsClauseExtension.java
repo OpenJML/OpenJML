@@ -32,6 +32,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
             init(parser);
             int pp = parser.pos();
             parser.nextToken();
+            var n = parser.parseOptionalName();
             boolean strict = JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
             JCExpression id = parser.parseStoreRef(strict);
             boolean suchThat;
@@ -65,6 +66,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
             JmlTypeClauseRepresents tcl = parser.to(M.JmlTypeClauseRepresents(
                     mods, id, suchThat, e));
             wrapup(tcl, clauseType, true, true);
+            tcl.name = n;
             return tcl;
             }
         

@@ -10,7 +10,7 @@ public class Pair<T> {
     public /*@ pure @*/ T getFirst() { return first;
     }
     /*@ ensures \result == second; @*/
-    public T getSecond() { return second;
+    public /*@ pure @*/ T getSecond() { return second;
     }
     /*@ public model_program 
       @   normal_behavior

@@ -60,8 +60,8 @@ public class typechecking extends TCBase {
     @Test public void testAlso1() {
     	expectedExit = 0;
         helpTC(" class B { void m() {} } class A extends B { /*@ requires true; */ void m() {} /*@ also requires true; */ void n() {}}"
-                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (B.m())",50
-                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",89
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())",50
+                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",84
                 );
     }
 
@@ -73,8 +73,8 @@ public class typechecking extends TCBase {
     @Test public void testAlso1I() {
     	expectedExit = 0;
         helpTC(" interface B { void m(); } class A implements B { /*@ public normal_behavior requires true; */ public void m() {} /*@ also requires true; */ void n() {}}"
-                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (B.m())",62
-                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",124
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())",62
+                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",119
                 );
     }
 
@@ -86,8 +86,8 @@ public class typechecking extends TCBase {
     @Test public void testAlso1II() {
     	expectedExit = 0;
         helpTC(" interface B { void m(); } interface A extends B { /*@ requires true; */ void m(); /*@ also requires true; */ void n();}"
-                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (B.m())",56
-                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",93
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())",56
+                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",88
                 );
     }
 
@@ -100,7 +100,7 @@ public class typechecking extends TCBase {
     @Test public void testAlsoObjectBad() {
     	expectedExit = 0;
         helpTC("  interface A { /*@ public normal_behavior requires true; */ String toString();}"
-                ,"/TEST.java:1: warning: Method toString overrides parent class methods and so its specification should begin with 'also' (java.lang.Object.toString())",28
+                ,"/TEST.java:1: warning: Method toString overrides parent class methods and so its specification should begin with 'also' (A.toString() overrides java.lang.Object.toString())",28
                 );
     }
 
@@ -131,7 +131,7 @@ public class typechecking extends TCBase {
     @Test public void testOld5() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\pre(b,k);\n}}",
                 "/A.java:2: error: A \\pre expression expects just 1 argument, not 2",16
-                ,"/A.java:2: error: There is no label named k",19);
+                );
     }
 
     @Test public void testOld6() {
@@ -141,7 +141,7 @@ public class typechecking extends TCBase {
 
     @Test public void testOld7() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\old(b,k);\n}}"
-                ,"/A.java:2: error: There is no label named k",19);
+                ,"/A.java:2: error: Unknown label: k",19);
     }
 
     @Test public void testOld8() {
@@ -203,6 +203,73 @@ public class typechecking extends TCBase {
                 "/A.java:2: error: A \\max expression expects just 1 argument, not 2",16,
                 "/A.java:2: error: A \\max function expects an argument of type org.jmlspecs.lang.JMLSetType<E> rather than boolean",17,
                 "/A.java:2: error: incompatible types: java.lang.Object cannot be converted to boolean",16);
+    }
+
+    @Test public void testStaticInvariantFor1() {
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\static_invariant_for(Integer);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor2() {
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\static_invariant_for(Integer,Object);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor2a() {
+    	main.addOptions("-lang=jml");
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\static_invariant_for(Integer,Object);\n}}"
+        		,"/A.java:2: error: A \\static_invariant_for expression expects just 1 argument, not 2",33
+        		);
+    }
+
+    @Test public void testStaticInvariantFor3() {
+        helpTCF("A.java","public class A { Integer i; void m() { \n//@ assert \\static_invariant_for(java.lang.Integer);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor4() {
+        helpTCF("A.java","public class A { void m() { \n//@ assume \\static_invariant_for(java.util.List);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor5() {
+        helpTCF("A.java","public class A { void m() { \n//@ assume \\static_invariant_for(java.util.List<Integer>);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor6() {
+        helpTCF("A.java","public class A<T> { void m() { \n//@ assume \\static_invariant_for(A<Integer>);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor7() {
+        helpTCF("A.java","public class A<T> { void m() { \n//@ assume \\static_invariant_for(A<T>);\n}}"
+        		,"/A.java:2: error: non-static type variable T cannot be referenced from a static context",36
+        		);
+    }
+
+    @Test public void testStaticInvariantFor8() {
+        helpTCF("A.java","public class A<T> { void m() { \n//@ assume \\static_invariant_for(A);\n}}"
+        		);
+    }
+
+    @Test public void testStaticInvariantFor9() {
+        helpTCF("A.java","public class A<T> { void m() { \n//@ assume \\static_invariant_for(int);\n}}"
+        		,"/A.java:2: error: The argument of \\static_invariant_for must be a reference type name: int",34
+        		);
+    }
+
+    @Test public void testStaticInvariantFor10() {
+        helpTCF("A.java","public class A<T> { void m() { \n//@ assume \\static_invariant_for(\\bigint);\n}}"
+        		,"/A.java:2: error: The argument of \\static_invariant_for must be a reference type name: \\bigint",34
+        		);
+    }
+
+    @Test public void testStaticInvariantFor11() {
+        helpTCF("A.java","public class A<T> { static int k = 0; void m() { \n//@ assume \\static_invariant_for(k);\n}}"
+        		,"/A.java:2: error: cannot find symbol\n  symbol:   class k\n  location: class A<T>",34
+        		,"/A.java:2: error: The argument of \\static_invariant_for must be a reference type name: k",34
+        		);
     }
 
     @Test public void testInvariantFor1() {
@@ -373,7 +440,7 @@ public class typechecking extends TCBase {
     
     @Test public void testMisc1b() {
         helpTC(" class A { /*@ ensures \\result     ; */\nboolean m() { \n//@ int t;\n}}"
-                ,"/TEST.java:3: error: A local declaration within a JML annotation must be ghost", 9 // FIXME - better position
+                ,"/TEST.java:3: error: A local declaration within a JML annotation must be ghost: t in A.m()", 9 
         );
     }
     
@@ -392,13 +459,14 @@ public class typechecking extends TCBase {
     /** Missing model or ghost modifier */
     @Test public void testJmlTypes2() {
         helpTCF("A.java","public class A {  int i; /*@  \\TYPE t; */ } ",
-                "/A.java:1: error: A JML field declaration must be marked either ghost or model: t (owner: A)",37);
+                "/A.java:1: error: A declaration within a JML annotation must be either ghost or model: A.t",37);
     }
 
     /** Wrong position model or ghost modifier */
     @Test public void testJmlTypes3() {
         helpTCF("A.java","import org.jmlspecs.annotation.*; public class A {  @Ghost int i; } ",
-                "/A.java:1: error: A Java field declaration must not be marked either ghost or model: i (owner: A)",53);
+                "/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.i",53
+                );
     }
 
     @Test public void testJmlTypes4() {
@@ -502,7 +570,7 @@ public class typechecking extends TCBase {
 
     @Test public void testQuantifierA() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n //@ requires m( (\\exists int i; 0 < i && i <10; m(i)) ); \n/*@ pure*/boolean m(int k) { return false; }\n }",
-                "/A.java:3: error: incompatible types: boolean cannot be converted to int",51);
+                "/A.java:3: error: incompatible types: boolean cannot be converted to int",19);
     }
   
     @Test public void testSetCompB() {
@@ -524,7 +592,7 @@ public class typechecking extends TCBase {
 
     @Test public void testQuantifierB() {
         helpTCF("A.java","public class A {  \n  //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \nboolean m(int k) { return false; }\n }",
-                "/A.java:2: error: incompatible types: boolean cannot be converted to int",60);
+                "/A.java:2: error: incompatible types: boolean cannot be converted to int",28);
     }
   
     @Test public void testQuantifierB2() {
@@ -566,7 +634,7 @@ public class typechecking extends TCBase {
 
     @Test public void testQuantifierC() {
         helpTCF("A.java","public class A {  \n  boolean m(int k) { //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \n return false; }\n }",
-                "/A.java:2: error: incompatible types: boolean cannot be converted to int",79
+                "/A.java:2: error: incompatible types: boolean cannot be converted to int",47
                 );
     }
     
@@ -594,7 +662,7 @@ public class typechecking extends TCBase {
     
     @Test public void testQuantifierD() {
         helpTCF("A.java","public class A { //@ ghost int j;\n  \n  boolean m(int k) { //@ set j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \n return false; }\n }"
-                ,"/A.java:3: error: incompatible types: boolean cannot be converted to int",70
+                ,"/A.java:3: error: incompatible types: boolean cannot be converted to int",38
                 );
     }
     
@@ -602,12 +670,12 @@ public class typechecking extends TCBase {
     
     @Test public void testQuantifier() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n /*@ pure*/ boolean m(int i) { return false; }\n//@ invariant m( (\\exists int i; 0 < i && i <10; m(i)) ); \n }",
-                "/A.java:4: error: incompatible types: boolean cannot be converted to int",51);
+                "/A.java:4: error: incompatible types: boolean cannot be converted to int",19);
     }
     
     @Test public void testQuantifier1() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n /*@ pure*/ boolean m(int i) { return false; }\n//@ invariant m( (\\forall int i; 0 < i && i <10; m(i)) ); \n }",
-                "/A.java:4: error: incompatible types: boolean cannot be converted to int",51);
+                "/A.java:4: error: incompatible types: boolean cannot be converted to int",19);
     }
     
     @Test public void testQuantifier2() {
@@ -634,7 +702,8 @@ public class typechecking extends TCBase {
     @Test public void testQuantifier6() {
         helpTCF("A.java","public class A {  \n Object i; Object q = i; //@ ghost Object j; \n boolean m(double i) { return false; }\n//@ invariant (\\product long i; j; i) ; \n }",
                 "/A.java:4: error: incompatible types: java.lang.Object cannot be converted to boolean",33,
-                "/A.java:4: error: incompatible types: long cannot be converted to boolean",16);
+                "/A.java:4: error: incompatible types: long cannot be converted to boolean",16
+                );
     }
     
     @Test public void testQuantifier7() {
@@ -643,7 +712,54 @@ public class typechecking extends TCBase {
                 "/A.java:4: error: incompatible types: long cannot be converted to boolean",16);
     }
 
-    @Test public void testQuantifierInv() {
+    @Test public void testQuantifierChoose() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; 0<i<10; i>5) > 5; */}}"
+
+                );
+    }
+    
+    @Test public void testQuantifierChoose1a() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; 0<i<10; i) > 5; */}}"
+        		,"/A.java:2: error: incompatible types: int cannot be converted to boolean",48
+                );
+    }
+    
+    @Test public void testQuantifierChoose1b() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; 0<i<10; 0) > 5; */}}"
+        		,"/A.java:2: error: incompatible types: int cannot be converted to boolean",48
+                );
+    }
+    
+    @Test public void testQuantifierChoose2a() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; i; i>5) > 5; */}}"
+        		,"/A.java:2: error: incompatible types: int cannot be converted to boolean",40
+                );
+    }
+    
+    @Test public void testQuantifierChoose2b() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; 0; i>5) > 5; */}}"
+        		,"/A.java:2: error: incompatible types: int cannot be converted to boolean",40
+                );
+    }
+    
+    @Test public void testQuantifierChoose3() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; ; i>5) > 5; */}}"
+
+                );
+    }
+    
+    @Test public void testQuantifierChoose4() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; i>5) > 5; */}}"
+
+                );
+    }
+    @Test public void testQuantifierChoose5() {
+        helpTCF("A.java","public class A {  \n void m() { /*@ assert (\\choose int i; i>5); */}}"
+        		,"/A.java:2: error: incompatible types: int cannot be converted to boolean",25
+                );
+    }
+    
+   @Test public void testQuantifierInv() {
         helpTCF("A.java","public class A {  \n //@ invariant (\\exists int i; 0 < i && i <10;  i > -1) ; \n //@ static invariant (\\exists int i; 0 < i && i <10;  i > -1) ; \n void m() {}}"
 
                 );
@@ -876,7 +992,8 @@ public class typechecking extends TCBase {
     }
     
     @Test public void testFresh2() {
-        helpTCF("A.java","public class A { Object o,oo; //@ ensures \\fresh(o,oo); \n void m() {}  \n }"
+        helpTCF("A.java","public class A { Object o; //@ ensures \\fresh(o,oo); \n void m() {}  \n }"
+        		,"/A.java:1: error: Unknown label: oo",49
                 );
     }
     
@@ -982,9 +1099,9 @@ public class typechecking extends TCBase {
         );
     }
     
-    @Test public void testBadModelImport2a() {
+    @Test public void testBadModelClass2a() {
         helpTCF("A.java","/*@ model */  public class A {\n  \n }"
-                ,"/A.java:1: error: A Java class declaration must not be marked either ghost or model: A (owner: unnamed package)",5
+                ,"/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A",5
         );
     }
     
@@ -1116,7 +1233,70 @@ public class typechecking extends TCBase {
                 ,"/Test.java:4: warning: Do not include a datagroup in itself: height",22
                 ,"/Test.java:4: warning: Do not include a datagroup in itself: height",22
         );
-        
+    }
+    
+    @Test public void testComment() {
+    	expectedExit = 1;
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+    		    "  /*@ ghost String s = \"asdf */\"; */\n"+
+    		    "}\n"
+    			,"/Test.java:2: error: Unclosed string literal at end of JML annotation",30
+    			,"/Test.java:2: error: unclosed string literal",32
+    			,"/Test.java:4: error: reached end of file while parsing",1
+    		);
+    }
+    
+    @Test public void testComment2() {
+    	expectedExit = 1;
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+    	    		    "  /*@ ghost int i = 0; /* comment */\n"+
+    	    		    "  /*@ ghost int j = 0; */\n"+
+    	    		    "  /*@ ghost int k = 0; */\n"+
+    		    "}\n"
+    			,"/Test.java:2: error: Block comments may not be embedded inside JML block comments",24
+    		);
+    }
+    
+    @Test public void testComment3() {
+    	expectedExit = 1;
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+    	    		    "  /*@ ghost int i = 0;\n"+
+    	    		    "    @ ghost String j = \"  ; \n"+
+    	    		    "    @ ghost int k = 0; */\n"+
+    		    "}\n"
+    			,"/Test.java:3: error: unclosed string literal",24
+    		);
+    }
+    
+    @Test public void testSpillover1() {
+    	expectedExit = 0;
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+                "//@ requires i \n"+
+    		    "//@    > 0\n"+
+                "//@   ; ensures \\result > \n"+
+    		    "//@   0\n"+
+    		    "  public int m(int i) { return i;} \n"+
+    		    "}\n"
+    			,"/Test.java:5: warning: Inserting missing semicolon at the end of a ensures statement",8
+    		);
+    }
+    
+    @Test public void testSpillover2() {
+    	helpTCF("Test.java",
+    			"public class Test {\n"+
+                "//@ requires i \n"+
+    		    "//@    > 0\n"+
+                "//@   ensures \\result > \n"+
+    		    "//@   0\n"+
+    		    "  public int m(int i) { return i;} \n"+
+    		    "}\n"
+    			,"/Test.java:3: error: Incorrectly formed or terminated requires statement near here -- perhaps a missing semicolon",11
+    			,"/Test.java:5: warning: Inserting missing semicolon at the end of a ensures statement",8
+    		);
     }
     
     @Test public void testBug6a() {
@@ -1162,6 +1342,7 @@ public class typechecking extends TCBase {
     @Test public void testQuantifiedExpression() {
         helpTCF("A.java"," class A { /*@ public invariant (\\sum Integer i; 0<=i && i < 6; new Object()); */ }"
         		,"/A.java:1: error: Quantifier bodies may not contain constructors: Object()",65
+        		,"/A.java:1: error: Object allocation is not permitted in specification expressions",65
         		,"/A.java:1: error: The value expression of a sum or product expression must be a numeric type, not java.lang.Object",65
                 );
     }
@@ -1188,6 +1369,31 @@ public class typechecking extends TCBase {
         helpTCF("A.java","package p; public class A implements Cloneable { private B b; A() { b = new B(); }}"
                 ,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class p.A",58
 				,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class p.A",77
+        		);
+    }
+
+    @Test public void testDefaultsA() {
+        helpTCF("A.java","public class A{}\n" +
+        		"interface B1 { default void m() {} } interface A1 extends B1 { /*@ also requires true; */ default void m(){} }\n" +
+        		"interface B2 { default void m() {} } interface A2 extends B2 { /*@ also requires true; */         void m();  }\n" +
+        		"interface B3 {         void m() ;  } interface A3 extends B3 { /*@ also requires true; */ default void m(){} }\n" +
+        		"interface B4 {         void m() ;  } interface A4 extends B4 { /*@ also requires true; */         void m();  }\n" +
+        		""
+        		);
+    }
+
+    @Test public void testDefaultsB() {
+    	expectedExit = 0;
+        helpTCF("A.java","public class A{}\n" +
+        		"interface B1 { default void m() {} } interface A1 extends B1 { /*@ requires true; */ default void m(){} }\n" +
+        		"interface B2 { default void m() {} } interface A2 extends B2 { /*@ requires true; */         void m();  }\n" +
+        		"interface B3 {         void m() ;  } interface A3 extends B3 { /*@ requires true; */ default void m(){} }\n" +
+        		"interface B4 {         void m() ;  } interface A4 extends B4 { /*@ requires true; */         void m(); }\n" +
+        		""
+                ,"/A.java:2: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A1.m() overrides B1.m())",68
+                ,"/A.java:3: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A2.m() overrides B2.m())",68
+                ,"/A.java:4: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A3.m() overrides B3.m())",68
+                ,"/A.java:5: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A4.m() overrides B4.m())",68
         		);
     }
 
@@ -1311,6 +1517,70 @@ public class typechecking extends TCBase {
                 ,"/TestJava.java:48: warning: There is no point to a specification case having more visibility than its method",7
                 ,"/TestJava.java:51: warning: There is no point to a specification case having more visibility than its method",7
                 );
+    }
+    
+    @Test public void clauseNames() {
+        helpTCF("TestJava.java",
+        		"""
+        		public class TestJava {
+        	        //@ axiom A: true;
+        	        //@ public invariant B: true;
+                    //@ ghost public int g; // NO LABEL
+                    //@ model public int m; // NO LABEL
+	                public int f; //@ in m; // NO LABEL
+	                public TestJava t; //@ maps t.f \\into m; // NO LABEL
+        	        //@ represents C: m = 0;
+        	        //@ public initially E: true;
+        	        //@ public constraint F: true;
+	                //@ public readable f if true;
+	                //@ public writable f if true;
+	                
+	                //@ public normal_behavior G:
+	                //@   requires H: true;
+	                //@   old int z = 0; // NO LABEL
+	                //@   assignable N: \\nothing;
+	                //@   accessible  R: \\nothing;
+	                //@   ensures I: true;
+	                //@   measured_by T: 0;
+	                //@   callable C: \\nothing;
+	                //@   duration D: 0;
+	                //@   working_space W: 0;
+	                //@ also public exceptional_behavior E:
+	                //@   requires F: false;
+	                //@ also public behavior B:
+	                //@   ensures Q: true;
+	                //@ also implies_that
+	                //@    public normal_behavior YY:
+	                //@      requires ZZ: true;
+	                //@ also for_example
+	                //@       requires UUU: true;
+	                public void m() {
+	                	//@ assert A: true;
+	                	//@ assume B: true;
+	                	//@ check C: true;
+	                	//@ set S: f = 0;
+	                	//@ ghost int yy = 0; // NO LABEL
+	                	
+	                	//@ maintaining X: true;
+	                	//@ loop_modifies Y: \\nothing;
+	                	//@ decreases Z: 0;
+	                	while (true) { break; }
+	                	
+	                	//@ refining
+	                	//@  normal_behavior A:
+	                	//@    requires B: true;
+	                	//@ also exceptional_behavior Q:
+	                	//@    requires B: true;
+	                	//@ also behavior R:
+	                	//@    requires B: true;
+	                	{}
+	                }
+                }
+                """
+                		// FIXME - also model programs and various additional statements
+        				// FIXME - additional kinds of clauses in block contracts
+        );
+   	
     }
 
     

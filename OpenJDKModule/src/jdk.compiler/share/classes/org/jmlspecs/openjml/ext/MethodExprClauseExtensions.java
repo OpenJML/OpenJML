@@ -21,22 +21,23 @@ public class MethodExprClauseExtensions extends JmlExtension {
         public boolean oldNoLabelAllowed() { return true; }
     };
     
-    public static final IJmlClauseKind divergesClause = new MethodClauseExprType(divergesID);
+    public static final IJmlClauseKind divergesClauseKind = new MethodClauseExprType(divergesID);
     
-    public static final IJmlClauseKind whenClause = new MethodClauseExprType(whenID);
+    public static final IJmlClauseKind whenClauseKind = new MethodClauseExprType(whenID);
     
-    public static final IJmlClauseKind continuesClause = new MethodClauseExprType(continuesID) {
+    public static final IJmlClauseKind continuesClauseKind = new MethodClauseExprType(continuesID) {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
     };
     
-    public static final IJmlClauseKind breaksClause = new MethodClauseExprType(breaksID) {
+    public static final IJmlClauseKind breaksClauseKind = new MethodClauseExprType(breaksID) {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
     };
     
-    public static final IJmlClauseKind returnsClause = new MethodClauseExprType(returnsID) {
+    public static final IJmlClauseKind returnsClauseKind = new MethodClauseExprType(returnsID) {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
     };
+    
 }

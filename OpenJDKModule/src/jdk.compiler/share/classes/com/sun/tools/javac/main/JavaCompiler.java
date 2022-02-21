@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -161,17 +161,6 @@ public class JavaCompiler {
      */
     protected static enum CompilePolicy {
         /**
-         * Just attribute the parse trees.
-         */
-        ATTR_ONLY,
-
-        /**
-         * Just attribute and do flow analysis on the parse trees.
-         * This should catch most user errors.
-         */
-        CHECK_ONLY,
-
-        /**
          * Attribute everything, then do flow analysis for everything,
          * then desugar everything, and only then generate output.
          * This means no output will be generated if there are any
@@ -198,10 +187,6 @@ public class JavaCompiler {
         static CompilePolicy decode(String option) {
             if (option == null)
                 return DEFAULT_COMPILE_POLICY;
-            else if (option.equals("attr"))
-                return ATTR_ONLY;
-            else if (option.equals("check"))
-                return CHECK_ONLY;
             else if (option.equals("simple"))
                 return SIMPLE;
             else if (option.equals("byfile"))
@@ -443,11 +428,7 @@ public class JavaCompiler {
 
         verboseCompilePolicy = options.isSet("verboseCompilePolicy");
 
-        if (options.isSet("should-stop.at") &&
-            CompileState.valueOf(options.get("should-stop.at")) == CompileState.ATTR)
-            compilePolicy = CompilePolicy.ATTR_ONLY;
-        else
-            compilePolicy = CompilePolicy.decode(options.get("compilePolicy"));
+        compilePolicy = CompilePolicy.decode(options.get("compilePolicy"));
 
         implicitSourcePolicy = ImplicitSourcePolicy.decode(options.get("-implicit"));
 
@@ -782,7 +763,7 @@ public class JavaCompiler {
             return null;
         } else {
             try (BufferedWriter out = new BufferedWriter(outFile.openWriter())) {
-                Pretty.instance(out, true).printUnit(env.toplevel, cdef);
+                Pretty.instance(out, true).printUnit(env.toplevel, cdef); // OPENJML change - to allow using derived Pretty printers
                 if (verbose)
                     log.printVerbose("wrote.file", outFile.getName());
             }
@@ -797,6 +778,8 @@ public class JavaCompiler {
         readSourceFile(null, c);
     }
 
+    // The following is called from ClassFinder.loadClass via ClassFInder.fillIn to parse and enter a source file
+    // (that was not listed on the command line)
     /** Compile a ClassSymbol from source, optionally using the given compilation unit as
      *  the source tree.
      *  @param tree the compilation unit in which the given ClassSymbol resides,
@@ -813,10 +796,11 @@ public class JavaCompiler {
 
         if (tree == null) {
             try {
-                tree = parse(filename, filename.getCharContent(false));
-            } catch (IOException e) {
-                log.error(Errors.ErrorReadingFile(filename, JavacFileManager.getMessage(e)));
-                tree = make.TopLevel(List.<JCTree>nil());
+                //tree = parse(filename, filename.getCharContent(false));
+                tree = parse(filename); // OPENJML - this line instead of the one above to use common code for reading .jml files
+//            } catch (IOException e) {
+//                log.error(Errors.ErrorReadingFile(filename, JavacFileManager.getMessage(e)));
+//                tree = make.TopLevel(List.<JCTree>nil());
             } finally {
                 log.useSource(prev);
             }
@@ -939,7 +923,7 @@ public class JavaCompiler {
                 ),
                 classnames
             );
-            
+
             // If it's safe to do so, skip attr / flow / gen for implicit classes
             if (taskListener.isEmpty() &&
                     implicitSourcePolicy == ImplicitSourcePolicy.NONE) {
@@ -948,14 +932,6 @@ public class JavaCompiler {
 
             if (!CompileState.ATTR.isAfter(shouldStopPolicyIfNoError)) {
                 switch (compilePolicy) {
-                case ATTR_ONLY:
-                    attribute(todo);
-                    break;
-
-                case CHECK_ONLY:
-                    flow(attribute(todo));
-                    break;
-
                 case SIMPLE:
                     generate(desugar(flow(attribute(todo))));
                     break;
@@ -1086,8 +1062,8 @@ public class JavaCompiler {
                 for (List<JCTree> defs = unit.defs;
                      defs.nonEmpty();
                      defs = defs.tail) {
-                    if (defs.head instanceof JCClassDecl)
-                        cdefs.append((JCClassDecl)defs.head);
+                    if (defs.head instanceof JCClassDecl classDecl)
+                        cdefs.append(classDecl);
                 }
             }
             rootClasses = cdefs.toList();
@@ -1352,6 +1328,7 @@ public class JavaCompiler {
         finally {
             log.useSource(prev);
         }
+
         return env;
     }
 
@@ -1444,7 +1421,7 @@ public class JavaCompiler {
      * The preparation stops as soon as an error is found.
      */
     protected void desugar(final Env<AttrContext> env, Queue<Pair<Env<AttrContext>, JCClassDecl>> results) {
-    	if (shouldStop(CompileState.TRANSTYPES))
+        if (shouldStop(CompileState.TRANSTYPES))
             return;
 
         if (implicitSourcePolicy == ImplicitSourcePolicy.NONE
@@ -1576,8 +1553,8 @@ public class JavaCompiler {
                 //emit standard Java source file, only for compilation
                 //units enumerated explicitly on the command line
                 JCClassDecl cdef = (JCClassDecl)env.tree;
-                if (untranslated instanceof JCClassDecl &&
-                    rootClasses.contains((JCClassDecl)untranslated)) {
+                if (untranslated instanceof JCClassDecl classDecl &&
+                    rootClasses.contains(classDecl)) {
                     results.add(new Pair<>(env, cdef));
                 }
                 return;
@@ -1815,17 +1792,21 @@ public class JavaCompiler {
                 names.dispose();
             names = null;
 
+            FatalError fatalError = null;
             for (Closeable c: closeables) {
                 try {
                     c.close();
                 } catch (IOException e) {
-                    // When javac uses JDK 7 as a baseline, this code would be
-                    // better written to set any/all exceptions from all the
-                    // Closeables as suppressed exceptions on the FatalError
-                    // that is thrown.
-                    JCDiagnostic msg = diagFactory.fragment(Fragments.FatalErrCantClose);
-                    throw new FatalError(msg, e);
+                    if (fatalError == null) {
+                        JCDiagnostic msg = diagFactory.fragment(Fragments.FatalErrCantClose);
+                        fatalError = new FatalError(msg, e);
+                    } else {
+                        fatalError.addSuppressed(e);
+                    }
                 }
+            }
+            if (fatalError != null) {
+                throw fatalError;
             }
             closeables = List.nil();
         }

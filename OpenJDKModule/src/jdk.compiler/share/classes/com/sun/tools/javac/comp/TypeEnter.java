@@ -33,6 +33,9 @@ import java.util.stream.Collectors;
 
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlTree;
+
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Lint.LintCategory;
 import com.sun.tools.javac.code.Scope.ImportFilter;
@@ -324,6 +327,9 @@ public class TypeEnter implements Completer {
             if (sym.owner.kind == PCK) {
                 resolveImports(env.toplevel, env.enclosing(TOPLEVEL));
                 todo.append(env);
+            }
+            if (env.toplevel instanceof org.jmlspecs.openjml.JmlTree.JmlCompilationUnit jcu && jcu.specsCompilationUnit != null) { // OPENJML
+                resolveImports(jcu.specsCompilationUnit, jcu.specsCompilationUnit.topLevelEnv);
             }
 
             if (sym.owner.kind == TYP)
@@ -681,14 +687,14 @@ public class TypeEnter implements Completer {
 
             if (tree.extending != null) {
                 extending = clearTypeParams(tree.extending);
-                supertype = attr.attribBase(extending, baseEnv, true, false, true);
+                supertype = attr.attribBase(extending, baseEnv, tree, true, false, true);
                 if (supertype == syms.recordType) {
                     log.error(tree, Errors.InvalidSupertypeRecord(supertype.tsym));
                 }
             } else {
                 extending = null;
                 supertype = ((tree.mods.flags & Flags.ENUM) != 0)
-                ? attr.attribBase(enumBase(tree.pos, sym), baseEnv,
+                ? attr.attribBase(enumBase(tree.pos, sym), baseEnv, tree,
                                   true, false, false)
                 : (sym.fullname == names.java_lang_Object)
                 ? Type.noType
@@ -702,7 +708,7 @@ public class TypeEnter implements Completer {
             List<JCExpression> interfaceTrees = tree.implementing;
             for (JCExpression iface : interfaceTrees) {
                 iface = clearTypeParams(iface);
-                Type it = attr.attribBase(iface, baseEnv, false, true, true);
+                Type it = attr.attribBase(iface, baseEnv, tree, false, true, true);
                 if (it.hasTag(CLASS)) {
                     interfaces.append(it);
                     if (all_interfaces != null) all_interfaces.append(it);
@@ -717,7 +723,7 @@ public class TypeEnter implements Completer {
             ListBuffer<Symbol> permittedSubtypeSymbols = new ListBuffer<>();
             List<JCExpression> permittedTrees = tree.permitting;
             for (JCExpression permitted : permittedTrees) {
-                Type pt = attr.attribBase(permitted, baseEnv, false, false, false);
+                Type pt = attr.attribBase(permitted, baseEnv, tree, false, false, false);
                 permittedSubtypeSymbols.append(pt.tsym);
             }
 

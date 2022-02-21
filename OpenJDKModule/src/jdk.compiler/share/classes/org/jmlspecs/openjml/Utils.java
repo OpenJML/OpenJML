@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -28,6 +29,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Stream;
 
 import javax.tools.JavaFileObject;
 
@@ -108,7 +110,7 @@ public class Utils {
     ///////////////////////////////////////////////////////////////////////////////////////
 
     /** The context applicable for this instance of the Utils class. */
-    protected Context context;
+    public Context context;
     
     /** The Log object - do not use this directly - use log() instead */
     private Log log;
@@ -173,6 +175,7 @@ public class Utils {
 
     /** Global utility value that enables printing of debugging or trace information. */
     public int jmlverbose = NORMAL; 
+    static public final int SILENT = -1;
     static public final int QUIET = 0;
     static public final int NORMAL = 1;
     static public final int PROGRESS = 2;
@@ -302,6 +305,17 @@ public class Utils {
     /** Sets the modifiers as local to a JML expression */
     public void setExprLocal(/*@ non_null */ JCModifiers mods) {
         mods.flags |= JMLEXPRLOCAL;
+    }
+
+    /** Returns true if the flags indicate this is a generated default constructorn */
+    public boolean isGeneratedConstructor(MethodSymbol methodSym) {
+        return (methodSym.flags() & Flags.GENERATEDCONSTR) != 0;
+    }
+
+    /** Returns true if the file is a specification (.jml) file */
+    public boolean isSpecFile(JavaFileObject file) {
+        // A .jml file is Kind.OTHER, but might (eventually?) be Kind.JML
+        return file.getKind() != JavaFileObject.Kind.SOURCE;
     }
 
     /** Creates an annotation symbol from the fully qualified name for the
@@ -530,10 +544,8 @@ public class Utils {
         return null;
     }
     
-    public boolean hasMod(MethodSymbol msym, ModifierKind kind) {
-    	var mspecs = JmlSpecs.instance(context).getLoadedSpecs(msym);
-    	if (mspecs == null) return false;
-    	return hasMod(mspecs.mods, kind);
+    public boolean hasJavaAnnotation(Symbol sym, JmlAnnotation annotation) {
+    	return sym.getAnnotationMirrors().stream().anyMatch( a-> annotation.type == a.type);
     }
     
     public boolean hasMod(JCModifiers mods, ModifierKind... ata) {
@@ -931,11 +943,17 @@ public class Utils {
 
     // Includes self
     public java.util.List<ClassSymbol> parents(TypeSymbol ct, boolean includeEnclosingClasses) {
+    	return parents(ct, includeEnclosingClasses, true);
+    }
+    public java.util.List<ClassSymbol> parents(TypeSymbol ct, boolean includeEnclosingClasses, boolean includeSelf) {
         ArrayList<ClassSymbol> interfaces = new ArrayList<ClassSymbol>(20);
+        if (objectSym == null) objectSym = (Symbol.ClassSymbol)Symtab.instance(context).objectType.tsym;
+        if (ct == objectSym && !includeSelf) return interfaces;
         if (isJavaOrJmlPrimitiveType(ct.type)) {
-            interfaces.add((ClassSymbol)ct);
+            if (includeSelf) interfaces.add((ClassSymbol)ct);
             return interfaces;
         }
+
         if (ct instanceof Symbol.TypeVariableSymbol) {
             ct = ct.type.getUpperBound().tsym;
             // FIXME - what if bound is also a type variable?
@@ -971,6 +989,7 @@ public class Utils {
                 if (interfaceSet.add(sym)) interfaces.add(sym);
             }
         }
+        if (!includeSelf) classes.remove(classes.size()-1);
         // FIXME - the interfaces are not in a good order
         int i = 0;
         while (i < interfaces.size()) {
@@ -982,38 +1001,58 @@ public class Utils {
                 // FIXME - what about the owners of interfaces
             }
         }
-        if (objectSym == null) objectSym = (Symbol.ClassSymbol)Symtab.instance(context).objectType.tsym;
         classes.remove(objectSym);
         interfaces.addAll(classes);
         interfaces.add(0,objectSym);
         return interfaces;
     }
     
+    public com.sun.tools.javac.util.List<VarSymbol> collectFields(ClassSymbol baseType, java.util.function.Predicate<VarSymbol> a) {
+    	com.sun.tools.javac.util.ListBuffer<VarSymbol> list = new com.sun.tools.javac.util.ListBuffer<VarSymbol>();
+   	    for (var cc : parents(baseType, false)) {
+   	    	for (var sym : cc.getEnclosedElements()) {
+   	    		//System.out.println("COLLECT " + sym + " " + sym.getClass() + " " + (sym instanceof VarSymbol vs && a.test(vs)));
+   	    		if (sym instanceof VarSymbol vs && a.test(vs)) list.add(vs);
+   	    	}
+   	    }
+   	    return list.toList();
+    }
+    
+
+    
     private ClassSymbol objectSym = null;
 
-    // Includes self // FIXME -  review for order
-    public java.util.List<MethodSymbol> parents(MethodSymbol m) {
+    // Returns all methods that are overridden by the argument, including self // FI(XME - review for order
+    public java.util.List<MethodSymbol> parents(MethodSymbol m, boolean includeSelf) {
         List<MethodSymbol> methods = new LinkedList<MethodSymbol>();
         if (isJMLStatic(m)) {
-            methods.add(m); 
+            if (includeSelf) methods.add(m); 
         } else if (m.isConstructor() ) {
-        	methods.add(m);
+        	if (includeSelf) methods.add(m);
         } else {
         	// FIXME - the 'true' here should be false -- it seems that model interface enclosed within 
-        	// and extending java interfaces do not show those interfaces in getIntrerfaces()
-        	// are not getting their 
-            for (ClassSymbol c: parents((ClassSymbol)m.owner, true)) {
+        	// and extending java interfaces do not show those interfaces in getInterfaces()
+        	var classes = parents((ClassSymbol)m.owner, false);
+        	//if (m.toString().contains("sequential")) System.out.println("CLASSES " + m.owner + " " + m + " " + m.isDefault() + " " + Arrays.toString(classes.toArray()));
+            for (ClassSymbol c: classes) {
                for (Symbol mem: c.members().getSymbols(
-            		   mem->(mem instanceof MethodSymbol &&
-            				   mem.name.equals(m.name) &&
-            				   (mem == m || m.overrides(mem, c, Types.instance(context), true)))
-            		   )) {
-            	   methods.add((MethodSymbol)mem);
+            		   mem->(mem instanceof MethodSymbol && (includeSelf || m.owner != mem.owner) &&
+            				   mem.name == m.name))) {
+            	   boolean ok = m.overrides(mem, (TypeSymbol)m.owner, Types.instance(context), true, false);
+            	   //if (m.toString().contains("sequential")) System.out.println("  CHECKING " + m.owner + "#" + m + " " + mem.owner + "#" + mem + " " + ((MethodSymbol)mem).isDefault() + " " + ok);
+            	   if (ok) methods.add((MethodSymbol)mem);
                 }
             }
         }
+ 	    //if (m.toString().contains("sequential")) { System.out.println("  RESULT " + m + " : " + join(",",methods,mm->mm.owner.toString())); Utils.dumpStack(); }
         return methods;
     }
+    
+    public static <T> String join(CharSequence delim, java.util.Collection<T> list) { return Utils.join(delim, list.stream(), x->x); }
+    public static <T,U> String join(CharSequence delim, java.util.Collection<T> list, java.util.function.Function<T,U> f) { return Utils.join(delim, list.stream(), f); }
+    public static <T,U> String join(CharSequence delim, java.util.stream.Stream<T> list) { return Utils.join(delim, list, x->x); }
+    public static <T,U> String join(CharSequence delim, java.util.stream.Stream<T> list, java.util.function.Function<T,U> f) { return String.join(delim, list.map(mm->f.apply(mm).toString()).collect(java.util.stream.Collectors.toList())); }
+    public static <T> String join(CharSequence delim, T[] list) { return Utils.join(delim, Stream.of(list), x->x); }
     
     /** Creates the location prefix including the colon without any message;
      * 'pos' is the position in the file given by log().currentSource(). */
@@ -1151,7 +1190,7 @@ public class Utils {
     	}
     	if (s instanceof VarSymbol) {
     		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((VarSymbol)s);
-    		return hasMod(tspecs.mods, Modifiers.SPEC_PUBLIC);
+    		return tspecs != null && hasMod(tspecs.mods, Modifiers.SPEC_PUBLIC);  // FIXME - why does this need the !=null guard
     	}
     	if (s instanceof MethodSymbol) {
     		var tspecs = JmlSpecs.instance(context).getLoadedSpecs((MethodSymbol)s);
@@ -1198,8 +1237,6 @@ public class Utils {
         flags &= Flags.AccessFlags;
         methodFlags &= Flags.AccessFlags;
         
-        //boolean isPublic = null != JmlSpecs.instance(context).fieldSpecHasAnnotation((Symbol.VarSymbol)s,JmlTokenKind.SPEC_PUBLIC);
-        
         // If target is public, then it is jml-visible, since everyone can see it
         if (flags == Flags.PUBLIC) return true;
         if (flags == 0 && parent.isInterface()) return true;
@@ -1240,6 +1277,7 @@ public class Utils {
                 if (isJMLStatic(s) != forStatic) continue;
                 if ((s.flags() & Flags.FINAL) != 0) continue;
                 if (!includeDataGroups && jmltypes().isOnlyDataGroup(s.type)) continue;
+                //System.out.println("LVF " + owner + " " + base + " " + csym + " " + s);
                 if (!jmlvisible(s,base,csym,s.flags()&Flags.AccessFlags,baseVisibility)) continue; // FIXME - jml access flags? on base and on target?
                 list.add((Symbol.VarSymbol)s);
             }
@@ -1453,6 +1491,11 @@ public class Utils {
         }
     }
 
+    public static String nameTP(JmlClassDecl cd) {
+    	String s = cd.name.toString();
+    	if (cd.typarams == null || cd.typarams.length() == 0) return s;
+    	return s + "<" + join(",",cd.typarams,p->p.name) +">";
+    }
     
     /** This is a predicate that can be used in a debugging condition */
     public static boolean print(String s) {
@@ -1553,6 +1596,22 @@ public class Utils {
             warning(pos, key, args);
         } finally {
             if (prev != null) log.useSource(prev);
+        }
+    }
+    
+    public void warningAndAssociatedDeclaration(JavaFileObject source, DiagnosticPosition pos, JavaFileObject assoc, DiagnosticPosition assocpos, String key, Object ... args) {
+        Log log = log();
+        JavaFileObject prev = log.useSource(source);
+        try {
+            warning(pos, key, args);
+        } finally {
+            log.useSource(prev);
+        }
+        prev = log.useSource(assoc);
+        try {
+            warning(assocpos, "jml.associated.decl.cf", locationString(pos, source));
+        } finally {
+            log.useSource(prev);
         }
     }
     
@@ -1898,12 +1957,26 @@ public class Utils {
     	e.printStackTrace(System.out);
     }
     
+    static String debugstring = System.getenv("OJ");
+    static String[] debugkeys = debugstring == null ? new String[] {} : debugstring.split(",");
     public static boolean debug() {
-    	return System.getenv("PRINT")!=null;
+    	return debugstring != null;
     }
     
+    public static boolean debug(String key) {
+        if (debugkeys == null) return false;
+        return Arrays.stream(debugkeys).anyMatch(s->s.equals(key));
+    }
+    
+    public static String debugValue(String key, String def) {
+        if (debugkeys == null) return def;
+        var opt = Arrays.stream(debugkeys).filter(s->s.startsWith(key)).findFirst();
+        return opt.isEmpty() ? def : opt.get().substring(key.length());
+    }
+    
+    static boolean verbose = System.getenv("VERBOSE") != null;
     public boolean verbose() {
-    	return jmlverbose >= Utils.JMLVERBOSE || System.getenv("VERBOSE") != null;
+    	return jmlverbose >= Utils.JMLVERBOSE || verbose;
     }
     
     public boolean progress() {
@@ -1914,8 +1987,9 @@ public class Utils {
     	new RuntimeException().printStackTrace(System.out);
     }
     
+    static boolean isjml = System.getenv("NOJML")==null;
     public static boolean isJML() {
-    	return System.getenv("NOJML")==null;
+    	return isjml;
     }
 
     public static void dumpStack(String message) {

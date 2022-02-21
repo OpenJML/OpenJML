@@ -3161,18 +3161,35 @@ public class esc2 extends EscBase {
     }
 
     @Test
-    public void testSetDebug() {
-        main.addOptions("-keys=DEBUG");
+    public void testSet() {
         helpTCX("tt.TestJava",
-                "package tt; \n" + "public class TestJava { \n" + "  public static int m() { \n" + "    int c = 4; \n"
-                        + "    //@ ghost int d = c+1;\n" + "    //@ set d = 10;\n" + "    //@ assert d + c == 14; \n"
-                        + "    return c; \n" + "  }\n" + "  public static int mm() { \n" + "    int c = 4; \n"
-                        + "    //@ ghost int d = c+1;\n" + "    //@ set d = 10;\n" + "    //@ assert d + c == 15; \n"
-                        + "    return c; \n" + "  }\n" + "  public static int q() { \n" + "    int c = 4; \n"
-                        + "    //@ ghost int d = c+1;\n" + "    //@ debug d = 10;\n" + "    //@ assert d + c == 14; \n"
-                        + "    return c; \n" + "  }\n" + "  public static int qq() { \n" + "    int c = 4; \n"
-                        + "    //@ ghost int d = c+1;\n" + "    //@ debug d = 10;\n" + "    //@ assert d + c == 15; \n"
-                        + "    return c; \n" + "  }\n" + "}",
+                "package tt; \n" + "public class TestJava { \n" 
+                		+ "  public static int m() { \n" 
+                		+ "    int c = 4; \n"
+                        + "    //@ ghost int d = c+1;\n" 
+                		+ "    //@ set d = 10;\n" 
+                        + "    //@ assert d + c == 14; \n"
+                        + "    return c; \n" + "  }\n" 
+                		+ "  public static int mm() { \n" 
+                        + "    int c = 4; \n"
+                        + "    //@ ghost int d = c+1;\n" 
+                        + "    //@ set d = 10;\n" 
+                        + "    //@ assert d + c == 15; \n"
+                        + "    return c; \n" + "  }\n" 
+                        + "  public static int q() { \n" 
+                        + "    int c = 4; \n"
+                        + "    //@ ghost int d = c+1;\n" 
+                        + "    //@ set   d = 10;\n" 
+                        + "    //@ assert d + c == 14; \n"
+                        + "    return c; \n" + "  }\n" 
+                        + "  public static int qq() { \n" 
+                        + "    int c = 4; \n"
+                        + "    //@ ghost int d = c+1;\n" 
+                        + "    //@ set   d = 10;\n" 
+                        + "    //@ assert d + c == 15; \n"
+                        + "    return c; \n" 
+                        + "  }\n" 
+                        + "}",
                 "/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method mm", 9,
                 "/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Assert) in method qq", 9);
     }
@@ -3433,7 +3450,6 @@ public class esc2 extends EscBase {
     // check other JMl expressions
     @Test
     public void testUndefinedInSpec3() {
-        main.addOptions("-keys=DEBUG");
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
                 + "/*@ nullable_by_default */ public class TestJava { \n" 
                 + "  public int j = 1;\n"
@@ -3448,7 +3464,7 @@ public class esc2 extends EscBase {
                 + "    //@ ghost int i = o.j; \n"    // ERROR
                 + "  }\n  " 
                 + "  public static void m3(TestJava o) { \n"
-                + "    //@ ghost int i; debug i = o.j; \n"  // ERROR
+                + "    //@ ghost int i; set   i = o.j; \n"  // ERROR
                 + "  }\n  " 
                 + "  //@ requires o.j == 1;\n"              // ERROR
                 + "  public static void m4(@Nullable TestJava o) { \n" 
@@ -4389,7 +4405,7 @@ public class esc2 extends EscBase {
                 );
     }
 
-    @Test
+    @Test // This test has lots of solutions, hence the assume statement
     public void testNewLblSytax() {
         expectedExit = 0;
         main.addOptions("-nonnullByDefault");
@@ -4397,19 +4413,20 @@ public class esc2 extends EscBase {
                 "package tt; \n" 
                         + "public abstract class TestJava  { \n" 
                         + "  public void m0(int i, int j) {\n"
+                        + "      //@ assume i == 0;\n"
                         + "      //@ assert (\\lbl I i) + \\lbl(J,j) == 0; \n" 
                         + "  }\n" 
                         + "}"
-                        ,"/tt/TestJava.java:4: warning: Label I has value 0",24
-                        ,"/tt/TestJava.java:4: warning: Label J has value ( - 1 )",36
-                        ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m0",11
+                        ,"/tt/TestJava.java:5: warning: Label I has value 0",24
+                        ,"/tt/TestJava.java:5: warning: Label J has value ( - 1 )",36
+                        ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m0",11
                 );
     }
 
     @Test
     public void testExitInfo2() {
         expectedExit = 0;
-        main.addOptions("-escExitInfo","-escMaxWarnings=10");
+        main.addOptions("-escMaxWarnings=10");
         helpTCX("tt.TestJava",
                           "package tt; //@ nullable_by_default \n" 
                         + "public class TestJava  { \n" 
@@ -4441,7 +4458,7 @@ public class esc2 extends EscBase {
     @Test
     public void testExitInfo() {
         expectedExit = 0;
-        main.addOptions("-escExitInfo","-escMaxWarnings=3");
+        main.addOptions("-escMaxWarnings=3");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -4628,7 +4645,7 @@ public class esc2 extends EscBase {
     @Test
     public void testShowStatement() {
         expectedExit = 0;
-        main.addOptions("-lang=jml");
+        main.addOptions("--lang=jml");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -4639,8 +4656,7 @@ public class esc2 extends EscBase {
                         + "     //@ show i;\n"
                         + "  }\n"
                         + "}\n"
-                        ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under -lang=jml",10
-                        //,"$SPECS/specs/java/util/stream/Stream.jml:$STRL: warning: The \\count construct is an OpenJML extension to JML and not allowed under -lang=jml",37
+                        ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under --lang=jml",10
                   ); 
     }
 
@@ -4655,18 +4671,20 @@ public class esc2 extends EscBase {
                         + "  //@   requires true; \n"
                         + "  public static void m(int i, int j) {\n"
                         + "     //@ show i;\n"
-                        + "     //@ show \n"  // WARNING
-                        + "     //@ show i i;\n" // ERROR
+                        + "     //@ show ijk\n"  // ERROR
+                        + "     //@ show i ijk;\n" // ERROR
                         + "     //@ show;\n"     
-                        + "     //@ show i\n"    // WARNING
+                        + "     //@ show ijk\n"  // ERROR
                         + "     //@ show %;\n"   // ERROR
+                        + "     //@ show ijk show ijk;\n"   // ERROR
                         + "  }\n"
                         + "}\n"
-                        ,"/tt/TestJava.java:8: warning: Inserting missing semicolon at the end of a show statement",15
+                        ,"/tt/TestJava.java:8: error: Incorrectly formed or terminated show statement near here -- perhaps a missing semicolon",18
                         ,"/tt/TestJava.java:9: error: Incorrectly formed or terminated show statement near here",17
-                        ,"/tt/TestJava.java:11: warning: Inserting missing semicolon at the end of a show statement",16
+                        ,"/tt/TestJava.java:11: error: Incorrectly formed or terminated show statement near here -- perhaps a missing semicolon",18
                         ,"/tt/TestJava.java:12: error: illegal start of expression",15
                         ,"/tt/TestJava.java:12: error: illegal start of expression",16
+                        ,"/tt/TestJava.java:13: error: Incorrectly formed or terminated show statement near here -- perhaps a missing semicolon",18
                         );
     }
 
@@ -4822,7 +4840,8 @@ public class esc2 extends EscBase {
                         + "  public int iii;\n"
                         + "  public void m(/*@ nullable */ TestJava t) {\n"
                         + "  int i = t.iii //@ allow NullPointerException; \n"
-                        + "  ;\n\n"
+                        + "  ;\n"
+                        + "\n"
                         + "  int j = t.iii; //@ forbid NullPointerException; \n"
                         + "  k = t.iii; //@ forbid ; \n"
                         + "  k = t.iii; //@ forbid NullPointerException \n"

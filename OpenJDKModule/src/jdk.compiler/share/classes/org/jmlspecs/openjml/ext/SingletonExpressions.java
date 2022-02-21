@@ -38,7 +38,7 @@ public class SingletonExpressions extends JmlExtension {
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
             syms = Symtab.instance(context);
-            JCTree.JCMethodDecl md = localEnv.enclMethod;
+            JCTree.JCMethodDecl md = attr.jmlenv.enclosingMethodDecl;
             JCTree res = md.getReturnType();
             Type t;
             if (res == null || (!res.type.isErroneous() && JmlTypes.instance(context).isSameType(res.type,syms.voidType))) {
@@ -53,7 +53,7 @@ public class SingletonExpressions extends JmlExtension {
             if (!attr.resultClauses.contains(attr.jmlenv.currentClauseKind)) {
                 // The +1 is to fool the error reporting mechanism into 
                 // allowing other error reports about the same token
-                Utils.instance(context).error(that.pos+1, "jml.misplaced.result", attr.jmlenv.currentClauseKind.name());
+                Utils.instance(context).error(that.pos+1, "jml.misplaced.result", attr.jmlenv.currentClauseKind.keyword());
                 t = syms.errType;
             }
             that.type = t;
@@ -85,7 +85,7 @@ public class SingletonExpressions extends JmlExtension {
             syms = Symtab.instance(context);
             Type t = syms.intType;
             if (attr.loopStack.isEmpty()) {
-                Utils.instance(context).error(that.pos,"jml.outofscope", name());
+                Utils.instance(context).error(that.pos,"jml.outofscope", keyword());
             } else {
                 ((JmlSingleton)that).info = attr.loopStack.get(0).sym;
             }
@@ -94,7 +94,6 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public void checkParse(JmlParser parser, JmlSingleton e, String rep) {
-            if (this == countKind) strictCheck(parser, e);
         }
     };
     
@@ -108,11 +107,11 @@ public class SingletonExpressions extends JmlExtension {
             syms = Symtab.instance(context);
             Type t = attr.JMLValuesType;
             if (attr.foreachLoopStack.isEmpty()) {
-                Utils.instance(context).error(that.pos,"jml.outofscope", name());
+                Utils.instance(context).error(that.pos,"jml.outofscope", keyword());
             } else {
                 JCVariableDecl d = attr.foreachLoopStack.get(0).valuesDecl;
                 if (d == null) {
-                    Log.instance(context).error(that.pos,"jml.notforthisloop", name());
+                    Log.instance(context).error(that.pos,"jml.notforthisloop", keyword());
                 } else {
                     ((JmlSingleton)that).info = d.sym;
                 }
@@ -149,7 +148,7 @@ public class SingletonExpressions extends JmlExtension {
             if (!attr.exceptionClauses.contains(attr.jmlenv.currentClauseKind)) {
                 // The +1 is to fool the error reporting mechanism into 
                 // allowing other error reports about the same token
-                Utils.instance(context).error(that.pos+1, "jml.misplaced.exception", attr.jmlenv.currentClauseKind.name());
+                Utils.instance(context).error(that.pos+1, "jml.misplaced.exception", attr.jmlenv.currentClauseKind.keyword());
                 t = Symtab.instance(context).errType;
             } else {
                 t = attr.jmlenv.currentExceptionType;
@@ -174,5 +173,36 @@ public class SingletonExpressions extends JmlExtension {
     static {
         Extensions.allKinds.put("\\index", countKind);
     }
+    
+    public static class LabelKind extends IJmlClauseKind.SingletonExpressionKind {
+    	public LabelKind(String name) { super(name); }
+        @Override
+        public JCTree.JCExpression parse(JCTree.JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
+            init(parser);
+//            IJmlClauseKind jt = parser.jmlTokenClauseKind();
+            int p = parser.pos();
+//            String stringRep = parser.getScanner().chars();
+//            parser.nextToken();
+//            if (parser.token().kind == TokenKind.LPAREN) {
+//                return parser.syntaxError(p, null, "jml.no.args.allowed", jt.name());
+//            } else {
+//                JmlSingleton e = toP(parser.maker().at(p).JmlSingleton(jt));
+//                e.kind = this;
+//                checkParse(parser,e,stringRep);
+//                return e;
+//            }
+            return parser.maker().at(p).Ident(parser.ident());
+        }
+       @Override
+        public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
+            return null;
+        }
+    };
+    public static final String preLabelID = "\\Pre";
+    public static final LabelKind preLabelKind = new LabelKind(preLabelID);
+    public static final String oldLabelID = "\\Old";
+    public static final LabelKind oldLabelKind = new LabelKind(oldLabelID);
+    public static final String hereLabelID = "\\Here";
+    public static final LabelKind hereLabelKind = new LabelKind(hereLabelID);
 }
 

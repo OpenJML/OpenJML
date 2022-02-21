@@ -25,15 +25,15 @@ public class AssignableClauseExtension extends JmlExtension {
     public static final String capturesID = "captures";
     
     public static final IJmlClauseKind assignableClauseKind = new LocationSetClauseType(assignableID) {
-        public String name() { return assignableID; }
+        public String keyword() { return assignableID; }
     };
     
-    public static final IJmlClauseKind accessibleClause = new LocationSetClauseType(accessibleID) {
-        public String name() { return accessibleID; }
+    public static final IJmlClauseKind accessibleClauseKind = new LocationSetClauseType(accessibleID) {
+        public String keyword() { return accessibleID; }
     };
     
-    public static final IJmlClauseKind capturesClause = new LocationSetClauseType(capturesID) {
-        public String name() { return capturesID; }
+    public static final IJmlClauseKind capturesClauseKind = new LocationSetClauseType(capturesID) {
+        public String keyword() { return capturesID; }
     };
     
     static {
@@ -41,7 +41,7 @@ public class AssignableClauseExtension extends JmlExtension {
         synonym("assigns",assignableClauseKind);
         synonym("writes",assignableClauseKind);
         synonym("modifiable",assignableClauseKind);
-        synonym("reads",accessibleClause);
+        synonym("reads",accessibleClauseKind);
     }
     
     public static class LocationSetClauseType extends IJmlClauseKind.MethodSpecClauseKind {
@@ -61,13 +61,14 @@ public class AssignableClauseExtension extends JmlExtension {
             int pp = parser.pos();
             
             parser.nextToken();
+            var n = parser.parseOptionalName();
 
             List<JCExpression> list = List.<JCExpression>nil();
             if (parser.token().kind == SEMI) {
                 parser.syntaxError(parser.pos(), null, "jml.use.nothing.assignable"); // FIXME - fix to use keyword
                 parser.nextToken(); // skip over the SEMI
             } else {
-                list = parser.parseLocationList();
+                try { list = parser.parseLocationList(); } catch (Exception e) { System.out.println("EXC " + e); }
                 if (parser.token().kind == SEMI) {
                     // OK, go on
                 } else if (parser.jmlTokenKind() == ENDJMLCOMMENT) {
@@ -84,6 +85,7 @@ public class AssignableClauseExtension extends JmlExtension {
                 }
             }  // FIXME - fix the above; cf loop_writes
             var cl = parser.maker().at(pp).JmlMethodClauseStoreRef(keyword, clauseType, list);
+            cl.name = n;
             wrapup(cl, clauseType, false, false);
             return cl;
         }

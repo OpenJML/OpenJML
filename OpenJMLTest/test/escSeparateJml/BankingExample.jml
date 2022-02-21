@@ -1,7 +1,7 @@
 
 public class BankingExample {
 	
-	//@ non_null;
+	//@ non_null
 	public static final int MAX_BALANCE;
 	
 	private /*@ spec_public @*/ int balance;

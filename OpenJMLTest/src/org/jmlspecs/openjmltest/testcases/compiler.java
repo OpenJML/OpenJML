@@ -782,19 +782,21 @@ public class compiler {
                             "test/model1/ModelClassExampleBugSub2.java"
                           },1,0
                           ,""
-                          ,"test/model1/ModelClassExampleBugSub.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
-                           "    public static class SIndexedContents extends ModelClassExampleBug<E>.SContents { // ERROR" + eol +
-                           "                                                                      ^" + eol +
-                           "test/model1/ModelClassExampleBugSub2.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
-                           "        public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR" + eol +
-                           "                                                                                 ^" + eol +
-                           "test/model1/ModelClassExampleBugSub.java:9: error: cannot select a static class from a parameterized type" + eol +
-                           "    public static class SIndexedContents extends ModelClassExampleBug<E>.SContents { // ERROR" + eol +
-                           "                                                                        ^" + eol +
-                           "test/model1/ModelClassExampleBugSub2.java:9: error: cannot select a static class from a parameterized type" + eol +
-                           "        public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR" + eol +
-                           "                                                                                   ^" + eol +
-                           "4 errors" + eol
+                          ,"""
+                           test/model1/ModelClassExampleBugSub.java:9: error: non-static type variable E cannot be referenced from a static context
+                               public static class SIndexedContents extends ModelClassExampleBug<E>.SContents { // ERROR
+                                                                                                 ^
+                           test/model1/ModelClassExampleBugSub2.java:9: error: non-static type variable E cannot be referenced from a static context
+                                   public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR
+                                                                                                            ^
+                           test/model1/ModelClassExampleBugSub.java:9: error: cannot select a static class from a parameterized type
+                               public static class SIndexedContents extends ModelClassExampleBug<E>.SContents { // ERROR
+                                                                                                   ^
+                           test/model1/ModelClassExampleBugSub2.java:9: error: cannot select a static class from a parameterized type
+                                   public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR
+                                                                                                              ^
+                           4 errors
+                           """
                           );
     }
 

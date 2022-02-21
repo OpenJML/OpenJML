@@ -35,10 +35,10 @@ public class StrongarmBase extends EscBase {
 	//args.add("-verbose");
 	//args.add("-progress");
 	if (new File(sourceDirname).isDirectory())
-	    args.add("-dir");
+	    args.add("--dir");
 	args.add(sourceDirname);
 	if (solver != null)
-	    args.add("-prover=" + solver);
+	    args.add("--prover=" + solver);
 	addOptionsToArgs(options, args);
 	args.addAll(Arrays.asList(opts));
 	return args;
