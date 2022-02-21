@@ -12,12 +12,10 @@ public class Linked<W> {
     //@ public represents size = ((next == null) ? (\bigint)0 : 1 + next.size);
     //@ public invariant values.size() == size;
     //@ public invariant links.size() == size;
-    // @ public invariant !links.contains(this);
+    //@ public invariant !links.contains(this);
     
-    // @ model public JMLDataGroup links;
-        
     //@ nullable
-    public Linked<W> next;//@ in size, values, links; // @ maps next.values \into values; maps next.size \into size;
+    public Linked<W> next;//@ in size, values, links; //@ maps next.values \into values; maps next.size \into size; maps next.links \into links;
     //@ nullable
     public W value; //@ in values;
     
@@ -41,55 +39,41 @@ public class Linked<W> {
     }
     
     //@ public normal_behavior
-    //@   old \bigint oldsize = this.size;
-    //@   old seq<W> oldvalues = this.values;
-    //@   old seq<Linked<W>> oldlinks = this.links;
-    //@   assignable size, values, links;
+    //@   assignable this.size, values, links;
     //@   ensures \fresh(this.next);
     //@   ensures this.next.value == t;
     //@   ensures this.next.next == \old(this.next);
-    //@   ensures this.size == oldsize + 1;
-    //@   ensures this.values.equals(oldvalues.prepend(t));
-    //@   ensures this.links.equals(oldlinks.prepend(this.next));
+    //@   ensures this.size == \old(size) + 1;
+    //@   ensures this.values.equals(\old(values).prepend(t));
+    //@   ensures this.links.equals(\old(links).prepend(this.next));
     public void push(W t) {
-        //@ assume !links.contains(this);
         Linked v = new Linked(t, next);
-        //@ assert !this.links.contains(v);
         this.next = v;
-        //@ assert !links.contains(this);
     }
     
     //@ public normal_behavior
     //@   requires next != null;
-    //@   old \bigint oldsize = this.size;
-    //@   old seq<W> oldvalues = this.values;
-    //@   old seq<Linked<W>> oldlinks = this.links;
     //@   assignable size, values, links;
     //@   ensures next == \old(next.next);
-    //@   ensures this.size == oldsize - 1;
-    //@   ensures this.values.equals(oldvalues.tail(1));
-    //@   ensures this.links.equals(oldlinks.tail(1));
+    //@   ensures this.size == \old(size) - 1;
+    //@   ensures this.values.equals(\old(values).tail(1));
+    //@   ensures this.links.equals(\old(links).tail(1));
     public void pop() {
-        //@ assume !links.contains(this);
         this.next = this.next.next;
-        //@ assert !links.contains(this);
     }
     
     //@ public normal_behavior
     //@   requires 0 <= n < this.size;
-    //@   old \bigint oldsize = this.size;
-    //@   old seq<W> oldvalues = this.values;
     //@   assignable size, values, links;
     //@   ensures n == 0 ==> next == \old(next.next);
     //@   ensures n > 0 ==> next == \old(next);
-    //@   ensures this.size == oldsize - 1;
-    //@   ensures this.values.equals(oldvalues.tail(1));
+    //@   ensures this.size == \old(this.size) - 1;
+    //@   ensures this.values.equals(\old(values).tail(1));
+    // @org.jmlspecs.annotation.Options("--check-feasibility=none")  // FIXME - sometime works, sometimes times out
     public void remove(int n) {
-        //@ assert this.next != null;
         if (n == 0) {
             this.next = this.next.next;
         } else {
-            //@ halt;
             this.next.remove(n-1);
         }
     }

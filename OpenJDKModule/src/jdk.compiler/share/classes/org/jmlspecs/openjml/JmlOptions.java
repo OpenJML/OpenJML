@@ -243,7 +243,15 @@ public class JmlOptions extends Options {
         } else if (JmlOption.DIR.optionName().equals(s) || JmlOption.DIRS.optionName().equals(s)
                                 || s.equals("-dir") || s.equals("-dirs")) {
             if (s.startsWith("-d")) { // This is here just to accommodate the old single-hyphen style
-                Utils.instance(context).warning("jml.message", "Use option -" + s + " instead of " + s);
+                Utils.instance(context).warning("jml.message", "Option " + s + " is deprecated in favor"
+                    + ""
+                    + ""
+                    + ""
+                    + ""
+                    + ""
+                    + ""
+                    + ""
+                    + "****** of " + s);
                 s = "-" + s;
             }
             java.util.List<File> todo = new LinkedList<File>();
