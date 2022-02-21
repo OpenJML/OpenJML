@@ -1,0 +1,33 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.doA(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.doA(int) with prover !!!! - no warnings
+Starting proof of Test.test1(int,int) with prover !!!!
+test/gitbug764/Test.java:7: warning: The prover cannot establish an assertion (Postcondition) in method test1
+  public void test1(int x, int y) {  }
+              ^
+test/gitbug764/Test.java:6: warning: Associated declaration
+  //@ ensures doA(x) == doA(y);
+      ^
+Completed proof of Test.test1(int,int) with prover !!!! - with warnings
+Starting proof of Test.test2(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.test2(int,int) with prover !!!! - no warnings
+Starting proof of Test.test3(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.test3(int,int) with prover !!!! - no warnings
+Starting proof of Test.test4(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.test4(int,int) with prover !!!! - no warnings
+Completed proving methods in Test
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+2 warnings
