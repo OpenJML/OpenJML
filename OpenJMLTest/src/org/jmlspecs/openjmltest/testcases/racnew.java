@@ -172,7 +172,7 @@ public class racnew extends RacBase {
 //    }
     
     @Test public void testNonnullPrecondition() {
-        main.addOptions("-racShowSource=source");
+        main.addOptions("--rac-show-source=source");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n" + 
                 "public static void main(String[] args) { \n" +
                 " m(null,1); \n" +
@@ -1346,7 +1346,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testInvariant() { 
-        main.addOptions("-racShowSource=source");
+        main.addOptions("--rac-show-source=source");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ public invariant i == 0;\n"
                 +"public void m(); \n"
@@ -2374,7 +2374,7 @@ public class racnew extends RacBase {
                 +"//@ public constraint \\duration(true) == 0;\n"
                 +"//@ public initially \\duration(true) == 0;\n"
                 +"public static void main(String[] args) { \n"
-                +"    //@ hence_by true; \n"
+                +"     \n"
                 +"    //@ assert \\duration(true) == 0;\n"
                 +"    //@ assume \\duration(true) == 0;\n"
                 +"    //@ ghost long k = \\duration(true);\n"
@@ -2396,7 +2396,6 @@ public class racnew extends RacBase {
                 +"}"
                 ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",31
                 ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",31
-                ,"/tt/A.java:9: Note: Not implemented for runtime assertion checking: hence_by statement",9
                 ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration",25
                 ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: assume statement containing \\duration",25
                 ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",33

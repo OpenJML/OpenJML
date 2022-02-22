@@ -166,10 +166,10 @@ public class JmlOption {
     public static final JmlOption QUIET = new JmlOption("--quiet",false,null,"Only output warnings and errors","--verboseness="+Utils.QUIET);
     public static final JmlOption NORMAL = new JmlOption("--normal",false,null,"Limited output","--verboseness="+Utils.NORMAL);
     public static final JmlOption PROGRESS = new JmlOption("--progress",false,null,"Shows progress through compilation phases","--verboseness="+Utils.PROGRESS);
-    public static final JmlOption SKIPPED = new JmlOption("--skipped",false,true,"Shows methods whose proofs are skipped",null);
+    public static final JmlOption SHOW_SKIPPED = new JmlOption("--show-skipped",false,true,"Shows methods whose proofs are skipped",null);
     public static final JmlOption JMLVERBOSE = new JmlOption("--jmlverbose",false,false,"Like --verbose, but only jml information and not as much","--verboseness="+Utils.JMLVERBOSE);
     public static final JmlOption JMLDEBUG = new JmlOption("--jmldebug",false,false,"When on, the program emits lots of output (includes --progress)","--verboseness="+Utils.JMLDEBUG);
-    public static final JmlOption SHOW_OPTIONS = new JmlOption("--show-options",true, "none","When enabled, the values of options and properties are printed, for debugging",null);
+//    public static final JmlOption SHOW_OPTIONS = new JmlOption("--show-options",false, "none","When enabled, the values of options and properties are printed, for debugging",null);
 
     // Internal use only
     public static final JmlOption JMLTESTING = new JmlOption("-jmltesting",false,false,"Only used to generate tracing information during testing",null) {

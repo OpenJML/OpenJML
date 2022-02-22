@@ -1,0 +1,2 @@
+FULLCMD="openjml --esc @test/optionfile/options"
+EXIT=6

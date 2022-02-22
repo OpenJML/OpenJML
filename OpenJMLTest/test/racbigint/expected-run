@@ -1,20 +1,20 @@
 OUT:
-test/racbigint/bigint.java:25: JML assertion is false
+test/racbigint/bigint.java:25: verify: JML assertion is false
         //@ assert b == zero;
             ^
 LABEL BBB = -420
 LABEL XX = 1234567890123456789012345678900
 java.lang.ArithmeticException: BigInteger divide by zero
-	at java.math.MutableBigInteger.divideKnuth(MutableBigInteger.java:1179)
-	at java.math.BigInteger.divideKnuth(BigInteger.java:2108)
-	at java.math.BigInteger.divide(BigInteger.java:2089)
-	at org.jmlspecs.utils.Utils.bigint_div(Utils.java:633)
+	at java.base/java.math.MutableBigInteger.divideKnuth(MutableBigInteger.java:1178)
+	at java.base/java.math.BigInteger.divideKnuth(BigInteger.java:2300)
+	at java.base/java.math.BigInteger.divide(BigInteger.java:2281)
+	at java.base/org.jmlspecs.runtime.Utils.bigint_div(Utils.java:645)
 	at bigint.main(bigint.java:35)
 java.lang.ArithmeticException: BigInteger divide by zero
-	at java.math.MutableBigInteger.divideKnuth(MutableBigInteger.java:1179)
-	at java.math.BigInteger.divideKnuth(BigInteger.java:2108)
-	at java.math.BigInteger.divide(BigInteger.java:2089)
-	at org.jmlspecs.utils.Utils.bigint_div(Utils.java:633)
+	at java.base/java.math.MutableBigInteger.divideKnuth(MutableBigInteger.java:1178)
+	at java.base/java.math.BigInteger.divideKnuth(BigInteger.java:2300)
+	at java.base/java.math.BigInteger.divide(BigInteger.java:2281)
+	at java.base/org.jmlspecs.runtime.Utils.bigint_div(Utils.java:645)
 	at bigint.main(bigint.java:40)
 LABEL BBB = -417
 true

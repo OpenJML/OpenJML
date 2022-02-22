@@ -122,8 +122,7 @@ echo "import org.jmlspecs.annotation.*; public class D { @Pure public static voi
 ${RTH} testOK1 "$OJ -noPurityCheck --specs-path . B.java" || RES=$(($RES+1))
 
 ## rac
-##RUNRAC=
-if [[ ! -z ${RUNRAC+z} ]] ; then
+
 rm -rf rac
 mkdir -p rac
 ${RTH} testRac "$OJ --rac --rac-show-source=line -noPurityCheck -d rac -classpath ../testfiles/testRac --specs-path ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
@@ -152,7 +151,7 @@ echo RAC-ST with openjml-java
 ${JV} -classpath "rac" -Dorg.jmlspecs.openjml.racshowstack A 1 2 > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack-openjml || { RES=$(($RES+1)); }
 
-${RTH} testRac "$OJ -rac -racShowSource=source -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ --rac --rac-show-source=source -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
 echo RAC-SIMPLE with source
 java -classpath "rac${Z}${RT}" A 1 2  > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' | diff - ../releaseTests/testRac/expected-simple-source || { RES=$(($RES+1)); }
@@ -162,7 +161,6 @@ echo RAC java with annotations
 java -cp rac D > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' | diff - ../releaseTests/testRac/expected-annotations || { RES=$(($RES+1)); }
 
-fi
 
 ## This checks verbose output - which changes too often to put in the 
 ## regular test suite

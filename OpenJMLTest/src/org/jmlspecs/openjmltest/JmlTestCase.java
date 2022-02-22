@@ -122,7 +122,7 @@ public abstract class JmlTestCase {
     
     // Set in some testcase classes to ignore Notes reported by the tool. Set the value
     // before calling super.setUp()
-    public boolean ignoreNotes = true;
+    public boolean ignoreNotes = false;
 
     /** A Diagnostic Listener that collects the diagnostics, so that they can be compared against expected results */
     final public static class FilteredDiagnosticCollector<S> implements DiagnosticListenerX<S> {
@@ -154,7 +154,13 @@ public abstract class JmlTestCase {
             if (print) System.out.println(diagnostic.toString());
             //((JCDiagnostic)diagnostic).setFormatter(Log.instance(context).getDiagnosticFormatter());
             //if (print) System.out.println(diagnostic.toString());
-           if (!noNotes || diagnostic.getKind() != Diagnostic.Kind.NOTE ||
+            String diagString = diagnostic.toString();
+            boolean unreportedNote = (diagnostic.getKind() == Diagnostic.Kind.NOTE) && 
+                                    (diagString.contains("-Xlint:unchecked") || 
+                                     diagString.contains("use unchecked or unsafe") ||
+                                     diagString.contains("Note: Some messages have been simplified")
+                                    );
+            if (!unreportedNote) if (!noNotes || diagnostic.getKind() != Diagnostic.Kind.NOTE ||
             		diagnostic.getMessage(java.util.Locale.getDefault()).contains("Associated"))
                 diagnostics.add(diagnostic);
         }
@@ -451,7 +457,7 @@ public abstract class JmlTestCase {
     	// This ought to match the format being used, but only does so manually
     	var f = dd.getFormatter();
     	var l = java.util.Locale.getDefault();
-    	String src = dd.getDiagnosticSource() == null ? "" : (f.formatSource(dd,true,l) + ":");
+    	String src = (dd.getDiagnosticSource() == null || dd.getSource() == null) ? "" : (f.formatSource(dd,true,l) + ":");
     	String ln = dd.getLineNumber() == Position.NOPOS ? "" : (dd.getLineNumber() + ":" );
     	String sp = src.isEmpty() && ln.isEmpty() ? "" : " ";
         return src + ln + sp + dd.getPrefix() + dd.getMessage(l);
