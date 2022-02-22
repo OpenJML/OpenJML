@@ -3241,9 +3241,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Attributes invariant, axiom, initially clauses */
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree) {
     	var check = jmlenv = jmlenv.pushCopy();
+    	try {
     	jmlenv.inPureEnvironment = true;
     	tree.clauseType.typecheck(this, tree, env);
-    	jmlenv = jmlenv.pop(check);
+    	} catch (Exception e) {
+    	    utils.unexpectedException("Typechecking clause: " + tree, e);
+    	    throw e;
+    	} finally {
+    	    jmlenv = jmlenv.pop(check);
+    	}
     }
     
     public Name getAnnotationStringArg(JCAnnotation a) {
@@ -4437,7 +4443,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         				utils.error(lhs, "jml.message", "The LHS in a set statement must be a ghost variable");
         			}
         		} else if (expr instanceof JCAssignOp) {
-        			JCExpression lhs = ((JCAssign)expr).lhs;
+        			JCExpression lhs = ((JCAssignOp)expr).lhs;
         			if (!isGhost(lhs)) {
         				utils.error(lhs, "jml.message", "The LHS in a set statement must be a ghost variable");
         			}
@@ -5989,7 +5995,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // Compare tsym instead of just the thpe because the
                 // exprtype is likely a Class<T> and syms.classType is a Class
                 // or Class<?>
-                if (exprtype.tsym == syms.classType.tsym) {
+                if (exprtype.tsym == syms.classType.tsym || exprtype.tsym.toString().contains("IJMLTYPE")) { // FIXME - better test for IJMLTYPE here
                     result = check(tree, clazztype, KindSelector.VAL, resultInfo);
                 } else {
                     log.error(tree.expr.pos,"jml.only.class.cast.to.type",exprtype);
@@ -7949,6 +7955,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     public void attrSpecs(VarSymbol vsym) {
     	var savedEnv = this.env;
+    	if (vsym.enclClass() == null) System.out.println("NULL CSYM " + vsym);
 		TypeSpecs cspecs = specs.getLoadedSpecs((ClassSymbol)vsym.enclClass());
 		FieldSpecs fspecs = specs.getLoadedSpecs(vsym);
 		if (debugAttr) System.out.println("Attributing specs for " + vsym.owner + " " + vsym + " " + (fspecs != null));

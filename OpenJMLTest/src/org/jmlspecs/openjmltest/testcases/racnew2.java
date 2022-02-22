@@ -650,7 +650,7 @@ public class racnew2 extends RacBase {
     /** Tests a bad cast */
     @Test public void testTypeCast2() {
         expectedRACExit = 1;
-        main.addOptions("-racShowSource=source");
+        main.addOptions("--rac-show-source=source");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean i = Boolean.TRUE; \n" +
                 "  Object o = i; \n" +
@@ -826,7 +826,7 @@ public class racnew2 extends RacBase {
     
     /** A misc early test case for lbl expressions */
     @Test public void testLabel() {
-        main.addOptions("-racShowSource=source");
+        main.addOptions("--rac-show-source=source");
         helpTCX("tt.TestJava","package tt; public class TestJava { /*@ assignable \\everything; */ public static void main(String[] args) { \n" +
                 " m(1); m(0); \n" +
                 " System.out.println(\"END\"); } static public int k = 0; \n" +

@@ -41,7 +41,7 @@ public class racfeatures extends RacBase {
     
     public void helpFeature(String n, String ... options) {
         helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/racfeatures/"+n,"features."+n, options);
-        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/racfeatures/"+n+"R","features."+n, "-racJavaChecks");
+        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/racfeatures/"+n+"R","features."+n, "--rac-java-checks");
     }
     
     

@@ -239,7 +239,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public IProverResult markMethodSkipped(JmlMethodDecl methodDecl, String reason) {
-        if (JmlOption.isOption(context, JmlOption.SKIPPED)) utils.progress(1,1,"Skipping proof of " + utils.abbrevMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$
+        if (JmlOption.isOption(context, JmlOption.SHOW_SKIPPED)) utils.progress(1,1,"Skipping proof of " + utils.abbrevMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$
         
         // FIXME - this is all a duplicate from MethodProverSMT
         IProverResult.IFactory factory = new IProverResult.IFactory() {

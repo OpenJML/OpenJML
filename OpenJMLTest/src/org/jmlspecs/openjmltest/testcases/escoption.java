@@ -177,7 +177,7 @@ public class escoption extends EscBase {
     
     @Test
     public void testSkipped() {
-    	main.addOptions("-progress","-skipped","-method=bassert","-exclude=tt.TestJava.bassert(boolean,boolean)","-checkFeasibility=none");
+    	main.addOptions("-progress","--show-skipped","-method=bassert","-exclude=tt.TestJava.bassert(boolean,boolean)","-checkFeasibility=none");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
@@ -211,7 +211,7 @@ public class escoption extends EscBase {
     
     @Test
     public void testNoSkipped() {
-    	main.addOptions("-progress","-no-skipped","-method=bassert","-exclude=tt.TestJava.bassert(boolean,boolean)","-checkFeasibility=none");
+    	main.addOptions("-progress","--no-show-skipped","-method=bassert","-exclude=tt.TestJava.bassert(boolean,boolean)","-checkFeasibility=none");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
@@ -242,7 +242,7 @@ public class escoption extends EscBase {
     
     @Test
     public void testSkippedDefault() {
-    	main.addOptions("-progress","-method=bassert","-exclude=tt.TestJava.bassert(boolean,boolean)","-checkFeasibility=none");
+    	main.addOptions("-progress","--method=bassert","--exclude=tt.TestJava.bassert(boolean,boolean)","--check-feasibility=none");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"

@@ -1,0 +1,4 @@
+test/optionfile/Test.java:4: verify: The prover cannot establish an assertion (Assert) in method m
+    //@ assert false;
+        ^
+1 verification failure
