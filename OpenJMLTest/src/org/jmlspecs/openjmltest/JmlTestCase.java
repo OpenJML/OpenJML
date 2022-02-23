@@ -59,6 +59,8 @@ import com.sun.tools.javac.util.Position;
  */
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public abstract class JmlTestCase {
+    
+    public boolean jmltesting =  true;
 
     // The test output expects that the current working directory while running unittests is  .../OpenJML/OpenJMLTest
 

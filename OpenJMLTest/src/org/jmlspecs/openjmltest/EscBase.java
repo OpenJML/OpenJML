@@ -216,7 +216,7 @@ public abstract class EscBase extends JmlTestCase {
     			System.out.println(diffs);
     			fail("Files differ: " + diffs);
     		}  
-    		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex);
+    		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex + " expected " + expectedExit);
     		new File(actCompile).delete();
 
     	} catch (Exception e) {
@@ -257,7 +257,7 @@ public abstract class EscBase extends JmlTestCase {
     			System.out.println(diffs);
     			fail("Files differ: " + diffs);
     		}  
-    		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex);
+    		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex + " expected " + expectedExit);
     		new File(actCompile).delete();
 
     	} catch (Exception e) {
@@ -333,8 +333,8 @@ public abstract class EscBase extends JmlTestCase {
         	synchronized (System.out) { 
         		if (print) printDiagnostics();
         		outputCompare.compareResults(expectedResults,collector);
-                        if (expectedExit == 0) for (Object er: expectedResults) if (er.toString().contains(": verify:")) expectedExit = 6;
-        		if (ex != expectedExit) fail("Compile ended with exit code " + ex);
+                if (jmltesting && expectedExit == 0) for (Object er: expectedResults) if (er.toString().contains(": verify:")) expectedExit = 6;
+        		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex + " expected " + expectedExit);
         	}
         } catch (Exception e) {
         	synchronized (System.out) { 
