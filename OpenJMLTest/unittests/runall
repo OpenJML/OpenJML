@@ -26,7 +26,7 @@ wt
 ./run-summary log-esc2     	"109/0" esc2  &
 #./run-summary log-escarith+ 	"56/17" escArithmeticModes escArithmeticModes2  &
 ./run-summary log-escbv     	"12/0"  escbitvector  &
-./run-summary log-escConst+ 	"68/0"  escConstantFields escCounterexamples escaccessible esccode escconstructor  &
+./run-summary log-escConst+ 	"68/0"  escConstantFields escCounterexamples escaccessible esccode escconstructor exitcode  &
 wt
 ./run-summary log-escall2   	"30/0"  escall2   &
 ./run-summary log-escall3   	"55/0"  escall3   &

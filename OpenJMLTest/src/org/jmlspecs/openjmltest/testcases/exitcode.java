@@ -1,6 +1,8 @@
 package org.jmlspecs.openjmltest.testcases;
 
 import java.util.Collection;
+import com.sun.tools.javac.main.Option;
+import com.sun.tools.javac.util.Options;
 
 import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Assume;
@@ -48,7 +50,7 @@ public class exitcode extends EscBase {
     @Test
     public void testWerror() {
         main.addOptions("-Werror");
-        expectedExit = 0; // FIXME  -should be 1
+        expectedExit = 1;
         helpTCX("tt.TestJava","package tt; \n"
                 +"class X { public void m() {} } public class TestJava extends X { \n"
                                 // Need something that causes a warning -- here a missing also
@@ -56,6 +58,7 @@ public class exitcode extends EscBase {
                 +"  public void m() {  }\n"
                 +"}"
                 ,"/tt/TestJava.java:3: warning: Method m overrides parent class methods and so its specification should begin with 'also' (tt.TestJava.m() overrides tt.X.m())",7
+                ,"/tt/TestJava.java: error: warnings found and -Werror specified",-1
         );
 
     }
@@ -76,7 +79,7 @@ public class exitcode extends EscBase {
     @Test
     public void testWerrorVerify2() {
         main.addOptions("-Werror","--verify-exit=0");
-        expectedExit = 0; // FIXME - should be 1
+        expectedExit = 1;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava  { \n"
                 +"  public void m() { /*@ assert false; */} \n"
@@ -89,6 +92,18 @@ public class exitcode extends EscBase {
     public void testVerifyExit() {
         main.addOptions("--verify-exit=0");
         expectedExit = 0;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava  { \n"
+                +"  public void m() { /*@ assert false; */} \n"
+                +"}"
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (Assert) in method m",25
+        );
+    }
+    
+    @Test
+    public void testVerifyExit2() {
+        main.addOptions("--verify-exit=1");
+        expectedExit = 1;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava  { \n"
                 +"  public void m() { /*@ assert false; */} \n"

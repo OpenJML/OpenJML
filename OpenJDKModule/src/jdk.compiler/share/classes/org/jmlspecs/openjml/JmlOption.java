@@ -40,7 +40,6 @@ public class JmlOption {
     // Arguments: option as on CL; true=1 argument, false=0 args; help string
     public static final JmlOption DIR = new JmlOption("--dir",true,null,"Process all files, recursively, within this directory",null);
     public static final JmlOption DIRS = new JmlOption("--dirs",true,null,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)",null);
-    public static final JmlOption ENDOPTIONS = new JmlOption("--",false,null,"Terminates option processing - all remaining arguments are files",null);  // FIXME - fix or remove
     public static final JmlOption KEYS = new JmlOption("--keys",true,"","Identifiers for optional JML comments",null);
     public static final JmlOption COMMAND = new JmlOption("--command",true,"check","The command to execute (check,esc,rac,compile)",null) {
     	public boolean check(Context context, boolean negate) {

@@ -157,10 +157,12 @@ public class JmlOptions extends Options {
     //@ ensures \result > i;
     void processJmlArg(Iterator<String> iter, /*@non_null*/ Options options, /*@ non_null */ java.util.List<String> remainingArgs, /*@ non_null */ java.util.List<String> files ) {
         String arg = iter.next();
-        if (arg == null) return; // Allow but remove null arguments
+        if (arg == null) {
+            return; // Allow but remove null arguments
+        }
         if (arg.isEmpty()) {
             remainingArgs.add(arg);
-            return;
+            return;// Allow empty arguments (Pass them on to Java argument processing)
         }
 
         String s = arg;
@@ -169,11 +171,7 @@ public class JmlOptions extends Options {
         }
 
         boolean negate = false;
-        if (s.startsWith("-no-")) {
-            negate = true;
-            s = s.replace("-no","");
-        }
-        if (s.startsWith("--no-")) {
+        if (s.startsWith("--no-")|| s.startsWith("-no-")) {
             negate = true;
             s = s.replace("-no","");
         }
@@ -243,15 +241,7 @@ public class JmlOptions extends Options {
         } else if (JmlOption.DIR.optionName().equals(s) || JmlOption.DIRS.optionName().equals(s)
                                 || s.equals("-dir") || s.equals("-dirs")) {
             if (s.startsWith("-d")) { // This is here just to accommodate the old single-hyphen style
-                Utils.instance(context).warning("jml.message", "Option " + s + " is deprecated in favor"
-                    + ""
-                    + ""
-                    + ""
-                    + ""
-                    + ""
-                    + ""
-                    + ""
-                    + "****** of " + s);
+                Utils.instance(context).warning("jml.message", "Option " + s + " is deprecated in favor of -" + s);
                 s = "-" + s;
             }
             java.util.List<File> todo = new LinkedList<File>();
@@ -275,6 +265,7 @@ public class JmlOptions extends Options {
                     String ss = file.toString();
                     if (utils.hasJavaSuffix(ss)) files.add(ss); // FIXME - if we allow .jml files on the command line, we have to guard against parsing them twice
                 } else {
+                    // FIXME - won't the shell have expanded any wild-card expressions?
                     try {
                         String glob = file.toString();
                         final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(

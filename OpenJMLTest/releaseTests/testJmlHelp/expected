@@ -69,7 +69,6 @@ Java options:
 JML options:
   --dir                      Process all files, recursively, within this directory
   --dirs                     Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)
-  --                         Terminates option processing - all remaining arguments are files
   --keys                     Identifiers for optional JML comments
   --command                  The command to execute (check,esc,rac,compile)
   --check                    Does a JML syntax check [--command=check]

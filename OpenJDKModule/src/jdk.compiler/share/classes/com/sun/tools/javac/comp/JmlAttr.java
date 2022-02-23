@@ -413,6 +413,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
         	// Loading the specs makes sure that modifiers are present when nested declarations are attributed
         	JmlSpecs.instance(context).getLoadedSpecs(c);
+        	//if (c.toString().contains("Collection")) System.out.println("ATTRCLASS " + c + " " + specs.status(c) + " " + isUnattributed + " " + typeEnvs.get(c) );
         	super.attribClass(c);
 
             specs.getAttrSpecs(c); // if not yet attributed, attribute the specs // FIXME - not needed
@@ -4185,6 +4186,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	return ((JCFieldAccess)e).sym;
     }
     
+    boolean alreadyReported = false;
     /** This is overridden to check that if we are in a pure environment,
      * the method is declared pure.  Also to make sure any specs are attributed.
      */
@@ -4208,7 +4210,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // The class has type parameters but the method does not.
             // So we report an error if no errors were reported in the super.visitApply call.
             // FIXME - also should figure out how to report the original error message and location
-            utils.error(tree,  "jml.message", "Failed to find a type for " + tree + " " + tree.type + " " + result + " " + ((Type.ErrorType)result).getOriginalType());
+            utils.error(tree,  "jml.message", "Failed to find a type for " + tree + " " + tree.type + " " + result );
             String msg = tree.meth instanceof JCFieldAccess fa ? ("    Receiver = " + fa.type ) : "    ";
             for (var a: tree.args) { msg += (" ARG: " + a + " " + a.type); }
             utils.error(tree, "jml.message", msg);
