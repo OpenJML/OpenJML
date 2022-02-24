@@ -2,6 +2,4 @@ test/linkedBug/Linked.java:46: error: Failed to find a type for oldlinks.prepend
     //@   ensures this.links.equals(oldlinks.prepend(this.next));
                                                     ^
 Operation not performed because of parse or type errors
-Note: Some input files use unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
 1 error

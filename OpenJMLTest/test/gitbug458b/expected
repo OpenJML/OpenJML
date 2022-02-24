@@ -2,6 +2,4 @@ test/gitbug458b/Allocator.jml:9: error: Parameter names in a specification file 
 	public static byte[] alloc(int sizeXYZ);
 	                               ^
 Operation not performed because of parse or type errors
-Note: Some input files use unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
 1 error

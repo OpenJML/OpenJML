@@ -40,6 +40,4 @@ test/gitbug634/Test.java:54: warning: Associated declaration
           ^
 Completed proof of Test.bad3() with prover !!!! - with warnings
 Completed proving methods in Test
-Note: Some input files use unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
 6 warnings

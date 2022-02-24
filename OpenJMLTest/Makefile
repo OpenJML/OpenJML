@@ -9,10 +9,12 @@ ROOT=${mkfile_dir}
 
 openjml-test: prep
 	make release-tests 
-	make tutorial-tests > log-tutorial-tests
-	( cd ${ROOT}/unittests; source ./runall  )
-	( cd ${ROOT}/scripttests; ./escfiles-sort)
-	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
+	-make tutorial-tests > log-tutorial-tests
+	make unittests-par
+	make scripttests
+
+scripttests: .PHONY
+	( cd ${ROOT}/scripttests; ./escfiles-sort )
 
 openjml-clean:
 	(cd ${ROOT}/../OpenJDKModule; make clean version openjml jmlruntime.jar )
@@ -43,11 +45,11 @@ release-tests:
 	@ echo Running release tests with current development build
 	@ NOZIP= $(ROOT)releaseTests/runtests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 
-unittests-seq:
+unittests-seq: .PHONY
 	@ grep -v sleep ${ROOT}unittests/runall | tr -d '&' > ${ROOT}unittests/runseq
 	@ . $(ROOT)unittests/runseq
 			
-unittests-par:
+unittests-par: .PHONY
 	. $(ROOT)unittests/runall
 			
 ##### The following are debugging tests

@@ -134,6 +134,4 @@ test/escAssigns/Assigns.java:74: warning: Associated declaration
       ^
 Completed proof of Assigns.m7() with prover !!!! - with warnings
 Completed proving methods in Assigns
-Note: Some input files use unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
 36 warnings

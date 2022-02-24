@@ -157,9 +157,9 @@ public abstract class JmlTestCase {
             //((JCDiagnostic)diagnostic).setFormatter(Log.instance(context).getDiagnosticFormatter());
             //if (print) System.out.println(diagnostic.toString());
             String diagString = diagnostic.toString();
-            boolean unreportedNote = (diagnostic.getKind() == Diagnostic.Kind.NOTE) && 
-                                    (diagString.contains("-Xlint:unchecked") || 
-                                     diagString.contains("use unchecked or unsafe") ||
+            boolean unreportedNote = (diagnostic.getKind() == Diagnostic.Kind.NOTE) && (
+//                                    diagString.contains("-Xlint:unchecked") || 
+//                                     diagString.contains("use unchecked or unsafe") ||
                                      diagString.contains("Note: Some messages have been simplified")
                                     );
             if (!unreportedNote) if (!noNotes || diagnostic.getKind() != Diagnostic.Kind.NOTE ||
@@ -288,6 +288,7 @@ public abstract class JmlTestCase {
         	main.addJavaOption("-verbose","true");
         	main.addOptions("-jmlverbose","3");
         }
+        main.addOptions("-Xlint:unchecked");
     }
     
     public void setCollector(boolean ignoreNotes, boolean printDiagnostics) {

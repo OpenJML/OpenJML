@@ -8,6 +8,4 @@ test/rangeTest2/R.java:9: error: Fields of an object with immutable type may not
 //@ immutable pure 
     ^
 Operation not performed because of parse or type errors
-Note: Some input files use unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
 3 errors
