@@ -7,7 +7,7 @@ public class Seq<T> {
     //@ ensures seq.<T>empty().size() == 0;
     //@ model public static <T> void newSeqIsEmpty() {}
     
-    //@ ensures s.add(k).length == 1 + s.length;
+    //@ ensures s.add(k).size == 1 + s.size;
     //@ model public static <T> void addBumpsSize(seq<T> s, T k) {}
     
     //@ ensures s.add(k).size() == 1 + s.size();

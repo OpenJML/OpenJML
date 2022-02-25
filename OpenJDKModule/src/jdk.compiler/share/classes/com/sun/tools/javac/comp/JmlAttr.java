@@ -1100,6 +1100,53 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return r;
     }
 
+//  /** Checks that the jml annotations match Java annotations for annotations not in org.jmlspecs.annotation
+//  * and are a superset of the Java annotations for annotations in org.jmlspecs.annotation) */
+// // MUST HAVE log.useSource set to specs file!
+// protected void checkSameAnnotations(Symbol sym, JCModifiers specsmods, JavaFileObject javaSource) {
+//     // FIXME - check for null in annotations?
+//     if (sym.isAnonymous()) return;
+//     boolean saved1 = JmlPretty.useFullAnnotationTypeName, saved2 = JmlPretty.useJmlModifier;
+//     JmlPretty.useFullAnnotationTypeName = JmlPretty.useJmlModifier = false;
+//     PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
+//     for (Compound a  : sym.getAnnotationMirrors()) {
+//         if (a.type.tsym.owner.equals(p)) {
+//             if (utils.findMod(specsmods,a.type.tsym) == null) {
+//                 JavaFileObject prev = log.useSource(javaSource);
+//                 log.error(specsmods.pos,"jml.java.annotation.superseded",a);
+//                 log.useSource(prev);
+//             }
+//         } else {
+//             if (utils.findMod(specsmods,a.type.tsym) == null && !a.toString().startsWith("@sun")) {
+//                 log.error(specsmods.pos,"jml.missing.annotation",a);
+//             }
+//         }
+//     }
+//     JmlPretty.useFullAnnotationTypeName = saved1; JmlPretty.useJmlModifier = saved2;
+// }
+//
+// /** Checks that the jml annotations are a superset of the Java annotations (for annotations in org.jmlspecs.annotation) */
+// // MUST HAVE log.useSource set to specs file!
+// protected void checkSameAnnotations(JCModifiers javaMods, JCModifiers specsmods, JavaFileObject javaSource) { // FIXME - don't need last argument
+//     PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
+//     boolean saved1 = JmlPretty.useFullAnnotationTypeName, saved2 = JmlPretty.useJmlModifier;
+//     JmlPretty.useFullAnnotationTypeName = JmlPretty.useJmlModifier = false;
+//     for (JCAnnotation a: javaMods.getAnnotations()) {
+//         if (a.type.tsym.owner.equals(p)) {
+//             if (utils.findMod(specsmods,a.type.tsym) == null) {
+//                 JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
+//                 log.error(specsmods.pos,"jml.java.annotation.superseded",a);
+//                 log.useSource(prev);
+//             }
+//         } else {
+//             if (utils.findMod(specsmods,a.type.tsym) == null && !a.toString().startsWith("@sun")) {
+//                 log.error(specsmods.pos,"jml.missing.annotation",a);
+//             }
+//         }
+//     }
+//     JmlPretty.useFullAnnotationTypeName = saved1; JmlPretty.useJmlModifier = saved2;
+// }
+//
 
     
     public VarSymbol currentSecretContext = null;

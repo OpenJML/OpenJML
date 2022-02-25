@@ -8310,7 +8310,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				} else {
 					receiverType = fa.selected.type;
 					convertedReceiver = alreadyConverted ? fa.selected : convertExpr(fa.selected);
-					if (calleeMethodSym.toString().contains("empty")) System.out.println("METHSEL " + that + " " + fa.selected + " " + fa.selected.type + " " + convertedReceiver);
+					//if (calleeMethodSym.toString().contains("empty")) System.out.println("METHSEL " + that + " " + fa.selected + " " + fa.selected.type + " " + convertedReceiver);
 				}
 
 				typeargs = convert(typeargs); // FIXME - should this be translated before or after the receiver, here

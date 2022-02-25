@@ -121,7 +121,6 @@ import com.sun.tools.javac.util.Position;
 public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
     final protected Context context;
-    
     final protected Utils utils;
     final protected JmlEnter enter;
     final protected JmlResolve resolve;
@@ -130,9 +129,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     final protected Symtab syms;
     final protected JmlSpecs specs;
     final protected Log log;
-    //final protected Name modelName;
-    
-    //final public Name org_jmlspecs_lang;
     
     /** True when we are processing declarations that are in a specification file;
      * false when we are in a Java file (even if we are processing specifications)
@@ -146,11 +142,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         this.resolve = JmlResolve.instance(context);
         this.enter = JmlEnter.instance(context);
         this.names = Names.instance(context);
-        //this.org_jmlspecs_lang = names.fromString(Strings.jmlSpecsPackage);
         this.jmlF = JmlTree.Maker.instance(context);
         this.syms = Symtab.instance(context);
         this.specs = JmlSpecs.instance(context);
-        //this.modelName = names.fromString(Modifiers.MODEL.keyword);
         this.log = Log.instance(context);
     }
 
@@ -167,12 +161,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
 
     
-    /** Overridden simply to catch null first arguments.  The super class will crash
-     * but the first argument may be null if we continue after parsing with
-     * input files that contain parse errors.
-     * @param trees
-     * @param env
-     */
     @Override
     // Presumes that the list of trees comes from a class, and that we need to match and enter any JML members
     // env corresponds to the class that owns the list of trees
@@ -186,17 +174,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         
         TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(sourceDecl.sym, specsDecl.specEnv);
 		
-        // FIXME - the specEnv does not have the same outer env (holding the class name)
-		//System.out.println("MEMENTER " + sourceDecl.sym + " " + env + " " + specsDecl.specEnv);
-
-
     	// It would be easier if we could match all the members, and then give a resolved list to super.memberEnter
     	// However, we need attributed methods in order to match them (fields can be done solely by name).
     	super.memberEnter(trees, env); // Entering all the .java declared trees
-    	if (specsDecl == null) { System.out.println("UNEXPECTED NULL SPECSDECL"); return; }
     	if (specsDecl == sourceDecl) {
-            boolean isJML = utils.isSpecFile(sourceDecl.sourcefile);
-    		// The specification file is the .java file
+    	    // Simple case: source and spec file are the same (both are the .java file)
     		// Any duplicates have already been reported
     		boolean hasInstanceInit = false;
     		boolean hasStaticInit = false;
@@ -254,14 +236,18 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     					sourceDecl.defs = sourceDecl.defs.append(specVarDecl);
     					//System.out.println("NEW JML FIELD " + cd.name + " " + specVarDecl.name + " " + specVarDecl.sym + " " + specVarDecl.type + " " + specVarDecl.vartype + " " + specVarDecl.vartype.type );
     				} else {
+    				    // error: ghost or model specification field matches a Java field
 						JmlVariableDecl javaVarDecl = (JmlVariableDecl)match.get();
 						utils.errorAndAssociatedDeclaration(specVarDecl.sourcefile, specVarDecl, javaVarDecl.sourcefile, javaVarDecl, "jml.message", "This JML field declaration conflicts with an existing field with the same name: " + sourceDecl.sym.flatname + "." + specVarDecl.name);
+						ok = false;
     				}
     			} else {
     				// Specification field is a Java declaration (in the .jml file)
     				if (match.isEmpty()) {
+    				    // Error: but there is no match for it
     					utils.error(specVarDecl.sourcefile, specVarDecl, "jml.message", "There is no field to match this Java declaration in the specification file: " + sourceDecl.sym.flatname + "." + specVarDecl.name);
     				} else {
+    				    // There is a matching declaration in the .java file
 						JmlVariableDecl javaVarDecl = (JmlVariableDecl)match.get();
     					if (javaVarDecl.specsDecl == null) {
                         	Type specType = (specVarDecl.vartype.type == null) ? attr.attribType(specVarDecl.vartype, specEnv) : specVarDecl.vartype.type;
@@ -274,8 +260,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     								utils.error(specVarDecl.vartype, "jml.message", msg);
     							}
     							ok = false;
-                       		//utils.error(specVarDecl.sourcefile, specVarDecl, "jml.message", "Mismatched types");
-                        		//utils.error(javaVarDecl.sourcefile, javaVarDecl, "jml.associated.decl.cf", utils.locationString(specVarDecl, specVarDecl.sourcefile));
                         	} else {
                         		javaVarDecl.specsDecl = specVarDecl;
         						specVarDecl.sym = javaVarDecl.sym;
@@ -403,40 +387,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     	//   putSpecs has been called for each legitimate member
     }
     
-    //public boolean dojml = false; // FIXME - can get rid of this.
-    
-//    @Override
-//    public void memberEnter(JCTree tree, Env<AttrContext> env) {
-//        if (tree instanceof JmlTypeClause) return;
-//        super.memberEnter(tree, env);
-//        if (tree instanceof JmlCompilationUnit) {  // FIXME - this is also called with tree being a JmlClassDecl - then nothing is done; also part of the below is done already??
-//            JmlCompilationUnit javacu = (JmlCompilationUnit)tree;
-//            JmlCompilationUnit specscu = javacu.specsCompilationUnit;
-//            // Normally, a Java CU has attached a specs CU, even if it is the same as itself.
-//            // However, memberEnter is called when completing a class symbol to complete the package declaration
-//            // in its top level environment; so for a model class in a specs compilation unit the toplevel is
-//            // the specs compilation unit, which may have a null specscu field
-//            
-//            // FIXME - not sure this is what we want. We need the normal env (without model imports),
-//            // and an env for the specs file (which may be either the .jml or .java file) that includes
-//            // model imports org.jmlspecs.lang and model declarations.
-//            if (specscu != null) {
-//                Env<AttrContext> specenv = specscu.topLevelEnv;
-//                if (specenv == null) specenv = env;
-//                if (specenv != env) importAll(tree.pos, syms.enterPackage(null, names.java_lang), specenv);
-//                super.memberEnter(specscu, specenv);
-//                importAll(tree.pos, syms.enterPackage(null, names.fromString(Strings.jmlSpecsPackage)), specenv);
-//            }
-//        }
-//    }
-
-//    public void visitMethodDef(JCMethodDecl tree) {
-//    	if (!enterJML && utils.isJML(tree.mods.flags)) return;
-//    	super.visitMethodDef(tree);
-//    }
-//
-//        
-//    
     public boolean enterJML = true; // Set to false to just create the sym and type, but not enter or check duplicates
     
     /**  FIXME: still true, useful?:Returns true if there is a duplicate, whether or not it was warned about */
@@ -758,88 +708,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         tsp.modelFieldMethods.append(tcd);
         return mr;
     }
-    
-
-//    /** Checks that the jml annotations match Java annotations for annotations not in org.jmlspecs.annotation
-//     * and are a superset of the Java annotations for annotations in org.jmlspecs.annotation) */
-//    // MUST HAVE log.useSource set to specs file!
-//    protected void checkSameAnnotations(Symbol sym, JCModifiers specsmods, JavaFileObject javaSource) {
-//        // FIXME - check for null in annotations?
-//        if (sym.isAnonymous()) return;
-//        boolean saved1 = JmlPretty.useFullAnnotationTypeName, saved2 = JmlPretty.useJmlModifier;
-//        JmlPretty.useFullAnnotationTypeName = JmlPretty.useJmlModifier = false;
-//        PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
-//        for (Compound a  : sym.getAnnotationMirrors()) {
-//            if (a.type.tsym.owner.equals(p)) {
-//                if (utils.findMod(specsmods,a.type.tsym) == null) {
-//                    JavaFileObject prev = log.useSource(javaSource);
-//                    log.error(specsmods.pos,"jml.java.annotation.superseded",a);
-//                    log.useSource(prev);
-//                }
-//            } else {
-//                if (utils.findMod(specsmods,a.type.tsym) == null && !a.toString().startsWith("@sun")) {
-//                    log.error(specsmods.pos,"jml.missing.annotation",a);
-//                }
-//            }
-//        }
-//        JmlPretty.useFullAnnotationTypeName = saved1; JmlPretty.useJmlModifier = saved2;
-//    }
-//
-//    /** Checks that the jml annotations are a superset of the Java annotations (for annotations in org.jmlspecs.annotation) */
-//    // MUST HAVE log.useSource set to specs file!
-//    protected void checkSameAnnotations(JCModifiers javaMods, JCModifiers specsmods, JavaFileObject javaSource) { // FIXME - don't need last argument
-//        PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
-//        boolean saved1 = JmlPretty.useFullAnnotationTypeName, saved2 = JmlPretty.useJmlModifier;
-//        JmlPretty.useFullAnnotationTypeName = JmlPretty.useJmlModifier = false;
-//        for (JCAnnotation a: javaMods.getAnnotations()) {
-//            if (a.type.tsym.owner.equals(p)) {
-//                if (utils.findMod(specsmods,a.type.tsym) == null) {
-//                    JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
-//                    log.error(specsmods.pos,"jml.java.annotation.superseded",a);
-//                    log.useSource(prev);
-//                }
-//            } else {
-//                if (utils.findMod(specsmods,a.type.tsym) == null && !a.toString().startsWith("@sun")) {
-//                    log.error(specsmods.pos,"jml.missing.annotation",a);
-//                }
-//            }
-//        }
-//        JmlPretty.useFullAnnotationTypeName = saved1; JmlPretty.useJmlModifier = saved2;
-//    }
-//
-//    public void checkFieldMatch(JmlVariableDecl javaField, VarSymbol javaSym, JmlVariableDecl specField) {
-//        if (javaField == specField) return;
-//        // Presume that we can't get here unless the names are the same
-//        JavaFileObject prev = log.currentSourceFile();
-//        log.useSource(specField.sourcefile);
-//
-//        // Check that the modifiers are the same
-//        long javaFlags = javaSym.flags();
-//        long specFlags = specField.mods.flags;
-//        boolean isInterface = (javaFlags & Flags.INTERFACE) != 0;
-//        long diffs = (javaFlags ^ specFlags)&(isInterface? Flags.InterfaceVarFlags : Flags.VarFlags);
-//        if (diffs != 0) {
-//            utils.error(specField.pos(),"jml.mismatched.field.modifiers", specField.name, javaSym.enclClass().getQualifiedName()+"."+javaSym.name,Flags.toString(diffs));  // FIXME - test this
-//        }
-//
-//        // check for no initializer
-//        if (specField.getInitializer() != null && specField != javaField &&
-//                !utils.isJML(specField.mods) && !specField.sym.owner.isEnum()) {
-//            utils.error(specField.getInitializer().pos(),"jml.no.initializer.in.specs",javaSym.enclClass().getQualifiedName()+"."+javaSym.name);
-//        }
-//        
-//        // Match in the types is checked in JmlAttr.checkVarMods
-//
-//// FIXME - attribAnnotations, compare annotations
-//        //  FIXME _ this needs to be implements
-//        // FIXME - what if an annotation is declared within the class?
-//        //            attr.attribAnnotationTypes(javaField.mods.annotations, env);
-//        //            checkSameAnnotations(javaField.mods,specField.mods);
-//
-//        log.useSource(prev);
-//    }
-    
-    
+        
     
     /** Find the method symbol in the class csym that corresponds to the method declared as specMethod;
      * if complain is true, then an error is reported if there is no match.
@@ -1165,15 +1034,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
 
     
-//    VarSymbol findVarMatch(ClassSymbol csym, Name name) {
-//        var e = csym.members().getSymbolsByName(name);  // FIXME - can have variables and methods with the same name
-//        for (Symbol sy: e) {
-//        	if (sy instanceof VarSymbol) return (VarSymbol)sy;
-//        }
-//        return null;
-//    }
-    
-    
      
 //    /** Set in visitiMethodDef so that all chlidren can know which method they are part of */
 //    JmlMethodDecl currentMethod = null;
@@ -1281,12 +1141,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      */
     public boolean inModelTypeDeclaration = false;
     
-//    private boolean isInJml = false;
-//    public boolean setInJml(boolean inJml) {
-//        boolean b = isInJml;
-//        isInJml = inJml;
-//        return b;
-//    }
 
     @Override
     public void visitMethodDef(JCMethodDecl tree) {
@@ -1324,8 +1178,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, WriteableScope enclScope, Env<AttrContext> env, List<JCAnnotation> annotations) {
        	if (tree.sym.owner instanceof ClassSymbol && tree != ((JmlVariableDecl)tree).specsDecl && null != ((JmlVariableDecl)tree).specsDecl) {
-//       		System.out.println("VFDH " + tree.sym + " " + tree.sym.owner + " " + annotations + ":: " + ((JmlVariableDecl)tree).specsDecl.mods.annotations
-//       				+ " " + tree + "::" + ((JmlVariableDecl)tree).specsDecl + " " + tree.hashCode() + "::" + ((JmlVariableDecl)tree).specsDecl.hashCode());
        		annotations = annotations.appendList(((JmlVariableDecl)tree).specsDecl.mods.annotations);
     	}
     	super.visitFieldDefHelper(tree, v, enclScope, env, annotations);
