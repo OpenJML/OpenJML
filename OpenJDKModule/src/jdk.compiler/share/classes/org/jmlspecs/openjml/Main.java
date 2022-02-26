@@ -561,7 +561,13 @@ public class Main extends com.sun.tools.javac.main.Main {
     	return compile(args,context);
     }
     
+    /** Do anything that needs adjustment after options are processed but
+     * before compilation actually begins.
+     */
     public void postOptionProcessing() {
+        // Hnadlers are created during tool registration, which in OpenJML has to be before
+        // options are read. So the handlers have to be adjusted for the options.
+        Check.instance(context).resetHandlers();
     }
     
     public java.util.Collection<JavaFileObject> fileObjects;
@@ -793,9 +799,9 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
     }
     
-    public void addJavaOption(String opt, String value) {
-    	Options.instance(context).put(opt, value);
-    }
+//    public void addJavaOption(String opt, String value) {
+//    	Options.instance(context).put(opt, value);
+//    }
     
     /** Adds a custom option (not checked as a legitimate command-line option);
      * may have an argument after a = symbol */

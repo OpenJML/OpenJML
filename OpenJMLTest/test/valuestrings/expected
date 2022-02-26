@@ -112,7 +112,7 @@ $SPECS/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
                                 ^
 Completed proof of JMLStringTest.conversionBad2(String,Object) with prover !!!! - with warnings
 Starting proof of JMLStringTest.conversionBad3(String,Object) with prover !!!!
-test/valuestrings/JMLStringTest.java:134: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad3
+test/valuestrings/JMLStringTest.java:134: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad3: arg0 in string(java.lang.String)
     //@   ghost string s3 = string.string(s); // verification error
                                           ^
 $SPECS/org/jmlspecs/lang/string.jml:16: warning: Associated declaration

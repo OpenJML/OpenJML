@@ -26,14 +26,14 @@ public class Linked<W> {
     //@   ensures \result.size == 0;
     //@ pure
     public static <T> Linked<T> empty() {
-        return new Linked(null, null);
+        return new Linked<T>(null, null);
     }
     
     //@ private normal_behavior
     //@   ensures this.value == t;
     //@   ensures this.next == n;
     //@ pure 
-    private Linked(/*@ nullable */ W t, /*@ nullable */ Linked n) {
+    private Linked(/*@ nullable */ W t, /*@ nullable */ Linked<W> n) {
         this.next = n;
         this.value = t;
     }
@@ -47,7 +47,7 @@ public class Linked<W> {
     //@   ensures this.values.equals(\old(values).prepend(t));
     //@   ensures this.links.equals(\old(links).prepend(this.next));
     public void push(W t) {
-        Linked v = new Linked(t, next);
+        Linked<W> v = new Linked<W>(t, next);
         this.next = v;
     }
     

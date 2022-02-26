@@ -1,4 +1,4 @@
-test/linkedBug/Linked.java:46: error: Failed to find a type for oldlinks.prepend(this.next) <any> <any> <>(Linked<W>)recovery
+test/linkedBug/Linked.java:46: error: Failed to find a type for oldlinks.prepend(this.next) <any> <any>
     //@   ensures this.links.equals(oldlinks.prepend(this.next));
                                                     ^
 Operation not performed because of parse or type errors

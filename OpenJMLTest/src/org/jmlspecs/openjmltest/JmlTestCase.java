@@ -61,6 +61,7 @@ import com.sun.tools.javac.util.Position;
 public abstract class JmlTestCase {
     
     public boolean jmltesting =  true;
+    protected List<String> javaOptions= new LinkedList<String>();
 
     // The test output expects that the current working directory while running unittests is  .../OpenJML/OpenJMLTest
 
@@ -285,10 +286,9 @@ public abstract class JmlTestCase {
         mockFiles = new LinkedList<JavaFileObject>();
         Log.alwaysReport = true; // Always report errors (even if they would be suppressed because they are at the same position
         if (System.getenv("VERBOSE") != null) {
-        	main.addJavaOption("-verbose","true");
+        	javaOptions.add("-verbose");
         	main.addOptions("-jmlverbose","3");
         }
-        main.addOptions("-Xlint:unchecked");
     }
     
     public void setCollector(boolean ignoreNotes, boolean printDiagnostics) {

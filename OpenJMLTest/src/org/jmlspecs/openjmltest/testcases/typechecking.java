@@ -1519,6 +1519,30 @@ public class typechecking extends TCBase {
                 );
     }
     
+    @Test
+    public void xlinton() {
+        javaOptions.add("-Xlint:unchecked"); // Part of test
+        expectedExit = 0;
+        helpTCF("A.java",
+           "public class A<T> { A<T> t; A(A t) { this.t = t;}\n}"
+            ,"/A.java:1: warning: unchecked conversion\n"
+                + "  required: A<T>\n"
+                + "  found:    A",47
+           );
+    }
+        
+    @Test
+    public void xlintoff() {
+        expectedExit = 0;
+        helpTCF("A.java",
+           "public class A<T> { A<T> t; A(A t) { this.t = t;}A(A t, int x) { this.t = t;}\n}"
+                ,"/A.java: Note: /A.java uses unchecked or unsafe operations.",-1
+                ,"/A.java: Note: Recompile with -Xlint:unchecked for details.",-1
+           );
+    }
+        
+
+    
     @Test public void clauseNames() {
         helpTCF("TestJava.java",
         		"""

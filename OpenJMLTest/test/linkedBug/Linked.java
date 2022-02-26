@@ -27,7 +27,7 @@ public class Linked<W> {
 	//@   ensures this.value == t;
 	//@   ensures this.next == n;
 	//@ pure 
-	private Linked(/*@ nullable */ W t, /*@ nullable */ Linked n) {
+	private Linked(/*@ nullable */ W t, /*@ nullable */ Linked<W> n) {
 		this.next = n;
 		this.value = t;
 	}
@@ -46,7 +46,7 @@ public class Linked<W> {
     //@   ensures this.links.equals(oldlinks.prepend(this.next));
 	public void push(W t) {
         //@ assume !links.contains(this);
-		Linked v = new Linked(t, next);
+		Linked<W> v = new Linked<W>(t, next);
 		//@ assert !this.links.contains(v);
 		this.next = v;
         //@ assert !links.contains(this);

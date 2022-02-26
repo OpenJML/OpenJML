@@ -94,7 +94,7 @@ public abstract class TCBase extends JmlTestCase {
             Log.instance(context).useSource(f);
             List<JavaFileObject> files = List.of(f);
             // If additional Java options are wanted (e.g. -verbose), add them here
-            int ex = main.compile(new String[]{ "-Xlint:unchecked" }, files).exitCode;
+            int ex = main.compile(javaOptions.toArray(new String[]{}), files).exitCode;
             
             int i = 0;
             int k = 0;
