@@ -2394,8 +2394,8 @@ public class racnew extends RacBase {
                 +"//@ working_space \\duration(true);\n"
                 +"int mb() { return 0; }\n"
                 +"}"
-                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",31
-                ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",31
+                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",32
+                ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",32
                 ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration",25
                 ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: assume statement containing \\duration",25
                 ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",33
@@ -2404,7 +2404,7 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:16: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",29
                 ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",34
                 ,"/tt/A.java:18: Note: Not implemented for runtime assertion checking: requires clause containing \\duration",23
-                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration",32
+                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration",33
                 ,"/tt/A.java:20: Note: Not implemented for runtime assertion checking: ensures clause containing \\duration",22
                 ,"/tt/A.java:21: Note: Not implemented for runtime assertion checking: signals clause containing \\duration",37
                 ,"/tt/A.java:23: Note: Not implemented for runtime assertion checking: diverges clause containing \\duration",23

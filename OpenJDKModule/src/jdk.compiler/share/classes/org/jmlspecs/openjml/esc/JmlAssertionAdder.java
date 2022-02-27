@@ -15278,10 +15278,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// System.out.println("JAA-visitJmlClassDecl-K " + defs);
 
 			for (JCTree def : defs) {
-				if (def instanceof JmlMethodDecl) {
-					JmlMethodDecl jdef = (JmlMethodDecl) def;
+				if (def instanceof JmlMethodDecl jdef) {
 					String nm = jdef.name.toString();
-					if (utils.isModel(jdef.sym) && nm.startsWith(Strings.modelFieldMethodPrefix)) {
+					if (nm.startsWith(Strings.modelFieldMethodPrefix) && isModel(jdef.sym)) { // FIXME - this check on isModel is not correct I think - methods for model fields are not necessarily marked model
 						if ((jdef.mods.flags & Utils.JMLADDED) != 0) {
 							// We are presuming that all represents clauses are processed
 							// (as part of scanning the specs defs in visitJmlClassDecl)
