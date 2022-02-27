@@ -6374,6 +6374,63 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		return functional;
 	}
+	
+	// FIXME - pattern matching - statement and expression
+	// FIXME - inline expressions
+	// FIXME - RAC
+	
+	@Override
+	public void visitSwitchExpression(JCSwitchExpression that) {
+        JCExpression switchExpr = that.selector;
+        addStat(traceableComment(that, that, "switch " + that.getExpression() + " ...", "Selection"));
+        currentEnv = currentEnv.pushEnvCopy();
+        try {
+            if (splitExpressions) {
+
+                JCExpression selector = convertExpr(switchExpr);
+                if (that.selector.type.equals(syms.stringType)) {
+                    JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
+                    addJavaCheck(that.selector, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
+                            "java.lang.NullPointerException");
+                } else if ((that.selector.type.tsym.flags_field & Flags.ENUM) != 0) {
+                    JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
+                    addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
+                            "java.lang.NullPointerException");
+                } else {
+                    selector = addImplicitConversion(switchExpr, syms.intType, selector);
+                }
+                currentEnv.yieldIdent = treeutils.makeIdent(that.pos,  "`switchResult_"+nextUnique(), that.type);
+                ListBuffer<JCCase> newcases = new ListBuffer<>();
+                Continuation combined = Continuation.HALT;
+                for (var _case: that.cases) {
+                    continuation = Continuation.CONTINUE;
+                    boolean isArrow = _case.caseKind != com.sun.source.tree.CaseTree.CaseKind.STATEMENT;
+                    
+                    pushBlock();
+                    convert(_case.stats);
+                    if (isArrow && _case.completesNormally) {
+                        addStat(M.at(_case).Break(null));
+                    }
+                    JCBlock bl = popBlock(_case);
+                    var newcase = M.at(_case).Case(com.sun.source.tree.CaseTree.CaseKind.STATEMENT, _case.pats, List.<JCStatement>of(bl), bl);
+                    newcases.add(newcase);
+                    combined = combined.combine(continuation); // FIXME - does this all work for fall-through cases
+                }
+                addStat(M.at(that).Switch(selector, newcases.toList()));
+                result = eresult = currentEnv.yieldIdent;
+                continuation = combined;
+           } else {
+                notImplemented(that,  "Switch expression in a quantified expression");
+            }
+//        } catch (Exception e) {
+//            //unexpectedException(e);
+//            System.out.println("UNEXPECTED EXCEPTION " + e);
+//            e.printStackTrace(System.out);
+//            throw e;
+        } finally {
+            currentEnv = currentEnv.popEnv();
+        }
+	}
 
 	// OK
 	@Override
@@ -6403,19 +6460,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				ListBuffer<JCCase> cases = new ListBuffer<JCCase>();
 				Continuation combined = Continuation.HALT;
 				for (JCCase c : that.cases) {
+                    boolean isArrow = c.caseKind != com.sun.source.tree.CaseTree.CaseKind.STATEMENT;
 					continuation = Continuation.CONTINUE;
 					JCCase cc;
 					if (c.pats == null || c.pats.isEmpty()) {
 						JCBlock b = convertIntoBlock(c, c.stats);
 						b.stats = b.stats.prepend(traceableComment(c, c, "default:", null));
-						cc = M.at(c.pos).Case(c.caseKind, List.<JCExpression>nil(), b.stats, null);
-						combined = Continuation.CONTINUE;
+						cc = M.at(c.pos).Case(c.caseKind, List.<JCExpression>nil(), b.stats, b);
+						combined = Continuation.CONTINUE; // FIXME - not sure about this
 					} else {
-						JCExpression pat = (rac && c.pats.get(0) instanceof JCIdent) ? c.pats.get(0)
-								: convertExpr(c.pats.get(0));
+//						JCExpression pat = (rac && c.pats.get(0) instanceof JCIdent) ? c.pats.get(0)
+//								: convertExpr(c.pats.get(0));
+					    // FIXME - if we have static final field names we need to convert them
 						JCBlock b = convertIntoBlock(c, c.stats);
-						b.stats = b.stats.prepend(traceableComment(c, c, ("case " + c.pats.get(0) + ":"), null));
-						cc = M.at(c.pos).Case(c.caseKind, List.<JCExpression>of(pat), b.stats, null);
+						b.stats = b.stats.prepend(traceableComment(c, c, ("case " + c.pats + ":"), null));
+						cc = M.at(c.pos).Case(c.caseKind, c.pats, b.stats, b);
+					}
+					if (isArrow && c.completesNormally) {
+					    var b = M.at(c).Break(null);
+					    cc.stats = cc.stats.append(b);
 					}
 // FIXME-- and handle more than one pat
 					cases.add(cc);
@@ -7094,7 +7157,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	
 	@Override
 	public void visitYield(JCYield that) {
-		result = that; // FIXME
+	    if (currentEnv.yieldIdent != null) {
+	        var e = convertExpr(that.value);
+            e = addImplicitConversion(that, currentEnv.yieldIdent.type, e);
+	        addStat(treeutils.makeAssignStat(that.pos, copy(currentEnv.yieldIdent), e));
+	        addStat(M.at(that.pos).Break(null));
+	    } else {
+	        // This error should always have been caught by JmlAttr
+	        utils.error(that, "jml.internal", "This yield statement is not inside a switch");
+	    }
 	}
 
 	// OK
@@ -21091,6 +21162,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         /** The clause being translated (null if not in one) */
         //@ nullable
 		public IJmlClauseKind enclosingClauseKind;
+		
+		/** Where to store yield values; null if we are not in a switch */
+		public JCIdent yieldIdent = null;
 	}
 
 	TranslationEnv currentEnv = new TranslationEnv();

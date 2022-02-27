@@ -532,6 +532,21 @@ public class racfiles extends RacBase {
 
     @Test
     public void range() {
-    	helpTCF("test/rangeTest","test/rangeTest","R");
+        helpTCF("test/rangeTest","test/rangeTest","R");
+    }
+
+    @Test
+    public void switchx() {
+        helpTCF("test/switch","test/switch","Switch");
+    }
+
+    @Test
+    public void switch0() {
+        helpTCF("test/switch0","test/switch0","Switch0");
+    }
+
+    @Test
+    public void switch1() {
+        helpTCF("test/switch1","test/switch1","Switch1");
     }
 }
