@@ -397,7 +397,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		}
     	}
         boolean isUnattributed =  (c.flags_field & UNATTRIBUTED) != 0;
-        
+//        if (!isUnattributed && c.isEnum()) {
+//            JmlClassDecl tr = (JmlClassDecl)(typeEnvs.get(c).tree);
+//            if (utils.isSpecFile(tr.sourcefile)) c.flags_field |= UNATTRIBUTED;
+//        }
         level++;
         if (c != syms.predefClass) {
             if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"typechecking " + c);
@@ -7140,7 +7143,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-    	//System.out.println("VISITVARDEF " + that + " " + this.attribJmlDecls);
     	if (utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
     	if (utils.verbose()) utils.note("Attributing " + that.vartype + " " + that.name + " " + that.getClass());
     	if (env.enclMethod != null) {

@@ -778,6 +778,7 @@ public class JmlEnter extends Enter {
 				if (utils.verbose()) utils.note("Matched to binary class: " + csym + " (owner: " + csym.owner +")" );
 
 				((ClassType)csym.type).typarams_field = classTPEnter(specDecl.typarams, localSpecEnv); // FIXME - what does this do???
+	            csym.flags_field |= Flags.UNATTRIBUTED;
 			}
 //			if (specDecl.typarams.size() == ((ClassType)csym.type).typarams_field.size()) {
 //				for (int i = 0; i < specDecl.typarams.length(); ++i) {
@@ -790,7 +791,6 @@ public class JmlEnter extends Enter {
 			specDecl.specEnv = localSpecEnv;
 			var tspecs = new JmlSpecs.TypeSpecs(specDecl, null, localSpecEnv);
 			JmlSpecs.instance(context).putSpecs(csym, tspecs);
-
 			// Do all nested classes, recursively
 			specDecl.defs = specsListEnter(csym, specDecl.defs, localSpecEnv);
 		} catch (Exception e) {
@@ -1836,7 +1836,7 @@ public class JmlEnter extends Enter {
 				        // Specs were found but they did not match and were discarded
 				        // Empty specs have already been recorded
 				    } else {
-				        csymbol.flags_field |= Flags.UNATTRIBUTED; // FIXME - verify that this is needed
+//				        csymbol.flags_field |= Flags.UNATTRIBUTED; // FIXME - verify that this is needed
 				    }
 				} else {
 				    // No specs -- binary with no .jml file

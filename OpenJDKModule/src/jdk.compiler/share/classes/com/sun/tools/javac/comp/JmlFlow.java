@@ -1272,8 +1272,7 @@ public class JmlFlow extends Flow  {
     		//System.out.println("JMLFLOW " + env.tree);
     		new JmlAliveAnalyzer().analyzeTree(env, make);
     		new JmlAssignAnalyzer().analyzeTree(env, make);
-    		//new JmlFlowAnalyzer().analyzeTree(env, make);
-    		try { new JmlFlowAnalyzer().analyzeTree(env, make);  } catch (Exception e) {} // FIXME _ swallowing exceptions
+    		new JmlFlowAnalyzer().analyzeTree(env, make);
     		new JmlCaptureAnalyzer().analyzeTree(env, make);
     	} catch (Exception e)  {
     		Utils.instance(context).unexpectedException(e, "FLOW");

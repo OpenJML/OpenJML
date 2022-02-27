@@ -153,11 +153,13 @@ typeclauses.java             - 123/0 #
 
 
 -------------------
-- Bounds in specifications of Enum.jml
+- pure should not be needed in List.jml (cf. generics tests)
+- why did adding pure to List.contains make esc1.testForEach2a4b fail
+- Bounds in static method type variables
 - model imports
 - imports and type parameters for binary spec files
 = type parameters for methods
-- SpecsBase
+- SpecsBase: Funcition.Pure
 - crash in Flow
 - seq.jml does not work if ghost field is named length
 
