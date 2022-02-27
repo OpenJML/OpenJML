@@ -98,10 +98,13 @@ public abstract class TCBase extends JmlTestCase {
             
             int i = 0;
             int k = 0;
+            boolean plusEndsList = false;
             Object p1,p2,p3,p4;
             for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
                 if (k >= list.length) break;
-                String expected = doReplacements(((String)list[k++]));
+                String expected = (String)list[k++];
+                if (expected.equals("+")) { plusEndsList = true; break; }
+                expected = doReplacements(expected);
                 assertEquals("Message " + i + " mismatch",expected,noSource(dd));
                 p1 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
                 p2 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
@@ -120,7 +123,7 @@ public abstract class TCBase extends JmlTestCase {
                 i++;
             }
             if (k < list.length) fail("Fewer errors observed (" + collector.getDiagnostics().size() + ") than expected (" + (list.length/2) + ")");
-            if (i < collector.getDiagnostics().size()) fail("More errors observed (" + collector.getDiagnostics().size() + ") than expected (" + i + ")");
+            if (!plusEndsList && i < collector.getDiagnostics().size()) fail("More errors observed (" + collector.getDiagnostics().size() + ") than expected (" + i + ")");
             if (expectedExit == -1) expectedExit = list.length == 0?0:1;
             assertEquals("Wrong exit code",expectedExit, ex);
         } catch (Exception e) {

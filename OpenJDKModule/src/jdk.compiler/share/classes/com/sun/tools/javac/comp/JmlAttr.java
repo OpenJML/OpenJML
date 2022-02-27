@@ -6451,9 +6451,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             	boolean isPure = specs.isPure(msym); // Also checks enclosing class
             	if (isPure) return true;
             }
-            //System.out.println("IPMB " + symbol.owner + " " + symbol + " " + msym.owner + " " + msym + " " + specs.isPure(msym) );
-            boolean isPure = specs.isPure(msym);
-            if (isPure) return true;
         }
         return false;
     }

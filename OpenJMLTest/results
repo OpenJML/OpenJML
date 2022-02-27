@@ -153,21 +153,18 @@ typeclauses.java             - 123/0 #
 
 
 -------------------
-- pure should not be needed in List.jml (cf. generics tests)
+- JML backslash tokens in text blocks
 - why did adding pure to List.contains make esc1.testForEach2a4b fail
 - Bounds in static method type variables
 - model imports
 - imports and type parameters for binary spec files
 = type parameters for methods
-- SpecsBase: Funcition.Pure
-- crash in Flow
+- SpecsBase: Function.Pure
 - seq.jml does not work if ghost field is named length
 
 - AST check after entering
 - AST check after attribution
 
-- var not allowed in old clauses
-- check that private methods do not override
 - Fix path to specs and to solvers (e.g. SpecsEsc; -exec not working?)
 - Lambdas
 - records
