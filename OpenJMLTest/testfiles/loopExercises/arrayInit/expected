@@ -1,0 +1,51 @@
+func main()
+{
+  const Int [] arr;
+  const Int arrlength;
+  Int i = 0;
+
+  while (i < arrlength) {
+    arr[i] = 2 * i + 1;
+    i = i + 1;
+  }
+}
+(assert-not
+  (=>
+    (<
+      0
+      arrlength
+    )
+    
+    (forall ((k Int))
+      (=>
+        (and
+          (<=
+            0
+            k
+          )
+          
+          (<=
+            k
+            arrlength
+          )
+          
+        )
+        
+        (<=
+          (
+            (
+              2
+              k
+            )
+            
+            1
+          )
+          
+          (arr k)
+        )
+        
+      )
+    )
+  )
+)
+

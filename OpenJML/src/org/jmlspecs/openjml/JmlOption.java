@@ -37,11 +37,14 @@ public class JmlOption implements IOption {
     public static final JmlOption DIRS = new JmlOption("-dirs",true,null,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)",null);
     public static final JmlOption ENDOPTIONS = new JmlOption("--",false,null,"Terminates option processing - all remaining arguments are files",null);  // FIXME - fix or remove
     public static final JmlOption KEYS = new JmlOption("-keys",true,"","Identifiers for optional JML comments",null);
-    public static final JmlOption COMMAND = new JmlOption("-command",true,"check","The command to execute (check,esc,rac,compile)",null);
+    public static final JmlOption COMMAND = new JmlOption("-command",true,"check","The command to execute (check,esc,rac,compile,loopInv)",null);
     public static final JmlOption CHECK = new JmlOption("-check",false,null,"Does a JML syntax check","-command=check");
     public static final JmlOption COMPILE = new JmlOption("-compile",false,null,"Does a Java-only compile","-command=compile");
     public static final JmlOption RAC = new JmlOption("-rac",false,null,"Enables generating code instrumented with runtime assertion checks","-command=rac");
     public static final JmlOption ESC = new JmlOption("-esc",false,null,"Enables static checking","-command=esc");
+    public static final JmlOption LOOP_INVARIANT_INFERENCE = new JmlOption("-loopInv", false, null, "Enables loop invariant inference", "-command=loopInv"); /** An option for loop invariant inference */
+    public static final JmlOption TARGET_METHOD_NAME = new JmlOption("-mName", true, null, "Name of the method which contains loop", null); /** An option for loop invariant inference */
+    public static final JmlOption OUTPUT_DIR = new JmlOption("-outputDir", true, null, "Output directory", null); /** An option for loop invariant inference */
     public static final JmlOption BOOGIE = new JmlOption("-boogie",false,false,"Enables static checking with boogie",null);
     public static final JmlOption USEJAVACOMPILER = new JmlOption("-java",false,false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null);
     public static final JmlOption JML = new JmlOption("-jml",false,true,"When on, the JML compiler is used and all JML constructs are processed; use -no-jml to use OpenJML but ignore JML annotations",null);
@@ -125,7 +128,6 @@ public class JmlOption implements IOption {
     public static final JmlOption OSNAME = new JmlOption("-osname",true,null,"Name of OS to use in selecting solver executable",null);
     public static final JmlOption INLINE_FUNCTION_LITERAL = new JmlOption("-inline-function-literal",false,true,"Whether to inline function literals",null);
 
-    
 //    // Options Related to Specification Inference
 //    public static final JmlOption INFER = new JmlOption("-infer",true,"POSTCONDITIONS","Infer missing contracts (postconditions (default), preconditions)","-command=infer");
 //    public static final JmlOption INFER_DEBUG = new JmlOption("-infer-debug", false, false, "Enable debugging of contract inference", null);

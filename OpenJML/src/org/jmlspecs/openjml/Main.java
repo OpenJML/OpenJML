@@ -925,6 +925,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         utils.check = cmd == Cmd.CHECK;
         utils.compile = cmd == Cmd.COMPILE;
         utils.infer   = cmd == Cmd.INFER;
+        utils.loopInv = cmd == Cmd.LOOPINV; /** converting to rapid syntax */
                 
         val = options.get(JmlOption.ESC_BV.optionName());
         if (val == null || val.isEmpty()) {
@@ -1410,7 +1411,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
     
     /** An Enum type that gives a choice of various tools to be executed. */
-    public static enum Cmd { CHECK("check"), ESC("esc"), RAC("rac"), DEP("dep"), JMLDOC("doc"), COMPILE("compile"), INFER("infer");
+    public static enum Cmd { CHECK("check"), ESC("esc"), RAC("rac"), DEP("dep"), JMLDOC("doc"), COMPILE("compile"), INFER("infer"), LOOPINV("loopInv");
         String name;
         public String toString() { return name; }
         private Cmd(String name) { this.name = name; }

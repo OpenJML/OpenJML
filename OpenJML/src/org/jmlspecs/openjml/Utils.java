@@ -170,6 +170,9 @@ public class Utils {
 
     /** Do Java compilation - set by Main.setupOptions */
     public boolean compile = false;
+    
+    /** Do Rapid conversion - set by Main.setupOptions */
+    public boolean loopInv = false;
 
     /** Do Contract Inference **/
     public boolean infer = false;

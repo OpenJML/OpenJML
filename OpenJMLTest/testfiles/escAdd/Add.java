@@ -2,7 +2,7 @@
 // on the functions used in the invariant.
 /*@ code_java_math */ public class Add
 {
-  //@ public invariant x() + y() > 0;
+  //@ public invariant my_x + my_y > 0;
   
   private /*@ spec_public */ int my_x;
   private /*@ spec_public */ int my_y;
@@ -20,6 +20,8 @@
   //@ ensures \result == my_y;
   public /*@ pure @*/ int y() { return my_y; }
   
+  //@ requires x() + y() + the_operand <= Integer.MAX_VALUE;
+  //@ requires x() + y() + the_operand >= Integer.MIN_VALUE;
   //@ ensures \result == x() + y() + the_operand;
   public /*@ pure @*/ int sum(final int the_operand)
   {

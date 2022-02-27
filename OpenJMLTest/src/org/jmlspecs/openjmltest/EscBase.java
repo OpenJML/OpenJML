@@ -288,7 +288,7 @@ public abstract class EscBase extends JmlTestCase {
         if (!new File(sourceDirOrFilename).isFile()) args.add("-dir");
         args.add(sourceDirOrFilename);
         if (solver != null) args.add("-prover="+solver);
-        addOptionsToArgs(options,args);        
+        addOptionsToArgs(options,args);
         args.addAll(Arrays.asList(opts));
         return args;
     }

@@ -1,0 +1,20 @@
+package demo;
+
+import org.jmlspecs.annotation.*;
+
+public class A {
+    /*+INFERRED@
+    public behavior
+      assignable \nothing; 
+      signals () false; 
+   */
+
+  public A();
+  /*@ ghost */ 
+  int i;
+    /*+INFERRED@
+      ensures i == 0; 
+   */
+
+  void f();
+}
