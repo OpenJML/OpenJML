@@ -6376,163 +6376,132 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 	
 	// FIXME - pattern matching - statement and expression
+	// FIXME - symbolic names for patterns
 	// FIXME - inline expressions
 	// FIXME - RAC
 	
 	@Override
 	public void visitSwitchExpression(JCSwitchExpression that) {
-        JCExpression switchExpr = that.selector;
         addStat(traceableComment(that, that, "switch " + that.getExpression() + " ...", "Selection"));
         currentEnv = currentEnv.pushEnvCopy();
         try {
+            currentEnv.yieldIdent = treeutils.makeIdent(that.pos,  "`switchResult_"+nextUnique(), that.type);
             if (splitExpressions) {
-
-                JCExpression selector = convertExpr(switchExpr);
-                if (that.selector.type.equals(syms.stringType)) {
-                    JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
-                    addJavaCheck(that.selector, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
-                            "java.lang.NullPointerException");
-                } else if ((that.selector.type.tsym.flags_field & Flags.ENUM) != 0) {
-                    JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
-                    addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
-                            "java.lang.NullPointerException");
-                } else {
-                    selector = addImplicitConversion(switchExpr, syms.intType, selector);
-                }
-                currentEnv.yieldIdent = treeutils.makeIdent(that.pos,  "`switchResult_"+nextUnique(), that.type);
-                ListBuffer<JCCase> newcases = new ListBuffer<>();
-                Continuation combined = Continuation.HALT;
-                for (var _case: that.cases) {
-                    continuation = Continuation.CONTINUE;
-                    boolean isArrow = _case.caseKind != com.sun.source.tree.CaseTree.CaseKind.STATEMENT;
-                    
-                    pushBlock();
-                    convert(_case.stats);
-                    if (isArrow && _case.completesNormally) {
-                        addStat(M.at(_case).Break(null));
-                    }
-                    JCBlock bl = popBlock(_case);
-                    var newcase = M.at(_case).Case(com.sun.source.tree.CaseTree.CaseKind.STATEMENT, _case.pats, List.<JCStatement>of(bl), bl);
-                    newcases.add(newcase);
-                    combined = combined.combine(continuation); // FIXME - does this all work for fall-through cases
-                }
-                addStat(M.at(that).Switch(selector, newcases.toList()));
+                addStat(switchHelper(that, that.selector, that.cases).setType(that.type));
                 result = eresult = currentEnv.yieldIdent;
-                continuation = combined;
-           } else {
+            } else {
                 notImplemented(that,  "Switch expression in a quantified expression");
             }
-//        } catch (Exception e) {
-//            //unexpectedException(e);
-//            System.out.println("UNEXPECTED EXCEPTION " + e);
-//            e.printStackTrace(System.out);
-//            throw e;
         } finally {
             currentEnv = currentEnv.popEnv();
         }
+    }
+	
+	public JCExpression switchCheck(JCExpression switchExpr) {
+        JCExpression selector = convertExpr(switchExpr);
+        // FIXME - will need fixing for pattern matching
+        if (selector.type.equals(syms.stringType)) {
+            JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
+            addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
+                                    "java.lang.NullPointerException");
+        } else if ((switchExpr.type.tsym.flags_field & Flags.ENUM) != 0) {
+            JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
+            addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
+                                    "java.lang.NullPointerException");
+        } else {
+            selector = addImplicitConversion(switchExpr, syms.intType, selector);
+        }
+        return selector;
+	}
+	
+	public JCSwitch switchHelper(DiagnosticPosition pos, JCExpression switchExpr, List<JCCase> cases) {
+	    JCExpression selector = switchCheck(switchExpr);
+	    JCSwitch newswitch = M.at(pos).Switch(selector, null); // cases filled in later, but we need the new tree reference now
+	    // treeMap is used to map break statements to their target statements
+        treeMap.put((JCTree)pos, newswitch); // pos must also be the  JCSwitch or JCSwitchExpression
+	    try {
+	        ListBuffer<JCCase> newcases = new ListBuffer<>();
+	        // The value of Continuation says whether it is possible for control flow to continue after the switch
+	        // HALT if all branches HALT; otherwise CONTINUE
+	        // FIXME - what about the situation of a missing default case and the cases do not cover all possibilities
+	        Continuation combined = Continuation.HALT;
+	        for (var _case: cases) {
+	            continuation = Continuation.CONTINUE;
+	            boolean isArrow = _case.caseKind != com.sun.source.tree.CaseTree.CaseKind.STATEMENT;
+
+	            pushBlock();
+	            convert(_case.stats); // This might change 'continuation'
+	            if (isArrow && _case.completesNormally) {
+	                addStat(M.at(_case).Break(null));
+	            }
+	            JCBlock bl = popBlock(_case);
+	            // Have to be careful about blocks
+	            // If the case had a block, it must still have a block
+	            // If the case did not have a block and is not an arrow case, then it must stay not a block
+	            // Otherwise it does not matter.
+	            var newcase = M.at(_case).Case(com.sun.source.tree.CaseTree.CaseKind.STATEMENT, _case.pats, bl.stats, bl);
+	            newcases.add(newcase);
+	            combined = combined.combine(continuation); // FIXME - does this all work for fall-through cases
+	        }
+	        continuation = combined;
+	        newswitch.cases = newcases.toList();
+	    } finally {
+	        treeMap.remove(pos);
+	    }
+	    return newswitch;
 	}
 
 	// OK
 	@Override
 	public void visitSwitch(JCSwitch that) {
+        addStat(traceableComment(that, that, "switch " + that.getExpression() + " ...", "Selection"));
 		boolean split = that instanceof JmlSwitchStatement && ((JmlSwitchStatement) that).split;
-		JCExpression switchExpr = that.selector;
-		addStat(traceableComment(that, that, "switch " + that.getExpression() + " ...", "Selection"));
-		try {
-			JCExpression selector = convertExpr(switchExpr);
-			if (that.selector.type.equals(syms.stringType)) {
-				JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
-				addJavaCheck(that.selector, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
-						"java.lang.NullPointerException");
-			} else if ((that.selector.type.tsym.flags_field & Flags.ENUM) != 0) {
-				JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
-				addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
-						"java.lang.NullPointerException");
-			} else {
-				selector = addImplicitConversion(switchExpr, syms.intType, selector);
-			}
-			boolean hasDefault = that.cases.stream().anyMatch(cs -> cs.pats.isEmpty());
-			if (!split || currentSplit == null || rac || infer) {
-				JCSwitch sw = M.at(that).Switch(selector, null);
-				((JmlSwitchStatement) sw).split = ((JmlSwitchStatement) that).split;
-				// record the translation from old to new AST before translating the body
-				treeMap.put(that, sw);
-				ListBuffer<JCCase> cases = new ListBuffer<JCCase>();
-				Continuation combined = Continuation.HALT;
-				for (JCCase c : that.cases) {
-                    boolean isArrow = c.caseKind != com.sun.source.tree.CaseTree.CaseKind.STATEMENT;
-					continuation = Continuation.CONTINUE;
-					JCCase cc;
-					if (c.pats == null || c.pats.isEmpty()) {
-						JCBlock b = convertIntoBlock(c, c.stats);
-						b.stats = b.stats.prepend(traceableComment(c, c, "default:", null));
-						cc = M.at(c.pos).Case(c.caseKind, List.<JCExpression>nil(), b.stats, b);
-						combined = Continuation.CONTINUE; // FIXME - not sure about this
-					} else {
-//						JCExpression pat = (rac && c.pats.get(0) instanceof JCIdent) ? c.pats.get(0)
-//								: convertExpr(c.pats.get(0));
-					    // FIXME - if we have static final field names we need to convert them
-						JCBlock b = convertIntoBlock(c, c.stats);
-						b.stats = b.stats.prepend(traceableComment(c, c, ("case " + c.pats + ":"), null));
-						cc = M.at(c.pos).Case(c.caseKind, c.pats, b.stats, b);
-					}
-					if (isArrow && c.completesNormally) {
-					    var b = M.at(c).Break(null);
-					    cc.stats = cc.stats.append(b);
-					}
-// FIXME-- and handle more than one pat
-					cases.add(cc);
-					combined = combined.combine(continuation); // FIXME - does this all work for fall-through cases
-				}
-				// If there is no default, there might be some cases missing, in which case
-				// CONTINUE is the appopriate value.
-				// But not if all possible cases are represented -- that situation is not
-				// represented here.
-				continuation = combined;
-				sw.cases = cases.toList();
-				result = addStat(sw.setType(that.type));
-			} else {
-				int doCase = 0;
-				if (currentSplit.isEmpty()) {
-					adjustSplit(that.cases.size() + (hasDefault ? 0 : 1));
-				} else {
-					doCase = currentSplit.charAt(0) - 'A';
-					currentSplit = currentSplit.substring(1);
-				}
-				{
-					JCCase cs = doCase < that.cases.size() ? that.cases.get(doCase) : null;
-					// cs = null in the case of no default case
-					// FIXME - only works for traditional enums or ints, not strings or patterns
-					JCExpression cond = null;
-					if (cs != null && !cs.pats.isEmpty()) {
-						for (var pat : cs.pats) {
-							JCExpression e = treeutils.makeEquality(pat.pos, selector, convertExpr(pat));
-							cond = cond == null ? e : treeutils.makeOr(that, cond, e);
-						}
-					} else {
-						// default
-						for (JCCase c : that.cases) {
-							for (var pat : c.pats) {
-								JCExpression e = treeutils.makeEquality(pat.pos, copy(selector),
-										convertExpr(pat));
-								cond = cond == null ? e : treeutils.makeOr(that, cond, e);
-							}
-						}
-						cond = treeutils.makeNot(that, cond);
-					}
-					if (cond != null)
-						addAssume(that.pos(), Label.IMPLICIT_ASSUME, cond);
-					if (cs != null) {
-						JCBlock b = convertIntoBlock(cs, cs.stats);
-						result = addStat(b);
-					} else {
-						result = addStat(M.Block(0L, List.<JCStatement>nil()));
-					}
-				}
 
-			}
-		} finally {
-			treeMap.remove(that);
+		if (!split || currentSplit == null || rac || infer) {
+		    JCSwitch newSwitch = switchHelper(that, that.selector, that.cases);
+		    ((JmlSwitchStatement) newSwitch).split = ((JmlSwitchStatement) that).split;
+		    // record the translation from old to new AST  // FIXME - this used to be before trabnslating the body. Does it matter?
+		    result = addStat(newSwitch.setType(that.type)); // But actually, statements do not have a type
+		} else {
+		    boolean hasDefault = that.cases.stream().anyMatch(cs -> cs.pats.isEmpty());
+		    JCExpression selector = switchCheck(that.selector);
+		    int doCase = 0;
+		    if (currentSplit.isEmpty()) {
+		        adjustSplit(that.cases.size() + (hasDefault ? 0 : 1));
+		    } else {
+		        doCase = currentSplit.charAt(0) - 'A';
+		        currentSplit = currentSplit.substring(1);
+		    }
+
+		    JCCase caseToDo = doCase < that.cases.size() ? that.cases.get(doCase) : null;
+		    // caseToDo == null when the original switch has no default case -- so skip everything if no case condition matches
+		    // FIXME - only works for traditional enums or ints, not strings or patterns
+		    JCExpression caseCondition = null;
+		    if (caseToDo != null && !caseToDo.pats.isEmpty()) {
+		        for (var pat : caseToDo.pats) {
+		            JCExpression e = treeutils.makeEquality(pat.pos, selector, convertExpr(pat));
+		            caseCondition = caseCondition == null ? e : treeutils.makeOr(that, caseCondition, e);
+		        }
+		    } else {
+		        // default
+		        for (JCCase c : that.cases) {
+		            for (var pat : c.pats) {
+		                JCExpression e = treeutils.makeEquality(pat.pos, copy(selector),
+		                    convertExpr(pat));
+		                caseCondition = caseCondition == null ? e : treeutils.makeOr(that, caseCondition, e);
+		            }
+		        }
+		        caseCondition = treeutils.makeNot(that, caseCondition);
+		    }
+		    if (caseCondition != null) {
+		        addAssume(that.pos(), Label.IMPLICIT_ASSUME, caseCondition);
+		    }
+		    if (caseToDo != null) {
+		        JCBlock b = convertIntoBlock(caseToDo, caseToDo.stats); // FIXME - does not work for fall through cases
+		        result = addStat(b);
+		    } else {
+		        result = addStat(M.Block(0L, List.<JCStatement>nil()));
+		    }
 		}
 	}
 

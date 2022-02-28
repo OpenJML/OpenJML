@@ -8,6 +8,7 @@ public class Switch {
   public static int m(int i) {
     int j = 1;
     j = j + switch (i) { case 1,3 -> 11; case 2 -> { int k = 20; yield k+i; } case 4 -> throw new IllegalArgumentException(); default -> 33+10; };
+    //@ show i,j;
     return j;
   }
 
