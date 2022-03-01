@@ -153,7 +153,7 @@ typeclauses.java             - 123/0 #
 
 
 -------------------
-- line number for if conditions in trace is wrong
+
 - turn assertions about arithmetic overflow into checks
 
 - JML backslash tokens in text blocks
@@ -171,7 +171,7 @@ typeclauses.java             - 123/0 #
 - Fix path to specs and to solvers (e.g. SpecsEsc; -exec not working?)
 - Lambdas
 - records
-- switch: fallthrough, expressions, strings, patterns
+- switch: fallthrough, enums, strings, patterns
 
 - rename in and maps extension files
 - revise parsing of var and method specs

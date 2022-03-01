@@ -956,57 +956,57 @@ public class escnew extends EscBase {
     @Test
     public void testIncDec() {
     	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { static public int i; \n"
+        helpTCX("tt.TestJava",
+                """
+                package tt; 
+                public class TestJava { static public int i; 
                 
-                +"  //@ assignable \\everything;\n"
-                +"  //@ ensures \\result == i;\n"
-                +"  //@ ensures i == \\old(i) + 1;\n"
-                +"  public int m1ok() {\n"
-                +"    return ++i;\n"
-                +"  }\n"
+                  //@ assignable \\everything;
+                  //@ ensures \\result == i;
+                  //@ ensures i == \\old(i) + 1;
+                  public int m1ok() {
+                    return ++i;
+                  }
                 
-                +"  //@ assignable \\everything;\n"
-                +"  //@ ensures \\result == i;\n"
-                +"  //@ ensures i == \\old(i) - 1;\n"
-                +"  public int m2ok() {\n"
-                +"    return --i;\n"
-                +"  }\n"
+                  //@ assignable \\everything;
+                  //@ ensures \\result == i;
+                  //@ ensures i == \\old(i) - 1;
+                  public int m2ok() {
+                    return --i;
+                  }
                 
-                +"  //@ assignable \\everything;\n"
-                +"  //@ ensures \\result == \\old(i);\n"
-                +"  //@ ensures i == \\old(i) + 1;\n"
-                +"  public int m3ok() {\n"
-                +"    return i++;\n"
-                +"  }\n"
+                  //@ assignable \\everything;
+                  //@ ensures \\result == \\old(i);
+                  //@ ensures i == \\old(i) + 1;
+                  public int m3ok() {
+                    return i++;
+                  }
                 
-                +"  //@ assignable \\everything;\n"
-                +"  //@ ensures \\result == i;\n"
-                +"  //@ ensures i == \\old(i) + 1;\n"
-                +"  public int m3bad() {\n"
-                +"    return i++;\n"
-                +"  }\n"
+                  //@ assignable \\everything;
+                  //@ ensures \\result == i; // ERROR
+                  //@ ensures i == \\old(i) + 1;
+                  public int m3bad() {
+                    return i++;
+                  }
                 
-                +"  //@ assignable \\everything;\n"
-                +"  //@ ensures \\result == \\old(i);\n"
-                +"  //@ ensures i == \\old(i) - 1;\n"
-                +"  public int m4ok() {\n"
-                +"    return i--;\n"
-                +"  }\n"
+                  //@ assignable \\everything;
+                  //@ ensures \\result == \\old(i);
+                  //@ ensures i == \\old(i) - 1;
+                  public int m4ok() {
+                    return i--;
+                  }
                 
-                +"  //@ assignable \\everything;\n"
-                +"  //@ ensures \\result == i;\n"
-                +"  //@ ensures i == \\old(i) - 1;\n"
-                +"  public int m4bad() {\n"
-                +"    return i--;\n"
-                +"  }\n"
-                
-               
-                +"}"
-                ,"/tt/TestJava.java:25: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
-                ,"/tt/TestJava.java:22: warning: Associated declaration",7
-                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Postcondition) in method m4bad",5
-                ,"/tt/TestJava.java:34: warning: Associated declaration",7
+                  //@ assignable \\everything;
+                  //@ ensures \\result == i; // ERROR
+                  //@ ensures i == \\old(i) - 1;
+                  public int m4bad() {
+                    return i--;
+                  }
+                }"""
+                ,"/tt/TestJava.java:29: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
+                ,"/tt/TestJava.java:26: warning: Associated declaration",7
+                ,"/tt/TestJava.java:43: warning: The prover cannot establish an assertion (Postcondition) in method m4bad",5
+                ,"/tt/TestJava.java:40: warning: Associated declaration",7
                 );
     }
 
