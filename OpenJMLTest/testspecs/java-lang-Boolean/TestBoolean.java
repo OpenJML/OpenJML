@@ -36,14 +36,15 @@ public class TestBoolean {
 		/*+RAC@
 		 @ assert t.toString().equals("true");
 		 @ assert f.toString().equals("false");
-		 @ assert new Boolean("true");
-		 @ assert new Boolean("True");
-		 @ assert new Boolean("TRUE");
-		 @ assert new Boolean("truE");
-		 @ assert !new Boolean("false");
-		 @ assert !new Boolean(null);
-		 @ assert !new Boolean("");
-		 @ assert !new Boolean("abc");
+		 @ ghost Boolean b;
+		 @ set b = new Boolean("true"); assert b;
+		 @ set b = new Boolean("True"); assert b;
+		 @ set b = new Boolean("TRUE"); assert b;
+		 @ set b = new Boolean("truE"); assert b;
+		 @ set b = !new Boolean("false"); assert b;
+		 @ set b = !new Boolean(null); assert b;
+		 @ set b = !new Boolean(""); assert b;
+		 @ set b = !new Boolean("abc"); assert b;
 		 */
 		
 		// static operations

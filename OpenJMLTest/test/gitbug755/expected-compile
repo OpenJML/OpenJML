@@ -1,0 +1,9 @@
+/Users/davidcok/projects/OpenJMLB/Specs/specs/java/lang/String.jml:942: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
+      @   ensures \fresh(\result);
+                        ^
+/Users/davidcok/projects/OpenJMLB/Specs/specs/java/lang/String.jml:945: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
+      @   ensures (\forall int i; 0 <= i < \result.length; \result[i] != null); // Including this avoids the needs for an instantiation, which is not always triggered
+                   ^
+/Users/davidcok/projects/OpenJMLB/Specs/specs/java/lang/String.jml:946: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
+      @   ensures (\forall int i; 0 <= i < \result.length; \result[i] == split(this,regex,i));
+                   ^

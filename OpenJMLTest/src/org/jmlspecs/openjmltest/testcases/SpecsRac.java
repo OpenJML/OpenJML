@@ -92,11 +92,13 @@ public class SpecsRac extends RacBase {
     	String subdir = "testspecs" + "/" + classname;
     	String testname = null;
         for (File f: new File(subdir).listFiles()) {
-        	if (f.getName().startsWith("Test")) {
+            String fn = f.getName();
+        	if (fn.startsWith("Test") && fn.endsWith(".java")) {
         		testname = f.getName().replace(".java","");
         		break;
         	}
         }
+        System.out.println(" ... " + classname.replaceAll("-", "."));
     	helpTCF(subdir,subdir,testname);
     }
     
