@@ -625,12 +625,16 @@ public class JmlTree {
         
         @Override
         public JmlIfStatement If(JCExpression cond, JCStatement t, JCStatement e) {
-            return new JmlIfStatement(cond,t,e);
+            var tree = new JmlIfStatement(cond,t,e);
+            tree.pos = pos;
+            return tree;
         }
         
         @Override
         public JmlSwitchStatement Switch(JCExpression selector, List<JCCase> cases) {
-            return new JmlSwitchStatement(selector,cases);
+            var tree = new JmlSwitchStatement(selector,cases);
+            tree.pos = pos;
+            return tree;
         }
         
         /** Creates a JML havoc statement */

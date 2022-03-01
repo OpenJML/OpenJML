@@ -153,6 +153,9 @@ typeclauses.java             - 123/0 #
 
 
 -------------------
+- line number for if conditions in trace is wrong
+- turn assertions about arithmetic overflow into checks
+
 - JML backslash tokens in text blocks
 - why did adding pure to List.contains make esc1.testForEach2a4b fail
 - Bounds in static method type variables

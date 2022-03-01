@@ -6884,7 +6884,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	@Override
 	public void visitIf(JCIf that) {
 		boolean split = that instanceof JmlIfStatement && ((JmlIfStatement) that).split;
-		addStat(traceableComment(that, that, "if " + that.getCondition() + " ...", "Condition"));
+		addStat(traceableComment(that.getCondition(), that.getCondition() , "if " + that.getCondition() + " ...", "Condition"));
 		JCExpression cond = convertExpr(that.cond);
 		cond = addImplicitConversion(that.cond, syms.booleanType, cond);
 
