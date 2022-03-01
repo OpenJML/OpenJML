@@ -182,6 +182,8 @@ public class SMTTranslator extends JmlTreeScanner {
 
     /** A counter used to make identifiers unique */
     int uniqueCount = 0;
+    /** A counter use to make quantifier functions unique */
+    int uniqueQuantCount = 0;
     
     private int assumeCount = -2;
     
@@ -3123,6 +3125,32 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = F.exists(params,value);
                 }
                 break;
+                case QuantifiedExpressions.qsumID:
+                    // TODO: make lo a fresh identifier not in Range or Body
+                    ISymbol lo = F.symbol("lo"), sumN = F.symbol("sum_" + (uniqueQuantCount++));
+
+                    IDeclaration x = params.get(0);
+                    params.add(0, F.declaration(lo, x.sort()));
+                    ISymbol hi = x.parameter();
+
+                    ICommand cmd = new C_define_fun_rec(
+                            sumN,
+                            params,
+                            intSort, F.fcn(
+                                    F.symbol("ite"),
+                                    F.fcn(F.symbol("<"), hi, lo),
+                                    F.numeral(0),
+                                    F.fcn(F.symbol("+"),
+                                            F.fcn(sumN,
+                                                    F.symbol("lo"),
+                                                    F.fcn(negSym, hi,
+                                                            F.numeral(1))),
+                                            F.fcn(F.symbol("ite"), range, value,
+                                                    F.numeral(0)))));
+                    commands.add(cmd);
+                    // TODO: make parameters the lowest and highest bounds from range
+                    result = F.fcn(sumN, F.numeral(0), F.numeral(1000));
+                    break;
             default:
                 notImplWarn(that, "JML Quantified expression using " + that.kind.keyword());
                 ISymbol sym = F.symbol(makeBarEnclosedString(that));
