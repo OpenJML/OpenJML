@@ -787,7 +787,7 @@ public class MethodProverSMT {
         }
         if (utils.jmlverbose >= Utils.PROGRESS) {
             if (!splitkey.isEmpty()) log.getWriter(WriterKind.NOTICE).println("Result of split "  + splitkey + " is " + 
-                                    (proofResult.result() == IProverResult.UNSAT ? "Verified" : "Not verified"));
+                                    transResult(proofResult.result()));
             //else if (translations.splits.size() > 1) log.getWriter(WriterKind.NOTICE).println("Result of full program analysis is " + proofResult.result());
         }
         numberAccumulated++;
@@ -798,7 +798,7 @@ public class MethodProverSMT {
         } // end of splitkey
         if (utils.jmlverbose >= Utils.PROGRESS && numberAccumulated > 1) {
             log.getWriter(WriterKind.NOTICE).println("Composite result " 
-                                    + (proofResultAccumulated.result() == IProverResult.UNSAT ? "Verified" : "Not verified")
+                                    + transResult(proofResultAccumulated.result())
                                     + (skips == 0 ? "" : (" with " + skips + " splits skipped")));
         }
         if (proofResultAccumulated == null) {
@@ -807,6 +807,10 @@ public class MethodProverSMT {
         }
         return proofResultAccumulated; // FIXME - need to combine results
         
+    }
+    
+    String transResult(IProverResult.Kind k) {
+        return k == IProverResult.UNSAT ? "Verified" : (k == IProverResult.SAT || k == IProverResult.POSSIBLY_SAT) ? "Not verified" : k.toString(); 
     }
     
     protected List<IProverResult.Span> path;
