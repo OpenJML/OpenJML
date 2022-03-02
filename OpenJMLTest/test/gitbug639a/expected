@@ -18,7 +18,7 @@ Proof attempt for split B
 test/gitbug639a/A.java:4: warning: The prover cannot establish an assertion (Postcondition) in method main
         //@ ensures false;  // requires a refining statement
             ^
-Result of split B is POSSIBLY_SAT
+Result of split B is Not verified
 Composite result INFEASIBLE
 Completed proof of A.main(String[]) with prover !!!! - INFEASIBLE
 Completed proving methods in A
