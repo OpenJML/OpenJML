@@ -6456,15 +6456,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public void visitSwitch(JCSwitch that) {
         addStat(traceableComment(that, that, "switch " + that.getExpression() + " ...", "Selection"));
 		boolean split = that instanceof JmlSwitchStatement && ((JmlSwitchStatement) that).split;
-
 		if (!split || currentSplit == null || rac || infer) {
 		    JCSwitch newSwitch = switchHelper(that, that.selector, that.cases);
 		    ((JmlSwitchStatement) newSwitch).split = ((JmlSwitchStatement) that).split;
 		    // record the translation from old to new AST  // FIXME - this used to be before trabnslating the body. Does it matter?
 		    result = addStat(newSwitch.setType(that.type)); // But actually, statements do not have a type
 		} else {
+	        JCExpression selector = switchCheck(that.selector);
+	        JCSwitch newswitch = M.at(that).Switch(selector, null); // cases filled in later, but we need the new tree reference now
+	        // treeMap is used to map break statements to their target statements
+	        treeMap.put(that, newswitch); // pos must also be the  JCSwitch or JCSwitchExpression
+	        pushBlock();
 		    boolean hasDefault = that.cases.stream().anyMatch(cs -> cs.pats.isEmpty());
-		    JCExpression selector = switchCheck(that.selector);
 		    int doCase = 0;
 		    if (currentSplit.isEmpty()) {
 		        adjustSplit(that.cases.size() + (hasDefault ? 0 : 1));
@@ -6493,15 +6496,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		        }
 		        caseCondition = treeutils.makeNot(that, caseCondition);
 		    }
+
 		    if (caseCondition != null) {
 		        addAssume(that.pos(), Label.IMPLICIT_ASSUME, caseCondition);
 		    }
 		    if (caseToDo != null) {
-		        JCBlock b = convertIntoBlock(caseToDo, caseToDo.stats); // FIXME - does not work for fall through cases
-		        result = addStat(b);
-		    } else {
-		        result = addStat(M.Block(0L, List.<JCStatement>nil()));
+		        convert(caseToDo.stats); // FIXME - does not work for fall through cases
 		    }
+		    JCBlock newblock = popBlock(that);
+
+		    // From the block we make a single default case
+		    JCCase newcase = M.at(that).Case(com.sun.source.tree.CaseTree.CaseKind.STATEMENT, List.<JCExpression>nil(), newblock.stats, newblock);
+		    newswitch.cases = List.<JCCase>of(newcase);
+            treeMap.remove(that);
+            addStat(newswitch);
+            result = newswitch;
 		}
 	}
 
@@ -16036,7 +16045,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		br.target = loop;
 		addStat(br);
 		JCBlock bl = popBlock(pos, check);
-		if (split & currentSplit != null) {
+		if (split && currentSplit != null) {
 			boolean conditionTrue = true;
 			if (currentSplit.isEmpty()) {
 				adjustSplit(2);
