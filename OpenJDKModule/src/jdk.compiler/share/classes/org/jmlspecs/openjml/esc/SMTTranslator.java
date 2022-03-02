@@ -2813,7 +2813,7 @@ public class SMTTranslator extends JmlTreeScanner {
             	} else {
             		result = F.fcn(F.symbol(hifcn),sel);
             	}
-            } else if (field.name != names.length) {
+            } else if (field.name != names.length || !(tree.selected.type instanceof Type.ArrayType || tree.selected.type.toString().startsWith("org.jmlspecs.lang"))) {
                 // Non-length selection
                 String encName;
                 if (Utils.instance(context).isJMLStatic(field) || true) {
@@ -2881,11 +2881,11 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitIdent(JCIdent tree) {
         String n = tree.name.toString();
-        if (n.equals("length")) { // FIXME - not sure about this - length as array length is always a field name
-            result = F.symbol(arrayLength);
-        } else {
+//        if (n.equals("length")) { // FIXME - not sure about this - length as array length is always a field name
+//            result = F.symbol(arrayLength);
+//        } else {
             result = F.symbol(makePQBarEnclosedString(tree));
-        }
+//        }
     }
     
     protected Map<Double,String> reals = new HashMap<Double,String>();
