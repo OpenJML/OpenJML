@@ -44,17 +44,33 @@ public class Linked {
     }
     
     //@ public normal_behavior
-    //@   old \bigint oldsize = this.size();
+    //@   old \bigint oldsize = (\lbl C this.size());
     //@   old seq<W> oldvalues = this.values();
-    // @ assignable size, values;
+    //@ assignable next;
     //@ ensures \fresh(this.next);
     //@ ensures this.next.value == t;
     //@ ensures this.next.next == \old(this.next);
-    //@ ensures this.size() == oldsize + 1;
+    //@ ensures (\lbl A this.size()) == (\lbl B oldsize) + 1;
     // @ ensures this.values().equals(oldvalues.prepend(t));
     public void push(W t) {
+        //@ assume next != null;
+        //@ ghost \bigint n = this.size();
+        //@ ghost \bigint nn = this.next.size();
+        //@ show this.size(), n;
+        // @ assert n == nn + 1;
         Linked v = new Linked(t, next);
+        //@ assert v.next == this.next;
+        // @ assert nn == this.next.size();
+        // @ assert nn == v.next.size();
+        //@ assert v.size() == n;
+        // @ assert n == this.size();
+        // @ assert this != v;
+        // @ assert this.next != v;
         this.next = v;
+        //@ assume v.size() == n;
+        //@ show this.size();
+        //@ assert this.size() == 1 + n;
+        // @ assert this.size() == 1 + v.size();
     }
     
     //@ public normal_behavior
@@ -62,7 +78,7 @@ public class Linked {
     //@   requires next != null;
     //@   old \bigint oldsize = this.size();
     //@   old seq<W> oldvalues = this.values();
-    // @   assignable size, values;
+    //@   assignable next; // size, values;
     //@   ensures next == \old(next.next);
     //@   ensures this.size() == oldsize - 1;
     // @   ensures this.values().equals(oldvalues.tail(1));

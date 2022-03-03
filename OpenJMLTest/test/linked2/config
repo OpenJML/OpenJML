@@ -1,1 +1,1 @@
-ARGS+=" -method=add "
+ARGS+=" -show -method=push "

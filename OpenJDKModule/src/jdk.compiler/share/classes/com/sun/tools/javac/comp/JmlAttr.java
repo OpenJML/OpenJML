@@ -2883,10 +2883,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         key, symForFlags instanceof ClassSymbol cs ? cs : symForFlags.owner + "." + symForFlags,
                             Flags.toString(diffs));
                } else {
+                   if (javaTree != null) {
                     utils.errorAndAssociatedDeclaration(specTree.source(), specTree.pos(),
                         javaTree.source(), javaTree.pos(),
                         key, symForFlags instanceof ClassSymbol cs ? cs : symForFlags.owner + "." + symForFlags,
                             Flags.toString(diffs));
+                   } else {
+                       utils.error(specTree.source(), specTree.pos(),
+                           key, symForFlags instanceof ClassSymbol cs ? cs : symForFlags.owner + "." + symForFlags,
+                               Flags.toString(diffs));
+                   }
                 }
             }
         }

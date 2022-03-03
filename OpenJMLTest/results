@@ -52,6 +52,14 @@ test/verifythis-2019-1 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<
 factorial -- sometimes timesout
 
 
+esc2DArray
+gitbug685
+gitbug695
+gitbug755
+gitbug758
+linked1a
+
+
 QueryPure.java       - 10/32 TODO
 QuerySecret.java     - 21/34 TODO
 SFBugs.java
