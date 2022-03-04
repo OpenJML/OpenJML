@@ -2215,9 +2215,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	public JmlStatementExpr addCheck(DiagnosticPosition codepos, Label label, JCExpression expr, Object... args) {
+        if (!rac) {
+            JCIdent id = newTemp(expr, syms.booleanType);
+            expr = treeutils.makeOr(expr, id, expr);
+        }
 		JmlStatementExpr s = addAssert(true, codepos, label, expr, null, null, null, args);
-		if (s != null)
-			s.clauseType = checkClause;
+		if (s != null) s.clauseType = checkClause;
 		return s;
 	}
 
@@ -12078,7 +12081,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									//System.out.println("CHECKING " + sr + " WITH " + currentThisExpr + " VS " + clause + " IN " + parentMethodSym.owner + ":" + parentMethodSym + " " + kind + " " + lsexpr);
 									JCExpression ss = treeutils.makeSubset(sr, sr, lsexpr);
 									JCExpression convertedCondition = simplifySubset(ss, targetEnv, isConverted);
-									//System.out.println(" CONDITION " + convertedCondition);
 									if (!emitAsserts) {
 										convertedCondition = treeutils.makeImplies(pos, precondition, convertedCondition);
 										okCondition = treeutils.makeAndSimp(pos,  okCondition,  convertedCondition);
@@ -12088,10 +12090,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											convertedCondition = makeAssertionOptional(convertedCondition);
 											//System.out.println("Assertion checking if " + lhsUnconverted + " is in " + clause + " : " + convertedCondition);
 											addStat(comment(pos, "Assertion checking if " + lhsUnconverted + " is in " + clause, clause.sourcefile));
-											addAssert(pos, kindLabel, convertedCondition, clause, clause.sourcefile, lhsUnconverted);
-										}
-										var bl = popBlock(clause);
-										if (!treeutils.isTrueLit(convertedCondition)) addStat(M.at(clause).If(precondition, bl, null));
+											var sst = addAssert(pos, kindLabel, convertedCondition, clause, clause.sourcefile, lhsUnconverted);
+											var bl = popBlock(clause);
+											addStat(M.at(clause).If(precondition, bl, null));
+                                        } else {
+                                            var bl = popBlock(clause);
+                                            addStat(comment(pos, "Assertion checking if " + lhsUnconverted + " is in " + clause + " <<< always true", clause.sourcefile));                                            
+                                        }
 									}
 								}
 							}
@@ -20312,7 +20317,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				ft = convertJML(ft); // Convert in current (smaller) environment
 //				System.out.println("CONVERTED FT " + ft);
 				JCExpression ok = containsArray(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.range, bigger);
-				return ft == null ? ok : treeutils.makeOr(smaller,  ft,  ok);
+				return ft == null ? ok : treeutils.makeOrSimp(smaller,  ft,  ok);
 			} else {
 				JCExpression ft = sr.receiver == null ? null : freshTest(smaller, sr.receiver, targetEnv.allocCount);
 				ft = convertJML(ft); // Convert in current envirnment

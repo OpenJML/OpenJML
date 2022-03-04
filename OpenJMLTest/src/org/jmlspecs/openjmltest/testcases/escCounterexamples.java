@@ -92,6 +92,7 @@ public class escCounterexamples extends EscBase {
     /** Tests assignments */
     @Test
     public void testCE4() {
+        
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int j; static public int sj; static public TestJava t;\n"
@@ -106,7 +107,7 @@ public class escCounterexamples extends EscBase {
                 +"    k += (j+=7);\n"
                 +"    b = k > 8;\n"
                 +"    c[4] = t;\n"
-                +"    c[0] = c[3];\n"
+                +"    /*@ assume c[3] != null; */ c[0] = c[3];\n"
                 +"    t.j = 9;\n"
                 +"    t.sj = 10;\n"
                 +"    TestJava.sj = 11;\n"

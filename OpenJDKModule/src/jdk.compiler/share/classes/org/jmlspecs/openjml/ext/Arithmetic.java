@@ -228,11 +228,11 @@ abstract public class Arithmetic extends JmlExtension {
             if (typetag == TypeTag.INT) {
                 JCExpression e = rewriter.treeutils.makeNot(arg.pos,rewriter.treeutils.makeEquality(arg.pos, rewriter.copy(arg), rewriter.treeutils.makeIntLiteral(arg.pos, Integer.MIN_VALUE)));
                 e = condition(rewriter,e);
-                rewriter.addCheck(that,Label.ARITHMETIC_OP_RANGE,e,"(int negation)");
+                checkIt(rewriter,that,"(int negation)",e);
             } else if (typetag == TypeTag.LONG) {
                 JCExpression e = rewriter.treeutils.makeNot(arg.pos,rewriter.treeutils.makeEquality(arg.pos, rewriter.copy(arg), rewriter.treeutils.makeLit(arg.pos, that.type, Long.MIN_VALUE)));
                 e = condition(rewriter,e);
-                rewriter.addCheck(that,Label.ARITHMETIC_OP_RANGE,e,"(long negation)");
+                checkIt(rewriter,that,"(long negation)",e);
             }
         }
         if (rewriter.rac && rewriter.jmltypes.isJmlType(newtype)) {
@@ -371,7 +371,7 @@ abstract public class Arithmetic extends JmlExtension {
                     JCExpression c = rewriter.makeBin(that,  optagn,  sym, maxlit, rewriter.copy(rhs), newtype);
                     JCExpression d = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.intleSymbol, rewriter.copy(lhs), c, newtype);
                     JCExpression x = rewriter.treeutils.makeImplies(p, rewriter.treeutils.makeAnd(p,a,b), d);
-                    assertIt(rewriter, that, "overflow in int " + str, x);
+                    checkIt(rewriter, that, "overflow in int " + str, x);
                     // a == lhs < 0 ; b1 == 0 < rhs ; b2 == rhs < 0
                     // +) c == MIN - rhs ; d == c <= lhs == (MIN - rhs) <= lhs; x == (a && b2) ==> d
                     // -) c == MIN + rhs ; d == c <= lhs == (MIN + rhs) <= lhs; x == (a && b1) ==> d
@@ -380,7 +380,7 @@ abstract public class Arithmetic extends JmlExtension {
                     c = rewriter.makeBin(that,  optagn,  sym, minlit, rewriter.copy(rhs), newtype);
                     d = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.intleSymbol, c, rewriter.copy(lhs), newtype);
                     x = rewriter.treeutils.makeImplies(p, rewriter.treeutils.makeAnd(p,a,rewriter.copy(b)), d);
-                    assertIt(rewriter, that, "underflow in int " + str, x);
+                    checkIt(rewriter, that, "underflow in int " + str, x);
                 } else if (newtype.getTag() == TypeTag.LONG) {
                     OperatorSymbol sym = optag == JCTree.Tag.PLUS ? rewriter.treeutils.longminusSymbol : rewriter.treeutils.longplusSymbol;
                     JCExpression maxlit = rewriter.treeutils.makeLongLiteral(p, Long.MAX_VALUE);
@@ -393,13 +393,13 @@ abstract public class Arithmetic extends JmlExtension {
                     JCExpression c = rewriter.makeBin(that,  optagn,  sym, maxlit, rewriter.copy(rhs), newtype);
                     JCExpression d = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.longleSymbol, rewriter.copy(lhs), c, newtype);
                     JCExpression x = rewriter.treeutils.makeImplies(p, rewriter.treeutils.makeAnd(p,a,b), d);
-                    assertIt(rewriter, that, "overflow in long " + str, x);
+                    checkIt(rewriter, that, "overflow in long " + str, x);
                     a = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.longltSymbol, rewriter.copy(lhs), zerolit, newtype);
                     b = optag == JCTree.Tag.PLUS ? b2 : b1;
                     c = rewriter.makeBin(that,  optagn,  sym, minlit, rewriter.copy(rhs), newtype);
                     d = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.longleSymbol, c, rewriter.copy(lhs), newtype);
                     x = rewriter.treeutils.makeImplies(p, rewriter.treeutils.makeAnd(p,a,rewriter.copy(b)), d);
-                    assertIt(rewriter, that, "underflow in long " + str, x);
+                    checkIt(rewriter, that, "underflow in long " + str, x);
                 }
             } else if (optag == JCTree.Tag.MUL) {
                 if (rewriter.useBV || rewriter.rac) {
@@ -409,22 +409,22 @@ abstract public class Arithmetic extends JmlExtension {
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.DIV, rewriter.treeutils.intdivideSymbol, a, rewriter.copy(lhs));
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, rewriter.copy(lhs), rewriter.treeutils.makeIntLiteral(p, 0));
                         JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, b, rewriter.copy(rhs));
-                        rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, 
-                                condition(rewriter, rewriter.treeutils.makeOr(p, c, d)), "int multiply overflow");
+                        checkIt(rewriter,that, "int multiply overflow", 
+                                condition(rewriter, rewriter.treeutils.makeOr(p, c, d)));
                     } else if (newtype.getTag() == TypeTag.LONG) {
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, rewriter.treeutils.longmultiplySymbol, rewriter.copy(lhs), rewriter.copy(rhs));
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.DIV, rewriter.treeutils.longdivideSymbol, a, rewriter.copy(lhs));
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, rewriter.copy(lhs), rewriter.treeutils.makeLongLiteral(p, 0L));
                         JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, b, rewriter.copy(rhs));
-                        rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, 
-                                condition(rewriter, rewriter.treeutils.makeOr(p, c, d)), "long multiply overflow");
+                        checkIt(rewriter,that, "long multiply overflow", 
+                                condition(rewriter, rewriter.treeutils.makeOr(p, c, d)));
                     }
                 } else if (smtPredefined) {
                     if (newtype.getTag() == TypeTag.INT) {
-                        assertIt(rewriter, that, "int multiply overflow", 
+                        checkIt(rewriter, that, "int multiply overflow", 
                             rewriter.treeutils.makeJmlMethodInvocation(that,"|#mul32ok#|", syms.booleanType, lhs, rhs));
                     } else if (newtype.getTag() == TypeTag.LONG) {
-                        assertIt(rewriter, that, "long multiply overflow", 
+                        checkIt(rewriter, that, "long multiply overflow", 
                                 rewriter.treeutils.makeJmlMethodInvocation(that,"|#mul64ok#|", syms.booleanType, lhs, rhs));
                     }
                 } else {
@@ -435,14 +435,14 @@ abstract public class Arithmetic extends JmlExtension {
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), rewriter.copy(lhs), rewriter.copy(rhs));
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  minlit, a);
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  rewriter.copy(a), maxlit);
-                        assertIt(rewriter, that, "int multiply overflow", rewriter.treeutils.makeAnd(p, b, c));
+                        checkIt(rewriter, that, "int multiply overflow", rewriter.treeutils.makeAnd(p, b, c));
                     } else if (newtype.getTag() == TypeTag.LONG) {
                         JCExpression minlit = rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE);
                         JCExpression maxlit = rewriter.treeutils.makeLongLiteral(p, Long.MAX_VALUE);
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), rewriter.copy(lhs), rewriter.copy(rhs));
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  minlit, a);
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  rewriter.copy(a), maxlit);
-                        assertIt(rewriter, that, "long multiply overflow", rewriter.treeutils.makeAnd(p, b, c));
+                        checkIt(rewriter, that, "long multiply overflow", rewriter.treeutils.makeAnd(p, b, c));
                     }
                 }
             } else if (optag == JCTree.Tag.DIV) {
@@ -454,14 +454,14 @@ abstract public class Arithmetic extends JmlExtension {
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, rewriter.copy(lhs), minlit);
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, rewriter.copy(rhs), minusonelit);
                         JCExpression x = rewriter.treeutils.makeNot(p, rewriter.treeutils.makeAnd(p, a, b));
-                        assertIt(rewriter, that, "overflow in int divide", x);
+                        checkIt(rewriter, that, "overflow in int divide", x);
                     } else if (newtype.getTag() == TypeTag.LONG) {
                         JCExpression minlit = rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE);
                         JCExpression minusonelit = rewriter.treeutils.makeLongLiteral(p, -1L);
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, rewriter.copy(lhs), minlit);
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, rewriter.copy(rhs), minusonelit);
                         JCExpression x = rewriter.treeutils.makeNot(p, rewriter.treeutils.makeAnd(p, a, b));
-                        assertIt(rewriter, that, "overflow in long divide", x);
+                        checkIt(rewriter, that, "overflow in long divide", x);
                     }
                 }
             } else if (optag == JCTree.Tag.MOD){
@@ -611,14 +611,14 @@ abstract public class Arithmetic extends JmlExtension {
 
     }
 
-    private void assertIt(JmlAssertionAdder rewriter, JCBinary that, String str,
+    private void checkIt(JmlAssertionAdder rewriter, JCTree pos, String str,
             JCExpression x) {
         x = condition(rewriter, x);
         if (!rac) {
             JCTree.JCIdent id = rewriter.newTemp(x);
             rewriter.saveMapping(x,id);
         }
-        rewriter.addCheck(that, Label.ARITHMETIC_OP_RANGE, x, str);
+        rewriter.addCheck(pos, Label.ARITHMETIC_OP_RANGE, x, str);
     }
     
     /** This implements the bigint (which is also real) mathematical mode */

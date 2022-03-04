@@ -731,7 +731,10 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                     print(that.label);
                     print(" ");
                 }
-                printExpr(that.expression);
+                // The list of clause kinds contains those for which an expression is never present or is optional
+                if (that.expression != null || (that.clauseType != org.jmlspecs.openjml.ext.ReachableStatement.haltClause)) {
+                    printExpr(that.expression);
+                }
                 if (that.optionalExpression != null) {
                     print(" : ");
                     printExpr(that.optionalExpression);

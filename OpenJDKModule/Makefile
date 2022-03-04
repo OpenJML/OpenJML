@@ -72,13 +72,13 @@ REL=release-temp
 
 ## Used in the github build.yml action
 
-release: clean version openjml jmlruntime.jar post
+release: clean version openjml jmlruntime.jar tutorial post
 
 version:
 	./version.sh
 
 tutorial:
-	cp -pR ../../openjml.github.io/tutorial/*.java release-files/tutorial
+	cp -pR ../../openjml.github.io/tutorial/*.java ../../openjml.github.io/tutorial/*.out release-files/tutorial
 
 annotation:
 	cp -pR ../../JMLAnnotations/src/org  src/java.base/share/classes

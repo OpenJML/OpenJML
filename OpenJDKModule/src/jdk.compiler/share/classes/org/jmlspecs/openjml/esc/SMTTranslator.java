@@ -2813,7 +2813,9 @@ public class SMTTranslator extends JmlTreeScanner {
             	} else {
             		result = F.fcn(F.symbol(hifcn),sel);
             	}
-            } else if (field.name != names.length || !(tree.selected.type instanceof Type.ArrayType || tree.selected.type.toString().startsWith("org.jmlspecs.lang"))) {
+            	// FIXME - why do arrays use this branch instead of the one at the bottom
+            //} else if (field.name != names.length || !(tree.selected.type instanceof Type.ArrayType || tree.selected.type.toString().startsWith("org.jmlspecs.lang"))) {
+            } else if (field.name != names.length || !(tree.selected.type.toString().startsWith("org.jmlspecs.lang"))) {
                 // Non-length selection
                 String encName;
                 if (Utils.instance(context).isJMLStatic(field) || true) {
@@ -2882,6 +2884,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public void visitIdent(JCIdent tree) {
         String n = tree.name.toString();
 //        if (n.equals("length")) { // FIXME - not sure about this - length as array length is always a field name
+//            System.out.println("IDENT " + tree + " " + tree.type);
 //            result = F.symbol(arrayLength);
 //        } else {
             result = F.symbol(makePQBarEnclosedString(tree));

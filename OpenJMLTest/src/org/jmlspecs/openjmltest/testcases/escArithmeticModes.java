@@ -465,6 +465,22 @@ public class escArithmeticModes extends EscBase {
               );
     }
 
-
+    @Test
+    public void testCheck() { // tests that an overflow/underflow is just a check
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                +"  //@ requires i > -100 && j > 0;\n"
+                +"  public void ma(int i, int j) {\n"
+                +"     int k = i + j;\n"
+                +"     int m = i - j;\n"
+                +"  }\n"
+                +"}\n"
+                ,anyorder(
+                    seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: underflow in int difference",16),
+                    seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: overflow in int sum",16)
+                    )
+              );
+    }
+    
 }
 
