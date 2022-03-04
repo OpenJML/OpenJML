@@ -145,7 +145,7 @@ public class TypeExprClauseExtension extends JmlExtension {
                             Name datagroup = attr.getAnnotationStringArg(a);
                             if (datagroup != null) {
                                 //Symbol v = rs.findField(env,env.enclClass.type,datagroup,env.enclClass.sym);
-                                Symbol v = JmlResolve.instance(context).resolveIdent(a.args.get(0).pos(),env,datagroup,KindSelector.VAR);
+                                Symbol v = JmlResolve.instance(attr.context).resolveIdent(a.args.get(0).pos(),env,datagroup,KindSelector.VAR);
                                 if (v instanceof VarSymbol) attr.currentSecretContext = (VarSymbol)v;
                                 else if (v instanceof PackageSymbol) {
                                 	utils.error(a.args.get(0).pos(),"jml.annotation.arg.not.a.field",v.getQualifiedName());
@@ -154,7 +154,7 @@ public class TypeExprClauseExtension extends JmlExtension {
                         }
                     }
                 }
-                attr.attribExpr(clause.expression, localEnv, syms.booleanType);
+                attr.attribExpr(clause.expression, localEnv, attr.syms.booleanType);
                 attr.checkTypeClauseMods(clause,clause.modifiers,clause.clauseType.keyword() + " clause",clause.clauseType);
                 return null;
             } catch (Exception e) {

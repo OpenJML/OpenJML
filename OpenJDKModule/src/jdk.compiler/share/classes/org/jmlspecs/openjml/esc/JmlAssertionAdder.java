@@ -18995,7 +18995,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					boolean pv = checkAccessEnabled;
 					checkAccessEnabled = false;
 					try {
-					    System.out.println("CONVERTING " + that.init + " " + that.init.getClass());
+					    //System.out.println("CONVERTING " + that.init + " " + that.init.getClass());
 						init = convertJML(that.init);
 						if (init != null)
 							init = addImplicitConversion(init, that.type, init);

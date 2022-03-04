@@ -48,8 +48,7 @@ public class FunctionLikeExpressions extends JmlExtension {
             if (n != 1) {
                 error(tree.pos(),"jml.one.arg",keyword,n);
             }
-            syms = Symtab.instance(context);
-            Type t = syms.errType;
+            Type t = attr.syms.errType;
             if (n > 0) {
             	for (var arg: tree.args) arg.type = attr.attribExpr(arg, localEnv, Type.noType);
                 Type tt = tree.args.get(0).type;
@@ -57,13 +56,13 @@ public class FunctionLikeExpressions extends JmlExtension {
                 	System.out.println("NULLTYPE - Unexpected null type in \\elemtype");
                 } else if (tt.isErroneous()) {
                 	t = tt;
-                } else if (tt == JmlTypes.instance(context).TYPE) {
+                } else if (tt == JmlTypes.instance(attr.context).TYPE) {
                     t = tt;
-                } else if (tt.tsym == syms.classType.tsym) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
-                    t = syms.classType;
+                } else if (tt.tsym == attr.syms.classType.tsym) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
+                    t = attr.syms.classType;
                 } else {
                     error(tree.args.get(0).pos(),"jml.elemtype.expects.classtype",tt.toString());
-                    t = JmlTypes.instance(context).TYPE;
+                    t = JmlTypes.instance(attr.context).TYPE;
                 }
             }
             tree.type = t;
@@ -82,7 +81,7 @@ public class FunctionLikeExpressions extends JmlExtension {
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             JmlMethodInvocation tree = (JmlMethodInvocation)expr;
         	typecheckHelper(attr, tree.args, localEnv);
-            expr.type = JmlTypes.instance(context).TYPE;
+            expr.type = JmlTypes.instance(attr.context).TYPE;
             return expr.type;
         }
 
@@ -163,7 +162,7 @@ public class FunctionLikeExpressions extends JmlExtension {
                     error(arg.pos(),"jml.ref.arg.required",keyword);
                 }
             }
-            return syms.booleanType;
+            return attr.syms.booleanType;
         }
 
         @Override
@@ -214,7 +213,7 @@ public class FunctionLikeExpressions extends JmlExtension {
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             super.typecheck(attr, expr, localEnv);
-            return Symtab.instance(context).booleanType;
+            return attr.syms.booleanType;
         }
     }
 
@@ -247,7 +246,7 @@ public class FunctionLikeExpressions extends JmlExtension {
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             super.typecheck(attr, expr, localEnv);
-            return Symtab.instance(context).booleanType;
+            return attr.syms.booleanType;
         }
     }
 
@@ -277,7 +276,7 @@ public class FunctionLikeExpressions extends JmlExtension {
                 JmlMethodInvocation expr = (JmlMethodInvocation)tree;
                 log.error(tree.pos, "jml.misplaced.token", expr.kind != null ? expr.kind.keyword() : expr.token.internedName(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.keyword());
             }
-            return Symtab.instance(context).booleanType;
+            return attr.syms.booleanType;
         }
     };
     
@@ -338,7 +337,7 @@ public class FunctionLikeExpressions extends JmlExtension {
                     error(arg.pos(),"jml.ref.arg.required",keyword());
                 }
             }
-            return Symtab.instance(context).booleanType;
+            return attr.syms.booleanType;
         }
         @Override public JCExpression assertionConversion(JmlAssertionAdder aa, JCExpression expr) {
             JmlMethodInvocation that = (JmlMethodInvocation)expr;
@@ -371,7 +370,7 @@ public class FunctionLikeExpressions extends JmlExtension {
                 }
             }
             localEnv = attr.removeStatic(localEnv);
-            return Symtab.instance(context).booleanType;
+            return attr.syms.booleanType;
         }
         @Override public JCExpression assertionConversion(JmlAssertionAdder aa, JCExpression expr) {
             JmlMethodInvocation that = (JmlMethodInvocation)expr;
@@ -398,7 +397,7 @@ public class FunctionLikeExpressions extends JmlExtension {
                     // Already reported as an error
                 } else if (argtype instanceof Type.ArrayType) {
                     // OK - standard array type
-                } else if (JmlTypes.instance(context).isSubtype(argtype, syms.iterableType)) {
+                } else if (JmlTypes.instance(attr.context).isSubtype(argtype, attr.syms.iterableType)) {
                     // OK - is a Java collection
                 } else {
                     String s = argtype.toString();
@@ -476,7 +475,7 @@ public class FunctionLikeExpressions extends JmlExtension {
                     attr.jmlenv.currentClauseKind != recommendsClauseKind) {
                 error(that,"jml.misplaced.same");
             }
-            return Symtab.instance(context).booleanType;
+            return attr.syms.booleanType;
         }
     };
     
@@ -491,10 +490,10 @@ public class FunctionLikeExpressions extends JmlExtension {
             for (JCExpression arg: expr.args) {
                 if (arg instanceof JCLiteral) {
                     String key = ((JCLiteral)arg).getValue().toString();
-                    value = value && JmlOptions.instance(context).commentKeys.contains(key);
+                    value = value && JmlOptions.instance(parser.context).commentKeys.contains(key);
                 } else if (arg instanceof JCIdent) {
                     String key = ((JCIdent)arg).name.toString();
-                    value = value && JmlOptions.instance(context).commentKeys.contains(key);
+                    value = value && JmlOptions.instance(parser.context).commentKeys.contains(key);
                 } else {
                     utils.error(arg, "jml.message", "An argument to \\key must be an identifier or a string literal");
                     return parser.maker().at(pos).Erroneous();

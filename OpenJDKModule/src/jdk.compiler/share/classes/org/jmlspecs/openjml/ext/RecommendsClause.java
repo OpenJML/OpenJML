@@ -40,7 +40,7 @@ public class RecommendsClause extends JmlExtension {
             parser.nextToken();
             JCExpression e = parser.parseExpression();
             JCExpression ex = null;
-            if (scanner.token().kind == ELSE) {
+            if (parser.token().kind == ELSE) {
                 parser.nextToken();
                 ex = parser.parseType();
             } else {
@@ -56,7 +56,7 @@ public class RecommendsClause extends JmlExtension {
         public Type typecheck(JmlAttr attr, JCTree clause, Env<AttrContext> env) {
             if (!(clause instanceof Node)) throw new RuntimeException(); // FIXME - a better exception and message
             Node that = (Node)clause;
-            Type t = attr.attribExpr(that.expression, env, syms.booleanType);
+            Type t = attr.attribExpr(that.expression, env, attr.syms.booleanType);
             if (that.exceptionType != null) {
                 t = attr.attribType(that.exceptionType, env);
                 that.exceptionType.type = t;

@@ -109,30 +109,32 @@ public abstract class IJmlClauseKind {
     // They are not necessarily available when an instanceof IJmlClauseKind is created
     
     /** The compilation context */
-    protected /*@ non_null */ Context context;
-    //@ public constraint context == \old(context);
+    private /*@ non_null */ Context context;
 
     /** The parser in use, set when parsing is requested; note that there is a new parser created for each file parsed */
     protected /*@ non_null */ JmlParser parser;
     
-    /** The scanner in use, set when parsing is requested; note that there is a new parser created for each file parsed */
-    protected /*@ non_null */ JmlScanner scanner;
+//    /** The scanner in use, set when parsing is requested; note that there is a new parser created for each file parsed */
+//    protected /*@ non_null */ JmlScanner scanner;
     
-    /** The symbol table, set when the context is set */
-    protected Symtab syms;
+//    /** The symbol table, set when the context is set */
+//    protected Symtab syms;
     
     /** Set when the context is set */
     protected Log log;
     
     /** Set when the context is set */
+    protected JCDiagnostic.Factory diagFactory;
+    
+    /** Set when the context is set */
     protected Utils utils;
     
     public com.sun.tools.javac.util.JCDiagnostic.Error errorKey(String key, Object ... args) {
-    	return JCDiagnostic.Factory.instance(context).errorKey(key,args);
+    	return diagFactory.errorKey(key,args);
     }
     
     public com.sun.tools.javac.util.JCDiagnostic.Warning warningKey(String key, Object ... args) {
-    	return JCDiagnostic.Factory.instance(context).warningKey(key,args);
+    	return diagFactory.warningKey(key,args);
     }
     
     /** Writes an error message to the log, using the given DiagnosticPosition
@@ -209,11 +211,12 @@ public abstract class IJmlClauseKind {
 
     protected void init(JmlParser parser) {
         Context c = context = parser.context ;
-        this.syms = Symtab.instance(c);
+        //this.syms = Symtab.instance(c);
         this.log = Log.instance(c);
         this.parser = parser;
-        this.scanner = parser.getScanner();
+        //this.scanner = parser.getScanner();
         this.utils = Utils.instance(c);
+        this.diagFactory = JCDiagnostic.Factory.instance(c);
     }
 
     protected void wrapup(JCTree statement, IJmlClauseKind clauseType, boolean parseSemicolon) {
@@ -222,7 +225,7 @@ public abstract class IJmlClauseKind {
     
     protected void wrapup(JCTree statement, IJmlClauseKind clauseType, boolean parseSemicolon, boolean requireSemicolon) {
         if (statement instanceof JmlSource) {
-            ((JmlSource)statement).setSource(Log.instance(context).currentSourceFile());
+            ((JmlSource)statement).setSource(log.currentSourceFile());
         }
         //ste.line = log.currentSource().getLineNumber(pos);
         if (!parseSemicolon) {
@@ -235,7 +238,7 @@ public abstract class IJmlClauseKind {
             if (requireSemicolon) warning(parser.pos(), parser.endPos(), "jml.missing.semi", clauseType.keyword());
         } else if (parser.token().kind != SEMI && parser.token().kind == TokenKind.IDENTIFIER && Extensions.findKeyword(parser.token().name()) != null) {
         	int p = parser.pos();
-        	var t = scanner.prevToken();
+        	var t = parser.getScanner().prevToken();
         	p = t.endPos;
             error(p, p, "jml.bad.construct.missing.semi", clauseType.keyword() + " statement");
         } else if (parser.token().kind != SEMI) {
@@ -404,7 +407,9 @@ public abstract class IJmlClauseKind {
         public void typecheckHelper(JmlAttr attr, List<JCExpression> args, Env<AttrContext> localEnv) {
             ListBuffer<Type> argTypes = new ListBuffer<>();
             for (JCExpression e: args) {
-                Type t = attr.attribExpr(e, localEnv, Type.noType);
+                Attr.ResultInfo resultInfo = attr.new ResultInfo(KindSelector.VAL, Type.noType );
+                Type t = attr.attribExpr(e, localEnv);
+                t = attr.check(e, t, KindSelector.VAL, resultInfo );
             }
 //            for (JCExpression e: args) {
 //                Attr.ResultInfo resultInfo = attr.new ResultInfo(KindSelector.VAL, Type.noType );

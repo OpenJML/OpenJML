@@ -52,12 +52,12 @@ public class ReachableStatement extends JmlExtension {
         public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             int pp = parser.pos();
-            int p = scanner.currentPos();
+            int p = parser.getScanner().currentPos(); // FIXME - why do we get this position from the scanner?
             boolean noExpression = keyword.equals(splitID) || keyword.equals(haltID);
-            boolean semiWarning = !noExpression && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
+            boolean semiWarning = !noExpression && JmlOption.langJML.equals(JmlOption.value(parser.context, JmlOption.LANG));
             parser.nextToken();
             JmlStatementExpr st = parser.maker().at(pp).JmlExpressionStatement(keyword,clauseType,null,null);
-            if (!noExpression) st.expression = JmlTreeUtils.instance(context).makeBooleanLiteral(pp,true);
+            if (!noExpression) st.expression = JmlTreeUtils.instance(parser.context).makeBooleanLiteral(pp,true);
             if (parser.token().kind == TokenKind.SEMI) {
                 parser.nextToken();
             } else if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
@@ -109,7 +109,7 @@ public class ReachableStatement extends JmlExtension {
         	attr.jmlenv.inPureEnvironment = true;
         	attr.jmlenv.currentClauseKind = clause.clauseType;
         	// unreachable statements have a null expression
-	        if (clause.expression != null) attr.attribExpr(clause.expression,env,syms.booleanType);
+	        if (clause.expression != null) attr.attribExpr(clause.expression,env,attr.syms.booleanType);
         	if (clause.optionalExpression != null) attr.attribExpr(clause.optionalExpression,env,Type.noType);
         	attr.jmlenv = attr.jmlenv.pop();
         	attr.jmlresolve.setAllowJML(prevAllowJML);

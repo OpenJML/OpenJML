@@ -46,7 +46,7 @@ public class LocsetExtensions extends JmlExtension {
                 }
             }
             checkNumberArgs(parser, t, n->(n==2), "jml.message", "A \\subset expression must have two arguments, not " + t.args.size());
-            return syms.booleanType;
+            return attr.syms.booleanType;
         }
     };
 
@@ -64,7 +64,7 @@ public class LocsetExtensions extends JmlExtension {
                 }
             }
             checkNumberArgs(parser, t, n->(n==2), "jml.message", "A \\disjoint expression must have two arguments, not " + t.args.size());
-            return syms.booleanType;
+            return attr.syms.booleanType;
         }
     };
 

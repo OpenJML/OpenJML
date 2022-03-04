@@ -26,6 +26,7 @@ public class JMLPrimitiveTypes extends JmlExtension {
 	public static class JmlTypeKind extends IJmlClauseKind {
 		public String typename; // expected to be in org.jmlspecs.lang
 		Type type = null; // lazily filled in; depends on context; only  implemented for a single context
+        Context context = null; // context for type -- need even though it shadows IJmlClauseKind.context
 		
 		public JmlTypeKind(String keyword, String typename) {
 			super(keyword);

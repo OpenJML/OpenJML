@@ -74,7 +74,7 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
                     } else if (tk == COMMA) {
                         parser.nextToken();
                         continue;
-                    } else if (!scanner.jml() || parser.jmlTokenKind() == ENDJMLCOMMENT) {
+                    } else if (!parser.getScanner().jml() || parser.jmlTokenKind() == ENDJMLCOMMENT) {  // FIXME - change to get JML status from parser
                         parser.syntaxError(parser.pos(), null, "jml.missing.semi");
                         parser.skipThroughEndOfJML();
                         break;
