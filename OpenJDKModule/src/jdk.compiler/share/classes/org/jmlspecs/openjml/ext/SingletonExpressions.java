@@ -37,24 +37,23 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            syms = Symtab.instance(context);
             JCTree.JCMethodDecl md = attr.jmlenv.enclosingMethodDecl;
             JCTree res = md.getReturnType();
             Type t;
-            if (res == null || (!res.type.isErroneous() && JmlTypes.instance(context).isSameType(res.type,syms.voidType))) {
-                Utils.instance(context).error(that.pos+1, "jml.void.result");
-                t = syms.errType;
+            if (res == null || (!res.type.isErroneous() && JmlTypes.instance(attr.context).isSameType(res.type,attr.syms.voidType))) {
+                Utils.instance(attr.context).error(that.pos+1, "jml.void.result");
+                t = attr.syms.errType;
             } else {
                 t = res.type;
             }
             if (attr.jmlenv.currentLabel != null) {
-                Utils.instance(context).error(that.pos, "jml.no.result.in.old");
+                Utils.instance(attr.context).error(that.pos, "jml.no.result.in.old");
             }
             if (!attr.resultClauses.contains(attr.jmlenv.currentClauseKind)) {
                 // The +1 is to fool the error reporting mechanism into 
                 // allowing other error reports about the same token
-                Utils.instance(context).error(that.pos+1, "jml.misplaced.result", attr.jmlenv.currentClauseKind.keyword());
-                t = syms.errType;
+                Utils.instance(attr.context).error(that.pos+1, "jml.misplaced.result", attr.jmlenv.currentClauseKind.keyword());
+                t = attr.syms.errType;
             }
             that.type = t;
             return t;
@@ -67,8 +66,7 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            syms = Symtab.instance(context);
-            return syms.booleanType;
+            return attr.syms.booleanType;
         }
         
         @Override
@@ -82,10 +80,9 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            syms = Symtab.instance(context);
-            Type t = syms.intType;
+            Type t = attr.syms.intType;
             if (attr.loopStack.isEmpty()) {
-                Utils.instance(context).error(that.pos,"jml.outofscope", keyword());
+                Utils.instance(attr.context).error(that.pos,"jml.outofscope", keyword());
             } else {
                 ((JmlSingleton)that).info = attr.loopStack.get(0).sym;
             }
@@ -104,14 +101,13 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            syms = Symtab.instance(context);
             Type t = attr.JMLValuesType;
             if (attr.foreachLoopStack.isEmpty()) {
-                Utils.instance(context).error(that.pos,"jml.outofscope", keyword());
+                Utils.instance(attr.context).error(that.pos,"jml.outofscope", keyword());
             } else {
                 JCVariableDecl d = attr.foreachLoopStack.get(0).valuesDecl;
                 if (d == null) {
-                    Log.instance(context).error(that.pos,"jml.notforthisloop", keyword());
+                    Log.instance(attr.context).error(that.pos,"jml.notforthisloop", keyword());
                 } else {
                     ((JmlSingleton)that).info = d.sym;
                 }
@@ -148,8 +144,8 @@ public class SingletonExpressions extends JmlExtension {
             if (!attr.exceptionClauses.contains(attr.jmlenv.currentClauseKind)) {
                 // The +1 is to fool the error reporting mechanism into 
                 // allowing other error reports about the same token
-                Utils.instance(context).error(that.pos+1, "jml.misplaced.exception", attr.jmlenv.currentClauseKind.keyword());
-                t = Symtab.instance(context).errType;
+                Utils.instance(attr.context).error(that.pos+1, "jml.misplaced.exception", attr.jmlenv.currentClauseKind.keyword());
+                t = attr.syms.errType;
             } else {
                 t = attr.jmlenv.currentExceptionType;
             }

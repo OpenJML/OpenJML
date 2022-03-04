@@ -33,7 +33,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
             int pp = parser.pos();
             parser.nextToken();
             var n = parser.parseOptionalName();
-            boolean strict = JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
+            boolean strict = JmlOption.langJML.equals(JmlOption.value(parser.context, JmlOption.LANG));
             JCExpression id = parser.parseStoreRef(strict);
             boolean suchThat;
             JCExpression e;
@@ -42,7 +42,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
                 parser.nextToken();
                 e = parser.parseExpression();
             } else if (parser.jmlTokenKind() == JmlTokenKind.LEFT_ARROW) {
-                if (utils.isDeprecationSet() && ! JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+                if (utils.isDeprecationSet() && ! strict) {
                 	utils.warning(parser.pos(), "jml.deprecated.left.arrow.in.represents");
                 }
                 suchThat = false;

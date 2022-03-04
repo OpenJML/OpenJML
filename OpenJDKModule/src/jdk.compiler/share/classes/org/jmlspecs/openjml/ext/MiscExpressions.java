@@ -89,7 +89,7 @@ public class MiscExpressions extends JmlExtension {
                 if (!expr.javaType) attr.checkForWildcards(arg,arg);
             }
             Type t = attr.jmltypes.TYPE;
-            if (expr.javaType) t = syms.classType;
+            if (expr.javaType) t = attr.syms.classType;
             attr.addTodo(attr.runtimeClass);
             return t;
         }
@@ -116,7 +116,7 @@ public class MiscExpressions extends JmlExtension {
                     utils.error(tree.pos+1, "jml.misplaced.token", keyword(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.keyword());
                 }
             }
-            expr.type = Symtab.instance(context).booleanType;
+            expr.type = attr.syms.booleanType;
             return expr.type;
         }
     };
@@ -138,7 +138,7 @@ public class MiscExpressions extends JmlExtension {
                     utils.error(arg,"jml.ref.arg.required", keyword());
                 }
             }
-            return Symtab.instance(context).booleanType;
+            return attr.syms.booleanType;
         }
     };
 
@@ -178,7 +178,7 @@ public class MiscExpressions extends JmlExtension {
                 utils.error(tree,"jml.one.arg",keyword(),n);
             }
             Type t;
-            if (n == 0) t = syms.errType;
+            if (n == 0) t = attr.syms.errType;
             else {
                 // FIXME - use type.sameType to compare types?
                 if (!expr.args.get(0).type.equals(attr.JMLSetType)) {  // FIXME - use isSameType or check?  what about errors?

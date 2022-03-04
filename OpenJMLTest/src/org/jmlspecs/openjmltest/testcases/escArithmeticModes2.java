@@ -594,6 +594,5 @@ public class escArithmeticModes2 extends EscBase {
     }
     
 
-
 }
 

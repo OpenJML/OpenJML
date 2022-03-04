@@ -51,12 +51,17 @@ test/verifythis-2019-1 : Actual output differs from expected <<<<<<<<<<<<<<<<<<<
 
 factorial -- sometimes timesout
 
+FIX FOR array element nullness: escVector, escCounterexamples.testCE4
 
-esc2DArray
-gitbug685
-gitbug695
-gitbug755
-gitbug758
+esc2DArray -- NOT OK at 313f3212b; OK at 38725aff1
+linked1a
+
+
+esc2DArray -- NOT OK at 313f3212b; OK at 38725aff1
+gitbug685 -- OK at 313f3212b; OK at 38725aff1
+gitbug695 -- OK at 313f3212b; OK at 38725aff1
+gitbug755 -- is rac
+gitbug758 -- needs EXIT
 linked1a
 
 

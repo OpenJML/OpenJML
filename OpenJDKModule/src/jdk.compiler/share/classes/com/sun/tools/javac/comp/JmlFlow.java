@@ -283,6 +283,12 @@ public class JmlFlow extends Flow  {
             // we could call scanExpr on each expression, but we have to watch for special expressions
         }
 
+        @Override
+        public void visitJmlStoreRef(JmlStoreRef that) {
+            // FIXME - do need to do some scanning
+        }
+
+
         //// These are not implemented
 
         @Override
@@ -725,6 +731,11 @@ public class JmlFlow extends Flow  {
             // FIXME: skipping store-ref expressions
             // we could call scanExpr on each expression, but we have to watch for special expressions
         }
+        
+        @Override
+        public void visitJmlStoreRef(JmlStoreRef that) {
+            // FIXME - do need to do some scanning
+        }
 
         //// These do nothing, if they are even needed
 
@@ -1083,6 +1094,12 @@ public class JmlFlow extends Flow  {
             // FIXME: skipping store-ref expressions
             // we could call scanExpr on each expression, but we have to watch for special expressions
         }
+
+        @Override
+        public void visitJmlStoreRef(JmlStoreRef that) {
+            // FIXME - do need to do some scanning
+        }
+
 
         //// These are not implemented
 

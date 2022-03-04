@@ -978,6 +978,13 @@ public class JmlTreeUtils {
         return makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,rhs);
     }
 
+    /** Makes an attributed AST for a short-circuit boolean OR expression, simplifying literal true or false */
+    public JCExpression makeOrSimp(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
+        if (isFalseLit(rhs) || isTrueLit(lhs)) return lhs;
+        if (isFalseLit(lhs) || isTrueLit(rhs)) return rhs;
+        return makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,rhs);
+    }
+
     /** Makes an attributed attributed AST for a non-short-circuit boolean AND expression */
     public JCExpression makeBitAnd(int pos, JCExpression lhs, JCExpression ... rhs) {
         for (JCExpression r: rhs) {
@@ -1958,6 +1965,51 @@ public class JmlTreeUtils {
     	 return makeJmlMethodInvocation(pos, LocsetExtensions.subsetKind, syms.booleanType, small, big);
      }
      
-     
+     /* Makes an unattributed JmlStoreRef value from a store-ref-expression -- no expansion */
+     public JmlStoreRef makeLocsetLiteral(JCExpression e) {
+         JmlStoreRef sr = null;
+//         if (e instanceof JCIdent id) {
+//             sr = factory.at(e.pos).JmlStoreRef(false, null, null, null, null, null, e);
+//             sr.id = id;
+//         } else if (e instanceof JCArrayAccess aa) {
+//             // An array store-ref, perhaps with a range
+//             JmlRange r;
+//             if (aa.index == null) {
+//                 r = factory.at(aa.index).JmlRange(
+//                         makeZeroEquivalentLit(aa.pos, JmlTypes.instance(context).BIGINT),
+//                         makeLengthM1(e.pos(), aa.indexed));
+//             } else if (!(aa.index instanceof JmlRange rr)) {
+//                 r = factory.at(aa.index).JmlRange(aa.index, aa.index);
+//             } else {
+//                 r = factory.at(aa.index)
+//                         .JmlRange(
+//                                 rr.lo != null ? rr.lo
+//                                         : makeZeroEquivalentLit(rr.pos,
+//                                                 JmlTypes.instance(context).BIGINT),
+//                                 rr.hi != null ? rr.hi : makeLengthM1(e.pos(), aa.indexed));
+//             }
+//             sr = factory.at(e.pos).JmlStoreRef(false, null, null, aa.indexed, r, null, e);
+//         } else if (e instanceof JCFieldAccess fa) {
+//             sr = factory.at(e.pos).JmlStoreRef(false, null, null, fa.selected, fa.name, null, e);
+//         } else if (e instanceof JmlSingleton s) {
+//             // \nothing or \everything
+//             if (s.kind == JMLPrimitiveTypes.everythingKind) {
+//                 sr = factory.at(e.pos).JmlStoreRef(true, null, null, null, null, null, e);
+//             } else if (s.kind == JMLPrimitiveTypes.nothingKind) {
+//                 sr = factory.at(e.pos).JmlStoreRef(false, null, null, null, null, null, e);
+//             } else {
+//                 // error should be already given
+//                 if (utils.jmlverbose == Utils.JMLVERBOSE) log.error(s.pos, "jml.message", "Not a store-ref expression: " + e);
+//             }
+////         } else if (e instanceof JmlMethodInvocation mi && mi.kind == LocsetExtensions.unionKind) {
+////             // A call of union -- we flatten the call
+////             mi.args.stream().forEach(arg -> list.addAll(makeJmlStoreRef(pos, arg, baseClassSym, expand)));
+//         } else {
+//             // A locset expression
+//             sr = factory.at(e.pos).JmlStoreRef(false, null, e, null, null, null, e);
+//         }
+         sr = factory.at(e.pos).JmlStoreRef(false, null, null, null, null, null, e);
+         return sr;
+     }
      
 }

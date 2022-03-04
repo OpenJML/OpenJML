@@ -11,9 +11,9 @@ openjml-test: prep
 	make release-tests 
 	-make tutorial-tests > log-tutorial-tests
 	make unittests-par
-	make scripttests
+	make script-tests
 
-scripttests: .PHONY
+script-tests:
 	( cd ${ROOT}/scripttests; ./escfiles-sort )
 
 openjml-clean:
@@ -45,11 +45,11 @@ release-tests:
 	@ echo Running release tests with current development build
 	@ NOZIP= $(ROOT)releaseTests/runtests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 
-unittests-seq: .PHONY
+unittests-seq:
 	@ grep -v sleep ${ROOT}unittests/runall | tr -d '&' > ${ROOT}unittests/runseq
 	@ . $(ROOT)unittests/runseq
 			
-unittests-par: .PHONY
+unittests-par:
 	. $(ROOT)unittests/runall
 			
 ##### The following are debugging tests
