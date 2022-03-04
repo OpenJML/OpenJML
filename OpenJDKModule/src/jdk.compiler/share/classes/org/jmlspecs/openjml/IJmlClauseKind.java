@@ -404,23 +404,26 @@ public abstract class IJmlClauseKind {
             checkNumberArgs(parser, e, (n)->(n==1), "jml.one.arg", e.kind.keyword());
         }
         
-        public void typecheckHelper(JmlAttr attr, List<JCExpression> args, Env<AttrContext> localEnv) {
-            ListBuffer<Type> argTypes = new ListBuffer<>();
+        public boolean typecheckHelper(JmlAttr attr, List<JCExpression> args, Env<AttrContext> localEnv) {
+            boolean ok = true;
             for (JCExpression e: args) {
                 //System.out.println("TCH " + e + " " + e.getClass());
                 Attr.ResultInfo resultInfo = attr.new ResultInfo(KindSelector.VAL, Type.noType );
-                Type t = attr.attribExpr(e, localEnv, Type.noType);
-                //System.out.println("  ATTRIB " + t + " " + e.type);
-              //  t = attr.check(e, t, KindSelector.VAL, resultInfo );
+                Type t = attr.attribExpr(e, localEnv);
+                t = attr.check(e, t, KindSelector.VAL, resultInfo );
+                if (t.isErroneous()) ok = false;
+                if (e.type == null) Utils.dumpStack("Type not set for " + e + " " + args);
               //  System.out.println("  ATTRIB " + t + " " + e.type);
             }
+            return ok;
+//            ListBuffer<Type> argTypes = new ListBuffer<>();
 //            for (JCExpression e: args) {
 //                Attr.ResultInfo resultInfo = attr.new ResultInfo(KindSelector.VAL, Type.noType );
 //                Type t = attr.attribExpr(e, localEnv);
 //                t = attr.check(e, t, KindSelector.VAL, resultInfo );
 //                argTypes.add(t);
 //            }
-        } // FIXME - we don't do anything with argTypes
+        }
        
     }
     

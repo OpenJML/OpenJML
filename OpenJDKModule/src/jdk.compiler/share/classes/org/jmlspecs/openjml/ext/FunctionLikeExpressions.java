@@ -177,10 +177,13 @@ public class FunctionLikeExpressions extends JmlExtension {
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             JmlMethodInvocation tree = (JmlMethodInvocation)expr;
-            typecheckHelper(attr, tree.args, localEnv);
             int n = tree.args.size();
             if (n != 1) {
                 error(tree.pos(),"jml.one.arg",keyword(),n);
+            }
+            if (!typecheckHelper(attr, tree.args, localEnv)) {
+                expr.type = attr.syms.errType;
+                return expr.type;
             }
             return tree.args.head.type;
         }
@@ -198,7 +201,10 @@ public class FunctionLikeExpressions extends JmlExtension {
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             JmlMethodInvocation tree = (JmlMethodInvocation)expr;
-            typecheckHelper(attr, tree.args, localEnv);
+            if (!typecheckHelper(attr, tree.args, localEnv)) {
+                expr.type = attr.syms.errType;
+                return expr.type;
+            }
             return tree.args.head != null ? tree.args.head.type : null;
         }
 
