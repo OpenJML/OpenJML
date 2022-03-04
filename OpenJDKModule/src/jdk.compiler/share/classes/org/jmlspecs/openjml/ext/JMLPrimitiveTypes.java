@@ -3,7 +3,9 @@ package org.jmlspecs.openjml.ext;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRef;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -24,7 +26,6 @@ public class JMLPrimitiveTypes extends JmlExtension {
 	public static class JmlTypeKind extends IJmlClauseKind {
 		public String typename; // expected to be in org.jmlspecs.lang
 		Type type = null; // lazily filled in; depends on context; only  implemented for a single context
-		Context context = null; // context for type
 		
 		public JmlTypeKind(String keyword, String typename) {
 			super(keyword);
@@ -86,9 +87,8 @@ public class JMLPrimitiveTypes extends JmlExtension {
 				} else {
 					parser.nextToken();
 				}
-				JmlMethodInvocation app = parser.maker().at(p).JmlMethodInvocation(id, list);
-				app.kind = clauseKind;
-				return app;
+				JmlStoreRef sr = JmlTreeUtils.instance(context).makeLocsetLiteral(list.head);
+				return sr;
 			} else {
 				if (!parser.inTypeMode()) {
 					utils.error(p, ep, "jml.message",
@@ -117,6 +117,7 @@ public class JMLPrimitiveTypes extends JmlExtension {
 				tree.type = type;
 				((JCIdent)app.meth).sym = id.sym;
 				((JCIdent)app.meth).type = id.type; // FIXME - or should be a method type?
+				System.out.println("TYPECHECKED " + tree + " AS " + type);
 				return type;
 			}
 			// FIXME - internal error

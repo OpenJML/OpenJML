@@ -17250,9 +17250,44 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				throw new JmlNotImplementedException(that, that.kind.keyword());
 
 			case LocsetExtensions.unionID:
-			case LocsetExtensions.subsetID:
-				that.args.stream().forEach(a -> convertExpr(a));
-				break;
+			{
+			    //System.out.println("UNCONVERTED-UNION " + that);
+                ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+                that.args.stream().forEach(a -> newargs.add(convertExpr(a)));
+                result = eresult = M.at(that.pos).JmlMethodInvocation(that.kind, newargs.toList());
+                //System.out.println("CONVERTED-UNION " + eresult);
+                eresult.type = that.type;
+                break;
+			}
+            case LocsetExtensions.subsetID:
+            {
+                //System.out.println("UNCONVERTED " + that);
+                ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+                that.args.stream().forEach(a -> newargs.add(convertExpr(a)));
+                //System.out.println("CONVERTED " + newargs);
+                try {
+                result = eresult = simplifySubset(newargs.first(), newargs.toList().get(1), currentEnv, true);
+                } catch (Exception e) {
+                    e.printStackTrace(System.out);
+                }
+                //System.out.println("SIMPLIFIED " + eresult);
+                break;
+            }
+           case LocsetExtensions.disjointID:
+           {
+               //System.out.println("UNCONVERTED-DISJOINT " + that);
+               ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+               that.args.stream().forEach(a -> newargs.add(convertExpr(a)));
+               //System.out.println("CONVERTED-DISJOINT " + newargs + " " + newargs.toList().get(1).getClass());
+               try {
+               eresult = simplifyNonDisjoint(newargs.first(), newargs.toList().get(1), currentEnv, true);
+               result = eresult = treeutils.makeNotSimp(eresult, eresult);
+               } catch (Exception e) {
+                   e.printStackTrace(System.out);
+               }
+               //System.out.println("SIMPLIFIED-DISJOINT " + eresult);
+               break;
+           }
 
 			case keyID:
 				// Should never get here
@@ -18602,12 +18637,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} else {
 			//System.out.println("JSR " + that + " " + that.receiver + " " + that.field );
 			if (that.receiver != null) {
-				JCExpression exx = treeutils.makeNotNull(that.receiver, that.receiver);
-				exx = convertExpr(exx);
+			    var rcv = convertExpr(that.receiver);
+				JCExpression exx = treeutils.makeNotNull(that.receiver, rcv);
 				var prevv = log.useSource(that.source);
 				addAssert(that, Label.UNDEFINED_NULL_DEREFERENCE, exx);
 				log.useSource(prevv);
-
+				that.receiver = rcv;
 			}
 			if (that.range != null) {
 				if (that.range.lo != null
@@ -18960,6 +18995,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					boolean pv = checkAccessEnabled;
 					checkAccessEnabled = false;
 					try {
+					    System.out.println("CONVERTING " + that.init + " " + that.init.getClass());
 						init = convertJML(that.init);
 						if (init != null)
 							init = addImplicitConversion(init, that.type, init);
@@ -20236,6 +20272,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public JCExpression simplifySubset(JCExpression smaller, JCExpression bigger, TranslationEnv targetEnv,
 			boolean isSmallerConverted) {
 		if (smaller instanceof JmlStoreRef sr) {
+	        //System.out.println("SMALLER " + sr);
 			if (sr.isEverything) {
 				// \everything
 				return containsEverything(smaller, targetEnv, bigger);
@@ -20289,6 +20326,86 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return treeutils.makeBooleanLiteral(smaller.getPreferredPosition(), false);
 		}
 	}
+
+    public JCExpression simplifyNonDisjoint(JCExpression smaller, JCExpression bigger, TranslationEnv targetEnv,
+                            boolean isSmallerConverted) {
+        int pos = smaller.pos; // FIXME - should be the whole experession
+        if (smaller instanceof JmlStoreRef sr) {
+            //System.out.println("SMALLER " + sr);
+            if (sr.isNothing()) return treeutils.makeBooleanLiteral(pos, false);
+            if (bigger instanceof JmlStoreRef srr ) {
+                if (srr.isNothing()) return treeutils.makeBooleanLiteral(pos, false);
+                if (srr.isEverything()) return treeutils.makeBooleanLiteral(pos, true);
+            }
+            if (sr.isEverything()) return treeutils.makeBooleanLiteral(pos, true);
+            if (sr.local != null) {
+                // local variable
+                return containsLocal(smaller, targetEnv, sr.local, bigger);
+
+            } else if (sr.expression != null) {
+                // general expression
+                if (sr.expression instanceof JmlMethodInvocation mi) {
+                    if (mi.kind == LocsetExtensions.unionKind) {
+                        JCExpression e = treeutils.makeBooleanLiteral(sr.expression, false);
+                        for (JCExpression arg : mi.args) {
+                            var ee = simplifyNonDisjoint(arg, bigger, targetEnv, isSmallerConverted);
+                            e = treeutils.makeOrSimp(arg, e, ee);
+                        }
+                        return e;
+                    } else if (mi.kind == oldKind) {
+                        var newenv = targetEnv.newEnvCopy();
+                        newenv.stateLabel = mi.args.size() == 1 ? null : ((JCIdent) mi.args.get(1)).name;
+                        return simplifyNonDisjoint(smaller, mi.args.head, newenv, isSmallerConverted);
+                    }
+                }
+                {
+                    JCExpression e = containsEverything(smaller, targetEnv, bigger);
+                    if (treeutils.isTrueLit(e))
+                        return e;
+                    // FIXME - unsimplifiable  -- at least make a disjoint
+                    return treeutils.makeSubset(smaller, sr, treeutils.makeOld(smaller, bigger, targetEnv.stateLabel));
+                }
+
+            } else if (sr.receiver != null && sr.range != null) {
+                // array elements
+                JCExpression ft = freshTest(smaller, sr.receiver, targetEnv.allocCount);
+                //                              System.out.println("ARRAYELE " + sr + " " + sr.receiver + " " + sr.receiver.type + " " + allocCounter + " " + targetEnv.allocCount + " " + ft);
+                ft = convertJML(ft); // Convert in current (smaller) environment
+                //                              System.out.println("CONVERTED FT " + ft);
+                JCExpression ok = containsArray(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.range, bigger);
+                return ft == null ? ok : treeutils.makeOr(smaller,  ft,  ok);
+            } else {
+                JCExpression ft = sr.receiver == null ? null : freshTest(smaller, sr.receiver, targetEnv.allocCount);
+                ft = convertJML(ft); // Convert in current envirnment  // FIXME - already converted???
+
+                // fields
+                JCExpression e = containsField(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.field, bigger);
+                //System.out.println("CHECKED " + sr.field + " VS " + bigger + " " + e);
+                return ft == null ? e : treeutils.makeOr(smaller, ft, e);
+            }
+        } else {
+            if (smaller instanceof JmlMethodInvocation mi) {
+                if (mi.kind == LocsetExtensions.unionKind) {
+                    JCExpression e = treeutils.makeBooleanLiteral(smaller, false);
+                    for (JCExpression arg : mi.args) {
+                        var ee = simplifyNonDisjoint(arg, bigger, targetEnv, isSmallerConverted);
+                        e = treeutils.makeOrSimp(arg, e, ee);
+                    }
+                    return e;
+                } else if (mi.kind == oldKind) {
+                    var newenv = targetEnv.newEnvCopy();
+                    newenv.stateLabel = mi.args.size() == 1 ? null : ((JCIdent) mi.args.get(1)).name;
+                    return simplifyNonDisjoint(smaller, mi.args.head, newenv, isSmallerConverted);
+                }
+            }
+            {
+                JCExpression e = containsEverything(smaller, targetEnv, bigger);
+                if (treeutils.isTrueLit(e)) return e;
+                // FIXME - unsimplifiable  -- at least make a disjoint
+                return treeutils.makeSubset(smaller, smaller, treeutils.makeOld(smaller, bigger, targetEnv.stateLabel));
+            }
+        }
+    }
 
 	public JCExpression expand(DiagnosticPosition pos, TranslationEnv targetEnv, JCExpression srexpr,
 			java.util.function.Function<JCExpression, JCExpression> a) {
@@ -20352,14 +20469,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else if (sr.field != null) {
 				// If all model fields were expanded we could just compare field == sr.field, but model field
 			    // definitions can be recursive, so we can't always do that expansion
-				if (field == sr.field || (field!= null && isContainedIn(field, sr.field))) {
+			    //System.out.println("FIELDS " + field + " VS " + sr.field);
+				if (field == sr.field || (field != null && isContainedIn(field, sr.field))) {
 					var ee = utils.isJMLStatic(field) ? treeutils.makeBooleanLiteral(pos, true)
 							: treeutils.makeEqObject(pos.getPreferredPosition(),
 									isSmallerConverted ? receiver : convertJML(receiver),
 											convertJML(sr.receiver, targetEnv));
 					return ee;
 				} else {
-				    // Now check all the maps clauses
+				    // Now check all the maps clauses   // FIXME !!!
 				    
 					return treeutils.makeBooleanLiteral(pos, false);
 				}
@@ -20388,14 +20506,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					return treeutils.makeBooleanLiteral(pos, false);
 				}
 			} else if (sr.expression != null) {
+			    //System.out.println("BIGGER IS " + sr.expression);
 				return expand(pos, targetEnv, sr.expression,
 						s -> containsField(pos, targetEnv, isSmallerConverted, receiver, field, s));
 			} else {
 				return treeutils.makeBooleanLiteral(pos, false);
 			}
 		} else {
-			// ERROR
-			return treeutils.makeBooleanLiteral(pos, false);
+            //System.out.println("BIGGER-F IS " + bigger);
+            return expand(pos, targetEnv, bigger,
+                    s -> containsField(pos, targetEnv, isSmallerConverted, receiver, field, s));
 		}
 	}
 
@@ -20426,8 +20546,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				return treeutils.makeBooleanLiteral(pos, false);
 			}
 		} else {
-			// ERROR
-			return treeutils.makeBooleanLiteral(pos, false);
+            return expand(pos, targetEnv, bigger,
+                s -> containsArray(pos, targetEnv, isSmallerConverted, receiver, range, s));
 		}
 	}
 	

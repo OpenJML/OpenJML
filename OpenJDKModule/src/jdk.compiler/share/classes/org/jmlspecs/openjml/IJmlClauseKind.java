@@ -403,13 +403,16 @@ public abstract class IJmlClauseKind {
         
         public void typecheckHelper(JmlAttr attr, List<JCExpression> args, Env<AttrContext> localEnv) {
             ListBuffer<Type> argTypes = new ListBuffer<>();
-            Attr.ResultInfo resultInfo = attr.new ResultInfo(KindSelector.VAL, Type.noType );
             for (JCExpression e: args) {
-                Type t = attr.attribExpr(e, localEnv);
-                t = attr.check(e, t, KindSelector.VAL, resultInfo );
-                argTypes.add(t);
+                Type t = attr.attribExpr(e, localEnv, Type.noType);
             }
-        }
+//            for (JCExpression e: args) {
+//                Attr.ResultInfo resultInfo = attr.new ResultInfo(KindSelector.VAL, Type.noType );
+//                Type t = attr.attribExpr(e, localEnv);
+//                t = attr.check(e, t, KindSelector.VAL, resultInfo );
+//                argTypes.add(t);
+//            }
+        } // FIXME - we don't do anything with argTypes
        
     }
     

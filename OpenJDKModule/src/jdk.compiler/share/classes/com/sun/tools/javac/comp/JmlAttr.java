@@ -3972,6 +3972,88 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         result = check(that, syms.booleanType, KindSelector.VAL, resultInfo);
     }
+    
+    @Override
+    public void visitJmlStoreRef(JmlStoreRef that) {
+        //System.out.println("VISITING JML STORE REF " + that.originalStoreRef);
+        JCExpression e = that.originalStoreRef;
+        try {
+        if (e instanceof JCIdent id) {
+            attribExpr(id, env, Type.noType);
+            var sym = id.sym;
+            if (sym == null) {
+                // ERROR
+                System.out.println("NO SYM " + id);
+            } else if (sym.owner instanceof Symbol.MethodSymbol) {
+                // local
+                that.local = sym;
+                //System.out.println("LOCAL " + sym.owner + " " + sym);
+            } else if (sym.isStatic()) {
+                that.field = (VarSymbol)sym;
+                //System.out.println("STATIC FIELD " + sym.owner + " " + sym);
+            } else {
+                //System.out.println("THIS FIELD " + sym.owner + " " + sym);
+                var idthis = jmlMaker.Ident(names._this);
+                visitIdent(idthis);
+                that.receiver = idthis;
+                that.field = (VarSymbol)sym;
+            }
+        } else if (e instanceof JCArrayAccess aa) {
+            // An array store-ref, perhaps with a range
+            attribExpr(aa.indexed, env, Type.noType);
+            // FIXME - check that it is an array; attribute range
+            JmlRange r;
+            if (aa.index == null) {
+                r = jmlMaker.at(aa.index).JmlRange(
+                        treeutils.makeZeroEquivalentLit(aa.pos, JmlTypes.instance(context).BIGINT),
+                        treeutils.makeLengthM1(e.pos(), aa.indexed));
+            } else if (!(aa.index instanceof JmlRange rr)) {
+                r = jmlMaker.at(aa.index).JmlRange(aa.index, aa.index);
+            } else {
+                r = jmlMaker.at(aa.index)
+                        .JmlRange(
+                                rr.lo != null ? rr.lo
+                                        : treeutils.makeZeroEquivalentLit(rr.pos,
+                                                JmlTypes.instance(context).BIGINT),
+                                rr.hi != null ? rr.hi : treeutils.makeLengthM1(e.pos(), aa.indexed));
+            }
+            that.receiver = aa.indexed;
+            that.range = r;
+        } else if (e instanceof JCFieldAccess fa) {
+            if (fa.name != null) {
+                attribExpr(fa, env, Type.noType);
+                that.field = (VarSymbol)fa.sym;
+                if (!that.field.isStatic()) that.receiver = fa.selected;
+            } else {
+                attribExpr(fa.selected, env, Type.noType);
+                that.receiver = fa.selected; // FIXME - check whether a type
+            }
+        } else if (e instanceof JmlSingleton s) {
+            // \nothing or \everything
+            if (s.kind == JMLPrimitiveTypes.everythingKind) {
+                that.isEverything = true;
+            } else if (s.kind == JMLPrimitiveTypes.nothingKind) {
+                // set nothing
+            } else {
+                // error should be already given
+                if (utils.jmlverbose == Utils.JMLVERBOSE) log.error(s.pos, "jml.message", "Not a store-ref expression: " + e);
+            }
+//        } else if (e instanceof JmlMethodInvocation mi && mi.kind == LocsetExtensions.unionKind) {
+//            // A call of union -- we flatten the call
+//            mi.args.stream().forEach(arg -> list.addAll(makeJmlStoreRef(pos, arg, baseClassSym, expand)));
+        } else {
+            // ERROR
+//            // A locset expression
+//            sr.expression = e;
+        }
+        that.type = JMLPrimitiveTypes.locsetTypeKind.getType(context);
+        } catch (Exception ee) {
+            ee.printStackTrace(System.out);
+        }
+        //System.out.println("END VISITING JML STORE REF " + that.type + " " + that);
+    }
+
+
 
     /** The JML modifiers allowed for a specification case */
     ModifierKind[] specCaseAllowed = new ModifierKind[]{};
