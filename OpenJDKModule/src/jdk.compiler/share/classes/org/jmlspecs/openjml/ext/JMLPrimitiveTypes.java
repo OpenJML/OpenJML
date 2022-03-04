@@ -88,7 +88,7 @@ public class JMLPrimitiveTypes extends JmlExtension {
 				} else {
 					parser.nextToken();
 				}
-				JmlStoreRef sr = JmlTreeUtils.instance(context).makeLocsetLiteral(list.head);
+				JmlStoreRef sr = JmlTreeUtils.instance(parser.context).makeLocsetLiteral(list.head);
 				return sr;
 			} else {
 				if (!parser.inTypeMode()) {

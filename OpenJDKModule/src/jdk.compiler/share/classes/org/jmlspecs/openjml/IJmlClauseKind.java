@@ -407,9 +407,12 @@ public abstract class IJmlClauseKind {
         public void typecheckHelper(JmlAttr attr, List<JCExpression> args, Env<AttrContext> localEnv) {
             ListBuffer<Type> argTypes = new ListBuffer<>();
             for (JCExpression e: args) {
+                //System.out.println("TCH " + e + " " + e.getClass());
                 Attr.ResultInfo resultInfo = attr.new ResultInfo(KindSelector.VAL, Type.noType );
-                Type t = attr.attribExpr(e, localEnv);
-                t = attr.check(e, t, KindSelector.VAL, resultInfo );
+                Type t = attr.attribExpr(e, localEnv, Type.noType);
+                //System.out.println("  ATTRIB " + t + " " + e.type);
+              //  t = attr.check(e, t, KindSelector.VAL, resultInfo );
+              //  System.out.println("  ATTRIB " + t + " " + e.type);
             }
 //            for (JCExpression e: args) {
 //                Attr.ResultInfo resultInfo = attr.new ResultInfo(KindSelector.VAL, Type.noType );

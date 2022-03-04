@@ -3992,7 +3992,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     that.field = (VarSymbol)sym;
                     //System.out.println("STATIC FIELD " + sym.owner + " " + sym);
                 } else {
-                    //System.out.println("THIS FIELD " + sym.owner + " " + sym);
+                    System.out.println("THIS FIELD " + sym.owner + " " + sym);
                     var idthis = jmlMaker.Ident(names._this);
                     visitIdent(idthis);
                     that.receiver = idthis;
@@ -4024,6 +4024,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     attribExpr(fa, env, Type.noType);
                     that.field = (VarSymbol)fa.sym;
                     if (!that.field.isStatic()) that.receiver = fa.selected;
+                    //System.out.println("JSR ATTR " + that + " " + e + " " + fa.selected.type + " " + fa.type);
                 } else {
                     attribExpr(fa.selected, env, Type.noType);
                     that.receiver = fa.selected; // FIXME - check whether a type
@@ -4048,7 +4049,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 attribExpr(that.expression, env, Type.noType);
                 // FIXME - should check that the result is locset
             }
-            that.type = JMLPrimitiveTypes.locsetTypeKind.getType(context);
+            result = that.type = JMLPrimitiveTypes.locsetTypeKind.getType(context);
         } catch (Exception ee) {
             ee.printStackTrace(System.out);
         }
