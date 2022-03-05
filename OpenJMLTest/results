@@ -167,10 +167,12 @@ typeclauses.java             - 123/0 #
 
 -------------------
 
+- clean up nulless of array elements
+- clean up --progres and --show smmary for tutorial outputs
+- understand array length problem
 - clean up use of --split option, be able to turn off splits, default for statement splits
 - add example for statement specs to tutorial
 - verification of main and of System.out.println
-- turn assertions about arithmetic overflow into checks
 
 - why did adding pure to List.contains make esc1.testForEach2a4b fail
 - Bounds in static method type variables

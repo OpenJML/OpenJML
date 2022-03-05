@@ -103,6 +103,13 @@ public abstract class JmlTestCase {
     	return (new RuntimeException()).fillInStackTrace().getStackTrace()[i+1].getMethodName();
     }
     
+    public boolean skipIfFalse(boolean condition) {
+        if (!condition) {
+            System.out.println("Skipping test -- false precondition");
+            return true;
+        }
+        return false;
+    }
 
     /** The java executable */
     // TODO: This is going to use the external setting for java, rather than
