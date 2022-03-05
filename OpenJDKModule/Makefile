@@ -89,7 +89,7 @@ version-info: version
 	@ mv version-info.txt release-files
 
 tutorial:
-	rm -r release-files/tutorial
+	rm -rf release-files/tutorial
 	mkdir release-files/tutorial
 	cp -pR ../../openjml.github.io/tutorial/*.java ../../openjml.github.io/tutorial/*.out release-files/tutorial
 
