@@ -973,8 +973,9 @@ public class JmlTreeUtils {
 
     /** Makes an attributed AST for a short-circuit boolean OR expression, simplifying literal true or false */
     public JCExpression makeOrSimp(int pos, JCExpression lhs, JCExpression rhs) {
+        if (rhs == null) return lhs;
+        if (lhs == null || isFalseLit(lhs) || isTrueLit(rhs)) return rhs;
         if (isFalseLit(rhs) || isTrueLit(lhs)) return lhs;
-        if (isFalseLit(lhs) || isTrueLit(rhs)) return rhs;
         return makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,rhs);
     }
 

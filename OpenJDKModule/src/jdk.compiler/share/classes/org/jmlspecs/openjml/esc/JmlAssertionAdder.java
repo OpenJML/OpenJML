@@ -187,10 +187,16 @@ import com.sun.tools.javac.util.Log.WriterKind;
 
 public class JmlAssertionAdder extends JmlTreeScanner {
 
+    /** This value is set by the environment variable OJ, as in OJ="assert=n" and has the effect that a stack dump is printed
+     * when the assertion with the given number is created. Purely for debugging.
+     */
     public static int assertCountCheck = Integer.parseInt(Utils.debugValue("assert=","-1"));
 
 	// Parameters of this instance of JmlAssertionAdder
 
+
+    // Constant items not changed after initialization. They depend on options.
+    
 	/**
 	 * If true then every part of every AST is copied; if false then items expected
 	 * to be immutable such as JCLiteral, qualified ids (in import statements,
@@ -211,38 +217,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	/** True if we are translating for inference */
 	public boolean infer;
 
-	/** True if we are translating for boogie */
+	/** True if we are translating for boogie */ // Not even started to be implemented.
 	public boolean boogie;
 
-	/**
-	 * If true, then error messages in generated RAC code include source code
-	 * snippets with the customary textual ^ pointers to error locations. This adds
-	 * bulk to the RAC-ed program, though I've not measured whether it is
-	 * significant. The field is initialized from a user option and not meant to be
-	 * set externally.
-	 */
-	protected int showRacSource;
-
-	/**
-	 * If true, then in the RAC translation, assume statements and assumptions
-	 * implied by JML are checked as if they were assert statements. The field is
-	 * initialized from a user option and not meant to be set externally.
-	 */
-	protected boolean racCheckAssumeStatements;
-
-	/**
-	 * If true, then explicit checks are included even when the Java language would
-	 * catch the error itself (e.g., OpenJML will check for a null reference in
-	 * advance of a dereference and Java throwing a NullPointerException). This
-	 * should always be true for esc, but only true for rac if the appropriate
-	 * option is set.
-	 */
-	public boolean javaChecks;
-
-	/** A counter used to make unique precondition detail symbols */
-	public int preconditionDetail = 0;
-
-	// Constant items set in the constructor
+	// Constant items set in the constructor -- fixed for a value of 'context'
 
 	/** Cached value of the Log tool */
 	final public Log log;
@@ -286,10 +264,70 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	/** The Name used for the result of a method */
 	final protected Name resultName;
 	
+    /** The Name used for exceptions thrown in the body of a method */
+    final protected Name exceptionName;
+
+    /**
+     * The Name used for holding the location at which the final return or throw
+     * statement occurs
+     */
+    final protected Name terminationName;
+
+    final protected Name hereLabelName;
+    final protected Name loopinitLabelName;
+    final protected Name loopbodyLabelName;
+
+    /** A tree-visitor that copies an AST, including types; symbols do not change */ // FIXME - break targets?
 	final protected Copier copier;
 
-	/** The symbol for the variable that holds the result of a method */
-	protected VarSymbol resultSym = null;
+    //////////////////////////////////////////////////////////////////////////////////
+	// Items that are fixed for a method (while it is being translated)
+	// Note that translating methods can be recursive (when there are local classes)
+	// so that these items need to be saved and restored, but only at initialization for a method
+	// Some of these depend on options that can change from method to method
+	
+    /**
+     * The parent class of the method being converted, for use while the
+     * declarations of the class are being walked, and while a method is being
+     * translated stand-alone (without having been reached by walking the tree from
+     * above).
+     */
+    protected JmlClassDecl classDecl = null;
+
+    protected Symbol enclosingMethod;
+    protected Symbol enclosingClass;
+
+    /**
+     * The Ident to use when translating this - starts as the this for the receiver
+     * object, but can change as methods or constructors are called.
+     */
+    protected JCIdent explicitThisId;
+
+    /** The symbol for the variable that holds the result of a method */
+    protected VarSymbol resultSym = null;
+
+    /**
+     * The symbol for the variable that tracks exceptions in the body of a method
+     */
+    protected VarSymbol exceptionSym = null;
+
+    /**
+     * The symbol for the variable that holds allocation ids to distinguish
+     * dynamically allocated objects
+     */
+    protected Symbol allocSym = null;
+
+    /** The symbol for the variable that says whether an object is allocated */
+    protected Symbol isAllocSym = null;
+
+    /** The symbol to go with terminationName. */
+    protected VarSymbol terminationSym = null;
+
+    //////////////////////////////////////////////////////////////////////////////////
+    // Items that change in the course of translating a method
+	
+    /** A counter used to make unique precondition detail symbols */
+    public int preconditionDetail = 0;
 
 	/**
 	 * An expression to be used for \result when translating postconditions; the
@@ -304,22 +342,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// @ nullable
 	protected Name breakName = null;
 
-	/** The Name used for exceptions thrown in the body of a method */
-	final protected Name exceptionName;
-
-	/**
-	 * The symbol for the variable that tracks exceptions in the body of a method
-	 */
-	protected VarSymbol exceptionSym = null;
-
-	/**
-	 * The symbol for the variable that holds allocation ids to distinguish
-	 * dynamically allocated objects
-	 */
-	protected Symbol allocSym = null;
-
-	/** The symbol for the variable that says whether an object is allocated */
-	protected Symbol isAllocSym = null;
 
 	/** A counter used to make distinct ids for newly allocated Objects */
 	protected int allocCounter = 0;
@@ -329,15 +351,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** The Name used for catching exceptions thrown by called methods */
 	final protected Name exceptionNameCall;
-
-	/**
-	 * The Name used for holding the location at which the final return or throw
-	 * statement occurs
-	 */
-	final protected Name terminationName;
-
-	/** The symbol to go with terminationName. */
-	protected VarSymbol terminationSym = null;
 
 	/** Termination Symbols used for various methods */
 	protected Map<JCMethodDecl, VarSymbol> terminationSymbols = new HashMap<>();
@@ -351,19 +364,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	/** Location of calls within the method or its specifications */
 	protected /* @ nullable */ JCTree nestedCallLocation = null;
 
-	/**
-	 * The parent class of the method being converted, for use while the
-	 * declarations of the class are being walked, and while a method is being
-	 * translated stand-alone (without having been reached by walking the tree from
-	 * above).
-	 */
-	protected JmlClassDecl classDecl = null;
-
-	/**
-	 * The Ident to use when translating this - starts as the this for the receiver
-	 * object, but can change as methods or constructors are called.
-	 */
-	protected JCIdent explicitThisId;
 
 	/**
 	 * The receiver expression, such as when performing a method call within the
@@ -371,8 +371,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 */
 	protected JCExpression currentThisExpr;
 
-	protected Symbol enclosingMethod;
-	protected Symbol enclosingClass;
 
 	/**
 	 * The mode to use to model arithmetic operations - only null until initialized
@@ -385,14 +383,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected int applyNesting;
 
 	public Translations translations = null;
-	public String originalSplit = Strings.empty;
-	public String currentSplit = Strings.empty;
-
-	public void setSplits(Translations t, String split) {
-		translations = t;
-		originalSplit = split;
-		currentSplit = split;
-	}
 
 	/**
 	 * The counter used to make uniquely named variables for preconditions, unique
@@ -529,14 +519,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	/*@ nullable */ 
 	public Name currentOldLabel = null;
 
-	/**
-	 * The \old label to use for the pre-state; note that the prestate is usually
-	 * the beginning of a method, but during translation of method call specs, it is
-	 * is the state just before the method call
-	 */
-	protected Name hereLabelName;
-	protected Name loopinitLabelName;
-	protected Name loopbodyLabelName;
 
 	/** Used to hold the result of non-expression AST nodes */
 	protected JCTree result;
@@ -615,6 +597,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public boolean useNamesForHeap = true; // if false, use arguments for heap
 
+	public String originalSplit = Strings.empty;
+	public String currentSplit = Strings.empty;
+
+	public void setSplits(Translations t, String split) {
+	    translations = t;
+	    originalSplit = split;
+	    currentSplit = split;
+	}
+
+
 	/**
 	 * (Public API) Creates an object to do the rewriting and assertion insertion.
 	 * This object can be reused to translate different method bodies, so long as
@@ -647,13 +639,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		this.exceptionName = names.fromString(Strings.exceptionVarString);
 		this.exceptionNameCall = names.fromString(Strings.exceptionCallVarString);
 		this.terminationName = names.fromString(Strings.terminationVarString);
+        this.hereLabelName = names.fromString(Strings.hereLabelBuiltin);
+        this.loopinitLabelName = names.fromString(Strings.loopinitLabelBuiltin);
+        this.loopbodyLabelName = names.fromString(Strings.loopbodyLabelBuiltin);
 		this.reader = ClassReader.instance(context);
 		this.copier = new Copier(context,M);
 		// this.reader.init(syms); // FIXME?
 		this.utilsClass = !rac ? null : reader.enterClass(names.fromString(Strings.runtimeUtilsFQName));
-		this.hereLabelName = names.fromString(Strings.hereLabelBuiltin);
-		this.loopinitLabelName = names.fromString(Strings.loopinitLabelBuiltin);
-		this.loopbodyLabelName = names.fromString(Strings.loopbodyLabelBuiltin);
 
 		initialize();
 
@@ -664,10 +656,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	public void initialize() {
-		String ss = JmlOption.value(context, JmlOption.RAC_SHOW_SOURCE);
-		this.showRacSource = "none".equals(ss) ? 0 : "line".equals(ss) ? 1 : 2;
-		this.racCheckAssumeStatements = JmlOption.isOption(context, JmlOption.RAC_CHECK_ASSUMPTIONS);
-		this.javaChecks = esc || (rac && JmlOption.isOption(context, JmlOption.RAC_JAVA_CHECKS));
+	    methodEnv = methodEnv.pushEnvInit(context,esc,rac);
 		this.boogie = false; // esc && JmlOption.isOption(context,JmlOption.BOOGIE);
 		this.uniqueCount = 0;
 		this.assertCount = 0;
@@ -2141,14 +2130,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				args = new Object[0];
 			}
 			JCDiagnostic diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING,
-					showRacSource == 2 ? log.currentSource() : DiagnosticSource.NO_SOURCE, codepos, "rac." + label,
+					methodEnv.showRacSource == 2 ? log.currentSource() : DiagnosticSource.NO_SOURCE, codepos, "rac." + label,
 					args);
 			String msg = diag.toString().replace("warning: ", "verify: ").trim();
 			// With showRacSource = true, The diag above both the line information and the
 			// position within the source line.
 			// With sho9wRacSource = false, it includes neight
 			// But for showRacSource=false, we still want the line information.
-			if (showRacSource == 1)
+			if (methodEnv.showRacSource == 1)
 				msg = utils.locationString(codepos.getPreferredPosition(), log.currentSourceFile()) + " " + msg;
 			JCExpression emsg;
 			if (racarg != null) {
@@ -2172,11 +2161,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (associatedPos != null) {
 				var ds = new DiagnosticSource(associatedSource != null ? associatedSource : log.currentSourceFile(),
 						null);
+				int showSource = methodEnv.showRacSource;
 				diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING,
-						showRacSource == 2 ? ds : DiagnosticSource.NO_SOURCE, associatedPos,
-						Utils.testingMode && showRacSource != 2 ? "jml.associated.decl" : "jml.associated.decl.cf",
+				    showSource == 2 ? ds : DiagnosticSource.NO_SOURCE, associatedPos,
+						Utils.testingMode && showSource != 2 ? "jml.associated.decl" : "jml.associated.decl.cf",
 						utils.locationString(codepos.getPreferredPosition()));
-				String loc = (showRacSource != 1) ? "" : (utils.locationString(associatedPos, ds.getFile()) + " ");
+				String loc = (showSource != 1) ? "" : (utils.locationString(associatedPos, ds.getFile()) + " ");
 				String msg2 = JmlTree.eol + loc + diag.toString().replace("warning: ", "verify: ").trim();
 				emsg = treeutils.makeUtilsMethodCall(emsg.pos, "concat", emsg,
 						treeutils.makeStringLiteral(translatedExpr.pos, msg2));
@@ -2361,7 +2351,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				addAssumeCheck(translatedExpr, currentStatements, "Extra-Assume");
 			}
 		}
-		if (rac && racCheckAssumeStatements) {
+		if (rac && methodEnv.racCheckAssumeStatements) {
 			stt = addAssert(true, pos, label, translatedExpr, associatedPosition, associatedSource, info, args);
 		}
 		return stt;
@@ -4432,11 +4422,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		int pos = methodDecl.pos;
 		boolean isConstructor = methodDecl.sym.isConstructor();
 		ListBuffer<JCStatement> check = pushBlock(initialStats);
-		int preheapcount = nextHeapCount();
-		int savedheapcount = preheapcount;
+		pushBlock(initialStats);
+		changeState(methodDecl); // bumps heapCount // adds to currentStats
+		popBlock();
+		int preheapcount = heapCount;
+		int savedheapcount = heapCount;
 		try {
-
-			heapCount = preheapcount;
 
 			{
 				ListBuffer<JCStatement> ch = pushBlock();
@@ -8040,13 +8031,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		inProcessInvariants.clear();
 	}
 
-	protected void changeState() {
+	protected void changeState(DiagnosticPosition pos) {
 		if (infer || esc) {
+		    int p = pos.getPreferredPosition();
 			heapCount = nextHeapCount();
-			int p = methodDecl.pos; // FIXME - better position?
-			JCStatement assign = treeutils.makeAssignStat(p, treeutils.makeIdent(p, heapSym),
-					treeutils.makeIntLiteral(p, heapCount));
+			currentEnv.heap = new HeapInfo(heapCount, currentEnv.heap);
+			methodEnv.allHeaps.put(heapCount, currentEnv.heap);
+			JCStatement assign = treeutils.makeAssignStat(p, treeutils.makeIdent(pos, heapSym),
+					treeutils.makeIntLiteral(pos, heapCount));
 			currentStatements.add(assign);
+			JCBlock bl = M.at(p).Block(0L, List.<JCStatement>nil());
+			currentEnv.heap.methodAxiomsBlock = bl;
+            currentStatements.add(bl);
 			wellDefinedCheck.clear();
 //            addAxioms(heapCount, null);
 //            determinismSymbols.clear(); // FIXME - might need them again in  \old expressions
@@ -9986,7 +9982,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			typevarMapping = newTypeVarMapping;
 			if (newclass != null || (!specs.isPure(calleeMethodSym) && !calleeMethodSym.isConstructor())) {
 				if (anyHavocs && inProcessInvariants.isEmpty() && !translatingJML)
-					changeState();
+					changeState(that);
 			}
 			if (print) System.out.println("APPLYHELPER-W " + calleeMethodSym.owner + " " + calleeMethodSym);
 
@@ -11589,7 +11585,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// check that the expression is not null
 		// But we don't unbox for rac for JML types because those are represented as a
 		// non-primitive anyway
-		if (javaChecks && newIsPrim && !isPrim && (esc || !jmltypes.isJmlType(newtype))) {
+		if (methodEnv.javaChecks && newIsPrim && !isPrim && (esc || !jmltypes.isJmlType(newtype))) {
 			JCExpression e = treeutils.makeNeqObject(pos.getPreferredPosition(), expr, treeutils.nullLit);
 			addJavaCheck(pos, e, Label.POSSIBLY_NULL_UNBOX, Label.UNDEFINED_NULL_UNBOX,
 					"java.lang.NullPointerException");
@@ -12284,7 +12280,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			}
 
-			if (javaChecks && jmltypes.isArray(array.type) && !jmltypes.elemtype(array.type).isPrimitive()) {
+			if (methodEnv.javaChecks && jmltypes.isArray(array.type) && !jmltypes.elemtype(array.type).isPrimitive()) {
 				if (esc) {
 					JCExpression rhstype = treeutils.makeTypeof(rhs);
 					JCExpression lhselemtype;
@@ -12331,10 +12327,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (owner == null || owner instanceof Symbol.MethodSymbol) { // FIXME - clarify when the owner is null
 				;
 			} else {
-				changeState();
+				changeState(that);
 			}
 		} else {
-			changeState();
+			changeState(that);
 		}
 	}
 
@@ -12516,14 +12512,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			JCExpression index = convertExpr(aa.index);
 			index = addImplicitConversion(index, syms.intType, index);
-			if (javaChecks) {
+			if (methodEnv.javaChecks) {
 				JCExpression e = treeutils.makeBinary(index.pos, JCTree.Tag.GE, index, treeutils.zero);
 				addJavaCheck(that.lhs, e, Label.POSSIBLY_NEGATIVEINDEX, Label.UNDEFINED_NEGATIVEINDEX,
 						"java.lang.ArrayIndexOutOfBoundsException");
 			}
 
 			JCFieldAccess newfa = treeutils.makeLength(array, array);
-			if (javaChecks) {
+			if (methodEnv.javaChecks) {
 				JCExpression e = treeutils.makeBinary(index.pos, JCTree.Tag.LT, index, newfa);
 				addJavaCheck(that.lhs, e, Label.POSSIBLY_TOOLARGEINDEX, Label.UNDEFINED_TOOLARGEINDEX,
 						"java.lang.ArrayIndexOutOfBoundsException");
@@ -12580,7 +12576,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		// Don't change heap state if the assignment is just to a local variable
 		if (!(that.lhs instanceof JCIdent && ((JCIdent) that.lhs).sym.owner instanceof Symbol.MethodSymbol)) {
-			changeState();
+			changeState(that);
 		}
 	}
 
@@ -12651,7 +12647,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		if (op == JCTree.Tag.DIV || op == JCTree.Tag.MOD) {
 			/* @nullable */ JCExpression nonzero = nonZeroCheck(that, rhs);
-			if (javaChecks && nonzero != null)
+			if (methodEnv.javaChecks && nonzero != null)
 				addAssert(that, Label.POSSIBLY_DIV0, nonzero);
 		}
 		// NOTE: In Java, a shift by 0 is a no-op (aside from type promotion of the
@@ -13781,7 +13777,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// FIXME - end position?
 
 				JCExpression cond = treeutils.makeOr(that.pos, eqnull, typeok);
-				if (javaChecks && localVariables.isEmpty()) {
+				if (methodEnv.javaChecks && localVariables.isEmpty()) {
 					cond = conditionedAssertion(that, cond);
 					if (rac) {
 						addAssert(that, translatingJML ? Label.UNDEFINED_BADCAST : Label.POSSIBLY_BADCAST, cond,
@@ -13820,7 +13816,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// ,that,log.currentSourceFile());
 		// FIXME- what should we do if !split, in particular what if this comes from
 		// convertAssignable
-		if (javaChecks && splitExpressions && localVariables.isEmpty()) {
+		if (methodEnv.javaChecks && splitExpressions && localVariables.isEmpty()) {
 			ClassSymbol csym = attr.createClass(exception);
 			if (translatingJML) { // allow, forbid, ignore do not apply to JML
 				cond = conditionedAssertion(p, cond);
@@ -14197,7 +14193,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					addJavaCheck(that, nonnull, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
 							"java.lang.NullPointerException");
 //                    if (translatingJML) nonnull = conditionedAssertion(that, nonnull);
-//                    if (javaChecks && localVariables.isEmpty()) {
+//                    if (methodEnv.javaChecks && localVariables.isEmpty()) {
 //                        if (splitExpressions) { // FIXME- what should we do if !split, in particular what if this comes from convertAssignable
 //                            addAssert(that,
 //                                translatingJML? Label.UNDEFINED_NULL_DEREFERENCE : Label.POSSIBLY_NULL_DEREFERENCE,
@@ -15509,7 +15505,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (esc) {
 			boolean b = loopHelperHavoc(that.loopSpecs, that.body, indexDecl, null, that.body, that.cond);
 			if (!b)
-				changeState();
+				changeState(that);
 		}
 
 		loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that, null);
@@ -15645,7 +15641,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (esc) {
 				boolean b = loopHelperHavoc(that.loopSpecs, that.body, indexDecl, null, that.body, that.expr);
 				if (!b)
-					changeState();
+					changeState(that);
 			}
 
 			// Assume the invariants
@@ -15774,7 +15770,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (esc) {
 				boolean b = loopHelperHavoc(that.loopSpecs, that.body, indexDecl, null, that.expr, that.body);
 				if (!b)
-					changeState();
+					changeState(that);
 			}
 
 			// Assume the invariants
@@ -16304,7 +16300,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			boolean b = loopHelperHavoc(that.loopSpecs, that.body, indexDecl, that.init, that.step, that.body,
 					that.cond);
 			if (!b)
-				changeState(); // FIXME _ but only if something is havoced? and it is not a local variable?
+				changeState(that); // FIXME _ but only if something is havoced? and it is not a local variable?
 		}
 
 		JmlLabeledStatement lstat = M.at(that.body.pos).JmlLabeledStatement(loopbodyLabelName, null, null);
@@ -16598,22 +16594,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// implement constructors
 			while (true) {
 				String splitkey = t.nextToDo();
-				if (splitkey == null)
-					break;
+				if (splitkey == null) break;
 				// Save - in case of recursive calls
 				setSplits(t, splitkey);
 				JCBlock body = null;
 				body = convertMethodBodyNoInit(that, classDecl);
 
 				List<JCTypeParameter> typarams = that.typarams;
-				if (fullTranslation)
-					typarams = copy(typarams); // FIXME - is there anything to be translated
-				List<JCVariableDecl> params = that.params;
-				if (fullTranslation)
-					params = copy(params); // Just a copy - the parameters are just modifiers, types, and names
-				JCExpression restype = that.restype;
-				if (fullTranslation)
-					restype = convertExpr(restype);
+                List<JCVariableDecl> params = that.params;
+                JCExpression restype = that.restype;
+				if (fullTranslation) {
+				    typarams = copy(typarams); // FIXME - is there anything to be translated
+				    params = copy(params); // Just a copy - the parameters are just modifiers, types, and names
+				    restype = convertExpr(restype);
+				}
 				JCModifiers mods = convert(that.mods);
 				if (rac && attr.isSpecPublic(that.sym)) {
 					long newflags = (mods.flags & ~Flags.AccessFlags) | Flags.PUBLIC;
@@ -19246,7 +19240,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (esc) {
 			boolean b = loopHelperHavoc(that.loopSpecs, that.body, indexDecl, null, that.body, that.cond);
 			if (!b)
-				changeState(); // FIXME - but only if somethings non-local is havoced?
+				changeState(that); // FIXME - but only if somethings non-local is havoced?
 		}
 
 		loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that, null);
@@ -19823,8 +19817,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// if (utils.debug() || true) System.out.println("ADDING METHODAXIOMS " + msym);
 		boolean isFunction = isHeapIndependent(msym);
 		JCExpression savedCondition = condition;
-		if (isFunction)
-			condition = treeutils.trueLit;
+		if (isFunction) condition = treeutils.trueLit;
 		boolean isStatic = utils.isJMLStatic(msym);
 		boolean isPrimitiveType = utils.isJavaOrJmlPrimitiveType(msym.owner.type);
 
@@ -19838,8 +19831,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		splitExpressions = false;
 		ListBuffer<JCStatement> check = pushBlock();
-//        if (depth == 0) savedForAxioms = currentStatements;
-//        depth++;
 		ListBuffer<JCStatement> savedForAxioms = currentStatements;
 
 		JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(msym);
@@ -19867,13 +19858,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCIdent qthisid = null;
 			JCExpression qthisnn = null;
 			if (!isStatic) {
-				JCVariableDecl newDecl = treeutils.makeVarDef(receiverType, names.fromString("QQHIS"), ownerSym,
-						calleeDeclPos);
+				JCVariableDecl newDecl = treeutils.makeVarDef(receiverType, names.fromString("QQHIS"), ownerSym, calleeDeclPos);
 				newDecls.add(newDecl);
 				qthisid = treeutils.makeIdent(callLocation, newDecl.sym);
 				newparamsWithHeap.add(qthisid);
-				if (!isPrimitiveType)
-					qthisnn = treeutils.makeNotNull(qthisid.pos, qthisid);
+				if (!isPrimitiveType) {
+				    qthisnn = treeutils.makeNotNull(qthisid.pos, qthisid);
+				}
 			}
 			currentThisExpr = qthisid;
 			if (calleeSpecs != null && calleeSpecs.decl != null) {
@@ -19909,8 +19900,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			List<Type> newParamTypes = newparamtypes.toList();
 
-			MethodSymbol newsym = makeAndSaveNewMethodName(msym, returnType, isFunction, calleeSpecs, calleeDeclPos,
-					newParamTypes);
+			MethodSymbol newsym = makeAndSaveNewMethodName(msym, returnType, isFunction, calleeSpecs, calleeDeclPos, newParamTypes);
 
 			List<JCVariableDecl> newDeclsList = newDecls.toList();
 
@@ -19931,10 +19921,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				DiagnosticPosition dpos = callLocation;
 				// JCExpression e =
 				// M.at(dpos).TypeTest(call,M.Type(msym.getReturnType())).setType(syms.booleanType);
-				JCExpression e = treeutils.makeInstanceOf(dpos.getPreferredPosition(), call,
-						M.Type(msym.getReturnType()));
-				e = treeutils.makeOr(dpos.getPreferredPosition(),
-						treeutils.makeEqNull(dpos.getPreferredPosition(), call), e);
+				JCExpression e = treeutils.makeInstanceOf(dpos.getPreferredPosition(), call, M.Type(msym.getReturnType()));
+				e = treeutils.makeOr(dpos.getPreferredPosition(), treeutils.makeEqNull(dpos.getPreferredPosition(), call), e);
 				if (newDeclsList.isEmpty()) {
 					// e is just e;
 				} else {
@@ -19968,12 +19956,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				// This initial logic must match that above for preconditions
 				calleeSpecs = specs.getDenestedSpecs(mpsym);
-				if (!specs.statusOK(mpsym))
-					continue; // FIXME - abort
-				if (calleeSpecs == null)
-					continue; // FIXME - not sure about this
-				if (calleeSpecs.decl == null && !mpsym.owner.isEnum() && !isStatic && (mpsym.name != names.values))
-					continue; // FIXME - only values?
+				if (!specs.statusOK(mpsym)) continue; // FIXME - abort
+				if (calleeSpecs == null) continue; // FIXME - not sure about this
+				if (calleeSpecs.decl == null && !mpsym.owner.isEnum() && !isStatic && (mpsym.name != names.values)) continue; // FIXME - only values?
 
 				// Now map the formals as used in the overridden method to
 				// identifiers used in the axioms being constructed
@@ -20007,15 +19992,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JCExpression savedElseExpression = elseExpression;
 				elseExpression = treeutils.falseLit;
 				for (JmlSpecificationCase cs : calleeSpecs.cases) {
-					if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags, methodDecl.mods.flags))
-						continue;
+					if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags, methodDecl.mods.flags)) continue;
 					// if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*,
 					// methodDecl.mods.flags*/)) continue;
-					if (cs.token == exceptionalBehaviorClause)
-						continue;
+					if (cs.token == exceptionalBehaviorClause) continue;
 					// FIXME - will need to add OLD and FORALL clauses in here
-					if (cs.code && mpsym.owner != msym.owner)
-						continue;
+					if (cs.code && mpsym.owner != msym.owner) continue;
 
 					JCExpression pre = qthisnn != null ? qthisnn : treeutils.trueLit;
 					if (isPrimitiveType) {
@@ -20056,19 +20038,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								break;
 							}
 						}
-						if (mcc != null)
-							clauseToReference = mcc;
+						if (mcc != null) clauseToReference = mcc;
 					} catch (NoModelMethod e) {
 						pre = treeutils.falseLit;
 					} finally {
 						currentStatements = savedForAxioms;
 					}
 
-					combinedPre = (combinedPre == null) ? copy(pre)
-							: treeutils.makeOrSimp(pre.pos, combinedPre, copy(pre));
-					if (treeutils.isFalseLit(pre))
-						continue; // Don't bother with postconditions if corresponding precondition is explicitly
-									// false
+					combinedPre = treeutils.makeOrSimp(pre.pos, combinedPre, copy(pre));
+					if (treeutils.isFalseLit(pre)) continue; // Don't bother with postconditions if corresponding precondition is explicitly false
 
 					for (JmlMethodClause clause : cs.clauses) {
 						DiagnosticPosition dpos = clause;
@@ -20197,11 +20175,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				savedForAxioms = null;
 		}
 		JCBlock bl = popBlock(null, check);
-		if (collectedAxioms != null) {
-			collectedAxioms.add(bl);
-			bl = null;
-		}
-		return bl;
+//		if (collectedAxioms != null) {
+//			collectedAxioms.add(bl);
+//			bl = null;
+//		}
+		currentEnv.heap.methodAxiomsBlock.stats = currentEnv.heap.methodAxiomsBlock.stats.append(bl);
+		return null;
 	}
 
 	public boolean isHeapIndependent(MethodSymbol msym) {
@@ -21188,9 +21167,97 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// do nothing
 		}
 	}
+	
+	/** This class encapsulates information that is fixed for a method, but needs to be 
+	 * pushed/popped as other metehods are translated recursively 
+	 */
+	
+	public static class MethodEnv implements Cloneable {
+        public MethodEnv() {} // Just for the very first initialization
+
+	    public MethodEnv(Context context, boolean esc, boolean rac) {
+	        String ss = JmlOption.value(context, JmlOption.RAC_SHOW_SOURCE);
+	        this.showRacSource = "none".equals(ss) ? 0 : "line".equals(ss) ? 1 : 2;
+	        this.racCheckAssumeStatements = JmlOption.isOption(context, JmlOption.RAC_CHECK_ASSUMPTIONS);
+	        this.javaChecks = esc || (rac && JmlOption.isOption(context, JmlOption.RAC_JAVA_CHECKS));
+	    }
+
+//        public MethodEnv() {
+//            this.receiver = receiver;
+//            this.stateLabel = stateLabel;
+//            this.allocCount = allocCount;
+//            this.methodSym = methodSym;
+//            this.enclosingClauseKind = null;
+//        }
+
+        /*@ nullable */ public MethodEnv previousEnv; 
+        /**
+         * If true, then error messages in generated RAC code include source code
+         * snippets with the customary textual ^ pointers to error locations. This adds
+         * bulk to the RAC-ed program, though I've not measured whether it is
+         * significant. The field is initialized from a user option and not meant to be
+         * set externally.
+         */
+        protected int showRacSource;
+
+        /**
+         * If true, then in the RAC translation, assume statements and assumptions
+         * implied by JML are checked as if they were assert statements. The field is
+         * initialized from a user option and not meant to be set externally.
+         */
+        protected boolean racCheckAssumeStatements;
+
+        /**
+         * If true, then explicit checks are included even when the Java language would
+         * catch the error itself (e.g., OpenJML will check for a null reference in
+         * advance of a dereference and Java throwing a NullPointerException). This
+         * should always be true for esc, but only true for rac if the appropriate
+         * option is set.
+         */
+        public boolean javaChecks;
+
+        /** We have the same Map for the whole method translation, but the content of the Map does change */
+        public Map<Integer, HeapInfo> allHeaps = new HashMap<>();
+        
+        public MethodEnv popEnv() {
+            // System.out.println("POPENV " + this.hashCode() + " TO " + previousEnv.hashCode());
+            return previousEnv;
+        }
+
+        public MethodEnv pushEnvCopy() {
+            try {
+                var t = (MethodEnv)this.clone();
+                t.previousEnv = this;
+                // System.out.println("PUSHENV " + this.hashCode() + " TO " + t.hashCode());
+                return t;
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public MethodEnv newEnvCopy() {
+            try {
+                var t = (MethodEnv)this.clone();
+                t.previousEnv = null;
+                return t;
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        
+        public MethodEnv pushEnvInit(Context context, boolean esc, boolean rac) {
+            var t = new MethodEnv(context,esc,rac);
+            t.previousEnv = this;
+            return t;
+        }
+	}
+	
+	MethodEnv methodEnv = new MethodEnv();
+
 
 	// This class encapsulates information about the environment in which a
-	// translation is being performed.
+	// translation is being performed; these are values that can change in the
+	// course of translating a method and need to be pushed and popped as the AST is visited.
 	// It is helpful because the visit methods do not take an auxiliary argument in
 	// which such information could be passed.
 	public static class TranslationEnv implements Cloneable {
@@ -21205,14 +21272,30 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			this.enclosingClauseKind = null;
 		}
 
-//		public TranslationEnv(TranslationEnv t) {
-//			receiver = t.receiver;
-//			label = t.label;
-//			allocCount = t.allocCount;
-//			methodSym = t.methodSym;
-//			enclosingClauseKind = t.enclosingClauseKind;
-//		}
+        /*@ nullable */ public TranslationEnv previousEnv; 
+        /*@ nullable */ public JCExpression receiver; // what 'this' is currently. null in a static environment
+ 
+        /**
+         * Used to note the environment (e.g., \old label) under which we are currently
+         * evaluating expressions; null indicates the current state; the value preLabel indicates
+         * the pre-state, etc.
+         */
+        /*@ nullable */ public Name stateLabel; // the current heap state. null means the current state
+        public int allocCount = 0;
+        
+        /** The method being translated */
+        public MethodSymbol methodSym;
+        
+        /** The clause being translated (null if not in one) */
+        //@ nullable
+        public IJmlClauseKind enclosingClauseKind;
+        
+        /** Where to store yield values; null if we are not in a switch */
+        public JCIdent yieldIdent = null;
 
+        /** Info about the current heap */
+        public HeapInfo heap;
+        
 		public TranslationEnv popEnv() {
 			// System.out.println("POPENV " + this.hashCode() + " TO " + previousEnv.hashCode());
 			return previousEnv;
@@ -21239,8 +21322,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
 
-
-
         public TranslationEnv pushEnvInit() {
             var t = new TranslationEnv();
             t.previousEnv = this;
@@ -21248,26 +21329,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return t;
         }
 
-        /*@ nullable */ public TranslationEnv previousEnv; 
-		/*@ nullable */ public JCExpression receiver; // what 'this' is currently. null in a static environment
- 
-		/**
-         * Used to note the environment (e.g., \old label) under which we are currently
-         * evaluating expressions; null indicates the current state; the value preLabel indicates
-         * the pre-state, etc.
-         */
-		/*@ nullable */ public Name stateLabel; // the current heap state. null means the current state
-		public int allocCount = 0;
-        
-        /** The method being translated */
-		public MethodSymbol methodSym;
-        
-        /** The clause being translated (null if not in one) */
-        //@ nullable
-		public IJmlClauseKind enclosingClauseKind;
-		
-		/** Where to store yield values; null if we are not in a switch */
-		public JCIdent yieldIdent = null;
 	}
 
 	TranslationEnv currentEnv = new TranslationEnv();

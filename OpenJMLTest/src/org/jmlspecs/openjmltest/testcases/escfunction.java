@@ -61,6 +61,7 @@ public class escfunction extends EscBase {
     
     @Test
     public void testMethodAxioms2() { 
+        //main.addOptions("-show","-method=mm");
         helpTCX("tt.TestJava","package tt; \n"
                 +" //@ code_java_math spec_java_math \n"
                 +"public class TestJava  { \n"

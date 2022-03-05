@@ -24,7 +24,8 @@ alias wt="while [ \$(lsc) -gt 5 ]; do sleep 30; done"
 ./run-summary log-esc1     	"93/0"  esc1  &
 wt
 ./run-summary log-esc2     	"109/0" esc2  &
-#./run-summary log-escarith+ 	"56/17" escArithmeticModes escArithmeticModes2  &
+./run-summary log-escarith 	"37/0" escArithmeticModes &
+#./run-summary log-escArith2    ""      escArithmeticModes2  &
 ./run-summary log-escbv     	"12/0"  escbitvector  &
 ./run-summary log-escConst+ 	"68/0"  escConstantFields escCounterexamples escaccessible esccode escconstructor exitcode  &
 wt

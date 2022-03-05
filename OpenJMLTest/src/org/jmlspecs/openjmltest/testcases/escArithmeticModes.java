@@ -308,7 +308,8 @@ public class escArithmeticModes extends EscBase {
     }
 
     @Test
-    public void testDivJava() { // somewhat but not overly long when using BVs
+    public void testDivJava() { // somewhat but not overly long when using BVs, but can timeout
+        if (skipIfFalse(runLongArithmetic || !options.contains("-escBV=true"))) return; // Cannot have BV and Math mode
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeJavaMath public class TestJava { //@ requires j !=0 ; \n"
                 +"  public int m(int i, int j) {\n"
