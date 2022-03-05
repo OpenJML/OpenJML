@@ -7,6 +7,8 @@ import org.jmlspecs.openjml.IArithmeticMode;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.Label;
@@ -228,11 +230,11 @@ abstract public class Arithmetic extends JmlExtension {
             if (typetag == TypeTag.INT) {
                 JCExpression e = rewriter.treeutils.makeNot(arg.pos,rewriter.treeutils.makeEquality(arg.pos, rewriter.copy(arg), rewriter.treeutils.makeIntLiteral(arg.pos, Integer.MIN_VALUE)));
                 e = condition(rewriter,e);
-                checkIt(rewriter,that,"(int negation)",e);
+                checkIt(rewriter,that,"int negation",e);
             } else if (typetag == TypeTag.LONG) {
                 JCExpression e = rewriter.treeutils.makeNot(arg.pos,rewriter.treeutils.makeEquality(arg.pos, rewriter.copy(arg), rewriter.treeutils.makeLit(arg.pos, that.type, Long.MIN_VALUE)));
                 e = condition(rewriter,e);
-                checkIt(rewriter,that,"(long negation)",e);
+                checkIt(rewriter,that,"long negation",e);
             }
         }
         if (rewriter.rac && rewriter.jmltypes.isJmlType(newtype)) {
@@ -618,7 +620,15 @@ abstract public class Arithmetic extends JmlExtension {
             JCTree.JCIdent id = rewriter.newTemp(x);
             rewriter.saveMapping(x,id);
         }
-        rewriter.addCheck(pos, Label.ARITHMETIC_OP_RANGE, x, str);
+        String mode = JmlOption.value(context,JmlOption.ARITHMETIC);
+        if (mode == null) { 
+            rewriter.utils.warning(pos, "jml.internal", "Null arithmetic failure mode should have been corrected before reaching this point"); 
+        } else switch (mode) {
+            case "hard" -> rewriter.addAssert(pos, Label.ARITHMETIC_OP_RANGE, x, str);
+            case "soft" -> rewriter.addCheck(pos, Label.ARITHMETIC_OP_RANGE, x, str);
+            case "quiet" -> rewriter.addAssume(pos, Label.ARITHMETIC_OP_RANGE, x);
+            default -> { rewriter.utils.warning(pos, "jml.internal", "Erroneous arithmetic failure mode should have been corrected before reaching this point: " + mode); }
+        }
     }
     
     /** This implements the bigint (which is also real) mathematical mode */

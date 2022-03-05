@@ -109,8 +109,8 @@ public class escArithmeticModes extends EscBase {
                 +"    return k; \n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: (int negation)",13
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ml: (long negation)",14
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: int negation",13
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ml: long negation",14
               );
     }
 

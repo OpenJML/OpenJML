@@ -113,7 +113,23 @@ public class JmlOption {
     { map.put("-nullableByDefault",NULLABLEBYDEFAULT); }
     public static final JmlOption CODE_MATH = new JmlOption("--code-math",true,"safe","Arithmetic mode for Java code (code, safe, bigint)",null);
     public static final JmlOption SPEC_MATH = new JmlOption("--spec-math",true,"bigint","Arithmetic mode for specifications (code, safe, bigint)",null);
-
+    public static final JmlOption ARITHMETIC = new JmlOption("--arithmetic-failure",true,"soft","Whether arithmetic warnings are hard, soft or quiet",null) {
+          public boolean check(Context context, boolean negate) {
+              String n = JmlOption.ARITHMETIC.optionName();
+              String mode = JmlOptions.instance(context).get(n);
+              if (!(mode.equals("hard") || mode.equals("soft") || mode.equals("quiet"))) {
+                  Utils.instance(context).warning("jml.message","The value of the " + n + " option or the " + Strings.optionPropertyPrefix + n.substring(2) 
+                  + " property should be one of 'hard', 'soft', or 'quiet'");
+                  JmlOption.putOption(context, JmlOption.ARITHMETIC, JmlOption.ARITHMETIC.defaultValue().toString());
+                  return false;
+              }
+              if (negate) {
+                  Utils.instance(context).warning("jml.message","The value of the " + n + " option does not permit a 'no-' prefix");
+                  return false;
+              }
+              return true;
+          }
+    };
     // FIXME - turn default back to true when problems have been worked out
     public static final JmlOption CHECK_ACCESSIBLE = new JmlOption("--check-accessible",false,false,"When on (the default), JML accessible clauses are checked",null);
     { map.put("-checkAccessible",CHECK_ACCESSIBLE); }
@@ -166,6 +182,7 @@ public class JmlOption {
     public static final JmlOption NORMAL = new JmlOption("--normal",false,null,"Limited output","--verboseness="+Utils.NORMAL);
     public static final JmlOption PROGRESS = new JmlOption("--progress",false,null,"Shows progress through compilation phases","--verboseness="+Utils.PROGRESS);
     public static final JmlOption SHOW_SKIPPED = new JmlOption("--show-skipped",false,true,"Shows methods whose proofs are skipped",null);
+    public static final JmlOption SHOW_SUMMARY = new JmlOption("--show-summary",false,true,"Shows summary and time information",null);
     public static final JmlOption JMLVERBOSE = new JmlOption("--jmlverbose",false,false,"Like --verbose, but only jml information and not as much","--verboseness="+Utils.JMLVERBOSE);
     public static final JmlOption JMLDEBUG = new JmlOption("--jmldebug",false,false,"When on, the program emits lots of output (includes --progress)","--verboseness="+Utils.JMLDEBUG);
 //    public static final JmlOption SHOW_OPTIONS = new JmlOption("--show-options",false, "none","When enabled, the values of options and properties are printed, for debugging",null);

@@ -1,0 +1,1 @@
+ARGS+=" --arithmetic-failure=hard "
