@@ -1,1 +1,1 @@
-ARGS+=-code-math=safe
+ARGS+=" -code-math=safe  --arithmetic-failure=hard "

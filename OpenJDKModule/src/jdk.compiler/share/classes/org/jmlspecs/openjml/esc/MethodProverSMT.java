@@ -483,7 +483,7 @@ public class MethodProverSMT {
             if (Utils.testingMode) loc = "";
             if (solverResponse.equals(unsatResponse)) {
                 String msg = "Method assertions are validated";
-                if (!Utils.testingMode) msg = msg + String.format(" [%4.2f secs]", duration);
+                if (!Utils.testingMode && JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)) msg = msg + String.format(" [%4.2f secs]", duration);
                 // FIXME - get rid of the check on testingMode below some time when we can change the test results
                 if (!Utils.testingMode) utils.progress(0,1,msg);
 
@@ -578,9 +578,9 @@ public class MethodProverSMT {
                                 :("Feasibility check - " + description + " : ");
                         boolean infeasible = solverResponse.equals(unsatResponse);
                         if (Utils.testingMode) fileLocation = loc;
-                        String msgOK = fileLocation + msg2 + "OK" + (Utils.testingMode? "" : String.format(" [%4.2f secs]", duration));
+                        String msgOK = fileLocation + msg2 + "OK" + (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration));
                         if (infeasible) {
-                            utils.progress(0,1,fileLocation + msg2 + "infeasible" + (Utils.testingMode? "" : String.format(" [%4.2f secs]", duration)));
+                            utils.progress(0,1,fileLocation + msg2 + "infeasible" + (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration)));
                             if (Strings.preconditionAssumeCheckDescription.equals(description)) {
                             	utils.verify(stat, "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);

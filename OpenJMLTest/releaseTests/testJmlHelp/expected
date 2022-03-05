@@ -91,6 +91,7 @@ JML options:
   --nullable-by-default      Makes references nullable by default
   --code-math                Arithmetic mode for Java code (code, safe, bigint)
   --spec-math                Arithmetic mode for specifications (code, safe, bigint)
+  --arithmetic-failure       Whether arithmetic warnings are hard, soft or quiet
   --check-accessible         When on (the default), JML accessible clauses are checked
   --specs-path               Specifies the directory path to search for specification files
   --check-specs-path         When on (the default), warnings for non-existent specification path directories are issued
@@ -108,6 +109,7 @@ JML options:
   --normal                   Limited output [--verboseness=1]
   --progress                 Shows progress through compilation phases [--verboseness=2]
   --show-skipped             Shows methods whose proofs are skipped
+  --show-summary             Shows summary and time information
   --jmlverbose               Like --verbose, but only jml information and not as much [--verboseness=3]
   --jmldebug                 When on, the program emits lots of output (includes --progress) [--verboseness=4]
   -jmltesting                Only used to generate tracing information during testing
