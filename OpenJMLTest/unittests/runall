@@ -56,7 +56,7 @@ wt
 wt
 ./run-summary log-typecheck	"209/0"	typechecking &
 ./run-summary log-typeclause	"123/0"	typeclauses  &
-./run-summary log-SpecsBase    	"285/5"	SpecsBase  &
+./run-summary log-SpecsBase    	"289/1"	SpecsBase  &
 ./run-summary log-SpecsEsc     	"6/0"	SpecsEsc  &
 wt
 ./run-summary log-racmost       "101/0"	racArithmeticModes racdemoexamples racfeatures racJML racnew3 racnewLoops racnewWithSpecs racsystem &

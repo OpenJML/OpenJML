@@ -8174,7 +8174,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Helper method to do the work of visitApply and visitNewObject */
 	protected void applyHelper(JCExpression that) {
-		boolean print = Utils.debug(); // || that.toString().contains("empty()"); //
+		boolean print =  Utils.debug(); // || that.toString().contains("empty()"); //
     	if (print) System.out.println("APPLY HELPER: " + that);
 //    	if (that instanceof JCMethodInvocation) {
 //    		JCMethodInvocation m = (JCMethodInvocation)that;
@@ -8560,13 +8560,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (addMethodAxioms) {
 					if ((useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
 
-						if (print)
-							System.out.println("APPLYHELPER-E3 " + (calleeMethodSym == null ? " NULL"
-									: (calleeMethodSym.owner + " " + calleeMethodSym)));
-						result = eresult = makeDeterminismCall(that, calleeMethodSym, newThisExpr, extendedArgs);
-						currentThisExpr = newThisExpr;
-						if (condition == null)
-							condition = treeutils.trueLit;
+//						if (print)
+//							System.out.println("APPLYHELPER-E3 " + (calleeMethodSym == null ? " NULL"
+//									: (calleeMethodSym.owner + " " + calleeMethodSym)));
+//						var ex = makeDeterminismCall(that, calleeMethodSym, newThisExpr, extendedArgs);
+//						makeMethodHavocAxiom(that, calleeMethodSym);
+//						result = eresult = ex;
+//						currentThisExpr = newThisExpr;
+//						if (condition == null)
+//							condition = treeutils.trueLit;
 					} else {
 						if (utils.isJMLStatic(calleeMethodSym) || trArgs.isEmpty()) {
 							result = eresult = trExpr;
@@ -9688,6 +9690,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCIdent resultId = M.at(p).Ident(resultSym1);
 					addAssumeEqual(that, Label.METHOD_ASSUME, resultId, newCall);
 				});
+				makeMethodHavocAxiom(that,calleeMethodSym);
 				JCBlock bl = M.at(that.pos).Block(0L, stats);
 				if (!resultSym.type.isPrimitiveOrVoid() && !utils.isJavaOrJmlPrimitiveType(resultSym.type)) {
 					JCExpression isNotFresh = treeutils.makeNot(that.pos, makeFreshExpression(that, resultExpr, currentOldLabel));
@@ -10663,6 +10666,32 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (print) System.out.println("APPLYHELPER-ZZZ " + eresult);
 		}
 	}
+	
+	public void makeMethodHavocAxiom(DiagnosticPosition pos, MethodSymbol calleeMethodSym) {
+	    if (true) return;
+	    int hc = heapCount;
+	    try {
+	    var info = currentEnv.heap;
+	    if (hc == 1 || info.previousHeaps.isEmpty()) return;
+	    var oldhc = info.previousHeaps.iterator().next();
+	    MethodSymbol newCalleeSym = getNewMethodSymbol(calleeMethodSym);
+	    MethodSymbol oldMethodSym = heapMethods.get(oldhc).get(calleeMethodSym);
+	    System.out.println("HEAPFUCNAXIOM " + calleeMethodSym + " " + hc + " " + newCalleeSym + " " + oldhc + " " + oldMethodSym);
+        ListBuffer<JmlVariableDecl> quantDecls = new ListBuffer<>();
+        ListBuffer<JCIdent> argList1 = new ListBuffer<>();
+        ListBuffer<JCIdent> argList2 = new ListBuffer<>();
+	    for (var p: newCalleeSym.params) {
+	        var d = newTempDecl(pos, p.type);
+	        quantDecls.add(d);
+            argList1.add(M.at(pos).Ident(d.sym));
+            argList2.add(M.at(pos).Ident(d.sym));
+	    }
+	    } catch (Exception e) {
+	        System.out.println("CRASH IN makeMethodHavocAxiom");
+	        e.printStackTrace(System.out);
+	    }
+
+	}
 
 	public JCExpression makeDeterminismCall(JCExpression that, MethodSymbol calleeMethodSym, JCExpression newThisExpr,
 			List<JCExpression> extendedArgs) {
@@ -10726,7 +10755,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    try {
 	        specs.getAttrSpecs(calleeMethodSym);
 	        JCBlock bl = addMethodAxioms(that, calleeMethodSym, overridden, receiverType, that.type);
-	        //System.out.println("METHODAXIOMS " + calleeMethodSym + " " + getNewMethodSymbol(calleeMethodSym) + " "  + details + " " + bl);
+	        //System.out.println("makeMethodHavocAxiom " + calleeMethodSym + " " + getNewMethodSymbol(calleeMethodSym) + " "  + details + " " + bl);
 	        if (details) { // FIXME - document this details check - if it is false, the axioms are dropped
 	            // FIXME - actually should add these into whatever environment is operative
 
@@ -10742,7 +10771,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            }
 	        }
 	    } catch (Throwable e) {
-	        utils.warning(that,"Unexpected exception in addMethodAxioms: " + calleeMethodSym + " " + that );
+	        utils.warning(that,"jml.message","Unexpected exception in addMethodAxioms: " + calleeMethodSym + " " + that );
 	        e.printStackTrace(System.out);
 	    }
 	}
@@ -19808,13 +19837,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected JCBlock addMethodAxioms(DiagnosticPosition callLocation, MethodSymbol msym,
 			java.util.List<Pair<MethodSymbol, Type>> overridden, Type receiverType, Type returnType) {
 		int hc = currentEnv.stateLabel == null ? heapCount : labelPropertiesStore.get(currentEnv.stateLabel).heapCount;
-		// if (utils.debug() || true) System.out.println("ADDMETHODAXIOMS "+
-		// " " + hc + " " + + heapCount + " " + heapCountForAxioms + " " + msym + " " +
-		// axiomsAdded);
+//		 if (utils.debug() || true) System.out.println("ADDMETHODAXIOMS "+
+//		 " " + hc + " " + + heapCount + " " + heapCountForAxioms + " " + msym + " " +
+//		 axiomsAdded);
 		if (!addAxioms(hc, msym)) {
 			return null;
-		} // M.at(Position.NOPOS).Block(0L, List.<JCStatement>nil()); }
-		// if (utils.debug() || true) System.out.println("ADDING METHODAXIOMS " + msym);
+		}
+		if (utils.debug()) System.out.println("ADDING METHODAXIOMS " + msym);
 		boolean isFunction = isHeapIndependent(msym);
 		JCExpression savedCondition = condition;
 		if (isFunction) condition = treeutils.trueLit;
