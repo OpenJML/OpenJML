@@ -4275,9 +4275,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (denestedSpecs.decl != null) {
 			Iterator<VarSymbol> iter = denestedSpecs.decl.sym.params.iterator();
 			for (JCVariableDecl dp : methodDecl.params) {
+			    if (!iter.hasNext()) {
+			        System.out.println("MISMATCHED ARGUMENT LISTS: " + javaMethodSym + " : " + methodDecl.params + " VS " + denestedSpecs.decl.sym.params);
+			        Utils.dumpStack();
+			        break;
+			    }
 				VarSymbol specSym = iter.next();
-				// System.out.println("MAPPING " + specSym + " " + specSym.hashCode() + " TO " +
-				// dp.sym + " " + dp.hashCode());
+				//System.out.println("MAPPING " + specSym + " " + specSym.hashCode() + " TO " + dp.sym + " " + dp.hashCode());
 				paramActuals.put(specSym, treeutils.makeIdent(dp.pos, dp.sym));
 			}
 		} else { // denested specs may not have a declaration if the method is automatically
@@ -4423,7 +4427,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean isConstructor = methodDecl.sym.isConstructor();
 		ListBuffer<JCStatement> check = pushBlock(initialStats);
 		pushBlock(initialStats);
-		changeState(methodDecl); // bumps heapCount // adds to currentStats
+		changeState(methodDecl,null); // bumps heapCount // adds to currentStats
 		popBlock();
 		int preheapcount = heapCount;
 		int savedheapcount = heapCount;
@@ -8031,7 +8035,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		inProcessInvariants.clear();
 	}
 
-	protected void changeState(DiagnosticPosition pos) {
+	// havocs might be: JCIdent, JCFieldAccess, JCArrayAccess, List of such, Loop specs, method call
+	protected void changeState(DiagnosticPosition pos, Object havocs) {
 		if (infer || esc) {
 		    int p = pos.getPreferredPosition();
 			heapCount = nextHeapCount();
@@ -8042,6 +8047,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			currentStatements.add(assign);
 			JCBlock bl = M.at(p).Block(0L, List.<JCStatement>nil());
 			currentEnv.heap.methodAxiomsBlock = bl;
+			currentEnv.heap.havocs = havocs;
             currentStatements.add(bl);
 			wellDefinedCheck.clear();
 //            addAxioms(heapCount, null);
@@ -8157,7 +8163,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		currentStatements = new ListBuffer<JCStatement>();
 		try {
 			action.run();
-			return currentStatements.toList();
+            return currentStatements.toList();
+		} catch (Exception e) {
+		    utils.error("jml.internal","Exception while collecting stats");
+		    e.printStackTrace(System.out);
+            return currentStatements.toList();
 		} finally {
 			currentStatements = prev;
 		}
@@ -8529,6 +8539,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			addToCallStack(that);
 			pushedMethod = true; // Must be after the check of isRecursive
+			
+			if (!calleeIsConstructor && isPure(calleeMethodSym) ) {
+			    makeAndSaveMethodSymbol(that, calleeMethodSym, receiverType, that.type);
+			}
 
 //            ListBuffer<JCStatement> saved = currentStatements;
 			oldStatements = currentStatements; // FIXME - why twice
@@ -8540,6 +8554,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                addMethodAxiomsPlus(that, calleeMethodSym, newThisExpr, extendedArgs,
 //                        receiverType, overridden, true);
 //            }
+			
+			{
+//		         ListBuffer<Type> newparamtypes = new ListBuffer<Type>();
+//		            for (JCExpression e : newParamsWithHeap) {
+//		                newparamtypes.add(e.type);
+//		            }
+//		            List<Type> newParamTypes = newparamtypes.toList();
+//		            int calleeDeclPos = calleeSpecs != null && calleeSpecs.decl != null ? calleeSpecs.decl.pos : methodDecl.pos;		            
+//		            MethodSymbol newsym = makeAndSaveNewMethodName(calleeMethodSym, that.type, calleeIsFunction, 
+//		                calleeSpecs, calleeSpecs.javaDecl, newParamTypes);
+			}
 			if (print) {
 				System.out.println("APPLYHELPER-E " + calleeMethodSym.owner + " " + calleeMethodSym + " translatingJML="
 						+ translatingJML + " splitExpr=" + splitExpressions + " isFunction=" + calleeIsFunction + " addMethodAxioms=" + addMethodAxioms + " isRecursive=" + isRecursive + " nodoTrans=" + nodoTranslations);
@@ -8564,7 +8589,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //							System.out.println("APPLYHELPER-E3 " + (calleeMethodSym == null ? " NULL"
 //									: (calleeMethodSym.owner + " " + calleeMethodSym)));
 //						var ex = makeDeterminismCall(that, calleeMethodSym, newThisExpr, extendedArgs);
-//						makeMethodHavocAxiom(that, calleeMethodSym);
 //						result = eresult = ex;
 //						currentThisExpr = newThisExpr;
 //						if (condition == null)
@@ -9675,7 +9699,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				final VarSymbol resultSym1 = resultSym;
 				final boolean heap = !calleeIsFunction
 						&& !calleeMethodSym1.owner.toString().startsWith("org.jmlspecs.lang");
-				List<JCStatement> stats = collectStats(() -> {
+				pushBlock();
+			    {
 					JmlMethodDecl mdecl = specs.getAttrSpecs(calleeMethodSym1).cases.decl;
 					int p = (mdecl != null) ? mdecl.pos : 0;
 					Name newMethodName = newNameForCallee(p, calleeMethodSym1, heap);
@@ -9689,9 +9714,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					newCall.setType(that.type);
 					JCIdent resultId = M.at(p).Ident(resultSym1);
 					addAssumeEqual(that, Label.METHOD_ASSUME, resultId, newCall);
-				});
-				makeMethodHavocAxiom(that,calleeMethodSym);
-				JCBlock bl = M.at(that.pos).Block(0L, stats);
+	                if (!calleeIsConstructor && isPure(calleeMethodSym1)) {
+	                    makeMethodHavocAxiom(that, receiverType, calleeMethodSym, that.type, that);
+	                }
+				}
+				JCBlock bl = popBlock(that);
 				if (!resultSym.type.isPrimitiveOrVoid() && !utils.isJavaOrJmlPrimitiveType(resultSym.type)) {
 					JCExpression isNotFresh = treeutils.makeNot(that.pos, makeFreshExpression(that, resultExpr, currentOldLabel));
 					JCStatement stat = M.at(that.pos).If(isNotFresh, bl, null);
@@ -9985,7 +10012,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			typevarMapping = newTypeVarMapping;
 			if (newclass != null || (!specs.isPure(calleeMethodSym) && !calleeMethodSym.isConstructor())) {
 				if (anyHavocs && inProcessInvariants.isEmpty() && !translatingJML)
-					changeState(that);
+					changeState(that, null); // FIXME
 			}
 			if (print) System.out.println("APPLYHELPER-W " + calleeMethodSym.owner + " " + calleeMethodSym);
 
@@ -10667,26 +10694,81 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 	}
 	
-	public void makeMethodHavocAxiom(DiagnosticPosition pos, MethodSymbol calleeMethodSym) {
+	public void makeMethodHavocAxiom(DiagnosticPosition pos, Type receiverType, MethodSymbol calleeMethodSym, Type returnType, Object havocs) {
 	    if (true) return;
 	    int hc = heapCount;
 	    try {
-	    var info = currentEnv.heap;
-	    if (hc == 1 || info.previousHeaps.isEmpty()) return;
-	    var oldhc = info.previousHeaps.iterator().next();
-	    MethodSymbol newCalleeSym = getNewMethodSymbol(calleeMethodSym);
-	    MethodSymbol oldMethodSym = heapMethods.get(oldhc).get(calleeMethodSym);
-	    System.out.println("HEAPFUCNAXIOM " + calleeMethodSym + " " + hc + " " + newCalleeSym + " " + oldhc + " " + oldMethodSym);
-        ListBuffer<JmlVariableDecl> quantDecls = new ListBuffer<>();
-        ListBuffer<JCIdent> argList1 = new ListBuffer<>();
-        ListBuffer<JCIdent> argList2 = new ListBuffer<>();
-	    for (var p: newCalleeSym.params) {
-	        var d = newTempDecl(pos, p.type);
-	        quantDecls.add(d);
-            argList1.add(M.at(pos).Ident(d.sym));
-            argList2.add(M.at(pos).Ident(d.sym));
-	    }
-	    } catch (Exception e) {
+	        var heapInfo = currentEnv.heap;
+//	        System.out.println("CALLING FOR " + calleeMethodSym + " " + hc + " " + info);
+	        if (heapInfo.previousHeaps.isEmpty()) return;
+	        var oldHeapInfo = heapInfo.previousHeaps.iterator().next();
+//	        System.out.println("   OLDHC " + oldHeapInfo);
+	        MethodSymbol newCalleeSym = getNewMethodSymbol(calleeMethodSym);
+	        MethodSymbol oldMethodSym = heapMethods.get(oldHeapInfo.heapID).get(calleeMethodSym);
+//	        System.out.println("HEAPFUCNAXIOM " + calleeMethodSym + " " + hc + " " + newCalleeSym + " " + oldHeapInfo.heapID + " " + oldMethodSym);
+	        ListBuffer<JCVariableDecl> quantDecls = new ListBuffer<>();
+	        ListBuffer<JCExpression> argList1 = new ListBuffer<>();
+	        ListBuffer<JCExpression> argList2 = new ListBuffer<>();
+//	        System.out.println("CALLEE " + calleeMethodSym + " " + calleeMethodSym.getReceiverType() + " " + calleeMethodSym.getParameters() + " " + calleeMethodSym.getReturnType());
+	        JCVariableDecl d;
+	        if (!calleeMethodSym.isStatic()) {
+	            d = newTempDecl(pos, receiverType);
+	            quantDecls.add(d);
+	            argList1.add(M.at(pos).Ident(d.sym));
+	            argList2.add(M.at(pos).Ident(d.sym));
+	        }
+	        if (newCalleeSym.getParameters() != null) for (var p: newCalleeSym.getParameters()) {
+	            d = newTempDecl(pos, p.type);
+	            quantDecls.add(d);
+	            argList1.add(M.at(pos).Ident(d.sym));
+	            argList2.add(M.at(pos).Ident(d.sym));
+	        }
+            var e1 = M.at(pos).Apply(List.<JCExpression>nil(), M.Ident(newCalleeSym), argList1.toList());
+            var e2 = M.at(pos).Apply(List.<JCExpression>nil(), M.Ident(oldMethodSym), argList2.toList());
+            e1.type = e2.type = returnType;
+            JCExpression ee = treeutils.makeEquality(pos.getPreferredPosition(), e1,  e2);
+            ee = M.at(pos).JmlQuantifiedExpr(qforallKind, quantDecls.toList(), treeutils.trueLit, ee);
+            JCStatement noChangeAxiom = M.at(pos).JmlExpressionStatement("assume", StatementExprExtensions.assumeClause, Label.METHODAXIOM, ee);
+            
+            SpecCaseIterable specCases = new SpecCaseIterable(calleeMethodSym);
+            for (var info: specCases) {
+                var parentMethodSym = info.parentMethodSymbol;
+                var scase = info.specCase();
+                //paramActuals = info.paramActuals();
+                JCIdent preid = preconditions.get(scase);
+                currentEnv = currentEnv.pushEnvCopy();
+                for (var clause : scase.clauses) {
+                    if (!(clause instanceof JmlMethodClauseStoreRef sc)) continue;
+                    if (clause.clauseKind != accessibleClauseKind) continue;
+                    currentEnv.enclosingClauseKind = sc.clauseKind;
+                    JCExpression locset = convertAssignableToLocsetExpression(clause, sc.list, (ClassSymbol)receiverType.tsym, null);
+                    // make sure sc.list and info.havocs are disjoint
+                    JmlStoreRef sr = null;
+                    if (heapInfo.havocs instanceof JCFieldAccess fa) {
+                        sr = makeJmlStoreRef(fa, fa, (ClassSymbol)fa.sym.owner, false).head; // FIXME - need an old here
+                    } else {
+                        System.out.println("UNSUPPORTED HAVOCS " + heapInfo.havocs);
+                    }
+                    //System.out.println("DISJ " + locset + " ^ " + sr);
+                    JCExpression nondisjoint = simplifyNonDisjoint(locset, sr, currentEnv, false); // FIXME  - need an old environment here
+                    //System.out.println("   Checking reads clause " + sc.list + " is nondisjoint from " + sr + " == " + nondisjoint);
+                    if (!treeutils.isTrueLit(nondisjoint)) {
+                        addStat(comment(methodDecl, "   Checking reads clause " + sc.list + " is disjoint from " + sr , null));
+                        JCExpression disjoint = treeutils.makeNot(nondisjoint,nondisjoint);
+                        JCStatement v = M.at(clause).If(disjoint, noChangeAxiom, null);
+                        addStat(v);
+                    } else {
+                        addStat(comment(methodDecl, "   Reads clause " + sc.list + " is always disjoint from " + sr , null));
+                    }
+                }
+                // If no clauses, default is \everything, which is presumed to not be disjoint with anything
+                // If a state change had no havocs, this is overly conservative
+                currentEnv = currentEnv.popEnv();
+            }
+
+ //           info.methodAxiomsBlock.stats = info.methodAxiomsBlock.stats.append(s);
+ //           System.out.println("  AXIOM " + ee);
+	    } catch (Throwable e) {
 	        System.out.println("CRASH IN makeMethodHavocAxiom");
 	        e.printStackTrace(System.out);
 	    }
@@ -12356,10 +12438,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (owner == null || owner instanceof Symbol.MethodSymbol) { // FIXME - clarify when the owner is null
 				;
 			} else {
-				changeState(that);
+				changeState(that, that.lhs);
 			}
 		} else {
-			changeState(that);
+			changeState(that, that.lhs);
 		}
 	}
 
@@ -12605,7 +12687,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		// Don't change heap state if the assignment is just to a local variable
 		if (!(that.lhs instanceof JCIdent && ((JCIdent) that.lhs).sym.owner instanceof Symbol.MethodSymbol)) {
-			changeState(that);
+			changeState(that, that.lhs);
 		}
 	}
 
@@ -15534,7 +15616,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (esc) {
 			boolean b = loopHelperHavoc(that.loopSpecs, that.body, indexDecl, null, that.body, that.cond);
 			if (!b)
-				changeState(that);
+				changeState(that, that.loopSpecs);
 		}
 
 		loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that, null);
@@ -15670,7 +15752,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (esc) {
 				boolean b = loopHelperHavoc(that.loopSpecs, that.body, indexDecl, null, that.body, that.expr);
 				if (!b)
-					changeState(that);
+					changeState(that, that.loopSpecs);
 			}
 
 			// Assume the invariants
@@ -15799,7 +15881,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (esc) {
 				boolean b = loopHelperHavoc(that.loopSpecs, that.body, indexDecl, null, that.expr, that.body);
 				if (!b)
-					changeState(that);
+					changeState(that, that.loopSpecs);
 			}
 
 			// Assume the invariants
@@ -16329,7 +16411,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			boolean b = loopHelperHavoc(that.loopSpecs, that.body, indexDecl, that.init, that.step, that.body,
 					that.cond);
 			if (!b)
-				changeState(that); // FIXME _ but only if something is havoced? and it is not a local variable?
+				changeState(that, that.loopSpecs); // FIXME _ but only if something is havoced? and it is not a local variable?
 		}
 
 		JmlLabeledStatement lstat = M.at(that.body.pos).JmlLabeledStatement(loopbodyLabelName, null, null);
@@ -19269,7 +19351,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (esc) {
 			boolean b = loopHelperHavoc(that.loopSpecs, that.body, indexDecl, null, that.body, that.cond);
 			if (!b)
-				changeState(that); // FIXME - but only if somethings non-local is havoced?
+				changeState(that, that.loopSpecs); // FIXME - but only if somethings non-local is havoced?
 		}
 
 		loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that, null);
@@ -19833,6 +19915,90 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 */
 	int depth = 0;
 
+	// Uses current heap (or heap for currentEnv.stateLabel)
+	protected void makeAndSaveMethodSymbol(DiagnosticPosition callLocation, MethodSymbol msym,
+	                        Type receiverType, Type returnType) {
+	    try {
+	        int hc = currentEnv.stateLabel == null ? heapCount : labelPropertiesStore.get(currentEnv.stateLabel).heapCount;
+	        boolean isFunction = isHeapIndependent(msym);
+	        boolean isStatic = utils.isJMLStatic(msym);
+	        boolean isPrimitiveType = utils.isJavaOrJmlPrimitiveType(msym.owner.type);
+
+	        Symbol ownerSym = inClassDecl() ? classDecl.sym : methodDecl.sym;
+	        JCTree ownerDecl = inClassDecl() ? classDecl : methodDecl;
+
+	        JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(msym);
+	        // FIXME - we get calleeSpecs == null when using -no-internalSpecs - shoudl we?
+	        int calleeDeclPos = calleeSpecs != null && calleeSpecs.decl != null ? calleeSpecs.decl.pos : methodDecl.pos;
+	        DiagnosticPosition calleeDeclDPos = calleeSpecs != null && calleeSpecs.decl != null ? calleeSpecs.decl
+	            : methodDecl;
+	        JavaFileObject calleeDeclSource = calleeSpecs != null && calleeSpecs.decl != null ? calleeSpecs.decl.sourcefile
+	            : methodDecl.sourcefile;
+
+	        //System.out.println("METHSYM " + msym + " " + receiverType + " " + returnType + " " + isStatic + " " + isFunction + " " + isPrimitiveType + " " + useNamesForHeap);
+	        //System.out.println("SPECS " + msym.params + " " + (calleeSpecs != null) + " " + (calleeSpecs.decl != null));
+	        // Construct the lists of parameters and parameter types for the logical
+	        // function representing the pure function
+	        ListBuffer<JCVariableDecl> newDecls = new ListBuffer<JCVariableDecl>();
+	        ListBuffer<JCExpression> newparamsWithHeap = new ListBuffer<JCExpression>();
+	        if (!isFunction && !useNamesForHeap) {
+	            newparamsWithHeap.add(convert(treeutils.makeIdent(Position.NOPOS, heapSym)));
+	        }
+	        JCIdent qthisid = null;
+	        JCExpression qthisnn = null;
+	        if (!isStatic) {
+	            JCVariableDecl newDecl = treeutils.makeVarDef(receiverType, names.fromString("QQHIS"), ownerSym, calleeDeclPos);
+	            newDecls.add(newDecl);
+	            qthisid = treeutils.makeIdent(callLocation, newDecl.sym);
+	            //System.out.println("QTHIS " + qthisid + " " + qthisid.type + " " + qthisid.sym);
+	            newparamsWithHeap.add(qthisid);
+	            if (!isPrimitiveType) {
+	                qthisnn = treeutils.makeNotNull(qthisid.pos, qthisid);
+	            }
+	        }
+	        currentThisExpr = qthisid;
+	        if (calleeSpecs != null && calleeSpecs.decl != null) {
+	            //System.out.println("PARAMS " + calleeSpecs + " " + calleeSpecs.decl.params);
+	            for (JCVariableDecl d : calleeSpecs.decl.params) {
+	                JCVariableDecl newDecl = treeutils.makeVarDef(d.sym.type, d.name, ownerSym, d.pos);
+	                newDecls.add(newDecl);
+	                JCIdent id = treeutils.makeIdent(d, newDecl.sym);
+	                newparamsWithHeap.add(id);
+	            }
+	        } else if (msym.params != null) {
+	            for (VarSymbol d : msym.params) {
+	                JCVariableDecl newDecl = treeutils.makeVarDef(d.type, d.name, ownerSym, ownerDecl.pos);
+	                newDecls.add(newDecl);
+	                JCIdent id = treeutils.makeIdent(callLocation, newDecl.sym);
+	                newparamsWithHeap.add(id);
+	            }
+	        } else {
+	            //	                                int i = 0;
+	            //	                                for (VarSymbol d : msym.type.params) {
+	            //	                                    JCVariableDecl newDecl = treeutils.makeVarDef(d.type, names.fromString("ZZ" + (i++)), methodDecl.sym, methodDecl.pos);
+	            //	                                    newDecls.add(newDecl);
+	            //	                                    JCIdent id = treeutils.makeIdent(callLocation,newDecl.sym);
+	            //	                                    newparamsWithHeap.add(id);
+	            //	                                }
+	        }
+
+	        List<JCExpression> newParamsWithHeap = newparamsWithHeap.toList();
+	        //System.out.println("NEWPARAMS " + newParamsWithHeap);
+	        ListBuffer<Type> newparamtypes = new ListBuffer<Type>();
+	        for (JCExpression e : newParamsWithHeap) {
+	            newparamtypes.add(e.type);
+	        }
+	        List<Type> newParamTypes = newparamtypes.toList();
+            //System.out.println("NEWPARAMTYPES " + newParamTypes);
+	        MethodSymbol newsym = makeAndSaveNewMethodName(msym, returnType, isFunction, calleeSpecs, calleeDeclPos, newParamTypes);
+	        //System.out.println("LOGICAL METHOD SYM " + newsym + "  FOR " + msym + " " + hc);
+	    } catch (Throwable e) {
+	        utils.error("jml.internal","EXCEPTION IN makeAndSaveMethodSymbol " + msym);
+	        e.printStackTrace(System.out);
+	    } finally {
+	    }
+	}
+
 	// ListBuffer<JCStatement> savedForAxioms = null;
 	protected JCBlock addMethodAxioms(DiagnosticPosition callLocation, MethodSymbol msym,
 			java.util.List<Pair<MethodSymbol, Type>> overridden, Type receiverType, Type returnType) {
@@ -20244,11 +20410,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			heapMethods.put(hc, mm = new HashMap<Symbol, MethodSymbol>());
 		}
 		MethodSymbol newsym = mm.get(msym);
-		if (newsym != null)
-			System.out.println("NEWMETHODNAME ALREADY " + currentEnv.stateLabel + " " + hc + " " + msym + " " + newsym);
-		if (newsym != null)
-			return newsym;
-		// Create the symbol for the new method
+		if (newsym != null) return newsym;
+
+       // Create the symbol for the new method
 		//System.out.println("NEWPARAMTYPES " + newParamTypes);
 		Name newMethodNameWithHeap = newNameForCallee(calleeDeclPos, msym, 
 				(useNamesForHeap && !isFunction && !msym.owner.toString().startsWith("org.jmlspecs.lang.")));

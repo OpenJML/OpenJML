@@ -1473,7 +1473,7 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"  public void m4ok(TestJava p) {\n"
-                +"    System.out.println(\"A\");\n"
+                +"    System.out.println();\n"
                 +"  }\n"
                 
                 
