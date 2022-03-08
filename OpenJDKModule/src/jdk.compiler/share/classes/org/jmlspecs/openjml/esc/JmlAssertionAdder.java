@@ -4278,8 +4278,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			Iterator<VarSymbol> iter = denestedSpecs.decl.sym.params.iterator();
 			for (JCVariableDecl dp : methodDecl.params) {
 			    if (!iter.hasNext()) {
-//			        System.out.println("MISMATCHED ARGUMENT LISTS: " + javaMethodSym + " : " + methodDecl.params + " VS " + denestedSpecs.decl.sym.params);
-//			        Utils.dumpStack();
+			        System.out.println("MISMATCHED ARGUMENT LISTS: " + javaMethodSym + " : " + methodDecl.params + " VS " + denestedSpecs.decl.sym.params);
+			        Utils.dumpStack();
 			        break;
 			    }
 				VarSymbol specSym = iter.next();
@@ -4329,11 +4329,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public class SpecCaseIterable implements Iterable<Info> {
 		MethodSymbol methodSymbol;
-		public SpecCaseIterable(MethodSymbol methodSymbol) {
+        boolean computeParamActuals;
+		public SpecCaseIterable(MethodSymbol methodSymbol, boolean computeParamActuals) {
 			this.methodSymbol = methodSymbol;
+            this.computeParamActuals = computeParamActuals;
 		}
 		@Override
-		public SpecCaseIterator iterator() { return new SpecCaseIterator(methodSymbol); }
+		public SpecCaseIterator iterator() { return new SpecCaseIterator(methodSymbol,computeParamActuals); }
 	}
 	
 	public class SpecCaseIterator implements Iterator<Info> {
@@ -4345,11 +4347,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		MethodSymbol parentMethodSymbol;
 		JmlSpecificationCase specCase;
 		Map<Object,JCExpression> paramActuals;
+		boolean computeParamActuals;
 		JavaFileObject previousFile;
 		
-		public SpecCaseIterator(MethodSymbol methodSymbol) {
+		public SpecCaseIterator(MethodSymbol methodSymbol, boolean computeParamActuals) {
 			//System.out.println("CREATING ITERATOR " + methodSymbol);
 			this.methodSymbol = methodSymbol;
+			this.computeParamActuals = computeParamActuals;
 			methodIterator = utils.parents(methodSymbol,true).iterator();
 			parentMethodSymbol = null;
 			previousFile = log.currentSourceFile();
@@ -4373,7 +4377,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					if (parentMethodSymbol.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
 					JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(parentMethodSymbol);
 					specCaseIterator = denestedSpecs.cases.iterator();
-					paramActuals = specParamsToActuals(denestedSpecs, methodDecl, parentMethodSymbol);
+					if (computeParamActuals) paramActuals = specParamsToActuals(denestedSpecs, methodDecl, parentMethodSymbol);
 				}
 				if (!specCaseIterator.hasNext()) {
 					specCaseIterator = null;
@@ -4820,7 +4824,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// This just checks that the frame conditions are well-defined
 		pushBlock(initialStatements);
 		addStat(comment(methodDecl, "Check that assignable, accessible, captures clauses are well-defined", null));
-		SpecCaseIterable specCases = new SpecCaseIterable(methodDecl.sym);
+		SpecCaseIterable specCases = new SpecCaseIterable(methodDecl.sym, true);
 		for (var info: specCases) {
 			var parentMethodSym = info.parentMethodSymbol;
 			var scase = info.specCase();
@@ -10742,7 +10746,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             ee = M.at(pos).JmlQuantifiedExpr(qforallKind, quantDecls.toList(), treeutils.trueLit, ee);
             JCStatement noChangeAxiom = M.at(pos).JmlExpressionStatement("assume", StatementExprExtensions.assumeClause, Label.METHODAXIOM, ee);
             
-            SpecCaseIterable specCases = new SpecCaseIterable(calleeMethodSym);
+            SpecCaseIterable specCases = new SpecCaseIterable(calleeMethodSym, false);
             for (var info: specCases) {
                 var parentMethodSym = info.parentMethodSymbol;
                 var scase = info.specCase();
