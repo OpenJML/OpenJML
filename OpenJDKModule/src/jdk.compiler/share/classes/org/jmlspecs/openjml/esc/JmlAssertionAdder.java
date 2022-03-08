@@ -4290,6 +4290,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// generated (e.g. default constructor, Enum.values() etc.)
 			Iterator<VarSymbol> iter = javaMethodSym.params.iterator();
 			for (JCVariableDecl dp : methodDecl.params) {
+                if (!iter.hasNext()) {
+//                  System.out.println("MISMATCHED ARGUMENT LISTS: " + javaMethodSym + " : " + methodDecl.params + " VS " + denestedSpecs.decl.sym.params);
+//                  Utils.dumpStack();
+                    break;
+                }
 				VarSymbol newsym = iter.next();
 				// System.out.println("MAPPINGB " + newsym + " " + newsym.hashCode() + " TO " +
 				// dp.sym + " " + dp.hashCode());
@@ -10764,7 +10769,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                     if (sr != null) {
                         //System.out.println("DISJ " + locset + " ^ " + sr);
-                        JCExpression nondisjoint = simplifyNonDisjoint(locset, sr, currentEnv, false); // FIXME  - need an old environment here
+                        TranslationEnv oldenv = labelPropertiesStore.get(heapInfo.label).labelEnv;
+                        JCExpression nondisjoint = simplifyNonDisjoint(locset, sr, oldenv, false); // FIXME  - need an old environment here
                         //System.out.println("   Checking reads clause " + sc.list + " is nondisjoint from " + sr + " == " + nondisjoint);
                         if (!treeutils.isTrueLit(nondisjoint)) {
                             addStat(comment(methodDecl, "   Checking reads clause " + sc.list + " is disjoint from " + sr + "  Precondition: " + preid + " " + copy(preid), null));
@@ -10784,7 +10790,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
  //           info.methodAxiomsBlock.stats = info.methodAxiomsBlock.stats.append(s);
  //           System.out.println("  AXIOM " + ee);
 	    } catch (Throwable e) {
-	        System.out.println("CRASH IN makeMethodHavocAxiom for " + calleeMethodSym + " " + currentEnv.heap.previousHeaps.iterator().next().heapID);
+	        System.out.println("CRASH IN makeMethodHavocAxiom for " + calleeMethodSym.owner + "." + calleeMethodSym + " " + currentEnv.heap.previousHeaps.iterator().next().heapID);
 	        e.printStackTrace(System.out);
 	    }
 
