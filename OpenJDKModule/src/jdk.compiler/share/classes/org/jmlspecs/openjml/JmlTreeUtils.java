@@ -1499,7 +1499,7 @@ public class JmlTreeUtils {
     /** Makes a new MethodSymbol, given its various properties */
     public MethodSymbol makeMethodSym(JCModifiers mods, Name methodName, Type resultType, TypeSymbol ownerClass, List<Type> argtypes) {
 
-        MethodType mtype = new MethodType(List.<Type>nil(),resultType,argtypes,ownerClass);
+        MethodType mtype = new MethodType(argtypes,resultType,List.<Type>nil(),ownerClass);
 
         return new MethodSymbol(
                 mods.flags, 

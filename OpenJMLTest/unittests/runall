@@ -27,7 +27,7 @@ wt
 ./run-summary log-escarith 	"37/0" escArithmeticModes &
 #./run-summary log-escArith2    ""      escArithmeticModes2  &
 ./run-summary log-escbv     	"12/0"  escbitvector  &
-./run-summary log-escConst+ 	"68/0"  escConstantFields escCounterexamples escaccessible esccode escconstructor exitcode  &
+./run-summary log-escConst+ 	"74/0"  escConstantFields escCounterexamples escaccessible esccode escconstructor exitcode  &
 wt
 ./run-summary log-escall2   	"30/0"  escall2   &
 ./run-summary log-escall3   	"55/0"  escall3   &
@@ -49,12 +49,12 @@ wt
 ./run-summary log-harness	"5/0"	harnesstests &
 ./run-summary log-inter+       	"140/0"	internalSpecs jmltypes lblexpression methodspecs modelghost namelookup positions prettyprinting purity  &
 wt
-./run-summary log-matchClass	"53/0"  matchClasses  &
+./run-summary log-matchClass	"66/0"  matchClasses  &
 ./run-summary log-modifiers    	"195/0" modifiers  &
 ./run-summary log-redundant+   	"106/0"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
 ./run-summary log-scanner      	"95/0"	scanner  &
 wt
-./run-summary log-typecheck	"209/0"	typechecking &
+./run-summary log-typecheck	"213/0"	typechecking &
 ./run-summary log-typeclause	"123/0"	typeclauses  &
 ./run-summary log-SpecsBase    	"289/1"	SpecsBase  &
 ./run-summary log-SpecsEsc     	"6/0"	SpecsEsc  &

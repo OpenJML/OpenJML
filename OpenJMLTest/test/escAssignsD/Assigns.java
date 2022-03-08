@@ -18,19 +18,11 @@ public class Assigns {
 
   //@ requires t1 != t2;
   //@ requires a.length == 10;
-  //@ writes \everything;
-  public void m1() {
-    x = 0;
-    t1.v = 0;
-    a[1] = 0;
-  }
-  //@ requires t1 != t2;
-  //@ requires a.length == 10;
-  //@ writes t1.v;
-  public void m2() {
+  //@ writes a[*];
+  public void m4() {
     x = 0; // ERROR
-    t1.v = 0;
-    t2.v = 0; // ERROR
-    a[1] = 0; // ERROR
+    t1.v = 0; // ERROR
+    a[1] = 0;
+    a[4] = 0;
   }
 }

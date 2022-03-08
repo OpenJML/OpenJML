@@ -185,6 +185,7 @@ public class escArithmeticModes extends EscBase {
 
     @Test
     public void testSumSafe4() {
+        if (skipIfFalse(runLongArithmetic || !options.contains("-escBV=true"))) return; // Can timeout in multi-process testing
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath public class TestJava { \n"
                 +"  public int mc(int i) {\n"
