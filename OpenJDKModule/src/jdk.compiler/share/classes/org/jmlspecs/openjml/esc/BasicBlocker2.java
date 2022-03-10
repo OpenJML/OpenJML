@@ -1180,6 +1180,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     // FIXME - review and document
     protected void havoc(JCExpression storeref) {
+        //System.out.println("HAVOC " + storeref + " " + storeref.getClass());
         if (storeref instanceof JCIdent) {
             newIdentIncarnation((JCIdent)storeref,storeref.pos);
 
@@ -1299,6 +1300,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             	} else {
             		// First havoc entire array
             		// Range of array
+            	    //System.out.println("HAVOC RANGE " + ex);
 
             		scan(ex); ex = result;
 
@@ -1306,6 +1308,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             		expr.pos = sp;
             		expr.type = aa.type;
             		treeutils.copyEndPosition(expr, aa);
+                    //System.out.println("HAVOC RANGE RES " + expr);
             		// FIXME - set line and source
             		addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
 
@@ -1332,6 +1335,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             		// FIXME - set line and source
             		expr = factory.at(p).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,eq);
             		expr.setType(syms.booleanType);
+                    //System.out.println("HAVOC RANGE CONDITION " + expr);
             		addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
             		//log.warning(storeref.pos,"jml.internal","Ignoring unknown kind of storeref in havoc: " + storeref);
             	}

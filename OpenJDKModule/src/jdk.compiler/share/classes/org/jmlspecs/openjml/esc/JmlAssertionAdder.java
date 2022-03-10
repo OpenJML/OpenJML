@@ -407,7 +407,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 * called within a method body; also used to map formals in inherited method
 	 * specs to actual arguments or to the formals in the base method.
 	 */
-	protected Map<Object, JCExpression> paramActuals;
+//	protected Map<Object, JCExpression> paramActuals;
 
 	protected Map<Symbol, Type> typeActuals = new HashMap<>();
 
@@ -872,7 +872,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		ListBuffer<JCStatement> prevStats = initialStatements;
 		ListBuffer<JCStatement> savedOldStatements = oldStatements;
 		JavaFileObject prevSource = log.useSource(pmethodDecl.source());
-		Map<Object, JCExpression> savedParamActuals = paramActuals;
+		Map<Object, JCExpression> savedParamActuals = currentEnv.paramActuals;
 		java.util.List<Symbol> savedCompletedInvariants = this.completedInvariants;
 		Set<Symbol> savedInProcessInvariants = this.inProcessInvariants;
 		boolean isModel = isModel(pmethodDecl.sym);
@@ -1339,7 +1339,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			this.terminationSym = savedTerminationSym;
 			this.oldStatements = savedOldStatements;
 			this.currentStatements = null;
-			this.paramActuals = savedParamActuals;
+			this.currentEnv.paramActuals = savedParamActuals;
 			log.useSource(prevSource);
 			this.freshnessReferenceCount = savedFreshnessReferenceCount;
 			this.completedInvariants = savedCompletedInvariants;
@@ -1634,8 +1634,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 */
 	public /* @nullable */ JCExpression convertJML(/* @nullable */ JCTree that, JCExpression condition,
 			boolean isPostcondition) {
-		if (that == null)
-			return null;
+		if (that == null) return null;
 		boolean savedp = this.isPostcondition;
 		boolean savedt = this.translatingJML;
 		boolean savedSplit = this.splitExpressions;
@@ -8508,8 +8507,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (rt instanceof Type.TypeVar) rt = calleeMethodSym.owner.type;
 			java.util.List<Pair<MethodSymbol, Type>> overridden = parents(calleeMethodSym, rt);
 			
-			currentEnv.paramActuals = paramActuals = new HashMap<Object,JCExpression>();
-			if (savedParamActuals != null) paramActuals.putAll(savedParamActuals); // FIXME - I think we need this in the case where the current call can see out to an outer call -- but review and document the cases where this is needed
+			{
+			var pmap = currentEnv.paramActuals = new HashMap<Object,JCExpression>();
+			if (savedParamActuals != null) pmap.putAll(savedParamActuals); // FIXME - I think we need this in the case where the current call can see out to an outer call -- but review and document the cases where this is needed
 			var specsIter = new SpecCaseIterator(calleeMethodSym, false);
 			while (specsIter.hasNext()) {
 			    var info = specsIter.next();
@@ -8523,7 +8523,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			                Utils.dumpStack();
 			                break;
 			            }
-			            paramActuals.put(vd.sym, iter.next());
+			            pmap.put(vd.sym, iter.next());
 			            //System.out.println("  PARAM MAP " + vd + " " + vd.sym.hashCode() + " -> " + paramActuals.get(vd.sym));
 			        }
 			    } else {
@@ -8533,7 +8533,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             Utils.dumpStack();
                             break;
                         }
-                        paramActuals.put(vsym, iter.next());
+                        pmap.put(vsym, iter.next());
                         //System.out.println("  PARAM MAP " + vsym + " " + vsym.hashCode() + " -> " + paramActuals.get(vsym));
                     }
 			    }
@@ -8541,6 +8541,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			        System.out.println("MISMATCHED PARAMETER LENGTHS-C " + calleeMethodSym + " " + info.parentMethodSymbol + " " + trArgs);
 			        Utils.dumpStack();
 			    }
+			}
 			}
             //System.out.println("MAP " + calleeMethodSym + " " + currentEnv.paramActuals);
 
@@ -8762,7 +8763,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// ESC - Constructor call
 					Type t = that.type;
 					if (t instanceof Type.TypeVar)
-						t = paramActuals.get(t.toString()).type;
+						t = currentEnv.paramActuals.get(t.toString()).type;
 					JCVariableDecl decl = treeutils.makeVarDef(t,
 							names.fromString(Strings.newObjectVarString + that.pos + "_" + nextUnique()), null,
 							that.pos);
@@ -9073,7 +9074,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								tpiter = calleeClass.getTypeParameters().iterator(); // calleeSpecs.decl.typarams.iterator();
 							}
 							for (JCExpression tp : ((JCTypeApply) newclass.clazz).arguments) {
-								paramActuals.put(tpiter.next(), tp);
+								currentEnv.paramActuals.put(tpiter.next(), tp);
 							}
 						}
 						if (newclass == null && (typeargs == null || typeargs.isEmpty())) {
@@ -9098,7 +9099,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								for (Type tp : formals) {
 									Type tt = tpiter.next();
 									if (tt instanceof Type.TypeVar) {
-										paramActuals.put(tt.toString(), treeutils.makeType(that.pos, tp));
+										currentEnv.paramActuals.put(tt.toString(), treeutils.makeType(that.pos, tp));
 									}
 								}
 							}
@@ -9106,7 +9107,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						if (typeargs != null && !typeargs.isEmpty()) {
 							Iterator<Symbol.TypeVariableSymbol> tpiter = calleeMethodSym.getTypeParameters().iterator();
 							for (JCExpression tp : typeargs) {
-								paramActuals.put(tpiter.next(), tp);
+								currentEnv.paramActuals.put(tpiter.next(), tp);
 							}
 						}
 					}
@@ -9969,6 +9970,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 													newloc.pos = item.pos;
 													newloc.setType(elemtype);
 													newlist.add(newloc);
+													//System.out.println("HAVOCRANGE " + newloc + " " + newlist);
 												} else if (item.local != null) {
 													newlist.add(M.at(item.pos).Ident(item.local));
 												} else if (item.isEverything) {
@@ -9996,6 +9998,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //													}
 												}
 												JCBlock bl = popBlock(cs, check4);
+												//System.out.println("HAVOCBLOCK " + prex + " " + bl);
 												if (!bl.stats.isEmpty()) {
 													JCStatement st = M.at(cs.pos + 1).If(prex, bl, null);
 													if (rac)
@@ -10474,7 +10477,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 													esc ? exceptionId : tc);
 											vdtype = vd.type;
 											addStat(vd);
-											paramActuals.put(vdo.sym, treeutils.makeIdent(vd.pos, vd.sym));
+											currentEnv.paramActuals.put(vdo.sym, treeutils.makeIdent(vd.pos, vd.sym));
 										}
 										// FIXME - we should have a condition that the exception is an Exception (not a
 										// Throwable)
@@ -10489,7 +10492,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 													.TypeTest(treeutils.makeIdent(clause.pos, exceptionDeclCall.sym),
 															treeutils.makeType(clause.pos, vdtype))
 													.setType(syms.booleanType);
-											paramActuals.remove(vdo.sym);
+											currentEnv.paramActuals.remove(vdo.sym);
 										}
 										JCStatement st = M.at(clause).If(ex, popBlock(that, check8), null);
 
@@ -10720,7 +10723,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (print) System.out.println("APPLYHELPER-ZZ "
 						+ (calleeMethodSym == null ? "NULL" : (calleeMethodSym.owner + " " + calleeMethodSym)) + " " + eresult);
 			this.freshnessReferenceCount = savedFreshnessReferenceCount;
-			currentEnv.paramActuals = paramActuals = savedParamActuals;
+			currentEnv.paramActuals = savedParamActuals;
 			resultSym = savedResultSym;
 			resultExpr = savedResultExpr;
 			exceptionSym = savedExceptionSym;
@@ -11731,8 +11734,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		Type newtype = annotatedNewtype.stripMetadata();
 		Type origtype = convertType(expr.type); // Substitutes type variables
 
-		if (paramActuals != null && newtype instanceof Type.TypeVar) {
-			JCExpression e = paramActuals.get(newtype.toString());
+		if (currentEnv.paramActuals != null && newtype instanceof Type.TypeVar) {
+			JCExpression e = currentEnv.paramActuals.get(newtype.toString());
 			if (e != null) {
 				newtype = e.type;
 			}
@@ -14470,7 +14473,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return;
 		}
 		
-		//if (that.name.toString().equals("i")) System.out.println("VISIT IDENT " + that + " " + currentEnv.paramActuals);
+		//if (that.name.toString().contains("dest") || that.name.toString().contains("src")) System.out.println("VISIT IDENT " + that + " " + currentEnv.paramActuals);
 
 		//		System.out.println("VISIT-IDENT " + that + " " + oldenv); 
 		if (utils.rac && currentEnv.stateLabel != null && utils.isExprLocal(that.sym.flags())) {
@@ -15988,8 +15991,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			addStat(vd);
 			if (!jmltypes.isSameType(that.var.type, iterEx.type)) {
 				JCIdent id = treeutils.makeIdent(that.var.pos, vd.sym);
-				if (paramActuals != null)
-					paramActuals.put(that.var.sym, id);
+				if (currentEnv.paramActuals != null) currentEnv.paramActuals.put(that.var.sym, id);
 				that.var = vd;
 			} else {
 				vd.sym = that.var.sym; // We share syms; if we don't we have to add
@@ -20231,7 +20233,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				// Now map the formals as used in the overridden method to
 				// identifiers used in the axioms being constructed
-				currentEnv.paramActuals = paramActuals = new HashMap<Object, JCExpression>();
+				var pmap = currentEnv.paramActuals = new HashMap<Object, JCExpression>();
 				Iterator<JCVariableDecl> iter = newDeclsList.iterator();
 				currentEnv.currentReceiver = isStatic ? null : M.at(calleeSpecs.decl).Ident(iter.next().sym);
 				// FIXME - calleeSpecs.decl is null for implicitly generated methods (like those
@@ -20241,7 +20243,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (calleeSpecs.decl != null) {
 					for (JCVariableDecl d : calleeSpecs.decl.params) {
 						JCIdent id = treeutils.makeIdent(d, iter.next().sym);
-						paramActuals.put(d.sym, id);
+						pmap.put(d.sym, id);
 					}
 				}
 
@@ -20437,7 +20439,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} finally {
 			resultExpr = savedResultExpr;
 			currentEnv.currentReceiver = savedCurrentThisExpr;
-			currentEnv.paramActuals = paramActuals = savedParamActuals;
+			currentEnv.paramActuals = savedParamActuals;
 			splitExpressions = savedSplitExpressions;
 			condition = savedCondition;
 			depth--;
