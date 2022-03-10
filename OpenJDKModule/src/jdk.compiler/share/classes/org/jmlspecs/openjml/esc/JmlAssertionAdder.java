@@ -10788,6 +10788,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression ee = treeutils.makeEquality(pos.getPreferredPosition(), e1,  e2);
             ee = M.at(pos).JmlQuantifiedExpr(qforallKind, quantDecls.toList(), treeutils.trueLit, ee);
             JCStatement noChangeAxiom = M.at(pos).JmlExpressionStatement("assume", StatementExprExtensions.assumeClause, Label.METHODAXIOM, ee);
+            JCExpression e3 = M.at(pos).Apply(List.<JCExpression>nil(), M.Ident(newCalleeSym), copy(args));
+            JCExpression e4 = M.at(pos).Apply(List.<JCExpression>nil(), M.Ident(oldMethodSym), copy(args));
+            e3.type = e4.type = returnType;
+            JCStatement noChangeInstantiation = M.at(pos).JmlExpressionStatement("assume", StatementExprExtensions.assumeClause, Label.METHODAXIOM, 
+                treeutils.makeEquality(pos.getPreferredPosition(), e3, e4));
             
             SpecCaseIterable specCases = new SpecCaseIterable(calleeMethodSym, false);
             for (var info: specCases) {
@@ -10800,32 +10805,37 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (!(clause instanceof JmlMethodClauseStoreRef sc)) continue;
                     if (clause.clauseKind != accessibleClauseKind) continue;
                     currentEnv.enclosingClauseKind = sc.clauseKind;
-                    JCExpression locset = convertAssignableToLocsetExpression(clause, sc.list, (ClassSymbol)receiverType.tsym, null);
-                    // make sure sc.list and info.havocs are disjoint
-                    JmlStoreRef sr = null;
-                    if (heapInfo.havocs instanceof JCFieldAccess fa) {
-                        sr = makeJmlStoreRef(fa, fa, (ClassSymbol)fa.sym.owner, false).head;
-                    } if (heapInfo.havocs instanceof JCIdent id) {
-                        if (id.sym.owner instanceof ClassSymbol) {
-                            sr = makeJmlStoreRef(id, id, (ClassSymbol)id.sym.owner, false).head;
-                        } // otherwise is a local assignment that does not affect the heap
-                    } else if (heapInfo.havocs instanceof JCArrayAccess aa) {
-                        sr = makeJmlStoreRef(aa, aa, (ClassSymbol)calleeMethodSym.owner, false).head;
-                    } else {
-                        //System.out.println("UNSUPPORTED HAVOCS " + heapInfo.havocs);
-                    }
-                    if (sr != null) {
-                        //System.out.println("DISJ " + locset + " ^ " + sr);
-                        TranslationEnv oldenv = labelPropertiesStore.get(heapInfo.label).labelEnv;
-                        JCExpression nondisjoint = simplifyNonDisjoint(locset, sr, oldenv, false); // FIXME  - need an old environment here
-                        //System.out.println("   Checking reads clause " + sc.list + " is nondisjoint from " + sr + " == " + nondisjoint);
-                        if (!treeutils.isTrueLit(nondisjoint)) {
-                            addStat(comment(methodDecl, "   Checking reads clause " + sc.list + " is disjoint from " + sr + "  Precondition: " + preid + " " + copy(preid), null));
-                            JCExpression disjoint = treeutils.makeNot(nondisjoint,nondisjoint);
-                            JCStatement v = M.at(clause).If(treeutils.makeAndSimp(clause, copy(preid), disjoint), noChangeAxiom, null);
-                            addStat(v);
+                    //JCExpression locset = convertAssignableToLocsetExpression(clause, sc.list, (ClassSymbol)receiverType.tsym, null);
+                    // make sure sc.list and info.havocs are disjoint\
+                    JCExpression hasIntersection = treeutils.falseLit;
+                    for (JCExpression srex: sc.list) { 
+                        JmlStoreRef jmlsr = makeJmlStoreRef(srex, srex, (ClassSymbol)calleeMethodSym.owner, false).head;
+                        JmlStoreRef sr = null;
+                        if (heapInfo.havocs instanceof JCFieldAccess fa) {
+                            sr = makeJmlStoreRef(fa, fa, (ClassSymbol)fa.sym.owner, false).head;
+                        } if (heapInfo.havocs instanceof JCIdent id) {
+                            if (id.sym.owner instanceof ClassSymbol) {
+                                sr = makeJmlStoreRef(id, id, (ClassSymbol)id.sym.owner, false).head;
+                            } // otherwise is a local assignment that does not affect the heap
+                        } else if (heapInfo.havocs instanceof JCArrayAccess aa) {
+                            sr = makeJmlStoreRef(aa, aa, (ClassSymbol)calleeMethodSym.owner, false).head;
                         } else {
-                            addStat(comment(methodDecl, "   Reads clause " + sc.list + " is always disjoint from " + sr , null));
+                            //System.out.println("UNSUPPORTED HAVOCS " + heapInfo.havocs);
+                        }
+                        if (sr != null) {
+                            TranslationEnv oldenv = labelPropertiesStore.get(heapInfo.label).labelEnv;
+                            JCExpression nondisjoint = simplifyNonDisjoint(jmlsr, sr, oldenv, false); // FIXME  - need an old environment here
+                            //System.out.println("NONDISJ " + jmlsr + " ^ " + sr + " = " + nondisjoint);
+                            //System.out.println("   Checking reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is nondisjoint from " + sr + " == " + nondisjoint);
+                            hasIntersection = treeutils.makeOrSimp(srex, hasIntersection, nondisjoint);
+                        }
+                        if (treeutils.isTrueLit(hasIntersection)) {
+                            addStat(comment(methodDecl, "   Reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is never disjoint from " + sr , null));
+                        } else {
+                            addStat(comment(methodDecl, "   Checking reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is disjoint from " + sr + "  Precondition: " + preid + " " + copy(preid), null));
+                            JCExpression disjoint = treeutils.makeNot(clause,hasIntersection);
+                            JCStatement v = M.at(clause).If(treeutils.makeAndSimp(clause, copy(preid), disjoint), noChangeInstantiation, null);
+                            addStat(v);
                         }
                     }
                 }
@@ -20627,15 +20637,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             } else if (sr.receiver != null && sr.range != null) {
                 // array elements
-                JCExpression ft = freshTest(smaller, sr.receiver, targetEnv.allocCount);
-                //                              System.out.println("ARRAYELE " + sr + " " + sr.receiver + " " + sr.receiver.type + " " + allocCounter + " " + targetEnv.allocCount + " " + ft);
-                ft = convertJML(ft); // Convert in current (smaller) environment
-                //                              System.out.println("CONVERTED FT " + ft);
+                JCExpression ft = null;
+//                ft = freshTest(smaller, sr.receiver, targetEnv.allocCount);
+//                //                              System.out.println("ARRAYELE " + sr + " " + sr.receiver + " " + sr.receiver.type + " " + allocCounter + " " + targetEnv.allocCount + " " + ft);
+//                ft = convertJML(ft); // Convert in current (smaller) environment
+//                //                              System.out.println("CONVERTED FT " + ft);
                 JCExpression ok = containsArray(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.range, bigger);
                 return ft == null ? ok : treeutils.makeOr(smaller,  ft,  ok);
             } else {
-                JCExpression ft = sr.receiver == null ? null : freshTest(smaller, sr.receiver, targetEnv.allocCount);
-                ft = convertJML(ft); // Convert in current envirnment  // FIXME - already converted???
+                JCExpression ft = null;
+//                JCExpression ft = sr.receiver == null ? null : freshTest(smaller, sr.receiver, targetEnv.allocCount);
+//                ft = convertJML(ft); // Convert in current envirnment  // FIXME - already converted???
 
                 // fields
                 JCExpression e = containsField(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.field, bigger);
