@@ -8,6 +8,9 @@ package com.sun.tools.javac.main;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 import static com.sun.tools.javac.main.Option.PROC;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -950,6 +953,26 @@ public class JmlCompiler extends JavaCompiler {
                 noticeWriter.println(
                         "[ERROR] The specified path directory does not exist.");
             }
+        }
+    }
+
+    protected void rapid2jml(final Env<AttrContext> env) {
+        final String inputDir = JmlOption.value(context, JmlOption.INPUT_DIR);
+        try {
+            final BufferedReader br = new BufferedReader(
+                    new FileReader(inputDir + "/out.smt2"));
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.charAt(0) == ';') {
+                    continue;
+                }
+            }
+            br.close();
+        } catch (final FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (final IOException e) {
+            e.printStackTrace();
         }
     }
 
