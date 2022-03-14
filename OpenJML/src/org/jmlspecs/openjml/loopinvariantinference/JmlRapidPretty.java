@@ -6,61 +6,63 @@ package org.jmlspecs.openjml.loopinvariantinference;
 
 import static com.sun.tools.javac.tree.JCTree.Tag.PARENS;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.JmlTree.JmlBlock;
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 
-import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.TreeInfo;
-import com.sun.tools.javac.tree.JCTree.*;
-import com.sun.tools.javac.tree.Pretty.UncheckedIOException;
+import com.sun.tools.javac.tree.JCTree.JCIf;
+import com.sun.tools.javac.tree.JCTree.JCReturn;
+import com.sun.tools.javac.tree.JCTree.JCUnary;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.Tag;
 import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.Name;
 
 public class JmlRapidPretty extends JmlConversionVisitor {
 
     /** Parameters of the target function **/
     private List<JCVariableDecl> params = null;
 
-    static public @NonNull String write(@NonNull JCTree tree, boolean source) {
-        StringWriter sw = new StringWriter();
-        JmlRapidPretty p = new JmlRapidPretty(sw,source);
+    static public @NonNull String write(@NonNull final JCTree tree,
+            final boolean source) {
+        final StringWriter sw = new StringWriter();
+        final JmlRapidPretty p = new JmlRapidPretty(sw, source);
         p.width = 2;
-        if(tree!=null)
+        if (tree != null) {
             tree.accept(p);
+        }
         return sw.toString();
     }
 
-    public static String write(JCTree tree, boolean b, String mName) {
+    public static String write(final JCTree tree, final boolean b,
+            final String mName) {
         targetMethodName = mName;
         return write(tree, b);
     }
 
-    public JmlRapidPretty(Writer out, boolean sourceOutput) {
+    public JmlRapidPretty(final Writer out, final boolean sourceOutput) {
         super(out, sourceOutput);
     }
 
     @Override
-    public void visitJmlClassDecl(JmlClassDecl that) {
-        for (JCTree jcTree : that.defs) {
+    public void visitJmlClassDecl(final JmlClassDecl that) {
+        for (final JCTree jcTree : that.defs) {
             if (jcTree instanceof JmlTree.JmlMethodDecl) {
                 ((JmlTree.JmlMethodDecl) jcTree).accept(this);
             }
         }
     }
-    
+
     @Override
-    public void visitJmlMethodDecl(JmlMethodDecl that) {
+    public void visitJmlMethodDecl(final JmlMethodDecl that) {
         if (targetMethodName.equals(that.getName().toString())) {
             try {
                 print("func main()");
@@ -71,29 +73,33 @@ public class JmlRapidPretty extends JmlConversionVisitor {
                 }
                 println();
                 // TODO generate conditions (visit JmlSpecs$MethodSpecs)
-            } catch (IOException e) { perr(that,e); }
+            } catch (final IOException e) {
+                perr(that, e);
+            }
         }
     }
-    
+
     @Override
-    public void visitJmlBlock(JmlBlock that) {
-        
-        if(that.type==null && specOnly){
+    public void visitJmlBlock(final JmlBlock that) {
+
+        if (that.type == null && specOnly) {
             return;
         }
-        
+
         try {
             printFlags(that.flags);
             printBlock(that.stats);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new UncheckedIOException(e);
         }
     }
-    
-    /** Print a block.
+
+    /**
+     * Print a block.
      */
     @Override
-    public void printBlock(List<? extends JCTree> stats) throws IOException {
+    public void printBlock(final List<? extends JCTree> stats)
+            throws IOException {
         print("{");
         println();
         indent();
@@ -107,11 +113,12 @@ public class JmlRapidPretty extends JmlConversionVisitor {
         align();
         print("}");
     }
-    
-    /** If statement has to have else block
+
+    /**
+     * If statement has to have else block
      */
     @Override
-    public void visitIf(JCIf tree) {
+    public void visitIf(final JCIf tree) {
         try {
             print("if ");
             if (tree.cond.hasTag(PARENS)) {
@@ -130,38 +137,45 @@ public class JmlRapidPretty extends JmlConversionVisitor {
             } else {
                 print(" else { skip; }");
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private void printParams(List<JCVariableDecl> params) {
-        for (JCVariableDecl param : params) {
+    private void printParams(final List<JCVariableDecl> params) {
+        for (final JCVariableDecl param : params) {
             try {
                 align();
                 if (param.type instanceof Type.ArrayType) {
-                    Type.ArrayType arrayType = (Type.ArrayType) param.type;
+                    final Type.ArrayType arrayType = (Type.ArrayType) param.type;
                     print("const ");
                     printType(arrayType.elemtype);
                     print(" [] ");
                     print(param.getName().toString());
-                    print(";"); println(); align();
+                    print(";");
+                    println();
+                    align();
                     /** print length variable for an array **/
                     print("const Int ");
                     print(param.getName().toString() + "length");
-                    print(";"); println();
+                    print(";");
+                    println();
                 } else {
+                    print("const ");
                     printType(param.type);
                     print(" ");
                     print(param.getName().toString());
-                    print(";"); println();
+                    print(";");
+                    println();
                 }
-            } catch (IOException e) { perr(param,e); }
+            } catch (final IOException e) {
+                perr(param, e);
+            }
         }
     }
 
     @Override
-    public void visitJmlVariableDecl(JmlVariableDecl that) {
+    public void visitJmlVariableDecl(final JmlVariableDecl that) {
         try {
             /** Add this variable name to the declared set */
             if (!vars.contains(that.name.toString())) {
@@ -172,26 +186,31 @@ public class JmlRapidPretty extends JmlConversionVisitor {
             print(that.name);
             print(" = ");
             print(that.init);
-            print(";"); println();
-        } catch (IOException e) { perr(that,e); }
+            print(";");
+            println();
+        } catch (final IOException e) {
+            perr(that, e);
+        }
     }
 
     @Override
-    public void visitUnary(JCUnary that) {
+    public void visitUnary(final JCUnary that) {
         try {
             print(that.arg.toString());
             print(" = ");
             print(that.arg.toString());
             if (that.getTag() == Tag.POSTINC || that.getTag() == Tag.PREINC) {
                 print(" + ");
-            } else if (that.getTag() == Tag.POSTDEC || that.getTag() == Tag.PREDEC) {
+            } else if (that.getTag() == Tag.POSTDEC
+                    || that.getTag() == Tag.PREDEC) {
                 print(" - ");
             }
             print("1");
-        } catch (IOException e) { perr(that,e); }
+        } catch (final IOException e) {
+            perr(that, e);
+        }
     }
 
     @Override
-    public void visitReturn(JCReturn that) {
-    }
+    public void visitReturn(final JCReturn that) {}
 }
