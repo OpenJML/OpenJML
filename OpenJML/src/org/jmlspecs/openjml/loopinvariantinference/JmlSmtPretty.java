@@ -7,6 +7,8 @@ package org.jmlspecs.openjml.loopinvariantinference;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.IJmlClauseKind;
@@ -40,54 +42,77 @@ import com.sun.tools.javac.util.List;
 
 public class JmlSmtPretty extends JmlConversionVisitor {
     /** JML specs **/
-    private List<JmlSpecificationCase>      jmlSpecs   = null;
+    private List<JmlSpecificationCase>            jmlSpecs   = null;
 
     /** return value **/
-    protected static JCExpression           returnExpr = null;
+    protected static JCExpression                 returnExpr = null;
 
     /** pre-conditions **/
-    private java.util.List<JmlMethodClause> preconds   = new java.util.ArrayList<>();
+    private final java.util.List<JmlMethodClause> preconds   = new java.util.ArrayList<>();
 
     /** post-conditions **/
-    private java.util.List<JmlMethodClause> postconds  = new java.util.ArrayList<>();
+    private final java.util.List<JmlMethodClause> postconds  = new java.util.ArrayList<>();
 
     /** desugared pre-condition **/
-    private JmlMethodClause                 precond    = null;
+    private JmlMethodClause                       precond    = null;
 
     /** desugared post-condition **/
-    private JmlMethodClause                 postcond   = null;
+    private JmlMethodClause                       postcond   = null;
 
     /** Tree maker for **/
-    static private TreeMaker                make;
+    static private TreeMaker                      make;
 
-    public JmlSmtPretty(Writer out, boolean sourceOutput) {
+    private static Map<String, String>            opsMap     = createOpsMap();
+
+    public JmlSmtPretty(final Writer out, final boolean sourceOutput) {
         super(out, sourceOutput);
     }
 
-    static public @NonNull String write(@NonNull JCTree tree, boolean source) {
-        StringWriter sw = new StringWriter();
-        JmlSmtPretty p = new JmlSmtPretty(sw, source);
+    private static Map<String, String> createOpsMap() {
+        final Map<String, String> map = new HashMap<>();
+        map.put("AND", "and");
+        map.put("OR", "or");
+        map.put("EQ", "=");
+        map.put("NE", "!=");
+        map.put("LT", "<");
+        map.put("GT", ">");
+        map.put("LE", "<=");
+        map.put("GE", ">=");
+        map.put("PLUS", "+");
+        map.put("MINUS", "-");
+        map.put("MUL", "*");
+        map.put("DIV", "/");
+        map.put("MOD", "%");
+        return map;
+    }
+
+    static public @NonNull String write(@NonNull final JCTree tree,
+            final boolean source) {
+        final StringWriter sw = new StringWriter();
+        final JmlSmtPretty p = new JmlSmtPretty(sw, source);
         p.width = 2;
-        if (tree != null) tree.accept(p);
+        if (tree != null) {
+            tree.accept(p);
+        }
         return sw.toString();
     }
 
-    public static String write(JCTree tree, boolean b, String mName,
-            TreeMaker make) {
+    public static String write(final JCTree tree, final boolean b,
+            final String mName, final TreeMaker make) {
         JmlSmtPretty.make = make;
         targetMethodName = mName;
         return write(tree, b);
     }
 
     @Override
-    public void visitJmlClassDecl(JmlClassDecl that) {
-        for (JCTree jcTree : that.defs) {
+    public void visitJmlClassDecl(final JmlClassDecl that) {
+        for (final JCTree jcTree : that.defs) {
             if (jcTree instanceof JmlMethodDecl) {
                 /**
                  * It doesn't support the overloaded methods (methods with the
                  * same name)
                  **/
-                JmlMethodDecl methodDecl = (JmlMethodDecl) jcTree;
+                final JmlMethodDecl methodDecl = (JmlMethodDecl) jcTree;
                 if (targetMethodName.equals(methodDecl.getName().toString())) {
                     methodDecl.methodSpecsCombined.cases.accept(this);
                 }
@@ -96,25 +121,25 @@ public class JmlSmtPretty extends JmlConversionVisitor {
         }
 
         if (jmlSpecs != null) {
-            for (JmlSpecificationCase jmlSpecCase : jmlSpecs) {
+            for (final JmlSpecificationCase jmlSpecCase : jmlSpecs) {
                 jmlSpecCase.accept(this);
             }
         }
     }
 
     @Override
-    public void visitJmlMethodDecl(JmlMethodDecl that) {
+    public void visitJmlMethodDecl(final JmlMethodDecl that) {
         if (that.body != null) {
             that.body.accept(this);
         }
     }
 
     @Override
-    public void visitJmlBlock(JmlBlock that) {
+    public void visitJmlBlock(final JmlBlock that) {
         if (that.type == null && specOnly) {
             return;
         }
-        for (JCStatement stat : that.stats) {
+        for (final JCStatement stat : that.stats) {
             if (stat instanceof JCReturn) {
                 stat.accept(this);
             }
@@ -122,18 +147,22 @@ public class JmlSmtPretty extends JmlConversionVisitor {
     }
 
     @Override
-    public void visitJmlMethodSpecs(JmlMethodSpecs that) {
-        if (that.cases.isEmpty()) return;
+    public void visitJmlMethodSpecs(final JmlMethodSpecs that) {
+        if (that.cases.isEmpty()) {
+            return;
+        }
         if (jmlSpecs == null) {
             jmlSpecs = that.cases;
         }
     }
 
     @Override
-    public void visitJmlSpecificationCase(JmlSpecificationCase that) {
-        if (that.clauses.isEmpty()) return;
+    public void visitJmlSpecificationCase(final JmlSpecificationCase that) {
+        if (that.clauses.isEmpty()) {
+            return;
+        }
         try {
-            for (JmlMethodClause clause : that.clauses) {
+            for (final JmlMethodClause clause : that.clauses) {
                 if (clause.keyword.equals("requires")) {
                     preconds.add(clause);
                 } else if (clause.keyword.equals("ensures")) {
@@ -145,8 +174,7 @@ public class JmlSmtPretty extends JmlConversionVisitor {
             indentAndRealign();
             if (!preconds.isEmpty()) {
                 if (preconds.size() != 1) {
-                    precond = preconds.stream().reduce(null,
-                            (first, second) -> concat(first, second));
+                    precond = preconds.stream().reduce(null, this::concat);
                 } else {
                     precond = preconds.get(0);
                 }
@@ -160,8 +188,7 @@ public class JmlSmtPretty extends JmlConversionVisitor {
             align();
             if (!postconds.isEmpty()) {
                 if (postconds.size() != 1) {
-                    postcond = postconds.stream().reduce(null,
-                            (first, second) -> concat(first, second));
+                    postcond = postconds.stream().reduce(null, this::concat);
                 } else {
                     postcond = postconds.get(0);
                 }
@@ -177,20 +204,20 @@ public class JmlSmtPretty extends JmlConversionVisitor {
             undent();
             align();
             print(")");
-        } catch (IOException e) {
+        } catch (final IOException e) {
             perr(that, e);
         }
     }
 
-    private JmlMethodClause concat(JmlMethodClause first,
-            JmlMethodClause second) {
+    private JmlMethodClause concat(final JmlMethodClause first,
+            final JmlMethodClause second) {
         if (first == null) {
             return second;
         }
         if (first instanceof JmlMethodClauseExpr
                 && second instanceof JmlMethodClauseExpr) {
-            JmlMethodClauseExpr f = (JmlMethodClauseExpr) first;
-            JmlMethodClauseExpr s = (JmlMethodClauseExpr) second;
+            final JmlMethodClauseExpr f = (JmlMethodClauseExpr) first;
+            final JmlMethodClauseExpr s = (JmlMethodClauseExpr) second;
             f.expression = make.Binary(Tag.AND, f.expression, s.expression);
             return f;
         } else {
@@ -199,17 +226,17 @@ public class JmlSmtPretty extends JmlConversionVisitor {
     }
 
     @Override
-    public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
+    public void visitJmlMethodClauseExpr(final JmlMethodClauseExpr that) {
         that.expression.accept(this);
     }
 
     @Override
-    public void visitParens(JCParens that) {
+    public void visitParens(final JCParens that) {
         that.expr.accept(this);
     }
 
     @Override
-    public void visitBinary(JCBinary that) {
+    public void visitBinary(final JCBinary that) {
         try {
             print("(");
             printOp(that.opcode);
@@ -226,13 +253,13 @@ public class JmlSmtPretty extends JmlConversionVisitor {
             print(")");
             println();
             align();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             perr(that, e);
         }
     }
 
     @Override
-    public void visitJmlBinary(JmlBinary that) {
+    public void visitJmlBinary(final JmlBinary that) {
         try {
             print("(");
             printOp(that.op);
@@ -249,12 +276,12 @@ public class JmlSmtPretty extends JmlConversionVisitor {
             print(")");
             println();
             align();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             perr(that, e);
         }
     }
 
-    private void printOp(IJmlClauseKind op) {
+    private void printOp(final IJmlClauseKind op) {
         try {
             switch (op.name()) {
                 case Operators.impliesID:
@@ -265,57 +292,35 @@ public class JmlSmtPretty extends JmlConversionVisitor {
                 case Operators.inequivalenceID:
                     break;
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
         }
     }
 
-    private void printOp(Tag opcode) {
+    private void printOp(final Tag opcode) {
         try {
-            switch (opcode.name()) {
-                case "AND":
-                    print("and");
-                    break;
-                case "OR":
-                    print("or");
-                    break;
-                case "EQ":
-                    print("=");
-                    break;
-                case "NE":
-                    print("!=");
-                    break;
-                case "LT":
-                    print("<");
-                    break;
-                case "GT":
-                    print(">");
-                    break;
-                case "LE":
-                    print("<=");
-                    break;
-                case "GE":
-                    print(">=");
-                    break;
+            if (opsMap.containsKey(opcode.name())) {
+                print(opsMap.get(opcode.name()));
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
         }
     }
 
     @Override
-    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-        int savedPrec = prec;
+    public void visitJmlQuantifiedExpr(final JmlQuantifiedExpr that) {
+        final int savedPrec = prec;
         prec = TreeInfo.noPrec;
         try {
             print(that.kind.keyword.replace('\\', '('));
             print(" (");
             boolean first = true;
-            for (JCVariableDecl n : that.decls) {
+            for (final JCVariableDecl n : that.decls) {
                 print("(");
-                if (!first)
+                if (!first) {
                     print(", "); //$NON-NLS-1$
-                else
+                } else {
                     first = false;
-                String varName = n.name.toString();
+                }
+                final String varName = n.name.toString();
                 if (vars.contains(varName)) {
                     throw new IOException(
                             "You must declare the different variables from the ones in the source code.");
@@ -331,13 +336,16 @@ public class JmlSmtPretty extends JmlConversionVisitor {
             println();
             align();
             indentAndRealign();
-            if (that.range != null) that.range.accept(this);
+            if (that.range != null) {
+                that.range.accept(this);
+            }
             println();
             align();
-            if (that.value != null)
+            if (that.value != null) {
                 that.value.accept(this);
-            else
+            } else {
                 print("????:"); //$NON-NLS-1$
+            }
             println();
             undent();
             align();
@@ -346,7 +354,7 @@ public class JmlSmtPretty extends JmlConversionVisitor {
             undent();
             align();
             print(")");
-        } catch (IOException e) {
+        } catch (final IOException e) {
             perr(that, e);
         } finally {
             prec = savedPrec;
@@ -354,18 +362,18 @@ public class JmlSmtPretty extends JmlConversionVisitor {
     }
 
     @Override
-    public void visitJmlVariableDecl(JmlVariableDecl that) {
+    public void visitJmlVariableDecl(final JmlVariableDecl that) {
         try {
             print(that.name);
             print(" ");
             printType(that.type);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             perr(that, e);
         }
     }
 
     @Override
-    public void visitJmlSingleton(JmlSingleton that) {
+    public void visitJmlSingleton(final JmlSingleton that) {
         try {
             if (that.kind == SingletonExpressions.informalCommentKind) {
                 print("(*");
@@ -380,31 +388,31 @@ public class JmlSmtPretty extends JmlConversionVisitor {
             } else {
                 print(that);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             perr(that, e);
         }
     }
 
     @Override
-    public void visitIndexed(JCArrayAccess that) {
+    public void visitIndexed(final JCArrayAccess that) {
         try {
             print("(");
             that.indexed.accept(this);
             print(" ");
             that.index.accept(this);
             print(")");
-        } catch (IOException e) {
+        } catch (final IOException e) {
             perr(that, e);
         }
     }
 
     @Override
-    public void visitReturn(JCReturn that) {
+    public void visitReturn(final JCReturn that) {
         returnExpr = that.expr;
     }
 
     @Override
-    public void visitUnary(JCUnary that) {
+    public void visitUnary(final JCUnary that) {
         try {
             if (that.getTag() == Tag.NOT) {
                 print("(not");
@@ -420,7 +428,7 @@ public class JmlSmtPretty extends JmlConversionVisitor {
             undent();
             align();
             print(")");
-        } catch (IOException e) {
+        } catch (final IOException e) {
             perr(that, e);
         }
     }
