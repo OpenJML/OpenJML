@@ -3125,32 +3125,42 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = F.exists(params,value);
                 }
                 break;
-                case QuantifiedExpressions.qsumID:
-                    // TODO: make lo a fresh identifier not in Range or Body
-                    ISymbol lo = F.symbol("lo"), sumN = F.symbol("sum_" + (uniqueQuantCount++));
+            case QuantifiedExpressions.qsumID:
+                // TODO: make lo a fresh identifier not in Range or Body
+                ISymbol lo = F.symbol("lo"), sumN = F.symbol("sum_" + (uniqueQuantCount++));
 
-                    IDeclaration x = params.get(0);
-                    params.add(0, F.declaration(lo, x.sort()));
-                    ISymbol hi = x.parameter();
+                JmlBoundsExtractor.Bounds bounds = JmlBoundsExtractor.extract(that.decls, that.range, true, context);
 
-                    ICommand cmd = new C_define_fun_rec(
-                            sumN,
-                            params,
-                            intSort, F.fcn(
-                                    F.symbol("ite"),
-                                    F.fcn(F.symbol("<"), hi, lo),
-                                    F.numeral(0),
-                                    F.fcn(F.symbol("+"),
-                                            F.fcn(sumN,
-                                                    F.symbol("lo"),
-                                                    F.fcn(negSym, hi,
-                                                            F.numeral(1))),
-                                            F.fcn(F.symbol("ite"), range, value,
-                                                    F.numeral(0)))));
-                    commands.add(cmd);
-                    // TODO: make parameters the lowest and highest bounds from range
-                    result = F.fcn(sumN, F.numeral(0), F.numeral(1000));
-                    break;
+                if (bounds == null) {
+                    System.err.println("Something went wrong with the bounds extractor.");
+                }
+
+                scan(bounds.lo);
+                IExpr loExpr = result;
+                scan(bounds.hi);
+                IExpr hiExpr = result;
+                
+                IDeclaration x = params.get(0);
+                params.add(0, F.declaration(lo, x.sort()));
+                ISymbol hi = x.parameter();
+
+                ICommand cmd = new C_define_fun_rec(
+                        sumN,
+                        params,
+                        intSort, F.fcn(
+                                F.symbol("ite"),
+                                F.fcn(F.symbol("<"), hi, lo),
+                                F.numeral(0),
+                                F.fcn(F.symbol("+"),
+                                        F.fcn(sumN,
+                                                F.symbol("lo"),
+                                                F.fcn(negSym, hi,
+                                                        F.numeral(1))),
+                                        F.fcn(F.symbol("ite"), range, value,
+                                                F.numeral(0)))));
+                commands.add(cmd);
+                result = F.fcn(sumN, loExpr, hiExpr);
+                break;
             default:
                 notImplWarn(that, "JML Quantified expression using " + that.kind.keyword());
                 ISymbol sym = F.symbol(makeBarEnclosedString(that));
