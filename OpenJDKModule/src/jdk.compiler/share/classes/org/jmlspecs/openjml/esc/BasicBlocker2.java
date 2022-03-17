@@ -480,7 +480,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @return the new identifier
      */
     protected JCIdent newIdentIncarnation(JCIdent id, int incarnationPosition) {
-        return newIdentIncarnation((VarSymbol)id.sym,incarnationPosition);
+        var newid = newIdentIncarnation((VarSymbol)id.sym,incarnationPosition);
+        //if (newid.toString().contains("dxyz")) System.out.println("NEWIDINC " + id + " " + newid);
+        return newid;
     }
     
     /** Creates a new incarnation of a variable */
@@ -1818,6 +1820,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 if (that.name != vsym.name && newname != that.name) {
                     utils.warning(that, "jml.internal", "Double rewriting of ident: " + vsym.name + " " + that.name);
                 }
+                //if (that.toString().contains("dxyz")) System.out.println("VISITIDENT " + that + " " + vsym + " " + vsym.hashCode() + " " + newname);
+
                 that.name = newname;
                 if (isDefined.add(that.name)) {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Added " + vsym + " " + that.name);
