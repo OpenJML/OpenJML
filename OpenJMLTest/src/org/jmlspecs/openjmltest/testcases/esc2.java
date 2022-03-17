@@ -4613,7 +4613,7 @@ public class esc2 extends EscBase {
                         );
     }
 
-    @Test
+    @Test @Ignore // The show statements have nondeterministic output
     public void testShowStatementESC() {
         expectedExit = 0;
         main.addOptions("-code-math=bigint","-method=m","-escMaxWarnings=1");
