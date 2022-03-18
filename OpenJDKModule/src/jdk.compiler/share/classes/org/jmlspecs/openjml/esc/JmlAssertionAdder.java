@@ -5358,7 +5358,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				continue;
 			}
 
-			paramActuals_ = specParamsToActuals(denestedSpecs, methodDecl, parentMethodSym);
+//			paramActuals_ = specParamsToActuals(denestedSpecs, methodDecl, parentMethodSym);
 			//            if (denestedSpecs.decl != null) {
 //                Iterator<JCVariableDecl> iter = denestedSpecs.decl.params.iterator();
 //                paramActuals = new HashMap<Object,JCExpression>();
@@ -5713,7 +5713,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					M.Block(0, exsuresStats.toList()));
 			finalizeStats.add(ifstat);
 		}
-		paramActuals_ = null;
+//		paramActuals_ = null;
 		clearInvariants();
 		currentStatements = savedCurrentStatements;
 		axiomBlock = null;
@@ -10076,10 +10076,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				currentArithmeticMode = savedArithmeticMode;
 			}
 			typevarMapping = newTypeVarMapping;
-			if (newclass != null || (!specs.isPure(calleeMethodSym) && !calleeMethodSym.isConstructor())) {
-				if (anyHavocs && inProcessInvariants.isEmpty() && !translatingJML)
-					changeState(that, that, calllabel);
-			}
+            if (!rac && newclass != null && inProcessInvariants.isEmpty() && !translatingJML) {
+                    changeState(that, that, calllabel);
+            }
+            if (!rac && !specs.isPure(calleeMethodSym) && !calleeMethodSym.isConstructor()) {
+                if (anyHavocs && inProcessInvariants.isEmpty() && !translatingJML)
+                    changeState(that, that, calllabel);
+            }
+
 			if (print) System.out.println("APPLYHELPER-W " + calleeMethodSym.owner + " " + calleeMethodSym);
 
 			String msg = utils.qualifiedMethodSig(calleeMethodSym) + ", returning to "
@@ -10808,6 +10812,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 //paramActuals = info.paramActuals();
                 JCExpression preid = calleePreconditions.get(scase);
                 currentEnv = currentEnv.pushEnvCopy();
+                // FIXME - no 'noChangeInstantiation' if receiver is fresh
                 for (var clause : scase.clauses) {
                     if (!(clause instanceof JmlMethodClauseStoreRef sc)) continue;
                     if (clause.clauseKind != accessibleClauseKind) continue;
@@ -10827,6 +10832,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         } else if (heapInfo.havocs instanceof JCArrayAccess aa) {
                             sr = makeJmlStoreRef(aa, aa, (ClassSymbol)calleeMethodSym.owner, false).head;
                         } else {
+                            // FIXME - watch out for fresh receivers
                             //System.out.println("UNSUPPORTED HAVOCS " + heapInfo.havocs);
                         }
                         if (sr != null) {
@@ -10835,15 +10841,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             //System.out.println("NONDISJ " + jmlsr + " ^ " + sr + " = " + nondisjoint);
                             //System.out.println("   Checking reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is nondisjoint from " + sr + " == " + nondisjoint);
                             hasIntersection = treeutils.makeOrSimp(srex, hasIntersection, nondisjoint);
-                        }
-                        if (treeutils.isTrueLit(hasIntersection)) {
-                            addStat(comment(methodDecl, "   Reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is never disjoint from " + sr , null));
                         } else {
-                            addStat(comment(methodDecl, "   Checking reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is disjoint from " + sr + "  Precondition: " + preid + " " + copy(preid), null));
-                            JCExpression disjoint = treeutils.makeNot(clause,hasIntersection);
-                            JCStatement v = M.at(clause).If(treeutils.makeAndSimp(clause, copy(preid), disjoint), noChangeInstantiation, null);
-                            addStat(v);
+                            hasIntersection = treeutils.trueLit;
                         }
+                    }
+                    if (treeutils.isTrueLit(hasIntersection)) {
+                        addStat(comment(methodDecl, "   Reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is never disjoint from " + heapInfo.havocs , null));
+                    } else {
+                        addStat(comment(methodDecl, "   Checking reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is disjoint from " + heapInfo.havocs + "  Precondition: " + preid + " " + copy(preid), null));
+                        JCExpression disjoint = treeutils.makeNot(clause,hasIntersection);
+                        JCStatement v = M.at(clause).If(treeutils.makeAndSimp(clause, copy(preid), disjoint), noChangeInstantiation, null);
+                        addStat(v);
                     }
                 }
                 // If no clauses, default is \everything, which is presumed to not be disjoint with anything
