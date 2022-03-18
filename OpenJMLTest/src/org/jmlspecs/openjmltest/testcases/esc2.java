@@ -4868,5 +4868,59 @@ public class esc2 extends EscBase {
     			+ "}\n"
     			);
     }
+    
+    @Test
+    public void testConditional1() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+
+            //@ ghost public \\bigint nn;
+
+            //@ requires nn == 0;
+            public void m(boolean b) {
+              //@ ghost \\bigint z = 0;
+              //@ assert nn == (b ? 0 : z);
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testConditional2() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+
+            //@ ghost public \\real nn;
+
+            //@ requires nn == 0;
+            public void m(boolean b) {
+              //@ ghost \\real z = 0;
+              //@ assert nn == (b ? 0 : z);
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testConditional3() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+
+            //@ ghost public \\real nn;
+
+            //@ requires nn == 0;
+            public void m(boolean b) {
+              //@ ghost \\bigint z = 0;
+              //@ assert nn == (b ? (double)0 : z);
+            }
+            }
+            """
+            );
+    }
 
 }

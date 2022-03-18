@@ -4731,6 +4731,25 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	if (condTypes.stream().anyMatch(t->t==jmltypes.BIGINT) && condTypes.stream().allMatch(t->jmltypes.isIntegral(t))) return jmltypes.BIGINT;
     	return super.condType(positions, condTypes);
     }
+    
+    @Override
+    public void visitConditional(JCConditional that) {
+        super.visitConditional(that);
+        // The following is primarily to handle cases like b ? 0 : bigint-expression
+        if (that.truepart.type == jmltypes.BIGINT && that.type != jmltypes.BIGINT && jmltypes.isAnyIntegral(that.falsepart.type)) {
+            that.type = jmltypes.BIGINT;
+        } else if (that.falsepart.type == jmltypes.BIGINT && that.type != jmltypes.BIGINT && jmltypes.isAnyIntegral(that.truepart.type)) {
+            that.type = jmltypes.BIGINT;
+        } else if (that.truepart.type == jmltypes.REAL && that.type != jmltypes.REAL && jmltypes.isNumeric(that.falsepart.type)) {
+            that.type = jmltypes.REAL;
+        } else if (that.falsepart.type == jmltypes.REAL && that.type != jmltypes.REAL && jmltypes.isNumeric(that.truepart.type)) {
+            that.type = jmltypes.REAL;
+        } else if (that.truepart.type == jmltypes.BIGINT && that.type != jmltypes.REAL && jmltypes.isNumeric(that.falsepart.type)) {
+            that.type = jmltypes.REAL;
+        } else if (that.falsepart.type == jmltypes.BIGINT && that.type != jmltypes.REAL && jmltypes.isNumeric(that.truepart.type)) {
+            that.type = jmltypes.REAL;
+        }
+    }
 
     @Override
     public void visitBinary(JCBinary that) {

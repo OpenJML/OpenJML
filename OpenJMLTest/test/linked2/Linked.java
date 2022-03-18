@@ -11,7 +11,7 @@ public class Linked {
     //@ public normal_behavior
     
     //@   reads next, next.nextFields; // FIXME - does not work as nextFields
-    //@   ensures \result == ((next == null) ? (\bigint)0 : 1 + next.size());
+    //@   ensures \result == ((next == null) ? 0 : 1 + next.size());
     //@   ensures \result >= 0;
     //@ pure helper
     //@ model public \bigint size();
@@ -19,12 +19,12 @@ public class Linked {
     // @ public invariant values().size == size();
     
     //@ public model JMLDataGroup nextFields;
-    // @ public model JMLDataGroup valueFields;
+    //@ public model JMLDataGroup valueFields;
     
     //@ nullable
     public Linked next;//@ in nextFields; maps next.nextFields \into nextFields;
     //@ nullable
-    public W value; // @ in valueFields; maps next.valueFields \into valueFields
+    public W value; //@ in valueFields; maps next.valueFields \into valueFields;
     
     //@ public normal_behavior
     //@ ensures \result.value == null;
@@ -55,16 +55,11 @@ public class Linked {
     //@ ensures this.size() == oldsize + 1;
     // @ ensures this.values().equals(oldvalues.prepend(t));
     public void push(W t) {
-        //@ ghost \bigint n = this.size();
+        //@ ghost \bigint nn = (this.next == null ? (\bigint)-1 : this.next.size());
         Linked v = new Linked(t, next);
-        // @ assert v.next == this.next;
-        // @ assert v.size() == n;
-        // @ assert this != v;
-        // @ assert this != v.next;
+        //@ assert nn == (this.next == null ? -1 : this.next.size());
         this.next = v;
-        //@ assert v.size() == n;  // FIXME - this is needed as a lemma, presumably bcause the implicit axiom about size doe snto work for the postcondition alone
-        // @ assert this.size() == 1 + n;
-        // @ assert this.size() == 1 + v.size();
+        //@ assert v.size() == \old(this.size()); // FIXME - this is needed as a lemma
     }
     
     //@ public normal_behavior
@@ -74,25 +69,12 @@ public class Linked {
     // @   old seq<W> oldvalues = this.values();
     //@   assignable next; // size, values;
     //@   ensures next == \old(next.next);
-    //@   ensures this.size() == oldsize - 1;
+    //@   ensures this.size() == \old(this.size()) - 1;
     // @   ensures this.values().equals(oldvalues.tail(1));
     public void pop() {
-        //@ ghost var osize = this.size();
-        //@ ghost var nsize = this.next.size();
-        //@ ghost var nnsize = this.next.next == null ? (\bigint)-1 : this.next.next.size();
-        //@ assert osize > 0;
-        //@ assert osize == nsize + 1;
         this.next = this.next.next;
-        if (this.next == null) {
-            // @ assert osize == 1;
-            // @ assert this.next == null;
-            //@ assert this.size() == 0;
-        } else {
-            // @ assert nnsize == this.next.size();
-            // @ assert nsize == this.next.size() + 1;
-            //@ assert this.size() == this.next.size() + 1;
-        }
-        //@ assert this.size() == osize - 1;
+        //@ assert this.size() == (this.next == null ? 0 : this.next.size() + 1);
+        //@ assert this.size() == \old(this.size()) - 1;
     }
     
     //@ public normal_behavior
@@ -103,11 +85,11 @@ public class Linked {
     //@   ensures this.size() == oldsize - 1;
     // @   ensures this.values().equals(oldvalues.tail(1));
     public void remove(int n) {
-        //@ assert this.next != null;
+        //@ ghost \bigint nnn = (this.next.next == null ? (\bigint)0 : this.next.next.size() + 1);
         //@ ghost \bigint nn = this.next.size();
-        //@ assert this.size() - 1 == nn;
         if (n == 0) {
             this.next = this.next.next;
+            //@ assert nn == (this.next == null ? (\bigint)0 : this.next.size() + 1);
             //@ assert this.size() == nn;
         } else {
             this.next.remove(n-1);

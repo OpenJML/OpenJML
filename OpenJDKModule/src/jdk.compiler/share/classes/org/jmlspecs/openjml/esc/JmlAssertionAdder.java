@@ -6847,8 +6847,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                java.util.List<JmlStatementExpr> listf = new java.util.LinkedList<JmlStatementExpr>();
 	                listf.addAll(wellDefinedConditions);
 
-	                cond = addImplicitConversion(cond, syms.booleanType, copy(cond)); // FIXME - what about oldenv?
-	                addToCondition(that.pos, cond);
+	                var ccond = addImplicitConversion(cond, syms.booleanType, copy(cond)); // FIXME - what about oldenv?
+	                addToCondition(that.pos, ccond);
 	                JCExpression truepart = convertExpr(that.truepart);
 	                if (truepart == null) System.out.println("NO TYPE " + that + " " + that.type + " " + that.truepart.type + " " + that.truepart + " " + truepart);
 	                truepart = addImplicitConversion(that.truepart, that.type, truepart);
@@ -6931,16 +6931,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			Continuation thenContinuation = continuation;
 
 			continuation = Continuation.CONTINUE;
-			int resultHeapCount = heapCount;
+			int thenBranchHeapCount = heapCount;
 			heapCount = savedHeapCount;
 			JCBlock elsepart = that.elsepart == null ? null : convertIntoBlock(that.elsepart, that.elsepart);
 			Continuation elseContinuation = continuation;
 
-			if (resultHeapCount != heapCount)
-				heapCount = nextHeapCount();
 			JCStatement st = M.at(that).If(cond, thenpart, elsepart).setType(that.type);
-			result = addStat(st);
-			continuation = thenContinuation.combine(elseContinuation);
+			var r = addStat(st);
+            continuation = thenContinuation.combine(elseContinuation);
+            if (thenBranchHeapCount != heapCount) {
+                pushBlock();
+                addStat(comment(that, "If heap change", null));
+                JmlLabeledStatement sttt = markUniqueLocation();
+                addStat(sttt);
+                changeState(that, null, sttt.label);
+                addStat(popBlock(that));
+                currentEnv.heap.previousHeaps.add(methodEnv.allHeaps.get(thenBranchHeapCount));
+            }
+            result = r;
 		} else {
 			boolean doThen = true;
 			if (currentSplit.isEmpty()) {
@@ -8064,7 +8072,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected void changeState(DiagnosticPosition pos, Object havocs) {
 	    changeState(pos, havocs, null);
 	}
-	protected void changeState(DiagnosticPosition pos, Object havocs, Name label) {
+    protected void changeState(DiagnosticPosition pos, Object havocs, Name label) {
 		if (infer || esc) {
 		    int p = pos.getPreferredPosition();
 			heapCount = nextHeapCount();
@@ -10771,93 +10779,110 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        var heapInfo = currentEnv.heap;
 //	        System.out.println("CALLING FOR " + calleeMethodSym + " " + hc + " " + info);
 	        if (heapInfo.previousHeaps.isEmpty()) return;
-	        var oldHeapInfo = heapInfo.previousHeaps.iterator().next();
-//	        System.out.println("   OLDHC " + oldHeapInfo);
-	        MethodSymbol newCalleeSym = getNewMethodSymbol(calleeMethodSym);
-	        MethodSymbol oldMethodSym = getNewMethodSymbol(calleeMethodSym, oldHeapInfo.heapID);
-	        if (oldMethodSym == null) {
-	            // No instance of the method in this old heap
-	            // So there is nothing to compare against.
-	            // FIXME - we could keep going back until we find a match -- probably need to do this eventually
-	            return;
+	        for (var oldHeapInfo: heapInfo.previousHeaps) {
+	            //System.out.println("   OLDHC " + oldHeapInfo.heapID + " " + hc);
+	            MethodSymbol newCalleeSym = getNewMethodSymbol(calleeMethodSym);
+	            MethodSymbol oldMethodSym = getNewMethodSymbol(calleeMethodSym, oldHeapInfo.heapID);
+	            if (oldMethodSym == null) {
+	                // No instance of the method in this old heap
+	                // So there is nothing to compare against.
+	                // FIXME - we could keep going back until we find a match -- probably need to do this eventually
+	                return;
+	            }
+	            //	        System.out.println("HEAPFUCNAXIOM " + calleeMethodSym + " " + hc + " " + newCalleeSym + " " + oldHeapInfo.heapID + " " + oldMethodSym);
+	            ListBuffer<JCVariableDecl> quantDecls = new ListBuffer<>();
+	            ListBuffer<JCExpression> argList1 = new ListBuffer<>();
+	            ListBuffer<JCExpression> argList2 = new ListBuffer<>();
+	            //	        System.out.println("CALLEE " + calleeMethodSym + " " + calleeMethodSym.getReceiverType() + " " + calleeMethodSym.getParameters() + " " + calleeMethodSym.getReturnType());
+	            JCVariableDecl d;
+	            if (newCalleeSym.getParameters() != null) for (var p: newCalleeSym.getParameters()) {
+	                d = newTempDecl(pos, p.type);
+	                quantDecls.add(d);
+	                argList1.add(M.at(pos).Ident(d.sym));
+	                argList2.add(M.at(pos).Ident(d.sym));
+	            }
+	            var e1 = M.at(pos).Apply(List.<JCExpression>nil(), M.Ident(newCalleeSym), argList1.toList());
+	            var e2 = M.at(pos).Apply(List.<JCExpression>nil(), M.Ident(oldMethodSym), argList2.toList());
+	            e1.type = e2.type = returnType;
+	            JCExpression ee = treeutils.makeEquality(pos.getPreferredPosition(), e1,  e2);
+	            ee = M.at(pos).JmlQuantifiedExpr(qforallKind, quantDecls.toList(), treeutils.trueLit, ee);
+	            JCStatement noChangeAxiom = M.at(pos).JmlExpressionStatement("assume", StatementExprExtensions.assumeClause, Label.METHODAXIOM, ee);
+	            JCExpression e3 = M.at(pos).Apply(List.<JCExpression>nil(), M.Ident(newCalleeSym), copy(args));
+	            JCExpression e4 = M.at(pos).Apply(List.<JCExpression>nil(), M.Ident(oldMethodSym), copy(args));
+	            e3.type = e4.type = returnType;
+	            JCStatement noChangeInstantiation = M.at(pos).JmlExpressionStatement("assume", StatementExprExtensions.assumeClause, Label.METHODAXIOM, 
+	                treeutils.makeEquality(pos.getPreferredPosition(), e3, e4));
+	            //System.out.println("NOCHANGEINST " + noChangeInstantiation);
+
+	            SpecCaseIterable specCases = new SpecCaseIterable(calleeMethodSym, false);
+	            for (var info: specCases) {
+	                var parentMethodSym = info.parentMethodSymbol;
+	                var scase = info.specCase();
+	                //paramActuals = info.paramActuals();
+	                JCExpression preid = calleePreconditions.get(scase);
+	                currentEnv = currentEnv.pushEnvCopy();
+	                // FIXME - no 'noChangeInstantiation' if receiver is fresh
+	                for (var clause : scase.clauses) {
+	                    if (!(clause instanceof JmlMethodClauseStoreRef sc)) continue;
+	                    if (clause.clauseKind != accessibleClauseKind) continue;
+	                    currentEnv.enclosingClauseKind = sc.clauseKind;
+	                    //JCExpression locset = convertAssignableToLocsetExpression(clause, sc.list, (ClassSymbol)receiverType.tsym, null);
+	                    // make sure sc.list and info.havocs are disjoint
+	                    JCExpression disjoint = treeutils.trueLit;
+	                    Object oldhavocs = heapInfo.havocs;
+	                    //System.out.println("HVOCS " + (oldhavocs==null?"NULL":oldhavocs.getClass()));
+	                    if (oldhavocs == null || oldhavocs instanceof JCIf) {
+	                        // skip
+	                    } else if (oldhavocs instanceof JCNewClass nc) {
+	                        if (isPure((MethodSymbol)nc.constructor)) {
+	                            var z = freshTest(nc, currentEnv.currentReceiver, labelPropertiesStore.get(oldHeapInfo.label).allocCounter);
+	                            disjoint = treeutils.makeNot(z, z);
+	                        } else {
+	                            disjoint = treeutils.falseLit; // FIXME - overly conservative
+	                        }
+	                        //System.out.println("  ISPURE? " + isPure((MethodSymbol)nc.constructor) + " " + disjoint);
+	                    } else {
+	                        JCExpression hasIntersection = treeutils.falseLit;
+	                        for (JCExpression srex: sc.list) { 
+	                            JmlStoreRef jmlsr = makeJmlStoreRef(srex, srex, (ClassSymbol)calleeMethodSym.owner, false).head;
+	                            JmlStoreRef sr = null;
+	                            if (oldhavocs instanceof JCFieldAccess fa) {
+	                                sr = makeJmlStoreRef(fa, fa, (ClassSymbol)fa.sym.owner, false).head;
+	                            } if (oldhavocs instanceof JCIdent id) {
+	                                if (id.sym.owner instanceof ClassSymbol) {
+	                                    sr = makeJmlStoreRef(id, id, (ClassSymbol)id.sym.owner, false).head;
+	                                } // otherwise is a local assignment that does not affect the heap
+	                            } else if (oldhavocs instanceof JCArrayAccess aa) {
+	                                sr = makeJmlStoreRef(aa, aa, (ClassSymbol)calleeMethodSym.owner, false).head;
+	                            } else {
+	                                // FIXME - watch out for fresh receivers
+	                                //System.out.println("UNSUPPORTED HAVOCS " + oldhavocs);
+	                            }
+	                            if (sr != null) {
+	                                TranslationEnv oldenv = labelPropertiesStore.get(heapInfo.label).labelEnv;
+	                                JCExpression nondisjoint = simplifyNonDisjoint(jmlsr, sr, oldenv, false); // FIXME  - need an old environment here
+	                                //System.out.println("NONDISJ " + jmlsr + " ^ " + sr + " = " + nondisjoint);
+	                                //System.out.println("   Checking reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is nondisjoint from " + sr + " == " + nondisjoint);
+	                                hasIntersection = treeutils.makeOrSimp(srex, hasIntersection, nondisjoint);
+	                            } else {
+	                                hasIntersection = treeutils.trueLit;
+	                            }
+	                        }
+	                        disjoint = treeutils.makeAndSimp(hasIntersection, disjoint, treeutils.makeNotSimp(hasIntersection, hasIntersection));
+	                    }
+	                    // If no clauses, default is \everything, which is presumed to not be disjoint with anything
+	                    // If a state change had no havocs, this is overly conservative
+	                    if (treeutils.isFalseLit(disjoint)) {
+	                        addStat(comment(methodDecl, "   Reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is never disjoint from " + oldhavocs , null));
+	                    } else {
+	                        addStat(comment(methodDecl, "   Checking reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is disjoint from " + oldhavocs + "  Precondition: " + preid + " " + copy(preid), null));
+	                        JCStatement v = M.at(clause).If(treeutils.makeAndSimp(clause, copy(preid), disjoint), noChangeInstantiation, null);
+	                        addStat(v);
+	                    }
+	                }
+	                currentEnv = currentEnv.popEnv();
+	            }
 	        }
-//	        System.out.println("HEAPFUCNAXIOM " + calleeMethodSym + " " + hc + " " + newCalleeSym + " " + oldHeapInfo.heapID + " " + oldMethodSym);
-	        ListBuffer<JCVariableDecl> quantDecls = new ListBuffer<>();
-	        ListBuffer<JCExpression> argList1 = new ListBuffer<>();
-	        ListBuffer<JCExpression> argList2 = new ListBuffer<>();
-//	        System.out.println("CALLEE " + calleeMethodSym + " " + calleeMethodSym.getReceiverType() + " " + calleeMethodSym.getParameters() + " " + calleeMethodSym.getReturnType());
-	        JCVariableDecl d;
-	        if (newCalleeSym.getParameters() != null) for (var p: newCalleeSym.getParameters()) {
-	            d = newTempDecl(pos, p.type);
-	            quantDecls.add(d);
-	            argList1.add(M.at(pos).Ident(d.sym));
-	            argList2.add(M.at(pos).Ident(d.sym));
-	        }
-            var e1 = M.at(pos).Apply(List.<JCExpression>nil(), M.Ident(newCalleeSym), argList1.toList());
-            var e2 = M.at(pos).Apply(List.<JCExpression>nil(), M.Ident(oldMethodSym), argList2.toList());
-            e1.type = e2.type = returnType;
-            JCExpression ee = treeutils.makeEquality(pos.getPreferredPosition(), e1,  e2);
-            ee = M.at(pos).JmlQuantifiedExpr(qforallKind, quantDecls.toList(), treeutils.trueLit, ee);
-            JCStatement noChangeAxiom = M.at(pos).JmlExpressionStatement("assume", StatementExprExtensions.assumeClause, Label.METHODAXIOM, ee);
-            JCExpression e3 = M.at(pos).Apply(List.<JCExpression>nil(), M.Ident(newCalleeSym), copy(args));
-            JCExpression e4 = M.at(pos).Apply(List.<JCExpression>nil(), M.Ident(oldMethodSym), copy(args));
-            e3.type = e4.type = returnType;
-            JCStatement noChangeInstantiation = M.at(pos).JmlExpressionStatement("assume", StatementExprExtensions.assumeClause, Label.METHODAXIOM, 
-                treeutils.makeEquality(pos.getPreferredPosition(), e3, e4));
-            
-            SpecCaseIterable specCases = new SpecCaseIterable(calleeMethodSym, false);
-            for (var info: specCases) {
-                var parentMethodSym = info.parentMethodSymbol;
-                var scase = info.specCase();
-                //paramActuals = info.paramActuals();
-                JCExpression preid = calleePreconditions.get(scase);
-                currentEnv = currentEnv.pushEnvCopy();
-                // FIXME - no 'noChangeInstantiation' if receiver is fresh
-                for (var clause : scase.clauses) {
-                    if (!(clause instanceof JmlMethodClauseStoreRef sc)) continue;
-                    if (clause.clauseKind != accessibleClauseKind) continue;
-                    currentEnv.enclosingClauseKind = sc.clauseKind;
-                    //JCExpression locset = convertAssignableToLocsetExpression(clause, sc.list, (ClassSymbol)receiverType.tsym, null);
-                    // make sure sc.list and info.havocs are disjoint\
-                    JCExpression hasIntersection = treeutils.falseLit;
-                    for (JCExpression srex: sc.list) { 
-                        JmlStoreRef jmlsr = makeJmlStoreRef(srex, srex, (ClassSymbol)calleeMethodSym.owner, false).head;
-                        JmlStoreRef sr = null;
-                        if (heapInfo.havocs instanceof JCFieldAccess fa) {
-                            sr = makeJmlStoreRef(fa, fa, (ClassSymbol)fa.sym.owner, false).head;
-                        } if (heapInfo.havocs instanceof JCIdent id) {
-                            if (id.sym.owner instanceof ClassSymbol) {
-                                sr = makeJmlStoreRef(id, id, (ClassSymbol)id.sym.owner, false).head;
-                            } // otherwise is a local assignment that does not affect the heap
-                        } else if (heapInfo.havocs instanceof JCArrayAccess aa) {
-                            sr = makeJmlStoreRef(aa, aa, (ClassSymbol)calleeMethodSym.owner, false).head;
-                        } else {
-                            // FIXME - watch out for fresh receivers
-                            //System.out.println("UNSUPPORTED HAVOCS " + heapInfo.havocs);
-                        }
-                        if (sr != null) {
-                            TranslationEnv oldenv = labelPropertiesStore.get(heapInfo.label).labelEnv;
-                            JCExpression nondisjoint = simplifyNonDisjoint(jmlsr, sr, oldenv, false); // FIXME  - need an old environment here
-                            //System.out.println("NONDISJ " + jmlsr + " ^ " + sr + " = " + nondisjoint);
-                            //System.out.println("   Checking reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is nondisjoint from " + sr + " == " + nondisjoint);
-                            hasIntersection = treeutils.makeOrSimp(srex, hasIntersection, nondisjoint);
-                        } else {
-                            hasIntersection = treeutils.trueLit;
-                        }
-                    }
-                    if (treeutils.isTrueLit(hasIntersection)) {
-                        addStat(comment(methodDecl, "   Reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is never disjoint from " + heapInfo.havocs , null));
-                    } else {
-                        addStat(comment(methodDecl, "   Checking reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is disjoint from " + heapInfo.havocs + "  Precondition: " + preid + " " + copy(preid), null));
-                        JCExpression disjoint = treeutils.makeNot(clause,hasIntersection);
-                        JCStatement v = M.at(clause).If(treeutils.makeAndSimp(clause, copy(preid), disjoint), noChangeInstantiation, null);
-                        addStat(v);
-                    }
-                }
-                // If no clauses, default is \everything, which is presumed to not be disjoint with anything
-                // If a state change had no havocs, this is overly conservative
-                currentEnv = currentEnv.popEnv();
-            }
 
  //           info.methodAxiomsBlock.stats = info.methodAxiomsBlock.stats.append(s);
  //           System.out.println("  AXIOM " + ee);
@@ -19489,13 +19514,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		heapCount = savedHeapCount;
 	}
 	
-	public JmlLabeledStatement markUniqueLocation(JCStatement statToMark) {
-	    Name label = names.fromString("`_label`" + nextUnique());
+    public JmlLabeledStatement markUniqueLocation(JCStatement statToMark) {
+        Name label = names.fromString("`_label`" + nextUnique());
         JmlLabeledStatement mark = M.JmlLabeledStatement(label, null, statToMark  == null ? M.Skip() : statToMark);
         recordLabel(label, mark);
         markLocation(label, null, mark);
         return mark;
-	}
+    }
+
+    public JmlLabeledStatement markUniqueLocation() {
+        return markUniqueLocation(M.Skip());
+    }
 
 	protected void markLocation(Name label, ListBuffer<JCStatement> list, JmlLabeledStatement marker) {
 		Location loc = new Location(list, marker);
