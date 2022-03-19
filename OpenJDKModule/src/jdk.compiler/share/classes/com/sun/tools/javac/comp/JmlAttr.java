@@ -4736,18 +4736,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitConditional(JCConditional that) {
         super.visitConditional(that);
         // The following is primarily to handle cases like b ? 0 : bigint-expression
-        if (that.truepart.type == jmltypes.BIGINT && that.type != jmltypes.BIGINT && jmltypes.isAnyIntegral(that.falsepart.type)) {
-            that.type = jmltypes.BIGINT;
-        } else if (that.falsepart.type == jmltypes.BIGINT && that.type != jmltypes.BIGINT && jmltypes.isAnyIntegral(that.truepart.type)) {
-            that.type = jmltypes.BIGINT;
-        } else if (that.truepart.type == jmltypes.REAL && that.type != jmltypes.REAL && jmltypes.isNumeric(that.falsepart.type)) {
-            that.type = jmltypes.REAL;
-        } else if (that.falsepart.type == jmltypes.REAL && that.type != jmltypes.REAL && jmltypes.isNumeric(that.truepart.type)) {
-            that.type = jmltypes.REAL;
-        } else if (that.truepart.type == jmltypes.BIGINT && that.type != jmltypes.REAL && jmltypes.isNumeric(that.falsepart.type)) {
-            that.type = jmltypes.REAL;
-        } else if (that.falsepart.type == jmltypes.BIGINT && that.type != jmltypes.REAL && jmltypes.isNumeric(that.truepart.type)) {
-            that.type = jmltypes.REAL;
+        // Note -- need to check both as expressions and declaration initializers
+        if (that.truepart.type == jmltypes.BIGINT && jmltypes.isAnyIntegral(that.falsepart.type)) {
+            result = that.type = jmltypes.BIGINT;
+        } else if (that.falsepart.type == jmltypes.BIGINT && jmltypes.isAnyIntegral(that.truepart.type)) {
+            result = that.type = jmltypes.BIGINT;
+        } else if (that.truepart.type == jmltypes.REAL && jmltypes.isNumeric(that.falsepart.type)) {
+            result = that.type = jmltypes.REAL;
+        } else if (that.falsepart.type == jmltypes.REAL && jmltypes.isNumeric(that.truepart.type)) {
+            result = that.type = jmltypes.REAL;
+        } else if (that.truepart.type == jmltypes.BIGINT && jmltypes.isNumeric(that.falsepart.type)) {
+            result = that.type = jmltypes.REAL;
+        } else if (that.falsepart.type == jmltypes.BIGINT && jmltypes.isNumeric(that.truepart.type)) {
+            result = that.type = jmltypes.REAL;
         }
     }
 
@@ -7823,9 +7824,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             return found;
         }
         if (found == null) {
-        	System.out.println("FOUND TYPE IS NULL " + resultInfo.pt + " " + tree);
-        	Utils.dumpStack();
-        	return (tree.type = types.createErrorType(resultInfo.pt));
+            System.out.println("FOUND TYPE IS NULL " + resultInfo.pt + " " + tree);
+            Utils.dumpStack();
+            return (tree.type = types.createErrorType(resultInfo.pt));
+        }
+        if (resultInfo.pt == jmltypes.BIGINT) {
+            if (jmltypes.isAnyIntegral(found)) return resultInfo.pt;
+            if (tree instanceof JCConditional cc) {
+                if (jmltypes.isAnyIntegral(cc.truepart.type) && jmltypes.isAnyIntegral(cc.falsepart.type)) return resultInfo.pt;
+            }
+        }
+        if (resultInfo.pt == jmltypes.REAL) {
+            if (jmltypes.isNumeric(found)) return resultInfo.pt;
+            if (tree instanceof JCConditional cc) {
+                if (jmltypes.isNumeric(cc.truepart.type) && jmltypes.isNumeric(cc.falsepart.type)) return resultInfo.pt;
+            }
         }
         if (utils.isExtensionValueType(resultInfo.pt)) {
         	// We should check for conversions from found to resultInfo.pt,

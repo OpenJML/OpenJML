@@ -55,7 +55,7 @@ public class Linked {
     //@ ensures this.size() == oldsize + 1;
     // @ ensures this.values().equals(oldvalues.prepend(t));
     public void push(W t) {
-        //@ ghost \bigint nn = (this.next == null ? (\bigint)-1 : this.next.size());
+        //@ ghost \bigint nn = (this.next == null ? -1 : this.next.size());
         Linked v = new Linked(t, next);
         //@ assert nn == (this.next == null ? -1 : this.next.size());
         this.next = v;
@@ -85,11 +85,11 @@ public class Linked {
     //@   ensures this.size() == oldsize - 1;
     // @   ensures this.values().equals(oldvalues.tail(1));
     public void remove(int n) {
-        //@ ghost \bigint nnn = (this.next.next == null ? (\bigint)0 : this.next.next.size() + 1);
+        //@ ghost \bigint nnn = (this.next.next == null ? 0 : this.next.next.size() + 1);
         //@ ghost \bigint nn = this.next.size();
         if (n == 0) {
             this.next = this.next.next;
-            //@ assert nn == (this.next == null ? (\bigint)0 : this.next.size() + 1);
+            //@ assert nn == (this.next == null ? 0 : this.next.size() + 1);
             //@ assert this.size() == nn;
         } else {
             this.next.remove(n-1);
