@@ -18,6 +18,4 @@ test/gitbug445a/Pair.java:21: error: cannot find symbol
   where T is a type-variable:
     T extends Object declared in class Pair
 Operation not performed because of parse or type errors
-Note: Some input files use unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
 5 errors

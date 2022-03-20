@@ -72,13 +72,26 @@ REL=release-temp
 
 ## Used in the github build.yml action
 
-release: clean version openjml jmlruntime.jar post
+release: clean version-info openjml jmlruntime.jar tutorial post
 
 version:
-	./version.sh
+	@ ./version.sh
+
+version-info: version
+	@ rm -f version-info.txt
+	@ cat ../version.txt > version-info.txt
+	@ echo "OpenJML" `git rev-parse HEAD` >> version-info.txt
+	@ (cd ../../Specs; echo "Specs" `git rev-parse HEAD`) >> version-info.txt
+	@ (cd ../../JMLAnnotations; echo JMLAnnotations `git rev-parse HEAD` ) >> version-info.txt
+	@ (cd ../../Solvers; echo Solvers `git rev-parse HEAD` ) >> version-info.txt
+	@ (cd ../../openjml.github.io; echo openjml.github.io `git rev-parse HEAD` ) >> version-info.txt
+	@ cat version-info.txt
+	@ mv version-info.txt release-files
 
 tutorial:
-	cp -pR ../../openjml.github.io/tutorial/*.java release-files/tutorial
+	rm -rf release-files/tutorial
+	mkdir release-files/tutorial
+	cp -pR ../../openjml.github.io/tutorial/*.java ../../openjml.github.io/tutorial/*.out release-files/tutorial
 
 annotation:
 	cp -pR ../../JMLAnnotations/src/org  src/java.base/share/classes
@@ -100,7 +113,7 @@ trial:
 	$(REL)/openjml -version
 	$(REL)/openjml -esc -progress $(REL)/demos/Max.java
 
-# Tests a recently created release (release-temp/openjml.zip)
+# Tests the most recently created release (release-temp/openjml.zip)
 release-test:
 	@ $(topdir)/../OpenJMLTest/releaseTests/runtests
 

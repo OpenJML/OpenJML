@@ -480,7 +480,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @return the new identifier
      */
     protected JCIdent newIdentIncarnation(JCIdent id, int incarnationPosition) {
-        return newIdentIncarnation((VarSymbol)id.sym,incarnationPosition);
+        var newid = newIdentIncarnation((VarSymbol)id.sym,incarnationPosition);
+        //if (newid.toString().contains("dxyz")) System.out.println("NEWIDINC " + id + " " + newid);
+        return newid;
     }
     
     /** Creates a new incarnation of a variable */
@@ -1038,7 +1040,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - review this
     //boolean extraEnv = false;
     public void visitJmlMethodInvocation(JmlMethodInvocation that) { 
-    	//if (that.kind != null && that.kind.keyword == oldID) System.out.println("JMI " + that + " " + that.labelProperties);
         if (that.name != null) {
             scanList(that.args);
             result = that;
@@ -1059,19 +1060,20 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 {
                     VarMap savedMap = currentMap;
                     try {
-                            Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).name;
-                            //JCIdent label = (JCIdent)that.args.get(1);
-                            currentMap = labelmaps.get(label);
-                            if (currentMap == null) {
-                                // When method axioms are inserted they can appear before the label,
-                                // in which case control flow comes here. SO we are counting on proper
-                                // reporting of out of scope labels earlier.
-                                // This should have already been reported
-                                //log.error(label.pos,"jml.unknown.label",label.name.toString());
-                                // Just use the current map
-                                currentMap = savedMap;
-                            }
-                            that.args.get(0).accept(this);
+                        Name labelArg = that.args.size() == 1 ? JmlAttr.instance(context).preLabel : ((JCIdent)that.args.get(1)).name;
+                        Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).name;
+                        if (label != labelArg) utils.warning(that, "jml.message", "Unexpected mismatched state label names: " + labelArg + " " + label);
+                        currentMap = labelmaps.get(label);
+                        if (currentMap == null) {
+                            // When method axioms are inserted they can appear before the label,
+                            // in which case control flow comes here. SO we are counting on proper
+                            // reporting of out of scope labels earlier.
+                            // This should have already been reported
+                            //log.error(label.pos,"jml.unknown.label",label.name.toString());
+                            // Just use the current map
+                            currentMap = savedMap;
+                        }
+                        that.args.get(0).accept(this);
                     } finally {
                         currentMap = savedMap;
                     }
@@ -1180,6 +1182,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     // FIXME - review and document
     protected void havoc(JCExpression storeref) {
+        //System.out.println("HAVOC " + storeref + " " + storeref.getClass());
         if (storeref instanceof JCIdent) {
             newIdentIncarnation((JCIdent)storeref,storeref.pos);
 
@@ -1299,6 +1302,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             	} else {
             		// First havoc entire array
             		// Range of array
+            	    //System.out.println("HAVOC RANGE " + ex);
 
             		scan(ex); ex = result;
 
@@ -1306,6 +1310,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             		expr.pos = sp;
             		expr.type = aa.type;
             		treeutils.copyEndPosition(expr, aa);
+                    //System.out.println("HAVOC RANGE RES " + expr);
             		// FIXME - set line and source
             		addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
 
@@ -1332,6 +1337,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             		// FIXME - set line and source
             		expr = factory.at(p).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,eq);
             		expr.setType(syms.booleanType);
+                    //System.out.println("HAVOC RANGE CONDITION " + expr);
             		addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
             		//log.warning(storeref.pos,"jml.internal","Ignoring unknown kind of storeref in havoc: " + storeref);
             	}
@@ -1806,8 +1812,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // OK
     @Override
     public void visitIdent(JCIdent that) {
-        if (that.sym instanceof Symbol.VarSymbol){ 
-            Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
+        if (that.sym instanceof Symbol.VarSymbol vsym){ 
             if (localVars.containsKey(vsym)) {
                 that.name = localVars.get(vsym).name;
             } else if (currentMap != null) { // FIXME - why would currentMap ever be null?
@@ -1815,6 +1820,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 if (that.name != vsym.name && newname != that.name) {
                     utils.warning(that, "jml.internal", "Double rewriting of ident: " + vsym.name + " " + that.name);
                 }
+                //if (that.toString().contains("dxyz")) System.out.println("VISITIDENT " + that + " " + vsym + " " + vsym.hashCode() + " " + newname);
+
                 that.name = newname;
                 if (isDefined.add(that.name)) {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Added " + vsym + " " + that.name);

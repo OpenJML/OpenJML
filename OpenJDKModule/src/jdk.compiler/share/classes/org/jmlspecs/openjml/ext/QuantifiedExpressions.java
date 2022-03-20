@@ -110,7 +110,7 @@ public class QuantifiedExpressions extends JmlExtension {
 
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
-            syms = attr.syms;
+            com.sun.tools.javac.code.Symtab syms = attr.syms;
             JmlQuantifiedExpr that = (JmlQuantifiedExpr)tree;
             Env<AttrContext> localEnv = attr.envForExpr(that,env);
             
@@ -174,7 +174,7 @@ public class QuantifiedExpressions extends JmlExtension {
 
                     case qnumofID:
                         valueType = syms.booleanType;
-                        resultType = com.sun.tools.javac.code.JmlTypes.instance(context).BIGINT;
+                        resultType = com.sun.tools.javac.code.JmlTypes.instance(parser.context).BIGINT;
                         if (utils.rac) resultType = syms.longType; // FIXME - or BigInteger
                         break;
 

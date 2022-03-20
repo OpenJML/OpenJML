@@ -4426,7 +4426,7 @@ public class esc2 extends EscBase {
     @Test
     public void testExitInfo2() {
         expectedExit = 0;
-        main.addOptions("-escExitInfo","-escMaxWarnings=10");
+        main.addOptions("-escMaxWarnings=10");
         helpTCX("tt.TestJava",
                           "package tt; //@ nullable_by_default \n" 
                         + "public class TestJava  { \n" 
@@ -4458,7 +4458,7 @@ public class esc2 extends EscBase {
     @Test
     public void testExitInfo() {
         expectedExit = 0;
-        main.addOptions("-escExitInfo","-escMaxWarnings=3");
+        main.addOptions("-escMaxWarnings=3");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -4613,7 +4613,7 @@ public class esc2 extends EscBase {
                         );
     }
 
-    @Test
+    @Test @Ignore // The show statements have nondeterministic output
     public void testShowStatementESC() {
         expectedExit = 0;
         main.addOptions("-code-math=bigint","-method=m","-escMaxWarnings=1");
@@ -4645,7 +4645,7 @@ public class esc2 extends EscBase {
     @Test
     public void testShowStatement() {
         expectedExit = 0;
-        main.addOptions("-lang=jml");
+        main.addOptions("--lang=jml");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -4656,8 +4656,7 @@ public class esc2 extends EscBase {
                         + "     //@ show i;\n"
                         + "  }\n"
                         + "}\n"
-                        ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under -lang=jml",10
-                        //,"$SPECS/specs/java/util/stream/Stream.jml:$STRL: warning: The \\count construct is an OpenJML extension to JML and not allowed under -lang=jml",37
+                        ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under --lang=jml",10
                   ); 
     }
 
@@ -4868,6 +4867,244 @@ public class esc2 extends EscBase {
     			+ "    //@ public model JMLDataGroup g;\n"
     			+ "}\n"
     			);
+    }
+    
+    @Test
+    public void testConditional1() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+
+            //@ ghost public \\bigint nn;
+
+            //@ requires nn == 0;
+            public void m(boolean b) {
+              //@ ghost \\bigint z = 0;
+              //@ assert nn == (b ? 0 : z);
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testConditional2() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+
+            //@ ghost public \\real nn;
+
+            //@ requires nn == 0;
+            public void m(boolean b) {
+              //@ ghost \\real z = 0;
+              //@ assert nn == (b ? 0 : z);
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testConditional3() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+
+            //@ ghost public \\real nn;
+
+            //@ requires nn == 0;
+            public void m(boolean b) {
+              //@ ghost \\bigint z = 0;
+              //@ assert nn == (b ? (double)0 : z);
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testConditional4() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+
+            //@ ghost public \\bigint nn;
+
+            //@ requires nn == 0;
+            public void m(boolean b) {
+              //@ ghost \\bigint z =  (b ? 0 : nn);
+              //@ assert z == 0;
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testHeap1() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure
+            public int f() { return 0; }
+
+            //@ old int x = f();
+            //@ ensures f() == \\old(f());
+            //@ ensures x == \\old(f());
+            public int m(boolean b) {
+                int y = f();
+                //@ assert y == f();
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+
+    @Test
+    public void testHeap2() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure
+            public int f() { return 0; }
+
+            //@ old int x = f();
+            //@ ensures f() == \\old(f()); // FAILS
+            public int m(boolean b) {
+                int y = f();
+                //@ assert y == f();
+                z = 1;
+                return y;
+            }
+            }
+            """
+            ,"/tt/Test.java:14: warning: The prover cannot establish an assertion (Postcondition) in method m",5
+            ,"/tt/Test.java:9: warning: Associated declaration",5
+            );
+    }
+
+    @Test
+    public void testHeap2a() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ reads \\nothing; ensures true; pure
+            public int f() { return 0; }
+
+            //@ old int x = f();
+            //@ ensures f() == \\old(f());
+            public int m(boolean b) {
+                int y = f();
+                //@ assert y == f();
+                z = 1;
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+
+    @Test
+    public void testHeap3() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure
+            public int f() { return 0; }
+
+            public int m(boolean b) {
+                int y = f();
+                z = 1;
+              //@ assert y == \\old(f());
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testHeap4() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure
+            public int f() { return 0; }
+
+            public int m(boolean b) {
+                int y = f();
+                z = 1;
+              //@ assert f() == \\old(f()); // ERROR
+                return y;
+            }
+            }
+            """
+            ,"/tt/Test.java:11: warning: The prover cannot establish an assertion (Assert) in method m",7
+            );
+    }
+
+    @Test
+    public void testHeap4a() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ reads \\nothing; ensures true; pure
+            public int f() { return 0; }
+
+            public int m(boolean b) {
+                int y = f();
+                z = 1;
+              //@ assert f() == \\old(f());
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testHeap5() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure
+            public int f() { return 0; }
+
+            //@ old int x = f();
+            //@ ensures \\result == f();
+            public int m(boolean b) {
+                int y = f();
+                z = 1;
+                return f();
+            }
+            }
+            """
+            );
     }
 
 }

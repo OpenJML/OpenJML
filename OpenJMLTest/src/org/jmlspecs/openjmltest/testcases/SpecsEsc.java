@@ -27,7 +27,7 @@ public class SpecsEsc extends EscBase {
 
     @Parameters
     static public  Collection<String[]> datax() {
-    	System.out.println("CALLING PARAMETERS");
+    	//System.out.println("CALLING PARAMETERS");
         if (!dotests) return new ArrayList<String[]>(0);
         Collection<String[]> data = new ArrayList<String[]>(1000);
         for (File f: findAllFiles()) {
@@ -71,7 +71,7 @@ public class SpecsEsc extends EscBase {
     public void testSpecificationFile() {
         expectedExit = 0;
         String subdir = JmlTestCase.root + "/OpenJML/OpenJMLTest/" + "testspecs" + "/" + classname;
-        System.out.println("    ... " + classname.replace('_', '.'));
+        System.out.println("    ... " + classname.replace('-', '.'));
     	escOnFiles(subdir,subdir,"-method=esc","-checkFeasibility=exit");
     }
     

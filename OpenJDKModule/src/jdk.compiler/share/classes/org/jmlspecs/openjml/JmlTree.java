@@ -633,12 +633,16 @@ public class JmlTree {
         
         @Override
         public JmlIfStatement If(JCExpression cond, JCStatement t, JCStatement e) {
-            return new JmlIfStatement(cond,t,e);
+            var tree = new JmlIfStatement(cond,t,e);
+            tree.pos = pos;
+            return tree;
         }
         
         @Override
         public JmlSwitchStatement Switch(JCExpression selector, List<JCCase> cases) {
-            return new JmlSwitchStatement(selector,cases);
+            var tree = new JmlSwitchStatement(selector,cases);
+            tree.pos = pos;
+            return tree;
         }
         
         /** Creates a JML havoc statement */
@@ -3488,8 +3492,7 @@ public class JmlTree {
         }
     }
     
-    /** A portmanteau of all store-ref expressions, once they have been attributed as such.
-     * So this class is not a result of parsing.
+    /** A portmanteau of all store-ref expressions.
      */
     public static class JmlStoreRef extends JmlExpression {
     	
@@ -3506,17 +3509,26 @@ public class JmlTree {
     	
     	public JavaFileObject source;
     	
-    	// Cases:
+    	public boolean isEverything() { return isEverything; }
+    	public boolean isNothing() { return originalStoreRef instanceof JmlSingleton sing && sing.kind == JMLPrimitiveTypes.nothingKind; }
+    	
+    	// Cases: before type attribution (type == null)
+    	// isEverything=true: \everything
+        // isEverything=false, receiver=null, id!=null, range==null: simple id
+        // isEverything=false, receiver!=null, id!=null, range==null: static or non-static field access
+        // isEverything=false, receiver!=null, id==null, range==null: static or non-static field .*
+        // isEverything=false, receiver!=null, id==null, range!=null: array access
+    	
+    	// Cases after type attribution: (a simple id can become something else) (type != null)
     	// isEverything=true, other fields null: \everything
     	// isEverything=false, local nonnull; others null: a local variable
     	// isEverything=false, expression nonull; others null: a locset expression (expression.type is \locset
     	// isEverything=false, range nonnull, receiver nonnull, expression null, fields null: an array range or isngle index
-    	// isEverything=false, local null, range null, expression null, receiver nonnull: a set of non-final fields of the instance
-    	// isEverything=false, local null, range null, expression null, receiver null: a set of static non-final fields
     	public boolean isEverything;
     	/*@ nullable */ public Symbol local;
     	/*@ nullable */ public JCExpression expression;
     	/*@ nullable */ public JCExpression receiver;
+    	/*@ nullable */ public JCIdent id;
     	/*@ nullable */ public JmlRange range;
     	/*@ nullable */ public VarSymbol field;
     	public JCExpression originalStoreRef = null;

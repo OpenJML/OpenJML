@@ -33,49 +33,4 @@ public class Assigns {
     t2.v = 0; // ERROR
     a[1] = 0; // ERROR
   }
-  //@ requires t1 != t2;
-  //@ requires a.length == 10;
-  //@ writes a[1];
-  public void m3() {
-    x = 0; // ERROR
-    t1.v = 0; // ERROR
-    a[1] = 0;
-    a[4] = 0; // ERROR
-  }
-  //@ requires t1 != t2;
-  //@ requires a.length == 10;
-  //@ writes a[*];
-  public void m4() {
-    x = 0; // ERROR
-    t1.v = 0; // ERROR
-    a[1] = 0;
-    a[4] = 0;
-  }
-  //@ requires t1 != t2;
-  //@ requires a.length == 10;
-  //@ writes a[3..5];
-  public void m5() {
-    x = 0; // ERROR
-    t1.v = 0; // ERROR
-    a[4] = 0;
-    a[1] = 0; // ERROR
-  }
-  //@ requires t1 != t2;
-  //@ requires a.length == 10;
-  //@ writes t1.*;
-  public void m6() {
-    x = 0; // ERROR
-    t1.v = 0;
-    a[4] = 0; // ERROR
-    a[1] = 0; // ERROR
-  }
-  //@ requires t1 != t2;
-  //@ requires a.length == 10;
-  //@ writes \nothing;
-  public void m7() {
-    x = 0; // ERROR
-    t1.v = 0; // ERROR
-    a[4] = 0; // ERROR
-    a[1] = 0; // ERROR
-  }
 }

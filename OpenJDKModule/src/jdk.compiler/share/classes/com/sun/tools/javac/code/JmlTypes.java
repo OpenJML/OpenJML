@@ -169,7 +169,7 @@ public class JmlTypes extends Types {
     public boolean isAssignable(Type t, Type s, Warner warn) {
         if (s == t) return true;
         if (s == BIGINT) {
-            if (isIntegral(t)) return true;
+             if (isIntegral(t)) return true;
             if (repSym((JmlType)s) == t.tsym) return true;
             return false;
         }
@@ -205,6 +205,7 @@ public class JmlTypes extends Types {
     /** True if the type is an integral type including boxed and JML types. */
     public boolean isAnyIntegral(Type t) {
         if (t == BIGINT) return true;
+        if (t instanceof Type.TypeVar) return false;
         t = unboxedTypeOrType(t);
         return isIntegral(t);
     }

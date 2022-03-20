@@ -351,7 +351,7 @@ public class JmlCompiler extends JavaCompiler {
         		// cancelation or error in specifications parsed on demand - catch and continue // TODO: Review
         	} finally {
                 String summary = esc.reportCounts();
-                if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode) utils.note(false,summary);
+                if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode && JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)) utils.note(false,summary);
         	}
     		return results; // Empty list - Do nothing more
         } else if (utils.infer) {
@@ -359,6 +359,8 @@ public class JmlCompiler extends JavaCompiler {
                 infer(env);
             return results;
         } else if (utils.rac) {
+//            utils.warning("jml.message","RAC is not operational (yet) for OpenJML-17");
+//        	if (false) 
         	for (var env: envs) {
         		var t = env.tree;
         		if (t instanceof JmlClassDecl && ((JmlClassDecl)t).sourcefile.getKind() != JavaFileObject.Kind.SOURCE) continue;

@@ -104,11 +104,11 @@ public class StatementExprExtensions extends JmlExtension {
             attr.jmlenv = attr.jmlenv.pushCopy();
             attr.jmlenv.inPureEnvironment = true;
             attr.jmlenv.currentClauseKind = tree.clauseType;
-            Type expectedType = tree.clauseType == loopdecreasesClause ? JmlTypes.instance(context).BIGINT : isUse ? Type.noType : syms.booleanType; 
+            Type expectedType = tree.clauseType == loopdecreasesClause ? JmlTypes.instance(attr.context).BIGINT : isUse ? Type.noType : attr.syms.booleanType; 
             // unreachable statements have a null expression
             if (tree.expression != null) {
             	var ty = attr.attribExpr(tree.expression,env,expectedType);
-            	tree.expression.type = ty != syms.errType ? ty : expectedType;
+            	tree.expression.type = ty != attr.syms.errType ? ty : expectedType;
             }
             if (tree.optionalExpression != null) attr.attribExpr(tree.optionalExpression,env,Type.noType);
             attr.jmlenv = attr.jmlenv.pop();

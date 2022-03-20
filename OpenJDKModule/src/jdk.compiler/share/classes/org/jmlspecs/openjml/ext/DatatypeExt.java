@@ -53,12 +53,12 @@ public class DatatypeExt extends JmlExtension {
             List<JCTypeParameter> typarams = parser.typeParametersOpt();
             System.out.println("Parsing datatype named " + datatypeName.toString());
             parser.accept(TokenKind.LBRACE);
-            Names names = Names.instance(context);
+            Names names = Names.instance(parser.context);
             ListBuffer<JCTree> defs = new ListBuffer<>();
             ListBuffer<Pair<Name,List<JCVariableDecl> >> cons = new ListBuffer<>();
             while (parser.token().kind != TokenKind.RBRACE && parser.token().kind != TokenKind.SEMI && parser.token().kind != TokenKind.EOF) {
                 // FIXME - comma required?
-                JmlTreeCopier copier = new JmlTreeCopier(context,parser.jmlF);
+                JmlTreeCopier copier = new JmlTreeCopier(parser.context,parser.jmlF);
                 if (parser.token().kind == TokenKind.COMMA) parser.nextToken();
                 ListBuffer<JCExpression> tyexpr = new ListBuffer<>();
                 for (JCTypeParameter tp: typarams) {
@@ -102,9 +102,9 @@ public class DatatypeExt extends JmlExtension {
             //mods.flags |= Flags.STATIC; // Implicitly static
             mods.flags |= Flags.ABSTRACT; // Implicitly abstract -- FIXME doe sit need to be if it is model?
             // Implicitly model
-            mods.annotations = JmlSpecs.instance(context).addModelAnnotation(pos, mods.annotations);
+            mods.annotations = JmlSpecs.instance(parser.context).addModelAnnotation(pos, mods.annotations);
             // FIXME - make this a novel primitive type
-            Type at = utils.createClassSymbol(syms.java_base, "org.jmlspecs.lang.IJmlDatatype").type;
+            Type at = utils.createClassSymbol(com.sun.tools.javac.code.Symtab.instance(parser.context).java_base, "org.jmlspecs.lang.IJmlDatatype").type;
             JCExpression dtype = parser.jmlF.at(pos).Type(at);
             JmlDatatypeDecl d = new JmlDatatypeDecl(mods, datatypeName, typarams, null, List.<JCExpression>of(dtype), defs.toList(), null);
             d.constructors = cons.toList();

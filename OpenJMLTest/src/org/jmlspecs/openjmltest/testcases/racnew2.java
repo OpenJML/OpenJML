@@ -650,7 +650,7 @@ public class racnew2 extends RacBase {
     /** Tests a bad cast */
     @Test public void testTypeCast2() {
         expectedRACExit = 1;
-        main.addOptions("-racShowSource=source");
+        main.addOptions("--rac-show-source=source");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean i = Boolean.TRUE; \n" +
                 "  Object o = i; \n" +
@@ -826,7 +826,7 @@ public class racnew2 extends RacBase {
     
     /** A misc early test case for lbl expressions */
     @Test public void testLabel() {
-        main.addOptions("-racShowSource=source");
+        main.addOptions("--rac-show-source=source");
         helpTCX("tt.TestJava","package tt; public class TestJava { /*@ assignable \\everything; */ public static void main(String[] args) { \n" +
                 " m(1); m(0); \n" +
                 " System.out.println(\"END\"); } static public int k = 0; \n" +
@@ -1617,7 +1617,7 @@ public class racnew2 extends RacBase {
                     +"}}"
                 ,"/tt/A.java:4: verify: JML An object may be illegally null"
                 ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local9>\" is null"
-                ,"\tat tt.A.main(A.java:1)"
+                ,"\tat tt.A.main(A.java:4)"
                 );
     }
 
@@ -1676,7 +1676,7 @@ public class racnew2 extends RacBase {
         		"""
                 ,"verify: JML An object may be illegally null"
                 ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local6>\" is null"
-                ,"\tat tt.A.main(A.java:1)"
+                ,"\tat tt.A.main(A.java:5)"
                 );
     }
 

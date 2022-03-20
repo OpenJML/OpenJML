@@ -97,9 +97,9 @@ public abstract class RacBase extends JmlTestCase {
         super.setUp();
         
         // Setup the options
-        main.addOptions("-specspath",   testspecpath);
+        main.addOptions("--specs-path",   testspecpath);
         //main.addJavaOption("-d", outdir); // This is where the output program goes // FIXME - for some reason this does not work here
-        main.addOptions("-rac","-racJavaChecks","-racCheckAssumptions");
+        main.addOptions("--rac","--rac-java-checks","--rac-check-assumptions");
 //        if (jdkrac) {
 //            String sy = System.getenv("OPENJML_ROOT") + "/../OpenJMLTest/test";
 //            System.out.println("SY " + sy);
@@ -114,7 +114,7 @@ public abstract class RacBase extends JmlTestCase {
         main.addOptions("-showNotImplemented");
         main.addOptions("-no-purityCheck"); // System specs have a lot of purity errors, so turn this off for now
         //main.addOptions("-no-internalSpecs"); // Faster with this option; should work either way
-        main.addOptions("-racShowSource=none");
+        main.addOptions("--rac-show-source=none");
         specs = JmlSpecs.instance(context);
         expectedExit = 0;
         expectedRACExit = 0;
@@ -338,11 +338,11 @@ public abstract class RacBase extends JmlTestCase {
             args.add(outdir);
             args.add("-classpath");
             args.add(cp);
-            args.add("-rac");
+            args.add("--rac");
             args.add("-no-purityCheck");
-            args.add("-code-math=java");
-            args.add("-spec-math=bigint");
-            if (new File(dirname).isDirectory()) args.add("-dir");
+            args.add("--code-math=java");
+            args.add("--spec-math=bigint");
+            if (new File(dirname).isDirectory()) args.add("--dir");
             args.add(dirname);
             args.addAll(Arrays.asList(opts));
             

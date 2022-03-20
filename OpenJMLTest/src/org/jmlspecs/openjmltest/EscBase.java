@@ -61,11 +61,6 @@ public abstract class EscBase extends JmlTestCase {
     			solversWithNull.addAll(solvers);
     		}
         
-//    static public java.util.List<String[]> minQuants = java.util.Arrays.asList(new String[][]{ 
-//            new String[]{"-minQuant"}, 
-//            new String[]{"-no-minQuant"}, 
-//            });
-        
     /** The parameters must be a String[] and a String */
     @Parameters
     static public Collection<String[]> parameters() {
@@ -75,8 +70,6 @@ public abstract class EscBase extends JmlTestCase {
     static public Collection<String[]> solversOnly() {
         return makeParameters(solvers);
     }
-    
-//    public static final String[] minQuantOptions = new String[]{"-no-minQuant","-minQuant"};
     
     static public  Collection<String[]> solvers(java.util.List<String> solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
@@ -175,10 +168,10 @@ public abstract class EscBase extends JmlTestCase {
         testspecpath = testspecpath1;
         ignoreNotes = true;
         super.setUp(); // Uses ignoreNotes
-        main.addOptions("-specspath",   testspecpath);
-        main.addOptions("-command","esc");
-        main.addOptions("-keys","NOARITH");
-        main.addOptions("-escExitInfo","-no-purityCheck");
+        main.addOptions("--specs-path",   testspecpath);
+        main.addOptions("--command","esc");
+        main.addOptions("--keys","NOARITH");
+        main.addOptions("--no-purityCheck");
 //        main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
 //        main.addOptions("-exec",JmlTestCase.root + "/Solvers/Solvers-macos/z3-4.3.1","-verbose");  // FIXME
@@ -223,7 +216,7 @@ public abstract class EscBase extends JmlTestCase {
     			System.out.println(diffs);
     			fail("Files differ: " + diffs);
     		}  
-    		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex);
+    		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex + " expected " + expectedExit);
     		new File(actCompile).delete();
 
     	} catch (Exception e) {
@@ -264,7 +257,7 @@ public abstract class EscBase extends JmlTestCase {
     			System.out.println(diffs);
     			fail("Files differ: " + diffs);
     		}  
-    		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex);
+    		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex + " expected " + expectedExit);
     		new File(actCompile).delete();
 
     	} catch (Exception e) {
@@ -281,15 +274,15 @@ public abstract class EscBase extends JmlTestCase {
         new File(outDir).mkdirs();
         java.util.List<String> args = new LinkedList<String>();
         args.add("-g");
-        args.add("-esc");
+        args.add("--esc");
         args.add("-no-purityCheck");
         args.add("-jmltesting");
-        args.add("-progress");
-        args.add("-timeout=300");
-        args.add("-code-math=java");
-        if (!new File(sourceDirOrFilename).isFile()) args.add("-dir");
+        args.add("--progress");
+        args.add("--timeout=300");
+        args.add("--code-math=java");
+        if (!new File(sourceDirOrFilename).isFile()) args.add("--dir");
         args.add(sourceDirOrFilename);
-        if (solver != null) args.add("-prover="+solver);
+        if (solver != null) args.add("--prover="+solver);
         addOptionsToArgs(options,args);        
         args.addAll(Arrays.asList(opts));
         return args;
@@ -340,8 +333,8 @@ public abstract class EscBase extends JmlTestCase {
         	synchronized (System.out) { 
         		if (print) printDiagnostics();
         		outputCompare.compareResults(expectedResults,collector);
-                        if (expectedExit == 0) for (Object er: expectedResults) if (er.toString().contains(": verify:")) expectedExit = 6;
-        		if (ex != expectedExit) fail("Compile ended with exit code " + ex);
+                if (jmltesting && expectedExit == 0) for (Object er: expectedResults) if (er.toString().contains(": verify:")) expectedExit = 6;
+        		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex + " expected " + expectedExit);
         	}
         } catch (Exception e) {
         	synchronized (System.out) { 

@@ -40,10 +40,10 @@ public abstract class TCBase extends JmlTestCase {
     	testspecpath = testspecpath1;
         testSourcePath = testspecpath1;
         super.setUp();
-        main.addOptions("-specspath",   testspecpath + (!useSystemSpecs ? "" : (z + "$SY") ));
-        main.addOptions("-sourcepath",   testSourcePath);
-        main.addOptions("-classpath",   "src" + z + testSourcePath);
-        if (!useSystemSpecs) main.addOptions("-no-internalSpecs");
+        main.addOptions("--specs-path",   testspecpath + (!useSystemSpecs ? "" : (z + "$SY") ));
+        main.addOptions("--source-path",   testSourcePath);
+        main.addOptions("--class-path",   "src" + z + testSourcePath);
+        if (!useSystemSpecs) main.addOptions("--no-internal-specs");
         main.addOptions(JmlOption.PURITYCHECK.optionName()+"=false");
         specs = JmlSpecs.instance(context);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
@@ -94,14 +94,17 @@ public abstract class TCBase extends JmlTestCase {
             Log.instance(context).useSource(f);
             List<JavaFileObject> files = List.of(f);
             // If additional Java options are wanted (e.g. -verbose), add them here
-            int ex = main.compile(new String[]{ "-Xlint:unchecked" }, files).exitCode;
+            int ex = main.compile(javaOptions.toArray(new String[]{}), files).exitCode;
             
             int i = 0;
             int k = 0;
+            boolean plusEndsList = false;
             Object p1,p2,p3,p4;
             for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
                 if (k >= list.length) break;
-                String expected = doReplacements(((String)list[k++]));
+                String expected = (String)list[k++];
+                if (expected.equals("+")) { plusEndsList = true; break; }
+                expected = doReplacements(expected);
                 assertEquals("Message " + i + " mismatch",expected,noSource(dd));
                 p1 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
                 p2 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
@@ -120,7 +123,7 @@ public abstract class TCBase extends JmlTestCase {
                 i++;
             }
             if (k < list.length) fail("Fewer errors observed (" + collector.getDiagnostics().size() + ") than expected (" + (list.length/2) + ")");
-            if (i < collector.getDiagnostics().size()) fail("More errors observed (" + collector.getDiagnostics().size() + ") than expected (" + i + ")");
+            if (!plusEndsList && i < collector.getDiagnostics().size()) fail("More errors observed (" + collector.getDiagnostics().size() + ") than expected (" + i + ")");
             if (expectedExit == -1) expectedExit = list.length == 0?0:1;
             assertEquals("Wrong exit code",expectedExit, ex);
         } catch (Exception e) {

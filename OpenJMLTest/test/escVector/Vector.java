@@ -66,9 +66,8 @@ public class Vector {
   public final synchronized void add(final Object the_object) {
     if (my_element_count >= my_element_data.length) {
       // create a new array
-      final Object[] new_data = new Object[my_element_count + my_capacity_increment]; // ERROR - could be negative under Java math
-      //@ ghost non_null Object[] nd = new_data;
-      //@ loop_invariant 0 <= i && i <= my_element_count && new_data == nd;
+      final Object [] new_data = new Object[my_element_count + my_capacity_increment]; // ERROR - could be negative under Java math
+      //@ loop_invariant 0 <= i && i <= my_element_count;
       //@ decreases my_element_count - i;
       for (int i = 0; i < my_element_count; i++) {
         new_data[i] = my_element_data[i];

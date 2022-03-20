@@ -8,9 +8,9 @@ public class Test541 implements I541 {
     public void set(int[] src) { System.arraycopy(src, 0, buf, 0, buf.length); }
 
     // Inherited specs
-    public void set(int[] src, int s, int d, int length) { 
-        System.arraycopy(src, s, buf, d, length); 
-        //@   assert (\forall int k; d<=k && k < d+length; buffer[k] == src[s-d+k]);
+    public void set(int[] src, int s, int dxyz, int length) { 
+        System.arraycopy(src, s, buf, dxyz, length); 
+        //@   assert (\forall int k; dxyz<=k && k < dxyz+length; buffer[k] == src[s-dxyz+k]);
     }
 
     //@ requires length >= 0;
@@ -121,10 +121,10 @@ interface I541 {
     //@ requires length >= 0;
     //@ requires s >= 0;
     //@ requires s + length <= src.length;
-    //@ requires d >= 0;
-    //@ requires d + length <= buffer.length;
-    //@   assignable buffer[d..d+length-1];
-    //@   ensures (\forall int k; d<=k && k < d+length; buffer[k] == src[s-d+k]);
-   public void set(int[] src, int s, int d, int length) ;
+    //@ requires dxyz >= 0;
+    //@ requires dxyz + length <= buffer.length;
+    //@   assignable buffer[dxyz..dxyz+length-1];
+    //@   ensures (\forall int k; dxyz<=k && k < dxyz+length; buffer[k] == src[s-dxyz+k]);
+   public void set(int[] src, int s, int dxyz, int length) ;
 
 }

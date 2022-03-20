@@ -419,15 +419,42 @@ public class escgeneric extends EscBase {
     public void testGenericThrow() {
         main.addOptions("-method=rt"); // Just test method rt
         helpTCX("tt.TestJava",
-        		 "public class TestJava { \n"
-        	    +" //@ public exceptional_behavior \n"
-        	    +" //@   requires true; \n"  // FIXME - should be t instanceof T
-        	    // Can't say signals_only T; because JML only deals with Exception, not Throwable
-        	    +" public static <T extends Throwable> RuntimeException rt(/*@ non_null*/ Throwable t) throws T { throw (T)t; } \n"
+                 "public class TestJava { \n"
+                +" //@ public exceptional_behavior \n"
+                +" //@   requires true; \n"  // FIXME - should be t instanceof T
+                // Can't say signals_only T; because JML only deals with Exception, not Throwable
+                +" @SuppressWarnings(\"unchecked\")\n"
+                +" public static <T extends Throwable> RuntimeException rt(/*@ non_null*/ Throwable t) throws T { throw (T)t; } \n"
                 +"}"
                 );
     }
 
-    
+    @Test
+    public void testGenericThrow2() {
+        main.addOptions("-method=rt"); // Just test method rt
+        helpTCX("tt.TestJava",
+                 "public class TestJava { \n"
+                +" //@ public exceptional_behavior \n"
+                +" //@   requires true; \n" 
+                // Can't say signals_only T; because JML only deals with Exception, not Throwable
+                +" public static <T extends Throwable> RuntimeException rt(/*@ non_null*/ T t) throws T { throw t; } \n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testGenericThrow3() {
+        main.addOptions("-method=rt"); // Just test method rt
+        helpTCX("tt.TestJava",
+                 "public class TestJava { \n"
+                +" //@ public exceptional_behavior \n"
+                +" //@   requires true; \n" 
+                +" //@   signals_only T;\n"
+                +" public static <T extends Exception> RuntimeException rt(/*@ non_null*/ T t) throws T { throw t; } \n"
+                +"}"
+                );
+    }
+
+   
 }
     

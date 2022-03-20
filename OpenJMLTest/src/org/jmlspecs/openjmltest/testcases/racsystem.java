@@ -33,7 +33,7 @@ public class racsystem extends RacBase {
         //noCollectDiagnostics = true;
         super.setUp();
         main.addOptions("-no-purityCheck"); // To shut off complaints about misuse of purity in Java specifications
-        main.addOptions("-racShowSource=line");
+        main.addOptions("--rac-show-source=line");
     }
     
     @Override
@@ -66,7 +66,7 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2a() {
         expectedRACExit = 1;
-        main.addOptions("-racShowSource=none"); // FIXME fix comparisons so these all can be "line"
+        main.addOptions("--rac-show-source=none"); // FIXME fix comparisons so these all can be "line"
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
@@ -93,7 +93,7 @@ public class racsystem extends RacBase {
     public void testFile2pre() {
         expectedRACExit = 1;
         main.addOptions("-no-internalSpecs");
-        main.addOptions("-racShowSource=none");
+        main.addOptions("--rac-show-source=none");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
@@ -118,7 +118,7 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2c() {
         expectedRACExit = 0;
-        main.addOptions("-racShowSource=none");
+        main.addOptions("--rac-show-source=none");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
                 +"try { m(); } catch (Error e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
@@ -189,7 +189,7 @@ public class racsystem extends RacBase {
     public void testFile3() {
         expectedNotes =  0; // 2
         main.addOptions("-no-internalSpecs");
-        main.addOptions("-racShowSource=none");
+        main.addOptions("--rac-show-source=none");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT EXCEPTION\"); } \n"
                 +"System.out.println(\"END\"); }\n"
@@ -227,7 +227,7 @@ public class racsystem extends RacBase {
     @Test
     public void testMain() {
         expectedNotes = 2;
-        main.addOptions("-racShowSource=line");
+        main.addOptions("--rac-show-source=line");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
                 +"public static void main(String[] args) { \n"
                 +"  System.out.println(\"START\"); \n"
@@ -247,7 +247,7 @@ public class racsystem extends RacBase {
     public void testMain2() {
         expectedNotes = 0;
         main.addOptions("-no-internalSpecs");
-        main.addOptions("-racShowSource=line");
+        main.addOptions("--rac-show-source=line");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
                 +"public static void main(String... args) { \n"
                 +"  System.out.println(\"START\"); \n"

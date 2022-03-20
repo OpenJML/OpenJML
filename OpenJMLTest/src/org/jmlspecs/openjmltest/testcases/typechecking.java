@@ -1519,6 +1519,62 @@ public class typechecking extends TCBase {
                 );
     }
     
+    @Test
+    public void xlinton() {
+        javaOptions.add("-Xlint:unchecked"); // Part of test
+        expectedExit = 0;
+        helpTCF("A.java",
+           "public class A<T> { A<T> t; A(A t) { this.t = t;}\n}"
+            ,"/A.java:1: warning: unchecked conversion\n"
+                + "  required: A<T>\n"
+                + "  found:    A",47
+           );
+    }
+        
+    @Test
+    public void xlintoff() {
+        expectedExit = 0;
+        helpTCF("A.java",
+           "public class A<T> { A<T> t; A(A t) { this.t = t;}A(A t, int x) { this.t = t;}\n}"
+                ,"/A.java: Note: /A.java uses unchecked or unsafe operations.",-1
+                ,"/A.java: Note: Recompile with -Xlint:unchecked for details.",-1
+           );
+    }
+    
+    @Test
+    public void varInOld() {
+        helpTCF("A.java",
+            """
+            public class A {
+              //@ old var k = i+1;
+              public void m(int i) { } 
+            }
+            """
+            );
+
+    }
+        
+    @Test
+    public void privateNotInherited() {
+        expectedExit = 0;
+        helpTCF("A.java",
+            "public class A extends B {\n"+
+            "    public int m(int i) { return 0; } \n"+
+            "    //@ ensures \\result == m(0);\n"+
+            "    public int p() { return 0; }\n"+
+            "}\n"+
+            "class B {\n"+
+            "    //@ ensures \\result == i;\n"+
+            "    //@ pure\n"+
+            "    private int m(int i) { return i; }\n"+
+            "}"
+            ,"/A.java:3: warning: A non-pure method is being called where it is not permitted: A.m(int)",29
+            );
+
+    }
+        
+
+    
     @Test public void clauseNames() {
         helpTCF("TestJava.java",
         		"""

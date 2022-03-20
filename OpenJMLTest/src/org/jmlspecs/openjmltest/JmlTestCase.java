@@ -59,6 +59,9 @@ import com.sun.tools.javac.util.Position;
  */
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public abstract class JmlTestCase {
+    
+    public boolean jmltesting =  true;
+    protected List<String> javaOptions= new LinkedList<String>();
 
     // The test output expects that the current working directory while running unittests is  .../OpenJML/OpenJMLTest
 
@@ -100,6 +103,13 @@ public abstract class JmlTestCase {
     	return (new RuntimeException()).fillInStackTrace().getStackTrace()[i+1].getMethodName();
     }
     
+    public boolean skipIfFalse(boolean condition) {
+        if (!condition) {
+            System.out.println("Skipping test -- false precondition");
+            return true;
+        }
+        return false;
+    }
 
     /** The java executable */
     // TODO: This is going to use the external setting for java, rather than
@@ -122,7 +132,7 @@ public abstract class JmlTestCase {
     
     // Set in some testcase classes to ignore Notes reported by the tool. Set the value
     // before calling super.setUp()
-    public boolean ignoreNotes = true;
+    public boolean ignoreNotes = false;
 
     /** A Diagnostic Listener that collects the diagnostics, so that they can be compared against expected results */
     final public static class FilteredDiagnosticCollector<S> implements DiagnosticListenerX<S> {
@@ -135,7 +145,7 @@ public abstract class JmlTestCase {
             this.print = print;
         }
         
-        /** If true, no notes are collected; some test output contains notes, so this mut generally be false */
+        /** If true, no notes are collected; some test output contains notes, so this must generally be false */
         boolean noNotes;
         /** If true, diagnostics are printed (as well as being collected) */
         boolean print;
@@ -154,7 +164,13 @@ public abstract class JmlTestCase {
             if (print) System.out.println(diagnostic.toString());
             //((JCDiagnostic)diagnostic).setFormatter(Log.instance(context).getDiagnosticFormatter());
             //if (print) System.out.println(diagnostic.toString());
-           if (!noNotes || diagnostic.getKind() != Diagnostic.Kind.NOTE ||
+            String diagString = diagnostic.toString();
+            boolean unreportedNote = (diagnostic.getKind() == Diagnostic.Kind.NOTE) && (
+//                                    diagString.contains("-Xlint:unchecked") || 
+//                                     diagString.contains("use unchecked or unsafe") ||
+                                     diagString.contains("Note: Some messages have been simplified")
+                                    );
+            if (!unreportedNote) if (!noNotes || diagnostic.getKind() != Diagnostic.Kind.NOTE ||
             		diagnostic.getMessage(java.util.Locale.getDefault()).contains("Associated"))
                 diagnostics.add(diagnostic);
         }
@@ -277,7 +293,7 @@ public abstract class JmlTestCase {
         mockFiles = new LinkedList<JavaFileObject>();
         Log.alwaysReport = true; // Always report errors (even if they would be suppressed because they are at the same position
         if (System.getenv("VERBOSE") != null) {
-        	main.addJavaOption("-verbose","true");
+        	javaOptions.add("-verbose");
         	main.addOptions("-jmlverbose","3");
         }
     }
@@ -451,7 +467,7 @@ public abstract class JmlTestCase {
     	// This ought to match the format being used, but only does so manually
     	var f = dd.getFormatter();
     	var l = java.util.Locale.getDefault();
-    	String src = dd.getDiagnosticSource() == null ? "" : (f.formatSource(dd,true,l) + ":");
+    	String src = (dd.getDiagnosticSource() == null || dd.getSource() == null) ? "" : (f.formatSource(dd,true,l) + ":");
     	String ln = dd.getLineNumber() == Position.NOPOS ? "" : (dd.getLineNumber() + ":" );
     	String sp = src.isEmpty() && ln.isEmpty() ? "" : " ";
         return src + ln + sp + dd.getPrefix() + dd.getMessage(l);

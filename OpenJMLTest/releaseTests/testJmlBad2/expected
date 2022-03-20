@@ -1,2 +1,2 @@
-warning: The value of the -verboseness option or the org.openjml.option.verboseness property should be the string representation of an integer: "x"
+warning: The value of the --verboseness option or the org.openjml.option.verboseness property should be the string representation of an integer: "x"
 error: no source files

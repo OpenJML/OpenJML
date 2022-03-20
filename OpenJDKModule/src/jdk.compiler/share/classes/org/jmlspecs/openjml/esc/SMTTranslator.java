@@ -1918,7 +1918,7 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Issues an error message about bit-vector operations */
     public void notImplBV(DiagnosticPosition pos, String msg) {
         if ("auto".equals(JmlOption.value(context, JmlOption.ESC_BV))) throw new JmlBVException();
-        utils.error(pos, "jml.message","This method uses bit-vector operations and must be run with -escBV=true (or auto) [" + msg + "]");
+        utils.error(pos, "jml.message","This method uses bit-vector operations and must be run with --esc-bv=true (or auto) [" + msg + "]");
         throw new JmlBVException();
     }
     
@@ -2460,8 +2460,12 @@ public class SMTTranslator extends JmlTreeScanner {
                 log.error("jml.internal","Don't know how to translate expression to SMTLIB: " + JmlPretty.write(tree));
                 throw new RuntimeException();
         }
+    	} catch (JmlBVException e) {
+    	    throw e;
         } catch (Exception e) {
+            log.error("jml.internal","Exception while translating expression to SMTLIB: " + JmlPretty.write(tree));
         	System.out.println("EXCEPTION IN SUBEXPR OF " + tree);
+        	e.printStackTrace(System.out);
         	throw e;
         }
     }
@@ -2813,7 +2817,9 @@ public class SMTTranslator extends JmlTreeScanner {
             	} else {
             		result = F.fcn(F.symbol(hifcn),sel);
             	}
-            } else if (field.name != names.length) {
+            	// FIXME - why do arrays use this branch instead of the one at the bottom
+            //} else if (field.name != names.length || !(tree.selected.type instanceof Type.ArrayType || tree.selected.type.toString().startsWith("org.jmlspecs.lang"))) {
+            } else if (field.name != names.length || !(tree.selected.type.toString().startsWith("org.jmlspecs.lang"))) {
                 // Non-length selection
                 String encName;
                 if (Utils.instance(context).isJMLStatic(field) || true) {
@@ -2881,11 +2887,12 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitIdent(JCIdent tree) {
         String n = tree.name.toString();
-        if (n.equals("length")) { // FIXME - not sure about this - length as array length is always a field name
-            result = F.symbol(arrayLength);
-        } else {
+//        if (n.equals("length")) { // FIXME - not sure about this - length as array length is always a field name
+//            System.out.println("IDENT " + tree + " " + tree.type);
+//            result = F.symbol(arrayLength);
+//        } else {
             result = F.symbol(makePQBarEnclosedString(tree));
-        }
+//        }
     }
     
     protected Map<Double,String> reals = new HashMap<Double,String>();

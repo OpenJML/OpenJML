@@ -173,7 +173,7 @@ public class JmlEsc extends JmlTreeScanner {
         }
         long classDuration = System.currentTimeMillis() - classStart;
         utils.progress(0,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) +  //$NON-NLS-1$
-                (Utils.testingMode ? "" : String.format(" [%4.2f secs]", (classDuration/1000.0)))); //$NON-NLS-1$
+                (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY) ? "" : String.format(" [%4.2f secs]", (classDuration/1000.0)))); //$NON-NLS-1$
         if (utils.isModel(node.sym)) classesModel++; 
         else {
             classes++;
@@ -239,7 +239,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public IProverResult markMethodSkipped(JmlMethodDecl methodDecl, String reason) {
-        if (JmlOption.isOption(context, JmlOption.SKIPPED)) utils.progress(1,1,"Skipping proof of " + utils.abbrevMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$
+        if (JmlOption.isOption(context, JmlOption.SHOW_SKIPPED)) utils.progress(1,1,"Skipping proof of " + utils.abbrevMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$
         
         // FIXME - this is all a duplicate from MethodProverSMT
         IProverResult.IFactory factory = new IProverResult.IFactory() {
@@ -334,7 +334,7 @@ public class JmlEsc extends JmlTreeScanner {
                     + (  res.isSat() ? "with warnings" 
                        : res.result() == IProverResult.UNSAT ? "no warnings"
                                : res.result().toString())
-                    + (Utils.testingMode ? "" : String.format(" [%4.2f secs]", (duration/1000.0)))
+                    + ((Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)) ? "" : String.format(" [%4.2f secs]", (duration/1000.0)))
                     );
             count(res.result(), methodDecl.sym);
             

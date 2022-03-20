@@ -37,10 +37,10 @@ public class esc1 extends EscBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        main.addOptions("-nullableByDefault"); // Because the tests were written
+        main.addOptions("--nullable-by-default"); // Because the tests were written
                                                 // this way
-        main.addOptions("-code-math=bigint","-spec-math=bigint");
-        main.addOptions("-no-require-white-space");
+        main.addOptions("--code-math=bigint","--spec-math=bigint");
+        main.addOptions("--no-require-white-space");
         // main.addOptions("-trace");
         // JmlEsc.escdebug = true;
         // org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -49,7 +49,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testCollect() {
-        main.addOptions("-nonnullByDefault", "-method=m");
+        main.addOptions("--nonnull-by-default", "--method=m");
         helpTCX("tt.TestJava",
                 "package tt; \n"
                         + "public abstract class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
@@ -64,7 +64,7 @@ public class esc1 extends EscBase {
 
     @Test  // version of testCollectB without the calls of getClass and v.add
     public void testCollectA() {
-        main.addOptions("-nonnullByDefault", "-method=m"); // Keep these options
+        main.addOptions("--nonnull-by-default", "--method=m"); // Keep these options
         helpTCX("tt.TestJava", "package tt; \n"
                 + "public abstract class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
                 + "  /*@ pure */ public String m(java.lang.Integer i, Number b) {\n"
@@ -81,7 +81,7 @@ public class esc1 extends EscBase {
 
     @Test @Ignore // timesout
     public void testCollectB() {
-        main.addOptions("-nonnullByDefault", "-timeout=300");
+        main.addOptions("--nonnull-by-default", "--timeout=300");
         helpTCX("tt.TestJava",
                 "package tt; \n"
                         + "public abstract class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
@@ -101,7 +101,7 @@ public class esc1 extends EscBase {
 
     @Test @Ignore // timesout
     public void testCollectC() {
-        main.addOptions("-nonnullByDefault", "-timeout=300");
+        main.addOptions("--nonnull-by-default", "--timeout=300");
         helpTCX("tt.TestJava",
                 "package tt; \n"
                         + "public abstract class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
@@ -350,7 +350,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testForEach2a1() {
-        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("--esc-max-warnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
                 + "public class TestJava { \n"
                 + "  //@ public normal_behavior  ensures true;\n" 
@@ -370,7 +370,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testForEach2a2() {
-        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("--esc-max-warnings=1");
         helpTCX("tt.TestJava", 
                 """
                 package tt; import java.util.*;
@@ -399,7 +399,7 @@ public class esc1 extends EscBase {
     }
     @Test
     public void testForEach2a2a() {
-        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("--esc-max-warnings=1");
         helpTCX("tt.TestJava", 
                 """
                 package tt; import java.util.*;
@@ -429,7 +429,7 @@ public class esc1 extends EscBase {
     }
     @Test
     public void testForEach2a3() {
-        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("--esc-max-warnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
                 + "public class TestJava { \n"
 
@@ -448,7 +448,7 @@ public class esc1 extends EscBase {
     }
     @Test
     public void testForEach2a4() {
-        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("--esc-max-warnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
                 + "public class TestJava { \n"
 
@@ -467,7 +467,7 @@ public class esc1 extends EscBase {
     }
     @Test
     public void testForEach2a4b() {
-        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("--esc-max-warnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
                 + "public class TestJava { \n"
 
@@ -1022,7 +1022,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables4b() {
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n"
                 + "  public static TestJava p;\n"
@@ -1056,7 +1056,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables4c() {
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n" + "  public static TestJava p;\n"
 
@@ -1112,7 +1112,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables1b() {
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n"
                 + "public class TestJava { \n"
                 + "  int k; static int sk;\n"
@@ -1136,7 +1136,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables1c() {
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n"
                 + "public class TestJava { \n"
                 + "  int k; static int sk;\n"
@@ -1159,7 +1159,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables1d() {
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { \n" 
                 + "  int k; static int sk;\n"
@@ -1206,7 +1206,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables6b() {
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n"
                 + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n"
@@ -1239,7 +1239,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables6c() {
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n" + "  public int[] a; public static int[] sa;\n"
 
@@ -1253,7 +1253,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables6d() {
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n" + "  public int[] a; public static int[] sa;\n"
 
@@ -1290,7 +1290,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables5b() {
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n" + "  public int[] a; public static int[] sa;\n"
 
@@ -1306,7 +1306,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables5c() {
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  int k; static int sk;\n"
                 + "  int[] a; static int[] sa;\n"
 
@@ -1319,7 +1319,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables5d() {
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  int k; static int sk;\n"
                 + "  int[] a; static int[] sa;\n"
 
@@ -1334,7 +1334,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables5e() {
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  int k; static int sk;\n"
                 + "  int[] a; static int[] sa;\n"
 
@@ -1348,7 +1348,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables5f() {
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  int k; static int sk;\n"
                 + "  int[] a; static int[] sa;\n"
 
@@ -1427,7 +1427,7 @@ public class esc1 extends EscBase {
     @Test
     public void testAssignables2b() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava",
                 "package tt; \n"
                 		+ "public class TestJava { \n"
@@ -1491,7 +1491,7 @@ public class esc1 extends EscBase {
     @Test
     public void testAssignables2c() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava",
                           "package tt; \n" 
                         + "public class TestJava { \n" 
@@ -1601,7 +1601,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables3b() {
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { \n"
                 + "  public static int[] a;  //@ public invariant a != null && a.length == 10;\n"
@@ -1640,7 +1640,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables3c() {
-        main.addOptions("-exclude=<init>");
+        main.addOptions("--exclude=<init>");
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { \n"
                 + "  public static int[] a;  //@ public invariant a != null && a.length == 10;\n"
@@ -1981,7 +1981,7 @@ public class esc1 extends EscBase {
     // FIXME - rejuvenate dead branch detection
     @Test
     public void testIncarnations() {
-        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("--esc-max-warnings=1");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public static void bnotok() { int k = 10; int i = 0; i = 1; i = k; k = 5; k = i+k; /*@ assert i == 10; assert k == 16; */}\n" // We
                                                                                                                                                     // want
@@ -2701,7 +2701,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testConditional() {
-        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("--esc-max-warnings=1");
         helpTCX("tt.TestJava",
                 "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
                         + "  //@ requires i > -2147483648;\n"
@@ -2787,7 +2787,7 @@ public class esc1 extends EscBase {
     @Test
     public void testNewArrayMD1() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("--esc-max-warnings=1");
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
                 + "  public void inst0() { Object o = new int[2][3]; o = new int[2][]; o = new int[][] {{2}, {3,4,5}}; int[][] oo = {{1},{2,3}}; /*@ assert oo[0] != oo[1]; */}\n"
                 + "  public void inst1() { Object o = new int[5][3]; Object oo = new int[5][3]; /*@ assert o != oo;*/ }\n"
@@ -2972,7 +2972,7 @@ public class esc1 extends EscBase {
 //    @Test
 //    public void testSwitch() {
 //        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-//        main.addOptions("-escMaxWarnings=1");
+//        main.addOptions("--esc-max-warnings=1");
 //        helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
 //                + "  int f; static int sf;\n" + "  int g; static int sg;\n" + "  static TestJava t;\n"
 //                + "  public void inst1a(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: j=1; break; default: j=-1; break; case 2: j = 2; } /*@ assert j!=0; */ }\n" // OK
@@ -3004,7 +3004,7 @@ public class esc1 extends EscBase {
 //
 //    @Test
 //    public void testTryWithMethodCall() {
-//        main.addOptions("-escMaxWarnings=1");
+//        main.addOptions("--esc-max-warnings=1");
 //        helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava  {\n"
 //                + "//@ public exceptional_behavior requires b;  signals (Exception e) true; signals (RuntimeException e) true;\n"
 //                + "//@ also\n" + "//@ public normal_behavior requires !b; ensures true;\n"
@@ -4495,55 +4495,6 @@ public class esc1 extends EscBase {
 //                );
 //    }
 //
-//    @Test
-//    public void testExitInfo2() {
-//        expectedExit = 0;
-//        main.addOptions("-escExitInfo","-escMaxWarnings=10");
-//        helpTCX("tt.TestJava",
-//                          "package tt; //@ nullable_by_default \n" 
-//                        + "public class TestJava  { \n" 
-//                        + "  /*@ requires o != null; \n"
-//                        + "      ensures \\result == (j>=0); \n"
-//                        + "     pure function */ public static boolean positive(Object o, int j) { \n"
-//                        + "         return j >= 0; }\n"
-//                        + "  public int j; \n"
-//                        + "  //@ signals (NullPointerException e) positive(null,j); \n"
-//                        + "  //@ signals (NegativeArraySizeException e) positive(null,j); \n"
-//                        + "  public void m0(int i, Object o) {\n"
-//                        + "      if (i == 1) { j = -2; throw new NullPointerException(); }\n" 
-//                        + "      if (i == 2) { j = -1; throw new NegativeArraySizeException(); }\n" 
-//                        + "  }\n" 
-//                        + "}"
-//                        ,anyorder(seq(
-//                 "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
-//                ,"/tt/TestJava.java:5: warning: Associated declaration",45
-//                ,"/tt/TestJava.java:12: warning: Associated method exit",29
-//                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",18
-//                ),seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",48
-//                ,"/tt/TestJava.java:5: warning: Associated declaration",45
-//                ,"/tt/TestJava.java:11: warning: Associated method exit",29
-//                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",18
-//                ))
-//                );
-//    }
-//
-//    @Test
-//    public void testExitInfo() {
-//        expectedExit = 0;
-//        main.addOptions("-escExitInfo","-escMaxWarnings=3");
-//        helpTCX("tt.TestJava",
-//                "package tt; \n" 
-//                        + "public class TestJava  { \n" 
-//                        + "  public int j; \n"
-//                        + "  //@ ensures j >= 0; \n"
-//                        + "  public void m0(int i, Object o) {\n"
-//                        + "      j = -1; \n" 
-//                        + "  }\n" 
-//                        + "}"
-//                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method m0",15
-//                ,"/tt/TestJava.java:4: warning: Associated declaration",7
-//                );
-//    }
 //
 //    @Test
 //    public void testFinalInvariant2() {
@@ -4688,7 +4639,7 @@ public class esc1 extends EscBase {
 //    @Test
 //    public void testShowStatementESC() {
 //        expectedExit = 0;
-//        main.addOptions("-code-math=bigint","-method=m","-escMaxWarnings=1");
+//        main.addOptions("-code-math=bigint","-method=m","--esc-max-warnings=1");
 //        helpTCX("tt.TestJava",
 //                "package tt; \n" 
 //                        + "public class TestJava  { \n" 

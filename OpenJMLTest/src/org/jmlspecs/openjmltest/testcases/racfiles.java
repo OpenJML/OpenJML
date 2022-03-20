@@ -84,7 +84,7 @@ public class racfiles extends RacBase {
     @Test // Originally crashed because of a model method in a library class
     public void testPoint() {
         expectedExit = 0;
-        helpTCF("test/racPoint","test/racPoint","Point","-quiet");
+        helpTCF("test/racPoint","test/racPoint","Point","--quiet");
     }
 
     @Test // Originally crashed because of a model method in a library class
@@ -96,19 +96,19 @@ public class racfiles extends RacBase {
     @Test
     public void testFirstTest() {
         expectedExit = 0;
-        helpTCF("test/firstTest","test/firstTest","FirstTest","-racJavaChecks","-racCheckAssumptions");
+        helpTCF("test/firstTest","test/firstTest","FirstTest","--rac-java-checks","--rac-check-assumptions");
     }
 
     @Test
     public void testUniqueList() {
         expectedExit = 0;
-        helpTCF("test/uniqueList","test/uniqueList","UniqueList","-racJavaChecks","-racCheckAssumptions");
+        helpTCF("test/uniqueList","test/uniqueList","UniqueList","--rac-java-checks","--rac-check-assumptions");
     }
 
     @Test 
     public void testUniqueList1() {
         expectedExit = 0;
-        helpTCF("test/uniqueListBug1","test/uniqueListBug1","UniqueListBug1","-racJavaChecks","-racCheckAssumptions");
+        helpTCF("test/uniqueListBug1","test/uniqueListBug1","UniqueListBug1","--rac-java-checks","--rac-check-assumptions");
     }
 
     @Test 
@@ -132,7 +132,7 @@ public class racfiles extends RacBase {
     @Test
     public void Dzmz() {
         expectedRACExit = 1;
-        helpTCF("test/Dzmz","test/Dzmz","Dzmz","-racJavaChecks");
+        helpTCF("test/Dzmz","test/Dzmz","Dzmz","--rac-java-checks");
     }
 
 
@@ -152,13 +152,13 @@ public class racfiles extends RacBase {
     @Test
     public void demoStudent() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/student","test/demoStudent","ExecuteCStudent2","-racJavaChecks","-racCheckAssumptions");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/student","test/demoStudent","ExecuteCStudent2","--rac-java-checks","--rac-check-assumptions");
     }
 
     @Test
     public void testECU() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecurac","Test","-racJavaChecks","-racCheckAssumptions");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecurac","Test","--rac-java-checks","--rac-check-assumptions");
     }
 
     @Test
@@ -189,28 +189,28 @@ public class racfiles extends RacBase {
     public void racAddng() {
     	setRacng();
         expectedExit = 0;
-        helpTCF("test/racaddng/Add_InstanceStrategy.java","test/racaddng","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","-code-math=java","-spec-math=java");
+        helpTCF("test/racaddng/Add_InstanceStrategy.java","test/racaddng","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","--code-math=java","--spec-math=java");
     }
 
     @Test
     public void racAddng2() {
     	setRacng();
         expectedExit = 0;
-        helpTCF("test/racaddng/Add_InstanceStrategy.java","test/racaddng2","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","-code-math=safe","-spec-math=bigint");
+        helpTCF("test/racaddng/Add_InstanceStrategy.java","test/racaddng2","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","--code-math=safe","--spec-math=bigint");
     }
 
     @Test
     public void racAddngall() {
     	setRacng();
         expectedExit = 0;
-        helpTCF("test/racaddng","test/racaddngall","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddngall"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","-code-math=java","-spec-math=java");
+        helpTCF("test/racaddng","test/racaddngall","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddngall"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","--code-math=java","--spec-math=java");
     }
 
     @Test
     public void racAddngall2() {
     	setRacng();
         expectedExit = 0;
-        helpTCF("test/racaddng","test/racaddngall2","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddngall"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","-code-math=safe","-spec-math=bigint");
+        helpTCF("test/racaddng","test/racaddngall2","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddngall"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","--code-math=safe","--spec-math=bigint");
     }
 
     @Test
@@ -246,7 +246,7 @@ public class racfiles extends RacBase {
     public void racHans4() {
     	expectedRACExit = 1;
     	setRacngEA();
-    	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorage","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorage");
+    	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorage","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorage");
     	rac = null;
     }
 
@@ -254,7 +254,7 @@ public class racfiles extends RacBase {
     public void racHans4a() {
     	expectedRACExit = 0;
     	setRacngEA();
-    	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorageA","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorage","-nullableByDefault");
+    	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorageA","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorage","-nullableByDefault");
     	rac = null;
     }
 
@@ -262,7 +262,7 @@ public class racfiles extends RacBase {
     public void racHans4b() {
         expectedRACExit = 1;
     	setRacngEA();
-    	helpTCF("test/racHansStorageB/StorageParameters.java","test/racHansStorageB","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorageB");
+    	helpTCF("test/racHansStorageB/StorageParameters.java","test/racHansStorageB","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorageB");
     	rac = null;
     }
 
@@ -270,7 +270,7 @@ public class racfiles extends RacBase {
     public void racHans4c() {
         expectedRACExit = 0;
     	setRacngEA();
-    	helpTCF("test/racHansStorageC/StorageParameters.java","test/racHansStorageC","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorageC");
+    	helpTCF("test/racHansStorageC/StorageParameters.java","test/racHansStorageC","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorageC");
     	rac = null;
     }
 
@@ -278,7 +278,7 @@ public class racfiles extends RacBase {
     public void racHans4d() {
         expectedRACExit = 0;
     	setRacngEA();
-    	helpTCF("test/racHansStorageD/StorageParameters.java","test/racHansStorageD","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorageD");
+    	helpTCF("test/racHansStorageD/StorageParameters.java","test/racHansStorageD","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorageD");
     	rac = null;
     }
     
@@ -291,7 +291,7 @@ public class racfiles extends RacBase {
     			"-cp","test/hans/OpenJMLTest/src"+z+"test/hans/icecapSDK/src",  //nFIXME - changed icecapSDK/bin to icecapSDK/src
     			"-rac",
     			"-specspath","test/hans/OpenJMLTest/specs",
-    			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
+    			"-racCheckAssumptions","--rac-java-checks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
     			);
     }
 
@@ -306,7 +306,7 @@ public class racfiles extends RacBase {
     			"-cp","test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src"+z+"test/racHans2",
     			//"-rac",
     			"-specspath","test/racHans2/specs",
-    			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
+    			"--rac-check-assumptions","--rac-java-checks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
     			);
     }
 
@@ -340,7 +340,7 @@ public class racfiles extends RacBase {
     public void gitbug533() {
     	//runrac = false;
         expectedRACExit = 0;
-        helpTCF("test/gitbug533","test/gitbug533","TestSum","-racCheckAssumptions");
+        helpTCF("test/gitbug533","test/gitbug533","TestSum","--rac-check-assumptions");
     }
 
     @Test
@@ -360,14 +360,14 @@ public class racfiles extends RacBase {
     public void gitbug536() {
         runrac = true;
         expectedRACExit = 0;
-        helpTCF("test/gitbug536","test/gitbug536","Test536","-code-math=safe","-spec-math=safe");
+        helpTCF("test/gitbug536","test/gitbug536","Test536","--code-math=safe","--spec-math=safe");
     }
 
     @Test
     public void gitbug536a() {
         runrac = true;
         expectedRACExit = 0;
-        helpTCF("test/gitbug536","test/gitbug536","Test536","-code-math=safe","-spec-math=bigint");
+        helpTCF("test/gitbug536","test/gitbug536","Test536","--code-math=safe","--spec-math=bigint");
     }
 
     @Test
@@ -381,21 +381,21 @@ public class racfiles extends RacBase {
     public void gitbug542a() {
         runrac = true;
         expectedRACExit = 0;
-        helpTCF("test/gitbug542","test/gitbug542a","Test542","-spec-math=java");
+        helpTCF("test/gitbug542","test/gitbug542a","Test542","--spec-math=java");
     }
 
     @Test
     public void gitbug542b() {
         runrac = true;
         expectedRACExit = 0;
-        helpTCF("test/gitbug542","test/gitbug542b","Test542","-spec-math=safe");
+        helpTCF("test/gitbug542","test/gitbug542b","Test542","--spec-math=safe");
     }
 
     @Test
     public void gitbug542c() {
         runrac = true;
         expectedRACExit = 0;
-        helpTCF("test/gitbug542","test/gitbug542c","Test542","-spec-math=bigint");
+        helpTCF("test/gitbug542","test/gitbug542c","Test542","--spec-math=bigint");
     }
 
     @Test
@@ -457,21 +457,21 @@ public class racfiles extends RacBase {
     public void gitbug688racA() {
         runrac = true;
         expectedRACExit = 0;
-        helpTCF("test/gitbug688","test/gitbug688racA","DayTimeMain","-spec-math=bigint");
+        helpTCF("test/gitbug688","test/gitbug688racA","DayTimeMain","--spec-math=bigint");
     }
 
     @Test
     public void gitbug688racB() {
         runrac = true;
         expectedRACExit = 0;
-        helpTCF("test/gitbug688","test/gitbug688racB","DayTimeMain","-spec-math=safe");
+        helpTCF("test/gitbug688","test/gitbug688racB","DayTimeMain","--spec-math=safe");
     }
 
     @Test
     public void gitbug688racC() {
         runrac = true;
         expectedRACExit = 0;
-        helpTCF("test/gitbug688","test/gitbug688racC","DayTimeMain","-spec-math=java");
+        helpTCF("test/gitbug688","test/gitbug688racC","DayTimeMain","--spec-math=java");
     }
 
     @Test
@@ -503,25 +503,25 @@ public class racfiles extends RacBase {
     @Test
     public void racRM1() {
         expectedRACExit = 0;
-        helpTCF("test/racRM1","test/racRM1","Main","-code-math=java","-spec-math=java");
+        helpTCF("test/racRM1","test/racRM1","Main","--code-math=java","--spec-math=java");
     }
 
     @Test
     public void racRM1a() {
         expectedRACExit = 0;
-        helpTCF("test/racRM1","test/racRM1","Main","-code-math=safe","-spec-math=bigint");
+        helpTCF("test/racRM1","test/racRM1","Main","--code-math=safe","--spec-math=bigint");
     }
 
     @Test
     public void racRM2() {
         expectedRACExit = 0;
-        helpTCF("test/racRM2","test/racRM2","Main","-code-math=java","-spec-math=java");
+        helpTCF("test/racRM2","test/racRM2","Main","--code-math=java","--spec-math=java");
     }
 
     @Test
     public void racRM2a() {
         expectedRACExit = 0;
-        helpTCF("test/racRM2","test/racRM2","Main","-code-math=safe","-spec-math=bigint");
+        helpTCF("test/racRM2","test/racRM2","Main","--code-math=safe","--spec-math=bigint");
     }
     
     @Test @Ignore // FIXME - RAC Not yet working for programs using string
@@ -532,6 +532,21 @@ public class racfiles extends RacBase {
 
     @Test
     public void range() {
-    	helpTCF("test/rangeTest","test/rangeTest","R");
+        helpTCF("test/rangeTest","test/rangeTest","R");
+    }
+
+    @Test
+    public void switchx() {
+        helpTCF("test/switch","test/switch","Switch");
+    }
+
+    @Test
+    public void switch0() {
+        helpTCF("test/switch0","test/switch0","Switch0");
+    }
+
+    @Test
+    public void switch1() {
+        helpTCF("test/switch1","test/switch1","Switch1");
     }
 }

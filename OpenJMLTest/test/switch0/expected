@@ -1,0 +1,11 @@
+Proving methods in Switch0
+Starting proof of Switch0.Switch0() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Switch0.Switch0() with prover !!!! - no warnings
+Starting proof of Switch0.m(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Switch0.m(int) with prover !!!! - no warnings
+Skipping proof of Switch0.main(String...) (excluded by -method)
+Completed proving methods in Switch0

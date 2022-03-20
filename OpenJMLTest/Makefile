@@ -9,10 +9,12 @@ ROOT=${mkfile_dir}
 
 openjml-test: prep
 	make release-tests 
-	make tutorial-tests > log-tutorial-tests
-	( cd ${ROOT}/unittests; source ./runall  )
-	( cd ${ROOT}/scripttests; ./escfiles-sort)
-	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
+	-make tutorial-tests
+	make unittests-par
+	make script-tests
+
+script-tests:
+	( cd ${ROOT}/scripttests; ./escfiles-err )
 
 openjml-clean:
 	(cd ${ROOT}/../OpenJDKModule; make clean version openjml jmlruntime.jar )

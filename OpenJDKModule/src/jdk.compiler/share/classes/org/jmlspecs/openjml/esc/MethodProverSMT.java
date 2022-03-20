@@ -79,6 +79,8 @@ import com.sun.tools.javac.util.Position;
 
 public class MethodProverSMT {
     
+    final public static boolean debugSMT = Utils.debug("smt");
+    
     final public static String separator = "--------------------------------------";
 
     // OPTIONS SET WHEN prover() IS CALLED
@@ -268,6 +270,7 @@ public class MethodProverSMT {
             log.report(d);
             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null).setOtherInfo(d);
         }
+        if (debugSMT) System.out.println("Solver in use: " + exec);
         
         IProverResult proofResultAccumulated = null;
         IProverResult proofResult = null;
@@ -275,6 +278,7 @@ public class MethodProverSMT {
 
         String splitlist = JmlOption.value(context,JmlOption.SPLIT);
         String[] splits = splitlist.split(",");
+        int skips = 0;
         Translations translations = jmlesc.assertionAdder.methodBiMap.getf(methodDecl);
         for (String splitkey: translations.keys()) {
         if (splitkey.equals(Strings.feas_preOnly)) {
@@ -282,6 +286,7 @@ public class MethodProverSMT {
         }
         if (!splitlist.isEmpty() && !java.util.Arrays.stream(splits).anyMatch(s -> splitkey.equals(s))) {
             utils.note(false,"Skipping proof attempt for split " + splitkey);
+            skips++;
             continue;
         }
             
@@ -478,7 +483,7 @@ public class MethodProverSMT {
             if (Utils.testingMode) loc = "";
             if (solverResponse.equals(unsatResponse)) {
                 String msg = "Method assertions are validated";
-                if (!Utils.testingMode) msg = msg + String.format(" [%4.2f secs]", duration);
+                if (!Utils.testingMode && JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)) msg = msg + String.format(" [%4.2f secs]", duration);
                 // FIXME - get rid of the check on testingMode below some time when we can change the test results
                 if (!Utils.testingMode) utils.progress(0,1,msg);
 
@@ -573,9 +578,9 @@ public class MethodProverSMT {
                                 :("Feasibility check - " + description + " : ");
                         boolean infeasible = solverResponse.equals(unsatResponse);
                         if (Utils.testingMode) fileLocation = loc;
-                        String msgOK = fileLocation + msg2 + "OK" + (Utils.testingMode? "" : String.format(" [%4.2f secs]", duration));
+                        String msgOK = fileLocation + msg2 + "OK" + (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration));
                         if (infeasible) {
-                            utils.progress(0,1,fileLocation + msg2 + "infeasible" + (Utils.testingMode? "" : String.format(" [%4.2f secs]", duration)));
+                            utils.progress(0,1,fileLocation + msg2 + "infeasible" + (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration)));
                             if (Strings.preconditionAssumeCheckDescription.equals(description)) {
                             	utils.verify(stat, "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
@@ -781,7 +786,8 @@ public class MethodProverSMT {
             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
         }
         if (utils.jmlverbose >= Utils.PROGRESS) {
-            if (!splitkey.isEmpty()) log.getWriter(WriterKind.NOTICE).println("Result of split "  + splitkey + " is " + proofResult.result());
+            if (!splitkey.isEmpty()) log.getWriter(WriterKind.NOTICE).println("Result of split "  + splitkey + " is " + 
+                                    transResult(proofResult.result()));
             //else if (translations.splits.size() > 1) log.getWriter(WriterKind.NOTICE).println("Result of full program analysis is " + proofResult.result());
         }
         numberAccumulated++;
@@ -791,7 +797,9 @@ public class MethodProverSMT {
         }
         } // end of splitkey
         if (utils.jmlverbose >= Utils.PROGRESS && numberAccumulated > 1) {
-            log.getWriter(WriterKind.NOTICE).println("Composite result " + proofResultAccumulated.result());
+            log.getWriter(WriterKind.NOTICE).println("Composite result " 
+                                    + transResult(proofResultAccumulated.result())
+                                    + (skips == 0 ? "" : (" with " + skips + " splits skipped")));
         }
         if (proofResultAccumulated == null) {
             log.getWriter(WriterKind.NOTICE).println("No matching splits");
@@ -799,6 +807,10 @@ public class MethodProverSMT {
         }
         return proofResultAccumulated; // FIXME - need to combine results
         
+    }
+    
+    String transResult(IProverResult.Kind k) {
+        return k == IProverResult.UNSAT ? "Verified" : (k == IProverResult.SAT || k == IProverResult.POSSIBLY_SAT) ? "Not verified" : k.toString(); 
     }
     
     protected List<IProverResult.Span> path;
@@ -1144,7 +1156,7 @@ public class MethodProverSMT {
                                     loc);
                             tracer.appendln(associatedLocation + " Associated location");
                         }
-                        if (true) { //JmlOption.isOption(context,JmlOption.ESC_EXIT_INFO)) {
+                        {
                             IJmlClauseKind tkind = assertStat.associatedClause == null ? null : assertStat.associatedClause.clauseKind;
                             if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind
                             		|| assertStat.label == Label.POSSIBLY_NULL_RETURN) {  // FIXME - actually - any postcondition check

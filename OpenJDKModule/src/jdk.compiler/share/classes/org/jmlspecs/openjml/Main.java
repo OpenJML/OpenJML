@@ -534,7 +534,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         Main.Result exit = super.compile(args,context);
     	int n = Utils.instance(context).verifyWarnings;
     	if (n != 0) {
-    		JavaCompiler.instance(context).printCount("verify", n);
+    	    if (!log.hasDiagnosticListener()) JavaCompiler.instance(context).printCount("verify", n);
     		if (exit.exitCode == 0 && !Utils.testingMode) {
     			exit = Result.VERIFY;
     			String v = JmlOption.value(context, JmlOption.EXITVERIFY);
@@ -543,13 +543,13 @@ public class Main extends com.sun.tools.javac.main.Main {
     					int z = Integer.valueOf(v);
     					for (Result x: Result.values()) { if (x.exitCode == z) { exit = x; break; }}
     					if (exit.exitCode != z) throw new RuntimeException();
+    		            if (exit == Result.OK && Options.instance(context).isSet(WERROR)) exit = Result.ERROR;
     				} catch (Exception e) {
     	                uninitializedLog().error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + v);
     					exit = Result.CMDERR;
     				}
     			}
     		}
-    		if (Options.instance(context).isSet(WERROR)) exit = Result.ERROR;
     	}
         return exit;
     }
@@ -561,7 +561,13 @@ public class Main extends com.sun.tools.javac.main.Main {
     	return compile(args,context);
     }
     
+    /** Do anything that needs adjustment after options are processed but
+     * before compilation actually begins.
+     */
     public void postOptionProcessing() {
+        // Hnadlers are created during tool registration, which in OpenJML has to be before
+        // options are read. So the handlers have to be adjusted for the options.
+        Check.instance(context).resetHandlers();
     }
     
     public java.util.Collection<JavaFileObject> fileObjects;
@@ -781,11 +787,21 @@ public class Main extends com.sun.tools.javac.main.Main {
     public void addOptions(String... args) {
     	if (!(Options.instance(context) instanceof JmlOptions)) return;
         args = JmlOptions.instance(context).addOptions(args);
+        for (int i = 0; i < args.length; i++) {
+            if (i+1 >= args.length) {
+                Options.instance(context).put(args[i],"true");
+            } else if (args[i+1].length() == 0 || args[i+1].charAt(0) != '-') {
+                Options.instance(context).put(args[i],args[i+1]);
+                i++;
+            } else {
+                Options.instance(context).put(args[i],"true");
+            }
+        }
     }
     
-    public void addJavaOption(String opt, String value) {
-    	Options.instance(context).put(opt, value);
-    }
+//    public void addJavaOption(String opt, String value) {
+//    	Options.instance(context).put(opt, value);
+//    }
     
     /** Adds a custom option (not checked as a legitimate command-line option);
      * may have an argument after a = symbol */

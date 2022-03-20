@@ -363,7 +363,7 @@ public class escstrings extends EscBase {
                 
                 +"  //@ requires s.length() > 0;\n"
                 +"  public void m(String s, String ss) {\n"
-                +"       //@ assert s.charAt(0) == ss.charAt(0);\n"  // should not hold since s != ss
+                +"       //@ assert s.charAt(0) == ss.charAt(0);\n"  // should not hold since s != ss, or ss might be too short
                 +"  }\n"
                 
                 +"}"
@@ -371,7 +371,7 @@ public class escstrings extends EscBase {
                         seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m",12)
                         ,seq(seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43
                              ,"$SPECS/java/lang/String.jml:333: warning: Associated declaration",30)
-                             ,"$SPECS/java/lang/CharSequence.jml:79: warning: Precondition conjunct is false: 0 <= index < charArray.length",34
+                             ,optional("$SPECS/java/lang/CharSequence.jml:79: warning: Precondition conjunct is false: 0 <= index < charArray.length",34)
                             )
                                 		
                         )

@@ -13,5 +13,3 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.fromSecondsBuggy(int) with prover !!!! - no warnings
 Completed proving methods in Test
-Note: Some input files use unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.

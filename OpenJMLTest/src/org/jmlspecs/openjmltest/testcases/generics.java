@@ -48,6 +48,7 @@ public class generics extends TCBase {
         addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection extends java.lang.Iterable {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.jml:2: error: The type Collection in the specification matches a Java type java.util.Collection<E> with a different number of type arguments",8
+                ,"+" // More errors because we do not see the real Collection specs
                 );
     }
 
@@ -67,6 +68,7 @@ public class generics extends TCBase {
         addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection<E> extends java.lang.Iterable<Z> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.jml:2: error: cannot find symbol\n  symbol: class Z",59
+                ,"+" // More errors because we do not see the real Collection specs
                 );
     }
 
@@ -77,6 +79,7 @@ public class generics extends TCBase {
         addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection<Z> extends java.lang.Iterable<Z> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.jml:2: error: The specification type named Collection (java.util.Collection) has a type parameter named Z but the Java declaration has that type parameter named E",29
+                ,"+" // More errors because we do not see the real Collection specs
                 );
     }
 
@@ -87,6 +90,7 @@ public class generics extends TCBase {
         addMockFile("$A/java/util/Collection.jml","public interface Collection<Z> extends java.lang.Iterable<Z> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.jml:1: error: Specification package does not match Java package: unnamed package vs. java.util",2
+                ,"+" // More errors because we do not see the real Collection specs
                 );
     }
 
@@ -97,6 +101,7 @@ public class generics extends TCBase {
         addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection<E,Z> extends java.lang.Iterable<E> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.jml:2: error: The type Collection<E,Z> in the specification matches a Java type java.util.Collection<E> with a different number of type arguments",8
+                ,"+" // More errors because we do not see the real Collection specs
                 );
     }
     

@@ -1,9 +1,10 @@
 #! /bin/bash
 
-f=$1; shift
+outputfile=$1; shift
 s=$1; shift
-r=`./runtests $* 2>&1 | tee $f | grep failures`
+r=`./runtests $* 2>&1 | tee ${outputfile} | grep failures`
 expfailures=`echo $s | sed -e 'sx^[^/]*/xx' | tr -d '"' `
 actfailures=`echo $r | sed -e 's/^.*timeouts,//' | sed -e 's/failures,.*$//' | tr -d ' ' `
 if [ "$expfailures" != "$actfailures" ]; then m="<<<<<<<<<<<< $actfailures vs. $expfailures" ; else m="" ;fi
-echo -e "$f\t" $r ": expected $s $m"
+##if [ `cat ${outputfile} | grep -v gnor | wc -l` -ne "0" ]; m="$m + Extraneous output"
+echo -e "${outputfile}\t" $r ": expected $s $m"

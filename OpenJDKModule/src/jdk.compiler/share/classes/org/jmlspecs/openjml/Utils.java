@@ -102,6 +102,8 @@ import com.sun.tools.javac.util.JCDiagnostic.Warning;
  */
 public class Utils {
     
+    static public boolean debugOptions = Utils.debug("options");
+    
     /** This field is used to restrict output during testing so as to 
      * make test results more deterministic (or to match old test results).
      */
@@ -175,6 +177,7 @@ public class Utils {
 
     /** Global utility value that enables printing of debugging or trace information. */
     public int jmlverbose = NORMAL; 
+    static public final int SILENT = -1;
     static public final int QUIET = 0;
     static public final int NORMAL = 1;
     static public final int PROGRESS = 2;
@@ -762,18 +765,18 @@ public class Utils {
     	for (var p: properties.entrySet()) {
     		String k = p.getKey().toString();
     		if (k.startsWith(Strings.optionPropertyPrefix)) {
-    			String kk = "-" + k.substring(Strings.optionPropertyPrefix.length());
+    			String kk = "--" + k.substring(Strings.optionPropertyPrefix.length());
     			JmlOptions.instance(context).processOption(kk, p.getValue().toString());
     		}
     	}
     }
     
     /** Finds OpenJML properties files in pre-defined places, reading their
-     * contents and loading them into the System property set.
+     * contents into the Properties object that is returned.
      */
     public static Properties findProperties(Context context) {
     	
-        boolean verbose = false;
+        boolean verbose = debugOptions;
 
     	if (context == null) context = new Context();
         PrintWriter noticeWriter = Log.instance(context).getWriter(WriterKind.NOTICE);
@@ -1956,14 +1959,21 @@ public class Utils {
     	e.printStackTrace(System.out);
     }
     
-    static String debugkeys = System.getenv("OJ");
+    static String debugstring = System.getenv("OJ");
+    static String[] debugkeys = debugstring == null ? new String[] {} : debugstring.split(",");
     public static boolean debug() {
-    	return debugkeys != null;
+    	return debugstring != null;
     }
     
     public static boolean debug(String key) {
-    	if (debugkeys == null) return false;
-    	return (debugkeys.contains("+"+key) || debugkeys.contains(":all")) && !debugkeys.contains("-"+key);
+        if (debugkeys == null) return false;
+        return Arrays.stream(debugkeys).anyMatch(s->s.equals(key));
+    }
+    
+    public static String debugValue(String key, String def) {
+        if (debugkeys == null) return def;
+        var opt = Arrays.stream(debugkeys).filter(s->s.startsWith(key)).findFirst();
+        return opt.isEmpty() ? def : opt.get().substring(key.length());
     }
     
     static boolean verbose = System.getenv("VERBOSE") != null;

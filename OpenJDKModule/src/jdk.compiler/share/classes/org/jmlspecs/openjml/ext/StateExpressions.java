@@ -65,11 +65,10 @@ public class StateExpressions extends JmlExtension {
 
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            syms = attr.syms;
             JmlMethodInvocation tree = (JmlMethodInvocation)that;
             attr.jmlenv = attr.jmlenv.pushCopy();
             IJmlClauseKind clauseKind = attr.jmlenv.currentClauseKind;
-            Type t = syms.errType;
+            Type t = attr.syms.errType;
             Name label = null;
             int n = tree.args.size();
             if (!(n == 1 || (tree.token != JmlTokenKind.BSPRE && n == 2))) {

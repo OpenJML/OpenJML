@@ -1,0 +1,15 @@
+test/gitbug758/Test.java:4: error: A JML declaration incorrectly follows non-JML modifiers
+    //@ ghost static int f;
+                         ^
+test/gitbug758/Test.java:9: error: Unclosed string literal at end of JML annotation
+/*@ ghost String s = "asdf */"; */
+                           ^
+test/gitbug758/Test.java:9: error: unclosed string literal
+/*@ ghost String s = "asdf */"; */
+                             ^
+test/gitbug758/Test.java:10: error: reached end of file while parsing
+}
+ ^
+Stopping because of parsing errors
+Operation not performed because of parse or type errors
+4 errors

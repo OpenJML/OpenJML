@@ -4,7 +4,7 @@ public class TestOptions {
     //@ assert false;
   }
 
-  @org.jmlspecs.annotation.Options({"-timeout=1","-progress"})
+  @org.jmlspecs.annotation.Options({"-timeout=10","-progress"})
   public void m() {
     //@ assert false;
   }
