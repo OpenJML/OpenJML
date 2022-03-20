@@ -1,1 +1,1 @@
-ARGS+=" --method=remove "
+ARGS+=" --method=remove --keys=TEST "

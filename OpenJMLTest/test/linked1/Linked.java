@@ -69,7 +69,7 @@ public class Linked<W> {
     //@   ensures n > 0 ==> next == \old(next);
     //@   ensures this.size == \old(this.size) - 1;
     //@   ensures this.values.equals(\old(values).tail(1));
-    // @org.jmlspecs.annotation.Options("--check-feasibility=none")  // FIXME - sometime works, sometimes times out
+    //-TEST@ @org.jmlspecs.annotation.Options("--check-feasibility=none")  // sometime works, sometimes times out, tested in test linked1a
     public void remove(int n) {
         if (n == 0) {
             this.next = this.next.next;

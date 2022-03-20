@@ -2460,8 +2460,12 @@ public class SMTTranslator extends JmlTreeScanner {
                 log.error("jml.internal","Don't know how to translate expression to SMTLIB: " + JmlPretty.write(tree));
                 throw new RuntimeException();
         }
+    	} catch (JmlBVException e) {
+    	    throw e;
         } catch (Exception e) {
+            log.error("jml.internal","Exception while translating expression to SMTLIB: " + JmlPretty.write(tree));
         	System.out.println("EXCEPTION IN SUBEXPR OF " + tree);
+        	e.printStackTrace(System.out);
         	throw e;
         }
     }

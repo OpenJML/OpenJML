@@ -4923,4 +4923,188 @@ public class esc2 extends EscBase {
             );
     }
 
+    @Test
+    public void testConditional4() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+
+            //@ ghost public \\bigint nn;
+
+            //@ requires nn == 0;
+            public void m(boolean b) {
+              //@ ghost \\bigint z =  (b ? 0 : nn);
+              //@ assert z == 0;
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testHeap1() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure
+            public int f() { return 0; }
+
+            //@ old int x = f();
+            //@ ensures f() == \\old(f());
+            //@ ensures x == \\old(f());
+            public int m(boolean b) {
+                int y = f();
+                //@ assert y == f();
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+
+    @Test
+    public void testHeap2() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure
+            public int f() { return 0; }
+
+            //@ old int x = f();
+            //@ ensures f() == \\old(f()); // FAILS
+            public int m(boolean b) {
+                int y = f();
+                //@ assert y == f();
+                z = 1;
+                return y;
+            }
+            }
+            """
+            ,"/tt/Test.java:14: warning: The prover cannot establish an assertion (Postcondition) in method m",5
+            ,"/tt/Test.java:9: warning: Associated declaration",5
+            );
+    }
+
+    @Test
+    public void testHeap2a() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ reads \\nothing; ensures true; pure
+            public int f() { return 0; }
+
+            //@ old int x = f();
+            //@ ensures f() == \\old(f());
+            public int m(boolean b) {
+                int y = f();
+                //@ assert y == f();
+                z = 1;
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+
+    @Test
+    public void testHeap3() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure
+            public int f() { return 0; }
+
+            public int m(boolean b) {
+                int y = f();
+                z = 1;
+              //@ assert y == \\old(f());
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testHeap4() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure
+            public int f() { return 0; }
+
+            public int m(boolean b) {
+                int y = f();
+                z = 1;
+              //@ assert f() == \\old(f()); // ERROR
+                return y;
+            }
+            }
+            """
+            ,"/tt/Test.java:11: warning: The prover cannot establish an assertion (Assert) in method m",7
+            );
+    }
+
+    @Test
+    public void testHeap4a() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ reads \\nothing; ensures true; pure
+            public int f() { return 0; }
+
+            public int m(boolean b) {
+                int y = f();
+                z = 1;
+              //@ assert f() == \\old(f());
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testHeap5() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure
+            public int f() { return 0; }
+
+            //@ old int x = f();
+            //@ ensures \\result == f();
+            public int m(boolean b) {
+                int y = f();
+                z = 1;
+                return f();
+            }
+            }
+            """
+            );
+    }
+
 }

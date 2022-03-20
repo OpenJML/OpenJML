@@ -4393,7 +4393,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					continue;
 				}
 				specCase = specCaseIterator.next();
-				if (!doSpecificationCase(methodDecl, parentMethodSymbol, specCase)) continue;
+				if (!doSpecificationCase(methodDecl, methodSymbol, parentMethodSymbol, specCase)) continue;
 				log.useSource(specCase.source());
 				//System.out.println("HASNEXT-TRUE " + methodSymbol);
 				return true;
@@ -4597,7 +4597,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				Map<JmlMethodClause, JCExpression> clauseIds = new HashMap<>();
 				elseExpression = treeutils.falseLit;
 				for (JmlSpecificationCase scase : denestedSpecs.cases) {
-					if (!doSpecificationCase(methodDecl, parentMethodSym, scase)) continue;
+					if (!doSpecificationCase(methodDecl, methodDecl.sym, parentMethodSym, scase)) continue;
 					JavaFileObject prev = log.useSource(scase.source());
 					try {
 						JCExpression preexpr = null;
@@ -4877,12 +4877,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		popBlock();
 	}
 
-	// methodDecl - base method that is being translated
+	// methodDecl - method that is being translated
+	// baseMethodSym - base method of which parent is a parent
 	// parentMethodSym - symbol for the method or overriding method to which spec case belongs
 	// scase - the particular specification case
-	public boolean doSpecificationCase(JCMethodDecl methodDecl, MethodSymbol parentMethodSym, JmlSpecificationCase scase) {
+	public boolean doSpecificationCase(JCMethodDecl methodDecl, MethodSymbol baseMethodSym, MethodSymbol parentMethodSym, JmlSpecificationCase scase) {
 		if (!utils.jmlvisible(parentMethodSym, methodDecl.sym.owner, parentMethodSym.owner, scase.modifiers.flags, methodDecl.mods.flags)) return false;
-		if (parentMethodSym != methodDecl.sym && scase.code)  return false;
+		if (parentMethodSym != baseMethodSym && scase.code)  return false;
 		return true;
 	}
 
@@ -5380,7 +5381,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        	System.out.println("DENEST " + JmlSpecs.instance(context).getDenestedSpecs(msym));
 			for (JmlSpecificationCase scase : denestedSpecs.cases) {
 				sawSomeSpecs = true;
-				if (!doSpecificationCase(methodDecl, parentMethodSym, scase)) continue;
+				if (!doSpecificationCase(methodDecl, methodDecl.sym, parentMethodSym, scase)) continue;
 				JCIdent preident = preconditions.get(scase);
 				if (preident == null) continue; // This happens if the precondition contains unimplemented material. But might
 								// in other situations as well.
@@ -9382,9 +9383,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									"JML undefined precondition - exception thrown", null));
 						}
 						elseExpression = treeutils.makeBitOrSimp(cs.pos, elseExpression, preId);
-						// System.out.println("PUTPRE " + preId + " " + mpsym.owner + "." + mpsym + " "
-						// + cs.hashCode() + " " + cs);
-						calleePreconditions.put(cs, preId); // Add to the list of spec cases, in order of declaration
+						//System.out.println("PUTPRE " + preId + " " + mpsym.owner + "." + mpsym + " " + cs.hashCode() + " " + cs);
+						calleePreconditions.put(cs, preId);
 						pre = preId;
 						combinedPrecondition = treeutils.makeOrSimp(pre.pos, combinedPrecondition, pre);
 
@@ -9786,7 +9786,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					newCall.setType(that.type);
 					JCIdent resultId = M.at(p).Ident(resultSym);
 					addAssumeEqual(that, Label.METHOD_ASSUME, resultId, newCall);
-	                if (!calleeIsConstructor && isPure(calleeMethodSym)) {
+	                if (!calleeIsConstructor && isPure(calleeMethodSym) && !calleeIsFunction) {
 	                    makeMethodHavocAxiom(that, receiverType, calleeMethodSym, that.type, that, newargs.toList());
 	                }
 				}
@@ -10781,6 +10781,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        if (heapInfo.previousHeaps.isEmpty()) return;
 	        for (var oldHeapInfo: heapInfo.previousHeaps) {
 	            //System.out.println("   OLDHC " + oldHeapInfo.heapID + " " + hc);
+	            if (hc == oldHeapInfo.heapID) continue; // No need for axioms if it is the same heap
 	            MethodSymbol newCalleeSym = getNewMethodSymbol(calleeMethodSym);
 	            MethodSymbol oldMethodSym = getNewMethodSymbol(calleeMethodSym, oldHeapInfo.heapID);
 	            if (oldMethodSym == null) {
@@ -10834,7 +10835,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                    if (oldhavocs == null || oldhavocs instanceof JCIf) {
 	                        // skip
 	                    } else if (oldhavocs instanceof JCNewClass nc) {
-	                        if (isPure((MethodSymbol)nc.constructor)) {
+	                        if (isPure((MethodSymbol)nc.constructor) && currentEnv.currentReceiver != null) {
 	                            var z = freshTest(nc, currentEnv.currentReceiver, labelPropertiesStore.get(oldHeapInfo.label).allocCounter);
 	                            disjoint = treeutils.makeNot(z, z);
 	                        } else {
@@ -10845,6 +10846,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                        JCExpression hasIntersection = treeutils.falseLit;
 	                        for (JCExpression srex: sc.list) { 
 	                            JmlStoreRef jmlsr = makeJmlStoreRef(srex, srex, (ClassSymbol)calleeMethodSym.owner, false).head;
+	                            if (jmlsr == null) continue; // srex is \nothing
 	                            JmlStoreRef sr = null;
 	                            if (oldhavocs instanceof JCFieldAccess fa) {
 	                                sr = makeJmlStoreRef(fa, fa, (ClassSymbol)fa.sym.owner, false).head;
@@ -10874,6 +10876,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                    // If a state change had no havocs, this is overly conservative
 	                    if (treeutils.isFalseLit(disjoint)) {
 	                        addStat(comment(methodDecl, "   Reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is never disjoint from " + oldhavocs , null));
+	                    } else if (treeutils.isTrueLit(disjoint) && treeutils.isTrueLit(preid)) {
+                            addStat(comment(methodDecl, "   Checking reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is disjoint from " + oldhavocs + "  Precondition: " + preid + " " + copy(preid), null));
+                            addStat(noChangeInstantiation);
 	                    } else {
 	                        addStat(comment(methodDecl, "   Checking reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is disjoint from " + oldhavocs + "  Precondition: " + preid + " " + copy(preid), null));
 	                        JCStatement v = M.at(clause).If(treeutils.makeAndSimp(clause, copy(preid), disjoint), noChangeInstantiation, null);
@@ -12297,12 +12302,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					try {
 						for (JmlSpecificationCase specCase : denestedSpecs.cases) {
 
-							if (emitAsserts && !doSpecificationCase(methodDecl, parentMethodSym, specCase)) continue; // FIXME - something different for targetENv
+							if (!doSpecificationCase(methodDecl, methodSym, parentMethodSym, specCase)) continue; // FIXME - something different for targetENv
 							log.useSource(specCase.source());
-							JCExpression precondition = emitAsserts ? preconditions.get(specCase): calleePreconditions.get(specCase); // FIXME - a hack
+							JCExpression precondition = methodDecl.sym == methodSym ? preconditions.get(specCase): calleePreconditions.get(specCase); // FIXME - a hack
 							//System.out.println("SPECCASE PRE " + precondition);
 							if (precondition == null) {
-								System.out.println("NULL PRECONDITION FOR " + methodSym + " " + parentMethodSym + " " + specCase);
+								System.out.println("NULL PRECONDITION FOR " + methodDecl.sym.owner + "." + methodDecl.sym + " " + methodSym.owner + "." + methodSym + " " + parentMethodSym.owner + "." + parentMethodSym + " " + (methodSym==parentMethodSym) + " " + specCase);
 								precondition = treeutils.trueLit; // Not correct, but just error recovery
 							}
 							precondition = treeutils.makeAndSimp(precondition,  guard, precondition);
