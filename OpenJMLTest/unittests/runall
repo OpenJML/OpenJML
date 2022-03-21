@@ -40,6 +40,7 @@ wt
 ./run-summary log-escnew   	"64/1"  escnew &
 ./run-summary log-escnew2   	"35/0"  escnew2 &
 ./run-summary log-escnew3   	"64/0"  escnew3 &
+./run-summary log-examples      "3/0"   examples &
 wt
 ./run-summary log-esclambdas   	"25/3"  esclambdas  &
 ./run-summary log-escm         	"13/0"  escm   &

@@ -1,0 +1,10 @@
+Proving methods in ChangeCase
+Starting proof of ChangeCase.ChangeCase() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ChangeCase.ChangeCase() with prover !!!! - no warnings
+Starting proof of ChangeCase.changeCase(char) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ChangeCase.changeCase(char) with prover !!!! - no warnings
+Completed proving methods in ChangeCase

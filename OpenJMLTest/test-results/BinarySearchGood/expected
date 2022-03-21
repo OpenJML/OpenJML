@@ -1,0 +1,10 @@
+Proving methods in BinarySearchGood
+Starting proof of BinarySearchGood.BinarySearchGood() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BinarySearchGood.BinarySearchGood() with prover !!!! - no warnings
+Starting proof of BinarySearchGood.search(int[],int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BinarySearchGood.search(int[],int) with prover !!!! - no warnings
+Completed proving methods in BinarySearchGood

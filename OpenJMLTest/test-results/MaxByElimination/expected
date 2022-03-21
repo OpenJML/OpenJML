@@ -1,0 +1,10 @@
+Proving methods in MaxByElimination
+Starting proof of MaxByElimination.MaxByElimination() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MaxByElimination.MaxByElimination() with prover !!!! - no warnings
+Starting proof of MaxByElimination.max(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MaxByElimination.max(int[]) with prover !!!! - no warnings
+Completed proving methods in MaxByElimination

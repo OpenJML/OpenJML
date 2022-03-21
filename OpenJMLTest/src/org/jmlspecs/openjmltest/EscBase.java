@@ -14,6 +14,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.MethodProverSMT;
 import org.jmlspecs.openjmltest.OutputCompare.*;
 import org.junit.Rule;
@@ -197,8 +198,8 @@ public abstract class EscBase extends JmlTestCase {
     		PrintWriter pw = new PrintWriter(actCompile);
     		int ex = -1;
     		try {
+    		    //System.out.println("ARGS " + Utils.join(" ",  args));
     			ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
-    			//ex = com.sun.tools.javac.Main.compile(args.toArray(new String[args.size()]),pw);
     		} finally {
     			pw.close();
     		}
@@ -279,7 +280,7 @@ public abstract class EscBase extends JmlTestCase {
         args.add("-jmltesting");
         args.add("--progress");
         args.add("--timeout=300");
-        args.add("--code-math=java");
+        args.add("--code-math=java"); //FIXME - delete this, but need to change subtests
         if (!new File(sourceDirOrFilename).isFile()) args.add("--dir");
         args.add(sourceDirOrFilename);
         if (solver != null) args.add("--prover="+solver);

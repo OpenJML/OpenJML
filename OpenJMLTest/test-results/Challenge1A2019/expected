@@ -1,0 +1,13 @@
+Proving methods in Challenge1A2019
+Starting proof of Challenge1A2019.Challenge1A2019() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Challenge1A2019.Challenge1A2019() with prover !!!! - no warnings
+Starting proof of Challenge1A2019.findMonotonicCutpoints(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at reachable statement : OK
+Feasibility check - at reachable statement : OK
+Feasibility check - at reachable statement : OK
+Feasibility check - at program exit : OK
+Completed proof of Challenge1A2019.findMonotonicCutpoints(int[]) with prover !!!! - no warnings
+Completed proving methods in Challenge1A2019

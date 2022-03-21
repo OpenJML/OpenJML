@@ -1,0 +1,11 @@
+Proving methods in SumMax
+Starting proof of SumMax.SumMax() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SumMax.SumMax() with prover !!!! - no warnings
+Starting proof of SumMax.m(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - after explicit assume statement : OK
+Feasibility check - at program exit : OK
+Completed proof of SumMax.m(int[]) with prover !!!! - no warnings
+Completed proving methods in SumMax
