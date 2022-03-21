@@ -1050,10 +1050,10 @@ public class Utils {
         return methods;
     }
     
-    public static <T> String join(CharSequence delim, java.util.Collection<T> list) { return Utils.join(delim, list.stream(), x->x); }
+    public static <T> String join(CharSequence delim, java.util.Collection<T> list) { return Utils.join(delim, list.stream(), x->String.valueOf(x)); }
     public static <T,U> String join(CharSequence delim, java.util.Collection<T> list, java.util.function.Function<T,U> f) { return Utils.join(delim, list.stream(), f); }
     public static <T,U> String join(CharSequence delim, java.util.stream.Stream<T> list) { return Utils.join(delim, list, x->x); }
-    public static <T,U> String join(CharSequence delim, java.util.stream.Stream<T> list, java.util.function.Function<T,U> f) { return String.join(delim, list.map(mm->f.apply(mm).toString()).collect(java.util.stream.Collectors.toList())); }
+    public static <T,U> String join(CharSequence delim, java.util.stream.Stream<T> list, java.util.function.Function<T,U> f) { return String.join(delim, list.map(mm->String.valueOf(f.apply(mm))).collect(java.util.stream.Collectors.toList())); }
     public static <T> String join(CharSequence delim, T[] list) { return Utils.join(delim, Stream.of(list), x->x); }
     
     /** Creates the location prefix including the colon without any message;
