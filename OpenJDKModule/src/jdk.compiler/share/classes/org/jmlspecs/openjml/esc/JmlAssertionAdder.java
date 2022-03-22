@@ -364,18 +364,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	/** Location of calls within the method or its specifications */
 	protected /* @ nullable */ JCTree nestedCallLocation = null;
 
-
 	/**
 	 * The receiver expression, such as when performing a method call within the
 	 * body of the method being translated.
 	 */
 //	protected JCExpression currentThisExpr;
 
-
-	/**
-	 * The mode to use to model arithmetic operations - only null until initialized
-	 */
-	protected IArithmeticMode currentArithmeticMode = null;
 
 	protected boolean isRefiningBranch = false;
 
@@ -868,7 +862,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		VarSymbol savedTerminationSym = this.terminationSym;
 		int savedFreshnessReferenceCount = this.freshnessReferenceCount;
 		this.freshnessReferenceCount = 0;
-		IArithmeticMode savedArithmeticMode = this.currentArithmeticMode;
 		ListBuffer<JCStatement> prevStats = initialStatements;
 		ListBuffer<JCStatement> savedOldStatements = oldStatements;
 		JavaFileObject prevSource = log.useSource(pmethodDecl.source());
@@ -876,7 +869,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		java.util.List<Symbol> savedCompletedInvariants = this.completedInvariants;
 		Set<Symbol> savedInProcessInvariants = this.inProcessInvariants;
 		boolean isModel = isModel(pmethodDecl.sym);
-//        Map<Symbol,Map<String,VarSymbol>> savedDeterminismSymbols = determinismSymbols;
 		JCBlock savedDiscoveredFields = discoveredFields;
 		Set<Symbol> savedAlreadyDiscoveredFields = alreadyDiscoveredFields;
 		int savedAllocCounter = allocCounter;
@@ -885,11 +877,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		Set<Type> savedActiveExceptions = activeExceptions;
 		activeExceptions = new HashSet<>();
 		findActiveExceptions(pmethodDecl);
+
 		this.currentEnv = this.currentEnv.pushEnvCopy(); // FIXME - or pushCopyInit?
+        currentEnv.arithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(pmethodDecl.sym, false);
 
 		var savedDivergesExpressions = divergesExpressions;
 		divergesExpressions = new ListBuffer<>();
-		// System.out.println("Translating " + pmethodDecl.sym.toString());
 
 		allocCounter = 0;
 
@@ -898,9 +891,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			isAllocSym.flags_field |= Utils.JMLINSTANCE;
 		}
 
-//        determinismSymbols = new HashMap<>();
-
-		// Collect all classes that are mentioned in the method
+		// Collect all classes that are mentioned in the method, plus some other information
 		ClassCollector collector = ClassCollector.collect(pclassDecl, pmethodDecl, context);
 
 		{
@@ -908,14 +899,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			useBV = !rac && ((collector.useBV && "auto".equals(bv)) || "true".equals(bv));
 			pmethodDecl.usedBitVectors = useBV;
 		}
-		currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(pmethodDecl.sym, false);
-		if (!isModel)
-			addAxioms(-1, null);
+		if (!isModel) addAxioms(-1, null);
 		assumingPostConditions = true;
 
 		typevarMapping = typemapping(pclassDecl.type, null, null, null);
 
-		boolean undoLabels = false;
+		boolean undoLabels = false; // TODO - explain why this is used
 		try {
 			enclosingMethod = pmethodDecl.sym;
 			enclosingClass = pmethodDecl.sym.owner;
@@ -1340,7 +1329,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			this.classDecl = prevClass;
 			this.initialStatements = prevStats;
 			this.explicitThisId = savedExplicitThisId;
-			this.currentEnv.currentReceiver = savedThisExpr;
+			//this.currentEnv.currentReceiver = savedThisExpr;
 			this.resultSym = savedResultSym;
 			this.resultExpr = savedResultExpr;
 			this.exceptionSym = savedExceptionSym;
@@ -1354,7 +1343,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			this.inProcessInvariants = savedInProcessInvariants;
 			this.enclosingMethod = savedEnclosingMethod;
 			this.enclosingClass = savedEnclosingClass;
-			this.currentArithmeticMode = savedArithmeticMode;
 			this.alreadyDiscoveredFields = savedAlreadyDiscoveredFields;
 			this.discoveredFields = savedDiscoveredFields;
 			this.allocCounter = savedAllocCounter;
@@ -1619,17 +1607,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return copier.copy(trees,null);
 	}
 
-	public IArithmeticMode pushArithMode() {
+	public void pushArithMode() {
+        currentEnv = currentEnv.pushEnvCopy();
 		Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
-		IArithmeticMode saved = currentArithmeticMode;
-		Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
-		currentArithmeticMode = Arithmetic.Math.instance(context)
+		currentEnv.arithmeticMode = Arithmetic.Math.instance(context)
 				.defaultArithmeticMode(methodDecl != null ? methodDecl.sym : classDecl.sym, true);
-		return saved;
 	}
 
-	public void popArithMode(IArithmeticMode saved) {
-		currentArithmeticMode = saved;
+	public void popArithMode() {
+		currentEnv = currentEnv.popEnv();
 	}
 
 	/**
@@ -1647,7 +1633,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean savedt = this.translatingJML;
 		boolean savedSplit = this.splitExpressions;
 		boolean savedCA = this.checkAccessEnabled;
-		IArithmeticMode savedArithmeticMode = !translatingJML ? pushArithMode() : currentArithmeticMode;
+		currentEnv = currentEnv.pushEnvCopy();
+		if (!translatingJML) currentEnv.arithmeticMode = Arithmetic.Math.instance(context)
+		                        .defaultArithmeticMode(methodDecl != null ? methodDecl.sym : classDecl.sym, true);
 		JCExpression savedc = this.condition;
 		try {
 			if (!translatingJML) { // FIXME - not sure about this translatingJML guard
@@ -1670,7 +1658,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			this.translatingJML = savedt;
 			this.splitExpressions = savedSplit;
 			this.condition = savedc;
-			this.currentArithmeticMode = savedArithmeticMode;
+			this.currentEnv = this.currentEnv.popEnv();
 			this.checkAccessEnabled = savedCA;
 		}
 	}
@@ -1727,12 +1715,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean savedt = this.translatingJML;
 		boolean savedSplit = this.splitExpressions;
 		boolean savedCA = this.checkAccessEnabled;
-		IArithmeticMode savedArithmeticMode = this.currentArithmeticMode;
+		this.currentEnv = this.currentEnv.pushEnvCopy();
 		JCExpression savedc = this.condition;
 		try {
 			if (!translatingJML) { // FIXME - not sure about this translatingJML guard
 				Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
-				currentArithmeticMode = Arithmetic.Math.instance(context)
+				currentEnv.arithmeticMode = Arithmetic.Math.instance(context)
 						.defaultArithmeticMode(methodDecl != null ? methodDecl.sym : classDecl.sym, true);
 				if (condition == null)
 					condition = treeutils.trueLit;
@@ -1748,7 +1736,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			this.translatingJML = savedt;
 			this.splitExpressions = savedSplit;
 			this.condition = savedc;
-			this.currentArithmeticMode = savedArithmeticMode;
+			this.currentEnv = this.currentEnv.popEnv();
 			this.checkAccessEnabled = savedCA;
 		}
 	}
@@ -2477,6 +2465,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return newTemp(expr.pos, name, expr);
 	}
 
+    public JCExpression newTempIfNeeded(JCExpression expr) {
+        if (expr instanceof JCLiteral) return expr;
+        if (expr instanceof JCIdent id && id.sym.owner == null) return id;
+        return newTemp(uniqueTempString(), expr);
+    }
+
 	public Map<Symbol, JCLiteral> constants = new HashMap<>();
 
 	public JCExpression simplifyAndSave(JmlVariableDecl d, JCExpression expr) {
@@ -2490,6 +2484,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			constants.put(d.sym, (JCLiteral) expr);
 		}
 		return expr;
+	}
+	
+	public boolean isIdOrLit(JCExpression expr) {
+	    if (expr instanceof JCLiteral) return true;
+	    if (expr instanceof JCIdent id) return true;
+	    return false;
 	}
 
 	/**
@@ -2626,7 +2626,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 */
 	public JCStatement wrapRuntimeException(DiagnosticPosition pos, JCStatement statement, String message,
 			/* @nullable */ JCBlock catchStats) {
-		if (!rac)return statement;
+		if (!rac) return statement;
+		// methodDecl can be null if we are translating class specs or initalizer blocks (check this -- temp method?)
+		// FIXME - why is superSymbol used here?
 		var ownerSym = methodDecl != null ? methodDecl.sym : classDecl.superSymbol;
 		JCBlock block = statement instanceof JCBlock ? (JCBlock) statement
 				: M.at(statement).Block(0L, List.<JCStatement>of(statement));
@@ -4641,9 +4643,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											addAssert(decl.init, Label.POSSIBLY_NULL_ASSIGNMENT,
 													treeutils.makeNotNull(decl.init.pos, convertedInit));
 										}
-										IArithmeticMode savedAM = pushArithMode();
+										pushArithMode();
 										convertedInit = addImplicitConversion(decl.init, decl.type, convertedInit);
-										popArithMode(savedAM);
+										popArithMode();
 										if (rac) {
 											JCExpressionStatement stat = treeutils.makeAssignStat(decl.init.pos, id,
 													convertedInit);
@@ -6916,10 +6918,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitIf(JCIf that) {
-		boolean split = that instanceof JmlIfStatement && ((JmlIfStatement) that).split;
+	    var ifthat = (JmlIfStatement)that;
+		boolean split = ifthat.split;
 		addStat(traceableComment(that.getCondition(), that.getCondition() , "if " + that.getCondition() + " ...", "Condition"));
 		JCExpression cond = convertExpr(that.cond);
 		cond = addImplicitConversion(that.cond, syms.booleanType, cond);
+		cond = newTempIfNeeded(cond);
 
 		// The scanned result of the then and else parts must always be a block
 		// because multiple statements might be produced, even from a single
@@ -6941,13 +6945,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			var r = addStat(st);
             continuation = thenContinuation.combine(elseContinuation);
             if (thenBranchHeapCount != heapCount) {
+                methodEnv.allHeaps.get(heapCount).condition = treeutils.makeNot(cond, cond);
                 pushBlock();
                 addStat(comment(that, "If heap change", null));
                 JmlLabeledStatement sttt = markUniqueLocation();
                 addStat(sttt);
                 changeState(that, null, sttt.label);
                 addStat(popBlock(that));
-                currentEnv.heap.previousHeaps.add(methodEnv.allHeaps.get(thenBranchHeapCount));
+                HeapInfo thenHeapInfo = methodEnv.allHeaps.get(thenBranchHeapCount);
+                thenHeapInfo.condition = cond;
+                currentEnv.heap.previousHeaps.add(thenHeapInfo);
             }
             result = r;
 		} else {
@@ -9212,9 +9219,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 												addAssert(decl.init, Label.POSSIBLY_NULL_ASSIGNMENT,
 														treeutils.makeNotNull(decl.init.pos, convertedInit));
 											}
-											IArithmeticMode savedAM = pushArithMode();
+											pushArithMode();
 											convertedInit = addImplicitConversion(decl.init, decl.type, convertedInit);
-											popArithMode(savedAM);
+											popArithMode();
 											if (rac) {
 												JCExpressionStatement stat = treeutils.makeAssignStat(decl.init.pos, id,
 														convertedInit);
@@ -9496,7 +9503,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					addStat(comment(that, "... Not checking assignables when inlining a lambda " + calleeMethodSym,
 							null));
 				} else if (!rac) {
-					IArithmeticMode savedArithmeticMode = currentArithmeticMode;
+					currentEnv = currentEnv.pushEnvCopy();
 					TranslationEnv calleeEnv = new TranslationEnv(newThisId,null,allocCounter,calleeMethodSym);
 
 					for (Pair<MethodSymbol, Type> pair : overridden) {
@@ -9514,9 +9521,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								classType = m.owner.type;
 							}
 						}
-						addStat(comment(that,
-								"... Checking assignables of callee " + calleeMethodSym + " in " + classType.toString(),
-								null));
+						addStat(comment(that,"... Checking assignables of callee " + calleeMethodSym + " in " + classType.toString(),null));
 						//System.out.println("... Checking assignables of callee " + calleeMethodSym + " in " + classType.toString());
 						
 						// FIXME - from here down to loop is duplicated from above
@@ -9536,12 +9541,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 //						paramActuals = mapParamActuals.get(mpsym);
 						//System.out.println("PARAMACTUALS-A " + mpsym + " " + paramActuals);
-						currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(mpsym, true);
+                        currentEnv.arithmeticMode = calleeEnv.arithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(mpsym, true);
 
 						for (JmlSpecificationCase cs : calleeSpecs.cases) {
-							if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags, methodDecl.mods.flags)) continue;
+						    if (!doSpecificationCase(methodDecl, methodDecl.sym, mpsym, cs)) continue;
+							//if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags, methodDecl.mods.flags)) continue;
 							if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
-							if (mpsym != calleeMethodSym && cs.code) continue;
+							//if (mpsym != calleeMethodSym && cs.code) continue;
 							JavaFileObject prev = log.useSource(cs.source());
 							JCExpression pre = calleePreconditions.get(cs);
 							if (pre == null) continue; // anonymous class without specs
@@ -9662,7 +9668,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						}
 						//paramActuals_ = null;
 					}
-					currentArithmeticMode = savedArithmeticMode; // FIXME _ in a finally block?
+					currentEnv = currentEnv.popEnv(); // FIXME _ in a finally block?
 				}
 				if (print) System.out.println("APPLYHELPER-S " + calleeMethodSym.owner + " " + calleeMethodSym);
 
@@ -9860,7 +9866,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						"... Adding havoc statements for the call of " + calleeMethodSym.owner + "." + calleeMethodSym,
 						null));
 //                ListBuffer<JCStatement> havocs = new ListBuffer<>();
-				IArithmeticMode savedArithmeticMode = currentArithmeticMode;
+				currentEnv = currentEnv.pushEnvCopy();
 				for (Pair<MethodSymbol, Type> pair : overridden) {
 					MethodSymbol mpsym = pair.first;
 					if (Utils.debug())
@@ -9875,23 +9881,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 					// This initial logic must match that above for preconditions/"RET
 					JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
-					if (calleeSpecs == null)
-						continue; // FIXME - not sure about this
-					currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(mpsym, true);
+					if (calleeSpecs == null) continue; // FIXME - not sure about this
+					currentEnv.arithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(mpsym, true);
 
 //					paramActuals = mapParamActuals.get(mpsym);
 
 					boolean isPure = isPure(mpsym);
 					// FIXME - we should set condition
 					TranslationEnv calleeEnv = new TranslationEnv(newThisId,calllabel,allocCounter,calleeMethodSym);
+					calleeEnv.arithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(mpsym, true);
 					calleeEnv.stateLabel = calllabel;
 					for (JmlSpecificationCase cs : calleeSpecs.cases) {
 						if (Utils.debug())
 							System.out.println("APPLYHELPER-V2 " + mpsym + " " + cs);
-						if (mpsym != calleeMethodSym && cs.code) continue;
-						if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags, methodDecl.mods.flags)) continue;
-						if (translatingJML && cs.token == exceptionalBehaviorClause)
-							continue;
+						if (!doSpecificationCase(methodDecl, methodDecl.sym, mpsym, cs)) continue;
+						if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
+
 						JCExpression precond = calleePreconditions.get(cs); // Can be null for constructors of anonymous
 																			// classes
 						JCExpression pre = precond != null ? copy(precond) : treeutils.trueLit;
@@ -10081,7 +10086,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 //                currentStatements.addAll(havocs);
 				addStat(popBlock(that, havocBlockCheck));
-				currentArithmeticMode = savedArithmeticMode;
+				currentEnv = currentEnv.popEnv();  // FIXME - put in finally block?
 			}
 			typevarMapping = newTypeVarMapping;
             if (!rac && newclass != null && inProcessInvariants.isEmpty() && !translatingJML) {
@@ -10876,13 +10881,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                    // If a state change had no havocs, this is overly conservative
 	                    if (treeutils.isFalseLit(disjoint)) {
 	                        addStat(comment(methodDecl, "   Reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is never disjoint from " + oldhavocs , null));
-	                    } else if (treeutils.isTrueLit(disjoint) && treeutils.isTrueLit(preid)) {
-                            addStat(comment(methodDecl, "   Checking reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is disjoint from " + oldhavocs + "  Precondition: " + preid + " " + copy(preid), null));
-                            addStat(noChangeInstantiation);
 	                    } else {
-	                        addStat(comment(methodDecl, "   Checking reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is disjoint from " + oldhavocs + "  Precondition: " + preid + " " + copy(preid), null));
-	                        JCStatement v = M.at(clause).If(treeutils.makeAndSimp(clause, copy(preid), disjoint), noChangeInstantiation, null);
-	                        addStat(v);
+	                        var ex = treeutils.makeAndSimp(clause, copy(preid), disjoint);
+	                        if (oldHeapInfo.condition != null) ex = treeutils.makeAndSimp(clause, oldHeapInfo.condition, ex);
+	                        if (treeutils.isTrueLit(ex)) {
+	                            addStat(comment(methodDecl, "   Checking reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is disjoint from " + oldhavocs + "  Precondition: " + preid + " " + copy(preid), null));
+	                            addStat(noChangeInstantiation);
+	                        } else {
+	                            addStat(comment(methodDecl, "   Checking reads clause " + sc.list + "(receiver " + currentEnv.currentReceiver + ") is disjoint from " + oldhavocs + "  Precondition: " + preid + " " + copy(preid), null));
+	                            JCStatement v = M.at(clause).If(ex, noChangeInstantiation, null);
+	                            addStat(v);
+	                        }
 	                    }
 	                }
 	                currentEnv = currentEnv.popEnv();
@@ -11770,7 +11779,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	@Override
 	public void visitParens(JCParens that) {
 		JCExpression arg = convertExpr(that.getExpression());
-		result = eresult = M.at(that).Parens(arg).setType(arg.type);
+		result = eresult = isIdOrLit(arg) ? arg : M.at(that).Parens(arg).setType(arg.type);
 		treeutils.copyEndPosition(eresult, that);
 	}
 
@@ -11871,7 +11880,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				return expr;
 			} else if (newIsPrim && jmltypes.isSameTypeOrRep(jmltypes.BIGINT, expr.type)
 					&& !jmltypes.isSameTypeOrRep(jmltypes.BIGINT, newtype) && !isPrim
-					&& currentArithmeticMode.mode() == Arithmetic.Mode.MATH) {
+					&& currentEnv.arithmeticMode.mode() == Arithmetic.Mode.MATH) {
 				// In BIGINT mode, we can be required to cast a bigint value back to a primitive
 				// for an assignment
 				if (rac) {
@@ -11896,7 +11905,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 				return expr;
 			} else if (newIsPrim && jmltypes.isSameTypeOrRep(jmltypes.REAL, expr.type) && !isPrim
-					&& currentArithmeticMode.mode() == Arithmetic.Mode.MATH) {
+					&& currentEnv.arithmeticMode.mode() == Arithmetic.Mode.MATH) {
 				// In BIGINT mode, we can be required to cast a real value back to a primitive
 				// for an assignment
 				if (rac) {
@@ -12640,7 +12649,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (arith && rhs instanceof JCBinary) {
 				// FIXME - this is going to call checkRW again, already called during
 				// convertExpr(rhs) above
-				rhs = currentArithmeticMode.rewriteBinary(this, (JCBinary) rhs, true);
+				rhs = currentEnv.arithmeticMode.rewriteBinary(this, (JCBinary) rhs, true);
 			}
 
 			checkAccess2(assignableClauseKind, that, lhs, lhs, false, treeutils.trueLit, true, null);
@@ -12718,7 +12727,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (arith) {
 				// FIXME - this is going to call checkRW again, already called during
 				// convertExpr(rhs) above
-				rhs = currentArithmeticMode.rewriteBinary(this, (JCBinary) rhs, true);
+				rhs = currentEnv.arithmeticMode.rewriteBinary(this, (JCBinary) rhs, true);
 			}
 
 			// rhs = treeutils.makeBinary(that.pos,op ,newfac,rhs);
@@ -12773,7 +12782,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			addBinaryChecks(that, op, nlhs, rhs, optype);
 			rhs = makeBin(that, op, newOperator, nlhs, rhs, maxJmlType);
 			if (arith) {
-				rhs = currentArithmeticMode.rewriteBinary(this, (JCBinary) rhs, true);
+				rhs = currentEnv.arithmeticMode.rewriteBinary(this, (JCBinary) rhs, true);
 			}
 
 			if (array.type instanceof Type.ArrayType) {
@@ -12853,12 +12862,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				nlit.value = -((Float) lit.value);
 				result = eresult = convertExpr(nlit);
 			} else {
-				result = eresult = currentArithmeticMode.rewriteUnary(this, that);
+				result = eresult = currentEnv.arithmeticMode.rewriteUnary(this, that);
 			}
 			if (splitExpressions)
 				result = eresult = newTemp(eresult);
 		} else if (tag == JCTree.Tag.COMPL || tag == JCTree.Tag.POS) {
-			result = eresult = currentArithmeticMode.rewriteUnary(this, that);
+			result = eresult = currentEnv.arithmeticMode.rewriteUnary(this, that);
 			if (splitExpressions)
 				result = eresult = newTemp(eresult);
 		} else {
@@ -12895,12 +12904,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCTree.JCBinary bin = (JCBinary) that;
 			if (bin.rhs instanceof JCLiteral) {
 				long bits = ((Number) ((JCLiteral) bin.rhs).getValue()).longValue();
-				if (currentArithmeticMode instanceof Arithmetic.Safe) {
+				if (currentEnv.arithmeticMode instanceof Arithmetic.Safe) {
 					if (bits < 0 || bits > mask) {
 						addAssert(that, Label.POSSIBLY_LARGESHIFT, treeutils.trueLit);
 					}
 				}
-				if (!(currentArithmeticMode instanceof Arithmetic.Math))
+				if (!(currentEnv.arithmeticMode instanceof Arithmetic.Math))
 					bits &= mask;
 			} else {
 				JCExpression expr = treeutils.makeBinary(that.pos, JCTree.Tag.BITAND,
@@ -13266,7 +13275,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression rhs = convertExpr(that.getRightOperand());
 			result = eresult = makeBin(that, optag, that.getOperator(), lhs, rhs, lhs.type);
 		} else if (arith) {
-			result = eresult = currentArithmeticMode.rewriteBinary(this, that, false);
+			result = eresult = currentEnv.arithmeticMode.rewriteBinary(this, that, false);
 			if (splitExpressions)
 				result = eresult = newTemp(eresult);
 			return;
@@ -13421,7 +13430,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						t = maxJmlType;
 					} else if (equality && !lhs.type.isPrimitive() && !rhs.type.isPrimitive()) {
 						t = null;
-					} else if (rac && currentArithmeticMode.mode() == Arithmetic.Mode.MATH && maxJmlType.isPrimitive()
+					} else if (rac && currentEnv.arithmeticMode.mode() == Arithmetic.Mode.MATH && maxJmlType.isPrimitive()
 							&& !comp) {
 						if (jmltypes.isIntegral(maxJmlType))
 							maxJmlType = jmltypes.BIGINT;
@@ -13815,7 +13824,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// Java primitive to Java primitive - must be a numeric cast
 				// FIXME - should be able to check for overflow in BV modes -- also move all
 				// this into th Arithmetic mode classes
-				boolean check = !(currentArithmeticMode instanceof Arithmetic.Java);
+				boolean check = !(currentEnv.arithmeticMode instanceof Arithmetic.Java);
 				if (useBV) {
 					// skip
 				} else if (changePrecision == 1) {
@@ -15451,14 +15460,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		ListBuffer<JCStatement> savedCurrentStatements = this.currentStatements;
 		Symbol savedAllocSym = this.allocSym;
 		Symbol savedIsAllocSym = this.isAllocSym;
-		JCExpression savedThisExpr = this.currentEnv.currentReceiver;
-		IArithmeticMode savedMode = this.currentArithmeticMode;
+		this.currentEnv = this.currentEnv.pushEnvCopy();
+//		JCExpression savedThisExpr = this.currentEnv.currentReceiver;
+//		IArithmeticMode savedMode = this.currentEnv.arithmeticMode;
 
 		try {
-			enclosingExpr = savedThisExpr;
+			enclosingExpr = this.currentEnv.currentReceiver;
 			this.classDecl = that;
 			this.methodDecl = null;
-			this.currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(classDecl.sym, false);
+			this.currentEnv.arithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(classDecl.sym, false);
 			if (esc || infer) {
 				this.currentEnv.currentReceiver = makeThisId(classDecl.pos, classDecl.sym);
 			} else { // rac
@@ -15476,7 +15486,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				this.classDefs.add(d);
 			}
 			if (esc && that.sym.owner instanceof ClassSymbol && !that.sym.isStatic()) {
-				makeEnclosingSymbol(that.sym, savedThisExpr);
+				makeEnclosingSymbol(that.sym, enclosingExpr);
 			}
 			{
 				JCVariableDecl d = treeutils.makeVarDef(syms.intType, names.fromString(Strings.allocName),
@@ -15604,11 +15614,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			this.classDecl = savedClassDecl;
 			this.methodDecl = savedMethodDecl;
 			this.classDefs = savedClassDefs;
-			this.currentEnv.currentReceiver = savedThisExpr;
 			this.currentStatements = savedCurrentStatements;
 			this.allocSym = savedAllocSym;
 			this.isAllocSym = savedIsAllocSym;
-			this.currentArithmeticMode = savedMode;
+			this.currentEnv = this.currentEnv.popEnv();
 			this.enclosingExpr = null;
 			JmlOptions.instance(context).popOptions();
 		}
@@ -17341,19 +17350,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			case bigintMathID:
 			case javaMathID:
 			case safeMathID: { // Exactly one argument
-				IArithmeticMode saved = currentArithmeticMode;
+				currentEnv = currentEnv.pushEnvCopy();
 				try {
 					if (k == bigintMathKind)
-						currentArithmeticMode = Arithmetic.Math.instance(context);
+						currentEnv.arithmeticMode = Arithmetic.Math.instance(context);
 					if (k == safeMathKind)
-						currentArithmeticMode = Arithmetic.Safe.instance(context);
+						currentEnv.arithmeticMode = Arithmetic.Safe.instance(context);
 					if (k == javaMathKind)
-						currentArithmeticMode = Arithmetic.Java.instance(context);
+						currentEnv.arithmeticMode = Arithmetic.Java.instance(context);
 					JCExpression arg = that.args.get(0);
 					JCExpression ex = convertExpr(arg);
 					result = eresult = ex;
 				} finally {
-					currentArithmeticMode = saved;
+					currentEnv = currentEnv.popEnv();
 				}
 				break;
 			}
@@ -18474,10 +18483,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		result = null;
 		boolean saved = translatingJML;
 		boolean savedP = isPostcondition;
-		IArithmeticMode savedAM = currentArithmeticMode;
 
 		if (that.clauseType == showClause) {
-			currentArithmeticMode = Arithmetic.Math.instance(context)
+		    currentEnv = currentEnv.pushEnvCopy();
+			currentEnv.arithmeticMode = Arithmetic.Math.instance(context)
 					.defaultArithmeticMode(methodDecl != null ? methodDecl.sym : classDecl.sym, true);
 			try {
 				translatingJML = true;
@@ -18501,7 +18510,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} finally {
 				translatingJML = saved;
 				isPostcondition = savedP;
-				currentArithmeticMode = savedAM;
+				currentEnv = currentEnv.popEnv();
 			}
 
 		} else {
@@ -19140,7 +19149,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// JCFieldAccess
 				newident = treeutils.makeIdent(that.pos, that.sym);
 				saveMapping(that.ident, newident);
-				if (currentArithmeticMode instanceof Arithmetic.Math) {
+				if (currentEnv.arithmeticMode instanceof Arithmetic.Math) {
 					Symbol sym = that.sym;
 					Type t = mathType(sym.type);
 					if (t != sym.type) {
@@ -21625,6 +21634,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         /** Where to store yield values; null if we are not in a switch */
         public JCIdent yieldIdent = null;
+
+        /** Current arithmetic mode */
+        public IArithmeticMode arithmeticMode = null;
 
         /** Info about the current heap */
         public HeapInfo heap;

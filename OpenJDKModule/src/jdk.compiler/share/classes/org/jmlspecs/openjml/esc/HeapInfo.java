@@ -24,6 +24,8 @@ public class HeapInfo {
     /** The label just before the state change (in which the havocs are to be evaluated) */
     public Name label;
     
+    public JCTree.JCExpression condition = null;
+    
     // havocs might be: JCIdent, JCFieldAccess, JCArrayAccess, Loop specs, method call
     Object havocs = null;
     

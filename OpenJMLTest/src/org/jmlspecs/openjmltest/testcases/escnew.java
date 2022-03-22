@@ -1773,17 +1773,13 @@ public class escnew extends EscBase {
                 +"     //@ assert i==1 ==> j == mpure(1); \n"
                 +"     //@ assert i==2 ==> j == mpure(2); \n"
                 +"     //@ assert i==3 ==> j == mpure(1); \n" // CAN'T PROVE
-                +"     //@ assert i==3 ==> j != mpure(1); \n" // CAN'T PROVE
                 
                 +"  }\n"
                 
                 
                
                 +"}"
-                ,anyorder(
-                 seq("/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method mm",10)
-                ,seq("/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method mm",10)
-                )
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method mm",10
                 );
     }
 
@@ -1801,22 +1797,59 @@ public class escnew extends EscBase {
                 +"     if (i == 1) j = mpure(i); \n"
                 +"     else if (i == 2) { j = mpure(i); k = 0; } \n"
                 +"     else  j = 29; \n"
-                +"     //@ assert i==1 ==> j == mpure(1); \n" // CAN'T PROVE
                 +"     //@ assert i==2 ==> j == mpure(2); \n" // CAN'T PROVE
-                +"     //@ assert i==3 ==> j == mpure(1); \n" // CAN'T PROVE
-                +"     //@ assert i==3 ==> j != mpure(1); \n" // CAN'T PROVE
-                
+                +"     //@ assert i==3 ==> j == mpure(1); \n" // NOT TRUE
                 +"  }\n"
-                
-                
-               
                 +"}"
                 ,anyorder(
                  seq("/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method mm",10)
                 ,seq("/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method mm",10)
-                ,seq("/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method mm",10)
-                ,seq("/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method mm",10)
                 )
+                );
+    }
+
+    @Test
+    public void testMethodMatching1a() {
+        main.addOptions("-method=mm"); // Part of test
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+                +"   int k;\n"
+                +"  //@ ensures true; pure \n"
+                +"  public int mpure(int i) { return i+17; }\n"
+                
+                +"  public void mm(int i) { \n"
+                +"     int j = 0; \n"
+                +"     if (i == 1) j = mpure(i); \n"
+                +"     else if (i == 2) { j = mpure(i); k = 0; } \n"
+                +"     else  j = 29; \n"
+                +"     //@ assert i==2 ==> j == mpure(2); \n" // CAN'T PROVE
+                +"     //@ assert i==3 ==> j != mpure(1); \n" // NOT TRUE
+                +"  }\n"
+                +"}"
+                ,anyorder(
+                 seq("/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method mm",10)
+                ,seq("/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method mm",10)
+                )
+                );
+    }
+
+    @Test
+    public void testMethodMatching1b() {
+        main.addOptions("-method=mm"); // Part of test
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+                +"   int k;\n"
+                +"  //@ ensures true; pure \n"
+                +"  public int mpure(int i) { return i+17; }\n"
+                
+                +"  public void mm(int i) { \n"
+                +"     int j = 0; \n"
+                +"     if (i == 1) j = mpure(i); \n"
+                +"     else if (i == 2) { j = mpure(i); k = 0; } \n"
+                +"     else  j = 29; \n"
+                +"     //@ assert i==1 ==> j == mpure(1); \n" // OK
+                +"  }\n"
+                +"}"
                 );
     }
 
