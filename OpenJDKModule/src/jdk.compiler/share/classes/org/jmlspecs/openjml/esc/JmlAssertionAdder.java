@@ -8228,7 +8228,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Helper method to do the work of visitApply and visitNewObject */
 	protected void applyHelper(JCExpression that) {
-		boolean print =  Utils.debug(); // || that.toString().contains("empty()"); //
+		boolean print =  Utils.debug("trans"); // || that.toString().contains("empty()"); //
     	if (print) System.out.println("APPLY HELPER: " + that);
 //    	if (that instanceof JCMethodInvocation) {
 //    		JCMethodInvocation m = (JCMethodInvocation)that;
@@ -8508,7 +8508,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				error(that, "Unknown alternative in interpreting method call");
 				return;
 			}
-			if (Utils.debug())
+			if (print)
 				System.out.println("APPLYHELPER-D " + calleeMethodSym.owner + " " + calleeMethodSym);
 
 			nestedCallLocation = that;
@@ -9037,7 +9037,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					}
 					addStat(comment(that, "... Preconditions of callee " + calleeMethodSym.owner + " " + calleeMethodSym
 							+ " in " + classType.toString() + " " + mpsym.owner + " " + mpsym, null));
-					if (Utils.debug())
+					if (print)
 						System.out.println("... Preconditions of callee " + calleeMethodSym + " in "
 								+ classType.toString() + " " + mpsym.owner + " " + mpsym);
 					// FIXME - meth is null for constructors - fix that also; also generic types
@@ -9869,7 +9869,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				currentEnv = currentEnv.pushEnvCopy();
 				for (Pair<MethodSymbol, Type> pair : overridden) {
 					MethodSymbol mpsym = pair.first;
-					if (Utils.debug())
+					if (print)
 						System.out.println("APPLYHELPER-V1 " + calleeMethodSym + " " + mpsym);
 					Type classType = pair.second;
 					typevarMapping = typemapping(classType, null, null, null);
@@ -9892,7 +9892,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					calleeEnv.arithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(mpsym, true);
 					calleeEnv.stateLabel = calllabel;
 					for (JmlSpecificationCase cs : calleeSpecs.cases) {
-						if (Utils.debug())
+						if (print)
 							System.out.println("APPLYHELPER-V2 " + mpsym + " " + cs);
 						if (!doSpecificationCase(methodDecl, methodDecl.sym, mpsym, cs)) continue;
 						if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
@@ -9914,8 +9914,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 							boolean useDefault = true;
 							for (JmlMethodClause clause : cs.clauses) {
-								if (Utils.debug())
-									System.out.println("APPLYHELPER-V3 " + mpsym + " " + clause);
+								if (print) System.out.println("APPLYHELPER-V3 " + mpsym + " " + clause);
 								try {
 									IJmlClauseKind token = clause.clauseKind;
 									if (token == assignableClauseKind) {
@@ -10550,7 +10549,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 												.setType(syms.booleanType);
 										condd = treeutils.makeOr(clause.pos, treeutils.makeNot(clause.pos, isExcType),
 												condd);
-										if (Utils.debug())
+										if (print)
 											System.out.println("APPLYHELPER-X4BP " + clause);
 										addAssume(that, Label.SIGNALS_ONLY, condd, clause, clause.source(), null,
 												!rac ? null
@@ -10565,7 +10564,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										addAssume(that, Label.SIGNALS_ONLY, exx, clause, clauseSource); // FIXME - which
 																										// exception
 									}
-									if (Utils.debug())
+									if (print)
 										System.out.println("APPLYHELPER-X4BZ " + clause);
 								}
 							} catch (NoModelMethod e) {
@@ -15569,8 +15568,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 
 			List<JCTree> defs = this.classDefs.toList();
-			// if (org.jmlspecs.openjml.Utils.debug())
-			// System.out.println("JAA-visitJmlClassDecl-K " + defs);
+			// if (print) System.out.println("JAA-visitJmlClassDecl-K " + defs);
 
 			for (JCTree def : defs) {
 				if (def instanceof JmlMethodDecl jdef) {
@@ -16802,7 +16800,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				classDefs.add(that); // FIXME - should make a fresh copy of the declaration
 			return;
 		}
-		if (org.jmlspecs.openjml.Utils.debug())
+		if (org.jmlspecs.openjml.Utils.debug("trans"))
 			System.out.println("JAA-visitJmlMethodDecl-A " + that.sym.owner + that.sym + " " + System
 					.identityHashCode(ClassReader.instance(context).enterClass(names.fromString("java.lang.Object"))));
 
@@ -18987,7 +18985,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	@Override
 	public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
 		JCModifiers mods = fullTranslation ? convert(that.modifiers) : that.modifiers;
-		JCExpression expr = convertExpr(that.expression);
+		JCExpression expr = that.expression;
+		if (expr instanceof JCFieldAccess fa) {
+		    expr = convertExpr(fa.selected);
+		    expr = M.at(fa).Select(expr, fa.sym);
+		} else if (that.expression instanceof JCArrayAccess aa) {
+            expr = convertExpr(expr);
+		} else {
+		    expr = convertExpr(expr);
+		}
 		JmlTypeClauseMaps cl = M.at(that).JmlTypeClauseMaps(expr, convert(that.list));
 		cl.modifiers = mods;
 		cl.setType(that.type);
@@ -20148,7 +20154,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (!addAxioms(hc, msym)) {
 			return null;
 		}
-		if (utils.debug()) System.out.println("ADDING METHODAXIOMS " + msym);
+		if (utils.debug("trans")) System.out.println("ADDING METHODAXIOMS " + msym);
 		boolean isFunction = isHeapIndependent(msym);
 		JCExpression savedCondition = condition;
 		if (isFunction) condition = treeutils.trueLit;
@@ -20540,7 +20546,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return null;
         }
         MethodSymbol ms = mm.get(msym);
-        if (utils.debug())
+        if (utils.debug("trans"))
             System.out.println("GETMETHODNAME " + currentEnv.stateLabel + " " + hc + " " + msym + " " + ms);
         return ms;
     }
@@ -20576,7 +20582,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		// Save the symbol
 		mm.put(msym, newsym);
-		if (utils.debug())
+		if (utils.debug("trans"))
 			System.out.println("NEW METHOD NAME " + currentEnv.stateLabel + " " + hc + " " + msym + " " + newsym + " " + newmods);
 		return newsym;
 	}
@@ -20636,8 +20642,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JCExpression ok = containsArray(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.range, bigger);
 				return ft == null ? ok : treeutils.makeOrSimp(smaller,  ft,  ok);
 			} else {
-				JCExpression ft = sr.receiver == null ? null : freshTest(smaller, sr.receiver, targetEnv.allocCount);
-				ft = convertJML(ft); // Convert in current envirnment
+			    JCExpression ft = null;
+			    if (sr.receiver != null) {
+	                JCExpression nn = treeutils.makeNotNull(sr.receiver,  sr.receiver);
+	                ft = freshTest(smaller, sr.receiver, targetEnv.allocCount);
+	                ft = treeutils.makeImplies(sr.receiver, nn, ft);
+	                ft = convertJML(ft); // Convert in current envirnment
+			    }
 				
 				// fields
 				JCExpression e = containsField(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.field, bigger);

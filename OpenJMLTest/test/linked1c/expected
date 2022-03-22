@@ -1,0 +1,10 @@
+Proving methods in Linked
+Skipping proof of Linked.<T>empty() (excluded by -method)
+Skipping proof of Linked.Linked(W,Linked<W>) (excluded by -method)
+Skipping proof of Linked.push(W) (excluded by -method)
+Skipping proof of Linked.pop() (excluded by -method)
+Starting proof of Linked.remove(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Linked.remove(int) with prover !!!! - no warnings
+Completed proving methods in Linked

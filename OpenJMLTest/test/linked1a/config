@@ -1,1 +1,1 @@
-ARGS+=" --method=remove --keys=TEST "
+ARGS+=" --progress --exclude=remove,Test.* "

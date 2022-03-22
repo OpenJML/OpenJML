@@ -1960,18 +1960,20 @@ public class Utils {
     }
     
     static String debugstring = System.getenv("OJ");
-    static String[] debugkeys = debugstring == null ? new String[] {} : debugstring.split(",");
+    static String[] debugkeys = debugstring == null ? null : debugstring.split(",");
     public static boolean debug() {
     	return debugstring != null;
     }
     
     public static boolean debug(String key) {
         if (debugkeys == null) return false;
+        // Note: streams cannot be reused
         return Arrays.stream(debugkeys).anyMatch(s->s.equals(key));
     }
     
     public static String debugValue(String key, String def) {
         if (debugkeys == null) return def;
+        // Note: streams cannot be reused
         var opt = Arrays.stream(debugkeys).filter(s->s.startsWith(key)).findFirst();
         return opt.isEmpty() ? def : opt.get().substring(key.length());
     }
