@@ -3084,6 +3084,49 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
 
+
+    public void constructSmtQuantifier(JmlQuantifiedExpr that, IExpr range, IExpr value, List<IDeclaration> params) {
+        boolean isProduct = that.kind.keyword() == QuantifiedExpressions.qproductID;
+        int baseCase = isProduct ? 1 : 0;
+
+        // TODO: make lo a fresh identifier not in Range or Body
+        ISymbol lo = F.symbol("lo"), quantN = F.symbol("quant_" + (uniqueQuantCount++));
+
+        JmlBoundsExtractor.Bounds bounds = JmlBoundsExtractor.extract(that.decls, that.range, true, context, this);
+        if (bounds == null) return;
+        
+        if (that.kind.keyword() == QuantifiedExpressions.qnumofID) {
+            range = F.fcn(F.symbol("and"), range, value);
+            value = F.numeral(1);
+        }
+
+        scan(bounds.lo);
+        IExpr loExpr = result;
+        scan(bounds.hi);
+        IExpr hiExpr = result;
+        
+        IDeclaration x = params.get(0);
+        params.add(0, F.declaration(lo, x.sort()));
+        ISymbol hi = x.parameter();
+
+        ICommand cmd = new C_define_fun_rec(
+                quantN,
+                params,
+                intSort, F.fcn(
+                        F.symbol("ite"),
+                        F.fcn(F.symbol("<"), hi, lo),
+                        F.numeral(baseCase),
+                        F.fcn(isProduct ? F.symbol("*") : F.symbol("+"),
+                                F.fcn(quantN,
+                                        F.symbol("lo"),
+                                        F.fcn(negSym, hi,
+                                                F.numeral(1))),
+                                F.fcn(F.symbol("ite"), range, value,
+                                        F.numeral(baseCase)))));
+        commands.add(cmd);
+        result = F.fcn(quantN, loExpr, hiExpr);
+    }
+
     @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
         boolean prev = inQuant;
@@ -3126,40 +3169,9 @@ public class SMTTranslator extends JmlTreeScanner {
                 }
                 break;
             case QuantifiedExpressions.qsumID:
-                // TODO: make lo a fresh identifier not in Range or Body
-                ISymbol lo = F.symbol("lo"), sumN = F.symbol("sum_" + (uniqueQuantCount++));
-
-                JmlBoundsExtractor.Bounds bounds = JmlBoundsExtractor.extract(that.decls, that.range, true, context);
-
-                if (bounds == null) {
-                    System.err.println("Something went wrong with the bounds extractor.");
-                }
-
-                scan(bounds.lo);
-                IExpr loExpr = result;
-                scan(bounds.hi);
-                IExpr hiExpr = result;
-                
-                IDeclaration x = params.get(0);
-                params.add(0, F.declaration(lo, x.sort()));
-                ISymbol hi = x.parameter();
-
-                ICommand cmd = new C_define_fun_rec(
-                        sumN,
-                        params,
-                        intSort, F.fcn(
-                                F.symbol("ite"),
-                                F.fcn(F.symbol("<"), hi, lo),
-                                F.numeral(0),
-                                F.fcn(F.symbol("+"),
-                                        F.fcn(sumN,
-                                                F.symbol("lo"),
-                                                F.fcn(negSym, hi,
-                                                        F.numeral(1))),
-                                        F.fcn(F.symbol("ite"), range, value,
-                                                F.numeral(0)))));
-                commands.add(cmd);
-                result = F.fcn(sumN, loExpr, hiExpr);
+            case QuantifiedExpressions.qproductID:
+            case QuantifiedExpressions.qnumofID:
+                constructSmtQuantifier(that, range, value, params);
                 break;
             default:
                 notImplWarn(that, "JML Quantified expression using " + that.kind.keyword());

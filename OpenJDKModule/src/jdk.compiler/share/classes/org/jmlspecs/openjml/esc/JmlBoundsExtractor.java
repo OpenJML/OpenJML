@@ -21,11 +21,6 @@ public class JmlBoundsExtractor {
 
 	}
 
-	// TODO: implement user warnings in JML ecosystem
-	public static void warn(String msg) {
-		System.err.println("Warning: " + msg);
-	}
-
 	/**
 	 * Take a comparison expression (<, <=, >, >=), and return the lowest and highest values.
 	 */
@@ -60,33 +55,33 @@ public class JmlBoundsExtractor {
 		return false;
 	}
 
+	// returns true if the operator is: &&, &, ||, |
+	private static boolean isConjunctiveOperator(JCTree.Tag tag) {
+		return tag == JCTree.Tag.AND || tag == JCTree.Tag.BITAND || tag == JCTree.Tag.OR || tag == JCTree.Tag.BITOR;
+	}
+
 	// primary bounds extracting logic
-	public static Bounds extract(List<JCVariableDecl> decls, JCExpression range, boolean isRoot, Context context) {
+	public static Bounds extract(List<JCVariableDecl> decls, JCExpression range, boolean isRoot, Context context, SMTTranslator smtTranslator) {
 		if ((range instanceof JCParens)) {
 			range = ((JCParens) range).getExpression();
-		}
-		
-		// TODO: this check might be redundant with the jml parser
-		if (decls.size() == 0) {
-			warn("There are no declared variables to iterate over.");
 		}
 
 		if (!(range instanceof JCBinary)) {
 			// TODO: implement true/false logic and return non-null value 
-			warn("The range expression is not binary.");
+			smtTranslator.notImplWarn(range, "The range expression is not binary.");
 			return null;
 		}
 
-
 		JCBinary expr = (JCBinary) range;
-		if (isRoot && (expr.getTag() != JCTree.Tag.AND && expr.getTag() != JCTree.Tag.OR)) {
-			warn("Range expressions without && or || are not supported because those expressions often result in infinite ranges.");
+		if (isRoot && !isConjunctiveOperator(expr.getTag())) {
+			smtTranslator.notImplWarn(range, "Range expressions without && or || are not supported because those expressions often result in infinite ranges.");
+			return null;
 		}
 
-		if (expr.getTag() == JCTree.Tag.AND || expr.getTag() == JCTree.Tag.OR){
+		if (isConjunctiveOperator(expr.getTag())){
 			TreeMaker treeMaker =  TreeMaker.instance(context);
-			Bounds left = extract(decls, expr.lhs, false, context);
-			Bounds right = extract(decls, expr.rhs, false, context);
+			Bounds left = extract(decls, expr.lhs, false, context, smtTranslator);
+			Bounds right = extract(decls, expr.rhs, false, context, smtTranslator);
 
 			JCExpression lo;
 			if (!inDecls(decls, left.lo) && inDecls(decls, right.lo)) {
