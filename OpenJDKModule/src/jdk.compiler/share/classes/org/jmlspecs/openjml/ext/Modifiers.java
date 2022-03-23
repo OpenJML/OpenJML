@@ -14,7 +14,6 @@ public class Modifiers extends JmlExtension {
     static public final ModifierKind CODE_SAFE_MATH = new IJmlClauseKind.ModifierKind("code_safe_math", true);
     static public final ModifierKind EXTRACT = new IJmlClauseKind.ModifierKind("extract", true);
     static public final ModifierKind HEAP_FREE = new IJmlClauseKind.ModifierKind("heap_free", true);
-    static public final ModifierKind FUNCTION = new IJmlClauseKind.ModifierKind("function", true);
     static public final ModifierKind HELPER = new IJmlClauseKind.ModifierKind("helper", true);
     static public final ModifierKind IMMUTABLE = new IJmlClauseKind.ModifierKind("immutable", true); // FIXME - is this really lang=jml
     static public final ModifierKind INLINE = new IJmlClauseKind.ModifierKind("inline", false);

@@ -18,7 +18,7 @@ public class Assigns {
 
   //@ requires t1 != t2;
   //@ requires a.length == 10;
-  //@ writes \everything;
+  //@ assigns \everything;
   public void m1() {
     x = 0;
     t1.v = 0;
@@ -26,7 +26,7 @@ public class Assigns {
   }
   //@ requires t1 != t2;
   //@ requires a.length == 10;
-  //@ writes t1.v;
+  //@ assigns t1.v;
   public void m2() {
     x = 0; // ERROR
     t1.v = 0;

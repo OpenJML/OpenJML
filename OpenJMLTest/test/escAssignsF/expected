@@ -14,19 +14,19 @@ test/escAssignsF/Assigns.java:23: warning: The prover cannot establish an assert
     x = 0; // ERROR
       ^
 test/escAssignsF/Assigns.java:21: warning: Associated declaration
-  //@ writes t1.*;
+  //@ assigns t1.*;
       ^
 test/escAssignsF/Assigns.java:26: warning: The prover cannot establish an assertion (Assignable) in method m6: a[1]
     a[1] = 0; // ERROR
          ^
 test/escAssignsF/Assigns.java:21: warning: Associated declaration
-  //@ writes t1.*;
+  //@ assigns t1.*;
       ^
 test/escAssignsF/Assigns.java:25: warning: The prover cannot establish an assertion (Assignable) in method m6: a[4]
     a[4] = 0; // ERROR
          ^
 test/escAssignsF/Assigns.java:21: warning: Associated declaration
-  //@ writes t1.*;
+  //@ assigns t1.*;
       ^
 Completed proof of Assigns.m6() with prover !!!! - with warnings
 Completed proving methods in Assigns

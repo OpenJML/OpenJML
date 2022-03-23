@@ -14,25 +14,25 @@ test/escAssignsG/Assigns.java:25: warning: The prover cannot establish an assert
     t1.v = 0; // ERROR
          ^
 test/escAssignsG/Assigns.java:22: warning: Associated declaration
-  //@ writes \nothing;
+  //@ assigns \nothing;
       ^
 test/escAssignsG/Assigns.java:27: warning: The prover cannot establish an assertion (Assignable) in method m7: a[1]
     a[1] = 0; // ERROR
          ^
 test/escAssignsG/Assigns.java:22: warning: Associated declaration
-  //@ writes \nothing;
+  //@ assigns \nothing;
       ^
 test/escAssignsG/Assigns.java:26: warning: The prover cannot establish an assertion (Assignable) in method m7: a[4]
     a[4] = 0; // ERROR
          ^
 test/escAssignsG/Assigns.java:22: warning: Associated declaration
-  //@ writes \nothing;
+  //@ assigns \nothing;
       ^
 test/escAssignsG/Assigns.java:24: warning: The prover cannot establish an assertion (Assignable) in method m7: x
     x = 0; // ERROR
       ^
 test/escAssignsG/Assigns.java:22: warning: Associated declaration
-  //@ writes \nothing;
+  //@ assigns \nothing;
       ^
 Completed proof of Assigns.m7() with prover !!!! - with warnings
 Completed proving methods in Assigns

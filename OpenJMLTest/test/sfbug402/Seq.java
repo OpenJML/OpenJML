@@ -10,12 +10,12 @@ public interface Seq<E extends Object> {
 
 
     /*@   requires !pastEnd();
-      @   writes _pos;
+      @   assigns _pos;
       @   ensures !pastEnd() <==> ( pos().equals( \old(pos()) + 1) );
       @   ensures pastEnd() <==> ( \old(pos()).equals(length()) );
       @ also
       @   requires pastEnd();
-      @   writes \nothing;
+      @   assigns \nothing;
       @*/
     void forth();
 

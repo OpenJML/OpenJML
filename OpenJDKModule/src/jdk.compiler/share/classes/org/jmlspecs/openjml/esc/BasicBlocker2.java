@@ -1133,7 +1133,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 case bsrequiresID:
                 case bsensuresID:
                 case bsreadsID:
-                case bswritesID:
+                case bsassignsID:
                 {
                     scan(that.typeargs);
                     scan(that.meth);

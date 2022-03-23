@@ -19,7 +19,7 @@ public class Assigns {
 
   //@ requires t1 != t2;
   //@ requires a.length == 10;
-  //@ writes \nothing;
+  //@ assigns \nothing;
   public void m7() {
     x = 0; // ERROR
     t1.v = 0; // ERROR

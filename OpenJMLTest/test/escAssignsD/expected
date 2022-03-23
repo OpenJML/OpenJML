@@ -14,13 +14,13 @@ test/escAssignsD/Assigns.java:24: warning: The prover cannot establish an assert
     t1.v = 0; // ERROR
          ^
 test/escAssignsD/Assigns.java:21: warning: Associated declaration
-  //@ writes a[*];
+  //@ assigns a[*];
       ^
 test/escAssignsD/Assigns.java:23: warning: The prover cannot establish an assertion (Assignable) in method m4: x
     x = 0; // ERROR
       ^
 test/escAssignsD/Assigns.java:21: warning: Associated declaration
-  //@ writes a[*];
+  //@ assigns a[*];
       ^
 Completed proof of Assigns.m4() with prover !!!! - with warnings
 Completed proving methods in Assigns

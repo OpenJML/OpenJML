@@ -14,19 +14,19 @@ test/escAssignsE/Assigns.java:24: warning: The prover cannot establish an assert
     t1.v = 0; // ERROR
          ^
 test/escAssignsE/Assigns.java:21: warning: Associated declaration
-  //@ writes a[3..5];
+  //@ assigns a[3..5];
       ^
 test/escAssignsE/Assigns.java:26: warning: The prover cannot establish an assertion (Assignable) in method m5: a[1]
     a[1] = 0; // ERROR
          ^
 test/escAssignsE/Assigns.java:21: warning: Associated declaration
-  //@ writes a[3..5];
+  //@ assigns a[3..5];
       ^
 test/escAssignsE/Assigns.java:23: warning: The prover cannot establish an assertion (Assignable) in method m5: x
     x = 0; // ERROR
       ^
 test/escAssignsE/Assigns.java:21: warning: Associated declaration
-  //@ writes a[3..5];
+  //@ assigns a[3..5];
       ^
 Completed proof of Assigns.m5() with prover !!!! - with warnings
 Completed proving methods in Assigns

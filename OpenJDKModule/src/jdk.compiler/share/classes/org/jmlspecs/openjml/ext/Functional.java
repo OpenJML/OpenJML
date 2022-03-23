@@ -129,14 +129,10 @@ public class Functional extends JmlExtension {
     static public final String bsrequiresID = "\\requires";
     static public final String bsensuresID = "\\ensures";
     static public final String bsreadsID = "\\reads";
-    static public final String bswritesID = "\\writes";
+    static public final String bsassignsID = "\\assigns";
     static public final IJmlClauseKind requiresExprKind = new FunctionalKinds(bsrequiresID);
     static public final IJmlClauseKind ensuresExprKind = new FunctionalKinds(bsensuresID);
     static public final IJmlClauseKind readsExprKind = new FunctionalKinds(bsreadsID);
-    static public final IJmlClauseKind writesExprKind = new FunctionalKinds(bswritesID);
+    static public final IJmlClauseKind assignsExprKind = new FunctionalKinds(bsassignsID);
     
-    static {
-        synonym("\\assigns",writesExprKind);
-    }
-
 }

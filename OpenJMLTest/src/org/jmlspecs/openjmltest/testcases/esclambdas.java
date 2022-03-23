@@ -57,7 +57,7 @@ public class esclambdas extends EscBase {
                 +"  \n"
                 +"  public static class MMM {\n"
                 +"    public int i ;\n"
-                +"    //@ writes i;\n"
+                +"    //@ assigns i;\n"
                 +"    public void bump() { i++; }\n"
                 +"  }\n"
                 
@@ -80,7 +80,7 @@ public class esclambdas extends EscBase {
                 +"  \n"
                 +"  public static class MMM {\n"
                 +"    public int i ;\n"
-                +"    //@ writes i;\n"
+                +"    //@ assigns i;\n"
                 +"    public void bump() { i++; }\n"
                 +"  }\n"
                 

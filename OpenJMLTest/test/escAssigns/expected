@@ -18,19 +18,19 @@ test/escAssigns/Assigns.java:33: warning: The prover cannot establish an asserti
     t2.v = 0; // ERROR
          ^
 test/escAssigns/Assigns.java:29: warning: Associated declaration
-  //@ writes t1.v;
+  //@ assigns t1.v;
       ^
 test/escAssigns/Assigns.java:31: warning: The prover cannot establish an assertion (Assignable) in method m2: x
     x = 0; // ERROR
       ^
 test/escAssigns/Assigns.java:29: warning: Associated declaration
-  //@ writes t1.v;
+  //@ assigns t1.v;
       ^
 test/escAssigns/Assigns.java:34: warning: The prover cannot establish an assertion (Assignable) in method m2: a[1]
     a[1] = 0; // ERROR
          ^
 test/escAssigns/Assigns.java:29: warning: Associated declaration
-  //@ writes t1.v;
+  //@ assigns t1.v;
       ^
 Completed proof of Assigns.m2() with prover !!!! - with warnings
 Completed proving methods in Assigns

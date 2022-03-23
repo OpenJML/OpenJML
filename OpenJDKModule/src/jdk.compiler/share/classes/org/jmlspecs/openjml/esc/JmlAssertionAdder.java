@@ -17453,7 +17453,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			case Functional.bsrequiresID:
 			case Functional.bsensuresID:
 			case Functional.bsreadsID:
-			case Functional.bswritesID: {
+			case Functional.bsassignsID: {
 				ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
 				for (JCExpression arg : that.args) {
 					JCExpression ex = convertExpr(arg);

@@ -18,7 +18,7 @@ public class Assigns {
 
   //@ requires t1 != t2;
   //@ requires a.length == 10;
-  //@ writes a[*];
+  //@ assigns a[*];
   public void m4() {
     x = 0; // ERROR
     t1.v = 0; // ERROR
