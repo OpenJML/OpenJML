@@ -10953,7 +10953,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (!utils.isJMLStatic(calleeMethodSym)) {
 			ntrArgs = ntrArgs.prepend(newThisExpr);
 		}
-		if (!attr.hasAnnotation(calleeMethodSym, Modifiers.FUNCTION) && !attr.hasAnnotation(calleeMethodSym, Modifiers.HEAP_FREE) && !useNamesForHeap) {
+		if (!isHeapIndependent(calleeMethodSym) && !useNamesForHeap) {
 			JCExpression heap = treeutils.makeIdent(that.pos, heapSym);
 			ntrArgs = ntrArgs.prepend(heap); // only if heap dependent
 		}

@@ -84,7 +84,7 @@ public class escfunction extends EscBase {
                 +"public @Immutable class TestJava  { \n"
                 +"  //@ normal_behavior \n"
                 +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"  //@ @Function  \n"
+                +"  //@ @HeapFree  \n"
                 +"  //@ model public boolean mfunc(int i);\n"
                 
                 +"  int n; \n"
@@ -105,7 +105,7 @@ public class escfunction extends EscBase {
                 +"  //@ normal_behavior \n"
                 +"  //@ assignable n; \n"
                 +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"  //@ @Function  \n"
+                +"  //@ @HeapFree  \n"
                 +"  //@ model public boolean mfunc(int i);\n"
                 
                 +"  int n; \n"
@@ -127,7 +127,7 @@ public class escfunction extends EscBase {
                 +"  //@ normal_behavior \n"
                 +"  //@ assignable n; \n"
                 +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"  //@ @Function  \n"
+                +"  //@ @HeapFree  \n"
                 +"  //@ model public boolean mfunc(int i);\n"
                 
                 +"  int n; \n"
@@ -169,7 +169,7 @@ public class escfunction extends EscBase {
                 +"public class TestJava  { \n"
                 +"  //@ normal_behavior \n"
                 +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"  //@ @Pure @Function  \n"
+                +"  //@ @Pure @HeapFree  \n"
                 +"  //@ static model public boolean mfunc(int i);\n"
                 
                 +"  int n; \n"

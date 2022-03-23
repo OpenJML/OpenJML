@@ -1252,7 +1252,7 @@ public class JmlSpecs {
         }
         
         boolean libraryMethod = sym.owner instanceof ClassSymbol && sym.owner.toString().startsWith("java");
-        boolean isPureA = utils.hasMod(mspecs.mods, Modifiers.PURE, Modifiers.FUNCTION, Modifiers.HEAP_FREE); // use isPure?
+        boolean isPureA = utils.hasMod(mspecs.mods, Modifiers.PURE, Modifiers.HEAP_FREE); // use isPure?
         boolean isPureL = (libraryMethod && !JmlOption.isOption(context,JmlOption.PURITYCHECK));
         //System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
@@ -1875,7 +1875,7 @@ public class JmlSpecs {
     	JmlModifiers mods = getSpecsModifiers(symbol);
     	if (mods != null) {
     		//if (print) System.out.println("MODS " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasMod(mods,  Modifiers.PURE) + " " + utils.hasMod(mods,  Modifiers.FUNCTION)+ " " + symbol.owner + " " + isPure((Symbol.ClassSymbol)symbol.owner));
-    		if (utils.hasMod(mods,  Modifiers.PURE,  Modifiers.FUNCTION,  Modifiers.HEAP_FREE)) return true; 
+    		if (utils.hasMod(mods,  Modifiers.PURE, Modifiers.HEAP_FREE)) return true; 
     	}
         return isPure((Symbol.ClassSymbol)symbol.owner);
     }
