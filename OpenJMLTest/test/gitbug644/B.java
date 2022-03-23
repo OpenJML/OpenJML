@@ -4,16 +4,16 @@ public class B {
 
     /*@ immutable pure public static model class Content {
 
-       function helper
+       heap_free helper
        public Object mapsObject(nullable Object key);
 
-       function helper
+       heap_free helper
        public Object mapss(nullable Object key);
 
-       function helper
+       heap_free helper
        public boolean hasMapObject(nullable Object key);
 
-       function helper
+       heap_free helper
        public boolean hasMap(nullable Object key);
      }
     @*/

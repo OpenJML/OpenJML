@@ -4,7 +4,7 @@ interface A {
       @     axiom (\forall Content c; (\forall Object o; c.P(o)));
       @     public normal_behavior
       @       ensures true;
-      @     function
+      @     heap_free
       @     public boolean P(nullable Object key);
 
       @ }

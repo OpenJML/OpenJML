@@ -1511,7 +1511,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on non-model non-constructor methods */
     public final ModifierKind[] allowedMethodAnnotations =
         new ModifierKind[] {
-        MODEL, PURE, NON_NULL, NULLABLE, OPTIONS, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT, QUERY, SECRET, FUNCTION,
+        MODEL, PURE, NON_NULL, NULLABLE, OPTIONS, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT, QUERY, SECRET, FUNCTION, HEAP_FREE,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY, SKIPESC, SKIPRAC, INLINE // FIXME - allowing these until the rules are really implemented
 
@@ -1520,7 +1520,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on non-model non-constructor methods in interfaces */
     public final ModifierKind[] allowedInterfaceMethodAnnotations =
         new ModifierKind[] {
-        MODEL, PURE, NON_NULL, NULLABLE, OPTIONS, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, QUERY, FUNCTION,
+        MODEL, PURE, NON_NULL, NULLABLE, OPTIONS, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, QUERY, FUNCTION, HEAP_FREE,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY, INLINE // FIXME - allowing these until the rules are really implemented
 
@@ -1529,7 +1529,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on model non-constructor methods */
     public final ModifierKind[] allowedModelMethodAnnotations =
         new ModifierKind[] {
-        MODEL, PURE, NON_NULL, NULLABLE, OPTIONS, HELPER, EXTRACT, QUERY, SECRET, FUNCTION,
+        MODEL, PURE, NON_NULL, NULLABLE, OPTIONS, HELPER, EXTRACT, QUERY, SECRET, FUNCTION, HEAP_FREE,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY, SKIPESC, INLINE // FIXME - allowing these until the rules are really implemented
 
@@ -1538,7 +1538,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on model non-constructor interface methods */
     public final ModifierKind[] allowedInterfaceModelMethodAnnotations =
         new ModifierKind[] {
-        MODEL, PURE, NON_NULL, NULLABLE, OPTIONS, HELPER, QUERY, SECRET, FUNCTION,
+        MODEL, PURE, NON_NULL, NULLABLE, OPTIONS, HELPER, QUERY, SECRET, FUNCTION, HEAP_FREE,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY, INLINE // FIXME - allowing these until the rules are really implemented
 
@@ -1678,10 +1678,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             
             // Check rules about Function
-            JCAnnotation a=utils.findMod(mods,modToAnnotationSymbol.get(FUNCTION));
+            JCAnnotation a=utils.findMod(mods,modToAnnotationSymbol.get(HEAP_FREE));
             if (a != null && !utils.isJMLStatic(msym)) {
                 if (msym.owner instanceof ClassSymbol owner && !isImmutable(owner)) {
-                    utils.error(a,"jml.function.must.have.immutable",msym.name);
+                    utils.error(a,"jml.heap_free.must.have.immutable",msym.name);
+                }
+            }
+            a=utils.findMod(mods,modToAnnotationSymbol.get(FUNCTION));
+            if (a != null && !utils.isJMLStatic(msym)) {
+                if (msym.owner instanceof ClassSymbol owner && !isImmutable(owner)) {
+                    utils.error(a,"jml.heap_free.must.have.immutable",msym.name);
                 }
             }
             
@@ -2249,7 +2255,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         try {
             JmlTree.Maker jmlMaker = (JmlTree.Maker)make;
-            desugaringPure = utils.hasMod(msp.mods, Modifiers.PURE, Modifiers.FUNCTION);
+            // FIXME - use a common isPure method
+            desugaringPure = utils.hasMod(msp.mods, Modifiers.PURE, Modifiers.FUNCTION, Modifiers.HEAP_FREE);
             if (!desugaringPure) {
             	desugaringPure = utils.hasMod(specs.getLoadedSpecs((ClassSymbol)msym.owner).modifiers,Modifiers.PURE);
             }
@@ -2664,8 +2671,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         } else if (tt instanceof JmlSingleton key &&
                                     key.kind == nothingKind) {
                                         // OK
-                        } else if (decl != null && isFunction(decl.sym)) {
-                            utils.error(asg.source(),p,"jml.function.method",tt.toString());
+                        } else if (decl != null && isHeapIndependent(decl.sym)) {
+                            utils.error(asg.source(),p,"jml.heap_free.method",tt.toString());
                         } else {
                             utils.error(asg.source(),p,"jml.pure.method", tt.toString() + " in " + msym.owner + "." + msym);
                         }
@@ -6592,7 +6599,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
             return false;
         }
-        if (utils.hasModOrAnn((JmlModifiers)mspecs.mods, Modifiers.HELPER,  Modifiers.FUNCTION)) return true;
+        if (utils.hasModOrAnn((JmlModifiers)mspecs.mods, Modifiers.HELPER,  Modifiers.FUNCTION, Modifiers.HEAP_FREE)) return true;
     	return false;
     }
     
@@ -6637,13 +6644,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return;
     }
     
-    public boolean isFunction(MethodSymbol symbol) {
+    public boolean isHeapIndependent(MethodSymbol symbol) {
         MethodSpecs mspecs = specs.getLoadedSpecs(symbol);
         if (mspecs == null) {
             // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
             return false;
         }
-        return findMod(mspecs.mods,Modifiers.FUNCTION) != null;
+        return findMod(mspecs.mods,Modifiers.FUNCTION) != null ||  findMod(mspecs.mods,Modifiers.HEAP_FREE) != null;
     }
     
     public boolean isImmutable(ClassSymbol symbol) {

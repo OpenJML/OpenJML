@@ -1252,7 +1252,7 @@ public class JmlSpecs {
         }
         
         boolean libraryMethod = sym.owner instanceof ClassSymbol && sym.owner.toString().startsWith("java");
-        boolean isPureA = utils.hasMod(mspecs.mods, Modifiers.PURE, Modifiers.FUNCTION);
+        boolean isPureA = utils.hasMod(mspecs.mods, Modifiers.PURE, Modifiers.FUNCTION, Modifiers.HEAP_FREE); // use isPure?
         boolean isPureL = (libraryMethod && !JmlOption.isOption(context,JmlOption.PURITYCHECK));
         //System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
@@ -1862,10 +1862,6 @@ public class JmlSpecs {
     	return annotationSymbol(Modifiers.MODEL);
     }
 
-    protected ClassSymbol functionAnnotationSymbol() {
-    	return annotationSymbol(Modifiers.FUNCTION);
-    }
-    
     protected ClassSymbol annotationSymbol(ModifierKind mk) {
     	if (mk.annotationSym == null) {
     		mk.annotationSym = utils.createClassSymbol(Symtab.instance(context).java_base, mk.fullAnnotation);
@@ -1873,20 +1869,19 @@ public class JmlSpecs {
     	return mk.annotationSym;
     }
     
-    /** Returns true if the given method symbol is annotated as Pure */
+    /** Returns true if the given method symbol is annotated as Pure or something that implies Pure */
     public boolean isPure(MethodSymbol symbol) {
     	//boolean print = symbol.toString().contains("println");
     	JmlModifiers mods = getSpecsModifiers(symbol);
     	if (mods != null) {
     		//if (print) System.out.println("MODS " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasMod(mods,  Modifiers.PURE) + " " + utils.hasMod(mods,  Modifiers.FUNCTION)+ " " + symbol.owner + " " + isPure((Symbol.ClassSymbol)symbol.owner));
-    		if (utils.hasMod(mods,  Modifiers.PURE)) return true; 
-    		if (utils.hasMod(mods,  Modifiers.FUNCTION)) return true; 
+    		if (utils.hasMod(mods,  Modifiers.PURE,  Modifiers.FUNCTION,  Modifiers.HEAP_FREE)) return true; 
     	}
         return isPure((Symbol.ClassSymbol)symbol.owner);
     }
     
     public boolean isPure(ClassSymbol symbol) {
-        if (utils.hasMod(getSpecsModifiers(symbol), Modifiers.PURE)) return true;
+        if (utils.hasMod(getSpecsModifiers(symbol), Modifiers.PURE, Modifiers.IMMUTABLE)) return true;
 // FIXME - unbounded recursive?        if (symbol.enclClass() != null) return isPure(symbol.enclClass());
         return false;
     }

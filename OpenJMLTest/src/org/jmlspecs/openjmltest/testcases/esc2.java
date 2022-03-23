@@ -4061,7 +4061,7 @@ public class esc2 extends EscBase {
                         + "public class TestJava  { \n" 
                         + "  //@ normal_behavior \n"
                         + "  //@ ensures \\result == (0 < i < 10);\n" 
-                        + "  //@ pure function\n"
+                        + "  //@ pure heap_free\n"
                         + "  //@ model public static boolean m(int i);\n"
 
                         + "  //@ pure\n" 
@@ -4432,7 +4432,7 @@ public class esc2 extends EscBase {
                         + "public class TestJava  { \n" 
                         + "  /*@ requires o != null; \n"
                         + "      ensures \\result == (j>=0); \n"
-                        + "     pure function */ public static boolean positive(Object o, int j) { \n"
+                        + "     pure heap_free */ public static boolean positive(Object o, int j) { \n"
                         + "         return j >= 0; }\n"
                         + "  public int j; \n"
                         + "  //@ signals (NullPointerException e) positive(null,j); \n"
@@ -4444,11 +4444,11 @@ public class esc2 extends EscBase {
                         + "}"
                         ,anyorder(seq(
                  "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
-                ,"/tt/TestJava.java:5: warning: Associated declaration",45
+                ,"/tt/TestJava.java:5: warning: Associated declaration",46
                 ,"/tt/TestJava.java:12: warning: Associated method exit",29
                 ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",18
                 ),seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",48
-                ,"/tt/TestJava.java:5: warning: Associated declaration",45
+                ,"/tt/TestJava.java:5: warning: Associated declaration",46
                 ,"/tt/TestJava.java:11: warning: Associated method exit",29
                 ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",18
                 ))

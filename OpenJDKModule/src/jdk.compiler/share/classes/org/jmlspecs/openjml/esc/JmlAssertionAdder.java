@@ -8594,7 +8594,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    && !calleeMethodSym.owner.getQualifiedName().toString().equals(Strings.jmlSpecsPackage + ".JML")
 //                    && calleeMethodSym.params != null; // FIXME - why this?
 			boolean calleeIsConstructor = calleeMethodSym.isConstructor();
-			boolean calleeIsFunction = attr.isFunction(calleeMethodSym);
+			boolean calleeIsFunction = attr.isHeapIndependent(calleeMethodSym);
 			boolean nodoTranslations = !rac && translatingJML
 					&& (calleeIsFunction || (!(that instanceof JCNewClass) && isPure(calleeMethodSym)));
 			boolean hasAModelProgram = hasModelProgram(overridden);
@@ -10953,7 +10953,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (!utils.isJMLStatic(calleeMethodSym)) {
 			ntrArgs = ntrArgs.prepend(newThisExpr);
 		}
-		if (!attr.hasAnnotation(calleeMethodSym, Modifiers.FUNCTION) && !useNamesForHeap) {
+		if (!attr.hasAnnotation(calleeMethodSym, Modifiers.FUNCTION) && !attr.hasAnnotation(calleeMethodSym, Modifiers.HEAP_FREE) && !useNamesForHeap) {
 			JCExpression heap = treeutils.makeIdent(that.pos, heapSym);
 			ntrArgs = ntrArgs.prepend(heap); // only if heap dependent
 		}
@@ -20525,7 +20525,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	public boolean isHeapIndependent(MethodSymbol msym) {
-		boolean isFunction = attr.isFunction(msym);
+		boolean isFunction = attr.isHeapIndependent(msym);
 		if (msym.owner.isEnum()
 				&& (msym.name == names.values || msym.name == names.valueOf || msym.name == names.ordinal))
 			isFunction = true; // FIXME - make these modifiers at the point of declaration

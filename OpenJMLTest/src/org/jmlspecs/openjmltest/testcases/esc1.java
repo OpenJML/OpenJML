@@ -4150,7 +4150,7 @@ public class esc1 extends EscBase {
 //                        + "public class TestJava  { \n" 
 //                        + "  //@ normal_behavior \n"
 //                        + "  //@ ensures \\result == (i > 0 && i < 10);\n" 
-//                        + "  //@ pure function\n"
+//                        + "  //@ pure heap_free\n"
 //                        + "  //@ model public static boolean m(int i);\n"
 //
 //                        + "  //@ pure\n" 
