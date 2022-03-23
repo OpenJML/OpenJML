@@ -4333,7 +4333,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitApply(JCTree.JCMethodInvocation tree) {
-        // Otherwise this is just a Java method application
     	//if (org.jmlspecs.openjml.Main.useJML) System.out.println("VISITAPPLY " + tree);
         int nerrors = log.nerrors;
     	try {
@@ -4351,10 +4350,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // The class has type parameters but the method does not.
             // So we report an error if no errors were reported in the super.visitApply call.
             // FIXME - also should figure out how to report the original error message and location
-            utils.error(tree,  "jml.message", "Failed to find a type for " + tree + " " + tree.type + " " + result );
-            String msg = tree.meth instanceof JCFieldAccess fa ? ("    Receiver = " + fa.type ) : "    ";
-            for (var a: tree.args) { msg += (" ARG: " + a + " " + a.type); }
-            utils.error(tree, "jml.message", msg);
+//            utils.error(tree,  "jml.message", "Failed to find a type for " + tree + " " + tree.type + " " + result );
+//            String msg = tree.meth instanceof JCFieldAccess fa ? ("    Receiver = " + fa.type ) : "    ";
+//            for (var a: tree.args) { msg += (" ARG: " + a + " " + a.type); }
+//            utils.error(tree, "jml.message", msg);
+//            System.out.println("VISITAPPY-ERROR " + tree);
             return;
         }
         if (result.isErroneous()) return;
@@ -5580,8 +5580,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitIdent(JCIdent tree) {
-        boolean print = false;//tree.toString().contains("oldlinks");
-        if (print) System.out.println("VISITIDENT " + tree);
+        boolean print = false;//tree.toString().contains("oldjlinks") || tree.toString().contains("oldlinks");
+        if (print) System.out.println("JML-VISITIDENT " + tree + " " + Utils.join(" ", quantifiedExprs) + " " + tree.sym);
     	// Attributing an ident can instigate loading of new classes
     	// Every routine is responsible for saving and restoring state
     	// However we save and restore it here even though we don't change it here, defensively
@@ -5603,7 +5603,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		}
         	}
         	super.visitIdent(tree);
-            if (print) System.out.println("VISITIDENT-A " + tree + " " + tree.sym + " " + tree.type + " " + tree.sym.getClass() + " " + tree.sym.owner + " " + 
+            Type saved = result;
+            if (print) System.out.println("JML-VISITIDENT-A " + tree + " " + tree.sym + " " + tree.type + " " + tree.sym.getClass() + " " + tree.sym.owner + " " + 
         	   tree.sym.owner.getClass() + " " + ((ClassSymbol)tree.sym).sourcefile + " " + env);
         	if (tree.sym == null) {
         		System.out.println("IDENT NULL SYM " + tree + " " + env.info.scope);
@@ -5631,7 +5632,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	// type is set, so we patch that here.  See also the comment at visitSelect.
         	if (tree.type == null) tree.type = tree.sym.type;
 
-        	Type saved = result;
         	if (!justAttribute && tree.sym instanceof VarSymbol) {
         		var qsaved = quantifiedExprs;
         		try {
@@ -6041,7 +6041,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitSelect(JCFieldAccess tree) {
-        boolean print = tree.toString().contains("oldlinks");
+        boolean print = false;//tree.toString().contains("oldjlinks") || tree.toString().contains("oldlinks");
         if (tree.name == null) {
             // This is a store-ref with a wild-card field
             // FIXME - the following needs some review
@@ -6084,7 +6084,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 result = tree.type = check(tree, t, KindSelector.VAL, resultInfo);
             } else {
             	// <package>.array, or something illegal or the normal case
-                //if (tree.toString().contains("function")) System.out.println("SELECT " + tree + " " + jmlresolve.allowJML());
                 super.visitSelect(tree);
                 // The super call does not always call check... (which assigns the
                 // determined type to tree.type, particularly if an error occurs,
