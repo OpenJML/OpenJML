@@ -21,7 +21,7 @@ public class Linked<W> {
     //@ public model JMLDataGroup valueFields;
     
     //@ nullable
-    public Linked next;//@ in nextFields; maps next.nextFields \into nextFields;
+    public Linked<W> next;//@ in nextFields; maps next.nextFields \into nextFields;
     //@ nullable
     public W value; //@ in valueFields; maps next.valueFields \into valueFields;
     
@@ -31,7 +31,7 @@ public class Linked<W> {
     //@   ensures \result.values() == seq.<W>empty();
     //@   ensures \result.size() == 0;
     //@ pure
-    public static <W> Linked empty() {
+    public static <W> Linked<W> empty() {
         return new Linked(null, null);
     }
     
@@ -39,7 +39,7 @@ public class Linked<W> {
     //@   ensures this.value == t;
     //@   ensures this.next == n;
     //@ pure helper
-    private Linked(/*@ nullable */ W t, /*@ nullable */ Linked n) {
+    private Linked(/*@ nullable */ W t, /*@ nullable */ Linked<W> n) {
         this.next = n;
         this.value = t;
     }

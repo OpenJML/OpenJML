@@ -4352,6 +4352,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         int nerrors = log.nerrors;
     	try {
     		super.visitApply(tree);
+//    		if (tree.toString().contains("prepend")) {
+//    		    System.out.println("JML_VISITAPPLY " + tree + " " + tree.type + " " + TreeInfo.symbolFor(tree.meth));
+//    		    if (TreeInfo.symbolFor(tree.meth) != null) System.out.println("   TYPE " + ((MethodSymbol)TreeInfo.symbolFor(tree.meth)).getReturnType() + " " + TreeInfo.symbolFor(tree.meth).type + " " + TreeInfo.symbolFor(tree.meth).type.getReturnType());
+//    		}
     	} catch (Exception e) {
     		System.out.println("VISIT APPLY EXCEPTION " + tree.type + " " + tree);
     		e.printStackTrace(System.out);

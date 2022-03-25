@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 
+import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.JavaFileObject;
@@ -7309,6 +7310,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	/** Returns true if x is contained in the datagroup y */
 	protected boolean isContainedIn(Symbol x, Symbol y) {
 		if (x == y) return true;
+		if (x == null) return false;
+		if (y == null) return true;
 		if (currentEnv.currentReceiver instanceof JCIdent && x == classDecl.thisSymbol && y == ((JCIdent) currentEnv.currentReceiver).sym) return true;
 		FieldSpecs fs = specs.getAttrSpecs((VarSymbol) x);
 		if (fs == null) {
@@ -8569,6 +8572,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				error(that, "Unknown alternative in interpreting method call");
 				return;
 			}
+//	        if (!receiverType.toString().contains("<") && calleeMethodSym.owner.type.toString().contains("<")
+//	                                && calleeMethodSym.owner.type.toString().startsWith(receiverType.toString())) {
+//	            //System.out.println("REPLACING " + receiverType + " WITH " + calleeMethodSym.owner.type);  // FIXME - a temporary hack
+//	            receiverType = calleeMethodSym.owner.type;
+//	        }
+
 			if (print)
 				System.out.println("APPLYHELPER-D " + calleeMethodSym.owner + " " + calleeMethodSym);
 
@@ -8686,7 +8695,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			pushedMethod = true; // Must be after the check of isRecursive
 			
 			if (!calleeIsConstructor && isPure(calleeMethodSym) ) {
-			    makeAndSaveMethodSymbol(that, calleeMethodSym, receiverType, that.type);
+			    // FIXME - that.type is not always parameterized
+			    makeAndSaveMethodSymbol(that, calleeMethodSym, receiverType, calleeMethodSym.getReturnType());
 			}
 
 //            ListBuffer<JCStatement> saved = currentStatements;
@@ -11073,10 +11083,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public void addMethodAxiomsPlus(JCExpression that, MethodSymbol calleeMethodSym, JCExpression newThisExpr,
 			List<JCExpression> convertedArgs, Type receiverType, java.util.List<Pair<MethodSymbol, Type>> overridden,
 			boolean details) {
-        //System.out.println("METHODAXIOMS-START " + calleeMethodSym + " " + getNewMethodSymbol(calleeMethodSym) );
+        //System.out.println("METHODAXIOMS-START " + calleeMethodSym + " " + that + " " + that.type);
 	    try {
 	        specs.getAttrSpecs(calleeMethodSym);
-	        JCBlock bl = addMethodAxioms(that, calleeMethodSym, overridden, receiverType, that.type);
+	        var returnType = that.type; // FIXME - in some cases (cf. test linked2) that.type does not have type parameters, as the symbol does
+	        //if (calleeMethodSym.type instanceof Type.MethodType mt) returnType = mt.getReturnType();
+	        //if (calleeMethodSym.type instanceof Type.ForAll mt) returnType = mt.getReturnType();
+	        //System.out.println("METHODAXIOMS-TYPES " + calleeMethodSym + " " + that + " " + that.type + " " + returnType + " " + calleeMethodSym.type.getClass());
+
+	        JCBlock bl = addMethodAxioms(that, calleeMethodSym, overridden, receiverType, returnType);
 	        //System.out.println("makeMethodHavocAxiom " + calleeMethodSym + " " + getNewMethodSymbol(calleeMethodSym) + " "  + details + " " + bl);
 	        if (details) { // FIXME - document this details check - if it is false, the axioms are dropped
 	            // FIXME - actually should add these into whatever environment is operative
@@ -12343,7 +12358,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		if (lhs instanceof JCFieldAccess)
 			havocModelFields((JCFieldAccess) lhs);
-		result = eresult = r;
+		
 		saveMappingOverride(id, eresult);
         // Don't change heap state if the assignment is just to a local variable or a
         // formal parameter
@@ -12353,6 +12368,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} else {
 		    changeState(pos, List.<StoreRefGroup>of(convertFrameConditionList(pos, treeutils.trueLit, List.<JCExpression>of(id))), stt.label);
 		}
+		result = eresult = r;
 	}
 	
 	/** Checks the access of lhsUnconverted (with a 'this' which is currentTheExpr)
@@ -12592,11 +12608,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			addStat(stt);
 			lastStat = st.expr;
 			saveMapping(that, st.expr);
-			result = eresult = newTemp(newfa);
+			var saved = newTemp(newfa);
 			havocModelFields(newfa);
 			saveMapping(that.lhs, eresult);
-	        if (!rac) changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, List.<JCExpression>of(that.lhs))), stt.label);
-
+	        if (!rac) changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, List.<JCExpression>of(newfa))), stt.label);
+	        result = eresult = saved;
+	        
 		} else if (that.lhs instanceof JCArrayAccess aa) {
 			// that.lhs.getPreferredPosition() is the position of the [ in
 			// the array access expression
@@ -12677,9 +12694,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			addStat(st);
 			lastStat = st.expr;
 			saveMapping(that, st.expr);
-			result = eresult = newTemp(lhs);
+			var saved = newTemp(lhs);
 			saveMapping(that.lhs, eresult);
-            if (!rac) changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, List.<JCExpression>of(that.lhs))), stt.label);
+            if (!rac) changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, List.<JCExpression>of(lhs))), stt.label);
+            result = eresult = saved;
 
 		} else {
 			error(that, "An unknown kind of assignment seen in JmlAssertionAdder: " + that.lhs.getClass());
@@ -12774,7 +12792,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpressionStatement st = treeutils.makeAssignStat(that.getStartPosition(), newlhs, nid);
             JmlLabeledStatement stt = markUniqueLocation(st);
             addStat(st);
-			result = eresult = post ? newTemp(lhs) : newlhs;
+			var savedResult = post ? newTemp(lhs) : newlhs;
 			saveMapping(that.lhs, eresult);
 			var sym = ((JCIdent) lhs).sym;
 			if (sym.owner instanceof ClassSymbol) {
@@ -12785,9 +12803,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (!(that.lhs instanceof JCIdent && ((JCIdent) that.lhs).sym.owner instanceof Symbol.MethodSymbol)) {
 			    changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, List.<JCExpression>of(that.lhs))), stt.label);
 			}
+            result = eresult = savedResult;
 			
-		} else if (lhs instanceof JCFieldAccess) {
-			JCFieldAccess fa = (JCFieldAccess) lhs;
+		} else if (lhs instanceof JCFieldAccess fa) {
 			JCFieldAccess newfa;
 			if (utils.isJMLStatic(fa.sym)) {
 				if (!lhsscanned && !treeutils.isATypeTree(fa.selected))
@@ -12852,15 +12870,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JmlLabeledStatement stt = markUniqueLocation(st);
             addStat(st);
 			treeutils.copyEndPosition(st, that);
-			result = eresult = post ? idc : newTemp(newlhs);
+			var savedResult = post ? idc : newTemp(newlhs);
 			saveMapping(that.lhs, eresult);
 			var sym = ((JCFieldAccess) lhs).sym;
 			if (sym.owner instanceof ClassSymbol) {
 				havocModelFields(newfa);
 			}
 			lastStat = st.expr;
-			changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, List.<JCExpression>of(that.lhs))), stt.label);
-			
+			changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, List.<JCExpression>of(newfa))), stt.label);
+			result = eresult = savedResult;
 		} else if (lhs instanceof JCArrayAccess) {
 			JCArrayAccess aa = (JCArrayAccess) lhs;
 			JCExpression array = convertExpr(aa.indexed);
@@ -12928,10 +12946,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpressionStatement st = addStat(treeutils.makeAssignStat(that.getStartPosition(), lhs, idc));
             JmlLabeledStatement stt = markUniqueLocation(st);
 			treeutils.copyEndPosition(st, that);
-			result = eresult = post ? idc : newTemp(lhs);
+			var savedResult = post ? idc : newTemp(lhs);
 			saveMapping(that.lhs, eresult);
 			lastStat = st.expr;
-			changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, List.<JCExpression>of(that.lhs))), stt.label);
+			changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, List.<JCExpression>of(lhs))), stt.label);
+            result = eresult = savedResult;
 			// FIXME - what model fields should be havoced?
 
 		} else {
@@ -16358,11 +16377,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		}
         if (!allLocal) {
-            if (loopSpecs == null) {
-                var stt = M.at(pos.getPreferredPosition()).JmlStatementLoopModifies(StatementLocationsExtension.loopwritesStatement, newlistx);
-                loopSpecs = List.<JmlStatementLoop>of(stt);
+            List<JmlStatementLoop> justLoopModifies = null;
+            JmlStatementLoop loopModifiesClause = null;
+            if (loopSpecs != null) {
+                loopModifiesClause = loopSpecs.stream().filter(c->(c.clauseType == StatementLocationsExtension.loopwritesStatement)).findFirst().orElse(null);
             }
-            changeStateForLoop(pos, loopSpecs); // FIXME _ but only if something is havoced? and it is not a local variable?
+            if (loopModifiesClause == null) {
+                loopModifiesClause = M.at(pos.getPreferredPosition()).JmlStatementLoopModifies(StatementLocationsExtension.loopwritesStatement, newlistx);
+            }
+            changeStateForLoop(pos, List.<JmlStatementLoop>of(loopModifiesClause)); // FIXME _ but only if something is havoced? and it is not a local variable?
         }
 
 		return allLocal;
@@ -20284,6 +20307,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return null;
 		}
 		if (utils.debug("trans")) System.out.println("ADDING METHODAXIOMS " + msym);
+//        if (!receiverType.toString().contains("<") && msym.owner.type.toString().contains("<")
+//                                && msym.owner.type.toString().startsWith(receiverType.toString())) {
+//            System.out.println("REPLACING " + receiverType + " WITH " + msym.owner.type);  // FIXME - a temporary hack
+//            receiverType = msym.owner.type;
+//        }
 		boolean isFunction = isHeapIndependent(msym);
 		JCExpression savedCondition = condition;
 		if (isFunction) condition = treeutils.trueLit;
@@ -20712,7 +20740,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// Save the symbol
 		mm.put(msym, newsym);
 		if (utils.debug("trans"))
-			System.out.println("NEW METHOD NAME " + currentEnv.stateLabel + " " + hc + " " + msym + " " + newsym + " " + newmods);
+			System.out.println("NEW METHOD NAME " + currentEnv.stateLabel + " " + hc + " " + msym.owner + " " + msym + " " + newsym + " " + returnType + " " + newsym.getReturnType() + " " + (newsym.type instanceof Type.MethodType mt ? mt.getReturnType() : "---") + " " + newmods);
 		return newsym;
 	}
 
