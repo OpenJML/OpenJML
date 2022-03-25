@@ -114,7 +114,6 @@ public class escfunction extends EscBase {
                 +"  //@ assert !mfunc(0);\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:6: error: A non-static heap_free method must be a member of a Immutable class", 7
                 ,"/tt/TestJava.java:4: error: heap_free methods are implicitly pure and may not assign to any fields: n",18
         		);
     }

@@ -182,16 +182,16 @@ public class esclambdas extends EscBase {
         helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"
                                 +"public class TestJava { \n"
                                 
-                                +"  public /*@ immutable */ static interface Identity<T> extends Fun<T,T> {\n"
+                                +"  public static interface Identity<T> extends Fun<T,T> {\n"
                                 +"  //@   public model_program {\n"
                                 +"  //@      return t;\n"
                                 +"  //@    }\n"
-                                +"  //@ pure heap_free\n"
+                                +"  //@ pure\n"
                                 +"  public T apply(T t);\n"
                                 +"  }\n"
 
-                                +"  static /*@ immutable */ public interface Fun<T,R> {\n"
-                                +"     //@ public normal_behavior ensures true; pure heap_free \n"
+                                +"  static public interface Fun<T,R> {\n"
+                                +"     //@ public normal_behavior ensures true; pure \n"
                                 +"     static <T> Identity<T> identity() { return (x -> x); }\n"
                                 +"  }\n"
                                 
@@ -212,15 +212,15 @@ public class esclambdas extends EscBase {
         helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"
                                 +"public class TestJava { \n"
                                 
-                                +"  public /*@ immutable */ static interface Identity<T> extends Fun<T,T> {\n"
+                                +"  public static interface Identity<T> extends Fun<T,T> {\n"
                                 +"  //@   public normal_behavior \n"
                                 +"  //@      ensures \\result == t;\n"
-                                +"  //@ pure heap_free\n"
+                                +"  //@ pure\n"
                                 +"  public T apply(T t);\n"
                                 +"  }\n"
 
-                                +"  static /*@ immutable */ public interface Fun<T,R> {\n"
-                                +"     //@ public normal_behavior ensures true; pure heap_free\n"
+                                +"  static public interface Fun<T,R> {\n"
+                                +"     //@ public normal_behavior ensures true; pure\n"
                                 +"     static <T> Identity<T> identity() { return (x->x); }\n"
                                 +"  }\n"
                                 

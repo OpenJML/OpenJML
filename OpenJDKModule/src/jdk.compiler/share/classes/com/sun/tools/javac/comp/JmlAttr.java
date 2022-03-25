@@ -80,6 +80,7 @@ import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 import org.jmlspecs.openjml.visitors.IJmlVisitor;
 import org.jmlspecs.openjml.visitors.JmlTreeCopier;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
+import org.smtlib.SymbolTable;
 
 import com.sun.source.tree.IdentifierTree;
 import com.sun.tools.javac.code.*;
@@ -1022,6 +1023,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } else { // Nested model type declaration
             allAllowed(specsModifiers.annotations,allowedNestedModelTypeModifiers,"nested model type declaration");
         }
+        if (classSymbol.isInterface() && isImmutable(classSymbol)) {
+            utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "Interfaces may not be declared immutable: " + classSymbol);
+        }
+//        if (!classSymbol.isInterface() && classSymbol.type != syms.objectType && !isImmutable(classSymbol) && isImmutable(classSymbol.getSuperclass().tsym)) {
+//            utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "A class extending an immutable class must itself be immutable: " + classSymbol);
+//        }
         if (!isModel) {
             checkForConflict(specsModifiers,SPEC_PUBLIC,SPEC_PROTECTED);
             checkForRedundantSpecMod(specsModifiers);
@@ -1677,13 +1684,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
 
             
-            // Check rules about Function
+            // Check rules about heap_free
             JCAnnotation a=utils.findMod(mods,modToAnnotationSymbol.get(HEAP_FREE));
-            if (a != null && !utils.isJMLStatic(msym)) {
-                if (msym.owner instanceof ClassSymbol owner && !isImmutable(owner)) {
-                    utils.error(a,"jml.heap_free.must.have.immutable",msym.name);
-                }
-            }
+            // FIXME - check that all specs are 'reads \nothing'
+//            if (a != null && !utils.isJMLStatic(msym)) {
+//                if (msym.owner instanceof ClassSymbol owner && !isImmutable(owner)) {
+//                    utils.error(a,"jml.heap_free.must.have.immutable",msym.name);
+//                }
+//            }
 //            a=utils.findMod(mods,modToAnnotationSymbol.get(FUNCTION));
 //            if (a != null && !utils.isJMLStatic(msym)) {
 //                if (msym.owner instanceof ClassSymbol owner && !isImmutable(owner)) {
@@ -6551,24 +6559,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    }
 
     public boolean isPureMethod(MethodSymbol symbol) {
-        //System.out.println("IPM " + symbol.owner + " " + symbol  );
+        //boolean print = symbol.toString().contains("apply");
+        //if (print) System.out.println("IPM " + symbol.owner + " " + symbol  );
         java.util.List<MethodSymbol> overrideList = Utils.instance(context).parents(symbol,true);
         java.util.ListIterator<MethodSymbol> iter = overrideList.listIterator(overrideList.size());
         while (iter.hasPrevious()) {
             MethodSymbol msym = iter.previous();
+            //if (print) System.out.println("  CHECKING " + symbol + " " + msym);
             MethodSpecs mspecs = specs.getLoadedSpecs(msym); // Could be null if we are in the middle of generating defaultSpecs
-            //if (mspecs == nulls) mspecs = specs.defaultSpecs(null,msym,Position.NOPOS); // FIXME - this should be in a more generic place
-            //System.out.println("IPMA " + symbol.owner + " " + symbol + " " + msym.owner + " " + msym + " " + mspecs);
+            //if (print) System.out.println("  IPMA " + symbol.owner + " " + symbol + " " + msym.owner + " " + msym + " " + mspecs);
             if (mspecs == null) {  // FIXME - observed to happen for in gitbug498 for JMLObjectBag.insert
                 // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
                 if (msym.toString().equals("size()") && msym.owner.toString().equals(Strings.jmlSpecsPackage + ".JMLList")) return true;
                 boolean isPure =  specs.isPure((ClassSymbol)msym.owner);
+                //if (isPure && print) System.out.println("  ISPURE-N " + symbol);
             	if (isPure) return true;
             } else {
             	boolean isPure = specs.isPure(msym); // Also checks enclosing class
+            	//if (isPure && print) System.out.println("  ISPURE " + symbol + " " + msym);
             	if (isPure) return true;
             }
         }
+        //if (print) System.out.println("  NOTPURE " + symbol);
         return false;
     }
     

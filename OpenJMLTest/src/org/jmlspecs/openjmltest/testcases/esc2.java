@@ -4968,6 +4968,7 @@ public class esc2 extends EscBase {
 
     @Test
     public void testHeap2() {
+        //main.addOptions("-show","-method=m");
         helpTCX("tt.Test",
             """
             public class Test {
@@ -5002,6 +5003,30 @@ public class esc2 extends EscBase {
             
             //@ reads \\nothing; ensures true; pure
             public int f() { return 0; }
+
+            //@ old int x = f();
+            //@ ensures f() == \\old(f());
+            public int m(boolean b) {
+                int y = f();
+                //@ assert y == f();
+                z = 1;
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testHeap2b() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure heap_free
+            static public int f() { return 0; }
 
             //@ old int x = f();
             //@ ensures f() == \\old(f());
@@ -5072,6 +5097,28 @@ public class esc2 extends EscBase {
             
             //@ reads \\nothing; ensures true; pure
             public int f() { return 0; }
+
+            public int m(boolean b) {
+                int y = f();
+                z = 1;
+              //@ assert f() == \\old(f());
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testHeap4b() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ pure heap_free
+            static public int f() { return 0; }
 
             public int m(boolean b) {
                 int y = f();

@@ -1103,8 +1103,18 @@ public class JmlTreeUtils {
         return makeBinary(pos,JCTree.Tag.EQ,objecteqSymbol,lhs, rhs);
     }
 
+    /** Makes an attributed AST for a reference equality (==) expression */
+    public JCBinary makeEqObject(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
+        return makeBinary(pos,JCTree.Tag.EQ,objecteqSymbol,lhs, rhs);
+    }
+
     /** Makes an attributed AST for a reference inequality (!=) expression */
     public JCBinary makeNeqObject(int pos, JCExpression lhs, JCExpression rhs) {
+        return makeBinary(pos,JCTree.Tag.NE,objectneSymbol,lhs, rhs);
+    }
+    
+    /** Makes an attributed AST for a reference inequality (!=) expression */
+    public JCBinary makeNeqObject(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
         return makeBinary(pos,JCTree.Tag.NE,objectneSymbol,lhs, rhs);
     }
     
