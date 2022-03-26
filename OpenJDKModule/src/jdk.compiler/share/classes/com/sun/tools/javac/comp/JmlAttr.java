@@ -3656,6 +3656,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             jmlenv = jmlenv.pop();
             log.useSource(old);
             currentSecretContext = prevSecret;
+            jmlenv.currentClauseKind = null;
         }
     }
     
@@ -5664,9 +5665,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	checkVisibility(tree, jmlenv.jmlVisibility, tree.sym, null);
 
             var rep = jmlenv.representsHead;
-//        	jmlenv.representsHead = rep;
-        	if (rep != null && tree.sym instanceof VarSymbol && tree.sym.owner instanceof ClassSymbol && tree.sym.name != names._this && tree.sym.name != names._super) {  // FIXME - also need to check the reads statement of method calls
-        		//System.out.println("CHECKING DG " + (VarSymbol)tree.sym + " IN " + jmlenv.representsHead);
+        	if (rep != null && jmlenv.currentClauseKind == representsClause && tree.sym instanceof VarSymbol && tree.sym.owner instanceof ClassSymbol && tree.sym.name != names._this && tree.sym.name != names._super) {  // FIXME - also need to check the reads statement of method calls
+        		//System.out.println("CHECKING DG " + (VarSymbol)tree.sym + " IN " + jmlenv.representsHead + " " + jmlenv.currentClauseKind);
         		if (!isContainedInDatagroup((VarSymbol)tree.sym, jmlenv.representsHead)) {
         			utils.error(tree,"jml.message", "Because '" + rep + "' reads '" + tree.sym + "' in a represents clause, '" + tree.sym + "' must be 'in' the model field '" + rep + "'");
         		}

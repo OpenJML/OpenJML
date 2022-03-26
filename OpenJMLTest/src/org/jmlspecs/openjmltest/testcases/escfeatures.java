@@ -63,23 +63,24 @@ public class escfeatures extends EscBase {
     	escOnFiles(sourceDirname,outDir,opts);
     }
 
-    public void helpTF(String testDirname, String ... opts) {
-        String d = "test/" + testDirname;
-        String[] newopts = new String[opts.length+2];
-        newopts[0] = "-classpath";
-        newopts[1] = d;
-        System.arraycopy(opts,0,newopts,2,opts.length);
-        helpTCF(d,d,newopts);
-    }
-
-    public void helpDemo(String testDirname, String outdir, String ... opts) {
-        String d = OpenJMLDemoPath + "/src/openjml/" + testDirname;
-        String[] newopts = new String[opts.length+2];
-        newopts[0] = "-classpath";
-        newopts[1] = d;
-        System.arraycopy(opts,0,newopts,2,opts.length);
-        helpTCF(d,"test/" + outdir,newopts);
-    }
+//    public void helpTF(String testDirname, String ... opts) {
+//        String d = "test/" + testDirname;
+//        String[] newopts = new String[opts.length+2];
+//        newopts[0] = "-classpath";
+//        newopts[1] = d;
+//        System.arraycopy(opts,0,newopts,2,opts.length);
+//        helpTCF(d,d,newopts);
+//    }
+//
+//    public void helpDemo(String testDirname, String outdir, String ... opts) {
+//        String d = OpenJMLDemoPath + "/src/openjml/" + testDirname;
+//        String[] newopts = new String[opts.length+3];
+//        newopts[0] = "-classpath";
+//        newopts[1] = d;
+//        newopts[2] = "--check-feasibility=basic";
+//        System.arraycopy(opts,0,newopts,3,opts.length);
+//        helpTCF(d,"test/" + outdir,newopts);
+//    }
 
     
     public void helpFeatures(String n) {

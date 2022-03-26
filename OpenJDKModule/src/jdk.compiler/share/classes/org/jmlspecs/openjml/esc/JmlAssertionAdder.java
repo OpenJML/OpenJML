@@ -12440,7 +12440,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							JCExpression precondition = !comparingToCallee ? preconditions.get(specCase): calleePreconditions.get(specCase); // FIXME - a hack
 							//System.out.println("SPECCASE PRE " + precondition);
 							if (precondition == null) {
-								System.out.println("NULL PRECONDITION FOR " + methodDecl.sym.owner + "." + methodDecl.sym + " " + methodSym.owner + "." + methodSym + " " + (methodDecl.sym == methodSym) + " " + parentMethodSym.owner + "." + parentMethodSym + " " + (methodSym==parentMethodSym) + " " + specCase);
+								if (!parentMethodSym.owner.isAnonymous()) {
+								    System.out.println("NULL PRECONDITION FOR " + methodDecl.sym.owner + "." + methodDecl.sym + " " + methodSym.owner + "." + methodSym + " " + (methodDecl.sym == methodSym) + " " + parentMethodSym.owner + "." + parentMethodSym + " " + (methodSym==parentMethodSym) + " " + specCase);
+								}
 								precondition = treeutils.trueLit; // Not correct, but just error recovery
 								// FIXME - this can happen during assignable and accessible checking for a method called in a precondition
 							}

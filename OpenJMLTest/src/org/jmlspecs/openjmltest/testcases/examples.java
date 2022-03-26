@@ -66,11 +66,12 @@ public class examples extends EscBase {
     }
     
     public void helpDemo(String testFileName, String ... opts) {
-        int extraopts = 3;
+        int extraopts = 4;
         String[] newopts = new String[opts.length+extraopts];
         newopts[0] = "-classpath";
         newopts[1] = inPath;
-        newopts[2] = "-code-math=safe"; // FIXME - omit this when EscBase does not set code-math
+        newopts[2] = "--check-feasibility=basic";
+        newopts[3] = "-code-math=safe"; // FIXME - omit this when EscBase does not set code-math
         System.arraycopy(opts,0,newopts,extraopts,opts.length);
         helpTCF(inPath + testFileName, outPath + testFileName.substring(0,testFileName.indexOf('.')),newopts);
     }

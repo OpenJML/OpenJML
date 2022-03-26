@@ -3,6 +3,7 @@
 // Specified with model methods
 public class Linked<W> {
     //@ public normal_behavior
+    //@   reads next, next.nextFields, value, next.valueFields;
     //@   ensures \result == (next == null ? seq.<W>empty() : next.values().prepend(next.value));
     //@ pure helper
     //@ model public seq<W> values(); // sequence of values after the current Link, not including the current Link
@@ -36,6 +37,7 @@ public class Linked<W> {
     }
     
     //@ private normal_behavior
+    //@   requires n != null ==> n.values().size() == n.size(); // FIXME - should have been assumed
     //@   ensures this.value == t;
     //@   ensures this.next == n;
     //@ pure helper
@@ -58,7 +60,8 @@ public class Linked<W> {
         //@ ghost \bigint nn = (this.next == null ? -1 : this.next.size());
         Linked v = new Linked(t, next);
         //@ assert nn == (this.next == null ? -1 : this.next.size());
-        // @ assert this.next != null ==> v.values() == oldvalues;
+        //@ assert oldvalues == this.values();
+        //@ assert v.values() == oldvalues;
         this.next = v;
         //@ assert v.size() == \old(this.size()); // FIXME - this is needed as a lemma
         //@ assert this.values() == oldvalues.prepend(t);
@@ -74,9 +77,17 @@ public class Linked<W> {
     //@   ensures this.size() == \old(this.size()) - 1;
     //@   ensures this.values() == oldvalues.tail(1);
     public void pop() {
+        //@ assert this.values().size == this.size();
+        //@ assert this.next.values().size == this.next.size();
+        //@ ghost seq<W> oldvalues = this.values();
+        //@ ghost seq<W> oldnvalues = this.next.values();
+        //@ assert oldnvalues == oldvalues.tail(1);
         this.next = this.next.next;
         //@ assert this.size() == (this.next == null ? 0 : this.next.size() + 1);
         //@ assert this.size() == \old(this.size()) - 1;
+        //@ assert this.values() == oldnvalues;
+        //@ assert this.values() == oldvalues.tail(1);
+        //@ assume this.values().size == this.size(); // FIXME - ASSUMED
     }
     
     //@ public normal_behavior
@@ -85,19 +96,24 @@ public class Linked<W> {
     //@   old seq<W> oldvalues = this.values();
     //@   assignable next, nextFields;
     //@   ensures this.size() == oldsize - 1;
+    //@   ensures this.values().size == oldvalues.size - 1;
     // @   ensures this.values() == oldvalues.tail(1); // FIXME
     public void remove(int n) {
         //@ ghost \bigint nnn = (this.next.next == null ? 0 : this.next.next.size() + 1);
         //@ ghost \bigint nn = this.next.size();
+        //@ ghost seq<W> oldvalues = this.values();
+        //@ assert this.values().size == oldvalues.size;
         if (n == 0) {
             this.next = this.next.next;
             //@ assert nn == (this.next == null ? 0 : this.next.size() + 1);
             //@ assert this.size() == nn;
+            //@ assert this.values().size == oldvalues.size - 1;
         } else {
             this.next.remove(n-1);
             //@ assert this.size() == nn;
         }
         //@ assert this.size() == nn;
+        //@ assume this.values().size == this.size(); // FIXME - ASSUMED
     }
 }
 

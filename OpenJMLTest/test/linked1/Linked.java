@@ -4,10 +4,20 @@
 // Specified with model fields
 public class Linked<W> {
     
+    //@ public model JMLDataGroup ownerFields;
+    //@ ghost nullable public Linked<W> owner; //@ in ownerFields; maps next.ownerFields \into ownerFields;
+    
     //@ model public seq<W> values; // sequence of values after the current Link, not including the current Link
     //@ public represents values = next == null ? seq.<W>empty() : next.values.prepend(next.value);
     //@ model public seq<Linked<W>> links;
     //@ public represents links = next == null ? seq.<Linked<W>>empty() : next.links.prepend(next);
+    
+    //@ public normal_behavior
+    //@   reads this.owner, this.next.ownerFields, this.next;
+    //@   ensures \result == (this.owner == owner && (next != null ==> next.allMine(owner)));
+    //@ model pure helper public boolean allMine(Linked<W> owner);
+    
+    //@ public invariant this == this.owner ==> allMine(this);
     
     //@ model public \bigint size; 
     //@ public represents size = ((next == null) ? (\bigint)0 : 1 + next.size);
@@ -19,6 +29,11 @@ public class Linked<W> {
     private Linked<W> next; //@ in size, values, links; 
     //@ maps next.values \into values; maps next.size \into size; maps next.links \into links;
     
+    //@ public normal_behavior // only for demonstration purposes -- exposes representation
+    //@ reads next;
+    //@ ensures \result == next;
+    //@ public model Linked<W> next();
+    
     //@ nullable spec_public
     private W value; //@ in values;
     
@@ -29,13 +44,15 @@ public class Linked<W> {
     //@   ensures \result.next == null;
     //@ pure
     public static <T> Linked<T> empty() {
-        return new Linked<T>(null, null);
+        var n = new Linked<T>(null, null);
+        n.owner = this;
+        return n;
     }
     
     //@ private normal_behavior
     //@   ensures this.value == t;
     //@   ensures this.next == n;
-    //@ pure 
+    //@ pure helper
     private Linked(/*@ nullable */ W t, /*@ nullable */ Linked<W> n) {
         this.next = n;
         this.value = t;
@@ -52,6 +69,7 @@ public class Linked<W> {
     public void push(W t) {
         Linked<W> v = new Linked<W>(t, next);
         this.next = v;
+        //@ set v.owner = this;
     }
     
     //@ public normal_behavior
@@ -107,6 +125,54 @@ class Test {
         in.remove(0);
         //@ assert in.size == \old(in.size);
         //@ assert in.values == \old(in.values);
+    }
+    
+    //@ requires in != other;
+    //@ requires in.values == other.values;
+    public static <Y> void test4(Y y, Linked<Y> in, Linked<Y> other) {
+        // @ assume in.size == other.size;
+        in.push(y);
+        //@ assert in.values.tail(1) == other.values;
+    }
+    
+    //@ requires in != other;
+    //@ requires in.values == other.values;
+    //@ requires in.size > 0;
+    public static <Y> void test5(Linked<Y> in, Linked<Y> other) {
+        // @ assume in.size == other.size;
+        //@ ghost seq<Y> oldvalues = in.values;
+        in.pop();
+        //@ assert oldvalues.tail(1) == in.values;
+        //@ assert in.values == other.values.tail(1);
+    }
+    
+    //@ requires in != other;
+    //@ requires in.values == other.values;
+    //@ requires in.size > 1;
+    public static <Y> void test6(Linked<Y> in, Linked<Y> other) {
+        //@ ghost seq<Y> oldvalues = in.values;
+        in.remove(1);
+        //@ assert oldvalues.size - 1 == in.size;
+        //@ assert other.values.size - 1 == in.size;
+    }
+    
+    //@ requires in != other;
+    //@ requires in.values == other.values;
+    //@ requires in.size > 1;
+    /*@ model public static <Y> void test7(Linked<Y> in, Linked<Y> other, Y y) {
+        assume in.next.value != y;
+        assert in.size == other.size;
+        in.next().value = y;
+        assert in.size == other.size;
+        assert in.values != other.values;
+        assert in.values.tail(1) == other.values.tail(1);
+    }
+    @*/
+    
+    //@ requires in != other;
+    //@ requires in.size > 1;
+    public static <Y> void test8(Linked<Y> in, Linked<Y> other) {
+        //@ assert in.next != other.next;
     }
     
 
