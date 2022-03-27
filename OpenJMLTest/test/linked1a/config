@@ -1,1 +1,0 @@
-ARGS+=" --progress --exclude=remove,Test.* "

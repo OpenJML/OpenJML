@@ -2,29 +2,6 @@
 // A singly-linked list with the first element being a 'head' and not part of the list
 // Specified with model methods
 public class Linked<W> {
-    //@ public normal_behavior
-    //@   reads next, next.nextFields, value, next.valueFields;
-    //@   ensures \result == (next == null ? seq.<W>empty() : next.values().prepend(next.value));
-    //@ pure helper
-    //@ model public seq<W> values(); // sequence of values after the current Link, not including the current Link
-    
-    //@ public normal_behavior
-    
-    //@   reads next, next.nextFields; // FIXME - does not work as nextFields
-    //@   ensures \result == ((next == null) ? 0 : 1 + next.size());
-    //@   ensures \result >= 0;
-    //@ pure helper
-    //@ model public \bigint size();
-
-    //@ public invariant values().size == size();
-    
-    //@ public model JMLDataGroup nextFields;
-    //@ public model JMLDataGroup valueFields;
-    
-    //@ nullable
-    public Linked<W> next;//@ in nextFields; maps next.nextFields \into nextFields;
-    //@ nullable
-    public W value; //@ in valueFields; maps next.valueFields \into valueFields;
     
     //@ public normal_behavior
     //@   ensures \result.value == null;
@@ -33,7 +10,7 @@ public class Linked<W> {
     //@   ensures \result.size() == 0;
     //@ pure
     public static <W> Linked<W> empty() {
-        return new Linked(null, null);
+        return new Linked<W>(null, null);
     }
     
     //@ private normal_behavior
@@ -58,7 +35,7 @@ public class Linked<W> {
     public void push(W t) {
         //@ ghost var oldvalues = this.values();
         //@ ghost \bigint nn = (this.next == null ? -1 : this.next.size());
-        Linked v = new Linked(t, next);
+        Linked<W> v = new Linked<W>(t, next);
         //@ assert nn == (this.next == null ? -1 : this.next.size());
         //@ assert oldvalues == this.values();
         //@ assert v.values() == oldvalues;
@@ -90,6 +67,104 @@ public class Linked<W> {
         //@ assume this.values().size == this.size(); // FIXME - ASSUMED
     }
     
+    static class Value<W> extends Link<W> {
+
+        /** Constructs a new link with given value and next field; for internal use only */
+        //@ private normal_behavior
+        //@   requires next != null ==> \invariant_for(next);
+        //@   ensures this.next == next;
+        //@   ensures this.value == value;
+        //@ pure helper
+        private Value(W value, /*@ nullable */ Value<W> next) {
+            this.value = value;
+            this.next = next;
+        }
+        
+        //@ nullable
+        public W value; //@ in valueFields; maps next.valueFields \into valueFields;
+        
+        /** Returns the value from this link */
+        //@ public normal_behavior
+        //@   reads value;
+        //@   ensures \result == value;
+        //@ pure
+        public W value() {
+            return value;
+        }
+    }
+}
+
+class Link<V> {
+
+    //@ public model JMLDataGroup ownerFields;
+    //@ ghost nullable public List<V> owner; //@ in ownerFields; maps next.ownerFields \into ownerFields;
+
+
+    //@ model public seq<Link<V>> links;
+    //@ public represents links = next == null ? seq.<Link<V>>empty() : next.links.prepend(next);
+
+    // True if my owner is the argument and all nodes after me have the argument as their owners.
+    //@ public normal_behavior
+    //@   reads this.owner, this.next.ownerFields, this.links;
+    //@   ensures \result == (this.owner == owner && (next != null ==> next.allMine(owner)));
+    //@ model pure helper public boolean allMine(List<V> owner);
+
+
+
+    
+    
+    //@ public normal_behavior
+    //@   reads next, next.nextFields, value, next.valueFields;
+    //@   ensures \result == (next == null ? seq.<W>empty() : next.values().prepend(next.value));
+    //@ pure helper
+    //@ model public seq<W> values(); // sequence of values after the current Link, not including the current Link
+    
+    //@ public normal_behavior    
+    //@   reads next, next.nextFields; // FIXME - does not work as nextFields
+    //@   ensures \result == ((next == null) ? 0 : 1 + next.size());
+    //@   ensures \result >= 0;
+    //@ pure helper
+    //@ model public \bigint size();
+
+    //@ public invariant values().size == size();
+    
+    //@ public model JMLDataGroup nextFields;
+    //@ public model JMLDataGroup valueFields;
+    
+    
+    
+    //@ public invariant values.size() == size;
+    //@ public invariant links.size() == size;
+    //@ public invariant !links.contains(this);
+    //@ public invariant this.owner != null && allMine(this.owner);
+
+    //@ nullable spec_public
+    protected List.Value<V> next; //@ in size, values, links; 
+    //@ maps next.values \into values; maps next.size \into size; maps next.links \into links;
+    
+    //@ protected normal_behavior
+    //@ pure helper
+    protected Link() {
+    }
+
+    //@ public normal_behavior // only for demonstration purposes -- exposes representation
+    //@   reads next;
+    //@   ensures \result == next;
+    //@ pure helper
+    //@ public model List.Value<V> next();
+        
+    /** Returns the nth value in the list */
+    //@ public normal_behavior
+    //@   requires 0 <= n < this.size;
+    //@   reads values, links;
+    //@   ensures \result == values[n];
+    //@ pure
+    public V value(int n) {
+        if (n == 0) return next.value();
+        else return next.value(n-1);
+    }
+
+    /** Removes the nth value from the list */
     //@ public normal_behavior
     //@   requires 0 <= n < this.size();
     //@   old \bigint oldsize = this.size();
@@ -97,7 +172,7 @@ public class Linked<W> {
     //@   assignable next, nextFields;
     //@   ensures this.size() == oldsize - 1;
     //@   ensures this.values().size == oldvalues.size - 1;
-    // @   ensures this.values() == oldvalues.tail(1); // FIXME
+    //@   ensures n==0 ==> this.values() == oldvalues.tail(1); // FIXME
     public void remove(int n) {
         //@ ghost \bigint nnn = (this.next.next == null ? 0 : this.next.next.size() + 1);
         //@ ghost \bigint nn = this.next.size();
@@ -116,6 +191,8 @@ public class Linked<W> {
         //@ assume this.values().size == this.size(); // FIXME - ASSUMED
     }
 }
+
+
 
 class Test {
     

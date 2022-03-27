@@ -2917,6 +2917,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							if (conj != null && !isHelper) {
 								currentStatements = instanceStats;
 								conj = convertJML(conj);
+					            addStat(comment(pos, (assume?"Assume":"Assert") + " invariant " + conj, null));
 								if (assume)
 									addAssume(pos, invariantLabel, conj);
 								else
@@ -2994,6 +2995,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										t = (JmlTypeClauseExpr) copy(clause); // FIXME - why copy the clause
 										addTraceableComment(t.expression, clause.toString());
 										JCExpression e = convertJML(t.expression, treeutils.trueLit, isPost);
+		                                addStat(comment(pos, (assume?"Assume":"Assert") + " invariant " + e, null));
 										if (assume)
 											addAssume(pos, invariantLabel, e, cpos, clause.source,
 													invariantDescription);
@@ -4545,13 +4547,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression receiver = utils.isJMLStatic(methodDecl.sym) ? null : currentEnv.currentReceiver;
 
 			// Assuming invariants
+            addStat(comment(methodDecl, "Adding instance invariants for method receiver " + methodDecl.sym.owner + "." + methodDecl.sym, null));
 			addInvariants(methodDecl, owner.type, receiver, currentStatements, true, methodDecl.sym.isConstructor(),
 					false, isHelper(methodDecl.sym), false, true, Label.INVARIANT_ENTRANCE,
 					utils.qualifiedMethodSig(methodDecl.sym));
+            addStat(comment(methodDecl, "End instance invariants for method receiver " + methodDecl.sym.owner + "." + methodDecl.sym, null));
 			// Assume invariants for the class of each parameter
 			for (JCVariableDecl v : methodDecl.params) {
 				// for (Symbol vsym: preparams.keySet()) {
 				Symbol vsym = v.sym;
+                addStat(comment(v, "Adding invariants for method parameter " + vsym, null));
 				// JCIdent idd = preparams.get(vsym);
 				if (utils.isNonExtPrimitiveType(vsym.type))
 					continue;
@@ -4564,7 +4569,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					addAssume(idd, Label.IMPLICIT_ASSUME, treeutils.makeNeqObject(idd.pos, id, currentEnv.currentReceiver));
 				}
 				JCIdent id = treeutils.makeIdent(idd.pos, v.sym);
-				addStat(comment(idd, "Adding invariants for method parameter " + vsym, null));
 				addInvariants(idd, idd.type, id, currentStatements, true, false, false, false, false, true,
 						Label.INVARIANT_ENTRANCE,
 						utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + idd.name + ")");
@@ -7776,7 +7780,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                item = null;
 	            }
 	        } else if (sr instanceof JCIdent id) {
-	            if (id.sym.owner instanceof MethodSymbol) {
+	            if (id.sym.owner == null) {
+	                // A local temporary -- ignore
+	                item = null;
+	            } else if (id.sym.owner instanceof MethodSymbol) {
 	                item = new StoreRefGroup.Item((VarSymbol)id.sym); // local
 	            } else if (id.sym.isStatic()) {
                     item = new StoreRefGroup.Item((VarSymbol)id.sym); // static field
@@ -11136,7 +11143,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		}
 	}
-
+	
+//	public boolean isBuiltinMethod(MethodSymbol msym) {
+//	    if (!msym.owner.toString().contains("org.jmlspecs.lang")) return false;
+//	    for (var p: msym.getParameters()) {
+//	        if (!utils.isJavaOrJmlPrimitiveType(p.type)) return false;
+//	    }
+//	    return true;
+//	}
+	
 	public void initialInvariantCheck(DiagnosticPosition that, boolean isSuperCall, boolean isThisCall,
 			MethodSymbol calleeMethodSym, JCExpression callerThisExpr, JCExpression newThisExpr,
 			List<JCExpression> trArgs, JCMethodInvocation apply) {
@@ -11145,7 +11160,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// FIXME - the check on helper here is only if callee and caller have the same
 		// receiver, or is it receivers with the same class?
-		if (applyNesting <= 1 && !(isHelper(calleeMethodSym) && apply != null
+		if (applyNesting <= 1 && !(isHelper(calleeMethodSym) && apply != null && !isHeapIndependent(calleeMethodSym)
 				&& (utils.isJMLStatic(
 						apply.meth instanceof JCIdent ? ((JCIdent) apply.meth).sym : ((JCFieldAccess) apply.meth).sym)
 						|| apply.meth instanceof JCIdent))) {

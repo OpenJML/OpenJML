@@ -1,22 +1,22 @@
 Proving methods in Linked
 Starting proof of Linked.<T>empty() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of Linked.<T>empty() with prover !!!! - no warnings
 Starting proof of Linked.Linked(W,Linked<W>) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of Linked.Linked(W,Linked<W>) with prover !!!! - no warnings
 Starting proof of Linked.push(W) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of Linked.push(W) with prover !!!! - no warnings
 Starting proof of Linked.pop() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of Linked.pop() with prover !!!! - no warnings
 Starting proof of Linked.remove(int) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of Linked.remove(int) with prover !!!! - no warnings
 Completed proving methods in Linked
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.<Y>test1(Linked<Y>,Y) with prover !!!!
+Completed proof of Test.<Y>test1(Linked<Y>,Y) with prover !!!! - no warnings
+Starting proof of Test.<Y>test2(Y) with prover !!!!
+Completed proof of Test.<Y>test2(Y) with prover !!!! - no warnings
+Starting proof of Test.<Y>test3(Linked<Y>,Y) with prover !!!!
+Completed proof of Test.<Y>test3(Linked<Y>,Y) with prover !!!! - no warnings
+Completed proving methods in Test
