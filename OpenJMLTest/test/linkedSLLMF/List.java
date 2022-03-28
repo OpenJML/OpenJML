@@ -41,8 +41,8 @@ public class List<W> extends Link<W> {
     //@ public normal_behavior
     //@   assignable size, values, links;
     //@   ensures this.size == \old(size) + 1;
-    //@   ensures this.values.equals(\old(values).prepend(t));
-    //@   ensures this.links.equals(\old(links).prepend(this.next));
+    //@   ensures this.values == \old(values).prepend(t);
+    //@   ensures this.links == \old(links).prepend(this.next);
     //@ also private normal_behavior
     //@   assignable this.next;
     //@   ensures \fresh(this.next);
@@ -116,7 +116,7 @@ public class List<W> extends Link<W> {
 class Link<V> {
 
     //@ public model JMLDataGroup ownerFields;
-    //@ ghost nullable public List<V> owner; //@ in ownerFields; maps next.ownerFields \into ownerFields;
+    //@ ghost helper nullable public List<V> owner; //@ in ownerFields; maps next.ownerFields \into ownerFields;
 
     //@ model public seq<V> values; // sequence of values after the current Link, not including the current Link
     //@ public represents values = next == null ? seq.<V>empty() : next.values.prepend(next.value);
@@ -167,13 +167,11 @@ class Link<V> {
     /** Removes the nth value from the list */
     //@ public normal_behavior
     //@   requires 0 <= n < this.size;
-    // @   requires this.owner != null && allMine(this.owner);
     //@   assignable size, values, links;
     //@   ensures this.size == \old(this.size) - 1;
     //@   ensures n == 0 ==> next == \old(next.next);
     //@   ensures n == 0 ==> values == \old(values).tail(1);
     //@   ensures n > 0 ==> next == \old(next);
-    // @   ensures this.owner != null && allMine(this.owner);
     public void remove(int n) {
         if (n == 0) {
             //@ assert this.owner != null && allMine(this.owner);
@@ -183,13 +181,15 @@ class Link<V> {
             //@ assert this.next.next != null ==> this.next.owner == this.next.next.owner;
             this.next = this.next.next;
             //@ assert this.owner != null;
-            //@ assert this.next.allMine(this.next.owner);
+            //@ assert this.next != null ==> this.next.allMine(this.next.owner);
             //@ assert this.allMine(this.owner) <==> (this.next != null ==> this.next.allMine(this.owner));
             //@ assert this.allMine(this.owner);
         } else {
             this.next.remove(n-1);
             //@ assert this.owner != null && allMine(this.owner);
         }
+        xyzxyz: {}
+        //@ assert this.owner == \old(this.owner);
         //@ assert this.owner != null && allMine(this.owner);
     }
 }
@@ -210,9 +210,22 @@ class Test {
         //@ assert in.size == \old(in.size) + 1;
         //@ assert in.values != \old(in.values);
         //@ assert in.value(0) == y;
+        //@ halt;
         in.push(yy);
         //@ assert in.value(1) == y;
         //@ assert in.value(0) == yy;
+    }
+    
+    /** pushing a value and then retrieving it */
+    //@ requires in.size >= 2;
+    public static <Y> void testPopValue(List<Y> in) {
+        Y y = in.value(1);
+        //@ reachable;
+        in.pop();
+        //@ reachable;
+        Y yy = in.value(0);
+        //@ reachable;
+        //@ assert y == yy;
     }
     
     /** pushing and popping leaves the list unchanged */

@@ -81,25 +81,41 @@ public class ListDLL<W> extends Link<W> {
         //@ assert this.owner == this && this.allMine(this.owner);
         //@ assert this.next.owner == this && this.next.allMine(this.owner);
         //@ assert this.next.next != null ==> this.next.next.allMine(this.next.owner);
-        //@ assert this.next.next != null ==> this.next.owner == this.next.next.owner;
         //@ ghost \bigint n = next.size;
         //@ ghost seq<W> oldnvalues = this.next.values;
         //@ ghost seq<Link<W>> oldnlinks = this.next.links;
         //@ assert next.size == this.size - 1;
         this.next = this.next.next;
         //@ assert this.next != null ==> this.next.allMine(this.next.owner);
-        //@ assert this.size == n;
         //@ assert this.values == oldnvalues;
         //@ assert this.links == oldnlinks;
         //@ assert this.allMine(this.owner) <==> (this.next != null ==> this.next.allMine(this.owner));
         //@ assert this.owner != null && allMine(this.owner);
-        if (this.next != null) this.next.prev = this;
-        //@ assert this.size == n;
+        if (this.next != null) {
+            //@ assert this.next != null ==> this.next.allMine(this.next.owner);
+            //@ ghost var o = this.next.owner;
+            this.next.prev = this;
+            //@ assert this.values == oldnvalues;
+            //@ assert this.links == oldnlinks;
+            //@ assert o == this.next.owner;
+            //@ assert this.next != null ==> this.owner == this.next.owner;
+            // @ assert this.next != null ==> this.next.allMine(this.next.owner);
+            //@ assert this.allMine(this.owner) <==> (this.owner == owner && (this.next != null ==> this.next.allMine(this.owner)));
+            //@ assert this.allMine(this.owner);
+        } else {
+            //@ assert this.links == oldnlinks;
+            //@ assert this.next != null ==> this.owner == this.next.owner;
+            //@ assert this.next != null ==> this.next.allMine(this.next.owner);
+            //@ assert this.allMine(this.owner) <==> (this.owner == owner && (this.next != null ==> this.next.allMine(this.owner)));
+            //@ assert this.allMine(this.owner);
+        }
+        // @ assert this.size == n;
         //@ assert this.values == oldnvalues;
         //@ assert this.links == oldnlinks;
-        //@ assert this.next != null ==> this.next.allMine(this.owner);
+        // @ assert this.owner != null;
+        //@ assert this.next != null ==> this.owner == this.next.owner;
+        //@ assert this.next != null ==> this.next.allMine(this.next.owner);
         //@ assert this.allMine(this.owner) <==> (this.owner == owner && (this.next != null ==> this.next.allMine(this.owner)));
-        //@ assert this.owner != null;
         //@ assert this.allMine(this.owner);
     }
     
@@ -113,13 +129,12 @@ public class ListDLL<W> extends Link<W> {
         //@   ensures this.next == next;
         //@   ensures this.prev == prev;
         //@   ensures this.value == value;
-        //@   ensures prev != null ==> \invariant_for(prev);
         //@ pure helper
         private Value(W value, /*@ nullable */ Value<W> next, /*@ nullable */ Link<W> prev) {
             this.value = value;
             this.next = next;
             this.prev = prev;
-            //@ assert this != next && this != prev;
+            //@ assume prev != null ==> \invariant_for(prev);
         }
         
         //@ spec_public
@@ -139,7 +154,7 @@ public class ListDLL<W> extends Link<W> {
 class Link<V> {
 
     //@ public model JMLDataGroup ownerFields;
-    //@ ghost nullable public ListDLL<V> owner; //@ in ownerFields; maps next.ownerFields \into ownerFields;
+    //@ ghost helper nullable public ListDLL<V> owner; //@ in ownerFields; maps next.ownerFields \into ownerFields;
 
     //@ model public seq<V> values; // sequence of values after the current Link, not including the current Link
     //@ public represents values = next == null ? seq.<V>empty() : next.values.prepend(next.value);
