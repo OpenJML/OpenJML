@@ -8,9 +8,8 @@
  * by the typical chain of 'next' field references, with a null reference at the end of the list. The starting point, the List
  * object, is not a part of the abstract list.
  * 
- * @author davidcok
- *
  */
+
 /** Parent class for List and Node containing the 'next' field and common functionality */
 class Link<T> {
 
@@ -69,8 +68,8 @@ class Link<T> {
     //@   assignable size, values, links;
     //@   ensures this.size == \old(this.size) - 1;
     //@   ensures n == 0 ==> next == \old(next.next);
-    //@   ensures n == 0 ==> values == \old(values).tail(1);
     //@   ensures n > 0 ==> next == \old(next);
+    //@   ensures n == 0 ==> values == \old(values).tail(1);
     public void remove(int n) {
         if (n == 0) {
             //@ assert this.owner != null && allMine(this.owner);
@@ -87,7 +86,6 @@ class Link<T> {
             this.next.remove(n-1);
             //@ assert this.owner != null && allMine(this.owner);
         }
-        xyzxyz: {}
         //@ assert this.owner == \old(this.owner);
         //@ assert this.owner != null && allMine(this.owner);
     }
@@ -125,7 +123,7 @@ public class List<T> extends Link<T> {
     //@   ensures this.values == \old(values).prepend(t);
     //@   ensures this.links == \old(links).prepend(this.next);
     //@ also private normal_behavior
-    //@   assignable this.next;
+    //@   assignable size, values, links;
     //@   ensures \fresh(this.next);
     //@   ensures this.next.value == t;
     //@   ensures this.next.next == \old(this.next);
@@ -133,33 +131,36 @@ public class List<T> extends Link<T> {
         //@ assert allMine(this);
         //@ assert this.next != null ==> this.next.allMine(this);
         var v = new List.Node<T>(t, next);
-        //@ assert v.next == this.next;
+        //@ assert this.allMine(this);
+        //@ assert v.next != null ==> v.next.allMine(this);
         //@ set v.owner = this;
-        //@ assert (v.owner == this && (v.next != null ==> v.next.allMine(v.owner)));
+        //@ assert this.allMine(this);
+        //@ assert v.next != null ==> v.next.allMine(this);
         //@ assert v.allMine(this);
         this.next = v;
-        //@ assert this.next != null ==> this.next.allMine(owner);
+        //@ assert this.next.allMine(this);
         //@ assert this.allMine(this);
     }
     
     /** Removes the first value from the list */
     //@ public normal_behavior
-    //@   requires next != null;
+    //@   requires this.size > 0;
     //@   assignable size, values, links;
     //@   ensures this.size == \old(size) - 1;
     //@   ensures this.values == \old(values).tail(1);
     //@   ensures this.links == \old(links).tail(1);
     //@   ensures next == \old(next.next);
     public void pop() {
+        //@ assert next != null;
         //@ assert this.owner == this && this.allMine(this.owner);
         //@ assert this.next.owner == this && this.next.allMine(this.owner);
         //@ assert this.next.next != null ==> this.next.next.allMine(this.next.owner);
-        //@ ghost \bigint n = next.size;
+        //@ ghost \bigint newsize = next.size;
         //@ ghost seq<T> oldnvalues = this.next.values;
         //@ ghost seq<Link<T>> oldnlinks = this.next.links;
         //@ assert next.size == this.size - 1;
         this.next = this.next.next;
-        //@ assert this.size == n;
+        //@ assert this.size == newsize;
         //@ assert this.values == oldnvalues;
         //@ assert this.links == oldnlinks;
         //@ assert this.owner != null;
@@ -171,11 +172,10 @@ public class List<T> extends Link<T> {
 
         /** Constructs a new link with given value and next field; for internal use only */
         //@ private normal_behavior
-        //@   requires next != null ==> \invariant_for(next);
         //@   ensures this.next == next;
         //@   ensures this.value == value;
         //@ pure helper
-        private Node(T value, /*@ nullable */ Node<T> next) {
+        private Node(T value, /*@ helper nullable */ Node<T> next) {
             this.value = value;
             this.next = next;
         }
@@ -210,7 +210,6 @@ class Test {
         //@ assert in.size == \old(in.size) + 1;
         //@ assert in.values != \old(in.values);
         //@ assert in.value(0) == y;
-        //@ halt;
         in.push(yy);
         //@ assert in.value(1) == y;
         //@ assert in.value(0) == yy;
@@ -220,11 +219,8 @@ class Test {
     //@ requires in.size >= 2;
     public static <Y> void testPopValue(List<Y> in) {
         Y y = in.value(1);
-        //@ reachable;
         in.pop();
-        //@ reachable;
         Y yy = in.value(0);
-        //@ reachable;
         //@ assert y == yy;
     }
     
@@ -261,7 +257,7 @@ class Test {
     //@ requires in.values == other.values;
     //@ requires in.size > 0;
     public static <Y> void testNI2(List<Y> in, List<Y> other) {
-        // @ assume in.size == other.size;
+        //@ assert in.size == other.size;
         //@ ghost seq<Y> oldvalues = in.values;
         in.pop();
         //@ assert oldvalues.tail(1) == in.values;

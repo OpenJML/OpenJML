@@ -1,12 +1,20 @@
+// openjml --esc $@
+/** This file contains a worked (specified and verified) example of a singly-linked list using JML and OpenJML. 
+ * It is intended to illustrate techniques that can be used for other simple recursive data structures. 
+ * This example uses model methods.
+ * 
+ * A list of values of type T is an instance of the public class ListMM<T>. The actual links are instances of the non-public
+ * nested class Node<T>; both classes inherit from Link<T>, which contains common functionality. The linked-list is formed
+ * by the typical chain of 'next' field references, with a null reference at the end of the list. The starting point, the List
+ * object, is not a part of the abstract list.
+ * 
+ */
 
-// A singly-linked list with the first element being a 'head' and not part of the list
-// Specified with model methods
-/** A parent class with common functionality and the 'next' field */
+/** Parent class for ListMM and Node containing the 'next' field and common functionality */
 class Link<T> {
 
     //@ public model JMLDataGroup ownerFields;
     //@ ghost helper nullable public ListMM<T> owner; //@ in ownerFields; maps next.ownerFields \into ownerFields;
-
 
     //@ model public seq<Link<T>> links;
     //@ public represents links = next == null ? seq.<Link<T>>empty() : next.links.prepend(next);
@@ -37,20 +45,18 @@ class Link<T> {
     
     
     
+    //@ public invariant this.owner != null && allMine(this.owner);
     //@ public invariant values().size() == this.size();
     //@ public invariant links.size() == this.size();
     //@ public invariant !links.contains(this);
-    //@ public invariant this.owner != null && allMine(this.owner);
 
     //@ nullable spec_public
     protected ListMM.Node<T> next; //@ in valueFields, nextFields, links; 
     //@ maps next.valueFields \into valueFields; maps next.nextFields \into nextFields; maps next.links \into links;
     
     //@ protected normal_behavior
-    //@   ensures this.next == null;
     //@ pure helper
     protected Link() {
-        this.next = null;
     }
 
     //@ public normal_behavior // only for demonstration purposes -- exposes representation
@@ -127,9 +133,11 @@ public class ListMM<T> extends Link<T> {
     //@ public invariant this.owner == this;
 
     //@ public normal_behavior
-    //@   ensures \result.next == null;
     //@   ensures \result.values() == seq.<TT>empty();
     //@   ensures \result.size() == 0;
+    //@   ensures \result.links == seq.<Link<TT>>empty();
+    //@   ensures \result.next == null;
+    //@   ensures \result.owner == \result;
     //@ pure
     public static <TT> ListMM<TT> empty() {
         return new ListMM<TT>();
@@ -137,9 +145,11 @@ public class ListMM<T> extends Link<T> {
     
     //@ private normal_behavior
     //@   ensures this.next == null;
-    //@ pure helper
+    //@   ensures this.owner == this;
+    //@ pure
     private ListMM() {
         this.next = null;
+        //@ set this.owner = this;
     }
     
     //@ public normal_behavior
@@ -183,10 +193,10 @@ public class ListMM<T> extends Link<T> {
     //@   requires this.size() > 0;
     //@   old \bigint oldsize = this.size();
     //@   old seq<T> oldvalues = this.values();
-    //@   assignable next; // size, valueFields;
-    //@   ensures next == \old(next.next);
-    //@   ensures this.size() == \old(this.size()) - 1;
+    //@   assignable next, nextFields;
+    //@   ensures this.size() == oldsize - 1;
     //@   ensures this.values() == oldvalues.tail(1);
+    //@   ensures next == \old(next.next);
     public void pop() {
         //@ assert this.owner == this && this.allMine(this.owner);
         //@ assert this.next.owner == this && this.next.allMine(this.owner);
@@ -216,12 +226,13 @@ public class ListMM<T> extends Link<T> {
         //@   ensures this.next == next;
         //@   ensures this.value == value;
         //@ pure helper
-        private Node(T value, /*@ nullable */ Node<T> next) {
+        private Node(T value, /*@ helper nullable */ Node<T> next) {
             this.value = value;
             this.next = next;
         }
         
-        public T value; //@ in valueFields; maps next.valueFields \into valueFields;
+        //@ spec_public
+        private T value; //@ in valueFields; maps next.valueFields \into valueFields;
         
         /** Returns the value from this link */
         //@ public normal_behavior
@@ -234,37 +245,48 @@ public class ListMM<T> extends Link<T> {
     }
 }
 
-
-
 class Test {
     
-    public static <Y> void test1(ListMM<Y> in, Y y) {
-        in.push(y);
-        //@ assert in.size() == \old(in.size()) + 1;
-        //@ assert in.values() != \old(in.values());
-        in.pop();
-        //@ assert in.size() == \old(in.size());
-        //@ assert in.values() == \old(in.values());
-    }
-    
-    public static <Y> void test1a(ListMM<Y> in, Y y) {
-        //@ ghost var oldsize = in.size();
-        //@ ghost var oldvalues = in.values();
-        in.push(y);
-        //@ assert in.size() == oldsize + 1;
-        //@ assert in.values() != oldvalues;
-        in.pop();
-        //@ assert in.size() == oldsize;
-        //@ assert in.values() == oldvalues;
-    }
-    
-    public static <Y> void test2(Y y) {
+    /** properties of an empty list */
+    public static <Y> void testEmpty(Y y) {
         var in = ListMM.<Y>empty();
         //@ assert in.size() == 0;
         //@ assert in.values().size() == 0;
+        //@ assert in.values() == seq.<Y>empty();
     }
 
-    public static <Y> void test3(ListMM<Y> in, Y y) {
+    /** pushing a value and then retrieving it */
+    public static <Y> void testPushValue(ListMM<Y> in, Y y, Y yy) {
+        in.push(y);
+        //@ assert in.size() == \old(in.size()) + 1;
+        //@ assert in.values() != \old(in.values());
+        //@ assert in.value(0) == y;
+        in.push(yy);
+        //@ assert in.value(1) == y;
+        //@ assert in.value(0) == yy;
+    }
+
+    /** pushing a value and then retrieving it */
+    //@ requires in.size >= 2;
+    public static <Y> void testPopValue(ListMM<Y> in) {
+        Y y = in.value(1);
+        in.pop();
+        Y yy = in.value(0);
+        //@ assert y == yy;
+    }
+    
+    /** pushing and popping leaves the list unchanged */
+    public static <Y> void testPushPop(ListMM<Y> in, Y y) {
+        in.push(y);
+        //@ assert in.size == \old(in.size) + 1;
+        //@ assert in.values != \old(in.values);
+        in.pop();
+        //@ assert in.size == \old(in.size);
+        //@ assert in.values == \old(in.values);
+    }
+    
+    /** pushing and removing the zeroth element leaves the list unchanged */
+    public static <Y> void testPushRemove(ListMM<Y> in, Y y) {
         in.push(y);
         //@ assert in.size() == \old(in.size()) + 1;
         //@ assert in.values() != \old(in.values());
@@ -273,16 +295,63 @@ class Test {
         //@ assert in.values() == \old(in.values());
     }
     
-    public static <Y> void test3a(ListMM<Y> in, Y y) {
-        //@ ghost var oldsize = in.size();
-        //@ ghost var oldvalues = in.values();
+    /** pushing a value on one list does not change the other */
+    //@ requires in != other;
+    //@ requires in.values() == other.values();
+    public static <Y> void testNI1(Y y, ListMM<Y> in, ListMM<Y> other) {
         in.push(y);
-        //@ assert in.size() == oldsize + 1;
-        //@ assert in.values() != oldvalues;
-        in.remove(0);
-        //@ assert in.size() == oldsize;
-        //@ assert in.values() == oldvalues;
+        //@ assert in.values().tail(1) == other.values();
     }
     
-
+    /** popping a value from one list does not change the other */
+    //@ requires in != other;
+    //@ requires in.values() == other.values();
+    //@ requires in.size() > 0;
+    public static <Y> void testNI2(ListMM<Y> in, ListMM<Y> other) {
+        //@ assert in.size() == other.size();
+        //@ ghost seq<Y> oldvalues = in.values();
+        in.pop();
+        //@ assert oldvalues.tail(1) == in.values();
+        //@ assert in.values() == other.values.tail(1);
+    }
+    
+    /** removing a value (other than the 0th) from one list might change the other,
+     * except when the owner invariant is used */
+    //@ requires in != other;
+    //@ requires in.values() == other.values;
+    //@ requires in.size() > 1;
+    public static <Y> void testNI3(ListMM<Y> in, ListMM<Y> other) {
+        //@ ghost seq<Y> oldvalues = in.values();
+        in.remove(1);
+        //@ assert oldvalues.size - 1 == in.size();
+        //@ assert other.values().size() - 1 == in.size();   // Should not be provable without the owner invariant
+    }
+    
+    /** two different lists may have the same first element, except when the owner invariant is used */
+    //@ requires in != other;
+    //@ requires in.size() > 0;
+    //@ requires other.size() > 0;
+    public static <Y> void testNI4(ListMM<Y> in, ListMM<Y> other) {
+        //@ assert in.next.owner == in;
+        //@ assert other.next.owner == other;
+        //@ assert in.next != other.next;    // Should not be provable without the owner invariant
+    }
+    
+    /** using rep-exposure to change a value still does not change the other list if the owner invariant is used */
+    //@ requires in != other;
+    //@ requires in.values() == other.values();
+    //@ requires in.size > 1;
+    /*@ model public static <Y> void testNI5(ListMM<Y> in, ListMM<Y> other, Y y) {
+        ghost \bigint n = in.size;
+        assume in.next.value != y;
+        assert in.values().size() == other.values().size();
+        assert in.size() == other.size();
+        assert in.size() == n;
+        in.next().value = y;
+        assert in.size() == n;
+        assert in.size() == other.size();
+        assert in.values() != other.values();    // Should not be provable without the owner invariant
+        assert in.values().tail(1) == other.values().tail(1);
+    }
+    @*/
 }

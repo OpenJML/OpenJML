@@ -8,10 +8,9 @@
  * by the typical chain of 'next' and 'prev' field references, with a null reference at the end of the list. The starting point, the List
  * object, is not a part of the abstract list.
  * 
- * @author davidcok
- *
  */
 
+/** Parent class for ListDLL and Node containing the 'next' field and common functionality */
 class Link<T> {
 
     //@ public model JMLDataGroup ownerFields;
@@ -32,13 +31,13 @@ class Link<T> {
     //@ model public \bigint size; 
     //@ public represents size = ((next == null) ? 0 : 1 + next.size);
     
-    //@ public invariant values.size() == size;
-    //@ public invariant links.size() == size;
-    //@ public invariant !links.contains(this);
     //@ public invariant this.owner != null && allMine(this.owner);
     //@ public invariant this.next != null ==> this.next.prev == this;
     //@ public invariant this.prev != null ==> this.prev.next == this;
-    
+    //@ public invariant values.size() == size;
+    //@ public invariant links.size() == size;
+    //@ public invariant !links.contains(this);
+
     //@ nullable spec_public
     protected ListDLL.Node<T> next; //@ in size, values, links; 
     //@ maps next.values \into values; maps next.size \into size; maps next.links \into links;
@@ -71,7 +70,7 @@ class Link<T> {
     /** Removes the nth value from the list */
     //@ public normal_behavior
     //@   requires 0 <= n < this.size;
-    //@   requires this.owner != null && allMine(this.owner);
+    //@   requires this.owner != null && allMine(this.owner); // FIXME - needed?
     //@   {|
     //@      requires this.next.next == null;
     //@      assignable size, values, links;
@@ -83,14 +82,41 @@ class Link<T> {
     //@   ensures n == 0 ==> next == \old(next.next);
     //@   ensures n == 0 ==> values == \old(values).tail(1);
     //@   ensures n > 0 ==> next == \old(next);
-    //@   ensures this.owner != null && allMine(this.owner);
+    //@   ensures this.owner != null && allMine(this.owner); // FIXME - needed?
     public void remove(int n) {
         if (n == 0) {
+            //@ assert this.owner != null && allMine(this.owner);
+            //@ assert this.next.allMine(this.next.owner);
+            //@ assert this.next.next != null ==> this.next.next.allMine(this.next.next.owner);
+            //@ assert this.owner == this.next.owner;
+            //@ assert this.next.next != null ==> this.next.owner == this.next.next.owner;
             this.next = this.next.next;
-            if (this.next != null) this.next.prev = this;
+            //@ assert this.owner != null;
+            //@ assert this.next != null ==> this.next.allMine(this.next.owner);
+            //@ assert this.allMine(this.owner) <==> (this.next != null ==> this.next.allMine(this.owner));
+            //@ assert this.allMine(this.owner);
+            if (this.next != null) {
+                this.next.prev = this;
+                //@ assert this.owner != null;
+                //@ assert this.next != null ==> this.next.allMine(this.next.owner);
+                //@ assert this.allMine(this.owner) <==> (this.next != null ==> this.next.allMine(this.owner));
+                //@ assert this.allMine(this.owner);
+            } else {
+                //@ assert this.owner != null;
+                //@ assert this.next != null ==> this.next.allMine(this.next.owner);
+                //@ assert this.allMine(this.owner) <==> (this.next != null ==> this.next.allMine(this.owner));
+                //@ assert this.allMine(this.owner);
+            }
+            //@ assert this.owner != null;
+            //@ assert this.next != null ==> this.next.allMine(this.next.owner);
+            //@ assert this.allMine(this.owner) <==> (this.next != null ==> this.next.allMine(this.owner));
+            //@ assert this.allMine(this.owner);
         } else {
             this.next.remove(n-1);
+            //@ assert this.owner != null && allMine(this.owner);
         }
+        //@ assert this.owner == \old(this.owner);
+        //@ assert this.owner != null && allMine(this.owner);
     }
 }
 
@@ -126,25 +152,36 @@ public class ListDLL<T> extends Link<T> {
     //@ public normal_behavior
     //@   assignable size, values, links;
     //@   ensures this.size == \old(size) + 1;
-    //@   ensures this.values.equals(\old(values).prepend(t));
-    //@   ensures this.links.equals(\old(links).prepend(this.next));
+    //@   ensures this.values == \old(values).prepend(t);
+    //@   ensures this.links == \old(links).prepend(this.next);
     //@   ensures \fresh(this.next);
     //@   ensures this.next.value == t;
     //@   ensures this.next.next == \old(this.next);
     public void push(T t) {
-        //@   assume next != null ==> \invariant_for(next); // FIXME - why?
+        // @   assume next != null ==> \invariant_for(next); // FIXME - why?
         //@ assert allMine(this);
         //@ assert this.next != null ==> this.next.allMine(this);
-        //@   assert next != null ==> \invariant_for(next);
-        //@   assert this != null ==> \invariant_for(this);
+        // @   assert next != null ==> \invariant_for(next);
+        // @   assert this != null ==> \invariant_for(this);
+        //@ reachable;
         var v = new ListDLL.Node<T>(t, next, this);
+        //@ reachable;
+        //@ assert (v.owner == this && (v.next != null ==> v.next.allMine(v.owner)));
+        //@ assert v.allMine(this);
+        //@ reachable;
         if (next != null) next.prev = v;
+        //@ reachable;
         //@ assert v.next == this.next;
+        //@ assert (v.owner == this && (v.next != null ==> v.next.allMine(v.owner)));
+        //@ assert v.allMine(this);
         //@ set v.owner = this;
         //@ assert (v.owner == this && (v.next != null ==> v.next.allMine(v.owner)));
         //@ assert v.allMine(this);
+        //@ reachable;
         this.next = v;
+        //@ assert this.next != null ==> this.next.allMine(owner);
         //@ assert this.allMine(this);
+        //@ reachable;
     }
     
     /** Removes the first value from the list */
@@ -166,7 +203,7 @@ public class ListDLL<T> extends Link<T> {
         //@ assert this.owner == this && this.allMine(this.owner);
         //@ assert this.next.owner == this && this.next.allMine(this.owner);
         //@ assert this.next.next != null ==> this.next.next.allMine(this.next.owner);
-        //@ ghost \bigint n = next.size;
+        //@ ghost \bigint newsize = next.size;
         //@ ghost seq<T> oldnvalues = this.next.values;
         //@ ghost seq<Link<T>> oldnlinks = this.next.links;
         //@ assert next.size == this.size - 1;
@@ -194,7 +231,7 @@ public class ListDLL<T> extends Link<T> {
             //@ assert this.allMine(this.owner) <==> (this.owner == owner && (this.next != null ==> this.next.allMine(this.owner)));
             //@ assert this.allMine(this.owner);
         }
-        // @ assert this.size == n;
+        //@ assert this.size == newsize;
         //@ assert this.values == oldnvalues;
         //@ assert this.links == oldnlinks;
         // @ assert this.owner != null;
@@ -208,15 +245,15 @@ public class ListDLL<T> extends Link<T> {
 
         /** Constructs a new link with given value and next field; for internal use only */
         //@ private normal_behavior
-        //@   requires n != p;
-        //@   ensures this.next == n;
-        //@   ensures this.prev == p;
+        //@   requires next != prev;
+        //@   ensures this.next == next;
+        //@   ensures this.prev == prev;
         //@   ensures this.value == value;
         //@ pure helper
-        private Node(T value, /*@ helper nullable */ Node<T> n, /*@ helper nullable */ Link<T> p) {
+        private Node(T value, /*@ helper nullable */ Node<T> next, /*@ helper nullable */ Link<T> prev) {
             this.value = value;
-            this.next = n;
-            this.prev = p;
+            this.next = next;
+            this.prev = prev;
         }
         
         //@ spec_public
@@ -252,6 +289,15 @@ class Test {
         in.push(yy);
         //@ assert in.value(1) == y;
         //@ assert in.value(0) == yy;
+    }
+    
+    /** pushing a value and then retrieving it */
+    //@ requires in.size >= 2;
+    public static <Y> void testPopValue(ListDLL<Y> in) {
+        Y y = in.value(1);
+        in.pop();
+        Y yy = in.value(0);
+        //@ assert y == yy;
     }
     
     /** pushing and popping leaves the list unchanged */
