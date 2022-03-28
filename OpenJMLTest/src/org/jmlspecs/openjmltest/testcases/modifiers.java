@@ -716,8 +716,7 @@ public class modifiers extends TCBase {
      
     @Test public void testGhostField5() {
         helpTCF("A.java","public class A{ /*@ ghost spec_public Object o;*/}"
-                ,"/A.java:1: error: This JML modifier is not allowed for a ghost field declaraps au | grep escall3"
-                    + "
+                ,"/A.java:1: error: This JML modifier is not allowed for a ghost field declaration",27
                 );
     }
      
