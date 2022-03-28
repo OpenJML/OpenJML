@@ -673,53 +673,50 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testField2() {
-        helpTCF("A.java","public class A{ /*@spec_public instance monitored non_null*/ Object o;}"
+        helpTCF("A.java","public class A{ /*@ spec_public instance monitored non_null*/ Object o;}"
                 );
     }
     
     @Test public void testField3() {
-        helpTCF("A.java","public class A{ /*@spec_protected instance monitored nullable*/ Object o;}"
+        helpTCF("A.java","public class A{ /*@ spec_protected instance monitored nullable*/ Object o;}"
                 );
     }
     
     @Test public void testField4() {
-        helpTCF("A.java","public class A{ /*@helper*/ Object o;}"
-                ,"/A.java:1: error: This JML modifier is not allowed for a field declaration",20
+        helpTCF("A.java","public class A{ /*@ helper */ Object o;}"
                 );
     }
     
     @Test public void testGhostField() {
-        helpTCF("A.java","public class A{ /*@ghost Object o; */}"
+        helpTCF("A.java","public class A{ /*@ ghost Object o; */}"
                 );
     }
     
     @Test public void testGhostField1() {
-        helpTCF("A.java","public class A{ /*@ghost non_null nullable Object o; */}"
-                ,"/A.java:1: error: A declaration may not be both non_null and nullable",35
+        helpTCF("A.java","public class A{ /*@ ghost non_null nullable Object o; */}"
+                ,"/A.java:1: error: A declaration may not be both non_null and nullable",36
                 );
     }
     
     @Test public void testGhostField2() {
-        helpTCF("A.java","public class A{ /*@ghost instance monitored non_null Object o; */}"
+        helpTCF("A.java","public class A{ /*@ ghost instance monitored non_null Object o; */}"
                 );
     }
     
     @Test public void testGhostField3() {
-        helpTCF("A.java","public class A{ /*@ghost instance monitored nullable Object o; */}"
+        helpTCF("A.java","public class A{ /*@ ghost helper instance monitored nullable Object o; */}"
                 );
     }
     
     @Test public void testGhostField4() {
-        helpTCF("A.java","public class A{ /*@ghost helper spec_protected Object o;*/}"
-                ,"/A.java:1: error: This JML modifier is not allowed for a ghost field declaration",26
-                ,"/A.java:1: error: This JML modifier is not allowed for a ghost field declaration",33
+        helpTCF("A.java","public class A{ /*@ ghost spec_protected Object o;*/}"
+                ,"/A.java:1: error: This JML modifier is not allowed for a ghost field declaration",27
                 );
     }
      
     @Test public void testGhostField5() {
-        helpTCF("A.java","public class A{ /*@ghost helper spec_public Object o;*/}"
-                ,"/A.java:1: error: This JML modifier is not allowed for a ghost field declaration",26
-                ,"/A.java:1: error: This JML modifier is not allowed for a ghost field declaration",33
+        helpTCF("A.java","public class A{ /*@ ghost spec_public Object o;*/}"
+                ,"/A.java:1: error: This JML modifier is not allowed for a ghost field declaration",27
                 );
     }
      

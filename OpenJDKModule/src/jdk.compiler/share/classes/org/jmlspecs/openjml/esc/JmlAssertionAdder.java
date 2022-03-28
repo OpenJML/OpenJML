@@ -990,18 +990,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						// otherwise the alloc value of 'this' is 0
 						JCExpression fa = M.at(methodDecl.pos).Select(currentEnv.currentReceiver, allocSym);
 						fa = treeutils.makeBinary(methodDecl, JCTree.Tag.EQ, fa, treeutils.makeIntLiteral(methodDecl,
-								enclosingClass.isEnum() ? 0 : isConstructor ? ++allocCounter : 0));
+								enclosingClass.isEnum() ? 0 : isConstructor ? 1 : 0));
 						addStat(treeutils.makeAssume(methodDecl, Label.IMPLICIT_ASSUME, fa));
 						// FIXME - the above setting for enums very likely has to be fixed.
 					}
 				}
 			}
 
-			// For esc we are tranlating the method into a block, but
-			// for boogie (and rac) there is a method signature that has the
-			// formal declarations
-			if (esc && !boogie)
-				addFormals(initialStatements);
+            // For esc we are tranlating the method into a block, but
+            // for boogie (and rac) there is a method signature that has the
+            // formal declarations
+            if (esc && !boogie)
+                addFormals(initialStatements);
 
 			// Declare the result of the method or constructor
 
@@ -1110,6 +1110,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				//System.out.println("ADD PRE CONDITIONS");
 				addPreConditions(initialStatements, collector, divergesExpressions);
+				allocCounter = 2;
                 //System.out.println("HANDLE FRAME CONDITIONS");
 				handleFrameConditions(methodDecl, initialStatements);
 				addStat(mark);
@@ -1176,6 +1177,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             //System.out.println("ADD PRE CONDITIONS");
 			ListBuffer<JCStatement> check = pushBlock(); // FIXME - should we have a try block?
 			addPreConditions(initialStatements, collector, divergesExpressions);
+            allocCounter = 2;
 			ListBuffer<JCStatement> check3 = pushBlock();
 			addAssumeCheck(methodDecl, currentStatements, Strings.preconditionAssumeCheckDescription); // FIXME -
 			// use a
@@ -4908,19 +4910,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// of the method
 		JCExpression savedThis = currentEnv.currentReceiver;
 		for (JCTree dd : classDecl.defs) {
-			if (!(dd instanceof JCVariableDecl))
-				continue;
+			if (!(dd instanceof JCVariableDecl))continue;
 			JCVariableDecl d = (JCVariableDecl) dd;
-			if (utils.isJavaOrJmlPrimitiveType(d.sym.type))
-				continue;
-			if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym))
-				continue;
-
-			if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym)
-				continue;
-			if (isDataGroup(d.type))
-				continue;
-
+			if (utils.isJavaOrJmlPrimitiveType(d.sym.type)) continue;
+			if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym))continue;
+			if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym)continue;
+			if (isDataGroup(d.type)) continue;
+            if (attr.isHelper(d.sym)) continue;
+            
 			if (dd.type.isParameterized()) {
 				List<Type> argtypes = dd.type.getTypeArguments();
 				List<Type> formals = dd.type.tsym.type.getTypeArguments();
@@ -5312,7 +5309,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					}
 					if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym)
 						continue;
-
+					if (attr.isHelper(d.sym)) continue;
 					boolean pv = checkAccessEnabled;
 					checkAccessEnabled = false;
 					try {
@@ -6938,30 +6935,41 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		int savedHeapCount = heapCount;
 
 		if (!split || currentSplit == null || rac || infer) {
+	        currentEnv = currentEnv.pushEnvCopy();
 			continuation = Continuation.CONTINUE;
 			JCBlock thenpart = convertIntoBlock(that.thenpart, that.thenpart);
 			Continuation thenContinuation = continuation;
 
 			continuation = Continuation.CONTINUE;
 			int thenBranchHeapCount = heapCount;
-			heapCount = savedHeapCount;
+			currentEnv = currentEnv.popEnv();
+            heapCount = savedHeapCount;
+            //System.out.println("STARTING ELSE BRANCH " + heapCount);
+            if (heapCount != currentEnv.heap.heapID) System.out.println("MISMATCHED HEAP ID " + heapCount + " " +  currentEnv.heap.heapID + " " + thenBranchHeapCount);
+            currentEnv = currentEnv.pushEnvCopy();
 			JCBlock elsepart = that.elsepart == null ? null : convertIntoBlock(that.elsepart, that.elsepart);
 			Continuation elseContinuation = continuation;
 
 			JCStatement st = M.at(that).If(cond, thenpart, elsepart).setType(that.type);
 			var r = addStat(st);
             continuation = thenContinuation.combine(elseContinuation);
-            if (thenBranchHeapCount != heapCount) {
-                methodEnv.allHeaps.get(heapCount).condition = treeutils.makeNot(cond, cond);
+            int elseBranchHeapCount = heapCount;
+            currentEnv = currentEnv.popEnv();
+            if (thenBranchHeapCount != elseBranchHeapCount) {
                 pushBlock();
                 addStat(comment(that, "If heap change", null));
                 JmlLabeledStatement sttt = markUniqueLocation();
                 addStat(sttt);
                 changeState(that, null, sttt.label);
+                currentEnv.heap.previousHeaps.clear();
+                //System.out.println("ENDED IF " + heapCount + " " + thenBranchHeapCount + " " + elseBranchHeapCount);
                 addStat(popBlock(that));
                 HeapInfo thenHeapInfo = methodEnv.allHeaps.get(thenBranchHeapCount);
                 thenHeapInfo.condition = cond;
                 currentEnv.heap.previousHeaps.add(thenHeapInfo);
+                HeapInfo elseHeapInfo = methodEnv.allHeaps.get(elseBranchHeapCount);
+                elseHeapInfo.condition = treeutils.makeNot(cond, cond);
+                currentEnv.heap.previousHeaps.add(elseHeapInfo);
             }
             result = r;
 		} else {
@@ -10899,13 +10907,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    int hc = heapCount;
 	    try {
 	        var heapInfo = currentEnv.heap;
-//	        System.out.println("CALLING FOR " + calleeMethodSym + " " + hc + " " + info);
+	        //System.out.println("CALLING FOR " + calleeMethodSym + " " + hc + " " + heapInfo.heapID + " " + heapInfo.previousHeaps);
 	        if (heapInfo.previousHeaps.isEmpty()) return;
 	        for (var oldHeapInfo: heapInfo.previousHeaps) {
 	            //System.out.println("   OLDHC " + oldHeapInfo.heapID + " " + hc);
 	            if (hc == oldHeapInfo.heapID) continue; // No need for axioms if it is the same heap
 	            MethodSymbol newCalleeSym = getNewMethodSymbol(calleeMethodSym);
 	            MethodSymbol oldMethodSym = getNewMethodSymbol(calleeMethodSym, oldHeapInfo.heapID);
+                //System.out.println("   SYMS " + newCalleeSym + " " + oldMethodSym);
 	            if (oldMethodSym == null) {
 	                // No instance of the method in this old heap
 	                // So there is nothing to compare against.
@@ -10916,7 +10925,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            ListBuffer<JCVariableDecl> quantDecls = new ListBuffer<>();
 	            ListBuffer<JCExpression> argList1 = new ListBuffer<>();
 	            ListBuffer<JCExpression> argList2 = new ListBuffer<>();
-	            //	        System.out.println("CALLEE " + calleeMethodSym + " " + calleeMethodSym.getReceiverType() + " " + calleeMethodSym.getParameters() + " " + calleeMethodSym.getReturnType());
+	            //System.out.println("CALLEE " + calleeMethodSym + " " + calleeMethodSym.getReceiverType() + " " + calleeMethodSym.getParameters() + " " + calleeMethodSym.getReturnType());
 	            JCVariableDecl d;
 	            if (newCalleeSym.getParameters() != null) for (var p: newCalleeSym.getParameters()) {
 	                d = newTempDecl(pos, p.type);
@@ -10953,7 +10962,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                    // make sure sc.list and info.havocs are disjoint
 	                    JCExpression disjoint = treeutils.trueLit;
 	                    Object oldhavocs = heapInfo.havocs;
-	                    //System.out.println("HVOCS " + (oldhavocs==null?"NULL":oldhavocs.getClass()));
+	                    //System.out.println("OLDHAVOCS " + oldHeapInfo.condition + " " + oldhavocs);
 	                    if (oldhavocs == null || oldhavocs instanceof JCIf) {
 	                        // skip
 	                    } else if (oldhavocs instanceof JCNewClass nc) {

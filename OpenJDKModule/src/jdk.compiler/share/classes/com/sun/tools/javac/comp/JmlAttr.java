@@ -2772,13 +2772,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     
     public ModifierKind[] allowedFieldModifiers = new ModifierKind[] {
-            SPEC_PUBLIC, SPEC_PROTECTED, MODEL, GHOST,
+            SPEC_PUBLIC, SPEC_PROTECTED, MODEL, GHOST, HELPER,
             NON_NULL, NULLABLE, INSTANCE, MONITORED, SECRET,
             PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
        };
        
     public ModifierKind[] allowedGhostFieldModifiers = new ModifierKind[] {
-            GHOST, NON_NULL, NULLABLE, INSTANCE, MONITORED, SECRET, 
+            GHOST, NON_NULL, NULLABLE, INSTANCE, MONITORED, SECRET, HELPER,
             PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
        };
        
@@ -2788,7 +2788,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
        };
        
     public ModifierKind[] allowedFormalParameterModifiers = new ModifierKind[] {
-            NON_NULL, NULLABLE, READONLY, REP, PEER, SECRET,
+            NON_NULL, NULLABLE, READONLY, REP, PEER, SECRET, HELPER,
        };
        
     public ModifierKind[] allowedLocalVarModifiers = new ModifierKind[] {
@@ -6616,12 +6616,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             return false;
         }
         if (utils.hasModOrAnn((JmlModifiers)mspecs.mods, Modifiers.HELPER,  Modifiers.HEAP_FREE)) return true;
-    	return false;
+        return false;
+    }
+    
+    public boolean isHelper(VarSymbol symbol) {
+        FieldSpecs fspecs = specs.getLoadedSpecs(symbol);
+        return fspecs != null && utils.hasMod(fspecs.mods,Modifiers.HELPER);
     }
     
     public boolean isGhost(VarSymbol symbol) {
-        FieldSpecs mspecs = specs.getLoadedSpecs(symbol);
-        return utils.hasMod(mspecs.mods,Modifiers.GHOST);
+        FieldSpecs fspecs = specs.getLoadedSpecs(symbol);
+        return utils.hasMod(fspecs.mods,Modifiers.GHOST);
     }
     
     public boolean isSpecPublic(MethodSymbol symbol) {
