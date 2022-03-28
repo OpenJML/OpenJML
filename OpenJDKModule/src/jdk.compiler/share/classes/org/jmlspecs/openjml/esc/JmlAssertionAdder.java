@@ -8150,22 +8150,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    changeState(pos, havocs, null);
 	}
     protected void changeState(DiagnosticPosition pos, Object havocs, Name label) {
+        int p = pos.getPreferredPosition();
+        heapCount = nextHeapCount();
+        currentEnv.heap = new HeapInfo(heapCount, currentEnv.heap, label);
+        methodEnv.allHeaps.put(heapCount, currentEnv.heap);
 		if (infer || esc) {
-		    int p = pos.getPreferredPosition();
-			heapCount = nextHeapCount();
-			currentEnv.heap = new HeapInfo(heapCount, currentEnv.heap, label);
-			methodEnv.allHeaps.put(heapCount, currentEnv.heap);
 			JCStatement assign = treeutils.makeAssignStat(p, treeutils.makeIdent(pos, heapSym),
 					treeutils.makeIntLiteral(pos, heapCount));
 			currentStatements.add(assign);
 			JCBlock bl = M.at(p).Block(0L, List.<JCStatement>nil());
 			currentEnv.heap.methodAxiomsBlock = bl;
-			currentEnv.heap.havocs = havocs;
-            currentStatements.add(bl);
-			wellDefinedCheck.clear();
-//            addAxioms(heapCount, null);
-//            determinismSymbols.clear(); // FIXME - might need them again in  \old expressions
+	        currentStatements.add(bl);
 		}
+        currentEnv.heap.havocs = havocs;
+        wellDefinedCheck.clear();
+//        addAxioms(heapCount, null);
+//        determinismSymbols.clear(); // FIXME - might need them again in  \old expressions
 		clearInvariants(); // FIXME - is this needed for rac?
 	}
     
