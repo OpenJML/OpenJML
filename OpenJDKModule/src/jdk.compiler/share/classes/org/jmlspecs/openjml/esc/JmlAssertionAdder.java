@@ -4557,11 +4557,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// Assume invariants for the class of each parameter
 			for (JCVariableDecl v : methodDecl.params) {
 				// for (Symbol vsym: preparams.keySet()) {
-				Symbol vsym = v.sym;
+				VarSymbol vsym = v.sym;
                 addStat(comment(v, "Adding invariants for method parameter " + vsym, null));
 				// JCIdent idd = preparams.get(vsym);
-				if (utils.isNonExtPrimitiveType(vsym.type))
-					continue;
+				if (utils.isNonExtPrimitiveType(vsym.type)) continue;
+                if (utils.hasMod(v.mods,Modifiers.HELPER)) continue;
+				
 				JCIdent idd = treeutils.makeIdent(v.pos, v.sym);
 				// JCIdent d = preparams.get(vsym);
 				if (isHelper(methodDecl.sym) && v.sym.type.tsym == methodDecl.sym.owner.type.tsym)
@@ -5119,8 +5120,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// The enum values are not yet initialized while stillin the constructor
 		// (because the final assignment is not yet performed).
 		// So postconditions are a different sort of thing.
-		if (isConstructor && classDecl.sym.isEnum())
-			return;
+		if (isConstructor && classDecl.sym.isEnum()) return;
 
 		// Collect all classes that are mentioned in the method
 		ClassCollector collector = ClassCollector.collect(this.classDecl, this.methodDecl, context);
@@ -5229,11 +5229,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		if (!isPure || isConstructor) {
 			for (JCVariableDecl v : methodDecl.params) {
-				if (utils.isJavaOrJmlPrimitiveType(v.type))
-					continue;
-//                JCIdent d = preparams.get(v.sym);
-				if (isHelper(methodDecl.sym) && v.sym.type.tsym == methodDecl.sym.owner.type.tsym)
-					continue;
+				if (utils.isJavaOrJmlPrimitiveType(v.type)) continue;
+				if (isHelper(methodDecl.sym) && v.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
+				if (utils.hasMod(v.mods,Modifiers.HELPER)) continue;
 
 				JCIdent id = treeutils.makeIdent(v.pos, v.sym);
 				JCExpression oldid = treeutils.makeOld(v.pos(), id, labelPropertiesStore.get(attr.preLabel));
@@ -5273,11 +5271,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		if (!isPure || isConstructor) {
 			for (JCVariableDecl v : methodDecl.params) {
-				if (utils.isJavaOrJmlPrimitiveType(v.type))
-					continue;
+				if (utils.isJavaOrJmlPrimitiveType(v.type)) continue;
 				// JCIdent d = preparams.get(v.sym);
-				if (isHelper(methodDecl.sym) && v.sym.type.tsym == methodDecl.sym.owner.type.tsym)
-					continue;
+				if (isHelper(methodDecl.sym) && v.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
+				if (attr.isHelper(v.sym)) continue;
+				
 				JCIdent id = treeutils.makeIdent(v.pos, v.sym);
 				addInvariants(v, v.type, id, exsuresStats, false, false, false, false, true, false,
 						Label.INVARIANT_EXCEPTION_EXIT,
