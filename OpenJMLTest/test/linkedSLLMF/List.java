@@ -65,29 +65,25 @@ class Link<T> {
     /** Removes the nth value from the list */
     //@ public normal_behavior
     //@   requires 0 <= n < this.size;
-    //@   assignable size, values, links;
+    //@   assignable next, size, values, links;
     //@   ensures this.size == \old(this.size) - 1;
     //@   ensures n == 0 ==> next == \old(next.next);
     //@   ensures n > 0 ==> next == \old(next);
     //@   ensures n == 0 ==> values == \old(values).tail(1);
     public void remove(int n) {
         if (n == 0) {
-            //@ assert this.owner != null && allMine(this.owner);
+            //@ assert allMine(this.owner);
             //@ assert this.next.allMine(this.next.owner);
             //@ assert this.next.next != null ==> this.next.next.allMine(this.next.next.owner);
             //@ assert this.owner == this.next.owner;
             //@ assert this.next.next != null ==> this.next.owner == this.next.next.owner;
             this.next = this.next.next;
-            //@ assert this.owner != null;
             //@ assert this.next != null ==> this.next.allMine(this.next.owner);
-            //@ assert this.allMine(this.owner) <==> (this.next != null ==> this.next.allMine(this.owner));
-            //@ assert this.allMine(this.owner);
         } else {
             this.next.remove(n-1);
-            //@ assert this.owner != null && allMine(this.owner);
+            //@ assert allMine(this.owner);
         }
-        //@ assert this.owner == \old(this.owner);
-        //@ assert this.owner != null && allMine(this.owner);
+        //@ assert allMine(this.owner);
     }
 }
 
@@ -123,49 +119,33 @@ public class List<T> extends Link<T> {
     //@   ensures this.values == \old(values).prepend(t);
     //@   ensures this.links == \old(links).prepend(this.next);
     //@ also private normal_behavior
-    //@   assignable size, values, links;
+    //@   assignable next, size, values, links;
     //@   ensures \fresh(this.next);
     //@   ensures this.next.value == t;
     //@   ensures this.next.next == \old(this.next);
     public void push(T t) {
-        //@ assert allMine(this);
-        //@ assert this.next != null ==> this.next.allMine(this);
         var v = new List.Node<T>(t, next);
-        //@ assert this.allMine(this);
-        //@ assert v.next != null ==> v.next.allMine(this);
         //@ set v.owner = this;
-        //@ assert this.allMine(this);
-        //@ assert v.next != null ==> v.next.allMine(this);
-        //@ assert v.allMine(this);
+        //@ assert this.allMine(this); // a lemma regarding allMine
         this.next = v;
-        //@ assert this.next.allMine(this);
-        //@ assert this.allMine(this);
+        //@ assert this.next.allMine(this); // a lemma regarding allMine
     }
     
     /** Removes the first value from the list */
     //@ public normal_behavior
     //@   requires this.size > 0;
-    //@   assignable size, values, links;
+    //@   assignable next, size, values, links;
     //@   ensures this.size == \old(size) - 1;
     //@   ensures this.values == \old(values).tail(1);
     //@   ensures this.links == \old(links).tail(1);
     //@   ensures next == \old(next.next);
     public void pop() {
-        //@ assert next != null;
-        //@ assert this.owner == this && this.allMine(this.owner);
-        //@ assert this.next.owner == this && this.next.allMine(this.owner);
-        //@ assert this.next.next != null ==> this.next.next.allMine(this.next.owner);
-        //@ ghost \bigint newsize = next.size;
-        //@ ghost seq<T> oldnvalues = this.next.values;
-        //@ ghost seq<Link<T>> oldnlinks = this.next.links;
+        // (proved) lemmas to prompt unrolling
         //@ assert next.size == this.size - 1;
+        //@ assert this.next.values.size() == next.size;
+        //@ assert this.next.links.size() == next.size;
         this.next = this.next.next;
-        //@ assert this.size == newsize;
-        //@ assert this.values == oldnvalues;
-        //@ assert this.links == oldnlinks;
-        //@ assert this.owner != null;
-        //@ assert this.allMine(this.owner) <==> (this.owner == owner && (this.next != null ==> this.next.allMine(this.owner)));
-        //@ assert this.allMine(this.owner);
+        //@ assert this.next != null ==> this.next.allMine(this.owner);
     }
     
     static class Node<T> extends Link<T> {
@@ -187,7 +167,7 @@ public class List<T> extends Link<T> {
         //@ public normal_behavior
         //@   reads value;
         //@   ensures \result == value;
-        //@ pure
+        //@ pure helper
         public T value() {
             return value;
         }
@@ -222,6 +202,29 @@ class Test {
         in.pop();
         Y yy = in.value(0);
         //@ assert y == yy;
+    }
+    
+    /** pushing a value and then retrieving it */
+    //@ requires in.size >= 2;
+    public static <Y> void test1(List<Y> in) {
+        //@ ghost Y y = in.value(1);
+        //@   assert in.next != null;
+        //@ ghost nullable Link<Y> n = in.next.next;
+        // @   assert \invariant_for(in);
+        // @   assert \invariant_for(in.next);
+        // @   assert in.size > 0;
+        //@ reachable;
+        //@   havoc in.next, in.size, in.next.size; //, in.values, in.links, in.next.values, in.next.links;
+        //@ reachable;
+        //@   assume in.next == n;
+        //@ reachable;
+        // @   assume in.size == \old(in.size) - 1;
+        // @ reachable;
+        // @   assume in.values == \old(in.values).tail(1);
+        // @ reachable;
+        // @   assume in.links == \old(in.links).tail(1);
+        // @ reachable;
+        //@ halt;
     }
     
     /** pushing and popping leaves the list unchanged */
