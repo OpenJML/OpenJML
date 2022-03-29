@@ -2360,13 +2360,22 @@ public class esc1 extends EscBase {
 
     @Test
     public void testMethodCall() {
-        helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
-                + "  static public int j;\n" + "  //@ requires i>0;\n" + "  //@ assigns j;\n"
-                + "  //@ ensures j == -i;\n" + "  static public void m(int i) { j = -i; }\n" + "  //@ requires i>1; \n"
-                + "  //@ assigns j;\n" + "  //@ ensures \\result == -i;\n"
-                + "  public int inst(boolean b, int i) { m(i); return j; }\n" + "  //@ assigns j;\n"
-                + "  //@ ensures \\result == j;\n" + "  public int instbad(boolean b, int i) { m(i); return j; }\n"
-                + "  //@ assigns j;\n" + "  //@ ensures \\result == i;\n"
+        helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" 
+                + "public class TestJava { \n"
+                + "  static public int j;\n" 
+                + "  //@ requires i>0;\n" 
+                + "  //@ assigns j;\n"
+                + "  //@ ensures j == -i;\n" 
+                + "  static public void m(int i) { j = -i; }\n" 
+                + "  //@ requires i>1; \n"
+                + "  //@ assigns j;\n" 
+                + "  //@ ensures \\result == -i;\n"
+                + "  public int inst(boolean b, int i) { m(i); return j; }\n" 
+                + "  //@ assigns j;\n"
+                + "  //@ ensures \\result == j;\n" 
+                + "  public int instbad(boolean b, int i) { m(i); return j; }\n"
+                + "  //@ assigns j;\n" 
+                + "  //@ ensures \\result == i;\n"
                 + "  public int instbad2(boolean b, int i) { m(1); return j; }\n" + "}"
                 ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Precondition) in method instbad",43
                 ,"/tt/TestJava.java:7: warning: Associated declaration", 22

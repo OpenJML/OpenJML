@@ -7499,7 +7499,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			boolean expandDataGroup) {
 		ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
 		for (JCExpression item : list) {
-			if (expandDataGroup)
+			if (expandDataGroup) {
 				if (item instanceof JCIdent) {
 					JCIdent id = (JCIdent) item;
 					if (id.sym.owner instanceof Symbol.ClassSymbol) {
@@ -7513,6 +7513,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						}
 					}
 				}
+			}
 			if (item instanceof JCFieldAccess && ((JCFieldAccess) item).name == null) {
 				JCFieldAccess fa = (JCFieldAccess) item;
 				java.util.List<VarSymbol> exlist;
@@ -7527,11 +7528,51 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// FIXME - what class declaration to use here?
 				java.util.List<JCFieldAccess> clist = datagroupContents(fa, (ClassSymbol) base.owner);
 				newlist.addAll(clist);
+				//System.out.println("EXPANDED " + item + " TO " + clist);
 			} else {
 				newlist.add(item);
 			}
 		}
 		return newlist.toList();
+	}
+	
+	protected List<JCExpression> expandStoreRefWithMaps(List<JCExpression> items, Type base) {
+	    ListBuffer<JCExpression> out = new ListBuffer<>();
+	    for (var item: items) {
+            if (item instanceof JCIdent) {
+                JCIdent id = (JCIdent) item;
+                if (id.sym.owner instanceof Symbol.ClassSymbol) {
+                    if (utils.isJMLStatic(id.sym)) {
+                        JCExpression sel = M.at(item.pos).Type(id.sym.owner.type);
+                        item = M.at(item.pos).Select(sel, id.sym);
+                        item.type = id.type;
+                    } else {
+                        item = M.at(item.pos).Select(currentEnv.currentReceiver, id.sym);
+                        item.type = id.type;
+                    }
+                }
+                //System.out.println("ITEM " + item );
+            }
+            if (item instanceof JCFieldAccess && ((JCFieldAccess) item).name == null) {
+                JCFieldAccess fa = (JCFieldAccess) item;
+                java.util.List<VarSymbol> exlist;
+                TypeSymbol csym = fa.selected.type.tsym;
+                exlist = utils.listJmlVisibleFields(csym, base.tsym, base.tsym.flags() & Flags.AccessFlags,
+                        treeutils.isATypeTree(((JCFieldAccess) item).selected), true);
+                for (VarSymbol vsym : exlist) {
+                    out.add(M.at(item).Select(fa.selected, vsym));
+                }
+            } else if (item instanceof JCFieldAccess) {
+               JCFieldAccess fa = (JCFieldAccess) item;
+                // FIXME - what class declaration to use here?
+               //System.out.println("EXPANDING " + fa + " " + base);
+               expandModelField(fa, out, base); // FIXME - should probably use the receiver type
+                //System.out.println("EXPANDED " + item + " NOW " + out);
+            } else {
+                out.add(item);
+            }
+	    }
+	    return out.toList();
 	}
 
 	protected List<JCExpression> expandStoreRefListAll(List<JCExpression> list, MethodSymbol base) {
@@ -7571,8 +7612,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// refClass and subtypes of e.selected.type
     protected void expandModelField(JCFieldAccess e, ListBuffer<JCExpression> out, Type refClass) {
         for (Type t : parents(refClass, false)) {
-            if (jmltypes.isSubtype(t, e.selected.type)) {
-                for (Symbol s : t.tsym.getEnclosedElements()) {
+            //System.out.println("    TYPE " + refClass + " " + t + " " + t.tsym + " " + e + " " + e.selected.type);
+            if (true || jmltypes.isSubtype(t, e.selected.type) || jmltypes.isSubtype(e.selected.type, t)) {
+                for (Symbol s : t.tsym.members().getSymbols()) {
+                    //System.out.println("       SYM " + s + " IN? " + e.sym);
                     if (s instanceof VarSymbol && isContainedIn(s, e.sym)) {
                         JCFieldAccess fa = M.Select(e.selected, s.name);
                         fa.sym = s;
@@ -7586,7 +7629,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             for (var cl : fs.list) {
                                 if (cl instanceof JmlTypeClauseMaps m) {
                                     for (JmlGroupName g : m.list) {
+                                        //System.out.println("       CHECKING " + g + " " + e.sym + " " + m);
                                         if (isContainedIn(g.sym, e.sym)) {
+                                            //System.out.println("       ADDING " + g.sym + " " + e.sym + " " + m.expression);
                                             out.add(m.expression);
                                             break;
                                         }
@@ -10047,8 +10092,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											useDefault = false;
 											addStat(comment(null, "Assignable clause: " + clause, null));
 //                                        ListBuffer<JCStatement> elses = new ListBuffer<>();
-											List<JCExpression> storerefs = expandStoreRefList(
-													((JmlMethodClauseStoreRef) clause).list, calleeMethodSym, true);
+											List<JCExpression> storerefs = expandStoreRefWithMaps(
+													((JmlMethodClauseStoreRef) clause).list, 
+													currentEnv.currentReceiver != null ? currentEnv.currentReceiver.type : calleeMethodSym.owner.type);
 											//System.out.println("EXPANDED LIST " + storerefs);
 											ListBuffer<JCStatement> check4 = null;
 											Symbol tsym = newThisId == null ? calleeMethodSym.owner : newThisId.type.tsym;
