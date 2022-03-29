@@ -191,7 +191,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** This value is set by the environment variable OJ, as in OJ="assert=n" and has the effect that a stack dump is printed
      * when the assertion with the given number is created. Purely for debugging.
      */
-    public static int assertCountCheck = Integer.parseInt(Utils.debugValue("assert=","-1"));
+    public static int assertCountCheck = Integer.parseInt(Utils.debugValue("assert:","-1"));
+    public static int uniqueCountCheck = Integer.parseInt(Utils.debugValue("unique:","-1"));
 
 	// Parameters of this instance of JmlAssertionAdder
 
@@ -393,7 +394,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** A counter that ensures unique variable names (within a method body). */
 	protected int uniqueCount = 0;
-	public int nextUnique() { return uniqueCount++; }
+	public int nextUnique() { if (uniqueCount == uniqueCountCheck) Utils.dumpStack("TMP UNIQUE " + uniqueCount); return uniqueCount++; }
 
 	public boolean useBV;
 
@@ -4969,12 +4970,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			specs.getAttrSpecs(d.sym);
 			if (utils.isJavaOrJmlPrimitiveType(d.sym.type))
 				continue;
-			if (staticOnly && !utils.isJMLStatic(d.sym))
-				continue;
-			if (noFinal && isFinal(d.sym))
-				continue; // No need to repeat final invariants
-			if (isDataGroup(d.type))
-				continue;
+			if (staticOnly && !utils.isJMLStatic(d.sym)) continue;
+			if (noFinal && isFinal(d.sym)) continue; // No need to repeat final invariants
+			if (isDataGroup(d.type)) continue;
+			if (attr.isHelper(d.sym)) continue;
 
 			// if (isHelper(methodDecl.sym) && d.sym.type.tsym ==
 			// methodDecl.sym.owner.type.tsym) continue;
@@ -10903,6 +10902,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public void makeMethodHavocAxiom(DiagnosticPosition pos, Type receiverType, MethodSymbol calleeMethodSym, Type returnType, Object havocs,
 	                        java.util.List<StoreRefGroup> readItems, List<JCExpression> args) {
 	    int hc = heapCount;
+        //System.out.println("HAVOCAXIOM " + calleeMethodSym + " " + hc + " " + args);
 	    try {
 	        var heapInfo = currentEnv.heap;
 	        //System.out.println("CALLING FOR " + calleeMethodSym + " " + hc + " " + heapInfo.heapID + " " + heapInfo.previousHeaps);
@@ -10942,7 +10942,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            e3.type = e4.type = returnType;
 	            JCStatement noChangeInstantiation = M.at(pos).JmlExpressionStatement("assume", StatementExprExtensions.assumeClause, Label.METHODAXIOM, 
 	                treeutils.makeEquality(pos.getPreferredPosition(), e3, e4));
-	            //System.out.println("NOCHANGEINST " + noChangeInstantiation);
+	            //System.out.println("NOCHANGEINST " + newCalleeSym + " " + noChangeInstantiation);
 
 	            SpecCaseIterable specCases = new SpecCaseIterable(calleeMethodSym, false);
 	            for (var info: specCases) {
@@ -18864,7 +18864,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return;
 		}
 		try {
-			result = addStat(M.at(that).JmlHavocStatement(convertJML(that.storerefs)).setType(that.type));
+		    var saved = convertingAssignable;
+		    convertingAssignable = true;
+		    var stat = M.at(that).JmlHavocStatement(convertJML(that.storerefs)).setType(that.type);
+		    convertingAssignable = saved;
+            JmlLabeledStatement sttt = markUniqueLocation(stat);
+            addStat(sttt);
+            changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, that.storerefs)), sttt.label);
+            result = stat; // I don't think this matters
 		} catch (JmlNotImplementedException e) {
 			notImplemented("havoc statement containing ", e);
 		}
