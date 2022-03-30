@@ -212,13 +212,15 @@ class Test {
     }
 
     /** pushing a value and then retrieving it */
-    //@ requires in.next.next != null;
+    //@ requires in.next != null && in.next.next != null;
     public static <Y> void testPushValue(List<Y> in, Y y, Y yy) {
+        //@ reachable;
         in.push(y);
         //@ reachable;
         //@ assert in.value(0) == y;
         //@ assert in.size == \old(in.size) + 1;
         //@ assert in.values != \old(in.values);
+        //@ reachable; halt;
         in.push(yy);
         //@ reachable;
         //@ assert in.value(1) == y;
@@ -296,11 +298,10 @@ class Test {
         //@ assert other.values.size - 1 == in.values.size;   // Should not be provable without the owner invariant
     }
     
-
     /** two different lists may have the same first element, except when the owner invariant is used */
     //@ requires in != other;
     //@ requires in.size > 0;
-    //@ requires other.size > 0 ;
+    //@ requires other.size > 0;
     public static <Y> void testNI4(List<Y> in, List<Y> other) {
         //@ assert in.next.owner == in;
         //@ assert other.next.owner == other;

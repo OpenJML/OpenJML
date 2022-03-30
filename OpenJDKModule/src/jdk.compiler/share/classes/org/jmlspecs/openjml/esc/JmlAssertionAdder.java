@@ -10092,18 +10092,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									if (token == assignableClauseKind) {
 										// Don't translate assignable if we are in a pure method or constructor
 										if (!translatingJML) {
-											//System.out.println("ASSIGNABLE CLAUSE " + classType + " " + mpsym.owner + " " + clause);
+                                            //System.out.println("CALL " + methodDecl.sym.owner + "." + methodDecl.sym + " " + calleeMethodSym.owner + "." + calleeMethodSym);
+											//System.out.println(" ASSIGNABLE CLAUSE " + classType + " " + mpsym.owner + " " + clause);
 											useDefault = false;
 											addStat(comment(null, "Assignable clause: " + clause, null));
 //                                        ListBuffer<JCStatement> elses = new ListBuffer<>();
 											List<JCExpression> storerefs = expandStoreRefWithMaps(
 													((JmlMethodClauseStoreRef) clause).list, 
 													currentEnv.currentReceiver != null ? currentEnv.currentReceiver.type : calleeMethodSym.owner.type);
-											//System.out.println("EXPANDED LIST " + storerefs);
+											//System.out.println(" EXPANDED LIST " + storerefs);
 											ListBuffer<JCStatement> check4 = null;
 											Symbol tsym = newThisId == null ? calleeMethodSym.owner : newThisId.type.tsym;
 											while (tsym instanceof TypeVariableSymbol tv) tsym = ((Type.TypeVar)tv.type).getUpperBound().tsym;
-											//System.out.println("CALL " + methodDecl.sym.owner + "." + methodDecl.sym + " " + calleeMethodSym.owner + "." + calleeMethodSym);
 											//System.out.println("   WAS " + ((JmlMethodClauseStoreRef) clause).list);
 											//System.out.println("   NOW " + storerefs);
 											JmlStoreRef lsexpr = (JmlStoreRef)convertAssignableToLocsetExpression(clause, storerefs, (ClassSymbol)tsym, null);

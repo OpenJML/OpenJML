@@ -33,16 +33,6 @@ class Link<T> {
 
     //@ public normal_behavior
     //@   reads this.links, this.prevlinks;
-    //@   ensures \result <==> (goodLinksForward() && goodLinksBack());
-    //@ model pure helper public boolean goodLinks();
-    
-    //@ public normal_behavior
-    //@   reads this.links, this.prevlinks;
-    //@   ensures \result <==> ((this.prev != null ==> this.prev.next == this) && (this.next != null ==> this.next.goodLinksBack()));
-    //@ model pure helper public boolean goodLinksBack();
-    
-    //@ public normal_behavior
-    //@   reads this.links, this.prevlinks;
     //@   ensures \result <==> (this.next != null ==> (this.next.prev == this && this.next.goodLinksForward()));
     //@ model pure helper public boolean goodLinksForward();
     
@@ -57,11 +47,14 @@ class Link<T> {
 
     //@ nullable spec_public
     protected ListDLL.Node<T> next; //@ in size, values, links, prevlinks; 
-    //@ maps next.values \into values; maps next.size \into size; maps next.links \into links; maps next.prev \into prevlinks;  maps next.next.prev \into prevlinks;
+    //@ maps next.values \into values; maps next.next \into values; maps next.next.values \into values;
+    //@ maps next.size \into size; maps next.next \into size; maps next.next.size \into size;
+    //@ maps next.links \into links; maps next.next.links \into links; maps next.next.links \into links;
+    //@ maps next.prev \into prevlinks; maps next.next.prev \into prevlinks; maps next.prevlinks \into prevlinks;
     
     //@ nullable spec_public helper
-    protected Link<T> prev;
-    
+    protected Link<T> prev;  //@ in prevlinks; 
+
     //@ protected normal_behavior
     //@ pure helper
     protected Link() {
@@ -75,77 +68,103 @@ class Link<T> {
         
     /** Returns the nth value in the list */
     //@ public normal_behavior
-    //@   requires 0 <= n < this.size;
+    //@   requires 0 <= n < this.values.size;
     //@   reads values, links;
     //@   ensures \result == values[n];
     //@ pure
     public T value(int n) {
-        if (n == 0) return next.value();
-        else return next.value(n-1);
+        if (n == 0) {
+            return next.value();
+        } else {
+            return next.value(n-1);
+        }
     }
 
     /** Removes the nth value from the list */
     //@ public normal_behavior
     //@   requires 0 <= n < this.size;
-    //@   {| requires next != null && next.next != null; assignable next, next.next, size, values, links, prevlinks, next.next.prev; also requires next == null || next.next == null; assignable size, values, links, prevlinks; |}
+    //@   assignable size, values, links, next.size, next.next.prev;
     //@   ensures this.size == \old(this.size) - 1;
+    //@   ensures this.values.size() == \old(this.values.size()) - 1;
+    //@   ensures this.links.size() == \old(this.links.size()) - 1;
+    //@   ensures n == 0 ==> values == \old(values).tail(1);
+    //@   ensures n == 0 ==> links == \old(links).tail(1);
     //@   ensures n == 0 ==> next == \old(next.next);
     //@   ensures n == 0 ==> values == \old(values).tail(1);
     //@   ensures n > 0 ==> next == \old(next);
     public void remove(int n) {
-        // @ assume next != null && next.next != null ==> \invariant_for(next.next); // FIXME
+        //@ ghost \bigint newsize = next.size;
+        //@ split;
         if (n == 0) {
+            //@ assert this.allMine(this.owner);
+            //@ assert this.next.allMine(this.owner);
+            //@ assert this.next.next != null ==> this.next.next.allMine(this.next.owner);
             //@ assert this.goodLinksForward();
             //@ assert this.next.goodLinksForward();
-            //@ assert this.next.next != null ==> this.next.next.goodLinksForward();
-            //@ assert this.owner != null && allMine(this.owner);
-            //@ assert this.next.allMine(this.next.owner);
-            //@ assert this.next.next != null ==> this.next.next.allMine(this.next.next.owner);
-            //@ assert this.owner == this.next.owner;
-            //@ assert this.next.next != null ==> this.next.owner == this.next.next.owner;
-            //@ assert this.next.next != null ==> this.next.next.prev == this.next;
-            //@ assert (next.next != null && next.next.next != null) ==> next.next.next.prev == next.next;
-            this.next = this.next.next;
-            //@ assert this.owner != null;
-            //@ assert this.next != null ==> this.next.goodLinksForward();
-            //@ assert this.next != null ==> this.next.allMine(this.next.owner);
-            //@ assert this.allMine(this.owner) <==> (this.next != null ==> this.next.allMine(this.owner));
-            //@ assert this.allMine(this.owner);
-            //@ assert (next != null && next.next != null) ==> next.next.prev == next;
-            if (this.next != null) {
-                this.next.prev = this;
-                //@ assert this.owner != null;
-                //@ assert this.next != null ==> this.next.goodLinksForward();
+            //@ ghost seq<T> newvalues = this.next.values;
+            //@ ghost seq<Link<T>> newlinks = this.next.links;
+            //@ split;
+            if (this.next.next != null) {
+                //@ assert this.next.next.goodLinksForward();
+                //@ assert this.next.next.prev == this.next;
+                //@ assert this.next.next.prev.next == this.next.next;
+                //@ assert this.next.next.values == newvalues.tail(1);
+                //@ assert this.next.next.links == newlinks.tail(1);
+                //@ assert this.next.next.size == newsize - 1;
+                //@ assert this.next.next.allMine(this.next.owner);
+                this.next.next.prev = this;
+                //@ assert this.next.next.goodLinksForward();
+                //@ assert this.next.next.size == newsize - 1;
+                //@ assert this.next.next.allMine(this.next.owner);
+                //@ assert this.next.next.values == newvalues.tail(1);
+                //@ assert this.next.next.links == newlinks.tail(1);
+                this.next = this.next.next;
+                //@ assert this.next.prev == this && this.next.goodLinksForward();
                 //@ assert this.goodLinksForward();
-                //@ assert this.next.allMine(this.owner);
-                //@ assert this.allMine(this.owner) <==> (this.next != null ==> this.next.allMine(this.owner));
-                //@ assert this.allMine(this.owner);
-                //@ assert (next != null && next.next != null) ==> next.next.prev == next;
+                //@ assert this.next.size == newsize - 1;
+                //@ assert this.size == newsize;
+                //@ assert this.next.allMine(this.next.owner);
+                //@ assert this.next.values == newvalues.tail(1);
+                //@ assert this.values == newvalues;
+                //@ assert this.next.links == newlinks.tail(1);
+                //@ assert this.links == newlinks;
+                //@ reachable;
             } else {
-                //@ assert this.owner != null;
+                this.next = this.next.next;
                 //@ assert this.goodLinksForward();
-                //@ assert this.next != null ==> this.next.allMine(this.next.owner);
-                //@ assert this.allMine(this.owner) <==> (this.next != null ==> this.next.allMine(this.owner));
+                //@ assert this.size == newsize;
                 //@ assert this.allMine(this.owner);
+                //@ assert this.values == newvalues;
+                //@ assert this.links == newlinks;
+                //@ reachable;
             }
-            //@ assert this.owner != null;
+            //@ assert this.next != null ==> this.next.goodLinksForward();
             //@ assert this.goodLinksForward();
-            //@ assert this.next != null ==> this.next.allMine(this.next.owner);
-            //@ assert this.allMine(this.owner) <==> (this.next != null ==> this.next.allMine(this.owner));
+            //@ assert this.size == newsize;
             //@ assert this.allMine(this.owner);
+            //@ assert this.values == newvalues;
+            //@ assert this.links == newlinks;
         } else {
+            //@ assert this.next.goodLinksForward();
+            //@ assert this.next.size == newsize;
             this.next.remove(n-1);
-            //@ reachable; halt; // FIXME
-            //@ assume this.goodLinksForward();
-            //@ assume allMine(this.owner);
+            //@ reachable; 
+            //@ assert this.next.goodLinksForward();
+            //@ assert this.next.allMine(this.next.owner);
+            //@ assert this.next.size == newsize - 1;
+            //@ assert this.next.values.size() == newsize - 1;
+            //@ assert this.next.links.size() == newsize - 1;
             //@ assert this.goodLinksForward();
+            //@ assert this.size == newsize;
+            //@ assert this.values.size() == newsize;
+            //@ assert this.links.size() == newsize;
             //@ assert allMine(this.owner);
         }
-        //@ assert this.owner == \old(this.owner);
         //@ assert this.goodLinksForward();
-        //@ assert this.owner != null && allMine(this.owner);
-        // @ assert this.next != null ==> this.next.prev == this;
-        // @ assert (next != null && next.next != null) ==> next.next.prev == next;
+        //@ assert allMine(this.owner);
+        //@ assert this.size == newsize;
+        //@ assert this.values.size() == newsize;
+        //@ assert this.links.size() == newsize;
     }
 }
 
@@ -179,7 +198,7 @@ public class ListDLL<T> extends Link<T> {
     
     /** Pushes a new value onto the front of the list */
     //@ public normal_behavior
-    //@   assignable next, size, values, links, prevlinks;
+    //@   assignable size, values, links;
     //@   ensures this.size == \old(size) + 1;
     //@   ensures this.values == \old(values).prepend(t);
     //@   ensures this.links == \old(links).prepend(this.next);
@@ -204,23 +223,19 @@ public class ListDLL<T> extends Link<T> {
         this.next = v;
         //@ assert v.goodLinksForward();
         //@ assert this.goodLinksForward();
-        //@ assert this.next != null ==> this.next.allMine(owner);
-        //@ assert this.allMine(this);
+        //@ assert this.next.allMine(this); // a lemma regarding allMine
+        //@ assert this.size == v.size + 1;
+        //@ assert this.values == v.values.prepend(t);
+        //@ assert this.links == v.links.prepend(v);
     }
     
     /** Removes the first value from the list */
     //@ public normal_behavior
-    //@   requires next != null;
-    //@   old var oldvalues = this.values;
-    //@   {|
-    //@      requires this.next.next == null;
-    //@      assignable next, size, values, links, prevlinks;
-    //@    also
-    //@      requires this.next.next != null;
-    //@      assignable next, size, values, links, prevlinks, this.next.next.prev; // FIXME
-    //@   |}
+    //@   requires this.size > 0;
+    //@   requires this.values.size() > 0;
+    //@   {| requires next.next == null; assignable size, values, links, prevlinks; also requires next.next != null; assignable size, values, links, prevlinks, next.next.prev; |}
     //@   ensures this.size == \old(size) - 1;
-    //@   ensures this.values == oldvalues.tail(1);
+    //@   ensures this.values == \old(values).tail(1);
     //@   ensures this.links == \old(links).tail(1);
     //@   ensures next == \old(next.next);
     public void pop() {
@@ -234,50 +249,49 @@ public class ListDLL<T> extends Link<T> {
         //@ assert (n.next != null) ==> n.next.prev == n;
         //@ assert (n.next != null) ==> n.next.prev.next == n.next;
         //@ ghost \bigint newsize = next.size;
-        //@ ghost seq<T> oldnvalues = this.next.values;
-        //@ ghost seq<Link<T>> oldnlinks = this.next.links;
-        //@ assert next.size == this.size - 1;
-        this.next = this.next.next;
-        //@ assert n.next == this.next;
-        //@ assert (n.next != null) ==> n.next.prev == n;
-        //@ assert (n.next != null) ==> n.next.prev.next == n.next;
-        //@ assert this.next != null ==> this.next.goodLinksForward();
-        //@ assert this.next != null ==> this.next.allMine(this.next.owner);
-        //@ assert this.values == oldnvalues;
-        //@ assert this.links == oldnlinks;
-        //@ assert this.allMine(this.owner) <==> (this.next != null ==> this.next.allMine(this.owner));
-        //@ assert this.owner != null && allMine(this.owner);
-        if (this.next != null) {
-            //@ assert this.next != null ==> this.next.allMine(this.next.owner);
-            //@ assert this.next.goodLinksForward();
-            //@ ghost var o = this.next.owner;
-            this.next.prev = this;
-            //@ assert this.next.next != null ==> (this.next.next.prev == this.next && this.next.next.goodLinksForward());
-            //@ assert this.next.goodLinksForward();
+        //@ assert this.next.next != null ==> next.next.size == newsize - 1;
+        //@ ghost seq<T> newvalues = this.next.values;
+        //@ assert this.next.next != null ==> this.next.next.values == newvalues.tail(1);
+        //@ ghost seq<Link<T>> newlinks = this.next.links;
+        //@ assert this.next.next != null ==> this.next.next.links == newlinks.tail(1);
+        //@ reachable;
+        if (this.next.next != null) {
+            //@ assert this.next.next.allMine(this.next.owner);
+            //@ assert this.next.next.goodLinksForward();
+            //@ assert this.next.next.next != null ==> this.next.next.next.goodLinksForward();
+            this.next.next.prev = this;
+            //@ assert this.next.next.next != null ==> this.next.next.next.goodLinksForward();
+            //@ assert this.next.next.goodLinksForward();
+            //@ assert this.next.next.size == newsize - 1;
+            //@ assert this.next.next.allMine(this.next.owner);
+            //@ assert this.next.next.values == newvalues.tail(1);
+            //@ assert this.next.next.links == newlinks.tail(1);
+            this.next = this.next.next;
+            //@ assert this.next.prev == this && this.next.goodLinksForward();
             //@ assert this.goodLinksForward();
-            //@ assert this.values == oldnvalues;
-            //@ assert this.links == oldnlinks;
-            //@ assert o == this.next.owner;
-            //@ assert this.next != null ==> this.owner == this.next.owner;
-            //@ assert this.allMine(this.owner) <==> (this.owner == owner && (this.next != null ==> this.next.allMine(this.owner)));
-            //@ assert this.allMine(this.owner);
+            //@ assert this.next.size == newsize - 1;
+            //@ assert this.size == newsize;
+            //@ assert this.next.allMine(this.next.owner);
+            //@ assert this.next.values == newvalues.tail(1);
+            //@ assert this.values == newvalues;
+            //@ assert this.next.links == newlinks.tail(1);
+            //@ assert this.links == newlinks;
+            //@ reachable;
         } else {
-            //@ assert this.next != null ==> this.next.goodLinksForward();
+            this.next = this.next.next;
             //@ assert this.goodLinksForward();
-            //@ assert this.links == oldnlinks;
-            //@ assert this.next != null ==> this.owner == this.next.owner;
-            //@ assert this.next != null ==> this.next.allMine(this.next.owner);
-            //@ assert this.allMine(this.owner) <==> (this.owner == owner && (this.next != null ==> this.next.allMine(this.owner)));
+            //@ assert this.size == newsize;
             //@ assert this.allMine(this.owner);
+            //@ assert this.values == newvalues;
+            //@ assert this.links == newlinks;
+            //@ reachable;
         }
+        //@ assert this.next != null ==> this.next.goodLinksForward();
         //@ assert this.goodLinksForward();
         //@ assert this.size == newsize;
-        //@ assert this.values == oldnvalues;
-        //@ assert this.links == oldnlinks;
-        //@ assert this.next != null ==> this.owner == this.next.owner;
-        //@ assert this.next != null ==> this.next.allMine(this.next.owner);
-        //@ assert this.allMine(this.owner) <==> (this.owner == owner && (this.next != null ==> this.next.allMine(this.owner)));
         //@ assert this.allMine(this.owner);
+        //@ assert this.values == newvalues;
+        //@ assert this.links == newlinks;
     }
     
     static class Node<T> extends Link<T> {
@@ -304,7 +318,7 @@ public class ListDLL<T> extends Link<T> {
         //@ public normal_behavior
         //@   reads value;
         //@   ensures \result == value;
-        //@ pure
+        //@ pure helper
         public T value() {
             return value;
         }
@@ -322,12 +336,15 @@ class Test {
     }
 
     /** pushing a value and then retrieving it */
+    //@ requires in.next.next != null;
     public static <Y> void testPushValue(ListDLL<Y> in, Y y, Y yy) {
         in.push(y);
+        //@ reachable;
+        //@ assert in.value(0) == y;
         //@ assert in.size == \old(in.size) + 1;
         //@ assert in.values != \old(in.values);
-        //@ assert in.value(0) == y;
         in.push(yy);
+        //@ reachable;
         //@ assert in.value(1) == y;
         //@ assert in.value(0) == yy;
     }
@@ -335,30 +352,35 @@ class Test {
     /** pushing a value and then retrieving it */
     //@ requires in.size >= 2;
     public static <Y> void testPopValue(ListDLL<Y> in) {
-        //@ show in.size, in.value(0), in.value(1);
         Y y = in.value(1);
         in.pop();
+        //@ reachable;
         Y yy = in.value(0);
-        //@ show in.size, in.value(0), in.value(1);
         //@ assert y == yy;
     }
     
     /** pushing and popping leaves the list unchanged */
+    //@ requires in.next.next != null;
     public static <Y> void testPushPop(ListDLL<Y> in, Y y) {
         in.push(y);
+        //@ reachable;
         //@ assert in.size == \old(in.size) + 1;
         //@ assert in.values != \old(in.values);
         in.pop();
+        //@ reachable;
         //@ assert in.size == \old(in.size);
         //@ assert in.values == \old(in.values);
     }
     
     /** pushing and removing the zeroth element leaves the list unchanged */
+    //@ requires in.next.next != null;
     public static <Y> void testPushRemove(ListDLL<Y> in, Y y) {
         in.push(y);
+        //@ reachable;
         //@ assert in.size == \old(in.size) + 1;
         //@ assert in.values != \old(in.values);
         in.remove(0);
+        //@ reachable;
         //@ assert in.size == \old(in.size);
         //@ assert in.values == \old(in.values);
     }
@@ -366,8 +388,10 @@ class Test {
     /** pushing a value on one list does not change the other */
     //@ requires in != other;
     //@ requires in.values == other.values;
+    //@ requires in.size > 0;
     public static <Y> void testNI1(Y y, ListDLL<Y> in, ListDLL<Y> other) {
         in.push(y);
+        //@ reachable;
         //@ assert in.values.tail(1) == other.values;
     }
     
@@ -379,10 +403,9 @@ class Test {
         //@ assert in.size == other.size;
         //@ ghost seq<Y> oldvalues = in.values;
         in.pop();
-        //@ assert in.size == \old(in.size - 1);
-        //@ assert in.size == other.size - 1;
-        //@ assert oldvalues.tail(1) == in.values;
-        //@ assert in.values == other.values.tail(1);
+        //@ reachable;
+        //@ assert in.values == oldvalues.tail(1);
+        //@ assert other.values == oldvalues;
     }
     
     /** removing a value (other than the 0th) from one list might change the other,
@@ -391,12 +414,11 @@ class Test {
     //@ requires in.values == other.values;
     //@ requires in.size > 1;
     public static <Y> void testNI3(ListDLL<Y> in, ListDLL<Y> other) {
-        //@ ghost \bigint oldsize = in.size;
         //@ ghost seq<Y> oldvalues = in.values;
         in.remove(1);
-        //@ assert oldsize - 1 == in.size;
-        //@ assert oldvalues.size - 1 == in.size;
-        //@ assert other.values.size - 1 == in.size;   // Should not be provable without the owner invariant
+        //@ reachable;
+        //@ assert oldvalues.size - 1 == in.values.size;
+        //@ assert other.values.size - 1 == in.values.size;   // Should not be provable without the owner invariant
     }
     
     /** two different lists may have the same first element, except when the owner invariant is used */
@@ -413,17 +435,25 @@ class Test {
     //@ requires in != other;
     //@ requires in.values == other.values;
     //@ requires in.size > 1;
+    //@ requires in.next.value != y;
     /*@ model public static <Y> void testNI5(ListDLL<Y> in, ListDLL<Y> other, Y y) {
+        reachable;
         ghost \bigint n = in.size;
-        assume in.next.value != y;
+        assert in.values.size() == n;
         assert in.values.size() == other.values.size();
         assert in.size == other.size;
         assert in.size == n;
-        in.next().value = y;
+        reachable;
+        in.next.value = y;
+        reachable;
         assert in.size == n;
+        reachable;
         assert in.size == other.size;
+        reachable;
         assert in.values != other.values;    // Should not be provable without the owner invariant
+        reachable;
         assert in.values.tail(1) == other.values.tail(1);
+        reachable;
     }
     @*/
 }
