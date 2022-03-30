@@ -26,29 +26,35 @@ class Link<T> {
     //@ model pure helper public boolean allMine(ListMM<T> owner);
 
     //@ public normal_behavior
-    //@   reads next, next.nextFields, next.value, next.valueFields;
+    //@   reads next, next.next, next.nextFields, next.value, next.valueFields;
     //@   ensures \result == (next == null ? seq.<T>empty() : next.values().prepend(next.value));
     //@ pure helper
     //@ model public seq<T> values(); // sequence of values after the current Link, not including the current Link
     
     //@ public normal_behavior    
-    //@   reads next, next.nextFields; // FIXME - does not work as nextFields
+    //@   reads next, next.next, next.nextFields; // FIXME - does not work as nextFields
     //@   ensures \result == ((next == null) ? 0 : 1 + next.size());
     //@   ensures \result >= 0;
     //@ pure helper
     //@ model public \bigint size();
-
-    //@ public invariant values().size == size();
     
+    
+    
+    // @ public normal_behavior
+    // @   reads next, nextFields, next.value, next.valueFields;
+    // @   ensures \result <==> (\invariant_for(this) && (this.next != null ==> \invariant_for(this.next)));
+    // @ pure helper
+    // @ model public boolean invariants();
+
     //@ public model JMLDataGroup nextFields;
     //@ public model JMLDataGroup valueFields;
     
     
-    
+    // @ public invariant this.invariants(); // recursive down the list
     //@ public invariant this.owner != null && allMine(this.owner);
     //@ public invariant values().size() == this.size();
     //@ public invariant links.size() == this.size();
-    //@ public invariant !links.contains(this);
+    // @ public invariant !links.contains(this);
 
     //@ nullable spec_public
     protected ListMM.Node<T> next; //@ in valueFields, nextFields, links; 
@@ -72,8 +78,12 @@ class Link<T> {
     //@   ensures \result == values()[n];
     //@ pure
     public T value(int n) {
-        if (n == 0) return next.value();
-        else return next.value(n-1);
+        if (n == 0) {
+            return next.value();
+        } else {
+            //@ assert next.values() == this.values().tail(1);
+            return next.value(n-1);
+        }
     }
 
     /** Removes the nth value from the list */
@@ -84,8 +94,9 @@ class Link<T> {
     //@   assignable next, nextFields;
     //@   ensures this.size() == oldsize - 1;
     //@   ensures this.values().size == oldvalues.size - 1;
-    //@   ensures n==0 ==> this.values() == oldvalues.tail(1); // FIXME
+    // @   ensures n==0 ==> this.values() == oldvalues.tail(1); // FIXME
     public void remove(int n) {
+        //@ assert this.next != null;
         //@ ghost \bigint oldsize = this.size();
         //@ ghost \bigint newsize = this.next.size();
         //@ assert newsize == oldsize - 1;
@@ -96,34 +107,65 @@ class Link<T> {
         //@ assert this.next.allMine(this.next.owner);
         //@ assert this.next.next != null ==> this.next.next.allMine(this.next.next.owner);
         if (n == 0) {
-            //@ ghost seq<T> newvalues = this.next.values();
-            //@ assert newvalues == oldvalues.tail(1);
-            //@ assert this.owner != null && allMine(this.owner);
+            //@ assert this.next.values() == oldvalues.tail(1);
             //@ assert this.next.allMine(this.next.owner);
+            //@ assert this.next.next != null ==> this.next.next.values().size == oldvalues.size - 2;
             //@ assert this.next.next != null ==> this.next.next.values() == oldvalues.tail(1).tail(1);
+            //@ assert this.next.next != null ==> this.next.next.links.size == oldsize - 2;
             this.next = this.next.next;
             //@ assert newsize == (this.next == null ? 0 : this.next.size() + 1);
             //@ assert this.size() == newsize;
-            //@ assume this.values().size == oldvalues.size - 1;  // FIXME
+            //@ assert this.next != null ==> this.next.values().size == oldvalues.size - 2;
+            //@ assert this.values().size == newsize;//oldvalues.size - 1;
+            //@ assert this.next != null ==> this.next.links.size == oldsize - 2;
+            //@ assert this.links.size == newsize;//oldsize - 1;
             //@ assert this.values().size == this.size();
             //@ assert this.next != null ==> this.next.allMine(this.next.owner);
-            //@ assert this.owner != null && allMine(this.owner);
-            // @ assert n==0 ==> this.values() == oldvalues.tail(1); // FIXME
+            //@ assert allMine(this.owner);
+            //@ assert n==0 ==> this.values() == oldvalues.tail(1);
         } else {
-            this.next.remove(n-1);
+            //@ reachable;
+            //@   assert \invariant_for(this);
+            //@   assert \invariant_for(next);
+            //@ reachable;
+            //@ ghost \bigint poldsize = this.next.size();
+            // @ ghost var poldvalues = this.next.values();
+            // @ havoc this.next.next, this.next.nextFields;
+            // @ halt;
+           this.next.remove(n-1);
+            // @ reachable;
+            //@   assert this.next.size() == poldsize - 1;
+            // @ reachable;
+           // @ halt;
+            // @   assume \invariant_for(this.next);
+            // @ reachable;
+            // @   assume \invariant_for(next.next);
+            // @ reachable;
+            // @   assume this.next.values().size == poldvalues.size - 1;
+
+            // @ reachable;
+            // @ assert (next != null) ==> next.invariants();
+            // @ assert invariants();
             //@ assert this.size() == newsize;
             //@ assert this.owner != null && allMine(this.owner);
             //@ assert this.next.allMine(this.next.owner);
             //@ assert this.values().size == this.size();
+            //@ assert this.links.size == oldsize - 1;
+            //@ assert n==0 ==> this.values() == oldvalues.tail(1); 
+            // @ halt;
+            // @ reachable;
         }
+        // @ assert (next != null) ==> next.invariants();
+        // @ assert invariants();
         //@ assert this.owner != null && allMine(this.owner);
         //@ assert this.next != null ==> this.next.allMine(this.next.owner);
         //@ assert this.size() == newsize;
         //@ assert this.values().size == this.size();
+        //@ assert this.links.size == oldsize - 1;
         // @ halt;
         //@   assert this.size() == oldsize - 1;
         //@   assert this.values().size == oldvalues.size - 1;
-        //@   assume n==0 ==> this.values() == oldvalues.tail(1); // FIXME
+        //@   assert n==0 ==> this.values() == oldvalues.tail(1); // FIXME
         // @ halt;
     }
 }
@@ -204,18 +246,21 @@ public class ListMM<T> extends Link<T> {
         //@ assert this.next != null;
         //@ assert this.values().size == this.size();
         //@ assert this.next.values().size == this.next.size();
+        //@ assert this.next.next != null ==> this.next.next.values().size == this.next.next.size();
+        //@ assert next.links.size() == this.next.size();
+        //@ assert this.next.next != null ==> this.next.next.links.size == this.next.next.size();
         //@ ghost seq<T> oldvalues = this.values();
         //@ ghost seq<T> oldnvalues = this.next.values();
         //@ assert oldnvalues == oldvalues.tail(1);
         this.next = this.next.next;
         //@ assert this.size() == (this.next == null ? 0 : this.next.size() + 1);
         //@ assert this.size() == \old(this.size()) - 1;
-        // @ assert this.values() == oldnvalues;
-        // @ assert this.values() == oldvalues.tail(1);
+        //@ assert this.next != null ==> this.next.values().size == this.next.size();
+        //@ assert this.next != null ==> this.next.links.size == this.next.size();
+        //@ assert this.values() == oldnvalues;
+        //@ assert this.values() == oldvalues.tail(1);
         //@ assert this.allMine(this.owner) <==> (this.owner == owner && (this.next != null ==> this.next.allMine(this.owner)));
         //@ assert this.allMine(this.owner);
-        //@ halt; // FIXME - pop OK to here, not next line
-        // @ assume this.values().size == this.size(); // FIXME - ASSUMED
     }
     
     static class Node<T> extends Link<T> {
@@ -267,7 +312,7 @@ class Test {
     }
 
     /** pushing a value and then retrieving it */
-    //@ requires in.size >= 2;
+    //@ requires in.size() >= 2;
     public static <Y> void testPopValue(ListMM<Y> in) {
         Y y = in.value(1);
         in.pop();
@@ -278,11 +323,11 @@ class Test {
     /** pushing and popping leaves the list unchanged */
     public static <Y> void testPushPop(ListMM<Y> in, Y y) {
         in.push(y);
-        //@ assert in.size == \old(in.size) + 1;
-        //@ assert in.values != \old(in.values);
+        //@ assert in.size() == \old(in.size()) + 1;
+        //@ assert in.values() != \old(in.values());
         in.pop();
-        //@ assert in.size == \old(in.size);
-        //@ assert in.values == \old(in.values);
+        //@ assert in.size() == \old(in.size());
+        //@ assert in.values() == \old(in.values());
     }
     
     /** pushing and removing the zeroth element leaves the list unchanged */
@@ -312,13 +357,13 @@ class Test {
         //@ ghost seq<Y> oldvalues = in.values();
         in.pop();
         //@ assert oldvalues.tail(1) == in.values();
-        //@ assert in.values() == other.values.tail(1);
+        //@ assert in.values() == other.values().tail(1);
     }
     
     /** removing a value (other than the 0th) from one list might change the other,
      * except when the owner invariant is used */
     //@ requires in != other;
-    //@ requires in.values() == other.values;
+    //@ requires in.values() == other.values();
     //@ requires in.size() > 1;
     public static <Y> void testNI3(ListMM<Y> in, ListMM<Y> other) {
         //@ ghost seq<Y> oldvalues = in.values();
@@ -340,9 +385,9 @@ class Test {
     /** using rep-exposure to change a value still does not change the other list if the owner invariant is used */
     //@ requires in != other;
     //@ requires in.values() == other.values();
-    //@ requires in.size > 1;
+    //@ requires in.size() > 1;
     /*@ model public static <Y> void testNI5(ListMM<Y> in, ListMM<Y> other, Y y) {
-        ghost \bigint n = in.size;
+        ghost \bigint n = in.size();
         assume in.next.value != y;
         assert in.values().size() == other.values().size();
         assert in.size() == other.size();

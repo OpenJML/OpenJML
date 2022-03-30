@@ -38,50 +38,70 @@ class Link<T> {
 
     //@ nullable spec_public
     protected List.Node<T> next; //@ in size, values, links; 
-    //@ maps next.values \into values; maps next.size \into size; maps next.links \into links;
+    //@ maps next.values \into values; maps next.next \into values; maps next.next.values \into values;
+    //@ maps next.size \into size; maps next.next \into size; maps next.next.size \into size;
+    //@ maps next.links \into links; maps next.next.links \into links; maps next.next.links \into links;
     
     //@ protected normal_behavior
     //@ pure helper
     protected Link() {
     }
 
-    //@ public normal_behavior // only for demonstration purposes -- exposes representation
-    //@   reads next;
-    //@   ensures \result == next;
-    //@ pure helper
-    //@ public model List.Node<T> next();
-        
     /** Returns the nth value in the list */
     //@ public normal_behavior
-    //@   requires 0 <= n < this.size;
+    //@   requires 0 <= n < this.values.size;
     //@   reads values, links;
     //@   ensures \result == values[n];
     //@ pure
     public T value(int n) {
-        if (n == 0) return next.value();
-        else return next.value(n-1);
+        if (n == 0) {
+            return next.value();
+        } else {
+            return next.value(n-1);
+        }
     }
 
     /** Removes the nth value from the list */
     //@ public normal_behavior
     //@   requires 0 <= n < this.size;
-    //@   assignable next, size, values, links;
+    //@   assignable size, values, links, next.size;
     //@   ensures this.size == \old(this.size) - 1;
+    //@   ensures this.values.size() == \old(this.values.size()) - 1;
+    //@   ensures this.links.size() == \old(this.links.size()) - 1;
+    //@   ensures n == 0 ==> values == \old(values).tail(1);
+    //@   ensures n == 0 ==> links == \old(links).tail(1);
     //@   ensures n == 0 ==> next == \old(next.next);
     //@   ensures n > 0 ==> next == \old(next);
-    //@   ensures n == 0 ==> values == \old(values).tail(1);
     public void remove(int n) {
+        //@ split;
         if (n == 0) {
+            //@ ghost \bigint oldsize = this.size;
+            //@ assert this.next.size == oldsize - 1;
+            //@ assert this.next.next != null ==> this.next.next.size == oldsize - 2;
             //@ assert allMine(this.owner);
             //@ assert this.next.allMine(this.next.owner);
             //@ assert this.next.next != null ==> this.next.next.allMine(this.next.next.owner);
             //@ assert this.owner == this.next.owner;
             //@ assert this.next.next != null ==> this.next.owner == this.next.next.owner;
+            //@ assert this.next.values == this.values.tail(1);
+            //@ assert this.next.next != null ==> this.next.next.values == this.next.values.tail(1);
             this.next = this.next.next;
+            //@ assert this.next != null ==> this.next.size == oldsize - 2;
+            //@ assert this.size == oldsize - 1;
             //@ assert this.next != null ==> this.next.allMine(this.next.owner);
+            //@ assert this.next != null ==> this.next.values == this.values.tail(1);
+            //@ assert this.values == \old(this.values).tail(1);
+            //@ assert this.values.size() == \old(this.values.size()-1);
+            //@ assert this.links == \old(this.links).tail(1);
+            //@ assert this.links.size() == \old(this.links.size()-1);
         } else {
             this.next.remove(n-1);
+            //@ reachable;
+            //@ assert this.next.size == \old(this.next.size) - 1;
+            //@ assert this.values.size() == \old(this.values.size()-1);
+            //@ assert this.links.size() == \old(this.links.size()-1);
             //@ assert allMine(this.owner);
+            //@ assert this.size == \old(this.size) - 1;
         }
         //@ assert allMine(this.owner);
     }
@@ -119,7 +139,7 @@ public class List<T> extends Link<T> {
     //@   ensures this.values == \old(values).prepend(t);
     //@   ensures this.links == \old(links).prepend(this.next);
     //@ also private normal_behavior
-    //@   assignable next, size, values, links;
+    //@   assignable size, values, links;
     //@   ensures \fresh(this.next);
     //@   ensures this.next.value == t;
     //@   ensures this.next.next == \old(this.next);
@@ -127,14 +147,21 @@ public class List<T> extends Link<T> {
         var v = new List.Node<T>(t, next);
         //@ set v.owner = this;
         //@ assert this.allMine(this); // a lemma regarding allMine
+        //@ assert v.size == this.size;
+        //@ assert v.values == this.values;
+        //@ assert v.links == this.links;
         this.next = v;
         //@ assert this.next.allMine(this); // a lemma regarding allMine
+        //@ assert this.size == v.size + 1;
+        //@ assert this.values == v.values.prepend(t);
+        //@ assert this.links == v.links.prepend(v);
     }
     
     /** Removes the first value from the list */
     //@ public normal_behavior
     //@   requires this.size > 0;
-    //@   assignable next, size, values, links;
+    //@   requires this.values.size() > 0;
+    //@   assignable size, values, links;
     //@   ensures this.size == \old(size) - 1;
     //@   ensures this.values == \old(values).tail(1);
     //@   ensures this.links == \old(links).tail(1);
@@ -142,8 +169,8 @@ public class List<T> extends Link<T> {
     public void pop() {
         // (proved) lemmas to prompt unrolling
         //@ assert next.size == this.size - 1;
-        //@ assert this.next.values.size() == next.size;
-        //@ assert this.next.links.size() == next.size;
+        //@ assert this.next.values.size() == this.values.size() - 1;
+        //@ assert this.next.links.size() == this.links.size() - 1;
         this.next = this.next.next;
         //@ assert this.next != null ==> this.next.allMine(this.owner);
     }
@@ -185,12 +212,15 @@ class Test {
     }
 
     /** pushing a value and then retrieving it */
+    //@ requires in.next.next != null;
     public static <Y> void testPushValue(List<Y> in, Y y, Y yy) {
         in.push(y);
+        //@ reachable;
+        //@ assert in.value(0) == y;
         //@ assert in.size == \old(in.size) + 1;
         //@ assert in.values != \old(in.values);
-        //@ assert in.value(0) == y;
         in.push(yy);
+        //@ reachable;
         //@ assert in.value(1) == y;
         //@ assert in.value(0) == yy;
     }
@@ -200,49 +230,33 @@ class Test {
     public static <Y> void testPopValue(List<Y> in) {
         Y y = in.value(1);
         in.pop();
+        //@ reachable;
         Y yy = in.value(0);
         //@ assert y == yy;
     }
     
-    /** pushing a value and then retrieving it */
-    //@ requires in.size >= 2;
-    public static <Y> void test1(List<Y> in) {
-        //@ ghost Y y = in.value(1);
-        //@   assert in.next != null;
-        //@ ghost nullable Link<Y> n = in.next.next;
-        // @   assert \invariant_for(in);
-        // @   assert \invariant_for(in.next);
-        // @   assert in.size > 0;
-        //@ reachable;
-        //@   havoc in.next, in.size, in.next.size; //, in.values, in.links, in.next.values, in.next.links;
-        //@ reachable;
-        //@   assume in.next == n;
-        //@ reachable;
-        // @   assume in.size == \old(in.size) - 1;
-        // @ reachable;
-        // @   assume in.values == \old(in.values).tail(1);
-        // @ reachable;
-        // @   assume in.links == \old(in.links).tail(1);
-        // @ reachable;
-        //@ halt;
-    }
-    
     /** pushing and popping leaves the list unchanged */
+    //@ requires in.next.next != null;
     public static <Y> void testPushPop(List<Y> in, Y y) {
         in.push(y);
+        //@ reachable;
         //@ assert in.size == \old(in.size) + 1;
         //@ assert in.values != \old(in.values);
         in.pop();
+        //@ reachable;
         //@ assert in.size == \old(in.size);
         //@ assert in.values == \old(in.values);
     }
     
     /** pushing and removing the zeroth element leaves the list unchanged */
+    //@ requires in.next.next != null;
     public static <Y> void testPushRemove(List<Y> in, Y y) {
         in.push(y);
+        //@ reachable;
         //@ assert in.size == \old(in.size) + 1;
         //@ assert in.values != \old(in.values);
         in.remove(0);
+        //@ reachable;
         //@ assert in.size == \old(in.size);
         //@ assert in.values == \old(in.values);
     }
@@ -250,8 +264,10 @@ class Test {
     /** pushing a value on one list does not change the other */
     //@ requires in != other;
     //@ requires in.values == other.values;
+    //@ requires in.size > 0;
     public static <Y> void testNI1(Y y, List<Y> in, List<Y> other) {
         in.push(y);
+        //@ reachable;
         //@ assert in.values.tail(1) == other.values;
     }
     
@@ -260,11 +276,11 @@ class Test {
     //@ requires in.values == other.values;
     //@ requires in.size > 0;
     public static <Y> void testNI2(List<Y> in, List<Y> other) {
-        //@ assert in.size == other.size;
         //@ ghost seq<Y> oldvalues = in.values;
         in.pop();
-        //@ assert oldvalues.tail(1) == in.values;
-        //@ assert in.values == other.values.tail(1);
+        //@ reachable;
+        //@ assert in.values == oldvalues.tail(1);
+        //@ assert other.values == oldvalues;
     }
     
     /** removing a value (other than the 0th) from one list might change the other,
@@ -275,14 +291,16 @@ class Test {
     public static <Y> void testNI3(List<Y> in, List<Y> other) {
         //@ ghost seq<Y> oldvalues = in.values;
         in.remove(1);
-        //@ assert oldvalues.size - 1 == in.size;
-        //@ assert other.values.size - 1 == in.size;   // Should not be provable without the owner invariant
+        //@ reachable;
+        //@ assert oldvalues.size - 1 == in.values.size;
+        //@ assert other.values.size - 1 == in.values.size;   // Should not be provable without the owner invariant
     }
     
+
     /** two different lists may have the same first element, except when the owner invariant is used */
     //@ requires in != other;
     //@ requires in.size > 0;
-    //@ requires other.size > 0;
+    //@ requires other.size > 0 ;
     public static <Y> void testNI4(List<Y> in, List<Y> other) {
         //@ assert in.next.owner == in;
         //@ assert other.next.owner == other;
@@ -293,17 +311,25 @@ class Test {
     //@ requires in != other;
     //@ requires in.values == other.values;
     //@ requires in.size > 1;
+    //@ requires in.next.value != y;
     /*@ model public static <Y> void testNI5(List<Y> in, List<Y> other, Y y) {
+        reachable;
         ghost \bigint n = in.size;
-        assume in.next.value != y;
+        assert in.values.size() == n;
         assert in.values.size() == other.values.size();
         assert in.size == other.size;
         assert in.size == n;
-        in.next().value = y;
+        reachable;
+        in.next.value = y;
+        reachable;
         assert in.size == n;
+        reachable;
         assert in.size == other.size;
+        reachable;
         assert in.values != other.values;    // Should not be provable without the owner invariant
+        reachable;
         assert in.values.tail(1) == other.values.tail(1);
+        reachable;
     }
     @*/
 }
