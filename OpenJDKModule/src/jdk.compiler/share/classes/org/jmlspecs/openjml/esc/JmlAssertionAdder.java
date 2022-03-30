@@ -7551,7 +7551,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         item.type = id.type;
                     }
                 }
-                //System.out.println("ITEM " + item );
+                //System.out.println("  ITEM " + item );
             }
             if (item instanceof JCFieldAccess && ((JCFieldAccess) item).name == null) {
                 JCFieldAccess fa = (JCFieldAccess) item;
@@ -7564,10 +7564,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             } else if (item instanceof JCFieldAccess) {
                JCFieldAccess fa = (JCFieldAccess) item;
+               if (fa.sym.isStatic()) {
+                   expandModelField(fa, out, fa.sym.owner.type); // FIXME - the base should be the type that is seeing the symbol, but should include the sysmbol
+               } else {
                 // FIXME - what class declaration to use here?
-               //System.out.println("EXPANDING " + fa + " " + base);
-               expandModelField(fa, out, base); // FIXME - should probably use the receiver type
-                //System.out.println("EXPANDED " + item + " NOW " + out);
+                   //System.out.println("  EXPANDING " + fa + " " + base);
+                   expandModelField(fa, out, base); // FIXME - should probably use the receiver type
+                   //System.out.println("  EXPANDED " + item + " NOW " + out);
+               }
             } else {
                 out.add(item);
             }
@@ -10099,6 +10103,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											ListBuffer<JCStatement> check4 = null;
 											Symbol tsym = newThisId == null ? calleeMethodSym.owner : newThisId.type.tsym;
 											while (tsym instanceof TypeVariableSymbol tv) tsym = ((Type.TypeVar)tv.type).getUpperBound().tsym;
+											//System.out.println("CALL " + methodDecl.sym.owner + "." + methodDecl.sym + " " + calleeMethodSym.owner + "." + calleeMethodSym);
+											//System.out.println("   WAS " + ((JmlMethodClauseStoreRef) clause).list);
+											//System.out.println("   NOW " + storerefs);
 											JmlStoreRef lsexpr = (JmlStoreRef)convertAssignableToLocsetExpression(clause, storerefs, (ClassSymbol)tsym, null);
 											for (var i: ((JmlMethodInvocation)lsexpr.expression).args) {
 											  if (i instanceof JmlStoreRef item) {
