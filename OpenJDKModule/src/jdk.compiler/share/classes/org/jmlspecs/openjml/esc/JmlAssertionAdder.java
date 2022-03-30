@@ -10099,7 +10099,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											ListBuffer<JCStatement> check4 = null;
 											Symbol tsym = newThisId == null ? calleeMethodSym.owner : newThisId.type.tsym;
 											while (tsym instanceof TypeVariableSymbol tv) tsym = ((Type.TypeVar)tv.type).getUpperBound().tsym;
-											JmlStoreRef lsexpr = (JmlStoreRef)convertAssignableToLocsetExpression(clause, ((JmlMethodClauseStoreRef) clause).list, (ClassSymbol)tsym, null);
+											JmlStoreRef lsexpr = (JmlStoreRef)convertAssignableToLocsetExpression(clause, storerefs, (ClassSymbol)tsym, null);
 											for (var i: ((JmlMethodInvocation)lsexpr.expression).args) {
 											  if (i instanceof JmlStoreRef item) {
 												boolean containsEverything = false;
