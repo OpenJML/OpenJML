@@ -21,7 +21,7 @@ public class escaccessible extends EscBase {
     
     @Before @Override
     public void setUp() throws Exception {
-    	captureOutput = true;
+    	//captureOutput = true;
     	super.setUp();
         main.addOptions("--check-accessible","-no-jmltesting");
     }

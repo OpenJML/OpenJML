@@ -1,0 +1,3 @@
+This folder contains expected results for tests whose source files are not within
+the OpenJMLTest/test folder, such as
+- the examples on openjml.org

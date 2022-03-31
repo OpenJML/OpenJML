@@ -642,7 +642,7 @@ public class IdentityHashMap<K,V>
      * @param d the index of a newly empty deleted slot
      */
     //@ private normal_behavior
-    //@   writes table[*];
+    //@   assigns table[*];
     //@ helper
     private void closeDeletion(int d) {
         // Adapted from Knuth Section 6.4 Algorithm R

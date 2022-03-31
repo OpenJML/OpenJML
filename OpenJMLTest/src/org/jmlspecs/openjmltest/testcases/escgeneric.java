@@ -64,7 +64,7 @@ public class escgeneric extends EscBase {
     /** Tests that we can reason about the result of \\typeof */
     @Test
     public void testTypeOf() {
-    	main.addOptions("-checkFeasibility=all");  // Part of test
+    	main.addOptions("-checkFeasibility=basic");  // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

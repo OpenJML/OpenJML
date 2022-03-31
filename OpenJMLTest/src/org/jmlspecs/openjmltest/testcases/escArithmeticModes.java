@@ -185,6 +185,7 @@ public class escArithmeticModes extends EscBase {
 
     @Test
     public void testSumSafe4() {
+        if (skipIfFalse(runLongArithmetic || !options.contains("-escBV=true"))) return; // Can timeout in multi-process testing
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath public class TestJava { \n"
                 +"  public int mc(int i) {\n"
@@ -308,7 +309,8 @@ public class escArithmeticModes extends EscBase {
     }
 
     @Test
-    public void testDivJava() { // somewhat but not overly long when using BVs
+    public void testDivJava() { // somewhat but not overly long when using BVs, but can timeout
+        if (skipIfFalse(runLongArithmetic || !options.contains("-escBV=true"))) return; // Cannot have BV and Math mode
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeJavaMath public class TestJava { //@ requires j !=0 ; \n"
                 +"  public int m(int i, int j) {\n"
@@ -351,7 +353,7 @@ public class escArithmeticModes extends EscBase {
 
     @Test
     public void testMultSafe() {
-        //if (skipIfFalse(!options.contains("-escBV=true"))) return;
+        if (skipIfFalse(runLongArithmetic)) return;
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath @SpecSafeMath public class TestJava { \n"
                 +"  public int m(int i) {\n"

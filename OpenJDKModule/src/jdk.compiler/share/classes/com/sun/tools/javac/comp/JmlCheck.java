@@ -143,7 +143,7 @@ public class JmlCheck extends Check {
 
     
     @Override
-    public Type checkType(DiagnosticPosition pos, Type found, Type req) {
+    public Type checkType(DiagnosticPosition pos, Type found, Type req, final CheckContext checkContext) {
         if (found != null && found.getTag() == TypeTag.ARRAY && req.getTag() == TypeTag.ARRAY &&
                 found.toString().equals("org.jmlspecs.runtime.IJMLTYPE[]") &&
                 req.toString().equals("\\TYPE[]")) {
@@ -154,12 +154,13 @@ public class JmlCheck extends Check {
         }
         if (found == req) return found;
         JmlTypes jmltypes = JmlTypes.instance(context);
+        // FIXME - all this in isAssignable?
         if (req == jmltypes.REAL) {
         	if (found.isNumeric() || found == jmltypes.BIGINT) return found;
         } else if (req == jmltypes.BIGINT) {
         	if (found.isIntegral()) return found;
         }
-        return super.checkType(pos, found, req);
+        return super.checkType(pos, found, req, checkContext);
     }
     
     boolean noDuplicateWarn = false;

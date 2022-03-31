@@ -1774,6 +1774,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public ISort convertSort(Type t) {
         if ( t == null) {
             log.error("jml.internal", "No type translation implemented when converting a BasicProgram to SMTLIB: " + t);
+            Utils.dumpStack();
             throw new RuntimeException();
         }
         TypeTag tag = t.getTag();
@@ -1939,10 +1940,14 @@ public class SMTTranslator extends JmlTreeScanner {
     
     /** Adds a function with the given name and a definition if it is not already added. */
     protected void addFcn(String newname, JCMethodInvocation tree) {
+        //System.out.println("ADDING FCN " + newname + " " + tree + " " + tree.type + " " + tree.meth.type + " " + TreeInfo.symbolFor(tree.meth));
         if (fcnsDefined.add(newname)) {
+            var rt = tree.type;
+            if (tree.meth.type != null) rt = tree.meth.type.getReturnType();
+            if (TreeInfo.symbolFor(tree.meth) != null) rt = TreeInfo.symbolFor(tree.meth).type.getReturnType();
             // Was not already present
             ISymbol n = F.symbol(newname);
-            ISort resultSort = convertSort(tree.type);
+            ISort resultSort = convertSort(rt);
             List<ISort> argSorts = new LinkedList<ISort>();
             // Adds an argument for the receiver, if the function is not static
             if (tree.meth instanceof JCFieldAccess && ((JCFieldAccess)tree.meth).selected != null && !((JCFieldAccess)tree.meth).sym.isStatic()) {  // FIXME _ JML sstatic?
@@ -2460,8 +2465,12 @@ public class SMTTranslator extends JmlTreeScanner {
                 log.error("jml.internal","Don't know how to translate expression to SMTLIB: " + JmlPretty.write(tree));
                 throw new RuntimeException();
         }
+    	} catch (JmlBVException e) {
+    	    throw e;
         } catch (Exception e) {
+            log.error("jml.internal","Exception while translating expression to SMTLIB: " + JmlPretty.write(tree));
         	System.out.println("EXCEPTION IN SUBEXPR OF " + tree);
+        	e.printStackTrace(System.out);
         	throw e;
         }
     }

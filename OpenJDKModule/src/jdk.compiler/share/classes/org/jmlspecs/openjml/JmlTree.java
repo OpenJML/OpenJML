@@ -580,11 +580,19 @@ public class JmlTree {
         /** Creates a JML labeled statement */
         @Override
         public JmlLabeledStatement JmlLabeledStatement(Name label, ListBuffer<JCStatement> extra, JCStatement body) {
+            JmlLabeledStatement p = Labelled(label,body);
+            if (extra == null) extra = new ListBuffer<JCStatement>();
+            p.extraStatements = extra;
+            return p;
+        }
+
+        /** Creates a JML labeled statement */
+        @Override
+        public JmlLabeledStatement Labelled(Name label, JCStatement body) {
             if (body == null) body = JmlTree.Maker.instance(context).Block(0L, List.<JCStatement>nil());
             JmlLabeledStatement p = new JmlLabeledStatement(label,body);
             p.pos = pos;
-            if (extra == null) extra = new ListBuffer<JCStatement>();
-            p.extraStatements = extra;
+            p.extraStatements = new ListBuffer<JCStatement>();
             return p;
         }
 
@@ -2095,7 +2103,7 @@ public class JmlTree {
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlLabeledStatement(this); 
+                ((IJmlVisitor)v).visitLabelled(this); 
             } else {
                 for (JCStatement s: extraStatements) {
                     s.accept(v);
@@ -2107,9 +2115,9 @@ public class JmlTree {
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlLabeledStatement(this, d);
+                return ((JmlTreeVisitor<R,D>)v).visitLabeledStatement(this, d);
             } else {
-                System.out.println("A JmlLblExpression expects an JmlTreeVisitor, not a " + v.getClass());
+                System.out.println("A JmlLabeledStatement expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; // return super.accept(v,d);
             }
         }

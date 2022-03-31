@@ -1,0 +1,20 @@
+Proving methods in TwoSum
+Starting proof of TwoSum.TwoSum() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TwoSum.TwoSum() with prover !!!! - no warnings
+Proving methods in TwoSum.Pair
+Starting proof of TwoSum.Pair.Pair(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TwoSum.Pair.Pair(int,int) with prover !!!! - no warnings
+Completed proving methods in TwoSum.Pair
+Starting proof of TwoSum.twoLoop(int[],int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TwoSum.twoLoop(int[],int) with prover !!!! - no warnings
+Starting proof of TwoSum.oneLoopPositive(int[],int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TwoSum.oneLoopPositive(int[],int) with prover !!!! - no warnings
+Completed proving methods in TwoSum

@@ -32,7 +32,7 @@ public class ListSeq<E extends Object> implements Seq<E> {
 
     // Interface Seq
     /*@ also requires !pastEnd();
-    @   writes _pos;
+    @   assigns _pos;
     @   ensures pastEnd() ==> ( \old(pos()).equals(length()) );
     @*/
     @Override

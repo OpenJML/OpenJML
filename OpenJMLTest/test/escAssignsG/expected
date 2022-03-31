@@ -1,0 +1,39 @@
+Proving methods in Assigns
+Proving methods in Assigns.T
+Starting proof of Assigns.T.T() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Assigns.T.T() with prover !!!! - no warnings
+Completed proving methods in Assigns.T
+Starting proof of Assigns.Assigns() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Assigns.Assigns() with prover !!!! - no warnings
+Starting proof of Assigns.m7() with prover !!!!
+test/escAssignsG/Assigns.java:25: warning: The prover cannot establish an assertion (Assignable) in method m7: t1.v
+    t1.v = 0; // ERROR
+         ^
+test/escAssignsG/Assigns.java:22: warning: Associated declaration
+  //@ assigns \nothing;
+      ^
+test/escAssignsG/Assigns.java:24: warning: The prover cannot establish an assertion (Assignable) in method m7: x
+    x = 0; // ERROR
+      ^
+test/escAssignsG/Assigns.java:22: warning: Associated declaration
+  //@ assigns \nothing;
+      ^
+test/escAssignsG/Assigns.java:27: warning: The prover cannot establish an assertion (Assignable) in method m7: a[1]
+    a[1] = 0; // ERROR
+         ^
+test/escAssignsG/Assigns.java:22: warning: Associated declaration
+  //@ assigns \nothing;
+      ^
+test/escAssignsG/Assigns.java:26: warning: The prover cannot establish an assertion (Assignable) in method m7: a[4]
+    a[4] = 0; // ERROR
+         ^
+test/escAssignsG/Assigns.java:22: warning: Associated declaration
+  //@ assigns \nothing;
+      ^
+Completed proof of Assigns.m7() with prover !!!! - with warnings
+Completed proving methods in Assigns
+8 warnings

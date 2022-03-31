@@ -12,6 +12,6 @@ public final class Opt1 {
 	
 	//@ public normal_behavior
 	//@   { return value != null; }
-	//@ pure function
+	//@ pure heap_free
 	public boolean nn() { return value != null; }
 }

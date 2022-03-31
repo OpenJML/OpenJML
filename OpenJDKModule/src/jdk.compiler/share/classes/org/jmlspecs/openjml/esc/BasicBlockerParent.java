@@ -1571,12 +1571,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     
     // OK
     @Override
-    public void visitLabelled(JCLabeledStatement that) {
-        shouldNotBeCalled(that);
-    }
-    
-    @Override 
-    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
+    public void visitLabelled(JCLabeledStatement jcthat) {
+        JmlLabeledStatement that = (JmlLabeledStatement)jcthat;
         List<JCStatement> copy = new LinkedList<>();
         copy.addAll(that.extraStatements);
         processStats(copy);

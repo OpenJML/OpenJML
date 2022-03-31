@@ -33,7 +33,7 @@ public interface Stack{
 	//@ pure
 	int top();
 
-	//@ writes count, items;
+	//@ assigns count, items;
 	//@ ensures \result == (\old(count) != 0);
 	//@ ensures count == 0;
 	boolean remove ( );

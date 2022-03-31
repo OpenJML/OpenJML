@@ -99,7 +99,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
     
-    public JCTree visitLetExpr(LetExpr that, Void p) {
+    public JCTree visitLetExpr(LetExpr that, Void p) {  // FIXME _ seems the wrong type
         LetExpr let = that;
         for (JCStatement d: that.defs) {
         	if (d instanceof JCVariableDecl) ((JCVariableDecl)d).init = translate(((JCVariableDecl)d).init);
@@ -186,10 +186,10 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // not translating: isModel, staticImport
     }
 
-    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-        JmlLabeledStatement s = that;
+    @Override
+    public void visitLabelled(JCLabeledStatement that) {
         // that.extraStatements = // FIXME
-        that.body = translate(that.body);
+        super.visitLabelled(that);
     }
     
     @Override
@@ -205,8 +205,9 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         r.expression = translate(that.expression);
         for (JmlMatchExpression.MatchCase c: that.cases) {
             c.caseExpression = translate(c.caseExpression);
-            c. value = translate(c.value);
+            c.value = translate(c.value);
         }
+        result = r;
     }
 
     @Override

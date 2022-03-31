@@ -1,0 +1,33 @@
+Proving methods in Assigns
+Proving methods in Assigns.T
+Starting proof of Assigns.T.T() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Assigns.T.T() with prover !!!! - no warnings
+Completed proving methods in Assigns.T
+Starting proof of Assigns.Assigns() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Assigns.Assigns() with prover !!!! - no warnings
+Starting proof of Assigns.m3() with prover !!!!
+test/escAssignsC/Assigns.java:23: warning: The prover cannot establish an assertion (Assignable) in method m3: x
+    x = 0; // ERROR
+      ^
+test/escAssignsC/Assigns.java:21: warning: Associated declaration
+  //@ assigns a[1];
+      ^
+test/escAssignsC/Assigns.java:26: warning: The prover cannot establish an assertion (Assignable) in method m3: a[4]
+    a[4] = 0; // ERROR
+         ^
+test/escAssignsC/Assigns.java:21: warning: Associated declaration
+  //@ assigns a[1];
+      ^
+test/escAssignsC/Assigns.java:24: warning: The prover cannot establish an assertion (Assignable) in method m3: t1.v
+    t1.v = 0; // ERROR
+         ^
+test/escAssignsC/Assigns.java:21: warning: Associated declaration
+  //@ assigns a[1];
+      ^
+Completed proof of Assigns.m3() with prover !!!! - with warnings
+Completed proving methods in Assigns
+6 warnings

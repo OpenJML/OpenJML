@@ -8,7 +8,7 @@ public class StaticMethod {
     }
 
     //@ requires src.length > 0;
-    //@ writes \nothing;
+    //@ assigns \nothing;
     public static void a(int[] src) {
     }
 

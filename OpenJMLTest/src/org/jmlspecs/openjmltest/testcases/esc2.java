@@ -4061,7 +4061,7 @@ public class esc2 extends EscBase {
                         + "public class TestJava  { \n" 
                         + "  //@ normal_behavior \n"
                         + "  //@ ensures \\result == (0 < i < 10);\n" 
-                        + "  //@ pure function\n"
+                        + "  //@ pure heap_free\n"
                         + "  //@ model public static boolean m(int i);\n"
 
                         + "  //@ pure\n" 
@@ -4432,7 +4432,7 @@ public class esc2 extends EscBase {
                         + "public class TestJava  { \n" 
                         + "  /*@ requires o != null; \n"
                         + "      ensures \\result == (j>=0); \n"
-                        + "     pure function */ public static boolean positive(Object o, int j) { \n"
+                        + "     pure heap_free */ public static boolean positive(Object o, int j) { \n"
                         + "         return j >= 0; }\n"
                         + "  public int j; \n"
                         + "  //@ signals (NullPointerException e) positive(null,j); \n"
@@ -4444,11 +4444,11 @@ public class esc2 extends EscBase {
                         + "}"
                         ,anyorder(seq(
                  "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
-                ,"/tt/TestJava.java:5: warning: Associated declaration",45
+                ,"/tt/TestJava.java:5: warning: Associated declaration",46
                 ,"/tt/TestJava.java:12: warning: Associated method exit",29
                 ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",18
                 ),seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",48
-                ,"/tt/TestJava.java:5: warning: Associated declaration",45
+                ,"/tt/TestJava.java:5: warning: Associated declaration",46
                 ,"/tt/TestJava.java:11: warning: Associated method exit",29
                 ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",18
                 ))
@@ -4613,7 +4613,7 @@ public class esc2 extends EscBase {
                         );
     }
 
-    @Test
+    @Test @Ignore // The show statements have nondeterministic output
     public void testShowStatementESC() {
         expectedExit = 0;
         main.addOptions("-code-math=bigint","-method=m","-escMaxWarnings=1");
@@ -4867,6 +4867,291 @@ public class esc2 extends EscBase {
     			+ "    //@ public model JMLDataGroup g;\n"
     			+ "}\n"
     			);
+    }
+    
+    @Test
+    public void testConditional1() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+
+            //@ ghost public \\bigint nn;
+
+            //@ requires nn == 0;
+            public void m(boolean b) {
+              //@ ghost \\bigint z = 0;
+              //@ assert nn == (b ? 0 : z);
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testConditional2() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+
+            //@ ghost public \\real nn;
+
+            //@ requires nn == 0;
+            public void m(boolean b) {
+              //@ ghost \\real z = 0;
+              //@ assert nn == (b ? 0 : z);
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testConditional3() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+
+            //@ ghost public \\real nn;
+
+            //@ requires nn == 0;
+            public void m(boolean b) {
+              //@ ghost \\bigint z = 0;
+              //@ assert nn == (b ? (double)0 : z);
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testConditional4() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+
+            //@ ghost public \\bigint nn;
+
+            //@ requires nn == 0;
+            public void m(boolean b) {
+              //@ ghost \\bigint z =  (b ? 0 : nn);
+              //@ assert z == 0;
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testHeap1() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure
+            public int f() { return 0; }
+
+            //@ old int x = f();
+            //@ ensures f() == \\old(f());
+            //@ ensures x == \\old(f());
+            public int m(boolean b) {
+                int y = f();
+                //@ assert y == f();
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+
+    @Test
+    public void testHeap2() {
+        //main.addOptions("-show","-method=m");
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure
+            public int f() { return 0; }
+
+            //@ old int x = f();
+            //@ ensures f() == \\old(f()); // FAILS
+            public int m(boolean b) {
+                int y = f();
+                //@ assert y == f();
+                z = 1;
+                return y;
+            }
+            }
+            """
+            ,"/tt/Test.java:14: warning: The prover cannot establish an assertion (Postcondition) in method m",5
+            ,"/tt/Test.java:9: warning: Associated declaration",5
+            );
+    }
+
+    @Test
+    public void testHeap2a() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ reads \\nothing; ensures true; pure
+            public int f() { return 0; }
+
+            //@ old int x = f();
+            //@ ensures f() == \\old(f());
+            public int m(boolean b) {
+                int y = f();
+                //@ assert y == f();
+                z = 1;
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testHeap2b() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure heap_free
+            static public int f() { return 0; }
+
+            //@ old int x = f();
+            //@ ensures f() == \\old(f());
+            public int m(boolean b) {
+                int y = f();
+                //@ assert y == f();
+                z = 1;
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+
+    @Test
+    public void testHeap3() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure
+            public int f() { return 0; }
+
+            public int m(boolean b) {
+                int y = f();
+                z = 1;
+              //@ assert y == \\old(f());
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testHeap4() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure
+            public int f() { return 0; }
+
+            public int m(boolean b) {
+                int y = f();
+                z = 1;
+              //@ assert f() == \\old(f()); // ERROR
+                return y;
+            }
+            }
+            """
+            ,"/tt/Test.java:11: warning: The prover cannot establish an assertion (Assert) in method m",7
+            );
+    }
+
+    @Test
+    public void testHeap4a() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ reads \\nothing; ensures true; pure
+            public int f() { return 0; }
+
+            public int m(boolean b) {
+                int y = f();
+                z = 1;
+              //@ assert f() == \\old(f());
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testHeap4b() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ pure heap_free
+            static public int f() { return 0; }
+
+            public int m(boolean b) {
+                int y = f();
+                z = 1;
+              //@ assert f() == \\old(f());
+                return y;
+            }
+            }
+            """
+            );
+    }
+
+    @Test
+    public void testHeap5() {
+        helpTCX("tt.Test",
+            """
+            public class Test {
+            
+            int z = 0;
+            
+            //@ ensures true; pure
+            public int f() { return 0; }
+
+            //@ old int x = f();
+            //@ ensures \\result == f();
+            public int m(boolean b) {
+                int y = f();
+                z = 1;
+                return f();
+            }
+            }
+            """
+            );
     }
 
 }

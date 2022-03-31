@@ -385,7 +385,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         if (incarnationPosition == Position.NOPOS || own == null || (!isConstructor && (sym.flags() & Flags.FINAL) != 0) || (isConstructor && (sym.flags() & (Flags.STATIC|Flags.FINAL)) == (Flags.STATIC|Flags.FINAL))) { 
             //Name n = utils.isJMLStatic(sym) ? sym.getQualifiedName() : sym.name;
             Name n = sym.name;
-            if (sym.pos >= 0 && (sym.flags() & Flags.FINAL) == 0 && !n.toString().equals(Strings.THIS)) {
+            if (sym.owner instanceof MethodSymbol) {
+                n = names.fromString(n.toString() + ("_" + sym.pos));
+            } else if (sym.pos >= 0 && (sym.flags() & Flags.FINAL) == 0 && !n.toString().equals(Strings.THIS)) {
                 n = names.fromString(n.toString() + ("_" + sym.pos));
             }
             if (own != null && (utils.isJMLStatic(sym) || own != methodDecl.sym.owner) && own instanceof TypeSymbol) {
@@ -480,7 +482,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @return the new identifier
      */
     protected JCIdent newIdentIncarnation(JCIdent id, int incarnationPosition) {
-        return newIdentIncarnation((VarSymbol)id.sym,incarnationPosition);
+        var newid = newIdentIncarnation((VarSymbol)id.sym,incarnationPosition);
+        //if (newid.toString().contains("dxyz")) System.out.println("NEWIDINC " + id + " " + newid);
+        return newid;
     }
     
     /** Creates a new incarnation of a variable */
@@ -935,11 +939,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     // OK
     @Override
-    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
+    public void visitLabelled(JCLabeledStatement that) {
         VarMap map = currentMap.copy();
         if (that.label.toString().equals(Strings.preLabelBuiltin)) premap = map;
         labelmaps.put(that.label,map); // if that.label is null, this is the premap
-        super.visitJmlLabeledStatement(that);
+        super.visitLabelled(that);
     }
     
     // FIXME - REVIEW
@@ -1131,7 +1135,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 case bsrequiresID:
                 case bsensuresID:
                 case bsreadsID:
-                case bswritesID:
+                case bsassignsID:
                 {
                     scan(that.typeargs);
                     scan(that.meth);
@@ -1180,6 +1184,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     // FIXME - review and document
     protected void havoc(JCExpression storeref) {
+        //System.out.println("HAVOC " + storeref + " " + storeref.getClass());
         if (storeref instanceof JCIdent) {
             newIdentIncarnation((JCIdent)storeref,storeref.pos);
 
@@ -1299,6 +1304,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             	} else {
             		// First havoc entire array
             		// Range of array
+            	    //System.out.println("HAVOC RANGE " + ex);
 
             		scan(ex); ex = result;
 
@@ -1306,6 +1312,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             		expr.pos = sp;
             		expr.type = aa.type;
             		treeutils.copyEndPosition(expr, aa);
+                    //System.out.println("HAVOC RANGE RES " + expr);
             		// FIXME - set line and source
             		addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
 
@@ -1332,6 +1339,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             		// FIXME - set line and source
             		expr = factory.at(p).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,eq);
             		expr.setType(syms.booleanType);
+                    //System.out.println("HAVOC RANGE CONDITION " + expr);
             		addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
             		//log.warning(storeref.pos,"jml.internal","Ignoring unknown kind of storeref in havoc: " + storeref);
             	}
@@ -1610,7 +1618,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     protected void traceMethod(JCMethodInvocation call) {
         MethodSymbol msym = (MethodSymbol)((JCIdent)call.meth).sym;
-        if (JmlAttr.instance(context).isFunction(msym)) return;
+        if (JmlAttr.instance(context).isHeapIndependent(msym)) return;
         findInBlock(call, currentBlock,msym,new LinkedList<JCStatement>());
     }
     
@@ -1672,7 +1680,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     protected void addMethodEqualities(JCMethodInvocation call, BasicBlock bl) {
         if (true || !JmlOption.isOption(context, JmlOption.DETERMINISM)) return;
         MethodSymbol msym = (MethodSymbol)((JCIdent)call.meth).sym;
-        if (JmlAttr.instance(context).isFunction(msym)) return;
+        if (JmlAttr.instance(context).isHeapIndependent(msym)) return;
         summarizeBlock( currentBlock);
         List<BasicProgram.BasicBlock.MethodInfo> list = currentBlock.methodInfoMap.get(msym);
         currentBlock.methodInfoMap = null;
@@ -1806,7 +1814,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // OK
     @Override
     public void visitIdent(JCIdent that) {
-        if (that.sym instanceof Symbol.VarSymbol vsym){ 
+        if (that.sym instanceof Symbol.VarSymbol vsym) {
             if (localVars.containsKey(vsym)) {
                 that.name = localVars.get(vsym).name;
             } else if (currentMap != null) { // FIXME - why would currentMap ever be null?
@@ -1814,6 +1822,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 if (that.name != vsym.name && newname != that.name) {
                     utils.warning(that, "jml.internal", "Double rewriting of ident: " + vsym.name + " " + that.name);
                 }
+                //if (that.toString().contains("dxyz")) System.out.println("VISITIDENT " + that + " " + vsym + " " + vsym.hashCode() + " " + newname);
+
                 that.name = newname;
                 if (isDefined.add(that.name)) {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Added " + vsym + " " + that.name);
@@ -2074,6 +2084,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 that.init = result;
             }
             Name n = encodedName(that.sym,0L);
+            if (that.name.toString().equals("length")) System.out.println("DECLNAME " + that.name + " " + n);
             that.name = n;
             if (isDefined.add(n)) {
 //                JCIdent id = factory.at(0).Ident(n);
@@ -2376,7 +2387,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
          * storing) one if it is not present. */
         public /*@non_null*/ Name getCurrentName(VarSymbol vsym) {
             Name s = mapname.get(vsym);
-            if (vsym == syms.lengthVar) return vsym.name;
+            boolean print = vsym.name.toString().equals("length");
+//            if (print) System.out.println("GETCURRENTNAME " +  vsym + " " + s + " " + + System.identityHashCode(vsym) + " " + System.identityHashCode(lengthSym)
+//            + " " + vsym.owner + " " + vsym.owner.getClass() + " " + lengthSym.owner + " " + lengthSym.owner.getClass() + " " + vsym.isFinal());
+            if (vsym == lengthSym) {
+                return vsym.name; // Just for array lengths
+            }
             if (s == null) {
                 // If there was no mapping at all, we add the name to 
                 // all existing maps, with an incarnation number of 0.
@@ -2384,6 +2400,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 // of the variable.
                 // FIXME - this does not handle a havoc between labels, 
                 s = encodedName(vsym,vsym.pos);
+                //if (print) System.out.println("    NAME " + vsym + " " + vsym.pos + " " + s);
                 for (VarMap map: blockmaps.values()) {
                     if (map.mapname.get(vsym) == null) map.putSAVersion(vsym,s,0L);
                 }
@@ -2398,6 +2415,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
                 putSAVersion(vsym,s,unique);
             }
+            //if (print) System.out.println("    NAME " + s);
             return s;
         }
         

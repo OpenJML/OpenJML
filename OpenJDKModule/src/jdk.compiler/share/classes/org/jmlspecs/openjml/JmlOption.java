@@ -239,7 +239,7 @@ public class JmlOption {
     public static final JmlOption COUNTEREXAMPLE = new JmlOption("--counterexample",false,false,"ESC: Enables output of complete, raw counterexample",null);
     { map.put("-ce",COUNTEREXAMPLE); }
     public static final JmlOption SUBEXPRESSIONS = new JmlOption("--subexpressions",false,false,"ESC: Enables tracing with subexpressions",null);
-    public static final JmlOption FEASIBILITY = new JmlOption("--check-feasibility",true,"all","ESC: Check feasibility of assumptions",null) {
+    public static final JmlOption FEASIBILITY = new JmlOption("--check-feasibility",true,"none","ESC: Check feasibility of assumptions",null) {
     	public boolean check(Context context, boolean negate) {
     		JmlOptions options = JmlOptions.instance(context);
             Utils utils = Utils.instance(context);
@@ -261,9 +261,9 @@ public class JmlOption {
                 	}
                 }
             }
-            String badString = Strings.isOK(check);
+            String badString = Strings.isOKFeasibility(check);
             if (badString != null) {
-                utils.error("jml.message","Unexpected value as argument for -checkFeasibility: " + badString);
+                utils.error("jml.message","Unexpected value as argument for --check-feasibility: " + badString);
                 return false;
             }
             return true;

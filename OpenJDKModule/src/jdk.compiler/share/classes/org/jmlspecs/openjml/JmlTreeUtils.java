@@ -973,8 +973,9 @@ public class JmlTreeUtils {
 
     /** Makes an attributed AST for a short-circuit boolean OR expression, simplifying literal true or false */
     public JCExpression makeOrSimp(int pos, JCExpression lhs, JCExpression rhs) {
+        if (rhs == null) return lhs;
+        if (lhs == null || isFalseLit(lhs) || isTrueLit(rhs)) return rhs;
         if (isFalseLit(rhs) || isTrueLit(lhs)) return lhs;
-        if (isFalseLit(lhs) || isTrueLit(rhs)) return rhs;
         return makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,rhs);
     }
 
@@ -1102,8 +1103,18 @@ public class JmlTreeUtils {
         return makeBinary(pos,JCTree.Tag.EQ,objecteqSymbol,lhs, rhs);
     }
 
+    /** Makes an attributed AST for a reference equality (==) expression */
+    public JCBinary makeEqObject(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
+        return makeBinary(pos,JCTree.Tag.EQ,objecteqSymbol,lhs, rhs);
+    }
+
     /** Makes an attributed AST for a reference inequality (!=) expression */
     public JCBinary makeNeqObject(int pos, JCExpression lhs, JCExpression rhs) {
+        return makeBinary(pos,JCTree.Tag.NE,objectneSymbol,lhs, rhs);
+    }
+    
+    /** Makes an attributed AST for a reference inequality (!=) expression */
+    public JCBinary makeNeqObject(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
         return makeBinary(pos,JCTree.Tag.NE,objectneSymbol,lhs, rhs);
     }
     
@@ -1498,7 +1509,7 @@ public class JmlTreeUtils {
     /** Makes a new MethodSymbol, given its various properties */
     public MethodSymbol makeMethodSym(JCModifiers mods, Name methodName, Type resultType, TypeSymbol ownerClass, List<Type> argtypes) {
 
-        MethodType mtype = new MethodType(List.<Type>nil(),resultType,argtypes,ownerClass);
+        MethodType mtype = new MethodType(argtypes,resultType,List.<Type>nil(),ownerClass);
 
         return new MethodSymbol(
                 mods.flags, 

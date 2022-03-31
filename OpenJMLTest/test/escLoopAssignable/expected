@@ -1,8 +1,9 @@
 test/escLoopAssignable/Test.java:10: error: Expected loop specifications while in JML: assignable is not a loop specification keyword
         //@ assignable i,a[4..7]; // ERROR
             ^
-test/escLoopAssignable/Test.java:11: error: Expected loop specifications while in JML: writes is not a loop specification keyword
-        //@ writes i,a[4..7];     // ERROR
+test/escLoopAssignable/Test.java:11: error: Expected loop specifications while in JML: assigns is not a loop specification keyword
+        //@ assigns i,a[4..7];     // ERROR
             ^
+Stopping because of parsing errors
 Operation not performed because of parse or type errors
 2 errors
