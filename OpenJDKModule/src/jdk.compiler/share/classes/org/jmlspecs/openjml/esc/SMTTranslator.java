@@ -189,8 +189,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     /** An internal field used to indicate whether we are translating expressions inside a quantified expression */
     boolean inQuant = false;
-    // TODO: convert from JCVariableDecl to IExpr.IDeclartion
-    List<JCVariableDecl> quantifierScope = new LinkedList<>();
+    List<IExpr.IDeclaration> quantifierScope = new LinkedList<>();
 
     /** A mapping from Java expressions to/from SMT expressions */
     final public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
@@ -3090,8 +3089,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public void constructSmtQuantifier(JmlQuantifiedExpr that, IExpr range, IExpr value, List<IDeclaration> params) {
         boolean isProduct = that.kind.keyword() == QuantifiedExpressions.qproductID;
 
-        // TODO: make lo and quant_N fresh identifiers
-        ISymbol lo = F.symbol("lo"), quantN = F.symbol("quant_" + (uniqueQuantCount++));
+        ISymbol lo = F.symbol("|`lo|"), quantN = F.symbol("|`quant_" + (uniqueQuantCount++) + "|");
         ISort returnType = convertSort(that.type);
 
         // construct an expression representing the base case for this quantifier and its type 
@@ -3105,8 +3103,8 @@ public class SMTTranslator extends JmlTreeScanner {
 
         // find the bounds of the range expression
         JmlBoundsExtractor.Bounds bounds = JmlBoundsExtractor.extract(that.decls, that.range, true, context, this);
-        if (bounds == null) return; // TODO: warn that we do not support the range pattern
-        
+        if (bounds == null) return;
+
         scan(bounds.lo);
         IExpr loExpr = result;
         scan(bounds.hi);
@@ -3118,7 +3116,10 @@ public class SMTTranslator extends JmlTreeScanner {
             value = F.numeral(1);
         }
         
-        // TODO: Warn if params.size() is greater than 1
+        if (params.size() != 1) {
+            notImplWarn(that, "JML Quantified expression cannot multiple or 0 parameters");
+        }
+
         IDeclaration x = params.get(0);
         ISymbol hi = x.parameter();
 
@@ -3128,11 +3129,9 @@ public class SMTTranslator extends JmlTreeScanner {
         List<IDeclaration> newParams = new LinkedList<IDeclaration>();
         newParams.add(F.declaration(lo, x.sort()));
         newParams.add(params.get(0));
-        for (JCVariableDecl decl: quantifierScope) {
-            IExpr.ISymbol sym = F.symbol(makeBarEnclosedString(decl.name.toString()));
-            quantParams.add(sym);
-            ISort sort = convertSort(decl.type);
-            newParams.add(F.declaration(sym, sort));
+        for (IExpr.IDeclaration decl: quantifierScope) {
+            quantParams.add(decl.parameter());
+            newParams.add(decl);
         }
 
         // append to front the lo and hi arguments
@@ -3140,7 +3139,6 @@ public class SMTTranslator extends JmlTreeScanner {
         quantParams.add(1, F.fcn(negSym, hi, F.numeral(1)));
 
         // main quantifier function declaration
-        // TODO: put comment of what the SMT-LIB looks like
         ICommand cmd = new C_define_fun_rec(
                 quantN, newParams, returnType,
                 F.fcn(
@@ -3184,7 +3182,7 @@ public class SMTTranslator extends JmlTreeScanner {
             }
 
             // this scope is such that children know their parent's args
-            quantifierScope.addAll(that.decls);
+            quantifierScope.addAll(params);
 
             scan(that.range);
             IExpr range = result;
@@ -3192,7 +3190,7 @@ public class SMTTranslator extends JmlTreeScanner {
             IExpr value = result;
 
             // restore the scope to the previous state
-            quantifierScope.removeAll(that.decls);
+            quantifierScope.removeAll(params);
 
             switch (that.kind.keyword()) {
             case QuantifiedExpressions.qforallID:
