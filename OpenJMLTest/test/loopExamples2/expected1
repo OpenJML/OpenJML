@@ -1,0 +1,25 @@
+Proving methods in SpecifyingLoopsExample1B
+Starting proof of SpecifyingLoopsExample1B.SpecifyingLoopsExample1B() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SpecifyingLoopsExample1B.SpecifyingLoopsExample1B() with prover !!!! - no warnings
+Starting proof of SpecifyingLoopsExample1B.reverseWord(String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SpecifyingLoopsExample1B.reverseWord(String) with prover !!!! - no warnings
+Starting proof of SpecifyingLoopsExample1B.main(String[]) with prover !!!!
+test/loopExamples2/SpecifyingLoopsExample1B.java:20: warning: Feasibility is unknown - time or memory limit reached: : Aborted feasibility check: timeout
+    public static void main(String [] argv) {
+                       ^
+Method assertions are validatedtimeout
+test/loopExamples2/SpecifyingLoopsExample1B.java:20: warning: Feasibility is unknown - time or memory limit reached: : Aborted feasibility check: timeout
+    public static void main(String [] argv) {
+                       ^
+Method assertions are validatedtimeout
+Completed proof of SpecifyingLoopsExample1B.main(String[]) with prover !!!! - TIMEOUT
+Starting proof of SpecifyingLoopsExample1B.isReversedIn(String,String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SpecifyingLoopsExample1B.isReversedIn(String,String) with prover !!!! - no warnings
+Completed proving methods in SpecifyingLoopsExample1B
+2 warnings
