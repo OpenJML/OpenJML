@@ -189,6 +189,8 @@ public class SMTTranslator extends JmlTreeScanner {
     
     /** An internal field used to indicate whether we are translating expressions inside a quantified expression */
     boolean inQuant = false;
+    // TODO: convert from JCVariableDecl to IExpr.IDeclartion
+    List<JCVariableDecl> quantifierScope = new LinkedList<>();
 
     /** A mapping from Java expressions to/from SMT expressions */
     final public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
@@ -3087,44 +3089,81 @@ public class SMTTranslator extends JmlTreeScanner {
 
     public void constructSmtQuantifier(JmlQuantifiedExpr that, IExpr range, IExpr value, List<IDeclaration> params) {
         boolean isProduct = that.kind.keyword() == QuantifiedExpressions.qproductID;
-        int baseCase = isProduct ? 1 : 0;
 
-        // TODO: make lo a fresh identifier not in Range or Body
+        // TODO: make lo and quant_N fresh identifiers
         ISymbol lo = F.symbol("lo"), quantN = F.symbol("quant_" + (uniqueQuantCount++));
+        ISort returnType = convertSort(that.type);
 
-        JmlBoundsExtractor.Bounds bounds = JmlBoundsExtractor.extract(that.decls, that.range, true, context, this);
-        if (bounds == null) return;
-        
-        if (that.kind.keyword() == QuantifiedExpressions.qnumofID) {
-            range = F.fcn(F.symbol("and"), range, value);
-            value = F.numeral(1);
+        // construct an expression representing the base case for this quantifier and its type 
+        int javaBaseCase = isProduct ? 1 : 0;
+        IExpr baseCase;
+        if (that.type.getTag() == TypeTag.FLOAT || that.type.getTag()==TypeTag.DOUBLE ) {
+            baseCase = F.decimal(Double.toString(javaBaseCase));
+        } else {
+            baseCase = F.numeral(javaBaseCase);
         }
 
+        // find the bounds of the range expression
+        JmlBoundsExtractor.Bounds bounds = JmlBoundsExtractor.extract(that.decls, that.range, true, context, this);
+        if (bounds == null) return; // TODO: warn that we do not support the range pattern
+        
         scan(bounds.lo);
         IExpr loExpr = result;
         scan(bounds.hi);
         IExpr hiExpr = result;
+
+        // convert num_of to the equivalent sum expression 
+        if (that.kind.keyword() == QuantifiedExpressions.qnumofID) {
+            range = F.fcn(F.symbol("and"), range, value);
+            value = F.numeral(1);
+        }
         
+        // TODO: Warn if params.size() is greater than 1
         IDeclaration x = params.get(0);
-        params.add(0, F.declaration(lo, x.sort()));
         ISymbol hi = x.parameter();
 
+        List<IExpr> quantParams = new LinkedList<>();
+
+        // construct a list of parameters for this expression
+        List<IDeclaration> newParams = new LinkedList<IDeclaration>();
+        newParams.add(F.declaration(lo, x.sort()));
+        newParams.add(params.get(0));
+        for (JCVariableDecl decl: quantifierScope) {
+            IExpr.ISymbol sym = F.symbol(makeBarEnclosedString(decl.name.toString()));
+            quantParams.add(sym);
+            ISort sort = convertSort(decl.type);
+            newParams.add(F.declaration(sym, sort));
+        }
+
+        // append to front the lo and hi arguments
+        quantParams.add(0, lo);
+        quantParams.add(1, F.fcn(negSym, hi, F.numeral(1)));
+
+        // main quantifier function declaration
+        // TODO: put comment of what the SMT-LIB looks like
         ICommand cmd = new C_define_fun_rec(
-                quantN,
-                params,
-                intSort, F.fcn(
-                        F.symbol("ite"),
-                        F.fcn(F.symbol("<"), hi, lo),
-                        F.numeral(baseCase),
+                quantN, newParams, returnType,
+                F.fcn(
+                    F.symbol("ite"), F.fcn(F.symbol("<"), hi, lo),
+                        baseCase,
                         F.fcn(isProduct ? F.symbol("*") : F.symbol("+"),
-                                F.fcn(quantN,
-                                        F.symbol("lo"),
-                                        F.fcn(negSym, hi,
-                                                F.numeral(1))),
-                                F.fcn(F.symbol("ite"), range, value,
-                                        F.numeral(baseCase)))));
+                                F.fcn(quantN, quantParams),
+                                F.fcn(F.symbol("ite"), range,
+                                    value,
+                                    baseCase
+                                )
+                        )
+                    )
+                );
         commands.add(cmd);
-        result = F.fcn(quantN, loExpr, hiExpr);
+
+        // set up function call of this quantifier
+        quantParams.remove(0);
+        quantParams.remove(0);
+        quantParams.add(0, loExpr);
+        quantParams.add(1, hiExpr);
+
+        result = F.fcn(quantN, quantParams);
     }
 
     @Override
@@ -3143,10 +3182,18 @@ public class SMTTranslator extends JmlTreeScanner {
                     typeConstraint = typeConstraint == null ? c : F.fcn(andSym, typeConstraint, c);
                 }
             }
+
+            // this scope is such that children know their parent's args
+            quantifierScope.addAll(that.decls);
+
             scan(that.range);
             IExpr range = result;
             scan(that.value);
             IExpr value = result;
+
+            // restore the scope to the previous state
+            quantifierScope.removeAll(that.decls);
+
             switch (that.kind.keyword()) {
             case QuantifiedExpressions.qforallID:
                 if (range != null) value = F.fcn(impliesSym,range,value);
