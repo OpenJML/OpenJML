@@ -84,6 +84,12 @@ class Link<T> {
             //@ assert this.next.next != null ==> this.next.owner == this.next.next.owner;
             //@ assert this.next.values == this.values.tail(1);
             //@ assert this.next.next != null ==> this.next.next.values == this.next.values.tail(1);
+            //@ ghost nullable Link<T> nxx = this.next.next;
+            //@ assert nxx != null ==> nxx.allMine(nxx.owner);
+            //@ assert nxx != null && nxx.next != null ==> nxx.links == nxx.next.links.prepend(nxx.next);
+            //@ assert nxx != null && nxx.next != null ==> this.links.contains(nxx.next);
+            // !this.links.contains(this) is an invariant. Combined with the above, it implies the following.
+            //@ assert nxx != null ==> (Object)this != nxx.next; // So that we know this.next.next.allMine is not affected by the change to this.next.
             this.next = this.next.next;
             //@ assert this.next != null ==> this.next.size == oldsize - 2;
             //@ assert this.size == oldsize - 1;
@@ -178,7 +184,6 @@ public class List<T> extends Link<T> {
         //@ ghost nullable Link<T> nxx = this.next.next;
         //@ assert nxx != null ==> nxx.allMine(nxx.owner);
         //@ assert nxx != null && nxx.next != null ==> nxx.links == nxx.next.links.prepend(nxx.next);
-        // @ assert nxx != null && nxx.next != null ==> nxx.links.contains(nxx.next);
         //@ assert nxx != null && nxx.next != null ==> this.links.contains(nxx.next);
         // !this.links.contains(this) is an invariant. Combined with the above, it implies the following.
         //@ assert nxx != null ==> (Object)this != nxx.next; // So that we know this.next.next.allMine is not affected by the change to this.next.
