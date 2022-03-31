@@ -2384,7 +2384,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
          * storing) one if it is not present. */
         public /*@non_null*/ Name getCurrentName(VarSymbol vsym) {
             Name s = mapname.get(vsym);
-            if (vsym == syms.lengthVar) return vsym.name;
+            if (vsym == lengthSym) {
+                return vsym.name; // Just for array lengths
+            }
             if (s == null) {
                 // If there was no mapping at all, we add the name to 
                 // all existing maps, with an incarnation number of 0.
