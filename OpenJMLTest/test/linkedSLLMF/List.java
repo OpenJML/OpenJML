@@ -37,10 +37,10 @@ class Link<T> {
     //@ public invariant !links.contains(this);
 
     //@ nullable spec_public
-    protected List.Node<T> next; //@ in size, values, links; 
+    protected List.Node<T> next; //@ in size, values, links, ownerFields; 
     //@ maps next.values \into values; maps next.next \into values; maps next.next.values \into values;
     //@ maps next.size \into size; maps next.next \into size; maps next.next.size \into size;
-    //@ maps next.links \into links; maps next.next.links \into links; maps next.next.links \into links;
+    //@ maps next.links \into links; maps next.next \into links; maps next.next.links \into links;
     
     //@ protected normal_behavior
     //@ pure helper
@@ -64,7 +64,7 @@ class Link<T> {
     /** Removes the nth value from the list */
     //@ public normal_behavior
     //@   requires 0 <= n < this.size;
-    //@   assignable size, values, links, next.size;
+    //@   assignable size, values, links, ownerFields, next.size;
     //@   ensures this.size == \old(this.size) - 1;
     //@   ensures this.values.size() == \old(this.values.size()) - 1;
     //@   ensures this.links.size() == \old(this.links.size()) - 1;
@@ -73,7 +73,6 @@ class Link<T> {
     //@   ensures n == 0 ==> next == \old(next.next);
     //@   ensures n > 0 ==> next == \old(next);
     public void remove(int n) {
-        //@ split;
         if (n == 0) {
             //@ ghost \bigint oldsize = this.size;
             //@ assert this.next.size == oldsize - 1;
@@ -134,12 +133,12 @@ public class List<T> extends Link<T> {
     
     /** Pushes a new value onto the front of the list */
     //@ public normal_behavior
-    //@   assignable size, values, links;
+    //@   assignable size, values, links, ownerFields;
     //@   ensures this.size == \old(size) + 1;
     //@   ensures this.values == \old(values).prepend(t);
     //@   ensures this.links == \old(links).prepend(this.next);
     //@ also private normal_behavior
-    //@   assignable size, values, links;
+    //@   assignable size, values, links, ownerFields;
     //@   ensures \fresh(this.next);
     //@   ensures this.next.value == t;
     //@   ensures this.next.next == \old(this.next);
@@ -156,12 +155,16 @@ public class List<T> extends Link<T> {
         //@ assert this.values == v.values.prepend(t);
         //@ assert this.links == v.links.prepend(v);
     }
+
+    //@ public normal_behavior
+    //@ ensures \result; 
+    //@ model pure static public <T> boolean lemma(seq<T> s, T t1, T t2) { return (s.contains(t1) && !s.contains(t2) ==> t1 != t2); }
     
     /** Removes the first value from the list */
     //@ public normal_behavior
     //@   requires this.size > 0;
     //@   requires this.values.size() > 0;
-    //@   assignable size, values, links;
+    //@   assignable size, values, links, ownerFields;
     //@   ensures this.size == \old(size) - 1;
     //@   ensures this.values == \old(values).tail(1);
     //@   ensures this.links == \old(links).tail(1);
@@ -171,8 +174,15 @@ public class List<T> extends Link<T> {
         //@ assert next.size == this.size - 1;
         //@ assert this.next.values.size() == this.values.size() - 1;
         //@ assert this.next.links.size() == this.links.size() - 1;
+        //@ assert this.next.allMine(this.owner);
+        //@ ghost nullable Link<T> nxx = this.next.next;
+        //@ assert nxx != null ==> nxx.allMine(nxx.owner);
+        //@ assert nxx != null && nxx.next != null ==> nxx.links == nxx.next.links.prepend(nxx.next);
+        // @ assert nxx != null && nxx.next != null ==> nxx.links.contains(nxx.next);
+        //@ assert nxx != null && nxx.next != null ==> this.links.contains(nxx.next);
+        // !this.links.contains(this) is an invariant. Combined with the above, it implies the following.
+        //@ assert nxx != null ==> (Object)this != nxx.next; // So that we know this.next.next.allMine is not affected by the change to this.next.
         this.next = this.next.next;
-        //@ assert this.next != null ==> this.next.allMine(this.owner);
     }
     
     static class Node<T> extends Link<T> {
@@ -202,7 +212,7 @@ public class List<T> extends Link<T> {
 }
 
 class Test {
-    
+  
     /** properties of an empty list */
     public static <Y> void testEmpty(Y y) {
         var in = List.<Y>empty();
@@ -213,6 +223,48 @@ class Test {
 
     /** pushing a value and then retrieving it */
     //@ requires in.next != null && in.next.next != null;
+    public static <Y> void testPush(List<Y> in, Y y) {
+        //@ reachable;
+        in.push(y);
+        //@ reachable;
+        //@ assert in.value(0) == y;
+        //@ assert in.size == \old(in.size) + 1;
+        //@ assert in.values.tail(1) == \old(in.values);
+        //@ assert in.values == \old(in.values).prepend(y);
+        //@ halt;
+    }
+    
+    /** pushing a value and then retrieving it */
+    //@ requires in.size > 0;
+    public static <Y> void testPop(List<Y> in) {
+        in.pop();
+        //@ reachable;
+        //@ assert in.size == \old(in.size) - 1;
+        //@ assert in.values == \old(in.values).tail(1);
+        //@ halt;
+    }
+    
+    /** pushing a value and then retrieving it */
+    //@ requires in.size > 0;
+    public static <Y> void testRemove(List<Y> in) {
+        in.remove(0);
+        //@ reachable;
+        //@ assert in.size == \old(in.size) - 1;
+        //@ assert in.values == \old(in.values).tail(1);
+        //@ halt;
+    }
+    
+    /** pushing a value and then retrieving it */
+    //@ requires in.size > 1;
+    public static <Y> void testRemove1(List<Y> in) {
+        in.remove(1);
+        //@ reachable;
+        //@ assert in.size == \old(in.size) - 1;
+        //@ halt;
+    }
+    
+    /** pushing a value and then retrieving it */
+    //@ requires in.next != null && in.next.next != null;
     public static <Y> void testPushValue(List<Y> in, Y y, Y yy) {
         //@ reachable;
         in.push(y);
@@ -220,7 +272,7 @@ class Test {
         //@ assert in.value(0) == y;
         //@ assert in.size == \old(in.size) + 1;
         //@ assert in.values != \old(in.values);
-        //@ reachable; halt;
+        //@ reachable;
         in.push(yy);
         //@ reachable;
         //@ assert in.value(1) == y;
@@ -320,11 +372,12 @@ class Test {
         assert in.values.size() == other.values.size();
         assert in.size == other.size;
         assert in.size == n;
-        reachable;
+        assert in.next.values == other.next.values;
+        assert in.values[0] == other.values[0];
         in.next.value = y;
-        reachable;
+        assert in.next.values == other.next.values;
+        assert in.values[0] != other.values[0];
         assert in.size == n;
-        reachable;
         assert in.size == other.size;
         reachable;
         assert in.values != other.values;    // Should not be provable without the owner invariant

@@ -11037,7 +11037,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                        //System.out.println("Computing DISJOINT of " + readItems + " VS " + writesList);
 	                        var hasIntersection = simplifyNonDisjoint(pos, readItems, (List<StoreRefGroup>)writesList);
                             disjoint = treeutils.makeNotSimp(pos, hasIntersection);
-                            //System.out.println("   RESULT DISJOINT " + disjoint);
+                            //System.out.println(" RESULT DISJOINT " + disjoint);
 	                    } else {
 	                        JCExpression hasIntersection = treeutils.falseLit;
 	                        for (JCExpression srex: sc.list) { 
@@ -20986,6 +20986,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                        };
 	                      case LOCAL -> fLit; // FIXME - should not have a local in a readsList
 	                    };
+	                    //System.out.println("  CONDITION " + e);
 	                    ex = treeutils.makeOrSimp(pos, ex, e);
 	                }
                     hasIntersection = treeutils.makeOrSimp(pos, hasIntersection, treeutils.makeImpliesSimp(pos, guard, ex));

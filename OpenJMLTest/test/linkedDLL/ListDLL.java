@@ -46,26 +46,20 @@ class Link<T> {
     //@ public invariant !links.contains(this);
 
     //@ nullable spec_public
-    protected ListDLL.Node<T> next; //@ in size, values, links, prevlinks; 
+    protected ListDLL.Node<T> next; //@ in size, values, links, prevlinks, ownerFields; 
     //@ maps next.values \into values; maps next.next \into values; maps next.next.values \into values;
     //@ maps next.size \into size; maps next.next \into size; maps next.next.size \into size;
     //@ maps next.links \into links; maps next.next.links \into links; maps next.next.links \into links;
     //@ maps next.prev \into prevlinks; maps next.next.prev \into prevlinks; maps next.prevlinks \into prevlinks;
     
     //@ nullable spec_public helper
-    protected Link<T> prev;  //@ in prevlinks; 
+    protected Link<T> prev;
 
     //@ protected normal_behavior
     //@ pure helper
     protected Link() {
     }
 
-    //@ public normal_behavior // only for demonstration purposes -- exposes representation
-    //@   reads next;
-    //@   ensures \result == next;
-    //@ pure helper
-    //@ public model ListDLL.Node<T> next();
-        
     /** Returns the nth value in the list */
     //@ public normal_behavior
     //@   requires 0 <= n < this.values.size;
@@ -83,7 +77,7 @@ class Link<T> {
     /** Removes the nth value from the list */
     //@ public normal_behavior
     //@   requires 0 <= n < this.size;
-    //@   assignable size, values, links, next.size, next.next.prev;
+    //@   {| requires next.next != null; assignable size, values, links, ownerFields, next.size, next.next.prev; also requires next.next == null; assignable size, values, links, ownerFields, next.size; |}
     //@   ensures this.size == \old(this.size) - 1;
     //@   ensures this.values.size() == \old(this.values.size()) - 1;
     //@   ensures this.links.size() == \old(this.links.size()) - 1;
@@ -94,7 +88,6 @@ class Link<T> {
     //@   ensures n > 0 ==> next == \old(next);
     public void remove(int n) {
         //@ ghost \bigint newsize = next.size;
-        //@ split;
         if (n == 0) {
             //@ assert this.allMine(this.owner);
             //@ assert this.next.allMine(this.owner);
@@ -103,7 +96,6 @@ class Link<T> {
             //@ assert this.next.goodLinksForward();
             //@ ghost seq<T> newvalues = this.next.values;
             //@ ghost seq<Link<T>> newlinks = this.next.links;
-            //@ split;
             if (this.next.next != null) {
                 //@ assert this.next.next.goodLinksForward();
                 //@ assert this.next.next.prev == this.next;
@@ -198,7 +190,7 @@ public class ListDLL<T> extends Link<T> {
     
     /** Pushes a new value onto the front of the list */
     //@ public normal_behavior
-    //@   assignable size, values, links;
+    //@   assignable size, values, links, ownerFields;
     //@   ensures this.size == \old(size) + 1;
     //@   ensures this.values == \old(values).prepend(t);
     //@   ensures this.links == \old(links).prepend(this.next);
@@ -233,7 +225,7 @@ public class ListDLL<T> extends Link<T> {
     //@ public normal_behavior
     //@   requires this.size > 0;
     //@   requires this.values.size() > 0;
-    //@   {| requires next.next == null; assignable size, values, links, prevlinks; also requires next.next != null; assignable size, values, links, prevlinks, next.next.prev; |}
+    //@   {| requires next.next == null; assignable ownerFields, size, values, links, prevlinks; also requires next.next != null; assignable ownerFields, size, values, links, prevlinks, next.next.prev; |}
     //@   ensures this.size == \old(size) - 1;
     //@   ensures this.values == \old(values).tail(1);
     //@   ensures this.links == \old(links).tail(1);
@@ -349,7 +341,7 @@ class Test {
         //@ assert in.value(0) == yy;
     }
     
-    /** pushing a value and then retrieving it */
+    /** popping a list */
     //@ requires in.size >= 2;
     public static <Y> void testPopValue(ListDLL<Y> in) {
         Y y = in.value(1);
@@ -443,11 +435,12 @@ class Test {
         assert in.values.size() == other.values.size();
         assert in.size == other.size;
         assert in.size == n;
-        reachable;
+        assert in.next.values == other.next.values;
+        assert in.values[0] == other.values[0];
         in.next.value = y;
-        reachable;
+        assert in.next.values == other.next.values;
+        assert in.values[0] != other.values[0];
         assert in.size == n;
-        reachable;
         assert in.size == other.size;
         reachable;
         assert in.values != other.values;    // Should not be provable without the owner invariant
