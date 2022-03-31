@@ -1,0 +1,18 @@
+Proving methods in SpecifyingLoopsExample1A
+Starting proof of SpecifyingLoopsExample1A.SpecifyingLoopsExample1A() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SpecifyingLoopsExample1A.SpecifyingLoopsExample1A() with prover !!!! - no warnings
+Starting proof of SpecifyingLoopsExample1A.reverseWord(String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SpecifyingLoopsExample1A.reverseWord(String) with prover !!!! - no warnings
+Starting proof of SpecifyingLoopsExample1A.main(String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SpecifyingLoopsExample1A.main(String[]) with prover !!!! - no warnings
+Starting proof of SpecifyingLoopsExample1A.isReversedIn(String,String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SpecifyingLoopsExample1A.isReversedIn(String,String) with prover !!!! - no warnings
+Completed proving methods in SpecifyingLoopsExample1A

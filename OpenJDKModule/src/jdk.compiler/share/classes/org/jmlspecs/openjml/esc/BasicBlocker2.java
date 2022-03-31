@@ -385,7 +385,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         if (incarnationPosition == Position.NOPOS || own == null || (!isConstructor && (sym.flags() & Flags.FINAL) != 0) || (isConstructor && (sym.flags() & (Flags.STATIC|Flags.FINAL)) == (Flags.STATIC|Flags.FINAL))) { 
             //Name n = utils.isJMLStatic(sym) ? sym.getQualifiedName() : sym.name;
             Name n = sym.name;
-            if (sym.pos >= 0 && (sym.flags() & Flags.FINAL) == 0 && !n.toString().equals(Strings.THIS)) {
+            if (sym.owner instanceof MethodSymbol) {
+                n = names.fromString(n.toString() + ("_" + sym.pos));
+            } else if (sym.pos >= 0 && (sym.flags() & Flags.FINAL) == 0 && !n.toString().equals(Strings.THIS)) {
                 n = names.fromString(n.toString() + ("_" + sym.pos));
             }
             if (own != null && (utils.isJMLStatic(sym) || own != methodDecl.sym.owner) && own instanceof TypeSymbol) {
@@ -1812,7 +1814,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // OK
     @Override
     public void visitIdent(JCIdent that) {
-        if (that.sym instanceof Symbol.VarSymbol vsym){ 
+        if (that.sym instanceof Symbol.VarSymbol vsym) {
             if (localVars.containsKey(vsym)) {
                 that.name = localVars.get(vsym).name;
             } else if (currentMap != null) { // FIXME - why would currentMap ever be null?
@@ -2082,6 +2084,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 that.init = result;
             }
             Name n = encodedName(that.sym,0L);
+            if (that.name.toString().equals("length")) System.out.println("DECLNAME " + that.name + " " + n);
             that.name = n;
             if (isDefined.add(n)) {
 //                JCIdent id = factory.at(0).Ident(n);
@@ -2384,7 +2387,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
          * storing) one if it is not present. */
         public /*@non_null*/ Name getCurrentName(VarSymbol vsym) {
             Name s = mapname.get(vsym);
-            if (vsym == syms.lengthVar) return vsym.name;
+            boolean print = vsym.name.toString().equals("length");
+//            if (print) System.out.println("GETCURRENTNAME " +  vsym + " " + s + " " + + System.identityHashCode(vsym) + " " + System.identityHashCode(lengthSym)
+//            + " " + vsym.owner + " " + vsym.owner.getClass() + " " + lengthSym.owner + " " + lengthSym.owner.getClass() + " " + vsym.isFinal());
+            if (vsym == lengthSym) {
+                return vsym.name; // Just for array lengths
+            }
             if (s == null) {
                 // If there was no mapping at all, we add the name to 
                 // all existing maps, with an incarnation number of 0.
@@ -2392,6 +2400,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 // of the variable.
                 // FIXME - this does not handle a havoc between labels, 
                 s = encodedName(vsym,vsym.pos);
+                //if (print) System.out.println("    NAME " + vsym + " " + vsym.pos + " " + s);
                 for (VarMap map: blockmaps.values()) {
                     if (map.mapname.get(vsym) == null) map.putSAVersion(vsym,s,0L);
                 }
@@ -2406,6 +2415,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
                 putSAVersion(vsym,s,unique);
             }
+            //if (print) System.out.println("    NAME " + s);
             return s;
         }
         
