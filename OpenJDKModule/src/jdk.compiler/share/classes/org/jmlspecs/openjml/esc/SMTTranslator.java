@@ -3086,7 +3086,22 @@ public class SMTTranslator extends JmlTreeScanner {
     }
 
 
-    public void constructSmtQuantifier(JmlQuantifiedExpr that, IExpr range, IExpr value, List<IDeclaration> params) {
+    private void constructMinMaxQuantifiers(JmlQuantifiedExpr that, IExpr range, IExpr value, List<IDeclaration> params) {
+        ISymbol comparisonOperator = F.symbol(that.kind.keyword() == QuantifiedExpressions.qmaxID ? "<=" : ">=");
+
+        ISymbol temp = F.symbol("__JML_TMP_"  + (uniqueCount++));
+        commands.add(new C_declare_const(temp, convertSort(that.type)));
+
+        IExpr forallExpr = F.forall(params, F.fcn(impliesSym, range, F.fcn(comparisonOperator, value, temp)));
+        commands.add(new C_assert(forallExpr));
+        
+        IExpr existsExpr = F.exists(params, F.fcn(andSym, range, F.fcn(F.symbol("="), value, temp)));
+        commands.add(new C_assert(existsExpr));
+
+        result = temp;
+    }
+
+    private void constructSmtQuantifier(JmlQuantifiedExpr that, IExpr range, IExpr value, List<IDeclaration> params) {
         boolean isProduct = that.kind.keyword() == QuantifiedExpressions.qproductID;
 
         ISymbol lo = F.symbol("|`lo|"), quantN = F.symbol("|`quant_" + (uniqueQuantCount++) + "|");
@@ -3212,6 +3227,10 @@ public class SMTTranslator extends JmlTreeScanner {
                 } {
                     result = F.exists(params,value);
                 }
+                break;
+            case QuantifiedExpressions.qmaxID:
+            case QuantifiedExpressions.qminID:
+                constructMinMaxQuantifiers(that, range, value, params);
                 break;
             case QuantifiedExpressions.qsumID:
             case QuantifiedExpressions.qproductID:
