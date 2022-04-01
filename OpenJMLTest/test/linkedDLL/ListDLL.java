@@ -1,4 +1,4 @@
-// openjml --esc $@
+// ## openjml --esc --progress --timeout=300 ListDLL.java
 /** This file contains a worked (specified and verified) example of a doubly-linked list using JML and OpenJML. 
  * It is intended to illustrate techniques that can be used for other simple recursive data structures. 
  * This example uses model fields.
