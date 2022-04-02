@@ -3101,7 +3101,7 @@ public class SMTTranslator extends JmlTreeScanner {
         result = temp;
     }
 
-    private void constructSmtQuantifier(JmlQuantifiedExpr that, IExpr range, IExpr value, List<IDeclaration> params) {
+    private IExpr constructSmtQuantifier(JmlQuantifiedExpr that, IExpr range, IExpr value, List<IDeclaration> params) {
         boolean isProduct = that.kind.keyword() == QuantifiedExpressions.qproductID;
 
         ISymbol lo = F.symbol("|`lo|"), quantN = F.symbol("|`quant_" + (uniqueQuantCount++) + "|");
@@ -3118,7 +3118,11 @@ public class SMTTranslator extends JmlTreeScanner {
 
         // find the bounds of the range expression
         JmlBoundsExtractor.Bounds bounds = JmlBoundsExtractor.extract(that.decls, that.range, true, context, this);
-        if (bounds == null) return;
+        if (bounds == null) return null;
+        if (bounds.lo == null || bounds.hi == null) {
+            notImplWarn(that.range, "JML quantified expression range is not a recognized pattern");
+            return null;
+        }
 
         scan(bounds.lo);
         IExpr loExpr = result;
@@ -3133,6 +3137,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
         if (params.size() != 1) {
             notImplWarn(that, "JML Quantified expression cannot multiple or 0 parameters");
+            return null;
         }
 
         IDeclaration x = params.get(0);
@@ -3176,7 +3181,7 @@ public class SMTTranslator extends JmlTreeScanner {
         quantParams.add(0, loExpr);
         quantParams.add(1, hiExpr);
 
-        result = F.fcn(quantN, quantParams);
+        return F.fcn(quantN, quantParams);
     }
 
     @Override
@@ -3235,8 +3240,8 @@ public class SMTTranslator extends JmlTreeScanner {
             case QuantifiedExpressions.qsumID:
             case QuantifiedExpressions.qproductID:
             case QuantifiedExpressions.qnumofID:
-                constructSmtQuantifier(that, range, value, params);
-                break;
+                result = constructSmtQuantifier(that, range, value, params);
+                if (result != null) break;
             default:
                 notImplWarn(that, "JML Quantified expression using " + that.kind.keyword());
                 ISymbol sym = F.symbol(makeBarEnclosedString(that));

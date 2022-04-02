@@ -24,7 +24,7 @@ public class JmlBoundsExtractor {
 	/**
 	 * Take a comparison expression (<, <=, >, >=), and return the lowest and highest values.
 	 */
-	public static Bounds orientComparison(JCBinary expr, JCVariableDecl decl) {
+	public static Bounds orientComparison(JCBinary expr) {
 		JCTree.Tag tag = expr.getTag();
 
 		// X <= Y, X < Y
@@ -37,16 +37,24 @@ public class JmlBoundsExtractor {
 			return new Bounds(expr.rhs, expr.lhs);
 		}
 
-		// nameexpr seems suspect
-		return new Bounds(null, null);
+		return null;
 	}
 
 
 	// Checks if a given expression is an identifier in the declaration list
 	public static boolean inDecls(List<JCVariableDecl> decls, JCExpression expr) {
+		// TODO: this is a hack, should change to either a tree search or smt strings
 		if (!(expr instanceof JCIdent)) {
+			if ((expr instanceof JCParens))
+				expr = ((JCParens) expr).getExpression();
+			
+			String exprStr = " " + expr.toString() + " ";
+			for (JCVariableDecl decl : decls) {
+				if (exprStr.contains(" " + decl.getName() + " ")) return true;
+			}
 			return false;
 		}
+
 		JCIdent ident = (JCIdent) expr;
 		
 		for (JCVariableDecl decl : decls) {
@@ -83,26 +91,33 @@ public class JmlBoundsExtractor {
 			Bounds left = extract(decls, expr.lhs, false, context, smtTranslator);
 			Bounds right = extract(decls, expr.rhs, false, context, smtTranslator);
 
+			if (left == null) return right;
+			if (right == null) return left;
+
 			JCExpression lo;
-			if (!inDecls(decls, left.lo) && inDecls(decls, right.lo)) {
+			if (left.lo == null) {
+				lo = right.lo;
+			} else if (!inDecls(decls, left.lo) && inDecls(decls, right.lo)) {
 				lo = left.lo;
 			} else if (inDecls(decls, left.lo) && !inDecls(decls, right.lo)) {
 				lo = right.lo;
 			} else if (!inDecls(decls, left.lo) && !inDecls(decls, right.lo)) {
 				lo = treeMaker.Conditional(treeMaker.Binary(JCTree.Tag.LT, left.lo, right.lo), left.lo, right.lo);
 			} else {
-				lo = decls.get(0).nameexpr;
+				lo = null;
 			}
 
 			JCExpression hi;
-			if (!inDecls(decls, left.hi) && inDecls(decls, right.hi)) {
+			if (left.hi == null) {
+				hi = right.hi;
+			} else if (!inDecls(decls, left.hi) && inDecls(decls, right.hi)) {
 				hi = left.hi;
 			} else if (inDecls(decls, left.hi) && !inDecls(decls, right.hi)) {
 				hi = right.hi;
 			} else if (!inDecls(decls, left.hi) && !inDecls(decls, right.hi)) {
 				hi = treeMaker.Conditional(treeMaker.Binary(JCTree.Tag.GT, left.hi, right.hi), left.hi, right.hi);
 			} else {
-				hi = decls.get(0).nameexpr;
+				hi = null;
 			}
 
 			return new Bounds(lo, hi);
@@ -113,9 +128,9 @@ public class JmlBoundsExtractor {
 			expr.getTag() == JCTree.Tag.GT ||
 			expr.getTag() == JCTree.Tag.GE) {
 
-			return orientComparison(expr, decls.get(0));
+			return orientComparison(expr);
 		}
 		
-		return new Bounds(decls.get(0).nameexpr, decls.get(0).nameexpr);
+		return null;
 	}
 }
