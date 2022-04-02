@@ -3285,7 +3285,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         justAttribute = true;
         try {
             // FIXME : jmlVisibility = tree.parentVar.mods.flags & Flags.AccessFlags;
-            attribExpr(tree.expression,env,Type.noType);
+            tree.expressions.forEach(e -> attribExpr(e,env,Type.noType));
             for (JmlGroupName n: tree.list) {
                 attributeGroup(n);
             }

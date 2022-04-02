@@ -808,7 +808,12 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (useJMLComments) print("//@ ");
             print(useCanonicalName ? that.clauseType.keyword() : that.keyword);
             print(" ");
-            print(that.expression);
+            Iterator<JCExpression> ie = that.expressions.iterator();
+            if (ie.hasNext()) ie.next().accept(this);
+            while (ie.hasNext()) {
+                print(", ");
+                ie.next().accept(this);
+            }
             print(" \\into");
             Iterator<JmlGroupName> g = that.list.iterator();
             print(" ");

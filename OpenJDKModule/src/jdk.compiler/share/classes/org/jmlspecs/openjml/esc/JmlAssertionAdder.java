@@ -7641,7 +7641,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         //System.out.println("       CHECKING " + g + " " + e.sym + " " + m);
                                         if (isContainedIn(g.sym, e.sym)) {
                                             //System.out.println("       ADDING " + g.sym + " " + e.sym + " " + m.expression);
-                                            out.add(m.expression);
+                                            out.addAll(m.expressions);
                                             break;
                                         }
                                     }
@@ -19237,16 +19237,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	@Override
 	public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
 		JCModifiers mods = fullTranslation ? convert(that.modifiers) : that.modifiers;
-		JCExpression expr = that.expression;
-		if (expr instanceof JCFieldAccess fa) {
-		    expr = convertExpr(fa.selected);
-		    expr = M.at(fa).Select(expr, fa.sym);
-		} else if (that.expression instanceof JCArrayAccess aa) {
-            expr = convertExpr(expr);
-		} else {
-		    expr = convertExpr(expr);
-		}
-		JmlTypeClauseMaps cl = M.at(that).JmlTypeClauseMaps(expr, convert(that.list));
+		ListBuffer<JCExpression> exprs = new ListBuffer<>();
+		that.expressions.forEach( e->
+		    {
+		        JCExpression expr;
+		        if (e instanceof JCFieldAccess fa) {
+		            expr = convertExpr(fa.selected);
+		            expr = M.at(fa).Select(expr, fa.sym);
+		        } else if (e instanceof JCArrayAccess aa) {
+		            expr = convertExpr(e);
+		        } else {
+		            expr = convertExpr(e);
+		        }
+		        exprs.add(e);
+		    });
+		JmlTypeClauseMaps cl = M.at(that).JmlTypeClauseMaps(exprs.toList(), convert(that.list));
 		cl.modifiers = mods;
 		cl.setType(that.type);
 		cl.source = that.source;
@@ -21246,8 +21251,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									//System.out.println("MAPS CLAUSE " + t + " " + s + " " + cl);
 									for (JmlGroupName g : m.list) {
 										if (isContainedIn(g.sym, modelField)) {
-											var srs = makeJmlStoreRef(m.expression, m.expression, rootClass, false);
-											maps.addAll(srs);
+										    m.expressions.forEach( e->
+											  { var srs = makeJmlStoreRef(e, e, rootClass, false);
+											    maps.addAll(srs); });
 										}
 									}
 								}

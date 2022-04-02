@@ -357,7 +357,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
     @Override
     public JCTree visitJmlTypeClauseMaps(JmlTypeClauseMaps that, Void p) {
         JmlTypeClauseMaps copy = M.at(that.pos).JmlTypeClauseMaps(
-                copy(that.expression,p),
+                copy(that.expressions,p),
                 copy(that.list,p));
         copy.clauseType = that.clauseType;
         copy.modifiers = copy(that.modifiers,p);

@@ -562,7 +562,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
         JmlTypeClauseMaps r = that;
         r.modifiers = translate(that.modifiers);
-        r.expression = translate(that.expression);
+        r.expressions = translate(that.expressions);
         r.list = translate(that.list);
         result = r;
     }

@@ -309,7 +309,7 @@ public interface IJmlVisitor extends IVisitor {
 
     default public void visitJmlTypeClauseMaps(JmlTypeClauseMaps tree) {
         scan(tree.modifiers);
-        scan(tree.expression);
+        scan(tree.expressions);
         for (JmlGroupName g: tree.list) {
             scan(g);
         }

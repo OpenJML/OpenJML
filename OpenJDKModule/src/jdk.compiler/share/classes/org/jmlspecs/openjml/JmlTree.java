@@ -157,7 +157,7 @@ public class JmlTree {
         JmlTypeClauseExpr JmlTypeClauseExpr(JCModifiers mods, String keyword, IJmlClauseKind token, JCTree.JCExpression e);
         JmlTypeClauseIn JmlTypeClauseIn(List<JmlGroupName> list);
         JmlTypeClauseInitializer JmlTypeClauseInitializer(IJmlClauseKind token, JCModifiers mods);
-        JmlTypeClauseMaps JmlTypeClauseMaps(JCExpression e, List<JmlGroupName> list);
+        JmlTypeClauseMaps JmlTypeClauseMaps(List<JCExpression> exprs, List<JmlGroupName> list);
         JmlTypeClauseMonitorsFor JmlTypeClauseMonitorsFor(JCModifiers mods, JCTree.JCIdent ident, List<JCTree.JCExpression> list);
         JmlTypeClauseRepresents JmlTypeClauseRepresents(JCModifiers mods, JCTree.JCExpression ident, boolean suchThat, JCTree.JCExpression e);
         JmlWhileLoop JmlWhileLoop(JCWhileLoop loop, List<JmlStatementLoop> loopSpecs);
@@ -927,8 +927,8 @@ public class JmlTree {
         }
         
         @Override
-        public JmlTypeClauseMaps JmlTypeClauseMaps(JCExpression e, List<JmlGroupName> list) {
-            JmlTypeClauseMaps r = new JmlTypeClauseMaps(pos,e,list);
+        public JmlTypeClauseMaps JmlTypeClauseMaps(List<JCExpression> exprs, List<JmlGroupName> list) {
+            JmlTypeClauseMaps r = new JmlTypeClauseMaps(pos,exprs,list);
             r.source = context == null ? null : Log.instance(context).currentSourceFile();
             return r;
         }
@@ -3914,15 +3914,15 @@ public class JmlTree {
     public static class JmlTypeClauseMaps extends JmlTypeClause {
     
         /** The maps store-ref expression */
-        public JCExpression expression;
+        public List<JCExpression> expressions;
         
         /** The list of datagroup targets */
         public List<JmlGroupName> list;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlTypeClauseMaps(int pos, JCExpression e, List<JmlGroupName> list) {
+        protected JmlTypeClauseMaps(int pos, List<JCExpression> e, List<JmlGroupName> list) {
             this.pos = pos;
-            this.expression = e;
+            this.expressions = e;
             this.modifiers = null;
             this.clauseType = mapsClause;
             this.list = list;

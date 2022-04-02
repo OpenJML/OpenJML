@@ -38,9 +38,9 @@ class Link<T> {
 
     //@ nullable spec_public
     protected List.Node<T> next; //@ in size, values, links, ownerFields; 
-    //@ maps next.values \into values; maps next.next \into values; maps next.next.values \into values;
-    //@ maps next.size \into size; maps next.next \into size; maps next.next.size \into size;
-    //@ maps next.links \into links; maps next.next \into links; maps next.next.links \into links;
+    //@ maps next.values, next.next, next.next.values \into values;
+    //@ maps next.size, next.next, next.next.size \into size;
+    //@ maps next.links, next.next, next.next.links \into links;
     
     //@ protected normal_behavior
     //@ pure helper
