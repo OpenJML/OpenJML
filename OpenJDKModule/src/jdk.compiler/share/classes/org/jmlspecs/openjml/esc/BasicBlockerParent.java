@@ -662,8 +662,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     }
     
     ListBuffer<JCStatement> temp = new ListBuffer<>();
-    protected void addAssumeCheck(java.util.List<JCStatement> statements, String bbname) {
-        JmlEsc.instance(context).assertionAdder.addAssumeCheck(treeutils.trueLit, temp, "BB-Assume" );
+    protected void addFeasibilityCheck(java.util.List<JCStatement> statements, String bbname) {
+        JmlEsc.instance(context).assertionAdder.addFeasibilityCheck(treeutils.trueLit, temp, "BB-Assume" );
         statements.add(temp.first());
         temp.clear();
     }
@@ -967,11 +967,11 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             T catchBlock = newBlock(CATCH,catcher.pos);
             follows(targetBlock,catchBlock);
             follows(catchBlock,finallyBlock);
-            addAssumeCheck(catchBlock.statements, catchBlock.id().toString() + "-start");
+            addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "-start");
             catchBlock.statements.addAll(assumptions);
-            addAssumeCheck(catchBlock.statements, catchBlock.id().toString() + "- +1");
+            addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "- +1");
             addAssume(catcher.pos,Label.IMPLICIT_ASSUME,tt,catchBlock.statements);
-            addAssumeCheck(catchBlock.statements, catchBlock.id().toString() + "- +2");
+            addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "- +2");
             addAssume(catcher.pos,Label.IMPLICIT_ASSUME,treeutils.makeNot(catcher.pos,tt),assumptions);
             JCVariableDecl d = treeutils.makeVariableDecl(catcher.param.sym, ex);
                 d.pos = catcher.param.pos;

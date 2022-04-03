@@ -32,6 +32,11 @@ public class InlinedLoopStatement extends JmlExtension implements IJmlLoop {
     public List<JmlStatementLoop> loopSpecs() {
         return loopSpecs;
     }
+    
+    @Override
+    public JCTree.JCStatement body() {
+        return null;
+    }
 
     @Override
     public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) {

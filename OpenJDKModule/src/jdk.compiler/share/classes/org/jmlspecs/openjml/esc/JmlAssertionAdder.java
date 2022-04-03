@@ -554,13 +554,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 */
 	public BiMap<JmlClassDecl, JmlClassDecl> classBiMap = new BiMap<JmlClassDecl, JmlClassDecl>();
 
-	public int assumeCheckCount = 0;
+	public int feasibilityCheckCount = 0;
 
-	public final static String assumeCheckVar = "__JML_AssumeCheck_";
+	public VarSymbol feasCheckSym;
 
-	public VarSymbol assumeCheckSym;
-
-	public Map<String, java.util.List<JmlStatementExpr>> assumeChecks = new HashMap<>();
+	public Map<String, java.util.List<JmlStatementExpr>> feasibilityChecks = new HashMap<>();
 
 	public int heapCount = 0;
 	public int topHeapCount = 0;
@@ -713,10 +711,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 
 		if (esc) {
-			Name name = names.fromString(assumeCheckVar);
-			JCVariableDecl d = treeutils.makeVarDef(syms.intType, name, methodDecl.sym, Position.NOPOS); 
+			JCVariableDecl d = treeutils.makeVarDef(syms.intType, names.fromString(Strings.feasCheckVar), methodDecl.sym, Position.NOPOS); 
 					// NOPOS so the name is not mangled
-			assumeCheckSym = d.sym;
+			feasCheckSym = d.sym;
 			d.sym.owner = null;
 			currentStatements.add(d);
 		}
@@ -851,7 +848,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected JCBlock convertMethodBodyNoInit(JmlMethodDecl pmethodDecl, JmlClassDecl pclassDecl) {
 		//System.out.println("CONVERTING " + pclassDecl.sym + " " + pmethodDecl.sym);
 		JmlOptions.instance(context).pushOptions(pmethodDecl.mods);
-		int prevAssumeCheckCount = assumeCheckCount;
+		int prevAssumeCheckCount = feasibilityCheckCount;
 		JmlMethodDecl prevMethodDecl = this.methodDecl;
 		JmlClassDecl prevClass = this.classDecl;
 		JCIdent savedExplicitThisId = this.explicitThisId;
@@ -913,7 +910,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (isModel && (pmethodDecl.mods.flags & Flags.SYNTHETIC) != 0) {
 				return convertMethodBodyNoInitModel(pmethodDecl, pclassDecl);
 			}
-			assumeCheckCount = 0;
+			feasibilityCheckCount = 0;
 			this.methodDecl = pmethodDecl;
 			this.classDecl = pclassDecl != null ? pclassDecl : utils.getOwner(methodDecl);
 			this.initialStatements = new ListBuffer<JCStatement>();
@@ -1126,6 +1123,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						convert(iter.next());
 					}
 				} finally {
+				    // FIXME - don't know whether execution is still alive here
+	                // addFeasibilityCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
 					newMainBody = popBlock(methodDecl.body == null ? methodDecl : methodDecl.body, checkZ);
 				}
 
@@ -1180,17 +1179,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			addPreConditions(initialStatements, collector, divergesExpressions);
             allocCounter = 2;
 			ListBuffer<JCStatement> check3 = pushBlock();
-			addAssumeCheck(methodDecl, currentStatements, Strings.preconditionAssumeCheckDescription); // FIXME -
-			// use a
-			// smaller
-			// highlight
-			// range
-			// than the
-			// whole
-			// method -
-			// perhaps
-			// the
-			// specs?
+			addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_pre, Strings.preconditionFeasCheckDescription);
 			JCStatement preconditionAssumeCheck = popBlock(methodDecl, check3);
 			addStat(initialStatements, preconditionAssumeCheck);
             //System.out.println("HANDLE FRAME CONDITIONS");
@@ -1243,17 +1232,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCStatement s = iter.next();
 					convert(s);
 				} // TODO: Warn if continuation is EXIT and there are remaining statements?
+                // FIXME - don't know whether execution is still alive here
+				// addAssumeCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
 				continuation = Continuation.CONTINUE;
 			}
 			JCBlock newMainBody = popBlock(methodDecl.body == null ? methodDecl : methodDecl.body, check);
 
-			String v = JmlOption.value(context, JmlOption.FEASIBILITY);
-			if (esc && (Strings.feasibilityContains(Strings.feas_exit, context)
-					|| Strings.feasibilityContains(Strings.feas_all, context)
-					|| Strings.feasibilityContains(Strings.feas_debug, context))) {
+			if (esc && feasibilityContains(Strings.feas_exit)) {
 				String vv = JmlOption.value(context, JmlOption.SPLIT);
 				if (vv == null || vv.isEmpty() || vv.endsWith("->")) {
-					addAssumeCheck(methodDecl, outerFinalizeStats, Strings.atExitAssumeCheckDescription);
+					addFeasibilityCheck(methodDecl, outerFinalizeStats, Strings.atExitFeasCheckDescription);
 				}
 			}
 
@@ -1328,7 +1316,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				labelPropertiesStore.pop(attr.preLabel);
 			}
 
-			this.assumeCheckCount = prevAssumeCheckCount;
+			this.feasibilityCheckCount = prevAssumeCheckCount;
 			this.methodDecl = prevMethodDecl;
 			this.classDecl = prevClass;
 			this.initialStatements = prevStats;
@@ -1370,7 +1358,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Internal method to do the method body conversion */
 	protected JCBlock convertMethodBodyNoInitModel(JmlMethodDecl pmethodDecl, JmlClassDecl pclassDecl) {
-		assumeCheckCount = 0;
+		feasibilityCheckCount = 0;
 		this.methodDecl = pmethodDecl;
 		this.classDecl = pclassDecl != null ? pclassDecl : utils.getOwner(methodDecl);
 		this.initialStatements = new ListBuffer<JCStatement>();
@@ -1400,6 +1388,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			while (iter.hasNext()) {
 				scan(iter.next());
 			}
+            // FIXME - don't know whether execution is still alive here
+			// addAssumeCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
 		}
 		JCBlock newMainBody = popBlock(methodDecl.body == null ? methodDecl : methodDecl.body, check);
 
@@ -2056,8 +2046,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			Label label, JCExpression translatedExpr, /* @nullable */ DiagnosticPosition associatedPos,
 			/* @nullable */ JavaFileObject associatedSource, /* @nullable */ JCExpression info, Object... args) {
 
-		if (label != Label.ASSUME_CHECK && Strings.feasibilityContains(Strings.feas_debug, context)) {
-			addAssumeCheck(translatedExpr, currentStatements, "Extra-Assert");
+		if (label != Label.FEASIBILITY_CHECK && feasibilityContains(Strings.feas_debug)) {
+		    addFeasibilityCheck(translatedExpr, currentStatements, "Extra-Assert");
 		}
 
 		boolean isTrue = treeutils.isTrueLit(translatedExpr);
@@ -2214,45 +2204,70 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return s;
 	}
 
-	/** Creates a statement at which we can check feasibility */
-	protected void addAssumeCheck(JCTree item, ListBuffer<JCStatement> list, String description) {
-		addAssumeCheck(item, list, description, treeutils.trueLit);
-	}
+    String[] feasibilities = null; // lazily initialized
+    
+    public boolean feasibilityContains(String i) {
+        if (feasibilities == null) {
+            String values = JmlOption.value(context,JmlOption.FEASIBILITY);
+            if (values == null || values.equals("none")) return false;
+            else if (values.equals(Strings.feas_debug)) return true;
+            else if (values.equals(Strings.feas_all) && !Strings.feas_debug.equals(i)) return true;
+            feasibilities = values.split(",");
+        }
+        //System.out.println("FC " + i + " " + Utils.join(",", feasibilities));
+        for (String k: feasibilities) {
+            if (i.equals(k)) return true;
+        }
+        return false;
+    }
+
+
+    /** Creates a statement at which we can check feasibility, if enabled */
+    protected void addFeasibilityCheck(JCTree item, ListBuffer<JCStatement> list, String key, String description) {
+        if (feasibilityContains(key)) {
+            addFeasibilityCheck(item, list, description);
+        }
+    }
+
+    protected void addFeasibilityCheck(JCTree item, JCBlock block, String key, String description) {
+        if (feasibilityContains(key)) {
+            ListBuffer<JCStatement> lst = new ListBuffer<>();
+            addFeasibilityCheck(item, lst, description);
+            block.stats = lst.appendList(block.stats).toList();
+        }
+    }
 
 	public static boolean useAssertCount = true;
 
 	/** Creates a statement at which we can check feasibility */
-	protected void addAssumeCheck(JCTree item, ListBuffer<JCStatement> list, String description,
-			JCExpression predicate) {
-		if (!esc)
-			return;
+	protected void addFeasibilityCheck(JCTree item, ListBuffer<JCStatement> list, String description) {
+		if (!esc) return;
 		// We create feasibility check points by adding assertions of the
-		// form assumeCheckVar != n, for different values of n > 0.
-		// Then for normal checking of the method, we assert assumeCheckVar == 0
+		// form feasCheckVar != n, for different values of n > 0.
+		// Then for normal checking of the method, we assert feasCheckVar == 0
 		// so all the introduced asserts are trivially true.
-		// But later we can pop the assumeCheckVar == 0 and add
-		// assumeCheckVar == k, to check feasibility at point k.
+		// But later we can pop the feasCheckVar == 0 and add
+		// feasCheckVar == k, to check feasibility at point k.
 
-		++assumeCheckCount;
-		java.util.List<JmlStatementExpr> descs = getAssumeChecks(methodDecl, originalSplit);
+		++feasibilityCheckCount;
+		//System.out.println("AC " + feasibilityCheckCount + " " + description);
+		java.util.List<JmlStatementExpr> descs = getFeasibilityChecks(methodDecl, originalSplit);
 		if (useAssertCount) {
-			JCIdent id = treeutils.makeIdent(item.pos, assumeCheckSym);
+			JCIdent id = treeutils.makeIdent(item.pos, feasCheckSym);
 			JCExpression bin = treeutils.makeBinary(item.pos, JCTree.Tag.NE, treeutils.intneqSymbol, id,
-					treeutils.makeIntLiteral(item.pos, assumeCheckCount));
-			if (!treeutils.isTrueLit(predicate))
-				bin = treeutils.makeImplies(item.pos, predicate, bin);
+					treeutils.makeIntLiteral(item.pos, feasibilityCheckCount));
 			ListBuffer<JCStatement> prev = currentStatements;
 			currentStatements = list;
-			JmlStatementExpr a = addAssert(item, Label.ASSUME_CHECK, bin);
+			JmlStatementExpr a = addAssert(item, Label.FEASIBILITY_CHECK, bin);
 			a.description = description;
 			a.source = (item instanceof JmlTree.JmlSource) ? ((JmlTree.JmlSource) item).source() : null;
-			a.associatedPos = assumeCheckCount;
+			a.associatedPos = feasibilityCheckCount;
 			descs.add(a);
 			currentStatements = prev;
 		} else {
-			JmlStatementExpr c = comment(item, "ACHECK " + assumeCheckCount, log.currentSourceFile());
+			JmlStatementExpr c = comment(item, "ACHECK " + feasibilityCheckCount, log.currentSourceFile());
 			c.description = description;
-			c.id = "ACHECK " + assumeCheckCount;
+			c.id = "ACHECK " + feasibilityCheckCount;
 			addStat(c);
 		}
 	}
@@ -2329,10 +2344,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// Utils.dumpStack();
 		JmlStatementExpr stt = null;
 		if ((infer || esc)) {
-			if (label != Label.ASSUME_CHECK && currentStatements != null
-					&& Strings.feasibilityContains(Strings.feas_debug, context)) {
-				addAssumeCheck(translatedExpr, currentStatements, "Extra-Assume");
-			}
 			JmlStatementExpr st = treeutils.makeAssume(pos, label, translatedExpr);
 			st.source = log.currentSourceFile();
 			st.associatedPos = associatedPosition == null ? Position.NOPOS : associatedPosition.getPreferredPosition();
@@ -2346,9 +2357,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			else
 				classDefs.add(st);
 			stt = st;
-			if (label != Label.ASSUME_CHECK && currentStatements != null
-					&& Strings.feasibilityContains(Strings.feas_debug, context)) {
-				addAssumeCheck(translatedExpr, currentStatements, "Extra-Assume");
+			if (label != Label.FEASIBILITY_CHECK  && currentStatements != null && feasibilityContains(Strings.feas_debug)) {
+			    addFeasibilityCheck(translatedExpr, currentStatements, "Extra-Assume");
 			}
 		}
 		if (rac && methodEnv.racCheckAssumeStatements) {
@@ -4276,7 +4286,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		DiagnosticPosition p = mspecs.cases;
 		JCBlock bl = popBlock(p, check);
-		JCIdent id = treeutils.makeIdent(p, assumeCheckSym);
+		JCIdent id = treeutils.makeIdent(p, feasCheckSym);
 		JCExpression bin = treeutils.makeBinary(p, JCTree.Tag.NE, treeutils.intneqSymbol, id,
 				treeutils.makeIntLiteral(p, 0));
 		JCStatement st = M.at(p).If(bin, bl, null);
@@ -6457,6 +6467,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            boolean isArrow = _case.caseKind != com.sun.source.tree.CaseTree.CaseKind.STATEMENT;
 
 	            pushBlock();
+	            addFeasibilityCheck(_case, currentStatements, Strings.feas_switch, "after case condition");
 	            convert(_case.stats); // This might change 'continuation'
 	            if (isArrow && _case.completesNormally) {
 	                addStat(M.at(_case).Break(null));
@@ -6526,6 +6537,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		    if (caseCondition != null) {
 		        addAssume(that.pos(), Label.IMPLICIT_ASSUME, caseCondition);
+	            addFeasibilityCheck(caseToDo, currentStatements, Strings.feas_switch, "after case condition");
 		    }
 		    if (caseToDo != null) {
 		        convert(caseToDo.stats); // FIXME - does not work for fall through cases
@@ -6762,6 +6774,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					}
 
 					addStat(traceableComment(catcher.getParameter(), id, "Exception caught", ""));
+		            addFeasibilityCheck(catcher, currentStatements, Strings.feas_catch, "at beginning of catch block");
+
 
 					if (rac) {
 						// These assignments must be duplicated here because they are needed by RAC
@@ -6799,6 +6813,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			continuation = Continuation.CONTINUE;
 			JCBlock finalizer = convertBlock(that.finalizer);
+            addFeasibilityCheck(that.finalizer, finalizer, Strings.feas_finally, "at beginning of finally block");
 			List<JCTree> newResources = copy(that.resources);
 			// FIXME - no checks implemented on the resources
 			JCTry st = M.at(that).Try(newResources, body, catchers, finalizer);
@@ -6936,6 +6951,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			continuation = Continuation.CONTINUE;
             //System.out.println("IF " + heapCount + " " + currentEnv.heap.heapID + " " + that);
 			JCBlock thenpart = convertIntoBlock(that.thenpart, that.thenpart);
+            addFeasibilityCheck(that, thenpart, Strings.feas_if, "at then branch");
 			Continuation thenContinuation = continuation;
 			continuation = Continuation.CONTINUE;
             //System.out.println("IF END OF THEN " + heapCount + " " + currentEnv.heap.heapID);
@@ -6946,6 +6962,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (heapCount != currentEnv.heap.heapID) System.out.println("MISMATCHED HEAP ID " + heapCount + " " +  currentEnv.heap.heapID + " " + thenBranchHeapCount);
             currentEnv = currentEnv.pushEnvCopy();
 			JCBlock elsepart = that.elsepart == null ? null : convertIntoBlock(that.elsepart, that.elsepart);
+			if (elsepart != null) addFeasibilityCheck(that, elsepart, Strings.feas_if, "at else branch");
+
 			Continuation elseContinuation = continuation;
             //System.out.println("IF END OF ELSE " + heapCount + " " + currentEnv.heap.heapID);
 
@@ -7163,6 +7181,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (br.target == null) {
 				// FIXME - error
 			}
+			addFeasibilityCheck(that, currentStatements, Strings.feas_return, "at return statement");
 			result = br;
 			return;
 
@@ -7183,6 +7202,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		continuation = Continuation.EXIT;
 
+        addFeasibilityCheck(that, currentStatements, Strings.feas_return, "at return statement");
 		result = addStat(M.at(that).Return(retValue).setType(that.type));
 	}
 	
@@ -7273,6 +7293,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					localid = treeutils.makeIdent(that.pos, decl.sym);
 					exceptionExpr = localid;
 				}
+	            addFeasibilityCheck(that, currentStatements, Strings.feas_throw, "at throw statement");
 				JCThrow thrw = M.at(that).Throw(exceptionExpr);
 				addStat(thrw);
 			} finally {
@@ -7984,6 +8005,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		try {
 			// System.out.println("CALLING APPLYHELPER " + that);
 			applyHelper(that);
+	        addFeasibilityCheck(that, currentStatements, Strings.feas_call, "after call");
 		} finally {
 			popMapSymbols(saved);
 		}
@@ -15849,12 +15871,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		ListBuffer<JCStatement> check = pushBlock();
 		if (esc) {
-			Name name = names.fromString(assumeCheckVar);
-			JCVariableDecl d = treeutils.makeVarDef(syms.intType, name, methodDecl.sym, Position.NOPOS); // NOPOS so the
+			JCVariableDecl d = treeutils.makeVarDef(syms.intType, names.fromString(Strings.feasCheckVar), methodDecl.sym, Position.NOPOS); // NOPOS so the
 																											// name is
 																											// not
 																											// mangled
-			assumeCheckSym = d.sym;
+			feasCheckSym = d.sym;
 			d.sym.owner = null;
 			currentStatements.add(d);
 		}
@@ -16524,6 +16545,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		Boolean res = null;
 		boolean split = ((IJmlLoop) pos).isSplit();
 		ListBuffer<JCStatement> check = pushBlock();
+        addFeasibilityCheck(loop, currentStatements, Strings.feas_loopexit, "at loop exit");
 		JCBreak br = M.at(pos).Break(null);
 		br.target = loop;
 		addStat(br);
@@ -16546,12 +16568,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				addAssume(pos, Label.IMPLICIT_ASSUME, treeutils.makeNot(pos, ccond));
 				JCExpression ncond = treeutils.makeNot(pos.getPreferredPosition(), cond);
 				addStat(M.at(pos).If(ncond, bl, null));
-				// Wilil skip the rest of the loop
+				// Will skip the rest of the loop
 			}
 		} else {
 			JCExpression ncond = treeutils.makeNot(pos.getPreferredPosition(), cond);
 			addStat(M.at(pos).If(ncond, bl, null));
 		}
+		//System.out.println("LOOP " + loop.getClass() + " " + ((IJmlLoop)loop).body() + " " + loop);
+		// FIXME - use ((IJmlLoop)loop).body() but it is unexpectedly null
+        addFeasibilityCheck(loop, currentStatements, Strings.feas_loopcondition, "at beginning of loop body");
 		return res;
 	}
 
@@ -18791,7 +18816,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				addTraceableComment(that);
 				JCExpression e = convertJML(that.expression);
 				e = addImplicitConversion(that, syms.booleanType, e);
-				addAssumeCheck(that, currentStatements, Strings.beforeAssertAssumeCheckDescription);
+				addFeasibilityCheck(that, currentStatements, Strings.feas_assert, Strings.beforeAssertFeasCheckDescription);
 				JCExpression opt = that.optionalExpression;
 				if (opt != null) {
 					if (!(opt instanceof JCLiteral))
@@ -18826,9 +18851,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 				result = addAssume(that, Label.EXPLICIT_ASSUME, ee, null, null, opt);
 				if (!treeutils.isFalseLit(ee)) {
-					addAssumeCheck(that, currentStatements,
-							that.label == Label.IMPLICIT_ASSUME ? Strings.afterImplicitAssumeAssumeCheckDescription
-									: Strings.afterAssumeAssumeCheckDescription);
+//	                addAssumeCheck(that, currentStatements, Strings.feas_assume, Strings.afterAssumeFeasCheckDescription);
+					addFeasibilityCheck(that, currentStatements, Strings.feas_assume,
+							that.label == Label.IMPLICIT_ASSUME ? Strings.afterImplicitAssumeFeasCheckDescription
+									: Strings.afterAssumeFeasCheckDescription);
 				}
 
 			} else if (that.clauseType == commentClause) {
@@ -18866,6 +18892,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			} else if (that.clauseType == ReachableStatement.haltClause) {
 
+	            addFeasibilityCheck(that, currentStatements, Strings.feas_halt, "at halt statement");
 				addStat(that);
 				continuation = Continuation.HALT;
 
@@ -18877,9 +18904,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			} else if (that.clauseType == ReachableStatement.reachableClause) {
 
-				addTraceableComment(that);
-				addAssumeCheck(that, currentStatements, Strings.atReachableStatementAssumeCheckDescription,
-						that.expression == null ? treeutils.trueLit : convertExpr(that.expression));
+				if (feasibilityContains(Strings.feas_reachable)) {
+	                addTraceableComment(that);
+				    addFeasibilityCheck(that, currentStatements, Strings.atReachableStatementFeasCheckDescription);
+				}
 
 			} else if (that.clauseType == useClause) {
 
@@ -18904,10 +18932,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public void adjustSplit(int num) {
 		translations.addSplit(originalSplit, num);
-		java.util.List<JmlStatementExpr> list = getAssumeChecks(methodDecl, originalSplit);
-		assumeChecks.remove(assumeKey(methodDecl, originalSplit));
+		java.util.List<JmlStatementExpr> list = getFeasibilityChecks(methodDecl, originalSplit);
+		feasibilityChecks.remove(assumeKey(methodDecl, originalSplit));
 		originalSplit += "A";
-		assumeChecks.put(assumeKey(methodDecl, originalSplit), list);
+		feasibilityChecks.put(assumeKey(methodDecl, originalSplit), list);
 	}
 
 	public static String assumeKey(JmlMethodDecl m, String split) {
@@ -18916,11 +18944,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return String.valueOf(m.sym.hashCode()) + "#" + split;
 	}
 
-	public java.util.List<JmlStatementExpr> getAssumeChecks(JmlMethodDecl m, String skey) {
+	public java.util.List<JmlStatementExpr> getFeasibilityChecks(JmlMethodDecl m, String skey) {
 		String key = assumeKey(m, skey);
-		java.util.List<JmlStatementExpr> list = assumeChecks.get(key);
+		java.util.List<JmlStatementExpr> list = feasibilityChecks.get(key);
 		if (list == null)
-			assumeChecks.put(key, list = new LinkedList<JmlStatementExpr>());
+			feasibilityChecks.put(key, list = new LinkedList<JmlStatementExpr>());
 		return list;
 	}
 
@@ -19064,6 +19092,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JmlMethodClauseExpr a = (JmlMethodClauseExpr) clause;
 				addAssume(clause, Label.IMPLICIT_ASSUME, convertJML(a.expression));
 			}
+            addFeasibilityCheck(that, currentStatements, Strings.feas_summary, Strings.atSummaryFeasCheckDescription);
 
 		} else {
 
@@ -19072,7 +19101,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			convert(that.newStatements);
 			// FIXME - change the name on this and the defaults
 			// FIXME _ fix position
-			addAssumeCheck(that, currentStatements, Strings.atSummaryAssumeCheckDescription);
 			for (JmlMethodClause clause : cs.clauses) {
 				if (clause.clauseKind != MethodExprClauseExtensions.ensuresClauseKind)
 					continue;
@@ -19080,6 +19108,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				addAssert(clause, Label.POSTCONDITION, convertJML(a.expression));
 			}
 			isRefiningBranch = true;
+            addFeasibilityCheck(that, currentStatements, Strings.feas_summary, Strings.atNonSummaryFeasCheckDescription);
 			addStat(M.at(that).JmlExpressionStatement(ReachableStatement.haltID, ReachableStatement.haltClause, null,
 					null));
 			continuation = Continuation.HALT;

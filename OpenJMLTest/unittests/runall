@@ -29,6 +29,7 @@ wt
 ./run-summary log-escbv     	"12/0"  escbitvector  &
 ./run-summary log-escConst+ 	"74/0"  escConstantFields escCounterexamples escaccessible esccode escconstructor exitcode  &
 wt
+./run-summary log-escfeas       "25/0"  escfeasibility &
 ./run-summary log-escall2   	"30/0"  escall2   &
 ./run-summary log-escall3   	"55/0"  escall3   &
 ./run-summary log-esccallable	"29/0"  esccallable   &

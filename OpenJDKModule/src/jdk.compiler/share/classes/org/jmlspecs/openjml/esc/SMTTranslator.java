@@ -1070,7 +1070,7 @@ public class SMTTranslator extends JmlTreeScanner {
         commands.add(cc);
         // (assert (= __JML_AssumeCheck 0)) 
         IExpr.ILiteral z = !useBV ? zero : F.hex("00000000");
-        cc = new C_assert(F.fcn(eqSym,F.symbol(JmlAssertionAdder.assumeCheckVar),z));
+        cc = new C_assert(F.fcn(eqSym,F.symbol(Strings.feasCheckVar),z));
         commands.add(cc);
         // (push 1)
         cc = new C_push(F.numeral(1));

@@ -18,19 +18,19 @@ Completed proof of OLD.m2(int) with prover !!!! - no warnings
 Starting proof of OLD.m3(int) with prover !!!!
 Proof attempt for split AA
 Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
+Feasibility check - at statement spec (after specified block) : OK
 Result of split AA is Verified
 Proof attempt for split AB
 Feasibility check - end of preconditions : OK
-Feasibility check - at statement spec : OK
+Feasibility check - at statement spec (after specified block) : OK
 Result of split AB is Verified
 Proof attempt for split BA
 Feasibility check - end of preconditions : OK
-Feasibility check - at statement spec : OK
+Feasibility check - at statement spec (after specified block) : OK
 Result of split BA is Verified
 Proof attempt for split BB
 Feasibility check - end of preconditions : OK
-Feasibility check - at statement spec : OK
+Feasibility check - at statement spec (after summary) : OK
 Result of split BB is Verified
 Composite result Verified
 Completed proof of OLD.m3(int) with prover !!!! - no warnings

@@ -488,7 +488,9 @@ public class JmlTree {
         @Override
         public JmlCase Case(CaseKind caseKind, List<JCExpression> pats,
                             List<JCStatement> stats, JCTree body) {
-            return new JmlCase(caseKind, pats, stats, body);
+            var r = new JmlCase(caseKind, pats, stats, body);
+            r.pos = pos;
+            return r;
         }
         
         /** Creates a JML binary operation */
@@ -1819,6 +1821,11 @@ public class JmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
+        
+        @Override
+        public JCStatement body() {
+            return body;
+        }
      }
 
     /** This class wraps a Java enhanced loop just so it can attach some specs
@@ -1874,6 +1881,11 @@ public class JmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
+        
+        @Override
+        public JCStatement body() {
+            return body;
+        }
     }
     
     public static interface IJmlLoop {
@@ -1881,6 +1893,7 @@ public class JmlTree {
         void setLoopSpecs(List<JmlStatementLoop> loopSpecs);
         boolean isSplit();
         void setSplit(boolean s);
+        JCStatement body();
     }
     
     public static class JmlInlinedLoop extends JmlAbstractStatement implements IJmlLoop {
@@ -1898,7 +1911,7 @@ public class JmlTree {
         public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) { this.loopSpecs = loopSpecs; }
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        // FIXME change to protesteced when factory method is implemented
+        // FIXME change to protected when factory method is implemented
         public JmlInlinedLoop(int pos, List<JmlStatementLoop> loopSpecs) {
             super();
             this.pos = pos;
@@ -1935,6 +1948,11 @@ public class JmlTree {
         @Override
         public int getEndPosition(EndPosTable table) {
             return pos;  // FIXME - end position is not set apparently; also really want the end, not he begining
+        }
+        
+        @Override
+        public JCStatement body() {
+            return null;
         }
     }
 
@@ -1983,6 +2001,11 @@ public class JmlTree {
         @Override
         public String toString() {
             return JmlTree.toString(this);
+        }
+        
+        @Override
+        public JCStatement body() {
+            return body;
         }
     }
 
@@ -2036,7 +2059,11 @@ public class JmlTree {
         public int getStartPosition() {
             return loopSpecs.size() > 0 ? loopSpecs.head.getStartPosition() : pos;
         }
-
+        
+        @Override
+        public JCStatement body() {
+            return body;
+        }
     }
 
     /** This class represents a group in an "in" or "maps" type clause in a class specification */

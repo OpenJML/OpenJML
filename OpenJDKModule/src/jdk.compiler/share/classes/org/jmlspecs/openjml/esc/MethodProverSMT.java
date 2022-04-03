@@ -502,7 +502,7 @@ public class MethodProverSMT {
                         solver.exit();
                     }
 
-                    java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.getAssumeChecks(methodDecl, splitkey);
+                    java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.getFeasibilityChecks(methodDecl, splitkey);
                     int feasibilityCheckNumber = 0;
                     String scriptString = program.toString();
                     boolean quit = false;
@@ -513,18 +513,21 @@ public class MethodProverSMT {
                         }
                         
                         ++feasibilityCheckNumber;
+                        //System.out.println("FEAS TRIAL " + usePushPop + " " + feasibilityCheckNumber + " " +  stat.associatedPos + " " + stat.description);
                         if (feasibilityCheckNumber != stat.associatedPos) {
                             utils.note(false, "Mismatched feasibilty number: "+ feasibilityCheckNumber + " vs. " + stat.associatedPos);
                         }
                         if (feasibilityCheckNumber < startFeasibilityCheck) continue;
                         if (prevErrors != log.nerrors) break;
-                        //System.out.println("FEAS " + usePushPop + " " + feasibilityCheckNumber + " " + scriptString.contains("__JML_AssumeCheck_ != " + feasibilityCheckNumber + ")"));
-                        if (!scriptString.contains("__JML_AssumeCheck_ != " + feasibilityCheckNumber + ")")) continue;
+                        //System.out.println("FEAS " + usePushPop + " " + feasibilityCheckNumber + " " + scriptString.contains(Strings.feasCheckVar + " != " + feasibilityCheckNumber + ")"));
+                        if (!scriptString.contains(Strings.feasCheckVar + " != " + feasibilityCheckNumber + ");")) {
+                            continue;
+                        }
                        
                         // Only do the feasibility check if called for by the feasibility option
-                        quit = stat.description == Strings.atSummaryAssumeCheckDescription;
-                        if (!allFeasibilities && !Strings.feasibilityContains(stat.description,context)
-                                && !(doit && stat.description.contains(Strings.feas_pre))) continue;
+                        quit = stat.description == Strings.atSummaryFeasCheckDescription;
+//                        if (!allFeasibilities && !Strings.feasibilityContains(stat.description,context)
+//                                && !(doit && stat.description.contains(Strings.feas_pre))) continue;
                             
                         if (!usePushPop) {
                             solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);
@@ -538,7 +541,7 @@ public class MethodProverSMT {
                                 }
                                 JCExpression lit = treeutils.makeIntLiteral(Position.NOPOS, feasibilityCheckNumber);
                                 JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.Tag.EQ,treeutils.inteqSymbol,
-                                        treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),
+                                        treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.feasCheckSym),
                                         lit);
                                 commands.add(new C_assert(smttrans.convertExpr(bin)));
                                 commands.add(new C_check_sat());
@@ -565,7 +568,7 @@ public class MethodProverSMT {
                             solver.pop(1); // Pop off previous setting of assumeCheck
                             solver.push(1); // Mark the top
                             JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.Tag.EQ,treeutils.inteqSymbol,
-                                    treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),
+                                    treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.feasCheckSym),
                                     treeutils.makeIntLiteral(Position.NOPOS, feasibilityCheckNumber));
                             solver.assertExpr(smttrans.convertExpr(bin));
                             solverResponse = solver.check_sat();
@@ -576,12 +579,13 @@ public class MethodProverSMT {
                         String msg2 =  (utils.jmlverbose > Utils.PROGRESS || (utils.jmlverbose == Utils.PROGRESS && (!Utils.testingMode || Strings.feasibilityContains(Strings.feas_debug,context)) )) ? 
                                 ("Feasibility check #" + feasibilityCheckNumber + " - " + description + " : ")
                                 :("Feasibility check - " + description + " : ");
+                        //System.out.println("   SOLVER " + solverResponse);
                         boolean infeasible = solverResponse.equals(unsatResponse);
                         if (Utils.testingMode) fileLocation = loc;
                         String msgOK = fileLocation + msg2 + "OK" + (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration));
                         if (infeasible) {
                             utils.progress(0,1,fileLocation + msg2 + "infeasible" + (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration)));
-                            if (Strings.preconditionAssumeCheckDescription.equals(description)) {
+                            if (Strings.preconditionFeasCheckDescription.equals(description)) {
                             	utils.verify(stat, "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
                                 // If the preconditions are inconsistent, all paths will be infeasible
@@ -1042,7 +1046,7 @@ public class MethodProverSMT {
 //                            log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
                         }
                         if (comment != null) {
-                            if (comment.startsWith("AssumeCheck assertion")) break ifstat;
+                            if (comment.startsWith("FeasibilityCheck assertion")) break ifstat;
                             if (info.verbose || toTrace != null) tracer.appendln(loc + " \t" + comment);
                         }
                         if (toTrace != null && showSubexpressions) tracer.trace(toTrace);
@@ -1406,7 +1410,7 @@ public class MethodProverSMT {
 //                        log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
                     }
                     if (comment != null) {
-                        if (comment.startsWith("AssumeCheck assertion")) break ifstat;
+                        if (comment.startsWith("FeasibilityCheck assertion")) break ifstat;
                         if (info.verbose || toTrace != null) tracer.appendln(loc + " \t" + comment);
                     }
                     if (toTrace != null && showSubexpressions) tracer.trace(toTrace);

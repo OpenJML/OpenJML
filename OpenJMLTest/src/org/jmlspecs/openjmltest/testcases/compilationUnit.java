@@ -322,6 +322,34 @@ public class compilationUnit extends ParseBase {
         checkMessages();
     }
     
+    @Test
+    public void testSwitch() {
+        checkCompilationUnit("class A { void m(int i) { switch (i) { case 1: break; default: break; }}}",
+                JmlCompilationUnit.class, 0,0,73,
+                JmlClassDecl.class, 0,0,73,
+                JmlModifiers.class, -1,-1,-1,
+                JmlMethodDecl.class, 10,15,72,
+                JmlModifiers.class, -1,-1,-1,
+                JCPrimitiveTypeTree.class, 10,10,14,
+                JmlVariableDecl.class, 17,21,22,
+                JmlModifiers.class, -1,-1,-1,
+                
+                JCPrimitiveTypeTree.class, 17,17,20,
+                JmlBlock.class, 24,24,72,
+                JmlSwitchStatement.class, 26,26,71,
+                JCParens.class, 33,33,36,
+                JCIdent.class, 34,34,35,
+                JmlCase.class, 39,39,-1, // FIXME - end position not set
+                
+                JCLiteral.class, 44,44,45,
+                JCBreak.class, 47,47,53,
+                JmlCase.class, 54,54,-1, // FIXME - end position not set
+                JCBreak.class, 63,63,69
+                );
+        
+        checkMessages();
+    }
+    
     // FIXME - add all other constructs: multiple classes, interfaces, enums, extends, implements, declarations, clauses, method constructs, method clauses, nowarn
 
 }

@@ -244,10 +244,11 @@ public class JmlOption {
     		JmlOptions options = JmlOptions.instance(context);
             Utils utils = Utils.instance(context);
             String check = JmlOption.value(context,JmlOption.FEASIBILITY);
-            if (check == null || check.isEmpty() || check.equals(Strings.feas_default)) {
-                options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_defaults);
-            }
-            if (check.equals(Strings.feas_all)) {
+            if (check == null || check.isEmpty()) {
+                options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_none);
+            } else if (check.equals(Strings.feas_basic)) {
+                options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_basics);
+            } else if (check.equals(Strings.feas_all)) {
                 options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls);
             } else if (check.startsWith(Strings.feas_debug)) {
                 if (utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
@@ -255,7 +256,6 @@ public class JmlOption {
                 if (k > 0) {
                 	try {
                 		MethodProverSMT.startFeasibilityCheck = Integer.parseInt(check.substring(k+1));
-                        options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls+",debug");
                 	} catch (Exception e) {
                 		// continue
                 	}
