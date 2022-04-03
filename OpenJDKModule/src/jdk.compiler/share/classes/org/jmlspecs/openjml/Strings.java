@@ -267,8 +267,8 @@ public class Strings {
     /** Text used to describe the program position at the end of the preconditions */
     static final public String preconditionFeasCheckDescription = "end of preconditions";
     /** Text used to describe the program position at the end of the program, before the postcondition checks */ // FIXME - check this
-    static final public String atSummaryFeasCheckDescription = "at statement spec (after specified block)";
-    static final public String atNonSummaryFeasCheckDescription = "at statement spec (after summary)";
+    static final public String atSummaryFeasCheckDescription = "at statement spec (after using summary)";
+    static final public String atNonSummaryFeasCheckDescription = "at statement spec (after specified block)";
     /** Text used to describe the program position at the end of the program, before the postcondition checks */ // FIXME - check this
     static final public String atExitFeasCheckDescription = "at program exit";
     /** Text used to describe the program position just prior to an explicit JML assert */

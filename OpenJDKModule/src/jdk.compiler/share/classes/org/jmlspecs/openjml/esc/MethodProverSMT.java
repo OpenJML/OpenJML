@@ -505,9 +505,7 @@ public class MethodProverSMT {
                     java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.getFeasibilityChecks(methodDecl, splitkey);
                     int feasibilityCheckNumber = 0;
                     String scriptString = program.toString();
-                    boolean quit = false;
                     if (checks != null) for (JmlStatementExpr stat: checks) {
-                        if (quit) break;
                         if (aborted) {
                         	throw new Main.JmlCanceledException("Aborted by user");
                         }
@@ -525,7 +523,6 @@ public class MethodProverSMT {
                         }
                        
                         // Only do the feasibility check if called for by the feasibility option
-                        quit = stat.description == Strings.atSummaryFeasCheckDescription;
 //                        if (!allFeasibilities && !Strings.feasibilityContains(stat.description,context)
 //                                && !(doit && stat.description.contains(Strings.feas_pre))) continue;
                             

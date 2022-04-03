@@ -1178,10 +1178,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			ListBuffer<JCStatement> check = pushBlock(); // FIXME - should we have a try block?
 			addPreConditions(initialStatements, collector, divergesExpressions);
             allocCounter = 2;
-			ListBuffer<JCStatement> check3 = pushBlock();
-			addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_pre, Strings.preconditionFeasCheckDescription);
-			JCStatement preconditionAssumeCheck = popBlock(methodDecl, check3);
-			addStat(initialStatements, preconditionAssumeCheck);
             //System.out.println("HANDLE FRAME CONDITIONS");
 			handleFrameConditions(methodDecl, initialStatements);
 			initialStatements.add(mark);
@@ -1204,7 +1200,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// postconditions.
 			Map<Symbol, Symbol> savedMapSymbols = pushMapSymbols();
 
-			addStat(comment(methodDecl, "Method Body", null));
+            ListBuffer<JCStatement> check3 = pushBlock();
+            addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_pre, Strings.preconditionFeasCheckDescription);
+             JCStatement preconditionAssumeCheck = popBlock(methodDecl, check3);
+            addStat(initialStatements, preconditionAssumeCheck);
+
+            addStat(comment(methodDecl, "Method Body", null));
 
 			if (methodDecl.body != null) {
 				continuation = Continuation.CONTINUE;

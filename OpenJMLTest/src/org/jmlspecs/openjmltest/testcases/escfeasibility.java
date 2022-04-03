@@ -334,8 +334,8 @@ public class escfeasibility extends EscBase {
                     }
                 }
                 """
+                ,"/tt/TestJava.java:6: warning: There is no feasible path to program point at statement spec (after using summary) in method tt.TestJava.m(int)",13
                 ,"/tt/TestJava.java:6: warning: There is no feasible path to program point at statement spec (after specified block) in method tt.TestJava.m(int)",13
-                ,"/tt/TestJava.java:6: warning: There is no feasible path to program point at statement spec (after summary) in method tt.TestJava.m(int)",13
                 ); // FIXME - improve message positions
     }
 
