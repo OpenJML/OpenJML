@@ -1,0 +1,10 @@
+Proving methods in BackslashTypes
+Starting proof of BackslashTypes.BackslashTypes() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BackslashTypes.BackslashTypes() with prover !!!! - no warnings
+Starting proof of BackslashTypes.m() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BackslashTypes.m() with prover !!!! - no warnings
+Completed proving methods in BackslashTypes

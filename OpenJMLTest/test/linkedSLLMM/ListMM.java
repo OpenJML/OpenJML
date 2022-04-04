@@ -24,15 +24,15 @@ class Link<T> {
 
     //@ public normal_behavior
     //@   reads next, next.next, next.nextFields, next.value, next.valueFields;
-    //@   ensures \result == (next == null ? seq.<T>empty() : next.values().prepend(next.value));
+    //@   ensures \result == (next == null ? \seq.<T>empty() : next.values().prepend(next.value));
     //@ pure helper
-    //@ model public seq<T> values(); // sequence of values after the current Link, not including the current Link
+    //@ model public \seq<T> values(); // sequence of values after the current Link, not including the current Link
     
     //@ public normal_behavior
     //@   reads next, next.next, next.nextFields;
-    //@   ensures \result == (next == null ? seq.<Link<T>>empty() : next.links().prepend(next));
+    //@   ensures \result == (next == null ? \seq.<Link<T>>empty() : next.links().prepend(next));
     //@ pure helper
-    //@ model public seq<Link<T>> links(); // sequence of nodes after the current Link, not including the current Link
+    //@ model public \seq<Link<T>> links(); // sequence of nodes after the current Link, not including the current Link
     
     //@ public normal_behavior    
     //@   reads next, next.next, next.nextFields; // FIXME - does not work as nextFields
@@ -79,8 +79,8 @@ class Link<T> {
     //@ public normal_behavior
     //@   requires 0 <= n < this.size();
     //@   old \bigint oldsize = this.size();
-    //@   old seq<T> oldvalues = this.values();
-    //@   old seq<Link<T>> oldlinks = this.links();
+    //@   old \seq<T> oldvalues = this.values();
+    //@   old \seq<Link<T>> oldlinks = this.links();
     //@   assignable next, nextFields, valueFields, ownerFields;
     //@   ensures this.size() == oldsize - 1;
     //@   ensures this.values().size == oldvalues.size - 1;
@@ -89,7 +89,7 @@ class Link<T> {
     public void remove(int n) {
         //@ assert this.next != null;
         //@ ghost \bigint newsize = this.size() - 1;
-        //@ ghost seq<T> oldvalues = this.values();
+        //@ ghost \seq<T> oldvalues = this.values();
         //@ assert this.values().size() == oldvalues.size();
         //@ assert this.owner != null && allMine(this.owner);
         //@ assert this.next.allMine(this.next.owner);
@@ -145,9 +145,9 @@ public class ListMM<T> extends Link<T> {
     
     /** Creates an empty list -- just an anchor node with null 'next' field */
     //@ public normal_behavior
-    //@   ensures \result.values() == seq.<TT>empty();
+    //@   ensures \result.values() == \seq.<TT>empty();
     //@   ensures \result.size() == 0;
-    //@   ensures \result.links() == seq.<Link<TT>>empty();
+    //@   ensures \result.links() == \seq.<Link<TT>>empty();
     //@   ensures \result.next == null;
     //@   ensures \result.owner == \result;
     //@ pure
@@ -167,8 +167,8 @@ public class ListMM<T> extends Link<T> {
     /** Pushes a new value onto the front of the list */
     //@ public normal_behavior
     //@   old \bigint oldsize = this.size();
-    //@   old seq<T> oldvalues = this.values();
-    //@   old seq<Link<T>> oldlinks = this.links();
+    //@   old \seq<T> oldvalues = this.values();
+    //@   old \seq<Link<T>> oldlinks = this.links();
     //@   assignable next, valueFields, nextFields, ownerFields;
     //@   ensures \fresh(this.next);
     //@   ensures this.next.value == t;
@@ -212,7 +212,7 @@ public class ListMM<T> extends Link<T> {
     //@ public normal_behavior
     //@   requires this.size() > 0;
     //@   old \bigint oldsize = this.size();
-    //@   old seq<T> oldvalues = this.values();
+    //@   old \seq<T> oldvalues = this.values();
     //@   assignable next, nextFields, valueFields, ownerFields;
     //@   ensures this.size() == oldsize - 1;
     //@   ensures this.values() == oldvalues.tail(1);
@@ -227,11 +227,11 @@ public class ListMM<T> extends Link<T> {
         //@ assert this.next.next != null ==> this.next.next.values().size == this.next.next.size();
         //@ assert next.links().size() == this.next.size();
         //@ assert this.next.next != null ==> this.next.next.links().size == this.next.next.size();
-        //@ ghost seq<T> oldvalues = this.values();
-        //@ ghost seq<T> oldnvalues = this.next.values();
+        //@ ghost \seq<T> oldvalues = this.values();
+        //@ ghost \seq<T> oldnvalues = this.next.values();
         //@ assert oldnvalues == oldvalues.tail(1);
-        //@ ghost seq<Link<T>> oldlinks = this.links();
-        //@ ghost seq<Link<T>> newlinks = this.next.links();
+        //@ ghost \seq<Link<T>> oldlinks = this.links();
+        //@ ghost \seq<Link<T>> newlinks = this.next.links();
         //@ assert newlinks == oldlinks.tail(1);
         this.next = this.next.next;
         //@ assert this.size() == (this.next == null ? 0 : this.next.size() + 1);
@@ -279,7 +279,7 @@ class Test {
         var in = ListMM.<Y>empty();
         //@ assert in.size() == 0;
         //@ assert in.values().size() == 0;
-        //@ assert in.values() == seq.<Y>empty();
+        //@ assert in.values() == \seq.<Y>empty();
     }
 
     /** pushing a value and then retrieving it */
@@ -342,7 +342,7 @@ class Test {
     //@ requires in.size() > 0;
     public static <Y> void testNI2(ListMM<Y> in, ListMM<Y> other) {
         //@ assert in.size() == other.size();
-        //@ ghost seq<Y> oldvalues = in.values();
+        //@ ghost \seq<Y> oldvalues = in.values();
         in.pop();
         //@ reachable;
         //@ assert oldvalues.tail(1) == in.values();
@@ -355,7 +355,7 @@ class Test {
     //@ requires in.values() == other.values();
     //@ requires in.size() > 1;
     public static <Y> void testNI3(ListMM<Y> in, ListMM<Y> other) {
-        //@ ghost seq<Y> oldvalues = in.values();
+        //@ ghost \seq<Y> oldvalues = in.values();
         in.remove(1);
         //@ reachable;
         //@ assert oldvalues.size - 1 == in.size();

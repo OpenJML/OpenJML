@@ -3192,6 +3192,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JCIdent t = jmlMaker.at(tree.pos).Ident(names.fromString(kt.typename));
             result = super.attribType(t,env);
             tree.type = result;
+            if (kt.numTypeArguments() != 0) {
+                utils.error(tree,  "jml.message", "The generic JML type " + kt.keyword + " must have " + kt.numTypeArguments() + " type arguments");
+            }
         } else {
             result = super.attribType(tree,env);
         }
@@ -5622,7 +5625,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         			}
         		}
         	}
-        	super.visitIdent(tree);
+        	Name nm = tree.name;
+            var ck = Extensions.findKeyword(tree.name);
+            if (ck instanceof JmlTypeKind jtk) {
+        	    tree.name = jtk.name;
+        	    super.visitIdent(tree);
+                tree.name = nm;
+//                if (jtk.numTypeArguments() != 0) {
+//                    utils.error(tree,  "jml.message", "The generic JML type " + tree.name + " must have " + jtk.numTypeArguments() + " type arguments");
+//                }
+            } else {
+                super.visitIdent(tree);
+            }
+            
             Type saved = result;
             if (print) System.out.println("JML-VISITIDENT-A " + tree + " " + tree.sym + " " + tree.type + " " + tree.sym.getClass() + " " + tree.sym.owner + " " + 
         	   tree.sym.owner.getClass() + " " + ((ClassSymbol)tree.sym).sourcefile + " " + env);
@@ -6207,6 +6222,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
+    @Override
+    public void visitTypeApply(JCTypeApply tree) {
+        if (tree.clazz instanceof JCIdent id) {
+            IJmlClauseKind ck = Extensions.findKeyword(id.name);
+            if (ck instanceof JmlTypeKind jtk) {
+                Name saved = id.name;
+                id.name = jtk.name;
+                super.visitTypeApply(tree);
+                id.name = saved;
+                return;
+            }
+        }
+        super.visitTypeApply(tree);
+    }
+        
     /** Attributes an array-element-range (a[1 .. 2]) store-ref expression */
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
         if (that.lo != null) {

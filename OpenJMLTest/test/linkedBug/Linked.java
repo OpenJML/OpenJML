@@ -1,8 +1,7 @@
-import org.jmlspecs.lang.seq;
 
 public class Linked {
-    //@ model public seq<Linked> links;
-    //@ public represents links = next == null ? seq.<Linked>empty() : next.links.prepend(next);
+    //@ model public \seq<Linked> links;
+    //@ public represents links = next == null ? \seq.<Linked>empty() : next.links.prepend(next);
     
 	//@ nullable
 	public Linked next;//@ in links; 

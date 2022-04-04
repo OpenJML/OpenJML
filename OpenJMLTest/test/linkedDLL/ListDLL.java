@@ -16,14 +16,14 @@ class Link<T> {
     //@ public model JMLDataGroup ownerFields;
     //@ ghost helper nullable public ListDLL<T> owner; //@ in ownerFields; maps next.ownerFields \into ownerFields;
 
-    //@ model public seq<T> values; // sequence of values after the current Link, not including the current Link
-    //@ public represents values = next == null ? seq.<T>empty() : next.values.prepend(next.value);
+    //@ model public \seq<T> values; // sequence of values after the current Link, not including the current Link
+    //@ public represents values = next == null ? \seq.<T>empty() : next.values.prepend(next.value);
 
-    //@ model public seq<Link<T>> links;
-    //@ public represents links = next == null ? seq.<Link<T>>empty() : next.links.prepend(next);
+    //@ model public \seq<Link<T>> links;
+    //@ public represents links = next == null ? \seq.<Link<T>>empty() : next.links.prepend(next);
 
-    //@ model public seq<Link<T>> prevlinks;
-    //@ public represents prevlinks = next == null ? seq.<Link<T>>empty() : next.links.prepend(next.prev);
+    //@ model public \seq<Link<T>> prevlinks;
+    //@ public represents prevlinks = next == null ? \seq.<Link<T>>empty() : next.links.prepend(next.prev);
 
     // True if my owner is the argument and all nodes after me have the argument as their owners.
     //@ public normal_behavior
@@ -94,8 +94,8 @@ class Link<T> {
             //@ assert this.next.next != null ==> this.next.next.allMine(this.next.owner);
             //@ assert this.goodLinksForward();
             //@ assert this.next.goodLinksForward();
-            //@ ghost seq<T> newvalues = this.next.values;
-            //@ ghost seq<Link<T>> newlinks = this.next.links;
+            //@ ghost \seq<T> newvalues = this.next.values;
+            //@ ghost \seq<Link<T>> newlinks = this.next.links;
             if (this.next.next != null) {
                 //@ assert this.next.next.goodLinksForward();
                 //@ assert this.next.next.prev == this.next;
@@ -167,9 +167,9 @@ public class ListDLL<T> extends Link<T> {
     
     /** Creates an empty list -- just an anchor node with null 'next' field */
     //@ public normal_behavior
-    //@   ensures \result.values == seq.<TT>empty();
+    //@   ensures \result.values == \seq.<TT>empty();
     //@   ensures \result.size == 0;
-    //@   ensures \result.links == seq.<Link<TT>>empty();
+    //@   ensures \result.links == \seq.<Link<TT>>empty();
     //@   ensures \result.next == null;
     //@   ensures \result.owner == \result;
     //@ pure
@@ -242,9 +242,9 @@ public class ListDLL<T> extends Link<T> {
         //@ assert (n.next != null) ==> n.next.prev.next == n.next;
         //@ ghost \bigint newsize = next.size;
         //@ assert this.next.next != null ==> next.next.size == newsize - 1;
-        //@ ghost seq<T> newvalues = this.next.values;
+        //@ ghost \seq<T> newvalues = this.next.values;
         //@ assert this.next.next != null ==> this.next.next.values == newvalues.tail(1);
-        //@ ghost seq<Link<T>> newlinks = this.next.links;
+        //@ ghost \seq<Link<T>> newlinks = this.next.links;
         //@ assert this.next.next != null ==> this.next.next.links == newlinks.tail(1);
         //@ reachable;
         if (this.next.next != null) {
@@ -324,7 +324,7 @@ class Test {
         var in = ListDLL.<Y>empty();
         //@ assert in.size == 0;
         //@ assert in.values.size() == 0;
-        //@ assert in.values == seq.<Y>empty();
+        //@ assert in.values == \seq.<Y>empty();
     }
 
     /** pushing a value and then retrieving it */
@@ -393,7 +393,7 @@ class Test {
     //@ requires in.size > 0;
     public static <Y> void testNI2(ListDLL<Y> in, ListDLL<Y> other) {
         //@ assert in.size == other.size;
-        //@ ghost seq<Y> oldvalues = in.values;
+        //@ ghost \seq<Y> oldvalues = in.values;
         in.pop();
         //@ reachable;
         //@ assert in.values == oldvalues.tail(1);
@@ -406,7 +406,7 @@ class Test {
     //@ requires in.values == other.values;
     //@ requires in.size > 1;
     public static <Y> void testNI3(ListDLL<Y> in, ListDLL<Y> other) {
-        //@ ghost seq<Y> oldvalues = in.values;
+        //@ ghost \seq<Y> oldvalues = in.values;
         in.remove(1);
         //@ reachable;
         //@ assert oldvalues.size - 1 == in.values.size;

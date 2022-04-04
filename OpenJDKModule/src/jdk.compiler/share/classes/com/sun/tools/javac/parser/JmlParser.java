@@ -2532,7 +2532,11 @@ public class JmlParser extends JavacParser {
                 } else if (kind instanceof IJmlClauseKind.SingletonKind) {
                 	return (JCExpression)kind.parse(null, id, kind, this);
                 } else if (kind instanceof org.jmlspecs.openjml.ext.JMLPrimitiveTypes.JmlTypeKind tk) {
-                	return tk.parse(null, id, kind, this); // could be type or expression
+                    if (peekToken(t -> t == TokenKind.DOT)) {
+                        JCExpression eee = toP(super.term3());
+                        return eee;
+                    }
+                    return tk.parse(null, id, kind, this);
                 } else if (inExprMode() && kind instanceof IJmlClauseKind.ExpressionKind ek) {
                 	JCExpression tt = ek.parse(null, id, kind, this);
                 	return term3Rest(tt, typeArgs);

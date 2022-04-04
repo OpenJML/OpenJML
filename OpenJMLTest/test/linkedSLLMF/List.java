@@ -16,11 +16,11 @@ class Link<T> {
     //@ public model JMLDataGroup ownerFields;
     //@ ghost helper nullable public List<T> owner; //@ in ownerFields; maps next.ownerFields \into ownerFields;
 
-    //@ model public seq<T> values; // sequence of values after the current Link, not including the current Link
-    //@ public represents values = next == null ? seq.<T>empty() : next.values.prepend(next.value);
+    //@ model public \seq<T> values; // sequence of values after the current Link, not including the current Link
+    //@ public represents values = next == null ? \seq.<T>empty() : next.values.prepend(next.value);
 
-    //@ model public seq<Link<T>> links;
-    //@ public represents links = next == null ? seq.<Link<T>>empty() : next.links.prepend(next);
+    //@ model public \seq<Link<T>> links;
+    //@ public represents links = next == null ? \seq.<Link<T>>empty() : next.links.prepend(next);
 
     // True if my owner is the argument and all nodes after me have the argument as their owners.
     //@ public normal_behavior
@@ -118,9 +118,9 @@ public class List<T> extends Link<T> {
     
     /** Creates an empty list -- just an anchor node with null 'next' field */
     //@ public normal_behavior
-    //@   ensures \result.values == seq.<TT>empty();
+    //@   ensures \result.values == \seq.<TT>empty();
     //@   ensures \result.size == 0;
-    //@   ensures \result.links == seq.<Link<TT>>empty();
+    //@   ensures \result.links == \seq.<Link<TT>>empty();
     //@   ensures \result.next == null;
     //@   ensures \result.owner == \result;
     //@ pure
@@ -164,7 +164,7 @@ public class List<T> extends Link<T> {
 
     //@ public normal_behavior
     //@ ensures \result; 
-    //@ model pure static public <T> boolean lemma(seq<T> s, T t1, T t2) { return (s.contains(t1) && !s.contains(t2) ==> t1 != t2); }
+    //@ model pure static public <T> boolean lemma(\seq<T> s, T t1, T t2) { return (s.contains(t1) && !s.contains(t2) ==> t1 != t2); }
     
     /** Removes the first value from the list */
     //@ public normal_behavior
@@ -223,7 +223,7 @@ class Test {
         var in = List.<Y>empty();
         //@ assert in.size == 0;
         //@ assert in.values.size() == 0;
-        //@ assert in.values == seq.<Y>empty();
+        //@ assert in.values == \seq.<Y>empty();
     }
 
     /** pushing a value and then retrieving it */
@@ -335,7 +335,7 @@ class Test {
     //@ requires in.values == other.values;
     //@ requires in.size > 0;
     public static <Y> void testNI2(List<Y> in, List<Y> other) {
-        //@ ghost seq<Y> oldvalues = in.values;
+        //@ ghost \seq<Y> oldvalues = in.values;
         in.pop();
         //@ reachable;
         //@ assert in.values == oldvalues.tail(1);
@@ -348,7 +348,7 @@ class Test {
     //@ requires in.values == other.values;
     //@ requires in.size > 1;
     public static <Y> void testNI3(List<Y> in, List<Y> other) {
-        //@ ghost seq<Y> oldvalues = in.values;
+        //@ ghost \seq<Y> oldvalues = in.values;
         in.remove(1);
         //@ reachable;
         //@ assert oldvalues.size - 1 == in.values.size;
