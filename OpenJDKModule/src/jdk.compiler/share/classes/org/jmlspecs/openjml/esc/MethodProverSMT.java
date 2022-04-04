@@ -1140,7 +1140,7 @@ public class MethodProverSMT {
                             tracer.appendln(loc + " Invalid assertion (" + label + ")");
                             if (label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION || label == Label.NULL_FORMAL) {
                                 try {
-                                    Name nm = ((JCIdent)assertStat.expression).name;
+                                    Name nm = ((JCIdent)assertStat.expression).sym.name;                                    // FIXME - need to fix why assertion names are getting invocation suffixes
                                     String s = jmlesc.assertionAdder.callStacks.get(nm);
                                     if (s != null) utils.note(s);
                                 } catch (Exception ex) {}
