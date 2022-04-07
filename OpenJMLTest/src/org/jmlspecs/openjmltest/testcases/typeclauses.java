@@ -309,7 +309,7 @@ public class typeclauses extends TCBase {
     
     @Test
     public void testRepresents9a() {
-    	main.addOptions("-lang=jml+"); // Part of test
+    	main.addOptions("-lang=openjml"); // Part of test
         helpTCF("A.java","public class A {\n //@ represents x[*] = 0;\n}"
                 ,"/A.java:2: error: cannot find symbol"+eol+"  symbol:   variable x"+eol+"  location: class A",17
                 ,"/A.java:2: error: Represents target with wild-card index must be an array: x[*]",17

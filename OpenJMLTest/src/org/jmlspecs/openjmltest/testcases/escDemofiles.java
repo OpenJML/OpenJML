@@ -93,21 +93,21 @@ public class escDemofiles extends EscBase {
     @Test
     public void testInvertInjection() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/InvertInjection.java","test/demoInvertInjection","-progress","-noInternalSpecs");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/InvertInjection.java","test/demoInvertInjection","-progress");
     }
 
     @Test
     public void testBinarySearch() {
         Assume.assumeTrue(runLongTests);
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/BinarySearch.java","test/demoBinarySearch","-progress","-noInternalSpecs","-logic=AUFNIRA");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/BinarySearch.java","test/demoBinarySearch","-progress","-logic=AUFNIRA");
     }
 
     @Ignore  // FIXME: Fails because of inadequate specs and use of \created
     @Test
     public void testCustomer() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/Customer.java","test/demoCustomer","-progress","-noInternalSpecs");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/Customer.java","test/demoCustomer","-progress");
     }
 
     @Test

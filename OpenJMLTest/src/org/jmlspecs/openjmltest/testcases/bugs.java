@@ -111,16 +111,6 @@ public class bugs extends TCBase {
     }
 
     @Test
-    public void testMisc11b() {
-    	// No system specs - don't see that elementCount is spec_public
-        main.addOptions("--specs-path",   testspecpath);
-        helpTCF("A.java","public class A { private /*@ spec_public */ java.util.Vector pending; \n //@ public invariant pending.elementCount == 0; \n} "
-                ,"/A.java:2: error: elementCount has protected access in java.util.Vector",30
-                ,"/A.java:2: error: An identifier with protected visibility may not be used in a invariant clause with public visibility",30
-                );
-    }
-
-    @Test
     public void testMisc12() {
         helpTCF("A.java","abstract public class A { Object x; \n //@ ensures \\old(a) == null;  \n abstract void m(A a);  \n} "
                 );

@@ -27,7 +27,6 @@ public class esclocation extends EscBase {
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
         //main.addOptions("-jmlverbose");
         //main.addOptions("-jmldebug");
-        //main.addOptions("-noInternalSpecs");
         //JmlEsc.escdebug = true;
     }
     

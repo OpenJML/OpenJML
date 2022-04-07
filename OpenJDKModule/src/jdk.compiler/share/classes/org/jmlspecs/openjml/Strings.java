@@ -119,10 +119,10 @@ public class Strings {
     static public final String javaOptionPropertyPrefix = "org.openjml.java.option."; //$NON-NLS-1$
     
     /** A property name prefix for specifying information about provers */
-    static public final String proverPropertyPrefix = "openjml.prover."; //$NON-NLS-1$
+    static public final String proverPropertyPrefix = "org.openjml.prover."; //$NON-NLS-1$
     
     /** The property name to specify a default prover */
-    static public final String defaultProverProperty = "openjml.defaultProver"; //$NON-NLS-1$
+    static public final String defaultProverProperty = "org.openjml.defaultProver"; //$NON-NLS-1$
     
     /** A Java property name used to indicate the directory path on which to find specification files */
     public static final String specsPathEnvironmentPropertyName = "org.jmlspecs.specspath"; //$NON-NLS-1$

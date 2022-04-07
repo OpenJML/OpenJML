@@ -53,7 +53,7 @@ public class ReachableStatement extends JmlExtension {
             init(parser);
             int pp = parser.pos();
             int p = parser.getScanner().currentPos(); // FIXME - why do we get this position from the scanner?
-            boolean noExpression = keyword.equals(splitID) || keyword.equals(haltID);
+            boolean noExpression = keyword.equals(haltID) || keyword.equals(reachableID) || keyword.equals(unreachableID);
             boolean semiWarning = !noExpression && JmlOption.langJML.equals(JmlOption.value(parser.context, JmlOption.LANG));
             parser.nextToken();
             JmlStatementExpr st = parser.maker().at(pp).JmlExpressionStatement(keyword,clauseType,null,null);
@@ -62,6 +62,8 @@ public class ReachableStatement extends JmlExtension {
                 parser.nextToken();
             } else if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
                 if (semiWarning) utils.warning(p-1, "jml.missing.semi", keyword);
+            } else if (noExpression) {
+                // continue
             } else {
                 JCExpression opt = null;
                 JCExpression e = parser.parseExpression();

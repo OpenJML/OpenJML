@@ -23,7 +23,7 @@ public class escnowarn extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-nullableByDefault"); // Because the tests were written this wasy
+        main.addOptions("-nullableByDefault"); // Because the tests were written this way
         //JmlEsc.escdebug = true;
     }
     

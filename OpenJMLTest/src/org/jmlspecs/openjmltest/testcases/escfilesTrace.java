@@ -62,7 +62,7 @@ public class escfilesTrace extends EscBase {
         new File(outDir).mkdirs();
         java.util.List<String> args = new LinkedList<String>();
         args.add("--esc");
-        args.add("-noPurityCheck");
+        args.add("--no-purity-check");
         args.add("-jmltesting");
         if (new File(sourceDirname).isDirectory()) args.add("--dir");
         args.add(sourceDirname);
@@ -96,7 +96,7 @@ public class escfilesTrace extends EscBase {
     @Test 
     public void testDemoChangeCase() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/ChangeCase.java","test/escDemoChangeCase","-noInternalSpecs","-progress","-method=changeCase","-escMaxWarnings=1","-subexpressions","-jmltesting");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/ChangeCase.java","test/escDemoChangeCase","-progress","-method=changeCase","-escMaxWarnings=1","-subexpressions","-jmltesting");
     }
 
     @Test

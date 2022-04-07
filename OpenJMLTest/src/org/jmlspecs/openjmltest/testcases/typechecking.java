@@ -1064,13 +1064,22 @@ public class typechecking extends TCBase {
 
     // No errors but should have one: the use of List in the declaration of n should fail.
     @Test public void testModelImport1() {
-        helpTCF("A.java","//@ model import java.util.List;\n public class A {\n //@ ghost List k;\n List n;  \n }"
+        helpTCF("A.java","//@ model import java.util.List;\n" +
+                         " public class A {\n" +
+                         " //@ ghost List k;\n" +
+                         " List n;  \n" +
+                         " }"
         );
     }
     
     // This should fail for the ghost declaration but not for the Java declaration
     @Test public void testModelImport2() {
-        helpTCF("A.java","import java.awt.*; //@ model import java.util.*;\n public class A {\n //@ ghost List k;\n List n;  \n }"
+        helpTCF("A.java",
+                "import java.awt.*; //@ model import java.util.*;\n" + 
+                "public class A {\n" +
+                " //@ ghost List k;\n" +
+                " List n;  \n" +
+                "}"
                 ,"/A.java:3: error: reference to List is ambiguous\n  both interface java.util.List in java.util and class java.awt.List in java.awt match",12
                 ,"/A.java:4: error: reference to List is ambiguous\n  both interface java.util.List in java.util and class java.awt.List in java.awt match",2
         );
@@ -1078,7 +1087,12 @@ public class typechecking extends TCBase {
 
     // This should fail for the Java declaration but not for the ghost declaration
     @Test public void testModelImport3() {
-        helpTCF("A.java","import java.awt.*; import java.util.*;\n//@ model import java.util.List;\n public class A {\n //@ ghost List k;\n List n;  \n }"
+        helpTCF("A.java","import java.awt.*; import java.util.*;\n"+
+                         "//@ model import java.util.List;\n" +
+                         "public class A {\n"+
+                         " //@ ghost List k;\n" +
+                         " List n;  \n" +
+                         "}"
         );
     }
 

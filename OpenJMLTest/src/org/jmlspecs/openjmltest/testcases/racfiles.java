@@ -52,14 +52,6 @@ public class racfiles extends RacBase {
     }
 
 
-    /** Testing without using system specs */
-    @Test
-    public void test1() {
-        expectedExit = 0;
-        expectedRACExit = 0;
-        helpTCF("test/rac1","test/rac1","Bug1","-noInternalSpecs");
-    }
-
     /** Testing using system specs */
     @Test  // FIXME - problems with library specs - RAC cannot handle ghost variables when it does not compile the class file
     public void test1a() {
@@ -291,7 +283,7 @@ public class racfiles extends RacBase {
     			"-cp","test/hans/OpenJMLTest/src"+z+"test/hans/icecapSDK/src",  //nFIXME - changed icecapSDK/bin to icecapSDK/src
     			"-rac",
     			"-specspath","test/hans/OpenJMLTest/specs",
-    			"-racCheckAssumptions","--rac-java-checks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
+    			"-racCheckAssumptions","--rac-java-checks","-showNotImplemented","-nullableByDefault"
     			);
     }
 
@@ -306,7 +298,7 @@ public class racfiles extends RacBase {
     			"-cp","test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src"+z+"test/racHans2",
     			//"-rac",
     			"-specspath","test/racHans2/specs",
-    			"--rac-check-assumptions","--rac-java-checks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
+    			"--rac-check-assumptions","--rac-java-checks","-showNotImplemented","-nullableByDefault"
     			);
     }
 

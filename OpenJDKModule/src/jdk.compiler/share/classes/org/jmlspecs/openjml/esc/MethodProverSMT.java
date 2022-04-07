@@ -407,7 +407,7 @@ public class MethodProverSMT {
             }
             // Starts the solver (and it waits for input)
             start = new Date();
-            setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
+            //setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
             solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
             if (solver == null) { 
             	//log.error("jml.solver.failed.to.start",exec);
@@ -1956,38 +1956,38 @@ public class MethodProverSMT {
         }
     }
     
-    static public String benchmarkName = null;
-    static private int benchmarkCount = 0;
-    
-    public void setBenchmark(String solverName, String methodname, SMT.Configuration config) {
-        String benchmarkDir = JmlOption.value(context,JmlOption.BENCHMARKS);
-        if (benchmarkDir == null || benchmarkDir.isEmpty()) return;
-        new java.io.File(benchmarkDir).mkdirs();
-        String n;
-        if (benchmarkName != null) {
-            if ("<init>".equals(methodname)) methodname = "INIT";
-            int count = 0;
-            String root = benchmarkDir + "/" + benchmarkName + "." + methodname;
-            n = root + ".smt2";
-            while (true) {
-                Path p = FileSystems.getDefault().getPath(n);
-                if (!java.nio.file.Files.exists(p)) break;
-                count++;
-                n = root + (-count) + ".smt2";
-            }
-        } else {
-            benchmarkCount++;
-            n = String.format("%s/bench-%05d.smt2",benchmarkDir,benchmarkCount);
-        }
-//        try {
-        config.logfile = n;
-//            Path p = FileSystems.getDefault().getPath(n);
-//            java.nio.file.Files.deleteIfExists(p);
-//            java.nio.file.Files.move(FileSystems.getDefault().getPath("solver.out.z3"),p);
-//        } catch (IOException e) {
-//            System.out.println(e);
+//    static public String benchmarkName = null;
+//    static private int benchmarkCount = 0;
+//    
+//    public void setBenchmark(String solverName, String methodname, SMT.Configuration config) {
+//        String benchmarkDir = JmlOption.value(context,JmlOption.BENCHMARKS);
+//        if (benchmarkDir == null || benchmarkDir.isEmpty()) return;
+//        new java.io.File(benchmarkDir).mkdirs();
+//        String n;
+//        if (benchmarkName != null) {
+//            if ("<init>".equals(methodname)) methodname = "INIT";
+//            int count = 0;
+//            String root = benchmarkDir + "/" + benchmarkName + "." + methodname;
+//            n = root + ".smt2";
+//            while (true) {
+//                Path p = FileSystems.getDefault().getPath(n);
+//                if (!java.nio.file.Files.exists(p)) break;
+//                count++;
+//                n = root + (-count) + ".smt2";
+//            }
+//        } else {
+//            benchmarkCount++;
+//            n = String.format("%s/bench-%05d.smt2",benchmarkDir,benchmarkCount);
 //        }
-    }
+////        try {
+//        config.logfile = n;
+////            Path p = FileSystems.getDefault().getPath(n);
+////            java.nio.file.Files.deleteIfExists(p);
+////            java.nio.file.Files.move(FileSystems.getDefault().getPath("solver.out.z3"),p);
+////        } catch (IOException e) {
+////            System.out.println(e);
+////        }
+//    }
     
     /** Construct the mapping from original source subexpressions to values in the current solver model. */
     public Map<JCTree,String> constructCounterexample(JmlAssertionAdder assertionAdder, BasicBlocker2 basicBlocker, SMTTranslator smttrans, SMT smt, ISolver solver) {

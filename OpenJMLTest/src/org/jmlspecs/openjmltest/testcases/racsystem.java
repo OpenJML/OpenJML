@@ -92,7 +92,7 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2pre() {
         expectedRACExit = 1;
-        main.addOptions("-no-internalSpecs");
+ //       main.addOptions("-no-internalSpecs");
         main.addOptions("--rac-show-source=none");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
@@ -146,7 +146,7 @@ public class racsystem extends RacBase {
     public void testFile2d() {
         expectedRACExit = 0;
         expectedNotes = 0;
-        main.addOptions("-no-internalSpecs");
+//        main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.runtime.Utils.showStack = true; \n"
                 +"m();\n"
@@ -188,17 +188,19 @@ public class racsystem extends RacBase {
     @Test
     public void testFile3() {
         expectedNotes =  0; // 2
-        main.addOptions("-no-internalSpecs");
         main.addOptions("--rac-show-source=none");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT EXCEPTION\"); } \n"
                 +"System.out.println(\"END\"); }\n"
                 +"//@ signals_only Exception;\n"
                 +"static void m() {\n"
-                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
+                +"  Object i = (new java.io.File((String)null));\n"
                 +"}"
                 +"}"
-                ,"verify: JML formal argument may be null: arg0 in compareTo(java.io.File)"
+                ,"verify: JML formal argument may be null: arg0 in File(java.lang.String)"
+                ,"verify: Associated declaration: /tt/TestJava.java:6:"
+                ,"verify: JML precondition is false"
+                ,"verify: Associated declaration: /tt/TestJava.java:6:"
                 ,"CAUGHT EXCEPTION"
                 ,"END"
                 );
@@ -207,7 +209,7 @@ public class racsystem extends RacBase {
     @Test
     public void testHashCode() {
         expectedNotes =  0; // 2
-        main.addOptions("-no-internalSpecs");
+//        main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.runtime.Utils.showStack = true; \n"
                 +"int i = ( new Object().hashCode()); \n"
@@ -246,7 +248,7 @@ public class racsystem extends RacBase {
     @Test
     public void testMain2() {
         expectedNotes = 0;
-        main.addOptions("-no-internalSpecs");
+//        main.addOptions("-no-internalSpecs");
         main.addOptions("--rac-show-source=line");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
                 +"public static void main(String... args) { \n"

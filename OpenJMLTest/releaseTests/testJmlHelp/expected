@@ -77,7 +77,7 @@ JML options:
   --esc                      Enables static checking [--command=esc]
   -java                      When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)
   -jml                       When on, the JML compiler is used and all JML constructs are processed; use -no-jml to use OpenJML but ignore JML annotations
-  --lang                     Set the language variant to use: jml or jml+ (the default)
+  --lang                     Set the language variant to use: jml or openjml (the default)
   --verify-exit              Exit code for verification errors
   --extensions               Extension packages and classes (comma-separated qualified names)
   --stop-if-parse-errors     When enabled, stops after parsing if any files have parsing errors
@@ -89,16 +89,14 @@ JML options:
   --smt                      A file to write the smt command file to
   --nonnull-by-default       Makes references non_null by default [--nullable-by-default=false]
   --nullable-by-default      Makes references nullable by default
-  --code-math                Arithmetic mode for Java code (code, safe, bigint)
-  --spec-math                Arithmetic mode for specifications (code, safe, bigint)
-  --arithmetic-failure       Whether arithmetic warnings are hard, soft or quiet
+  --code-math                Arithmetic mode for Java code (java, safe, bigint)
+  --spec-math                Arithmetic mode for specifications (java, safe, bigint)
+  --arithmetic-failure       Whether arithmetic warnings are hard, soft (default) or quiet
   --check-accessible         When on (the default), JML accessible clauses are checked
   --specs-path               Specifies the directory path to search for specification files
   --check-specs-path         When on (the default), warnings for non-existent specification path directories are issued
-  -purityCheck               When on (off by default), warnings for use of impure methods from system libraries are issued
+  --purity-check             When on (the default), warnings for use of impure methods from system libraries are issued
   --new-is-pure              Allows object allocation in pure expressions
-  --internal-specs           When on (the default), automatically appends the internal specs directory to the specification path
-  --internal-runtime         When on (the default), automatically appends the internal JML runtime library to the classpath
   --timeout                  Number of seconds to limit any individual proof attempt (default infinite)
   --show-not-implemented     When on (off by default), warnings about unimplemented constructs are issued
   --show-not-executable      When on (off by default), warnings about non-executable constructs are issued
@@ -112,7 +110,7 @@ JML options:
   --show-summary             Shows summary and time information
   --jmlverbose               Like --verbose, but only jml information and not as much [--verboseness=3]
   --jmldebug                 When on, the program emits lots of output (includes --progress) [--verboseness=4]
-  -jmltesting                Only used to generate tracing information during testing
+  -jmltesting                Controls output information during testing
   --trace                    ESC: Enables tracing of counterexamples
   --show                     Show intermediate programs
   --split                    Split proof into sections
@@ -123,7 +121,6 @@ JML options:
   --counterexample           ESC: Enables output of complete, raw counterexample
   --subexpressions           ESC: Enables tracing with subexpressions
   --check-feasibility        ESC: Check feasibility of assumptions
-  --benchmarks               ESC: Collects solver communications
   --typeQuants               ESC: Introduces quantified assertions for type variables (true, false, or auto)
   --solver-seed              ESC: Seed to initialize solver's random number generation
   --rac-show-source          RAC: Error messages will include source information (none,line,source)

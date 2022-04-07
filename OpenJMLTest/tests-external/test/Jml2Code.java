@@ -82,7 +82,7 @@ public class Jml2Code {
             String sp = "C:/home/projects/JML4/ESCTools/Utils;C:/home/projects/JML4/ESCTools/Escjava/java;C:/home/projects/JML4/ESCTools/Javafe/java;C:/home/projects/JML4/ESCTools/Escjava/mochalib/java";
             String cp = "C:/home/projects/JML4/ESCTools/Utils;C:/home/projects/JML4/ESCTools/Utils/junit.jar;C:/home/projects/JML4/ESCTools/Utils/ant.jar;C:/home/projects/JML4/ESCTools/Utils/BCEL/bcel-5.2/bcel-5.2.jar;C:/home/projects/JML4/ESCTools/Escjava/xmlrpc-1.2-b1-modified.jar;C:/home/projects/JML4/ESCTools/Javafe/java;C:/home/projects/JML4/ESCTools/Escjava/java;C:/home/projects/JML4/ESCTools/Escjava/mochalib/java";
             String[] args = {
-                   "-noPurityCheck",
+                   "--no-purity-check",
                    "-specspath","$SY"+";"+sp,
                    //"-specspath","C:/home/projects/Specs/trunk/java6;C:/home/projects/Specs/trunk/java5;C:/home/projects/Specs/trunk/java4;C:/home/projects/OpenJML/trunk/OpenJML/runtime",
                    "-classpath", cp,
@@ -104,7 +104,7 @@ public class Jml2Code {
             String sp = "C:/home/projects/JML4/ESCTools/Utils;C:/home/projects/JML4/ESCTools/Escjava/java;C:/home/projects/JML4/ESCTools/Javafe/java;C:/home/projects/JML4/ESCTools/Escjava/mochalib/java";
             String cp = "C:/home/projects/JML4/ESCTools/Utils;C:/home/projects/JML4/ESCTools/Utils/junit.jar;C:/home/projects/JML4/ESCTools/Utils/ant.jar;C:/home/projects/JML4/ESCTools/Utils/BCEL/bcel-5.2/bcel-5.2.jar;C:/home/projects/JML4/ESCTools/Escjava/xmlrpc-1.2-b1-modified.jar;C:/home/projects/JML4/ESCTools/Javafe/java;C:/home/projects/JML4/ESCTools/Escjava/java;C:/home/projects/JML4/ESCTools/Escjava/mochalib/java";
             String[] args = {
-                   "-noPurityCheck",
+                   "--no-purity-check",
                    "-specspath","$SY"+";"+sp,
                    //"-specspath","C:/home/projects/Specs/trunk/java6;C:/home/projects/Specs/trunk/java5;C:/home/projects/Specs/trunk/java4;C:/home/projects/OpenJML/trunk/OpenJML/runtime",
                    "-classpath", cp,
@@ -129,7 +129,7 @@ public class Jml2Code {
             String[] args = {
                     "-Xmaxerrs","10000",
                     "-Xmaxwarns","10000",
-                   "-noPurityCheck",
+                   "--no-purity-check",
                    "-nullableByDefault",
                    "-specspath","$SY"+";"+sp,
                    //"-specspath","C:/home/projects/Specs/trunk/java6;C:/home/projects/Specs/trunk/java5;C:/home/projects/Specs/trunk/java4;C:/home/projects/OpenJML/trunk/OpenJML/runtime",

@@ -1271,7 +1271,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testMethodWithConstructorNameBug() {
-        main.addOptions("-no-internalSpecs");
+//        main.addOptions("-no-internalSpecs");
         // Tests that without specs, the built-in spec for Object() is still
         // normal_behavior and pure
         helpTCX("tt.TestJava","package tt; \n"

@@ -127,9 +127,7 @@ import com.sun.tools.javac.util.PropagatedException;
  *                  location of specs shipped with the tool </LI>
  * </UL>
  * </UL>
- * In addition, by default, the specs path has $SY appended to it (unless 
- * disabled with -noInternalSpecs); the classpath has the internal runtime
- * library appended to it (unless disabled with -noInternalRuntime).
+ * In addition, by default, the specs path has $SY appended to it.
  * 
  * <P>
  * <B>Mock files</B>
@@ -388,9 +386,9 @@ public class JmlSpecs {
         }
         String dir;
         boolean checkDirectories = JmlOption.isOption(context,JmlOption.CHECKSPECSPATH);
-        if (JmlOption.isOption(context,JmlOption.INTERNALSPECS)) {
+        //if (JmlOption.isOption(context,JmlOption.INTERNALSPECS)) {
             todo.add("$SY");
-        }
+        //}
 
         String cwd = System.getProperty("user.dir");
         

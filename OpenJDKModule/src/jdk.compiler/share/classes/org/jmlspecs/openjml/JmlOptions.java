@@ -160,6 +160,8 @@ public class JmlOptions extends Options {
         if (arg == null) {
             return; // Allow but remove null arguments
         }
+        redo: while (true) {
+            
         if (arg.isEmpty()) {
             remainingArgs.add(arg);
             return;// Allow empty arguments (Pass them on to Java argument processing)
@@ -245,11 +247,17 @@ public class JmlOptions extends Options {
                 s = "-" + s;
             }
             java.util.List<File> todo = new LinkedList<File>();
-            todo.add(new File(res));
             if (JmlOption.DIRS.optionName().equals(s)) {
-                while (iter.hasNext() && (res=iter.next()).length() > 0 && res.charAt(0) != '-') {
+                if (res.length()>0 && res.charAt(0)!='-') {
                     todo.add(new File(res));
+                    while (iter.hasNext() && (res=iter.next()).length() > 0 && res.charAt(0) != '-') {
+                        todo.add(new File(res));
+                    }
+                    if (!iter.hasNext()) res = null;
                 }
+            } else {
+                todo.add(new File(res));
+                res = null;
             }
             Utils utils = Utils.instance(context);
             while (!todo.isEmpty()) {
@@ -265,37 +273,11 @@ public class JmlOptions extends Options {
                     String ss = file.toString();
                     if (utils.hasJavaSuffix(ss)) files.add(ss); // FIXME - if we allow .jml files on the command line, we have to guard against parsing them twice
                 } else {
-                    // FIXME - won't the shell have expanded any wild-card expressions?
-                    try {
-                        String glob = file.toString();
-                        final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(
-                                "glob:"+glob);
-
-                        String location = ""; // System.getProperty("user.dir");
-                        Files.walkFileTree(Paths.get(location), new SimpleFileVisitor<Path>() {
-
-                            @Override
-                            public FileVisitResult visitFile(Path path,
-                                    BasicFileAttributes attrs) throws IOException {
-                                if (pathMatcher.matches(path)) {
-                                    todo.add(path.toFile());
-                                }
-                                return FileVisitResult.CONTINUE;
-                            }
-
-                            @Override
-                            public FileVisitResult visitFileFailed(Path file, IOException exc)
-                                    throws IOException {
-                                return FileVisitResult.CONTINUE;
-                            }
-                        });
-                    } catch (Exception e) {
-                        utils.warning("jml.message", "Exception while enumerating file " + file.toString() + ": " + e.toString());
-                        // continue
-                    }
+                    Utils.instance(context).warning("jml.message", "Ignoring " + file);
                 }
                 o = null;
             }
+            if (res != null) { arg = res; continue redo; }
         } else {
         	if (o.defaultValue() instanceof Boolean) {
         		JmlOption.setOption(context, o, !negate);
@@ -319,6 +301,8 @@ public class JmlOptions extends Options {
             o = null;
         }
         if (o != null) o.check(context, negate);
+        break;
+        }
     }
     
     public void allHelp(boolean details) {
@@ -382,10 +366,10 @@ public class JmlOptions extends Options {
         Utils utils = Utils.instance(context);
 
         options.remove("printArgsToFile");
-        String benchmarkDir = options.get(JmlOption.BENCHMARKS.optionName());
-        if (benchmarkDir != null) {
-            new File(benchmarkDir).mkdir();
-        }
+//        String benchmarkDir = options.get(JmlOption.BENCHMARKS.optionName());
+//        if (benchmarkDir != null) {
+//            new File(benchmarkDir).mkdir();
+//        }
         
         try {
         	utils.jmlverbose = Integer.parseInt(options.get(JmlOption.VERBOSENESS.optionName()));
@@ -431,8 +415,8 @@ public class JmlOptions extends Options {
         if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) commentKeys.add("STRICT");
         commentKeys.add("OPENJML");
 
-        // FIXME - can this be set later, so it is not called everytime the options are set/checked
-        if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) Main.appendRuntime(context);
+//        // FIXME - can this be set later, so it is not called everytime the options are set/checked
+//        if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) Main.appendRuntime(context);
 
 
         Extensions.register(context);

@@ -379,13 +379,11 @@ public class Utils {
     
     public static String identifyOS(Context context) {
         String sp = context == null ? null : JmlOption.value(context, JmlOption.OSNAME);
-        if (sp != null && !sp.isEmpty()) return sp;
-        
-        sp = System.getProperty("os.name");
+        if (sp == null || sp.isEmpty()) sp = System.getProperty("os.name");
         if (sp.contains("mac") || sp.contains("Mac")) return "macos";
         if (sp.contains("lin") || sp.contains("Lin")) return "linux";
         if (sp.contains("win") || sp.contains("Win")) return "windows";
-        return null;
+        return sp;
     }
     
     // The install location must contain the specs (e.g. specs/java. specs/org) and Solvers-macos etc. folders
@@ -1860,7 +1858,7 @@ public class Utils {
     	};
     	log().setDiagnosticFormatter(verifyDiagnosticFormatter);
     	var df2 = JCDiagnostic.Factory.instance(context).setFormatter(verifyDiagnosticFormatter);
-        log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
+        log().mandatoryWarning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
     	log().setDiagnosticFormatter(df);
     	JCDiagnostic.Factory.instance(context).setFormatter(df2);
     	if (!Utils.testingMode) {

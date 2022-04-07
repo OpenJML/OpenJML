@@ -177,7 +177,7 @@ public abstract class EscBase extends JmlTestCase {
 //        main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
 //        main.addOptions("-exec",JmlTestCase.root + "/Solvers/Solvers-macos/z3-4.3.1","-verbose");  // FIXME
-        main.addUncheckedOption("openjml.defaultProver=z3_4");
+        main.addUncheckedOption("org.openjml.defaultProver=z3_4");
         addOptions(options);
         if (solver != null) main.addOptions(JmlOption.PROVER.optionName(),solver);
         specs = JmlSpecs.instance(context);
@@ -186,8 +186,8 @@ public abstract class EscBase extends JmlTestCase {
         ignoreNotes = false;
         print = false;
         args = new String[]{};
-        MethodProverSMT.benchmarkName = 
-                (this.getClass() + "." + testname.getMethodName()).replace("[0]", "").substring(6);
+//        MethodProverSMT.benchmarkName = 
+//                (this.getClass() + "." + testname.getMethodName()).replace("[0]", "").substring(6);
     }
 
     // This helper routine does not add any default command-line options (like setUp does)
@@ -299,7 +299,7 @@ public abstract class EscBase extends JmlTestCase {
         super.tearDown();
         specs = null;
         captureOutput = false;
-        MethodProverSMT.benchmarkName = null;
+//        MethodProverSMT.benchmarkName = null;
     }
 
     

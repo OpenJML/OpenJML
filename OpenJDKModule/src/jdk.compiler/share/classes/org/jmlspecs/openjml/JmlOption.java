@@ -77,9 +77,8 @@ public class JmlOption {
     	}
     };
     public static final JmlOption JML = new JmlOption("-jml",false,true,"When on, the JML compiler is used and all JML constructs are processed; use -no-jml to use OpenJML but ignore JML annotations",null);
-    //public static final JmlOption STRICT = new JmlOption("-strictJML",false,false,"Disables any JML extensions in OpenJML",null);
     public static final String langJML = "jml";
-    public static final String langPlus = "jml+";
+    public static final String langPlus = "openjml";
     public static final JmlOption LANG = new JmlOption("--lang",true,langPlus,"Set the language variant to use: " + langJML + " or " + langPlus + " (the default)",null) {
     	public boolean check(Context context, boolean negate) {
     		JmlOptions options = JmlOptions.instance(context);
@@ -111,9 +110,9 @@ public class JmlOption {
     { map.put("-nonnullByDefault",NONNULLBYDEFAULT); }
     public static final JmlOption NULLABLEBYDEFAULT = new JmlOption("--nullable-by-default",false,false,"Makes references nullable by default",null);
     { map.put("-nullableByDefault",NULLABLEBYDEFAULT); }
-    public static final JmlOption CODE_MATH = new JmlOption("--code-math",true,"safe","Arithmetic mode for Java code (code, safe, bigint)",null);
-    public static final JmlOption SPEC_MATH = new JmlOption("--spec-math",true,"bigint","Arithmetic mode for specifications (code, safe, bigint)",null);
-    public static final JmlOption ARITHMETIC = new JmlOption("--arithmetic-failure",true,"soft","Whether arithmetic warnings are hard, soft or quiet",null) {
+    public static final JmlOption CODE_MATH = new JmlOption("--code-math",true,"safe","Arithmetic mode for Java code (java, safe, bigint)",null);
+    public static final JmlOption SPEC_MATH = new JmlOption("--spec-math",true,"bigint","Arithmetic mode for specifications (java, safe, bigint)",null);
+    public static final JmlOption ARITHMETIC = new JmlOption("--arithmetic-failure",true,"soft","Whether arithmetic warnings are hard, soft (default) or quiet",null) {
           public boolean check(Context context, boolean negate) {
               String n = JmlOption.ARITHMETIC.optionName();
               String mode = JmlOptions.instance(context).get(n);
@@ -124,8 +123,7 @@ public class JmlOption {
                   return false;
               }
               if (negate) {
-                  Utils.instance(context).warning("jml.message","The value of the " + n + " option does not permit a 'no-' prefix");
-                  return false;
+                  JmlOption.putOption(context, JmlOption.ARITHMETIC, JmlOption.ARITHMETIC.defaultValue().toString());
               }
               return true;
           }
@@ -137,13 +135,13 @@ public class JmlOption {
     { map.put("-specspath",SPECS); }
     public static final JmlOption CHECKSPECSPATH = new JmlOption("--check-specs-path",false,true,"When on (the default), warnings for non-existent specification path directories are issued",null);
     { map.put("-checkSpecsPath",CHECKSPECSPATH); }
-    public static final JmlOption PURITYCHECK = new JmlOption("-purityCheck",false,false,"When on (off by default), warnings for use of impure methods from system libraries are issued",null);
-    // FIXME _ keep -purityCheck?
+    public static final JmlOption PURITYCHECK = new JmlOption("--purity-check",false,true,"When on (the default), warnings for use of impure methods from system libraries are issued",null);
+    { map.put("-purityCheck",PURITYCHECK); }
     public static final JmlOption NEWISPURE = new JmlOption("--new-is-pure",false,false,"Allows object allocation in pure expressions",null);
-    public static final JmlOption INTERNALSPECS = new JmlOption("--internal-specs",false,true,"When on (the default), automatically appends the internal specs directory to the specification path",null);
-    { map.put("-internalSpecs",INTERNALSPECS); }
-    public static final JmlOption INTERNALRUNTIME = new JmlOption("--internal-runtime",false,true,"When on (the default), automatically appends the internal JML runtime library to the classpath",null);
-    { map.put("-internalRuntime",INTERNALRUNTIME); }
+//    public static final JmlOption INTERNALSPECS = new JmlOption("--internal-specs",false,true,"When on (the default), automatically appends the internal specs directory to the specification path",null);
+//    { map.put("-internalSpecs",INTERNALSPECS); }
+//    public static final JmlOption INTERNALRUNTIME = new JmlOption("--internal-runtime",false,true,"When on (the default), automatically appends the internal JML runtime library to the classpath",null);
+//    { map.put("-internalRuntime",INTERNALRUNTIME); }
     public static final JmlOption TIMEOUT = new JmlOption("--timeout",true,null,"Number of seconds to limit any individual proof attempt (default infinite)",null);
 
     public static final JmlOption SHOW_NOT_IMPLEMENTED = new JmlOption("--show-not-implemented",false,false,"When on (off by default), warnings about unimplemented constructs are issued",null);
@@ -188,7 +186,7 @@ public class JmlOption {
 //    public static final JmlOption SHOW_OPTIONS = new JmlOption("--show-options",false, "none","When enabled, the values of options and properties are printed, for debugging",null);
 
     // Internal use only
-    public static final JmlOption JMLTESTING = new JmlOption("-jmltesting",false,false,"Only used to generate tracing information during testing",null) {
+    public static final JmlOption JMLTESTING = new JmlOption("-jmltesting",false,false,"Controls output information during testing",null) {
         public boolean check(Context context, boolean negate) {
         	Utils.testingMode = Options.instance(context).getBoolean(JmlOption.JMLTESTING.optionName()); // value is already negated if need be
             return true;
@@ -270,7 +268,7 @@ public class JmlOption {
     	}
     };
     { map.put("-checkFeasibility",FEASIBILITY); }
-    public static final JmlOption BENCHMARKS = new JmlOption("--benchmarks",true,null,"ESC: Collects solver communications",null);
+//    public static final JmlOption BENCHMARKS = new JmlOption("--benchmarks",true,null,"ESC: Collects solver communications",null);
     public static final JmlOption QUANTS_FOR_TYPES = new JmlOption("--typeQuants",true,"auto","ESC: Introduces quantified assertions for type variables (true, false, or auto)",null);
     public static final JmlOption SEED = new JmlOption("--solver-seed",true,"0","ESC: Seed to initialize solver's random number generation",null);
 //    public static final JmlOption MODEL_FIELD_NO_REP = new JmlOption("-modelFieldNoRep",true,"zero","RAC action when a model field has no represents clause (zero,ignore,warn)",null);
@@ -336,10 +334,10 @@ public class JmlOption {
 //    public static final JmlOption INFER_ANALYSIS_TYPES = new JmlOption("-infer-analysis-types", true, "ALL", "Enables specific analysis types. Takes a comma seperated list of analysis types. Support kinds are: REDUNDANT, UNSAT, TAUTOLOGIES, FRAMES, PURITY, and VISIBILITY", null);
 
     // Obsolete
-    public static final JmlOption NOCHECKSPECSPATHX = new JmlOption("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true);
-    public static final JmlOption NOPURITYCHECKX = new JmlOption("-noPurityCheck",false,false,"When on, no warnings for use of impure methods are issued","-purityCheck=false",true);
-    public static final JmlOption NOINTERNALSPECSX = new JmlOption("-noInternalSpecs",false,false,"Disables automatically appending the internal specs directory to the specification path","-internalSpecs=false",true);
-    public static final JmlOption NOINTERNALRUNTIMEX = new JmlOption("-noInternalRuntime",false,false,"Disables automatically appending the internal JML runtime library to the classpath","-internalRuntime=false",true);
+//    public static final JmlOption NOCHECKSPECSPATHX = new JmlOption("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true);
+//    public static final JmlOption NOPURITYCHECKX = new JmlOption("-noPurityCheck",false,false,"When on, no warnings for use of impure methods are issued","-purityCheck=false",true);
+//    public static final JmlOption NOINTERNALSPECSX = new JmlOption("-noInternalSpecs",false,false,"Disables automatically appending the internal specs directory to the specification path","-internalSpecs=false",true);
+//    public static final JmlOption NOINTERNALRUNTIMEX = new JmlOption("-noInternalRuntime",false,false,"Disables automatically appending the internal JML runtime library to the classpath","-internalRuntime=false",true);
     public static final JmlOption NO_RAC_SOURCEX = new JmlOption("-noRacSource",false,false,"RAC: Error messages will not include source information","-racShowSource=false",true);
     public static final JmlOption NO_RAC_CHECK_ASSUMPTIONSX = new JmlOption("-noRacCheckAssumptions",false,false,"RAC: Disables checking that assumptions hold","-racCheckAssumptions=false",true);
     public static final JmlOption NO_RAC_JAVA_CHECKSX = new JmlOption("-noRacJavaChecks",false,false,"RAC: Disables explicit checking of Java language checks","-racJavaChecks=false",true);

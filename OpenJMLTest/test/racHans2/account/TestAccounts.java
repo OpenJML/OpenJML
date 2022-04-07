@@ -10,7 +10,7 @@ import unitTest.TestCase;
  *
  *  Accounts:
  *  
- * java -jar /home/hso/java/SCJ_Workspace/OpenJMLTest/lib/openjml.jar -cp ./bin/ -d /home/hso/java/SCJ_Workspace/OpenJMLTest/bin/ -nowarn -noInternalSpecs -rac -racCheckAssumptions -racJavaChecks -nullableByDefault -showNotImplemented -specspath ./specs ./src/account/Accounts.java
+ * java -jar /home/hso/java/SCJ_Workspace/OpenJMLTest/lib/openjml.jar -cp ./bin/ -d /home/hso/java/SCJ_Workspace/OpenJMLTest/bin/ -nowarn -rac -racCheckAssumptions -racJavaChecks -nullableByDefault -showNotImplemented -specspath ./specs ./src/account/Accounts.java
  *
  */
 public class TestAccounts extends TestCase {
