@@ -18879,7 +18879,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					result = addStat(st);
 				}
 
-			} else if (that.clauseType == ReachableStatement.splitClause) {
+			} else if (that.clauseType == StatementExprExtensions.splitClause) {
 
 				if (currentSplit == null || rac || infer) {
 					// ignore;

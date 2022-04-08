@@ -27,15 +27,12 @@ public class ReachableStatement extends JmlExtension {
 
     public static final String reachableID = "reachable";
     public static final String unreachableID = "unreachable";
-    public static final String splitID = "split";
     public static final String haltID = "halt";
     
     // FIXME - combine this with StatementExprType
     public static final IJmlClauseKind reachableClause = new ExprStatementType(reachableID);
 
     public static final IJmlClauseKind unreachableClause = new ExprStatementType(unreachableID);
-
-    public static final IJmlClauseKind splitClause = new ExprStatementType(splitID);
 
     public static final IJmlClauseKind haltClause = new ExprStatementType(haltID);
 
@@ -85,22 +82,7 @@ public class ReachableStatement extends JmlExtension {
                 }
                 // FIXME - use wrapup
             }
-            JCTree tree = st;
-            if (keyword.equals(splitID) && st.expression == null) {
-                while (parser.jmlTokenClauseKind() == Operators.endjmlcommentKind) parser.nextToken();
-                JCStatement stt = parser.blockStatement().head;
-                if (stt instanceof JmlIfStatement) {
-                    ((JmlIfStatement)stt).split = true;
-                } else if (stt instanceof JmlSwitchStatement) {
-                    ((JmlSwitchStatement)stt).split = true;
-                } else if (stt instanceof IJmlLoop) {
-                    ((IJmlLoop)stt).setSplit(true);
-                } else {
-                    utils.warning(st, "jml.message", "Ignoring out of place split statement");
-                }
-                tree = stt;
-            }
-            return tree;
+            return st;
         }
 
         @Override
