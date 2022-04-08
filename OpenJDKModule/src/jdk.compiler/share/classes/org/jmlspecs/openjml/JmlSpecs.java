@@ -1879,7 +1879,7 @@ public class JmlSpecs {
     }
     
     public boolean isPure(ClassSymbol symbol) {
-        if (utils.hasMod(getSpecsModifiers(symbol), Modifiers.PURE, Modifiers.IMMUTABLE)) return true;
+        if (utils.hasMod(getSpecsModifiers(symbol), Modifiers.PURE)) return true;
 // FIXME - unbounded recursive?        if (symbol.enclClass() != null) return isPure(symbol.enclClass());
         return false;
     }

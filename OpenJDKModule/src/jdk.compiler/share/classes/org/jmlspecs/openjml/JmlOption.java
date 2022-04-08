@@ -13,6 +13,7 @@ import org.jmlspecs.openjml.esc.MethodProverSMT;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
@@ -77,17 +78,20 @@ public class JmlOption {
     	}
     };
     public static final JmlOption JML = new JmlOption("-jml",false,true,"When on, the JML compiler is used and all JML constructs are processed; use -no-jml to use OpenJML but ignore JML annotations",null);
+
     public static final String langJML = "jml";
-    public static final String langPlus = "openjml";
-    public static final JmlOption LANG = new JmlOption("--lang",true,langPlus,"Set the language variant to use: " + langJML + " or " + langPlus + " (the default)",null) {
+    public static final String langOpenJML = "openjml";
+    protected static List<String> jmlVariants = Arrays.asList(new String[]{ langJML, langOpenJML });
+    public static void addVariant(String s) { jmlVariants.add(s); }
+    public static final JmlOption LANG = new JmlOption("--lang",true,langOpenJML,"Set the language variant to use (default 'openjml'): " + Utils.join(" ",jmlVariants),null) {
     	public boolean check(Context context, boolean negate) {
     		JmlOptions options = JmlOptions.instance(context);
             String val = options.get(JmlOption.LANG.optionName());
             if (val == null || val.isEmpty()) {
                 options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
-            } else if(JmlOption.langPlus.equals(val) || JmlOption.langJML.equals(val)) {
+            } else if(JmlOption.langOpenJML.equals(val) || JmlOption.langJML.equals(val)) {
             } else {
-                Utils.instance(context).warning("jml.message","Command-line argument error: Expected '" + JmlOption.langPlus + "', '" + JmlOption.langJML + "' for -lang: " + val);
+                Utils.instance(context).warning("jml.message","Command-line argument error: Expected '" + JmlOption.langOpenJML + "', '" + JmlOption.langJML + "' for -lang: " + val);
                 options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
                 return false;
             }

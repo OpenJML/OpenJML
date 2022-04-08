@@ -77,7 +77,7 @@ JML options:
   --esc                      Enables static checking [--command=esc]
   -java                      When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)
   -jml                       When on, the JML compiler is used and all JML constructs are processed; use -no-jml to use OpenJML but ignore JML annotations
-  --lang                     Set the language variant to use: jml or openjml (the default)
+  --lang                     Set the language variant to use (default 'openjml'): jml openjml
   --verify-exit              Exit code for verification errors
   --extensions               Extension packages and classes (comma-separated qualified names)
   --stop-if-parse-errors     When enabled, stops after parsing if any files have parsing errors

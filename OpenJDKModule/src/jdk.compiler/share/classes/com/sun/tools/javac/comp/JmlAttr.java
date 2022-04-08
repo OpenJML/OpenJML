@@ -1678,10 +1678,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }            
             }
             
-            if (!isPureMethod(msym) &&
-                utils.findMod(mods,modToAnnotationSymbol.get(IMMUTABLE))!=null) {
-                utils.error(javaMethodTree, "jml.message", "Methods of an immutable class must be pure");
-            }
+//            if (!isPureMethod(msym) &&
+//                utils.findMod(mods,modToAnnotationSymbol.get(IMMUTABLE))!=null) {
+//                utils.error(javaMethodTree, "jml.message", "Methods of an immutable class must be pure");
+//            }
 
             
             // Check rules about heap_free
