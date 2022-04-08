@@ -1202,14 +1202,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             ListBuffer<JCStatement> check3 = pushBlock();
             addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_pre, Strings.preconditionFeasCheckDescription);
-             JCStatement preconditionAssumeCheck = popBlock(methodDecl, check3);
+            addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_preOnly, Strings.preconditionFeasCheckDescription);
+            JCStatement preconditionAssumeCheck = popBlock(methodDecl, check3);
             addStat(initialStatements, preconditionAssumeCheck);
 
             addStat(comment(methodDecl, "Method Body", null));
 
 			if (methodDecl.body != null) {
 				continuation = Continuation.CONTINUE;
-				if (currentSplit.equals(Strings.feas_preOnly)) {
+		        if (feasibilityContains(Strings.feas_preOnly) && !feasibilityContains("debug")) {
 					JCStatement s = M.at(methodDecl).JmlExpressionStatement(ReachableStatement.haltID,
 							ReachableStatement.haltClause, Label.IMPLICIT_ASSUME, null);
 					convert(s);
@@ -1310,6 +1311,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return null;
 		} finally {
 			if (continuation != Continuation.CONTINUE) {
+			    System.out.println("ADDING FINAL HALT");
 				addStat(M.at(methodDecl).JmlExpressionStatement(ReachableStatement.haltID,
 						ReachableStatement.haltClause, null, null));
 			}
@@ -2210,11 +2212,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public boolean feasibilityContains(String i) {
         if (feasibilities == null) {
             String values = JmlOption.value(context,JmlOption.FEASIBILITY);
-            if (values == null || values.equals("none")) return false;
+            if (values == null) values = "";
+            feasibilities = values.split(",");
+            if (values.isEmpty() || values.equals("none")) return false;
             else if (values.equals(Strings.feas_debug)) return true;
             else if (values.equals(Strings.feas_all) && !Strings.feas_debug.equals(i)) return true;
-            feasibilities = values.split(",");
         }
+        if (feasibilities.length == 0 || feasibilities[0].equals("none")) return false;
+        if (feasibilities[0].startsWith(Strings.feas_debug)) return true;
+        if (feasibilities[0].equals(Strings.feas_all) && !Strings.feas_debug.equals(i)) return true;
         //System.out.println("FC " + i + " " + Utils.join(",", feasibilities));
         for (String k: feasibilities) {
             if (i.equals(k)) return true;

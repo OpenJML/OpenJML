@@ -55,6 +55,8 @@ public class escfeasibility extends EscBase {
                 );
     }
 
+    // This is not a great test of debug as it does not show all the points actually tested
+    // FIXME: Improve names of program points and locations
     @Test
     public void testPreconditionD() {
         main.addOptions("--check-feasibility=debug","-method=m");
@@ -63,9 +65,13 @@ public class escfeasibility extends EscBase {
                 package tt;
                 public class TestJava {
                     public void m(int i) {
+                        //@ assume i > 0 && i < 0;
                     }
                 }
                 """
+                ,"/tt/TestJava.java:4: warning: There is no feasible path to program point Extra-Assume in method tt.TestJava.m(int)",26
+                ,"/tt/TestJava.java:4: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.m(int)",13
+                ,"/tt/TestJava.java:3: warning: There is no feasible path to program point at program exit in method tt.TestJava.m(int)",17
                 ,"/tt/TestJava.java: warning: There is no feasible path to program point Extra-Assert in method tt.TestJava.m(int)",-1
                 );
     }
@@ -607,7 +613,7 @@ public class escfeasibility extends EscBase {
                               + "     //@ assert i != i;\n"
                               + "    }\n"
                               + "  //@ requires i > 0;\n"
-                              + "  //@ ensures \\result > 0;\n"
+                              + "  //@ ensures \\result > 0;\n" // ERROR
                               + "  public int mmm(int i) {\n"
                               + "     return -i;\n"
                               + "    }\n"
@@ -641,10 +647,7 @@ public class escfeasibility extends EscBase {
                                   + "     return -i;\n"
                                   + "    }\n"
                                   + "}"
-                                  ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m",10
                                   ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.mm(int)",15
-                                  ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method mmm",6
-                                  ,"/tt/TestJava.java:14: warning: Associated declaration",7
                                   );
         }
 

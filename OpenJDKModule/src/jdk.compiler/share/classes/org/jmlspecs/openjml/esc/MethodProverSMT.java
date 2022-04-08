@@ -281,9 +281,9 @@ public class MethodProverSMT {
         int skips = 0;
         Translations translations = jmlesc.assertionAdder.methodBiMap.getf(methodDecl);
         for (String splitkey: translations.keys()) {
-        if (splitkey.equals(Strings.feas_preOnly)) {
-            if (proofResultAccumulated.isSat()) continue;
-        }
+//        if (splitkey.equals(Strings.feas_preOnly)) {
+//            if (proofResultAccumulated.isSat()) continue;
+//        }
         if (!splitlist.isEmpty() && !java.util.Arrays.stream(splits).anyMatch(s -> splitkey.equals(s))) {
             utils.note(false,"Skipping proof attempt for split " + splitkey);
             skips++;
@@ -491,9 +491,9 @@ public class MethodProverSMT {
                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
                 
                 boolean doit = false;
-                if (Strings.feas_preOnly.equals(splitkey) && Strings.feasibilityContains(Strings.feas_preOnly,context)) {
-                    doit = true;
-                }
+//                if (Strings.feas_preOnly.equals(splitkey) && Strings.feasibilityContains(Strings.feas_preOnly,context)) {
+//                    doit = true;
+//                }
                 if (doit || !Strings.feasibilityContains(Strings.feas_none,context)) {
                     boolean allFeasibilities = Strings.feasibilityContains(Strings.feas_all,context) || Strings.feasibilityContains(Strings.feas_debug,context);
                     if (usePushPop) {
@@ -583,7 +583,7 @@ public class MethodProverSMT {
                         if (infeasible) {
                             utils.progress(0,1,fileLocation + msg2 + "infeasible" + (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration)));
                             if (Strings.preconditionFeasCheckDescription.equals(description)) {
-                            	utils.verify(stat, "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
+                            	utils.warning(stat, "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
                                 // If the preconditions are inconsistent, all paths will be infeasible
                                 break;
