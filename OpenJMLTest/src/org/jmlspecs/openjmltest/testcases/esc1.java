@@ -1723,11 +1723,18 @@ public class esc1 extends EscBase {
     @Test
     public void testMethodCallsWithExceptions() {
         helpTCX("tt.TestJava",
-                "package tt; \n" + "/*@ code_bigint_math*/  public class TestJava { \n" + "  public static int k;\n"
-                        + "  //@ requires i >= 0;\n" + "  //@ assigns k;\n" + "  //@ ensures k == 10;\n"
+                "package tt; \n" 
+                        + "/*@ code_bigint_math*/  public class TestJava { \n" 
+                        + "  public static int k;\n"
+                        + "  //@ requires i >= 0;\n" 
+                        + "  //@ assigns k;\n" 
+                        + "  //@ ensures k == 10;\n"
                         + "  //@ signals (Exception e) k<0; signals_only Exception;\n"
-                        + "  public void m1(int i) throws RuntimeException {\n" + "    m(i);\n" + "    k = 10;\n"
-                        + "  }\n" + "  //@ requires i >= 0;\n" + "  //@ assigns k;\n" + "  //@ ensures k == 10;\n"
+                        + "  public void m1(int i) throws RuntimeException {\n" 
+                        + "    m(i);\n" 
+                        + "    k = 10;\n"
+                        + "  }\n" 
+                        + "  //@ requires i >= 0;\n" + "  //@ assigns k;\n" + "  //@ ensures k == 10;\n"
                         + "  //@ signals (Exception e) k==-11;\n" + "  //@ signals_only Exception;\n"
                         + "  public void m2(int i) {\n" + "    m(1);\n" + "    m(2);\n" + "    k = 10;\n" // Line
                                                                                                             // 20

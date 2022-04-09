@@ -259,6 +259,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         a \pre (or an \old without a label) */
     /*@non_null*/ protected VarMap premap;
     
+    
+    List<VarMap> maps = new LinkedList<>();
+    void pushMap() { maps.add(0, currentMap.copy()); }
+    void popMap() { currentMap = maps.get(0); maps.remove(0); }
+
+    
     /** The variable that keeps track of heap incarnations */
     protected JCIdent heapVar;
     
@@ -535,7 +541,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         currentMap = blockmaps.get(b);
         if (currentMap == null) currentMap = initMap(currentBlock);
         else log.error("jml.internal","The currentMap is unexpectedly already defined for block " + b.id.name);
-        // The check above is purely defensive
+        //System.out.println("BLOCK " + b.id() + " " + currentMap);
+      // The check above is purely defensive
     }
     
     /** Files away a completed block, adding it to the blocksCompleted list and
@@ -1060,12 +1067,16 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 case preID:
                 case pastID:
                 {
+                    //System.out.println("OLD " + that);
+                    //if (that.args.get(0) instanceof JCIdent id) { System.out.println("  ID " + id + " " + id.sym + " " + id.name); }
                     VarMap savedMap = currentMap;
                     try {
                         Name labelArg = that.args.size() == 1 ? JmlAttr.instance(context).preLabel : ((JCIdent)that.args.get(1)).name;
                         Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).name;
                         if (label != labelArg) utils.warning(that, "jml.message", "Unexpected mismatched state label names: " + labelArg + " " + label);
                         currentMap = labelmaps.get(label);
+                        //System.out.println("   MAP TO USE " + currentMap);
+                        //System.out.println("   CURRENT MAP " + savedMap);
                         if (currentMap == null) {
                             // When method axioms are inserted they can appear before the label,
                             // in which case control flow comes here. SO we are counting on proper
@@ -1564,6 +1575,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             // This is essential to how counterexample path construction works
             currentBlock.statements.add(that);
         } else if (that.clauseType == assumeClause || that.clauseType == assertClause || that.clauseType == checkClause) {
+            //System.out.println("BBTRANSLATING " + that);
             JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.clauseType.keyword(),that.clauseType,that.label,convertExpr(that.expression));
             st.id = that.id;
             st.optionalExpression = convertExpr(that.optionalExpression);
@@ -1820,7 +1832,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             } else if (currentMap != null) { // FIXME - why would currentMap ever be null?
                 Name newname = currentMap.getCurrentName(vsym);
                 if (that.name != vsym.name && newname != that.name) {
-                    utils.warning(that, "jml.internal", "Double rewriting of ident: " + vsym.name + " " + that.name);
+                    utils.error(that, "jml.internal", "Double rewriting of ident: " + vsym.name + " " + that.name + " " + newname);
                 }
                 //if (that.toString().contains("dxyz")) System.out.println("VISITIDENT " + that + " " + vsym + " " + vsym.hashCode() + " " + newname);
 

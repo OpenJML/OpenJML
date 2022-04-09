@@ -296,7 +296,7 @@ public class escall2 extends EscBase {
     public void testNNAssign() {
 //        Assume.assumeTrue(runLongTests);
         // Use noInternalSpecs to help yices, which cannot handle the quantified statements in String specs
-//        main.addOptions("-no-internalSpecs");
+        //main.addOptions("--method=m4","-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -368,6 +368,7 @@ public class escall2 extends EscBase {
     public void testNNAssign2() {
 //        Assume.assumeTrue(runLongTests);
 //        main.addOptions("-no-internalSpecs");
+ //       main.addOptions("-method=TestJava","-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"

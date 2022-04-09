@@ -503,19 +503,31 @@ public class MethodProverSMT {
                     }
 
                     java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.getFeasibilityChecks(methodDecl, splitkey);
-                    int feasibilityCheckNumber = 0;
+                    startFeasibilityCheck = 0;
+                    if (Strings.feasibilityContains(Strings.feas_debug,context)) {
+                        String values = JmlOption.value(context,JmlOption.FEASIBILITY);
+                        if (values != null && values.length() > "debug:".length()) {
+                            String sn = values.substring("debug:".length());
+                            try {
+                                startFeasibilityCheck = Integer.valueOf(sn);
+                            } catch (NumberFormatException e) {
+                                utils.warning("jml.message","debug feaqsibility startu=ing number has ba format: " + sn);
+                            }
+                        }
+                    }
                     String scriptString = program.toString();
                     if (checks != null) for (JmlStatementExpr stat: checks) {
                         if (aborted) {
                         	throw new Main.JmlCanceledException("Aborted by user");
                         }
                         
-                        ++feasibilityCheckNumber;
-                        //System.out.println("FEAS TRIAL " + usePushPop + " " + feasibilityCheckNumber + " " +  stat.associatedPos + " " + stat.description);
-                        if (feasibilityCheckNumber != stat.associatedPos) {
-                            utils.note(false, "Mismatched feasibilty number: "+ feasibilityCheckNumber + " vs. " + stat.associatedPos);
-                        }
+                        int feasibilityCheckNumber = stat.associatedPos;
+
                         if (feasibilityCheckNumber < startFeasibilityCheck) continue;
+                        //System.out.println("FEAS TRIAL " + usePushPop + " " + feasibilityCheckNumber + " " +  stat.associatedPos + " " + stat.description);
+//                        if (feasibilityCheckNumber != stat.associatedPos) {
+//                            utils.note(false, "Mismatched feasibility number: "+ feasibilityCheckNumber + " vs. " + stat.associatedPos);
+//                        }
                         if (prevErrors != log.nerrors) break;
                         //System.out.println("FEAS " + usePushPop + " " + feasibilityCheckNumber + " " + scriptString.contains(Strings.feasCheckVar + " != " + feasibilityCheckNumber + ")"));
                         if (!scriptString.contains(Strings.feasCheckVar + " != " + feasibilityCheckNumber + ");")) {

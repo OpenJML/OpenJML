@@ -323,6 +323,7 @@ public class Strings {
             for (String i: feasibilities) {
                 if (i.equals(item)) continue outer;
             }
+            if (item.startsWith(feas_debug + ":")) continue outer;
             return item; // bad string
         }
         return null;
@@ -332,7 +333,7 @@ public class Strings {
         String values = JmlOption.value(context,JmlOption.FEASIBILITY);
         if (i.equals(values)) return true;
         if (i.equals("none")) return false;
-        if (values.equals("debug") || values.equals("all")) return true;
+        if (values.startsWith("debug") || values.equals("all")) return true;
         String[] allowed = values.split(",");
         for (String k: allowed) {
             if (i.contains(k)) {
