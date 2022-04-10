@@ -1839,7 +1839,7 @@ public class escnew extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
                 +"   int k;\n"
-                +"  //@ ensures true; pure \n"
+                +"  //@ reads \\nothing; ensures true; pure \n"
                 +"  public int mpure(int i) { return i+17; }\n"
                 
                 +"  public void mm(int i) { \n"

@@ -3583,8 +3583,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                                        JCExpression e = treeutils.makeEquality(rep.pos,id,convertExpr(rep.expression));
 //                                        addAssume(that,Label.IMPLICIT_ASSUME,e);
 										// result = eresult = id;
+									    //System.out.println("CONVERTING " + copy + " " + translatedSelector + " " + currentEnv.currentReceiver);
 										JCExpression translatedExpr = convertExpr(copy);
-										// System.out.println("CONVERTED REP " + r);
+										//System.out.println("CONVERTED REP " + translatedExpr);
 										translatedExpr = addImplicitConversion(translatedExpr, rep.ident.type, translatedExpr);
 										JCExpression sel = treeutils.makeSelect(that.pos, translatedSelector, varsym);
 										JCExpression oldsel = sel;
@@ -3595,6 +3596,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											oldsel = ee;
 										}
 										JCExpression e = treeutils.makeBinary(that.pos, JCTree.Tag.EQ, oldsel, translatedExpr);
+                                        //System.out.println("CONVERTED ASSUMPTION " + e);
 										// FIXME - should not issue this when in a qiuantified expression
 										// FIXME - whjy is splitEAxpressions false?
 										addAssume(that, Label.IMPLICIT_ASSUME, e); // FIXME - use a label aboiut
@@ -11016,7 +11018,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         //System.out.println("HAVOCAXIOM " + calleeMethodSym + " " + hc + " " + args);
 	    try {
 	        var heapInfo = currentEnv.heap;
-	        //System.out.println("CALLING FOR " + calleeMethodSym + " " + hc + " " + heapInfo.heapID + " " + heapInfo.previousHeaps);
+	        //System.out.println(" CALLING FOR " + calleeMethodSym + " " + hc + " " + heapInfo.heapID + " " + heapInfo.previousHeaps);
 	        if (heapInfo.previousHeaps.isEmpty()) return;
 	        for (var oldHeapInfo: heapInfo.previousHeaps) {
 	            //System.out.println("   OLDHC " + oldHeapInfo.heapID + " " + hc);
@@ -11028,7 +11030,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                // No instance of the method in this old heap
 	                // So there is nothing to compare against.
 	                // FIXME - we could keep going back until we find a match -- probably need to do this eventually
-	                return;
+	                continue;
 	            }
 	            //	        System.out.println("HEAPFUCNAXIOM " + calleeMethodSym + " " + hc + " " + newCalleeSym + " " + oldHeapInfo.heapID + " " + oldMethodSym);
 	            ListBuffer<JCVariableDecl> quantDecls = new ListBuffer<>();
@@ -14565,7 +14567,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitSelect(JCFieldAccess that) {
-	    boolean print = false;//(that.toString().contains("s1") || that.toString().contains("s2")) && that.toString().contains("charArray");
+	    boolean print = false;//that.toString().contains("rep");
         if (print) System.out.println("VISITSELECT-A " + that );
 		JCExpression selected;
 		Symbol s = convertSymbol(that.sym);
@@ -14651,8 +14653,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// The following method sets result and eresult
 			if (s != null) {
 			    // copying the untranslated that.selected here because it is converted in addRepresentsAxioms and
-			    // that.selected may be wrapped in \old wrappers
-			    addRepresentsAxioms((ClassSymbol) type.tsym, s, that, copy(that.selected));
+			    // that.selected may be wrapped in \old wrappers -- really?
+			    addRepresentsAxioms((ClassSymbol) type.tsym, s, that, selected);
 			}
 			// The tsym can be a TypeVar
 			result = eresult = newfa;
@@ -14822,7 +14824,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return;
 		}
 		
-		//if (that.name.toString().contains("dest") || that.name.toString().contains("src")) System.out.println("VISIT IDENT " + that + " " + paramActuals_);
+//		if (that.name.toString().contains("result") || that.name.toString().contains("rep") || that.name.toString().contains("value")) {
+//		    System.out.println("VISIT IDENT " + that + " " + paramActuals_);
+//		}
 
 		//		System.out.println("VISIT-IDENT " + that + " " + oldenv); 
 		if (utils.rac && currentEnv.stateLabel != null && utils.isExprLocal(that.sym.flags())) {
@@ -15151,7 +15155,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (esc && splitExpressions && !(eresult instanceof JCIdent) && sym instanceof VarSymbol
 					&& !(eresult instanceof JCLambda) && !(eresult instanceof JCMemberReference)) {
 				// Just for tracing
-				JCIdent nm = newTemp(eresult);
+			    //System.out.println("ABOUT TO CALL newTemp " + eresult + " " + currentEnv.currentReceiver); if (eresult.toString().contains("\\result")) Utils.dumpStack();
+			    JCIdent nm = newTemp(eresult);
 				saveMapping(that, nm);
 				// Can't set eresult = nm generally because this ident might be an LHS.
 				if (eresult instanceof JmlMethodInvocation)
@@ -20896,7 +20901,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public MethodSymbol makeAndSaveNewMethodName(MethodSymbol msym, Type returnType, boolean isFunction,
 			JmlMethodSpecs calleeSpecs, int calleeDeclPos, List<Type> newParamTypes) {
-	    if (msym.toString().contains("'")) { System.out.println("ALREADY TRANSLATED SYM " + msym ); Utils.dumpStack(); }
 
 		Integer hc = currentEnv.stateLabel == null ? heapCount : labelPropertiesStore.get(currentEnv.stateLabel).heapCount;
 		Map<Symbol, MethodSymbol> mm = heapMethods.get(hc);

@@ -230,9 +230,9 @@ public class escstrings extends EscBase {
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",27
-                ,"$SPECS/java/lang/String.jml:333: warning: Associated declaration",30
-                ,"$SPECS/java/lang/CharSequence.jml:79: warning: Precondition conjunct is false: 0 <= index < charArray.length",34
-                );
+                ,"$SPECS/java/lang/String.jml:327: warning: Associated declaration",30
+                ,optional("$SPECS/java/lang/CharSequence.jml:65: warning: Precondition conjunct is false: 0 <= index < chars.length",34)
+                );  // FIXME - why does the above line sometimes happen and sometimes not? Or is callstacks not working
     }
 
     /** Tests String charAt operation */
@@ -273,8 +273,8 @@ public class escstrings extends EscBase {
                 ,anyorder(
                         seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m",12)
                         ,seq(seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43
-                             ,"$SPECS/java/lang/String.jml:333: warning: Associated declaration",30)
-                             ,optional("$SPECS/java/lang/CharSequence.jml:79: warning: Precondition conjunct is false: 0 <= index < charArray.length",34)
+                             ,"$SPECS/java/lang/String.jml:327: warning: Associated declaration",30)
+                             ,optional("$SPECS/java/lang/CharSequence.jml:65: warning: Precondition conjunct is false: 0 <= index < chars.length",34)
                             )
                                 		
                         )
