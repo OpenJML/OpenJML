@@ -3131,12 +3131,12 @@ public class SMTTranslator extends JmlTreeScanner {
 
         // convert num_of to the equivalent sum expression 
         if (that.kind.keyword() == QuantifiedExpressions.qnumofID) {
-            range = F.fcn(F.symbol("and"), range, value);
+            range = F.fcn(andSym, range, value);
             value = F.numeral(1);
         }
         
         if (params.size() != 1) {
-            notImplWarn(that, "JML Quantified expression cannot multiple or 0 parameters");
+            notImplWarn(that, "JML Quantified expression cannot have multiple or 0 parameters");
             return null;
         }
 
@@ -3147,22 +3147,54 @@ public class SMTTranslator extends JmlTreeScanner {
 
         // construct a list of parameters for this expression
         List<IDeclaration> newParams = new LinkedList<IDeclaration>();
-        newParams.add(F.declaration(lo, x.sort()));
         newParams.add(params.get(0));
+        newParams.add(F.declaration(lo, x.sort()));
         for (IExpr.IDeclaration decl: quantifierScope) {
             quantParams.add(decl.parameter());
             newParams.add(decl);
         }
 
         // append to front the lo and hi arguments
-        quantParams.add(0, lo);
-        quantParams.add(1, F.fcn(negSym, hi, F.numeral(1)));
+        quantParams.add(0, F.fcn(F.symbol("+"), hi, F.numeral(1)));
+        quantParams.add(1, lo);
 
-        // main quantifier function declaration
+
+        // comment this in for declare_fun + assert forall
+        // List<ISort> paramSorts = new LinkedList<>();
+        // List<IExpr> paramArgs = new LinkedList<>();
+        // for (IDeclaration decl: newParams) {
+        //     paramSorts.add(decl.sort());
+        //     paramArgs.add(decl.parameter());
+        // }
+
+        // commands.add(new C_declare_fun(quantN, paramSorts, returnType));
+        // commands.add(
+        //     new C_assert(
+        //         F.forall(
+        //             newParams,
+        //             F.fcn(eqSym, 
+        //                 F.fcn(quantN, paramArgs),
+        //                 F.fcn(
+        //                     F.symbol("ite"), F.fcn(F.symbol("<"), hi, lo),
+        //                         baseCase,
+        //                         F.fcn(isProduct ? F.symbol("*") : F.symbol("+"),
+        //                                 F.fcn(quantN, quantParams),
+        //                                 F.fcn(F.symbol("ite"), range,
+        //                                     value,
+        //                                     baseCase
+        //                                 )
+        //                         )
+        //                 )
+        //             )
+        //         )
+        //     )
+        // );
+
+        // comment this in for define_fun_rec
         ICommand cmd = new C_define_fun_rec(
                 quantN, newParams, returnType,
                 F.fcn(
-                    F.symbol("ite"), F.fcn(F.symbol("<"), hi, lo),
+                    F.symbol("ite"), F.fcn(F.symbol("<"), lo, hi),
                         baseCase,
                         F.fcn(isProduct ? F.symbol("*") : F.symbol("+"),
                                 F.fcn(quantN, quantParams),
@@ -3233,10 +3265,10 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = F.exists(params,value);
                 }
                 break;
-            case QuantifiedExpressions.qmaxID:
-            case QuantifiedExpressions.qminID:
-                constructMinMaxQuantifiers(that, range, value, params);
-                break;
+            // case QuantifiedExpressions.qmaxID:
+            // case QuantifiedExpressions.qminID:
+            //     constructMinMaxQuantifiers(that, range, value, params);
+            //     break;
             case QuantifiedExpressions.qsumID:
             case QuantifiedExpressions.qproductID:
             case QuantifiedExpressions.qnumofID:
