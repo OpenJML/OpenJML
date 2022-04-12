@@ -2981,7 +2981,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								// callee is method - invariants on pre and post
 								if (contextIsStatic && !clauseIsStatic)
 									continue;
-								if (clauseIsFinal && !assume)
+								if (clauseIsFinal && !assume && !isReturn)
 									continue;
 								if (clauseIsFinal && !contextIsStatic && clauseIsStatic)
 									continue;
@@ -11030,7 +11030,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                // No instance of the method in this old heap
 	                // So there is nothing to compare against.
 	                // FIXME - we could keep going back until we find a match -- probably need to do this eventually
-	                continue;
+	                return;
 	            }
 	            //	        System.out.println("HEAPFUCNAXIOM " + calleeMethodSym + " " + hc + " " + newCalleeSym + " " + oldHeapInfo.heapID + " " + oldMethodSym);
 	            ListBuffer<JCVariableDecl> quantDecls = new ListBuffer<>();
@@ -14594,6 +14594,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		}
 		if (esc && sym == syms.lengthVar && jmltypes.isArray(trexpr.type)) {
+	        if (print) System.out.println("VISITSELECT-ARRAYLIKE " + that + " " + trexpr);
 			JCExpression ntrExpr = copy(trexpr);
 			JCExpression newfaa = treeutils.makeSelect(that.pos, ntrExpr, sym);
 			JCExpression bina = treeutils.makeBinary(that, JCTree.Tag.LE, treeutils.intleSymbol,
@@ -15257,7 +15258,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				int len = str.length();
 				ClassSymbol chseq = ClassReader.instance(context)
 						.enterClass(names.fromString("java.lang.CharSequence"));
-				Symbol chs = chseq == null ? null : utils.findMember(chseq, "charArray");
+				Symbol chs = chseq == null ? null : utils.findFieldMember(chseq, "charArray");
 				// chs is null if we don't have specs for CharSequence,
 				// or if the charArray model field has been renamed
 				if (chs != null) {

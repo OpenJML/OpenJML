@@ -619,13 +619,12 @@ public class Utils {
 //        return false;
 //    }
     
-    /** Finds a member of a class with a given name; note that this works for methods only
-     * if the method is uniquely named.
+    /** Finds a field of a class with a given name.
      */
-    public Symbol findMember(TypeSymbol sym, String name) {
+    public Symbol findFieldMember(TypeSymbol sym, String name) {
         Name n = Names.instance(context).fromString(name);
         for (Symbol s: sym.getEnclosedElements()) {
-            if (s.name.equals(n)) return s;
+            if (s instanceof VarSymbol && s.name.equals(n)) return s;
         }
         return null;
     }

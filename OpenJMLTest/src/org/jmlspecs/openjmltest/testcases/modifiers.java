@@ -1249,7 +1249,7 @@ public class modifiers extends TCBase {
     @Test public void testBinaryMods() {
         addMockFile("$A/java/util/Locale.jml",
                 "package java.util; final public class Locale implements Cloneable, java.io.Serializable {\n"
-               +"//@ spec_public spec_protected\n"
+               +"//@ spec_public spec_protected pure\n"
                +"public static Locale getDefault();}");
                  helpTCF("A.java","public class A{ A(int i) {} \n" +
                                   "  java.util.Locale m() { return java.util.Locale.getDefault(); } }"
@@ -1262,7 +1262,7 @@ public class modifiers extends TCBase {
     @Test public void testBinaryModsNN() {
         addMockFile("$A/java/util/Locale.jml",
                 "package java.util; final public /*@ non_null */ class Locale implements Cloneable, java.io.Serializable {\n"
-               +"public static Locale getDefault();}");
+               +"public static /*@ pure */ Locale getDefault();}");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                          "  java.util.Locale m() { return java.util.Locale.getDefault(); } }"
                 ,"/$A/java/util/Locale.jml:1: error: This JML modifier is not allowed for a type declaration",37
@@ -1272,7 +1272,7 @@ public class modifiers extends TCBase {
     @Test public void testBinaryModsOK() {
         addMockFile("$A/java/util/Locale.jml",
                 "package java.util; final public class Locale implements Cloneable, java.io.Serializable {\n"
-                +"public static Locale getDefault();}");
+                +"public static /*@ pure */ Locale getDefault();}");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  java.util.Locale m() { return java.util.Locale.getDefault(); } }"
                 );

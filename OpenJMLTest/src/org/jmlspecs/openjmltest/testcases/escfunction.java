@@ -58,7 +58,7 @@ public class escfunction extends EscBase {
                 );
     }
 
-    
+    // FIXME _ Why does this test often fail while testMethodAxioms2a is OK
     @Test
     public void testMethodAxioms2() { 
         //main.addOptions("-show","-method=mm");
@@ -72,11 +72,64 @@ public class escfunction extends EscBase {
                 
                 +"  //@ pure\n"
                 +"  public void mm() {\n"
-                +"  //@ assert !(\\forall int k; 3<k && k <11; m(k));\n"
+                +"  //@ assert !(\\forall int k; 3<k && k <11; m(k));\n"// Should be OK because m(10) is false
                 +"  }\n"
                 +"}"
                 );
     }
+
+    @Test
+    public void testMethodAxioms2F() {
+        helpTCX("tt.TestJava",
+            "package tt; \n" 
+                + "public class TestJava  { \n" 
+                + "  //@ normal_behavior \n"
+                + "  //@ ensures \\result == (0 < i < 10);\n" 
+                + "  //@ pure heap_free\n"  // The difference from the above is heap_free -- why does that matter?
+                + "  //@ model public static boolean m(int i);\n"
+
+                + "  //@ pure\n" 
+                + "  public void mm() {\n"
+                + "  //@ assert !(\\forall int k; 3 < k < 11; m(k));\n" // Should be OK because m(10) is false
+                + "  }\n" + "}"
+    //    ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method mm", 7
+                );
+    }
+
+    @Test
+    public void testMethodAxioms2a() {
+        helpTCX("tt.TestJava",
+            "package tt; \n" 
+                + "public class TestJava  { \n" 
+                + "  //@ normal_behavior \n"
+                + "  //@ ensures \\result == (0 < i < 10);\n" 
+                + "  //@ pure\n"
+                + "  //@ model public boolean m(int i);\n"
+
+                + "  //@ pure\n" 
+                + "  public void mm() {\n"
+                + "  //@ assert (\\forall int k; 3 < k < 11; m(k));\n" // ERROR because m(10) is false
+                + "  }\n" + "}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method mm", 7
+                );
+       }
+
+    @Test
+    public void testMethodAxioms2b() {
+        helpTCX("tt.TestJava",
+            "package tt; \n" 
+                + "public class TestJava  { \n" 
+                + "  //@ normal_behavior \n"
+                + "  //@ ensures \\result == (0 < i < 10);\n" 
+                + "  //@ pure\n"
+                + "  //@ model public boolean m(int i);\n"
+
+                + "  //@ pure\n" 
+                + "  public void mm() {\n"
+                + "  //@ assert (\\forall int k; 3 < k < 10; m(k));\n" // OK
+                + "  }\n" + "}"
+                );
+}
 
     @Test
     public void testFunction() { 
