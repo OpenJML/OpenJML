@@ -860,7 +860,7 @@ public class escnew3 extends EscBase {
                   "package tt; \n"
                 + "public class TestJava { \n"
                 + "  public int k;\n"
-                + "  /*@ ensures \\result == k; pure */ public int mm() { return k; }\n"
+                + "  /*@ public normal_behavior ensures \\result == k; pure */ public int mm() { return k; }\n"
                 + "  //@ requires k == 10;\n"
                 + "  public void m() {\n"
                 + "     a:{}\n"
@@ -1046,7 +1046,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
-                + "  //@ ensures \\result == i>=0; \n"
+                + "  //@ public normal_behavior ensures \\result == i>=0; \n"
                 + "  //@ pure\n"
                 + "  public boolean bb(int i) { return i >= 0; }\n"
                 + "  public void foo() { int j;\n"
@@ -1064,7 +1064,7 @@ public class escnew3 extends EscBase {
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
-                + "  //@ pure\n"
+                + "  //@ public normal_behavior pure\n"
                 + "  public boolean bb(int i) { return i >= 0; }\n"
                 + "  public void foo() { int j;\n"
                 + "     //@ assert (\\forall int i; 0<=i ; bb(i) : );\n"

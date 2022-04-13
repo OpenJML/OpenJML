@@ -1677,7 +1677,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     allAllowed(mods.annotations,allowedConstructorAnnotations,"constructor declaration");
                 }            
             }
-            
+                        
 //            if (!isPureMethod(msym) &&
 //                utils.findMod(mods,modToAnnotationSymbol.get(IMMUTABLE))!=null) {
 //                utils.error(javaMethodTree, "jml.message", "Methods of an immutable class must be pure");
@@ -3822,9 +3822,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case "recommends":
                 t = tree.clauseKind.typecheck(this,tree,env);
                 break;
+            case "diverges":
+                if (isPureMethod(jmlenv.enclosingMethodDecl.sym) && !treeutils.isFalseLit(tree.expression)) {
+                    log.error(tree.pos, "jml.message", "pure methods must be terminating (explicitly diverges false)");
+                }
+                // fall-through
             case "requires":
             case "ensures":
-            case "diverges":
             case "when":
             case "returns":
                 t = attribExpr(tree.expression, env, syms.booleanType);
@@ -4194,6 +4198,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     jmlenv = jmlenv.pop();
                 }
             } 
+//            if (isPureMethod(jmlenv.enclosingMethodDecl.sym)) {
+//                if (tree.token != exceptionalBehaviorClause && !isEffectivelyNormal(tree)) {
+//                    utils.warning(tree,  "jml.message", "this specification case of a pure method is not effectively normal and will be ignored when the method is used in a specification");
+//                }
+//            }
             
         } finally {
         	// FIXME - why might env be null?
@@ -8579,6 +8588,26 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // FIXME - what about covariant return types ?????
 
         // FIXME - check that JML annotations are ok
+    }
+    
+    // Must be either normal_behavior
+    // or have a signals_only \nothing clause
+    // or have a signals (Exception) false clause
+    public boolean isEffectivelyNormal(JmlSpecificationCase scase) {
+        if (scase.token == exceptionalBehaviorClause) return false;
+        return true;
+//        if (scase.token == normalBehaviorClause) return true;
+//        for (var clause: scase.clauses) {
+//            if (clause.clauseKind == SignalsOnlyClauseExtension.signalsOnlyClauseKind) {
+//                var sco = (JmlMethodClauseSignalsOnly)clause;
+//                if (sco.list.isEmpty()) return true;
+//            }
+//            if (clause.clauseKind == SignalsClauseExtension.signalsClauseKind) {
+//                var scg = (JmlMethodClauseSignals)clause;
+//                if (treeutils.isFalseLit(scg.expression) && (scg.vardef == null || scg.vardef.type == syms.exceptionType)) return true;
+//            }
+//        }
+//        return false;
     }
 
 }

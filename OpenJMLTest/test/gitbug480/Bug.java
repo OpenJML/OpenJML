@@ -18,7 +18,7 @@ class xATransport {
 }
 
 class Crypto {
-  //@ pure
+  //@ normal_behavior pure
   static BitSet encrypt(Object plainTextMessage){
     return new BitSet(); //return encrypted message
   }

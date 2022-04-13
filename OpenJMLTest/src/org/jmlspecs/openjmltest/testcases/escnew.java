@@ -1663,22 +1663,22 @@ public class escnew extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
                 
-                +"  //@ ensures true;\n"
+                +"  //@ public normal_behavior ensures true;\n"
                 +"  //@ model pure public int mm(int i);\n"
                 
-                +"  //@ ensures true; pure\n"
+                +"  //@ public normal_behavior ensures true; pure\n"
                 +"  public int mmr(int i) { return 0; };\n"
                 
-                +"  //@ ensures !\\fresh(\\result); pure\n"
+                +"  //@ public normal_behavior ensures !\\fresh(\\result); pure\n"
                 +"  //@ model public <TT> TT mt(int i);\n"
                 
-                +"  //@ ensures !\\fresh(\\result); pure\n"
+                +"  //@ public normal_behavior ensures !\\fresh(\\result); pure\n"
                 +"  public /*@ nullable */ <TT> TT mtr(int i) { return null; };\n"
                 
-                +"  //@ ensures true; pure\n"
+                +"  //@ public normal_behavior ensures true; pure\n"
                 +"  //@ model heap_free public static int mf(int i);\n"
                 
-                +"  //@ ensures true; pure\n"
+                +"  //@ public normal_behavior ensures true; pure\n"
                 +"  //@ heap_free \n"
                 +"  public static int mfr(int i) { return 0; }\n"
                 
@@ -1719,14 +1719,14 @@ public class escnew extends EscBase {
                 +"public class TestJava<T> { \n"
         		+"  public /*@ nullable */ Object o;\n"
                 
-                +"  //@ ensures \\fresh(\\result); pure\n"
+                +"  //@ public normal_behavior ensures \\fresh(\\result); pure\n"
                 +"  public Object mm(int i) { return new Object(); }\n"
                 
    //             +"  //@ ensures \\result == null || !\\fresh(\\result); pure\n" // FIXME - should this work -= does not prevent the result from being fresh for m2 while not for mm2 
-                +"  //@ ensures \\result == o; pure\n" 
+                +"  //@ public normal_behavior ensures \\result == o; pure\n" 
                 +"  public /*@ nullable */ Object mm2(int i) { return o; }\n" // Line 7
                 
-                +"  //@ ensures true; pure\n"
+                +"  //@ public normal_behavior ensures true; pure\n"
                 +"  public Object mm3(int i) { return new Object(); }\n"
                 
                  
@@ -1762,7 +1762,7 @@ public class escnew extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
                 +"   int k;\n"
-                +"  //@ ensures true; pure \n"
+                +"  //@ public normal_behavior ensures true; pure \n"
                 +"  public int mpure(int i) { return i+17; }\n"
                 
                 +"  public void mm(int i) { \n"
@@ -1789,7 +1789,7 @@ public class escnew extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
                 +"   int k;\n"
-                +"  //@ ensures true; pure \n"
+                +"  //@ public normal_behavior ensures true; pure \n"
                 +"  public int mpure(int i) { return i+17; }\n"
                 
                 +"  public void mm(int i) { \n"
@@ -1814,7 +1814,7 @@ public class escnew extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
                 +"   int k;\n"
-                +"  //@ ensures true; pure \n"
+                +"  //@ public normal_behavior ensures true; pure \n"
                 +"  public int mpure(int i) { return i+17; }\n"
                 
                 +"  public void mm(int i) { \n"
@@ -1839,7 +1839,7 @@ public class escnew extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
                 +"   int k;\n"
-                +"  //@ ensures true; pure \n"
+                +"  //@ public normal_behavior ensures true; pure \n"
                 +"  public int mpure(int i) { return i+17; }\n"
                 
                 +"  public void mm(int i) { \n"
@@ -1859,7 +1859,7 @@ public class escnew extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
                 +"   int k;\n"
-                +"  //@ ensures true; pure heap_free\n"
+                +"  //@ public normal_behavior ensures true; pure heap_free\n"
                 +"  public int mpure(int i) { return i+17; }\n"
                 
                 +"  public void mm(int i) { \n"
@@ -2291,10 +2291,10 @@ public class escnew extends EscBase {
     public void testPreconditionInfo() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
-
+                +"  //@ public normal_behavior\n"
                 +"  //@ requires i == 4;\n" 
                 +"  //@ ensures \\result == 5;\n" 
-                +"  //@ also\n" 
+                +"  //@ also public normal_behavior\n" 
                 +"  //@ requires i == 5;\n" 
                 +"  //@ ensures \\result == 6;\n" 
                 +"  /*@ pure */ public int m(int i) {\n" 
@@ -2306,11 +2306,11 @@ public class escnew extends EscBase {
 
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method mm",17
-                ,"/tt/TestJava.java:8: warning: Associated declaration",26
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method mm",17
+                ,"/tt/TestJava.java:9: warning: Associated declaration",26
                 ,optional(
-                "/tt/TestJava.java:3: warning: Precondition conjunct is false: i == 4",18
-                ,"/tt/TestJava.java:6: warning: Precondition conjunct is false: i == 5",18
+                "/tt/TestJava.java:4: warning: Precondition conjunct is false: i == 4",18
+                ,"/tt/TestJava.java:7: warning: Precondition conjunct is false: i == 5",18
                 )
                 
                

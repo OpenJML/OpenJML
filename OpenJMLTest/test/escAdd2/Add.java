@@ -15,12 +15,12 @@
     my_y = the_y;
   }
   
-  //@ ensures \result == my_x;
+  //@ public normal_behavior ensures \result == my_x;
   public /*@ pure helper @*/ int x() { return my_x; }
-  //@ ensures \result == my_y;
+  //@ public normal_behavior ensures \result == my_y;
   public /*@ pure helper @*/ int y() { return my_y; }
   
-  //@ ensures \result == x() + y() + the_operand;
+  //@ public normal_behavior ensures \result == x() + y() + the_operand;
   public /*@ pure @*/ int sum(final int the_operand)
   {
     return my_x + my_y + the_operand;

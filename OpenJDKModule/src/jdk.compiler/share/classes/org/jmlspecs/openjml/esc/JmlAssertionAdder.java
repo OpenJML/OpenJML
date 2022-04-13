@@ -4921,6 +4921,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public boolean doSpecificationCase(JCMethodDecl methodDecl, MethodSymbol baseMethodSym, MethodSymbol parentMethodSym, JmlSpecificationCase scase) {
 		if (!utils.jmlvisible(parentMethodSym, methodDecl.sym.owner, parentMethodSym.owner, scase.modifiers.flags, methodDecl.mods.flags)) return false;
 		if (parentMethodSym != baseMethodSym && scase.code)  return false;
+		if (translatingJML) {
+            return attr.isEffectivelyNormal(scase);
+		}
 		return true;
 	}
 
@@ -9336,14 +9339,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					for (JmlSpecificationCase cs : calleeSpecs.cases) {
 						// System.out.println("CALCPRE-A " + mpsym.owner + " " + mpsym + " " +
 						// cs.hashCode() + " " + cs);
-						if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags,
-								methodDecl != null ? methodDecl.mods.flags : Flags.PUBLIC)) // FIXME - review this for when not in a method
-							continue;
-						if (translatingJML && cs.token == exceptionalBehaviorClause)
-							continue; // exceptional behavior clauses are not used for pure functions within JML
-										// expressions
-						if (mpsym != calleeMethodSym && cs.code)
-							continue;
+                        if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs)) continue;
+//						if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags,
+//								methodDecl != null ? methodDecl.mods.flags : Flags.PUBLIC)) // FIXME - review this for when not in a method
+//							continue;
+//						if (translatingJML && cs.token == exceptionalBehaviorClause)
+//							continue; // exceptional behavior clauses are not used for pure functions within JML
+//										// expressions
+//						if (mpsym != calleeMethodSym && cs.code)
+//							continue;
 						addStat(comment(cs, "Spec Case: " + cs, cs.sourcefile));
 						// System.out.println("CALCPRE " + mpsym.owner + " " + mpsym + " " +
 						// cs.hashCode() + " " + cs);
@@ -9719,8 +9723,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     currentEnv.arithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(parentSym, true);
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                         //System.out.println("   SPECCASE " + cs);
-                        if (!doSpecificationCase(methodDecl, methodDecl.sym, parentSym, cs)) continue;
-                        if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
+                        if (!doSpecificationCase(methodDecl, calleeMethodSym, parentSym, cs)) continue;
+                        //if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
 
                         JavaFileObject prev = log.useSource(cs.source());
                         JCExpression pre = calleePreconditions.get(cs);
@@ -9834,9 +9838,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         currentEnv.arithmeticMode = calleeEnv.arithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(mpsym, true);
 
 						for (JmlSpecificationCase cs : calleeSpecs.cases) {
-						    if (!doSpecificationCase(methodDecl, methodDecl.sym, mpsym, cs)) continue;
+						    if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs)) continue;
 							//if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags, methodDecl.mods.flags)) continue;
-							if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
+							//if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
 							//if (mpsym != calleeMethodSym && cs.code) continue;
 							JavaFileObject prev = log.useSource(cs.source());
 							JCExpression pre = calleePreconditions.get(cs);
@@ -10125,8 +10129,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					for (JmlSpecificationCase cs : calleeSpecs.cases) {
 						if (print)
 							System.out.println("APPLYHELPER-V2 " + mpsym + " " + cs);
-						if (!doSpecificationCase(methodDecl, methodDecl.sym, mpsym, cs)) continue;
-						if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
+						if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs)) continue;
+						//if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
 
 						JCExpression precond = calleePreconditions.get(cs); // Can be null for constructors of anonymous
 																			// classes
@@ -10630,13 +10634,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						if (print) System.out.println("APPLYHELPER-X3");
 						if (cs.block != null)
 							hasModelProgramBlocks = true;
-						if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags,
-								methodDecl.mods.flags))
-							continue;
-						if (translatingJML && cs.token == exceptionalBehaviorClause)
-							continue;
-						if (mpsym != calleeMethodSym && cs.code)
-							continue;
+                        if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs)) continue; 
+//						if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags,
+//								methodDecl.mods.flags))
+//							continue;
+//						if (translatingJML && cs.token == exceptionalBehaviorClause)
+//							continue;
+//						if (mpsym != calleeMethodSym && cs.code)
+//							continue;
 						// System.out.println("GET CALLEE PRE " + mpsym.owner + " " + mpsym + " " +
 						// classType + " " + cs.hashCode() + " " + calleePreconditions.get(cs) + " " +
 						// cs);
@@ -10913,7 +10918,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				addStat(wrapException(that, ensuresBlock, exceptionDeclCall, exsuresBlock));
 				addStat(popBlock(methodDecl, check1)); // Final outer block
 			} else if (esc) {
-				if (exceptionDeclCall != null) { // FIXME - what is happening if exceptionDeclCall is null - is the
+				if (exceptionDeclCall != null && !translatingJML) { // FIXME - what is happening if exceptionDeclCall is null - is the
 													// method pure?
 					// declare the exception variable
 					addStat(exceptionDeclCall);
@@ -11528,12 +11533,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				LinkedList<ListBuffer<JCStatement>> temptt = markBlock();
 				for (JmlSpecificationCase cs : calleeSpecs.cases) {
-					if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags, methodDecl.mods.flags))
-						continue;
-					if (translatingJML && cs.token == exceptionalBehaviorClause)
-						continue;
-					if (mpsym != calleeMethodSym && cs.code)
-						continue;
+                    if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs)) continue; 
+//					if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags, methodDecl.mods.flags))
+//						continue;
+//					if (translatingJML && cs.token == exceptionalBehaviorClause)
+//						continue;
+//					if (mpsym != calleeMethodSym && cs.code)
+//						continue;
 
 					if (cs.block != null && !localVariables.isEmpty()) {
 						utils.warning(cs.block.pos, "jml.message",
@@ -20682,12 +20688,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JCExpression savedElseExpression = elseExpression;
 				elseExpression = treeutils.falseLit;
 				for (JmlSpecificationCase cs : calleeSpecs.cases) {
-					if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags, methodDecl.mods.flags)) continue;
+					//if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags, methodDecl.mods.flags)) continue;
+	                if (!doSpecificationCase(methodDecl, msym, mpsym, cs)) continue;
 					// if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*,
 					// methodDecl.mods.flags*/)) continue;
-					if (cs.token == exceptionalBehaviorClause) continue;
+					//if (cs.token == exceptionalBehaviorClause) continue;
 					// FIXME - will need to add OLD and FORALL clauses in here
-					if (cs.code && mpsym.owner != msym.owner) continue;
+					//if (cs.code && mpsym.owner != msym.owner) continue;
 
 					JCExpression pre = qthisnn != null ? qthisnn : treeutils.trueLit;
 					if (isPrimitiveType) {

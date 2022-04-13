@@ -2956,7 +2956,7 @@ public class esc2 extends EscBase {
     public void testPureMethodStatic() {
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
                 + "public class TestJava { \n" 
-                + "  //@ requires i < 1000; ensures \\result == i+1;\n"
+                + "  //@ public normal_behavior requires i < 1000; ensures \\result == i+1;\n"
                 + "  //@ pure \n" 
                 + "  public static int m(int i) { return i+1; }\n"
                 + "  public static void m1(int a, int b) { /*@ assume a < 100; */ int k = a+1; /*@ assert k == m(a); */ }\n"
@@ -2975,6 +2975,7 @@ public class esc2 extends EscBase {
         helpTCX("tt.TestJava",
                 "package tt; import org.jmlspecs.annotation.*; \n" 
                         + "public class TestJava { \n"
+                        + "  //@ public normal_behavior\n"
                         + "  //@ requires i < 1000; ensures \\result == i+1;\n" 
                         + "  //@ pure \n"
                         + "  public int m(int i) { return i+1; }\n"
@@ -2984,16 +2985,18 @@ public class esc2 extends EscBase {
                         + "  public void m2a(int a, int b) { /*@ assume a < 100; */ int k = 2*a+2; /*@ assert k == 1 + m(a) + m(a); */ }\n"
                         + "  public void m3(int a, int b) { /*@ assume a < 100; */ int k = a+3; /*@ assert k == m(m(a+1)); */ }\n"
                         + "  public void m3a(int a, int b) { /*@ assume a < 100; */ int k = a+2; /*@ assert k == m(m(a+1)); */ }\n" + "}",
-                "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m1a", 75,
-                "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m2a", 77,
-                "/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method m3a", 75);
+                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m1a", 75,
+                "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m2a", 77,
+                "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method m3a", 75);
     }
 
     @Test
     public void testPureNonFunction() {
         helpTCX("tt.TestJava",
                 "package tt; import org.jmlspecs.annotation.*; \n" + "/*@ code_bigint_math*/ public class TestJava { \n"
-                        + "  public int z;\n" + "  //@ ensures \\result == z+1;\n" + "  //@ pure \n"
+                        + "  public int z;\n" 
+                        + "  //@ public normal_behavior ensures \\result == z+1;\n" 
+                        + "  //@ pure \n"
                         + "  public int m() { return z+1; }\n"
                         + "  public void m1(int a, int b) { int k = z+1; /*@ assert k == m(); */ }\n"
                         + "  public void m1a(int a, int b) { int k = z+2; /*@ assert k == m(); */ }\n"
@@ -3011,7 +3014,7 @@ public class esc2 extends EscBase {
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
                 + "/*@ code_bigint_math*/ public class TestJava { \n" 
                 + "  public static int z;\n"
-                + "  //@ ensures \\result == z+1;\n" 
+                + "  //@ public normal_behavior ensures \\result == z+1;\n" 
                 + "  //@ pure \n" 
                 + "  public static int m() { return z+1; }\n"
                 + "  public void m1(int a, int b) { int k = z+1; /*@ assert k == m(); */ }\n"
@@ -3028,11 +3031,11 @@ public class esc2 extends EscBase {
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" 
                 + "abstract class TestJavaA { \n"
                 + "  \n" 
-                + "  //@ ensures \\result > 0;\n" 
+                + "  //@ public normal_behavior ensures \\result > 0;\n" 
                 + "  abstract public int m(int iii);\n" 
                 + "}\n"
                 + "abstract class TestJavaB extends TestJavaA { \n" 
-                + "  //@ also\n" 
+                + "  //@ also public normal_behavior\n" 
                 + "  //@ ensures \\result > ii;\n"
                 + "  abstract public int m(int ii);\n" 
                 + "}\n"
@@ -3047,32 +3050,56 @@ public class esc2 extends EscBase {
                 + "  public int n1a(int a) { return m(-1); }\n" 
                 + "}"
                 ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m",25
-                ,"/tt/TestJava.java:4: warning: Associated declaration", 7
+                ,"/tt/TestJava.java:4: warning: Associated declaration",30
                 ,"/tt/TestJava.java:20: warning: There is no feasible path to program point at program exit in method tt.TestJava.n1a(int)",14
                 );
     }
 
     @Test
     public void testInheritedPostA() {
-        helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "abstract class TestJavaA { \n"
-                + "  //@ requires iii > 0;\n" + "  //@ ensures \\result > 0;\n" + "  abstract public int m(int iii);\n"
-                + "}\n" + "abstract class TestJavaB extends TestJavaA { \n" + "  //@ also\n"
-                + "  //@ ensures \\result > ii;\n" + "  abstract public int m(int ii);\n" + "}\n"
-                + "/*@ code_bigint_math*/ public class TestJava extends TestJavaB { \n" + "  //@ also\n"
-                + "  //@ ensures \\result == i+1;\n" + "  //@ pure\n" + "  public int m(int i) { return i+1; }\n"
-                + "  //@ ensures \\result == a+1;\n" + "  public int n1(int a) { return m(a); }\n"
-                + "  public int n1a(int a) { return m(-1); }\n" + "}");
+        helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
+                + "abstract class TestJavaA { \n"
+                + "  //@ public normal_behavior requires iii > 0;\n"
+                + "  //@ ensures \\result > 0;\n"
+                + "  abstract public int m(int iii);\n"
+                + "}\n"
+                + "abstract class TestJavaB extends TestJavaA { \n"
+                + "  //@ also public normal_behavior\n"
+                + "  //@ ensures \\result > ii;\n"
+                + "  abstract public int m(int ii);\n"
+                + "}\n"
+                + "/*@ code_bigint_math*/ public class TestJava extends TestJavaB { \n"
+                + "  //@ also public normal_behavior\n"
+                + "  //@ ensures \\result == i+1;\n"
+                + "  //@ pure\n"
+                + "  public int m(int i) { return i+1; }\n"
+                + "  //@ ensures \\result == a+1;\n"
+                + "  public int n1(int a) { return m(a); }\n"
+                + "  public int n1a(int a) { return m(-1); }\n"
+                + "}");
     }
 
     @Test
     public void testInheritedPostB() {
-        helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "abstract class TestJavaA { \n"
-                + "  //@ requires iii > 0;\n" + "  //@ ensures \\result > 0;\n" + "  abstract public int m(int iii);\n"
-                + "}\n" + "abstract class TestJavaB extends TestJavaA { \n" + "  //@ also\n"
-                + "  //@ requires ii > 0;\n" + "  //@ ensures \\result > ii;\n" + "  abstract public int m(int ii);\n"
-                + "}\n" + "/*@ code_bigint_math*/ public class TestJava extends TestJavaB { \n" + "  //@ also\n"
-                + "  //@ requires i > 0;\n" + "  //@ ensures \\result == i+1;\n" + "  //@ pure\n"
-                + "  public int m(int i) { return i+1; }\n" + "}");
+        helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
+                + "abstract class TestJavaA { \n"
+                + "  //@ requires iii > 0;\n"
+                + "  //@ ensures \\result > 0;\n"
+                + "  abstract public int m(int iii);\n"
+                + "}\n"
+                + "abstract class TestJavaB extends TestJavaA { \n"
+                + "  //@ also\n"
+                + "  //@ requires ii > 0;\n"
+                + "  //@ ensures \\result > ii;\n"
+                + "  abstract public int m(int ii);\n"
+                + "}\n"
+                + "/*@ code_bigint_math*/ public class TestJava extends TestJavaB { \n"
+                + "  //@ also\n"
+                + "  //@ requires i > 0;\n"
+                + "  //@ ensures \\result == i+1;\n"
+                + "  //@ pure\n"
+                + "  public int m(int i) { return i+1; }\n"
+                + "}");
     }
 
     @Test
@@ -4358,7 +4385,7 @@ public class esc2 extends EscBase {
         helpTCX("tt.TestJava",
                           "package tt; //@ nullable_by_default \n" 
                         + "public class TestJava  { \n" 
-                        + "  /*@ requires o != null; \n"
+                        + "  /*@ public normal_behavior requires o != null; \n"
                         + "      ensures \\result == (j>=0); \n"
                         + "     pure heap_free */ public static boolean positive(Object o, int j) { \n"
                         + "         return j >= 0; }\n"
@@ -4374,11 +4401,11 @@ public class esc2 extends EscBase {
                  "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
                 ,"/tt/TestJava.java:5: warning: Associated declaration",46
                 ,"/tt/TestJava.java:12: warning: Associated method exit",29
-                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",18
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",41
                 ),seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",48
                 ,"/tt/TestJava.java:5: warning: Associated declaration",46
                 ,"/tt/TestJava.java:11: warning: Associated method exit",29
-                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",18
+                ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",41
                 ))
                 );
     }
@@ -4876,7 +4903,7 @@ public class esc2 extends EscBase {
             public class Test {
             
             int z = 0;
-            
+            //@ public normal_behavior
             //@ ensures true; pure
             public int f() { return 0; }
 
@@ -4901,8 +4928,8 @@ public class esc2 extends EscBase {
             """
             public class Test {
             
-            int z = 0;
-            
+            int z = 0;            
+            //@ public normal_behavior
             //@ ensures true; pure
             public int f() { return 0; }
 
@@ -4928,7 +4955,7 @@ public class esc2 extends EscBase {
             public class Test {
             
             int z = 0;
-            
+            //@ public normal_behavior
             //@ reads \\nothing; ensures true; pure
             public int f() { return 0; }
 
@@ -4952,7 +4979,7 @@ public class esc2 extends EscBase {
             public class Test {
             
             int z = 0;
-            
+            //@ public normal_behavior
             //@ ensures true; pure heap_free
             static public int f() { return 0; }
 
@@ -4977,7 +5004,7 @@ public class esc2 extends EscBase {
             public class Test {
             
             int z = 0;
-            
+            //@ public normal_behavior
             //@ ensures true; pure
             public int f() { return 0; }
 
@@ -4999,7 +5026,7 @@ public class esc2 extends EscBase {
             public class Test {
             
             int z = 0;
-            
+            //@ public normal_behavior
             //@ ensures true; pure
             public int f() { return 0; }
 
@@ -5022,7 +5049,7 @@ public class esc2 extends EscBase {
             public class Test {
             
             int z = 0;
-            
+            //@ public normal_behavior
             //@ reads \\nothing; ensures true; pure
             public int f() { return 0; }
 
@@ -5044,7 +5071,7 @@ public class esc2 extends EscBase {
             public class Test {
             
             int z = 0;
-            
+            //@ public normal_behavior
             //@ pure heap_free
             static public int f() { return 0; }
 
@@ -5066,7 +5093,7 @@ public class esc2 extends EscBase {
             public class Test {
             
             int z = 0;
-            
+            //@ public normal_behavior
             //@ ensures true; pure
             public int f() { return 0; }
 

@@ -225,6 +225,7 @@ public class escbitvector extends EscBase {
         main.addOptions("--esc-bv=auto","--method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +" class A { \n"
+                +"   //@ public normal_behavior\n"
                 +"   //@ requires (i&5) == 1; pure \n"
                 +"   public static boolean mm(int i) { return true; } \n"
                 +"}\n"
@@ -246,6 +247,7 @@ public class escbitvector extends EscBase {
         main.addOptions("--esc-bv=false","--method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +" class A { \n"
+                +"   //@ public normal_behavior\n"
                 +"   //@ requires (i&5) == 1; pure \n"
                 +"   public static boolean mm(int i) { return true; } \n"
                 +"}\n"
@@ -256,8 +258,8 @@ public class escbitvector extends EscBase {
                 +"  }\n"
                                 
                 +"}"  // FIXME - Message repeats for mm and m1, but why optional, why not indicate which method?
-                ,"/tt/TestJava.java:3: error: This method uses bit-vector operations and must be run with --esc-bv=true (or auto) [Bit-operation BITAND]",19
-                ,optional("/tt/TestJava.java:3: error: This method uses bit-vector operations and must be run with --esc-bv=true (or auto) [Bit-operation BITAND]",19)
+                ,"/tt/TestJava.java:4: error: This method uses bit-vector operations and must be run with --esc-bv=true (or auto) [Bit-operation BITAND]",19
+                ,optional("/tt/TestJava.java:4: error: This method uses bit-vector operations and must be run with --esc-bv=true (or auto) [Bit-operation BITAND]",19)
           );
     }
     
@@ -269,6 +271,7 @@ public class escbitvector extends EscBase {
         main.addOptions("--esc-bv=true","--method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +" class A { \n"
+                +"   //@ public normal_behavior\n"
                 +"   //@ requires (i&5) == 1; pure \n"
                 +"   public static boolean mm(int i) { return true; } \n"
                 +"}\n"

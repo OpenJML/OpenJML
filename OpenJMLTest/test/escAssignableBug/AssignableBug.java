@@ -3,7 +3,7 @@ public class AssignableBug {
     public int xSize;
     
   public Piece piece;
-  
+  //@ public normal_behavior  
   //@ requires pp.position.x >= 0 && pp.position.x < xSize;
   //@ ensures piece == pp;
   //@ pure
@@ -21,7 +21,7 @@ public class AssignableBug {
     piece.setPosition(p);
     //@ assert inRange(piece.position);
   }
-  
+  //@ public normal_behavior 
   //@ ensures \result == ( p.x >= 0 && p.x < xSize );
   //@ pure helper
   public boolean inRange(Position p) {

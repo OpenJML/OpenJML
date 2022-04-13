@@ -1569,6 +1569,35 @@ public class typechecking extends TCBase {
     }
         
     @Test
+    public void diverges1() {
+        helpTCF("A.java",
+            """
+            public class A {
+              //@ diverges false;
+              //@ pure
+              public void m(boolean i) { } 
+            }
+            """
+            );
+
+    }
+        
+    @Test
+    public void diverges2() {
+        helpTCF("A.java",
+            """
+            public class A {
+              //@ diverges i;
+              //@ pure
+              public void m(boolean i) { } 
+            }
+            """
+            ,"/A.java:2: error: pure methods must be terminating (explicitly diverges false)",7
+            );
+
+    }
+        
+    @Test
     public void privateNotInherited() {
         expectedExit = 0;
         helpTCF("A.java",
