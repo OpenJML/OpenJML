@@ -219,27 +219,12 @@ public class compiler {
                           + "1 warning" + eol);
     }
 
-    /** Tests the lack of a runtime library */
-    @Test @Ignore // FIXME: Current implementation cannot disable the internal runtime library
-    public void testNoRuntime() throws Exception {
-        helper(new String[]
-                          { "-noInternalRuntime","-noInternalSpecs",
-                            "-classpath","test/testNoErrors",
-                            "test/testNoErrors/A.java",  
-                          },3,0,
-                          "Fatal Error: Unable to find package org.jmlspecs.lang" + eol);
-//                          "test/testNoErrors/A.java:1: error: package org.jmlspecs.lang does not exist"+eol+
-//                          "public class A {" +eol+
-//                          "^" + eol +
-//                          "1 error" + eol);
-    }
-
-    /** Test verbose with no specs used */
-    @Test @Ignore
+    /** Test verbose  */
+    @Test
     public void testDuplicateParse() throws Exception {
         helper(new String[]
                           { "-classpath","test/testNoErrors"+z+"bin",
-                            "test/testNoErrors/A.java", "-jmlverbose", "-noInternalSpecs" 
+                            "test/testNoErrors/A.java", "-jmlverbose", 
                           },0,2,"",
                           //"parsing ${PROJ}/test/testNoErrors/A.java" + eol +
                           //"parsing ${PROJ}/test/testNoErrors/A.refines-java" + eol +
@@ -254,11 +239,11 @@ public class compiler {
 
     
     /** Test that specs in the java file are ignored */
-    @Test @Ignore
+    @Test
     public void testIgnoreJava() throws Exception {
         helper(new String[]
                           { "-classpath","test/testJavaErrors"+z+"bin",
-                            "test/testJavaErrors/A.java", "-noInternalSpecs"
+                            "test/testJavaErrors/A.java",
                           },0,2,"",
                           //"parsing ${PROJ}/test/testJavaErrors/A.java" + eol +
                           // stuff about specs path comes in here
@@ -514,38 +499,15 @@ public class compiler {
     }
 
     /** Tests that specs files are not found with empty specs path */
-    @Test @Ignore
+    @Test
     public void testSourcePath3() throws Exception {
         helper(new String[]
                           { "-classpath"," ",
                             "-sourcepath","test/testNoErrors"+z+"../OpenJML/runtime",
                             "-specspath","",
-                            "-noInternalSpecs",
                             "test/testNoErrors/A.java",  
                           },0,0,"",
                           "");
-    }
-
-    // This test requires jmlruntime.jar to have been created - run the Makefile
-    // in the OpenJML project
-    /** Tests using the runtime jar */
-    //@Test  // FIXME - try running the build programmatically
-    @Test @Ignore
-    public void testSourcePath4() throws Exception {
-        if (!new java.io.File("../OpenJML/tempjars/jmlruntime.jar").exists()) {
-            System.setErr(savederr);
-            System.setOut(savedout);
-            System.out.println("The testSourcePath4 test depends on having a release version of jmlruntime.jar in the jars directory.  It will not be run until a release has been built.");
-        } else {
-            helper(new String[]
-                          { "-classpath","../OpenJML/tempjars/jmlruntime.jar",
-                            "-sourcepath","test/testNoErrors",
-                            "-specspath","",
-                            "-noInternalSpecs",
-                            "test/testNoErrors/A.java",  
-                          },0,0,"",
-                          "");
-        }
     }
 
     /** Tests using class, source and specs path */
@@ -774,6 +736,121 @@ public class compiler {
     }
     
     @Test
+    public void testDirs1() {
+        helper(new String[]
+                          { "--no-dirs",
+                          },2,0
+                          ,""
+                          ,"""
+                           warning: -no is not permitted on --dirs (ignored)
+                           error: no source files
+                           """
+                          );
+    }
+    
+    @Test
+    public void testDirs2() {
+        helper(new String[]
+                          { "--dirs","x","-zzz"
+                          },2,0
+                          ,""
+                          ,"""
+                           warning: Ignoring x (not a file or folder)
+                           error: invalid flag: -zzz
+                           Usage: openjml <options> <source files>
+                           use --help for a list of possible options
+                           """
+                          );
+    }
+    
+    @Test
+    public void testDirs3() {
+        helper(new String[]
+                          { "--dirs","-zzz"
+                          },2,0
+                          ,""
+                          ,"""
+                           error: invalid flag: -zzz
+                           Usage: openjml <options> <source files>
+                           use --help for a list of possible options
+                           """
+                          );
+    }
+    
+    @Test
+    public void testDirs4() {
+        helper(new String[]
+                          { "--dirs=x,y","-zzz"
+                          },2,0
+                          ,""
+                          ,"""
+                           warning: Ignoring x (not a file or folder)
+                           warning: Ignoring y (not a file or folder)
+                           error: invalid flag: -zzz
+                           Usage: openjml <options> <source files>
+                           use --help for a list of possible options
+                           """
+                          );
+    }
+    
+    @Test
+    public void testDirs5() {
+        helper(new String[]
+                          { "--dirs=","--zzz"
+                          },2,0
+                          ,""
+                          ,"""
+                           error: invalid flag: --zzz
+                           Usage: openjml <options> <source files>
+                           use --help for a list of possible options
+                           """
+                          );
+    }
+    
+    @Test
+    public void testDirs6() {
+        helper(new String[]
+                          { "--dir=x","--zzz"
+                          },2,0
+                          ,""
+                          ,"""
+                           warning: Ignoring x (not a file or folder)
+                           error: invalid flag: --zzz
+                           Usage: openjml <options> <source files>
+                           use --help for a list of possible options
+                           """
+                          );
+    }
+    
+    @Test
+    public void testDirs7() {
+        helper(new String[]
+                          { "--dir","--zzz"
+                          },2,0
+                          ,""
+                          ,"""
+                           warning: Ignoring --zzz (not a file or folder)
+                           error: no source files
+                           """
+                          );
+    }
+    
+    @Test
+    public void testDirs8() {
+        helper(new String[]
+                          { "--dir","x","y.java","--zzz"
+                          },2,0
+                          ,""
+                          ,"""
+                           warning: Ignoring x (not a file or folder)
+                           error: file not found: y.java
+                           Usage: openjml <options> <source files>
+                           use --help for a list of possible options
+                           """
+                          );
+    }
+    
+    @Test
     public void testModelBug() throws Exception {
         helper(new String[]
                           { "--no-purity-check",  //"-Xlint:unchecked",
@@ -963,30 +1040,7 @@ public class compiler {
     			,""
     			);
     }
-    
-    // Testing typechecking without org.jmlspecs.annotation.*
-    @Test @Ignore // FIXME: Cannot currently turn off internal runtime library
-    public void release_testRuntime1() throws Exception {
-    	expectedFile = "releaseTests/testRuntime1/expected";
-    	helper(new String[]
-    			{ "temp-release/C.java", "-jmltesting", "-classpath", ".", "-no-purityCheck", "-no-internalRuntime"
-    			},3,0
-    			,""
-    			);
-    }
-    
-    // Testing typechecking with binary files for org.jmlspecs.annotation.*
-    @Test @Ignore // without -no-internalRuntime is now the same as release_testRuntime4
-    public void release_testRuntime2() throws Exception {
-    	expectedFile = "releaseTests/testRuntime2/expected";
-    	helper(new String[]
-    			//{ "temp-release/C.java", "-classpath", "../../JMLAnnotations/bin"+z+"../OpenJML/bin-runtime", "-no-purityCheck", 
-    			{ "temp-release/C.java", "-no-purityCheck", "-no-internalRuntime"
-    			},0,0
-    			,""
-    			);
-    }
-    
+       
     // Testing typechecking with source files for org.jmlspecs.annotation.*
     @Test
     public void release_testRuntime3() throws Exception {

@@ -113,7 +113,7 @@ public class JmlOptions extends Options {
         java.util.List<String> files = new ArrayList<String>();
         Iterator<String> iter = Arrays.asList(args).iterator();
         while (iter.hasNext()) {
-            processJmlArg(iter,options,newargs,files);
+            processJmlArg(iter.next(),iter,options,newargs,files);
         }
         newargs.addAll(files);
         // Separate out .jml files from the list of files, because Java will object to them
@@ -139,6 +139,28 @@ public class JmlOptions extends Options {
         	o.check(context,  false);
         }
     }
+    
+    public void addFilesRecursively(String s,  /*@ non_null */ java.util.List<String> files) {
+        java.util.List<File> todo = new LinkedList<File>();
+        todo.add(new File(s));
+        Utils utils = Utils.instance(context);
+        while (!todo.isEmpty()) {
+            File file = todo.remove(0);
+            if (file.isDirectory()) {
+                File[] fileArray = file.listFiles();
+                // Comparator is intentionally reversed, so we push items on the front of the queue in reverse order
+                Arrays.sort(fileArray, new java.util.Comparator<File>(){ public int compare(File f, File ff) { return (f.isFile() && ff.isDirectory()) ? 1 : (ff.isFile() && f.isDirectory()) ? -1 : -f.getPath().compareToIgnoreCase(ff.getPath()); }});
+                for (File ff: fileArray) {
+                    todo.add(0,ff);
+                }
+            } else if (file.isFile()) {
+                String ss = file.toString();
+                if (utils.hasJavaSuffix(ss)) files.add(ss); // FIXME - if we allow .jml files on the command line, we have to guard against parsing them twice
+            } else {
+                Utils.instance(context).warning("jml.message", "Ignoring " + file + " (not a file or folder)");
+            }
+        }
+    }
 
     /** Processes a single JML command-line option and any arguments.
      * Any non-JML argument is added to remainingArgs
@@ -155,13 +177,11 @@ public class JmlOptions extends Options {
     //@ requires (* elements of remainingArgs are non-null *);
     //@ requires 0<= i && i< args.length;
     //@ ensures \result > i;
-    void processJmlArg(Iterator<String> iter, /*@non_null*/ Options options, /*@ non_null */ java.util.List<String> remainingArgs, /*@ non_null */ java.util.List<String> files ) {
-        String arg = iter.next();
+    void processJmlArg(String arg, Iterator<String> iter, /*@non_null*/ Options options, /*@ non_null */ java.util.List<String> remainingArgs, /*@ non_null */ java.util.List<String> files ) {
         if (arg == null) {
             return; // Allow but remove null arguments
         }
-        redo: while (true) {
-            
+        
         if (arg.isEmpty()) {
             remainingArgs.add(arg);
             return;// Allow empty arguments (Pass them on to Java argument processing)
@@ -173,10 +193,11 @@ public class JmlOptions extends Options {
         }
 
         boolean negate = false;
-        if (s.startsWith("--no-")|| s.startsWith("-no-")) {
+        if (s.startsWith("--no-") || s.startsWith("-no-")) {
             negate = true;
             s = s.replace("-no","");
         }
+        
         var o = JmlOption.find(s);
         while (o != null && o.synonym() != null) {
             s = o.synonym();
@@ -186,7 +207,9 @@ public class JmlOptions extends Options {
             }
             o = JmlOption.find(s);
         }
-        String res = "";
+        
+
+        String res = null;
         if (o == null) {
             int k = s.indexOf('=');
             if (k != -1) {
@@ -216,7 +239,34 @@ public class JmlOptions extends Options {
                     }
                 }
             }
-        } else if (!negate && o.hasArg()) {
+        }
+        if (o == JmlOption.DIRS || s.equals("-dirs")) {
+            // Test for this option here before res is set from the iterator
+            if (s.startsWith("-d")) { // This is here just to accommodate the old single-hyphen style
+                Utils.instance(context).warning("jml.message", "Option " + s + " is deprecated in favor of -" + s);
+                s = "-" + s;
+            }
+            if (negate) {
+                Utils.instance(context).warning("jml.message", "-no is not permitted on --dirs (ignored)");
+            }
+            if (res != null) {
+                for (var a: res.split(",")) addFilesRecursively(a, remainingArgs);
+            } else {
+                // -dirs is different because it reads the next option and does not require an argument
+                while (iter.hasNext()) {
+                    res = iter.next();
+                    if (res.length() > 0 && res.charAt(0) == '-') {
+                        // res is the next option
+                        processJmlArg(res,iter,options,remainingArgs,remainingArgs);
+                        return;
+                    }
+                    addFilesRecursively(res, files);
+                }
+            }
+            return;
+        }
+
+        if (o != null && !negate && o.hasArg() && res == null) {
             if (o instanceof JmlOption && o.enabledDefault != null) {
                 res = o.enabledDefault;
             } else if (iter.hasNext()) {
@@ -224,7 +274,6 @@ public class JmlOptions extends Options {
                 if (res != null && res.length() > 1 && res.charAt(0) == '"' && s.charAt(res.length()-1) == '"') {
                     res = res.substring(1,res.length()-1);
                 }
-
             } else {
                 res = "";
                 Utils.instance(context).warning("jml.expected.parameter",s);
@@ -232,6 +281,7 @@ public class JmlOptions extends Options {
                 s = null;
             }
         }
+        
         if (s == null) {
         } else if (o == null) {
             if (s.equals("-help") || s.equals("-?") || s.equals("--help")) {
@@ -240,56 +290,15 @@ public class JmlOptions extends Options {
             } else {
                 remainingArgs.add(s);
             }
-        } else if (JmlOption.DIR.optionName().equals(s) || JmlOption.DIRS.optionName().equals(s)
-                                || s.equals("-dir") || s.equals("-dirs")) {
+        } else if (o == JmlOption.DIR || s.equals("-dir")) {
             if (s.startsWith("-d")) { // This is here just to accommodate the old single-hyphen style
                 Utils.instance(context).warning("jml.message", "Option " + s + " is deprecated in favor of -" + s);
                 s = "-" + s;
             }
-            java.util.List<File> todo = new LinkedList<File>();
-            if (JmlOption.DIRS.optionName().equals(s)) {
-                if (res.length()>0 && res.charAt(0)!='-') {
-                    todo.add(new File(res));
-                    while (iter.hasNext() && (res=iter.next()).length() > 0 && res.charAt(0) != '-') {
-                        todo.add(new File(res));
-                    }
-                    if (!iter.hasNext()) res = null;
-                }
-            } else {
-                todo.add(new File(res));
-                res = null;
-            }
-            Utils utils = Utils.instance(context);
-            while (!todo.isEmpty()) {
-                File file = todo.remove(0);
-                if (file.isDirectory()) {
-                    File[] fileArray = file.listFiles();
-                    // Comparator is intentionally reversed, so we push items on the front of the queue in reverse order
-                    Arrays.sort(fileArray, new java.util.Comparator<File>(){ public int compare(File f, File ff) { return (f.isFile() && ff.isDirectory()) ? 1 : (ff.isFile() && f.isDirectory()) ? -1 : -f.getPath().compareToIgnoreCase(ff.getPath()); }});
-                    for (File ff: fileArray) {
-                        todo.add(0,ff);
-                    }
-                } else if (file.isFile()) {
-                    String ss = file.toString();
-                    if (utils.hasJavaSuffix(ss)) files.add(ss); // FIXME - if we allow .jml files on the command line, we have to guard against parsing them twice
-                } else {
-                    Utils.instance(context).warning("jml.message", "Ignoring " + file);
-                }
-                o = null;
-            }
-            if (res != null) { arg = res; continue redo; }
-        } else {
-        	if (o.defaultValue() instanceof Boolean) {
-        		JmlOption.setOption(context, o, !negate);
-        	} else {
-        		options.put(o.optionName(),res);
-        		// Use negate with call of check later on
-        	}
-        }
-
-        if (o != null && o.equals(JmlOption.PROPERTIES)){
+            addFilesRecursively(res, remainingArgs);
+        } else if (o == JmlOption.PROPERTIES) {
             Properties properties = System.getProperties();
-            String file = JmlOption.value(context,JmlOption.PROPERTIES);
+            String file = res;
             if (file != null && !file.isEmpty()) {
                 try {
                     Utils.readProps(properties,file);
@@ -298,10 +307,14 @@ public class JmlOptions extends Options {
                 }
                 setPropertiesFileOptions(options, properties);
             }
-            o = null;
-        }
-        if (o != null) o.check(context, negate);
-        break;
+        } else {
+            if (o.defaultValue() instanceof Boolean) {
+        		JmlOption.setOption(context, o, !negate);
+        	} else {
+        		options.put(o.optionName(),res);
+        		// Use negate with call of check later on
+        	}
+            o.check(context, negate);
         }
     }
     
