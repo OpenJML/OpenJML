@@ -11030,9 +11030,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                // No instance of the method in this old heap
 	                // So there is nothing to compare against.
 	                // FIXME - we could keep going back until we find a match -- probably need to do this eventually
-	                return;
+	                continue;
 	            }
-	            //	        System.out.println("HEAPFUCNAXIOM " + calleeMethodSym + " " + hc + " " + newCalleeSym + " " + oldHeapInfo.heapID + " " + oldMethodSym);
+	            //System.out.println("HEAPFUCNAXIOM " + calleeMethodSym + " " + hc + " " + newCalleeSym + " " + oldHeapInfo.heapID + " " + oldMethodSym);
 	            ListBuffer<JCVariableDecl> quantDecls = new ListBuffer<>();
 	            ListBuffer<JCExpression> argList1 = new ListBuffer<>();
 	            ListBuffer<JCExpression> argList2 = new ListBuffer<>();

@@ -1854,6 +1854,28 @@ public class escnew extends EscBase {
     }
 
     @Test
+    public void testMethodMatching1c() {
+        main.addOptions("-method=mm"); // Part of test
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> { \n"
+                +"   int k;\n"
+                +"  //@ ensures true; pure heap_free\n"
+                +"  public int mpure(int i) { return i+17; }\n"
+                
+                +"  public void mm(int i) { \n"
+                +"     int j = 0; \n"
+                +"     if (i == 1) j = mpure(i); \n"
+                +"     else if (i == 2) { j = mpure(i); k = 0; } \n"
+                +"     else  j = 29; \n"
+                +"     //@ assert i==2 ==> j == mpure(2); \n" // NOW OK
+                +"     //@ assert i==3 ==> j != mpure(1); \n" // NOT TRUE
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method mm",10
+                );
+    }
+
+    @Test
     public void testExplicitAssert() {
         main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava","package tt; \n"
