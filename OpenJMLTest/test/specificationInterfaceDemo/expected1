@@ -1,0 +1,38 @@
+Proving methods in SpecificationInterfaceDemo
+Starting proof of SpecificationInterfaceDemo.SpecificationInterfaceDemo() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SpecificationInterfaceDemo.SpecificationInterfaceDemo() with prover !!!! - no warnings
+Proving methods in SpecificationInterfaceDemo.PositivePureFunction
+Completed proving methods in SpecificationInterfaceDemo.PositivePureFunction
+Starting proof of SpecificationInterfaceDemo.mbad1(java.util.function.Function<Integer,Integer>,Integer) with prover !!!!
+test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:19: warning: The prover cannot establish an assertion (Assignable) in method mbad1: applyFrame
+    return f.apply(z);
+                  ^
+test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:17: warning: Associated declaration
+  //@   assignable \nothing;
+        ^
+Completed proof of SpecificationInterfaceDemo.mbad1(java.util.function.Function<Integer,Integer>,Integer) with prover !!!! - with warnings
+Starting proof of SpecificationInterfaceDemo.mbad2(java.util.function.Function<Integer,Integer>,Integer) with prover !!!!
+test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:25: warning: The prover cannot establish an assertion (Postcondition) in method mbad2
+    return f.apply(z);
+    ^
+test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:23: warning: Associated declaration
+  //@   ensures \result != null && \result > 0; // FAILS becuse no specs give info about postcondition
+        ^
+Completed proof of SpecificationInterfaceDemo.mbad2(java.util.function.Function<Integer,Integer>,Integer) with prover !!!! - with warnings
+Starting proof of SpecificationInterfaceDemo.mok(SpecificationInterfaceDemo.PositivePureFunction,Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SpecificationInterfaceDemo.mok(SpecificationInterfaceDemo.PositivePureFunction,Integer) with prover !!!! - no warnings
+Starting proof of SpecificationInterfaceDemo.mbad3(java.util.function.Function<Integer,Integer>,Integer) with prover !!!!
+test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:39: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method mbad3: k
+    Integer k = f.apply(z); // ERROR - result of apply is nullable
+            ^
+Completed proof of SpecificationInterfaceDemo.mbad3(java.util.function.Function<Integer,Integer>,Integer) with prover !!!! - with warnings
+Starting proof of SpecificationInterfaceDemo.mok2(java.util.function.Function<Integer,Integer>,Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SpecificationInterfaceDemo.mok2(java.util.function.Function<Integer,Integer>,Integer) with prover !!!! - no warnings
+Completed proving methods in SpecificationInterfaceDemo
+5 warnings

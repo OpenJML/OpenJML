@@ -3,7 +3,7 @@
  * Fall 2013 CSCI181F - Verification-centric Software Engineering
  * Daniel M. Zimmerman
  */
-
+import org.jmlspecs.annotation.*;
 /**
  * A class that implements a growable array of objects, based
  * on an old implementation of java.util.Vector - original source
@@ -24,7 +24,7 @@ public class Vector {
    * @since   JDK1.0
    */
     //@ public invariant \elemtype(\typeof(my_element_data)) == \type(Object);
-  private /*@ spec_public */ Object[] my_element_data;
+  private /*@ spec_public nullable */ Object[] my_element_data;
 
   /**
    * The number of valid components in the vector. 
@@ -66,7 +66,8 @@ public class Vector {
   public final synchronized void add(final Object the_object) {
     if (my_element_count >= my_element_data.length) {
       // create a new array
-      final Object [] new_data = new Object[my_element_count + my_capacity_increment]; // ERROR - could be negative under Java math
+      final /*@ nullable */ Object [] new_data = new Object[my_element_count + my_capacity_increment]; // ERROR - could be negative under Java math
+
       //@ loop_invariant 0 <= i && i <= my_element_count;
       //@ decreases my_element_count - i;
       for (int i = 0; i < my_element_count; i++) {
@@ -84,7 +85,7 @@ public class Vector {
    * @param   the_array   the array into which the components get copied.
    * @since   JDK1.0
    */ //@ requires the_array != my_element_data;
-  public final synchronized void copyInto(final Object[] the_array) {
+  public final synchronized void copyInto(final /*@ nullable */ Object[] the_array) {
     int i = my_element_count;
     //@ loop_invariant 0 <= i && i <= my_element_count;
     //@ decreases i;
@@ -125,7 +126,7 @@ public class Vector {
    * @exception ArrayIndexOutOfBoundsException if an invalid index was given.
    * @since JDK1.0
    */  //@ requires the_index >= 0;
-  public final synchronized Object elementAt(final int the_index) 
+  public final synchronized /*@ nullable */ Object elementAt(final int the_index) 
     throws ArrayIndexOutOfBoundsException {
     if (the_index >= my_element_count) {
       throw new ArrayIndexOutOfBoundsException(the_index + " >= " + my_element_count);

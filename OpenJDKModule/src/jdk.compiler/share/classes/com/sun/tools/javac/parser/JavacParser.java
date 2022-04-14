@@ -2648,7 +2648,7 @@ public class JavacParser implements Parser {
                 isRecordStart()) {
                 return List.of(classOrRecordOrInterfaceOrEnumDeclaration(mods, dc));
             } else {
-                JCExpression t = parseType(true);
+                JCExpression t = parseType(true, mods.annotations); // OPENJML -- added the mods.annotations argument, so that type gets type annotations
                 return localVariableDeclarations(mods, t);
             }
         }
@@ -2752,7 +2752,7 @@ public class JavacParser implements Parser {
         }
     }
     //where
-        private List<JCStatement> localVariableDeclarations(JCModifiers mods, JCExpression type) {
+        protected List<JCStatement> localVariableDeclarations(JCModifiers mods, JCExpression type) { // OPENJML _ private to protected
         	startOfDeclaration(mods); // OPENJML
             ListBuffer<JCStatement> stats =
                     variableDeclarators(mods, type, new ListBuffer<>(), true);
@@ -4665,7 +4665,7 @@ public class JavacParser implements Parser {
         // need to distinguish between vararg annos and array annos
         // look at typeAnnotationsPushedBack comment
         this.permitTypeAnnotationsPushBack = true;
-        JCExpression type = parseType(lambdaParameter);
+        JCExpression type = parseType(lambdaParameter, mods.annotations); // OPENJML - added the mods.annotationa argument, for type annotations
         this.permitTypeAnnotationsPushBack = false;
 
         if (token.kind == ELLIPSIS) {

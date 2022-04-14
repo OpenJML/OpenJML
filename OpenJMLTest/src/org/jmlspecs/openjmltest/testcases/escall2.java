@@ -61,10 +61,10 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
-        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@org.jmlspecs.annotation.NonNull java.lang.Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@org.jmlspecs.annotation.NonNull java.lang.Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
         );
     }
 
@@ -106,10 +106,10 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: oooo in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
-        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: oooo in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: oooo in n2(@org.jmlspecs.annotation.NonNull java.lang.Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: oooo in n2(@org.jmlspecs.annotation.NonNull java.lang.Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
         );
     }
 
@@ -151,8 +151,8 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"    // Line 33
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@org.jmlspecs.annotation.NonNull java.lang.Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
         ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(java.lang.Object)",9
         ,"/tt/TestJava.java:33: warning: Associated declaration",17
         );
@@ -195,8 +195,8 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@org.jmlspecs.annotation.NonNull java.lang.Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
         ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(java.lang.Object)",9
         ,"/tt/TestJava.java:33: warning: Associated declaration",17
         );
@@ -240,10 +240,10 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
-        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@org.jmlspecs.annotation.NonNull java.lang.Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@org.jmlspecs.annotation.NonNull java.lang.Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
         );
     }
 
@@ -285,8 +285,8 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"    // Line 33
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@org.jmlspecs.annotation.NonNull java.lang.Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
         ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(java.lang.Object)",9
         ,"/tt/TestJava.java:33: warning: Associated declaration",17
         );

@@ -8,14 +8,14 @@ test/escVector/Vector.java:69: warning: The prover cannot establish an assertion
       final /*@ nullable */ Object [] new_data = new Object[my_element_count + my_capacity_increment]; // ERROR - could be negative under Java math
                                                                              ^
 Completed proof of Vector.add(Object) with prover !!!! - with warnings
-Starting proof of Vector.copyInto(@Nullable Object[]) with prover !!!!
-test/escVector/Vector.java:93: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method copyInto
-      the_array[i] = my_element_data[i]; // ERROR _ don't know size of the_array - it might be too big; ERROR - don't know the runtime type of the_array
-               ^
+Starting proof of Vector.copyInto(Object[]) with prover !!!!
 test/escVector/Vector.java:93: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method copyInto
       the_array[i] = my_element_data[i]; // ERROR _ don't know size of the_array - it might be too big; ERROR - don't know the runtime type of the_array
                    ^
-Completed proof of Vector.copyInto(@Nullable Object[]) with prover !!!! - with warnings
+test/escVector/Vector.java:93: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method copyInto
+      the_array[i] = my_element_data[i]; // ERROR _ don't know size of the_array - it might be too big; ERROR - don't know the runtime type of the_array
+               ^
+Completed proof of Vector.copyInto(Object[]) with prover !!!! - with warnings
 Starting proof of Vector.indexOf(Object,int) with prover !!!!
 test/escVector/Vector.java:114: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method indexOf
       if (the_elem.equals(my_element_data[i]) ) {   // ERROR - the_index might be negative

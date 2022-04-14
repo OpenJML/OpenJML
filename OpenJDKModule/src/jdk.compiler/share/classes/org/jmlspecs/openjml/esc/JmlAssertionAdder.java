@@ -12797,7 +12797,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			rhs = addImplicitConversion(rhs, that.lhs.type, rhs);
 			if (array.type instanceof Type.ArrayType) {
 				var atype = (Type.ArrayType) array.type;
-				if (specs.isNonNull(atype.elemtype, (ClassSymbol) null)) { // FIXME - need the enclosing class at the
+				if (specs.isNonNull(atype.elemtype, (ClassSymbol)enclosingClass)) { // FIXME - need the enclosing class at the
 																			// point of declaration
 					e = treeutils.makeNeqObject(that.rhs.pos, rhs, treeutils.nullLit);
 					addAssert(that, Label.POSSIBLY_NULL_ASSIGNMENT, e);

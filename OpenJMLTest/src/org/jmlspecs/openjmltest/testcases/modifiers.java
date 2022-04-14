@@ -930,8 +930,10 @@ public class modifiers extends TCBase {
         		"/*@ non_null non_null */ Object ooob, \n" +
         		"/*@ spec_public */ Object oooo) {} }"
                 ,"/A.java:6: error: org.jmlspecs.annotation.NonNull is not a repeatable annotation type", 14
+                ,"/A.java:6: error: org.jmlspecs.annotation.NonNull is not a repeatable annotation type", 14 // FIXME - why repeated at the same location
                 ,"/A.java:5: error: This JML modifier is not allowed for a formal parameter",5
                 ,"/A.java:5: error: A declaration may not be both non_null and nullable",20
+                ,"/A.java:5: error: A type may not be declared both non_null and nullable",5  // FIXME - why both this and the above message
                 ,"/A.java:7: error: This JML modifier is not allowed for a formal parameter",5
                 );
     }

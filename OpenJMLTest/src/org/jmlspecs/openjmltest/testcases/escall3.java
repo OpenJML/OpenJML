@@ -110,7 +110,7 @@ public class escall3 extends EscBase {
                 +"public class TestJava { \n"
                 
                 +"  //@ requires a.length > 5; \n"
-                +"  public void m1bad(@Nullable int[] a) {\n"
+                +"  public void m1bad(int @Nullable [] a) {\n"
                 +"    //@ assume a[1] == 0 ;\n"
                 +"  }\n"
                 
@@ -194,7 +194,7 @@ public class escall3 extends EscBase {
                 +"public class TestJava { \n"
                 
                 +"  //@ requires a.length > 5; \n"
-                +"  public void m1bad(@Nullable int[] a) {\n"
+                +"  public void m1bad(int @Nullable [] a) {\n"
                 +"    a[1] = 0 ;\n"
                 +"  }\n"
                 

@@ -290,7 +290,9 @@ public class JmlEsc extends JmlTreeScanner {
         String proverToUse = pickProver();
         
         //System.out.println("DOING " + utils.abbrevMethodSig(methodDecl.sym));
-        utils.progress(0,1,"Starting proof of " + utils.abbrevMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
+        String sig = utils.abbrevMethodSig(methodDecl.sym);
+        if (Utils.testingMode) sig = sig.replace("@Nullable ","").replace("@NonNull ","");
+        utils.progress(0,1,"Starting proof of " + sig + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         long methodStart = System.currentTimeMillis();
         log.resetRecord();
 
@@ -328,7 +330,7 @@ public class JmlEsc extends JmlTreeScanner {
                 currentMethodProver = null;
             }
             long duration = System.currentTimeMillis() - methodStart;
-            utils.progress(1,1,"Completed proof of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+            utils.progress(1,1,"Completed proof of " + sig  //$NON-NLS-1$ 
                     + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
                     + " - "
                     + (  res.isSat() ? "with warnings" 

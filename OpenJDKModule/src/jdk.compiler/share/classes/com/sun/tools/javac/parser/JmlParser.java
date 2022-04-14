@@ -373,15 +373,25 @@ public class JmlParser extends JavacParser {
         }
         insertReplacementType(param,replacementType);
         replacementType = null;
+        if (param.vartype instanceof JCTree.JCArrayTypeTree) {
+            param.mods.annotations = List.<JCAnnotation>nil(); // FIXME - should just remove JML type annotations
+        }
         return param;
     }
 
     /** Overridden to increase visibility */
+    @Override
     public List<JCVariableDecl> formalParameters() {
         return super.formalParameters();
     }
-
-
+    
+    protected List<JCStatement> localVariableDeclarations(JCModifiers mods, JCExpression type)  {
+        if (type instanceof JCTree.JCArrayTypeTree) {
+            mods.annotations = List.<JCAnnotation>nil(); // FIXME - should just remove JML type annotations
+        }
+        return super.localVariableDeclarations(mods, type);
+    }
+    
     /**
      * This parses a class, interface or enum declaration after the parser has
      * seen a group of modifiers and an optional javadoc comment. This can be a

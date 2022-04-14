@@ -7378,7 +7378,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
 
             visitVarDef(that);
-            
 //            if (that.sym.toString().equals("k") && that.sym.owner.toString().equals("A")) {
 //                System.out.println("JAVA " + that + " " + that.sym.owner.kind);
 //                var fspecs = specs.getLoadedSpecs(that.sym);

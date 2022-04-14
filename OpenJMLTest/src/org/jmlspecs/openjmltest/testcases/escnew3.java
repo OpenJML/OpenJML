@@ -734,7 +734,7 @@ public class escnew3 extends EscBase {
                 +"    //@ assert ints != null; \n"
                 +"    return ints.length; }\n"
                 
-                +"  public static void n(/*@ non_null*/Integer[] args) { \n"
+                +"  public static void n(Integer/*@ non_null*/[] args) { \n"
                 +"    int i = m(args); \n"
                 +"    //@ assert i == args.length; \n"
                 +"    }\n"
