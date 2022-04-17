@@ -3048,9 +3048,9 @@ public class JmlParser extends JavacParser {
             case WF_LT: case WF_LE:
                 return precFactor*TreeInfo.ordPrec;
             case DOT_DOT: case ENDJMLCOMMENT:
-                return -1000;
+                return -1000; // Forces an end to all expressions
             default:
-                return 1000;
+                return -10000; // Lower than all other precedences - Forces an end to all expressions
         }
     }
 

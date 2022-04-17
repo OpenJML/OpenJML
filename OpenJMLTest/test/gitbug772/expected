@@ -1,0 +1,10 @@
+Proving methods in X
+Starting proof of X.X() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of X.X() with prover !!!! - no warnings
+Starting proof of X.test(\real,\real) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of X.test(\real,\real) with prover !!!! - no warnings
+Completed proving methods in X

@@ -9945,7 +9945,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								throw ee;
 							} finally {
 								JCBlock bl = popBlock(cs, check8);
-								addStat(M.at(cs.pos).If(pre, bl, null));
+								if (!onlyComments(bl.stats)) {
+								    if (treeutils.isTrueLit(pre)) {
+								        addStat(bl);
+								    } else if (treeutils.isFalseLit(pre)) {
+								        // do nothing
+								    } else {
+                                        addStat(M.at(cs.pos).If(pre, bl, null));
+								    }
+								}
 								log.useSource(prev);
 							}
 						}

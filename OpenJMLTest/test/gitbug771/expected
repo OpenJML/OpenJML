@@ -1,0 +1,9 @@
+test/gitbug771/BugCrash.java:5: error: not a statement
+    //@ ghjost \real z = 0.0;
+        ^
+test/gitbug771/BugCrash.java:5: error: ';' expected
+    //@ ghjost \real z = 0.0;
+              ^
+Stopping because of parsing errors
+Operation not performed because of parse or type errors
+2 errors

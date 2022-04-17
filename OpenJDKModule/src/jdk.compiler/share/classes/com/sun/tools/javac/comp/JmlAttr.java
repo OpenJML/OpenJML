@@ -578,6 +578,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
         return super.attribStat(tree,env);
         } catch (Exception e) {
+            e.printStackTrace(System.out);
         	System.out.println("EXZCEPTION ON STAT " + env.enclClass.name + " " + tree + " RNV: " + env);
         	throw e;
         }

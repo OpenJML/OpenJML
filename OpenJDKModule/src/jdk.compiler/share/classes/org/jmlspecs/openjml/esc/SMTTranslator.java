@@ -2208,7 +2208,9 @@ public class SMTTranslator extends JmlTreeScanner {
         TypeTag tlhs = tree.lhs.type.getTag();
         TypeTag trhs = tree.rhs.type.getTag();
         boolean isReal = false;
-        if (tlhs == TypeTag.DOUBLE || trhs == TypeTag.DOUBLE ||
+        if (tree.lhs.type == jmltypes.REAL || tree.rhs.type == jmltypes.REAL) {
+            isReal = true;
+        } else if (tlhs == TypeTag.DOUBLE || trhs == TypeTag.DOUBLE ||
                 tlhs == TypeTag.FLOAT || trhs == TypeTag.FLOAT) {
             isReal = true;
         }
