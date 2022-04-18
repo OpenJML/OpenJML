@@ -92,7 +92,7 @@ public interface IJmlVisitor extends IVisitor {
     	// do nothing
     }
 
-    default public void visitJmlLabeledStatement(JmlLabeledStatement tree) {
+    default public void visitLabelled(JCTree.JCLabeledStatement tree) {
 //        scan(tree.extraStatements.toList());
         scan(tree.body);
     }
@@ -309,7 +309,7 @@ public interface IJmlVisitor extends IVisitor {
 
     default public void visitJmlTypeClauseMaps(JmlTypeClauseMaps tree) {
         scan(tree.modifiers);
-        scan(tree.expression);
+        scan(tree.expressions);
         for (JmlGroupName g: tree.list) {
             scan(g);
         }

@@ -73,12 +73,14 @@ public class escDemofiles extends EscBase {
     	escOnFiles(sourceDirname,outDir,opts);
     }
 
+    // FIXME - use super.setupForFiles?
     public java.util.List<String> setupForFiles(String sourceDirname, String outDir, String ... opts) {
         new File(outDir).mkdirs();
         java.util.List<String> args = new LinkedList<String>();
         args.add("--esc");
         args.add("-jmltesting");
         args.add("-no-purityCheck");
+        args.add("--check-feasibility=basic");
         args.add("--dir");
         args.add(sourceDirname);
         addOptionsToArgs(options,args);
@@ -91,21 +93,21 @@ public class escDemofiles extends EscBase {
     @Test
     public void testInvertInjection() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/InvertInjection.java","test/demoInvertInjection","-progress","-noInternalSpecs");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/InvertInjection.java","test/demoInvertInjection","-progress");
     }
 
     @Test
     public void testBinarySearch() {
         Assume.assumeTrue(runLongTests);
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/BinarySearch.java","test/demoBinarySearch","-progress","-noInternalSpecs","-logic=AUFNIRA");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/BinarySearch.java","test/demoBinarySearch","-progress","-logic=AUFNIRA");
     }
 
     @Ignore  // FIXME: Fails because of inadequate specs and use of \created
     @Test
     public void testCustomer() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/Customer.java","test/demoCustomer","-progress","-noInternalSpecs");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/Customer.java","test/demoCustomer","-progress");
     }
 
     @Test

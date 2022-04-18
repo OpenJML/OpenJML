@@ -1,0 +1,10 @@
+Proving methods in InvertInjection
+Starting proof of InvertInjection.InvertInjection() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of InvertInjection.InvertInjection() with prover !!!! - no warnings
+Starting proof of InvertInjection.invert() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of InvertInjection.invert() with prover !!!! - no warnings
+Completed proving methods in InvertInjection

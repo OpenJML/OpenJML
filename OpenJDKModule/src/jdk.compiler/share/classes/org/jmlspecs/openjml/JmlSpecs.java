@@ -127,9 +127,7 @@ import com.sun.tools.javac.util.PropagatedException;
  *                  location of specs shipped with the tool </LI>
  * </UL>
  * </UL>
- * In addition, by default, the specs path has $SY appended to it (unless 
- * disabled with -noInternalSpecs); the classpath has the internal runtime
- * library appended to it (unless disabled with -noInternalRuntime).
+ * In addition, by default, the specs path has $SY appended to it.
  * 
  * <P>
  * <B>Mock files</B>
@@ -388,9 +386,9 @@ public class JmlSpecs {
         }
         String dir;
         boolean checkDirectories = JmlOption.isOption(context,JmlOption.CHECKSPECSPATH);
-        if (JmlOption.isOption(context,JmlOption.INTERNALSPECS)) {
+        //if (JmlOption.isOption(context,JmlOption.INTERNALSPECS)) {
             todo.add("$SY");
-        }
+        //}
 
         String cwd = System.getProperty("user.dir");
         
@@ -1252,7 +1250,7 @@ public class JmlSpecs {
         }
         
         boolean libraryMethod = sym.owner instanceof ClassSymbol && sym.owner.toString().startsWith("java");
-        boolean isPureA = utils.hasMod(mspecs.mods, Modifiers.PURE, Modifiers.FUNCTION);
+        boolean isPureA = utils.hasMod(mspecs.mods, Modifiers.PURE, Modifiers.HEAP_FREE); // use isPure?
         boolean isPureL = (libraryMethod && !JmlOption.isOption(context,JmlOption.PURITYCHECK));
         //System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
@@ -1862,10 +1860,6 @@ public class JmlSpecs {
     	return annotationSymbol(Modifiers.MODEL);
     }
 
-    protected ClassSymbol functionAnnotationSymbol() {
-    	return annotationSymbol(Modifiers.FUNCTION);
-    }
-    
     protected ClassSymbol annotationSymbol(ModifierKind mk) {
     	if (mk.annotationSym == null) {
     		mk.annotationSym = utils.createClassSymbol(Symtab.instance(context).java_base, mk.fullAnnotation);
@@ -1873,14 +1867,13 @@ public class JmlSpecs {
     	return mk.annotationSym;
     }
     
-    /** Returns true if the given method symbol is annotated as Pure */
+    /** Returns true if the given method symbol is annotated as Pure or something that implies Pure */
     public boolean isPure(MethodSymbol symbol) {
-    	//boolean print = symbol.toString().contains("println");
+    	boolean print = symbol.toString().contains("identityHashCode");
     	JmlModifiers mods = getSpecsModifiers(symbol);
     	if (mods != null) {
-    		//if (print) System.out.println("MODS " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasMod(mods,  Modifiers.PURE) + " " + utils.hasMod(mods,  Modifiers.FUNCTION)+ " " + symbol.owner + " " + isPure((Symbol.ClassSymbol)symbol.owner));
-    		if (utils.hasMod(mods,  Modifiers.PURE)) return true; 
-    		if (utils.hasMod(mods,  Modifiers.FUNCTION)) return true; 
+    		//if (print) System.out.println("MODS " + symbol.owner + " " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasMod(mods,  Modifiers.PURE) + " " + utils.hasMod(mods,  Modifiers.HEAP_FREE) + " " + isPure((Symbol.ClassSymbol)symbol.owner));
+    		if (utils.hasMod(mods,  Modifiers.PURE, Modifiers.HEAP_FREE)) return true; 
     	}
         return isPure((Symbol.ClassSymbol)symbol.owner);
     }

@@ -282,6 +282,7 @@ public class SpecsBase extends TCBase {
             } else {
                 String qualifiedName = f.toString().substring(root.length()+1);
                 int p = qualifiedName.lastIndexOf('.');
+                if (!qualifiedName.substring(p+1).equals("jml")) continue;
                 String baseName = qualifiedName.substring(0,p).replace(File.separatorChar,'.');
                 list.add(baseName);
                 int numArgs = countTypeArgs(f,baseName);

@@ -1064,13 +1064,22 @@ public class typechecking extends TCBase {
 
     // No errors but should have one: the use of List in the declaration of n should fail.
     @Test public void testModelImport1() {
-        helpTCF("A.java","//@ model import java.util.List;\n public class A {\n //@ ghost List k;\n List n;  \n }"
+        helpTCF("A.java","//@ model import java.util.List;\n" +
+                         " public class A {\n" +
+                         " //@ ghost List k;\n" +
+                         " List n;  \n" +
+                         " }"
         );
     }
     
     // This should fail for the ghost declaration but not for the Java declaration
     @Test public void testModelImport2() {
-        helpTCF("A.java","import java.awt.*; //@ model import java.util.*;\n public class A {\n //@ ghost List k;\n List n;  \n }"
+        helpTCF("A.java",
+                "import java.awt.*; //@ model import java.util.*;\n" + 
+                "public class A {\n" +
+                " //@ ghost List k;\n" +
+                " List n;  \n" +
+                "}"
                 ,"/A.java:3: error: reference to List is ambiguous\n  both interface java.util.List in java.util and class java.awt.List in java.awt match",12
                 ,"/A.java:4: error: reference to List is ambiguous\n  both interface java.util.List in java.util and class java.awt.List in java.awt match",2
         );
@@ -1078,7 +1087,12 @@ public class typechecking extends TCBase {
 
     // This should fail for the Java declaration but not for the ghost declaration
     @Test public void testModelImport3() {
-        helpTCF("A.java","import java.awt.*; import java.util.*;\n//@ model import java.util.List;\n public class A {\n //@ ghost List k;\n List n;  \n }"
+        helpTCF("A.java","import java.awt.*; import java.util.*;\n"+
+                         "//@ model import java.util.List;\n" +
+                         "public class A {\n"+
+                         " //@ ghost List k;\n" +
+                         " List n;  \n" +
+                         "}"
         );
     }
 
@@ -1518,6 +1532,62 @@ public class typechecking extends TCBase {
                 ,"/TestJava.java:51: warning: There is no point to a specification case having more visibility than its method",7
                 );
     }
+    
+    @Test
+    public void xlinton() {
+        javaOptions.add("-Xlint:unchecked"); // Part of test
+        expectedExit = 0;
+        helpTCF("A.java",
+           "public class A<T> { A<T> t; A(A t) { this.t = t;}\n}"
+            ,"/A.java:1: warning: unchecked conversion\n"
+                + "  required: A<T>\n"
+                + "  found:    A",47
+           );
+    }
+        
+    @Test
+    public void xlintoff() {
+        expectedExit = 0;
+        helpTCF("A.java",
+           "public class A<T> { A<T> t; A(A t) { this.t = t;}A(A t, int x) { this.t = t;}\n}"
+                ,"/A.java: Note: /A.java uses unchecked or unsafe operations.",-1
+                ,"/A.java: Note: Recompile with -Xlint:unchecked for details.",-1
+           );
+    }
+    
+    @Test
+    public void varInOld() {
+        helpTCF("A.java",
+            """
+            public class A {
+              //@ old var k = i+1;
+              public void m(int i) { } 
+            }
+            """
+            );
+
+    }
+        
+    @Test
+    public void privateNotInherited() {
+        expectedExit = 0;
+        helpTCF("A.java",
+            "public class A extends B {\n"+
+            "    public int m(int i) { return 0; } \n"+
+            "    //@ ensures \\result == m(0);\n"+
+            "    public int p() { return 0; }\n"+
+            "}\n"+
+            "class B {\n"+
+            "    //@ ensures \\result == i;\n"+
+            "    //@ pure\n"+
+            "    private int m(int i) { return i; }\n"+
+            "}"
+            ,"/A.java:3: warning: A non-pure method is being called where it is not permitted: A.m(int)",29
+            );
+
+    }
+        
+
     
     @Test public void clauseNames() {
         helpTCF("TestJava.java",

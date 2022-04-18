@@ -8,22 +8,22 @@ abstract class testcol<T> implements IJmlPrimitiveType {
 	//@   ensures \result.size() == 0;
     //@   ensures (\forall S t;; !\result.contains(t));
 	//@ skipesc
-	//@ model public static helper function <S> testcol<S> empty();
+	//@ model public static helper heap_free <S> testcol<S> empty();
 		
 	//@ public normal_behavior
 	//@   ensures \result == size;
-	//@ helper function
+	//@ helper heap_free
 	//@ model abstract public \bigint size();
 	
 	//@ public normal_behavior
 	//@   ensures \result.size == \old(size) + 1;
     //@   ensures \result.contains(t);
     //@   ensures \forall T tt; t != tt; \result.contains(tt) == this.contains(tt);
-	//@ helper function
+	//@ helper heap_free
 	abstract public testcol<T> add(T t);
 	
 	//@ public normal_behavior
-	//@ helper function
+	//@ helper heap_free
 	abstract public boolean contains(T t);
 }
 

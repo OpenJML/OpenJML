@@ -152,7 +152,6 @@ public class jmldoc {
     public void testRecursiveCP() throws Exception {
         helper(new String[]
                           { "-classpath","test/testNoErrors"+z+"bin"+z+"$CP",
-                            "-noInternalSpecs",
                             "test/testNoErrors/A.java",  
                           },0,0,"warning: $CP is included in the specs path recursively or multiple times"+eol
                           + "1 warning" + eol);
@@ -223,7 +222,7 @@ public class jmldoc {
                           { "-classpath","bin",
                             "-sourcepath","test/testNoErrors",
                             "-specspath","runtime",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "test/testNoErrors/A.java"
                           },0,0,
                           "Note: Some input files use unchecked or unsafe operations."+eol+

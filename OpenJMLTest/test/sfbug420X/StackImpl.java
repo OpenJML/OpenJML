@@ -40,7 +40,7 @@ public class StackImpl implements Stack {
 	}
 
 	//@ also 
-	//@   writes count, internalStack, internalStack[*]; 
+	//@   assigns count, internalStack, internalStack[*]; 
 	//@   ensures \old(stackCounter < maxSize) <==> \result;
 	//@   ensures \result ==> stackCounter == \old(stackCounter) + 1;
 	//@   ensures !\result ==> stackCounter == \old(stackCounter);

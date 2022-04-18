@@ -54,7 +54,6 @@ public class FrameExpressions extends JmlExtension {
 
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            syms = Symtab.instance(context);
             JmlMethodInvocation tree = (JmlMethodInvocation)that;
             ListBuffer<Type> argtypesBuf = new ListBuffer<>();
             attr.attribArgs(KindSelector.VAL, tree.args, localEnv, argtypesBuf);
@@ -96,7 +95,6 @@ public class FrameExpressions extends JmlExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            syms = Symtab.instance(context);
             JmlMethodInvocation tree = (JmlMethodInvocation)that;
 // FIXME - needs implementation
 //            ListBuffer<Type> argtypesBuf = new ListBuffer<>();

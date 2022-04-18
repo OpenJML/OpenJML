@@ -244,6 +244,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     /** The program being constructed */
     protected P program = null;
     
+    protected JmlAssertionAdder assertionAdder;
+    
     /** The symbol used to hold the int location of the terminating statement. */
     protected VarSymbol terminationSym;
     
@@ -617,6 +619,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         if (classDecl.sym == null) {
             log.error("jml.internal","The class declaration in convertMethodBody appears not to be typechecked");
         }
+        this.assertionAdder = assertionAdder;
         this.terminationSym = assertionAdder.terminationSymbols.get(methodDecl);
         this.exceptionSym = assertionAdder.exceptionSymbols.get(methodDecl);
         this.blockLookup.clear();
@@ -662,8 +665,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     }
     
     ListBuffer<JCStatement> temp = new ListBuffer<>();
-    protected void addAssumeCheck(java.util.List<JCStatement> statements, String bbname) {
-        JmlEsc.instance(context).assertionAdder.addAssumeCheck(treeutils.trueLit, temp, "BB-Assume" );
+    protected void addFeasibilityCheck(java.util.List<JCStatement> statements, String bbname) {
+        JmlEsc.instance(context).assertionAdder.addFeasibilityCheck(treeutils.trueLit, temp, "BB-Assume" );
         statements.add(temp.first());
         temp.clear();
     }
@@ -788,7 +791,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             boolean fallthrough = false; // Nothing to fall through to the first case
             for (JCCase caseItem: cases) {
             	List<JCExpression> caseValues = caseItem.getExpressions();
-                List<JCStatement> stats = caseItem.getStatements();
+                List<JCStatement> stats = ((JCCase)caseItem).stats;
                 int casepos = caseItem.getStartPosition();
                 
                 // create a block for this case test
@@ -967,11 +970,11 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             T catchBlock = newBlock(CATCH,catcher.pos);
             follows(targetBlock,catchBlock);
             follows(catchBlock,finallyBlock);
-            addAssumeCheck(catchBlock.statements, catchBlock.id().toString() + "-start");
+            addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "-start");
             catchBlock.statements.addAll(assumptions);
-            addAssumeCheck(catchBlock.statements, catchBlock.id().toString() + "- +1");
+            addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "- +1");
             addAssume(catcher.pos,Label.IMPLICIT_ASSUME,tt,catchBlock.statements);
-            addAssumeCheck(catchBlock.statements, catchBlock.id().toString() + "- +2");
+            addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "- +2");
             addAssume(catcher.pos,Label.IMPLICIT_ASSUME,treeutils.makeNot(catcher.pos,tt),assumptions);
             JCVariableDecl d = treeutils.makeVariableDecl(catcher.param.sym, ex);
                 d.pos = catcher.param.pos;
@@ -1067,11 +1070,15 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         shouldNotBeCalled(that); 
     }
     
+    void pushMap() {}
+    void popMap() {}
+    
     // OK
     public void visitIf(JCIf that) {
         int pos = that.pos;
         int posc = that.cond != null ? that.cond.pos : pos;
         currentBlock.statements.add(comment(that.pos(),"if..."));
+        var copier = assertionAdder.new Copier(context, M);
         
         // Now create an (unprocessed) block for everything that follows the
         // if statement
@@ -1079,14 +1086,16 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         
         // Now make the then block
         T thenBlock = newBlock(THENSUFFIX,pos);
-        addAssume(posc, Label.BRANCHT, that.cond, thenBlock.statements);
+        JCExpression c = copier.copy(that.cond);
+        addAssume(posc, Label.BRANCHT, c, thenBlock.statements);
         thenBlock.statements.add(that.thenpart);
         follows(thenBlock,afterIf);
         follows(currentBlock,thenBlock);
         
         // Now make the else block
         T elseBlock = newBlock(ELSESUFFIX,pos);
-        addAssume(posc, Label.BRANCHE, treeutils.makeNot(posc,that.cond), elseBlock.statements);
+        c = copier.copy(that.cond);
+        addAssume(posc, Label.BRANCHE, treeutils.makeNot(posc,c), elseBlock.statements);
         if (that.elsepart != null) elseBlock.statements.add(that.elsepart);
         follows(elseBlock,afterIf);
         follows(currentBlock,elseBlock);
@@ -1571,12 +1580,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     
     // OK
     @Override
-    public void visitLabelled(JCLabeledStatement that) {
-        shouldNotBeCalled(that);
-    }
-    
-    @Override 
-    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
+    public void visitLabelled(JCLabeledStatement jcthat) {
+        JmlLabeledStatement that = (JmlLabeledStatement)jcthat;
         List<JCStatement> copy = new LinkedList<>();
         copy.addAll(that.extraStatements);
         processStats(copy);

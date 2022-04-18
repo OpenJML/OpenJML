@@ -1,12 +1,18 @@
 package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.COLON;
+import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
+import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTree.IJmlLoop;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
+import org.jmlspecs.openjml.JmlTree.JmlIfStatement;
+import org.jmlspecs.openjml.JmlTree.JmlSwitchStatement;
 import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.ext.ReachableStatement.ExprStatementType;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.JmlTypes;
@@ -18,6 +24,7 @@ import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
 
 public class StatementExprExtensions extends JmlExtension {
     
@@ -28,6 +35,8 @@ public class StatementExprExtensions extends JmlExtension {
     public static final String useID = "use";
     public static final String loopinvariantID = "loop_invariant";
     public static final String loopdecreasesID = "loop_decreases";
+    public static final String splitID = "split";
+
     
     public static final IJmlClauseKind assertClause = new StatementExprType(assertID);
     public static final IJmlClauseKind checkClause = new StatementExprType(checkID);
@@ -40,6 +49,7 @@ public class StatementExprExtensions extends JmlExtension {
         }
     };
     
+    public static final IJmlClauseKind splitClause = new StatementExprType(splitID);
     public static final IJmlClauseKind useClause = new StatementExprType(useID);
     public static final IJmlClauseKind loopinvariantClause = new StatementExprType(loopinvariantID);
     public static final IJmlClauseKind loopdecreasesClause = new StatementExprType(loopdecreasesID);
@@ -55,44 +65,68 @@ public class StatementExprExtensions extends JmlExtension {
         public StatementExprType(String keyword) { super(keyword); }
         
         @Override
-        public JmlAbstractStatement parse(JCModifiers mods, String id, IJmlClauseKind clauseType, JmlParser parser) {
+        public JCTree parse(JCModifiers mods, String id, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             int pp = parser.pos();
 
             parser.nextToken(); // skip over the keyword
             var n = parser.parseOptionalName();
 
-            JCExpression t = parser.parseExpression();
+            JCExpression t;
+            if ((parser.token().kind == SEMI || parser.token().ikind == ENDJMLCOMMENT) && clauseType == splitClause) {
+                // expression is optional in split statement
+                t = null;
+            } else {
+                t = parser.parseExpression();
+            }
             if (t instanceof JCTree.JCErroneous) parser.skipToSemi();
             String nm = clauseType.keyword();
             JmlAbstractStatement ste;
-            //if (t instanceof JCTree.JCErroneous) t = JmlTreeUtils.instance(context).trueLit;
+            JmlTree.JmlStatementExpr st = null;
             if (clauseType == StatementExprExtensions.loopinvariantClause ||
                     clauseType == StatementExprExtensions.loopdecreasesClause) {
-                JmlTree.JmlStatementLoopExpr st = parser.maker()
+                ste = parser.maker()
                         .at(pp)
                         .JmlStatementLoopExpr(
                                 clauseType,
                                     t);
-                ste = st;
             } else {
-                JmlTree.JmlStatementExpr st = parser.maker()
+                st = parser.maker()
                         .at(pp)
                         .JmlExpressionStatement(
                                 nm,
                                 clauseType,
-                                nm.equals("assume") ? Label.EXPLICIT_ASSUME :
+                                nm == assumeID ? Label.EXPLICIT_ASSUME :
                                     Label.EXPLICIT_ASSERT,  // FIXME?
                                     t);
                 st.keyword = id;
                 Token tk = parser.token();
                 if (tk.kind == COLON) {
-                    parser.nextToken();
-                    st.optionalExpression = parser.parseExpression();
+                    if (clauseType == assertClause || clauseType == assumeClause) {
+                        parser.nextToken();
+                        st.optionalExpression = parser.parseExpression();
+                    } else {
+                        utils.error(tk.pos, "jml.message", "A secondary expression is only permitted for assert or assume statements");
+                        parser.skipToSemi();
+                    }
                 }
                 ste = st;
             }
-            wrapup(ste,clauseType,true);
+            wrapup(ste,clauseType,true, clauseType != splitClause);
+            if (clauseType == splitClause && st.expression == null) {
+                while (parser.jmlTokenClauseKind() == Operators.endjmlcommentKind) parser.nextToken();
+                JCStatement stt = parser.blockStatement().head;
+                if (stt instanceof JmlIfStatement) {
+                    ((JmlIfStatement)stt).split = true;
+                } else if (stt instanceof JmlSwitchStatement) {
+                    ((JmlSwitchStatement)stt).split = true;
+                } else if (stt instanceof IJmlLoop) {
+                    ((IJmlLoop)stt).setSplit(true);
+                } else {
+                    utils.warning(ste, "jml.message", "Ignoring out of place split statement");
+                }
+                return stt;
+            }
             return ste;
         }
         
@@ -104,11 +138,10 @@ public class StatementExprExtensions extends JmlExtension {
             attr.jmlenv = attr.jmlenv.pushCopy();
             attr.jmlenv.inPureEnvironment = true;
             attr.jmlenv.currentClauseKind = tree.clauseType;
-            Type expectedType = tree.clauseType == loopdecreasesClause ? JmlTypes.instance(context).BIGINT : isUse ? Type.noType : syms.booleanType; 
-            // unreachable statements have a null expression
+            Type expectedType = tree.clauseType == loopdecreasesClause ? JmlTypes.instance(attr.context).BIGINT : isUse ? Type.noType : attr.syms.booleanType; 
             if (tree.expression != null) {
             	var ty = attr.attribExpr(tree.expression,env,expectedType);
-            	tree.expression.type = ty != syms.errType ? ty : expectedType;
+            	tree.expression.type = ty != attr.syms.errType ? ty : expectedType;
             }
             if (tree.optionalExpression != null) attr.attribExpr(tree.optionalExpression,env,Type.noType);
             attr.jmlenv = attr.jmlenv.pop();

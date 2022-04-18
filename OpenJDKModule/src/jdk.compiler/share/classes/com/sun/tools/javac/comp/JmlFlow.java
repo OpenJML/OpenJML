@@ -166,9 +166,9 @@ public class JmlFlow extends Flow  {
         }
 
         @Override
-        public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-            scan(that.extraStatements.toList());
-            scan(that.body);
+        public void visitLabelled(JCTree.JCLabeledStatement that) {
+            scan(((JmlLabeledStatement)that).extraStatements.toList());
+            super.visitLabelled(that);
         }
 
         @Override
@@ -282,6 +282,12 @@ public class JmlFlow extends Flow  {
             // FIXME: skipping store-ref expressions
             // we could call scanExpr on each expression, but we have to watch for special expressions
         }
+
+        @Override
+        public void visitJmlStoreRef(JmlStoreRef that) {
+            // FIXME - do need to do some scanning
+        }
+
 
         //// These are not implemented
 
@@ -564,9 +570,10 @@ public class JmlFlow extends Flow  {
             // nothing to do
         }
 
-        public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-            scan(that.extraStatements.toList());
-            scan(that.body);
+        @Override
+        public void visitLabelled(JCTree.JCLabeledStatement that) {
+            scan(((JmlLabeledStatement)that).extraStatements.toList());
+            super.visitLabelled(that);
         }
         
         public void visitJmlTuple(JmlTuple that) {
@@ -724,6 +731,11 @@ public class JmlFlow extends Flow  {
         public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
             // FIXME: skipping store-ref expressions
             // we could call scanExpr on each expression, but we have to watch for special expressions
+        }
+        
+        @Override
+        public void visitJmlStoreRef(JmlStoreRef that) {
+            // FIXME - do need to do some scanning
         }
 
         //// These do nothing, if they are even needed
@@ -974,9 +986,9 @@ public class JmlFlow extends Flow  {
         }
 
         @Override
-        public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-            scan(that.extraStatements.toList());
-            scan(that.body);
+        public void visitLabelled(JCTree.JCLabeledStatement that) {
+            scan(((JmlLabeledStatement)that).extraStatements.toList());
+            super.visitLabelled(that);
         }
 
         @Override
@@ -1083,6 +1095,12 @@ public class JmlFlow extends Flow  {
             // FIXME: skipping store-ref expressions
             // we could call scanExpr on each expression, but we have to watch for special expressions
         }
+
+        @Override
+        public void visitJmlStoreRef(JmlStoreRef that) {
+            // FIXME - do need to do some scanning
+        }
+
 
         //// These are not implemented
 
@@ -1269,11 +1287,9 @@ public class JmlFlow extends Flow  {
     @Override 
     public void analyzeTree(Env<AttrContext> env, TreeMaker make) {
     	try {
-    		//System.out.println("JMLFLOW " + env.tree);
     		new JmlAliveAnalyzer().analyzeTree(env, make);
     		new JmlAssignAnalyzer().analyzeTree(env, make);
-    		//new JmlFlowAnalyzer().analyzeTree(env, make);
-    		try { new JmlFlowAnalyzer().analyzeTree(env, make);  } catch (Exception e) {} // FIXME _ swallowing exceptions
+    		new JmlFlowAnalyzer().analyzeTree(env, make);
     		new JmlCaptureAnalyzer().analyzeTree(env, make);
     	} catch (Exception e)  {
     		Utils.instance(context).unexpectedException(e, "FLOW");

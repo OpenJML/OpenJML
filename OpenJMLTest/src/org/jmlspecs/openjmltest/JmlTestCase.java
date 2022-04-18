@@ -61,6 +61,7 @@ import com.sun.tools.javac.util.Position;
 public abstract class JmlTestCase {
     
     public boolean jmltesting =  true;
+    protected List<String> javaOptions= new LinkedList<String>();
 
     // The test output expects that the current working directory while running unittests is  .../OpenJML/OpenJMLTest
 
@@ -102,6 +103,13 @@ public abstract class JmlTestCase {
     	return (new RuntimeException()).fillInStackTrace().getStackTrace()[i+1].getMethodName();
     }
     
+    public boolean skipIfFalse(boolean condition) {
+        if (!condition) {
+            System.out.println("Skipping test -- false precondition");
+            return true;
+        }
+        return false;
+    }
 
     /** The java executable */
     // TODO: This is going to use the external setting for java, rather than
@@ -157,9 +165,9 @@ public abstract class JmlTestCase {
             //((JCDiagnostic)diagnostic).setFormatter(Log.instance(context).getDiagnosticFormatter());
             //if (print) System.out.println(diagnostic.toString());
             String diagString = diagnostic.toString();
-            boolean unreportedNote = (diagnostic.getKind() == Diagnostic.Kind.NOTE) && 
-                                    (diagString.contains("-Xlint:unchecked") || 
-                                     diagString.contains("use unchecked or unsafe") ||
+            boolean unreportedNote = (diagnostic.getKind() == Diagnostic.Kind.NOTE) && (
+//                                    diagString.contains("-Xlint:unchecked") || 
+//                                     diagString.contains("use unchecked or unsafe") ||
                                      diagString.contains("Note: Some messages have been simplified")
                                     );
             if (!unreportedNote) if (!noNotes || diagnostic.getKind() != Diagnostic.Kind.NOTE ||
@@ -285,7 +293,7 @@ public abstract class JmlTestCase {
         mockFiles = new LinkedList<JavaFileObject>();
         Log.alwaysReport = true; // Always report errors (even if they would be suppressed because they are at the same position
         if (System.getenv("VERBOSE") != null) {
-        	main.addJavaOption("-verbose","true");
+        	javaOptions.add("-verbose");
         	main.addOptions("-jmlverbose","3");
         }
     }

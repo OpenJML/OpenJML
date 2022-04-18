@@ -28,6 +28,7 @@ import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
+import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.ext.TypeInitializerClauseExtension;
 
@@ -758,6 +759,9 @@ public class JmlEnter extends Enter {
 				if (csym.getTypeParameters().size() != specDecl.typarams.size()) {
 					utils.error(specDecl.sourcefile, specDecl,
 							"jml.mismatched.type.arguments", utils.nameTP(specDecl), csym.type);
+                    //recordEmptySpecs(csym); // so we don't keep trying to load it
+                    //System.out.println("FAILED MATCH " + csym + " " + ((csym.flags_field & Flags.UNATTRIBUTED) != 0));
+                    csym.flags_field &= ~Flags.UNATTRIBUTED;
 					return false; // disallow the match
 				}
 				specDecl.sym = csym;
@@ -765,11 +769,16 @@ public class JmlEnter extends Enter {
 				localSpecEnv = classEnv(specDecl, specsEnv);
                 TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
                 typeEnvs.put(csym, localSpecEnv);
-				if (!checkAndEnterTypeParameters(csym,specDecl,localSpecEnv)) return false;
+				if (!checkAndEnterTypeParameters(csym,specDecl,localSpecEnv)) {
+                    //recordEmptySpecs(csym); // so we don't keep trying to load it
+                    //System.out.println("FAILED MATCH-B " + csym + " " + ((csym.flags_field & Flags.UNATTRIBUTED) != 0));
+				    return false;
+				}
 				// FIXME - be sure that annotations are checked as well
 				if (utils.verbose()) utils.note("Matched to binary class: " + csym + " (owner: " + csym.owner +")" );
 
 				((ClassType)csym.type).typarams_field = classTPEnter(specDecl.typarams, localSpecEnv); // FIXME - what does this do???
+	            csym.flags_field |= Flags.UNATTRIBUTED;
 			}
 //			if (specDecl.typarams.size() == ((ClassType)csym.type).typarams_field.size()) {
 //				for (int i = 0; i < specDecl.typarams.length(); ++i) {
@@ -782,7 +791,6 @@ public class JmlEnter extends Enter {
 			specDecl.specEnv = localSpecEnv;
 			var tspecs = new JmlSpecs.TypeSpecs(specDecl, null, localSpecEnv);
 			JmlSpecs.instance(context).putSpecs(csym, tspecs);
-
 			// Do all nested classes, recursively
 			specDecl.defs = specsListEnter(csym, specDecl.defs, localSpecEnv);
 		} catch (Exception e) {
@@ -867,7 +875,7 @@ public class JmlEnter extends Enter {
 			} else if (t instanceof JmlVariableDecl vd) {
 				ok = specsFieldEnter(csym, vd, specsEnv);
 			} else if (t instanceof JmlBlock block) {
-    			if (block.isInitializerBlock && block.sourcefile.getKind() != JavaFileObject.Kind.SOURCE && !utils.isJML(env.enclClass.mods)) {
+    			if (block.isInitializerBlock && block.sourcefile.getKind() != JavaFileObject.Kind.SOURCE && !utils.isJML(specsEnv.enclClass.mods)) {
     				utils.error(block.source(), block, "jml.initializer.block.allowed");
     				ok = false;
     			}
@@ -1465,53 +1473,80 @@ public class JmlEnter extends Enter {
 					specTypeDeclaration.name, csym.type.toString());
 			return false;
 		}
-		specTypeDeclaration.sym = csym;
-		for (int i = 0; i < numSpecTypeParams; i++) {
-			JCTree.JCTypeParameter specTV = specTypeDeclaration.typarams.get(i);
-			var javaTV = (Type.TypeVar) ((ClassType) csym.type).getTypeArguments().get(i);
-			// utils.warning(-1, "jml.message", "TV " + csym + " " + i + " " + specTV + " "
-			// + javaTV);
-			if (specTV.name != javaTV.tsym.name) {
-				utils.error(specTV.pos(), "jml.mismatched.type.parameter.name", specTypeDeclaration.name, csym.fullname,
-						specTV.name, javaTV.tsym.name);
-				result = false;
-			}
-			if (!result)
-				return result;
-			// classEnter will set the type of the Type Variable, but it sets it to
-			// something new for each instance, which causes trouble in type mathcing
-			// that I have not figured out. Here we preemptively set the type to be the
-			// same as the Java type that it matches in the specification.
-			specTV.type = javaTV;
-			// if (localEnv != null) classEnter(specTV,localEnv); // FIXME - wouldn't this
-			// be a duplicate - or is localEnv always null
-			// enterScope.enter(javaTV.tsym);
-		}
+        for (int i = 0; i < numSpecTypeParams; i++) {
+            JCTree.JCTypeParameter specTV = specTypeDeclaration.typarams.get(i);
+            var javaTV = (Type.TypeVar) ((ClassType) csym.type).getTypeArguments().get(i);
+            if (specTV.name != javaTV.tsym.name) {
+                utils.error(specTV.pos(), "jml.mismatched.type.parameter.name", specTypeDeclaration.name, csym.fullname,
+                        specTV.name, javaTV.tsym.name);
+                result = false;
+            }
+        }
+        if (!result) return result;
+
+		
+		int nerrors = log.nerrors;
 
 		var env = classEnv;
-		Env<AttrContext> baseEnv = baseEnv(specTypeDeclaration, env);
-		attribSuperTypes(env, baseEnv);
+		
+        specTypeDeclaration.sym = csym;
+        for (int i = 0; i < numSpecTypeParams; i++) {
+            JCTree.JCTypeParameter specTV = specTypeDeclaration.typarams.get(i);
+            var javaTV = (Type.TypeVar) ((ClassType) csym.type).getTypeArguments().get(i);
+            // classEnter will set the type of the Type Variable, but it sets it to
+            // something new for each instance, which causes trouble in type matching
+            // that I have not figured out. Here we preemptively set the type to be the
+            // same as the Java type that it matches in the specification.
+            specTV.type = javaTV;
+            classEnter(specTV,localEnv);
+        }
+        for (int i = 0; i < numSpecTypeParams; i++) {
+            JCTree.JCTypeParameter specTV = specTypeDeclaration.typarams.get(i);
+            var javaTV = (Type.TypeVar) ((ClassType) csym.type).getTypeArguments().get(i);
+            
+            result &= checkAndCopyBounds(csym, specTV, specTV.getBounds(), javaTV.getUpperBound(), localEnv);
+        }
+        if (!result) return result;
 
-		if (!csym.isInterface())
-			check(specTypeDeclaration, specTypeDeclaration.extending, csym.getSuperclass());
-		var iter = csym.getInterfaces().iterator();
-		for (var iface : specTypeDeclaration.implementing) {
-			if (!iter.hasNext()) {
-				check(specTypeDeclaration, iface, null);
-				break;
-			}
-			check(specTypeDeclaration, iface, iter.next());
-		}
-		if (iter.hasNext()) {
-			check(specTypeDeclaration, null, iter.next());
-		}
 
-//        for (int i = nn; i<numSpecTypeParams; i++) {
-//            JCTree.JCTypeParameter specTV = specTypeDeclaration.typarams.get(i);
-//            if (localEnv != null) classEnter(specTV,localEnv);
-//        }
+        Env<AttrContext> baseEnv = baseEnv(specTypeDeclaration, env);
+        attribSuperTypes(env, baseEnv);
+
+        if (!csym.isInterface()) check(specTypeDeclaration, specTypeDeclaration.extending, csym.getSuperclass());
+
+        var iter = csym.getInterfaces().iterator();
+        for (var iface : specTypeDeclaration.implementing) {
+            if (!iter.hasNext()) {
+                check(specTypeDeclaration, iface, null);
+                break;
+            }
+            check(specTypeDeclaration, iface, iter.next());
+        }
+        if (iter.hasNext()) {
+            check(specTypeDeclaration, null, iter.next());
+        }
+
 //        // FIXME need to check that the types have the same bounds
+		if (nerrors != log.nerrors) return false;
 		return result;
+	}
+	
+	public boolean checkAndCopyBounds(ClassSymbol owner, JCTree.JCTypeParameter specTV, List<JCExpression> specBounds, Type javaType, Env<AttrContext> localenv) {
+	    if (specBounds.isEmpty() ) {
+	        if (javaType.tsym == syms.objectType.tsym) return true;
+	        utils.error(specTV, "jml.message", "Type parameter " + specTV + " is missing an upper bound: " + javaType);
+	        return false;
+	    }
+	    Attr attr = JmlAttr.instance(context);
+	    specBounds.forEach(b->attr.attribType(b,localenv));
+	    if (specBounds.size() == 1) {
+	        //System.out.println("BOUND " + specTV + " ^ " + specBounds.head + " " + specBounds.head.type + " " + specBounds.head.getClass() + " " + javaType);
+//	        specBounds.head.type = javaType;
+	        return true;
+	    }
+	    // FIXME - need to check that number of bounds is the same
+        System.out.println("BOUNDS " + specTV + " ^ " + specBounds.size() + " " + specBounds + " # " + javaType + " " + javaType.getClass() );
+	    return true;
 	}
 
 	public boolean check(JmlClassDecl specTypeDeclaration, JCExpression e, Type t) {
@@ -1793,7 +1828,16 @@ public class JmlEnter extends Enter {
 				    speccu.sourceCU = null; // null indicates a binary; non-null a source Java file
 				    speccu.specsCompilationUnit = speccu;
 				    specsEnter(speccu);
-				    csymbol.flags_field |= Flags.UNATTRIBUTED; // FIXME - verify that this is needed
+				    if (specs.get(csymbol) == null) {
+                        // Specs were found but they did not match and were discarded
+				        // But need to record some empty specs
+	                    recordEmptySpecs(csymbol); // so we don't keep trying to load it
+				    } else if (specs.get(csymbol).specDecl == null) {
+				        // Specs were found but they did not match and were discarded
+				        // Empty specs have already been recorded
+				    } else {
+//				        csymbol.flags_field |= Flags.UNATTRIBUTED; // FIXME - verify that this is needed
+				    }
 				} else {
 				    // No specs -- binary with no .jml file
 				    recordEmptySpecs(csymbol); // so we don't keep trying to load it

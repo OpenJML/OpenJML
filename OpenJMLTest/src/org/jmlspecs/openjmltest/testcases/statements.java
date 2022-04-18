@@ -153,11 +153,20 @@ public class statements extends TCBase {
     	expectedExit = 0;
     	main.addOptions("-lang=jml");
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ unreachable \n i = 0; \n}}"
-                ,"/A.java:2: warning: Inserting missing semicolon at the end of a unreachable statement",16
                 );
     }
 
-    @Test public void testSet() {
+    @Test public void testUnreachable2() {
+        helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ unreachable \n//@ unreachable; \n i = 0; \n}}"
+                );
+    }
+
+    @Test public void testReachable2() {
+        helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ reachable \n//@ reachable \n i = 0; \n}}"
+                );
+    }
+
+   @Test public void testSet() {
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ ghost int j; set j = 1; \n i = 0; \n}}"
                 );
     }

@@ -40,20 +40,20 @@ public class escoption extends EscBase {
     @Test
     public void testOptionValueBoolean() {
     	collectOutput(false);
-    	Assert.assertEquals("jml+",JmlOption.value(main.context(), JmlOption.LANG));
-    	Assert.assertEquals("jml+",JmlOption.value(main.context(), JmlOption.LANG));
-    	Assert.assertEquals("jml+",JmlOption.value(main.context(), "--lang"));
-    	Assert.assertEquals("jml+",JmlOption.value(main.context(), "--lang"));
+    	Assert.assertEquals("openjml",JmlOption.value(main.context(), JmlOption.LANG));
+    	Assert.assertEquals("openjml",JmlOption.value(main.context(), JmlOption.LANG));
+    	Assert.assertEquals("openjml",JmlOption.value(main.context(), "--lang"));
+    	Assert.assertEquals("openjml",JmlOption.value(main.context(), "--lang"));
     	JmlOption.putOption(main.context(), JmlOption.LANG, "jml");
     	Assert.assertEquals("jml",JmlOption.value(main.context(), JmlOption.LANG));
-        JmlOption.putOption(main.context(), JmlOption.LANG, "jml+");
-        Assert.assertEquals("jml+",JmlOption.value(main.context(), JmlOption.LANG));
+        JmlOption.putOption(main.context(), JmlOption.LANG, "openjml");
+        Assert.assertEquals("openjml",JmlOption.value(main.context(), JmlOption.LANG));
     	main.addOptions("-lang=jml");
     	Assert.assertEquals("jml",JmlOption.value(main.context(), JmlOption.LANG));
-        main.addOptions("-lang=jml+");
-        Assert.assertEquals("jml+",JmlOption.value(main.context(), JmlOption.LANG));
-    	JmlOption.putOption(main.context(), JmlOption.LANG, "jml+");
-    	Assert.assertEquals("jml+",JmlOption.value(main.context(), JmlOption.LANG));
+        main.addOptions("-lang=openjml");
+        Assert.assertEquals("openjml",JmlOption.value(main.context(), JmlOption.LANG));
+    	JmlOption.putOption(main.context(), JmlOption.LANG, "openjml");
+    	Assert.assertEquals("openjml",JmlOption.value(main.context(), JmlOption.LANG));
         String out = output();
         org.junit.Assert.assertEquals("",out);
     }
@@ -274,5 +274,50 @@ public class escoption extends EscBase {
 
     }
     
+    @Test
+    public void testNowarnA() {
+        main.addOptions("-no-jmltesting");
+        helpTCX("NoWarn",
+            """
+            public class NoWarn extends A {
+            
+              //@ ensures true;
+              public void m() {
+                //@ assert false;
+              }
+           }
+           class A {
+             //@ ensures true;
+             public void m() {}
+           }
+           """
+           ,"/NoWarn.java:3: warning: Method m overrides parent class methods and so its specification should begin with 'also' (NoWarn.m() overrides A.m())",8
+           ,"/NoWarn.java:5: verify: The prover cannot establish an assertion (Assert) in method m",10
+           );
+
+    }
+    
+    @Test
+    public void testNowarnB() {
+        com.sun.tools.javac.util.Options.instance(context).put("-Xlint:none",""); // desugaring of -nowarn -- see Option.java
+        main.addOptions("-no-jmltesting");
+        helpTCX("NoWarn",
+            """
+            public class NoWarn extends A {
+            
+              //@ ensures true;
+              public void m() {
+                //@ assert false;
+              }
+            }
+            class A {
+              //@ ensures true;
+              public void m() {}
+            }
+            """
+            ,"/NoWarn.java:5: verify: The prover cannot establish an assertion (Assert) in method m",9
+            );
+
+       }
 }
 

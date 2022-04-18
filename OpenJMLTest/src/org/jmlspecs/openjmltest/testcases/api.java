@@ -936,7 +936,7 @@ public class api extends JmlTestCase {
     public void testAPI5() {
         start(true); // Collect but ignore the verbose output
         try {
-            IAPI m = Factory.makeAPI("-verbose","-noInternalSpecs");
+            IAPI m = Factory.makeAPI("-verbose");
             int exitcode = m.execute(null,"-cp","test/api","test/api/A.java");
             assertTrue(exitcode == 0);
             assertTrue(m.isTypechecked("A"));
@@ -958,7 +958,7 @@ public class api extends JmlTestCase {
     public void testAPI7() {
         start(true); // Collect but ignore the verbose output
         try {
-            IAPI m = Factory.makeAPI("-verbose","-noInternalSpecs");
+            IAPI m = Factory.makeAPI("-verbose");
             int exitcode = m.execute(null,"-cp","test/api2","test/api2/p1/A.java");
             assertTrue(exitcode == 0);
             assertTrue(m.isTypechecked("p1.A"));
@@ -1445,7 +1445,7 @@ public class api extends JmlTestCase {
                     null,
                     option,
                     "-no-purityCheck");
-            m.addOptions("openjml.defaultProver","z3_4_3");
+            m.addOptions("org.openjml.defaultProver","z3_4_3");
             JmlCompilationUnit jcu = m.parseString("A.java",program);
             int n = m.typecheck(jcu);
             assertTrue(n==0);

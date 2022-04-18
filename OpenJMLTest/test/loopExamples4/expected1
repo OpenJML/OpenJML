@@ -1,0 +1,22 @@
+Proving methods in SpecifyingLoopsExample1D
+Starting proof of SpecifyingLoopsExample1D.SpecifyingLoopsExample1D() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SpecifyingLoopsExample1D.SpecifyingLoopsExample1D() with prover !!!! - no warnings
+Starting proof of SpecifyingLoopsExample1D.reverseWord(String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SpecifyingLoopsExample1D.reverseWord(String) with prover !!!! - no warnings
+Starting proof of SpecifyingLoopsExample1D.main(String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+test/loopExamples4/SpecifyingLoopsExample1D.java:22: warning: Feasibility is unknown - time or memory limit reached: : Aborted feasibility check: timeout
+    public static void main(String [] argv) {
+                       ^
+Method assertions are validatedtimeout
+Completed proof of SpecifyingLoopsExample1D.main(String[]) with prover !!!! - TIMEOUT
+Starting proof of SpecifyingLoopsExample1D.isReversedIn(String,String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SpecifyingLoopsExample1D.isReversedIn(String,String) with prover !!!! - no warnings
+Completed proving methods in SpecifyingLoopsExample1D
+1 warning

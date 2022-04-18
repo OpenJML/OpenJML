@@ -14,6 +14,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.MethodProverSMT;
 import org.jmlspecs.openjmltest.OutputCompare.*;
 import org.junit.Rule;
@@ -172,10 +173,11 @@ public abstract class EscBase extends JmlTestCase {
         main.addOptions("--command","esc");
         main.addOptions("--keys","NOARITH");
         main.addOptions("--no-purityCheck");
+        main.addOptions("--check-feasibility=basic");
 //        main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
 //        main.addOptions("-exec",JmlTestCase.root + "/Solvers/Solvers-macos/z3-4.3.1","-verbose");  // FIXME
-        main.addUncheckedOption("openjml.defaultProver=z3_4");
+        main.addUncheckedOption("org.openjml.defaultProver=z3_4");
         addOptions(options);
         if (solver != null) main.addOptions(JmlOption.PROVER.optionName(),solver);
         specs = JmlSpecs.instance(context);
@@ -184,10 +186,11 @@ public abstract class EscBase extends JmlTestCase {
         ignoreNotes = false;
         print = false;
         args = new String[]{};
-        MethodProverSMT.benchmarkName = 
-                (this.getClass() + "." + testname.getMethodName()).replace("[0]", "").substring(6);
+//        MethodProverSMT.benchmarkName = 
+//                (this.getClass() + "." + testname.getMethodName()).replace("[0]", "").substring(6);
     }
 
+    // This helper routine does not add any default command-line options (like setUp does)
     public void escOnFiles(String sourceDirname, String outDir, String ... opts) {
     	boolean print = false;
     	try {
@@ -197,8 +200,8 @@ public abstract class EscBase extends JmlTestCase {
     		PrintWriter pw = new PrintWriter(actCompile);
     		int ex = -1;
     		try {
+    		    //System.out.println("ARGS " + Utils.join(" ",  args));
     			ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
-    			//ex = com.sun.tools.javac.Main.compile(args.toArray(new String[args.size()]),pw);
     		} finally {
     			pw.close();
     		}
@@ -279,7 +282,8 @@ public abstract class EscBase extends JmlTestCase {
         args.add("-jmltesting");
         args.add("--progress");
         args.add("--timeout=300");
-        args.add("--code-math=java");
+        args.add("--check-feasibility=basic");
+        args.add("--code-math=java"); //FIXME - delete this, but need to change subtests
         if (!new File(sourceDirOrFilename).isFile()) args.add("--dir");
         args.add(sourceDirOrFilename);
         if (solver != null) args.add("--prover="+solver);
@@ -295,7 +299,7 @@ public abstract class EscBase extends JmlTestCase {
         super.tearDown();
         specs = null;
         captureOutput = false;
-        MethodProverSMT.benchmarkName = null;
+//        MethodProverSMT.benchmarkName = null;
     }
 
     

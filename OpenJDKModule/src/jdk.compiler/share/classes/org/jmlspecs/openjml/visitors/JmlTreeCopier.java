@@ -297,11 +297,12 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
 
     @Override
-    public JCTree visitJmlLabeledStatement(JmlLabeledStatement that, Void p) {
+    public JCTree visitLabeledStatement(LabeledStatementTree tree, Void p) {
+        var that = (JmlLabeledStatement)tree;
         return M.at(that.pos).JmlLabeledStatement(
                 that.label,
                 copy(that.extraStatements,p),
-                (JCBlock)copy(that.body,p));
+                copy(that.body,p)).setType(that.type);
      }
 
     @Override
@@ -806,7 +807,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitJmlTypeClauseMaps(JmlTypeClauseMaps that, Void p) {
     	var prev = log.useSource(that.source);
         JmlTypeClauseMaps copy = M.at(that.pos).JmlTypeClauseMaps(
-                copy(that.expression,p),
+                copy(that.expressions,p),
                 copy(that.list,p));
         copy.clauseType = that.clauseType;
         copy.modifiers = copy(that.modifiers,p);
@@ -979,10 +980,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         }
     }
 
-    public JCTree visitLabeledStatement(LabeledStatementTree node, Void p) {
-        return super.visitLabeledStatement(node,p).setType(((JCTree)node).type);
-    }
-
     public JCTree visitLiteral(LiteralTree node, Void p) {
         return super.visitLiteral(node,p).setType(((JCTree)node).type);
     }
@@ -1022,12 +1019,12 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitMemberSelect(MemberSelectTree node, Void p) {
     	var fa = (JCFieldAccess)node;
     	JCTree t;
-		if (fa.sym != null) {
+//		if (fa.sym != null) {
 	        t = super.visitMemberSelect(node,p).setType(((JCTree)node).type);
 	        ((JCFieldAccess)t).sym = fa.sym;
-		} else { // s can be null if we are visiting a package name
-			t = treeutils.makeSelect(fa.pos, fa.selected, fa.name).setType(fa.type);
-		}
+//		} else { // s can be null if we are visiting a package name  // FIXME - why do we need this if the super class doesn't
+//			t = treeutils.makeSelect(fa.pos, fa.selected, fa.name).setType(fa.type);
+//		}
 		treeutils.copyEndPosition(t, fa);
         return t;
     }

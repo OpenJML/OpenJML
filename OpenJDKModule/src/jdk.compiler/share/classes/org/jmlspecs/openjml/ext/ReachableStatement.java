@@ -27,15 +27,12 @@ public class ReachableStatement extends JmlExtension {
 
     public static final String reachableID = "reachable";
     public static final String unreachableID = "unreachable";
-    public static final String splitID = "split";
     public static final String haltID = "halt";
     
     // FIXME - combine this with StatementExprType
     public static final IJmlClauseKind reachableClause = new ExprStatementType(reachableID);
 
     public static final IJmlClauseKind unreachableClause = new ExprStatementType(unreachableID);
-
-    public static final IJmlClauseKind splitClause = new ExprStatementType(splitID);
 
     public static final IJmlClauseKind haltClause = new ExprStatementType(haltID);
 
@@ -52,16 +49,18 @@ public class ReachableStatement extends JmlExtension {
         public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             int pp = parser.pos();
-            int p = scanner.currentPos();
-            boolean noExpression = keyword.equals(splitID) || keyword.equals(haltID);
-            boolean semiWarning = !noExpression && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
+            int p = parser.getScanner().currentPos(); // FIXME - why do we get this position from the scanner?
+            boolean noExpression = keyword.equals(haltID) || keyword.equals(reachableID) || keyword.equals(unreachableID);
+            boolean semiWarning = !noExpression && JmlOption.langJML.equals(JmlOption.value(parser.context, JmlOption.LANG));
             parser.nextToken();
             JmlStatementExpr st = parser.maker().at(pp).JmlExpressionStatement(keyword,clauseType,null,null);
-            if (!noExpression) st.expression = JmlTreeUtils.instance(context).makeBooleanLiteral(pp,true);
+            if (!noExpression) st.expression = JmlTreeUtils.instance(parser.context).makeBooleanLiteral(pp,true);
             if (parser.token().kind == TokenKind.SEMI) {
                 parser.nextToken();
             } else if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
                 if (semiWarning) utils.warning(p-1, "jml.missing.semi", keyword);
+            } else if (noExpression) {
+                // continue
             } else {
                 JCExpression opt = null;
                 JCExpression e = parser.parseExpression();
@@ -83,22 +82,7 @@ public class ReachableStatement extends JmlExtension {
                 }
                 // FIXME - use wrapup
             }
-            JCTree tree = st;
-            if (keyword.equals(splitID) && st.expression == null) {
-                while (parser.jmlTokenClauseKind() == Operators.endjmlcommentKind) parser.nextToken();
-                JCStatement stt = parser.blockStatement().head;
-                if (stt instanceof JmlIfStatement) {
-                    ((JmlIfStatement)stt).split = true;
-                } else if (stt instanceof JmlSwitchStatement) {
-                    ((JmlSwitchStatement)stt).split = true;
-                } else if (stt instanceof IJmlLoop) {
-                    ((IJmlLoop)stt).setSplit(true);
-                } else {
-                    utils.warning(st, "jml.message", "Ignoring out of place split statement");
-                }
-                tree = stt;
-            }
-            return tree;
+            return st;
         }
 
         @Override
@@ -109,7 +93,7 @@ public class ReachableStatement extends JmlExtension {
         	attr.jmlenv.inPureEnvironment = true;
         	attr.jmlenv.currentClauseKind = clause.clauseType;
         	// unreachable statements have a null expression
-	        if (clause.expression != null) attr.attribExpr(clause.expression,env,syms.booleanType);
+	        if (clause.expression != null) attr.attribExpr(clause.expression,env,attr.syms.booleanType);
         	if (clause.optionalExpression != null) attr.attribExpr(clause.optionalExpression,env,Type.noType);
         	attr.jmlenv = attr.jmlenv.pop();
         	attr.jmlresolve.setAllowJML(prevAllowJML);

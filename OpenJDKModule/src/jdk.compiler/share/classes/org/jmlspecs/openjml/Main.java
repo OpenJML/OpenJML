@@ -534,8 +534,9 @@ public class Main extends com.sun.tools.javac.main.Main {
         Main.Result exit = super.compile(args,context);
     	int n = Utils.instance(context).verifyWarnings;
     	if (n != 0) {
-    		JavaCompiler.instance(context).printCount("verify", n);
+    	    if (!log.hasDiagnosticListener()) JavaCompiler.instance(context).printCount("verify", n);
     		if (exit.exitCode == 0 && !Utils.testingMode) {
+    		    // Use the verification failure exit code if there are verification warnings
     			exit = Result.VERIFY;
     			String v = JmlOption.value(context, JmlOption.EXITVERIFY);
     			if (v != null) {
@@ -543,13 +544,13 @@ public class Main extends com.sun.tools.javac.main.Main {
     					int z = Integer.valueOf(v);
     					for (Result x: Result.values()) { if (x.exitCode == z) { exit = x; break; }}
     					if (exit.exitCode != z) throw new RuntimeException();
+    		            if (exit == Result.OK && Options.instance(context).isSet(WERROR)) exit = Result.ERROR;
     				} catch (Exception e) {
     	                uninitializedLog().error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + v);
     					exit = Result.CMDERR;
     				}
     			}
     		}
-    		if (Options.instance(context).isSet(WERROR)) exit = Result.ERROR;
     	}
         return exit;
     }
@@ -561,7 +562,13 @@ public class Main extends com.sun.tools.javac.main.Main {
     	return compile(args,context);
     }
     
+    /** Do anything that needs adjustment after options are processed but
+     * before compilation actually begins.
+     */
     public void postOptionProcessing() {
+        // Hnadlers are created during tool registration, which in OpenJML has to be before
+        // options are read. So the handlers have to be adjusted for the options.
+        Check.instance(context).resetHandlers();
     }
     
     public java.util.Collection<JavaFileObject> fileObjects;
@@ -781,11 +788,21 @@ public class Main extends com.sun.tools.javac.main.Main {
     public void addOptions(String... args) {
     	if (!(Options.instance(context) instanceof JmlOptions)) return;
         args = JmlOptions.instance(context).addOptions(args);
+        for (int i = 0; i < args.length; i++) {
+            if (i+1 >= args.length) {
+                Options.instance(context).put(args[i],"true");
+            } else if (args[i+1].length() == 0 || args[i+1].charAt(0) != '-') {
+                Options.instance(context).put(args[i],args[i+1]);
+                i++;
+            } else {
+                Options.instance(context).put(args[i],"true");
+            }
+        }
     }
     
-    public void addJavaOption(String opt, String value) {
-    	Options.instance(context).put(opt, value);
-    }
+//    public void addJavaOption(String opt, String value) {
+//    	Options.instance(context).put(opt, value);
+//    }
     
     /** Adds a custom option (not checked as a legitimate command-line option);
      * may have an argument after a = symbol */
@@ -799,132 +816,132 @@ public class Main extends com.sun.tools.javac.main.Main {
         return JmlOptions.instance(context).setupOptions();
     }
 
-    // FIXME - move this somewhere more appropriate?
-    /** Appends the internal runtime directory to the -classpath option.
-     */
-    static protected void appendRuntime(Context context) {
-        
-        String jmlruntimePath = null;
-       
-        /** This property is just used in testing. */ // TODO - check this
-        String sy = Options.instance(context).get(Strings.defaultRuntimeClassPath);
-        if (sy != null) {
-            jmlruntimePath = sy;
-        }
-
-        // Look for jmlruntime.jar in the classpath itself
-       
-        if (jmlruntimePath == null) {
-            URL url = ClassLoader.getSystemResource(Strings.runtimeJarName);
-            if (url != null) {
-                jmlruntimePath = url.getFile();
-                if (jmlruntimePath.startsWith("file:/")) {
-                    jmlruntimePath = jmlruntimePath.substring("file:/".length());
-                }
-            }
-        }
-       
-        // Otherwise look for something in the same directory as something on the classpath
-       
-        String classpath = System.getProperty("java.class.path");
-        if (jmlruntimePath == null) {
-            String[] ss = classpath.split(java.io.File.pathSeparator);
-            for (String s: ss) {
-                if (s.endsWith(".jar")) {
-                    try {
-                        File f = new File(s).getCanonicalFile().getParentFile();
-                        if (f != null) {
-                            f = new File(f,Strings.runtimeJarName);
-                            if (f.isFile()) {
-                                jmlruntimePath = f.getPath();
-                                break;
-                            }
-                        }
-                    } catch (IOException e) {
-                        // Just skip
-                    }
-                } else {
-                    File f = new File(new File(s),Strings.runtimeJarName);
-                    if (f.isFile()) {
-                        jmlruntimePath = f.getPath();
-                        break;
-                    }
-                }
-            }
-        }
-      
-        // The above all presume some variation on the conventional installation
-        // of the command-line tool.  In the development environment, those
-        // presumptions do not hold.  So in that case we use the appropriate
-        // bin directories directly. We make sure that we get both of them: 
-        // the annotations and runtime utilties.
-        // This also takes care of the case in which the openjml.jar file is in
-        // the class path under a different name.
-
-        if (jmlruntimePath == null) {
-            URL url = ClassLoader.getSystemResource(Strings.jmlAnnotationPackage.replace('.','/'));
-            if (url != null) {
-                try {
-                    String s = url.getPath();
-                    if (s.startsWith("file:")) s = s.substring("file:".length());
-                    s = s.replaceAll("%20", " ");
-                    int b = (s.length()> 2 && s.charAt(0) == '/' && s.charAt(2) == ':') ? 1 : 0;
-                    int k = s.indexOf("!");
-                    if (k >= 0) {
-                        s = s.substring(b,k);
-                    } else {
-                        s = s.substring(b);
-                        s = new File(s).getParentFile().getParentFile().getParent();
-                    }
-                    if (new File(s).exists()) {
-                        jmlruntimePath = s;
-                    }
-
-                    url = ClassLoader.getSystemResource(Strings.jmlSpecsPackage.replace('.','/'));
-                    if (url != null) {
-                        s = url.getPath();
-                        if (s.startsWith("file:")) s = s.substring("file:".length());
-                        s = s.replaceAll("%20", " ");
-                        b = (s.length()> 2 && s.charAt(0) == '/' && s.charAt(2) == ':') ? 1 : 0;
-                        k = s.indexOf("!");
-                        if (k >= 0) {
-                            s = s.substring(b,k);
-                        } else {
-                            s = s.substring(b);
-                            s = new File(s).getParentFile().getParentFile().getParent();
-                        }
-                        if (new File(s).exists() && !s.equals(jmlruntimePath)) {
-                            jmlruntimePath = jmlruntimePath + java.io.File.pathSeparator + s;
-                        }
-                    }
-                } catch (Exception e) {
-                   // Just skip
-                }
-            }
-        }
-
-        if (jmlruntimePath == null) {
-            // This is for the case of running the GUI in the development environment
-            String srt = System.getProperty(Strings.eclipseSpecsProjectLocation); // FIXME _ probably can replace this with finding a plugin
-            srt = srt + "/../OpenJML/OpenJML/bin-runtime";
-            File f = new File(srt);
-            if (f.exists() && f.isDirectory()) {
-                jmlruntimePath = srt;
-            }
-
-        }
-
-        if (jmlruntimePath != null) {
-            Utils.instance(context).note(true, "Using internal runtime " + jmlruntimePath);
-            String cp = Options.instance(context).get("-classpath");
-            if (cp == null) cp = System.getProperty("java.class.path");
-            cp = cp==null ? jmlruntimePath : (cp + java.io.File.pathSeparator + jmlruntimePath);
-            Options.instance(context).put("-classpath",cp);
-            Utils.instance(context).note(true, "Classpath: " + Options.instance(context).get("-classpath"));
-        } else {
-            Utils.instance(context).warning("jml.no.internal.runtime");
-        }
-    }
+//    // FIXME - move this somewhere more appropriate?
+//    /** Appends the internal runtime directory to the -classpath option.
+//     */
+//    static protected void appendRuntime(Context context) {
+//        
+//        String jmlruntimePath = null;
+//       
+//        /** This property is just used in testing. */ // TODO - check this
+//        String sy = Options.instance(context).get(Strings.defaultRuntimeClassPath);
+//        if (sy != null) {
+//            jmlruntimePath = sy;
+//        }
+//
+//        // Look for jmlruntime.jar in the classpath itself
+//       
+//        if (jmlruntimePath == null) {
+//            URL url = ClassLoader.getSystemResource(Strings.runtimeJarName);
+//            if (url != null) {
+//                jmlruntimePath = url.getFile();
+//                if (jmlruntimePath.startsWith("file:/")) {
+//                    jmlruntimePath = jmlruntimePath.substring("file:/".length());
+//                }
+//            }
+//        }
+//       
+//        // Otherwise look for something in the same directory as something on the classpath
+//       
+//        String classpath = System.getProperty("java.class.path");
+//        if (jmlruntimePath == null) {
+//            String[] ss = classpath.split(java.io.File.pathSeparator);
+//            for (String s: ss) {
+//                if (s.endsWith(".jar")) {
+//                    try {
+//                        File f = new File(s).getCanonicalFile().getParentFile();
+//                        if (f != null) {
+//                            f = new File(f,Strings.runtimeJarName);
+//                            if (f.isFile()) {
+//                                jmlruntimePath = f.getPath();
+//                                break;
+//                            }
+//                        }
+//                    } catch (IOException e) {
+//                        // Just skip
+//                    }
+//                } else {
+//                    File f = new File(new File(s),Strings.runtimeJarName);
+//                    if (f.isFile()) {
+//                        jmlruntimePath = f.getPath();
+//                        break;
+//                    }
+//                }
+//            }
+//        }
+//      
+//        // The above all presume some variation on the conventional installation
+//        // of the command-line tool.  In the development environment, those
+//        // presumptions do not hold.  So in that case we use the appropriate
+//        // bin directories directly. We make sure that we get both of them: 
+//        // the annotations and runtime utilties.
+//        // This also takes care of the case in which the openjml.jar file is in
+//        // the class path under a different name.
+//
+//        if (jmlruntimePath == null) {
+//            URL url = ClassLoader.getSystemResource(Strings.jmlAnnotationPackage.replace('.','/'));
+//            if (url != null) {
+//                try {
+//                    String s = url.getPath();
+//                    if (s.startsWith("file:")) s = s.substring("file:".length());
+//                    s = s.replaceAll("%20", " ");
+//                    int b = (s.length()> 2 && s.charAt(0) == '/' && s.charAt(2) == ':') ? 1 : 0;
+//                    int k = s.indexOf("!");
+//                    if (k >= 0) {
+//                        s = s.substring(b,k);
+//                    } else {
+//                        s = s.substring(b);
+//                        s = new File(s).getParentFile().getParentFile().getParent();
+//                    }
+//                    if (new File(s).exists()) {
+//                        jmlruntimePath = s;
+//                    }
+//
+//                    url = ClassLoader.getSystemResource(Strings.jmlSpecsPackage.replace('.','/'));
+//                    if (url != null) {
+//                        s = url.getPath();
+//                        if (s.startsWith("file:")) s = s.substring("file:".length());
+//                        s = s.replaceAll("%20", " ");
+//                        b = (s.length()> 2 && s.charAt(0) == '/' && s.charAt(2) == ':') ? 1 : 0;
+//                        k = s.indexOf("!");
+//                        if (k >= 0) {
+//                            s = s.substring(b,k);
+//                        } else {
+//                            s = s.substring(b);
+//                            s = new File(s).getParentFile().getParentFile().getParent();
+//                        }
+//                        if (new File(s).exists() && !s.equals(jmlruntimePath)) {
+//                            jmlruntimePath = jmlruntimePath + java.io.File.pathSeparator + s;
+//                        }
+//                    }
+//                } catch (Exception e) {
+//                   // Just skip
+//                }
+//            }
+//        }
+//
+//        if (jmlruntimePath == null) {
+//            // This is for the case of running the GUI in the development environment
+//            String srt = System.getProperty(Strings.eclipseSpecsProjectLocation); // FIXME _ probably can replace this with finding a plugin
+//            srt = srt + "/../OpenJML/OpenJML/bin-runtime";
+//            File f = new File(srt);
+//            if (f.exists() && f.isDirectory()) {
+//                jmlruntimePath = srt;
+//            }
+//
+//        }
+//
+//        if (jmlruntimePath != null) {
+//            Utils.instance(context).note(true, "Using internal runtime " + jmlruntimePath);
+//            String cp = Options.instance(context).get("-classpath");
+//            if (cp == null) cp = System.getProperty("java.class.path");
+//            cp = cp==null ? jmlruntimePath : (cp + java.io.File.pathSeparator + jmlruntimePath);
+//            Options.instance(context).put("-classpath",cp);
+//            Utils.instance(context).note(true, "Classpath: " + Options.instance(context).get("-classpath"));
+//        } else {
+//            Utils.instance(context).warning("jml.no.internal.runtime");
+//        }
+//    }
 
     /** An Enum type that gives a choice of various tools to be executed. */
     public static enum Cmd {

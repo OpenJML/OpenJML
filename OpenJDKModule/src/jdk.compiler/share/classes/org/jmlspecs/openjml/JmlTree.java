@@ -157,7 +157,7 @@ public class JmlTree {
         JmlTypeClauseExpr JmlTypeClauseExpr(JCModifiers mods, String keyword, IJmlClauseKind token, JCTree.JCExpression e);
         JmlTypeClauseIn JmlTypeClauseIn(List<JmlGroupName> list);
         JmlTypeClauseInitializer JmlTypeClauseInitializer(IJmlClauseKind token, JCModifiers mods);
-        JmlTypeClauseMaps JmlTypeClauseMaps(JCExpression e, List<JmlGroupName> list);
+        JmlTypeClauseMaps JmlTypeClauseMaps(List<JCExpression> exprs, List<JmlGroupName> list);
         JmlTypeClauseMonitorsFor JmlTypeClauseMonitorsFor(JCModifiers mods, JCTree.JCIdent ident, List<JCTree.JCExpression> list);
         JmlTypeClauseRepresents JmlTypeClauseRepresents(JCModifiers mods, JCTree.JCExpression ident, boolean suchThat, JCTree.JCExpression e);
         JmlWhileLoop JmlWhileLoop(JCWhileLoop loop, List<JmlStatementLoop> loopSpecs);
@@ -488,7 +488,9 @@ public class JmlTree {
         @Override
         public JmlCase Case(CaseKind caseKind, List<JCExpression> pats,
                             List<JCStatement> stats, JCTree body) {
-            return new JmlCase(caseKind, pats, stats, body);
+            var r = new JmlCase(caseKind, pats, stats, body);
+            r.pos = pos;
+            return r;
         }
         
         /** Creates a JML binary operation */
@@ -580,11 +582,19 @@ public class JmlTree {
         /** Creates a JML labeled statement */
         @Override
         public JmlLabeledStatement JmlLabeledStatement(Name label, ListBuffer<JCStatement> extra, JCStatement body) {
+            JmlLabeledStatement p = Labelled(label,body);
+            if (extra == null) extra = new ListBuffer<JCStatement>();
+            p.extraStatements = extra;
+            return p;
+        }
+
+        /** Creates a JML labeled statement */
+        @Override
+        public JmlLabeledStatement Labelled(Name label, JCStatement body) {
             if (body == null) body = JmlTree.Maker.instance(context).Block(0L, List.<JCStatement>nil());
             JmlLabeledStatement p = new JmlLabeledStatement(label,body);
             p.pos = pos;
-            if (extra == null) extra = new ListBuffer<JCStatement>();
-            p.extraStatements = extra;
+            p.extraStatements = new ListBuffer<JCStatement>();
             return p;
         }
 
@@ -625,12 +635,16 @@ public class JmlTree {
         
         @Override
         public JmlIfStatement If(JCExpression cond, JCStatement t, JCStatement e) {
-            return new JmlIfStatement(cond,t,e);
+            var tree = new JmlIfStatement(cond,t,e);
+            tree.pos = pos;
+            return tree;
         }
         
         @Override
         public JmlSwitchStatement Switch(JCExpression selector, List<JCCase> cases) {
-            return new JmlSwitchStatement(selector,cases);
+            var tree = new JmlSwitchStatement(selector,cases);
+            tree.pos = pos;
+            return tree;
         }
         
         /** Creates a JML havoc statement */
@@ -915,8 +929,8 @@ public class JmlTree {
         }
         
         @Override
-        public JmlTypeClauseMaps JmlTypeClauseMaps(JCExpression e, List<JmlGroupName> list) {
-            JmlTypeClauseMaps r = new JmlTypeClauseMaps(pos,e,list);
+        public JmlTypeClauseMaps JmlTypeClauseMaps(List<JCExpression> exprs, List<JmlGroupName> list) {
+            JmlTypeClauseMaps r = new JmlTypeClauseMaps(pos,exprs,list);
             r.source = context == null ? null : Log.instance(context).currentSourceFile();
             return r;
         }
@@ -1807,6 +1821,11 @@ public class JmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
+        
+        @Override
+        public JCStatement body() {
+            return body;
+        }
      }
 
     /** This class wraps a Java enhanced loop just so it can attach some specs
@@ -1862,6 +1881,11 @@ public class JmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
+        
+        @Override
+        public JCStatement body() {
+            return body;
+        }
     }
     
     public static interface IJmlLoop {
@@ -1869,6 +1893,7 @@ public class JmlTree {
         void setLoopSpecs(List<JmlStatementLoop> loopSpecs);
         boolean isSplit();
         void setSplit(boolean s);
+        JCStatement body();
     }
     
     public static class JmlInlinedLoop extends JmlAbstractStatement implements IJmlLoop {
@@ -1886,7 +1911,7 @@ public class JmlTree {
         public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) { this.loopSpecs = loopSpecs; }
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        // FIXME change to protesteced when factory method is implemented
+        // FIXME change to protected when factory method is implemented
         public JmlInlinedLoop(int pos, List<JmlStatementLoop> loopSpecs) {
             super();
             this.pos = pos;
@@ -1923,6 +1948,11 @@ public class JmlTree {
         @Override
         public int getEndPosition(EndPosTable table) {
             return pos;  // FIXME - end position is not set apparently; also really want the end, not he begining
+        }
+        
+        @Override
+        public JCStatement body() {
+            return null;
         }
     }
 
@@ -1971,6 +2001,11 @@ public class JmlTree {
         @Override
         public String toString() {
             return JmlTree.toString(this);
+        }
+        
+        @Override
+        public JCStatement body() {
+            return body;
         }
     }
 
@@ -2024,7 +2059,11 @@ public class JmlTree {
         public int getStartPosition() {
             return loopSpecs.size() > 0 ? loopSpecs.head.getStartPosition() : pos;
         }
-
+        
+        @Override
+        public JCStatement body() {
+            return body;
+        }
     }
 
     /** This class represents a group in an "in" or "maps" type clause in a class specification */
@@ -2091,7 +2130,7 @@ public class JmlTree {
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlLabeledStatement(this); 
+                ((IJmlVisitor)v).visitLabelled(this); 
             } else {
                 for (JCStatement s: extraStatements) {
                     s.accept(v);
@@ -2103,9 +2142,9 @@ public class JmlTree {
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlLabeledStatement(this, d);
+                return ((JmlTreeVisitor<R,D>)v).visitLabeledStatement(this, d);
             } else {
-                System.out.println("A JmlLblExpression expects an JmlTreeVisitor, not a " + v.getClass());
+                System.out.println("A JmlLabeledStatement expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; // return super.accept(v,d);
             }
         }
@@ -3480,8 +3519,7 @@ public class JmlTree {
         }
     }
     
-    /** A portmanteau of all store-ref expressions, once they have been attributed as such.
-     * So this class is not a result of parsing.
+    /** A portmanteau of all store-ref expressions.
      */
     public static class JmlStoreRef extends JmlExpression {
     	
@@ -3498,17 +3536,26 @@ public class JmlTree {
     	
     	public JavaFileObject source;
     	
-    	// Cases:
+    	public boolean isEverything() { return isEverything; }
+    	public boolean isNothing() { return originalStoreRef instanceof JmlSingleton sing && sing.kind == JMLPrimitiveTypes.nothingKind; }
+    	
+    	// Cases: before type attribution (type == null)
+    	// isEverything=true: \everything
+        // isEverything=false, receiver=null, id!=null, range==null: simple id
+        // isEverything=false, receiver!=null, id!=null, range==null: static or non-static field access
+        // isEverything=false, receiver!=null, id==null, range==null: static or non-static field .*
+        // isEverything=false, receiver!=null, id==null, range!=null: array access
+    	
+    	// Cases after type attribution: (a simple id can become something else) (type != null)
     	// isEverything=true, other fields null: \everything
     	// isEverything=false, local nonnull; others null: a local variable
     	// isEverything=false, expression nonull; others null: a locset expression (expression.type is \locset
     	// isEverything=false, range nonnull, receiver nonnull, expression null, fields null: an array range or isngle index
-    	// isEverything=false, local null, range null, expression null, receiver nonnull: a set of non-final fields of the instance
-    	// isEverything=false, local null, range null, expression null, receiver null: a set of static non-final fields
     	public boolean isEverything;
     	/*@ nullable */ public Symbol local;
     	/*@ nullable */ public JCExpression expression;
     	/*@ nullable */ public JCExpression receiver;
+    	/*@ nullable */ public JCIdent id;
     	/*@ nullable */ public JmlRange range;
     	/*@ nullable */ public VarSymbol field;
     	public JCExpression originalStoreRef = null;
@@ -3894,15 +3941,15 @@ public class JmlTree {
     public static class JmlTypeClauseMaps extends JmlTypeClause {
     
         /** The maps store-ref expression */
-        public JCExpression expression;
+        public List<JCExpression> expressions;
         
         /** The list of datagroup targets */
         public List<JmlGroupName> list;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlTypeClauseMaps(int pos, JCExpression e, List<JmlGroupName> list) {
+        protected JmlTypeClauseMaps(int pos, List<JCExpression> e, List<JmlGroupName> list) {
             this.pos = pos;
-            this.expression = e;
+            this.expressions = e;
             this.modifiers = null;
             this.clauseType = mapsClause;
             this.list = list;

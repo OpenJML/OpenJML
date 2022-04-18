@@ -37,6 +37,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of CallStack.pos(int) with prover !!!! - no warnings
 Completed proving methods in CallStack
-Note: Some input files use unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
 6 warnings

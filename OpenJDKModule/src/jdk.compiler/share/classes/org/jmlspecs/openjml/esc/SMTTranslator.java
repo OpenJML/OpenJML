@@ -1073,7 +1073,7 @@ public class SMTTranslator extends JmlTreeScanner {
         commands.add(cc);
         // (assert (= __JML_AssumeCheck 0)) 
         IExpr.ILiteral z = !useBV ? zero : F.hex("00000000");
-        cc = new C_assert(F.fcn(eqSym,F.symbol(JmlAssertionAdder.assumeCheckVar),z));
+        cc = new C_assert(F.fcn(eqSym,F.symbol(Strings.feasCheckVar),z));
         commands.add(cc);
         // (push 1)
         cc = new C_push(F.numeral(1));
@@ -1777,6 +1777,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public ISort convertSort(Type t) {
         if ( t == null) {
             log.error("jml.internal", "No type translation implemented when converting a BasicProgram to SMTLIB: " + t);
+            Utils.dumpStack();
             throw new RuntimeException();
         }
         TypeTag tag = t.getTag();
@@ -1942,10 +1943,14 @@ public class SMTTranslator extends JmlTreeScanner {
     
     /** Adds a function with the given name and a definition if it is not already added. */
     protected void addFcn(String newname, JCMethodInvocation tree) {
+        //System.out.println("ADDING FCN " + newname + " " + tree + " " + tree.type + " " + tree.meth.type + " " + TreeInfo.symbolFor(tree.meth));
         if (fcnsDefined.add(newname)) {
+            var rt = tree.type;
+            if (tree.meth.type != null) rt = tree.meth.type.getReturnType();
+            if (TreeInfo.symbolFor(tree.meth) != null) rt = TreeInfo.symbolFor(tree.meth).type.getReturnType();
             // Was not already present
             ISymbol n = F.symbol(newname);
-            ISort resultSort = convertSort(tree.type);
+            ISort resultSort = convertSort(rt);
             List<ISort> argSorts = new LinkedList<ISort>();
             // Adds an argument for the receiver, if the function is not static
             if (tree.meth instanceof JCFieldAccess && ((JCFieldAccess)tree.meth).selected != null && !((JCFieldAccess)tree.meth).sym.isStatic()) {  // FIXME _ JML sstatic?
@@ -2463,8 +2468,12 @@ public class SMTTranslator extends JmlTreeScanner {
                 log.error("jml.internal","Don't know how to translate expression to SMTLIB: " + JmlPretty.write(tree));
                 throw new RuntimeException();
         }
+    	} catch (JmlBVException e) {
+    	    throw e;
         } catch (Exception e) {
+            log.error("jml.internal","Exception while translating expression to SMTLIB: " + JmlPretty.write(tree));
         	System.out.println("EXCEPTION IN SUBEXPR OF " + tree);
+        	e.printStackTrace(System.out);
         	throw e;
         }
     }
@@ -2816,7 +2825,9 @@ public class SMTTranslator extends JmlTreeScanner {
             	} else {
             		result = F.fcn(F.symbol(hifcn),sel);
             	}
-            } else if (field.name != names.length) {
+            	// FIXME - why do arrays use this branch instead of the one at the bottom
+            //} else if (field.name != names.length || !(tree.selected.type instanceof Type.ArrayType || tree.selected.type.toString().startsWith("org.jmlspecs.lang"))) {
+            } else if (field.name != names.length || !(tree.selected.type.toString().startsWith("org.jmlspecs.lang"))) {
                 // Non-length selection
                 String encName;
                 if (Utils.instance(context).isJMLStatic(field) || true) {
@@ -2884,11 +2895,12 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitIdent(JCIdent tree) {
         String n = tree.name.toString();
-        if (n.equals("length")) { // FIXME - not sure about this - length as array length is always a field name
-            result = F.symbol(arrayLength);
-        } else {
+//        if (n.equals("length")) { // FIXME - not sure about this - length as array length is always a field name
+//            System.out.println("IDENT " + tree + " " + tree.type);
+//            result = F.symbol(arrayLength);
+//        } else {
             result = F.symbol(makePQBarEnclosedString(tree));
-        }
+//        }
     }
     
     protected Map<Double,String> reals = new HashMap<Double,String>();

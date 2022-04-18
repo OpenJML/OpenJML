@@ -1,5 +1,6 @@
 package org.jmlspecs.openjml.ext;
 
+import static com.sun.tools.javac.parser.Tokens.TokenKind.COMMA;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.DOT;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.IDENTIFIER;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.LBRACKET;
@@ -48,7 +49,14 @@ public class TypeMapsClauseExtension extends JmlExtension {
                         parser.getEndPos(mods), "jml.no.mods.allowed",
                         mapsClause.keyword());
             parser.nextToken(); // skip over the maps token
+            ListBuffer<JCExpression> exprs = new ListBuffer<>();
             JCExpression e = parser.parseStoreRef(false);
+            if (e != null) exprs.add(e);
+            while (parser.token().kind == COMMA) {
+                parser.nextToken();
+                e = parser.parseStoreRef(false);
+                if (e != null) exprs.add(e);
+            }
             ListBuffer<JmlGroupName> glist;
             if (parser.jmlTokenClauseKind() != intoKind) {
                 utils.error(parser.pos(), parser.endPos(), "jml.expected",
@@ -59,22 +67,22 @@ public class TypeMapsClauseExtension extends JmlExtension {
                 parser.nextToken();
                 glist = parser.parseGroupNameList();
             }
-            var t = toP(parser.jmlF.at(pos).JmlTypeClauseMaps(e, glist.toList()));
+            var t = toP(parser.jmlF.at(pos).JmlTypeClauseMaps(exprs.toList(), glist.toList()));
             wrapup(t, TypeInClauseExtension.inClause, true, true); // FIXME - make a proper mapsClauseKind
             return t;
         }
 
-        /** Parses the target portion (before the \\into) of a maps clause */
-        public JCExpression parseMapsTarget() {
-            int p = parser.pos();
-        	JCExpression target = parser.parseExpression();
-        	if (target instanceof JCTree.JCIdent) return target;
-        	if (target instanceof JCTree.JCArrayAccess) return target;
-        	if (target instanceof JCTree.JCFieldAccess) return target;
-            utils.error(parser.pos(), parser.endPos(), "jml.expected", "an identifier, field access or array access");
-            parser.skipThroughSemi();
-            return toP(parser.jmlF.at(p).Erroneous());
-        }
+//        /** Parses the target portion (before the \\into) of a maps clause */
+//        public JCExpression parseMapsTarget() {
+//            int p = parser.pos();
+//        	JCExpression target = parser.parseExpression();
+//        	if (target instanceof JCTree.JCIdent) return target;
+//        	if (target instanceof JCTree.JCArrayAccess) return target;
+//        	if (target instanceof JCTree.JCFieldAccess) return target;
+//            utils.error(parser.pos(), parser.endPos(), "jml.expected", "an identifier, field access or array access");
+//            parser.skipThroughSemi();
+//            return toP(parser.jmlF.at(p).Erroneous());
+//        }
 
         
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {

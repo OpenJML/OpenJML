@@ -2,7 +2,7 @@ interface Counter {
     //@ public model instance int counter;
 
     /*@ requires counter < Integer.MAX_VALUE;
-      @ writes counter;
+      @ assigns counter;
       @ ensures counter == 5;
      */
     void increment();

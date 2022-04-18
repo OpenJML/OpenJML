@@ -42,9 +42,9 @@ public class MethodDeclClauseExtension extends JmlExtension  {
 
             mods = parser.modifiersOpt();
 
-            Utils.instance(context).setJML(mods);
-            Utils.instance(context).setJMLTop(mods);
-            JCExpression t = parser.parseType();
+            Utils.instance(parser.context).setJML(mods);
+            Utils.instance(parser.context).setJMLTop(mods);
+            JCExpression t = parser.parseType(true);
             boolean prev = parser.setInJmlDeclaration(true); // allows non-ghost declarations
             ListBuffer<JCTree.JCVariableDecl> decls = parser.variableDeclarators(mods, t,
                     new ListBuffer<JCVariableDecl>(), true);

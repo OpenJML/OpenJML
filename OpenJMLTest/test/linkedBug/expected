@@ -1,7 +1,12 @@
-test/linkedBug/Linked.java:46: error: Failed to find a type for oldlinks.prepend(this.next) <any> <any> <>(Linked<W>)recovery
+test/linkedBug/Linked.java:16: error: cannot find symbol
     //@   ensures this.links.equals(oldlinks.prepend(this.next));
-                                                    ^
+                                    ^
+  symbol:   variable oldlinks
+  location: class Linked
+test/linkedBug/Linked.java:18: error: cannot find symbol
+	    var b = this.jlinks.equals(oldjlinks.prepend(this.next));
+	                               ^
+  symbol:   variable oldjlinks
+  location: class Linked
 Operation not performed because of parse or type errors
-Note: Some input files use unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
-1 error
+2 errors

@@ -3,7 +3,9 @@ package org.jmlspecs.openjml.ext;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRef;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -23,13 +25,16 @@ public class JMLPrimitiveTypes extends JmlExtension {
 	
 	public static class JmlTypeKind extends IJmlClauseKind {
 		public String typename; // expected to be in org.jmlspecs.lang
+		public com.sun.tools.javac.util.Name name;
 		Type type = null; // lazily filled in; depends on context; only  implemented for a single context
-		Context context = null; // context for type
+        Context context = null; // context for type -- need even though it shadows IJmlClauseKind.context
 		
 		public JmlTypeKind(String keyword, String typename) {
 			super(keyword);
 			this.typename = typename;
 		}
+		
+		public int numTypeArguments() { return 0; }
 		
 		public Type getType(Context context) {
 			// Caching the type (which depends on context) for general use
@@ -43,7 +48,21 @@ public class JMLPrimitiveTypes extends JmlExtension {
 
 		@Override
 		public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
-			return null;
+            init(parser);
+            if (name == null) name = parser.names.fromString(typename);
+            JCIdent id = parser.maker().at(parser.pos()).Ident(keyword);
+            int p = parser.pos();
+            int ep = parser.endPos();
+            parser.nextToken();
+            if (parser.token().kind == TokenKind.LPAREN) { 
+                utils.error(p, ep, "jml.message",
+                            "An ill-formed type");
+                parser.nextToken();
+                return null;
+            } else {
+                JCExpression t = parser.typeArgumentsOpt(id);
+                return t;
+            }
 		}
 		@Override
 		public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
@@ -51,9 +70,40 @@ public class JMLPrimitiveTypes extends JmlExtension {
 		}
 	}
 	
+    public static final String seqId = "\\seq";
+
+    public static final JmlTypeKind seqTypeKind = new JmlTypeKind(seqId,"seq") {
+        @Override
+        public int numTypeArguments() { return 1; }
+    };
+
+    public static final String setId = "\\set";
+
+    public static final JmlTypeKind setTypeKind = new JmlTypeKind(setId,"set") {
+        @Override
+        public int numTypeArguments() { return 1; }
+    };
+
+    public static final String mapId = "\\map";
+
+    public static final JmlTypeKind mapTypeKind = new JmlTypeKind(mapId,"map") {
+        @Override
+        public int numTypeArguments() { return 2; }
+    };
+
+    public static final String stringId = "\\string";
+
+    public static final JmlTypeKind stringTypeKind = new JmlTypeKind(stringId,"string") {
+        @Override
+        public int numTypeArguments() { return 0; }
+    };
+
+	
 	public static final String rangeID = "\\range";
 	
 	public static final JmlTypeKind rangeTypeKind = new JmlTypeKind(rangeID, "range") {
+        @Override
+        public int numTypeArguments() { return 0; }
 		@Override
 		public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
 			init(parser);
@@ -64,6 +114,8 @@ public class JMLPrimitiveTypes extends JmlExtension {
 	public static final String locsetId = "\\locset";
 
 	public static final JmlTypeKind locsetTypeKind = new JmlTypeKind(locsetId,"locset") {
+        @Override
+        public int numTypeArguments() { return 0; }
 		@Override
 		public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
 			// TODO Auto-generated method stub
@@ -86,9 +138,8 @@ public class JMLPrimitiveTypes extends JmlExtension {
 				} else {
 					parser.nextToken();
 				}
-				JmlMethodInvocation app = parser.maker().at(p).JmlMethodInvocation(id, list);
-				app.kind = clauseKind;
-				return app;
+				JmlStoreRef sr = JmlTreeUtils.instance(parser.context).makeLocsetLiteral(list.head);
+				return sr;
 			} else {
 				if (!parser.inTypeMode()) {
 					utils.error(p, ep, "jml.message",
@@ -117,6 +168,7 @@ public class JMLPrimitiveTypes extends JmlExtension {
 				tree.type = type;
 				((JCIdent)app.meth).sym = id.sym;
 				((JCIdent)app.meth).type = id.type; // FIXME - or should be a method type?
+				System.out.println("TYPECHECKED " + tree + " AS " + type);
 				return type;
 			}
 			// FIXME - internal error

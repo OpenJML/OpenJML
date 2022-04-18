@@ -3,7 +3,7 @@ public class Test
 {
 	public static void copySign_test()
 	{
-		int a = (int)Math.copySign(64, -128);
+		int a = (int)Math.copySign(64, -128); // arguments are floats
 		//@ assert a == -64;
 	}
 	public static void copySign_float()

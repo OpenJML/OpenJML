@@ -30,8 +30,6 @@ public class Translations {
         ArrayList<String> list = new ArrayList<String>(splits.keySet());
         if (list.isEmpty()) { 
             list.add("");
-            if (JmlOption.value(context,JmlOption.FEASIBILITY).contains("preconditionOnly"))
-                splits.put(Strings.feas_preOnly, null);
         } else {
             Collections.sort(list);
         }

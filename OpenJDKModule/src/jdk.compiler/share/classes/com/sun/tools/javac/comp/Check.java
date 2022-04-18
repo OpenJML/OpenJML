@@ -98,6 +98,7 @@ public class Check {
     private final Profile profile;
     private final Preview preview;
     private final boolean warnOnAnyAccessToMembers;
+    private final Options options; // OPENJML - added
 
     // The set of lint options currently in effect. It is initialized
     // from the context, and then is set/reset as needed by Attr as it
@@ -131,7 +132,7 @@ public class Check {
         types = Types.instance(context);
         typeAnnotations = TypeAnnotations.instance(context);
         diags = JCDiagnostic.Factory.instance(context);
-        Options options = Options.instance(context);
+        options = Options.instance(context); // OPENJML - made a field insted of local
         lint = Lint.instance(context);
         fileManager = context.get(JavaFileManager.class);
 
@@ -148,6 +149,7 @@ public class Check {
         boolean verboseDeprecated = lint.isEnabled(LintCategory.DEPRECATION);
         boolean verboseRemoval = lint.isEnabled(LintCategory.REMOVAL);
         boolean verboseUnchecked = lint.isEnabled(LintCategory.UNCHECKED);
+        //{ System.out.println("VUNCH " + lint.isEnabled(LintCategory.UNCHECKED)); org.jmlspecs.openjml.Utils.dumpStack(); verboseUnchecked = true; } // OPENJML
         boolean enforceMandatoryWarnings = true;
 
         deprecationHandler = new MandatoryWarningHandler(log, verboseDeprecated,
@@ -165,7 +167,16 @@ public class Check {
         allowSealed = (!preview.isPreview(Feature.SEALED_CLASSES) || preview.isEnabled()) &&
                 Feature.SEALED_CLASSES.allowedInSource(source);
     }
-
+    
+    public void resetHandlers() { // OPENJML - added, for the situation where Check is constructed before options are read
+        String n = com.sun.tools.javac.main.Option.XLINT_CUSTOM.primaryName;
+        // Assignment intended below
+        if (uncheckedHandler.verbose = options.isSet(n+LintCategory.UNCHECKED.option)) lint.enable(LintCategory.UNCHECKED);
+        if (deprecationHandler.verbose = options.isSet(n+LintCategory.DEPRECATION.option)) lint.enable(LintCategory.DEPRECATION);
+        if (removalHandler.verbose = options.isSet(n+LintCategory.REMOVAL.option)) lint.enable(LintCategory.REMOVAL);
+        //warnOnAnyAccessToMembers = options.isSet("warnOnAccessToMembers");
+    }
+    
     /** Character for synthetic names
      */
     char syntheticNameChar;

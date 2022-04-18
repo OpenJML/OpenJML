@@ -74,103 +74,6 @@ public class escstrings extends EscBase {
                 );
     }
     
-    /** Tests String equality */
-    @Test
-    public void testStringEqualsNoSpecs1a() {
-        main.addOptions("-no-internalSpecs","-no-warn=missing-specs");
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
-                +"  public void m(String s) {\n"
-                +"       String ss = s;\n"
-                +"       /*@ nullable */ String sss = null;\n"
-                +"       //@ assert s.equals(ss);\n"    // This would be true but we are not using any specs.
-                +"  }\n"
-                
-                +"  public TestJava() { t = new TestJava(); }"
-                +"}"
-                ,"/tt/TestJava.java:10: warning: A non-pure method is being called where it is not permitted: java.lang.String.equals(java.lang.Object)",27
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m",12
-                );
-    }
-   
-    /** Tests String equality */
-    @Test
-    public void testStringEqualsNoSpecs1() {
-        main.addOptions("-no-internalSpecs","-no-warn=missing-specs");
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
-                +"  public void m(String s) {\n"
-                +"       String ss = s;\n"
-                +"       /*@ nullable */ String sss = null;\n"
-                +"       boolean b = s.equals(ss); //@ assert b;\n"     // This would be true but we are not using any specs.
-                +"  }\n"
-                +"  public TestJava() { t = new TestJava(); }"
-                +"}"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m",38
-                );
-    }
-   
-    /** Tests String equality */
-    @Test
-    public void testStringEqualsNoSpecs2() {
-        main.addOptions("-internalSpecs=false","-no-warn=missing-specs");
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
-                +"  public void m(String s, String sss) {\n"
-                +"       String ss = s;\n"
-                +"       //@ assume sss != null;\n"
-                +"       boolean b = !s.equals(sss); //@ assert b;\n"     // This would be true but we are not using any specs.
-                +"  }\n"
-                
-                +"  public TestJava() { t = new TestJava(); }"
-                +"}"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m",40
-                );
-    }
-   
-    /** Tests String equality */
-    @Test
-    public void testStringEqualsNoSpecs3() {
-        main.addOptions("-no-internalSpecs");
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
-                +"  public void m(String s) {\n"
-                +"       String ss = s;\n"
-                +"       /*@ nullable */ String sss = null;\n"
-                +"       //@ assert  !sss.equals(ss);\n" // Null error
-                +"  }\n"
-                
-                +"  public TestJava() { t = new TestJava(); }"
-                +"}"
-                ,"/tt/TestJava.java:10: warning: A non-pure method is being called where it is not permitted: java.lang.String.equals(java.lang.Object)",31
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",24
-                );
-    }
-   
    
     /** Tests String concatenation - whether the result in Java is non-null. */
     @Test
@@ -205,7 +108,7 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       //@ reachable true;\n"
+                +"       //@ reachable\n"
                 +"       //@ assert (s + ss) != null;\n"
                 +"  }\n"
                 
@@ -363,7 +266,7 @@ public class escstrings extends EscBase {
                 
                 +"  //@ requires s.length() > 0;\n"
                 +"  public void m(String s, String ss) {\n"
-                +"       //@ assert s.charAt(0) == ss.charAt(0);\n"  // should not hold since s != ss
+                +"       //@ assert s.charAt(0) == ss.charAt(0);\n"  // should not hold since s != ss, or ss might be too short
                 +"  }\n"
                 
                 +"}"
@@ -371,7 +274,7 @@ public class escstrings extends EscBase {
                         seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m",12)
                         ,seq(seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43
                              ,"$SPECS/java/lang/String.jml:333: warning: Associated declaration",30)
-                             ,"$SPECS/java/lang/CharSequence.jml:79: warning: Precondition conjunct is false: 0 <= index < charArray.length",34
+                             ,optional("$SPECS/java/lang/CharSequence.jml:79: warning: Precondition conjunct is false: 0 <= index < charArray.length",34)
                             )
                                 		
                         )

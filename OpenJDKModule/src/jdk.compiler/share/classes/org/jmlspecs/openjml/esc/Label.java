@@ -210,7 +210,7 @@ public class Label {
     /*@ non_null*/ public final static Label INITIALLY = new Label("Initially");
     
     /** Used for assert statements generated to check that assume statements are feasible */
-    /*@ non_null*/ public final static Label ASSUME_CHECK = new Label("AssumeCheck");
+    /*@ non_null*/ public final static Label FEASIBILITY_CHECK = new Label("FeasibilityCheck");
     
     /** Used for the loop invariant assumption at beginning of loop body. */
     /*@ non_null*/ public final static Label LOOP_INVARIANT_ASSUMPTION = new Label("LoopInvariantAssumption");

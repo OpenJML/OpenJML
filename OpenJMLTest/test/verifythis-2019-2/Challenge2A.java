@@ -36,13 +36,15 @@ public class Challenge2A {
             while (height > 0 && input[stack[height-1]] >= input[x]) {
                 height--;
             }
-
+            //@ assert height <= x;
+            
             if (height == 0) {
                 left[x] = -1;
             } else {
                 left[x] = stack[height-1];
             }
             stack[height++] = x;
+            //@ assert height <= x+1;
         }
         return left;
     }

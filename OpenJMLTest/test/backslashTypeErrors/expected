@@ -1,0 +1,41 @@
+test/backslashTypeErrors/BackslashTypesErrs.java:17: error: The generic JML type \seq must have 1 type arguments
+  //@ ghost public \seq values = \seq.empty();
+                   ^
+test/backslashTypeErrors/BackslashTypesErrs.java:19: error: The generic JML type \seq must have 1 type arguments
+  //@ ghost public \seq v = \seq.<T>empty();
+                   ^
+test/backslashTypeErrors/BackslashTypesErrs.java:23: error: The generic JML type \seq must have 1 type arguments
+  /*@ model public \seq m(\seq t);
+                          ^
+test/backslashTypeErrors/BackslashTypesErrs.java:23: error: The generic JML type \seq must have 1 type arguments
+  /*@ model public \seq m(\seq t);
+                   ^
+test/backslashTypeErrors/BackslashTypesErrs.java:4: error: wrong number of type arguments; required 1
+    //@ ghost \seq<T,U> a ;
+                  ^
+test/backslashTypeErrors/BackslashTypesErrs.java:6: error: The generic JML type \seq must have 1 type arguments
+    //@ ghost \seq c ;
+              ^
+test/backslashTypeErrors/BackslashTypesErrs.java:7: error: wrong number of type arguments; required 1
+    //@ ghost \set<T,U> d ;
+                  ^
+test/backslashTypeErrors/BackslashTypesErrs.java:9: error: The generic JML type \set must have 1 type arguments
+    //@ ghost \set f ;
+              ^
+test/backslashTypeErrors/BackslashTypesErrs.java:11: error: wrong number of type arguments; required 2
+    //@ ghost \map<T> h ;
+                  ^
+test/backslashTypeErrors/BackslashTypesErrs.java:12: error: The generic JML type \map must have 2 type arguments
+    //@ ghost \map i ;
+              ^
+test/backslashTypeErrors/BackslashTypesErrs.java:13: error: type string does not take parameters
+    //@ ghost \string<T,U> j ;
+                     ^
+test/backslashTypeErrors/BackslashTypesErrs.java:17: error: illegal conversion: org.jmlspecs.lang.seq<java.lang.Object> to org.jmlspecs.lang.seq
+  //@ ghost public \seq values = \seq.empty();
+                                           ^
+test/backslashTypeErrors/BackslashTypesErrs.java:19: error: illegal conversion: org.jmlspecs.lang.seq<T> to org.jmlspecs.lang.seq
+  //@ ghost public \seq v = \seq.<T>empty();
+                                         ^
+Operation not performed because of parse or type errors
+13 errors

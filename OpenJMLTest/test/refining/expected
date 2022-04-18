@@ -6,13 +6,14 @@ Completed proof of TestRefines.TestRefines() with prover !!!! - no warnings
 Starting proof of TestRefines.m1(int) with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
+Feasibility check - at statement spec (after using summary) : OK
 Feasibility check - at program exit : OK
-Result of split A is UNSAT
+Result of split A is Verified
 Proof attempt for split B
 Feasibility check - end of preconditions : OK
-Feasibility check - at statement spec : OK
-Result of split B is UNSAT
-Composite result UNSAT
+Feasibility check - at statement spec (after specified block) : OK
+Result of split B is Verified
+Composite result Verified
 Completed proof of TestRefines.m1(int) with prover !!!! - no warnings
 Starting proof of TestRefines.m2(int) with prover !!!!
 Proof attempt for split A
@@ -22,45 +23,48 @@ test/refining/TestRefines.java:30: warning: The prover cannot establish an asser
 test/refining/TestRefines.java:19: warning: Associated declaration
     //@ ensures \result >= 12;
         ^
-Result of split A is POSSIBLY_SAT
+Result of split A is Not verified
 Proof attempt for split B
 Feasibility check - end of preconditions : OK
-Feasibility check - at statement spec : OK
-Result of split B is UNSAT
-Composite result POSSIBLY_SAT
+Feasibility check - at statement spec (after specified block) : OK
+Result of split B is Verified
+Composite result Not verified
 Completed proof of TestRefines.m2(int) with prover !!!! - with warnings
 Starting proof of TestRefines.m3(int) with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
+Feasibility check - at statement spec (after using summary) : OK
 Feasibility check - at program exit : OK
-Result of split A is UNSAT
+Result of split A is Verified
 Proof attempt for split B
 Feasibility check - end of preconditions : OK
-Feasibility check - at statement spec : OK
-Result of split B is UNSAT
-Composite result UNSAT
+Feasibility check - at statement spec (after specified block) : OK
+Result of split B is Verified
+Composite result Verified
 Completed proof of TestRefines.m3(int) with prover !!!! - no warnings
 Starting proof of TestRefines.m4(int) with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
+Feasibility check - at statement spec (after using summary) : OK
 Feasibility check - at program exit : OK
-Result of split A is UNSAT
+Result of split A is Verified
 Proof attempt for split B
 Feasibility check - end of preconditions : OK
-Feasibility check - at statement spec : OK
-Result of split B is UNSAT
-Composite result UNSAT
+Feasibility check - at statement spec (after specified block) : OK
+Result of split B is Verified
+Composite result Verified
 Completed proof of TestRefines.m4(int) with prover !!!! - no warnings
 Starting proof of TestRefines.m5(int) with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
+Feasibility check - at statement spec (after using summary) : OK
 Feasibility check - at program exit : OK
-Result of split A is UNSAT
+Result of split A is Verified
 Proof attempt for split B
 Feasibility check - end of preconditions : OK
-Feasibility check - at statement spec : OK
-Result of split B is UNSAT
-Composite result UNSAT
+Feasibility check - at statement spec (after specified block) : OK
+Result of split B is Verified
+Composite result Verified
 Completed proof of TestRefines.m5(int) with prover !!!! - no warnings
 Starting proof of TestRefines.q() with prover !!!!
 Feasibility check - end of preconditions : OK

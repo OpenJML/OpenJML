@@ -379,13 +379,11 @@ public class Utils {
     
     public static String identifyOS(Context context) {
         String sp = context == null ? null : JmlOption.value(context, JmlOption.OSNAME);
-        if (sp != null && !sp.isEmpty()) return sp;
-        
-        sp = System.getProperty("os.name");
+        if (sp == null || sp.isEmpty()) sp = System.getProperty("os.name");
         if (sp.contains("mac") || sp.contains("Mac")) return "macos";
         if (sp.contains("lin") || sp.contains("Lin")) return "linux";
         if (sp.contains("win") || sp.contains("Win")) return "windows";
-        return null;
+        return sp;
     }
     
     // The install location must contain the specs (e.g. specs/java. specs/org) and Solvers-macos etc. folders
@@ -1050,10 +1048,10 @@ public class Utils {
         return methods;
     }
     
-    public static <T> String join(CharSequence delim, java.util.Collection<T> list) { return Utils.join(delim, list.stream(), x->x); }
+    public static <T> String join(CharSequence delim, java.util.Collection<T> list) { return Utils.join(delim, list.stream(), x->String.valueOf(x)); }
     public static <T,U> String join(CharSequence delim, java.util.Collection<T> list, java.util.function.Function<T,U> f) { return Utils.join(delim, list.stream(), f); }
     public static <T,U> String join(CharSequence delim, java.util.stream.Stream<T> list) { return Utils.join(delim, list, x->x); }
-    public static <T,U> String join(CharSequence delim, java.util.stream.Stream<T> list, java.util.function.Function<T,U> f) { return String.join(delim, list.map(mm->f.apply(mm).toString()).collect(java.util.stream.Collectors.toList())); }
+    public static <T,U> String join(CharSequence delim, java.util.stream.Stream<T> list, java.util.function.Function<T,U> f) { return String.join(delim, list.map(mm->String.valueOf(f.apply(mm))).collect(java.util.stream.Collectors.toList())); }
     public static <T> String join(CharSequence delim, T[] list) { return Utils.join(delim, Stream.of(list), x->x); }
     
     /** Creates the location prefix including the colon without any message;
@@ -1860,7 +1858,7 @@ public class Utils {
     	};
     	log().setDiagnosticFormatter(verifyDiagnosticFormatter);
     	var df2 = JCDiagnostic.Factory.instance(context).setFormatter(verifyDiagnosticFormatter);
-        log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
+        log().mandatoryWarning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
     	log().setDiagnosticFormatter(df);
     	JCDiagnostic.Factory.instance(context).setFormatter(df2);
     	if (!Utils.testingMode) {
@@ -1960,18 +1958,20 @@ public class Utils {
     }
     
     static String debugstring = System.getenv("OJ");
-    static String[] debugkeys = debugstring == null ? new String[] {} : debugstring.split(",");
+    static String[] debugkeys = debugstring == null ? null : debugstring.split(",");
     public static boolean debug() {
     	return debugstring != null;
     }
     
     public static boolean debug(String key) {
         if (debugkeys == null) return false;
+        // Note: streams cannot be reused
         return Arrays.stream(debugkeys).anyMatch(s->s.equals(key));
     }
     
     public static String debugValue(String key, String def) {
         if (debugkeys == null) return def;
+        // Note: streams cannot be reused
         var opt = Arrays.stream(debugkeys).filter(s->s.startsWith(key)).findFirst();
         return opt.isEmpty() ? def : opt.get().substring(key.length());
     }

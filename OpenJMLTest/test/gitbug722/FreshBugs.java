@@ -46,7 +46,7 @@ public class FreshBugs {
     /*@
        ensures \fresh(\result);
      */
-     Node fresh_bug() { // FAILS, because Node writes \everything, including oo, so oo is possibly null
+     Node fresh_bug() { // FAILS, because Node assigns \everything, including oo, so oo is possibly null
        Node n = new Node(new Object());
        return n;
      }

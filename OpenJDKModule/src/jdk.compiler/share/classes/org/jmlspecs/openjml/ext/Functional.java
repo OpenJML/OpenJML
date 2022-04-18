@@ -78,7 +78,7 @@ public class Functional extends JmlExtension {
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             JmlMethodInvocation tree = (JmlMethodInvocation)expr;
             IJmlClauseKind kind = tree.kind;
-            JmlTypes jmltypes = JmlTypes.instance(context);
+            JmlTypes jmltypes = JmlTypes.instance(attr.context);
             {
                     // Arbitrary number of arguments. The first argument
                     // is a Functional interface; the rest have to agree
@@ -120,30 +120,19 @@ public class Functional extends JmlExtension {
                             ++n;
                         }
                     }
-                    if (kind == requiresExprKind || kind == ensuresExprKind) return Symtab.instance(context).booleanType;
-                    else return locset().type;
+                    if (kind == requiresExprKind || kind == ensuresExprKind) return attr.syms.booleanType;
+                    else return JMLPrimitiveTypes.locsetTypeKind.getType(attr.context);
             }
         }
-        
-        private ClassSymbol _locset = null;
-        
-        private ClassSymbol locset() {
-            if (_locset == null) _locset = ClassReader.instance(context).enterClass(Names.instance(context).fromString("org.jmlspecs.openjml.locset"));
-            return _locset;
-        }
-
     };
+    
     static public final String bsrequiresID = "\\requires";
     static public final String bsensuresID = "\\ensures";
     static public final String bsreadsID = "\\reads";
-    static public final String bswritesID = "\\writes";
+    static public final String bsassignsID = "\\assigns";
     static public final IJmlClauseKind requiresExprKind = new FunctionalKinds(bsrequiresID);
     static public final IJmlClauseKind ensuresExprKind = new FunctionalKinds(bsensuresID);
     static public final IJmlClauseKind readsExprKind = new FunctionalKinds(bsreadsID);
-    static public final IJmlClauseKind writesExprKind = new FunctionalKinds(bswritesID);
+    static public final IJmlClauseKind assignsExprKind = new FunctionalKinds(bsassignsID);
     
-    static {
-        synonym("\\assigns",writesExprKind);
-    }
-
 }

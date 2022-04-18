@@ -30,6 +30,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.jmlspecs.openjml.JmlPretty;
+import org.jmlspecs.openjml.Utils;
 
 import com.sun.source.tree.CaseTree;
 import com.sun.source.tree.MemberReferenceTree.ReferenceMode;
@@ -2058,7 +2059,7 @@ public class JavacParser implements Parser {
 
     /**  TypeArgumentsOpt = [ TypeArguments ]
      */
-    JCExpression typeArgumentsOpt(JCExpression t) {
+    public JCExpression typeArgumentsOpt(JCExpression t) { // OpenJML - changed from package to public
         if (token.kind == LT &&
             (mode & TYPE) != 0 &&
             (mode & NOPARAMS) == 0) {

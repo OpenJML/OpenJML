@@ -1,0 +1,7 @@
+Proving methods in Test
+Skipping proof of Test.Test() (excluded by -method)
+Starting proof of Test.esc(String) with prover !!!!
+Feasibility check - at program exit : OK
+Completed proof of Test.esc(String) with prover !!!! - no warnings
+Skipping proof of Test.main(String...) (excluded by skipesc)
+Completed proving methods in Test

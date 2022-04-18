@@ -119,10 +119,10 @@ public class Strings {
     static public final String javaOptionPropertyPrefix = "org.openjml.java.option."; //$NON-NLS-1$
     
     /** A property name prefix for specifying information about provers */
-    static public final String proverPropertyPrefix = "openjml.prover."; //$NON-NLS-1$
+    static public final String proverPropertyPrefix = "org.openjml.prover."; //$NON-NLS-1$
     
     /** The property name to specify a default prover */
-    static public final String defaultProverProperty = "openjml.defaultProver"; //$NON-NLS-1$
+    static public final String defaultProverProperty = "org.openjml.defaultProver"; //$NON-NLS-1$
     
     /** A Java property name used to indicate the directory path on which to find specification files */
     public static final String specsPathEnvironmentPropertyName = "org.jmlspecs.specspath"; //$NON-NLS-1$
@@ -250,6 +250,9 @@ public class Strings {
     /** Name used for the array of allocation state */
     public final static String isAllocName = genPrefix + "isalloc__";
     
+    /** Name used for feasibility checking identifier */
+    public final static String feasCheckVar = "__JML_FeasCheck_";
+    
     /** Name of a field put into every rac-compiled class, to signal that it is rac-compiled */
     // Must match corresponding string in Utils.
     public final static String racCompiled = genPrefix + "racCompiled";
@@ -262,42 +265,56 @@ public class Strings {
     
     
     /** Text used to describe the program position at the end of the preconditions */
-    static final public String preconditionAssumeCheckDescription = "end of preconditions";
+    static final public String preconditionFeasCheckDescription = "end of preconditions";
     /** Text used to describe the program position at the end of the program, before the postcondition checks */ // FIXME - check this
-    static final public String atSummaryAssumeCheckDescription = "at statement spec";
+    static final public String atSummaryFeasCheckDescription = "at statement spec (after using summary)";
+    static final public String atNonSummaryFeasCheckDescription = "at statement spec (after specified block)";
     /** Text used to describe the program position at the end of the program, before the postcondition checks */ // FIXME - check this
-    static final public String atExitAssumeCheckDescription = "at program exit";
+    static final public String atExitFeasCheckDescription = "at program exit";
     /** Text used to describe the program position just prior to an explicit JML assert */
-    static final public String beforeAssertAssumeCheckDescription = "before explicit assert statement";
+    static final public String beforeAssertFeasCheckDescription = "before explicit assert statement";
     /** Text used to describe the program position just after an explicit JML assume */
-    static final public String afterAssumeAssumeCheckDescription = "after explicit assume statement";
+    static final public String afterAssumeFeasCheckDescription = "after explicit assume statement";
     /** Text used to describe the program position just after an explicit JML assume */
-    static final public String afterImplicitAssumeAssumeCheckDescription = "after implicit assume statement";
+    static final public String afterImplicitAssumeFeasCheckDescription = "after implicit assume statement";
     /** Text used to describe the program position at an explicit JML reachable statement */
-    static final public String atReachableStatementAssumeCheckDescription = "at reachable statement";
+    static final public String atReachableStatementFeasCheckDescription = "at reachable statement";
     
     // Feasibility options - note that the following words are used in the -checkFeasibility option, by the user.
     // They must be contained in the strings that describe the feasibility point, given above.
     static final public String feas_pre = "precondition";
     static final public String feas_exit = "exit";
     static final public String feas_summary = "spec";
-    static final public String feas_assumes = "assume";
-    static final public String feas_asserts = "assert";
+    static final public String feas_assume = "assume";
+    static final public String feas_assert = "assert";
     static final public String feas_reachable = "reachable";
+    static final public String feas_return = "return";
+    static final public String feas_throw = "throw";
+    static final public String feas_if = "if";
+    static final public String feas_switch = "switch";
+    static final public String feas_catch = "catch";
+    static final public String feas_finally = "finally";
+    static final public String feas_halt = "halt";
+    static final public String feas_call = "call";
+    static final public String feas_loopcondition = "loopcondition";
+    static final public String feas_loopexit = "loopexit";
+    static final public String feas_loopcontinue = "loopcontinue";
+    static final public String feas_loopbreak = "loopbreak";
     
     static final public String feas_all = "all";
     static final public String feas_debug = "debug";
-    static final public String feas_default = "default";
+    static final public String feas_basic = "basic";
     static final public String feas_none = "none";
     static final public String feas_preOnly = "preconditionOnly";
-    static final public String feas_defaults = "precondition,spec,exit,reachable";
-    static final public String feas_alls = "precondition,spec,exit,reachable,assume,assert";
+    static final public String feas_basics = "precondition,spec,exit,reachable,assume,assert,halt";
     
-    static final public String[] feasibilities_alone = new String[]{ feas_none, feas_preOnly};
-    static final public String[] feasibilities = new String[]{feas_pre, feas_summary, feas_exit, feas_reachable, feas_assumes, feas_asserts, feas_all, feas_debug};
+    static final public String[] feasibilities_alone = new String[]{ feas_none, feas_preOnly, feas_debug, feas_all};
+    static final public String[] feasibilities = new String[]{feas_pre, feas_if, feas_halt, feas_switch, feas_catch, feas_finally, feas_return, feas_throw, feas_call, feas_summary, feas_exit, feas_reachable, feas_assume, feas_assert, 
+                                                              feas_loopcondition, feas_loopcontinue, feas_loopexit, feas_loopbreak, feas_basic};
+    static final public String feas_alls = Utils.join(",", feasibilities);
 
-    // Returns null if OK, returns bad string if one is not allowed
-    static final public /*@ nullable */ String isOK(String commaSep) {
+    // Returns null if OK, returns the bad string if one is not allowed
+    static final public /*@ nullable */ String isOKFeasibility(String commaSep) {
         String[] list = commaSep.split(",");
         for (String i: feasibilities_alone) {
             if (i.equals(commaSep)) return null;
@@ -306,6 +323,7 @@ public class Strings {
             for (String i: feasibilities) {
                 if (i.equals(item)) continue outer;
             }
+            if (item.startsWith(feas_debug + ":")) continue outer;
             return item; // bad string
         }
         return null;
@@ -315,7 +333,7 @@ public class Strings {
         String values = JmlOption.value(context,JmlOption.FEASIBILITY);
         if (i.equals(values)) return true;
         if (i.equals("none")) return false;
-        if (values.equals("debug") || values.equals("all")) return true;
+        if (values.startsWith("debug") || values.equals("all")) return true;
         String[] allowed = values.split(",");
         for (String k: allowed) {
             if (i.contains(k)) {

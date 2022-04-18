@@ -195,7 +195,7 @@ public class compiler {
     @Test
     public void testSpecPath() throws Exception {
         helper(new String[]
-                  {"-classpath","cpath"+z+"cpath2","-sourcepath","spath","-specspath","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z","-noPurityCheck","test/testNoErrors/A.java"},
+                  {"-classpath","cpath"+z+"cpath2","-sourcepath","spath","-specspath","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z","--no-purity-check","test/testNoErrors/A.java"},
                   0,
                   1,
 //                  "openjml: file not found: A.java" + eol +
@@ -235,7 +235,7 @@ public class compiler {
     }
 
     /** Test verbose with no specs used */
-    @Test
+    @Test @Ignore
     public void testDuplicateParse() throws Exception {
         helper(new String[]
                           { "-classpath","test/testNoErrors"+z+"bin",
@@ -254,7 +254,7 @@ public class compiler {
 
     
     /** Test that specs in the java file are ignored */
-    @Test
+    @Test @Ignore
     public void testIgnoreJava() throws Exception {
         helper(new String[]
                           { "-classpath","test/testJavaErrors"+z+"bin",
@@ -281,7 +281,7 @@ public class compiler {
                           { "-classpath"," ",
                             "-sourcepath","test/testNoErrors"+z+"../OpenJML/runtime",
                             "-specspath","../OpenJML/runtime",
-                            "-noInternalSpecs",
+                            //"-noInternalSpecs",
                             "test/testNoErrors/A.java",  
                           },0,0,"",
                           "");
@@ -298,7 +298,7 @@ public class compiler {
                           { "-classpath","../OpenJML/runtime",
                             "-sourcepath","test/testNoErrors",
                             "-specspath","../OpenJML/runtime",
-                            "-noPurityCheck",  //"-Xlint:unchecked",
+                            "--no-purity-check",  //"-Xlint:unchecked",
                             "test/testNoErrors/A.java"
                           },0,0
                           ,""
@@ -314,7 +314,7 @@ public class compiler {
                           { "-classpath","../OpenJML/runtime",
                             "-sourcepath","test/testNoErrors",
                             "-specspath","../OpenJML/runtime",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "test/testNoErrors/A.jml"
                           },2,0
                           ,""
@@ -333,7 +333,7 @@ public class compiler {
                           { "-classpath","../OpenJML/runtime",
                             "-sourcepath","test/testJavaErrors2",
                             "-specspath","../OpenJML/runtime"+z+"test/testJavaErrors2",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "test/testJavaErrors2/A.java"
                           },1,1
                           ,"test/testJavaErrors2/A.java:2: error: incompatible types"
@@ -350,7 +350,7 @@ public class compiler {
                           { "-classpath","../OpenJML/runtime",
                             "-sourcepath","test/testJavaParseErrors",
                             "-specspath","../OpenJML/runtime"+z+"test/testJavaParseErrors",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "test/testJavaParseErrors/A.jml"
                           },2,1
                           ,""
@@ -370,7 +370,7 @@ public class compiler {
                           { "-classpath","../OpenJML/runtime",
                             "-sourcepath","test/testJavaErrors",
                             "-specspath","../OpenJML/runtime"+z+"test/testJavaErrors",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "test/testJavaErrors/A.java"
                           },0,0,
                           ""
@@ -386,7 +386,7 @@ public class compiler {
                           { "-classpath","../OpenJML/runtime",
                             "-sourcepath","test/testNoSource",
                             "-specspath","../OpenJML/runtime",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "test/testNoSource/A.jml"
                           },2,1
                           ,""
@@ -404,7 +404,7 @@ public class compiler {
                           { "-classpath","../OpenJML/runtime",
                             "-sourcepath"," ",
                             "-specspath","../OpenJML/runtime",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "test/testNoErrors/A.jml"
                           },2,1
                           ,""
@@ -419,7 +419,7 @@ public class compiler {
                           { "-classpath","../OpenJML/runtime",
                             "-sourcepath"," ",
                             "-specspath","../OpenJML/runtime",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "test/testNoSourceParseError/A.jml"
                           },2,1
                           ,""
@@ -437,7 +437,7 @@ public class compiler {
                           { "-classpath","../OpenJML/runtime",
                             "-sourcepath"," ",
                             "-specspath","../OpenJML/runtime",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "test/testNoSourceTypeError/A.jml"
                           },2,1
                           ,""
@@ -453,7 +453,7 @@ public class compiler {
                           { "-classpath","../OpenJML/runtime"+z+"test/testNoSourceWithClass",
                             "-sourcepath"," ",
                             "-specspath","../OpenJML/runtime"+z+"test/testNoSourceWithClass",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "test/testNoSourceWithClass/A.jml"
                           },2,1
                           ,""
@@ -506,7 +506,7 @@ public class compiler {
                           { "-classpath","../OpenJML/bin-runtime",  // FIXME - needs annotations?
                             "-sourcepath","test/testNoErrors",
                             "-specspath","../OpenJML/runtime",
-                            "-noPurityCheck",  //"-Xlint:unchecked",
+                            "--no-purity-check",  //"-Xlint:unchecked",
                             "test/testNoErrors/A.java"
                           },0,0
                           ,""
@@ -514,7 +514,7 @@ public class compiler {
     }
 
     /** Tests that specs files are not found with empty specs path */
-    @Test
+    @Test @Ignore
     public void testSourcePath3() throws Exception {
         helper(new String[]
                           { "-classpath"," ",
@@ -530,7 +530,7 @@ public class compiler {
     // in the OpenJML project
     /** Tests using the runtime jar */
     //@Test  // FIXME - try running the build programmatically
-    @Test 
+    @Test @Ignore
     public void testSourcePath4() throws Exception {
         if (!new java.io.File("../OpenJML/tempjars/jmlruntime.jar").exists()) {
             System.setErr(savederr);
@@ -555,7 +555,7 @@ public class compiler {
                           { "-classpath","bin",
                             "-sourcepath","test/testNoErrors",
                             "-specspath","",
-                            "-noInternalSpecs",
+                            //"-noInternalSpecs",
                             "test/testNoErrors/A.java", 
                           },0,0,"",
                           "");
@@ -567,7 +567,7 @@ public class compiler {
                           { "-classpath","bin",
                             "-sourcepath","test/testNoErrors",
                             "-specspath","../OpenJML/runtime",
-                            "-noInternalSpecs",
+                            //"-noInternalSpecs",
                             "test/testNoErrors/A.java"
                           },0,0,"",
                           "");
@@ -580,7 +580,7 @@ public class compiler {
                           { "-classpath","bin", 
                             "-sourcepath","test",
                             "-specspath","test",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "test/testSuperRead/A.java"
                           },1,1
                           ,""
@@ -608,7 +608,7 @@ public class compiler {
                           {  
                             "-classpath","test",
                             "-java",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "test/testNoErrors/A.java"
                           },0,1
                           ,""
@@ -622,7 +622,7 @@ public class compiler {
     public void testJavaOption1() {
         helper(new String[]
                           { "-classpath","test/testSpecErrors", 
-                            "-noPurityCheck","-check",
+                            "--no-purity-check","-check",
                             "test/testSpecErrors/A.java"
                           },1,0
                           ,""
@@ -640,7 +640,7 @@ public class compiler {
                           { "-classpath","bin", 
                             "-sourcepath","test",
                             "-specspath","test",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "test/testKeys/D.java"
                           },0,0
                           ,""
@@ -655,7 +655,7 @@ public class compiler {
                           { "-classpath","bin", 
                             "-sourcepath","test",
                             "-specspath","test",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "test/testKeys/A.java"
                           },1,1
                           ,"test/testKeys/A.java:4: error: cannot find symbol"
@@ -670,7 +670,7 @@ public class compiler {
                           { "-classpath","bin", 
                             "-sourcepath","test",
                             "-specspath","test",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "-keys","K2",
                             "test/testKeys/A.java"
                           },1,1
@@ -686,7 +686,7 @@ public class compiler {
                           { "-classpath","bin", 
                             "-sourcepath","test",
                             "-specspath","test",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "-keys","K1",
                             "test/testKeys/A.java"
                           },0,1
@@ -701,7 +701,7 @@ public class compiler {
                           { "-classpath","bin", 
                             "-sourcepath","test",
                             "-specspath","test",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "-keys","K2",
                             "test/testKeys/B.java"
                           },1,1
@@ -717,7 +717,7 @@ public class compiler {
                           { "-classpath","bin", 
                             "-sourcepath","test",
                             "-specspath","test",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "test/testKeys/B.java"
                           },0,0
                           ,""
@@ -732,7 +732,7 @@ public class compiler {
                           { "-classpath","bin", 
                             "-sourcepath","test",
                             "-specspath","test",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "-keys","K3",
                             "test/testKeys/B.java"
                           },0,0
@@ -748,7 +748,7 @@ public class compiler {
                           { "-classpath","bin", 
                             "-sourcepath","test",
                             "-specspath","test",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "-keys","K4,K2",
                             "test/testKeys/C.java"
                           },0,0
@@ -764,7 +764,7 @@ public class compiler {
                           { "-classpath","bin", 
                             "-sourcepath","test",
                             "-specspath","test",
-                            "-noPurityCheck",
+                            "--no-purity-check",
                             "-keys","K2,K3",
                             "test/testKeys/C.java"
                           },1,1
@@ -776,7 +776,7 @@ public class compiler {
     @Test
     public void testModelBug() throws Exception {
         helper(new String[]
-                          { "-noPurityCheck",  //"-Xlint:unchecked",
+                          { "--no-purity-check",  //"-Xlint:unchecked",
                             "test/model1/ModelClassExampleBug.java",
                             "test/model1/ModelClassExampleBugSub.java",
                             "test/model1/ModelClassExampleBugSub2.java"
@@ -803,7 +803,7 @@ public class compiler {
     @Test
     public void testModelBug2() throws Exception {
         helper(new String[]
-                          { "-noPurityCheck",  //"-Xlint:unchecked",
+                          { "--no-purity-check",  //"-Xlint:unchecked",
                             "test/model2/NonGenericModelClassExampleBug.java",
                             "test/model2/NonGenericModelClassExampleBugSub.java",
                           },0,0
@@ -949,7 +949,7 @@ public class compiler {
     @Test
     public void release_testOK1() throws Exception {
     	helper(new String[]
-    			{ "-noPurityCheck","-specspath","releaseTests/testOK1","temp-release/B.java"
+    			{ "--no-purity-check","-specspath","releaseTests/testOK1","temp-release/B.java"
     			},0,0
     			,""
     			);
@@ -958,7 +958,7 @@ public class compiler {
     @Test
     public void release_testOK4() throws Exception {
     	helper(new String[]
-    			{ "-noPurityCheck","-specspath","releaseTests/testOK1","temp-release/B.java","-noInternalSpecs"
+    			{ "--no-purity-check","-specspath","releaseTests/testOK1","temp-release/B.java",
     			},0,0
     			,""
     			);
@@ -976,11 +976,11 @@ public class compiler {
     }
     
     // Testing typechecking with binary files for org.jmlspecs.annotation.*
-    @Test
+    @Test @Ignore // without -no-internalRuntime is now the same as release_testRuntime4
     public void release_testRuntime2() throws Exception {
     	expectedFile = "releaseTests/testRuntime2/expected";
     	helper(new String[]
-    			//{ "temp-release/C.java", "-classpath", "../../JMLAnnotations/bin"+z+"../OpenJML/bin-runtime", "-no-purityCheck", "-no-internalRuntime"
+    			//{ "temp-release/C.java", "-classpath", "../../JMLAnnotations/bin"+z+"../OpenJML/bin-runtime", "-no-purityCheck", 
     			{ "temp-release/C.java", "-no-purityCheck", "-no-internalRuntime"
     			},0,0
     			,""
@@ -992,7 +992,7 @@ public class compiler {
     public void release_testRuntime3() throws Exception {
     	expectedFile = "releaseTests/testRuntime3/expected";
     	helper(new String[]
-    			{ "temp-release/C.java",  "-classpath", "../../JMLAnnotations/src"+z+"../OpenJML/runtime", "-no-purityCheck", "-no-internalRuntime"
+    			{ "temp-release/C.java",  "-classpath", "../../JMLAnnotations/src"+z+"../OpenJML/runtime", "-no-purityCheck",
     			},0,0
     			,""
     			);

@@ -79,6 +79,8 @@ import com.sun.tools.javac.util.Position;
 
 public class MethodProverSMT {
     
+    final public static boolean debugSMT = Utils.debug("smt");
+    
     final public static String separator = "--------------------------------------";
 
     // OPTIONS SET WHEN prover() IS CALLED
@@ -268,6 +270,7 @@ public class MethodProverSMT {
             log.report(d);
             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null).setOtherInfo(d);
         }
+        if (debugSMT) System.out.println("Solver in use: " + exec);
         
         IProverResult proofResultAccumulated = null;
         IProverResult proofResult = null;
@@ -275,13 +278,15 @@ public class MethodProverSMT {
 
         String splitlist = JmlOption.value(context,JmlOption.SPLIT);
         String[] splits = splitlist.split(",");
+        int skips = 0;
         Translations translations = jmlesc.assertionAdder.methodBiMap.getf(methodDecl);
         for (String splitkey: translations.keys()) {
-        if (splitkey.equals(Strings.feas_preOnly)) {
-            if (proofResultAccumulated.isSat()) continue;
-        }
+//        if (splitkey.equals(Strings.feas_preOnly)) {
+//            if (proofResultAccumulated.isSat()) continue;
+//        }
         if (!splitlist.isEmpty() && !java.util.Arrays.stream(splits).anyMatch(s -> splitkey.equals(s))) {
             utils.note(false,"Skipping proof attempt for split " + splitkey);
+            skips++;
             continue;
         }
             
@@ -402,7 +407,7 @@ public class MethodProverSMT {
             }
             // Starts the solver (and it waits for input)
             start = new Date();
-            setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
+            //setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
             solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
             if (solver == null) { 
             	//log.error("jml.solver.failed.to.start",exec);
@@ -478,7 +483,7 @@ public class MethodProverSMT {
             if (Utils.testingMode) loc = "";
             if (solverResponse.equals(unsatResponse)) {
                 String msg = "Method assertions are validated";
-                if (!Utils.testingMode) msg = msg + String.format(" [%4.2f secs]", duration);
+                if (!Utils.testingMode && JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)) msg = msg + String.format(" [%4.2f secs]", duration);
                 // FIXME - get rid of the check on testingMode below some time when we can change the test results
                 if (!Utils.testingMode) utils.progress(0,1,msg);
 
@@ -486,9 +491,9 @@ public class MethodProverSMT {
                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
                 
                 boolean doit = false;
-                if (Strings.feas_preOnly.equals(splitkey) && Strings.feasibilityContains(Strings.feas_preOnly,context)) {
-                    doit = true;
-                }
+//                if (Strings.feas_preOnly.equals(splitkey) && Strings.feasibilityContains(Strings.feas_preOnly,context)) {
+//                    doit = true;
+//                }
                 if (doit || !Strings.feasibilityContains(Strings.feas_none,context)) {
                     boolean allFeasibilities = Strings.feasibilityContains(Strings.feas_all,context) || Strings.feasibilityContains(Strings.feas_debug,context);
                     if (usePushPop) {
@@ -497,29 +502,41 @@ public class MethodProverSMT {
                         solver.exit();
                     }
 
-                    java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.getAssumeChecks(methodDecl, splitkey);
-                    int feasibilityCheckNumber = 0;
+                    java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.getFeasibilityChecks(methodDecl, splitkey);
+                    startFeasibilityCheck = 0;
+                    if (Strings.feasibilityContains(Strings.feas_debug,context)) {
+                        String values = JmlOption.value(context,JmlOption.FEASIBILITY);
+                        if (values != null && values.length() > "debug:".length()) {
+                            String sn = values.substring("debug:".length());
+                            try {
+                                startFeasibilityCheck = Integer.valueOf(sn);
+                            } catch (NumberFormatException e) {
+                                utils.warning("jml.message","debug feaqsibility startu=ing number has ba format: " + sn);
+                            }
+                        }
+                    }
                     String scriptString = program.toString();
-                    boolean quit = false;
                     if (checks != null) for (JmlStatementExpr stat: checks) {
-                        if (quit) break;
                         if (aborted) {
                         	throw new Main.JmlCanceledException("Aborted by user");
                         }
                         
-                        ++feasibilityCheckNumber;
-                        if (feasibilityCheckNumber != stat.associatedPos) {
-                            utils.note(false, "Mismatched feasibilty number: "+ feasibilityCheckNumber + " vs. " + stat.associatedPos);
-                        }
+                        int feasibilityCheckNumber = stat.associatedPos;
+
                         if (feasibilityCheckNumber < startFeasibilityCheck) continue;
+                        //System.out.println("FEAS TRIAL " + usePushPop + " " + feasibilityCheckNumber + " " +  stat.associatedPos + " " + stat.description);
+//                        if (feasibilityCheckNumber != stat.associatedPos) {
+//                            utils.note(false, "Mismatched feasibility number: "+ feasibilityCheckNumber + " vs. " + stat.associatedPos);
+//                        }
                         if (prevErrors != log.nerrors) break;
-                        //System.out.println("FEAS " + usePushPop + " " + feasibilityCheckNumber + " " + scriptString.contains("__JML_AssumeCheck_ != " + feasibilityCheckNumber + ")"));
-                        if (!scriptString.contains("__JML_AssumeCheck_ != " + feasibilityCheckNumber + ")")) continue;
+                        //System.out.println("FEAS " + usePushPop + " " + feasibilityCheckNumber + " " + scriptString.contains(Strings.feasCheckVar + " != " + feasibilityCheckNumber + ")"));
+                        if (!scriptString.contains(Strings.feasCheckVar + " != " + feasibilityCheckNumber + ");")) {
+                            continue;
+                        }
                        
                         // Only do the feasibility check if called for by the feasibility option
-                        quit = stat.description == Strings.atSummaryAssumeCheckDescription;
-                        if (!allFeasibilities && !Strings.feasibilityContains(stat.description,context)
-                                && !(doit && stat.description.contains(Strings.feas_pre))) continue;
+//                        if (!allFeasibilities && !Strings.feasibilityContains(stat.description,context)
+//                                && !(doit && stat.description.contains(Strings.feas_pre))) continue;
                             
                         if (!usePushPop) {
                             solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);
@@ -533,7 +550,7 @@ public class MethodProverSMT {
                                 }
                                 JCExpression lit = treeutils.makeIntLiteral(Position.NOPOS, feasibilityCheckNumber);
                                 JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.Tag.EQ,treeutils.inteqSymbol,
-                                        treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),
+                                        treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.feasCheckSym),
                                         lit);
                                 commands.add(new C_assert(smttrans.convertExpr(bin)));
                                 commands.add(new C_check_sat());
@@ -560,7 +577,7 @@ public class MethodProverSMT {
                             solver.pop(1); // Pop off previous setting of assumeCheck
                             solver.push(1); // Mark the top
                             JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.Tag.EQ,treeutils.inteqSymbol,
-                                    treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),
+                                    treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.feasCheckSym),
                                     treeutils.makeIntLiteral(Position.NOPOS, feasibilityCheckNumber));
                             solver.assertExpr(smttrans.convertExpr(bin));
                             solverResponse = solver.check_sat();
@@ -571,13 +588,14 @@ public class MethodProverSMT {
                         String msg2 =  (utils.jmlverbose > Utils.PROGRESS || (utils.jmlverbose == Utils.PROGRESS && (!Utils.testingMode || Strings.feasibilityContains(Strings.feas_debug,context)) )) ? 
                                 ("Feasibility check #" + feasibilityCheckNumber + " - " + description + " : ")
                                 :("Feasibility check - " + description + " : ");
+                        //System.out.println("   SOLVER " + solverResponse);
                         boolean infeasible = solverResponse.equals(unsatResponse);
                         if (Utils.testingMode) fileLocation = loc;
-                        String msgOK = fileLocation + msg2 + "OK" + (Utils.testingMode? "" : String.format(" [%4.2f secs]", duration));
+                        String msgOK = fileLocation + msg2 + "OK" + (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration));
                         if (infeasible) {
-                            utils.progress(0,1,fileLocation + msg2 + "infeasible" + (Utils.testingMode? "" : String.format(" [%4.2f secs]", duration)));
-                            if (Strings.preconditionAssumeCheckDescription.equals(description)) {
-                            	utils.verify(stat, "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
+                            utils.progress(0,1,fileLocation + msg2 + "infeasible" + (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration)));
+                            if (Strings.preconditionFeasCheckDescription.equals(description)) {
+                            	utils.warning(stat, "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
                                 // If the preconditions are inconsistent, all paths will be infeasible
                                 break;
@@ -781,7 +799,8 @@ public class MethodProverSMT {
             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
         }
         if (utils.jmlverbose >= Utils.PROGRESS) {
-            if (!splitkey.isEmpty()) log.getWriter(WriterKind.NOTICE).println("Result of split "  + splitkey + " is " + proofResult.result());
+            if (!splitkey.isEmpty()) log.getWriter(WriterKind.NOTICE).println("Result of split "  + splitkey + " is " + 
+                                    transResult(proofResult.result()));
             //else if (translations.splits.size() > 1) log.getWriter(WriterKind.NOTICE).println("Result of full program analysis is " + proofResult.result());
         }
         numberAccumulated++;
@@ -791,7 +810,9 @@ public class MethodProverSMT {
         }
         } // end of splitkey
         if (utils.jmlverbose >= Utils.PROGRESS && numberAccumulated > 1) {
-            log.getWriter(WriterKind.NOTICE).println("Composite result " + proofResultAccumulated.result());
+            log.getWriter(WriterKind.NOTICE).println("Composite result " 
+                                    + transResult(proofResultAccumulated.result())
+                                    + (skips == 0 ? "" : (" with " + skips + " splits skipped")));
         }
         if (proofResultAccumulated == null) {
             log.getWriter(WriterKind.NOTICE).println("No matching splits");
@@ -799,6 +820,10 @@ public class MethodProverSMT {
         }
         return proofResultAccumulated; // FIXME - need to combine results
         
+    }
+    
+    String transResult(IProverResult.Kind k) {
+        return k == IProverResult.UNSAT ? "Verified" : (k == IProverResult.SAT || k == IProverResult.POSSIBLY_SAT) ? "Not verified" : k.toString(); 
     }
     
     protected List<IProverResult.Span> path;
@@ -1030,7 +1055,7 @@ public class MethodProverSMT {
 //                            log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
                         }
                         if (comment != null) {
-                            if (comment.startsWith("AssumeCheck assertion")) break ifstat;
+                            if (comment.startsWith("FeasibilityCheck assertion")) break ifstat;
                             if (info.verbose || toTrace != null) tracer.appendln(loc + " \t" + comment);
                         }
                         if (toTrace != null && showSubexpressions) tracer.trace(toTrace);
@@ -1127,7 +1152,7 @@ public class MethodProverSMT {
                             tracer.appendln(loc + " Invalid assertion (" + label + ")");
                             if (label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION || label == Label.NULL_FORMAL) {
                                 try {
-                                    Name nm = ((JCIdent)assertStat.expression).name;
+                                    Name nm = ((JCIdent)assertStat.expression).sym.name;                                    // FIXME - need to fix why assertion names are getting invocation suffixes
                                     String s = jmlesc.assertionAdder.callStacks.get(nm);
                                     if (s != null) utils.note(s);
                                 } catch (Exception ex) {}
@@ -1394,7 +1419,7 @@ public class MethodProverSMT {
 //                        log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
                     }
                     if (comment != null) {
-                        if (comment.startsWith("AssumeCheck assertion")) break ifstat;
+                        if (comment.startsWith("FeasibilityCheck assertion")) break ifstat;
                         if (info.verbose || toTrace != null) tracer.appendln(loc + " \t" + comment);
                     }
                     if (toTrace != null && showSubexpressions) tracer.trace(toTrace);
@@ -1943,38 +1968,38 @@ public class MethodProverSMT {
         }
     }
     
-    static public String benchmarkName = null;
-    static private int benchmarkCount = 0;
-    
-    public void setBenchmark(String solverName, String methodname, SMT.Configuration config) {
-        String benchmarkDir = JmlOption.value(context,JmlOption.BENCHMARKS);
-        if (benchmarkDir == null || benchmarkDir.isEmpty()) return;
-        new java.io.File(benchmarkDir).mkdirs();
-        String n;
-        if (benchmarkName != null) {
-            if ("<init>".equals(methodname)) methodname = "INIT";
-            int count = 0;
-            String root = benchmarkDir + "/" + benchmarkName + "." + methodname;
-            n = root + ".smt2";
-            while (true) {
-                Path p = FileSystems.getDefault().getPath(n);
-                if (!java.nio.file.Files.exists(p)) break;
-                count++;
-                n = root + (-count) + ".smt2";
-            }
-        } else {
-            benchmarkCount++;
-            n = String.format("%s/bench-%05d.smt2",benchmarkDir,benchmarkCount);
-        }
-//        try {
-        config.logfile = n;
-//            Path p = FileSystems.getDefault().getPath(n);
-//            java.nio.file.Files.deleteIfExists(p);
-//            java.nio.file.Files.move(FileSystems.getDefault().getPath("solver.out.z3"),p);
-//        } catch (IOException e) {
-//            System.out.println(e);
+//    static public String benchmarkName = null;
+//    static private int benchmarkCount = 0;
+//    
+//    public void setBenchmark(String solverName, String methodname, SMT.Configuration config) {
+//        String benchmarkDir = JmlOption.value(context,JmlOption.BENCHMARKS);
+//        if (benchmarkDir == null || benchmarkDir.isEmpty()) return;
+//        new java.io.File(benchmarkDir).mkdirs();
+//        String n;
+//        if (benchmarkName != null) {
+//            if ("<init>".equals(methodname)) methodname = "INIT";
+//            int count = 0;
+//            String root = benchmarkDir + "/" + benchmarkName + "." + methodname;
+//            n = root + ".smt2";
+//            while (true) {
+//                Path p = FileSystems.getDefault().getPath(n);
+//                if (!java.nio.file.Files.exists(p)) break;
+//                count++;
+//                n = root + (-count) + ".smt2";
+//            }
+//        } else {
+//            benchmarkCount++;
+//            n = String.format("%s/bench-%05d.smt2",benchmarkDir,benchmarkCount);
 //        }
-    }
+////        try {
+//        config.logfile = n;
+////            Path p = FileSystems.getDefault().getPath(n);
+////            java.nio.file.Files.deleteIfExists(p);
+////            java.nio.file.Files.move(FileSystems.getDefault().getPath("solver.out.z3"),p);
+////        } catch (IOException e) {
+////            System.out.println(e);
+////        }
+//    }
     
     /** Construct the mapping from original source subexpressions to values in the current solver model. */
     public Map<JCTree,String> constructCounterexample(JmlAssertionAdder assertionAdder, BasicBlocker2 basicBlocker, SMTTranslator smttrans, SMT smt, ISolver solver) {

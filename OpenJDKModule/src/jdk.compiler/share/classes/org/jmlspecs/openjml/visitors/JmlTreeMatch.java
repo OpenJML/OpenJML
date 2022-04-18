@@ -569,7 +569,7 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        super.visitImport(that);
 //    }
 //    
-//    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
+//    public void visitLabelled(JCLabeledStatement that) {
 ////        scan(that.extraStatements.toList());
 //        scan(that.body);
 //    }
