@@ -3114,32 +3114,42 @@ public class SMTTranslator extends JmlTreeScanner {
     }
 
     private IExpr constructSmtQuantifier(JmlQuantifiedExpr that, IExpr range, IExpr value, List<IDeclaration> params) {
-        boolean isProduct = that.kind.keyword() == QuantifiedExpressions.qproductID;
+        TypeTag quantifierVarType = that.decls.head.type.getTag();
+        if (quantifierVarType != TypeTag.INT && quantifierVarType != TypeTag.LONG && quantifierVarType != TypeTag.SHORT) {
+            notImplWarn(that, "JML quantified expression with non-integral type");
+            return null;
+        }
 
-        ISymbol lo = F.symbol("|`lo|"), quantN = F.symbol("|`quant_" + (uniqueQuantCount++) + "|");
-        ISort returnType = convertSort(that.type);
-
-        // construct an expression representing the base case for this quantifier and its type 
-        int javaBaseCase = isProduct ? 1 : 0;
-        IExpr baseCase;
-        if (that.type.getTag() == TypeTag.FLOAT || that.type.getTag()==TypeTag.DOUBLE ) {
-            baseCase = F.decimal(Double.toString(javaBaseCase));
-        } else {
-            baseCase = F.numeral(javaBaseCase);
+        if (params.size() != 1) {
+            notImplWarn(that, "JML Quantified expression cannot have multiple or 0 parameters");
+            return null;
         }
 
         // find the bounds of the range expression
-        JmlBoundsExtractor.Bounds bounds = JmlBoundsExtractor.extract(that.decls, that.range, true, context, this);
+        JmlBoundsExtractor.Bounds bounds = JmlBoundsExtractor.extract(that.decls, that.range, true, this);
         if (bounds == null) return null;
         if (bounds.lo == null || bounds.hi == null) {
             notImplWarn(that.range, "JML quantified expression range is not a recognized pattern");
             return null;
         }
-
         scan(bounds.lo);
         IExpr loExpr = result;
         scan(bounds.hi);
         IExpr hiExpr = result;
+
+        boolean isProduct = that.kind.keyword() == QuantifiedExpressions.qproductID;
+
+        ISymbol hi = F.symbol("|`hi|"), quantN = F.symbol("|`quant_" + (uniqueQuantCount++) + "|");
+        ISort returnType = convertSort(that.type);
+
+        // construct an expression representing the base case for this quantifier and its type 
+        int javaBaseCase = isProduct ? 1 : 0;
+        IExpr baseCase;
+        if (that.type.getTag() == TypeTag.FLOAT || that.type.getTag() == TypeTag.DOUBLE ) {
+            baseCase = F.decimal(Double.toString(javaBaseCase));
+        } else {
+            baseCase = F.numeral(javaBaseCase);
+        }
 
         // convert num_of to the equivalent sum expression 
         if (that.kind.keyword() == QuantifiedExpressions.qnumofID) {
@@ -3147,85 +3157,47 @@ public class SMTTranslator extends JmlTreeScanner {
             value = F.numeral(1);
         }
         
-        if (params.size() != 1) {
-            notImplWarn(that, "JML Quantified expression cannot have multiple or 0 parameters");
-            return null;
-        }
-
-        IDeclaration x = params.get(0);
-        ISymbol hi = x.parameter();
-
-        List<IExpr> quantParams = new LinkedList<>();
+        IDeclaration quantifiedVar = params.get(0);
+        ISymbol lo = quantifiedVar.parameter();
 
         // construct a list of parameters for this expression
-        List<IDeclaration> newParams = new LinkedList<IDeclaration>();
-        newParams.add(params.get(0));
-        newParams.add(F.declaration(lo, x.sort()));
-        for (IExpr.IDeclaration decl: quantifierScope) {
-            quantParams.add(decl.parameter());
-            newParams.add(decl);
+        List<IExpr> callParameters = new LinkedList<>();
+        List<IDeclaration> functionParameters = new LinkedList<>();
+        functionParameters.add(quantifiedVar);
+        functionParameters.add(F.declaration(hi, quantifiedVar.sort()));
+        // forward parents quantifiers to this quantifier
+        for (IExpr.IDeclaration decl : quantifierScope) {
+            callParameters.add(decl.parameter());
+            functionParameters.add(decl);
         }
 
         // append to front the lo and hi arguments
-        quantParams.add(0, F.fcn(F.symbol("+"), hi, F.numeral(1)));
-        quantParams.add(1, lo);
+        callParameters.add(0, F.fcn(F.symbol("+"), lo, F.numeral(1)));
+        callParameters.add(1, hi);
 
-
-        // comment this in for declare_fun + assert forall
-        // List<ISort> paramSorts = new LinkedList<>();
-        // List<IExpr> paramArgs = new LinkedList<>();
-        // for (IDeclaration decl: newParams) {
-        //     paramSorts.add(decl.sort());
-        //     paramArgs.add(decl.parameter());
-        // }
-
-        // commands.add(new C_declare_fun(quantN, paramSorts, returnType));
-        // commands.add(
-        //     new C_assert(
-        //         F.forall(
-        //             newParams,
-        //             F.fcn(eqSym, 
-        //                 F.fcn(quantN, paramArgs),
-        //                 F.fcn(
-        //                     F.symbol("ite"), F.fcn(F.symbol("<"), hi, lo),
-        //                         baseCase,
-        //                         F.fcn(isProduct ? F.symbol("*") : F.symbol("+"),
-        //                                 F.fcn(quantN, quantParams),
-        //                                 F.fcn(F.symbol("ite"), range,
-        //                                     value,
-        //                                     baseCase
-        //                                 )
-        //                         )
-        //                 )
-        //             )
-        //         )
-        //     )
-        // );
-
-        // comment this in for define_fun_rec
-        ICommand cmd = new C_define_fun_rec(
-                quantN, newParams, returnType,
-                F.fcn(
-                    F.symbol("ite"), F.fcn(F.symbol("<"), lo, hi),
-                        baseCase,
-                        F.fcn(isProduct ? F.symbol("*") : F.symbol("+"),
-                                F.fcn(quantN, quantParams),
-                                F.fcn(F.symbol("ite"), range,
-                                    value,
-                                    baseCase
-                                )
-                        )
+        // recursive definition of the quantifier
+        commands.add(new C_define_fun_rec(
+            quantN, functionParameters, returnType,
+            F.fcn(F.symbol("ite"), F.fcn(F.symbol("<"), hi, lo),
+                baseCase,
+                F.fcn(isProduct ? F.symbol("*") : F.symbol("+"),
+                    F.fcn(quantN, callParameters),
+                    F.fcn(F.symbol("ite"), range,
+                        value,
+                        baseCase
                     )
-                );
-        commands.add(cmd);
+                )
+            )
+        ));
 
         // set up function call of this quantifier
-        quantParams.remove(0);
-        quantParams.remove(0);
-        quantParams.add(0, loExpr);
-        quantParams.add(1, hiExpr);
+        callParameters.remove(0); // remove low
+        callParameters.remove(0); // remove high
+        callParameters.add(0, loExpr); // add initial low
+        callParameters.add(1, hiExpr); // add initial high
 
-        return F.fcn(quantN, quantParams);
+        // (quant lo hi)
+        return F.fcn(quantN, callParameters);
     }
 
     @Override

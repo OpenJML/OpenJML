@@ -2,6 +2,7 @@
  * This file is part of the OpenJML project. 
  * Author: Sachin Shah
  */
+
 package org.jmlspecs.openjml.esc;
 
 import com.sun.tools.javac.tree.*;
@@ -18,13 +19,12 @@ public class JmlBoundsExtractor {
 			this.lo = lo;
 			this.hi = hi;
 		}
-
 	}
 
 	/**
 	 * Take a comparison expression (<, <=, >, >=), and return the lowest and highest values.
 	 */
-	public static Bounds orientComparison(JCBinary expr) {
+	public static Bounds extractSingleBound(JCBinary expr) {
 		JCTree.Tag tag = expr.getTag();
 
 		// X <= Y, X < Y
@@ -69,7 +69,7 @@ public class JmlBoundsExtractor {
 	}
 
 	// primary bounds extracting logic
-	public static Bounds extract(List<JCVariableDecl> decls, JCExpression range, boolean isRoot, Context context, SMTTranslator smtTranslator) {
+	public static Bounds extract(List<JCVariableDecl> decls, JCExpression range, boolean isRoot, SMTTranslator smtTranslator) {
 		if ((range instanceof JCParens)) {
 			range = ((JCParens) range).getExpression();
 		}
@@ -86,10 +86,11 @@ public class JmlBoundsExtractor {
 			return null;
 		}
 
+		// find bounds of children
 		if (isConjunctiveOperator(expr.getTag())){
-			TreeMaker treeMaker =  TreeMaker.instance(context);
-			Bounds left = extract(decls, expr.lhs, false, context, smtTranslator);
-			Bounds right = extract(decls, expr.rhs, false, context, smtTranslator);
+			TreeMaker treeMaker =  TreeMaker.instance(smtTranslator.context);
+			Bounds left = extract(decls, expr.lhs, false, smtTranslator);
+			Bounds right = extract(decls, expr.rhs, false, smtTranslator);
 
 			if (left == null) return right;
 			if (right == null) return left;
@@ -128,7 +129,7 @@ public class JmlBoundsExtractor {
 			expr.getTag() == JCTree.Tag.GT ||
 			expr.getTag() == JCTree.Tag.GE) {
 
-			return orientComparison(expr);
+			return extractSingleBound(expr);
 		}
 		
 		return null;
