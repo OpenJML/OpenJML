@@ -12,6 +12,6 @@ public class Sum {
 			total += j;
 		}
 
-		return total;
+		return total + 1;
 	}
 }

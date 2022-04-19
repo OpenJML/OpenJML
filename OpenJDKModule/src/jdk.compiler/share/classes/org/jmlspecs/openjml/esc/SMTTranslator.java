@@ -3097,26 +3097,10 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
 
-
-    private void constructMinMaxQuantifiers(JmlQuantifiedExpr that, IExpr range, IExpr value, List<IDeclaration> params) {
-        ISymbol comparisonOperator = F.symbol(that.kind.keyword() == QuantifiedExpressions.qmaxID ? "<=" : ">=");
-
-        ISymbol temp = F.symbol("__JML_TMP_"  + (uniqueCount++));
-        commands.add(new C_declare_const(temp, convertSort(that.type)));
-
-        IExpr forallExpr = F.forall(params, F.fcn(impliesSym, range, F.fcn(comparisonOperator, value, temp)));
-        commands.add(new C_assert(forallExpr));
-        
-        IExpr existsExpr = F.exists(params, F.fcn(andSym, range, F.fcn(F.symbol("="), value, temp)));
-        commands.add(new C_assert(existsExpr));
-
-        result = temp;
-    }
-
     private IExpr constructSmtQuantifier(JmlQuantifiedExpr that, IExpr range, IExpr value, List<IDeclaration> params) {
         TypeTag quantifierVarType = that.decls.head.type.getTag();
         if (quantifierVarType != TypeTag.INT && quantifierVarType != TypeTag.LONG && quantifierVarType != TypeTag.SHORT) {
-            notImplWarn(that, "JML quantified expression with non-integral type");
+            notImplWarn(that, "JML quantified expression with non-integral quantifier type");
             return null;
         }
 
@@ -3163,18 +3147,19 @@ public class SMTTranslator extends JmlTreeScanner {
         // construct a list of parameters for this expression
         List<IExpr> callParameters = new LinkedList<>();
         List<IDeclaration> functionParameters = new LinkedList<>();
+
         functionParameters.add(quantifiedVar);
         functionParameters.add(F.declaration(hi, quantifiedVar.sort()));
+
+        callParameters.add(F.fcn(F.symbol("+"), lo, F.numeral(1)));
+        callParameters.add(hi);
+
         // forward parents quantifiers to this quantifier
         for (IExpr.IDeclaration decl : quantifierScope) {
             callParameters.add(decl.parameter());
             functionParameters.add(decl);
         }
-
-        // append to front the lo and hi arguments
-        callParameters.add(0, F.fcn(F.symbol("+"), lo, F.numeral(1)));
-        callParameters.add(1, hi);
-
+        
         // recursive definition of the quantifier
         commands.add(new C_define_fun_rec(
             quantN, functionParameters, returnType,
@@ -3249,10 +3234,6 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = F.exists(params,value);
                 }
                 break;
-            // case QuantifiedExpressions.qmaxID:
-            // case QuantifiedExpressions.qminID:
-            //     constructMinMaxQuantifiers(that, range, value, params);
-            //     break;
             case QuantifiedExpressions.qsumID:
             case QuantifiedExpressions.qproductID:
             case QuantifiedExpressions.qnumofID:

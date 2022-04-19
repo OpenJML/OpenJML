@@ -4,7 +4,9 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Product.Product() with prover !!!! - no warnings
 Starting proof of Product.factorial(int) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of Product.factorial(int) with prover !!!! - no warnings
+test/escProduct4/Product.java:7: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method factorial
+		//@ maintaining 1 <= j <= n;
+		    ^
+Completed proof of Product.factorial(int) with prover !!!! - with warnings
 Completed proving methods in Product
+1 warning
