@@ -1,0 +1,15 @@
+Proving methods in Sum
+Starting proof of Sum.Sum() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Sum.Sum() with prover !!!! - no warnings
+Starting proof of Sum.sum(int) with prover !!!!
+test/escSum4/Sum.java:15: warning: The prover cannot establish an assertion (Postcondition) in method sum
+		return total;
+		^
+test/escSum4/Sum.java:3: warning: Associated declaration
+	//@ ensures \result == (\sum int i; 0 <= i && i < n; i+1);
+	    ^
+Completed proof of Sum.sum(int) with prover !!!! - with warnings
+Completed proving methods in Sum
+2 warnings

@@ -1,0 +1,10 @@
+Proving methods in NumOf
+Starting proof of NumOf.NumOf() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of NumOf.NumOf() with prover !!!! - no warnings
+Starting proof of NumOf.numof() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of NumOf.numof() with prover !!!! - no warnings
+Completed proving methods in NumOf

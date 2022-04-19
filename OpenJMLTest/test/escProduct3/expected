@@ -1,0 +1,10 @@
+Proving methods in Product
+Starting proof of Product.Product() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Product.Product() with prover !!!! - no warnings
+Starting proof of Product.product(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Product.product(int[]) with prover !!!! - no warnings
+Completed proving methods in Product
