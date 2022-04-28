@@ -58,7 +58,7 @@ public class JmlTreeMatch extends JmlTreeScanner {
             if (utils.jmlverbose >= Utils.JMLVERBOSE) utils.note(tree, "jml.message", "Match not found");
             return false;
         }
-        if (utils.jmlverbose >= Utils.JMLVERBOSE) utils.note(tree, "jml.message", "Match found");
+        if (utils.jmlverbose >= Utils.JMLVERBOSE) utils.note(tree, "jml.message", "Match found " + tree);
         return true;
     }
     
@@ -350,8 +350,6 @@ public class JmlTreeMatch extends JmlTreeScanner {
 
     public void visitBinary(JCBinary tree) {
         JCBinary t = (JCBinary)top; 
-        Tag tt = t.getTag();
-        Tag trt = tree.getTag();
         if (t.getTag() != tree.getTag()) nomatch();
         top = t.lhs;
         scan(tree.lhs);

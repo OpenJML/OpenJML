@@ -13,6 +13,7 @@ import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.Operators;
+import org.jmlspecs.openjml.ext.SetStatement;
 
 import static org.jmlspecs.openjml.ext.RecommendsClause.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
@@ -22,8 +23,10 @@ import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.code.Types;
+import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
@@ -96,13 +99,35 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
             return super.translate(tree);
         }
     }
+    
+    @Override
+    public void visitJmlStatement(JmlStatement that) {
+        if (that.clauseType == SetStatement.setClause) {
+            if (that.statement instanceof JCTree.JCExpressionStatement exec) {
+                JCExpression expr = exec.expr;
+                if (expr.type.getTag() == TypeTag.VOID
+                    && expr instanceof JCTree.JCMethodInvocation apply
+                    && JmlAttr.instance(context).isPureMethod((Symbol.MethodSymbol)TreeInfo.symbolFor(apply.meth))) {
+                    //System.out.println("USING " + apply);
+                    helper(that,expr);
+                    return;
+                }
+            }
+        }
+        super.visitJmlStatement(that);
+    }
 
     @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) {
         if (that.clauseType == useClause) {
-            JCExpression expr = that.expression;
-            if (expr instanceof JmlBinary && ((JmlBinary)expr).op == Operators.impliesKind) {
-                JmlBinary imp = (JmlBinary)expr;
+            helper(that,that.expression);
+        } else {
+            super.visitJmlStatementExpr(that);
+        }
+    }
+    
+    public void helper(JCTree that, JCExpression expr) {
+            if (expr instanceof JmlBinary imp && imp.op == Operators.impliesKind) {
                 if (!(imp.rhs instanceof JCBinary && ((JCBinary)imp.rhs).getTag() == JCTree.Tag.EQ)) {
                     utils.error(expr, "jml.message", "Invalid kind of expression for a use statement; should be a lemma call, implication, or equality");
                     return;
@@ -112,11 +137,14 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                     exprHead = eq.lhs;
                     exprTail = eq.rhs;
                 }
-            } else if (expr instanceof JCBinary && ((JCBinary)expr).getTag() == JCTree.Tag.EQ) {
-                JCBinary eq = (JCBinary)expr;
+            } else if (expr instanceof JmlBinary bin && bin.op == Operators.equivalenceKind) {
                 exprPrecondition = treeutils.trueLit;
-                exprHead = eq.lhs;
-                exprTail = eq.rhs;
+                exprHead = bin.lhs;
+                exprTail = bin.rhs;
+            } else if (expr instanceof JCBinary bin && bin.getTag() == JCTree.Tag.EQ) {
+                exprPrecondition = treeutils.trueLit;
+                exprHead = bin.lhs;
+                exprTail = bin.rhs;
             } else if (expr instanceof JCTree.JCMethodInvocation) {
                 JCExpression meth = ((JCMethodInvocation)expr).meth;
                 Symbol msym = treeutils.getSym(meth);
@@ -183,7 +211,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                                 return;
                             }
                     } else {
-                            utils.error(cl,"jml.internal","Use lemmas currently implement only requires and ensures clauses: " + cl.keyword);
+                            utils.error(cl.sourcefile,cl,"jml.internal","Use lemmas currently implement only requires and ensures clauses: " + cl.keyword+ " in specs for " + msym.owner + "." + msym);
                             return;
                     }
 //                    currentUse = M.at(that).JmlExpressionStatement(assertID, assertClause,Label.UNDEFINED_LEMMA,treeutils.trueLit);
@@ -198,8 +226,5 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
             } else {
                 utils.error(expr, "jml.message", "Invalid kind of expression for a use statement; should be a lemma call, implication, or equality");
             }
-        } else {
-            super.visitJmlStatementExpr(that);
-        }
     }
 }

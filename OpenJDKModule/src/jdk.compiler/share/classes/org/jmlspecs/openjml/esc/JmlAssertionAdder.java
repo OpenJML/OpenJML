@@ -8647,7 +8647,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				enclosingClass = fa.sym.owner;
 
 			} else if (newclass != null) {
-				if (Utils.debug()) System.out.println("APPLYHELPER-NEWCLASS " + calleeMethodSym + " " + newclass);
+				if (print) System.out.println("APPLYHELPER-NEWCLASS " + calleeMethodSym + " " + newclass);
 
 				// FIXME - this does not handle qualified constructors of inner classes
 
@@ -8678,9 +8678,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				trExpr = expr;
 				enclosingMethod = calleeMethodSym;
 				enclosingClass = calleeMethodSym.owner;
-				if (Utils.debug())
-					System.out.println(
-							"APPLYHELPER-NEWCLASS-Z " + calleeMethodSym.owner + " " + calleeMethodSym + " " + newclass);
+				if (print) System.out.println("APPLYHELPER-NEWCLASS-Z " + calleeMethodSym.owner + " " + calleeMethodSym + " " + newclass);
 
 				// newThisId, newThisExpr are assigned the resultId later - can only be used in
 				// post-conditions
@@ -8801,19 +8799,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				throw new JmlInternalAbort(); // This problem is su[osed to be caught in JmlAttr
 			}
 			boolean addMethodAxioms = nodoTranslations && !calleeIsConstructor && !isSuperCall
-					&& !isThisCall;
+					&& !isThisCall && !isVoid;
 //            boolean addMethodAxioms = !rac && !calleeMethodSym.isConstructor() && !hasTypeArgs && !isSuperCall && !isThisCall && isPure(calleeMethodSym)
 //                    && (!calleeMethodSym.getReturnType().isReference() || translatingJML);
 			boolean inlineSpecs = !isRecursive && splitExpressions && localVariables.isEmpty(); // !addMethodAxioms;
 			boolean strictlyPure = !calleeMethodSym.getReturnType().isReference();
 			boolean includeDeterminism = !rac && !calleeIsConstructor && !hasTypeArgs && !isSuperCall && !isThisCall
-					&& isPure(calleeMethodSym) && strictlyPure;
+					&& isPure(calleeMethodSym) && strictlyPure && !isVoid;
 			boolean details = true && !calleeMethodSym.owner.getQualifiedName().toString().equals(Strings.JMLClass);
 
 			addToCallStack(that);
 			pushedMethod = true; // Must be after the check of isRecursive
 			
-			if (!calleeIsConstructor && isPure(calleeMethodSym) ) {
+			if (!calleeIsConstructor && isPure(calleeMethodSym) && !isVoid) {
 			    // FIXME - that.type is not always parameterized
 			    makeAndSaveMethodSymbol(that, calleeMethodSym, receiverType, calleeMethodSym.getReturnType());
 			}
@@ -9013,7 +9011,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 
 			if (print) System.out.println("APPLYHELPER-I " + calleeMethodSym.owner + " " + calleeMethodSym);
-			if (!inlineSpecs) {
+			if (!inlineSpecs && !isVoid) {
 				if (addMethodAxioms)
 					assertCalledMethodPrecondition(that, calleeMethodSym, extendedArgs);
 
@@ -17255,7 +17253,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			translations = saved_t;
 			originalSplit = saved_original;
 			currentSplit = saved_current;
-			if (org.jmlspecs.openjml.Utils.debug())
+			if (org.jmlspecs.openjml.Utils.debug("trans"))
 				System.out.println(
 						"JAA-visitJmlMethodDecl-Z " + that.sym.owner + that.sym + " " + System.identityHashCode(
 								ClassReader.instance(context).enterClass(names.fromString("java.lang.Object"))));
@@ -17263,7 +17261,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	}
 
-	//// FIXME - Docuiment - should this be used where generic typeargs exist?
+	//// FIXME - Document - should this be used where generic typeargs exist?
 	protected JCExpression translateTypeArg(JCExpression targ) {
 		// Argument is a type, not an expression, so we
 		// replace it with a type literal

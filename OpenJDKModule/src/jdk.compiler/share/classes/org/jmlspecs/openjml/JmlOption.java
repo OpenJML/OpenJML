@@ -556,9 +556,7 @@ public class JmlOption {
     static public JmlOption find(/*@ non_null */ String s) {
         var o = map.get(s);
         if (o == null) {
-            // TODO: For the moment adjust to the fact that not all optionas are converted
-            if (s.startsWith("--")) o = map.get(s.substring(1));
-            else o = map.get("-"+s);
+            if (s.length() >= 2 && s.charAt(1) != '-') o = map.get("-"+s);
         }
         return o;
     }

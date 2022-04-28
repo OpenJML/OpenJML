@@ -174,9 +174,7 @@ public abstract class EscBase extends JmlTestCase {
         main.addOptions("--keys","NOARITH");
         main.addOptions("--no-purityCheck");
         main.addOptions("--check-feasibility=basic");
-//        main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
-//        main.addOptions("-exec",JmlTestCase.root + "/Solvers/Solvers-macos/z3-4.3.1","-verbose");  // FIXME
         main.addUncheckedOption("org.openjml.defaultProver=z3_4");
         addOptions(options);
         if (solver != null) main.addOptions(JmlOption.PROVER.optionName(),solver);

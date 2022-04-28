@@ -4,15 +4,12 @@ import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
-import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
-import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.SetStatement;
+import org.jmlspecs.openjml.ext.StatementExprExtensions;
 
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
@@ -20,16 +17,10 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.code.Types;
+import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCInstanceOf;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
-import com.sun.tools.javac.tree.JCTree.JCTypeCast;
+import com.sun.tools.javac.tree.TreeInfo;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 
 /** This class collects all mentions of classes within the ASTs scanned. */
@@ -129,6 +120,7 @@ class ClassCollector extends JmlTreeScanner {
     @Override
     public void visitBinary(JCTree.JCBinary tree) {
         JCTree.Tag op = tree.getTag();
+        boolean was = useBV;
         // FIXME - the tree may not always be typed, but this is likely not the correct behavior
         if (tree.type != null && tree.type.getTag() != TypeTag.BOOLEAN) {
             if (op == JCTree.Tag.BITAND || op == JCTree.Tag.BITAND_ASG) {
@@ -156,6 +148,7 @@ class ClassCollector extends JmlTreeScanner {
                 useBV = true;
             }
         }
+        if (!was && useBV && Utils.debug("bv")) { System.out.println("Using bit-vector because of " + tree); }
         super.visitBinary(tree);
     }
     
@@ -167,9 +160,11 @@ class ClassCollector extends JmlTreeScanner {
         } else if (op == JCTree.Tag.BITAND_ASG ||  op == JCTree.Tag.BITOR_ASG  || op == JCTree.Tag.BITXOR_ASG) {  
             if (tree.type.getTag() != TypeTag.BOOLEAN && Types.instance(context).unboxedTypeOrType(tree.type).getTag() != TypeTag.BOOLEAN) {
                 useBV = true;
+                if (Utils.debug("bv")) System.out.println("Using bit-vector because of " + tree);
             }
         } else if (op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR_ASG    ) {
             useBV = true;
+            if (Utils.debug("bv")) { System.out.println("Using bit-vector because of " + tree); }
         }
         super.visitAssignop(tree);
     }
@@ -184,6 +179,42 @@ class ClassCollector extends JmlTreeScanner {
     public void visitSelect(JCFieldAccess tree) {
         save(tree.type);
         super.visitSelect(tree);
+    }
+    
+    @Override
+    public void visitJmlStatementExpr(JmlStatementExpr tree) {
+        boolean was = useBV;
+        if (tree.clauseType == StatementExprExtensions.useClause) {
+            // skip
+        } else {
+            super.visitJmlStatementExpr(tree);
+        }
+        if (!was && useBV && Utils.debug("bv")) { System.out.println("Using bit-vector because of " + tree);  }
+    }
+    
+    @Override
+    public void visitJmlStatement(JmlStatement tree) {
+        boolean was = useBV;
+        if (tree.clauseType == SetStatement.setClause) {
+            if (tree.statement instanceof JCTree.JCExpressionStatement exec) {
+                JCExpression expr = exec.expr;
+                if (expr.type.getTag() == TypeTag.VOID
+                    && expr instanceof JCTree.JCMethodInvocation apply
+                    && JmlAttr.instance(context).isPureMethod((Symbol.MethodSymbol)TreeInfo.symbolFor(apply.meth))) {
+                    // skip
+                    return;
+                }
+            }
+        }
+        super.visitJmlStatement(tree);
+        if (!was && useBV && Utils.debug("bv")) { System.out.println("Using bit-vector because of " + tree);  }
+    }
+    
+    @Override
+    public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
+        boolean was = useBV;
+        super.visitJmlMethodClauseExpr(tree);
+        if (!was && useBV && Utils.debug("bv")) { System.out.println("Using bit-vector because of " + tree); }
     }
     
     @Override

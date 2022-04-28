@@ -58,6 +58,7 @@ wt
 wt
 ./run-summary log-typecheck	"213/0"	typechecking &
 ./run-summary log-typeclause	"123/0"	typeclauses  &
+./run-summary log-typeannot  	"13/0"	esctypeannotations  &
 ./run-summary log-SpecsBase    	"289/1"	SpecsBase  &
 ./run-summary log-SpecsEsc     	"6/0"	SpecsEsc  &
 wt

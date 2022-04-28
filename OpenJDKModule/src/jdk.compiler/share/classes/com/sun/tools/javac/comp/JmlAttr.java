@@ -6603,7 +6603,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    }
 
     public boolean isPureMethod(MethodSymbol symbol) {
-        //boolean print = symbol.toString().contains("apply");
+        //boolean print = symbol.toString().contains("println");
         //if (print) System.out.println("IPM " + symbol.owner + " " + symbol  );
         java.util.List<MethodSymbol> overrideList = Utils.instance(context).parents(symbol,true);
         java.util.ListIterator<MethodSymbol> iter = overrideList.listIterator(overrideList.size());
