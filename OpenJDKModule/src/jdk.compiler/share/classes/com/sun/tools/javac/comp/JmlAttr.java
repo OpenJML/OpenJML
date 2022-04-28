@@ -6603,28 +6603,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    }
 
     public boolean isPureMethod(MethodSymbol symbol) {
-        //boolean print = symbol.toString().contains("println");
-        //if (print) System.out.println("IPM " + symbol.owner + " " + symbol  );
+        boolean print = false; // symbol.toString().contains("apply(");
+        if (print) System.out.println("IPM " + symbol.owner + " " + symbol  );
         java.util.List<MethodSymbol> overrideList = Utils.instance(context).parents(symbol,true);
         java.util.ListIterator<MethodSymbol> iter = overrideList.listIterator(overrideList.size());
         while (iter.hasPrevious()) {
             MethodSymbol msym = iter.previous();
-            //if (print) System.out.println("  CHECKING " + symbol + " " + msym);
+            if (print) System.out.println("  CHECKING " + symbol + " " + msym.owner + "." + msym);
             MethodSpecs mspecs = specs.getLoadedSpecs(msym); // Could be null if we are in the middle of generating defaultSpecs
-            //if (print) System.out.println("  IPMA " + symbol.owner + " " + symbol + " " + msym.owner + " " + msym + " " + mspecs);
+            if (print) System.out.println("  IPMA " + symbol.owner + "." + symbol + " " + msym.owner + "." + msym + " " + mspecs);
             if (mspecs == null) {  // FIXME - observed to happen for in gitbug498 for JMLObjectBag.insert
                 // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
                 if (msym.toString().equals("size()") && msym.owner.toString().equals(Strings.jmlSpecsPackage + ".JMLList")) return true;
                 boolean isPure =  specs.isPure((ClassSymbol)msym.owner);
-                //if (isPure && print) System.out.println("  ISPURE-N " + symbol);
+                if (isPure && print) System.out.println("  ISPURE-N " + symbol.owner + " " + symbol);
             	if (isPure) return true;
             } else {
             	boolean isPure = specs.isPure(msym); // Also checks enclosing class
-            	//if (isPure && print) System.out.println("  ISPURE " + symbol + " " + msym);
+            	if (isPure && print) System.out.println("  ISPURE " + symbol.owner + " " + symbol +  " " + msym.owner + "." + msym);
             	if (isPure) return true;
             }
         }
-        //if (print) System.out.println("  NOTPURE " + symbol);
+        if (print) System.out.println("  NOTPURE " + symbol.owner + " " + symbol);
         return false;
     }
     

@@ -250,6 +250,8 @@ public class Strings {
     /** Name used for the array of allocation state */
     public final static String isAllocName = genPrefix + "isalloc__";
     
+    public final static String heap = "_heap__";
+    
     /** Name used for feasibility checking identifier */
     public final static String feasCheckVar = "__JML_FeasCheck_";
     

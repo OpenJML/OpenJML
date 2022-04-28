@@ -1233,7 +1233,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     }
                 }
             }
-        } else if (storeref instanceof JmlStoreRefKeyword) {
+        } else if (storeref instanceof JmlStoreRefKeyword) { // FIXME - no longer used?
             IJmlClauseKind t = ((JmlStoreRefKeyword)storeref).kind;
             if (t == everythingKind) {
                 for (VarSymbol vsym: currentMap.keySet()) {
@@ -1256,11 +1256,18 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     // Local variables are not affected by havoc \everything
                     // The owner of a local symbol is a MethodSymbol
                     // Also, final fields are not affected by havoc \everything
-                    if (vsym.owner instanceof ClassSymbol &&
-                            !vsym.isFinal() &&
-                            !vsym.name.toString().equals(Strings.isAllocName) &&
-                            !vsym.name.toString().equals(Strings.allocName)) {
-                        newIdentIncarnation(vsym, storeref.pos);
+                    if (vsym.owner instanceof ClassSymbol && !vsym.isFinal()) {
+                        String s = vsym.name.toString();
+                        if (!s.equals(Strings.heap) &&
+                            !s.equals(Strings.isAllocName) &&
+                            !s.equals(Strings.allocName)) {
+                            newIdentIncarnation(vsym, storeref.pos);
+//                            System.out.println("    HAVOCING " + vsym.owner + " " + vsym);
+//                        } else {
+//                            System.out.println("NOT HAVOCING " + vsym.owner + " " + vsym);
+                        }
+//                    } else {
+//                        System.out.println("NOT HAVOCING " + vsym.owner + " " + vsym);
                     }
                 }
                 // FIXME - symbols added after this havoc \everything will not have new incarnations???

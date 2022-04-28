@@ -660,7 +660,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //		this.evalStateLabel = null;
 		this.currentOldLabel = attr.preLabel;
 		this.heapCount = this.topHeapCount = 0;
-		this.heapVarName = names.fromString("_heap__"); // FIXME - cf. BasicBlocker2
+		this.heapVarName = names.fromString(Strings.heap); // FIXME - cf. BasicBlocker2
 		this.applyNesting = 0;
 		racMessages.clear();
 		escMessages.clear();

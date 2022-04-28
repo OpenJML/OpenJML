@@ -259,6 +259,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testMethodReference() {
+        main.addOptions("--purity-check");
         helpTCX("tt.TestJava","package tt; import java.util.function.*; \n"
                 +"@org.jmlspecs.annotation.CodeBigintMath public class TestJava { \n"
                 
@@ -269,12 +270,12 @@ public class esclambdas extends EscBase {
                 +"  //@ ensures \\result == j+101;\n"
                 +"  //@ ensures field == j+100;\n"
                 +"  public int m1(/*@[FF]*/ BiFunction<TestJava,Integer,Integer> a, int j) {\n"
-                +"   final /*@[FF]*/ BiFunction<TestJava,Integer,Integer>  b = a;\n"
-                +"    return (int)b.apply(this,(Integer)(j+100));\n"
+                +"   final /*@[FF]*/ BiFunction<TestJava,Integer,Integer>  b = a; \n"
+                +"    return (int)b.apply(this,(Integer)(j+100)); \n"
                 +"  }\n"
 
                 +"  /*@ @FunctionalInterface model public static interface FF extends BiFunction<TestJava,Integer,Integer> {  \n"
-                +"        also assignable t.field; ensures t.field == n; ensures \\result == n+1;  \n"
+                +"        also assignable t.field; ensures t.field == n; ensures \\result == n + 1;  \n"
                 +"        non_null  \n"
                 +"       Integer apply(TestJava t, Integer n);} */\n"
                 

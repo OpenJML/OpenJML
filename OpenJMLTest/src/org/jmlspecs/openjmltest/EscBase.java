@@ -172,7 +172,7 @@ public abstract class EscBase extends JmlTestCase {
         main.addOptions("--specs-path",   testspecpath);
         main.addOptions("--command","esc");
         main.addOptions("--keys","NOARITH");
-        main.addOptions("--no-purityCheck");
+        main.addOptions("--no-purity-check");
         main.addOptions("--check-feasibility=basic");
         main.addOptions("-jmltesting");
         main.addUncheckedOption("org.openjml.defaultProver=z3_4");
