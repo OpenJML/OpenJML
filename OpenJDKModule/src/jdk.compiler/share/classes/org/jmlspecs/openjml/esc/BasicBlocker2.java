@@ -247,6 +247,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
     /** Contains names for which a declaration has been issued. */
     final protected Set<Name> isDefined = new HashSet<Name>();
+    
+    protected ClassSymbol utilsClass;
 
     // THESE VARIABLES ARE SET (AND RESET) IN THE COURSE OF COMPUTATION
     // (so they do not need initialization)
@@ -318,6 +320,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         this.heapVar = treeutils.makeIdent(0,assertionAdder.heapSym);
         this.methodsSeen = new HashSet<Symbol>();
         this.continuation = Continuation.CONTINUE;
+        this.utilsClass = assertionAdder.utilsClass;
         // currentMap is set when starting a block
         // premap is set during execution
     }
@@ -1241,7 +1244,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     // The owner of a local symbol is a MethodSymbol
                     // Also, final fields are not affected by havoc \everything
                     if (vsym.owner instanceof ClassSymbol &&
-                            (vsym.flags() & Flags.FINAL) != Flags.FINAL &&
+                            (vsym.flags() & Flags.FINAL) != Flags.FINAL && vsym.owner != utilsClass &&
                             !vsym.name.toString().equals(Strings.isAllocName) &&
                             !vsym.name.toString().equals(Strings.allocName)) {
                         newIdentIncarnation(vsym, storeref.pos);
@@ -1256,18 +1259,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     // Local variables are not affected by havoc \everything
                     // The owner of a local symbol is a MethodSymbol
                     // Also, final fields are not affected by havoc \everything
-                    if (vsym.owner instanceof ClassSymbol && !vsym.isFinal()) {
-                        String s = vsym.name.toString();
-                        if (!s.equals(Strings.heap) &&
-                            !s.equals(Strings.isAllocName) &&
-                            !s.equals(Strings.allocName)) {
-                            newIdentIncarnation(vsym, storeref.pos);
-//                            System.out.println("    HAVOCING " + vsym.owner + " " + vsym);
-//                        } else {
-//                            System.out.println("NOT HAVOCING " + vsym.owner + " " + vsym);
-                        }
-//                    } else {
-//                        System.out.println("NOT HAVOCING " + vsym.owner + " " + vsym);
+                    if (vsym.owner instanceof ClassSymbol && !vsym.isFinal() && vsym.owner != utilsClass &&
+                        !vsym.name.toString().equals(Strings.isAllocName) &&
+                        !vsym.name.toString().equals(Strings.allocName)) {
+                        newIdentIncarnation(vsym, storeref.pos);
+//                      System.out.println("    HAVOCING " + vsym.owner + " " + vsym);
+//                  } else {
+//                      System.out.println("NOT HAVOCING " + vsym.owner + " " + vsym);
                     }
                 }
                 // FIXME - symbols added after this havoc \everything will not have new incarnations???

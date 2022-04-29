@@ -957,11 +957,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// Declare the alloc and isAlloc fields
 			if (allocSym == null) {
 				allocSym = treeutils.makeVarSymbol(0, names.fromString(Strings.allocName), syms.intType, classDecl.pos);
-				allocSym.owner = classDecl.sym;
+				allocSym.owner = syms.objectType.tsym; // classDecl.sym;
 				isAllocSym = treeutils.makeVarSymbol(0, names.fromString(Strings.isAllocName), syms.booleanType,
 						classDecl.pos);
 				;
-				isAllocSym.owner = classDecl.sym;
+				isAllocSym.owner = syms.objectType.tsym; // classDecl.sym;
 			}
 
 			if ((infer || esc) && (isConstructor || !utils.isJMLStatic(methodDecl.sym))) {
@@ -1033,7 +1033,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// Declare the heap counter
 			addStat(comment(methodDecl, "Heap value and allocation fields", null));
 			if ((infer || esc) && heapSym == null) {
-				JCVariableDecl d = treeutils.makeStaticVarDef(syms.intType, heapVarName, classDecl.sym,
+				JCVariableDecl d = treeutils.makeStaticVarDef(syms.intType, heapVarName, utilsClass, // classDecl.sym,
 						treeutils.makeIntLiteral(0, 0));
 				heapSym = d.sym;
 				initialStatements.add(d);
@@ -15795,9 +15795,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			{
 				JCVariableDecl d = treeutils.makeVarDef(syms.intType, names.fromString(Strings.allocName),
-						classDecl.sym, treeutils.makeNullLiteral(classDecl.pos));
+				    syms.objectType.tsym, treeutils.makeNullLiteral(classDecl.pos));
 				allocSym = d.sym;
-				d = treeutils.makeVarDef(syms.booleanType, names.fromString(Strings.isAllocName), classDecl.sym,
+				d = treeutils.makeVarDef(syms.booleanType, names.fromString(Strings.isAllocName), syms.objectType.tsym,
 						treeutils.makeNullLiteral(classDecl.pos));
 				isAllocSym = d.sym;
 			}
