@@ -1033,7 +1033,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// Declare the heap counter
 			addStat(comment(methodDecl, "Heap value and allocation fields", null));
 			if ((infer || esc) && heapSym == null) {
-				JCVariableDecl d = treeutils.makeStaticVarDef(syms.intType, heapVarName, utilsClass, // classDecl.sym,
+				JCVariableDecl d = treeutils.makeStaticVarDef(syms.intType, heapVarName, enclosingMethod, // classDecl.sym,
 						treeutils.makeIntLiteral(0, 0));
 				heapSym = d.sym;
 				initialStatements.add(d);

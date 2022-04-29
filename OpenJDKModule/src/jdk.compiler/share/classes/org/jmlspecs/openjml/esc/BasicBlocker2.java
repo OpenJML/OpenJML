@@ -1244,7 +1244,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     // The owner of a local symbol is a MethodSymbol
                     // Also, final fields are not affected by havoc \everything
                     if (vsym.owner instanceof ClassSymbol &&
-                            (vsym.flags() & Flags.FINAL) != Flags.FINAL && vsym.owner != utilsClass &&
+                            (vsym.flags() & Flags.FINAL) != Flags.FINAL && //vsym.owner != utilsClass &&
                             !vsym.name.toString().equals(Strings.isAllocName) &&
                             !vsym.name.toString().equals(Strings.allocName)) {
                         newIdentIncarnation(vsym, storeref.pos);
@@ -1259,7 +1259,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     // Local variables are not affected by havoc \everything
                     // The owner of a local symbol is a MethodSymbol
                     // Also, final fields are not affected by havoc \everything
-                    if (vsym.owner instanceof ClassSymbol && !vsym.isFinal() && vsym.owner != utilsClass &&
+                    if (vsym.owner instanceof ClassSymbol && !vsym.isFinal() && //vsym.owner != utilsClass &&
                         !vsym.name.toString().equals(Strings.isAllocName) &&
                         !vsym.name.toString().equals(Strings.allocName)) {
                         newIdentIncarnation(vsym, storeref.pos);
