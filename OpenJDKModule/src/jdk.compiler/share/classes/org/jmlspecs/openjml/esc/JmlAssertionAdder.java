@@ -2484,6 +2484,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
     public JCExpression newTempIfNeeded(JCExpression expr) {
+        if (expr == null) return null;
         if (expr instanceof JCLiteral) return expr;
         if (expr instanceof JCIdent id && id.sym.owner == null) return id;
         return newTemp(uniqueTempString(), expr);
