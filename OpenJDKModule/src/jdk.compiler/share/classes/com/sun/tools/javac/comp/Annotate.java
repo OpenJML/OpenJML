@@ -169,12 +169,10 @@ public class Annotate {
         ListBuffer<TypeCompound> buf = new ListBuffer<>();
         for (JCAnnotation anno : annotations) {
         	if (anno.attribute == null) {
-//        		if (anno instanceof org.jmlspecs.openjml.JmlTree.JmlAnnotation) {
-//        			var janno = (org.jmlspecs.openjml.JmlTree.JmlAnnotation)anno;
-//        			var s = com.sun.tools.javac.comp.JmlAttr.instance(context).modToAnnotationSymbol.get(janno.kind);
-//        		}
+        	    // This crash is now avoided by code in JmlAttr.attribAnnotationTypes
+        	    // Not sure why it can happen -- is it a bug in OpenJDK or is OpenJML using OpenJDK incorrectly?
         		var pre = log.useSource(((org.jmlspecs.openjml.JmlTree.JmlAnnotation)anno).sourcefile);
-        		log.error(anno.pos, "jml.message", "ANNO ATTR IS NULL  " + anno + " " + anno.hashCode());
+        		log.error(anno.pos, "jml.message", "Annotation attribute is null:  " + anno + " " + anno.hashCode());
         		log.useSource(pre);
         	}
             Assert.checkNonNull(anno.attribute);

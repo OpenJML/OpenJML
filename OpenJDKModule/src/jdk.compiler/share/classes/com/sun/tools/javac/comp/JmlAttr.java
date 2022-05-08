@@ -1259,6 +1259,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             possiblyChanged = true;
             attribType(a.annotationType, env);
             a.type = a.annotationType.type;
+            if (a.type != null) {
+                // In some cases that a.attribute field is not set, particularly for type annotations.
+                // Don't know why - or whether it is a bug in OpenJDK.
+                // The following code fixes that and avoids a crash in Annotate.fromAnnotations
+                if (chk.isTypeAnnotation(a,false)) {
+                    annotate.attributeTypeAnnotation(a, a.type, env);
+                } else {
+                    annotate.attributeAnnotation(a, a.type, env);
+                }
+            }
         }
         if (possiblyChanged) log.useSource(prev);
     }

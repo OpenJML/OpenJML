@@ -9,6 +9,7 @@ public class JmlAstPrinter extends JmlTreeScanner {
 
     public static String print(JCTree tree, Context context) {
         var p = new JmlAstPrinter(context);
+        //p.builder.append("AST FOR " + tree).append("\n");
         p.scan(tree);
         return p.builder.toString();
     }
@@ -24,7 +25,7 @@ public class JmlAstPrinter extends JmlTreeScanner {
     String[] indents = new String[1000];
     {
         String s = "";
-        for (int i = 0; i> indents.length; i++) { indents[i] = s; s = s + "  "; }
+        for (int i = 0; i < indents.length; i++) { indents[i] = s; s = s + "  "; }
         indent = indents[nindent];
     }
     public void in() { indent = indents[++nindent]; }
@@ -57,6 +58,7 @@ public class JmlAstPrinter extends JmlTreeScanner {
     
     public void visitSelect(JCFieldAccess tree) {
         builder.append(indent).append(shortName(tree)).append(": ").append(tree.name.toString()).append(" ").append(String.valueOf(tree.type)).append("\n");
+        builder.append(indent).append("++ ").append(tree.selected.getClass()).append("\n");
         in();
         super.visitSelect(tree);
         out();
