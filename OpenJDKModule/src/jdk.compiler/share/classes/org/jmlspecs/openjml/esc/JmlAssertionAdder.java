@@ -14336,10 +14336,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCTree type = that.getType();
 		JCTree clazz = treeutils.makeType(type.pos, type.type);
 
+
 		// No checks needed - Java allows (null instanceof type)
 		// The value is always false
-		JCInstanceOf e = M.at(that).TypeTest(lhs, clazz);
+		JCExpression e = M.at(that).TypeTest(lhs, clazz);
 		e.setType(that.type);
+        boolean hasNullable = type.type.getAnnotationMirrors().stream().anyMatch(a->a.type == attr.nullableAnnotationSymbol.type);
+		if (hasNullable) {
+	        JCExpression eqnull = treeutils.makeEqObject(that.pos, lhs, treeutils.makeNullLiteral(that.pos));
+		    e = treeutils.makeOr(e,  eqnull, e);
+		}
 		treeutils.copyEndPosition(e, that);
 		result = eresult = translatingJML ? e : newTemp(e);
 

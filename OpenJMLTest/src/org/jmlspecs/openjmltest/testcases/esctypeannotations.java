@@ -813,6 +813,58 @@ public class esctypeannotations extends EscBase {
     }
     
     @Test
+    public void testInstanceof1() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class TestJava {
+                public void m1(@Nullable Object o) {
+                    //@ assert o instanceof @NonNull Object; // ERROR
+                }
+                public void m2(@Nullable Object o) {
+                    //@ assert o instanceof @Nullable Object;  // OK
+                }
+                //@ requires o != null;
+                public void m3(@Nullable Object o) {
+                    Object oo = (Object)o; // OK
+                }
+                public void m4(@Nullable Object o) {
+                    Object oo = (Object)o; // ERROR
+                }
+                //@ requires o != null;
+                public void m5(@Nullable Object o) {
+                    //@ assert o instanceof @NonNull Object; // OK
+                }
+            }
+            """
+            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1",25
+            ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Assert) in method m4",25
+            );
+    }
+    
+    @Test
+    public void testInstanceof2() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class TestJava {
+                public void m1(@Nullable Object o) {
+                    //@ assert o instanceof /*@ non_null*/ Object; // ERROR
+                }
+                public void m2(@Nullable Object o) {
+                    //@ assert o instanceof /*@ nullable */ Object;  // OK
+                }
+            }
+            """
+            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1",25
+            );
+    }
+    
+    @Test
     public void testClass1() {
         helpTCX("tt.TestJava",
             """
@@ -884,7 +936,6 @@ public class esctypeannotations extends EscBase {
     // type parameters
     // type arguments
     
-    // cast
     // instanceof
     // for statement, enhanced for
     // try with resources
