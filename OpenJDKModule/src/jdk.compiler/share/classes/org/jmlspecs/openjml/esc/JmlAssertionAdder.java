@@ -14086,9 +14086,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		treeutils.copyEndPosition(castexpr, that);
 		JCExpression newexpr = castexpr;
 
-		// Check that expression is null
+		
+        // Check whether expression is null
 		JCExpression eqnull = treeutils.makeEqObject(that.pos, arg, treeutils.makeNullLiteral(that.pos));
+        JCExpression notnull = treeutils.makeNot(that.pos, eqnull);
 
+        boolean hasNonNull = newTypeTree.type.getAnnotationMirrors().stream().anyMatch(a->a.type == attr.nonnullAnnotationSymbol.type);
+        if (hasNonNull && !origType.isPrimitive()) {
+            addAssert(that, Label.NULL_CAST, notnull);
+        }
+        
 		JCExpression emax = null, emin = null;
 		int changePrecision = comparePrecision(origType.getTag(), that.type.getTag());
 		if (types.isSameType(clazz.type, origType)) {
@@ -14211,8 +14218,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			} else {
 				// unboxing = FIXME = check type combinations
-				JCExpression e = treeutils.makeNot(that.pos, eqnull);
-				addJavaCheck(that.expr, e, Label.POSSIBLY_NULL_UNBOX, Label.UNDEFINED_NULL_UNBOX,
+				addJavaCheck(that.expr, notnull, Label.POSSIBLY_NULL_UNBOX, Label.UNDEFINED_NULL_UNBOX,
 						"java.lang.NullPointerException");
 				newexpr = rac ? castexpr : createUnboxingExpr(arg);
 			}

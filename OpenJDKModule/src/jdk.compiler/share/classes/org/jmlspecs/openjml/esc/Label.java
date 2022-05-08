@@ -188,6 +188,9 @@ public class Label {
     /** Used for assume or assert statements generated from non-null designations */
     /*@ non_null*/ public final static Label NULL_FORMAL = new Label("NullFormal");
     
+    /** Used for assume or assert statements for a cast to a NonNull type */
+    /*@ non_null*/ public final static Label NULL_CAST = new Label("NullCast");
+    
     /** Used for assume or assert statements generated when checking static initialization */
     /*@ non_null*/ public final static Label STATIC_INIT = new Label("StaticInit");
     

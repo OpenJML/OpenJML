@@ -731,14 +731,16 @@ public class esctypeannotations extends EscBase {
             ,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m3",15
             );
     }
+    
     @Test
     public void testException2() {
+        expectedExit = 1;
         helpTCX("tt.TestJava",
             """
             package tt;
             import org.jmlspecs.annotation.*;
             //@ non_null_by_default
-            class TestJava1 {
+            class TestJava {
                 public void m1() throws  /*@ nullable */ java.lang.RuntimeException {
                     throw null;
                 }
@@ -747,11 +749,69 @@ public class esctypeannotations extends EscBase {
                 }
             }
             """
-            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m",13
-            ,anyorder(seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assert) in method m",13)
-            ,seq("/tt/TestJava.java:25: warning: The prover cannot establish an assertion (Assert) in method m",13))
+            ,"/tt/TestJava.java:5: error: cannot find symbol\n  symbol:   class java\n  location: class tt.TestJava",46
+            ,"/tt/TestJava.java:8: error: cannot find symbol\n  symbol:   class java\n  location: class tt.TestJava",40
             );
     }
+    
+    @Test
+    public void testCast1() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class TestJava {
+                public void m1(@Nullable Object o) {
+                    Object oo = (@NonNull Object)o;
+                }
+                //@ requires o != null;
+                public void m2(@Nullable Object o) {
+                    Object oo = (@NonNull Object)o;
+                }
+                public void m3(@Nullable Object o) {
+                    Object oo = (@Nullable Object)o;
+                }
+                public void m4(@Nullable Object o) {
+                    Object oo = (Object)o;
+                }
+            }
+            """
+            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (NullCast) in method m1",21
+            ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m3: oo",16
+            ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m4: oo",16
+            );
+    }
+    
+    @Test
+    public void testCast2() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class TestJava {
+                public void m1(@Nullable Object o) {
+                    Object oo = (/*@ non_null */ Object)o;
+                }
+                //@ requires o != null;
+                public void m2(@Nullable Object o) {
+                    Object oo = (/*@ non_null */ Object)o;
+                }
+                public void m3(@Nullable Object o) {
+                    Object oo = (/*@ nullable */ Object)o;
+                }
+                public void m4(@Nullable Object o) {
+                    Object oo = (Object)o;
+                }
+            }
+            """
+            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (NullCast) in method m1",21
+            ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m3: oo",16
+            ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m4: oo",16
+            );
+    }
+    
     @Test
     public void testClass1() {
         helpTCX("tt.TestJava",

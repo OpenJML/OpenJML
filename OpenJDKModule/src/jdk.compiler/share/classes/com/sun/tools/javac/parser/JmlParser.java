@@ -2474,8 +2474,15 @@ public class JmlParser extends JavacParser {
     protected ParensResult analyzeParens() {
         if (S.token(0).kind == TokenKind.LPAREN) {
             Token t = S.token(1);
+            if (t.ikind == JmlTokenKind.STARTJMLCOMMENT) {
+                t = S.token(2);
+            }
             if (t.kind == TokenKind.IDENTIFIER) {
                 if (t.name().charAt(0) == '\\') return ParensResult.PARENS;
+                IJmlClauseKind ck = Extensions.findKeyword(t);
+                if (ck instanceof IJmlClauseKind.TypeAnnotationKind) {
+                    return ParensResult.CAST;
+                }
             }
         }
         return super.analyzeParens();
