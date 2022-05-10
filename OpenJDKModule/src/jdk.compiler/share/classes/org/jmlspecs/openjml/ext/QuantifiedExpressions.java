@@ -42,7 +42,7 @@ public class QuantifiedExpressions extends JmlExtension {
             int pos = parser.pos();
             parser.nextToken();
             mods = parser.modifiersOpt();
-            JCExpression t = parser.parseType();
+            JCExpression t = parser.parseType(mods.annotations.isEmpty(), mods.annotations);
             if (t.getTag() == JCTree.Tag.ERRONEOUS) return t;
             if (mods.pos == -1) {
                 mods.pos = t.pos; // set the beginning of the modifiers
@@ -266,7 +266,7 @@ public class QuantifiedExpressions extends JmlExtension {
                 	utils.error(log.currentSourceFile(),mods.pos,"jml.message","ghost or model modifiers not permitted on an expression-local declaration");
                 }
                 int declpos = parser.pos(); // beginning of type
-                JCExpression type = parser.parseType();
+                JCExpression type = parser.parseType(mods.annotations.isEmpty(), mods.annotations);
                 if (mods.pos == -1) {
                 	mods.pos = declpos; // In case the mods are empty
                 	parser.storeEnd(mods,declpos);

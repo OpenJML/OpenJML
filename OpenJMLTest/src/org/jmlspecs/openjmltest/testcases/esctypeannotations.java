@@ -1025,6 +1025,48 @@ public class esctypeannotations extends EscBase {
     }
     
     @Test
+    public void testFor2() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class TestJava {
+                public void m0(@Nullable Object oo) {
+                    for (Object o = oo; b(o); ) {  // ERROR
+                    }
+                }
+                public void m1(@Nullable Object oo) {
+                    for (@Nullable Object o = oo; b(o); ) {
+                    }
+                }
+                public void m2(Object oo) {
+                    for (Object o = oo; b(o); o = f()) { // ERROR
+                    }
+                }
+                @Nullable Object f() { return null; } 
+                boolean b(@Nullable Object o) { return true; } 
+            }
+            //@ nullable_by_default
+            class TestJava1 {
+                public void m0(@Nullable Object oo) {
+                    for (@NonNull Object o = oo; b(o); ) { // ERROR
+                    }
+                }
+                public void m1(@Nullable Object oo) {
+                    for (Object o = oo; b(o); ) {
+                    }
+                }
+                boolean b(@Nullable Object o) { return true; } 
+            }
+            """
+            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m0: o",21
+            ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2",37
+            ,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m0: o",30
+            );
+    }
+    
+    @Test
     public void testCatch1() {
         helpTCX("tt.TestJava",
             """
@@ -1077,6 +1119,78 @@ public class esctypeannotations extends EscBase {
             );
     }
     
+    @Test
+    public void testLet1() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class TestJava {
+                public void m1(@Nullable Object oo) {
+                    //@ assert (\\let nullable Object o = oo; true);
+                }
+            }
+            //@ non_null_by_default
+            class TestJava1 {
+                public void m1(@Nullable Object oo) {
+                    //@ assert (\\let Object o = oo; true); // ERROR
+                }
+                public void m2(@Nullable Object oo) {
+                    //@ assert oo != null ==> (\\let Object o = oo; true); // OK
+                }
+            }
+            //@ nullable_by_default
+            class TestJava2 {
+                public void m1(@Nullable Object oo) {
+                    //@ assert (\\let non_null Object o = oo; true); // ERROR
+                }
+            }
+            //@ nullable_by_default
+            class TestJava3 {
+                public void m1(@Nullable Object oo) {
+                    //@ assert (\\let Object o = oo; true);
+                }
+            }
+            """
+            ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedNullInitialization) in method m1",37
+            ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (UndefinedNullInitialization) in method m1",46);
+    }
+    
+    public void testQuant1() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class TestJava {
+                public void m1() {
+                    //@ assert (\\forall nullable Object o; o == null; true);
+                }
+            }
+            //@ non_null_by_default
+            class TestJava1 {
+                public void m1() {
+                    //@ assert (\\forall Object o; o == null; true); // ERROR
+                }
+            }
+            //@ nullable_by_default
+            class TestJava2 {
+                public void m1() {
+                    //@ assert (\\forall non_null Object o = null; true); // ERROR
+                }
+            }
+            //@ nullable_by_default
+            class TestJava3 {
+                public void m1() {
+                    //@ assert (\\forall Object o = null; true);
+                }
+            }
+            """
+            ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedNullInitialization) in method m1",37
+            ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (UndefinedNullInitialization) in method m1",46);
+    }
+    
     
     @Test
     public void testOld1() {
@@ -1102,29 +1216,95 @@ public class esctypeannotations extends EscBase {
                 //@ requires tt.f; // OK
                 public void m4(@Nullable TestJava t) {
                 }
+                //@ old nullable TestJava tt = t; // OK
+                //@ requires tt.f; // ERROR
+                public void m5(@Nullable TestJava t) {
+                }
+                //@ old non_null TestJava tt = t; // ERROR
+                //@ requires tt.f; // OK
+                public void m6(@Nullable TestJava t) {
+                }
             }
             """
             ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1",19
             ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedNullInitialization) in method m2",27
             ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m3",20
             ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedNullInitialization) in method m4",36
+            ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m5",20
+            ,"/tt/TestJava.java:25: warning: The prover cannot establish an assertion (UndefinedNullInitialization) in method m6",36
+            );
+    }
+    
+    @Test
+    public void testSignals1() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class TestJava {
+                //@ signals_only @Nullable Exception, java.lang.@NonNull RuntimeException;
+                public void m() {
+                }
+                //@ signals (@NonNull Exception e) e != null;
+                public void m1() {
+                }
+            }
+            //@ nullable_by_default
+            class TestJava1 {
+                //@ signals (Exception e) e != null;
+                public void m2() {
+                }
+            }
+            """
+            ,"/tt/TestJava.java:5: warning: Annotations on signals_only exception types are meaningless and are ignored",22
+            ,"/tt/TestJava.java:5: warning: Annotations on signals_only exception types are meaningless and are ignored",53
+            );
+    }
+    
+    @Test
+    public void testTry1() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*; import java.io.*;
+            //@ non_null_by_default
+            class TestJava {
+                public void m() throws Exception {
+                    try (@NonNull FileReader f1 = new FileReader("")) {}
+                    try (@Nullable FileReader f2 = new FileReader("")) {}
+                    try (FileReader f3 = new FileReader("")) {}
+                }
+                public void m1() throws Exception {
+                    try (@NonNull FileReader f1 = null) {} // ERROR
+                    try (@Nullable FileReader f2 = null) {}
+                    try (FileReader f3 = null) {}
+                }
+            }
+            //@ nullable_by_default
+            class TestJava1 {
+                public void m2() throws Exception {
+                    try (FileReader f = new FileReader("")) {}
+                    try (FileReader f3 = null) {}
+                }
+            }
+            """
+            ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1: f1",34
             );
     }
     
     
     
+    // ghost declarations
 
     // type parameters
     // type arguments
     
-    // for statement, enhanced for
     // try with resources
     // allocate array
     // lambda function
     
-    // quantified declaration, let declaration
-    // old clause
-    // signals clause, signals_only
+    // quantified declaration
     
     // type checking in assignment, in actual to formal, in initialization, in array initialization
 }

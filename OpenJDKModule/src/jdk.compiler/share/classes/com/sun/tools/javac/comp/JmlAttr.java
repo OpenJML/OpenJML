@@ -3943,7 +3943,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {
+        
         for (JCExpression e: tree.list) {
+            if (e instanceof JCAnnotatedType at) {
+                utils.warning(tree.sourcefile, e, "jml.message", "Annotations on signals_only exception types are meaningless and are ignored");
+            }
             e.type = attribTree(e, env, new ResultInfo(KindSelector.TYP, syms.throwableType));
         }
         // FIXME - need to compare these to the exceptions in the method declaration

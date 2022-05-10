@@ -5503,6 +5503,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										JCIdent exceptionId = treeutils.makeIdent(clause.pos, exceptionSym);
 										JCExpression condd = treeutils.falseLit;
 										for (JCExpression t : ((JmlMethodClauseSignalsOnly) clause).list) {
+										    if (t instanceof JCAnnotatedType at) {
+										        // Perhaps only remove NonNull and Nullable
+										        t = at.underlyingType;
+										    }
 											JCExpression tc = M.at(t).TypeTest(exceptionId, t)
 													.setType(syms.booleanType);
 											condd = treeutils.makeOr(clause.pos, condd, tc);
@@ -15439,10 +15443,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			try {
 				for (JCStatement d : that.defs) {
+                    if (d instanceof JmlVariableDecl vd && isNonNullLocal(vd.vartype.type)) {
+                        addAssert(vd.init, Label.UNDEFINED_NULL_INITIALIZATION, treeutils.makeNotNull(vd.init, convertJML(vd.init)));
+                    }
 					convert(d);
 				}
 				JCExpression e = convertExpr(that.expr);
-				addStat(treeutils.makeAssignStat(that.pos, treeutils.makeIdent(that.pos, dec.sym), e));
+                addStat(treeutils.makeAssignStat(that.pos, treeutils.makeIdent(that.pos, dec.sym), e));
 			} finally {
 				for (JCStatement st : that.defs) {
 					if (st instanceof JCVariableDecl) {
@@ -15453,6 +15460,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				result = eresult = treeutils.makeIdent(dec.pos, dec.sym);
 			}
 		} else {
+		    // FIXME - needs welldefinedness check
 			for (JCStatement st : that.defs) {
 				if (st instanceof JCVariableDecl) {
 					var d = (JCVariableDecl) st;
@@ -16106,6 +16114,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		loopHelperFinish(loop, that);
 		addStat(popBlock(that));
 	}
+	
+    public boolean isNonNullLocal(Type t) {
+        return !utils.isJavaOrJmlPrimitiveType(t) && ( hasNonNull(t) || (!hasNullable(t) && attr.isNonNull(enclosingMethod,null) ));
+    }
+
+    public boolean isNullableLocal(Type t) {
+        return !utils.isJavaOrJmlPrimitiveType(t) && ( hasNullable(t) || (!hasNonNull(t) && !attr.isNonNull(enclosingMethod,null) ));
+    }
 
 	// OK
 	@Override
@@ -16186,9 +16202,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				lengthExpr = newTemp(lengthExpr); // FIXME - could give it a recognizable name
 				Type elemType = ((Type.ArrayType)that.expr.type).getComponentType();
                 //System.out.println("NN " + that.var.sym + " " + attr.isNonNull(that.var.sym) + " " + hasNonNull(elemType)+ " " + hasNullable(elemType));
-				if (!utils.isJavaOrJmlPrimitiveType(that.var.type) && ( hasNonNull(that.var.type) || (!hasNullable(that.var.type) && attr.isNonNull(enclosingMethod,null) ))
-				                    && !utils.isJavaOrJmlPrimitiveType(elemType) && 
-				                        (!hasNonNull(elemType) && (hasNullable(elemType) || !specs.isNonNull(enclosingClass)))) {
+				if (isNonNullLocal(that.var.type) && isNullableLocal(elemType)) {
 				    utils.warning(that.var, "jml.message", that.var.name + " is non_null but " + that.expr + " has a type with nullable array elements");
                     JCExpression e4 = treeutils.makeJmlMethodInvocation(that.expr, nonnullelementsKind, syms.booleanType, array);
                     addAssert(that.expr, Label.NULL_ELEMENT, e4);

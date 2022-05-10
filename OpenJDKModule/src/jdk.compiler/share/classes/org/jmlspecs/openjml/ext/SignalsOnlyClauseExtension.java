@@ -65,7 +65,7 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
                 while (true) {
                 	// parseType allows trailing [] and type annotations, which is overly general
                 	// and confuses error reporting and recovery
-                	JCExpression typ = parser.unannotatedType(false);
+                	JCExpression typ = parser.parseType(false);
                     list.append(typ);
                     TokenKind tk = parser.token().kind;
                     if (tk == SEMI) {

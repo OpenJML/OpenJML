@@ -4028,6 +4028,7 @@ public class Attr extends JCTree.Visitor {
         chk.validate(typeTree, env, false);
         chk.checkCastable(tree.expr.pos(), exprtype, clazztype);
         result = check(tree, syms.booleanType, KindSelector.VAL, resultInfo);
+        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("INST " + tree + " " + tree.type + " " + tree.pattern.getClass() + " " + tree.pattern.type);
     }
 
     public void visitBindingPattern(JCBindingPattern tree) {
