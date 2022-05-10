@@ -8,7 +8,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of NullableOld.m(Object) with prover !!!! - no warnings
 Starting proof of NullableOld.mbad(Object) with prover !!!!
-test/nullableOld/NullableOld.java:9: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method mbad
+test/nullableOld/NullableOld.java:9: warning: The prover cannot establish an assertion (UndefinedNullInitialization) in method mbad
     //@ old Object o = oo;
                        ^
 Completed proof of NullableOld.mbad(Object) with prover !!!! - with warnings

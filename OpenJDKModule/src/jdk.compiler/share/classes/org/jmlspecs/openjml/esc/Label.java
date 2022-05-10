@@ -188,6 +188,9 @@ public class Label {
     /** Used for assume or assert statements generated from non-null designations */
     /*@ non_null*/ public final static Label NULL_FORMAL = new Label("NullFormal");
     
+    /** Used for assume or assert statements generated from non-null designations */
+    /*@ non_null*/ public final static Label NULL_ELEMENT = new Label("NullElement");
+    
     /** Used for assume or assert statements for a cast to a NonNull type */
     /*@ non_null*/ public final static Label NULL_CAST = new Label("NullCast");
     
@@ -259,6 +262,9 @@ public class Label {
     
     /** Used for assert statements generated from non-null checks when unboxing */
     /*@ non_null*/ public final static Label UNDEFINED_NULL_UNBOX = new Label("UndefinedNullUnbox");
+    
+    /** Used to designate a possible exception because of a potential initialization of non_null target with null value */
+    /*@ non_null*/ public final static Label UNDEFINED_NULL_INITIALIZATION = new Label("UndefinedNullInitialization");
     
     /** Used to designate a possible exception because of a potential null reference */
     /*@ non_null*/ public final static Label POSSIBLY_NULL_DEREFERENCE = new Label("PossiblyNullDeReference");

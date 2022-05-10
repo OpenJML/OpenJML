@@ -569,14 +569,14 @@ public class esctypeannotations extends EscBase {
             class TestJava1 {
                 //@ ensures \\result != null; // OK
                 public java.lang.@NonNull Object m() {
-                    return null;
+                    return null; // ERROR
                 }
             }
             //@ non_null_by_default
             class TestJava3 {
                 //@ ensures \\result != null; // OK
                 public java.lang.Object m() {
-                    return null;
+                    return null; // ERROR
                 }
             }
             //@ nullable_by_default
@@ -588,16 +588,25 @@ public class esctypeannotations extends EscBase {
             }
             //@ nullable_by_default
             class TestJava5 {
-                //@ ensures \\result != null; // OK
-                public java.lang.@NonNull Object m() {
+                public java.lang.@NonNull Object m() { // ERROR
                     return null;
                 }
             }
             """
-            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m",13
-            ,anyorder(seq("/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assert) in method m",13)
-            ,seq("/tt/TestJava.java:25: warning: The prover cannot establish an assertion (Assert) in method m",13))
-            );
+            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m: m",22  // FIXME
+            ,"/tt/TestJava.java:6: warning: Associated declaration",39
+            ,"/tt/TestJava.java:7: warning: Associated method exit",9
+            ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m: m",22
+            ,"/tt/TestJava.java:13: warning: Associated declaration",38
+            ,"/tt/TestJava.java:14: warning: Associated method exit",9
+            ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m: m",21
+            ,"/tt/TestJava.java:20: warning: Associated declaration",38
+            ,"/tt/TestJava.java:21: warning: Associated method exit",9
+            ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method m: m",9
+            ,"/tt/TestJava.java:26: warning: Associated declaration",9
+            ,"/tt/TestJava.java:35: warning: The prover cannot establish an assertion (Postcondition) in method m: m",9 // FIXME - should hav an error
+            ,"/tt/TestJava.java:33: warning: Associated declaration",9
+           );
     }
 
     @Test
@@ -839,8 +848,8 @@ public class esctypeannotations extends EscBase {
                 }
             }
             """
-            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1",25
-            ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Assert) in method m4",25
+            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1",13
+            ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m4: oo",16
             );
     }
     
@@ -853,14 +862,41 @@ public class esctypeannotations extends EscBase {
             //@ non_null_by_default
             class TestJava {
                 public void m1(@Nullable Object o) {
-                    //@ assert o instanceof /*@ non_null*/ Object; // ERROR
+                    //@ assert o instanceof non_null Object; // ERROR
                 }
                 public void m2(@Nullable Object o) {
-                    //@ assert o instanceof /*@ nullable */ Object;  // OK
+                    //@ assert o instanceof nullable Object;  // OK
+                }
+                public void m3(@Nullable Object o) {
+                    boolean b = o instanceof /*@ non_null*/ Object;
+                    //@ assert b; // ERROR
+                }
+                public void m4(@Nullable Object o) {
+                    boolean b =  o instanceof /*@ nullable */ Object;
+                    //@ assert b; // OK
                 }
             }
             """
-            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1",25
+            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1",13
+            ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m3",13
+            );
+    }
+    
+    @Test
+    public void testInstanceof3() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class TestJava {
+                public void m2(@Nullable Object o) {
+                    //@ assert o instanceof /*@ nullable*/ Object;  // FIXME: Parsing error
+                }
+            }
+            """
+            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1",13
+            ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m3",13
             );
     }
     
@@ -932,16 +968,158 @@ public class esctypeannotations extends EscBase {
             """
             );
     }
+    
+    @Test
+    public void testGeneric1() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class Gen<T> { T f; /*@ requires t != null; */ Gen(T t) { f = t; } T m(T x) { return x; } }
+            public class TestJava {
+                public void m2(@Nullable Object o, Gen<@NonNull Object> g, Gen<@Nullable Object> h) {
+                    //@ assert g.f != null;
+                    //@ check h.f != null; // ERROR
+                }
+            }
+            """
+            );
+    }
+    
+
+    @Test
+    public void testFor1() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class TestJava {
+                public void m0(@NonNull Object @NonNull [] a) {
+                    for (Object o: a) {
+                        //@ assert o != null;
+                    }
+                }
+                public void m1(@NonNull Object @NonNull [] a) {
+                    for (@NonNull Object o: a) {
+                        //@ assert o != null;
+                    }
+                }
+                public void m2(@Nullable Object @NonNull [] a) {
+                    for (Object o: a) { // type warning, NullElement ERROR
+                        //@ assert o != null;
+                    }
+                }
+                //@ requires \\nonnullelements(a);
+                public void m3(@Nullable Object @NonNull [] a) {
+                    for (Object o: a) {
+                        //@ assert o != null;
+                    }
+                }
+            }
+            """
+            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1",13
+            ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m3",13
+            );
+    }
+    
+    @Test
+    public void testCatch1() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class TestJava {
+                public void m1(int i) {
+                    try {
+                        if (i < 0) throw new RuntimeException();
+                    } catch (@Nullable Exception e) {
+                            //@ assert e != null;
+                    }
+                }
+                public void m2(int i) {
+                    try {
+                        if (i < 0) throw new RuntimeException();
+                    } catch (/*@ nullable */ Exception e) {
+                            //@ assert e != null;
+                    }
+                }
+                public void m3(Throwable t) throws Throwable {
+                    try {
+                        throw t;
+                    } catch (@Nullable Exception | @Nullable AssertionError e ) {
+                        //@ assert e != null;
+                    }
+                }
+            }
+            """
+            );
+    }
+    
+    @Test
+    public void testNew1() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class TestJava {
+                public void m1(int i) {
+                    if (i < 0) throw new @Nullable RuntimeException();
+                }
+                public void m2(int i) {
+                    if (i < 0) throw new /*@ nullable */RuntimeException();
+                }
+            }
+            """
+            );
+    }
+    
+    
+    @Test
+    public void testOld1() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class TestJava {
+                public boolean f;
+                //@ requires t.f; // ERROR
+                public void m1(@Nullable TestJava t) {
+                }
+                //@ old TestJava tt = t; // ERROR
+                //@ requires tt.f;
+                public void m2(@Nullable TestJava t) {
+                }
+                //@ old @Nullable TestJava tt = t; // OK
+                //@ requires tt.f; // ERROR
+                public void m3(@Nullable TestJava t) {
+                }
+                //@ old @NonNull TestJava tt = t; // ERROR
+                //@ requires tt.f; // OK
+                public void m4(@Nullable TestJava t) {
+                }
+            }
+            """
+            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1",19
+            ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedNullInitialization) in method m2",27
+            ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m3",20
+            ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedNullInitialization) in method m4",36
+            );
+    }
+    
+    
+    
 
     // type parameters
     // type arguments
     
-    // instanceof
     // for statement, enhanced for
     // try with resources
-    // throw
-    // catch
-    // allocate object, array
+    // allocate array
     // lambda function
     
     // quantified declaration, let declaration

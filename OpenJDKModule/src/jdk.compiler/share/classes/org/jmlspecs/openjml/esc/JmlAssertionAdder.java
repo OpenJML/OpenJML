@@ -3747,8 +3747,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				} else {
 					e3 = treeutils.makeDynamicTypeInEquality(pos, copy(id), sym.type);
 					if (specs.isNonNull(compType, (ClassSymbol) enclosingClass)) {
-						JCExpression e4 = treeutils.makeJmlMethodInvocation(pos, nonnullelementsKind, syms.booleanType,
-								id);
+						JCExpression e4 = treeutils.makeJmlMethodInvocation(pos, nonnullelementsKind, syms.booleanType, id);
 						e3 = treeutils.makeAnd(pos, e3, e4);
 					}
 				}
@@ -4675,7 +4674,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									if (decl.init != null) {
 										JCExpression convertedInit = convertJML(decl.init);
 										if (newdecl.sym.type.isReference() && specs.isNonNull(newdecl.sym)) {
-											addAssert(decl.init, Label.POSSIBLY_NULL_ASSIGNMENT,
+											addAssert(decl.init, Label.UNDEFINED_NULL_INITIALIZATION,
 													treeutils.makeNotNull(decl.init.pos, convertedInit));
 										}
 										pushArithMode();
@@ -14043,6 +14042,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		return 0;
 	}
+	
+    public boolean hasNonNull(Type type) {
+        return type.getAnnotationMirrors().stream().anyMatch(a->a.type == attr.nonnullAnnotationSymbol.type);
+    }
+
+    public boolean hasNullable(Type type) {
+        return type.getAnnotationMirrors().stream().anyMatch(a->a.type == attr.nullableAnnotationSymbol.type);
+    }
 
 	@Override
 	public void visitTypeCast(JCTypeCast that) {
@@ -14091,7 +14098,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCExpression eqnull = treeutils.makeEqObject(that.pos, arg, treeutils.makeNullLiteral(that.pos));
         JCExpression notnull = treeutils.makeNot(that.pos, eqnull);
 
-        boolean hasNonNull = newTypeTree.type.getAnnotationMirrors().stream().anyMatch(a->a.type == attr.nonnullAnnotationSymbol.type);
+        boolean hasNonNull = hasNonNull(newTypeTree.type);
         if (hasNonNull && !origType.isPrimitive()) {
             addAssert(that, Label.NULL_CAST, notnull);
         }
@@ -16177,6 +16184,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				array = convertExpr(that.expr);
 				lengthExpr = treeutils.makeLength(array, array);
 				lengthExpr = newTemp(lengthExpr); // FIXME - could give it a recognizable name
+				Type elemType = ((Type.ArrayType)that.expr.type).getComponentType();
+                //System.out.println("NN " + that.var.sym + " " + attr.isNonNull(that.var.sym) + " " + hasNonNull(elemType)+ " " + hasNullable(elemType));
+				if (!utils.isJavaOrJmlPrimitiveType(that.var.type) && ( hasNonNull(that.var.type) || (!hasNullable(that.var.type) && attr.isNonNull(enclosingMethod,null) ))
+				                    && !utils.isJavaOrJmlPrimitiveType(elemType) && 
+				                        (!hasNonNull(elemType) && (hasNullable(elemType) || !specs.isNonNull(enclosingClass)))) {
+				    utils.warning(that.var, "jml.message", that.var.name + " is non_null but " + that.expr + " has a type with nullable array elements");
+                    JCExpression e4 = treeutils.makeJmlMethodInvocation(that.expr, nonnullelementsKind, syms.booleanType, array);
+                    addAssert(that.expr, Label.NULL_ELEMENT, e4);
+				}
 			} else {
 				JCExpression e = that.expr;
 				Name niter = names.fromString("values");
@@ -16419,8 +16435,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	protected JCVariableDecl loopHelperDeclareIndex(DiagnosticPosition pos) {
 		int p = pos.getPreferredPosition();
-		if (p < 0)
-			p = 0;
+		if (p < 0) p = 0;
 		Name indexName = names.fromString("index_" + p + "_" + nextUnique());
 		JCVariableDecl indexDecl = treeutils.makeVarDef(syms.intType, indexName, methodDecl.sym, treeutils.zero);
 		indexDecl.sym.pos = pos.getPreferredPosition();
