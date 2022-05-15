@@ -1,25 +1,38 @@
 class A {
-  //@ assignable \nothing;
-  //@ ensures true;
-  public int theIntPure();
+    
+  volatile public int x;
+
+  public void testF() {
+a:{}      int a = x;
+b:{}      int b = x;
+c:{}
+    //@ assert a == \old(x,b); // OK
+    //@ assert b == \old(x,c); // OK
+    //@ assert a == b; // ERROR
+  }
+  public void testG() {
+a:{}      int a = this.x;
+b:{}      int b = this.x;
+c:{}
+    //@ assert a == \old(x,b); // OK
+    //@ assert b == \old(x,c); // OK
+    //@ assert a == b; // ERROR
+  }
+  public void testH() {
+      boolean b = x == x;
+      //@ assert x == x; // OK
+      //@ assert b; // ERROR
+  }
   
-  //@ ensures true;
-  public int theInt();
+  //@ assigns x;
+  //@ ensures \result == x;
+  public int theX() {
+      return x;
+  }
   
-  //@ assignable \nothing;
-  //@ ensures true;
-  //@ volatile
-  public int nondeterministic();
-  
-  public void test() {
-    int a = theIntPure(); // does not change heap
-    int b = theIntPure();
-    //@ assert a == b; // true
-    int c = theInt(); // might change heap
-    int d = theInt();
-    //@ assert c == d; // not necessarily true
-    int e = nondeterministic(); // no heap change, but volatile
-    int f = nondeterministic();
-    //@ assert e == f; // not necessarily true
+  //@ assigns \nothing; // ERROR
+  //@ ensures \result == x;
+  public int badX() {
+      return x;
   }
 }

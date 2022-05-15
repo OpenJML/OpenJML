@@ -1616,8 +1616,6 @@ public class typechecking extends TCBase {
 
     }
         
-
-    
     @Test public void clauseNames() {
         helpTCF("TestJava.java",
         		"""

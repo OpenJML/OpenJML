@@ -80,6 +80,56 @@ public class esctypeannotations extends EscBase {
     }
 
     @Test
+    public void testGhost1() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            public class TestJava {
+                //@ ghost nullable  Object o1;
+                //@ ghost @Nullable Object o2;
+            }
+            //@ nullable_by_default
+            class TestJava1 {
+                //@ ghost @NonNull Object o3; // ERROR
+            }
+            //@ nullable_by_default
+            class TestJava2 {
+                //@ ghost  non_null  Object o4; // ERROR
+            }
+            //@ non_null_by_default
+            class TestJava3 {
+                //@ ghost Object o5; // ERROR
+            }
+            //@ nullable_by_default
+            class TestJava4 {
+                //@ ghost  nullable Object o1;
+                //@ ghost @Nullable Object o2;
+                //@ ghost Object o5; // OK
+            }
+            //@ nullable_by_default
+            class TestJava5 {
+                //@ ghost Object o4; // OK
+            }
+            //@ nullable_by_default
+            class TestJava6 {
+                //@ ghost @NonNull public Object o3; // ERROR
+            }
+            //@ nullable_by_default
+            class TestJava7 {
+              //@ ghost non_null public Object o4; // ERROR
+            }
+            """
+            ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (NullField) in method TestJava1",31
+            ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (NullField) in method TestJava2",33
+            ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (NullField) in method TestJava3",22
+            ,"/tt/TestJava.java:32: warning: The prover cannot establish an assertion (NullField) in method TestJava6",38
+            ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (NullField) in method TestJava7",36
+            );
+    }
+
+    @Test
     public void testField2() {
         helpTCX("tt.TestJava",
             """
@@ -152,6 +202,72 @@ public class esctypeannotations extends EscBase {
     }
 
     @Test
+    public void testGhostLocal1() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            public class TestJava {
+                public void m() {
+                    //@ ghost  nullable Object o1 = null;
+                    //@ ghost @Nullable Object o2 = null;
+                }
+            }
+            //@ nullable_by_default
+            class TestJava1 {
+                public void m() {
+                  //@ ghost @NonNull Object o3 = null; // ERROR
+                }
+            }
+            //@ nullable_by_default
+            class TestJava2 {
+                public void m() {
+                  //@ ghost  non_null Object o4 = null; // ERROR
+                }
+            }
+            //@ non_null_by_default
+            class TestJava3 {
+                public void m() {
+                  //@ ghost Object o5 = null; // ERROR
+                }
+            }
+            //@ nullable_by_default
+            class TestJava4 {
+                public void m() {
+                  //@ ghost nullable Object o1;
+                  //@ ghost @Nullable Object o2 = null;
+                  //@ ghost Object o5 = null; // OK
+                }
+            }
+            //@ nullable_by_default
+            class TestJava5 {
+                public void m() {
+                  //@ ghost Object o4 = null; // OK
+                }
+            }
+            //@ nullable_by_default
+            class TestJava6 {
+                public void m() {
+                  //@ ghost @NonNull final Object o3 = null; // ERROR
+                }
+            }
+            //@ nullable_by_default
+            class TestJava7 {
+                public void m() {
+                  //@ ghost non_null final Object o4 = null; // ERROR
+                }
+            }
+            """
+            ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: o3",33
+            ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: o4",34
+            ,"/tt/TestJava.java:25: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: o5",24
+            ,"/tt/TestJava.java:45: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: o3",39
+            ,"/tt/TestJava.java:51: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: o4",39
+            );
+    }
+
+    @Test
     public void testLocal1() {
         helpTCX("tt.TestJava",
             """
@@ -214,6 +330,43 @@ public class esctypeannotations extends EscBase {
             ,"/tt/TestJava.java:25: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: o5",16
             ,"/tt/TestJava.java:45: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: o3",31
             ,"/tt/TestJava.java:51: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: o4",38
+            );
+    }
+
+    @Test
+    public void testGhostLocal2() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            public class TestJava {
+                public void m() {
+                    //@ ghost java.lang.@Nullable Object o2 = null;
+                }
+            }
+            //@ nullable_by_default
+            class TestJava1 {
+                public void m() {
+                  //@ ghost java.lang.@NonNull Object o3 = null; // ERROR
+                }
+            }
+            //@ non_null_by_default
+            class TestJava3 {
+                public void m() {
+                  //@ ghost java.lang.Object o5 = null; // ERROR
+                }
+            }
+            //@ nullable_by_default
+            class TestJava4 {
+                public void m() {
+                  //@ ghost java.lang.@Nullable Object o2 = null;
+                  //@ ghost java.lang.Object o5 = null; // OK
+                }
+            }
+            """
+            ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: o3",43
+            ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: o5",34
             );
     }
 
@@ -798,6 +951,33 @@ public class esctypeannotations extends EscBase {
             """
             package tt;
             import org.jmlspecs.annotation.*;
+            //@ nullable_by_default
+            class TestJava {
+                public void m1(@Nullable Object o) {
+                    Object oo = (@NonNull Object)o;
+                }
+                //@ requires o != null;
+                public void m2(@Nullable Object o) {
+                    Object oo = (@NonNull Object)o;
+                }
+                public void m3(@Nullable Object o) {
+                    Object oo = (@Nullable Object)o;
+                }
+                public void m4(@Nullable Object o) {
+                    Object oo = (Object)o;
+                }
+            }
+            """
+            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (NullCast) in method m1",21
+            );
+    }
+    
+    @Test
+    public void testCast3() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
             //@ non_null_by_default
             class TestJava {
                 public void m1(@Nullable Object o) {
@@ -1295,12 +1475,9 @@ public class esctypeannotations extends EscBase {
     
     
     
-    // ghost declarations
-
     // type parameters
     // type arguments
     
-    // try with resources
     // allocate array
     // lambda function
     

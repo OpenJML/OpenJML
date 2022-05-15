@@ -1,0 +1,34 @@
+Proving methods in A
+Starting proof of A.A() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.A() with prover !!!! - no warnings
+Starting proof of A.testF() with prover !!!!
+test/volatile/A.java:11: warning: The prover cannot establish an assertion (Assert) in method testF
+    //@ assert a == b; // ERROR
+        ^
+Completed proof of A.testF() with prover !!!! - with warnings
+Starting proof of A.testG() with prover !!!!
+test/volatile/A.java:19: warning: The prover cannot establish an assertion (Assert) in method testG
+    //@ assert a == b; // ERROR
+        ^
+Completed proof of A.testG() with prover !!!! - with warnings
+Starting proof of A.testH() with prover !!!!
+test/volatile/A.java:24: warning: The prover cannot establish an assertion (Assert) in method testH
+      //@ assert b; // ERROR
+          ^
+Completed proof of A.testH() with prover !!!! - with warnings
+Starting proof of A.theX() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.theX() with prover !!!! - no warnings
+Starting proof of A.badX() with prover !!!!
+test/volatile/A.java:36: warning: The prover cannot establish an assertion (Assignable) in method badX: x
+      return x;
+             ^
+test/volatile/A.java:33: warning: Associated declaration
+  //@ assigns \nothing; // ERROR
+      ^
+Completed proof of A.badX() with prover !!!! - with warnings
+Completed proving methods in A
+5 warnings

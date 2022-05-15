@@ -1,0 +1,64 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Proving methods in Test.A1
+Starting proof of Test.A1.A1() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.A1.A1() with prover !!!! - no warnings
+Starting proof of Test.A1.test(Test.A1) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.A1.test(Test.A1) with prover !!!! - no warnings
+Completed proving methods in Test.A1
+Proving methods in Test.A2
+Starting proof of Test.A2.A2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.A2.A2() with prover !!!! - no warnings
+Starting proof of Test.A2.test(Test.A2) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.A2.test(Test.A2) with prover !!!! - no warnings
+Completed proving methods in Test.A2
+Proving methods in Test.A3
+Starting proof of Test.A3.A3() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.A3.A3() with prover !!!! - no warnings
+Starting proof of Test.A3.test() with prover !!!!
+test/deterministic/Test.java:36: warning: The prover cannot establish an assertion (Assert) in method test
+          //@ assert x == y; // NOT PROVABLE
+              ^
+Completed proof of Test.A3.test() with prover !!!! - with warnings
+Completed proving methods in Test.A3
+Proving methods in Test.A4
+Starting proof of Test.A4.A4() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.A4.A4() with prover !!!! - no warnings
+Starting proof of Test.A4.test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.A4.test() with prover !!!! - no warnings
+Completed proving methods in Test.A4
+Proving methods in Test.A5
+Starting proof of Test.A5.A5() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.A5.A5() with prover !!!! - no warnings
+Starting proof of Test.A5.test1() with prover !!!!
+test/deterministic/Test.java:69: warning: The prover cannot establish an assertion (Assert) in method test1
+          //@ assert x == y; // NOT PROVABLE
+              ^
+Completed proof of Test.A5.test1() with prover !!!! - with warnings
+Starting proof of Test.A5.test2() with prover !!!!
+test/deterministic/Test.java:74: warning: The prover cannot establish an assertion (Assert) in method test2
+          //@ assert x != y; // NOT PROVABLE EITHER
+              ^
+Completed proof of Test.A5.test2() with prover !!!! - with warnings
+Completed proving methods in Test.A5
+Completed proving methods in Test
+3 warnings

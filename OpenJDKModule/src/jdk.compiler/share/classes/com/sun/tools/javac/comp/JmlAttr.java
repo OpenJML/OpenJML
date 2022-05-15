@@ -1631,6 +1631,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             boolean ownerInJML = utils.isJML(msym.owner.flags());
             boolean model = isModel(mods);
         	var specDecl = mspecs.specDecl;
+        	JCAnnotation a;
             
         	checkModelGhost(specDecl, msym);
 
@@ -1696,7 +1697,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             
             // Check rules about heap_free
-            JCAnnotation a=utils.findMod(mods,modToAnnotationSymbol.get(HEAP_FREE));
+            a=utils.findMod(mods,modToAnnotationSymbol.get(HEAP_FREE));
             // FIXME - check that all specs are 'reads \nothing'
 //            if (a != null && !utils.isJMLStatic(msym)) {
 //                if (msym.owner instanceof ClassSymbol owner && !isImmutable(owner)) {
