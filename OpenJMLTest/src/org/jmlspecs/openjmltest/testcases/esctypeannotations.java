@@ -651,7 +651,7 @@ public class esctypeannotations extends EscBase {
             }
             //@ nullable_by_default
             class TestJava2 {
-                //@ ensures \\result != null; // ERROR
+                //@ ensures \\result != null; // ERROR // Line 30
                 public @Nullable Object m1() {
                     return null;
                 }
@@ -671,11 +671,29 @@ public class esctypeannotations extends EscBase {
                     return null;
                 }
                 //@ ensures \\result != null; // ERROR
-                /*@ nullable */ public Object m2() {
+                /*@ nullable */ public Object m2() {  // Line 50
                     return null;
                 }
                 //@ ensures \\result != null; // ERROR
                  Object m3() {
+                    return null;
+                }
+            }
+            //@ nullable_by_default
+            class TestJava4 {
+                @NonNull public Object m1() { // Line 60
+                    return null; // ERROR
+                }
+                /*@ non_null */ public Object m2() {
+                    return null; // ERROR
+                }
+                Object m3() {
+                    return null;
+                }
+            }
+            //@ non_null_by_default
+            class TestJava5 {
+                Object m3() { // ERROR
                     return null;
                 }
             }
@@ -702,6 +720,15 @@ public class esctypeannotations extends EscBase {
             ,"/tt/TestJava.java:49: warning: Associated declaration",9
             ,"/tt/TestJava.java:55: warning: The prover cannot establish an assertion (Postcondition) in method m3",9
             ,"/tt/TestJava.java:53: warning: Associated declaration",9
+            ,"/tt/TestJava.java:60: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m1: m1",21
+            ,"/tt/TestJava.java:60: warning: Associated declaration",28
+            ,"/tt/TestJava.java:61: warning: Associated method exit",9
+            ,"/tt/TestJava.java:63: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m2: m2",28
+            ,"/tt/TestJava.java:63: warning: Associated declaration",35
+            ,"/tt/TestJava.java:64: warning: Associated method exit",9
+            ,"/tt/TestJava.java:72: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m3: m3",5
+            ,"/tt/TestJava.java:72: warning: Associated declaration",12
+            ,"/tt/TestJava.java:73: warning: Associated method exit",9
             );
     }
 
@@ -714,51 +741,51 @@ public class esctypeannotations extends EscBase {
             //@ non_null_by_default
             public class TestJava {
                 //@ ensures \\result != null; // ERROR
-                public java.lang.@Nullable Object m() {
+                public java.lang.@Nullable Object m() { // Line 6
                     return null;
                 }
             }
             //@ non_null_by_default
             class TestJava1 {
                 //@ ensures \\result != null; // OK
-                public java.lang.@NonNull Object m() {
+                public java.lang.@NonNull Object m() { // Line 13
                     return null; // ERROR
                 }
             }
             //@ non_null_by_default
             class TestJava3 {
                 //@ ensures \\result != null; // OK
-                public java.lang.Object m() {
+                public java.lang.Object m() { // Line 20
                     return null; // ERROR
                 }
             }
             //@ nullable_by_default
             class TestJava4 {
                 //@ ensures \\result != null; // ERROR
-                public java.lang.@Nullable Object m() {
+                public java.lang.@Nullable Object m() { // Line 27
                     return null;
                 }
             }
             //@ nullable_by_default
             class TestJava5 {
-                public java.lang.@NonNull Object m() { // ERROR
+                public java.lang.@NonNull Object m() { // Line 33 // ERROR
                     return null;
                 }
             }
             """
-            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m: m",22  // FIXME
-            ,"/tt/TestJava.java:6: warning: Associated declaration",39
-            ,"/tt/TestJava.java:7: warning: Associated method exit",9
+            ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m",9
+            ,"/tt/TestJava.java:5: warning: Associated declaration",9
             ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m: m",22
             ,"/tt/TestJava.java:13: warning: Associated declaration",38
             ,"/tt/TestJava.java:14: warning: Associated method exit",9
             ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m: m",21
-            ,"/tt/TestJava.java:20: warning: Associated declaration",38
+            ,"/tt/TestJava.java:20: warning: Associated declaration",29
             ,"/tt/TestJava.java:21: warning: Associated method exit",9
-            ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method m: m",9
+            ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method m",9
             ,"/tt/TestJava.java:26: warning: Associated declaration",9
-            ,"/tt/TestJava.java:35: warning: The prover cannot establish an assertion (Postcondition) in method m: m",9 // FIXME - should hav an error
-            ,"/tt/TestJava.java:33: warning: Associated declaration",9
+            ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m: m",22
+            ,"/tt/TestJava.java:33: warning: Associated declaration",38
+            ,"/tt/TestJava.java:34: warning: Associated method exit",9
            );
     }
 
@@ -852,6 +879,52 @@ public class esctypeannotations extends EscBase {
             ,"/tt/TestJava.java:24: warning: Associated declaration",9
             ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (Postcondition) in method m3",9
             ,"/tt/TestJava.java:28: warning: Associated declaration",9
+            );
+    }
+
+
+    @Test
+    public void testMethodReturn1() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class Test1 {
+                static public /*@ non_null */ java.lang.Object m1() {
+                    return new Object();
+                }
+                static public java.lang.Object m2() {
+                    return new Object();
+                }
+                /*@ non_null */ static public java.lang.Object m3() {
+                    return new Object();
+                }
+            }
+            //@ nullable_by_default
+            class Test2 {
+                static public /*@ non_null */ java.lang.Object m1() {
+                    return new Object();
+                }
+                static public java.lang.Object m2() {
+                    return new Object();
+                }
+                /*@ non_null */ static public java.lang.Object m3() {
+                    return new Object();
+                }
+            }
+            public class TestJava {
+                public void test1() {
+                    Object o1 = Test1.m1();
+                    Object o2 = Test1.m2();
+                    Object o3 = Test1.m3();
+                    Object o4 = Test2.m1();
+                    Object o5 = Test2.m2(); // ERROR
+                    Object o6 = Test2.m3();
+                }
+            }
+            """
+            ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method test1: o5",16
             );
     }
 

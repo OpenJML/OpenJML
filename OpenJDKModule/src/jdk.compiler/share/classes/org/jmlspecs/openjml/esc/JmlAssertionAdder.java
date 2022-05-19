@@ -5364,8 +5364,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		exsuresStats.add(exsuresAxiomBlock);
 
 		// Note that methodDecl.resType.type appears to be unannotated
-		if (methodDecl.sym.getReturnType() != null && !methodDecl.sym.getReturnType().isPrimitiveOrVoid()
-				&& resultSym != null && specs.isNonNull(methodDecl.sym)) {
+		Type rt = methodDecl.sym.getReturnType();
+		if (rt != null && !rt.isPrimitiveOrVoid() && resultSym != null && specs.isNonNull(methodDecl.sym)) {
+		    //System.out.println("NN " + methodDecl.sym.owner + " " + methodDecl.sym + " " + specs.isNonNull(methodDecl.sym) + " " + hasNullable(rt) + " " + hasNonNull(rt) );
 			currentStatements = ensuresStats;
 			addStat(comment(methodDecl.restype, "Adding null return check by callee " + methodDecl.sym, null));
 			JCIdent ret = treeutils.makeIdent(methodDecl.restype.pos, resultSym);
@@ -8983,12 +8984,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							nn = true;
 						else {
 							nn = specs.isNonNull(that.type, calleeMethodSym);
-							// System.out.println("VAP-NN " + that + " " + that.type + " " +
-							// calleeMethodSym.getReturnType() + " " +
-							// specs.isNonNull(that.type,(ClassSymbol)calleeMethodSym.owner) + " " +
-							// specs.isNonNull(calleeMethodSym));
-							// nn = specs.isNonNull(calleeMethodSym); // FIXME - need tdo use the resolved
-							// type
+//							System.out.println("VAP-NN " + that + " " + that.type + " " +
+//							 calleeMethodSym.getReturnType() + " " +
+//							 specs.isNonNull(that.type,(ClassSymbol)calleeMethodSym.owner) + " " +
+//							 specs.isNonNull(calleeMethodSym) + " " + nn);
 						}
 						addNullnessAllocationTypeCondition(that, resultSym, nn, false, false);
 					} else {

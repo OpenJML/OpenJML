@@ -1745,8 +1745,8 @@ public class JmlSpecs {
     	if (!type.isReference()) return false;
     	if (Types.instance(context).isSubtype(type, 
     			Symtab.instance(context).jmlPrimitiveType)) return true;
-    	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
-    	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
+        if (findAnnotation(type, Modifiers.NULLABLE)) return false;
+        if (findAnnotation(type, Modifiers.NON_NULL)) return true;
     	if (type instanceof Type.TypeVar) return false; 
     	return isNonNull(msym);
     }
@@ -1754,7 +1754,8 @@ public class JmlSpecs {
     public boolean isNonNull(MethodSymbol sym) {
     	// For some reason, type annotations are not part of the method return type,
     	// but are in the MethodSymbol's annotations
-    	if (!sym.getReturnType().isReference()) return false;
+        Type rt = sym.getReturnType();
+    	if (!rt.isReference()) return false;
     	if (attr.hasAnnotation2(sym, Modifiers.NULLABLE)) return false;
 		if (attr.hasAnnotation2(sym, Modifiers.NON_NULL)) return true;
 		var sp = specsMethods.get(sym);
