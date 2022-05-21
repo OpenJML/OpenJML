@@ -7464,7 +7464,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Check the mods after the specs, because the modifier checks depend on
             // the specification clauses being attributed
 
-            specs.getAttrSpecs(that.sym); // Attributing specs, if not already done // Also checks the modifiers
+            FieldSpecs fspecs = specs.getAttrSpecs(that.sym); // Attributing specs, if not already done // Also checks the modifiers
 
             if (that.sym.owner.isInterface()) {
                 if (isModel(that.mods)) {
@@ -7481,6 +7481,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (that.init != null && isModel(that.mods) && (that.mods.flags & Flags.FINAL) == 0) {
                 utils.warning(that.init, "jml.message", "A non-final model field may not have an initializer");
                 that.init = null;
+            }
+            if (that.init != null && !utils.isJML(that.mods.flags)) {
+                Object v = that.sym.getConstValue();
+                JCExpression initExpr = that.init;
+                if (v != null && initExpr instanceof JCLiteral lit) {
+                    if (!v.equals(lit.value)) {
+                        System.out.println("INIT " + v.getClass() + " " + v + " " + lit.value.getClass() + " " + lit.value + " " + v.equals(lit.value));
+                        utils.error(that, "jml.message", "Initializer does not match compiled value: " + lit + " vs. " + v);
+                    }
+                }
+                if (v instanceof Double) System.out.println("NAN " + String.format("0x%16X", Double.doubleToLongBits((double)Double.NaN)));
+                if (v instanceof Float) System.out.println("NAN " + String.format("0x%08X", Float.floatToIntBits((float)Float.NaN)));
             }
         } catch (PropagatedException e) {
         	throw e;

@@ -906,13 +906,24 @@ public class esctypeannotations extends EscBase {
                 static public /*@ non_null */ java.lang.Object m1() {
                     return new Object();
                 }
-                static public java.lang.Object m2() {
+                static public java.lang.Object m2() {  // Line 20
                     return new Object();
                 }
                 /*@ non_null */ static public java.lang.Object m3() {
                     return new Object();
                 }
             }
+            class Test3 {
+                static public java.lang.@NonNull Object m1() {
+                    return new Object();
+                }
+                static public @NonNull java.lang.Object m2() {
+                    return new Object();
+                }
+                static @NonNull public java.lang.Object m3() {
+                    return new Object();
+                }
+          }
             public class TestJava {
                 public void test1() {
                     Object o1 = Test1.m1();
@@ -921,10 +932,34 @@ public class esctypeannotations extends EscBase {
                     Object o4 = Test2.m1();
                     Object o5 = Test2.m2(); // ERROR
                     Object o6 = Test2.m3();
+                    Object o7 = Test3.m1();
+                    Object o8 = Test3.m2();
+                    Object o9 = Test3.m3();
                 }
             }
             """
-            ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method test1: o5",16
+            ,"/tt/TestJava.java:44: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method test1: o5",16
+            );
+    }
+
+    @Test
+    public void testMethodReturn2() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+             //@ non_null_by_default
+            class Test1a {
+                static public java.lang./*@ non_null */ Object m1() {
+                    return new Object();
+                }
+            }
+            public class TestJava {
+                public void test1() {
+                    Object o7 = Test1a.m1();
+                }
+            }
+            """
             );
     }
 
@@ -1294,10 +1329,10 @@ public class esctypeannotations extends EscBase {
                     }
                 }
                 public void m2(Object oo) {
-                    for (Object o = oo; b(o); o = f()) { // ERROR
+                    for (Object o = oo; b(o); o = f()) { // ERROR (the update)
                     }
                 }
-                @Nullable Object f() { return null; } 
+               @Nullable Object f() { return null; } 
                 boolean b(@Nullable Object o) { return true; } 
             }
             //@ nullable_by_default
@@ -1424,13 +1459,13 @@ public class esctypeannotations extends EscBase {
             //@ non_null_by_default
             class TestJava1 {
                 public void m1() {
-                    //@ assert (\\forall Object o; o == null; true); // ERROR
+                    //@ assert (\\forall Object o; o == null; true); // ERROR  // FIXME
                 }
             }
             //@ nullable_by_default
             class TestJava2 {
                 public void m1() {
-                    //@ assert (\\forall non_null Object o = null; true); // ERROR
+                    //@ assert (\\forall non_null Object; o == null; true); // ERROR // FIXME
                 }
             }
             //@ nullable_by_default
