@@ -27,6 +27,7 @@ import static org.jmlspecs.openjml.ext.RecommendsClause.*;
 import static org.jmlspecs.openjml.ext.MethodDeclClauseExtension.*;
 import static org.jmlspecs.openjml.ext.MethodResourceClauseExtension.*;
 import static org.jmlspecs.openjml.ext.CallableClauseExtension.*;
+import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.nonnullelementsKind;
 import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
 import static org.jmlspecs.openjml.ext.SignalsClauseExtension.*;
 import static org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension.*;
@@ -70,6 +71,7 @@ import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.*;
 
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
@@ -3040,6 +3042,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		//            }
         		checkForConflict(specmods,NON_NULL,NULLABLE);
         	} else if ((tree.mods.flags & Flags.PARAMETER) != 0) { // formal parameters
+        	    //System.out.println("CHECKING FORMAL " + tree + " ^ " + tree.mods + " ^ " + specmods.annotations);
         		kind = "parameter";
         		if (tree.specsDecl != null) {
         			attribAnnotationTypes(specmods.annotations,env);
@@ -6935,14 +6938,27 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            chk.checkType(tree.expr.pos(), elemtype, tree.var.sym.type);
 //            loopEnv.tree = tree; // before, we were not in loop!
 
-            
+            boolean isArray = tree.expr.type.getTag() == TypeTag.ARRAY;
+            if (isArray) {
+                Type varType = tree.var.type;
+                Type elemType = ((Type.ArrayType)tree.expr.type).getComponentType();
+                if (isNonNullWithDefault(varType) && !isNonNullWithDefault(elemType)) {
+                    utils.warning(tree.var, "jml.message", tree.var.name + " is non_null but the type of " + tree.expr + " allows null array elements");
+                }
+            }
+        
         } finally {
             loopEnv.info.scope.leave();
             loopStack.remove(0);
             foreachLoopStack.remove(0);
         }
     }
-    
+
+    public boolean isNonNullWithDefault(Type type) {
+        return specs.isNonNull(type, ((JCClassDecl)enclosingClassEnv.tree).sym);
+    }
+
+
     /** Returns an unattributed expression tree that boxes the given 
      * expression to the given type.  It is the caller's responsibility to
      * be sure that the type of the expression argument is consistent with the

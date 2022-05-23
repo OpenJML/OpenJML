@@ -497,14 +497,6 @@ public class esctypeannotations extends EscBase {
                     //@ check o5 != null; // ERROR
                 }
             }
-            //@ nullable_by_default
-            class TestJava5 {
-                public void m(/*@ nullable */ final Object o1, @Nullable final Object o2, Object o5) {
-                    //@ check o1 != null; // ERROR
-                    //@ check o2 != null; // ERROR
-                    //@ check o5 != null; // ERROR
-                }
-            }
             class TestJava6 {
                 public void m(final /*@ nullable */ Object o1, final @Nullable Object o2, final Object o5) {
                     //@ check o1 != null; // ERROR
@@ -518,11 +510,11 @@ public class esctypeannotations extends EscBase {
             ,anyorder(seq("/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Assert) in method m",13)
             ,seq("/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assert) in method m",13)
             ,seq("/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Assert) in method m",13))
-            ,anyorder(seq("/tt/TestJava.java:34: warning: The prover cannot establish an assertion (Assert) in method m",13)
-            ,seq("/tt/TestJava.java:35: warning: The prover cannot establish an assertion (Assert) in method m",13)
-            ,seq("/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Assert) in method m",13))
-            ,anyorder(seq("/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Assert) in method m",13)
-            ,seq("/tt/TestJava.java:42: warning: The prover cannot establish an assertion (Assert) in method m",13))
+//            ,anyorder(seq("/tt/TestJava.java:34: warning: The prover cannot establish an assertion (Assert) in method m",13)
+//            ,seq("/tt/TestJava.java:35: warning: The prover cannot establish an assertion (Assert) in method m",13)
+//            ,seq("/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Assert) in method m",13))
+            ,anyorder(seq("/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Assert) in method m",13)
+            ,seq("/tt/TestJava.java:34: warning: The prover cannot establish an assertion (Assert) in method m",13))
             );
     }
 
@@ -586,6 +578,14 @@ public class esctypeannotations extends EscBase {
             class TestJava4 {
                 public void m(java.lang./*@ nullable */ Object o1) {
                     //@ check o1 != null; // ERROR
+                }
+            }
+            //@ nullable_by_default
+            class TestJava5 {
+                public void m(/*@ nullable */ final Object o1, @Nullable final Object o2, Object o5) {
+                    //@ check o1 != null; // ERROR
+                    //@ check o2 != null; // ERROR
+                    //@ check o5 != null; // ERROR
                 }
             }
             """
@@ -923,7 +923,7 @@ public class esctypeannotations extends EscBase {
                 static @NonNull public java.lang.Object m3() {
                     return new Object();
                 }
-          }
+            }
             public class TestJava {
                 public void test1() {
                     Object o1 = Test1.m1();
@@ -1275,7 +1275,7 @@ public class esctypeannotations extends EscBase {
             );
     }
     
-
+    // FIXME - use non_null in for decl?
     @Test
     public void testFor1() {
         helpTCX("tt.TestJava",
@@ -1295,23 +1295,49 @@ public class esctypeannotations extends EscBase {
                     }
                 }
                 public void m2(@Nullable Object @NonNull [] a) {
-                    for (Object o: a) { // type warning, NullElement ERROR
-                        //@ assert o != null;
+                    for (Object o: a) { // type warning, NullElement warning
+                        //@ assert o != null; // ERROR
                     }
                 }
                 //@ requires \\nonnullelements(a);
                 public void m3(@Nullable Object @NonNull [] a) {
+                    for (Object o: a) { // type warning, NullElement warning
+                        //@ assert o != null; // ERROR
+                    }
+                }
+                public void m4(Object [] a) {
                     for (Object o: a) {
                         //@ assert o != null;
                     }
                 }
+                //@ nullable_by_default
+                class TestJava1 {
+                    public void m0(Object @NonNull [] a) {
+                        for (Object o: a) {
+                            //@ assert o != null; // ERROR
+                        }
+                    }
+                    public void m1(Object @NonNull [] a) {
+                        for (@NonNull Object o: a) { // FIXME - should have a type error
+                            //@ assert o != null;
+                        }
+                    }
+                }
             }
             """
-            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1",13
-            ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m3",13
+            ,"/tt/TestJava.java:16: warning: o is non_null but the type of a allows null array elements",21
+            ,"/tt/TestJava.java:22: warning: o is non_null but the type of a allows null array elements",21
+            ,"/tt/TestJava.java:39: warning: o is non_null but the type of a allows null array elements",34
+            ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m2",17
+            ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (NullElement) in method m2",24
+            ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (NullElement) in method m3",24
+            ,"/tt/TestJava.java:35: warning: The prover cannot establish an assertion (Assert) in method m0",21
+            ,"/tt/TestJava.java:40: warning: The prover cannot establish an assertion (Assert) in method m1",21
+            ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (NullElement) in method m1",37
             );
     }
     
+    // FIXME - use non_null in for decl?
     @Test
     public void testFor2() {
         helpTCX("tt.TestJava",

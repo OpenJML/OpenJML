@@ -1673,24 +1673,26 @@ public class JmlSpecs {
 
     @SuppressWarnings("unchecked")
 	public boolean isNonNullFormal(Type type, int i, MethodSpecs calleeSpecs, MethodSymbol msym) {
-//    	System.out.println("NNF " + type + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
+    	//System.out.println("NNF " + type + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
     	if (!type.isReference()) return false;
     	if (Types.instance(context).isSubtype(type, 
     			Symtab.instance(context).jmlPrimitiveType)) return true;
-//    	System.out.println("NNF-A " + findAnnotation(type, Modifiers.NULLABLE) + " " + findAnnotation(type, Modifiers.NON_NULL));
+    	//System.out.println("NNF-A " + findAnnotation(type, Modifiers.NULLABLE) + " " + findAnnotation(type, Modifiers.NON_NULL));
     	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
     	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
     	if (type instanceof Type.TypeVar) return false; 
-    	//if (msym.name.toString().equals("insert") && msym.toString().contains("[]")) System.out.println("FORMAL " + msym + " " + i + " " + type + " " + calleeSpecs);
+        //System.out.println("SPECS " + calleeSpecs + " # " + calleeSpecs.specDecl);
     	if (calleeSpecs.specDecl != null) {
     		var decl = (JmlVariableDecl)calleeSpecs.specDecl.params.get(i);
     		JmlModifiers mods = (JmlModifiers)decl.mods;
-    		//if (msym.name.toString().equals("insert") && msym.toString().contains("[]")) System.out.println("FORMAL-A " + mods + " : " + decl + " : " + decl.type + " : " + decl.vartype);
-//    		if (findAnnotation(decl.type, Modifiers.NULLABLE)) return false;
-//        	if (findAnnotation(decl.type, Modifiers.NON_NULL)) return true;
+            //System.out.println("ARG " + i + " " + decl + " # " + decl.type + " " + mods);
+    		if (findAnnotation(decl.type, Modifiers.NULLABLE)) return false;
+        	if (findAnnotation(decl.type, Modifiers.NON_NULL)) return true;
+            //System.out.println("NNF-B " + mods + " " + utils.hasModOrAnn(mods, Modifiers.NULLABLE) + " " + utils.hasModOrAnn(mods, Modifiers.NON_NULL));
     		if (utils.hasModOrAnn(mods, Modifiers.NULLABLE)) return false;
         	if (utils.hasModOrAnn(mods, Modifiers.NON_NULL)) return true;
     	}
+    	//System.out.println("NNF-C " + msym.enclClass()+ " " + defaultNullity(msym.enclClass()));
     	return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
     }
     

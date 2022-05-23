@@ -1092,6 +1092,7 @@ public class JmlTreeUtils {
 
     /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
     public JCExpression makeImpliesSimp(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
+        if (lhs == null) return rhs;
         if (isTrueLit(lhs) || isTrueLit(rhs)) return rhs;
         else if (isFalseLit(lhs)) return makeBooleanLiteral(pos,true);
         else if (isTrueLit(rhs)) return makeNot(pos,lhs);

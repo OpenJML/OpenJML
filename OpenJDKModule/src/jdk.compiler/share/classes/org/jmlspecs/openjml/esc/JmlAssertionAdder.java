@@ -3189,13 +3189,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		Scope cs = csym.members();
 		if (esc) {
 			for (Symbol s : cs.getSymbols()) {
-				if (!(s instanceof VarSymbol))
-					continue;
-				if (staticOnly && !utils.isJMLStatic(s))
-					continue;
-				if (jmltypes.isOnlyDataGroup(s.type))
-					continue;
-				addNullnessAllocationTypeCondition2(d, s, false);
+				if (!(s instanceof VarSymbol)) continue;
+				if (staticOnly && !utils.isJMLStatic(s)) continue;
+				if (jmltypes.isOnlyDataGroup(s.type)) continue;
+				JCExpression c = null;
+//				if (!utils.isJMLStatic(s)) {
+//				    c = treeutils.makeNotNull(currentThis,  currentThis);
+//				}
+				addNullnessAllocationTypeCondition2(d, s, false, c);
 				if (fieldInvariants && !s.type.isPrimitive() && !isHelper(methodDecl.sym)) {
 					JCExpression var = convertJML(treeutils.makeIdent(null, s));
 					addRecInvariants(assume, false, false, helper, d, s.type.tsym, var);
@@ -3641,7 +3642,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Returns true iff the declaration is explicitly or implicitly non_null */
 	protected boolean addNullnessAllocationTypeCondition2(DiagnosticPosition d, Symbol sym,
-			boolean instanceBeingConstructed) {
+			boolean instanceBeingConstructed, JCExpression condition) {
 		boolean isNonNull = true;
 		Symbol owner = sym.owner;
 		if (owner instanceof MethodSymbol)
@@ -3650,7 +3651,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			isNonNull = specs.isNonNull(sym);
 		}
 
-		return addNullnessAllocationTypeCondition(d, sym, isNonNull, instanceBeingConstructed, true);
+		return addNullnessAllocationTypeCondition(d, sym, isNonNull, instanceBeingConstructed, true, condition);
 	}
 
 	protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym,
@@ -3662,7 +3663,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (!utils.isJavaOrJmlPrimitiveType(sym.type)) {
 			isNonNull = specs.isNonNull(sym);
 		}
-		return addNullnessAllocationTypeCondition(pos, sym, isNonNull, instanceBeingConstructed, true);
+		return addNullnessAllocationTypeCondition(pos, sym, isNonNull, instanceBeingConstructed, true, null);
 	}
 
 	protected boolean addNullnessTypeCondition(DiagnosticPosition pos, Symbol sym, boolean instanceBeingConstructed) {
@@ -3673,16 +3674,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (!utils.isJavaOrJmlPrimitiveType(sym.type)) {
 			isNonNull = specs.isNonNull(sym);
 		}
-		return addNullnessAllocationTypeCondition(pos, sym, isNonNull, instanceBeingConstructed, false);
+		return addNullnessAllocationTypeCondition(pos, sym, isNonNull, instanceBeingConstructed, false, null);
 	}
 
 	/** Returns true iff the declaration is explicitly or implicitly non_null */
 	protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym, boolean isNonNull,
-			boolean instanceBeingConstructed, boolean allocCheck) {
+			boolean instanceBeingConstructed, boolean allocCheck, JCExpression condition) {
 		int p = pos == null ? Position.NOPOS : pos.getPreferredPosition();
 		JCExpression id;
-		if (isDataGroup(sym.type))
-			return false;
+		if (isDataGroup(sym.type)) return false;
 		if (sym.owner instanceof MethodSymbol || sym.owner == null) {
 			// Local variable
 			id = treeutils.makeIdent(p, sym);
@@ -3694,17 +3694,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// instance field
 			id = treeutils.makeSelect(p, currentEnv.currentReceiver, sym);
 		}
-		return addNullnessAllocationTypeConditionId(id, pos, sym, isNonNull, instanceBeingConstructed, allocCheck);
+		return addNullnessAllocationTypeConditionId(id, pos, sym, isNonNull, instanceBeingConstructed, allocCheck, condition);
 	}
 
 	/** Returns true iff the declaration is explicitly or implicitly non_null */
 	protected boolean addNullnessAllocationTypeConditionId(JCExpression id, DiagnosticPosition pos, Symbol sym,
-			boolean isNonNull, boolean instanceBeingConstructed, boolean allocCheck) {
-		if (isDataGroup(sym.type))
-			return false;
+			boolean isNonNull, boolean instanceBeingConstructed, boolean allocCheck, JCExpression condition) {
+		if (isDataGroup(sym.type)) return false;
 		// if (utils.isPrimitiveType(sym.type)) return false;
-		if (pos == null)
-			pos = id;
+		if (pos == null) pos = id;
 		int p = pos.getPreferredPosition();
 		boolean nnull = true;
 		if (!utils.isJavaOrJmlPrimitiveType(sym.type)) {
@@ -3714,16 +3712,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					treeutils.makeIntLiteral(p, allocCounter));
 
 			Symbol owner = sym.owner;
-			if (owner instanceof MethodSymbol)
-				owner = owner.owner;
+			if (owner instanceof MethodSymbol) owner = owner.owner;
 			boolean nn = isNonNull && !instanceBeingConstructed;
 			nnull = nn;
 			if (nn) {
 				// assume id != null
-				addAssume(pos, Label.NULL_CHECK, treeutils.makeNotNull(p, copy(id)));
+				addAssume(pos, Label.NULL_CHECK, treeutils.makeImpliesSimp(id, condition, treeutils.makeNotNull(p, copy(id))));
 				// assume id.isAlloc
-				if (allocCheck)
-					addAssume(pos, Label.IMPLICIT_ASSUME, e2);
+				if (allocCheck) addAssume(pos, Label.IMPLICIT_ASSUME, e2);
 			} else if (allocCheck) {
 				JCExpression e1 = treeutils.makeEqObject(p, id, treeutils.makeNullLiteral(p));
 				// assume id == null || id._alloc__ <= allocCounter
@@ -3742,12 +3738,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				addTraceableComment(s);
 			} else if (sym.type.getTag() == TypeTag.ARRAY) {
 				Type compType = ((Type.ArrayType) sym.type).getComponentType();
-				if (utils.isJavaOrJmlPrimitiveType(compType)) {
-					e3 = treeutils.makeDynamicTypeEquality(pos, copy(id), sym.type);
-				} else {
-					e3 = treeutils.makeDynamicTypeInEquality(pos, copy(id), sym.type);
-					if (specs.isNonNull(compType, (ClassSymbol) enclosingClass)) {
-						JCExpression e4 = treeutils.makeJmlMethodInvocation(pos, nonnullelementsKind, syms.booleanType, id);
+                if (utils.isJavaOrJmlPrimitiveType(compType)) {
+                    e3 = treeutils.makeDynamicTypeEquality(pos, copy(id), sym.type);
+                } else {
+                    e3 = treeutils.makeDynamicTypeInEquality(pos, copy(id), sym.type);
+                    if (specs.isNonNull(compType, (ClassSymbol) enclosingClass)) {
+						JCExpression e4 = wrapTranslatedNonnullelements(id, copy(id));
 						e3 = treeutils.makeAnd(pos, e3, e4);
 					}
 				}
@@ -4258,7 +4254,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			addStat(dd);
 //            dd.pos = d.pos;
 //            if (esc) {
-//                addNullnessAllocationTypeCondition2(dd,dd.sym,false);
+//                addNullnessAllocationTypeCondition2(dd,dd.sym,false,null);
 //            }
 
 //            dd = treeutils.makeVarDef(d.type,M.Name(Strings.formalPrefix+d.name.toString()),  
@@ -4532,7 +4528,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				boolean varargs = (methodDecl.sym.flags() & Flags.VARARGS) != 0;
 				boolean isNonNull = true;
 				for (JCVariableDecl d : methodDecl.params) {
-					isNonNull = addNullnessAllocationTypeCondition2(d, d.sym, false);
+					isNonNull = addNullnessAllocationTypeCondition2(d, d.sym, false, null);
 				}
 				if (varargs && !isNonNull) { // isNonNull is the nullness of the last parameter, so the varargs
 												// parameter
@@ -5108,7 +5104,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (def instanceof JmlVariableDecl) {
 					if (((JmlVariableDecl) def).sym == sy) {
 						addNullnessAllocationTypeCondition2((JmlVariableDecl) def, sy,
-								beingConstructed && !utils.isJMLStatic(sy));
+								beingConstructed && !utils.isJMLStatic(sy), null);
 						return;
 					}
 				}
@@ -5365,8 +5361,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Note that methodDecl.resType.type appears to be unannotated
 		Type rt = methodDecl.sym.getReturnType();
-		if (rt != null && !rt.isPrimitiveOrVoid() && resultSym != null && specs.isNonNull(methodDecl.sym)) {
-		    //System.out.println("NN " + methodDecl.sym.owner + " " + methodDecl.sym + " " + specs.isNonNull(methodDecl.sym) + " " + hasNullable(rt) + " " + hasNonNull(rt) );
+		if (rt != null && !rt.isPrimitiveOrVoid() && resultSym != null && specs.isNonNull(methodDecl.restype.type, methodDecl.sym)) {
+		    //System.out.println("NN " + methodDecl.sym.owner + " " + methodDecl.restype.type + " " + methodDecl.sym + " " + specs.isNonNull(methodDecl.sym.getReturnType()) + " " + hasNullable(rt) + " " + hasNonNull(rt) );
 			currentStatements = ensuresStats;
 			addStat(comment(methodDecl.restype, "Adding null return check by callee " + methodDecl.sym, null));
 			JCIdent ret = treeutils.makeIdent(methodDecl.restype.pos, resultSym);
@@ -8989,7 +8985,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //							 specs.isNonNull(that.type,(ClassSymbol)calleeMethodSym.owner) + " " +
 //							 specs.isNonNull(calleeMethodSym) + " " + nn);
 						}
-						addNullnessAllocationTypeCondition(that, resultSym, nn, false, false);
+						addNullnessAllocationTypeCondition(that, resultSym, nn, false, false, null);
 					} else {
 						resultSym = null;
 						resultExpr = that;
@@ -9006,7 +9002,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					resultSym = decl.sym;
 					resultExpr = treeutils.makeIdent(that.pos, decl.sym);
 					dynamicTypes.put(resultExpr, t);
-					addNullnessAllocationTypeCondition(that, resultSym, false, false, false);
+					addNullnessAllocationTypeCondition(that, resultSym, false, false, false, null);
 					{
 						JCExpression cr = convertedReceiver;
 						if (cr == null && !calleeMethodSym.owner.isStatic()
@@ -9212,7 +9208,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							VarSymbol v = calleeMethodSym.params.get(i);
 							boolean nn = specs.isCheckNonNullFormal(v.type, i, calleeSpecs, calleeMethodSym);
 							if (nn) {
-								// FIXME - why this if?
+							    //System.out.println("FORMAL " + calleeMethodSym + " " + i + " " + v + " " + v.type);
+							    // FIXME - why this if?
 								if (calleeSpecs.specDecl == null) {
 									// There are no specs to point to
 									addAssert(trArgs.get(i), Label.NULL_FORMAL,
@@ -15323,7 +15320,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		if (stringType) {
 
-			addNullnessAllocationTypeCondition(that, id.sym, true, false, false);
+			addNullnessAllocationTypeCondition(that, id.sym, true, false, false, null);
 
 			if (esc) {
 				String str = (String) that.getValue();
@@ -16239,7 +16236,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				Type elemType = ((Type.ArrayType)that.expr.type).getComponentType();
                 //System.out.println("NN " + that.var.sym + " " + attr.isNonNull(that.var.sym) + " " + hasNonNull(elemType)+ " " + hasNullable(elemType));
 				if (isNonNullLocal(that.var.type) && isNullableLocal(elemType)) {
-				    utils.warning(that.var, "jml.message", that.var.name + " is non_null but " + that.expr + " has a type with nullable array elements");
+//				    utils.warning(that.var, "jml.message", that.var.name + " is non_null but the type of " + that.expr + " allows null array elements");
                     JCExpression e4 = treeutils.makeJmlMethodInvocation(that.expr, nonnullelementsKind, syms.booleanType, array);
                     addAssert(that.expr, Label.NULL_ELEMENT, e4);
 				}
@@ -17592,59 +17589,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCExpression conj = null;
 					for (JCExpression arg : that.args) {
 						JCExpression e = convertExpr(arg);
-						if (rac) {
-							e = methodCallUtilsExpression(arg, "nonnullElementCheck", e);
-						} else {
-
-							if (false) {
-								// We leave this as \nonnullelements because the SMTTranslator
-								// translates this into an appropriate quantified expression directly
-								e = treeutils.makeAnd(that.pos, treeutils.makeNeqObject(that.pos, e, treeutils.nullLit),
-										treeutils.makeJmlMethodInvocation(arg, that.kind, that.type, e));
-							} else {
-								// Having the SMT solver implement a definition for \nonnullelementes causes it
-								// at least Z3 to timeout. So we insert the definition directly.
-								int p = arg.pos;
-								// replace \nonnullelements(arg) with (\let temp0 = arg; temp0 != null &&
-								// (\forall int temp; 0 <= temp && temp < temp0.length; temp0[temp] != null);
-								Name nm0 = names.fromString("__JMLtemp" + nextUnique());
-								JCExpression id0;
-								if (splitExpressions) {
-									JCVariableDecl vd0 = treeutils.makeVariableDecl(nm0, arg.type, convertExpr(arg), p);
-									addStat(vd0);
-									id0 = treeutils.makeIdent(p, vd0.sym);
-								} else {
-									// FIXME - this is probably wrong - no conversion of arg
-									JCVariableDecl vd0 = treeutils.makeVariableDecl(nm0, arg.type, arg, p);
-									id0 = treeutils.makeIdent(p, vd0.sym);
-								}
-
-								// FIXME _ for now don't use a let: there are problems translating it
-								// id0 = arg;
-
-								Name nm = names.fromString("__JMLtemp" + nextUnique());
-								JCVariableDecl vd = treeutils.makeVariableDecl(nm, syms.intType, null, p);
-								JCExpression z = treeutils.makeIntLiteral(p, 0);
-								JCExpression id1 = treeutils.makeIdent(p, vd.sym);
-								JCExpression id2 = treeutils.makeIdent(p, vd.sym);
-								JCExpression al = treeutils.makeArrayLength(p, id0);
-								JCExpression a = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol, z, id1);
-								JCExpression b = treeutils.makeBinary(p, JCTree.Tag.LT, treeutils.intltSymbol, id2, al);
-								JCExpression element = treeutils.makeArrayElement(p, id0,
-										treeutils.makeIdent(p, vd.sym));
-								JCExpression nnull = treeutils.makeNotNull(p, element);
-								JCExpression ex = M.JmlQuantifiedExpr(qforallKind, List.<JCVariableDecl>of(vd),
-										treeutils.makeAnd(p, a, b), nnull);
-								ex.pos = p;
-								ex.type = syms.booleanType;
-								ex = treeutils.makeAnd(p, treeutils.makeNotNull(p, arg), ex);
-//                                JCExpression let = M.LetExpr(vd0, ex);
-//                                let.pos = p;
-//                                let.type  = ex.type;
-//                                ex = let;
-								e = convert(ex);
-							}
-						}
+						e = wrapTranslatedNonnullelements(arg,e);
 						conj = conj == null ? e : treeutils.makeAnd(arg.pos, conj, e);
 					}
 					result = eresult = conj;
@@ -17981,6 +17926,64 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		result = eresult;
 	}
+
+
+    private JCExpression wrapTranslatedNonnullelements(JCExpression arg, JCExpression convertedArg) {
+        if (rac) {
+        	convertedArg = methodCallUtilsExpression(arg, "nonnullElementCheck", convertedArg);
+        } else {
+
+        	if (false) {
+        		// We leave this as \nonnullelements because the SMTTranslator
+        		// translates this into an appropriate quantified expression directly
+        		convertedArg = treeutils.makeAnd(arg.pos, treeutils.makeNeqObject(arg.pos, convertedArg, treeutils.nullLit),
+        				treeutils.makeJmlMethodInvocation(arg, nonnullelementsKind, arg.type, convertedArg));
+        	} else {
+        		// Having the SMT solver implement a definition for \nonnullelementes causes it
+        		// at least Z3 to timeout. So we insert the definition directly.
+        		int p = arg.pos;
+        		// replace \nonnullelements(arg) with (\let temp0 = arg; temp0 != null &&
+        		// (\forall int temp; 0 <= temp && temp < temp0.length; temp0[temp] != null);
+        		Name nm0 = names.fromString("__JMLtemp" + nextUnique());
+        		JCExpression id0;
+        		if (splitExpressions) {
+        			JCVariableDecl vd0 = treeutils.makeVariableDecl(nm0, arg.type, convertedArg, p);
+        			addStat(vd0);
+        			id0 = treeutils.makeIdent(p, vd0.sym);
+        		} else {
+        			// FIXME - this is probably wrong - no conversion of arg
+        			JCVariableDecl vd0 = treeutils.makeVariableDecl(nm0, arg.type, convertedArg, p);
+        			id0 = treeutils.makeIdent(p, vd0.sym);
+        		}
+
+        		// FIXME _ for now don't use a let: there are problems translating it
+        		// id0 = arg;
+
+        		Name nm = names.fromString("__JMLtemp" + nextUnique());
+        		JCVariableDecl vd = treeutils.makeVariableDecl(nm, syms.intType, null, p);
+        		JCExpression z = treeutils.makeIntLiteral(p, 0);
+        		JCExpression id1 = treeutils.makeIdent(p, vd.sym);
+        		JCExpression id2 = treeutils.makeIdent(p, vd.sym);
+        		JCExpression al = treeutils.makeArrayLength(p, id0);
+        		JCExpression a = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol, z, id1);
+        		JCExpression b = treeutils.makeBinary(p, JCTree.Tag.LT, treeutils.intltSymbol, id2, al);
+        		JCExpression element = treeutils.makeArrayElement(p, id0,
+        				treeutils.makeIdent(p, vd.sym));
+        		JCExpression nnull = treeutils.makeNotNull(p, element);
+        		JCExpression ex = M.JmlQuantifiedExpr(qforallKind, List.<JCVariableDecl>of(vd),
+        				treeutils.makeAnd(p, a, b), nnull);
+        		ex.pos = p;
+        		ex.type = syms.booleanType;
+        		ex = treeutils.makeAnd(p, treeutils.makeNotNull(p, copy(convertedArg)), convertExpr(ex));
+//                                JCExpression let = M.LetExpr(vd0, ex);
+//                                let.pos = p;
+//                                let.type  = ex.type;
+//                                ex = let;
+        		convertedArg = ex;
+        	}
+        }
+        return convertedArg;
+    }
 	
 	public Name normalizeLabel(JCExpression arg, Name defaultLabel, DiagnosticPosition altpos) {
 		Name label;

@@ -355,7 +355,7 @@ public class JmlParser extends JavacParser {
         String s = a.getAnnotationType().toString();
         // FIXME - problem here - if the annotation is not fully qualified, it is possible that
         // the annotation will resolve to a type in a different package than org.jmlspecs.annotation
-        // which will mean it erroneously is marked as a JML modifier. But we need to know at least \
+        // which will mean it erroneously is marked as a JML modifier. But we need to know at least
         // whether it is a MODEL, and maybe a type annotation, in JmlEnter, before attribution
         ((JmlAnnotation)a).kind = Extensions.findModifier(s);
         return a;
@@ -367,6 +367,7 @@ public class JmlParser extends JavacParser {
         replacementType = null;
         int n = Log.instance(context).nerrors;
         JmlVariableDecl param = (JmlVariableDecl)super.formalParameter(lambdaParameter, recordComponent);
+        //if (param.name.toString().startsWith("zo")) System.out.println("PARAM " + param.name + " " + param.mods + " # " + param.vartype);
         if (n != Log.instance(context).nerrors) {
         	skipToCommaOrParenOrSemi();
         	return param;
@@ -2080,15 +2081,23 @@ public class JmlParser extends JavacParser {
     			var m = (ModifierKind)mm;
     			
     			JCAnnotation t;
-    			if (kind == Tag.TYPE_ANNOTATION) {
-    		        JCExpression p = utils.nametree(token.pos, token.endPos, m.fullAnnotation, null);
-    		        t = F.at(token.pos).TypeAnnotation(p,
-    		                    com.sun.tools.javac.util.List.<JCExpression> nil());
-    		        ((JmlAnnotation)t).kind = m;
+    			if (kind != Tag.TYPE_ANNOTATION) {
+                    t = utils.modToAnnotationAST(m, token.pos, token.endPos);
     			} else {
-    				t = utils.modToAnnotationAST(m, token.pos, token.endPos);
+    		        JCExpression p = utils.nametree(token.pos, token.endPos, m.fullAnnotation, null);
+    		        if (m.isTypeAnnotation()) {
+    		            t = F.at(token.pos).TypeAnnotation(p,
+    		                com.sun.tools.javac.util.List.<JCExpression> nil());
+    		            ((JmlAnnotation)t).kind = m;
+    		        } else {
+    		            utils.error(token.pos, "jml.message", "A " + m + " modifier is not allowed where type annotations are expected");
+//                        t = F.at(token.pos).Annotation(p,
+//                            com.sun.tools.javac.util.List.<JCExpression> nil());
+//                        ((JmlAnnotation)t).kind = m;
+    		            t = null;
+    		        }
     			}
-    			annos.append(t);
+    			if (t != null) annos.append(t);
     			nextToken();
     			acceptEndJML();
                 //System.out.println("READ ANNOT " + annos);
@@ -2120,9 +2129,11 @@ public class JmlParser extends JavacParser {
      */
     @Override
     public JCModifiers modifiersOpt() {
-//        JCModifiers partial = pushBackModifiers;
-//        pushBackModifiers = null;
-        JCModifiers m = modifiersOpt(null);
+        return modifiersOpt(true);
+    }
+
+    public JCModifiers modifiersOpt(boolean allowAnnotations) {
+        JCModifiers m = modifiersOpt(null, allowAnnotations);
         return m;
     }
 
@@ -2163,6 +2174,11 @@ public class JmlParser extends JavacParser {
 
     @Override
     public JmlModifiers modifiersOpt(JCModifiers partial) {
+        return modifiersOpt(partial, true);
+    }
+    
+    @Override
+    public JmlModifiers modifiersOpt(JCModifiers partial, boolean allowAnnotations) {
     	boolean startJml = S.jml();
     	int firstpos = Position.NOPOS;
     	//System.out.println("INITIAL " + firstpos);
@@ -2182,6 +2198,7 @@ public class JmlParser extends JavacParser {
     			break;
     		} else if (S.jml() && isJmlModifier(token)) {
             	ModifierKind mk = (ModifierKind)Extensions.findKeyword(token);
+            	if (!allowAnnotations && mk.isTypeAnnotation()) break;
             	JmlToken jt = new JmlToken(mk, token);
             	jt.source = Log.instance(context).currentSourceFile();
             	mods.jmlmods.add(jt);
@@ -2207,7 +2224,7 @@ public class JmlParser extends JavacParser {
     			var p = token.pos;
     			boolean inJML = S.jml();
     			var saved = mods.anyModsInJava;
-    			mods = (JmlModifiers)super.modifiersOpt(mods);
+    			mods = (JmlModifiers)super.modifiersOpt(mods,allowAnnotations);
     			if (p != token.pos) {
     				// read something
     				mods.anyModsInJava = saved || !inJML;

@@ -495,6 +495,10 @@ public abstract class IJmlClauseKind {
         public boolean strict;
         public Class<? extends java.lang.annotation.Annotation> clazz;
         
+        public boolean isTypeAnnotation() {
+            return false;
+        }
+        
         public ModifierKind(String keyword, boolean strict) {
             super(keyword);
             this.strict = strict;
@@ -544,6 +548,9 @@ public abstract class IJmlClauseKind {
     	public TypeAnnotationKind(String keyword, boolean strict) {
     		super(keyword,strict);
     	}
+        public boolean isTypeAnnotation() {
+            return true;
+        }
     }
 
     

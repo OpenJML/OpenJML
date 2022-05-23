@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.JmlTree.JmlModifiers;
 
 import com.sun.source.tree.CaseTree;
 import com.sun.source.tree.MemberReferenceTree.ReferenceMode;
@@ -3139,9 +3140,14 @@ public class JavacParser implements Parser {
      *           | "@" Annotation
      */
     protected JCModifiers modifiersOpt() {
-        return modifiersOpt(null);
+        return modifiersOpt(null, true);
     }
-    protected JCModifiers modifiersOpt(JCModifiers partial) {
+
+    public JCModifiers modifiersOpt(JCModifiers partial) {
+        return modifiersOpt(partial, true);
+    }
+
+    protected JCModifiers modifiersOpt(JCModifiers partial, boolean allowAnnotations) { // OPENJML -- added allowAnnotations
         long flags;
         ListBuffer<JCAnnotation> annotations = new ListBuffer<>();
         int pos;
@@ -3159,6 +3165,8 @@ public class JavacParser implements Parser {
         int lastPos;
     loop:
         while (true) {
+            if (!allowAnnotations && (token.kind == MONKEYS_AT || (this instanceof JmlParser p && p.isStartJml(token)))) break; // OPENJML
+            //if (this instanceof JmlParser p && (p.isStartJml(token) || p.isEndJml(token))) nextToken();
             long flag;
             switch (token.kind) {
             case PRIVATE     : flag = Flags.PRIVATE; break;
@@ -4574,7 +4582,7 @@ public class JavacParser implements Parser {
     }
 
     JCModifiers optFinal(long flags) {
-        JCModifiers mods = modifiersOpt();
+        JCModifiers mods = modifiersOpt(null, false);
         checkNoMods(mods.flags & ~(Flags.FINAL | Flags.DEPRECATED));
         mods.flags |= flags;
         return mods;
@@ -4655,7 +4663,7 @@ public class JavacParser implements Parser {
      *  LastFormalParameter = { FINAL | '@' Annotation } Type '...' Ident | FormalParameter
      */
     protected JCVariableDecl formalParameter(boolean lambdaParameter, boolean recordComponent) {
-        JCModifiers mods = !recordComponent ? optFinal(Flags.PARAMETER) : modifiersOpt();
+        JCModifiers mods = !recordComponent ? optFinal(Flags.PARAMETER) : modifiersOpt(null, false); // OPENJML
         if (recordComponent && mods.flags != 0) {
             log.error(mods.pos, Errors.RecordCantDeclareFieldModifiers);
         }
@@ -4665,7 +4673,7 @@ public class JavacParser implements Parser {
         // need to distinguish between vararg annos and array annos
         // look at typeAnnotationsPushedBack comment
         this.permitTypeAnnotationsPushBack = true;
-        JCExpression type = parseType(lambdaParameter, mods.annotations); // OPENJML - added the mods.annotationa argument, for type annotations
+        JCExpression type = parseType(lambdaParameter);
         this.permitTypeAnnotationsPushBack = false;
 
         if (token.kind == ELLIPSIS) {
