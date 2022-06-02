@@ -1252,7 +1252,7 @@ public class JmlSpecs {
         boolean libraryMethod = sym.owner instanceof ClassSymbol && sym.owner.toString().startsWith("java");
         boolean isPureA = utils.hasMod(mspecs.mods, Modifiers.PURE, Modifiers.HEAP_FREE); // use isPure?
         boolean isPureL = (libraryMethod && !JmlOption.isOption(context,JmlOption.PURITYCHECK));
-        //if (sym.toString().contains("apply(")) System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
+        //System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                 com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPureA||isPureL?nothingKind:everythingKind)));
         JmlMethodClause clpa = new JmlTree.JmlMethodClauseStoreRef(pos,accessibleID, accessibleClauseKind,
@@ -1747,8 +1747,8 @@ public class JmlSpecs {
     	if (!type.isReference()) return false;
     	if (Types.instance(context).isSubtype(type, 
     			Symtab.instance(context).jmlPrimitiveType)) return true;
-        if (findAnnotation(type, Modifiers.NULLABLE)) return false;
-        if (findAnnotation(type, Modifiers.NON_NULL)) return true;
+    	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
+    	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
     	if (type instanceof Type.TypeVar) return false; 
     	return isNonNull(msym);
     }
@@ -1756,8 +1756,7 @@ public class JmlSpecs {
     public boolean isNonNull(MethodSymbol sym) {
     	// For some reason, type annotations are not part of the method return type,
     	// but are in the MethodSymbol's annotations
-        Type rt = sym.getReturnType();
-    	if (!rt.isReference()) return false;
+    	if (!sym.getReturnType().isReference()) return false;
     	if (attr.hasAnnotation2(sym, Modifiers.NULLABLE)) return false;
 		if (attr.hasAnnotation2(sym, Modifiers.NON_NULL)) return true;
 		var sp = specsMethods.get(sym);

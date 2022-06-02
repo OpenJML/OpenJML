@@ -360,6 +360,20 @@ public class JmlParser extends JavacParser {
         ((JmlAnnotation)a).kind = Extensions.findModifier(s);
         return a;
     }
+    
+    public List<JCAnnotation> extractTypeAnnotations(JCModifiers mods) {
+        ListBuffer<JCAnnotation> typeAnnotations = new ListBuffer<>();
+        ListBuffer<JCAnnotation> otherAnnotations = new ListBuffer<>();
+        for (JCAnnotation a: mods.annotations) {
+            if (a instanceof JmlAnnotation ja && ja.kind.isTypeAnnotation()) {
+                typeAnnotations.add(a);
+            } else {
+                otherAnnotations.add(a);
+            }
+        }
+        mods.annotations = otherAnnotations.toList();
+        return typeAnnotations.toList();
+    }
 
     /** OpenJML overrides in order to parse and insert replacement types for formal parameters */
     @Override
@@ -367,6 +381,8 @@ public class JmlParser extends JavacParser {
         replacementType = null;
         int n = Log.instance(context).nerrors;
         JmlVariableDecl param = (JmlVariableDecl)super.formalParameter(lambdaParameter, recordComponent);
+        var typeAnnotations = extractTypeAnnotations(param.mods);
+        param.vartype = insertAnnotationsToMostInner(param.vartype, typeAnnotations, false);
         //if (param.name.toString().startsWith("zo")) System.out.println("PARAM " + param.name + " " + param.mods + " # " + param.vartype);
         if (n != Log.instance(context).nerrors) {
         	skipToCommaOrParenOrSemi();
@@ -2128,14 +2144,14 @@ public class JmlParser extends JavacParser {
      *         next in the token string
      */
     @Override
-    public JCModifiers modifiersOpt() {
-        return modifiersOpt(true);
+    public JCModifiers modifiersOpt() { // Overridden to make public
+        return super.modifiersOpt();
     }
 
-    public JCModifiers modifiersOpt(boolean allowAnnotations) {
-        JCModifiers m = modifiersOpt(null, allowAnnotations);
-        return m;
-    }
+//    public JCModifiers modifiersOpt(boolean allowAnnotations) {
+//        JCModifiers m = modifiersOpt(null, allowAnnotations);
+//        return m;
+//    }
 
     /**
      * Combines 'pushBackModifiers', the argument and any modifiers that are
@@ -2172,13 +2188,13 @@ public class JmlParser extends JavacParser {
 //        return partial;
 //    }
 
-    @Override
-    public JmlModifiers modifiersOpt(JCModifiers partial) {
-        return modifiersOpt(partial, true);
-    }
+//    @Override
+//    public JmlModifiers modifiersOpt(JCModifiers partial) {
+//        return modifiersOpt(partial, true);
+//    }
     
     @Override
-    public JmlModifiers modifiersOpt(JCModifiers partial, boolean allowAnnotations) {
+    public JmlModifiers modifiersOpt(JCModifiers partial) {
     	boolean startJml = S.jml();
     	int firstpos = Position.NOPOS;
     	//System.out.println("INITIAL " + firstpos);
@@ -2198,7 +2214,7 @@ public class JmlParser extends JavacParser {
     			break;
     		} else if (S.jml() && isJmlModifier(token)) {
             	ModifierKind mk = (ModifierKind)Extensions.findKeyword(token);
-            	if (!allowAnnotations && mk.isTypeAnnotation()) break;
+            	//if (!allowAnnotations && mk.isTypeAnnotation()) break;
             	JmlToken jt = new JmlToken(mk, token);
             	jt.source = Log.instance(context).currentSourceFile();
             	mods.jmlmods.add(jt);
@@ -2224,7 +2240,7 @@ public class JmlParser extends JavacParser {
     			var p = token.pos;
     			boolean inJML = S.jml();
     			var saved = mods.anyModsInJava;
-    			mods = (JmlModifiers)super.modifiersOpt(mods,allowAnnotations);
+    			mods = (JmlModifiers)super.modifiersOpt(mods);
     			if (p != token.pos) {
     				// read something
     				mods.anyModsInJava = saved || !inJML;

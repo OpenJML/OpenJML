@@ -924,11 +924,11 @@ public class modifiers extends TCBase {
     @Test public void testFormal() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  void m(\n" +
-        		"/*@ non_null */ Object o, \n" +
-        		"/*@ nullable */ Object oo, \n" +
-        		"/*@ ghost non_null nullable */ Object ooo, \n" +
-        		"/*@ non_null non_null */ Object ooob, \n" +
-        		"/*@ spec_public */ Object oooo) {} }"
+        		"/*@ non_null */ Object zo, \n" +
+        		"/*@ nullable */ Object zoo, \n" +
+        		"/*@ ghost non_null nullable */ Object zooo, \n" +
+        		"/*@ non_null non_null */ Object zooob, \n" +
+        		"/*@ spec_public */ Object zoooo) {} }"
                 ,"/A.java:6: error: org.jmlspecs.annotation.NonNull is not a repeatable annotation type", 14
                 ,"/A.java:5: error: This JML modifier is not allowed for a formal parameter",5
                 ,"/A.java:5: error: A type may not be declared both non_null and nullable",11

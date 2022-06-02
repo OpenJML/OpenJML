@@ -3042,7 +3042,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		//            }
         		checkForConflict(specmods,NON_NULL,NULLABLE);
         	} else if ((tree.mods.flags & Flags.PARAMETER) != 0) { // formal parameters
-        	    //System.out.println("CHECKING FORMAL " + tree + " ^ " + tree.mods + " ^ " + specmods.annotations);
         		kind = "parameter";
         		if (tree.specsDecl != null) {
         			attribAnnotationTypes(specmods.annotations,env);
@@ -3947,7 +3946,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {
-        
         for (JCExpression e: tree.list) {
             if (e instanceof JCAnnotatedType at) {
                 utils.warning(tree.sourcefile, e, "jml.message", "Annotations on signals_only exception types are meaningless and are ignored");
@@ -7410,6 +7408,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
 
             visitVarDef(that);
+            
 //            if (that.sym.toString().equals("k") && that.sym.owner.toString().equals("A")) {
 //                System.out.println("JAVA " + that + " " + that.sym.owner.kind);
 //                var fspecs = specs.getLoadedSpecs(that.sym);
@@ -7480,7 +7479,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Check the mods after the specs, because the modifier checks depend on
             // the specification clauses being attributed
 
-            FieldSpecs fspecs = specs.getAttrSpecs(that.sym); // Attributing specs, if not already done // Also checks the modifiers
+            specs.getAttrSpecs(that.sym); // Attributing specs, if not already done // Also checks the modifiers
 
             if (that.sym.owner.isInterface()) {
                 if (isModel(that.mods)) {

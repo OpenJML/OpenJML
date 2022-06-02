@@ -2649,7 +2649,7 @@ public class JavacParser implements Parser {
                 isRecordStart()) {
                 return List.of(classOrRecordOrInterfaceOrEnumDeclaration(mods, dc));
             } else {
-                JCExpression t = parseType(true, mods.annotations); // OPENJML -- added the mods.annotations argument, so that type gets type annotations
+                JCExpression t = parseType(true);
                 return localVariableDeclarations(mods, t);
             }
         }
@@ -2753,7 +2753,7 @@ public class JavacParser implements Parser {
         }
     }
     //where
-        protected List<JCStatement> localVariableDeclarations(JCModifiers mods, JCExpression type) { // OPENJML _ private to protected
+        protected List<JCStatement> localVariableDeclarations(JCModifiers mods, JCExpression type) { // OPENJML - private to protected
         	startOfDeclaration(mods); // OPENJML
             ListBuffer<JCStatement> stats =
                     variableDeclarators(mods, type, new ListBuffer<>(), true);
@@ -3140,14 +3140,14 @@ public class JavacParser implements Parser {
      *           | "@" Annotation
      */
     protected JCModifiers modifiersOpt() {
-        return modifiersOpt(null, true);
+        return modifiersOpt(null); // OPENJML
     }
 
-    public JCModifiers modifiersOpt(JCModifiers partial) {
-        return modifiersOpt(partial, true);
-    }
+//    public JCModifiers modifiersOpt(JCModifiers partial) {
+//        return modifiersOpt(partial, true);
+//    }
 
-    protected JCModifiers modifiersOpt(JCModifiers partial, boolean allowAnnotations) { // OPENJML -- added allowAnnotations
+    protected JCModifiers modifiersOpt(JCModifiers partial) { // OPENJML -- added allowAnnotations
         long flags;
         ListBuffer<JCAnnotation> annotations = new ListBuffer<>();
         int pos;
@@ -3165,8 +3165,6 @@ public class JavacParser implements Parser {
         int lastPos;
     loop:
         while (true) {
-            if (!allowAnnotations && (token.kind == MONKEYS_AT || (this instanceof JmlParser p && p.isStartJml(token)))) break; // OPENJML
-            //if (this instanceof JmlParser p && (p.isStartJml(token) || p.isEndJml(token))) nextToken();
             long flag;
             switch (token.kind) {
             case PRIVATE     : flag = Flags.PRIVATE; break;
@@ -4582,7 +4580,7 @@ public class JavacParser implements Parser {
     }
 
     JCModifiers optFinal(long flags) {
-        JCModifiers mods = modifiersOpt(null, false);
+        JCModifiers mods = modifiersOpt();
         checkNoMods(mods.flags & ~(Flags.FINAL | Flags.DEPRECATED));
         mods.flags |= flags;
         return mods;
@@ -4663,7 +4661,7 @@ public class JavacParser implements Parser {
      *  LastFormalParameter = { FINAL | '@' Annotation } Type '...' Ident | FormalParameter
      */
     protected JCVariableDecl formalParameter(boolean lambdaParameter, boolean recordComponent) {
-        JCModifiers mods = !recordComponent ? optFinal(Flags.PARAMETER) : modifiersOpt(null, false); // OPENJML
+        JCModifiers mods = !recordComponent ? optFinal(Flags.PARAMETER) : modifiersOpt();
         if (recordComponent && mods.flags != 0) {
             log.error(mods.pos, Errors.RecordCantDeclareFieldModifiers);
         }
