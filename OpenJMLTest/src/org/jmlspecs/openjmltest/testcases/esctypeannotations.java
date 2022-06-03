@@ -438,7 +438,6 @@ public class esctypeannotations extends EscBase {
 
     @Test
     public void testLocal4() {
-        expectedExit = 1;
         helpTCX("tt.TestJava",
             """
             package tt;
@@ -456,10 +455,15 @@ public class esctypeannotations extends EscBase {
                     @NonNull java.lang.Object o3 = null; // ERROR
                 }
             }
+            //@ nullable_by_default
+            class TestJava2 {
+                public void m() {
+                    /*@ non_null*/ java.lang.Object o4 = null; // ERROR
+                }
+            }
             """
-            ,"/tt/TestJava.java:7: error: cannot find symbol\n  symbol:   class java\n  location: class tt.TestJava",19
-            ,"/tt/TestJava.java:13: error: cannot find symbol\n  symbol:   class java\n  location: class tt.TestJava1",18
-            //,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: o3",31
+            ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: o3",35
+            ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: o4",41
             );
     }
 
@@ -510,9 +514,6 @@ public class esctypeannotations extends EscBase {
             ,anyorder(seq("/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Assert) in method m",13)
             ,seq("/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assert) in method m",13)
             ,seq("/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Assert) in method m",13))
-//            ,anyorder(seq("/tt/TestJava.java:34: warning: The prover cannot establish an assertion (Assert) in method m",13)
-//            ,seq("/tt/TestJava.java:35: warning: The prover cannot establish an assertion (Assert) in method m",13)
-//            ,seq("/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Assert) in method m",13))
             ,anyorder(seq("/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Assert) in method m",13)
             ,seq("/tt/TestJava.java:34: warning: The prover cannot establish an assertion (Assert) in method m",13))
             );
@@ -564,7 +565,7 @@ public class esctypeannotations extends EscBase {
             import org.jmlspecs.annotation.*;
             //@ non_null_by_default
             public class TestJava {
-                public void m(java.lang. /*@ nullable */ Object) {
+                public void m(java.lang. /*@ nullable */ Object o1) {
                     //@ check o1 != null; // ERROR
                 }
             }
@@ -584,13 +585,26 @@ public class esctypeannotations extends EscBase {
             class TestJava5 {
                 public void m(/*@ nullable */ final Object o1, @Nullable final Object o2, Object o5) {
                     //@ check o1 != null; // ERROR
+                }
+            }
+            //@ nullable_by_default
+            class TestJava5a {
+                public void m(/*@ nullable */ final Object o1, @Nullable final Object o2, Object o5) {
                     //@ check o2 != null; // ERROR
+                }
+            }
+            //@ nullable_by_default
+            class TestJava5b {
+                public void m(/*@ nullable */ final Object o1, @Nullable final Object o2, Object o5) {
                     //@ check o5 != null; // ERROR
                 }
             }
             """
             ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m",13
             ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m",13
+            ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assert) in method m",13
+            ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (Assert) in method m",13
+            ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Assert) in method m",13
             );
     }
 
@@ -803,7 +817,7 @@ public class esctypeannotations extends EscBase {
                 }
             }
             //@ non_null_by_default
-            public class TestJava1 {
+            class TestJava1 {
                 //@ ensures \\result != null; // OK
                 public java.lang./*@ non_null */ Object m() {
                     return null;
@@ -824,8 +838,17 @@ public class esctypeannotations extends EscBase {
                 }
             }
             """
-            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m",13
-            ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m",13
+            ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m",9
+            ,"/tt/TestJava.java:5: warning: Associated declaration",9
+            ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m: m",26
+            ,"/tt/TestJava.java:13: warning: Associated declaration",45
+            ,"/tt/TestJava.java:14: warning: Associated method exit",9
+            ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m: m",26
+            ,"/tt/TestJava.java:20: warning: Associated declaration",44
+            ,"/tt/TestJava.java:21: warning: Associated method exit",9
+            ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Postcondition) in method m",9
+            ,"/tt/TestJava.java:26: warning: Associated declaration",9
+            
             );
     }
 
@@ -1179,12 +1202,14 @@ public class esctypeannotations extends EscBase {
             //@ non_null_by_default
             class TestJava {
                 public void m2(@Nullable Object o) {
-                    //@ assert o instanceof /*@ nullable*/ Object;  // FIXME: Parsing error
+                    //@ assert o instanceof /*@ nullable*/ Object;
+                }
+                public void m3(@Nullable Object o) {
+                    //@ assert o instanceof /*@ non_null*/ Object;
                 }
             }
             """
-            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1",13
-            ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m3",13
+            ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m3",13
             );
     }
     
@@ -1319,7 +1344,7 @@ public class esctypeannotations extends EscBase {
                     }
                     public void m1(Object @NonNull [] a) {
                         for (@NonNull Object o: a) { // FIXME - should have a type error
-                            //@ assert o != null;
+                            //@ assert o != null; // Line 40
                         }
                     }
                 }

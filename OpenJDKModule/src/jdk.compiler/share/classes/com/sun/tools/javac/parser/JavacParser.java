@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.Utils;
-import org.jmlspecs.openjml.JmlTree.JmlModifiers;
 
 import com.sun.source.tree.CaseTree;
 import com.sun.source.tree.MemberReferenceTree.ReferenceMode;
@@ -1362,7 +1361,7 @@ public class JavacParser implements Parser {
                         }
 
                         List<JCAnnotation> tyannos = null;
-                        if ((mode & TYPE) != 0 && token.kind == MONKEYS_AT) {
+                        if ((mode & TYPE) != 0 /* && token.kind == MONKEYS_AT */) {//OPENJML - removed the test for @ so that JML modifiers are parsed
                             tyannos = typeAnnotationsOpt();
                         }
                         // typeArgs saved for next loop iteration.
@@ -3140,14 +3139,9 @@ public class JavacParser implements Parser {
      *           | "@" Annotation
      */
     protected JCModifiers modifiersOpt() {
-        return modifiersOpt(null); // OPENJML
+        return modifiersOpt(null);
     }
-
-//    public JCModifiers modifiersOpt(JCModifiers partial) {
-//        return modifiersOpt(partial, true);
-//    }
-
-    protected JCModifiers modifiersOpt(JCModifiers partial) { // OPENJML -- added allowAnnotations
+    protected JCModifiers modifiersOpt(JCModifiers partial) {
         long flags;
         ListBuffer<JCAnnotation> annotations = new ListBuffer<>();
         int pos;

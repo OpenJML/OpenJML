@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
 
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
@@ -209,7 +210,7 @@ public class JmlScanner extends Scanner {
     // printed out as scanned. The fact that SCANNER is defined is cached here so it is not looked up
     // in the system properties map on every token. If you like both the declaration of scannerDebug
     // and the override of nextToken my be deleted for production code.
-    public boolean scannerDebug = System.getenv("SCANNER") != null;
+    public boolean scannerDebug = org.jmlspecs.openjml.Utils.debug("scanner");
     {
     	JavaTokenizer.scannerDebug = scannerDebug;
     }
@@ -234,14 +235,16 @@ public class JmlScanner extends Scanner {
     				var saved = prevToken();
     				var t = token(1);
     				if (scannerDebug) System.out.println("TOKEN AFTER ENDJML " + token + " :: " + savedJml.get(0) + " " + t.pos + " " + t + " " + t.kind + " " + t.ikind + " " + (t.ikind == JmlTokenKind.STARTJMLCOMMENT));
+                    if (scannerDebug) System.out.println("LOOKAHEADS-Z " + token + " " + token.kind + " :: " + savedTokens.size() + " " + savedJml.size() + " " + jmlForCurrentToken);
     				if (!savedJml.get(0)) break;
     				if (t.ikind == JmlTokenKind.STARTJMLCOMMENT) {
     					if (scannerDebug) System.out.println("SKIPPING START JML");
     					advance(); // gets the start token
     					advance(); // gets the next token, skipping the end and start combination
     					prevToken = saved; // But keep the previous token as if the end-start combination did not exist
+    					continue;
     				}
-    				if (scannerDebug) System.out.println("LOOKAHEADS-Z " + token + " :: " + savedTokens.size() + " " + savedJml.size());
+    				break;
     			}
     			if (jmlForCurrentToken && token.ikind == JmlTokenKind.STARTJMLCOMMENT && token(1).kind == TokenKind.IDENTIFIER 
     					&& org.jmlspecs.openjml.Extensions.allKinds.get(token(1).name().toString()) instanceof IJmlClauseKind.LineAnnotationKind) {

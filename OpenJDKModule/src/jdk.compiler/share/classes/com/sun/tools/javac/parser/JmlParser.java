@@ -390,9 +390,9 @@ public class JmlParser extends JavacParser {
         }
         insertReplacementType(param,replacementType);
         replacementType = null;
-        if (param.vartype instanceof JCTree.JCArrayTypeTree) {
-            param.mods.annotations = List.<JCAnnotation>nil(); // FIXME - should just remove JML type annotations
-        }
+//        if (param.vartype instanceof JCTree.JCArrayTypeTree) {
+//            param.mods.annotations = List.<JCAnnotation>nil(); // FIXME - should just remove JML type annotations
+//        }
         return param;
     }
 
@@ -1498,6 +1498,7 @@ public class JmlParser extends JavacParser {
         		skipThroughEndOfJML();
         	}
         }
+        while (isEndJml(token)) nextToken();
         JCExpression type = super.unannotatedType(allowVar);
         return type;
     }
@@ -2089,38 +2090,37 @@ public class JmlParser extends JavacParser {
     
     protected List<JCAnnotation> annotationsOpt(Tag kind) {
     	ListBuffer<JCAnnotation> annos = new ListBuffer<>();
+    	//if (kind == Tag.TYPE_ANNOTATION)System.out.println("JML-ANNOTOPT-TOKEN " + token);
     	while (true) {
     		while (S.jml()) {
     			if (isStartJml(token)) { nextToken(); continue; }
     			var mm = Extensions.findKeyword(token);
-    			if (!(mm instanceof ModifierKind)) break;
-    			var m = (ModifierKind)mm;
+    			if (!(mm instanceof ModifierKind m)) break;
+    			//System.out.println("JML-ANNOTOPT " + m);
     			
     			JCAnnotation t;
     			if (kind != Tag.TYPE_ANNOTATION) {
                     t = utils.modToAnnotationAST(m, token.pos, token.endPos);
     			} else {
-    		        JCExpression p = utils.nametree(token.pos, token.endPos, m.fullAnnotation, null);
     		        if (m.isTypeAnnotation()) {
+                        JCExpression p = utils.nametree(token.pos, token.endPos, m.fullAnnotation, null);
     		            t = F.at(token.pos).TypeAnnotation(p,
     		                com.sun.tools.javac.util.List.<JCExpression> nil());
     		            ((JmlAnnotation)t).kind = m;
     		        } else {
     		            utils.error(token.pos, "jml.message", "A " + m + " modifier is not allowed where type annotations are expected");
-//                        t = F.at(token.pos).Annotation(p,
-//                            com.sun.tools.javac.util.List.<JCExpression> nil());
-//                        ((JmlAnnotation)t).kind = m;
     		            t = null;
     		        }
     			}
     			if (t != null) annos.append(t);
     			nextToken();
     			acceptEndJML();
-                //System.out.println("READ ANNOT " + annos);
+                //System.out.println("READ ANNOT " + token + " " + annos);
     		}
     		var lst = super.annotationsOpt(kind);
     		if (lst.isEmpty()) return annos.toList();
     		annos.appendList(lst);
+            //System.out.println("JAVA ANNOT " + token + " " + annos); Utils.dumpStack();
     	}
     }
     
@@ -2148,54 +2148,8 @@ public class JmlParser extends JavacParser {
         return super.modifiersOpt();
     }
 
-//    public JCModifiers modifiersOpt(boolean allowAnnotations) {
-//        JCModifiers m = modifiersOpt(null, allowAnnotations);
-//        return m;
-//    }
-
-    /**
-     * Combines 'pushBackModifiers', the argument and any modifiers that are
-     * next in the token string (including JML modifiers)
-     *
-     * @return combination of 'pushBackModifiers' and any modifiers that are
-     *         next in the token string
-     */
-//    @Override
-//    public JCModifiers modifiersOpt(JCModifiers partial) {
-//    	//System.out.println("CALLING MODIFIERS OPT-JML " + token);
-//        if (partial == null) {
-//            partial = pushBackModifiers;
-//            pushBackModifiers = null;
-//        }
-//        partial = super.modifiersOpt(partial);
-//        acceptEndJML(); // In some cases we allow Java modifiers in JML annotations (e.g. final)
-//        //System.out.println("IN JML MOD OPT " + S.jml() + " " + token + " " + token.kind + " " + isJmlModifier());
-//        while (S.jml() && (token.kind == CUSTOM || isJmlModifier())) {
-//        	while (jmlTokenClauseKind() == Operators.startjmlcommentKind) { nextToken(); }
-//            int lastPos = token.endPos;
-//            partial = jmlModifiersOpt(partial);
-//            storeEnd(partial, lastPos);
-//            if (token.kind == TokenKind.FINAL) {
-//            	partial.flags |= Flags.FINAL;
-//            	nextToken();
-//            	acceptEndJML();
-//            }
-//            if (token.kind == CUSTOM) break;
-//            partial = super.modifiersOpt(partial);
-//            acceptEndJML(); // In some cases we allow Java modifiers in JML annotations (e.g. final)
-//        }
-//    	//System.out.println("ENDING MODIFIERS OPT " + partial + " " + partial.annotations); Utils.dumpStack();
-//        return partial;
-//    }
-
-//    @Override
-//    public JmlModifiers modifiersOpt(JCModifiers partial) {
-//        return modifiersOpt(partial, true);
-//    }
-    
     @Override
     public JmlModifiers modifiersOpt(JCModifiers partial) {
-    	boolean startJml = S.jml();
     	int firstpos = Position.NOPOS;
     	//System.out.println("INITIAL " + firstpos);
     	JmlModifiers mods = (JmlModifiers)(partial == null ? jmlF.at(Position.NOPOS).Modifiers(0L) : partial);
@@ -2214,7 +2168,6 @@ public class JmlParser extends JavacParser {
     			break;
     		} else if (S.jml() && isJmlModifier(token)) {
             	ModifierKind mk = (ModifierKind)Extensions.findKeyword(token);
-            	//if (!allowAnnotations && mk.isTypeAnnotation()) break;
             	JmlToken jt = new JmlToken(mk, token);
             	jt.source = Log.instance(context).currentSourceFile();
             	mods.jmlmods.add(jt);
@@ -2241,6 +2194,7 @@ public class JmlParser extends JavacParser {
     			boolean inJML = S.jml();
     			var saved = mods.anyModsInJava;
     			mods = (JmlModifiers)super.modifiersOpt(mods);
+    			//System.out.println("MODOPT " + token + " " + (p!=token.pos) + " "  + inJML + " " + S.jml() + " " + mods);
     			if (p != token.pos) {
     				// read something
     				mods.anyModsInJava = saved || !inJML;
@@ -2250,6 +2204,9 @@ public class JmlParser extends JavacParser {
     			} else {
     				mods.anyModsInJava = saved;
     				// nothing read -- so no more modifiers of any kind
+                    //System.out.println("MODOPT-A " + token + " " + inJML + " " + S.jml() + " " +  mods);
+    				while (acceptEndJML()) {}
+                    //System.out.println("MODOPT-B " + token + " " + inJML + " " + S.jml() + " "  + mods);
     			    break;
     			}
     		}
@@ -2795,6 +2752,7 @@ public class JmlParser extends JavacParser {
         var saved = possibleDotStar;
         possibleDotStar = true;
         try {
+            //System.out.println("JML-TERM3 " + token);
         	JCExpression eee = toP(super.term3());
         	return eee;
         } finally {

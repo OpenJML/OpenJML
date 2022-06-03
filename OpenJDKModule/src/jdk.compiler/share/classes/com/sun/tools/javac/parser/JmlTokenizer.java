@@ -77,6 +77,8 @@ public class JmlTokenizer extends JavadocTokenizer {
      * CommentStyle.BLOCK, set prior to the scanner calling processComment()
      */
     /*@nullable*/ protected CommentStyle  jmlcommentstyle;
+    
+    boolean nestedBlockComment = false;
 
     /** Valid after nextToken() and contains token it read if it is a JML token
      * and null if the next token is a Java token */
@@ -168,6 +170,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                 }
             } while (position() < endPos);
         	reset(pos);
+        	nestedBlockComment = true;
         }
         
         if (jml && style == CommentStyle.JAVADOC) {
@@ -301,12 +304,14 @@ public class JmlTokenizer extends JavadocTokenizer {
             // We initialize state and proceed to process the comment as JML text
             jmlcommentstyle = style;
             jml = true;
+            nestedBlockComment = false;
             if (style == CommentStyle.BLOCK) {
             	if (scannerDebug) System.out.println("SETTING EBC " + p + " " + (endPos-2) + " " + length());
             	endBlockComment = endPos-2; 
             }
         } else {
         	tk = null;
+        	if (jmlcommentstyle != CommentStyle.BLOCK && style == CommentStyle.BLOCK) nestedBlockComment = true; 
             // We are already in a JML comment - so we have an embedded comment.
             // The action is to just ignore the embedded comment start
             // characters that we just scanned.
@@ -405,7 +410,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                     // an empty comment. We don't return a token in that case.
                     if (!returnEndOfCommentTokens || !initialJml) continue; // Go get next token
                     if (skippingTokens >= 0 && t.kind != TokenKind.EOF) continue;
-                   return jmlToken;
+                    return jmlToken;
                 } else {
                     if (skippingTokens >= 0) {
                     	if (t.kind != TokenKind.EOF) continue; // skip the token
@@ -416,14 +421,18 @@ public class JmlTokenizer extends JavadocTokenizer {
             }
 
             if (tk == TokenKind.STAR && get() == '/'
-                && jmlcommentstyle == CommentStyle.BLOCK) {
+                && (nestedBlockComment || jmlcommentstyle == CommentStyle.BLOCK)) {
                 // We're in a BLOCK comment and we scanned a * and the next
                 // character is a / so we are at the end of the comment
                 next(); // advance past the /
-                jml = false;
-                endPos = position();
-            	if (scannerDebug) System.out.println("RESETTING EBC " + position() + " " + endBlockComment + " " + length());
-            	endBlockComment = length();
+                if (nestedBlockComment) {
+                    nestedBlockComment = false;
+                } else {
+                    jml = false;
+                    endPos = position();
+                    if (scannerDebug) System.out.println("RESETTING EBC " + position() + " " + endBlockComment + " " + length());
+                    endBlockComment = length();
+                }
                 jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
                 jmlTokenClauseKind = Operators.endjmlcommentKind;
                 if (!returnEndOfCommentTokens || !initialJml) continue;
@@ -563,6 +572,7 @@ public class JmlTokenizer extends JavadocTokenizer {
         if (jml) {
             if (jmlcommentstyle == CommentStyle.LINE) {
                 jml = false;
+                nestedBlockComment = false;
                 if (returnEndOfCommentTokens) {
                     tk = TokenKind.CUSTOM;
                     jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
