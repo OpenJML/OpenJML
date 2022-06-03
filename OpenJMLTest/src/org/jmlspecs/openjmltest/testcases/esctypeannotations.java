@@ -1342,8 +1342,8 @@ public class esctypeannotations extends EscBase {
                             //@ assert o != null; // ERROR
                         }
                     }
-                    public void m1(Object @NonNull [] a) {
-                        for (@NonNull Object o: a) { // FIXME - should have a type error
+                    public void m1(Object @NonNull [] aaa) {
+                        for (@NonNull Object o: aaa) {
                             //@ assert o != null; // Line 40
                         }
                     }
@@ -1352,7 +1352,7 @@ public class esctypeannotations extends EscBase {
             """
             ,"/tt/TestJava.java:16: warning: o is non_null but the type of a allows null array elements",21
             ,"/tt/TestJava.java:22: warning: o is non_null but the type of a allows null array elements",21
-            ,"/tt/TestJava.java:39: warning: o is non_null but the type of a allows null array elements",34
+            ,"/tt/TestJava.java:39: warning: o is non_null but the type of aaa allows null array elements",34
             ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m2",17
             ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (NullElement) in method m2",24
             ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (NullElement) in method m3",24
@@ -1402,6 +1402,48 @@ public class esctypeannotations extends EscBase {
             ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m0: o",21
             ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2",37
             ,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m0: o",30
+            );
+    }
+    
+    @Test
+    public void testFor3() {
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            import org.jmlspecs.annotation.*;
+            //@ non_null_by_default
+            class TestJava {
+                public void m0(@Nullable Object oo) {
+                    for (Object o = oo; b(o); ) {  // ERROR
+                    }
+                }
+                public void m1(@Nullable Object oo) {
+                    for (/*@ nullable */ Object o = oo; b(o); ) {
+                    }
+                }
+                public void m2(Object oo) {
+                    for (Object o = oo; b(o); o = f()) { // ERROR (the update)
+                    }
+                }
+               @Nullable Object f() { return null; } 
+                boolean b(@Nullable Object o) { return true; } 
+            }
+            //@ nullable_by_default
+            class TestJava1 {
+                public void m0(@Nullable Object oo) {
+                    for (/*@ non_null*/ Object o = oo; b(o); ) { // ERROR
+                    }
+                }
+                public void m1(@Nullable Object oo) {
+                    for (Object o = oo; b(o); ) {
+                    }
+                }
+                boolean b(@Nullable Object o) { return true; } 
+            }
+            """
+            ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m0: o",21
+            ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2",37
+            ,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m0: o",36
             );
     }
     

@@ -68,6 +68,7 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Position;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticFlag;
 import com.sun.tools.javac.util.JCDiagnostic.Error;
 
 /** This class extends the javac parser to parse JML constructs as well. */
@@ -796,6 +797,25 @@ public class JmlParser extends JavacParser {
         if (stats.size() > 1) utils.error(stats.get(1), "jml.message", "Expected just one statement here");
         return stats.head;
     }
+    
+    @Override
+    List<JCStatement> forInit() {
+        ListBuffer<JCStatement> stats = new ListBuffer<>();
+        int pos = token.pos;
+        if (token.kind == FINAL || token.kind == MONKEYS_AT || S.jml()) {
+            var mods = optFinal(0);
+            var type = parseType(true);
+            if (type != null) {
+                var typeannotations = extractTypeAnnotations(mods);
+                type = insertAnnotationsToMostInner(type, typeannotations, false);
+            }
+            var lst = variableDeclarators(mods, type, stats, true).toList();
+            return lst;
+        } else {
+            return super.forInit();
+        }
+    }
+
     
     public JCStatement parseLoopWithSpecs() {
     	ListBuffer<JmlStatementLoop> loopSpecs = new ListBuffer<>();
