@@ -108,7 +108,7 @@ public class racsystem extends RacBase {
 //                ,"/tt/TestJava.java:6: verify: Associated declaration: /tt/TestJava.java:3:"
                 ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError$Precondition: verify: JML precondition is false"
                 ,"verify: Associated declaration: /tt/TestJava.java:3:"
-                ,"\tat java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:114)"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:"+loc+")"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locB
                 ,"\tat tt.TestJava.main(TestJava.java:1)"         // FIXME - should be line 3   
                 );
@@ -134,7 +134,7 @@ public class racsystem extends RacBase {
                 ,"Associated declaration: /tt/TestJava.java:6:"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locA
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locB
-                ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - nshould be line 6
+                ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - should be line 6
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"END"
                 );
@@ -158,7 +158,7 @@ public class racsystem extends RacBase {
                 
                 ,"org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:6: verify: JML assertion is false"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locA
-                ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:86)"
+                ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:"+(loc-30)+")"
                 ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - should be line 6
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"END"

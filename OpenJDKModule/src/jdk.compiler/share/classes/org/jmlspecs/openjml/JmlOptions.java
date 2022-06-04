@@ -505,11 +505,13 @@ public class JmlOptions extends Options {
 
     /** Output all the options -- purely for debugging */
     public void dumpOptions() {
-        //new RuntimeException().printStackTrace(System.out);
-        System.out.println("JML Options:");
+        java.util.List<String> opts = new ArrayList<>();
         for (var s: values.entrySet()) {
-            System.out.println(s.getKey() + " : " + s.getValue());
+            opts.add(s.getKey() + " : " + s.getValue());
         }
+        java.util.Collections.sort(opts);
+        System.out.println("JML Options:");
+        opts.stream().forEach(s -> System.out.println(s));
     }
 
     /** We replace the Arguments tool in order to validate the JML options

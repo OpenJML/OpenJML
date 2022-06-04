@@ -25,30 +25,30 @@ public class MiscExtensions extends JmlExtension {
         }
     };
 
-    public static class NotImplemented extends IJmlClauseKind.SingletonKind {
-        public NotImplemented(String name) { super(name); }
-        
-        @Override
-        public JCTree parse(JCModifiers mods, String keyword,
-                IJmlClauseKind clauseType, JmlParser parser) {
-            parser.warnNotImplemented(parser.pos(), this.keyword(),
-                    "JmlParser.term3(), as type modifiers");
-            return super.parse(mods, keyword, clauseType, parser);
-        }
-        @Override
-        public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            return Type.noType;
-        }
-    };
+//    public static class NotImplemented extends IJmlClauseKind.SingletonKind {
+//        public NotImplemented(String name) { super(name); }
+//        
+//        @Override
+//        public JCTree parse(JCModifiers mods, String keyword,
+//                IJmlClauseKind clauseType, JmlParser parser) {
+//            parser.warnNotImplemented(parser.pos(), this.keyword(),
+//                    "JmlParser.term3(), as type modifiers");
+//            return super.parse(mods, keyword, clauseType, parser);
+//        }
+//        @Override
+//        public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
+//            return Type.noType;
+//        }
+//    };
 
-    public static final String constructorID = "constructor";
-    public static final IJmlClauseKind constructorKind = new NoTypeMisc(constructorID);
-    
-    public static final String fieldID = "field";
-    public static final IJmlClauseKind fieldKind = new NoTypeMisc(fieldID);
-    
-    public static final String methodID = "method";
-    public static final IJmlClauseKind methodKind = new NoTypeMisc(methodID);
+//    public static final String constructorID = "constructor";
+//    public static final IJmlClauseKind constructorKind = new NoTypeMisc(constructorID);
+//    
+//    public static final String fieldID = "field";
+//    public static final IJmlClauseKind fieldKind = new NoTypeMisc(fieldID);
+//    
+//    public static final String methodID = "method";
+//    public static final IJmlClauseKind methodKind = new NoTypeMisc(methodID);
     
     public static final String intoID = "\\into";
     public static final IJmlClauseKind intoKind = new NoTypeMisc(intoID);

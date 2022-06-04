@@ -36,8 +36,9 @@ import com.sun.tools.javac.util.Options;
 public abstract class RacBase extends JmlTestCase {
 	
 	// These are common strings for parts of expected output that can frequently change
-    public static final String locA = "(Utils.java:130)";
-    public static final String locB = "(Utils.java:84)";
+    public static final int loc = 126;
+    public static final String locA = "(Utils.java:"+(loc+16)+")";
+    public static final String locB = "(Utils.java:"+(loc-32)+")";
 
 	public final static String OpenJMLDemoPath = "../../../OpenJMLA/OpenJMLDemo"; //"../../OpenJMLDemo";
 	

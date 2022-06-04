@@ -5666,7 +5666,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             Type saved = result;
             if (print) System.out.println("JML-VISITIDENT-A " + tree + " " + tree.sym + " " + tree.type + " " + tree.sym.getClass() + " " + tree.sym.owner + " " + 
-        	   tree.sym.owner.getClass() + " " + ((ClassSymbol)tree.sym).sourcefile + " " + env);
+                                    tree.sym.owner.getClass() + " " + (tree.sym instanceof PackageSymbol ps ? ps.sourcefile : tree.sym.outermostClass().sourcefile) + " " + env);
         	if (tree.sym == null) {
         		System.out.println("IDENT NULL SYM " + tree + " " + env.info.scope);
         	}

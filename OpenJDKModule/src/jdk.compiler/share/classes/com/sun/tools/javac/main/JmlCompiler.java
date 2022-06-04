@@ -184,6 +184,19 @@ public class JmlCompiler extends JavaCompiler {
     	return JmlSpecs.instance(context).findSpecFile(name);
     }
     
+    @Override
+    public void compile(Collection<JavaFileObject> sourceFileObjects,
+                            Collection<String> classnames,
+                            Iterable<? extends Processor> processors,
+                            Collection<String> addModules) {
+        if (Utils.debug("paths")) {
+            System.out.println("sourcepath: " + Utils.join(":",JmlSpecs.instance(context).getSourcePath()));
+            System.out.println("specspath:  " + Utils.join(":",JmlSpecs.instance(context).getSpecsPath()));
+        }
+        if (Utils.debug("options")) JmlOptions.instance(context).dumpOptions();
+        super.compile(sourceFileObjects, classnames, processors, addModules);
+    }
+    
     public JCTree.JCCompilationUnit parse(JavaFileObject filename) {
         JavaFileObject prev = log.useSource(filename);
         JavaFileObject specFile = null;

@@ -33,25 +33,35 @@ public class Utils {
     public static final String ASSERTION_FAILURE = "assertionFailureL"; // Must match the method name
     public static final String ASSERTION_FAILURE_EX = "assertionFailureE"; // Must match the method name
     public static final String REPORT_EXCEPTION = "reportException"; // must match method name
+    public static final String racpropertyname = "org.jmlspecs.openjml.rac";
     
+    
+    public static final String racpropertyvalue = System.getProperty(racpropertyname);public Utils() {
+        // TODO Auto-generated constructor stub
+    }
     /** Determines whether to report assertion failures as exceptions (true)
      * or error messages (false).
      */
-    public static boolean useExceptions = "exception".equals(System.getProperty("org.jmlspecs.openjml.rac")) ||
-    		System.getProperty("org.jmlspecs.openjml.racexceptions") != null;
+    public static boolean useExceptions = "exception".equals(racpropertyvalue);
     
-    /** Determines whether to report assertion failures as java assertions (true)
+    /** Determines whether to report assertion failures as AssertionError (true)
      * or error messages (false).
      */
-    public static boolean useJavaAssert = "assert".equals(System.getProperty("org.jmlspecs.openjml.rac")) ||
-    		System.getProperty("org.jmlspecs.openjml.racjavaassert") != null;
+    public static boolean useJavaException = "assertionerror".equals(racpropertyvalue);
+
+    public static boolean useJavaAssert= "javaassert".equals(racpropertyvalue);
 
     /** If true, then error messages reporting assertion failures are 
      * accompanied with a stack trace to log.errorWriter.
      */
-    public static boolean showStack = "stack".equals(System.getProperty("org.jmlspecs.openjml.rac")) ||
-    		System.getProperty("org.jmlspecs.openjml.racshowstack") != null;
+    public static boolean showStack = "showstack".equals(racpropertyvalue);
     
+    public static boolean useStdout = racpropertyvalue == null || "stdout".equals(racpropertyvalue);
+    static {
+        if (!useStdout && !showStack && !useExceptions && !useJavaException && !useJavaAssert) {
+            System.out.println("Invalid value for property " + racpropertyname + ": " + racpropertyvalue);
+        }
+    }
     /** If defined, gives the exit code to use if there are RAC errors */
     public static String racExitCodeString = "org.jmlspecs.openjml.racexitcode";
     
@@ -85,6 +95,8 @@ public class Utils {
         } else if (showStack) { 
         	Error e = createException(message,label);
         	e.printStackTrace(System.out); // Keep the new expressions on line 47 or some test results will change
+        } else if (useJavaException) {
+            throw new java.lang.AssertionError(message);
         } else if (useJavaAssert) {
             assert false: message;
        } else {

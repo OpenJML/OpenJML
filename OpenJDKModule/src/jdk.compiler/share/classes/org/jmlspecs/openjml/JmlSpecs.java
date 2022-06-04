@@ -286,7 +286,8 @@ public class JmlSpecs {
      */
     public boolean appendInternalSpecs(boolean verbose, java.util.List<Dir> dirs) {
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
-       
+        boolean print = verbose || Utils.debug("paths");
+        
         // Look for specs in a file on the classpath
         // If present, use it.
         // Otherwise look use the defauylt installation.
@@ -303,10 +304,16 @@ public class JmlSpecs {
             if (s.endsWith(".jar")) {
                 d = new JarDir(s,"");
                 if (d.exists() && d.findFile("java/lang/Object.jml") != null) {
-                    if (verbose) noticeWriter.println("Using internal specs B: " + d);
+                    if (print) noticeWriter.println("Using specs on classpath [Jar: " + s + "]: " + d);
                     dirs.add(d);
                     return true;
                 }
+            }
+            File f = new File(s + "/java/lang/Object.jml");
+            if (f.exists()) {
+                if (print) noticeWriter.println("Using specs on classpath [Dir: " + s + "]: " + f.getAbsolutePath());
+                dirs.add(new FileSystemDir(f.getAbsolutePath()));
+                return true;
             }
         }
                 
@@ -318,12 +325,11 @@ public class JmlSpecs {
             }
             try { sy = new File(sy).getCanonicalPath(); } catch (IOException e) {}
             
-            //System.out.println("SY " + sy + " " + new File(sy).getAbsolutePath());
             File f = new File(sy);
             if (f.exists() && f.isDirectory()) {
-                if (verbose) noticeWriter.println("Using internal specs T:" + sy);
-            	dirs.add(new FileSystemDir(f));
-            	return true;
+                if (print) noticeWriter.println("Using internal specs [Root: " + sy + "]:" + sy);
+                dirs.add(new FileSystemDir(f.getAbsolutePath()));
+                return true;
             } else {
             	log.error("jml.internal.specs.dir.not.exist",sy);
             }
@@ -1747,8 +1753,8 @@ public class JmlSpecs {
     	if (!type.isReference()) return false;
     	if (Types.instance(context).isSubtype(type, 
     			Symtab.instance(context).jmlPrimitiveType)) return true;
-    	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
-    	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
+        if (findAnnotation(type, Modifiers.NULLABLE)) return false;
+        if (findAnnotation(type, Modifiers.NON_NULL)) return true;
     	if (type instanceof Type.TypeVar) return false; 
     	return isNonNull(msym);
     }

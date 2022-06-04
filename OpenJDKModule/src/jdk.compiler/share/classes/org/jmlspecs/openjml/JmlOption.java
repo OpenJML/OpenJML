@@ -282,17 +282,18 @@ public class JmlOption {
     		JmlOptions options = JmlOptions.instance(context);
             String val = options.get(optionName());
             if (val == null || val.isEmpty()) {
-                options.put(optionName(),(String)defaultValue());
-            } else if("none".equals(val) || "line".equals(val) || "source".equals(val)) {
+                options.put(optionName(),negate? "line" : (String)defaultValue());
+            } else if ("none".equals(val) || "line".equals(val) || "source".equals(val)) {
+                // OK
             } else {
-                Utils.instance(context).warning("jml.message","Command-line argument error: Expected 'none', 'line' or 'source' for -racShowSource: " + val);
+                Utils.instance(context).warning("jml.message","Command-line argument error: Expected 'none', 'line' or 'source' for --rac-show-source : " + val);
                 options.put(optionName(),(String)defaultValue());
             	return false;
             }
             return true;
     	}
     };
-    public static final JmlOption RAC_CHECK_ASSUMPTIONS = new JmlOption("--rac-check-assumptions",false,false,"RAC: Enables runtime checking that assumptions hold",null);
+    public static final JmlOption RAC_CHECK_ASSUMPTIONS = new JmlOption("--rac-check-assumptions",false,true,"RAC: Enables runtime checking that assumptions hold",null);
     public static final JmlOption RAC_JAVA_CHECKS = new JmlOption("--rac-java-checks",false,false,"RAC: Enables explicit checking of Java language checks",null);
     public static final JmlOption RAC_COMPILE_TO_JAVA_ASSERT = new JmlOption("--rac-compile-to-java-assert",false,false,"RAC: Compiles JML checks as Java asserts",null);
     public static final JmlOption RAC_PRECONDITION_ENTRY = new JmlOption("--rac-precondition-entry",false,false,"RAC: Distinguishes Precondition failures on entry calls",null);

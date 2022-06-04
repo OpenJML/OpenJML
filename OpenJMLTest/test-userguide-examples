@@ -1,0 +1,48 @@
+#! /usr/bin/env bash
+
+cd /Users/davidcok/cok/texstuff/papers/OpenJMLUserGuide/620c2512d552cc226f5f4c94
+cd examples
+chmod +x */run
+X=0
+for f in * ; do
+  if [[ ! -d $f ]]; then
+    echo $f is not a directory
+  elif [[ -e $f/run ]]; then
+    echo RUN $f
+    ( cd $f ; ./run)
+  elif [[ -e $f/ESC.out1 ]]; then
+    echo ESC $f
+    out=ESC.out
+    pushd $f > /dev/null
+    openjml --esc *.java >& actual
+    n=0
+    Y=1
+    while [[ $( diff actual $out > /dev/null ) ]]; do
+      let ++n
+      out=ESC.out$n
+      if [[ ! -e $out ]]; then Y=0; break; fi
+    done
+    if [[ $Y ]]; then rm -rf actual; else X=1; diff actual ESC.out; fi
+    popd > /dev/null
+  elif [[ -e $f/ESC.out ]] ; then
+    echo ESC $f
+    ( cd $f; ( openjml --esc *.java |& tee actual | diff - ESC.out ) && rm -f actual ) || X=1
+  elif [[ -e $f/RAC.out ]] ; then
+    echo RAC $f
+    ( cd $f; ( ( openjml --rac *.java; openjml-java Demo ) |& tee actual | diff - RAC.out ) && rm -f actual ) || X=1
+  else
+    echo MULTIPLE $f
+    pushd $f > /dev/null
+    for g in *.java; do
+      echo "    " $g
+      out=$( cat $g | sed -e 's/java/out/')
+      if [[ -e $out ]]; then
+        openjml --esc $g | diff - $out
+      else
+        openjml --esc $g || echo $g FAILED
+      fi
+    done
+    popd > /dev/null
+  fi
+done
+

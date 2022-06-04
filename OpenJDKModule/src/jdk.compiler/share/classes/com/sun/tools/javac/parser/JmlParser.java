@@ -2772,7 +2772,6 @@ public class JmlParser extends JavacParser {
         var saved = possibleDotStar;
         possibleDotStar = true;
         try {
-            //System.out.println("JML-TERM3 " + token);
         	JCExpression eee = toP(super.term3());
         	return eee;
         } finally {
