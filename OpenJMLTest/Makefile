@@ -12,6 +12,7 @@ openjml-test: prep
 	-make tutorial-tests
 	make unittests-par
 	make script-tests
+	./test-userguide-examples
 
 script-tests:
 	( cd ${ROOT}/scripttests; ./escfiles-err )
