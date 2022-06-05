@@ -1,5 +1,5 @@
 START
 Exception in thread "main" org.jmlspecs.runtime.JmlAssertionError: ../testfiles/testRac/A.java:4: verify: JML assertion is false
-	at org.jmlspecs.runtime.Utils.createException(Utils.java:130)
-	at org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:84)
+	at org.jmlspecs.runtime.Utils.createException(Utils.java:142)
+	at org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:94)
 	at A.main(A.java:1)

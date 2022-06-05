@@ -135,20 +135,20 @@ echo RAC-SIMPLE
 java -classpath "rac${Z}${RT}" A 1 2  > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' | diff - ../releaseTests/testRac/expected-simple || { RES=$(($RES+1)); }
 echo RAC-EXC
-java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.racexceptions A 1 2 > racactual  2>&1
+java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=exception A 1 2 > racactual  2>&1
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-exceptions || { RES=$(($RES+1)); }
 echo RAC-BOTH
-java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.racexceptions -Dorg.jmlspecs.openjml.racshowstack A 1 2   > racactual  2>&1
+java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=exception -Dorg.jmlspecs.openjml.racshowstack A 1 2   > racactual  2>&1
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-exceptions || { RES=$(($RES+1)); }
 echo RAC-ST
-java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.racshowstack A 1 2 > racactual
+java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=showstack A 1 2 > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack || { RES=$(($RES+1)); }
 echo RAC-NOLIB
 java -classpath "rac" A 1 2 > racactual 2>&1
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' | head -4 |  diff - ../releaseTests/testRac/expected-nolib || { RES=$(($RES+1)); }
 
 echo RAC-ST with openjml-java
-${JV} -classpath "rac" -Dorg.jmlspecs.openjml.racshowstack A 1 2 > racactual
+${JV} -classpath "rac" -Dorg.jmlspecs.openjml.rac=showstack A 1 2 > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack-openjml || { RES=$(($RES+1)); }
 
 ${RTH} testRac "$OJ --rac --rac-show-source=source --no-purity-check -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
@@ -174,7 +174,7 @@ fi
 ##${RTH} testOK4 "$OJ --specs-path . B.java -noInternalSpecs" || RES=$(($RES+1))
 
 ## Checks a valid file with no internal runtime library - should fail to find annotations
-## FIXME - is -noInternalRuntime still a usefule/vlid option?
+## FIXME - is -noInternalRuntime still a useful/valid option?
 ##${RTH} testRuntime1 "$OJ C.java -jmltesting -classpath . --no-purity-check" || RES=$(($RES+1))
 
 ## ANNOTATIONS might be an absolute or relative path.  We are currently in
