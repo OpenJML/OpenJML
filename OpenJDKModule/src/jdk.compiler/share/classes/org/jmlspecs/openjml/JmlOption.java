@@ -226,9 +226,10 @@ public class JmlOption {
             } else {
                 try {
                     int k = Integer.parseInt(limit);
+                    if (k < 0) utils.error("jml.message","Expected a positive number or 'all' as argument for --esc-max-warnings: " + limit);
                     utils.maxWarnings = k <= 0 ? Integer.MAX_VALUE : k;
                 } catch (NumberFormatException e) {
-                    utils.error("jml.message","Expected a number or 'all' as argument for -escMaxWarnings: " + limit);
+                    utils.error("jml.message","Expected a positive number or 'all' as argument for --esc-max-warnings: " + limit);
                     utils.maxWarnings = Integer.MAX_VALUE;
                     return false;
                 }

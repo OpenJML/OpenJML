@@ -1,3 +1,4 @@
+import org.jmlspecs.runtime.*;
 public class IntDiv {
 
 //@ requires y != 0;
@@ -8,6 +9,7 @@ public class IntDiv {
 public static int IntDiv(int x, int y) {
 	int z = 0;
 	int signe = 1;
+    test(x);
 	if (x < 0) {
 		signe = -1;
 		x = -x;
@@ -29,6 +31,29 @@ public static int IntDiv(int x, int y) {
 	}
 	z = signe * z;
 	return z;
+}
+
+//@ requires i != 1;
+public static void test(int i) {}
+
+public static void main(String ... args) {
+    try {
+        IntDiv(0,0);
+    } catch (JmlAssertionError.PreconditionEntry e) {
+        System.out.println("Expected invalid entry precondition");
+    } catch (Exception e) {
+        System.out.println("FAILED"); e.printStackTrace(System.out);
+    }
+    try {
+        IntDiv(1,1);
+    } catch (JmlAssertionError.PreconditionEntry e) {
+        System.out.println("UNEXPECTED invalid entry precondition");
+    } catch (JmlAssertionError.Precondition e) {
+        System.out.println("Expected invalid non-entry precondition"); e.printStackTrace(System.out);
+    } catch (Exception e) {
+        System.out.println("FAILED"); e.printStackTrace(System.out);
+    }
+    System.out.println("END");
 }
 
 }

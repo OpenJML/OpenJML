@@ -193,17 +193,23 @@ public class JmlOptions extends Options {
         }
 
         boolean negate = false;
-        if (s.startsWith("--no-") || s.startsWith("-no-")) {
+        if (s.startsWith("--no-")) {
             negate = true;
-            s = s.replace("-no","");
+            s = "-" + s.substring(4);
+        } else if (s.startsWith("-no-")) {
+            negate = true;
+            s = s.substring(3);
         }
         
         var o = JmlOption.find(s);
         while (o != null && o.synonym() != null) {
             s = o.synonym();
-            if (s.startsWith("-no-") || s.startsWith("--no-")) {
+            if (s.startsWith("--no-")) {
                 negate = !negate;
-                s = s.replace("-no","");
+                s = "-" + s.substring(4);
+            } else if (s.startsWith("-no-")) {
+                negate = !negate;
+                s = s.substring(3);
             }
             o = JmlOption.find(s);
         }

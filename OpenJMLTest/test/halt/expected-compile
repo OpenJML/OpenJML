@@ -1,0 +1,4 @@
+test/halt/Demo.java:8: warning: halt statements are ignored with --rac
+    //@ halt;
+        ^
+1 warning

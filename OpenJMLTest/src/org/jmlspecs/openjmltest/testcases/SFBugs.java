@@ -670,7 +670,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug600() {
         expectedExit = 0;
-        helpTCG("-rac","-racCheckAssumptions","-racPreconditionEntry"); // RAC compile crash
+        helpTCG("--rac","--rac-check-assumptions","--rac-precondition-entry"); // RAC compile crash
     }
     
     @Ignore // FIXME - times out -- double arithmetic?

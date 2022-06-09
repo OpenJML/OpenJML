@@ -1,0 +1,9 @@
+OUT:
+test/halt/Demo.java:4: verify: JML postcondition is false
+  public static void main(String ... args) {
+                     ^
+test/halt/Demo.java:3: verify: Associated declaration: test/halt/Demo.java:4:
+  //@ ensures false;
+      ^
+
+ERR:

@@ -5528,7 +5528,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							}
 
 						} else if (ct == MethodResourceClauseExtension.workingspaceClause
-								|| ct == MethodResourceClauseExtension.durationClause) {
+				            || ct == MethodResourceClauseExtension.durationClause
+                            || ct == MethodResourceClauseExtension.measuredbyClause) {
 
 							{
 								// FIXME _ implement
@@ -19040,10 +19041,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 
 			} else if (that.clauseType == ReachableStatement.haltClause) {
-
-	            addFeasibilityCheck(that, currentStatements, Strings.feas_halt, "at halt statement");
-				addStat(that);
-				continuation = Continuation.HALT;
+			    if (!rac) {
+			        addFeasibilityCheck(that, currentStatements, Strings.feas_halt, "at halt statement");
+			        addStat(that);
+			        continuation = Continuation.HALT;
+			    } else {
+			        utils.warning(that, "jml.message", "halt statements are ignored with --rac");			    }
 
 			} else if (that.clauseType == ReachableStatement.unreachableClause) {
 

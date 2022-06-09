@@ -807,11 +807,13 @@ public class JmlTreeUtils {
     public JCExpression makeNotSimp(DiagnosticPosition pos, JCExpression arg) {
         if (isTrueLit(arg)) return makeBooleanLiteral(pos,false);
         else if (isFalseLit(arg)) return makeBooleanLiteral(pos,true);
+        else if (arg instanceof JCUnary u && u.getTag() == JCTree.Tag.NOT) return u.arg;
         else return makeUnary(pos,JCTree.Tag.NOT,arg);
     }
     public JCExpression makeNotSimp(int pos, JCExpression arg) {
         if (isTrueLit(arg)) return makeBooleanLiteral(pos,false);
         else if (isFalseLit(arg)) return makeBooleanLiteral(pos,true);
+        else if (arg instanceof JCUnary u && u.getTag() == JCTree.Tag.NOT) return u.arg;
         else return makeUnary(pos,JCTree.Tag.NOT,arg);
     }
 

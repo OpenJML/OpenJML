@@ -1,0 +1,12 @@
+Proving methods in Demo
+Starting proof of Demo.Demo() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Demo.Demo() with prover !!!! - no warnings
+Starting proof of Demo.main(String...) with prover !!!!
+test/halt/Demo.java:6: warning: The prover cannot establish an assertion (Assert) in method main
+        //@ assert false;
+            ^
+Completed proof of Demo.main(String...) with prover !!!! - with warnings
+Completed proving methods in Demo
+1 warning

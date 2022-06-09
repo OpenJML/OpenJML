@@ -72,7 +72,7 @@ public class escfeasibility extends EscBase {
                 ,"/tt/TestJava.java:4: warning: There is no feasible path to program point Extra-Assume in method tt.TestJava.m(int)",26
                 ,"/tt/TestJava.java:4: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.m(int)",13
                 ,"/tt/TestJava.java:3: warning: There is no feasible path to program point at program exit in method tt.TestJava.m(int)",17
-                ,"/tt/TestJava.java: warning: There is no feasible path to program point Extra-Assert in method tt.TestJava.m(int)",-1
+                ,"/tt/TestJava.java:3: warning: There is no feasible path to program point Extra-Assert in method tt.TestJava.m(int)",17
                 );
     }
 

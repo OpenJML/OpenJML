@@ -648,12 +648,12 @@ public class MethodProverSMT {
             } else b: { // Proof was not UNSAT, so there may be a counterexample
                 if (!Utils.testingMode) utils.progress(0,1,loc + " Method assertions are INVALID");
                 int count = Utils.instance(context).maxWarnings;
-                boolean byPath = JmlOption.isOption(context, JmlOption.MAXWARNINGSPATH);
                 ProverResult pr = (ProverResult)factory.makeProverResult(methodDecl.sym,proverToUse,
                         solverResponse.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT,start);
                 proofResult = pr;
                 boolean haveFailedAssertion = false;
                 while (prevErrors == log.nerrors) {
+                    if (print) System.out.println("WHILE " + count + " " + solverResponse);
                     if (aborted) {
                     	throw new Main.JmlCanceledException("Aborted by user");
                     }
@@ -764,17 +764,17 @@ public class MethodProverSMT {
                         pr.add(ce); // TODO - make more abstract
                     }
                     
+                    if (print) System.out.println("COUNT " + count + " " + pathCondition);
+                    if (--count <= 0) break;
                     if (pathCondition == null) {
                         break;
                     }
-
-                    if (--count <= 0) break;
-                    
+                
                     solver.pop(1); // pops off all of the previous check_sat
                     solver.assertExpr(smttrans.convertExpr(pathCondition));
                     solver.push(1); // mark the top again
                     solverResponse = solver.check_sat();
-
+                    if (Utils.debug("trace")) System.out.println("TRIED AGAIN " + solverResponse + " " + pathCondition);
                     if (solverResponse.isError()) {
                         //log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
                         JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse));
@@ -898,18 +898,20 @@ public class MethodProverSMT {
         info.jmap = jmap;
         info.aaPathMap = aaPathMap;
         info.bbPathMap = bbPathMap;
-        JCExpression pathCondition = reportInvalidAssertion2(program.startBlock(),info,0, JmlTreeUtils.instance(context).falseLit);
+        JCExpression pathCondition = reportInvalidAssertion2(program.startBlock(),info,0, JmlTreeUtils.instance(context).trueLit);
         if (pathCondition == null) {
         	utils.verify("jml.internal.notsobad","Could not find an invalid assertion even though the proof result was satisfiable: " + decl.sym); //$NON-NLS-1$ //$NON-NLS-2$
             return null;
         }
-        return pathCondition;
+        return treeutils.makeNotSimp(pathCondition, pathCondition);
     }
     
     public JCExpression reportInvalidAssertion2(BasicProgram.BasicBlock sblock, Info info, int sterminationPos, JCExpression spathCondition) {
         // On large problems (or even moderate ones) we can overflow the stack searching the block DAG.
         // So instead we make it iterative with a few state stacks
         
+        boolean byPath = JmlOption.isOption(context, JmlOption.MAXWARNINGSPATH);
+        boolean print = Utils.debug("trace");
         Stack<BasicProgram.BasicBlock> blockStack = new Stack<>();
         Stack<Integer> terminationStack = new Stack<>();
         Stack<JCExpression> pathConditionStack = new Stack<>();
@@ -924,12 +926,13 @@ public class MethodProverSMT {
             
             String id = block.id.name.toString();
             Boolean value = getBoolValue(id,info.smt,info.solver);
+            if (print) System.out.println("BLOCK " + block.id + " " + value);
             if (value == null) {
             	utils.verify("jml.messsage", "Failed to obtain a block value " + id);
                 // FIXME - error and what to do ?
                 continue;
             }
-            if (info.verbose && (JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE) || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS))) {
+            if (print && (JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE) || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS))) {
                 tracer.appendln("Block " + id + " is " + value);  //$NON-NLS-1$//$NON-NLS-2$
             }
             if (value) {
@@ -979,8 +982,11 @@ public class MethodProverSMT {
                             ((JmlStatementExpr)bbstat).expression instanceof JCLiteral ?
                                     ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString()
                                     : null;
-                    if (comment != null && comment.contains("Assignable assertion:")) {
-// FIXME                           System.out.println("");             
+                    if (stat instanceof JmlStatementExpr st && st.clauseType == assumeClause) {
+                        if (byPath && (st.label == Label.BRANCHT || st.label == Label.BRANCHE || st.label == Label.CASECONDITION)) {
+                            pathCondition = treeutils.makeAnd(origStat, pathCondition, st.expression);
+                            if (print) System.out.println("NEW PATH-CONDITION " + pathCondition);
+                        }
                     }
                     ifstat: if (origStat != null || stat instanceof JmlStatementExpr){
                         String loc = origStat == null ? "" :utils.locationString(origStat.getStartPosition());
@@ -989,12 +995,12 @@ public class MethodProverSMT {
                         int spanType = Span.NORMAL;
                         JCTree toTrace = null;
                         String val = null;
-                        if (origStat instanceof JmlStatementExpr && ((JmlStatementExpr)origStat).clauseType == assumeClause) {
+                        if (origStat instanceof JmlStatementExpr st && st.clauseType == assumeClause) {
                             break ifstat;
-                        } else if (origStat instanceof JCIf) {
-                            toTrace = ((JCIf)origStat).getCondition();
-                        } else if (origStat instanceof JCSwitch) {
-                            toTrace = ((JCSwitch)origStat).getExpression();
+                        } else if (origStat instanceof JCIf ifstat) {
+                            toTrace = ifstat.getCondition();
+                        } else if (origStat instanceof JCSwitch st) {
+                            toTrace = st.getExpression();
                             sp = toTrace.getStartPosition();
                             ep = toTrace.getEndPosition(log.currentSource().getEndPosTable());
                         } else if (origStat instanceof JCCase) {
@@ -1092,6 +1098,7 @@ public class MethodProverSMT {
                     if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                     if (s.optionalExpression != null) {
                         log.getWriter(WriterKind.NOTICE).println("FOUND " + s.id);
+                        if (print) System.out.println("COMMENT PATH-CONDITION " + pathCondition);
                         return pathCondition;
                     }
                 }
@@ -1107,18 +1114,17 @@ public class MethodProverSMT {
                         id = e.toString(); // Relies on all assert statements being reduced to identifiers
                         value = getBoolValue(id,info.smt,info.solver);
                     } else {
+                        if (print) System.out.println("FIXME PATH-CONDITION " + pathCondition);
                         return pathCondition; // For when assert statements are not identifiers // FIXME - this is a bad case
                     }
                     if (!value) { 
-//                        if (e instanceof JCIdent) pathCondition = treeutils.makeNot(e, e);
-                        boolean byPath = JmlOption.isOption(context, JmlOption.MAXWARNINGSPATH);
-                        if (byPath) pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
-                        else pathCondition = e;
+                        if (!byPath) pathCondition = treeutils.makeNot(e, e);
+                        if (print && !byPath) System.out.println("ASSERT PATH-CONDITION " + pathCondition);
                         if (terminationPos == 0) terminationPos = info.decl.pos;
 
                         JavaFileObject prev = null;
                         int pos = assertStat.pos;
-                       if (pos == Position.NOPOS || pos == info.decl.pos) {
+                        if (pos == Position.NOPOS || pos == info.decl.pos) {
                             pos = terminationPos;
                             prev = log.useSource(((JmlMethodDecl)info.decl).sourcefile);
                         } else {
@@ -1232,6 +1238,7 @@ public class MethodProverSMT {
                         }
                         // Found an invalid assertion, so we can terminate
                         // Negate the path condition
+                        if (print) System.out.println("RESULT PATH-CONDITION " + pathCondition);
                         return pathCondition; 
                     }
                 }
@@ -1292,317 +1299,317 @@ public class MethodProverSMT {
     // Thus if there is an invalid assertion the start block is false and there is
     // a path of false blocks to the invalid assertion. There could possibly be
     // other blocks with false ids as well.
-    public JCExpression reportInvalidAssertion(BasicProgram.BasicBlock block, Info info, int terminationPos, JCExpression pathCondition) {
-        String id = block.id.name.toString();
-        Boolean value = getBoolValue(id,info.smt,info.solver);
-        if (value == null) {
-            // FIXME - error and what to do ?
-            return null;
-        }
-        if (info.verbose && (JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE) || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS))) {
-            tracer.appendln("Block " + id + " is " + value);  //$NON-NLS-1$//$NON-NLS-2$
-        }
-        if (value) {
-            // The value of the block id is true, so we don't pursue it
-            return null;
-        }
-        terminationPos = checkTerminationPosition(id,terminationPos);
-        pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS,pathCondition,block.id);
-        
-        //showTrace = true;
-        // FIXME - would like to have a range, not just a single position point,
-        // for the terminationPos
-        for (JCStatement stat: block.statements()) {
-            // Report any statements that are JML-labels
-            if (stat instanceof JCVariableDecl) {
-                Name n = ((JCVariableDecl)stat).name;
-                String ns = n.toString();
-                if (ns.startsWith(Strings.labelVarString)) {
-                    JavaFileObject prev = log.useSource( ((JmlVariableDecl)stat).sourcefile );
-                    int k = ns.lastIndexOf(Strings.underscore);
-                    if (ns.startsWith(prefix_lblpos)) {
-                        Boolean b = getBoolValue(ns,info.smt,info.solver);
-                        String label = ns.substring(prefix_lblpos.length(),k); 
-                        if (b == null) utils.verify(stat.pos,"esc.label.value",label,"is unknown"); //$NON-NLS-1$
-                        else if (b) utils.verify(stat,"esc.label.value",label,b); //$NON-NLS-1$
-                    } else if (ns.startsWith(prefix_lblneg)) {
-                        Boolean b = getBoolValue(ns,info.smt,info.solver);
-                        String label = ns.substring(prefix_lblneg.length(),k); 
-                        if (b == null) utils.verify(stat,"esc.label.value",label,"is unknown"); //$NON-NLS-1$
-                        else if (!b) utils.verify(stat,"esc.label.value",label,b); //$NON-NLS-1$
-                    } else if (ns.startsWith(prefix_lbl)) {
-                        String b = getValue(ns,info.smt,info.solver);
-                        String label = ns.substring(prefix_lbl.length(),k); 
-                        JCExpression eshow = jmlesc.assertionAdder.showExpressions.get(label);
-                        System.out.println(label + " " + eshow);
-                        if (b == null) utils.verify(stat,"esc.label.value",label,"is unknown"); //$NON-NLS-1$
-                        else if (eshow == null) utils.verify(stat,"esc.label.value",label,b); //$NON-NLS-1$
-                        else utils.verify(stat,"esc.label.value",eshow.toString(),b);
-                    } else {
-                    	utils.verify(stat,"jml.internal.notsobad","Unknown label: " + ns); //$NON-NLS-1$
-                    }
-                    log.useSource(prev);
-                }
-            }
-            
-            {
-                JCStatement bbstat = stat;
-                JCTree origStat = info.aaPathMap.getr(bbstat);
-                String comment = bbstat instanceof JmlStatementExpr &&
-                        ((JmlStatementExpr)bbstat).expression instanceof JCLiteral ?
-                                ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString()
-                                : null;
-                ifstat: if (origStat != null || stat instanceof JmlStatementExpr){
-                    String loc = origStat == null ? "" :utils.locationString(origStat.getStartPosition());
-                    //String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
-                    int sp=-2,ep=-2; // The -2 is different from NOPOS and (presumably) any other value that might be generated below
-                    int spanType = Span.NORMAL;
-                    JCTree toTrace = null;
-                    String val = null;
-                    if (origStat instanceof JmlStatementExpr && ((JmlStatementExpr)origStat).clauseType == assumeClause) {
-                        //toTrace = ((JmlStatementExpr)stat).expression;
-                        break ifstat;
-                    } else if (origStat instanceof JCIf) {
-                        toTrace = ((JCIf)origStat).getCondition();
-                    } else if (origStat instanceof JCSwitch) {
-                        toTrace = ((JCSwitch)origStat).getExpression();
-                        sp = toTrace.getStartPosition();
-                        ep = toTrace.getEndPosition(log.currentSource().getEndPosTable());
-                    } else if (origStat instanceof JCCase) {
-                        toTrace = ((JCCase)origStat).getBody();
-                        sp = origStat.getStartPosition();
-                        // 8 is the length of "default:"
-                        ep = toTrace == null ? sp + 8 : toTrace.getEndPosition(log.currentSource().getEndPosTable());
-                    } else if (origStat instanceof JCSynchronized) {
-                        toTrace = ((JCSynchronized)origStat).getExpression();
-                    } else if (origStat instanceof JmlForLoop) {
-                        JmlForLoop s = (JmlForLoop)origStat;
-                        sp = s.getStartPosition();
-                        ep = s.getStatement().getStartPosition();
-                        // FIXME - what about the initalizer etc.
-                    } else if (origStat instanceof JmlWhileLoop) {
-                        JmlWhileLoop s = (JmlWhileLoop)origStat;
-                        sp = s.getStartPosition();
-                        ep = s.getStatement().getStartPosition();
-                        // FIXME - what about the initalizer etc.
-                    } else if (origStat instanceof JmlDoWhileLoop) {
-                        JmlDoWhileLoop s = (JmlDoWhileLoop)origStat;
-                        sp = s.getCondition().getStartPosition();
-                        ep = s.getCondition().getEndPosition(log.currentSource().getEndPosTable());
-//                    } else if (origStat instanceof JmlEnhancedForLoop) {
-//                        JmlEnhancedForLoop s = (JmlEnhancedForLoop)origStat;
+//    public JCExpression reportInvalidAssertion(BasicProgram.BasicBlock block, Info info, int terminationPos, JCExpression pathCondition) {
+//        String id = block.id.name.toString();
+//        Boolean value = getBoolValue(id,info.smt,info.solver);
+//        if (value == null) {
+//            // FIXME - error and what to do ?
+//            return null;
+//        }
+//        if (info.verbose && (JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE) || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS))) {
+//            tracer.appendln("Block " + id + " is " + value);  //$NON-NLS-1$//$NON-NLS-2$
+//        }
+//        if (value) {
+//            // The value of the block id is true, so we don't pursue it
+//            return null;
+//        }
+//        terminationPos = checkTerminationPosition(id,terminationPos);
+//        pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS,pathCondition,block.id);
+//        
+//        //showTrace = true;
+//        // FIXME - would like to have a range, not just a single position point,
+//        // for the terminationPos
+//        for (JCStatement stat: block.statements()) {
+//            // Report any statements that are JML-labels
+//            if (stat instanceof JCVariableDecl) {
+//                Name n = ((JCVariableDecl)stat).name;
+//                String ns = n.toString();
+//                if (ns.startsWith(Strings.labelVarString)) {
+//                    JavaFileObject prev = log.useSource( ((JmlVariableDecl)stat).sourcefile );
+//                    int k = ns.lastIndexOf(Strings.underscore);
+//                    if (ns.startsWith(prefix_lblpos)) {
+//                        Boolean b = getBoolValue(ns,info.smt,info.solver);
+//                        String label = ns.substring(prefix_lblpos.length(),k); 
+//                        if (b == null) utils.verify(stat.pos,"esc.label.value",label,"is unknown"); //$NON-NLS-1$
+//                        else if (b) utils.verify(stat,"esc.label.value",label,b); //$NON-NLS-1$
+//                    } else if (ns.startsWith(prefix_lblneg)) {
+//                        Boolean b = getBoolValue(ns,info.smt,info.solver);
+//                        String label = ns.substring(prefix_lblneg.length(),k); 
+//                        if (b == null) utils.verify(stat,"esc.label.value",label,"is unknown"); //$NON-NLS-1$
+//                        else if (!b) utils.verify(stat,"esc.label.value",label,b); //$NON-NLS-1$
+//                    } else if (ns.startsWith(prefix_lbl)) {
+//                        String b = getValue(ns,info.smt,info.solver);
+//                        String label = ns.substring(prefix_lbl.length(),k); 
+//                        JCExpression eshow = jmlesc.assertionAdder.showExpressions.get(label);
+//                        System.out.println(label + " " + eshow);
+//                        if (b == null) utils.verify(stat,"esc.label.value",label,"is unknown"); //$NON-NLS-1$
+//                        else if (eshow == null) utils.verify(stat,"esc.label.value",label,b); //$NON-NLS-1$
+//                        else utils.verify(stat,"esc.label.value",eshow.toString(),b);
+//                    } else {
+//                    	utils.verify(stat,"jml.internal.notsobad","Unknown label: " + ns); //$NON-NLS-1$
+//                    }
+//                    log.useSource(prev);
+//                }
+//            }
+//            
+//            {
+//                JCStatement bbstat = stat;
+//                JCTree origStat = info.aaPathMap.getr(bbstat);
+//                String comment = bbstat instanceof JmlStatementExpr &&
+//                        ((JmlStatementExpr)bbstat).expression instanceof JCLiteral ?
+//                                ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString()
+//                                : null;
+//                ifstat: if (origStat != null || stat instanceof JmlStatementExpr){
+//                    String loc = origStat == null ? "" :utils.locationString(origStat.getStartPosition());
+//                    //String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
+//                    int sp=-2,ep=-2; // The -2 is different from NOPOS and (presumably) any other value that might be generated below
+//                    int spanType = Span.NORMAL;
+//                    JCTree toTrace = null;
+//                    String val = null;
+//                    if (origStat instanceof JmlStatementExpr && ((JmlStatementExpr)origStat).clauseType == assumeClause) {
+//                        //toTrace = ((JmlStatementExpr)stat).expression;
+//                        break ifstat;
+//                    } else if (origStat instanceof JCIf) {
+//                        toTrace = ((JCIf)origStat).getCondition();
+//                    } else if (origStat instanceof JCSwitch) {
+//                        toTrace = ((JCSwitch)origStat).getExpression();
+//                        sp = toTrace.getStartPosition();
+//                        ep = toTrace.getEndPosition(log.currentSource().getEndPosTable());
+//                    } else if (origStat instanceof JCCase) {
+//                        toTrace = ((JCCase)origStat).getBody();
+//                        sp = origStat.getStartPosition();
+//                        // 8 is the length of "default:"
+//                        ep = toTrace == null ? sp + 8 : toTrace.getEndPosition(log.currentSource().getEndPosTable());
+//                    } else if (origStat instanceof JCSynchronized) {
+//                        toTrace = ((JCSynchronized)origStat).getExpression();
+//                    } else if (origStat instanceof JmlForLoop) {
+//                        JmlForLoop s = (JmlForLoop)origStat;
+//                        sp = s.getStartPosition();
+//                        ep = s.getStatement().getStartPosition();
+//                        // FIXME - what about the initalizer etc.
+//                    } else if (origStat instanceof JmlWhileLoop) {
+//                        JmlWhileLoop s = (JmlWhileLoop)origStat;
+//                        sp = s.getStartPosition();
+//                        ep = s.getStatement().getStartPosition();
+//                        // FIXME - what about the initalizer etc.
+//                    } else if (origStat instanceof JmlDoWhileLoop) {
+//                        JmlDoWhileLoop s = (JmlDoWhileLoop)origStat;
 //                        sp = s.getCondition().getStartPosition();
 //                        ep = s.getCondition().getEndPosition(log.currentSource().getEndPosTable());
-                    } else if (origStat instanceof JmlVariableDecl) {
-                        JmlVariableDecl s = (JmlVariableDecl)origStat;
-                        sp = s.getStartPosition();
-                        ep = s.getEndPosition(log.currentSource().getEndPosTable());
-                        toTrace = s.ident;
-                        tracer.appendln(loc + " \t" + comment);
-                        if (toTrace != null && showSubexpressions) tracer.trace(s.init);
-                        if (toTrace != null && showSubexpressions) tracer.trace(s.ident);
-                        break ifstat;
-//                    } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.COMMENT && ((JmlStatementExpr)stat).expression.toString().contains("ImplicitAssume")) {
+////                    } else if (origStat instanceof JmlEnhancedForLoop) {
+////                        JmlEnhancedForLoop s = (JmlEnhancedForLoop)origStat;
+////                        sp = s.getCondition().getStartPosition();
+////                        ep = s.getCondition().getEndPosition(log.currentSource().getEndPosTable());
+//                    } else if (origStat instanceof JmlVariableDecl) {
+//                        JmlVariableDecl s = (JmlVariableDecl)origStat;
+//                        sp = s.getStartPosition();
+//                        ep = s.getEndPosition(log.currentSource().getEndPosTable());
+//                        toTrace = s.ident;
+//                        tracer.appendln(loc + " \t" + comment);
+//                        if (toTrace != null && showSubexpressions) tracer.trace(s.init);
+//                        if (toTrace != null && showSubexpressions) tracer.trace(s.ident);
 //                        break ifstat;
-                    } else {
-                        toTrace = origStat;
-                    }
-                    if (toTrace != null && sp == -2) {
-                        sp = toTrace.getStartPosition();
-                        ep = toTrace.getEndPosition(log.currentSource().getEndPosTable());
-                        val = info.cemap.get(toTrace);
-                        spanType = val == null ? Span.NORMAL : val.equals("true") ? Span.TRUE : Span.FALSE;
-                    }
-                    //log.getWriter(WriterKind.NOTICE).println("SPAN " + sp + " " + ep + " " + spanType);
-                    if (sp > Position.NOPOS) { // Neither -2 nor NOPOS
-                        if (ep >= sp) path.add(new Span(sp,ep,spanType));
-//                        else log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
-                    } else {
-//                        log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
-                    }
-                    if (comment != null) {
-                        if (comment.startsWith("FeasibilityCheck assertion")) break ifstat;
-                        if (info.verbose || toTrace != null) tracer.appendln(loc + " \t" + comment);
-                    }
-                    if (toTrace != null && showSubexpressions) tracer.trace(toTrace);
-                    String s = ((JmlStatementExpr)bbstat).id;
-                    if (toTrace != null && s != null) {
-                        tracer.appendln("\t\t\t\t" + s + " = " + info.cemap.get(toTrace));
-                    }
-                    
-                } else if (info.aaPathMap.reverse.keySet().contains(bbstat)) {
-                    String loc = utils.locationString(bbstat.getStartPosition());
-                    //String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
-                    tracer.appendln(loc + " \t" + comment);
-                } else if (comment != null) {
-                    tracer.appendln(" \t//" + comment);
-                }
-            }
-            
-            if (showBBTrace) {
-                log.getWriter(WriterKind.NOTICE).println("STATEMENT: " + stat);
-                if (stat instanceof JmlStatementExpr) {
-                    JmlStatementExpr x = (JmlStatementExpr)stat;
-                    tracer.trace(x.expression);
-                    log.getWriter(WriterKind.NOTICE).println(tracer.text());
-                    tracer.clear();
-                } else if (stat instanceof JCVariableDecl) {
-                    JCVariableDecl vd = (JCVariableDecl)stat;
-                    Name n = vd.name;
-                    if (vd.init != null) tracer.trace(vd.init);
-                    log.getWriter(WriterKind.NOTICE).println("DECL: " + n + " === " + getValue(n.toString(),info.smt,info.solver));
-                }
-            }
-            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).clauseType == commentClause) {
-                JmlStatementExpr s = (JmlStatementExpr)stat;
-                if (s.id == null || !s.id.startsWith("ACHECK")) continue;
-                if (s.optionalExpression != null) {
-                    log.getWriter(WriterKind.NOTICE).println("FOUND " + s.id);
-                    return pathCondition;
-                }
-            }
-            if (stat instanceof JmlStatementExpr && (((JmlStatementExpr)stat).clauseType == assertClause || ((JmlStatementExpr)stat).clauseType == checkClause)) {
-                JmlStatementExpr assertStat = (JmlStatementExpr)stat;
-                JCExpression e = assertStat.expression;
-                Label label = assertStat.label;
-                if (e instanceof JCTree.JCLiteral) {
-                    value = ((JCTree.JCLiteral)e).value.equals(1); // Boolean literals have 0 and 1 value
-                } else if (e instanceof JCTree.JCParens) {
-                    value = ((JCTree.JCLiteral)((JCTree.JCParens)e).expr).value.equals(1); // Boolean literals have 0 and 1 value
-                } else if (e instanceof JCIdent){
-                    id = e.toString(); // Relies on all assert statements being reduced to identifiers
-                    value = getBoolValue(id,info.smt,info.solver);
-                } else {
-                    return pathCondition; // For when assert statements are not identifiers
-                }
-                if (!value) { 
-                    boolean byPath = JmlOption.isOption(context, JmlOption.MAXWARNINGSPATH);
-                    if (byPath) pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
-                    else pathCondition = e;
-                    if (terminationPos == 0) terminationPos = info.decl.pos;
-
-                    JavaFileObject prev = null;
-                    int pos = assertStat.pos;
-                    if (pos == Position.NOPOS || pos == info.decl.pos) {
-                        pos = terminationPos;
-                        prev = log.useSource(((JmlMethodDecl)info.decl).sourcefile);
-                    } else {
-                        if (assertStat.source != null) prev = log.useSource(assertStat.source);
-                    }
-                    JavaFileObject mainSource = log.currentSourceFile();
-                    String associatedLocation = Strings.empty;
-                    if (assertStat.associatedPos != Position.NOPOS && !Utils.testingMode) {
-                        associatedLocation = ": " + utils.locationString(assertStat.associatedPos,assertStat.associatedSource); 
-                    }
-                    String extra = Strings.empty;
-                    JCExpression optional = assertStat.optionalExpression;
-                    if (optional != null) {
-                        if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString(); //$NON-NLS-1$
-                    }
-                    if (assertStat.description != null && label != Label.PRECONDITION && label != Label.UNDEFINED_PRECONDITION && label != Label.UNDEFINED_NULL_PRECONDITION) {
-                        extra = ": " + assertStat.description;
-                    }
-                    
-                    if (JmlOption.includes(context, JmlOption.SHOW, "translated")) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
-                    int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
-                    String loc;
-                    if (epos == Position.NOPOS || pos != assertStat.pos) {
-                    	utils.verify(pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
-                        loc = utils.locationString(pos);
-                        tracer.appendln(loc + " Invalid assertion (" + label + ")");
-                    } else {
-                        // FIXME - migrate to using pos() for terminationPos as well 
-                    	utils.verify(assertStat.getPreferredPosition(),"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
-                        loc = utils.locationString(assertStat.getPreferredPosition());
-                        tracer.appendln(loc + " Invalid assertion (" + label + ")");
-                    }
-                    // TODO - above we include the optionalExpression as part of the error message
-                    // however, it is an expression, and not evaluated for ESC. Even if it is
-                    // a literal string, it is printed with quotes around it.
-                    if (assertStat.source != null) log.useSource(prev);
-                    
-                    if (assertStat.associatedPos != Position.NOPOS) {
-                        //if (assertStat.associatedSource != null) prev = log.useSource(assertStat.associatedSource);
-                        utils.verify(assertStat.associatedSource, assertStat.associatedPos, 
-                                Utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
-                                loc);
-                        tracer.appendln(associatedLocation + " Associated location");
-                        //if (assertStat.associatedSource != null) log.useSource(prev);
-                    }
-                    if (assertStat.associatedClause != null) {
-                        IJmlClauseKind tkind = assertStat.associatedClause.clauseKind;
-                        if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind) {  // FIXME - actually - any postcondition check
-                            int p = terminationPos;
-                            if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
-                                if (terminationPos == info.decl.pos) {
-                                	JavaFileObject pr = log.useSource(mainSource);
-                                	p = info.decl.getEndPosition(log.currentSource().getEndPosTable());
-                                	log.useSource(pr);
-                                }
-                                JavaFileObject prevv = log.useSource(mainSource);
-                                if (p != Position.NOPOS) utils.verify(p, "jml.message", "Associated method exit");
-                                log.useSource(prevv);
-                            }
-                        }
-                    }
-
-                    if (label == Label.PRECONDITION || label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION) {
-                        //BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
-                        //for (int pdetail=1; pdetail <= jmlesc.assertionAdder.preconditionDetail; pdetail++) 
-                        {
-                           String nm = assertStat.description;
-                           //logPreValue(nm,cemap);
-                           String v = info.cemap.get(nm);
-                            //log.note("jml.message",nm + " " + v);
-                           if (!"true".equals(v)) {
-                                int pdetail2 = 0;
-                                while (true) {
-                                    pdetail2++;
-                                    String nmm = nm + "_" + pdetail2;
-                                    String vv = info.cemap.get(nm);
-                                    //log.note("jml.message",nmm + " " + vv);
-                                    if (vv == null && pdetail2 > 6) break;
-                                    if (true ) {
-                                        int pdetail3 = 0;
-                                        while (true) {
-                                            pdetail3++;
-                                            String nmmm = nmm + "_" + pdetail3;
-                                            Boolean vvv = findPreValue(nmmm,info);
-                                            //log.note("jml.message",nmmm + " " + vvv);
-                                            if (vvv == null) break;
-                                            if (!vvv) {
-                                                JCExpression s = findPreExpr(nmmm);
-                                                JavaFileObject prevv = log.useSource(jmlesc.assertionAdder.preconditionDetailClauses.get(nmmm));
-                                                utils.verify(s.pos,"esc.false.precondition.conjunct", s.toString());
-                                                log.useSource(prevv);
-                                                break;
-                                            } else {
-                                                continue;
-                                            }
-                                        }
-                                    } else {
-                                        // FIXME - there cannot be a true value here
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    // Found an invalid assertion, so we can terminate
-                    // Negate the path condition
-                    return pathCondition; 
-                }
-            }
-        }
-        
-        // Since we have not found an invalid assertion in this block, we
-        // inspect each follower. Since the blocks form a DAG, this will
-        // terminate.
-        for (BasicBlock b: block.followers()) {
-            JCExpression p = reportInvalidAssertion(b,info,terminationPos,pathCondition);
-            if (p != null) return p;
-        }
-        return null; // Did not find anything in this block or its followers
-    }
+////                    } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.COMMENT && ((JmlStatementExpr)stat).expression.toString().contains("ImplicitAssume")) {
+////                        break ifstat;
+//                    } else {
+//                        toTrace = origStat;
+//                    }
+//                    if (toTrace != null && sp == -2) {
+//                        sp = toTrace.getStartPosition();
+//                        ep = toTrace.getEndPosition(log.currentSource().getEndPosTable());
+//                        val = info.cemap.get(toTrace);
+//                        spanType = val == null ? Span.NORMAL : val.equals("true") ? Span.TRUE : Span.FALSE;
+//                    }
+//                    //log.getWriter(WriterKind.NOTICE).println("SPAN " + sp + " " + ep + " " + spanType);
+//                    if (sp > Position.NOPOS) { // Neither -2 nor NOPOS
+//                        if (ep >= sp) path.add(new Span(sp,ep,spanType));
+////                        else log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
+//                    } else {
+////                        log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
+//                    }
+//                    if (comment != null) {
+//                        if (comment.startsWith("FeasibilityCheck assertion")) break ifstat;
+//                        if (info.verbose || toTrace != null) tracer.appendln(loc + " \t" + comment);
+//                    }
+//                    if (toTrace != null && showSubexpressions) tracer.trace(toTrace);
+//                    String s = ((JmlStatementExpr)bbstat).id;
+//                    if (toTrace != null && s != null) {
+//                        tracer.appendln("\t\t\t\t" + s + " = " + info.cemap.get(toTrace));
+//                    }
+//                    
+//                } else if (info.aaPathMap.reverse.keySet().contains(bbstat)) {
+//                    String loc = utils.locationString(bbstat.getStartPosition());
+//                    //String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
+//                    tracer.appendln(loc + " \t" + comment);
+//                } else if (comment != null) {
+//                    tracer.appendln(" \t//" + comment);
+//                }
+//            }
+//            
+//            if (showBBTrace) {
+//                log.getWriter(WriterKind.NOTICE).println("STATEMENT: " + stat);
+//                if (stat instanceof JmlStatementExpr) {
+//                    JmlStatementExpr x = (JmlStatementExpr)stat;
+//                    tracer.trace(x.expression);
+//                    log.getWriter(WriterKind.NOTICE).println(tracer.text());
+//                    tracer.clear();
+//                } else if (stat instanceof JCVariableDecl) {
+//                    JCVariableDecl vd = (JCVariableDecl)stat;
+//                    Name n = vd.name;
+//                    if (vd.init != null) tracer.trace(vd.init);
+//                    log.getWriter(WriterKind.NOTICE).println("DECL: " + n + " === " + getValue(n.toString(),info.smt,info.solver));
+//                }
+//            }
+//            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).clauseType == commentClause) {
+//                JmlStatementExpr s = (JmlStatementExpr)stat;
+//                if (s.id == null || !s.id.startsWith("ACHECK")) continue;
+//                if (s.optionalExpression != null) {
+//                    log.getWriter(WriterKind.NOTICE).println("FOUND " + s.id);
+//                    return pathCondition;
+//                }
+//            }
+//            if (stat instanceof JmlStatementExpr && (((JmlStatementExpr)stat).clauseType == assertClause || ((JmlStatementExpr)stat).clauseType == checkClause)) {
+//                JmlStatementExpr assertStat = (JmlStatementExpr)stat;
+//                JCExpression e = assertStat.expression;
+//                Label label = assertStat.label;
+//                if (e instanceof JCTree.JCLiteral) {
+//                    value = ((JCTree.JCLiteral)e).value.equals(1); // Boolean literals have 0 and 1 value
+//                } else if (e instanceof JCTree.JCParens) {
+//                    value = ((JCTree.JCLiteral)((JCTree.JCParens)e).expr).value.equals(1); // Boolean literals have 0 and 1 value
+//                } else if (e instanceof JCIdent){
+//                    id = e.toString(); // Relies on all assert statements being reduced to identifiers
+//                    value = getBoolValue(id,info.smt,info.solver);
+//                } else {
+//                    return pathCondition; // For when assert statements are not identifiers
+//                }
+//                if (!value) { 
+//                    boolean byPath = JmlOption.isOption(context, JmlOption.MAXWARNINGSPATH);
+//                    if (byPath) pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
+//                    else pathCondition = e;
+//                    if (terminationPos == 0) terminationPos = info.decl.pos;
+//
+//                    JavaFileObject prev = null;
+//                    int pos = assertStat.pos;
+//                    if (pos == Position.NOPOS || pos == info.decl.pos) {
+//                        pos = terminationPos;
+//                        prev = log.useSource(((JmlMethodDecl)info.decl).sourcefile);
+//                    } else {
+//                        if (assertStat.source != null) prev = log.useSource(assertStat.source);
+//                    }
+//                    JavaFileObject mainSource = log.currentSourceFile();
+//                    String associatedLocation = Strings.empty;
+//                    if (assertStat.associatedPos != Position.NOPOS && !Utils.testingMode) {
+//                        associatedLocation = ": " + utils.locationString(assertStat.associatedPos,assertStat.associatedSource); 
+//                    }
+//                    String extra = Strings.empty;
+//                    JCExpression optional = assertStat.optionalExpression;
+//                    if (optional != null) {
+//                        if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString(); //$NON-NLS-1$
+//                    }
+//                    if (assertStat.description != null && label != Label.PRECONDITION && label != Label.UNDEFINED_PRECONDITION && label != Label.UNDEFINED_NULL_PRECONDITION) {
+//                        extra = ": " + assertStat.description;
+//                    }
+//                    
+//                    if (JmlOption.includes(context, JmlOption.SHOW, "translated")) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
+//                    int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
+//                    String loc;
+//                    if (epos == Position.NOPOS || pos != assertStat.pos) {
+//                    	utils.verify(pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
+//                        loc = utils.locationString(pos);
+//                        tracer.appendln(loc + " Invalid assertion (" + label + ")");
+//                    } else {
+//                        // FIXME - migrate to using pos() for terminationPos as well 
+//                    	utils.verify(assertStat.getPreferredPosition(),"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
+//                        loc = utils.locationString(assertStat.getPreferredPosition());
+//                        tracer.appendln(loc + " Invalid assertion (" + label + ")");
+//                    }
+//                    // TODO - above we include the optionalExpression as part of the error message
+//                    // however, it is an expression, and not evaluated for ESC. Even if it is
+//                    // a literal string, it is printed with quotes around it.
+//                    if (assertStat.source != null) log.useSource(prev);
+//                    
+//                    if (assertStat.associatedPos != Position.NOPOS) {
+//                        //if (assertStat.associatedSource != null) prev = log.useSource(assertStat.associatedSource);
+//                        utils.verify(assertStat.associatedSource, assertStat.associatedPos, 
+//                                Utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
+//                                loc);
+//                        tracer.appendln(associatedLocation + " Associated location");
+//                        //if (assertStat.associatedSource != null) log.useSource(prev);
+//                    }
+//                    if (assertStat.associatedClause != null) {
+//                        IJmlClauseKind tkind = assertStat.associatedClause.clauseKind;
+//                        if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind) {  // FIXME - actually - any postcondition check
+//                            int p = terminationPos;
+//                            if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
+//                                if (terminationPos == info.decl.pos) {
+//                                	JavaFileObject pr = log.useSource(mainSource);
+//                                	p = info.decl.getEndPosition(log.currentSource().getEndPosTable());
+//                                	log.useSource(pr);
+//                                }
+//                                JavaFileObject prevv = log.useSource(mainSource);
+//                                if (p != Position.NOPOS) utils.verify(p, "jml.message", "Associated method exit");
+//                                log.useSource(prevv);
+//                            }
+//                        }
+//                    }
+//
+//                    if (label == Label.PRECONDITION || label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION) {
+//                        //BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
+//                        //for (int pdetail=1; pdetail <= jmlesc.assertionAdder.preconditionDetail; pdetail++) 
+//                        {
+//                           String nm = assertStat.description;
+//                           //logPreValue(nm,cemap);
+//                           String v = info.cemap.get(nm);
+//                            //log.note("jml.message",nm + " " + v);
+//                           if (!"true".equals(v)) {
+//                                int pdetail2 = 0;
+//                                while (true) {
+//                                    pdetail2++;
+//                                    String nmm = nm + "_" + pdetail2;
+//                                    String vv = info.cemap.get(nm);
+//                                    //log.note("jml.message",nmm + " " + vv);
+//                                    if (vv == null && pdetail2 > 6) break;
+//                                    if (true ) {
+//                                        int pdetail3 = 0;
+//                                        while (true) {
+//                                            pdetail3++;
+//                                            String nmmm = nmm + "_" + pdetail3;
+//                                            Boolean vvv = findPreValue(nmmm,info);
+//                                            //log.note("jml.message",nmmm + " " + vvv);
+//                                            if (vvv == null) break;
+//                                            if (!vvv) {
+//                                                JCExpression s = findPreExpr(nmmm);
+//                                                JavaFileObject prevv = log.useSource(jmlesc.assertionAdder.preconditionDetailClauses.get(nmmm));
+//                                                utils.verify(s.pos,"esc.false.precondition.conjunct", s.toString());
+//                                                log.useSource(prevv);
+//                                                break;
+//                                            } else {
+//                                                continue;
+//                                            }
+//                                        }
+//                                    } else {
+//                                        // FIXME - there cannot be a true value here
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                    // Found an invalid assertion, so we can terminate
+//                    // Negate the path condition
+//                    return pathCondition; 
+//                }
+//            }
+//        }
+//        
+//        // Since we have not found an invalid assertion in this block, we
+//        // inspect each follower. Since the blocks form a DAG, this will
+//        // terminate.
+//        for (BasicBlock b: block.followers()) {
+//            JCExpression p = reportInvalidAssertion(b,info,terminationPos,pathCondition);
+//            if (p != null) return p;
+//        }
+//        return null; // Did not find anything in this block or its followers
+//    }
     
     protected void logPreValue(String preid, Map<JCTree,String> cemap) {
         BiMap<JCTree,JCTree> bimap = jmlesc.assertionAdder.exprBiMap;
