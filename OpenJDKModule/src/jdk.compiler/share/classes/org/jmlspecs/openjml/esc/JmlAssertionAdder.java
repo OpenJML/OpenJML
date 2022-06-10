@@ -16596,6 +16596,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						currentEnv.currentReceiver = saved;
 					}
 				}
+				// FIXME - wildcards? array elements?
 				if (!allLocal)
 					continue;
 				if (item instanceof JmlStoreRefKeyword) {
@@ -18126,6 +18127,52 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// If visibility is considered, invariants are included if visible from type baseType.
 	/* @nullable */ public JCExpression getInvariant(/* @non_null */ DiagnosticPosition pos, /* @non_null */ Type base,
 			/* @non_null */ Type t, /* @nullable */ JCExpression obj, boolean considerVisibility) {
+	    if (t.isPrimitive()) {
+	        var p = pos.getPreferredPosition();
+	        var id = obj;
+	        JCExpression lo, hi;
+	        switch (t.getTag()) {
+	            case INT:
+	                    lo = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol,
+	                            treeutils.makeLit(p, syms.intType, Integer.MIN_VALUE), copy(id));
+	                    hi = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol, copy(id),
+	                            treeutils.makeLit(p, syms.intType, Integer.MAX_VALUE));
+                        break;
+	            case LONG:
+	                    lo = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.longleSymbol,
+	                            treeutils.makeLit(p, syms.longType, Long.MIN_VALUE), copy(id));
+	                    hi = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.longleSymbol, copy(id),
+	                            treeutils.makeLit(p, syms.longType, Long.MAX_VALUE));
+                        break;
+	            case SHORT:
+	                    lo = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol,
+	                            treeutils.makeLit(p, syms.intType, (int) Short.MIN_VALUE),
+	                            treeutils.makeTypeCast(pos, syms.intType, copy(id)));
+	                    hi = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol,
+	                            treeutils.makeTypeCast(pos, syms.intType, copy(id)),
+	                            treeutils.makeLit(p, syms.intType, (int) Short.MAX_VALUE));
+                        break;
+	            case BYTE:
+	                    lo = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol,
+	                            treeutils.makeLit(p, syms.intType, (int) Byte.MIN_VALUE),
+	                            treeutils.makeTypeCast(pos, syms.intType, copy(id)));
+	                    hi = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol,
+	                            treeutils.makeTypeCast(pos, syms.intType, copy(id)),
+	                            treeutils.makeLit(p, syms.intType, (int) Byte.MAX_VALUE));
+                        break;
+	            case CHAR:
+	                    lo = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol,
+	                            treeutils.makeLit(p, syms.intType, (int) Character.MIN_VALUE),
+	                            treeutils.makeTypeCast(pos, syms.intType, copy(id)));
+	                    hi = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol,
+	                            treeutils.makeTypeCast(pos, syms.intType, copy(id)),
+	                            treeutils.makeLit(p, syms.intType, (int) Character.MAX_VALUE));
+	                    break;
+	            default:
+	                    return treeutils.trueLit;
+	        }
+	        return treeutils.makeAnd(p, lo, hi);
+	    }
 		if (!(t.tsym instanceof ClassSymbol))
 			return null;
 		TypeSpecs tspecs = specs.getAttrSpecs((ClassSymbol) t.tsym);
@@ -19112,6 +19159,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					+ that.getClass());
 			return;
 		}
+		if (rac) {
+		    // FIXME - could use random number generator
+            notImplemented(that, "havoc statement");
+            return;
+		}
 		try {
 		    var saved = convertingAssignable;
 		    convertingAssignable = true;
@@ -19121,6 +19173,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat(sttt);
             changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, that.storerefs)), sttt.label);
             result = stat; // I don't think this matters
+            for (JCExpression e: that.storerefs) {
+                if (isDataGroup(e.type) ) {} // do nothing
+                else if (e instanceof JCIdent id) {
+                    addNullnessAllocationTypeCondition(e, id.sym, false);
+                } else if (e instanceof JCFieldAccess fa) {
+                    JCExpression s = currentEnv.currentReceiver;
+                    currentEnv.currentReceiver = fa.selected;
+                    addNullnessAllocationTypeCondition(e, fa.sym, false);
+                    currentEnv.currentReceiver = s;
+                }
+                // FIXME - what about array elements, store-refs with wildcards, model fields
+            }
 		} catch (JmlNotImplementedException e) {
 			notImplemented("havoc statement containing ", e);
 		}
