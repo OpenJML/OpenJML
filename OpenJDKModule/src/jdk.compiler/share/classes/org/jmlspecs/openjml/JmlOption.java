@@ -198,7 +198,19 @@ public class JmlOption {
     };
     public static final JmlOption TRACE = new JmlOption("--trace",false,false,"ESC: Enables tracing of counterexamples",null);
     public static final JmlOption SHOW = new JmlOption("--show",true,"","Show intermediate programs",null,false,"all");
-    public static final JmlOption SPLIT = new JmlOption("--split",true,"","Split proof into sections",null);
+    public static final JmlOption SPLIT = new JmlOption("--split",true,"","Split proof into sections",null) {
+        public boolean check(Context context, boolean negate) {
+            var nm = JmlOption.SPLIT.optionName();
+            if (negate) {
+                if (JmlOptions.instance(context).get(nm) != null) {
+                    Utils.instance(context).warning("jml.message","Command-line argument error: Expected no argument for --no-split");
+                }
+                JmlOptions.instance(context).put(nm,null);
+            }
+            return true;
+        }
+    };
+    
     public static final JmlOption ESC_BV = new JmlOption("--esc-bv",true,"auto","ESC: If enabled, use bit-vector arithmetic (auto, true, false)",null) {
     	public boolean check(Context context, boolean negate) {
     		JmlOptions options = JmlOptions.instance(context);

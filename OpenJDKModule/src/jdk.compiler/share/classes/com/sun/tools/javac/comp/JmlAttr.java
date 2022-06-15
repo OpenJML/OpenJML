@@ -5661,7 +5661,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                    utils.error(tree,  "jml.message", "The generic JML type " + tree.name + " must have " + jtk.numTypeArguments() + " type arguments");
 //                }
             } else {
+                try {
                 super.visitIdent(tree);
+                } catch (AssertionError e) {
+                    System.out.println("JML-VISITIDENT-X " + tree);
+                    e.printStackTrace(System.out);
+                    throw e;
+                }
             }
             
             Type saved = result;

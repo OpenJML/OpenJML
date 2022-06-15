@@ -269,14 +269,12 @@ public class JmlSpecs {
         if (debugSpecs) System.out.println("specs: specspath option: " + s);
         if (s == null || s.isEmpty()) s = System.getProperty(Strings.specsPathEnvironmentPropertyName);
         if (debugSpecs) System.out.println("specs: system property: " + s);
-        if (s == null || s.isEmpty()) s = options.get(Strings.sourcepathOptionName);
-        if (debugSpecs) System.out.println("specs: sourcepath option: " + s);
-        if (s == null || s.isEmpty()) s = options.get(Strings.classpathOptionName);
-        if (debugSpecs) System.out.println("specs: classpath option: " + s);
-        if (s == null || s.isEmpty()) s = System.getProperty("java.class.path");
-        if (debugSpecs) System.out.println("specs: java.class.path: " + s);
-        if (s == null) s = Strings.empty;
-        setSpecsPath(s);
+        if (s == null || s.isEmpty()) {
+            String[] sp = getSourcePath();
+            if (debugSpecs) System.out.println("specs: source path" + Utils.join(":",sp));
+            setSpecsPath(sp);
+        }
+        else setSpecsPath(s);
     }
     
     /** This method looks for the internal specification directories and, if
@@ -353,7 +351,8 @@ public class JmlSpecs {
         String s = options.get(Strings.sourcepathOptionName);
         if (s == null) s = options.get(Strings.classpathOptionName);
         if (s == null) s = System.getProperty("java.class.path");
-        if (s == null) s = "";
+        if (s == null) s = System.getProperty("env.class.path");
+        if (s == null || s.isEmpty()) s = ".";
         return s.split(java.io.File.pathSeparator);
     }
     

@@ -15,6 +15,8 @@ if [ -e skip ]; then
     echo Skipping $ts
 elif [ -e rac ]; then
     echo Skipped-rac $ts
+elif [ -e run ]; then
+    ./run
 else
     p=test/$ts
     if [ -e config ]; then . ./config; fi

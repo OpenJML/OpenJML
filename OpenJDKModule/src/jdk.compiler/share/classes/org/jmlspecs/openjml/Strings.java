@@ -82,14 +82,14 @@ public class Strings {
     /** The fully-qualified name of the Model annotation */
     static public final String modelAnnotation = jmlAnnotationPackage + ".Model"; //$NON-NLS-1$
     
-    /** The name of the jar file that constitutes an openjml release. */
-    static public final String releaseJar = "openjml.jar"; //$NON-NLS-1$
-    
-    /** The name of the jar file that contains a copy of the specs to use, as part of
-     * a release.  This is expected to be the specs for the version of Java 
-     * being used.  
-     */
-    static public final String specsJar = "jmlspecs.jar"; //$NON-NLS-1$
+//    /** The name of the jar file that constitutes an openjml release. */
+//    static public final String releaseJar = "openjml.jar"; //$NON-NLS-1$
+//    
+//    /** The name of the jar file that contains a copy of the specs to use, as part of
+//     * a release.  This is expected to be the specs for the version of Java 
+//     * being used.  
+//     */
+//    static public final String specsJar = "jmlspecs.jar"; //$NON-NLS-1$
     
     /** The name of the OpenJML runtime library. */
     static public final String runtimeJarName = "jmlruntime.jar"; //$NON-NLS-1$
@@ -125,15 +125,15 @@ public class Strings {
     static public final String defaultProverProperty = "org.openjml.defaultProver"; //$NON-NLS-1$
     
     /** A Java property name used to indicate the directory path on which to find specification files */
-    public static final String specsPathEnvironmentPropertyName = "org.jmlspecs.specspath"; //$NON-NLS-1$
+    public static final String specsPathEnvironmentPropertyName = "org.openjml.option.specspath"; //$NON-NLS-1$
 
     /** A Java property name giving the directory in which specifications for the Java system libraries are found */
-    public static final String systemSpecsLocationEnvironmentPropertyName = "org.jmlspecs.system.specs"; //$NON-NLS-1$
+    public static final String systemSpecsLocationEnvironmentPropertyName = "org.openjml.system.specs"; //$NON-NLS-1$
     
-    /** Set this to the name of a Java property that contains the default
-     * runtime classpath. 
-     */
-    public static final String defaultRuntimeClassPath = "openjml.defaultRuntimeClassPath"; //$NON-NLS-1$
+//    /** Set this to the name of a Java property that contains the default
+//     * runtime classpath. 
+//     */
+//    public static final String defaultRuntimeClassPath = "openjml.defaultRuntimeClassPath"; //$NON-NLS-1$
 
     /** Set this to the name of a Java property that contains the location of 
      * the project files in Eclipse, so that testing proceeds OK. 

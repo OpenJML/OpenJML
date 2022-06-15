@@ -19070,9 +19070,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 
 			} else if (that.clauseType == StatementExprExtensions.splitClause) {
-
-				if (currentSplit == null || rac || infer) {
-					// ignore;
+				if (currentSplit == null || rac || infer || JmlOption.value(context, JmlOption.SPLIT) == null) {
+					// ignore -- with option --no-split the SPLIT option is null
 				} else {
 					boolean doPos = true;
 					if (currentSplit.isEmpty()) {

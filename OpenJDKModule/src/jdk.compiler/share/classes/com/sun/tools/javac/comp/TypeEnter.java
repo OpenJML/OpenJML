@@ -363,6 +363,12 @@ public class TypeEnter implements Completer {
                 if (javaLang.members().isEmpty() && !javaLang.exists())
                     throw new FatalError(diags.fragment(Fragments.FatalErrNoJavaLang));
                 importAll(make.at(tree.pos()).Import(make.QualIdent(javaLang), false), javaLang, env);
+//                if (org.jmlspecs.openjml.Utils.isJML()) { // OPENJML _ for this block -- FIXME - what if in -java mode?
+//                    PackageSymbol jmlLang = syms.enterPackage(syms.java_base, names.jml_lang);
+//                    if (jmlLang.members().isEmpty() && !jmlLang.exists())
+//                        throw new FatalError(diags.fragment(Fragments.FatalErrNoJavaLang));
+//                    importAll(make.at(tree.pos()).Import(make.QualIdent(jmlLang), false), jmlLang, env);
+//                }
 
                 JCModuleDecl decl = tree.getModuleDecl();
 
@@ -416,7 +422,6 @@ public class TypeEnter implements Completer {
             // Create a local environment pointing to this tree to disable
             // effects of other imports in Resolve.findGlobalType
             Env<AttrContext> localEnv = env.dup(tree);
-
             TypeSymbol p = attr.attribImportQualifier(tree, localEnv).tsym;
             if (name == names.asterisk) {
                 // Import on demand.

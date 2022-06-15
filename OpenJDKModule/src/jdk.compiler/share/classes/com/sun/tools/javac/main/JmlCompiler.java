@@ -190,6 +190,10 @@ public class JmlCompiler extends JavaCompiler {
                             Iterable<? extends Processor> processors,
                             Collection<String> addModules) {
         if (Utils.debug("paths")) {
+            System.out.println("CLASSPATH: " + System.getenv("CLASSPATH"));
+            System.out.println("java.class.path: " + System.getProperty("java.class.path"));
+            System.out.println("env.class.path: " + System.getProperty("env.class.path"));
+            System.out.println("CP option: " + com.sun.tools.javac.util.Options.instance(context).get(com.sun.tools.javac.main.Option.CLASS_PATH));
             System.out.println("sourcepath: " + Utils.join(":",JmlSpecs.instance(context).getSourcePath()));
             System.out.println("specspath:  " + Utils.join(":",JmlSpecs.instance(context).getSpecsPath()));
         }

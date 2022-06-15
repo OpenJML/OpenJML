@@ -776,7 +776,6 @@ public class Utils {
         boolean verbose = debugOptions;
 
     	if (context == null) context = new Context();
-        PrintWriter noticeWriter = Log.instance(context).getWriter(WriterKind.NOTICE);
         Properties properties = new Properties();
         
         // Initialize with builtin defaults
@@ -795,28 +794,33 @@ public class Utils {
             try {
                 boolean found = readProps(properties,s);
                 if (verbose) {
-                    if (found) noticeWriter.println("Properties read from installation directory: " + s);
-                    else noticeWriter.println("No properties found in installation directory: " + s);
+                    if (found) System.out.println("Properties read from installation directory: " + s);
+                    else System.out.println("No properties found in installation directory: " + s);
                 }
             } catch (java.io.IOException e) {
-                noticeWriter.println("Failed to read property file " + s); // FIXME - review
+                System.out.println("Failed to read property file " + s); // FIXME - review
             }
         }
         
         
-        // On the system classpath
-        {
-            URL url2 = ClassLoader.getSystemResource(Strings.propertiesFileName);
+        // On the system classpath // FIXME - do not seem to be able to find a file on the system classpath
+        if (false) {
+            //URL url2 = ClassLoader.getSystemResource(Strings.propertiesFileName);
+            URL url2 = context.getClass().getClassLoader().getResource(Strings.propertiesFileName);
+            if (verbose) System.out.println("CLASSPATH: " + System.getenv("CLASSPATH"));
+            if (verbose) System.out.println("java.class.path: " + System.getProperty("java.class.path"));
+            if (verbose) System.out.println("java.classpath: " + System.getProperty("java.classpath"));
+            if (verbose) System.out.println("System resource: " + url2);
             if (url2 != null) {
                 String s = url2.getFile();
                 try {
                     boolean found = readProps(properties,s);
                     if (verbose) {
-                        if (found) noticeWriter.println("Properties read from system classpath: " + s);
-                        else noticeWriter.println("No properties found on system classpath: " + s);
+                        if (found) System.out.println("Properties read from system classpath: " + s);
+                        else System.out.println("No properties found on system classpath: " + s);
                     }
                 } catch (java.io.IOException e) {
-                    noticeWriter.println("Failed to read property file " + s); // FIXME - review
+                    System.out.println("Failed to read property file " + s); // FIXME - review
                 }
             }
         }
@@ -828,11 +832,11 @@ public class Utils {
             try {
                 boolean found = readProps(properties,s);
                 if (verbose) {
-                    if (found) noticeWriter.println("Properties read from user's home directory: " + s);
-                    else noticeWriter.println("No properties found in user's home directory: " + s);
+                    if (found) System.out.println("Properties read from user's home directory: " + s);
+                    else System.out.println("No properties found in user's home directory: " + s);
                 }
             } catch (java.io.IOException e) {
-                noticeWriter.println("Failed to read property file " + s); // FIXME - review
+                System.out.println("Failed to read property file " + s); // FIXME - review
             }
         }
 
@@ -842,52 +846,37 @@ public class Utils {
             try {
                 boolean found = readProps(properties,s);
                 if (verbose) {
-                    if (found) noticeWriter.println("Properties read from working directory: " + s);
-                    else noticeWriter.println("No properties found in working directory: " + s);
+                    if (found) System.out.println("Properties read from working directory: " + s);
+                    else System.out.println("No properties found in working directory: " + s);
                 }
             } catch (java.io.IOException e) {
-                noticeWriter.println("Failed to read property file " + s); // FIXME - review
+                System.out.println("Failed to read property file " + s); // FIXME - review
             }
         }
 
         // Set from environment variables
+        // Env vars may not contain - or .
+        // Any _ is converted to a -
+        // So options should only have -, not _ or .
         {
     		String prefix = "OPENJML_";
         	for (var p : System.getenv().entrySet()) {
         		if (p.getKey().startsWith(prefix)) {
-        			String kk = Strings.optionPropertyPrefix + p.getKey().substring(prefix.length());
+        		    String tail = p.getKey().substring(prefix.length());
+        		    tail = tail.replace("_","-");
+        			String kk = Strings.optionPropertyPrefix + tail;
         			properties.put(kk, p.getValue());
         		}
-        	} // FIXME - the above does not work for option names with . or - in them
+        	}
         }
         
-//        // TODO: Review the following
-//        // check if -properties or -properties-default option is set.
-//        {
-//            String properties_file = JmlOption.value(context,JmlOption.PROPERTIES_DEFAULT);            
-//           
-//            if (properties_file != null && !properties_file.isEmpty()) {
-//                try {
-//                    boolean found = readProps(properties,properties_file);
-//                    if (verbose) {
-//                        if (found) noticeWriter.println("Properties read from file: " + properties_file);
-//                        else noticeWriter.println("No properties file option found: " + properties_file);
-//                    }
-//                } catch (java.io.IOException e) {
-//                    noticeWriter.println("Failed to read property file " + properties_file); // FIXME - review
-//                }
-//            } else {
-//                if (verbose) noticeWriter.println("No properties file option is set");
-//            }
-//        }
-
         if (verbose) {
             // Print out the properties
             for (String key: new String[]{"user.home","user.dir"}) {
-                noticeWriter.println("Environment:    " + key + " = " + System.getProperty(key));
+                System.out.println("Environment:    " + key + " = " + System.getProperty(key));
             }
             for (java.util.Map.Entry<Object,Object> entry: properties.entrySet()) {
-                noticeWriter.println("Local property: " + entry.getKey() + " = " + entry.getValue());
+                System.out.println("Local property: " + entry.getKey() + " = " + entry.getValue());
             }
         }
         return properties;

@@ -118,6 +118,7 @@ public class Names {
 
     // package names
     public final Name java_lang;
+    public final Name jml_lang; // OPENJML
 
     // module names
     public final Name java_base;
@@ -292,7 +293,8 @@ public class Names {
 
         // package names
         java_lang = fromString("java.lang");
-
+        jml_lang = fromString("org.jmlspecs.lang"); // OPENJML
+        
         // module names
         java_base = fromString("java.base");
 

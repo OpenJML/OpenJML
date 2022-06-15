@@ -1,0 +1,3 @@
+In this test, A.class must be newer than A.java
+And A.class must be compiled from src/A.java, not A, not ./A.java
+A.java and src/A.java are different

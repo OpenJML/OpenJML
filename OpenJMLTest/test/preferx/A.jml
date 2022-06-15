@@ -1,0 +1,7 @@
+import org.jmlspecs.lang.*;
+public class A {
+
+  public int f;
+  public int h;
+  public int g;
+}

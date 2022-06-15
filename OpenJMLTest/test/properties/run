@@ -1,0 +1,97 @@
+#! /usr/bin/env bash
+
+D=$(dirname "$BASH_SOURCE")
+cd "$D"
+pwd
+## properties are recognized in
+##    openjml.properties in the installation folder
+##    ( openjml.properties on classpath -- not implemented because it does not seem to work as expected)
+##    openjml.properties in the user home directory
+##    openjml.properties in the current working directory
+##    properties defined by OPENJML_ environment variables
+##    command-line options
+
+X=0
+
+# Options on command-line
+
+echo TEST1a: A NOT DEFINED
+( openjml --esc Test.java |& diff - NotDef.out ) || X=1
+echo TEST1b: A IS DEFINED in command-line
+( openjml --esc --keys=A Test.java |& diff - Def.out ) || X=1
+
+echo "org.openjml.option.keys=A" > props
+echo TEST1q
+( openjml --esc --keys= --properties=props Test.java |& diff - Def.out ) || X=1
+echo TSET1r
+( openjml --esc --properties=props --keys= Test.java |& diff - NotDef.out ) || X=1
+echo "org.openjml.option.keys=" > props
+echo TEST1s
+( openjml --esc --keys=A --properties=props Test.java |& diff - NotDef.out ) || X=1
+echo TEST1t
+( openjml --esc --properties=props --keys=A Test.java |& diff - Def.out ) || X=1
+rm -rf props
+
+
+# Properties defined by env vars
+
+echo TEST2a: A IS DEFINED in env var
+( OPENJML_keys=A openjml --esc Test.java |& diff - Def.out ) || X=1
+echo TEST2b: A NOT DEFINED on command-line
+( OPENJML_keys=A openjml --esc --keys="" Test.java |& diff - NotDef.out ) || X=1
+
+# Properties in working directory
+
+echo "org.openjml.option.keys=A" > openjml.properties
+echo TEST3a: A IS DEFINED in WD
+( openjml --esc Test.java |& diff - Def.out ) || X=1
+echo TEST3b: A NOT DEFINED on command-line
+( openjml --esc --keys="" Test.java |& diff - NotDef.out ) || X=1
+echo TEST3c: A NOT DEFINED in env vars
+( OPENJML_keys= openjml --esc Test.java |& diff - NotDef.out ) || X=1
+rm openjml.properties
+
+# Properties defined in user home directory
+
+if [[ -e "$HOME/openjml.properties" ]]; then
+  echo '~/openjml.properties already exists -- cannot test it'
+else
+  echo "org.openjml.option.keys=A" > ~/openjml.properties
+  echo TEST4a: A IS DEFINED in home dir
+  ( openjml --esc Test.java |& diff - Def.out ) || X=1
+  echo TEST4b: A NOT DEFINED on command-line
+  ( openjml --esc --keys="" Test.java |& diff - NotDef.out ) || X=1
+  echo TEST4c: A NOT DEFINED in env vars
+  ( OPENJML_keys= openjml --esc Test.java |& diff - NotDef.out ) || X=1
+  echo TEST4d: A NOT DEFINED in WD
+  echo "org.openjml.option.keys=" > openjml.properties
+  ( openjml --esc Test.java |& diff - NotDef.out ) || X=1
+  rm openjml.properties
+  rm ~/openjml.properties
+fi
+
+# Properties defined on classpath
+## FIXME: This is not working/implemented
+if [[ -e zzzzz  ]]; then
+rm -rf cp
+mkdir cp
+echo "org.openjml.option.keys=A" > cp/openjml.properties
+echo TEST5a: A IS DEFINED on Classpath
+( openjml --esc Test.java -cp cp -sourcepath . |& diff - Def.out ) || X=1
+echo TEST5b: A NOT DEFINEDa on command-line
+( openjml --esc --keys="" Test.java |& diff - NotDef.out ) || X=1
+echo TEST5c: A NOT DEFINED in env vars
+( OPENJML_keys= openjml --esc  Test.java |& diff - NotDef.out ) || X=1
+echo TEST5d: A NOT DEFINED in WD
+echo "org.openjml.option.keys=" > openjml.properties
+( OPENJML_keys= openjml --esc Test.java |& diff - NotDef.out ) || X=1
+rm openjml.properties
+echo TEST5e: A NOT DEFINED in HOME dir
+if [[ ! -e "$HOME/openjml.properties" ]]; then
+  echo "org.openjml.option.keys=" > ~/openjml.properties
+  ( openjml --esc Test.java |& diff - NotDef.out ) || X=1
+  rm ~/openjml.properties
+fi
+fi
+
+exit $X

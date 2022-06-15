@@ -1,0 +1,4 @@
+Test.java:4: verify: The prover cannot establish an assertion (Assert) in method test
+    //@ assert \key(A); // FAILS if key A is NOT DEFINED
+        ^
+1 verification failure

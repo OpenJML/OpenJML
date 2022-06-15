@@ -2134,6 +2134,7 @@ public class Resolve {
     };
 
     Symbol lookupPackage(Env<AttrContext> env, Name name) {
+        if (env.toplevel.modle == null) env.toplevel.modle = syms.java_base; // OPENJML _ why is this not set: case of use A.class and A.jml, no A.java
         PackageSymbol pack = syms.lookupPackage(env.toplevel.modle, name);
 
         if (allowModules && isImportOnDemand(env, name)) {

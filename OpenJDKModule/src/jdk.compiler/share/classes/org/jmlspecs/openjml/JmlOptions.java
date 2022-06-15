@@ -303,7 +303,7 @@ public class JmlOptions extends Options {
             }
             addFilesRecursively(res, remainingArgs);
         } else if (o == JmlOption.PROPERTIES) {
-            Properties properties = System.getProperties();
+            Properties properties = new Properties();
             String file = res;
             if (file != null && !file.isEmpty()) {
                 try {
@@ -356,7 +356,7 @@ public class JmlOptions extends Options {
                 String rest = key.substring(Strings.optionPropertyPrefix.length());
                 if (v.equals("true")) value = "";
                 else if (v.equals("false")) value  = null;
-                rest = "-" + rest;
+                rest = "--" + rest;
                 opts.put(rest, v);
             } else if (key.startsWith("openjml")) {
                 opts.put(key,v);

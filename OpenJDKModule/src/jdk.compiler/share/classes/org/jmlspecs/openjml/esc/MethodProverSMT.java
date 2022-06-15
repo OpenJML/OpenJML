@@ -277,14 +277,14 @@ public class MethodProverSMT {
         int numberAccumulated = 0;
 
         String splitlist = JmlOption.value(context,JmlOption.SPLIT);
-        String[] splits = splitlist.split(",");
+        String[] splits = splitlist == null ? null : splitlist.split(",");
         int skips = 0;
         Translations translations = jmlesc.assertionAdder.methodBiMap.getf(methodDecl);
         for (String splitkey: translations.keys()) {
 //        if (splitkey.equals(Strings.feas_preOnly)) {
 //            if (proofResultAccumulated.isSat()) continue;
 //        }
-        if (!splitlist.isEmpty() && !java.util.Arrays.stream(splits).anyMatch(s -> splitkey.equals(s))) {
+        if (splitlist != null && !splitlist.isEmpty() && !java.util.Arrays.stream(splits).anyMatch(s -> splitkey.equals(s))) {
             utils.note(false,"Skipping proof attempt for split " + splitkey);
             skips++;
             continue;

@@ -116,12 +116,16 @@ public class StatementExprExtensions extends JmlExtension {
             if (clauseType == splitClause && st.expression == null) {
                 while (parser.jmlTokenClauseKind() == Operators.endjmlcommentKind) parser.nextToken();
                 JCStatement stt = parser.blockStatement().head;
-                if (stt instanceof JmlIfStatement) {
-                    ((JmlIfStatement)stt).split = true;
-                } else if (stt instanceof JmlSwitchStatement) {
-                    ((JmlSwitchStatement)stt).split = true;
-                } else if (stt instanceof IJmlLoop) {
-                    ((IJmlLoop)stt).setSplit(true);
+                if (stt instanceof JmlIfStatement stif) {
+                    stif.split = true;
+                    while (stif.elsepart instanceof JmlIfStatement stifx) {
+                        stifx.split = true;
+                        stif = stifx;
+                    }
+                } else if (stt instanceof JmlSwitchStatement sw) {
+                    sw.split = true;
+                } else if (stt instanceof IJmlLoop loop) {
+                    loop.setSplit(true);
                 } else {
                     utils.warning(ste, "jml.message", "Ignoring out of place split statement");
                 }
