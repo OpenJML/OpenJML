@@ -282,6 +282,8 @@ public class JmlCompiler extends JavaCompiler {
         } else {
         	specCU.packge = p;
         }
+        if (debugParse && typeSymbol.toString().equals("A")) System.out.println("parser: symbols: " + typeSymbol + " " + p + " " + p.modle + " " + specCU.hashCode() + " " + specCU);
+        if (p.modle == null) System.out.println("NULL MODULE " + typeSymbol + " " + p);
         specCU.modle = p.modle;
         specCU.specsCompilationUnit = specCU;
         specCU.sourceCU = null;

@@ -565,45 +565,30 @@ public class JmlEnter extends Enter {
 		try {
 		    //Modules.instance(context).initModules(List.<JCCompilationUnit>of(speccu));
 
-//			String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
-//			Name packageName = names.fromString(flatPackageName);
-//			var iter = syms.getPackagesForName(packageName).iterator();
-//			PackageSymbol p;
-//			if (!iter.hasNext()) {
-//			    // No packages with this name
-//	            p = syms.getPackage(syms.unnamedModule,packageName);
-//			} else {
-//			    p = iter.next();
-//			    if (iter.hasNext()) {
-//			        java.util.List<PackageSymbol> list = new ArrayList<PackageSymbol>();
-//			        iter.forEachRemaining(list::add);
-//			        utils.warning(speccu.sourcefile, speccu.pid, "jml.message",
-//			            "Multiple modules contain package " + speccu.pid.pid + ": " + p.modle + " " + utils.join(" ", list, e->e.modle));
-//			    }
-//			}
-//			// FIXME - what about other modules, or user modules
-//			if (p == null) {
-//				utils.warning(speccu.pid, "jml.message", "Creating new package in unnamed module: " + flatPackageName); // FIXME - figure out haw to create it
-//				p = syms.enterPackage(syms.unnamedModule, packageName);
-//			}
 		    
 		    String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
 		    Name packageName = names.fromString(flatPackageName);
 		    // Most spec file for binary files will be for te system library packages in java.base, so try that first
-		    PackageSymbol p = syms.getPackage(syms.java_base,packageName);
+		    PackageSymbol p;
+		    if (flatPackageName.isEmpty()) {
+                p = syms.getPackage(syms.unnamedModule,packageName);
+                p.modle = syms.unnamedModule;
+		    } else {
+	            p = syms.getPackage(syms.java_base,packageName);
+		    }
 		    if (p == null) {
 		        // Otherwise try the unnamed module
+                //utils.warning(speccu.pid, "jml.message", "Creating new package in unnamed module: " + flatPackageName);
 	            p = syms.getPackage(syms.unnamedModule,packageName);
+	        }
+		    if (p == null) {
+		        utils.error(speccu.pid, "jml.message", "No package found for " + flatPackageName);
 		    }
-            //System.out.println("PACKAGE " + packageName + " IS IN " + (p==null?"NULL":p.modle));
-            if (p == null) { // FIXME Dont think this is ever needed
-                utils.warning(speccu.pid, "jml.message", "Creating new package in unnamed module: " + flatPackageName);
-                p = syms.enterPackage(syms.unnamedModule, packageName);
-            }
-            
+		    
             // TODO: Not implementing other modules for now
 
             var owner = speccu.packge = p;
+            if (p.modle == null) System.out.println("SETTING MOD TO NULL " + p + " " + speccu.modle + " " + speccu.hashCode());
 			speccu.modle = p.modle;
 			Env<AttrContext> specEnv = topLevelEnv(speccu);
             TypeEnter.instance(context).completeClass.resolveImports(speccu, specEnv);
