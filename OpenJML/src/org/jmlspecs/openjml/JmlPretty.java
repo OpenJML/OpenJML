@@ -28,6 +28,7 @@ import static org.jmlspecs.openjml.ext.TypeInClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeMapsClauseExtension.*;
 import static org.jmlspecs.openjml.ext.InlinedLoopStatement.*;
 
+import com.sun.source.tree.Tree;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.*;
@@ -99,6 +100,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         p.width = 2;
         if(tree!=null)
             tree.accept(p);
+//        System.out.println(sw.toString());
         return sw.toString();
     }
     
@@ -1209,7 +1211,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             perr(tree,e);
         }
     }
-
+    
     public void visitJmlMethodDecl(JmlMethodDecl that) {
         // FIXME //@? model?
         if (that.methodSpecsCombined != null) {

@@ -39,6 +39,7 @@ public class AllTests {
     
     public static TestSuite suite() {
         try {
+        	System.out.println(System.getProperty("java.classpath"));
             File dir = new File("src/org/jmlspecs/openjmltest/testcases");
             File[] dirs = dir.listFiles();
             Arrays.sort(dirs);
