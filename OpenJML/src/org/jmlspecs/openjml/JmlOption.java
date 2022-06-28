@@ -80,11 +80,6 @@ public class JmlOption implements IOption {
             "-command=jml2rapid");
 
     /** An option for loop invariant inference */
-    public static final JmlOption              RAPID_TO_JML                       = new JmlOption(
-            "-rapid2jml", false, null, "Converts from Rapid back to JML",
-            "-command=rapid2jml");
-
-    /** An option for loop invariant inference */
     public static final JmlOption              TARGET_METHOD_NAME                 = new JmlOption(
             "-mName", true, null, "Name of the method which contains loop",
             null);

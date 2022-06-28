@@ -1152,12 +1152,11 @@ public class Main extends com.sun.tools.javac.main.Main {
         utils.check = cmd == Cmd.CHECK;
         utils.compile = cmd == Cmd.COMPILE;
         utils.infer = cmd == Cmd.INFER;
-        utils.jml2rapid = cmd == Cmd.JML2RAPID; /**
-                                                 * converting to rapid syntax
-                                                 */
-        utils.rapid2jml = cmd == Cmd.RAPID2JML; /**
-                                                 * converting to rapid syntax
-                                                 */
+
+        /**
+         * options for loop invariants inference
+         */
+        utils.jml2rapid = cmd == Cmd.JML2RAPID;
 
         val = options.get(JmlOption.ESC_BV.optionName());
         if (val == null || val.isEmpty()) {
@@ -1808,8 +1807,8 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** An Enum type that gives a choice of various tools to be executed. */
     public static enum Cmd {
         CHECK("check"), ESC("esc"), RAC("rac"), DEP("dep"), JMLDOC(
-                "doc"), COMPILE("compile"), INFER("infer"), JML2RAPID(
-                        "jml2rapid"), RAPID2JML("rapid2jml");
+                "doc"), COMPILE(
+                        "compile"), INFER("infer"), JML2RAPID("jml2rapid");
 
         String name;
 
