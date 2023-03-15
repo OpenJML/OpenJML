@@ -47,6 +47,8 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.16
+    - name: Check Java version
+      run: java -version
     - name: Checkout OpenJML
       run: |
         git config --global core.autocrlf input
