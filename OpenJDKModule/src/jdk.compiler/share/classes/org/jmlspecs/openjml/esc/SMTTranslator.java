@@ -182,11 +182,14 @@ public class SMTTranslator extends JmlTreeScanner {
 
     /** A counter used to make identifiers unique */
     int uniqueCount = 0;
+    /** A counter use to make quantifier functions unique */
+    int uniqueQuantCount = 0;
     
     private int assumeCount = -2;
     
     /** An internal field used to indicate whether we are translating expressions inside a quantified expression */
     boolean inQuant = false;
+    List<IExpr.IDeclaration> quantifierScope = new LinkedList<>();
 
     /** A mapping from Java expressions to/from SMT expressions */
     final public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
@@ -3096,6 +3099,94 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
 
+    private IExpr constructSmtQuantifier(JmlQuantifiedExpr that, IExpr range, IExpr value, List<IDeclaration> params) {
+        TypeTag quantifierVarType = that.decls.head.type.getTag();
+        if (quantifierVarType != TypeTag.INT && quantifierVarType != TypeTag.LONG && quantifierVarType != TypeTag.SHORT) {
+            notImplWarn(that, "JML quantified expression with non-integral quantifier type");
+            return null;
+        }
+
+        if (params.size() != 1) {
+            notImplWarn(that, "JML Quantified expression cannot have multiple or 0 parameters");
+            return null;
+        }
+
+        // find the bounds of the range expression
+        JmlBoundsExtractor.Bounds bounds = JmlBoundsExtractor.extract(that.decls, that.range, true, this);
+        if (bounds == null) return null;
+        if (bounds.lo == null || bounds.hi == null) {
+            notImplWarn(that.range, "JML quantified expression range is not a recognized pattern");
+            return null;
+        }
+        scan(bounds.lo);
+        IExpr loExpr = result;
+        scan(bounds.hi);
+        IExpr hiExpr = result;
+
+        boolean isProduct = that.kind.keyword() == QuantifiedExpressions.qproductID;
+
+        ISymbol hi = F.symbol("|`hi|"), quantN = F.symbol("|`quant_" + (uniqueQuantCount++) + "|");
+        ISort returnType = convertSort(that.type);
+
+        // construct an expression representing the base case for this quantifier and its type 
+        int javaBaseCase = isProduct ? 1 : 0;
+        IExpr baseCase;
+        if (that.type.getTag() == TypeTag.FLOAT || that.type.getTag() == TypeTag.DOUBLE ) {
+            baseCase = F.decimal(Double.toString(javaBaseCase));
+        } else {
+            baseCase = F.numeral(javaBaseCase);
+        }
+
+        // convert num_of to the equivalent sum expression 
+        if (that.kind.keyword() == QuantifiedExpressions.qnumofID) {
+            range = F.fcn(andSym, range, value);
+            value = F.numeral(1);
+        }
+        
+        IDeclaration quantifiedVar = params.get(0);
+        ISymbol lo = quantifiedVar.parameter();
+
+        // construct a list of parameters for this expression
+        List<IExpr> callParameters = new LinkedList<>();
+        List<IDeclaration> functionParameters = new LinkedList<>();
+
+        functionParameters.add(quantifiedVar);
+        functionParameters.add(F.declaration(hi, quantifiedVar.sort()));
+
+        callParameters.add(F.fcn(F.symbol("+"), lo, F.numeral(1)));
+        callParameters.add(hi);
+
+        // forward parents quantifiers to this quantifier
+        for (IExpr.IDeclaration decl : quantifierScope) {
+            callParameters.add(decl.parameter());
+            functionParameters.add(decl);
+        }
+        
+        // recursive definition of the quantifier
+        commands.add(new C_define_fun_rec(
+            quantN, functionParameters, returnType,
+            F.fcn(F.symbol("ite"), F.fcn(F.symbol("<"), hi, lo),
+                baseCase,
+                F.fcn(isProduct ? F.symbol("*") : F.symbol("+"),
+                    F.fcn(quantN, callParameters),
+                    F.fcn(F.symbol("ite"), range,
+                        value,
+                        baseCase
+                    )
+                )
+            )
+        ));
+
+        // set up function call of this quantifier
+        callParameters.remove(0); // remove low
+        callParameters.remove(0); // remove high
+        callParameters.add(0, loExpr); // add initial low
+        callParameters.add(1, hiExpr); // add initial high
+
+        // (quant lo hi)
+        return F.fcn(quantN, callParameters);
+    }
+
     @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
         boolean prev = inQuant;
@@ -3112,10 +3203,18 @@ public class SMTTranslator extends JmlTreeScanner {
                     typeConstraint = typeConstraint == null ? c : F.fcn(andSym, typeConstraint, c);
                 }
             }
+
+            // this scope is such that children know their parent's args
+            quantifierScope.addAll(params);
+
             scan(that.range);
             IExpr range = result;
             scan(that.value);
             IExpr value = result;
+
+            // restore the scope to the previous state
+            quantifierScope.removeAll(params);
+
             switch (that.kind.keyword()) {
             case QuantifiedExpressions.qforallID:
                 if (range != null) value = F.fcn(impliesSym,range,value);
@@ -3137,6 +3236,11 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = F.exists(params,value);
                 }
                 break;
+            case QuantifiedExpressions.qsumID:
+            case QuantifiedExpressions.qproductID:
+            case QuantifiedExpressions.qnumofID:
+                result = constructSmtQuantifier(that, range, value, params);
+                if (result != null) break;
             default:
                 notImplWarn(that, "JML Quantified expression using " + that.kind.keyword());
                 ISymbol sym = F.symbol(makeBarEnclosedString(that));

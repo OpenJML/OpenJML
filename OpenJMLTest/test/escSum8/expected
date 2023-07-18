@@ -1,0 +1,21 @@
+Proving methods in Sum
+Starting proof of Sum.Sum() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Sum.Sum() with prover !!!! - no warnings
+Starting proof of Sum.badRange2() with prover !!!!
+test/escSum8/Sum.java:2: warning: NOT IMPLEMENTED: Not yet supported feature in converting BasicPrograms to SMTLIB: JML quantified expression range is not a recognized pattern
+    	//@ ensures \result == (\sum int i; i < i && i > i; i);
+    	                                          ^
+test/escSum8/Sum.java:2: warning: NOT IMPLEMENTED: Not yet supported feature in converting BasicPrograms to SMTLIB: JML Quantified expression using \sum
+    	//@ ensures \result == (\sum int i; i < i && i > i; i);
+    	                        ^
+test/escSum8/Sum.java:4: warning: The prover cannot establish an assertion (Postcondition) in method badRange2
+		return  2 + 4;
+		^
+test/escSum8/Sum.java:2: warning: Associated declaration
+    	//@ ensures \result == (\sum int i; i < i && i > i; i);
+    	    ^
+Completed proof of Sum.badRange2() with prover !!!! - with warnings
+Completed proving methods in Sum
+4 warnings

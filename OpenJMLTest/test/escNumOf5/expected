@@ -1,0 +1,12 @@
+Proving methods in NumOf
+Starting proof of NumOf.NumOf() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of NumOf.NumOf() with prover !!!! - no warnings
+Starting proof of NumOf.numof(int[]) with prover !!!!
+test/escNumOf5/NumOf.java:8: warning: The prover cannot establish an assertion (LoopInvariant) in method numof
+		//@ maintaining count == (\num_of int i; 0 <= i < j; arr[i] == 3);
+		    ^
+Completed proof of NumOf.numof(int[]) with prover !!!! - with warnings
+Completed proving methods in NumOf
+1 warning
