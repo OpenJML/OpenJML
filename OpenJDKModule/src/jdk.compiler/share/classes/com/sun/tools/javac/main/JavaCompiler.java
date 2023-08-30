@@ -1339,7 +1339,7 @@ public class JavaCompiler {
      * @return the list of attributed parse trees
      */
     public Queue<Env<AttrContext>> flow(Queue<Env<AttrContext>> envs) {
-        /* sd2
+        /* Senior Design Spring Fall 2023
          * There are multiple ASTs but it seems that only the first one is
          * for the file you put in. The other ASTs are for dependencies.
          * So, only running our hook on the first iteration of this for loop
@@ -1350,7 +1350,7 @@ public class JavaCompiler {
         for (Env<AttrContext> env: envs) {
             flow(env, results);
 
-            // sd2 - call our hook only on first iteration
+            // Senior Design Spring Fall 2023 - call our hook only on first iteration
             if (!ranOurHook) {
                 OurWork.doOurWork(env);
                 ranOurHook = true;
