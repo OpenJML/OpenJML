@@ -25,6 +25,18 @@ class OurVisitor extends JmlTreeScanner {
         super.visitJmlForLoop(tree);
     }
 
+    @Override
+    // covers JML assert statements inside a method's body
+    public void visitJmlStatementExpr(JmlStatementExpr tree) {
+        if (tree.keyword.equals("assert")) {
+            System.out.println("Found an assertion in a method's body!");
+            System.out.println("\tfull statement: " + tree);
+            System.out.println("\tjust the expression: " + tree.expression);
+        }
+
+        super.visitJmlStatementExpr(tree);
+    }
+
     // override more stuff?
 }
 
