@@ -1344,16 +1344,16 @@ public class JavaCompiler {
          * for the file you put in. The other ASTs are for dependencies.
          * So, only running our hook on the first iteration of this for loop
          */
-        boolean ranOurHook = false;
+        boolean ranLoopInvariantGenratorHook = false;
 
         ListBuffer<Env<AttrContext>> results = new ListBuffer<>();
         for (Env<AttrContext> env: envs) {
             flow(env, results);
 
             // Senior Design Spring Fall 2023 - call our hook only on first iteration
-            if (!ranOurHook) {
-                OurWork.doOurWork(env);
-                ranOurHook = true;
+            if (!ranLoopInvariantGenratorHook) {
+                LoopInvariantGenerator.generateInvariant(env);
+                ranLoopInvariantGenratorHook = true;
             }
         }
         return stopIfError(CompileState.FLOW, results);

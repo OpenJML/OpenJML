@@ -9,46 +9,50 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.tree.JCTree;
 
-class OurVisitor extends JmlTreeScanner {
-    public OurVisitor() {
-        super();
-    }
+class LoopAssertionFinder extends JmlTreeScanner {
 
-    // methods we can override are in IJmlVisitor.java
+    JmlForLoop detectedForLoop = null;
+    JmlWhileLoop detectedWhileLoop = null;
+    JmlStatementExpr detectedAssertion = null;
+    boolean complete = false;
 
     @Override
-    // Covers a for loop along with its specifications (e.g. invariants)
     public void visitJmlForLoop(JmlForLoop tree) {
-        System.out.println("Found a for loop!");
-        System.out.println(tree);
-        
+        detectedWhileLoop = null;
+        detectedForLoop = tree;
         super.visitJmlForLoop(tree);
     }
 
     @Override
-    // covers JML assert statements inside a method's body
-    public void visitJmlStatementExpr(JmlStatementExpr tree) {
-        if (tree.keyword.equals("assert")) {
-            System.out.println("Found an assertion in a method's body!");
-            System.out.println("\tfull statement: " + tree);
-            System.out.println("\tjust the expression: " + tree.expression);
-        }
-
-        super.visitJmlStatementExpr(tree);
+    public void visitJmlWhileLoop(JmlWhileLoop tree) {
+        detectedForLoop = null;
+        detectedWhileLoop = tree;
+        super.visitJmlWhileLoop(tree);
     }
 
-    // override more stuff?
+    @Override
+    public void visitJmlStatementExpr(JmlStatementExpr tree) {
+        if (tree.keyword.equals("assert")) {
+            if (detectedForLoop != null || detectedWhileLoop != null) {
+                detectedAssertion = tree;
+            }
+            // tree.expression can be traversed using a new visitor
+            //System.out.println(tree.expression);
+        } 
+        super.visitJmlStatementExpr(tree);
+    }
 }
 
-public class OurWork {
+public class LoopInvariantGenerator {
     
     // this gets called between the flow and desugar stages
-    public static void doOurWork(Env<AttrContext> env) {
+    public static void generateInvariant(Env<AttrContext> env) {
         JCTree tree = env.tree; // the AST
+
 
         // System.out.println(tree);
 
-        OurVisitor ov = new OurVisitor();
-        ov.scan(tree);
+        LoopAssertionFinder lAssertionFinder = new LoopAssertionFinder();
+        lAssertionFinder.scan(tree);
     }
 }
