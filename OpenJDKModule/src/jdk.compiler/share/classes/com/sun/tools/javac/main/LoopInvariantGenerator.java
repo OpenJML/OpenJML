@@ -4,9 +4,6 @@ package com.sun.tools.javac.main;
 
 import org.jmlspecs.openjml.visitors.IJmlVisitor;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
-
-import java.util.ArrayList;
-
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.comp.AttrContext;
@@ -49,25 +46,12 @@ class LoopAssertionFinder extends JmlTreeScanner {
             }
             // tree.expression can be traversed using a new visitor
             // System.out.println(tree.expression);
-        }
+        } 
         super.visitJmlStatementExpr(tree);
     }
 }
 
 class AssertionReader extends TreeScanner implements IJmlVisitor {
-
-    private ArrayList lhsNameList;
-
-    public AssertionReader(ArrayList lhsNameList) {
-        this.lhsNameList = lhsNameList;
-    }
-
-    public void visitIdent(JCIdent that) {
-        if (!lhsNameList.contains(that.toString())) {
-            System.out.println("Constant found, maybe: " + that);
-        }
-    }
-
     @Override
     public void scan(JCTree tree) {
         if (tree != null) {
@@ -75,33 +59,32 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
                 JmlQuantifiedExpr temp = (JmlQuantifiedExpr) tree;
                 // Print the tree and its class
                 System.out.println(temp + " : " + temp.getClass().getSimpleName() + " Type=" + temp.kind);
+
+                // Now visit the individual components
+                for (JCTree.JCVariableDecl decl : temp.decls) {
+                    scan(decl);
+                }
+                scan(temp.range);
+                scan(temp.value);
             } else {
                 System.out.println(tree + " : " + tree.getClass().getSimpleName());
             }
+                super.scan(tree); 
         }
-        super.scan(tree);         
-    }
-}
-
-// Collects variables being assigned to. Doesn't cover unaries like i++
-class AssignmentLhsCollector extends TreeScanner implements IJmlVisitor {
-    public ArrayList lhsNameList = new ArrayList<>();
-
-    @Override
-    public void visitAssign(JCAssign that) {
-        lhsNameList.add(that.lhs.toString());
-        super.visitAssign(that);
+            
     }
 
     @Override
-    public void visitAssignop(JCAssignOp that) {
-        lhsNameList.add(that.lhs.toString());
-        super.visitAssignop(that);
+    public void visitTree(JCTree tree) {
+        // Generic visit for any trees not specially handled
+        if (tree != null) {
+            super.scan(tree);
+        }
     }
 }
 
 public class LoopInvariantGenerator {
-
+    
     // this gets called between the flow and desugar stages
     public static void generateInvariant(Env<AttrContext> env) {
         JCTree tree = env.tree; // the AST
@@ -115,17 +98,10 @@ public class LoopInvariantGenerator {
             return;
         }
 
-        AssignmentLhsCollector assignmentLhsCollector = new AssignmentLhsCollector();
-        if (lAssertionFinder.detectedWhileLoop != null) {
-            assignmentLhsCollector.scan(lAssertionFinder.detectedWhileLoop);
-        } else {
-            assignmentLhsCollector.scan(lAssertionFinder.detectedForLoop);
-        }
-
-        AssertionReader assertionReader = new AssertionReader(assignmentLhsCollector.lhsNameList);
+        AssertionReader assertionReader = new AssertionReader();
         assertionReader.scan(lAssertionFinder.detectedAssertion.expression);
 
-        
+
 
         //System.out.println(lAssertionFinder.detectedForLoop);
         //System.out.println(lAssertionFinder.detectedWhileLoop);
