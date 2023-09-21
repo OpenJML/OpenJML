@@ -2,12 +2,15 @@
 
 package com.sun.tools.javac.main;
 
+import org.jmlspecs.openjml.visitors.IJmlVisitor;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.tree.TreeScanner;
 
 class LoopAssertionFinder extends JmlTreeScanner {
 
@@ -42,9 +45,41 @@ class LoopAssertionFinder extends JmlTreeScanner {
                 complete = true;
             }
             // tree.expression can be traversed using a new visitor
-            //System.out.println(tree.expression);
+            // System.out.println(tree.expression);
         } 
         super.visitJmlStatementExpr(tree);
+    }
+}
+
+class AssertionReader extends TreeScanner implements IJmlVisitor {
+    @Override
+    public void scan(JCTree tree) {
+        if (tree != null) {
+            if (tree instanceof JmlQuantifiedExpr) {
+                JmlQuantifiedExpr temp = (JmlQuantifiedExpr) tree;
+                // Print the tree and its class
+                System.out.println(temp + " : " + temp.getClass().getSimpleName() + " Type=" + temp.kind);
+
+                // Now visit the individual components
+                for (JCTree.JCVariableDecl decl : temp.decls) {
+                    scan(decl);
+                }
+                scan(temp.range);
+                scan(temp.value);
+            } else {
+                System.out.println(tree + " : " + tree.getClass().getSimpleName());
+            }
+                super.scan(tree); 
+        }
+            
+    }
+
+    @Override
+    public void visitTree(JCTree tree) {
+        // Generic visit for any trees not specially handled
+        if (tree != null) {
+            super.scan(tree);
+        }
     }
 }
 
@@ -58,6 +93,15 @@ public class LoopInvariantGenerator {
 
         LoopAssertionFinder lAssertionFinder = new LoopAssertionFinder();
         lAssertionFinder.scan(tree);
+
+        if (!lAssertionFinder.complete) {
+            return;
+        }
+
+        AssertionReader assertionReader = new AssertionReader();
+        assertionReader.scan(lAssertionFinder.detectedAssertion.expression);
+
+
 
         //System.out.println(lAssertionFinder.detectedForLoop);
         //System.out.println(lAssertionFinder.detectedWhileLoop);
