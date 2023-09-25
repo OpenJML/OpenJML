@@ -59,19 +59,11 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
                 JmlQuantifiedExpr temp = (JmlQuantifiedExpr) tree;
                 // Print the tree and its class
                 System.out.println(temp + " : " + temp.getClass().getSimpleName() + " Type=" + temp.kind);
-
-                // Now visit the individual components
-                for (JCTree.JCVariableDecl decl : temp.decls) {
-                    scan(decl);
-                }
-                scan(temp.range);
-                scan(temp.value);
             } else {
                 System.out.println(tree + " : " + tree.getClass().getSimpleName());
             }
-                super.scan(tree); 
         }
-            
+        super.scan(tree); 
     }
 
     @Override
