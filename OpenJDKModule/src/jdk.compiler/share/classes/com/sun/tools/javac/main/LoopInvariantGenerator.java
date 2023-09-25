@@ -46,7 +46,7 @@ class LoopAssertionFinder extends JmlTreeScanner {
             }
             // tree.expression can be traversed using a new visitor
             // System.out.println(tree.expression);
-        } 
+        }
         super.visitJmlStatementExpr(tree);
     }
 }
@@ -63,7 +63,7 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
                 System.out.println(tree + " : " + tree.getClass().getSimpleName());
             }
         }
-        super.scan(tree); 
+        super.scan(tree);
     }
 
     @Override
@@ -73,10 +73,26 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
             super.scan(tree);
         }
     }
+
+    @Override
+    // Covers expressions such as arr.length
+    // "Selects through packages and classes"
+    public void visitSelect(JCFieldAccess tree) {
+        System.out.printf("FieldAccess: name=%s selected=%s sym=%s\n", tree.name, tree.selected, tree.sym);
+
+        String selectedString = tree.selected.toString();
+        String nameString = tree.name.toString();
+        if ((selectedString.equals("arr") || selectedString.equals("a")) &&
+                (nameString.equals("length") || nameString.equals("size"))) {
+                    System.out.println("Possible array length expression: " + tree);
+        }
+
+        super.visitSelect(tree);
+    }
 }
 
 public class LoopInvariantGenerator {
-    
+
     // this gets called between the flow and desugar stages
     public static void generateInvariant(Env<AttrContext> env) {
         JCTree tree = env.tree; // the AST
@@ -93,11 +109,9 @@ public class LoopInvariantGenerator {
         AssertionReader assertionReader = new AssertionReader();
         assertionReader.scan(lAssertionFinder.detectedAssertion.expression);
 
-
-
-        //System.out.println(lAssertionFinder.detectedForLoop);
-        //System.out.println(lAssertionFinder.detectedWhileLoop);
-        //System.out.println(lAssertionFinder.detectedAssertion);
-        //System.out.println(lAssertionFinder.complete);
+        // System.out.println(lAssertionFinder.detectedForLoop);
+        // System.out.println(lAssertionFinder.detectedWhileLoop);
+        // System.out.println(lAssertionFinder.detectedAssertion);
+        // System.out.println(lAssertionFinder.complete);
     }
 }
