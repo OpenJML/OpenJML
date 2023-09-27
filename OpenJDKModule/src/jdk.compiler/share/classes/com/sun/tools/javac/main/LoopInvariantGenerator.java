@@ -4,10 +4,15 @@ package com.sun.tools.javac.main;
 
 import org.jmlspecs.openjml.visitors.IJmlVisitor;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
+import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlTree.Maker;
 import org.jmlspecs.openjml.JmlTree.*;
 
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
@@ -85,19 +90,46 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
         String nameString = tree.name.toString();
         if ((selectedString.equals("arr") || selectedString.equals("a")) &&
                 (nameString.equals("length") || nameString.equals("size"))) {
-                    System.out.println("Possible array length expression: " + tree);
+            System.out.println("Possible array length expression: " + tree);
         }
 
         super.visitSelect(tree);
     }
 }
 
+// class used to make IJmlClauseKind objects for loop invariants
+class LoopInvariantClauseKind extends IJmlClauseKind.Statement {
+
+    public LoopInvariantClauseKind() {
+        super("loop_invariant");
+    }
+
+    @Override
+    public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
+        return null;
+    }
+
+    @Override
+    public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
+        return null;
+    }
+}
+
 public class LoopInvariantGenerator {
 
-    private Context context;
+    Context context; // initialized in constructor
+    Maker make; // initialized in constructor
+    LoopAssertionFinder lAssertionFinder = new LoopAssertionFinder();
+    AssertionReader assertionReader = new AssertionReader();
 
     public LoopInvariantGenerator(Context context) {
         this.context = context;
+        this.make = Maker.instance(context);
+    }
+
+    private JmlStatementLoopExpr makeLoopInvariant(/* params? */) {
+        LoopInvariantClauseKind clauseKind = new LoopInvariantClauseKind();
+        return this.make.JmlStatementLoopExpr(clauseKind, lAssertionFinder.detectedAssertion.expression);
     }
 
     // this gets called between the flow and desugar stages
@@ -106,19 +138,19 @@ public class LoopInvariantGenerator {
 
         // System.out.println(tree);
 
-        LoopAssertionFinder lAssertionFinder = new LoopAssertionFinder();
         lAssertionFinder.scan(tree);
 
         if (!lAssertionFinder.complete) {
             return;
         }
 
-        AssertionReader assertionReader = new AssertionReader();
         assertionReader.scan(lAssertionFinder.detectedAssertion.expression);
 
         // System.out.println(lAssertionFinder.detectedForLoop);
         // System.out.println(lAssertionFinder.detectedWhileLoop);
         // System.out.println(lAssertionFinder.detectedAssertion);
         // System.out.println(lAssertionFinder.complete);
+
+        System.out.println("Testing makeLoopInvariant(): it returned: " + makeLoopInvariant());
     }
 }
