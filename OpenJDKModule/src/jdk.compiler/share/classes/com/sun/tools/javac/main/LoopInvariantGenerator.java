@@ -10,6 +10,7 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.tree.TreeScanner;
 
 class LoopAssertionFinder extends JmlTreeScanner {
@@ -93,8 +94,14 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
 
 public class LoopInvariantGenerator {
 
+    private Context context;
+
+    public LoopInvariantGenerator(Context context) {
+        this.context = context;
+    }
+
     // this gets called between the flow and desugar stages
-    public static void generateInvariant(Env<AttrContext> env) {
+    public void generateInvariant(Env<AttrContext> env) {
         JCTree tree = env.tree; // the AST
 
         // System.out.println(tree);

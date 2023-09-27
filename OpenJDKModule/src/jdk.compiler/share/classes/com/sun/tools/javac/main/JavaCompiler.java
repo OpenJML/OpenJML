@@ -1345,6 +1345,7 @@ public class JavaCompiler {
          * So, only running our hook on the first iteration of this for loop
          */
         boolean ranLoopInvariantGenratorHook = false;
+        LoopInvariantGenerator loopInvariantGenerator = new LoopInvariantGenerator(this.context);
 
         ListBuffer<Env<AttrContext>> results = new ListBuffer<>();
         for (Env<AttrContext> env: envs) {
@@ -1352,7 +1353,7 @@ public class JavaCompiler {
 
             // Senior Design Spring Fall 2023 - call our hook only on first iteration
             if (!ranLoopInvariantGenratorHook) {
-                LoopInvariantGenerator.generateInvariant(env);
+                loopInvariantGenerator.generateInvariant(env);
                 ranLoopInvariantGenratorHook = true;
             }
         }
