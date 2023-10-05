@@ -3,22 +3,21 @@
 package com.sun.tools.javac.main;
 
 import org.jmlspecs.openjml.visitors.IJmlVisitor;
+import org.jmlspecs.openjml.visitors.JmlTreeCopier;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
-import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlTree.Maker;
+import org.jmlspecs.openjml.visitors.JmlTreeTranslator;
+import org.jmlspecs.openjml.ext.StatementExprExtensions;
 import org.jmlspecs.openjml.JmlTree.*;
 
-import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
-import com.sun.tools.javac.comp.JmlAttr;
-import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.source.tree.Tree;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.tree.TreeScanner;
 
 import java.util.ArrayList;
@@ -59,7 +58,7 @@ class LoopAssertionFinder extends JmlTreeScanner {
             // System.out.println(tree.expression);
         }
         super.visitJmlStatementExpr(tree);
-    } 
+    }
 }
 
 class AssertionReader extends TreeScanner implements IJmlVisitor {
@@ -82,7 +81,6 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
         }
         super.scan(tree);
     }
-
     @Override
     public void visitTree(JCTree tree) {
         // Generic visit for any trees not specially handled
@@ -90,13 +88,11 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
             super.scan(tree);
         }
     }
-
     @Override
     // Covers expressions such as arr.length
     // "Selects through packages and classes"
     public void visitSelect(JCFieldAccess tree) {
         System.out.printf("FieldAccess: name=%s selected=%s sym=%s\n", tree.name, tree.selected, tree.sym);
-
         String selectedString = tree.selected.toString();
         String nameString = tree.name.toString();
         if ((selectedString.equals("arr") || selectedString.equals("a")) &&
@@ -125,39 +121,53 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
     }          
 }
 
-// class used to make IJmlClauseKind objects for loop invariants
-class LoopInvariantClauseKind extends IJmlClauseKind.Statement {
+class ConstantReplacer extends JmlTreeTranslator {
+    Context context;
+    Maker make;
+    Symtab symtab;
 
-    public LoopInvariantClauseKind() {
-        super("loop_invariant");
+    public ConstantReplacer(Context context) {
+        this.context = context;
+        this.make = Maker.instance(context);
+        this.symtab = Symtab.instance(context);
     }
 
     @Override
-    public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
-        return null;
+    public void visitSelect(JCFieldAccess tree) {
+        String nameString = tree.name.toString(); // in "arr.length", this would be "length"
+
+        if (nameString.equals("length") || nameString.equals("size")) {
+            result = makeVariableNode(tree); // current node will be replaced by 'result'
+        } else {
+            // If not a "array.length" node, don't change anything
+            super.visitSelect(tree);
+        }
     }
 
-    @Override
-    public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
-        return null;
+    private JCIdent makeVariableNode(JCFieldAccess tree) {
+        JCIdent newIdent = make.Ident("fresh_variable");
+
+        // ESC fails if we don't set a type and sym
+        newIdent.setType(tree.type);
+        newIdent.sym = new Symbol.VarSymbol(0, newIdent.getName(), symtab.intType, null);
+
+        return newIdent;
     }
 }
 
 public class LoopInvariantGenerator {
-
-    Context context; // initialized in constructor
-    Maker make; // initialized in constructor
+    Context context;
+    Maker make;
+    ConstantReplacer constantReplacer;
+    JmlTreeCopier copier;
     LoopAssertionFinder lAssertionFinder = new LoopAssertionFinder();
     AssertionReader assertionReader = new AssertionReader();
 
     public LoopInvariantGenerator(Context context) {
         this.context = context;
         this.make = Maker.instance(context);
-    }
-
-    private JmlStatementLoopExpr makeLoopInvariant(/* params? */) {
-        LoopInvariantClauseKind clauseKind = new LoopInvariantClauseKind();
-        return this.make.JmlStatementLoopExpr(clauseKind, lAssertionFinder.detectedAssertion.expression);
+        this.constantReplacer = new ConstantReplacer(context);
+        this.copier = new JmlTreeCopier(context, this.make);
     }
 
     // this gets called between the flow and desugar stages
@@ -175,11 +185,32 @@ public class LoopInvariantGenerator {
         assertionReader.scan(lAssertionFinder.detectedAssertion.expression);
         System.out.println("Possible Variables: " + assertionReader.possible_vars);
 
+        // make new invariant using the postcondition
+        JmlStatementLoopExpr invariant = this.make.JmlStatementLoopExpr(
+                StatementExprExtensions.loopinvariantClause,
+                copier.copy(lAssertionFinder.detectedAssertion.expression));
+
+        // modify the invariant's tree by replacing constants with variables
+        invariant.accept(constantReplacer);
+
+        IJmlLoop loop;
+        List<JmlStatementLoop> specs = List.of(invariant);
+
+        if (lAssertionFinder.detectedForLoop != null) {
+            loop = lAssertionFinder.detectedForLoop;
+            System.out.println("Before changing loop specs: ");
+            System.out.println(loop);
+
+            // attach our new invariants to the loop
+            loop.setLoopSpecs(specs);
+
+            System.out.println("After changing loop specs: ");
+            System.out.println(loop);
+        }
+
         // System.out.println(lAssertionFinder.detectedForLoop);
         // System.out.println(lAssertionFinder.detectedWhileLoop);
         // System.out.println(lAssertionFinder.detectedAssertion);
         // System.out.println(lAssertionFinder.complete);
-
-        System.out.println("Testing makeLoopInvariant(): it returned: " + makeLoopInvariant());
     }
 }
