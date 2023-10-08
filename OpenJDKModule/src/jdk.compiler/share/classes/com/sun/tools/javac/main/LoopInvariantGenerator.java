@@ -10,6 +10,7 @@ import org.jmlspecs.openjml.ext.StatementExprExtensions;
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
@@ -20,8 +21,13 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.tree.TreeScanner;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 
+/*
+ * This visitor looks for a loop and assertion together (assertion after the loop).
+ * If a pair is found, the boolean variable complete is marked as true and the loop invariant is genrated
+ * based on the assertion.
+ */
 class LoopAssertionFinder extends JmlTreeScanner {
 
     JmlForLoop detectedForLoop = null;
@@ -54,20 +60,30 @@ class LoopAssertionFinder extends JmlTreeScanner {
                 detectedAssertion = tree;
                 complete = true;
             }
-            // tree.expression can be traversed using a new visitor
-            // System.out.println(tree.expression);
         }
         super.visitJmlStatementExpr(tree);
     }
 }
 
+/*
+ * This visitor goes through the postcondition to look for variables to replace.
+ * It also goes through the loop parameters to find replacement variables;
+ * Potential variables (numeric, integer values) are placed into the possible_vars list.
+ */
 class AssertionReader extends TreeScanner implements IJmlVisitor {
-    public ArrayList<Tree> possible_vars;
+    public HashSetWrapper possible_vars;
+    private boolean loop_params = false;
 
     public AssertionReader() {
-        possible_vars = new ArrayList<Tree>();
+        possible_vars = new HashSetWrapper();
     }
 
+    public AssertionReader(boolean loop_params) {
+        possible_vars = new HashSetWrapper();
+        this.loop_params = true;
+    }
+
+    /* 
     @Override
     public void scan(JCTree tree) {
         if (tree != null) {
@@ -81,6 +97,8 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
         }
         super.scan(tree);
     }
+    */
+
     @Override
     public void visitTree(JCTree tree) {
         // Generic visit for any trees not specially handled
@@ -88,17 +106,21 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
             super.scan(tree);
         }
     }
+
     @Override
     // Covers expressions such as arr.length
     // "Selects through packages and classes"
     public void visitSelect(JCFieldAccess tree) {
-        System.out.printf("FieldAccess: name=%s selected=%s sym=%s\n", tree.name, tree.selected, tree.sym);
+        if (this.loop_params) return;
+        //System.out.printf("FieldAccess: name=%s selected=%s sym=%s\n", tree.name, tree.selected, tree.sym);
         String selectedString = tree.selected.toString();
         String nameString = tree.name.toString();
         if ((selectedString.equals("arr") || selectedString.equals("a")) &&
                 (nameString.equals("length") || nameString.equals("size"))) {
-            possible_vars.add(tree);
-            System.out.println("Possible array length expression: " + tree);
+            if (replaceable(tree.sym.type.getTag())) {
+                possible_vars.add(tree);
+            }
+            //System.out.println("Possible array length expression: " + tree);
         }
 
         super.visitSelect(tree);
@@ -106,21 +128,25 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
 
     @Override
     public void visitLiteral(JCLiteral tree) {
+        if (!replaceable(tree.typetag)) return;
         possible_vars.add(tree);
     }
 
     @Override
     public void visitIdent(JCIdent tree) {
+        if (!replaceable(tree.sym.type.getTag())) return;
         possible_vars.add(tree);
     }
-
-    @Override
-    public void visitJmlVariableDecl(JmlVariableDecl tree) {
-        System.out.printf("Var Def Tree=%s\n", tree);
-        possible_vars.add(tree);
-    }          
+    
+    private boolean replaceable(TypeTag tag) {
+        return tag == TypeTag.BYTE || tag == TypeTag.SHORT || tag == TypeTag.INT || tag == TypeTag.LONG;
+    }
 }
 
+/*
+ * This object performs the replacement.
+ * WORK IN PROGRESS
+ */
 class ConstantReplacer extends JmlTreeTranslator {
     Context context;
     Maker make;
@@ -160,8 +186,9 @@ public class LoopInvariantGenerator {
     Maker make;
     ConstantReplacer constantReplacer;
     JmlTreeCopier copier;
-    LoopAssertionFinder lAssertionFinder = new LoopAssertionFinder();
-    AssertionReader assertionReader = new AssertionReader();
+    LoopAssertionFinder lAssertionFinder = new LoopAssertionFinder(); // used to find the loop and assertion pair
+    AssertionReader assertionReader = new AssertionReader(); // used to read the assertion
+    AssertionReader loopParamsReader = new AssertionReader(true); // used to read the loop parameters
 
     public LoopInvariantGenerator(Context context) {
         this.context = context;
@@ -174,21 +201,45 @@ public class LoopInvariantGenerator {
     public void generateInvariant(Env<AttrContext> env) {
         JCTree tree = env.tree; // the AST
 
-        // System.out.println(tree);
+        lAssertionFinder.scan(tree); // find the loop + assertion
 
-        lAssertionFinder.scan(tree);
-
+        // if a loop + assertion is not found, nothing happens
         if (!lAssertionFinder.complete) {
             return;
         }
 
-        assertionReader.scan(lAssertionFinder.detectedAssertion.expression);
-        System.out.println("Possible Variables: " + assertionReader.possible_vars);
+        // This block of code reads the parameters of the loop to obtain possible replacement variables
+        if (lAssertionFinder.detectedForLoop == null) {
+            this.loopParamsReader.scan(lAssertionFinder.detectedWhileLoop.cond); // while loop condition
+        } else {
+            // for loop initialization
+            if (lAssertionFinder.detectedForLoop.init != null) {
+                for (JCStatement temp : lAssertionFinder.detectedForLoop.init) {
+                    this.loopParamsReader.scan(temp);
+                }
+            }
+
+            this.loopParamsReader.scan(lAssertionFinder.detectedForLoop.cond); // for loop condition 
+
+            // for loop post-iteration operation
+            if (lAssertionFinder.detectedForLoop.step != null) {
+                for (JCExpressionStatement temp : lAssertionFinder.detectedForLoop.step) {
+                    this.loopParamsReader.scan(temp);
+                }
+            }
+        }
+
+        System.out.println("Possible replacement variables: " + loopParamsReader.possible_vars.variables);
+
+        assertionReader.scan(lAssertionFinder.detectedAssertion.expression); // read the assertion and store the possible variables to be replaced
+        System.out.println("Possible variables to be replaced: " + assertionReader.possible_vars.variables);
 
         // make new invariant using the postcondition
         JmlStatementLoopExpr invariant = this.make.JmlStatementLoopExpr(
                 StatementExprExtensions.loopinvariantClause,
                 copier.copy(lAssertionFinder.detectedAssertion.expression));
+
+        //this.make.JmlChained(null) // make the bounds for the replacement variable
 
         // modify the invariant's tree by replacing constants with variables
         invariant.accept(constantReplacer);
@@ -196,6 +247,7 @@ public class LoopInvariantGenerator {
         IJmlLoop loop;
         List<JmlStatementLoop> specs = List.of(invariant);
 
+        
         if (lAssertionFinder.detectedForLoop != null) {
             loop = lAssertionFinder.detectedForLoop;
             System.out.println("Before changing loop specs: ");
@@ -207,10 +259,31 @@ public class LoopInvariantGenerator {
             System.out.println("After changing loop specs: ");
             System.out.println(loop);
         }
+        
 
         // System.out.println(lAssertionFinder.detectedForLoop);
         // System.out.println(lAssertionFinder.detectedWhileLoop);
         // System.out.println(lAssertionFinder.detectedAssertion);
         // System.out.println(lAssertionFinder.complete);
+    }
+}
+
+/*
+ * The hash code for two trees might be different despite representing the same identifier.
+ * This HashSetWrapper puts the trees in the set if the string representation of the tree is unique.
+ */
+class HashSetWrapper {
+    public HashSet<Tree> variables = new HashSet<>();
+    private HashSet<String> duplicates = new HashSet<>();
+
+    public void add(Tree tree) {
+        if (!duplicates.contains(tree.toString())) {
+            variables.add(tree);
+            duplicates.add(tree.toString());
+        }
+    }
+
+    public boolean contains(Tree tree) {
+        return duplicates.contains(tree.toString());
     }
 }
