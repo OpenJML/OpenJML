@@ -1,0 +1,52 @@
+<HTML>
+
+<BODY>
+This package is a concrete implementation of a particular concrete syntax for the abstract SMT-LIB semantics.
+In particular, it implements a Parser (which converts concrete to abstract) and a Printer (which converts 
+abstract to concrete). 
+<P>
+The particular concrete syntax implemented by the Parser and the Printer is the S-expression syntax described
+in the SMT-LIB v.2 documentation. In this syntax, all abstract quantities are rendered as S-expressions: 
+either individual tokens, or a sequence consisting of a left-parenthesis, a series of whitespace-separated 
+S-expressions, and a 
+closing right-parenthesis.  The whitespace separating a series of S-expressions may be spaces, tabs, 
+new-line or carriage-return characters.
+<P>
+The allowed tokens are
+<UL>
+<LI> numeral - either a '0' or a sequence of digits starting with a non-zero digit
+<LI> decimal - a numeral followed by a period followed by a sequence of digits
+<LI> binary literal - the characters '#b' followed by a sequence of '0' and '1' digits
+<LI> hex literal - the characters '#x' followed by a sequence of upper- or lower-case hex digits
+<LI> string literal - a '"'-enclosed sequence of printable characters, with a backslash included as '\\'
+        and an embedded quote as '\"'
+<LI> symbol - a sequence, starting with a non-digit, of digits, upper and lower case letters and these punctuation characters:
+<code>+-*/_=%?!.$~&^<>@</code>  Some character sequences that would be symbols are instead reserved words.
+<LI> quoted symbol - a sequence of any printable or whitespace characters beginning and ending with vertical bars (<code>|</code>).
+<LI> keywords - a colon followed by a sequence of printable characters allowed in unquoted symbols
+<LI> reserved words - some character sequences are reserved and not allowed to be used as symbols.  These are<br>
+<code>forall exists let as _ ! par NUMERAL DECIMAL STRING</code><br>
+and the pre-defined commands:<br>
+<code>assert</code> <code>check-sat</code> <code>declare-fun</code> <code>declare-sort</code> <code>define-fun</code> <code>define-sort</code> <code>exit</code> <code>get-assertions</code> <code>get-assignment</code> <code>get-info</code> <code>get_option</code> <code>get-proof</code> <code>get-unsat-core</code> <code>get-value</code> <code>pop</code> <code>push</code> <code>set-info</code> <code>set-logic</code> <code>set-option</code>
+</UL>
+<P>
+A command has the form <code>(</code> <i>command-name</i> <i><reserved-word</i> <i>arguments...</i> <code>)</code><br>
+in which the command-name is a symbol or reserved word naming the command and the arguments are also S-expressions of particular forms, depending on the command.
+<P>
+The logical formulas that are asserted and reasoned about by an SMT solver also are S-expressions.  An expression
+can in general take one of the following forms, though the particular logic in effect may limit some of the syntax
+and will specify which functions are defined:
+<UL>
+<LI> a numeral, decimal, binary, hex, or string literal
+<LI> a symbol (including quoted symbols), both of which are simple forms of identifiers
+<LI> a parameterized identifier:  <code>(</code> <code>_</code> <i>symbol</i> <i>series-of-numerals</i> <code>)</code>
+<LI> a function evaluation: <code>(</code> <i>identifier</i> <i>arguments...</i> <code>)</code>
+<LI> a named expression: <code>(</code> <code>!</code> <i>expression</i> <code>:named</code> <i>symbol</i> <code>)</code>
+<LI> universal quantification: <code>(</code> <code>forall</code> <code>(</code> <i>series-of-symbol-sort-pairs</i> <code>)</code> <i>expression</i> <code>)</code>
+<LI> existential quantification: <code>(</code> <code>exists</code> <code>(</code> <i>series-of-symbol-sort-pairs</i> <code>)</code> <i>expression</i> <code>)</code>
+<LI> let expression: <code>(</code> <code>let</code> <code>(</code> <i>series-of-symbol-expression-pairs</i> <code>)</code> <i>expression</i> <code>)</code>
+</UL>
+</BODY>
+
+
+</HTML>

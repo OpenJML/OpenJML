@@ -62,3 +62,98 @@ topdir := $(strip $(patsubst %/, %, $(dir $(makefile_path))))
 
 # ... and then we can include the real makefile
 include $(topdir)/make/Init.gmk
+
+#### Additions for building OpenJML in the GitHub actions
+
+REL=release-temp
+
+## Used in the github build.yml action
+
+release: clean version-info openjml jmlruntime.jar tutorial post
+
+version:
+	@ ./version.sh
+
+version-info: version
+	@ rm -f version-info.txt
+	@ cat ../version.txt > version-info.txt
+	@ echo "OpenJML" `git rev-parse HEAD` >> version-info.txt
+	@ (cd ../../Specs; echo "Specs" `git rev-parse HEAD`) >> version-info.txt
+	@ (cd ../../JMLAnnotations; echo JMLAnnotations `git rev-parse HEAD` ) >> version-info.txt
+	@ (cd ../../Solvers; echo Solvers `git rev-parse HEAD` ) >> version-info.txt
+	@ (cd ../../openjml.github.io; echo openjml.github.io `git rev-parse HEAD` ) >> version-info.txt
+	@ cat version-info.txt
+	@ mv version-info.txt release-files
+
+tutorial:
+	rm -rf release-files/tutorial
+	mkdir release-files/tutorial
+	cp -pR ../../openjml.github.io/tutorial/*.java ../../openjml.github.io/tutorial/*.out release-files/tutorial
+
+annotation:
+	cp -pR ../../JMLAnnotations/src/org  src/java.base/share/classes
+
+post:
+	rm -rf $(REL)
+	mkdir $(REL)
+	cp -pRL jmlruntime.jar $(REL)
+	cp -pRL build/*release/jdk $(REL)
+	if [ `uname` = 'Darwin' ]; then echo Mac ; export S=macos ; elif [ `uname` = 'Linux' ]; then echo Linux; export S=linux ; else echo Win; export S=windows ; fi ;\
+	cp -pR ../../Solvers/Solvers-$$S $(REL)
+	cp -pR ../../Specs/specs $(REL)
+	cp -pR release-files/* $(REL)
+	chmod ugo+x $(REL)/openjml
+	chmod ugo+x $(REL)/openjml-java
+	(cd $(REL); zip -qr ./openjml.zip * )
+
+trial:
+	$(REL)/openjml -version
+	$(REL)/openjml -esc -progress $(REL)/demos/Max.java
+
+# Tests the most recently created release (release-temp/openjml.zip)
+release-test:
+	@ $(topdir)/../OpenJMLTest/releaseTests/runtests
+
+## Development build targets
+
+openjml: .FORCE
+	NOJML= make
+
+smt:
+	if [ -e $(mkfile_dir)/../../../jSMTLIB/SMT ]; then \
+	    cp -Rp $(mkfile_dir)/../../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; \
+	elif [ -e $(mkfile_dir)/../../jSMTLIB/SMT ]; then \
+	    cp -Rp $(mkfile_dir)/../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; \
+	fi
+
+jmlruntime.jar: .FORCE
+	@mkdir templib
+	@mkdir -p templib/org/jmlspecs/runtime
+	@mkdir -p templib/org/jmlspecs/annotation
+	@cp build/*/jdk/modules/java.base/org/jmlspecs/runtime/*.class templib/org/jmlspecs/runtime
+	@ ## Annotations are generally not needed at runtime, but they are included just in case one is executed in the future
+	@cp build/*/jdk/modules/java.base/org/jmlspecs/annotation/*.class templib/org/jmlspecs/annotation
+	@touch templib/JMLRUNTIME_MARKER
+	@## jmlruntime.jar has bin-runtime, the annotations, and the marker file JMLRUNTIME_MARKER
+	@## If Java is incorrectly setup, the jar command fails - so we check it this first time
+	@(cd templib; jar -cf ../jmlruntime.jar . ) || exit 1
+	@rm -rf templib
+	@echo "   " jmlruntime.jar created
+
+## Misc helpful targets
+
+clean-release:
+	make clean dist-clean
+	rm -rf $(REL)
+
+release-image: version
+	bash ./configure > log-release
+	NOJML= make images > log-release-make 2>&1
+	make post
+
+release-quiet: version
+	bash ./configure > log-release
+	NOJML= make > log-release-make 2>&1
+	make post
+
+
