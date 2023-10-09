@@ -92,13 +92,18 @@ public class JavacParser implements Parser {
      */
     protected Lexer S;
 
+    /** Returns the scanner being used by the parser */
+    public Scanner getScanner() {  // OPENJML - added
+        return (Scanner)S;
+    }
+
     /** The factory to be used for abstract syntax tree construction.
      */
     protected TreeMaker F;
 
     /** The log to be used for error diagnostics.
      */
-    private Log log;
+    public Log log; // OPENJML private to public
 
     /** The Source language setting. */
     private Source source;
@@ -107,7 +112,7 @@ public class JavacParser implements Parser {
     private Preview preview;
 
     /** The name table. */
-    private Names names;
+    public Names names; // OPENJML - private to public
 
     /** End position mappings container */
     protected final AbstractEndPosTable endPosTable;
@@ -1256,13 +1261,13 @@ public class JavacParser implements Parser {
         ArrayList<JCExpression[]> odStackSupply = new ArrayList<>();
         ArrayList<Token[]> opStackSupply = new ArrayList<>();
 
-        private JCExpression[] newOdStack() {
+        protected JCExpression[] newOdStack() { // OPENJML - private to protected                                       
             if (odStackSupply.isEmpty())
                 return new JCExpression[infixPrecedenceLevels + 1];
             return odStackSupply.remove(odStackSupply.size() - 1);
         }
 
-        private Token[] newOpStack() {
+        protected Token[] newOpStack() { // OPENJML - private to protected
             if (opStackSupply.isEmpty())
                 return new Token[infixPrecedenceLevels + 1];
             return opStackSupply.remove(opStackSupply.size() - 1);
@@ -1542,7 +1547,7 @@ public class JavacParser implements Parser {
                         }
 
                         List<JCAnnotation> tyannos = null;
-                        if (isMode(TYPE) && token.kind == MONKEYS_AT) {
+                        if ((mode & TYPE) != 0 /* && token.kind == MONKEYS_AT */) {//OPENJML - removed the test for @ so that JML modifiers are parsed
                             tyannos = typeAnnotationsOpt();
                         }
                         // typeArgs saved for next loop iteration.
@@ -1870,6 +1875,14 @@ public class JavacParser implements Parser {
         }
     }
 
+    protected ParensResult analyzeParensHelper(Token t, ParensResult defaultResult) { // OPENJML - extracted so it can be overridden
+        return defaultResult;
+    }                   
+                        
+    protected ParensResult analyzeParensHelper2(int lookahead, Token t, ParensResult defaultResult) { // OPENJML - extracted so it can be overridden
+        return defaultResult;
+    }                       
+
     /**
      * If we see an identifier followed by a '&lt;' it could be an unbound
      * method reference or a binary expression. To disambiguate, look for a
@@ -1934,7 +1947,7 @@ public class JavacParser implements Parser {
                         case LONG: case FLOAT: case DOUBLE: case BOOLEAN: case VOID:
                             return ParensResult.CAST;
                         default:
-                            return defaultResult;
+                            return analyzeParensHelper(S.token(lookahead + 1), defaultResult); // OPENJML - inserted hook to allow overriding
                     }
                 case UNDERSCORE:
                 case ASSERT:
@@ -2213,7 +2226,7 @@ public class JavacParser implements Parser {
 
     /** Arguments = "(" [Expression { COMMA Expression }] ")"
      */
-    List<JCExpression> arguments() {
+    public List<JCExpression> arguments() { // OPENJML - package to public
         ListBuffer<JCExpression> args = new ListBuffer<>();
         if (token.kind == LPAREN) {
             nextToken();
@@ -2401,7 +2414,7 @@ public class JavacParser implements Parser {
 
     /** BracketsOpt = [ "[" "]" { [Annotations] "[" "]"} ]
      */
-    private JCExpression bracketsOpt(JCExpression t) {
+    public JCExpression bracketsOpt(JCExpression t) { // OPENJML - private to public
         return bracketsOpt(t, List.nil());
     }
 
@@ -2565,12 +2578,19 @@ public class JavacParser implements Parser {
             }
             return classCreatorRest(newpos, null, typeArgs, t);
         } else {
+                JCExpression more = moreCreator(token,t); // OPENJML - this and next line to accommodate extensions
+                if (more != null) return more;            // OPENJML
             setErrorEndPos(token.pos);
             reportSyntaxError(token.pos, Errors.Expected2(LPAREN, LBRACKET));
             t = toP(F.at(newpos).NewClass(null, typeArgs, t, List.nil(), null));
             return toP(F.at(newpos).Erroneous(List.<JCTree>of(t)));
         }
     }
+
+    // OPENJML - added to accommodate extension
+    protected JCExpression moreCreator(Token token, JCExpression type) {
+        return null;
+    }   
 
     /** InnerCreator = [Annotations] Ident [TypeArguments] ClassCreatorRest
      */
@@ -2932,7 +2952,8 @@ public class JavacParser implements Parser {
         }
     }
     //where
-        private List<JCStatement> localVariableDeclarations(JCModifiers mods, JCExpression type) {
+        protected List<JCStatement> localVariableDeclarations(JCModifiers mods, JCExpression type) { // OPENJML - private to protected
+                startOfDeclaration(mods); // OPENJML
             ListBuffer<JCStatement> stats =
                     variableDeclarators(mods, type, new ListBuffer<>(), true);
             // A "LocalVariableDeclarationStatement" subsumes the terminating semicolon
@@ -3640,7 +3661,7 @@ public class JavacParser implements Parser {
      *  @param reqInit  Is an initializer always required?
      *  @param dc       The documentation comment for the variable declarations, or null.
      */
-    protected <T extends ListBuffer<? super JCVariableDecl>> T variableDeclaratorsRest(int pos,
+    public JCVariableDecl variableDeclaratorRest(int pos, // OPENJML - package to public
                                                                      JCModifiers mods,
                                                                      JCExpression type,
                                                                      Name name,
@@ -3923,6 +3944,13 @@ public class JavacParser implements Parser {
                 if (token.kind == EOF)
                     break;
             }
+
+            JCTree t; // OPENJML - added
+            do {      // OPENJML - added
+                t = checkForJmlDeclaration(checkForImports); // OPENJML - added
+                if (t != null) { defs.append(t); seenImport |= (t instanceof JCImport); mods = null; } // OPENJML - added 
+            } while (t != null); // OPENJML - added
+
             // JLS 7.3 doesn't allow extra semicolons after package or import declarations,
             // but here we try to provide a more helpful error message if we encounter any.
             // Do that by slurping in as many semicolons as possible, and then seeing what
@@ -4858,6 +4886,8 @@ public class JavacParser implements Parser {
             };
     }
 
+    protected void startOfDeclaration(JCModifiers mods) {} // OPENJML 
+
     /** MethodDeclaratorRest =
      *      FormalParameters BracketsOpt [THROWS TypeList] ( MethodBody | [DEFAULT AnnotationValue] ";")
      *  VoidMethodDeclaratorRest =
@@ -4873,6 +4903,7 @@ public class JavacParser implements Parser {
                               boolean isInterface, boolean isVoid,
                               boolean isRecord,
                               Comment dc) {
+        startOfDeclaration(mods); // OPENJML
         if (isInterface) {
             if ((mods.flags & Flags.PRIVATE) != 0) {
                 checkSourceLevel(Feature.PRIVATE_INTERFACE_METHODS);
@@ -5090,7 +5121,7 @@ public class JavacParser implements Parser {
      * first parses the type {@code String @A []} then inserts
      * a new array level with {@code @B} annotation.
      */
-    private JCExpression insertAnnotationsToMostInner(
+    protected JCExpression insertAnnotationsToMostInner( // OPENJML - private to protected
             JCExpression type, List<JCAnnotation> annos,
             boolean createNewLevel) {
         int origEndPos = getEndPos(type);

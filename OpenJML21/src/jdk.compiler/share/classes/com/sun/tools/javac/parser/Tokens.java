@@ -45,6 +45,10 @@ import com.sun.tools.javac.util.*;
  */
 public class Tokens {
 
+    public static interface ITokenKind { // OPENJML - added this interface to be able to extend it
+        String name();
+    }
+
     private final Names names;
 
     /**
@@ -92,7 +96,7 @@ public class Tokens {
      * This enum defines all tokens used by the javac scanner. A token is
      * optionally associated with a name.
      */
-    public enum TokenKind implements Formattable, Predicate<TokenKind> {
+    public enum TokenKind implements Formattable, Predicate<TokenKind>, ITokenKind { // OPENJML - added ITokenKind
         EOF(),
         ERROR(),
         IDENTIFIER(Tag.NAMED),
@@ -300,7 +304,8 @@ public class Tokens {
         }
 
         /** The token kind */
-        public final TokenKind kind;
+        public final TokenKind kind; // OPENJML - changed to interface to allow extension; also corresponding changes to the use of kind
+        public final ITokenKind ikind; // OPENJML - changed to interface to allow extension; also corresponding changes to the use of kind
 
         /** The start position of this token */
         public final int pos;
@@ -312,6 +317,7 @@ public class Tokens {
         public final List<Comment> comments;
 
         Token(TokenKind kind, int pos, int endPos, List<Comment> comments) {
+            this.ikind = kind; // OPENJML
             this.kind = kind;
             this.pos = pos;
             this.endPos = endPos;
@@ -319,6 +325,15 @@ public class Tokens {
             checkKind();
         }
 
+        Token(ITokenKind ikind, int pos, int endPos, List<Comment> comments) { // OPENJML - changed to ITokenKind to allow extension
+            this.ikind = ikind;
+            this.kind = ikind instanceof TokenKind ? (TokenKind)ikind : TokenKind.CUSTOM;
+            this.pos = pos;
+            this.endPos = endPos;
+            this.comments = comments;
+            checkKind();
+        }
+        
         Token[] split(Tokens tokens) {
             if (kind.name.length() < 2 || kind.tag != Tag.DEFAULT) {
                 throw new AssertionError("Can't split" + kind);

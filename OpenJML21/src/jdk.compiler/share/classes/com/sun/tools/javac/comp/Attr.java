@@ -5707,7 +5707,7 @@ public class Attr extends JCTree.Visitor {
         tree.accept(new TypeAnnotationsValidator(sigOnly));
     }
     //where
-    private final class TypeAnnotationsValidator extends TreeScanner {
+    protected class TypeAnnotationsValidator extends TreeScanner { // OPENJML private to protected, removed final
 
         private final boolean sigOnly;
         public TypeAnnotationsValidator(boolean sigOnly) {
