@@ -11,6 +11,7 @@ import static com.sun.tools.javac.tree.JCTree.Tag.PARENS;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.io.UncheckedIOException;
 import java.util.Iterator;
 
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
@@ -1055,12 +1056,13 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(tree,e); }
     }
 
-//    @Override
-//    public void printModifiers(JCModifiers mods) throws IOException {
-//        printAnnotations(mods.annotations);
-//        printJmlModifiers(mods);
-//        printFlags(mods.flags & ~INTERFACE & ~RECORD);
-//    }
+// TODO _ was commented out
+    // @Override // FIXME - was an override
+    public void printModifiers(JCModifiers mods) throws IOException {
+        printAnnotations(mods.annotations);
+        printJmlModifiers(mods);
+        printFlags(mods.flags & ~INTERFACE & ~RECORD);
+    }
     
     public void printJmlModifiers(JCModifiers mods) throws IOException {
         for (JmlToken t: ((JmlModifiers)mods).jmlmods) {

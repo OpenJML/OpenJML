@@ -808,6 +808,16 @@ public class JCDiagnostic implements Diagnostic<JavaFileObject> {
         return defaultFormatter.format(this, Locale.getDefault());
     }
 
+    public DiagnosticFormatter<JCDiagnostic> setFormatter(DiagnosticFormatter<JCDiagnostic> df) { // OPENJML - added for testing
+        var olddf = defaultFormatter;
+        defaultFormatter = df;
+        return olddf;
+    }   
+         
+    public DiagnosticFormatter<JCDiagnostic> getFormatter() { // OPENJML - added for testing
+        return defaultFormatter;
+    }       
+            
     private DiagnosticFormatter<JCDiagnostic> defaultFormatter;
     @Deprecated
     private static DiagnosticFormatter<JCDiagnostic> fragmentFormatter;

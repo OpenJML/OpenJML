@@ -451,6 +451,7 @@ public class TreeInfo {
     public static int getStartPos(JCTree tree) {
         if (tree == null)
             return Position.NOPOS;
+        if ((tree.getTag() == null || tree.getTag() == NO_TAG) && tree instanceof org.jmlspecs.openjml.JmlTree.IJmlTree) return tree.getStartPosition(); // OPENJML added
 
         switch(tree.getTag()) {
             case MODULEDEF: {
@@ -1122,7 +1123,7 @@ public class TreeInfo {
         }
     }
 
-    static Tree.Kind tagToKind(JCTree.Tag tag) {
+    static public Tree.Kind tagToKind(JCTree.Tag tag) { // OPENJML - package to public
         switch (tag) {
         // Postfix expressions
         case POSTINC:           // _ ++

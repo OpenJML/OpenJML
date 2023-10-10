@@ -692,7 +692,7 @@ public abstract class Scope {
 
     /** A class for scope entries.
      */
-    private static class Entry {
+    public static class Entry { // OPENJML - private to public
 
         /** The referenced symbol.
          *  sym == null   iff   this == sentinel

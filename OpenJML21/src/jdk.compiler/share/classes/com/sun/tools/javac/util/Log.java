@@ -477,7 +477,7 @@ public class Log extends AbstractLog {
      * source name and pos.
      */
     protected boolean shouldReport(JavaFileObject file, int pos) {
-        if (file == null)
+        if (file == null || alwaysReport) // OPENJML - added
             return true;
 
         Pair<JavaFileObject,Integer> coords = new Pair<>(file, pos);
@@ -487,12 +487,14 @@ public class Log extends AbstractLog {
         return shouldReport;
     }
 
+    public static boolean alwaysReport = false; // OPENJML - added for debugging
+
     /** Returns true if a diagnostics needs to be reported.
      */
     private boolean shouldReport(JCDiagnostic d) {
         JavaFileObject file = d.getSource();
 
-        if (file == null)
+        if (file == null || alwaysReport) // OPENJML
             return true;
 
         if (!shouldReport(file, d.getIntPosition()))
@@ -864,4 +866,9 @@ public class Log extends AbstractLog {
         return String.format((java.util.Locale)null, fmt, args);
     }
 
+    // OPENJML = added to allow resetting the record of errors already issued
+    public void resetRecord() {
+        this.recorded.clear();
+    }
+    
 }

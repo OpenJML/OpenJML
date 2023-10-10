@@ -3121,6 +3121,7 @@ public class Types {
                                 implmeth = prov;
                             }
                         }
+                        if (checkJML(absmeth)) continue; // OPENJML added
                         if (implmeth == null || implmeth == absmeth) {
                             undef = absmeth;
                             break;
@@ -3140,6 +3141,8 @@ public class Types {
             }
             return undef;
         }
+
+        public boolean checkJML(MethodSymbol msym) { return false; } // OPENJML
 
     public class CandidatesCache {
         public Map<Entry, List<MethodSymbol>> cache = new WeakHashMap<>();

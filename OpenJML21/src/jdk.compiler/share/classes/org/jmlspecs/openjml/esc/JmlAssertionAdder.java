@@ -6539,6 +6539,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    // caseToDo == null when the original switch has no default case -- so skip everything if no case condition matches
 		    // FIXME - only works for traditional enums or ints, not strings or patterns
 		    JCExpression caseCondition = null;
+/* FIXME TODO - pats no longer a field
 		    if (caseToDo != null && !caseToDo.pats.isEmpty()) {
 		        for (var pat : caseToDo.pats) {
 		            JCExpression e = treeutils.makeEquality(pat.pos, selector, convertExpr(pat));
@@ -6555,7 +6556,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		        }
 		        caseCondition = treeutils.makeNot(that, caseCondition);
 		    }
-
+*/
 		    if (caseCondition != null) {
 		        addAssume(that.pos(), Label.IMPLICIT_ASSUME, caseCondition);
 	            addFeasibilityCheck(caseToDo, currentStatements, Strings.feas_switch, "after case condition");
@@ -11433,7 +11434,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			else
 				statics.add((TypeSymbol) calleeMethodSymbol.owner);
 		}
-		return new Pair(instances.toList(), statics.toList());
+		return new Pair<List<JCExpression>, List<TypeSymbol>>(instances.toList(), statics.toList());
 	}
 
 	public void applyLambda(JCExpression that, JCExpression convertedReceiver, List<JCExpression> untrArgs,
@@ -21894,6 +21895,42 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// TODO Auto-generated method stub
 			return null;
 		}
+
+                @Override
+                public java.util.List<JmlStatementExpr> visitDeconstructionPattern(DeconstructionPatternTree node, Void p) {
+                       // TODO
+                       return null;
+                }
+
+                @Override
+                public java.util.List<JmlStatementExpr> visitPatternCaseLabel(PatternCaseLabelTree node, Void p) {
+                       // TODO
+                       return null;
+                }
+
+                @Override
+                public java.util.List<JmlStatementExpr> visitConstantCaseLabel(ConstantCaseLabelTree node,Void p) {
+                       // TODO
+                       return null;
+                }
+
+                @Override
+                public java.util.List<JmlStatementExpr> visitDefaultCaseLabel(DefaultCaseLabelTree node, Void p) {
+                       // TODO
+                       return null;
+                }
+
+                @Override
+                public java.util.List<JmlStatementExpr> visitAnyPattern(AnyPatternTree node, Void p) {
+                       // TODO
+                       return null;
+                }
+
+                @Override
+                public java.util.List<JmlStatementExpr> visitStringTemplate(StringTemplateTree node, Void p) {
+                       // TODO
+                       return null;
+                }
 
 		@Override
 		public java.util.List<JmlStatementExpr> visitPackage(PackageTree node, Void p) {

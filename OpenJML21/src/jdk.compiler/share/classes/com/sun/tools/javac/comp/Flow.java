@@ -215,7 +215,7 @@ public class Flow {
     private final Resolve rs;
     private final JCDiagnostic.Factory diags;
     private Env<AttrContext> attrEnv;
-    private       Lint lint;
+    protected       Lint lint; // OPENJML - private to protected
     private final Infer infer;
 
     public static Flow instance(Context context) {
@@ -351,6 +351,8 @@ public class Flow {
      * This class define the shared logic for handling jumps (break/continue statements).
      */
     abstract static class BaseAnalyzer extends TreeScanner {
+
+        public void moreClassDef(JCClassDecl tree) {} // OPENJML - Added an overridable hook
 
         enum JumpKind {
             BREAK(JCTree.Tag.BREAK) {
@@ -559,6 +561,7 @@ public class Flow {
                         scan(l.head);
                     }
                 }
+                moreClassDef(tree); // OPENJML added
             } finally {
                 pendingExits = pendingExitsPrev;
                 alive = alivePrev;
@@ -1425,6 +1428,7 @@ public class Flow {
                     }
                 }
 
+                moreClassDef(tree); // OPENJML - added this hook
                 thrown = thrownPrev;
             } finally {
                 pendingExits = pendingExitsPrev;
@@ -2009,6 +2013,7 @@ public class Flow {
         @Override
         public void visitClassDef(JCClassDecl tree) {
             //skip
+            moreClassDef(tree); // OPENJML - added hook
         }
     }
 
@@ -2412,6 +2417,7 @@ public class Flow {
                     firstadr = firstadrPrev;
                     classDef = classDefPrev;
                 }
+                moreClassDef(tree); // OPENJML - added this hook
             } finally {
                 lint = lintPrev;
             }
@@ -3273,6 +3279,7 @@ public class Flow {
             try {
                 currentTree = tree.sym.isDirectlyOrIndirectlyLocal() ? tree : null;
                 super.visitClassDef(tree);
+                moreClassDef(tree); // OPENJML - added this hook
             } finally {
                 currentTree = prevTree;
             }

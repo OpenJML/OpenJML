@@ -84,7 +84,7 @@ public class DeferredAttr extends JCTree.Visitor {
     protected static final Context.Key<DeferredAttr> deferredAttrKey = new Context.Key<>();
 
     final Annotate annotate;
-    final Attr attr;
+    public final Attr attr; // OPENJML - package to public
     final ArgumentAttr argumentAttr;
     final Check chk;
     final JCDiagnostic.Factory diags;
@@ -148,7 +148,7 @@ public class DeferredAttr extends JCTree.Visitor {
 
         // For speculative attribution, skip the class definition in <>.
         treeCopier =
-            new TreeCopier<Void>(make) {
+            new org.jmlspecs.openjml.visitors.JmlTreeCopier(context, org.jmlspecs.openjml.JmlTree.Maker.instance(context)) {
                 @Override @DefinedBy(Api.COMPILER_TREE)
                 public JCTree visitNewClass(NewClassTree node, Void p) {
                     JCNewClass t = (JCNewClass) node;
@@ -543,6 +543,13 @@ public class DeferredAttr extends JCTree.Visitor {
                         found = true;
                     }
                     super.scan(tree);
+                }
+
+                @Override   // OPENJML added -- need to preclude JML nodes from provoking the AssertionError in  super.visitTree  
+                public void visitTree(JCTree tree) {
+                    if (tree instanceof org.jmlspecs.openjml.JmlTree.JmlSingleton) return;
+                    if (tree instanceof org.jmlspecs.openjml.JmlTree.JmlMethodInvocation) return;
+                    super.visitTree(tree);
                 }
             }
 

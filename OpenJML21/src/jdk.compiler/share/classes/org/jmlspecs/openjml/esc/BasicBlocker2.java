@@ -759,7 +759,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             return "map<"+encodeType(indexType)+","+encodeType(componentType)+">";
         }
 		@Override
-		public Type cloneWithMetadata(TypeMetadata metadata) {
+		public Type cloneWithMetadata(com.sun.tools.javac.util.List<TypeMetadata> metadata) {
 			// TODO Auto-generated method stub
 			return null;
 		}

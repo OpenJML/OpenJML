@@ -237,7 +237,7 @@ public class Enter extends JCTree.Visitor {
      *  where the local scope is for type variables, and the this and super symbol
      *  only, and members go into the class member scope.
      */
-    WriteableScope enterScope(Env<AttrContext> env) {
+    public WriteableScope enterScope(Env<AttrContext> env) { // OPENJML - package to public
         return (env.tree.hasTag(JCTree.Tag.CLASSDEF))
             ? ((JCClassDecl) env.tree).sym.members_field
             : env.info.scope;
@@ -542,7 +542,7 @@ public class Enter extends JCTree.Visitor {
     //where
         /** Does class have the same name as the file it appears in?
          */
-        private static boolean classNameMatchesFileName(ClassSymbol c,
+        protected boolean classNameMatchesFileName(ClassSymbol c, // OPENJML - private to protected, removed static
                                                         Env<AttrContext> env) {
             return env.toplevel.sourcefile.isNameCompatible(c.name.toString(),
                                                             JavaFileObject.Kind.SOURCE);

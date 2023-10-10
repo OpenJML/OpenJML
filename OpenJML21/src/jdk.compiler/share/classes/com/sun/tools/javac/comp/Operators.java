@@ -147,7 +147,7 @@ public class Operators {
     /**
      * Entry point for resolving a unary operator given an operator tag and an argument type.
      */
-    OperatorSymbol resolveUnary(DiagnosticPosition pos, JCTree.Tag tag, Type op) {
+    public OperatorSymbol resolveUnary(DiagnosticPosition pos, JCTree.Tag tag, Type op) { // OPENJML - package to public
         return resolve(tag,
                 unaryOperators,
                 unop -> unop.test(op),
@@ -158,7 +158,7 @@ public class Operators {
     /**
      * Entry point for resolving a binary operator given an operator tag and a pair of argument types.
      */
-    OperatorSymbol resolveBinary(DiagnosticPosition pos, JCTree.Tag tag, Type op1, Type op2) {
+    public OperatorSymbol resolveBinary(DiagnosticPosition pos, JCTree.Tag tag, Type op1, Type op2) { // OPENJML - package to public
         return resolve(tag,
                 binaryOperators,
                 binop -> binop.test(op1, op2),

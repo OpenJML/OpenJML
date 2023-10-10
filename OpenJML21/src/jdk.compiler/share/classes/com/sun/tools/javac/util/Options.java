@@ -45,7 +45,7 @@ public class Options {
     /** The context key for the options. */
     public static final Context.Key<Options> optionsKey = new Context.Key<>();
 
-    private LinkedHashMap<String,String> values;
+    protected LinkedHashMap<String,String> values; // OPENJML - private to protected
 
     /** Get the Options instance for this context. */
     public static Options instance(Context context) {

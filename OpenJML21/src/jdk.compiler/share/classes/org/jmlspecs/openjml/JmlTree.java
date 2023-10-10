@@ -298,7 +298,7 @@ public class JmlTree {
         	return Modifiers(flags, annotations, new java.util.LinkedList<JmlToken>());
         }
  
-        @Override
+        // @Override // TODO - used to have Override
         public JCModifiers Modifiers(JCModifiers mods, long flags, List<JCAnnotation> annotations) {
         	return Modifiers(flags, annotations, mods == null ? new java.util.LinkedList<JmlToken>() : ((JmlModifiers)mods).jmlmods);
         }
@@ -401,7 +401,7 @@ public class JmlTree {
                     Type(mtype.getReturnType()),
                     TypeParams(mtype.getTypeArguments()),
                     null, // FIXME - receiver parameter
-                    Params(mtype.getParameterTypes(), m),
+                    Params(m, mtype.getParameterTypes()),
                     Types(mtype.getThrownTypes()),
                     body,
                     null,
@@ -480,15 +480,15 @@ public class JmlTree {
         }
         
         /** Creates a regular import, but using a JmlImport AST node */
-        @Override
+// TODO - was an override
         public JmlImport Import(JCTree qualid, boolean staticImport) {
             return (JmlImport)new JmlImport(qualid,staticImport,false).setPos(pos);
         }
         
         @Override
-        public JmlCase Case(CaseKind caseKind, List<JCExpression> pats,
+        public JmlCase Case(CaseKind caseKind, List<JCCaseLabel> labels, JCExpression guard,
                             List<JCStatement> stats, JCTree body) {
-            var r = new JmlCase(caseKind, pats, stats, body);
+            var r = new JmlCase(caseKind, labels, guard, stats, body);
             r.pos = pos;
             return r;
         }
@@ -1092,7 +1092,7 @@ public class JmlTree {
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlImport(JCTree qualid, boolean importStatic, boolean isModel) {
-            super(qualid,importStatic);
+            super((JCFieldAccess)qualid,importStatic); // FIXME - did not used to need the cast
             this.isModel = isModel;
         }
         
@@ -2222,9 +2222,9 @@ public class JmlTree {
     public static class JmlCase extends JCCase {
         
         public JCExpression check;
-        public JmlCase(CaseKind caseKind, List<JCExpression> pats,
-                List<JCStatement> stats, JCTree body) {
-            super(caseKind, pats, stats, body);
+        public JmlCase(CaseKind caseKind, List<JCCaseLabel> labels,
+                JCExpression guard, List<JCStatement> stats, JCTree body) {
+            super(caseKind, labels, guard, stats, body);
             check = null;
         }
     }

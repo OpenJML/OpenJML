@@ -1117,7 +1117,7 @@ public class JavacParser implements Parser {
         odStack[0] = t;
         int startPos = token.pos;
         Token topOp = Tokens.DUMMY;
-        while (prec(token.kind) >= minprec) {
+        while (prec(token.ikind) >= minprec) { // OPENJML - changed to ikind
             opStack[top] = topOp;
 
             if (token.kind == INSTANCEOF) {
@@ -1164,8 +1164,8 @@ public class JavacParser implements Parser {
                 top++;
                 odStack[top] = term3();
             }
-            while (top > 0 && prec(topOp.kind) >= prec(token.kind)) {
-                odStack[top - 1] = F.at(topOp.pos).Binary(optag(topOp.kind), odStack[top - 1], odStack[top]);
+            while (top > 0 && prec(topOp.ikind) >= prec(token.ikind)) { // OPENJML -- changed to ikind
+                odStack[top - 1] = makeOp(topOp.pos, topOp, odStack[top - 1], odStack[top]); // OPENJML
                 top--;
                 topOp = opStack[top];
             }
@@ -1181,6 +1181,19 @@ public class JavacParser implements Parser {
         opStackSupply.add(opStack);
         return t;
     }
+
+    protected JCExpression makeOp(int pos, // OPENJML - extracted in order to extend
+                Token opToken,
+                JCExpression od1,
+                JCExpression od2)
+    {
+        if (opToken.kind == INSTANCEOF) {
+                return toP(F.at(pos).TypeTest(od1, od2));
+        } else {
+                return toP(F.at(pos).Binary(optag(opToken.kind), od1, od2));
+        }
+    }
+
     //where
         /** If tree is a concatenation of string literals, replace it
          *  by a single literal representing the concatenated string.
@@ -2269,7 +2282,7 @@ public class JavacParser implements Parser {
 
     /**  TypeArgumentsOpt = [ TypeArguments ]
      */
-    JCExpression typeArgumentsOpt(JCExpression t) {
+    public JCExpression typeArgumentsOpt(JCExpression t) { // OPENJML - package to public
         if (token.kind == LT &&
             isMode(TYPE) &&
             !isMode(NOPARAMS)) {
@@ -3661,7 +3674,7 @@ public class JavacParser implements Parser {
      *  @param reqInit  Is an initializer always required?
      *  @param dc       The documentation comment for the variable declarations, or null.
      */
-    public JCVariableDecl variableDeclaratorRest(int pos, // OPENJML - package to public
+    public <T extends ListBuffer<? super JCVariableDecl>> T variableDeclaratorsRest(int pos, // OPENJML - protected to public
                                                                      JCModifiers mods,
                                                                      JCExpression type,
                                                                      Name name,
@@ -3694,7 +3707,7 @@ public class JavacParser implements Parser {
      *  @param reqInit  Is an initializer always required?
      *  @param dc       The documentation comment for the variable declarations, or null.
      */
-    JCVariableDecl variableDeclaratorRest(int pos, JCModifiers mods, JCExpression type, Name name,
+    public JCVariableDecl variableDeclaratorRest(int pos, JCModifiers mods, JCExpression type, Name name, // OPENJML - default to public
                                   boolean reqInit, Comment dc, boolean localDecl, boolean compound) {
         boolean declaredUsingVar = false;
         JCExpression init = null;
@@ -3905,6 +3918,10 @@ public class JavacParser implements Parser {
         }
     }
 
+    protected JCTree checkForJmlDeclaration(boolean checkForImports) { // OPEN - added for extension
+        return null;
+    }
+
     /** CompilationUnit = [ { "@" Annotation } PACKAGE Qualident ";"] {ImportDeclaration} {TypeDeclaration}
      */
     public JCTree.JCCompilationUnit parseCompilationUnit() {
@@ -3935,6 +3952,7 @@ public class JavacParser implements Parser {
             defs.append(pd);
         }
 
+        boolean checkForImports = true;
         boolean firstTypeDecl = true;   // have we see a class, enum, or interface declaration yet?
         boolean isUnnamedClass = false;
         while (token.kind != EOF) {
@@ -4583,7 +4601,7 @@ public class JavacParser implements Parser {
         }
         ListBuffer<JCTree> defs = new ListBuffer<>();
         while (token.kind != RBRACE && token.kind != EOF) {
-            defs.appendList(classOrInterfaceOrRecordBodyDeclaration(null, className, isInterface, isRecord));
+            defs.appendList(classOrInterfaceOrRecordBodyDeclaration(null, className, isInterface, isRecord)); // OPENJML - added a parameter mods for cases in which they are parsed before calling this method -- TODO - has this really changed
             if (token.pos <= endPosTable.errorEndPos) {
                // error recovery
                skip(false, true, true, false);
@@ -5229,10 +5247,10 @@ public class JavacParser implements Parser {
     /** Return precedence of operator represented by token,
      *  -1 if token is not a binary operator. @see TreeInfo.opPrec
      */
-    static int prec(TokenKind token) {
-        JCTree.Tag oc = optag(token);
+    protected int prec(ITokenKind token) {  // OPENJML - changed from package to protected, removed static, changed to ITokenKind
+        JCTree.Tag oc = optag((TokenKind)token);
         return (oc != NO_TAG) ? TreeInfo.opPrec(oc) : -1;
-    }
+    }   
 
     /**
      * Return the lesser of two positions, making allowance for either one

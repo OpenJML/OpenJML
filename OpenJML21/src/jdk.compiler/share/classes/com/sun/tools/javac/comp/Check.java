@@ -107,15 +107,16 @@ public class Check {
     private final Enter enter;
     private final DeferredAttr deferredAttr;
     private final Infer infer;
-    private final Types types;
+    public final Types types; // OPENJML - private to public
     private final TypeAnnotations typeAnnotations;
-    private final JCDiagnostic.Factory diags;
+    public final JCDiagnostic.Factory diags; // OPENJML - private to public
     private final JavaFileManager fileManager;
     private final Source source;
     private final Target target;
     private final Profile profile;
     private final Preview preview;
     private final boolean warnOnAnyAccessToMembers;
+    private final Options options; // OPENJML - added
 
     public boolean disablePreviewCheck;
 
@@ -149,7 +150,7 @@ public class Check {
         types = Types.instance(context);
         typeAnnotations = TypeAnnotations.instance(context);
         diags = JCDiagnostic.Factory.instance(context);
-        Options options = Options.instance(context);
+        options = Options.instance(context); // OPENJML - made a field insted of local
         lint = Lint.instance(context);
         fileManager = context.get(JavaFileManager.class);
 
@@ -184,6 +185,15 @@ public class Check {
         allowModules = Feature.MODULES.allowedInSource(source);
         allowRecords = Feature.RECORDS.allowedInSource(source);
         allowSealed = Feature.SEALED_CLASSES.allowedInSource(source);
+    }
+
+    public void resetHandlers() { // OPENJML - added, for the situation where Check is constructed before options are read
+        String n = com.sun.tools.javac.main.Option.XLINT_CUSTOM.primaryName;
+        // Assignment intended below
+        if (uncheckedHandler.verbose = options.isSet(n+LintCategory.UNCHECKED.option)) lint.enable(LintCategory.UNCHECKED);
+        if (deprecationHandler.verbose = options.isSet(n+LintCategory.DEPRECATION.option)) lint.enable(LintCategory.DEPRECATION);
+        if (removalHandler.verbose = options.isSet(n+LintCategory.REMOVAL.option)) lint.enable(LintCategory.REMOVAL);
+        //warnOnAnyAccessToMembers = options.isSet("warnOnAccessToMembers");
     }
 
     /** Character for synthetic names
@@ -680,7 +690,7 @@ public class Check {
         }
     }
     //where
-        private boolean is292targetTypeCast(JCTypeCast tree) {
+        protected boolean is292targetTypeCast(JCTypeCast tree) { // OPENJML - private to protected
             boolean is292targetTypeCast = false;
             JCExpression expr = TreeInfo.skipParens(tree.expr);
             if (expr.hasTag(APPLY)) {

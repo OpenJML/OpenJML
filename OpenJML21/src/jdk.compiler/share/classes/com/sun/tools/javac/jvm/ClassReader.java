@@ -177,7 +177,7 @@ public class ClassReader {
 
     /** The module containing the class currently being read.
      */
-    protected ModuleSymbol currentModule = null;
+    public ModuleSymbol currentModule = null; // OPENJML - changed protected to public
 
     /** The buffer containing the currently read class file.
      */
@@ -2552,7 +2552,7 @@ public class ClassReader {
         }
     }
 
-    protected ClassSymbol enterClass(Name name) {
+    public ClassSymbol enterClass(Name name) { // OPENJML - protected to public - still needed? -- TODO
         return syms.enterClass(currentModule, name);
     }
 
