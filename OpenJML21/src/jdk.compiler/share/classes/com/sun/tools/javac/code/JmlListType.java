@@ -5,9 +5,13 @@ import com.sun.tools.javac.util.List;
 public class JmlListType extends Type {
     public List<Type> types;
 
-    public JmlListType(List<Type> types, TypeMetadata metadata) {
+    public JmlListType(List<Type> types, List<TypeMetadata> metadata) {
         super(null, metadata);
         this.types = types;
+    }
+
+    public JmlListType(List<Type> types) { // OPENJML - added
+        this(types, List.<TypeMetadata>nil());
     }
 
     @Override
@@ -29,7 +33,7 @@ public class JmlListType extends Type {
     }
     
     @Override
-    public JmlListType cloneWithMetadata(TypeMetadata metadata) {
+    public JmlListType cloneWithMetadata(List<TypeMetadata> metadata) {
     	JmlListType t = new JmlListType(types, metadata);
     	t.tsym = this.tsym;
     	return t;

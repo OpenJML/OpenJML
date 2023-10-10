@@ -183,7 +183,7 @@ public class Kinds {
         public static final KindSelector VAL_TYP = of(VAL, TYP);
         public static final KindSelector VAL_TYP_PCK = of(VAL, TYP, PCK);
 
-        private final byte data;
+        public final byte data; // OPENJML - temp private to public -- TODO
 
         private KindSelector(int data) {
             this.data = (byte) data;

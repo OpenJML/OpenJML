@@ -231,6 +231,10 @@ public abstract class Type extends AnnoConstruct implements TypeMirror, PoolCons
         this.metadata = metadata;
     }
 
+    public Type(TypeSymbol tsym) { // OPENJML - added
+        this(tsym, List.<TypeMetadata>nil());
+    }
+
     /**
      * A subclass of {@link Types.TypeMapping} which applies a mapping recursively to the subterms
      * of a given type expression. This mapping returns the original type is no changes occurred

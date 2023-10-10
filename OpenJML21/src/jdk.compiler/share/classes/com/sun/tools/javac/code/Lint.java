@@ -364,6 +364,10 @@ public class Lint
         return values.contains(lc);
     }
 
+    public void enable(LintCategory lc) { // OPENJML - added
+        values.add(lc);
+    }
+
     /**
      * Checks is a warning category has been specifically suppressed, by means
      * of the SuppressWarnings annotation, or, in the case of the deprecated

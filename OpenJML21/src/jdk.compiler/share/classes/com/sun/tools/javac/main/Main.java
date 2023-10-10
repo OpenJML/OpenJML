@@ -78,11 +78,11 @@ public class Main {
 
     /** The writer to use for normal output.
      */
-    PrintWriter stdOut;
+    public PrintWriter stdOut; // OPENJML - package to public
 
     /** The writer to use for diagnostic output.
      */
-    PrintWriter stdErr;
+    public PrintWriter stdErr; // OPENJML - package to public
 
     /** The log to use for diagnostic output.
      */
@@ -94,7 +94,7 @@ public class Main {
      */
     boolean apiMode;
 
-    private static final String ENV_OPT_NAME = "JDK_JAVAC_OPTIONS";
+    public static final String ENV_OPT_NAME = "JDK_JAVAC_OPTIONS"; // OPENJML - private to public
 
     /** Result codes.
      */
@@ -103,7 +103,9 @@ public class Main {
         ERROR(1),     // Completed but reported errors.
         CMDERR(2),    // Bad command-line arguments
         SYSERR(3),    // System error or resource exhaustion.
-        ABNORMAL(4);  // Compiler terminated abnormally
+        ABNORMAL(4),  // Compiler terminated abnormally
+        CANCELLED(5), // OPENJML - asynchronously cancelled
+        VERIFY(6);    // OPENJML - verification error
 
         Result(int exitCode) {
             this.exitCode = exitCode;
@@ -236,6 +238,7 @@ public class Main {
 
         Arguments args = Arguments.instance(context);
         args.init(ownName, allArgs);
+        adjustArgs(args); // OPENJML
 
         if (log.nerrors > 0)
             return Result.CMDERR;
@@ -299,6 +302,7 @@ public class Main {
             List<String> list = List.of(target.multiReleaseValue());
             fileManager.handleOption(Option.MULTIRELEASE.primaryName, list.iterator());
         }
+        postOptionProcessing(); // OPENJML
 
         // init JavaCompiler
         JavaCompiler comp = JavaCompiler.instance(context);
@@ -335,6 +339,7 @@ public class Main {
             return Result.SYSERR;
         } catch (FatalError ex) {
             feMessage(ex, options);
+            org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.FatalError",ex); // OPENJML
             return Result.SYSERR;
         } catch (AnnotationProcessingError ex) {
             apMessage(ex);
@@ -347,6 +352,7 @@ public class Main {
                 bugMessage(iae);
             }
             printArgsToFile = true;
+            org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.IllegalAccessError",iae); // OPENJML
             return Result.ABNORMAL;
         } catch (Throwable ex) {
             // Nasty.  If we've already reported an error, compensate
@@ -355,10 +361,11 @@ public class Main {
             if (comp == null || comp.errorCount() == 0 || options.isSet("dev"))
                 bugMessage(ex);
             printArgsToFile = true;
+            org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.Throwable",ex); // OPENJML
             return Result.ABNORMAL;
         } finally {
             if (printArgsToFile) {
-                printArgumentsToFile(argv);
+//                printArgumentsToFile(argv); // OPENJML - turned off
             }
             if (comp != null) {
                 try {
@@ -369,6 +376,9 @@ public class Main {
             }
         }
     }
+
+    protected void postOptionProcessing() {} // OPENJML
+    protected void adjustArgs(Arguments args)  {} // OPENJML
 
     void printArgumentsToFile(String... params) {
         Path out = Paths.get(String.format("javac.%s.args",
@@ -423,7 +433,7 @@ public class Main {
 
     /** Print a message reporting an internal error.
      */
-    void bugMessage(Throwable ex) {
+    protected void bugMessage(Throwable ex) { // OPENJML - package to protected
         log.printLines(PrefixKind.JAVAC, "msg.bug", JavaCompiler.version());
         ex.printStackTrace(log.getWriter(WriterKind.NOTICE));
     }

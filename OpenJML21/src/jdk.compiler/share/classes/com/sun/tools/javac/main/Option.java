@@ -1005,7 +1005,7 @@ public enum Option {
      * @param log the log
      * @param kind  the kind of options to select
      */
-    private static void showHelp(Log log, OptionKind kind) {
+    public static void showHelp(Log log, OptionKind kind) { // OPENJML Private to public
         Comparator<Option> comp = new Comparator<Option>() {
             final Collator collator = Collator.getInstance(Locale.US);
             { collator.setStrength(Collator.PRIMARY); }

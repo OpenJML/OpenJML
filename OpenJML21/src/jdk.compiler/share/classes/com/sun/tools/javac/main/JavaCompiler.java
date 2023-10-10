@@ -140,7 +140,7 @@ public class JavaCompiler {
         return version("full"); // mm.mm.oo[-milestone]-build
     }
 
-    private static final String versionRBName = "com.sun.tools.javac.resources.version";
+    public static String versionRBName = "com.sun.tools.javac.resources.version"; // OPENJML - changed from private final to just public
     private static ResourceBundle versionRB;
 
     private static String version(String key) {
@@ -593,12 +593,12 @@ public class JavaCompiler {
         return log.nerrors;
     }
 
-    protected final <T> Queue<T> stopIfError(CompileState cs, Queue<T> queue) {
+    protected <T> Queue<T> stopIfError(CompileState cs, Queue<T> queue) {
         return shouldStop(cs) ? new ListBuffer<T>() : queue;
     }
 
-    protected final <T> List<T> stopIfError(CompileState cs, List<T> list) {
-        return shouldStop(cs) ? List.nil() : list;
+    protected <T> List<T> stopIfError(CompileState cs, List<T> list) { // OPENJML - removed final
+        return shouldStop(cs) ? List.<T>nil() : list;
     }
 
     /** The number of warnings reported so far.
@@ -795,7 +795,7 @@ public class JavaCompiler {
             return null;
         } else {
             try (BufferedWriter out = new BufferedWriter(outFile.openWriter())) {
-                new Pretty(out, true).printUnit(env.toplevel, cdef);
+                Pretty.instance(out, true).printUnit(env.toplevel, cdef); // OPENJML change - to allow using derived Pretty printers
                 if (verbose)
                     log.printVerbose("wrote.file", outFile.getName());
             }
@@ -826,10 +826,12 @@ public class JavaCompiler {
 
         if (tree == null) {
             try {
-                tree = parse(filename, filename.getCharContent(false));
-            } catch (IOException e) {
-                log.error(Errors.ErrorReadingFile(filename, JavacFileManager.getMessage(e)));
-                tree = make.TopLevel(List.<JCTree>nil());
+                // tree = parse(filename, filename.getCharContent(false));
+                tree = parse(filename); // OPENJML - this line instead of the one above to use common code for reading .jml files
+// OPENJML - TODO - if do not want the below catch block, mark as OPENJML
+//            } catch (IOException e) {
+//                log.error(Errors.ErrorReadingFile(filename, JavacFileManager.getMessage(e)));
+//                tree = make.TopLevel(List.<JCTree>nil());
             } finally {
                 log.useSource(prev);
             }

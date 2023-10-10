@@ -58,6 +58,7 @@ import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
 import com.sun.tools.javac.parser.Tokens.ITokenKind;
+import com.sun.tools.javac.resources.CompilerProperties.Errors;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Assert;
@@ -670,7 +671,15 @@ public class JmlParser extends JavacParser {
     	// Even so, there could be a problem if any lookahead tokens are already scanned.
 //    		return super.block(pos,flags);
         accept(LBRACE);
-        JCBlock t = betweenBraces(pos,flags);
+        List<JCStatement> stats = blockStatements();
+        JCBlock t = F.at(pos).Block(flags, stats);
+        while (token.kind == CASE || token.kind == DEFAULT) {
+            syntaxError(token.pos, Errors.Orphaned(token.kind));
+            switchBlockStatementGroups();
+        }
+        // the Block node has a field "endpos" for first char of last token, which is
+        // usually but not necessarily the last char of the last token.
+        t.endpos = token.pos;
     	if (saved && !S.savedTokens.isEmpty()) utils.warning(token.pos, "jml.message", "Lookahead present when noJML is reset");
     	S.jmltokenizer.noJML = saved;
         accept(RBRACE);
@@ -3024,7 +3033,7 @@ public class JmlParser extends JavacParser {
     }
 
     @Override
-    protected <T extends ListBuffer<? super JCVariableDecl>> T variableDeclaratorsRest(
+    public <T extends ListBuffer<? super JCVariableDecl>> T variableDeclaratorsRest( // FIXME - does this need to be public
             int pos, JCModifiers mods, JCExpression type, Name name,
             boolean reqInit, Comment dc, T vdefs, boolean localDecl) {
         // Fields in interfaces are required to be explicitly initialized
@@ -3117,31 +3126,39 @@ public class JmlParser extends JavacParser {
             if (token.kind == INSTANCEOF) {
                 int pos = token.pos;
                 nextToken();
-                int patternPos = token.pos;
-                JCModifiers mods = optFinal(0);
-                int typePos = token.pos;
-                JCExpression type = unannotatedType(false);
                 JCTree pattern;
-                if (token.kind == IDENTIFIER) {
-                    checkSourceLevel(token.pos, Feature.PATTERN_MATCHING_IN_INSTANCEOF);
-                    JCVariableDecl var = toP(F.at(token.pos).VarDef(mods, ident(), type, null));
-                    pattern = toP(F.at(patternPos).BindingPattern(var));
+                if (token.kind == LPAREN) { 
+                    checkSourceLevel(token.pos, Feature.PATTERN_SWITCH);
+                    pattern = parsePattern(token.pos, null, null, false, false);
                 } else {
-                    checkNoMods(typePos, mods.flags & ~Flags.DEPRECATED);
-                    if (mods.annotations.nonEmpty()) {
-                        checkSourceLevel(mods.annotations.head.pos, Feature.TYPE_ANNOTATIONS);
-                        List<JCAnnotation> typeAnnos =
-                                mods.annotations
-                                    .map(decl -> {
-                                        JCAnnotation typeAnno = F.at(decl.pos)
-                                                                 .TypeAnnotation(decl.annotationType,
-                                                                                  decl.args);
-                                        endPosTable.replaceTree(decl, typeAnno);
-                                        return typeAnno;
-                                    });
-                        type = insertAnnotationsToMostInner(type, typeAnnos, false);
+                    int patternPos = token.pos;
+                    JCModifiers mods = optFinal(0);
+                    int typePos = token.pos;
+                    JCExpression type = unannotatedType(false);
+                    if (token.kind == IDENTIFIER) {
+                        checkSourceLevel(token.pos, Feature.PATTERN_MATCHING_IN_INSTANCEOF);
+                        pattern = parsePattern(patternPos, mods, type, false, false);
+                    } else if (token.kind == LPAREN) {
+                        pattern = parsePattern(patternPos, mods, type, false, false);
+                    } else if (token.kind == UNDERSCORE) {
+                        checkSourceLevel(token.pos, Feature.UNNAMED_VARIABLES);
+                        pattern = parsePattern(patternPos, mods, type, false, false); 
+                    } else {
+                        checkNoMods(typePos, mods.flags & ~Flags.DEPRECATED);
+                        if (mods.annotations.nonEmpty()) {
+                            List<JCAnnotation> typeAnnos =
+                                    mods.annotations
+                                        .map(decl -> {
+                                            JCAnnotation typeAnno = F.at(decl.pos)
+                                                                     .TypeAnnotation(decl.annotationType,
+                                                                                      decl.args);
+                                            endPosTable.replaceTree(decl, typeAnno);
+                                            return typeAnno;
+                                        });
+                            type = insertAnnotationsToMostInner(type, typeAnnos, false);
+                        }
+                        pattern = type;
                     }
-                    pattern = type;
                 }
                 odStack[top] = F.at(pos).TypeTest(odStack[top], pattern);
             } else {

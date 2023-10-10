@@ -305,6 +305,10 @@ public class Resolve {
         return isAccessible(env, c, false);
     }
 
+    protected long flags(Symbol sym) { // OPENJML -- added
+        return sym.flags();
+    }
+
     public boolean isAccessible(Env<AttrContext> env, TypeSymbol c, boolean checkInner) {
 
         /* 15.9.5.1: Note that it is possible for the signature of the anonymous constructor
@@ -319,7 +323,7 @@ public class Resolve {
         }
 
         boolean isAccessible = false;
-        switch ((short)(c.flags() & AccessFlags)) {
+        switch ((short)(flags(c) & AccessFlags)) { // OPENJML
             case PRIVATE:
                 isAccessible =
                     env.enclClass.sym.outermostClass() ==
@@ -415,7 +419,7 @@ public class Resolve {
             return true;
         }
 
-        switch ((short)(sym.flags() & AccessFlags)) {
+        switch ((short)(flags(sym) & AccessFlags)) { // OPENJML - changed
         case PRIVATE:
             return
                 (env.enclClass.sym == sym.owner // fast special case
@@ -1095,7 +1099,7 @@ public class Resolve {
         }
 
         @Override
-        protected MethodResultInfo dup(Type newPt) {
+        public MethodResultInfo dup(Type newPt) { // OPENJML protected to public
             return new MethodResultInfo(newPt, checkContext);
         }
 
@@ -1731,7 +1735,7 @@ public class Resolve {
         }
     }
     //where
-    private boolean signatureMoreSpecific(List<Type> actuals, Env<AttrContext> env, Type site, Symbol m1, Symbol m2, boolean useVarargs) {
+    protected boolean signatureMoreSpecific(List<Type> actuals, Env<AttrContext> env, Type site, Symbol m1, Symbol m2, boolean useVarargs) { // OPENJML - private to protected
         noteWarner.clear();
         int maxLength = Math.max(
                             Math.max(m1.type.getParameterTypes().length(), actuals.length()),
@@ -1793,7 +1797,7 @@ public class Resolve {
         return bestSoFar;
     }
     //where
-        class LookupFilter implements Predicate<Symbol> {
+        public class LookupFilter implements Predicate<Symbol> { // OPENJML - package to public
 
             boolean abstractOk;
 
@@ -2313,6 +2317,7 @@ public class Resolve {
         Symbol bestSoFar = typeNotFound;
         for (Symbol s : scope.getSymbolsByName(name)) {
             Symbol sym = loadClass(env, s.flatName(), recoveryLoadClass);
+            if (!symbolOK(sym)) continue; // OPENJML added to allow derived class to disallow symbols
             if (bestSoFar.kind == TYP && sym.kind == TYP &&
                 bestSoFar != sym)
                 return new AmbiguityError(bestSoFar, sym);
@@ -2321,6 +2326,13 @@ public class Resolve {
         }
         return bestSoFar;
     }
+
+    /** This hook method is added so that derived classes can add their
+     * own spin on whether the entry may be returned as the result of the lookup.
+     */     
+    protected boolean symbolOK(Symbol e) { // OPENJML - added this hook method
+        return true;
+    }               
 
     Symbol findTypeVar(Env<AttrContext> env, Name name, boolean staticOnly) {
         for (Symbol sym : env.info.scope.getSymbolsByName(name)) {
@@ -2704,7 +2716,7 @@ public class Resolve {
      *  @param name      The identifier's name.
      *  @param kind      The set of admissible symbol kinds for the identifier.
      */
-    Symbol resolveIdent(DiagnosticPosition pos, Env<AttrContext> env,
+    public Symbol resolveIdent(DiagnosticPosition pos, Env<AttrContext> env,  // OPENJML - package to public
                         Name name, KindSelector kind) {
         return accessBase(
             findIdent(pos, env, name, kind),
@@ -3886,7 +3898,7 @@ public class Resolve {
         logResolveError(error, tree.pos(), env.enclClass.sym, env.enclClass.type, null, null, null);
     }
     //where
-    private void logResolveError(ResolveError error,
+    protected void logResolveError(ResolveError error, // OPENJML - private to protected 
             DiagnosticPosition pos,
             Symbol location,
             Type site,

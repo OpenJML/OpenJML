@@ -10,6 +10,7 @@ import org.jmlspecs.openjml.JmlTokenKind;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.List;
 
 /** This class extends Type in order to implement new JML primitive types. */
 public class JmlType extends Type {
@@ -35,7 +36,7 @@ public class JmlType extends Type {
      * singleton for each new JML type */
     // package visibility
     JmlType(JmlTokenKind token, String fullyQualifiedClassName) {
-        super(null, TypeMetadata.EMPTY);
+        super(null);
         jmlTypeTag = token;
         fqName = fullyQualifiedClassName;
         this.id = null;
@@ -44,8 +45,8 @@ public class JmlType extends Type {
     /** Creates a new primitive type with the given name - should be a 
      * singleton for each new JML type */
     // package visibility
-    JmlType(JmlTokenKind token, Name id, String fullyQualifiedClassName, TypeMetadata metadata) {
-        super(null, TypeMetadata.EMPTY);
+    JmlType(JmlTokenKind token, Name id, String fullyQualifiedClassName, List<TypeMetadata> metadata) {
+        super(null);
         jmlTypeTag = JmlTokenKind.PRIMITIVE_TYPE;
         fqName = fullyQualifiedClassName;
         this.id = id;
@@ -90,7 +91,7 @@ public class JmlType extends Type {
     }
 
     @Override
-    public JmlType cloneWithMetadata(TypeMetadata metadata) {
+    public JmlType cloneWithMetadata(List<TypeMetadata> metadata) {
     	JmlType t = new JmlType(jmlTypeTag, id, fqName, metadata);
     	t.tsym = this.tsym;
     	return t;

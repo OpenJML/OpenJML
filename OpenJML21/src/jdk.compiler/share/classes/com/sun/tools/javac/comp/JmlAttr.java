@@ -3190,7 +3190,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	}
     	//if (org.jmlspecs.openjml.Utils.isJML()) utils.warning(tree,"jml.message","ATTRIB BASE " + env.enclClass.name  + " " + utils.isJML(env.enclClass.mods) + " " + tree.toString().substring(0,tree.toString().length() < 50 ? tree.toString().length() : 50) + " " + jmlresolve.allowJML());
     	try {
-    		return super.attribBase(tree, env, owningTree, classExpected, interfaceExpected, checkExtensible);
+    		return super.attribBase(tree, env, classExpected, interfaceExpected, checkExtensible); // FIXME - removed owningTree
     	} finally {
     		jmlresolve.setAllowJML(saved);
     	}
@@ -4301,7 +4301,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Type t = attribExpr(e, env, Type.noType);
             types.append(t);
         }
-        Type t = new JmlListType(types.toList(), TypeMetadata.EMPTY);
+        Type t = new JmlListType(types.toList());
         tree.type = result = t;
     }
     
