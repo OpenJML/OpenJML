@@ -269,8 +269,6 @@ define SetupJavaCompilationBody
 
   # Allow overriding on the command line
   JAVA_WARNINGS_ARE_ERRORS ?= -Werror
-  # TODO: Allow warnings for now
-  JAVA_WARNINGS_ARE_ERRORS =
 
   # Tell javac to do exactly as told and no more
   PARANOIA_FLAGS := -implicit:none -Xprefer:source -XDignore.symbol.file=true -encoding ascii

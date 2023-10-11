@@ -321,6 +321,7 @@ public class JmlTokenizer extends JavadocTokenizer {
         return null; // Tell the caller to ignore the comment - that is, to not consider it a regular comment
     }
     
+    @SuppressWarnings("this-escape")
     public int endBlockComment = length();
     
     /** Checks comment nesting and resets to position after the comment; only call this for
