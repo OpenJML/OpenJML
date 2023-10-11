@@ -2026,7 +2026,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 // FIXME - set line and source
                 newStatement = addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
                 newIdentIncarnation(heapVar,pos);
-                JCFieldAccess newfa = (JCFieldAccess)M.at(left.pos).Select(fa.selected, newfield.sym);
+                JCFieldAccess newfa = M.at(left.pos).Select(fa.selected, newfield.sym);
                 newfa.name = newfield.name;
                 newExpr = newfa;
             }

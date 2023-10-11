@@ -325,7 +325,7 @@ public class JmlParser extends JavacParser {
 //            if (a.annotationType.toString().equals("org.jmlspecs.annotation.Model")) { modelImport = true; }
 //            else utils.error(a.pos, "jml.no.mods.on.import"); // FIXME - source?
 //        }
-        for (var t: ((JmlModifiers)mods).jmlmods) {
+        for (var t: mods.jmlmods) {
             if (t.jmlclausekind == Modifiers.MODEL) modelImport = true; 
             else utils.error(t.pos, t.endPos, "jml.no.mods.on.import"); // FIXME t.source
         }

@@ -3840,7 +3840,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (isPureMethod(jmlenv.enclosingMethodDecl.sym) && !treeutils.isFalseLit(tree.expression)) {
                     log.error(tree.pos, "jml.message", "pure methods must be terminating (explicitly diverges false)");
                 }
-                // fall-through
+                t = attribExpr(tree.expression, env, syms.booleanType);
+                break;
+
             case "requires":
             case "ensures":
             case "when":
@@ -3873,7 +3875,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public static class SpecificationException extends RuntimeException {
-    	
+        private static final long serialVersionUID = 1L;
     }
     
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
@@ -7289,7 +7291,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	// Note: We need that.sym in order to register a local class's specs, but the local class
         	// is attributed as a method statement.
         	//((JmlEnter)enter).specsClassEnter(that.sym.owner, that, typeEnvs.get(that.sym), that);
-        	specs.putSpecs((ClassSymbol)that.sym, new JmlSpecs.TypeSpecs(that, that, typeEnvs.get(that.sym)));
+        	specs.putSpecs(that.sym, new JmlSpecs.TypeSpecs(that, that, typeEnvs.get(that.sym)));
         	specs.getAttrSpecs(that.sym);
         	//FIXME - not at all sure about correctness of this branch
         }
@@ -7506,8 +7508,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         utils.error(that, "jml.message", "Initializer does not match compiled value: " + lit + " vs. " + v);
                     }
                 }
-                if (v instanceof Double) System.out.println("NAN " + String.format("0x%16X", Double.doubleToLongBits((double)Double.NaN)));
-                if (v instanceof Float) System.out.println("NAN " + String.format("0x%08X", Float.floatToIntBits((float)Float.NaN)));
+                if (v instanceof Double) System.out.println("NAN " + String.format("0x%16X", Double.doubleToLongBits(Double.NaN)));
+                if (v instanceof Float) System.out.println("NAN " + String.format("0x%08X", Float.floatToIntBits(Float.NaN)));
             }
         } catch (PropagatedException e) {
         	throw e;
@@ -8235,7 +8237,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void attrSpecs(VarSymbol vsym) {
     	var savedEnv = this.env;
     	if (vsym.enclClass() == null) System.out.println("NULL CSYM " + vsym);
-		TypeSpecs cspecs = specs.getLoadedSpecs((ClassSymbol)vsym.enclClass());
+		TypeSpecs cspecs = specs.getLoadedSpecs(vsym.enclClass());
 		FieldSpecs fspecs = specs.getLoadedSpecs(vsym);
 		if (debugAttr) System.out.println("Attributing specs for " + vsym.owner + " " + vsym + " " + (fspecs != null));
 		ResultInfo ri = new ResultInfo(KindSelector.VAL_TYP, vsym.type);

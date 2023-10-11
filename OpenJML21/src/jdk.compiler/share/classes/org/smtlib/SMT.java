@@ -253,7 +253,9 @@ public class SMT {
 						Class<?> clazzz = Class.forName(className);
 						if (clazzz == null) continue; // This won't happen - exception is thrown instead
 						if (!ICommand.class.isAssignableFrom(clazzz)) continue; // FIXME - message?
-						return (Class<? extends ICommand>)clazzz; // Check for this - implementation may be wrong
+                                                @SuppressWarnings("unchecked") // FIXME - do better on checking typing
+						var cl = (Class<? extends ICommand>)clazzz; // Check for this - implementation may be wrong
+                                                return cl;
 					} catch (ClassNotFoundException e) {
 						continue;
 					}

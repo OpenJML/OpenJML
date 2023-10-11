@@ -291,7 +291,7 @@ public class JmlEnter extends Enter {
 						// a pointed error message
 						utils.errorAndAssociatedDeclaration(specDecl.sourcefile, specDecl, match.sourcefile, match,
 								"jml.mismatched.type.arguments",
-								utils.nameTP(specDecl), utils.nameTP(match));
+								Utils.nameTP(specDecl), Utils.nameTP(match));
 						continue; // disallow the match
 					}
 					if (match == null) {
@@ -487,7 +487,7 @@ public class JmlEnter extends Enter {
 			specDecl.specEnv = specEnv;
 		}
 
-		JmlSpecs.instance(context).putSpecs((ClassSymbol) sourceDecl.sym, new JmlSpecs.TypeSpecs(specDecl, sourceDecl, specEnv));
+		JmlSpecs.instance(context).putSpecs(sourceDecl.sym, new JmlSpecs.TypeSpecs(specDecl, sourceDecl, specEnv));
 
 		// The superclass and interfaces of specDecl are attributed and checked in JmlAttr.checkClassMods
 		
@@ -758,7 +758,7 @@ public class JmlEnter extends Enter {
 				}
 				if (csym.getTypeParameters().size() != specDecl.typarams.size()) {
 					utils.error(specDecl.sourcefile, specDecl,
-							"jml.mismatched.type.arguments", utils.nameTP(specDecl), csym.type);
+							"jml.mismatched.type.arguments", Utils.nameTP(specDecl), csym.type);
                     //recordEmptySpecs(csym); // so we don't keep trying to load it
                     //System.out.println("FAILED MATCH " + csym + " " + ((csym.flags_field & Flags.UNATTRIBUTED) != 0));
                     csym.flags_field &= ~Flags.UNATTRIBUTED;

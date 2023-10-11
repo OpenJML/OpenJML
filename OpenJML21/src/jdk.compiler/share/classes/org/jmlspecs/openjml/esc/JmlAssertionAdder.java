@@ -7406,7 +7406,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCVariableDecl vd = (JCVariableDecl) tree;
 					if (isContainedIn(vd.sym, fa.sym)) {
 						if (list.stream().allMatch(f -> vd.sym != f.sym)) {
-							JCFieldAccess nfa = (JCFieldAccess) M.at(fa.pos).Select(fa.selected, vd.sym);
+							JCFieldAccess nfa = M.at(fa.pos).Select(fa.selected, vd.sym);
 							nfa.type = vd.type;
 							list.add(nfa);
 						}
@@ -8636,7 +8636,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 				if (print) System.out.println("APPLY " + calleeMethodSym.owner + "#" + calleeMethodSym + " " + System.identityHashCode(calleeMethodSym));
 
-				JCFieldAccess fameth = (JCFieldAccess) M.at(meth.pos).Select( // Select sets to fa,sym.type, kinstead of
+				JCFieldAccess fameth = M.at(meth.pos).Select( // Select sets to fa,sym.type, kinstead of
 																				// resolved type
 						!utils.isJMLStatic(fa.sym) ? newThisExpr : convertedReceiver, fa.sym);
 				fameth.setType(meth.type);
@@ -11121,8 +11121,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                            disjoint = treeutils.falseLit; // FIXME - overly conservative
 	                        }
 	                        //System.out.println("  ISPURE? " + isPure((MethodSymbol)nc.constructor) + " " + disjoint);
-	                    } else if (oldhavocs instanceof List writesList) {
+	                    } else if (oldhavocs instanceof List<?> writesList) {
 	                        //System.out.println("Computing DISJOINT of " + readItems + " VS " + writesList);
+                                @SuppressWarnings("unchecked")  // FIXME - do better on the type of havocs
 	                        var hasIntersection = simplifyNonDisjoint(pos, readItems, (List<StoreRefGroup>)writesList);
                             disjoint = treeutils.makeNotSimp(pos, hasIntersection);
                             //System.out.println(" RESULT DISJOINT " + disjoint);
@@ -13165,11 +13166,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			result = eresult = id;
 		} else if (tag == JCTree.Tag.NEG) {
 			if (jmltypes.isSameType(that.arg.type, syms.doubleType) && that.arg instanceof JCLiteral lit) {
-				JCLiteral nlit = (JCLiteral) copy(lit);
+				JCLiteral nlit = copy(lit);
 				nlit.value = -((Double) lit.value);
 				result = eresult = convertExpr(nlit);
 			} else if (jmltypes.isSameType(that.arg.type, syms.floatType) && that.arg instanceof JCLiteral lit) {
-				JCLiteral nlit = (JCLiteral) copy(lit);
+				JCLiteral nlit = copy(lit);
 				nlit.value = -((Float) lit.value);
 				result = eresult = convertExpr(nlit);
 			} else {
@@ -20412,13 +20413,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			super(context, maker);
 		}
 		
-		public JCTree copy(JCTree that) {
-			return copy(that,null);
-		}
-
-		public JCExpression copy(JCExpression that) {
-			return copy(that,null);
-		}
+//		public JCTree copy(JCTree that) {
+//			return copy(that,null);
+//		}
+//
+//		public JCExpression copy(JCExpression that) {
+//			return copy(that,null);
+//		}
 
 	    @Override
 	    public JCTree visitAnnotation(AnnotationTree that, Void p) {
@@ -20440,7 +20441,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    	translatingJML = false;
 	    	JmlLambda nthat = M.at(that.pos).JmlLambda(copy(that.params, null), copy(that.body, null), copy(((JmlLambda) that).jmlType));
 	    	nthat.type = that.type;
-	    	nthat.literal = (JCIdent)copy(((JmlLambda) that).literal);
+	    	nthat.literal = copy(((JmlLambda) that).literal);
 	    	nthat.sourceLocation = ((JmlLambda) that).sourceLocation;
 	    	result = eresult = nthat;
 	    	translatingJML = saved;
@@ -20454,10 +20455,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    	boolean saved = translatingJML;
 	    	translatingJML = false;
 	    	JmlLambda that = (JmlLambda)node;
-	    	JmlLambda nthat = M.at(that.pos).JmlLambda(copy(that.params, null), copy(that.body, null), copy(((JmlLambda) that).jmlType));
+	    	JmlLambda nthat = M.at(that.pos).JmlLambda(copy(that.params, null), copy(that.body, null), copy(that.jmlType));
 	    	nthat.type = that.type;
-	    	nthat.literal = (JCIdent)copy(((JmlLambda) that).literal);
-	    	nthat.sourceLocation = ((JmlLambda) that).sourceLocation;
+	    	nthat.literal = copy(that.literal);
+	    	nthat.sourceLocation = that.sourceLocation;
 	    	result = eresult = nthat;
 	    	translatingJML = saved;
 	    	popBlock(that, check);
@@ -20483,7 +20484,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            System.out.println("TYPEARGS " + msym.getTypeParameters());
 //		    
 //		}
-		String typeArguments = utils.join("_", msym.getTypeParameters()); // FIXME - need type arguments, not parameters
+		String typeArguments = Utils.join("_", msym.getTypeParameters()); // FIXME - need type arguments, not parameters
 		return names
 				.fromString(utils.qualifiedName(msym).replace('.', '_') + "$" + typeArguments + (!useheap ? "_" : "_H" + heap + "_") + pos);
 	}
@@ -20592,7 +20593,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (!addAxioms(hc, msym)) {
 			return null;
 		}
-		if (utils.debug("trans")) System.out.println("ADDING METHODAXIOMS " + msym);
+		if (Utils.debug("trans")) System.out.println("ADDING METHODAXIOMS " + msym);
 //        if (!receiverType.toString().contains("<") && msym.owner.type.toString().contains("<")
 //                                && msym.owner.type.toString().startsWith(receiverType.toString())) {
 //            System.out.println("REPLACING " + receiverType + " WITH " + msym.owner.type);  // FIXME - a temporary hack
@@ -20990,7 +20991,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return null;
         }
         MethodSymbol ms = mm.get(msym);
-        if (utils.debug("trans"))
+        if (Utils.debug("trans"))
             System.out.println("GETMETHODNAME " + currentEnv.stateLabel + " " + hc + " " + msym + " " + ms);
         return ms;
     }
@@ -21025,7 +21026,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		// Save the symbol
 		mm.put(msym, newsym);
-		if (utils.debug("trans"))
+		if (Utils.debug("trans"))
 			System.out.println("NEW METHOD NAME " + currentEnv.stateLabel + " " + hc + " " + msym.owner + " " + msym + " " + newsym + " " + returnType + " " + newsym.getReturnType() + " " + (newsym.type instanceof Type.MethodType mt ? mt.getReturnType() : "---") + " " + newmods);
 		return newsym;
 	}
@@ -21525,7 +21526,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			if (e == null && ee == null && eee == null)
 				return null;
-			var list = new java.util.LinkedList();
+			var list = new java.util.LinkedList<JmlStatementExpr>();
 			if (e != null)
 				list.addAll(e);
 			if (ee != null)

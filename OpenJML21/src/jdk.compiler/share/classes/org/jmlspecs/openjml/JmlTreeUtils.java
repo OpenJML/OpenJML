@@ -1137,14 +1137,14 @@ public class JmlTreeUtils {
     
     /** Makes an attributed AST for the length operation on an array. */
     public JCFieldAccess makeLength(DiagnosticPosition pos, JCExpression array) {
-        JCFieldAccess fa = (JCFieldAccess)factory.at(pos).Select(array, syms.lengthVar);
+        JCFieldAccess fa = factory.at(pos).Select(array, syms.lengthVar);
         fa.type = syms.intType;
         return fa;
     }
 
     /** Makes an attributed AST for the length operation on an array less 1. */
     public JCExpression makeLengthM1(DiagnosticPosition pos, JCExpression array) {
-        JCFieldAccess fa = (JCFieldAccess)factory.at(pos).Select(array, syms.lengthVar);
+        JCFieldAccess fa = factory.at(pos).Select(array, syms.lengthVar);
         fa.type = JmlTypes.instance(context).BIGINT;
         return makeBinary(pos, JCTree.Tag.MINUS, fa, one); // FIXME Perhaps have to make this a BIGINT 1
     }
@@ -1758,7 +1758,7 @@ public class JmlTreeUtils {
     }
 
     public JCFieldAccess makeArrayLength(int pos, JCExpression array) {
-        JCFieldAccess fa = (JCFieldAccess)factory.Select(array, syms.lengthVar);
+        JCFieldAccess fa = factory.Select(array, syms.lengthVar);
         fa.pos = pos;
         fa.type = syms.intType;
         return fa;
@@ -1928,8 +1928,7 @@ public class JmlTreeUtils {
     // FIXME - avoid this call -- no ModifierKind stored
     private JmlAnnotation tokenToAnnotationAST(String annName, int position, int endpos, JmlParser parser) {
         JCExpression t = utils.nametree(position,endpos,annName,parser);
-        JmlAnnotation ann = (JmlAnnotation)factory.at(position).Annotation(t,
-                List.<JCExpression> nil());
+        JmlAnnotation ann = factory.at(position).Annotation(t, List.<JCExpression> nil());
     	ann.sourcefile = Log.instance(context).currentSourceFile();
 
         if (parser != null) parser.storeEnd(ann, endpos);

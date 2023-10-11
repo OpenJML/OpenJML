@@ -533,7 +533,7 @@ public interface IVisitor</*@Nullable*/T extends /*@Nullable*/ Object> {
 	public static class VisitorException extends Exception implements IPos.IPosable {
 		private static final long serialVersionUID = 1L;
 		/** Position information about the textual location of the error */
-		/*@Nullable*/ /*@ReadOnly*/ public IPos pos; 
+		@SuppressWarnings("serial") /*@Nullable*/ /*@ReadOnly*/ public IPos pos; 
 		
 		@Override
 		public /*@Nullable*/ /*@ReadOnly*/IPos pos() { return pos; }
