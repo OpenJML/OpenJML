@@ -162,7 +162,7 @@ AC_DEFUN([FLAGS_SETUP_WARNINGS],
 [
   # Set default value.
   if test "x$TOOLCHAIN_TYPE" != xxlc; then
-    WARNINGS_AS_ERRORS_DEFAULT=false
+    WARNINGS_AS_ERRORS_DEFAULT=true
   else
     WARNINGS_AS_ERRORS_DEFAULT=false
   fi
@@ -213,7 +213,7 @@ AC_DEFUN([FLAGS_SETUP_WARNINGS],
           -Wunused-function -Wundef -Wunused-value -Woverloaded-virtual"
       WARNINGS_ENABLE_ALL="-Wall -Wextra -Wformat=2 $WARNINGS_ENABLE_ADDITIONAL"
 
-      DISABLED_WARNINGS="unknown-warning-option unused-parameter unused error"
+      DISABLED_WARNINGS="unknown-warning-option unused-parameter unused"
       ;;
 
     xlc)
@@ -227,7 +227,8 @@ AC_DEFUN([FLAGS_SETUP_WARNINGS],
   esac
   AC_SUBST(DISABLE_WARNING_PREFIX)
   AC_SUBST(BUILD_CC_DISABLE_WARNING_PREFIX)
-  AC_SUBST(CFLAGS_WARNINGS_ARE_ERRORS) AC_SUBST(DISABLED_WARNINGS)
+  AC_SUBST(CFLAGS_WARNINGS_ARE_ERRORS)
+  AC_SUBST(DISABLED_WARNINGS)
   AC_SUBST(DISABLED_WARNINGS_C)
   AC_SUBST(DISABLED_WARNINGS_CXX)
 ])
