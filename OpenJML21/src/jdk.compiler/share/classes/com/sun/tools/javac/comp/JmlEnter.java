@@ -446,7 +446,7 @@ public class JmlEnter extends Enter {
 					//enterScope(specEnv).enter(sourceDecl.sym); // FIXME - review -= can occur for enums, anonymous classes
 					sourceDecl.specsDecl.sym = sourceDecl.sym; // sym will have the source classfile
 					specEnv = classEnv(sourceDecl.specsDecl, specEnv);
-			        classTPEnter(sourceDecl.typarams, specEnv); // Enter the already typed type-parameters from the source decl so we have the same symbols in source and specs
+			        classEnter(sourceDecl.typarams, specEnv); // Enter the already typed type-parameters from the source decl so we have the same symbols in source and specs // FIXME - was classTPEnter
 					postClassCreation(sourceDecl, env, specEnv);
 				} else if (env.tree instanceof JmlCompilationUnit sourceCU) { // enclosing env is a comp unit
 					sourceCU.specsCompilationUnit.packge = sourceCU.packge; // package symbol has a sourcefile, which is the
@@ -699,7 +699,7 @@ public class JmlEnter extends Enter {
 					localSpecEnv = classEnv(specDecl, specsEnv);
 					// Put this, super and type parameters in the Spec environment
 //                    TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
-                    ((ClassType)csym.type).typarams_field = classTPEnter(specDecl.typarams, localSpecEnv);
+                    ((ClassType)csym.type).typarams_field = classEnter(specDecl.typarams, localSpecEnv); // FIXME - was classTPEnter
 
 	                //					csym = syms.enterClass(powner.modle, specDecl.name, powner);
 //					csym.completer = Completer.NULL_COMPLETER;
@@ -746,7 +746,7 @@ public class JmlEnter extends Enter {
 	                if (localSpecEnv == null) localSpecEnv = classEnv(specDecl, specsEnv);
 	                TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
 	                if (typeEnvs.get(csym) == null) {
-	                    ((ClassType)csym.type).typarams_field = classTPEnter(specDecl.typarams, localSpecEnv); // FIXME - what does this do???
+	                    ((ClassType)csym.type).typarams_field = classEnter(specDecl.typarams, localSpecEnv); // FIXME - what does this do??? -- was classTPEnter
 	                }
 				}
 			} else {
@@ -777,7 +777,7 @@ public class JmlEnter extends Enter {
 				// FIXME - be sure that annotations are checked as well
 				if (utils.verbose()) utils.note("Matched to binary class: " + csym + " (owner: " + csym.owner +")" );
 
-				((ClassType)csym.type).typarams_field = classTPEnter(specDecl.typarams, localSpecEnv); // FIXME - what does this do???
+				((ClassType)csym.type).typarams_field = classEnter(specDecl.typarams, localSpecEnv); // FIXME - what does this do??? -- was classTPEnter
 	            csym.flags_field |= Flags.UNATTRIBUTED;
 			}
 //			if (specDecl.typarams.size() == ((ClassType)csym.type).typarams_field.size()) {

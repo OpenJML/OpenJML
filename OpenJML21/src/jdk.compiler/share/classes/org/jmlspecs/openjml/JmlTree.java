@@ -193,6 +193,7 @@ public class JmlTree {
                     return new Maker(context);
                 }
             });
+            System.out.println("PREREGISTER " + context.get(treeMakerKey).getClass().toString() + " " + context.get(treeMakerKey).hashCode());
         }
         
         /** The public method for obtaining a JmlTree.Maker instance. */
