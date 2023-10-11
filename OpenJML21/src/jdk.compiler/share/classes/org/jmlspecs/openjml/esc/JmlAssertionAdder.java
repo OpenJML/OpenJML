@@ -6498,7 +6498,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            // If the case had a block, it must still have a block
 	            // If the case did not have a block and is not an arrow case, then it must stay not a block
 	            // Otherwise it does not matter.
-	            var newcase = M.at(_case).Case(com.sun.source.tree.CaseTree.CaseKind.STATEMENT, _case.pats, bl.stats, bl);
+	            var newcase = M.at(_case).Case(com.sun.source.tree.CaseTree.CaseKind.STATEMENT, _case.labels, _case.guard, bl.stats, bl);
 	            newcases.add(newcase);
 	            combined = combined.combine(continuation); // FIXME - does this all work for fall-through cases
 	        }
@@ -6526,7 +6526,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        // treeMap is used to map break statements to their target statements
 	        treeMap.put(that, newswitch); // pos must also be the  JCSwitch or JCSwitchExpression
 	        pushBlock();
-		    boolean hasDefault = that.cases.stream().anyMatch(cs -> cs.pats.isEmpty());
+		    boolean hasDefault = that.cases.stream().anyMatch(cs -> cs.labels.isEmpty());
 		    int doCase = 0;
 		    if (currentSplit.isEmpty()) {
 		        adjustSplit(that.cases.size() + (hasDefault ? 0 : 1));
@@ -6567,7 +6567,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    JCBlock newblock = popBlock(that);
 
 		    // From the block we make a single default case
-		    JCCase newcase = M.at(that).Case(com.sun.source.tree.CaseTree.CaseKind.STATEMENT, List.<JCExpression>nil(), newblock.stats, newblock);
+		    JCCase newcase = M.at(that).Case(com.sun.source.tree.CaseTree.CaseKind.STATEMENT, List.<JCCaseLabel>nil(), null, newblock.stats, newblock); // FIXME - check the arguments
 		    newswitch.cases = List.<JCCase>of(newcase);
             treeMap.remove(that);
             addStat(newswitch);
