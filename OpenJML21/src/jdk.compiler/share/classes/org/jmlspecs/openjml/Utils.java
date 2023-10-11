@@ -1476,6 +1476,7 @@ public class Utils {
      */
     public static class JmlNotImplementedException extends RuntimeException {
         private static final long serialVersionUID = 1L;
+        @SuppressWarnings("serial")
         public DiagnosticPosition pos;
         public JmlNotImplementedException(DiagnosticPosition pos, String location) {
             super(location);

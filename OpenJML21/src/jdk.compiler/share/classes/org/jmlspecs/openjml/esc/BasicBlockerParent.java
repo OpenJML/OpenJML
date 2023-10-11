@@ -791,7 +791,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             boolean fallthrough = false; // Nothing to fall through to the first case
             for (JCCase caseItem: cases) {
             	List<JCExpression> caseValues = caseItem.getExpressions();
-                List<JCStatement> stats = ((JCCase)caseItem).stats;
+                List<JCStatement> stats = caseItem.stats;
                 int casepos = caseItem.getStartPosition();
                 
                 // create a block for this case test

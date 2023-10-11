@@ -412,7 +412,7 @@ public class Lexer {
 					if (smtConfig.isVersion(SMT.Configuration.SMTLIB.V25)) { // Version 2.5ff
 						while (true) {
 							p++;
-							int c = csr.charAt(p);
+							char c = csr.charAt(p);
 							if (c == '"') {
 								if (p+1 < csr.length() && csr.charAt(p+1) == '"') {
 									p++;
@@ -440,10 +440,10 @@ public class Lexer {
 								continue;
 							}
 						}
-					} else if (SMT.Configuration.SMTLIB.V20.toString().equals(smtConfig.smtlib)) { // Version 2.0
+					} else if (SMT.Configuration.SMTLIB.V20.toString().equals(SMT.Configuration.smtlib)) { // Version 2.0
 						while (true) {
 							p++;
-							int c = csr.charAt(p);
+							char c = csr.charAt(p);
 							if (c == '\\') {
 								c = csr.charAt(++p);
 								// \\ is translated to \ and \" to "

@@ -618,6 +618,7 @@ public class Utils {
 	/** An Exception class used by the library */
 	static public class SMTLIBException extends Exception {
 		private static final long serialVersionUID = 1L;
+                @SuppressWarnings("serial")
 		public IResponse.IError errorResponse;
 
 		public SMTLIBException(IResponse.IError err) {
@@ -625,9 +626,11 @@ public class Utils {
 		}
 	}
 	
+    @SafeVarargs // requires an argument that is not empty
     public static <T> T[] cat(T[] ... arrays) {
         int n = 0;
         for (T[] a: arrays) n += a.length;
+        @SuppressWarnings("unchecked")
         T[] r = (T[])Array.newInstance(arrays[0].getClass(), n);
         int k = 0;
         for (T[] a: arrays) {
@@ -637,8 +640,11 @@ public class Utils {
         return r;
     }
 
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <T> T[] cat(T[] aa, T ... rest) {
         int n = aa.length + rest.length;
+        @SuppressWarnings("unchecked")
         T[] r = (T[])Array.newInstance(aa[0].getClass(), n);
         System.arraycopy(aa,  0,  r,  0, aa.length);
         System.arraycopy(rest,  0,  r,  aa.length, rest.length);

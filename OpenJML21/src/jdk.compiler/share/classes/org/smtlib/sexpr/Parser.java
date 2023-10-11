@@ -898,6 +898,7 @@ public class Parser extends Lexer implements IParser {
 		}
 		String clazzName = "org.smtlib.logic." + name;
 		try {
+                        @SuppressWarnings("unchecked")
 			Class<? extends ILogic> clazz = (Class<? extends ILogic>)Class.forName(clazzName);
 			Constructor<? extends ILogic> con = clazz.getConstructor(ISymbol.class,Collection.class);
 			return con.newInstance(name,attributes);

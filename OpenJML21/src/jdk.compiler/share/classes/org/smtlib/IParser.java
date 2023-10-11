@@ -149,6 +149,7 @@ public interface IParser {
 		private static final long serialVersionUID = 1L;
 		
 		/** The location of the parsing problem */
+                @SuppressWarnings("serial")
 		protected /*@Nullable*//*@ReadOnly*/ IPos pos;
 
 		/** Creates a parse exception from the given error message and problem location */

@@ -1459,8 +1459,8 @@ public class JmlTree {
 
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
-            if (v instanceof JmlTreeVisitor jv) {
-                return (R)jv.visitBlock((BlockTree)this, d);
+            if (v instanceof JmlTreeVisitor<R,D> jv) {
+                return jv.visitBlock((BlockTree)this, d);
             } else {
                 // unexpectedVisitor(this,v);
                 return super.accept(v,d);
