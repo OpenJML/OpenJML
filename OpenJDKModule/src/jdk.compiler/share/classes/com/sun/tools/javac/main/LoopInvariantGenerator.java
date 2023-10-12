@@ -13,6 +13,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.code.Symtab;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.tree.JCTree;
@@ -121,8 +122,7 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
         String selectedString = tree.selected.toString();
         String nameString = tree.name.toString();
         
-        if ((selectedString.equals("arr") || selectedString.equals("a")) &&
-                (nameString.equals("length") || nameString.equals("size"))) {
+        if (Util.isArrayLength(tree) || nameString.equals("size")) {
             if (replaceable(tree.sym.type.getTag())) {
                 possible_vars.add(tree);
             }
@@ -239,6 +239,7 @@ public class LoopInvariantGenerator {
         this.name = Names.instance(context);
         this.symtab = Symtab.instance(context);
     }
+
     // this gets called between the flow and desugar stages
     public void generateInvariant(Env<AttrContext> env) {
         JCTree tree = env.tree; // the AST
@@ -277,7 +278,7 @@ public class LoopInvariantGenerator {
         System.out.println("Possible variables to be replaced: " + assertionReader.possible_vars.variables);
 
         for (Tree temp : assertionReader.possible_vars.variables) {
-            if (!temp.toString().equals("a.length")) continue;
+            if (!Util.isArrayLength(temp)) continue;
             constantReplacer.setOldVariable(temp);
             break; // JUST TAKES THE FIRST VARIABLE FOR NOW
         }
@@ -352,5 +353,21 @@ class HashSetWrapper {
 
     public boolean contains(Tree tree) {
         return duplicates.contains(tree.toString());
+    }
+}
+
+class Util {
+    // checks if we are accessing the length property of an array
+    static boolean isArrayLength(Tree node) {
+        if (!(node instanceof JCFieldAccess)) {
+            return false; // not a property access
+        }
+
+        JCFieldAccess access = (JCFieldAccess) node;
+        if (!(access.selected.type instanceof Type.ArrayType)) {
+            return false; // not a property access on an array
+        }
+        
+        return access.name.toString().equals("length");
     }
 }
