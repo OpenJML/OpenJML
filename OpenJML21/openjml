@@ -4,13 +4,14 @@
 
 R1=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks; R1 will be the path to this file
 R2=$(dirname "$R1") # path containing this file
-ROOT=$( cd "$R2"  && pwd) ## absolute path, still might have spaces
+R=$( cd "$R2/../.."  && pwd) ## absolute path, still might have spaces
 
 ##OS=linux ## macosx linux windows aix
+ROOT="$R/OpenJML/OpenJML21"
 BIN=`echo $ROOT/build/*/jdk/bin/javac`
 ##SP=$ROOT/src/java.base/share/classes:$ROOT/build/*-server-release/support/gensrc/java.base:$ROOT/src/java.base/$OS/classes:$ROOT/src/java.base/unix/classes
 ##AM="--add-modules jdk.compiler,java.base"
 
-$BIN "$@"
-##OPENJML_ROOT="$ROOT/Solvers" $BIN "$@"
+##$BIN "$@"
+OPENJML_ROOT="$R/Solvers" $BIN "$@"
 

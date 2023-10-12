@@ -295,6 +295,7 @@ public class JmlSpecs {
         String sp = System.getProperty("java.class.path");
         String[] ss = sp.split(java.io.File.pathSeparator);
         Dir d;
+        System.out.println("CP " + sp);
         
         
         // See if there is any jar file on the classpath that contains
