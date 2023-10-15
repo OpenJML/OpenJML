@@ -251,10 +251,14 @@ public class LoopInvariantGenerator {
             return;
         }
 
+        IJmlLoop loop = null;
+
         // This block of code reads the parameters of the loop to obtain possible replacement variables
         if (lAssertionFinder.detectedForLoop == null) {
+            loop = lAssertionFinder.detectedWhileLoop;
             this.loopParamsReader.scan(lAssertionFinder.detectedWhileLoop.cond); // while loop condition
         } else {
+            loop = lAssertionFinder.detectedForLoop;
             // for loop initialization
             if (lAssertionFinder.detectedForLoop.init != null) {
                 for (JCStatement temp : lAssertionFinder.detectedForLoop.init) {
@@ -282,15 +286,28 @@ public class LoopInvariantGenerator {
             constantReplacer.setOldVariable(temp);
             break; // JUST TAKES THE FIRST VARIABLE FOR NOW
         }
+
         JmlChained boundary_expression = null;
         for (Tree temp : loopParamsReader.possible_vars.variables) {
             constantReplacer.setNewVariable(temp);
-            JCLiteral zero = treeMaker.Literal(0);
-            zero.setType(symtab.intType);
-            JCBinary binary_1 = treeMaker.Binary(JCTree.Tag.LE, zero, (JCTree.JCIdent)temp);
-            binary_1.setType(symtab.booleanType);
+
+            // try to get the initial value from the for loop's initializer
+            JCExpression initialValue = getInitialValueOfVar((JCTree.JCIdent) temp, loop);
+            
+            JCBinary binary_1;
+            if (initialValue != null) {
+                binary_1 = treeMaker.Binary(JCTree.Tag.LE, initialValue, (JCTree.JCIdent) temp);
+                binary_1.setType(symtab.booleanType);
+            } else {
+                JCLiteral zero = treeMaker.Literal(0);
+                zero.setType(symtab.intType);
+                binary_1 = treeMaker.Binary(JCTree.Tag.LE, zero, (JCTree.JCIdent)temp);
+                binary_1.setType(symtab.booleanType);
+            }
+
             JCBinary binary_2 = treeMaker.Binary(JCTree.Tag.LE, (JCTree.JCIdent)temp, (JCTree.JCFieldAccess)constantReplacer.getOldVariable());
             binary_2.setType(symtab.booleanType);
+
             boundary_expression = this.make.JmlChained(List.of(binary_1, binary_2));
             boundary_expression.setType(symtab.booleanType);
             break; // JUST TAKES THE FIRST VARIABLE FOR NOW
@@ -310,12 +327,10 @@ public class LoopInvariantGenerator {
         // modify the invariant's tree by replacing constants with variables
         invariant.accept(constantReplacer);
 
-        IJmlLoop loop = null;
         List<JmlStatementLoop> specs = List.of(boundary, invariant);
 
         
         if (lAssertionFinder.detectedForLoop != null) {
-            loop = lAssertionFinder.detectedForLoop;
             System.out.println("Before changing loop specs: ");
             System.out.println(loop);
 
@@ -333,6 +348,28 @@ public class LoopInvariantGenerator {
         // System.out.println(lAssertionFinder.detectedWhileLoop);
         // System.out.println(lAssertionFinder.detectedAssertion);
         // System.out.println(lAssertionFinder.complete);
+    }
+
+    /*
+     * Return given variable's initialized value from the for loop's initializer, if present. else null
+     * e.g with variable=i and loop=[for (int i = 12; ...;  ...);], we return 12
+     */
+    private JCExpression getInitialValueOfVar(JCIdent variable, IJmlLoop loop) {
+        // only doing for loops for now. with while loops we must read earlier declarations/assignments
+        if (loop instanceof JCForLoop) {
+            JCForLoop forLoop = (JCForLoop) loop;
+            for (JCStatement statement : forLoop.init) {
+                if (statement instanceof JCVariableDecl) {
+                    JCVariableDecl decl = (JCVariableDecl) statement;
+                    if (decl.name.toString().equals(variable.name.toString())) {
+                        return decl.init;
+                    }
+                }
+            }
+            return null; // no initialized value found
+        } else {
+            return null; // no initialized value found
+        }
     }
 }
 
