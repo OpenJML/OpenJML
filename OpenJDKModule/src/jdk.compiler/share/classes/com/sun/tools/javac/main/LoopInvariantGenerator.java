@@ -284,50 +284,32 @@ public class LoopInvariantGenerator {
         for (Tree temp : assertionReader.possible_vars.variables) {
             if (!Util.isArrayLength(temp)) continue;
             constantReplacer.setOldVariable(temp);
-            System.out.println("Chose to replace " + temp);
             break; // JUST TAKES THE FIRST VARIABLE FOR NOW
         }
-
+        
         JmlChained boundary_expression = null;
-        for (Tree temp : loopParamsReader.possible_vars.variables) {
-            constantReplacer.setNewVariable(temp);
-            System.out.println("Chose to replace with " + temp);
-
-            // try to get the initial value from the for loop's initializer
-            JCExpression initialValue = getInitialValueOfVar((JCTree.JCIdent) temp, loop);
-            
-            JCBinary binary_1;
-            if (initialValue != null) {
-                binary_1 = treeMaker.Binary(JCTree.Tag.LE, initialValue, (JCTree.JCIdent) temp);
-            } else {
-                // couldn't find initial value, so assume it is 0
-                JCLiteral zero = treeMaker.Literal(0).setType(symtab.intType);
-                binary_1 = treeMaker.Binary(JCTree.Tag.LE, zero, (JCTree.JCIdent)temp);
-            }
-            binary_1.setType(symtab.booleanType);
-            
-            JCExpression loopCond = getLoopCondition(loop);
-            JCBinary binary_2;
-
-            if (loopCond instanceof JCBinary) {
-                binary_2 = (JCBinary) copier.copy(loopCond);
-                // change < to <= and > to >= (e.g. change "i < a.length" to "i <= a.length")
-
-                // the tag's property isn't visible so we can't modify it directly
-                Tag tag = binary_2.getTag();
-                if (tag == JCTree.Tag.LT) {
-                    binary_2 = treeMaker.Binary(JCTree.Tag.LE, binary_2.lhs, binary_2.rhs);
-                } else if (tag == JCTree.Tag.GT) {
-                    binary_2 = treeMaker.Binary(JCTree.Tag.GE, binary_2.lhs, binary_2.rhs);
+        
+        // Prefer to replace with the loop's variable of a for loop, e.g. i
+        if (loop instanceof JCForLoop) {
+            for (JCStatement initStatement: ((JCForLoop)loop).init) {
+                if (initStatement instanceof JCVariableDecl) {
+                    JCVariableDecl decl = (JCVariableDecl) initStatement;
+                    Tree variable = loopParamsReader.possible_vars.searchByString(decl.name.toString());
+                    if (variable != null) {
+                        constantReplacer.setNewVariable(variable);
+                        boundary_expression = getBoundaryExpression(loop, variable);
+                    }
                 }
-            } else {
-                binary_2 = treeMaker.Binary(JCTree.Tag.LE, (JCTree.JCIdent)temp, (JCTree.JCFieldAccess)constantReplacer.getOldVariable());
             }
-            binary_2.setType(symtab.booleanType);
-            
-            boundary_expression = this.make.JmlChained(List.of(binary_1, binary_2));
-            boundary_expression.setType(symtab.booleanType);
-            break; // JUST TAKES THE FIRST VARIABLE FOR NOW
+        }
+
+        // Otherwise (no loop variables / not for loop), just choose the first one from our set
+        if (boundary_expression == null) {
+            for (Tree temp : loopParamsReader.possible_vars.variables) {
+                constantReplacer.setNewVariable(temp);
+                boundary_expression = getBoundaryExpression(loop, temp);
+                break; // JUST TAKES THE FIRST VARIABLE FOR NOW
+            }
         }
 
         // make new invariant using the postcondition
@@ -367,6 +349,46 @@ public class LoopInvariantGenerator {
         // System.out.println(lAssertionFinder.complete);
     }
 
+    private JmlChained getBoundaryExpression(IJmlLoop loop, Tree temp) {
+        JmlChained boundary_expression;
+
+        // try to get the initial value from the for loop's initializer
+        JCExpression initialValue = getInitialValueOfVar((JCTree.JCIdent) temp, loop);
+        
+        JCBinary binary_1;
+        if (initialValue != null) {
+            binary_1 = treeMaker.Binary(JCTree.Tag.LE, initialValue, (JCTree.JCIdent) temp);
+        } else {
+            // couldn't find initial value, so assume it is 0
+            JCLiteral zero = treeMaker.Literal(0).setType(symtab.intType);
+            binary_1 = treeMaker.Binary(JCTree.Tag.LE, zero, (JCTree.JCIdent)temp);
+        }
+        binary_1.setType(symtab.booleanType);
+        
+        JCExpression loopCond = getLoopCondition(loop);
+        JCBinary binary_2;
+
+        if (loopCond instanceof JCBinary) {
+            binary_2 = (JCBinary) copier.copy(loopCond);
+            // change < to <= and > to >= (e.g. change "i < a.length" to "i <= a.length")
+
+            // the tag's property isn't visible so we can't modify it directly
+            Tag tag = binary_2.getTag();
+            if (tag == JCTree.Tag.LT) {
+                binary_2 = treeMaker.Binary(JCTree.Tag.LE, binary_2.lhs, binary_2.rhs);
+            } else if (tag == JCTree.Tag.GT) {
+                binary_2 = treeMaker.Binary(JCTree.Tag.GE, binary_2.lhs, binary_2.rhs);
+            }
+        } else {
+            binary_2 = treeMaker.Binary(JCTree.Tag.LE, (JCTree.JCIdent)temp, (JCTree.JCFieldAccess)constantReplacer.getOldVariable());
+        }
+        binary_2.setType(symtab.booleanType);
+        
+        boundary_expression = this.make.JmlChained(List.of(binary_1, binary_2));
+        boundary_expression.setType(symtab.booleanType);
+        return boundary_expression;
+    }
+
     private JCExpression getLoopCondition(IJmlLoop loop) {
         if (loop instanceof JCWhileLoop) {
             return ((JCWhileLoop)loop).cond;
@@ -375,8 +397,8 @@ public class LoopInvariantGenerator {
         }
     }
 
-    /*
-     * Return given variable's initialized value from the for loop's initializer, if present. else null
+    /**
+     * @return given variable's initialized value from the for loop's initializer, if present. else null
      * e.g with variable=i and loop=[for (int i = 12; ...;  ...);], we return 12
      */
     private JCExpression getInitialValueOfVar(JCIdent variable, IJmlLoop loop) {
@@ -415,6 +437,15 @@ class HashSetWrapper {
 
     public boolean contains(Tree tree) {
         return duplicates.contains(tree.toString());
+    }
+
+    public Tree searchByString(String str) {
+        for (Tree variable : variables) {
+            if (variable.toString().equals(str)) {
+                return variable;
+            }
+        }
+        return null;
     }
 }
 
