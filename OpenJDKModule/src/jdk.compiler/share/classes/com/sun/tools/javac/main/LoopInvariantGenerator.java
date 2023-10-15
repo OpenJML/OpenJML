@@ -284,12 +284,14 @@ public class LoopInvariantGenerator {
         for (Tree temp : assertionReader.possible_vars.variables) {
             if (!Util.isArrayLength(temp)) continue;
             constantReplacer.setOldVariable(temp);
+            System.out.println("Chose to replace " + temp);
             break; // JUST TAKES THE FIRST VARIABLE FOR NOW
         }
 
         JmlChained boundary_expression = null;
         for (Tree temp : loopParamsReader.possible_vars.variables) {
             constantReplacer.setNewVariable(temp);
+            System.out.println("Chose to replace with " + temp);
 
             // try to get the initial value from the for loop's initializer
             JCExpression initialValue = getInitialValueOfVar((JCTree.JCIdent) temp, loop);
@@ -297,17 +299,32 @@ public class LoopInvariantGenerator {
             JCBinary binary_1;
             if (initialValue != null) {
                 binary_1 = treeMaker.Binary(JCTree.Tag.LE, initialValue, (JCTree.JCIdent) temp);
-                binary_1.setType(symtab.booleanType);
             } else {
-                JCLiteral zero = treeMaker.Literal(0);
-                zero.setType(symtab.intType);
+                // couldn't find initial value, so assume it is 0
+                JCLiteral zero = treeMaker.Literal(0).setType(symtab.intType);
                 binary_1 = treeMaker.Binary(JCTree.Tag.LE, zero, (JCTree.JCIdent)temp);
-                binary_1.setType(symtab.booleanType);
             }
+            binary_1.setType(symtab.booleanType);
+            
+            JCExpression loopCond = getLoopCondition(loop);
+            JCBinary binary_2;
 
-            JCBinary binary_2 = treeMaker.Binary(JCTree.Tag.LE, (JCTree.JCIdent)temp, (JCTree.JCFieldAccess)constantReplacer.getOldVariable());
+            if (loopCond instanceof JCBinary) {
+                binary_2 = (JCBinary) copier.copy(loopCond);
+                // change < to <= and > to >= (e.g. change "i < a.length" to "i <= a.length")
+
+                // the tag's property isn't visible so we can't modify it directly
+                Tag tag = binary_2.getTag();
+                if (tag == JCTree.Tag.LT) {
+                    binary_2 = treeMaker.Binary(JCTree.Tag.LE, binary_2.lhs, binary_2.rhs);
+                } else if (tag == JCTree.Tag.GT) {
+                    binary_2 = treeMaker.Binary(JCTree.Tag.GE, binary_2.lhs, binary_2.rhs);
+                }
+            } else {
+                binary_2 = treeMaker.Binary(JCTree.Tag.LE, (JCTree.JCIdent)temp, (JCTree.JCFieldAccess)constantReplacer.getOldVariable());
+            }
             binary_2.setType(symtab.booleanType);
-
+            
             boundary_expression = this.make.JmlChained(List.of(binary_1, binary_2));
             boundary_expression.setType(symtab.booleanType);
             break; // JUST TAKES THE FIRST VARIABLE FOR NOW
@@ -348,6 +365,14 @@ public class LoopInvariantGenerator {
         // System.out.println(lAssertionFinder.detectedWhileLoop);
         // System.out.println(lAssertionFinder.detectedAssertion);
         // System.out.println(lAssertionFinder.complete);
+    }
+
+    private JCExpression getLoopCondition(IJmlLoop loop) {
+        if (loop instanceof JCWhileLoop) {
+            return ((JCWhileLoop)loop).cond;
+        } else {
+            return ((JCForLoop)loop).cond;
+        }
     }
 
     /*
