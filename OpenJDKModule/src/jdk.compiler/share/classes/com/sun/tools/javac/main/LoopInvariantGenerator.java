@@ -7,10 +7,8 @@ import org.jmlspecs.openjml.visitors.JmlTreeCopier;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.jmlspecs.openjml.visitors.JmlTreeTranslator;
 import org.jmlspecs.openjml.ext.StatementExprExtensions;
-import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree.*;
 
-import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
@@ -25,6 +23,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.tree.TreeScanner;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 /*
@@ -119,7 +118,6 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
 
         //System.out.printf("FieldAccess: name=%s selected=%s sym=%s\n", tree.name, tree.selected, tree.sym);
 
-        String selectedString = tree.selected.toString();
         String nameString = tree.name.toString();
         
         if (Util.isArrayLength(tree) || nameString.equals("size")) {
@@ -183,17 +181,6 @@ class ConstantReplacer extends JmlTreeTranslator {
     
     @Override
     public void visitSelect(JCFieldAccess tree) {
-        String nameString = tree.name.toString(); // in "arr.length", this would be "length"
-
-        /* 
-        if (nameString.equals("length") || nameString.equals("size")) {
-            result = makeVariableNode(tree); // current node will be replaced by 'result'
-        } else {
-            // If not a "array.length" node, don't change anything
-            super.visitSelect(tree);
-        }
-        */
-
         if (!complete && tree.toString().equals(this.old_variable.toString())) {
             result = makeVariableNode(tree);
             complete = true;
@@ -288,28 +275,12 @@ public class LoopInvariantGenerator {
         }
         
         JmlChained boundary_expression = null;
-        
-        // Prefer to replace with the loop's variable of a for loop, e.g. i
-        if (loop instanceof JCForLoop) {
-            for (JCStatement initStatement: ((JCForLoop)loop).init) {
-                if (initStatement instanceof JCVariableDecl) {
-                    JCVariableDecl decl = (JCVariableDecl) initStatement;
-                    Tree variable = loopParamsReader.possible_vars.searchByString(decl.name.toString());
-                    if (variable != null) {
-                        constantReplacer.setNewVariable(variable);
-                        boundary_expression = getBoundaryExpression(loop, variable);
-                    }
-                }
-            }
-        }
 
-        // Otherwise (no loop variables / not for loop), just choose the first one from our set
-        if (boundary_expression == null) {
-            for (Tree temp : loopParamsReader.possible_vars.variables) {
-                constantReplacer.setNewVariable(temp);
-                boundary_expression = getBoundaryExpression(loop, temp);
-                break; // JUST TAKES THE FIRST VARIABLE FOR NOW
-            }
+        // Make the boundary expression
+        for (Tree variable : loopParamsReader.possible_vars.variables) {
+            constantReplacer.setNewVariable(variable);
+            boundary_expression = getBoundaryExpression(loop, (JCIdent) variable);
+            break; // JUST TAKES THE FIRST VARIABLE FOR NOW
         }
 
         // make new invariant using the postcondition
@@ -349,19 +320,19 @@ public class LoopInvariantGenerator {
         // System.out.println(lAssertionFinder.complete);
     }
 
-    private JmlChained getBoundaryExpression(IJmlLoop loop, Tree temp) {
+    private JmlChained getBoundaryExpression(IJmlLoop loop, JCIdent variable) {
         JmlChained boundary_expression;
 
         // try to get the initial value from the for loop's initializer
-        JCExpression initialValue = getInitialValueOfVar((JCTree.JCIdent) temp, loop);
+        JCExpression initialValue = getInitialValueOfVar(variable, loop);
         
         JCBinary binary_1;
         if (initialValue != null) {
-            binary_1 = treeMaker.Binary(JCTree.Tag.LE, initialValue, (JCTree.JCIdent) temp);
+            binary_1 = treeMaker.Binary(JCTree.Tag.LE, initialValue, variable);
         } else {
             // couldn't find initial value, so assume it is 0
             JCLiteral zero = treeMaker.Literal(0).setType(symtab.intType);
-            binary_1 = treeMaker.Binary(JCTree.Tag.LE, zero, (JCTree.JCIdent)temp);
+            binary_1 = treeMaker.Binary(JCTree.Tag.LE, zero, variable);
         }
         binary_1.setType(symtab.booleanType);
         
@@ -380,7 +351,7 @@ public class LoopInvariantGenerator {
                 binary_2 = treeMaker.Binary(JCTree.Tag.GE, binary_2.lhs, binary_2.rhs);
             }
         } else {
-            binary_2 = treeMaker.Binary(JCTree.Tag.LE, (JCTree.JCIdent)temp, (JCTree.JCFieldAccess)constantReplacer.getOldVariable());
+            binary_2 = treeMaker.Binary(JCTree.Tag.LE, (JCTree.JCIdent)variable, (JCTree.JCFieldAccess)constantReplacer.getOldVariable());
         }
         binary_2.setType(symtab.booleanType);
         
@@ -421,11 +392,11 @@ public class LoopInvariantGenerator {
 }
 
 /*
- * The hash code for two trees might be different despite representing the same identifier.
- * This HashSetWrapper puts the trees in the set if the string representation of the tree is unique.
+ * Stores trees in an ArrayList without duplicates.
+ * Uses a tree's string representation to remove duplicates.
  */
 class HashSetWrapper {
-    public HashSet<Tree> variables = new HashSet<>();
+    public ArrayList<Tree> variables = new ArrayList<>();
     private HashSet<String> duplicates = new HashSet<>();
 
     public void add(Tree tree) {
