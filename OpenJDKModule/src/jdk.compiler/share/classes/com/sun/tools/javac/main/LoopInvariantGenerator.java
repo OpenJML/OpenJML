@@ -8,6 +8,7 @@ import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.jmlspecs.openjml.visitors.JmlTreeTranslator;
 import org.jmlspecs.openjml.ext.StatementExprExtensions;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.esc.JmlEsc;
 
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.code.Symtab;
@@ -23,6 +24,8 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.tree.TreeScanner;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -158,7 +161,6 @@ class ConstantReplacer extends JmlTreeTranslator {
 
     private Tree old_variable;
     private Tree new_variable;
-    private boolean complete = false;
 
     public ConstantReplacer(Context context) {
         this.context = context;
@@ -181,9 +183,8 @@ class ConstantReplacer extends JmlTreeTranslator {
     
     @Override
     public void visitSelect(JCFieldAccess tree) {
-        if (!complete && tree.toString().equals(this.old_variable.toString())) {
+        if (tree.toString().equals(this.old_variable.toString())) {
             result = makeVariableNode(tree);
-            complete = true;
         } else {
             super.visitSelect(tree);
         }
@@ -192,11 +193,19 @@ class ConstantReplacer extends JmlTreeTranslator {
 
     @Override
     public void visitIdent(JCIdent tree) {
-        if (!complete && tree.toString().equals(this.old_variable.toString())) {
+        if (tree.toString().equals(this.old_variable.toString())) {
             result = makeVariableNode(tree);
-            complete = true;
         } else {
             super.visitIdent(tree);
+        }
+    }
+
+    @Override
+    public void visitLiteral(JCLiteral tree) {
+        if (tree.toString().equals(this.old_variable.toString())) {
+            result = makeVariableNode(tree);
+        } else {
+            super.visitLiteral(tree);
         }
     }
 
@@ -213,6 +222,7 @@ public class LoopInvariantGenerator {
     TreeMaker treeMaker;
     Names name;
     Symtab symtab;
+    JmlEsc esc;
     LoopAssertionFinder lAssertionFinder = new LoopAssertionFinder(); // used to find the loop and assertion pair
     AssertionReader assertionReader = new AssertionReader(); // used to read the assertion
     AssertionReader loopParamsReader = new AssertionReader(true); // used to read the loop parameters
@@ -225,6 +235,7 @@ public class LoopInvariantGenerator {
         this.treeMaker = TreeMaker.instance(context);
         this.name = Names.instance(context);
         this.symtab = Symtab.instance(context);
+        this.esc = JmlEsc.instance(context);
     }
 
     // this gets called between the flow and desugar stages
@@ -268,48 +279,54 @@ public class LoopInvariantGenerator {
         assertionReader.scan(lAssertionFinder.detectedAssertion.expression); // read the assertion and store the possible variables to be replaced
         System.out.println("Possible variables to be replaced: " + assertionReader.possible_vars.variables);
 
-        for (Tree temp : assertionReader.possible_vars.variables) {
-            if (!Util.isArrayLength(temp)) continue;
-            constantReplacer.setOldVariable(temp);
-            break; // JUST TAKES THE FIRST VARIABLE FOR NOW
+        if (loopParamsReader.possible_vars.variables.size() == 0 ||
+                assertionReader.possible_vars.variables.size() == 0) {
+            return; // no variables to replace, or no variables to replace with
         }
-        
-        JmlChained boundary_expression = null;
+
+        JmlChained boundaryExpression = null;
 
         // Make the boundary expression
         for (Tree variable : loopParamsReader.possible_vars.variables) {
             constantReplacer.setNewVariable(variable);
-            boundary_expression = getBoundaryExpression(loop, (JCIdent) variable);
+            boundaryExpression = getBoundaryExpression(loop, (JCIdent) variable);
             break; // JUST TAKES THE FIRST VARIABLE FOR NOW
         }
-
-        // make new invariant using the postcondition
-        JmlStatementLoopExpr invariant = this.make.JmlStatementLoopExpr(
-                StatementExprExtensions.loopinvariantClause,
-                copier.copy(lAssertionFinder.detectedAssertion.expression));
-
-        JmlStatementLoopExpr boundary = this.make.JmlStatementLoopExpr(
-                StatementExprExtensions.loopinvariantClause,
-                copier.copy(boundary_expression));
-
-        //this.make.JmlChained(null) // make the bounds for the replacement variable
-
-        // modify the invariant's tree by replacing constants with variables
-        invariant.accept(constantReplacer);
-
-        List<JmlStatementLoop> specs = List.of(boundary, invariant);
-
         
-        if (lAssertionFinder.detectedForLoop != null) {
-            System.out.println("Before changing loop specs: ");
-            System.out.println(loop);
+        // Go through possible constants to be replaced, trying each one
+        for (Tree temp : assertionReader.possible_vars.variables) {
+            constantReplacer.setOldVariable(temp);
+            
+            JmlStatementLoopExpr boundary = this.make.JmlStatementLoopExpr(
+                    StatementExprExtensions.loopinvariantClause,
+                    boundaryExpression);
 
-            // attach our new invariants to the loop
-            loop.setLoopSpecs(specs);
+            // make new invariant using the postcondition
+            JmlStatementLoopExpr invariant = this.make.JmlStatementLoopExpr(
+                    StatementExprExtensions.loopinvariantClause,
+                    copier.copy(lAssertionFinder.detectedAssertion.expression));
+    
+            // modify the invariant's tree by replacing constants with variables
+            invariant.accept(constantReplacer);
+    
+            List<JmlStatementLoop> specs = List.of(boundary, invariant);
+            
+            if (lAssertionFinder.detectedForLoop != null) {
+                // attach our new invariants to the loop
+                loop.setLoopSpecs(specs);
+    
+                System.out.println("Generated specs: ");
+                specs.forEach(spec -> System.out.println(spec));
+            }
+            
+            boolean verified = getEscVerificationResult(tree);
+            System.out.printf("Replacing constant %s: %sverified\n", temp, (verified ? "" : "not "));
 
-            System.out.println("After changing loop specs: ");
-            System.out.println(loop);
+            if (verified) {
+                break; // early exit
+            }
         }
+        
 
         //System.out.println("\n\n\n\n" + JmlPretty.write(env.tree) + "\n\n\n\n\n");
         
@@ -318,6 +335,12 @@ public class LoopInvariantGenerator {
         // System.out.println(lAssertionFinder.detectedWhileLoop);
         // System.out.println(lAssertionFinder.detectedAssertion);
         // System.out.println(lAssertionFinder.complete);
+    }
+
+    private boolean getEscVerificationResult(JCTree tree) {
+        esc.initCounts();
+        esc.check(tree); // TODO silence console output?
+        return (esc.classes == esc.classesOK);
     }
 
     private JmlChained getBoundaryExpression(IJmlLoop loop, JCIdent variable) {
