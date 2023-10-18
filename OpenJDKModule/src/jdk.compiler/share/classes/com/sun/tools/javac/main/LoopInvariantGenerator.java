@@ -159,7 +159,7 @@ class ConstantReplacer extends JmlTreeTranslator {
     Maker make;
     Symtab symtab;
 
-    private Tree old_variable;
+    private Tree old_constant;
     private Tree new_variable;
 
     public ConstantReplacer(Context context) {
@@ -168,22 +168,22 @@ class ConstantReplacer extends JmlTreeTranslator {
         this.symtab = Symtab.instance(context);
     }
 
-    public void setOldVariable(Tree variable) {
-        this.old_variable = variable;
+    public void setOldConstant(Tree constant) {
+        this.old_constant = constant;
     }
 
     public void setNewVariable(Tree variable) {
         this.new_variable = variable;
     }
 
-    public Tree getOldVariable() {
-        return this.old_variable;
+    public Tree getOldConstant() {
+        return this.old_constant;
     }
 
     
     @Override
     public void visitSelect(JCFieldAccess tree) {
-        if (tree.toString().equals(this.old_variable.toString())) {
+        if (tree.toString().equals(this.old_constant.toString())) {
             result = makeVariableNode(tree);
         } else {
             super.visitSelect(tree);
@@ -193,7 +193,7 @@ class ConstantReplacer extends JmlTreeTranslator {
 
     @Override
     public void visitIdent(JCIdent tree) {
-        if (tree.toString().equals(this.old_variable.toString())) {
+        if (tree.toString().equals(this.old_constant.toString())) {
             result = makeVariableNode(tree);
         } else {
             super.visitIdent(tree);
@@ -202,7 +202,7 @@ class ConstantReplacer extends JmlTreeTranslator {
 
     @Override
     public void visitLiteral(JCLiteral tree) {
-        if (tree.toString().equals(this.old_variable.toString())) {
+        if (tree.toString().equals(this.old_constant.toString())) {
             result = makeVariableNode(tree);
         } else {
             super.visitLiteral(tree);
@@ -276,12 +276,12 @@ public class LoopInvariantGenerator {
 
         System.out.println("Possible replacement variables: " + loopParamsReader.possible_vars.variables);
 
-        assertionReader.scan(lAssertionFinder.detectedAssertion.expression); // read the assertion and store the possible variables to be replaced
-        System.out.println("Possible variables to be replaced: " + assertionReader.possible_vars.variables);
+        assertionReader.scan(lAssertionFinder.detectedAssertion.expression); // read the assertion and store the possible constants to be replaced
+        System.out.println("Possible constants to be replaced: " + assertionReader.possible_vars.variables);
 
         if (loopParamsReader.possible_vars.variables.size() == 0 ||
                 assertionReader.possible_vars.variables.size() == 0) {
-            return; // no variables to replace, or no variables to replace with
+            return; // no constants to replace, or no variables to replace with
         }
 
         JmlChained boundaryExpression = null;
@@ -295,7 +295,8 @@ public class LoopInvariantGenerator {
         
         // Go through possible constants to be replaced, trying each one
         for (Tree temp : assertionReader.possible_vars.variables) {
-            constantReplacer.setOldVariable(temp);
+            // if (!Util.isArrayLength(temp)) continue;
+            constantReplacer.setOldConstant(temp);
             
             JmlStatementLoopExpr boundary = this.make.JmlStatementLoopExpr(
                     StatementExprExtensions.loopinvariantClause,
@@ -374,7 +375,7 @@ public class LoopInvariantGenerator {
                 binary_2 = treeMaker.Binary(JCTree.Tag.GE, binary_2.lhs, binary_2.rhs);
             }
         } else {
-            binary_2 = treeMaker.Binary(JCTree.Tag.LE, (JCTree.JCIdent)variable, (JCTree.JCFieldAccess)constantReplacer.getOldVariable());
+            binary_2 = treeMaker.Binary(JCTree.Tag.LE, (JCTree.JCIdent)variable, (JCTree.JCFieldAccess)constantReplacer.getOldConstant());
         }
         binary_2.setType(symtab.booleanType);
         
