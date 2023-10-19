@@ -51,10 +51,11 @@ jobs:
     - name: Checkout OpenJML
       run: |
         git config --global core.autocrlf input
-        git clone -b dev-21 --depth 1 https://github.com/OpenJML/OpenJML
+        git clone -b master-21 --depth 1 https://github.com/OpenJML/OpenJML
         git clone -b master-module --depth 1 https://github.com/OpenJML/Specs
         git clone --depth 1 https://github.com/OpenJML/Solvers
         git clone --depth 1 https://github.com/OpenJML/JMLAnnotations
+        git clone --depth 1 https://github.com/OpenJML/openjml.github.io
     - name: Create the GitHub release
       ## Do this for just one element of the matrix
       if: matrix.os == 'ubuntu-20.04'
@@ -69,10 +70,11 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         basic() {
-          cd D:/a/OpenJML/OpenJML21
           pwd
           ls -la
           cd OpenJML/OpenJML21
+          pwd
+          ls -la
           bash ./configure
           make release 
         }
