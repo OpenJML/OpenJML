@@ -284,51 +284,44 @@ public class LoopInvariantGenerator {
             return; // no constants to replace, or no variables to replace with
         }
 
-        JmlChained boundaryExpression = null;
+        // Replace constant with variable, trying each constant/variable combination until one works
+        OUTER:
+        for (Tree constant : assertionReader.possible_vars.variables) {
+            constantReplacer.setOldConstant(constant); 
+       
+            for (Tree variable : loopParamsReader.possible_vars.variables) {
+                constantReplacer.setNewVariable(variable);
 
-        // Make the boundary expression
-        for (Tree variable : loopParamsReader.possible_vars.variables) {
-            constantReplacer.setNewVariable(variable);
-            boundaryExpression = getBoundaryExpression(loop, (JCIdent) variable);
-            break; // JUST TAKES THE FIRST VARIABLE FOR NOW
-        }
+                JmlStatementLoopExpr boundary = this.make.JmlStatementLoopExpr(
+                        StatementExprExtensions.loopinvariantClause,
+                        getBoundaryExpression(loop, (JCIdent) variable, (JCExpression) constant));
+             
+                // make new invariant using the postcondition
+                JmlStatementLoopExpr invariant = this.make.JmlStatementLoopExpr(
+                        StatementExprExtensions.loopinvariantClause,
+                        copier.copy(lAssertionFinder.detectedAssertion.expression));
+
+                // modify the invariant's tree by replacing constants with variables
+                invariant.accept(constantReplacer);
         
-        // Go through possible constants to be replaced, trying each one
-        for (Tree temp : assertionReader.possible_vars.variables) {
-            // if (!Util.isArrayLength(temp)) continue;
-            constantReplacer.setOldConstant(temp);
-            
-            JmlStatementLoopExpr boundary = this.make.JmlStatementLoopExpr(
-                    StatementExprExtensions.loopinvariantClause,
-                    boundaryExpression);
-
-            // make new invariant using the postcondition
-            JmlStatementLoopExpr invariant = this.make.JmlStatementLoopExpr(
-                    StatementExprExtensions.loopinvariantClause,
-                    copier.copy(lAssertionFinder.detectedAssertion.expression));
+                if (lAssertionFinder.detectedForLoop != null) {
+                    // attach our new invariants to the loop
+                    loop.setLoopSpecs(List.of(boundary, invariant));
+        
+                    System.out.println("Generated specs: ");
+                    List.of(boundary, invariant).forEach(spec -> System.out.println(spec));
+                }
+                
+                boolean verified = getEscVerificationResult(tree);
+                System.out.printf("Replaced constant %s with variable %s: %sverified\n", constant, variable, (verified ? "" : "not "));
     
-            // modify the invariant's tree by replacing constants with variables
-            invariant.accept(constantReplacer);
-    
-            List<JmlStatementLoop> specs = List.of(boundary, invariant);
-            
-            if (lAssertionFinder.detectedForLoop != null) {
-                // attach our new invariants to the loop
-                loop.setLoopSpecs(specs);
-    
-                System.out.println("Generated specs: ");
-                specs.forEach(spec -> System.out.println(spec));
-            }
-            
-            boolean verified = getEscVerificationResult(tree);
-            System.out.printf("Replacing constant %s: %sverified\n", temp, (verified ? "" : "not "));
-
-            if (verified) {
-                break; // early exit
+                if (verified) {
+                    // break OUTER; // early exit
+                }
             }
         }
         
-
+        
         //System.out.println("\n\n\n\n" + JmlPretty.write(env.tree) + "\n\n\n\n\n");
         
 
@@ -344,7 +337,14 @@ public class LoopInvariantGenerator {
         return (esc.classes == esc.classesOK);
     }
 
-    private JmlChained getBoundaryExpression(IJmlLoop loop, JCIdent variable) {
+    /*
+     * Makes a boundary expression for a given variable.
+     * lower bound is the variable's initial value if we can find it, otherwise 0.
+     * upper bound is the constant that the variable is replacing.
+     * 
+     * Caveat: this assumes that the iteration variable is increasing
+     */
+    private JmlChained getBoundaryExpression(IJmlLoop loop, JCIdent variable, JCExpression constant) {
         JmlChained boundary_expression;
 
         // try to get the initial value from the for loop's initializer
@@ -360,23 +360,8 @@ public class LoopInvariantGenerator {
         }
         binary_1.setType(symtab.booleanType);
         
-        JCExpression loopCond = getLoopCondition(loop);
-        JCBinary binary_2;
-
-        if (loopCond instanceof JCBinary) {
-            binary_2 = (JCBinary) copier.copy(loopCond);
-            // change < to <= and > to >= (e.g. change "i < a.length" to "i <= a.length")
-
-            // the tag's property isn't visible so we can't modify it directly
-            Tag tag = binary_2.getTag();
-            if (tag == JCTree.Tag.LT) {
-                binary_2 = treeMaker.Binary(JCTree.Tag.LE, binary_2.lhs, binary_2.rhs);
-            } else if (tag == JCTree.Tag.GT) {
-                binary_2 = treeMaker.Binary(JCTree.Tag.GE, binary_2.lhs, binary_2.rhs);
-            }
-        } else {
-            binary_2 = treeMaker.Binary(JCTree.Tag.LE, (JCTree.JCIdent)variable, (JCTree.JCFieldAccess)constantReplacer.getOldConstant());
-        }
+        JCBinary binary_2 = treeMaker.Binary(JCTree.Tag.LE, (JCTree.JCIdent)variable, constant);
+            
         binary_2.setType(symtab.booleanType);
         
         boundary_expression = this.make.JmlChained(List.of(binary_1, binary_2));
@@ -384,17 +369,8 @@ public class LoopInvariantGenerator {
         return boundary_expression;
     }
 
-    private JCExpression getLoopCondition(IJmlLoop loop) {
-        if (loop instanceof JCWhileLoop) {
-            return ((JCWhileLoop)loop).cond;
-        } else {
-            return ((JCForLoop)loop).cond;
-        }
-    }
-
     /**
-     * @return given variable's initialized value from the for loop's initializer, if present. else null
-     * e.g with variable=i and loop=[for (int i = 12; ...;  ...);], we return 12
+     * @return the variable's initialized value, if found. otherwise null
      */
     private JCExpression getInitialValueOfVar(JCIdent variable, IJmlLoop loop) {
         // only doing for loops for now. with while loops we must read earlier declarations/assignments
