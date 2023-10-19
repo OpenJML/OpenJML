@@ -316,7 +316,7 @@ public class LoopInvariantGenerator {
                 System.out.printf("Replaced constant %s with variable %s: %sverified\n", constant, variable, (verified ? "" : "not "));
     
                 if (verified) {
-                    // break OUTER; // early exit
+                    break OUTER; // early exit
                 }
             }
         }
@@ -384,10 +384,8 @@ public class LoopInvariantGenerator {
                     }
                 }
             }
-            return null; // no initialized value found
-        } else {
-            return null; // no initialized value found
         }
+        return null; // no initialized value found
     }
 }
 
