@@ -7,12 +7,10 @@ package org.jmlspecs.openjml;
 
 import static com.sun.tools.javac.main.Option.WERROR;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
-import java.net.URL;
 
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileManager;
@@ -32,13 +30,12 @@ import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.resources.CompilerProperties.Errors;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JavacMessages;
-import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Options;
 
 /**
  * This class is the main entry point for the JML tool. It uses the javac
- * compiler, but overrides some of the functionality here in order to register
+ * compiler, but overrides some of its functionality in order to register
  * tools for the compiler to use that are extensions with JML functionality of
  * the usual tools. Also the handling of JML-specific options is initialized
  * here.  For programmatic access to the facilities of openjml, use the methods
