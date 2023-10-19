@@ -19,7 +19,7 @@ jobs:
         ##os: [ubuntu-latest]
         ##os: [ubuntu-latest, windows-latest, ubuntu-16.04]
         ##os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [ubuntu-latest, macos-latest, ubuntu-20.04, macos-12, windows-latest]
+        os: [ubuntu-22.04, macos-13, ubuntu-20.04, macos-12]
 
       fail-fast: false
     steps:
@@ -56,28 +56,12 @@ jobs:
         git clone --depth 1 https://github.com/OpenJML/Solvers
         git clone --depth 1 https://github.com/OpenJML/JMLAnnotations
         git clone --depth 1 https://github.com/OpenJML/openjml.github.io
-        pwd
-        ls
-    - name: Create the GitHub release
-      ## Do this for just one element of the matrix
-      if: matrix.os == 'ubuntu-20.04'
-      run: |
-        cd OpenJML
-        export ver=`cat version.txt`
-        echo Version $ver
-        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"master-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
-        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
-        echo Created release with id $id
     - name: Build OpenJML release on Windows
       if: runner.os == 'Windows'
       run: |
         basic() {
           cd D:/a/OpenJML/OpenJML
-          pwd
-          ls -la
           cd OpenJML/OpenJML21
-          pwd
-          ls -la
           bash ./configure
           make release 
         }
@@ -92,6 +76,16 @@ jobs:
     - name: Test the release
       run: |
         make -C OpenJML/OpenJML21 release-test
+    - name: Create the GitHub release
+      ## Do this for just one element of the matrix
+      if: matrix.os == 'ubuntu-22.04'
+      run: |
+        cd OpenJML
+        export ver=`cat version.txt`
+        echo Version $ver
+        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"master-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
+        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
+        echo Created release with id $id
     - name: Load OpenJML build into GitHub release
         # Here we get the id of the most recent release, which should have been created by now by one of the jobs
         # Race problem: if a new relesae build is started before a previous one has completed, the earlier build will get the id of the later release and
