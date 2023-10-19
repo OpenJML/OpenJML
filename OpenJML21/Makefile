@@ -69,7 +69,7 @@ REL=release-temp
 
 ## Used in the github build.yml action
 
-release: clean version-info annotation openjml jmlruntime.jar tutorial post
+release: clean version-info openjml jmlruntime.jar tutorial post
 
 version:
 	@ if [ ! -e ../version.txt ]; then echo "No version.txt file"; else echo "Building version" `cat ../version.txt`; fi
