@@ -1,6 +1,7 @@
 name: Build OpenJML
 
 on:
+  workflow_dispatch:
   push:
     branches: [ master-module ]
 
