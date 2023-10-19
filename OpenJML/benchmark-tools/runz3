@@ -1,5 +1,0 @@
-
-for f in $* ; do
-  echo $f
-  ( time z3-4.3 /smt2 /t:600 $f ) |& grep -v success
-done
