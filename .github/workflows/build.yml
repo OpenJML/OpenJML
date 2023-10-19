@@ -50,7 +50,7 @@ jobs:
     - name: Checkout OpenJML
       run: |
         git config --global core.autocrlf input
-        git clone -b master-module --depth 1 https://github.com/OpenJML/OpenJML
+        git clone -b dev-21 --depth 1 https://github.com/OpenJML/OpenJML
         git clone -b master-module --depth 1 https://github.com/OpenJML/Specs
         git clone --depth 1 https://github.com/OpenJML/Solvers
         git clone --depth 1 https://github.com/OpenJML/JMLAnnotations
@@ -68,7 +68,7 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         basic() {
-          cd D:/a/OpenJML/OpenJML
+          cd D:/a/OpenJML/OpenJML21
           pwd
           ls -la
           cd OpenJML/OpenJDKModule
@@ -80,12 +80,12 @@ jobs:
     - name: Build OpenJML release on non-Windows
       if: runner.os != 'Windows'
       run: |
-        cd OpenJML/OpenJDKModule
+        cd OpenJML/OpenJML21
         bash ./configure
         make release 
     - name: Test the release
       run: |
-        make -C OpenJML/OpenJDKModule release-test
+        make -C OpenJML/OpenJML21 release-test
     - name: Load OpenJML build into GitHub release
         # Here we get the id of the most recent release, which should have been created by now by one of the jobs
         # Race problem: if a new relesae build is started before a previous one has completed, the earlier build will get the id of the later release and
@@ -93,7 +93,7 @@ jobs:
       run: |
         cd OpenJML
         export ver=`cat version.txt`
-        cd OpenJDKModule/release-temp
+        cd OpenJML21/release-temp
         export f=openjml-${{ matrix.os }}-${ver}.zip
         mv *.zip $f
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`

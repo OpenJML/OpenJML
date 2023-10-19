@@ -1,4 +1,0 @@
-Line: 6
-Line: 4
-Errors: 2
-Return code: 1
