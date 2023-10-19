@@ -69,7 +69,7 @@ REL=release-temp
 
 ## Used in the github build.yml action
 
-release: clean version-info annotation openjml jmlruntime.jar tutorial post
+release: clean version-info openjml jmlruntime.jar tutorial post
 
 version:
 	@ if [ ! -e ../version.txt ]; then echo "No version.txt file"; else echo "Building version" `cat ../version.txt`; fi
@@ -118,7 +118,9 @@ release-test:
 ## Development build targets
 
 openjml: .FORCE
+	ls -R ./src/java.base/share/classes/org/jmlspecs
 	NOJML= make
+	ls -R ./build/*/jdk/modules/java.base/org/jmlspecs
 
 smt:
 	if [ -e $(mkfile_dir)/../../../jSMTLIB/SMT ]; then \
