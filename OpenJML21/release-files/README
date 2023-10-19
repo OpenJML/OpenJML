@@ -1,0 +1,18 @@
+This is a release of the openjml tool.
+
+The release is installed by unzipping the release file as downloaded from github
+into an empty folder of the user's choice. All files in the release must be left 
+in the same relative location with respect to each other.
+
+The 'openjml' bash script is the executable to run; the -? option gives
+help information and the OpenJML User Guide gives information about running 
+the tool. On Mac systems, you may need to execute the `mac-setup` script 
+so that the Mac OS security allows openjml and its libraries to run.
+
+The 'openjml-java' script runs the OpenJML version of java -- which has the 
+OpenJML runtime libraries (jmlruntime.jar) included.
+
+Some demo examples are contained in the demos subdirectory.
+More will be added over time.
+
+See openjml.org and github.com/OpenJML/OpenJML for additional information.
