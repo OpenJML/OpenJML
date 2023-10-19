@@ -56,6 +56,8 @@ jobs:
         git clone --depth 1 https://github.com/OpenJML/Solvers
         git clone --depth 1 https://github.com/OpenJML/JMLAnnotations
         git clone --depth 1 https://github.com/OpenJML/openjml.github.io
+        pwd
+        ls
     - name: Create the GitHub release
       ## Do this for just one element of the matrix
       if: matrix.os == 'ubuntu-20.04'
