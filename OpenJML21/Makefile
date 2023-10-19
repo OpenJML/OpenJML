@@ -132,7 +132,6 @@ jmlruntime.jar: .FORCE
 	@mkdir templib
 	@mkdir -p templib/org/jmlspecs/runtime
 	@mkdir -p templib/org/jmlspecs/annotation
-	@javac -d build/*/jdk/modules/java.base ./src/java.base/share/classes/java/lang/runtime/*.java
 	@cp build/*/jdk/modules/java.base/org/jmlspecs/runtime/*.class templib/org/jmlspecs/runtime
 	@ ## Annotations are generally not needed at runtime, but they are included just in case one is executed in the future
 	@cp build/*/jdk/modules/java.base/org/jmlspecs/annotation/*.class templib/org/jmlspecs/annotation
