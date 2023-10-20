@@ -27,7 +27,7 @@ import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlScanner;
-import com.sun.tools.javac.resources.CompilerProperties.Errors;
+import com.sun.tools.javac.resources.CompilerProperties.Errors; // Generated from .properties files
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.Log;
@@ -94,7 +94,7 @@ import com.sun.tools.javac.util.Options;
  */
 public class Main extends com.sun.tools.javac.main.Main {
 	
-	/** Holds the value of an environment variable, which is supposed to be the absolute path to
+	/** Holds the value of an environment variable that is the absolute path to
 	 *  the installation directory for openjml. That is Main.root contains the 'specs' directory
 	 *  and Solvers-macos etc.
 	 */
@@ -111,14 +111,14 @@ public class Main extends com.sun.tools.javac.main.Main {
      * the most recent value of the context, and is used that way in testing. */
     public Context context;
     
-    /** True if compilation has been canceled, by setting this field in some exception handler. */
+    /** True if compilation/static-checking has been canceled, by setting this field in some exception handler. 
+     *  Used in an interactive environment. */
     public boolean canceled = false;
     
     public Utils utils;
     
-    /** Instances of this class are used to abruptly terminate long-running;
+    /** Instances of this class are used to abruptly terminate long-running JML operations;
      *  catch clauses typically set the Main.canceled field
-     * JML operations.
      */
     public static class JmlCanceledException extends RuntimeException {
         private static final long serialVersionUID = 1L;
@@ -130,7 +130,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** The diagListener provided when an instance of Main is constructed.
      * The listener will be notified when any diagnostic is generated.
      */
-    /*@nullable*/
+    /*@ nullable*/
     protected DiagnosticListener<? extends JavaFileObject> diagListener;
     
     
@@ -150,7 +150,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         void worked(int ticks);
     }
 
-    /*@nullable*/ /** If nonnull, this listener is notified of progress messages */
+    /*@ nullable*/ /** If nonnull, this listener is notified of progress messages */
     static public java.util.function.Supplier<IProgressListener> progressListener;
     
     /** The compilation Context only allows one instance to be registered for
@@ -176,11 +176,11 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         
         /** Returns true if there is a listener. */
-        /*@pure*/
+        /*@ pure*/
         public boolean hasDelegate() { return delegate != null; }
         
         /** Sets a listener, overriding previous setting; may be null to erase a listener. */
-        public void setDelegate(/*@nullable*/ IProgressListener d) {
+        public void setDelegate(/*@ nullable*/ IProgressListener d) {
             delegate = d;
         }
         
@@ -242,17 +242,28 @@ public class Main extends com.sun.tools.javac.main.Main {
         super(applicationName,out);
     }
     
+    public static Context.Key<Main> key = new Context.Key<Main>();
+    
+    public static Main instance(Context context) {
+        return context.get(key);
+    }
+
+    /** Returns a reference to the API's compilation context. */
+    public /*@nullable*/ Context context() {
+        return context;
+    }
+    
     public Context initialize(
                 /*@ nullable*/ DiagnosticListener<? extends JavaFileObject> diagListener) {
         useJML = true;
         check(); // Aborts if the environment does not support OpenJML
         this.diagListener = diagListener;
         this.context = new Context();
-        JmlOptions.preRegister(context); // Must precede JavacMessages
+        JmlOptions.preRegister(this.context); // Must precede JavacMessages
         JavacFileManager.preRegister(this.context);
-        register(context);
+        register(this.context);
         utils = Utils.instance(this.context);
-        Utils.setOptionsFromProperties(Utils.findProperties(context), context);
+        Utils.setOptionsFromProperties(Utils.findProperties(this.context), this.context);
         return this.context;
     }
     
@@ -273,7 +284,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     public static void main(String... args) {
         if (args.length > 0 && args[0].equals("-Xjdb")) {
         	try {
-        		// Note: Copied directly from com.sun.tools.javac.Main and not tested
+        		// Note TODO: Copied directly from com.sun.tools.javac.Main and not tested
         		String[] newargs = new String[args.length + 2];
         		Class<?> c = Class.forName("com.sun.tools.example.debug.tty.TTY");
         		Method method = c.getDeclaredMethod ("main", new Class<?>[] {args.getClass()});
@@ -299,8 +310,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     /*@non_null*/
     final public static String jmldocOption = "-doc";
 
-    /** Invokes the compiler on the given command-line arguments; errors go to
-     * stdout.
+    /** Invokes the compiler on the given command-line arguments; errors go to stdout.
      * @param args the command-line arguments
      * @return     the exit code, as returned to the shell - 0 is success
      */
@@ -337,7 +347,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @param args the command-line arguments
      * @return the exit code
      */
-    public static int execute(/*@non_null*/ PrintWriter writer, /*@nullable*/ DiagnosticListener<? extends JavaFileObject> diagListener, /*@nullable*/ Options options, /*@non_null*/ String[] args) {
+    public static int execute(/*@ non_null*/ PrintWriter writer, /*@ nullable*/ DiagnosticListener<? extends JavaFileObject> diagListener, /*@nullable*/ Options options, /*@non_null*/ String[] args) {
     	JavaCompiler.versionRBName = "org.jmlspecs.openjml.version"; // Version string is read from version.properties
         int errorcode = com.sun.tools.javac.main.Main.Result.ERROR.exitCode; // 1
         try {
@@ -367,7 +377,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     Main compiler = new Main(Strings.applicationName, writer);
                     Context context = compiler.initialize(diagListener);
 
-                    // MAINTENANCE: This section copied from the super class, so we can use the context jsut created
+                    // MAINTENANCE: This section copied from the super class, so we can use the context just created
                     Result result = compiler.compile(args, context);
                     try {
                         // A fresh context was created above, so the file manager can be safely closed:
@@ -497,7 +507,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // This is a temporary context just for logging error messages when
         // overall initialization fails.
         // It is not the one used for the compilation
-        // It does use Options
+        // It does use Options -- FIXME - how?
         Context context = new Context();
         JavacMessages.instance(context).add(Strings.messagesJML);
         return Log.instance(context);
@@ -511,9 +521,9 @@ public class Main extends com.sun.tools.javac.main.Main {
         this.context = context; // FIXME - it is a problem if this changes the already stored context, as it was used for JavacFileManager and Utils
 //        register(context);
         setProofResultListener(prl);
-    	//if (Options.instance(context) instanceof JmlOptions) return;
         boolean hasArgs = args.length != 0;
     	args = JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);
+    	// args is now the original 'args' without any files or JML arguments -- leaving only any Java options
     	if (JmlOptions.instance(context).get("-?") != null) return Result.OK;
     	if (args.length == 0 && fileObjects == null) {
     		if (hasArgs) {
@@ -535,7 +545,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     		if (exit.exitCode == 0 && !Utils.testingMode) {
     		    // Use the verification failure exit code if there are verification warnings
     			exit = Result.VERIFY;
-    			String v = JmlOption.value(context, JmlOption.EXITVERIFY);
+    			String v = JmlOption.value(context, JmlOption.EXITVERIFY); // User specified exit code for verification failures
     			if (v != null) {
     				try {
     					int z = Integer.valueOf(v);
@@ -543,6 +553,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     					if (exit.exitCode != z) throw new RuntimeException();
     		            if (exit == Result.OK && Options.instance(context).isSet(WERROR)) exit = Result.ERROR;
     				} catch (Exception e) {
+    					// FIXME - why would this be an uninitialized log
     	                uninitializedLog().error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + v);
     					exit = Result.CMDERR;
     				}
@@ -552,6 +563,8 @@ public class Main extends com.sun.tools.javac.main.Main {
         return exit;
     }
     
+    /** This method is called programmatically, in which case the set of files is 
+        separate from the command-line options. */
     public Main.Result compile(String[] args, java.util.Collection<JavaFileObject> fileObjects)  {
         useJML = true;
     	this.fileObjects = fileObjects;
@@ -563,7 +576,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * before compilation actually begins.
      */
     public void postOptionProcessing() {
-        // Hnadlers are created during tool registration, which in OpenJML has to be before
+        // Handlers are created during tool registration, which in OpenJML has to be before
         // options are read. So the handlers have to be adjusted for the options.
         Check.instance(context).resetHandlers();
     }
@@ -574,41 +587,11 @@ public class Main extends com.sun.tools.javac.main.Main {
     protected void adjustArgs(Arguments args)  {
     	if (fileObjects != null) {
         	args.allowEmpty();
-    		args.fileObjects = new java.util.HashSet<JavaFileObject>();
-    		args.fileObjects.addAll(fileObjects);
+    		//args.fileObjects = new java.util.HashSet<JavaFileObject>();
+    		args.getFileObjects().addAll(fileObjects);
     	}
     }
 
-
-//    // TODO _ document
-//    public java.util.List<String> computeDependencyClosure(java.util.List<String> files) {
-//        // fill out dependencies
-//        java.util.List<String> newargs = new ArrayList<String>();
-////        Dependencies d = Dependencies.instance(context);
-//        Set<String> done = new HashSet<String>();
-//        java.util.List<String> todo = new LinkedList<String>();
-//        //JavacFileManager jfm = (JavacFileManager)context.get(JavaFileManager.class);; // FIXME - this causes Lint to be initialized before the Java options are registered
-//        for (String s: files) {
-//            // FIXME - don't hardcode this list of suffixes here
-//            if (Utils.instance(context).hasValidSuffix(s)) {
-//                todo.add(s);
-//            }
-//        }
-//        while (!todo.isEmpty()) {
-//            String o = todo.remove(0);
-//            if (done.contains(o)) continue;
-//            done.add(o);
-////            if (o.getName().endsWith(".java")) newargs.add("C:" + o.toUri().getPath()); // FIXME - a hack to get the full path
-//            if (o.endsWith(".java")) newargs.add(o); // FIXME FOR REAL - this needs to be made sane
-////            Set<JavaFileObject> affected = d.getAffected(o);
-////            if (affected != null) {
-////                todo.addAll(affected);
-////                //Log.instance(context).noticeWriter.println("Adding " + affected.size() + " dependencies for " + o);
-////            }
-//        }
-//        return newargs;
-//    }
-    
 
     /** This registers the JML versions of many of the tools (e.g. scanner, parser,
      * specifications database,...) used by the compiler.  They must be registered
@@ -642,17 +625,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         context.get(IAPI.IProofResultListener.class).setListener(listener);
     }
 
-    public static Context.Key<Main> key = new Context.Key<Main>();
-    
-    public static Main instance(Context context) {
-        return context.get(key);
-    }
-
-    /** Returns a reference to the API's compilation context. */
-    public /*@nullable*/ Context context() {
-        return context;
-    }
-    
     /** Called to register the JML internal tools that replace the tools used
      * in the Java compiler.
      * @param context the compiler context in which the tools are to be used
@@ -719,68 +691,8 @@ public class Main extends com.sun.tools.javac.main.Main {
     
     
     // EXTERNAL API FOR PROGRAMATIC ACCESS TO JML COMPILER INTERNALS
-
-    // TODO - REVIEW IN FUTURE
-//    public boolean initializingOptions = false;
-//    
-//    /** This method initializes the Options.instance(context) instance of
-//     * Options class. If the options argument is not null, its content is used
-//     * to initialize Options.instance(context); if options is null, then
-//     * Options.instance(context) is initialized by reading
-//     * the options specified in the environment (System properties +
-//     * openjml properties files). Then the specified args are processed to make any 
-//     * further adjustments to the options. Any errors are reported through the
-//     * log mechanism. Any non-options in the args list (e.g. files) are 
-//     * warned about and ignored. 
-//     */
-//    public void initializeOptions(/*@nullable*/ Options options, /*@non_null*/ String... args) {
-//        initializingOptions = true;
-//        Options opts = Options.instance(context);
-//        if (options == null) {
-//            coreDefaultOptions(opts);
-//            setInitialOptions(opts, args);
-//            Properties properties = Utils.findProperties(context);
-//            setPropertiesFileOptions(opts, properties);
-//        } else {
-//            opts.putAll(options);
-//        }
-//
-//        if (args != null) try { // Do the following even if there are no args, because other setup is done as well (e.g. extensions)
-//            Collection<File> files = processArgs(CommandLine.parse(ENV_OPT_NAME, List.from(args)));
-//            if (files != null && !files.isEmpty()) {
-//                warning(context, "jml.ignore.extra.material",files.iterator().next().getName());
-//            }
-//        } catch (java.io.IOException e) {
-//            Log.instance(context).error("jml.process.args.exception", e.toString());
-//        }
-//        initializingOptions = false;
-//    }    
-    // TODO - Review these - are they used?
-//    /** Sets default initial options to the Options instance that is the 
-//     * argument (does not change the compilation context Options directly);
-//     * edit this method to set any defaults that would not be set by other
-//     * means.
-//     */
-//    protected void coreDefaultOptions(Options opts) {
-//        opts.put(JmlOption.LOGIC.optionName(), "ALL");
-//        opts.put(JmlOption.PURITYCHECK.optionName(), null);
-//    }
-//    
-//    protected void setInitialOptions(Options opts, String ... args) {
-//        for (int i=0; i<args.length; i++){
-//            String s = args[i];
-//            if (JmlOption.PROPERTIES_DEFAULT.optionName().equals(s)) {
-//                if (i+1 < args.length) {
-//                    opts.put(JmlOption.PROPERTIES_DEFAULT.optionName(), args[i+1]);
-//                } else {
-//                    utils.warning("jml.expected.parameter",s);
-//                }
-//            }
-//        }
-//    }
     
-    
-    /** Adds additional options to those already present (which may change 
+    /** Adds additional options to those already present (or changes 
      * previous settings). */
     public void addOptions(String... args) {
     	if (!(Options.instance(context) instanceof JmlOptions)) return;
@@ -797,10 +709,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
     }
     
-//    public void addJavaOption(String opt, String value) {
-//    	Options.instance(context).put(opt, value);
-//    }
-    
     /** Adds a custom option (not checked as a legitimate command-line option);
      * may have an argument after a = symbol */
     public void addUncheckedOption(String arg) {
@@ -812,133 +720,6 @@ public class Main extends com.sun.tools.javac.main.Main {
     	if (!(Options.instance(context) instanceof JmlOptions)) return true;
         return JmlOptions.instance(context).setupOptions();
     }
-
-//    // FIXME - move this somewhere more appropriate?
-//    /** Appends the internal runtime directory to the -classpath option.
-//     */
-//    static protected void appendRuntime(Context context) {
-//        
-//        String jmlruntimePath = null;
-//       
-//        /** This property is just used in testing. */ // TODO - check this
-//        String sy = Options.instance(context).get(Strings.defaultRuntimeClassPath);
-//        if (sy != null) {
-//            jmlruntimePath = sy;
-//        }
-//
-//        // Look for jmlruntime.jar in the classpath itself
-//       
-//        if (jmlruntimePath == null) {
-//            URL url = ClassLoader.getSystemResource(Strings.runtimeJarName);
-//            if (url != null) {
-//                jmlruntimePath = url.getFile();
-//                if (jmlruntimePath.startsWith("file:/")) {
-//                    jmlruntimePath = jmlruntimePath.substring("file:/".length());
-//                }
-//            }
-//        }
-//       
-//        // Otherwise look for something in the same directory as something on the classpath
-//       
-//        String classpath = System.getProperty("java.class.path");
-//        if (jmlruntimePath == null) {
-//            String[] ss = classpath.split(java.io.File.pathSeparator);
-//            for (String s: ss) {
-//                if (s.endsWith(".jar")) {
-//                    try {
-//                        File f = new File(s).getCanonicalFile().getParentFile();
-//                        if (f != null) {
-//                            f = new File(f,Strings.runtimeJarName);
-//                            if (f.isFile()) {
-//                                jmlruntimePath = f.getPath();
-//                                break;
-//                            }
-//                        }
-//                    } catch (IOException e) {
-//                        // Just skip
-//                    }
-//                } else {
-//                    File f = new File(new File(s),Strings.runtimeJarName);
-//                    if (f.isFile()) {
-//                        jmlruntimePath = f.getPath();
-//                        break;
-//                    }
-//                }
-//            }
-//        }
-//      
-//        // The above all presume some variation on the conventional installation
-//        // of the command-line tool.  In the development environment, those
-//        // presumptions do not hold.  So in that case we use the appropriate
-//        // bin directories directly. We make sure that we get both of them: 
-//        // the annotations and runtime utilties.
-//        // This also takes care of the case in which the openjml.jar file is in
-//        // the class path under a different name.
-//
-//        if (jmlruntimePath == null) {
-//            URL url = ClassLoader.getSystemResource(Strings.jmlAnnotationPackage.replace('.','/'));
-//            if (url != null) {
-//                try {
-//                    String s = url.getPath();
-//                    if (s.startsWith("file:")) s = s.substring("file:".length());
-//                    s = s.replaceAll("%20", " ");
-//                    int b = (s.length()> 2 && s.charAt(0) == '/' && s.charAt(2) == ':') ? 1 : 0;
-//                    int k = s.indexOf("!");
-//                    if (k >= 0) {
-//                        s = s.substring(b,k);
-//                    } else {
-//                        s = s.substring(b);
-//                        s = new File(s).getParentFile().getParentFile().getParent();
-//                    }
-//                    if (new File(s).exists()) {
-//                        jmlruntimePath = s;
-//                    }
-//
-//                    url = ClassLoader.getSystemResource(Strings.jmlSpecsPackage.replace('.','/'));
-//                    if (url != null) {
-//                        s = url.getPath();
-//                        if (s.startsWith("file:")) s = s.substring("file:".length());
-//                        s = s.replaceAll("%20", " ");
-//                        b = (s.length()> 2 && s.charAt(0) == '/' && s.charAt(2) == ':') ? 1 : 0;
-//                        k = s.indexOf("!");
-//                        if (k >= 0) {
-//                            s = s.substring(b,k);
-//                        } else {
-//                            s = s.substring(b);
-//                            s = new File(s).getParentFile().getParentFile().getParent();
-//                        }
-//                        if (new File(s).exists() && !s.equals(jmlruntimePath)) {
-//                            jmlruntimePath = jmlruntimePath + java.io.File.pathSeparator + s;
-//                        }
-//                    }
-//                } catch (Exception e) {
-//                   // Just skip
-//                }
-//            }
-//        }
-//
-//        if (jmlruntimePath == null) {
-//            // This is for the case of running the GUI in the development environment
-//            String srt = System.getProperty(Strings.eclipseSpecsProjectLocation); // FIXME _ probably can replace this with finding a plugin
-//            srt = srt + "/../OpenJML/OpenJML/bin-runtime";
-//            File f = new File(srt);
-//            if (f.exists() && f.isDirectory()) {
-//                jmlruntimePath = srt;
-//            }
-//
-//        }
-//
-//        if (jmlruntimePath != null) {
-//            Utils.instance(context).note(true, "Using internal runtime " + jmlruntimePath);
-//            String cp = Options.instance(context).get("-classpath");
-//            if (cp == null) cp = System.getProperty("java.class.path");
-//            cp = cp==null ? jmlruntimePath : (cp + java.io.File.pathSeparator + jmlruntimePath);
-//            Options.instance(context).put("-classpath",cp);
-//            Utils.instance(context).note(true, "Classpath: " + Options.instance(context).get("-classpath"));
-//        } else {
-//            Utils.instance(context).warning("jml.no.internal.runtime");
-//        }
-//    }
 
     /** An Enum type that gives a choice of various tools to be executed. */
     public static enum Cmd {

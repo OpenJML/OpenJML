@@ -124,7 +124,7 @@ public class JmlCompiler extends JavaCompiler {
     public List<JCCompilationUnit> enterTrees(List<JCCompilationUnit> roots) {
     	// init must be called before the trees are entered because entering trees invokes
     	// type resolution, which requires the init() call
-    	// (If we do this initialization during tool creation, we get circular instantiation)
+    	// (If we do this initialization during tool registration, we get circular instantiation)
     	init();
     	JmlEnter.instance(context).hold();
     	var list = super.enterTrees(roots);
@@ -145,8 +145,8 @@ public class JmlCompiler extends JavaCompiler {
     // any JML) to find the package, look for a corresponding .jml file. If there is one, we parse the .java without JML annotations
     // (except JML annotations in method and initialization bodies).
     // If there is no .jml file, we parse the .java with the annotations as the specs.
+    //@ nullable
     JavaFileObject checkForSpecsFile(JavaFileObject filename, CharSequence charSeq) {
-        boolean specFileExists = false;;
         var charBuf = charSeq instanceof java.nio.CharBuffer cb ? cb : java.nio.CharBuffer.wrap(charSeq);
     	JmlScanner.JmlScannerFactory fac = (JmlScanner.JmlScannerFactory)JmlScanner.JmlScannerFactory.instance(context);
         var tokenizer = new com.sun.tools.javac.parser.JmlTokenizer(fac, charBuf, true);
@@ -161,14 +161,14 @@ public class JmlCompiler extends JavaCompiler {
         		if (t.kind == TokenKind.EOF) break outer;
         	}
     		t = tokenizer.readToken();
-    		if (t.kind != TokenKind.IDENTIFIER) return null; // FIXME - actually an error
+    		if (t.kind != TokenKind.IDENTIFIER) return null; // Bad package declaration -- report as no jml file; the error will be reported on the real parsing of the .java file
     		name += t.name();
     		t = tokenizer.readToken();
         	while (t.kind != TokenKind.SEMI) {
-        		if (t.kind != TokenKind.DOT) return null; // FIXME - actually an error
+        		if (t.kind != TokenKind.DOT) return null; // Bad package declaration
         		name += ".";
         		t = tokenizer.readToken();
-        		if (t.kind != TokenKind.IDENTIFIER) return null; // FIXME - actually an error
+        		if (t.kind != TokenKind.IDENTIFIER) return null; // Bad package declaration
         		name += t.name();
         		t = tokenizer.readToken();
         	}
@@ -178,18 +178,20 @@ public class JmlCompiler extends JavaCompiler {
     	int k = s.lastIndexOf('/');
     	s = s.substring(k+1);
     	k = s.indexOf('.');
-    	s = s.substring(0,k);
-    	name += s;
+    	s = s.substring(0,k); // filename without suffix or directory
+    	name += s; // fully qualified class name
     	if (debugParse) System.out.println("parser: Seeking specfile for " + name);
-    	return JmlSpecs.instance(context).findSpecFile(name);
+    	return JmlSpecs.instance(context).findSpecFile(name); // returns null if not found
     }
     
+    /** Overridden to emit debug information */
     @Override
     public void compile(Collection<JavaFileObject> sourceFileObjects,
                             Collection<String> classnames,
                             Iterable<? extends Processor> processors,
                             Collection<String> addModules) {
         if (Utils.debug("paths")) {
+        	// TODO - what output writer to use?
             System.out.println("sourcepath: " + Utils.join(":",JmlSpecs.instance(context).getSourcePath()));
             System.out.println("specspath:  " + Utils.join(":",JmlSpecs.instance(context).getSpecsPath()));
         }
@@ -249,6 +251,7 @@ public class JmlCompiler extends JavaCompiler {
      */
     /*@Nullable*/
     public JmlCompilationUnit parseSpecs(ClassSymbol typeSymbol) {
+    	// TODO - what output writer to use?
         if (debugParse) System.out.println("parser: Seeking specfile for " + typeSymbol);
         JavaFileObject specFile = JmlSpecs.instance(context).findSpecFile(typeSymbol);
     	if (debugParse) System.out.println("parser: Parsing specs " + typeSymbol + " " + specFile);
@@ -295,7 +298,7 @@ public class JmlCompiler extends JavaCompiler {
         return result;
     }
 
-    /** This is overridden so that if attribute() returns null, processing continues (instead of crashing). */
+    /** This is overridden to do the JML attribution (via completeTodo) */
     // FIXME - review the reason for this override
     @Override
     public Queue<Env<AttrContext>> attribute(Queue<Env<AttrContext>> envs) {
@@ -305,29 +308,29 @@ public class JmlCompiler extends JavaCompiler {
         }
         ((JmlAttr)attr).completeTodo();
         
-        if (org.jmlspecs.openjml.Main.useJML) {
-        	envs = results;
-        	JmlSpecs specs = JmlSpecs.instance(context);
-        	results = new ListBuffer<>();
-        	while (!envs.isEmpty()) {
-        		var env = envs.remove();
-        		switch (env.tree.getTag()) {
-        		case MODULEDEF:
-        		case PACKAGEDEF:
-        			break;
-        		case TOPLEVEL:
-//        			for (var def : env.toplevel.defs) {
-//        				if (def instanceof JmlClassDecl) {
-//        					JmlAttr.instance(context).attribClassBodySpecs(((JmlClassDecl)def));
-//        				}
-//        			}
+//        if (org.jmlspecs.openjml.Main.useJML) {
+//        	envs = results;
+//        	JmlSpecs specs = JmlSpecs.instance(context);
+//        	results = new ListBuffer<>();
+//        	while (!envs.isEmpty()) {
+//        		var env = envs.remove();
+//        		switch (env.tree.getTag()) {
+//        		case MODULEDEF:
+//        		case PACKAGEDEF:
 //        			break;
-        		default:
-        			//JmlAttr.instance(context).attribClassBodySpecs((JmlClassDecl)env.enclClass);
-        		}
-        		results.append(env);
-        	}
-        }
+//        		case TOPLEVEL:
+////        			for (var def : env.toplevel.defs) {
+////        				if (def instanceof JmlClassDecl) {
+////        					JmlAttr.instance(context).attribClassBodySpecs(((JmlClassDecl)def));
+////        				}
+////        			}
+////        			break;
+//        		default:
+//        			//JmlAttr.instance(context).attribClassBodySpecs((JmlClassDecl)env.enclClass);
+//        		}
+//        		results.append(env);
+//        	}
+//        }
 
         return stopIfError(CompileState.ATTR, results);
     }
@@ -348,7 +351,6 @@ public class JmlCompiler extends JavaCompiler {
             }
         }
         if (utils.check) {
-        	//JmlCheckSpecs.instance(context).check();
         	if (JmlOption.includes(context,JmlOption.SHOW,"program")) { 
         		envs.stream().forEach(e->System.out.println(e.toplevel.toString()));
         	}
@@ -361,7 +363,7 @@ public class JmlCompiler extends JavaCompiler {
                 esc.initCounts();
         	    for (Env<AttrContext> env: envs) esc(env); // Transforms and proves
         	} catch (PropagatedException e) {
-        		// cancelation or error in specifications parsed on demand - catch and continue // TODO: Review
+        		// cancellation or error in specifications parsed on demand - catch and continue // TODO: Review
         	} finally {
                 String summary = esc.reportCounts();
                 if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode && JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)) utils.note(false,summary);
@@ -372,8 +374,6 @@ public class JmlCompiler extends JavaCompiler {
                 infer(env);
             return results;
         } else if (utils.rac) {
-//            utils.warning("jml.message","RAC is not operational (yet) for OpenJML-17");
-//        	if (false) 
         	for (var env: envs) {
         		var t = env.tree;
         		if (t instanceof JmlClassDecl && ((JmlClassDecl)t).sourcefile.getKind() != JavaFileObject.Kind.SOURCE) continue;
