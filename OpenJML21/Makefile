@@ -118,9 +118,7 @@ release-test:
 ## Development build targets
 
 openjml: .FORCE
-	ls -R ./src/java.base/share/classes/org/jmlspecs
 	NOJML= make
-	ls -R ./build/*/jdk/modules/java.base/org/jmlspecs
 
 smt:
 	if [ -e $(mkfile_dir)/../../../jSMTLIB/SMT ]; then \

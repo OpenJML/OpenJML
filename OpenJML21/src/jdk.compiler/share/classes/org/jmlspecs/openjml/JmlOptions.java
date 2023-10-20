@@ -126,7 +126,7 @@ public class JmlOptions extends Options {
                 iter.remove();
             }
         }
-        setupOptions(); // check consistency of options so far,even though Java options are not processed yet
+        setupOptions(); // check consistency of options so far, even though Java options are not processed yet
         options.put("compilePolicy", "simple");
         // setupOptions is called to verify consistency after Java options are processed, in JmlArguments.validate
         return newargs.toArray(new String[newargs.size()]);
@@ -179,7 +179,7 @@ public class JmlOptions extends Options {
     //@ ensures \result > i;
     void processJmlArg(String arg, Iterator<String> iter, /*@non_null*/ Options options, /*@ non_null */ java.util.List<String> remainingArgs, /*@ non_null */ java.util.List<String> files ) {
         if (arg == null) {
-            return; // Allow but remove null arguments
+            return; // Silently allow a null element in 'args' but remove it
         }
         
         if (arg.isEmpty()) {
@@ -188,6 +188,7 @@ public class JmlOptions extends Options {
         }
 
         String s = arg;
+        // If the argument is quoted (with "), remove the quotes
         if (s.length() > 1 && s.charAt(0) == '"' && s.charAt(s.length()-1) == '"') {
             s = s.substring(1,s.length()-1);
         }
@@ -226,6 +227,7 @@ public class JmlOptions extends Options {
                     return;
                 } else if (res.isEmpty()) {
                     // JML option with a naked = sign
+                	// which means to reset the option to its default value
                     Object def = o.defaultValue();
                     res = def == null ? null : def.toString();
 
@@ -240,7 +242,7 @@ public class JmlOptions extends Options {
                 }
             }
         }
-        if (o == JmlOption.DIRS || s.equals("-dirs")) {
+        if (o == JmlOption.DIRS || s.equals("-dirs")) { // TODO - do we need the second disjunct
             // Test for this option here before res is set from the iterator
             if (s.startsWith("-d")) { // This is here just to accommodate the old single-hyphen style
                 Utils.instance(context).warning("jml.message", "Option " + s + " is deprecated in favor of -" + s);
@@ -379,10 +381,6 @@ public class JmlOptions extends Options {
         Utils utils = Utils.instance(context);
 
         options.remove("printArgsToFile");
-//        String benchmarkDir = options.get(JmlOption.BENCHMARKS.optionName());
-//        if (benchmarkDir != null) {
-//            new File(benchmarkDir).mkdir();
-//        }
         
         try {
         	utils.jmlverbose = Integer.parseInt(options.get(JmlOption.VERBOSENESS.optionName()));
@@ -394,25 +392,19 @@ public class JmlOptions extends Options {
             utils.jmlverbose = Utils.JMLVERBOSE;
         }
 
-        if (utils.jmlverbose >= Utils.PROGRESS) {
-            // FIXME - recview all this
-            // Why not let the progress listener decide what to print???
-
-            // We check for an existing delegate, because if someone is calling
-            // OpenJML programmatically, they may have set one up already.
-            // Note, though that this won't undo the setting, if verbosity is
-            // turned off.
-            //if (!progressDelegator.hasDelegate()) {
-                try {
-                    Main.instance(context).progressDelegator.setDelegate(Main.progressListener != null ? Main.progressListener.get() : new PrintProgressReporter(context,Main.instance(context).stdOut));
-                } catch (Exception e) {
-                    e.printStackTrace(System.out);
-                    // FIXME - report problem
-                    // continue without installing a listener
-                }
-            //}
-        } else {
-            Main.instance(context).progressDelegator.setDelegate(null);
+        // TODO - needs review
+        if (!Main.instance(context).progressDelegator.hasDelegate()) {
+        	if (utils.jmlverbose >= Utils.PROGRESS) {
+            	try {
+            		Main.instance(context).progressDelegator.setDelegate(Main.progressListener != null ? Main.progressListener.get() : new PrintProgressReporter(context,Main.instance(context).stdOut));
+            	} catch (Exception e) {
+            		e.printStackTrace(System.out);
+            		// FIXME - report problem
+            		// continue without installing a listener
+            	}
+            } else {
+                Main.instance(context).progressDelegator.setDelegate(null);
+            }
         }
 
 
@@ -428,13 +420,8 @@ public class JmlOptions extends Options {
         if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) commentKeys.add("STRICT");
         commentKeys.add("OPENJML");
 
-//        // FIXME - can this be set later, so it is not called everytime the options are set/checked
-//        if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) Main.appendRuntime(context);
-
-
         Extensions.register(context);
 // FIXME - turn off for now        JmlSpecs.instance(context).initializeSpecsPath();
-        // dumpOptions();
         return true;
     }
 

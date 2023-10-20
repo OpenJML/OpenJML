@@ -222,7 +222,7 @@ public class JmlScanner extends Scanner {
         } else {
         	jmlForCurrentToken = ((JmlTokenizer)tokenizer).jml();
         }
-    	return token;
+    	return token(0);
     }
     
     @Override
@@ -233,43 +233,47 @@ public class JmlScanner extends Scanner {
     			// The following logic concatenates consecutive JML annotations, if there is only ignorable material between them
     			while (jmlToken() != null && jmlToken().jmlkind == JmlTokenKind.ENDJMLCOMMENT) {
     				var saved = prevToken();
-    				var t = token(1);
-    				if (scannerDebug) System.out.println("TOKEN AFTER ENDJML " + token + " :: " + savedJml.get(0) + " " + t.pos + " " + t + " " + t.kind + " " + t.ikind + " " + (t.ikind == JmlTokenKind.STARTJMLCOMMENT));
-                    if (scannerDebug) System.out.println("LOOKAHEADS-Z " + token + " " + token.kind + " :: " + savedTokens.size() + " " + savedJml.size() + " " + jmlForCurrentToken);
+    				var t0 = token(0);
+    				var t1 = token(1);
+    				if (scannerDebug) System.out.println("TOKEN AFTER ENDJML " + t0 + " :: " + savedJml.get(0) + " " + t1.pos + " " + t1 + " " + t1.kind + " " + t1.ikind + " " + (t1.ikind == JmlTokenKind.STARTJMLCOMMENT));
+                    if (scannerDebug) System.out.println("LOOKAHEADS-Z " + t0 + " " + t0.kind + " :: " + savedTokens.size() + " " + savedJml.size() + " " + jmlForCurrentToken);
     				if (!savedJml.get(0)) break;
-    				if (t.ikind == JmlTokenKind.STARTJMLCOMMENT) {
+    				if (t1.ikind == JmlTokenKind.STARTJMLCOMMENT) {
     					if (scannerDebug) System.out.println("SKIPPING START JML");
     					advance(); // gets the start token
     					advance(); // gets the next token, skipping the end and start combination
-    					prevToken = saved; // But keep the previous token as if the end-start combination did not exist
+    					setPrevToken(saved); // But keep the previous token as if the end-start combination did not exist
     					continue;
     				}
     				break;
     			}
-    			if (jmlForCurrentToken && token.ikind == JmlTokenKind.STARTJMLCOMMENT && token(1).kind == TokenKind.IDENTIFIER 
+    			if (jmlForCurrentToken && token(0).ikind == JmlTokenKind.STARTJMLCOMMENT && token(1).kind == TokenKind.IDENTIFIER 
     					&& org.jmlspecs.openjml.Extensions.allKinds.get(token(1).name().toString()) instanceof IJmlClauseKind.LineAnnotationKind) {
     				if (scannerDebug) System.out.println("See the beginning of a line annotation");
     				continue outer;
     			}
-    			if (jmlForCurrentToken && token.kind == TokenKind.IDENTIFIER) { 
-    				String id = token.name().toString();
+    			if (jmlForCurrentToken && token(0).kind == TokenKind.IDENTIFIER) { 
+    				String id = token(0).name().toString();
     				IJmlClauseKind clk = org.jmlspecs.openjml.Extensions.allKinds.get(id);
     				if (clk instanceof IJmlClauseKind.LineAnnotationKind lak) {
-    					lak.scan(token.pos, id, lak, this);
+    					lak.scan(token(0).pos, id, lak, this);
     					if (scannerDebug) System.out.println("Scanned a line annotation");
-    	                if (jml() && token().ikind != JmlTokenKind.ENDJMLCOMMENT) continue; 
+    	                if (jml() && token(0).ikind != JmlTokenKind.ENDJMLCOMMENT) continue; 
     					continue outer;
     				}
     			}
         		break outer;
     		}
     	}
-    	if (scannerDebug) System.out.println("TOKEN " + jmlForCurrentToken + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
+    	if (scannerDebug) {
+    		var token = token(0);
+    		System.out.println("TOKEN " + jmlForCurrentToken + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
+    	}
     }
 
     public Token token(int lookahead) {
         if (lookahead == 0) {
-            return token;
+            return super.token(0);
         } else {
             for (int i = savedTokens.size() ; i < lookahead ; i ++) {
                 savedTokens.add(tokenizer.readToken());

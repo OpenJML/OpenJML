@@ -45,13 +45,9 @@ import com.sun.tools.javac.util.Options;
 
 // FIXME - turn off jml when an exception happens?
 /**
- * This class is an extension of the JDK scanner that scans JML constructs as
- * well. Note that it relies on some fields and methods of Scanner being
+ * This class is an extension of the JDK tokenizer that tokenizes JML constructs as
+ * well. Note that it relies on some fields and methods of JavaTokenizer being
  * protected that are not declared protected in the current version of OpenJDK.
- * No other changes to Scanner are made, which does require a number of complicating
- * workarounds in this code. In retrospect, a much simpler JML scanner could have
- * been produced by being more surgical with JavaScanner; but given the goal to 
- * be minimally invasive, this is what we have.
  * 
  * @author David Cok
  */
@@ -69,15 +65,15 @@ public class JmlTokenizer extends JavadocTokenizer {
     /** Set to true internally while the scanner is within a JML comment */
     protected boolean       jml        = false;
 
-    /** A mode of the scanner that determines whether end of jml comment tokens are returned */
+    /** A mode of the tokenizer that determines whether end of jml comment tokens are returned */
     public boolean returnEndOfCommentTokens = true;
     
     /**
-     * The style of comment, either CommentStyle.LINE or
-     * CommentStyle.BLOCK, set prior to the scanner calling processComment()
+     * The style of comment, either CommentStyle.LINE or CommentStyle.BLOCK
      */
     /*@nullable*/ protected CommentStyle  jmlcommentstyle;
     
+    /** true when inside a block comment that is in an enclosing comment */
     boolean nestedBlockComment = false;
 
     /** Valid after nextToken() and contains token it read if it is a JML token
@@ -94,16 +90,16 @@ public class JmlTokenizer extends JavadocTokenizer {
      * control the size of the input array, make it at least one character larger than necessary, 
      * to avoid the overwriting or reallocating and copying the array.
 
-     * @param fac The factory generating the scanner
-     * @param input The character buffer to scan
-     * @param inputLength The number of characters to scan
+     * @param fac The factory generating the tokenizer
+     * @param input The character buffer to tokenize
+     * @param inputLength The number of characters to tokenize
+     * @param noJML whether to ignore JML comments
      */
     //@ requires inputLength <= input.length;
     protected JmlTokenizer(JmlScanner.JmlScannerFactory fac, char[] input, int inputLength, boolean noJML) {
         super(fac, input, inputLength);
         context = fac.context;
         this.noJML = noJML;
-        //System.out.println("TOKENIZER noJML=" + noJML);
     }
     
     /**
@@ -111,13 +107,13 @@ public class JmlTokenizer extends JavadocTokenizer {
      * 
      * @param fac The factory generating the scanner
      * @param buffer The character buffer to scan
+     * @param noJML whether to ignore JML comments
      */
     // @ requires fac != null && buffer != null;
     public JmlTokenizer(JmlScanner.JmlScannerFactory fac, CharBuffer buffer, boolean noJML) {
         super(fac, buffer);
         context = fac.context;
         this.noJML = noJML;
-        //System.out.println("TOKENIZER noJML=" + noJML);
     }
     
     /** True if the tokenizer is in a JML comment, false otherwise */
@@ -135,7 +131,7 @@ public class JmlTokenizer extends JavadocTokenizer {
     protected int skippingTokens = -1;
     
     
-    // This is called whenever the Java (superclass) scanner has scanned a whole
+    // This is called whenever the Java (superclass) tokenizer has scanned a whole
     // comment. We override it in order to handle JML comments specially. The
     // overridden method returns and proceeds immediately to scan for the 
     // next Java token after the comment.
@@ -147,8 +143,7 @@ public class JmlTokenizer extends JavadocTokenizer {
     // endPos may be equal to buffer.length
     @Override
     protected Tokens.Comment processComment(int pos, int endPos, CommentStyle style) {
-        //if (org.jmlspecs.openjml.Main.useJML) System.out.println("COMMENT " + pos + " " + endPos + String.valueOf(buffer,pos,endPos-pos));
-        if (scannerDebug) System.out.println("COMMENT " + pos + " " + endPos + style + " " + String.valueOf(buffer,pos,endPos-pos));
+        if (scannerDebug) System.out.println("COMMENT " + pos + " " + endPos + " " + style + " " + String.valueOf(buffer,pos,endPos-pos));
 
         if (jml && jmlcommentstyle == CommentStyle.BLOCK && style == CommentStyle.BLOCK) {
         	// The nested block will have the same end point as the outer block
@@ -340,7 +335,7 @@ public class JmlTokenizer extends JavadocTokenizer {
     }
     
     /**
-     * Scans the next token in the character buffer; after this call, then
+     * Tokenizes the next token in the character buffer; after this call, then
      * token() and jmlToken() provide the values of the scanned token. Also
      * pos() gives the beginning character position of the scanned token, and
      * endPos() gives (one past) the end character position of the scanned
@@ -357,17 +352,10 @@ public class JmlTokenizer extends JavadocTokenizer {
      * c) token() == IMPORT && jmlToken() == MODEL (the beginning of a model import)
      * <BR>
      */
-    // NOTE: We do quite a bit of hackery here to avoid changes in the Scanner.
-    // We did however have to change some permissions, so perhaps we should have
-    // bitten the bullet and just combined all of this into a revised scanner. 
-    // It would have not made possible our goal of keeping changes in the 
-    // javac code minimal,
-    // for easier maintenance, but it would have made for a simpler and more
-    // understandable and better designed JML scanner.
     @Override
     public Token readToken() {
     	
-        // JmlScanner enters with this relevant global state:
+        // JmlTokenizer enters with this relevant global state:
         //   jml - true if we are currently within a JML comment
         //   jmlcommentstyle - (if jml is true) the kind of comment block (LINE or BLOCK) we are in
         // Responds with updates to that state as well as to
@@ -439,7 +427,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                 if (!returnEndOfCommentTokens || !initialJml) continue;
             } else if (tk == TokenKind.MONKEYS_AT) {
                 // This is just for the case that a terminating * / is preceded by one or more @s
-                // JML allows this, but it just complicates scanning - I wish JML would deprecate that syntax
+                // JML allows this, but it complicates scanning
                 int first = position();
                 char ch = get();
                 if (jmlcommentstyle == CommentStyle.BLOCK
@@ -449,7 +437,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                     while (is('@')) next();
                     if (get() != '*') {
                         Utils.instance(context).error(first, position(), "jml.unexpected.at.symbols");
-                        return readToken(); // Ignore and get the next token (recursively)
+                        return readToken(); // Ignore the @s and get the next token (recursively)
                     } else {
                         next(); // consume *
                         if (get() != '/') {
@@ -534,10 +522,11 @@ public class JmlTokenizer extends JavadocTokenizer {
     	}
     }
     
-    /** Overrides the Java scanner in order to catch situations in which the
+    /** Overrides the Java tokenizer in order to catch situations in which the
      * first part of a double literal is immediately followed by a dot,
      * e.g. 123.. ; within JML, this should be an int followed by a DOT_DOT token 
      */
+    // FIXME - what if there is white space between the dots
     @Override
     public void scanFractionAndSuffix(int pos) {
         if (jml && get() == '.') {
@@ -562,7 +551,7 @@ public class JmlTokenizer extends JavadocTokenizer {
     }
 
     /**
-     * Called when the superclass scanner scans a line termination. We override
+     * Called when the superclass tokenizer scans a line termination. We override
      * this method so that when jml is true, we can (a) if this is a LINE
      * comment, signal the end of the comment (b) if this is a BLOCK comment,
      * skip over leading @ symbols in the following line
@@ -666,6 +655,7 @@ public class JmlTokenizer extends JavadocTokenizer {
         	return;
         }
         // Now check if there is a longer JML operator
+        // Presumes that all JML operators have a prefix that is a Java operator
         TokenKind t = tk;
         if (tk == TokenKind.EQEQ) {
             if (accept('>')) {
@@ -783,10 +773,12 @@ public class JmlTokenizer extends JavadocTokenizer {
         errPos(pos);
     }
     
+    /** The string of the just scanned token */
     public String chars() {
         return sb.toString();
     }
 
+    // TODO - get riud of this?
     // Index of current character
     public int pos() {
         return position();

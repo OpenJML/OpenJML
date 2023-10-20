@@ -50,7 +50,7 @@ public class Scanner implements Lexer {
 
     /** The previous token, set by nextToken().
      */
-    protected Token prevToken; // OPENJML - private to protected
+    private Token prevToken; // OPENJML - private to protected
 
     /** Buffer of saved tokens (used during lookahead)
      */

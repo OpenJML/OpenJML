@@ -62,20 +62,20 @@ public class UnicodeReader {
     /**
      * Character buffer index of character currently being observed.
      */
-    protected int position; // OPENJML - private to protected
+    private int position;
 
     /**
      * Number of characters combined to provide character currently being observed. Typically
      * one, but may be more when combinations of surrogate pairs and unicode escape sequences
      * are read.
      */
-    protected int width; // OPENJML - private to protected
+    private int width;
 
     /**
      * Character currently being observed. If a surrogate pair is read then will be the high
      * member of the pair.
      */
-    protected char character; // OPENJML - private to protected
+    private char character;
 
     /**
      * Codepoint of character currently being observed. Typically equivalent to the character
