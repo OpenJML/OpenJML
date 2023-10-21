@@ -442,6 +442,7 @@ public class JmlEnter extends Enter {
 					// This is a spot to insert processing after a class has been created (in visitClassDef)
 					// and before any nested classes are processed
 
+					if (sourceDecl.specsDecl == null) sourceDecl.specsDecl = sourceDecl; // TODO - added this - not sure it is correct
 					// cd is the enclosing class for the 'trees' argument
 					//System.out.println("TREES " + trees);
 					//if (sourceDecl.defs != trees) throw new AssertionError("defs mismatch: " + sourceDecl.name + " " + sourceDecl.sym);

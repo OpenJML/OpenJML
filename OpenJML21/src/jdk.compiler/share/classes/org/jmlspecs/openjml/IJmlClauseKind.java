@@ -515,7 +515,7 @@ public abstract class IJmlClauseKind {
             try {
             	this.clazz = (Class<? extends java.lang.annotation.Annotation>)Class.forName(this.fullAnnotation);
             } catch (Exception e) {
-            	System.out.println("Failed to find annotation class for " + this.fullAnnotation);
+            	Main.uninitializedLog().error("jml.message","Failed to find annotation class for " + this.fullAnnotation);
             	this.clazz = null;
             }
         }
@@ -527,7 +527,7 @@ public abstract class IJmlClauseKind {
             try {
             	this.clazz = (Class<? extends java.lang.annotation.Annotation>)Class.forName(this.fullAnnotation); // unchecked cast
             } catch (Exception e) {
-            	System.out.println("Failed to find annotation class for " + this.fullAnnotation);
+            	Main.uninitializedLog().error("jml.message","Failed to find annotation class for " + this.fullAnnotation);
             	this.clazz = null;
             }
         }
