@@ -247,18 +247,18 @@ public class JmlScanner extends Scanner {
     				}
     				break;
     			}
-    			if (jmlForCurrentToken && token(0).ikind == JmlTokenKind.STARTJMLCOMMENT && token(1).kind == TokenKind.IDENTIFIER 
+    			if (jmlForCurrentToken && token.ikind == JmlTokenKind.STARTJMLCOMMENT && token(1).kind == TokenKind.IDENTIFIER 
     					&& org.jmlspecs.openjml.Extensions.allKinds.get(token(1).name().toString()) instanceof IJmlClauseKind.LineAnnotationKind) {
     				if (scannerDebug) System.out.println("See the beginning of a line annotation");
     				continue outer;
     			}
-    			if (jmlForCurrentToken && token(0).kind == TokenKind.IDENTIFIER) { 
-    				String id = token(0).name().toString();
+    			if (jmlForCurrentToken && token.kind == TokenKind.IDENTIFIER) { 
+    				String id = token.name().toString();
     				IJmlClauseKind clk = org.jmlspecs.openjml.Extensions.allKinds.get(id);
     				if (clk instanceof IJmlClauseKind.LineAnnotationKind lak) {
-    					lak.scan(token(0).pos, id, lak, this);
+    					lak.scan(token.pos, id, lak, this);
     					if (scannerDebug) System.out.println("Scanned a line annotation");
-    	                if (jml() && token(0).ikind != JmlTokenKind.ENDJMLCOMMENT) continue; 
+    	                if (jml() && token.ikind != JmlTokenKind.ENDJMLCOMMENT) continue; 
     					continue outer;
     				}
     			}
@@ -266,7 +266,6 @@ public class JmlScanner extends Scanner {
     		}
     	}
     	if (scannerDebug) {
-    		var token = token(0);
     		System.out.println("TOKEN " + jmlForCurrentToken + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
     	}
     }
@@ -278,7 +277,7 @@ public class JmlScanner extends Scanner {
             for (int i = savedTokens.size() ; i < lookahead ; i ++) {
                 savedTokens.add(tokenizer.readToken());
                 savedJml.add(((JmlTokenizer)tokenizer).jml());
-                if (scannerDebug) System.out.println("LOOKAHEAD " + savedTokens.size() + " " + savedTokens.get(savedTokens.size()-1) + " " + savedJml.size() + " " + savedJml.get(savedJml.size()-1));
+                if (scannerDebug) System.out.println("LOOKAHEAD " + savedTokens.size() + " " + savedTokens.get(savedTokens.size()-1).ikind + " " + savedJml.size() + " " + savedJml.get(savedJml.size()-1));
             }
             return savedTokens.get(lookahead - 1);
         }

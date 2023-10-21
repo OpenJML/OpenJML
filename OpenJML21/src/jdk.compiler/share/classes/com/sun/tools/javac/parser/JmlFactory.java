@@ -58,8 +58,8 @@ public class JmlFactory extends ParserFactory {
     // @ ensures this.S != null && this.context != null;
     // @ ensures this.names != null && this.jmlF != null;
     @Override
-    public JavacParser newParser(CharSequence input, boolean keepDocComments, boolean keepEndPos, boolean keepLineMap) {
-        return newParser(input, keepDocComments, keepEndPos, keepLineMap,
+    public JavacParser newParser(CharSequence input, boolean keepDocComments, boolean genEndPos, boolean keepLineMap) {
+        return newParser(input, keepDocComments, genEndPos, keepLineMap,
                 false); // The last argument says that the parser begins outside a JML comment
     }
 
@@ -83,15 +83,4 @@ public class JmlFactory extends ParserFactory {
         return p;
     }
     
-//    /** Generates a new parser that will parse the given input;
-//     * the parser will parse JML annotations and javadoc
-//     * comments, keeping a line map and end positions;
-//     * the beginning of the parse must not be within a JML annotation.
-//     * @param input the characters to parse
-//     * @return the new parser
-//     */
-//    public JmlParser newParser(CharSequence input) {
-//        return newParser(input,true,true,true,false);
-//    }
-
 }

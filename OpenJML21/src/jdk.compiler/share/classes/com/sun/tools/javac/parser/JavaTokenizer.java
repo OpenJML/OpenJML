@@ -940,12 +940,14 @@ public class JavaTokenizer extends UnicodeReader {
                 case '\n': // (Spec 3.4)
                     next();
                     processLineTerminator(pos, position());
+                    if (tk == TokenKind.CUSTOM) break loop; // OPENJML
                     break;
 
                 case '\r': // (Spec 3.4)
                     next();
                     accept('\n');
                     processLineTerminator(pos, position());
+                    if (tk == TokenKind.CUSTOM) break loop; // OPENJML
                     break;
 
                 case 'A': case 'B': case 'C': case 'D': case 'E':

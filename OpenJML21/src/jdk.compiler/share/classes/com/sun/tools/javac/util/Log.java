@@ -34,6 +34,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 
@@ -663,6 +664,7 @@ public class Log extends AbstractLog {
      */
     @Override
     public void report(JCDiagnostic diagnostic) {
+    	if (org.jmlspecs.openjml.Utils.isJML() && diagnostic.getKind() == Diagnostic.Kind.ERROR) Thread.dumpStack();
         diagnosticHandler.report(diagnostic);
      }
 
