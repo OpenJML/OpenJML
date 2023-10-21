@@ -521,6 +521,7 @@ public class Enter extends JCTree.Visitor {
         }
 
         // Enter type parameters.
+        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ENTERING TYPE PARAMETERS " + tree.name + " " + tree.typarams);
         ct.typarams_field = classEnter(tree.typarams, localEnv);
         ct.allparams_field = null;
 

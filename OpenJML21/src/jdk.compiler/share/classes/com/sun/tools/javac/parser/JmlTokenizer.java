@@ -509,7 +509,8 @@ public class JmlTokenizer extends JavadocTokenizer {
                 endPos = position();
             }
             if (skippingTokens >= 0 && t.kind != TokenKind.EOF) continue;
-            return jmlTokenKind == null ? t : new JmlToken(jmlTokenKind, jmlTokenClauseKind, TokenKind.CUSTOM, pos, endPos);
+            t = jmlTokenKind == null ? t : new JmlToken(jmlTokenKind, jmlTokenClauseKind, TokenKind.CUSTOM, pos, endPos);
+            return t;
             // FIXME - source field?
         }
     }

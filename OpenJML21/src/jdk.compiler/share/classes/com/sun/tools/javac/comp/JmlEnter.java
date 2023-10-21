@@ -373,6 +373,7 @@ public class JmlEnter extends Enter {
 			// All non-class member matching is done in JmlMemberEnter
 			sourceCD.defs = matchClasses(sourceCD.defs, sourceCD.specsDecl.defs, env.enclClass.sym.toString());
 			log.useSource(sourceCD.sourcefile);
+			System.out.println("VISITING " + sourceCD.name + " " + sourceCD.sourcefile);
 			super.visitClassDef(sourceCD);
 			sourceCD.defs.forEach(d->{ if (d instanceof JmlClassDecl cd) JmlAttr.instance(context).addTodo(cd.sym); } );
 
@@ -442,11 +443,12 @@ public class JmlEnter extends Enter {
 					// and before any nested classes are processed
 
 					// cd is the enclosing class for the 'trees' argument
-					if (sourceDecl.defs != trees) throw new AssertionError("defs mismatch: " + sourceDecl.name + " " + sourceDecl.sym);
+					//System.out.println("TREES " + trees);
+					//if (sourceDecl.defs != trees) throw new AssertionError("defs mismatch: " + sourceDecl.name + " " + sourceDecl.sym);
 					//enterScope(specEnv).enter(sourceDecl.sym); // FIXME - review -= can occur for enums, anonymous classes
 					sourceDecl.specsDecl.sym = sourceDecl.sym; // sym will have the source classfile
 					specEnv = classEnv(sourceDecl.specsDecl, specEnv);
-			        classEnter(sourceDecl.typarams, specEnv); // Enter the already typed type-parameters from the source decl so we have the same symbols in source and specs // FIXME - was classTPEnter
+			        super.classEnter(sourceDecl.typarams, specEnv); // Enter the already typed type-parameters from the source decl so we have the same symbols in source and specs // FIXME - was classTPEnter
 					postClassCreation(sourceDecl, env, specEnv);
 				} else if (env.tree instanceof JmlCompilationUnit sourceCU) { // enclosing env is a comp unit
 					sourceCU.specsCompilationUnit.packge = sourceCU.packge; // package symbol has a sourcefile, which is the

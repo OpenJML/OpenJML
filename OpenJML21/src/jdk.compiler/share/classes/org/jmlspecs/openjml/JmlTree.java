@@ -441,8 +441,8 @@ public class JmlTree {
         public JmlVariableDecl VarDef(JCModifiers mods,
                 Name name,
                 /*@ nullable */ JCExpression vartype, // null if we are in a lambda expression
-                JCExpression init) {
-            JmlVariableDecl tree =  new JmlVariableDecl(mods,name,vartype,init,null);
+                JCExpression init, boolean declaredUsingVar) {
+            JmlVariableDecl tree =  new JmlVariableDecl(mods,name,vartype,init,null, declaredUsingVar);
             tree.pos = pos;
             if (vartype != null) tree.type = vartype.type; // attribute if the type is known
             tree.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
@@ -1488,11 +1488,16 @@ public class JmlTree {
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlVariableDecl(JCModifiers mods, Name name,
-                /*@ nullable */ JCExpression vartype, JCExpression init, VarSymbol sym) {
-            super(mods, name, vartype, init, sym);
+                /*@ nullable */ JCExpression vartype, JCExpression init, VarSymbol sym, boolean declaredUsingVar) {
+            super(mods, name, vartype, init, sym, declaredUsingVar);
             specsDecl = null;
             fieldSpecs = null;
             sourcefile = null;
+        }
+        
+        protected JmlVariableDecl(JCModifiers mods, Name name,
+                /*@ nullable */ JCExpression vartype, JCExpression init, VarSymbol sym) {
+            super(mods, name, vartype, init, sym, false);
         }
         
         protected JmlVariableDecl(JCModifiers mods,

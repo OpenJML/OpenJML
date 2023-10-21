@@ -110,20 +110,15 @@ public class JmlParser extends JavacParser {
      * @param keepDocComments
      *            whether to keep javadoc comments
      */
-    protected JmlParser(ParserFactory fac, Lexer S, boolean keepDocComments) {
+    protected JmlParser(ParserFactory fac, JmlScanner S, boolean keepDocComments) {
         super(fac, S, keepDocComments, true, true); // true = keepLineMap, keepEndPositions
-        if (!(S instanceof JmlScanner)) {
-            utils.error("jml.internal",
-                    "S expected to be a JmlScanner in JmlParser");
-            throw new JmlInternalError("Expected a JmlScanner for a JmlParser");
-        }
         if (!(F instanceof JmlTree.Maker)) {
             utils.error("jml.internal",
                     "F expected to be a JmlTree.Maker in JmlParser");
             throw new JmlInternalError(
                     "Expected a JmlTree.Maker for a JmlParser");
         }
-        this.S = (JmlScanner) S;
+        this.S = S;
         this.jmlF = (JmlTree.Maker) F;
     }
     
@@ -143,7 +138,7 @@ public class JmlParser extends JavacParser {
         return token.endPos;
     }
     
-    /** Just to make the valoue public */
+    /** Just to make the value public */
     public AbstractEndPosTable endPosTable() {
     	return endPosTable; 
     }
@@ -1205,6 +1200,7 @@ public class JmlParser extends JavacParser {
                     t = super.classOrInterfaceOrRecordBodyDeclaration(mods, className, isInterface, isRecord);
                     if (inJml) acceptEndJML();
                 }
+                mods = null;
                 if (!inJmlDeclaration) {
                     for (JCTree tr : t) {
                         JCTree ttr = tr;
@@ -1238,20 +1234,19 @@ public class JmlParser extends JavacParser {
                                 currentMethodSpecs = null;
                             }
 
-                        } else if (tr instanceof JmlVariableDecl) {
+                        } else if (tr instanceof JmlVariableDecl vd) {
                             if (currentMethodSpecs != null) {
                                 utils.error(tr.pos, "jml.message", "Method specs may not precede a variable declaration");
                                 currentMethodSpecs = null;
                             }
-                            JmlVariableDecl d = (JmlVariableDecl) tr;
                             if (replacementType != null) {
-                                insertReplacementType(d,replacementType);
+                                insertReplacementType(vd,replacementType);
                                 replacementType = null;
                             }
-                            d.sourcefile = currentSourceFile();
+                            vd.sourcefile = currentSourceFile();
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
-                            attach(d, dc);
-                            currentVariableDecl = d;
+                            attach(vd, dc);
+                            currentVariableDecl = vd;
                             currentVariableDecl.fieldSpecs = new JmlSpecs.FieldSpecs(currentVariableDecl);
                         } else {
                             if (currentMethodSpecs != null) {
@@ -1278,7 +1273,8 @@ public class JmlParser extends JavacParser {
                     vd.sourcefile = currentSourceFile();
                     attach(vd, dc);
                     list.append(vd);
-                    
+                    currentVariableDecl = vd;
+                   
                 } else if (t.head instanceof JmlTypeClauseIn
                         || t.head instanceof JmlTypeClauseMaps) {
                     JCTree tree = t.head;
@@ -1303,7 +1299,6 @@ public class JmlParser extends JavacParser {
                 } else {
                     list.appendList(t);
                 }
-                break;
             } else if (startOfMethodSpecs(token)) {
             	utils.error(pos(), "jml.message", "DO NOT EXPECT TO EVER BE HERE");
                 currentMethodSpecs = parseMethodSpecs(mods);
@@ -1319,7 +1314,6 @@ public class JmlParser extends JavacParser {
         if (currentMethodSpecs != null) {
         	utils.error(currentMethodSpecs, "jml.message", "Method specifications without a following method declaration");
         }
-        //if (org.jmlspecs.openjml.Main.useJML) System.out.println(JmlPretty.write(list.first()));
         return list.toList();
     }
     
@@ -3369,13 +3363,14 @@ public class JmlParser extends JavacParser {
     /** Call this method wherever end-of-jml-comments are allowed; they need not be required.
      * For example, call at the end of a JML statement or clause in case it is the last one,
      * but it is allowed to combine multiple consecutive statements into a single comment, so
-     * and end-of-jml marker is not required.
+     * an end-of-jml marker is not required.
      */
     public boolean acceptEndJML() {
     	if (token.ikind != ENDJMLCOMMENT) return false;
-    	while (token.ikind == ENDJMLCOMMENT) nextToken();
+    	while (token.ikind == ENDJMLCOMMENT) {
+    		nextToken();
+    	}
     	return true;
-        //while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken(); // FIXME - replace using this
     }
 
     public boolean acceptStartJML() {
