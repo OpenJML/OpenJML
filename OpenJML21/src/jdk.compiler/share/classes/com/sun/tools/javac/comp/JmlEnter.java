@@ -373,7 +373,6 @@ public class JmlEnter extends Enter {
 			// All non-class member matching is done in JmlMemberEnter
 			sourceCD.defs = matchClasses(sourceCD.defs, sourceCD.specsDecl.defs, env.enclClass.sym.toString());
 			log.useSource(sourceCD.sourcefile);
-			System.out.println("VISITING " + sourceCD.name + " " + sourceCD.sourcefile);
 			super.visitClassDef(sourceCD);
 			sourceCD.defs.forEach(d->{ if (d instanceof JmlClassDecl cd) JmlAttr.instance(context).addTodo(cd.sym); } );
 
@@ -442,7 +441,6 @@ public class JmlEnter extends Enter {
 					// This is a spot to insert processing after a class has been created (in visitClassDef)
 					// and before any nested classes are processed
 
-					if (sourceDecl.specsDecl == null) sourceDecl.specsDecl = sourceDecl; // TODO - added this - not sure it is correct
 					// cd is the enclosing class for the 'trees' argument
 					//System.out.println("TREES " + trees);
 					//if (sourceDecl.defs != trees) throw new AssertionError("defs mismatch: " + sourceDecl.name + " " + sourceDecl.sym);
@@ -592,14 +590,14 @@ public class JmlEnter extends Enter {
 		    
 		    String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
 		    Name packageName = names.fromString(flatPackageName);
-		    // Most spec file for binary files will be for te system library packages in java.base, so try that first
+		    // Most spec file for binary files will be for the system library packages in java.base, so try that first
 		    PackageSymbol p = syms.getPackage(syms.java_base,packageName);
 		    if (p == null) {
 		        // Otherwise try the unnamed module
 	            p = syms.getPackage(syms.unnamedModule,packageName);
 		    }
             //System.out.println("PACKAGE " + packageName + " IS IN " + (p==null?"NULL":p.modle));
-            if (p == null) { // FIXME Dont think this is ever needed
+            if (p == null) { // FIXME Document when this is needed
                 utils.warning(speccu.pid, "jml.message", "Creating new package in unnamed module: " + flatPackageName);
                 p = syms.enterPackage(syms.unnamedModule, packageName);
             }
@@ -769,6 +767,7 @@ public class JmlEnter extends Enter {
 				}
 				specDecl.sym = csym;
 				specDecl.type = csym.type;
+				specDecl.specsDecl = specDecl;
 				localSpecEnv = classEnv(specDecl, specsEnv);
                 TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
                 typeEnvs.put(csym, localSpecEnv);
@@ -780,7 +779,8 @@ public class JmlEnter extends Enter {
 				// FIXME - be sure that annotations are checked as well
 				if (utils.verbose()) utils.note("Matched to binary class: " + csym + " (owner: " + csym.owner +")" );
 
-				((ClassType)csym.type).typarams_field = classEnter(specDecl.typarams, localSpecEnv); // FIXME - what does this do??? -- was classTPEnter
+				specEnv = localSpecEnv;
+				((ClassType)csym.type).typarams_field = classEnter(specDecl.typarams, env); // FIXME - what does this do??? -- was classTPEnter
 	            csym.flags_field |= Flags.UNATTRIBUTED;
 			}
 //			if (specDecl.typarams.size() == ((ClassType)csym.type).typarams_field.size()) {
@@ -1825,17 +1825,17 @@ public class JmlEnter extends Enter {
 			JmlCompilationUnit speccu = null;
 			try {
 				speccu = JmlCompiler.instance(context).parseSpecs(csymbol);
-
 				if (speccu != null) {
 				    // There is a specs file for the binary
 				    speccu.sourceCU = null; // null indicates a binary; non-null a source Java file
 				    speccu.specsCompilationUnit = speccu;
 				    specsEnter(speccu);
-				    if (specs.get(csymbol) == null) {
+				    TypeSpecs tspecs = specs.get(csymbol);
+				    if (tspecs == null) {
                         // Specs were found but they did not match and were discarded
 				        // But need to record some empty specs
 	                    recordEmptySpecs(csymbol); // so we don't keep trying to load it
-				    } else if (specs.get(csymbol).specDecl == null) {
+				    } else if (tspecs.specDecl == null) {
 				        // Specs were found but they did not match and were discarded
 				        // Empty specs have already been recorded
 				    } else {
