@@ -780,7 +780,7 @@ public class JmlEnter extends Enter {
 				if (utils.verbose()) utils.note("Matched to binary class: " + csym + " (owner: " + csym.owner +")" );
 
 				specEnv = localSpecEnv;
-				((ClassType)csym.type).typarams_field = classEnter(specDecl.typarams, env); // FIXME - what does this do??? -- was classTPEnter
+				((ClassType)csym.type).typarams_field = classEnter(specDecl.typarams, specEnv); // FIXME - what does this do??? -- was classTPEnter
 	            csym.flags_field |= Flags.UNATTRIBUTED;
 			}
 //			if (specDecl.typarams.size() == ((ClassType)csym.type).typarams_field.size()) {
