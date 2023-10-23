@@ -1246,6 +1246,7 @@ public class JmlParser extends JavacParser {
                             vd.sourcefile = currentSourceFile();
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                             attach(vd, dc);
+                            if (startsInJml) utils.setJML(vd.mods);
                             currentVariableDecl = vd;
                             currentVariableDecl.fieldSpecs = new JmlSpecs.FieldSpecs(currentVariableDecl);
                         } else {
@@ -1271,6 +1272,7 @@ public class JmlParser extends JavacParser {
                 } else if (t.head instanceof JmlVariableDecl vd) {
                     if (vd.fieldSpecs == null) vd.fieldSpecs = new JmlSpecs.FieldSpecs(vd);
                     vd.sourcefile = currentSourceFile();
+                    if (startsInJml) utils.setJML(vd.mods);
                     attach(vd, dc);
                     list.append(vd);
                     currentVariableDecl = vd;
@@ -1322,7 +1324,7 @@ public class JmlParser extends JavacParser {
     		mods.annotations = mods.annotations.appendList(savedTypeAnnotations);
     		savedTypeAnnotations = null;
     	}
-    	if (S.jml()) utils.setJML(mods);
+    	if (S.jml()) utils.setJML(mods); // TODO - is this actually useful?
     }
     
     List<JCAnnotation> savedTypeAnnotations = null;
