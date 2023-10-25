@@ -296,10 +296,10 @@ public class LoopInvariantGenerator {
             }
         }
 
-        System.out.println("Possible replacement variables: " + loopParamsReader.possible_vars.variables);
+        //System.out.println("Possible replacement variables: " + loopParamsReader.possible_vars.variables);
 
         assertionReader.scan(lAssertionFinder.detectedAssertion.expression); // read the assertion and store the possible constants to be replaced
-        System.out.println("Possible constants to be replaced: " + assertionReader.possible_vars.variables);
+        //System.out.println("Possible constants to be replaced: " + assertionReader.possible_vars.variables);
 
         if (loopParamsReader.possible_vars.variables.size() == 0 ||
                 assertionReader.possible_vars.variables.size() == 0) {
@@ -330,19 +330,20 @@ public class LoopInvariantGenerator {
                     // attach our new invariants to the loop
                     loop.setLoopSpecs(List.of(boundary, invariant));
         
-                    System.out.println("Generated specs: ");
-                    List.of(boundary, invariant).forEach(spec -> System.out.println(spec));
+                    //System.out.println("Generated specs: ");
+                    //List.of(boundary, invariant).forEach(spec -> System.out.println(spec));
                 } else if (lAssertionFinder.detectedWhileLoop != null) {
                     loop.setLoopSpecs(List.of(boundary, invariant));
         
-                    System.out.println("Generated specs: ");
-                    List.of(boundary, invariant).forEach(spec -> System.out.println(spec));
+                    //System.out.println("Generated specs: ");
+                    //List.of(boundary, invariant).forEach(spec -> System.out.println(spec));
                 }
                 
                 boolean verified = getEscVerificationResult(tree);
-                System.out.printf("Replaced constant %s with variable %s: %sverified\n", constant, variable, (verified ? "" : "not "));
+                //System.out.printf("Replaced constant %s with variable %s: %sverified\n", constant, variable, (verified ? "" : "not "));
     
                 if (verified) {
+                    System.out.println(env.tree);
                     break OUTER; // early exit
                 }
             }
