@@ -77,15 +77,15 @@ class LoopAssertionFinder extends JmlTreeScanner {
  * Potential variables (numeric, integer values) are placed into the possible_vars list.
  */
 class AssertionReader extends TreeScanner implements IJmlVisitor {
-    public HashSetWrapper possible_vars;
+    public Variables possible_vars;
     private boolean loop_params = false;
 
     public AssertionReader() {
-        possible_vars = new HashSetWrapper();
+        possible_vars = new Variables();
     }
 
     public AssertionReader(boolean loop_params) {
-        possible_vars = new HashSetWrapper();
+        possible_vars = new Variables();
         this.loop_params = true;
     }
 
@@ -393,7 +393,7 @@ public class LoopInvariantGenerator {
  * Stores trees in an ArrayList without duplicates.
  * Uses a tree's string representation to remove duplicates.
  */
-class HashSetWrapper {
+class Variables {
     public ArrayList<Tree> variables = new ArrayList<>();
     private HashSet<String> duplicates = new HashSet<>();
 
