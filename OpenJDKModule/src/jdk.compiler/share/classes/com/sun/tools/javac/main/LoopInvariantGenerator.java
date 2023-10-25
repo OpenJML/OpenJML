@@ -15,6 +15,7 @@ import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.JCTree.*;
@@ -68,6 +69,25 @@ class LoopAssertionFinder extends JmlTreeScanner {
             }
         }
         super.visitJmlStatementExpr(tree);
+    }
+}
+
+class WhileLoopInitFinder extends TreeScanner {
+
+    public JCExpression initialization;
+    public JCIdent variable;
+
+    public WhileLoopInitFinder(JCIdent variable) {
+        this.initialization = null;
+        this.variable = variable;
+    }
+
+    @Override
+    public void visitVarDef(JCVariableDecl tree) {
+        if (tree.name.toString().equals(variable.name.toString())) {
+            this.initialization = tree.init;
+        }
+        super.visitVarDef(tree);
     }
 }
 
@@ -223,6 +243,7 @@ public class LoopInvariantGenerator {
     Names name;
     Symtab symtab;
     JmlEsc esc;
+    Env<AttrContext> env;
     LoopAssertionFinder lAssertionFinder = new LoopAssertionFinder(); // used to find the loop and assertion pair
     AssertionReader assertionReader = new AssertionReader(); // used to read the assertion
     AssertionReader loopParamsReader = new AssertionReader(true); // used to read the loop parameters
@@ -241,6 +262,7 @@ public class LoopInvariantGenerator {
     // this gets called between the flow and desugar stages
     public void generateInvariant(Env<AttrContext> env) {
         JCTree tree = env.tree; // the AST
+        this.env = env;
 
         lAssertionFinder.scan(tree); // find the loop + assertion
 
@@ -306,6 +328,11 @@ public class LoopInvariantGenerator {
         
                 if (lAssertionFinder.detectedForLoop != null) {
                     // attach our new invariants to the loop
+                    loop.setLoopSpecs(List.of(boundary, invariant));
+        
+                    System.out.println("Generated specs: ");
+                    List.of(boundary, invariant).forEach(spec -> System.out.println(spec));
+                } else if (lAssertionFinder.detectedWhileLoop != null) {
                     loop.setLoopSpecs(List.of(boundary, invariant));
         
                     System.out.println("Generated specs: ");
@@ -384,6 +411,10 @@ public class LoopInvariantGenerator {
                     }
                 }
             }
+        } else if (loop instanceof JCWhileLoop) {
+            WhileLoopInitFinder finder = new WhileLoopInitFinder(variable);
+            finder.scan(env.tree);
+            return finder.initialization;
         }
         return null; // no initialized value found
     }
