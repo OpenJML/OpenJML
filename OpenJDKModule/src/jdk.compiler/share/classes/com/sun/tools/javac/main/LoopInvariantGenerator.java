@@ -362,7 +362,7 @@ public class LoopInvariantGenerator {
                 if (verified) {
                     System.out.println(env.tree);
                     try {
-						Files.writeString(Paths.get(outputFilename), env.tree.toString(), StandardOpenOption.CREATE);
+						Files.write(Paths.get(outputFilename), env.tree.toString().getBytes());
 					} catch (Exception e) {
 						System.out.println("Error when writing output file: " + e.toString());
 					}
