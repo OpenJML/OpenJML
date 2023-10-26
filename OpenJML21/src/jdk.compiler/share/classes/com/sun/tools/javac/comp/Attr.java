@@ -5396,6 +5396,7 @@ public class Attr extends JCTree.Visitor {
      */
     void attribClass(ClassSymbol c) throws CompletionFailure {
         if (c.type.hasTag(ERROR)) return;
+        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRCLASS_IN");
 
         // Check for cycles in the inheritance graph, which can arise from
         // ill-formed class files.
@@ -5575,7 +5576,8 @@ public class Attr extends JCTree.Visitor {
                 env.info.returnResult = prevReturnRes;
                 log.useSource(prev);
                 chk.setLint(prevLint);
-            }
+                //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRCLASS_OUT");
+           }
 
         }
     }

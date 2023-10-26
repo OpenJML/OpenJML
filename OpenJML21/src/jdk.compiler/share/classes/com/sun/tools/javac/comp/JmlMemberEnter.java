@@ -1145,17 +1145,25 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     @Override
     public void visitMethodDef(JCMethodDecl tree) {
     	boolean prev = JmlResolve.instance(context).setAllowJML(utils.isJML(tree.mods));
+    	if (tree.name.toString().equals("accept")) {
+    		attrdebug = true;
+    		//System.out.println("VMD " + tree.mods + " " + utils.isJML(tree.mods) + " " + tree);
+    	}
     	try {
     		super.visitMethodDef(tree);
     	} finally {
     		JmlResolve.instance(context).setAllowJML(prev);
     	}
     }
+    
+    public static boolean attrdebug = false;
 
     @Override
     public void visitVarDef(JCVariableDecl tree) {
         // FIXME - just because there is a substitute type does not mean everything should be resolved with allowJML???
         boolean prev = JmlResolve.instance(context).addAllowJML(utils.isJML(tree.mods) || ((JmlVariableDecl)tree).jmltype);
+    	//if (tree.name.toString().equals("t")) System.out.println("VVD " + tree.mods + " " + utils.isJML(tree.mods) + " " + tree);
+    	//if (tree.name.toString().equals("T")) System.out.println("VVD " + tree.mods + " " + utils.isJML(tree.mods) + " " + tree);
     	try {
     		super.visitVarDef(tree);
     	} finally {

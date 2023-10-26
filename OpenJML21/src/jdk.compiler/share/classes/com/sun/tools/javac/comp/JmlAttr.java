@@ -3829,6 +3829,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
+    	try {
+    		jmlenv = jmlenv.pushCopy();
         savedMethodClauseOutputEnv = this.env;
         jmlenv.currentClauseKind = tree.clauseKind;
         Type t = null;
@@ -3872,6 +3874,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        		System.out.println("  LHS " + b.lhs.type + "   RHS " + b.rhs.type);
 //        	}
 //        }
+    	} catch (Exception e) {
+    		System.out.println("EXCEPTION visitJmlMethodClauseExpr");
+    		e.printStackTrace();
+    	} finally {
+    		jmlenv = jmlenv.pop();
+    	}
     }
     
     public static class SpecificationException extends RuntimeException {
@@ -4180,7 +4188,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 localEnv = localEnv(env,enclosingClassEnv.tree);
             }
             env = localEnv;
-
+            
             if (tree.token == null) {
                 if (env.enclMethod != null)
                     jmlenv.jmlVisibility = env.enclMethod.mods.flags & Flags.AccessFlags;
@@ -4222,7 +4230,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                    utils.warning(tree,  "jml.message", "this specification case of a pure method is not effectively normal and will be ignored when the method is used in a specification");
 //                }
 //            }
-            
         } finally {
         	// FIXME - why might env be null?
             if (env != null) labelEnvs.put(tree.name,env.dup(tree,env.info.dupUnshared()));
@@ -4320,7 +4327,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (tree.typeargs != null && tree.typeargs.size() != 0) {
             // At present the parser cannot produce anything with typeargs, but just in case
             // one squeaks through by some means or another
-        	utils.error(tree.typeargs.head,"jml.no.typeargs.for.fcn",token.internedName());
+        	utils.error(tree.typeargs.head,"jml.no.typeargs.for.fcn",tree.meth);
         }
         //System.out.println("VISIT JMLAPPLY " + tree);
         
@@ -4334,8 +4341,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        	utils.error(tree,"jml.message","Expected a " + tree.kind + "to be a IJmlClauseKind.Expression");
 //        	result = tree.type = syms.errType;
 //        } else {
-        	Type ttt = tree.kind.typecheck(this, tree, localEnv);
-        	result = check(tree, ttt, KindSelector.VAL, resultInfo);
+            if (tree.kind == null) System.out.println("JMLIN " + tree.getClass() + " " + tree.meth + " " + tree.args);
+        	Type ttt;
+        	if (tree.kind != null) {
+        		ttt = tree.kind.typecheck(this, tree, localEnv);
+            	result = check(tree, ttt, KindSelector.VAL, resultInfo);
+        	} else {
+        		super.visitApply(tree);
+        		result = tree.type;
+        	}
 //        }
     }
     
@@ -4765,6 +4779,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public Type attribTree(JCTree tree, Env<AttrContext> env, ResultInfo resultInfo) { 
+    	//if (JmlMemberEnter.attrdebug) System.out.println("ATTR " + tree.getClass() + " " + tree);
     	var t = super.attribTree(tree, env, resultInfo);
     	if (t instanceof Type.ClassType ct && !t.isErroneous() && ct.tsym instanceof ClassSymbol cs) {
     	    // If we have just attributed a valid class type, enter a request for the specs for that class
@@ -8424,30 +8439,40 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		enclosingMethodDecl = e.enclosingMethodDecl;
     	}
     	
+    	String stackline(int n) {
+    		return (new Exception()).getStackTrace()[n+1].toString();
+    	}
+    	
+    	static public boolean envprint = false;
+    	
     	public JmlEnv pushCopy() {
     		var j = new JmlEnv(this);
-    		//System.out.println("PUSHCOPY " + this.hashCode() + " " + jmlenv.hashCode() + " " + j.hashCode());
+    		if (envprint) System.out.println("PUSHCOPY " + this.hashCode() + " " + jmlenv.hashCode() + " " + j.hashCode() + " " + stackline(1));
     		JmlAttr.this.jmlenv = j;
     		return j;
     	}
     	
     	public JmlEnv pushInit() {
     		var j = new JmlEnv();
-    		//System.out.println("PUSHINIT " + this.hashCode() + " " + jmlenv.hashCode() + " " + j.hashCode());
+    		if (envprint) System.out.println("PUSHINIT " + this.hashCode() + " " + jmlenv.hashCode() + " " + j.hashCode() + " " + stackline(1));
     		j.previous = this;
     		JmlAttr.this.jmlenv = j;
     		return j;
     	}
     	
     	public JmlEnv pop() {
-    		//System.out.println("POPENV " + previous.inPureEnvironment + this.hashCode() + " " + jmlenv.hashCode() + " " + previous.hashCode());
+    		if (envprint) System.out.println("POPENV " + previous.inPureEnvironment + " " + this.hashCode() + " " + jmlenv.hashCode() + " " + previous.hashCode() + " " + stackline(1));
     		JmlAttr.this.jmlenv = previous;
     		return previous;
     	}
     	
     	public JmlEnv pop(JmlEnv check) {
-    		if (check != jmlenv) { System.out.println("MISMATCHED JMLENV"); Utils.dumpStack(); }
+    		if (check != jmlenv) { System.out.println("MISMATCHED JMLENV " + check.hashCode() + " " + jmlenv.hashCode()); Utils.dumpStack(); }
     		return pop();
+    	}
+    	
+    	public void check(JmlEnv check) {
+    		if (check != JmlAttr.this.jmlenv) { System.out.println("MISMATCHED JMLENV-CHECK " + check.hashCode() + " " + jmlenv.hashCode()); Utils.dumpStack(); }
     	}
     }
 

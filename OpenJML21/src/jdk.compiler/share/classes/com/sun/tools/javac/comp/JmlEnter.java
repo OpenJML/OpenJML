@@ -180,7 +180,7 @@ public class JmlEnter extends Enter {
 		this.context = context;
 		this.utils = Utils.instance(context);
 		var m = JmlTree.Maker.instance(context);
-		var q = m.QualIdent("org", "jmlspecs", "lang");
+		var q = (JCFieldAccess)m.QualIdent("org", "jmlspecs", "lang");
 		var p = m.PackageDecl(List.<JCAnnotation>nil(), q);
 		var i = m.Import(q, false);
 		JmlCompilationUnit cu = m.TopLevel(List.<JCTree>of(p));
@@ -822,7 +822,7 @@ public class JmlEnter extends Enter {
                 if (cs.owner != owner) throw new AssertionError("Mismatched owner");
 			    if (utils.isJML(specDecl)) {
 			        cs.complete();
-			        //TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(cs, JmlSpecs.instance(context).getLoadedSpecs(cs).specsEnv);
+			    	//TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(cs, JmlSpecs.instance(context).getLoadedSpecs(cs).specsEnv);
 			    } else {
 			        specsMemberEnter(specDecl);
 			        specsMembersEnter(cs, specDecl.defs);
