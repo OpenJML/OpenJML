@@ -7,10 +7,13 @@ import org.jmlspecs.openjml.visitors.JmlTreeCopier;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.jmlspecs.openjml.visitors.JmlTreeTranslator;
 import org.jmlspecs.openjml.ext.StatementExprExtensions;
+import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.JmlEsc;
 
 import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.code.Source;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -27,6 +30,11 @@ import com.sun.tools.javac.tree.TreeScanner;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -264,6 +272,14 @@ public class LoopInvariantGenerator {
         JCTree tree = env.tree; // the AST
         this.env = env;
 
+        final String outputFilename = "InferredInvariants.java";
+
+        // make this opt-in
+        boolean enabled = JmlOptions.instance(context).getBoolean(JmlOption.INFER_INVARIANTS.optionName());
+        if (!enabled) {
+            return;
+        }
+
         lAssertionFinder.scan(tree); // find the loop + assertion
 
         // if a loop + assertion is not found, nothing happens
@@ -307,6 +323,7 @@ public class LoopInvariantGenerator {
         }
 
         // Replace constant with variable, trying each constant/variable combination until one works
+        boolean verified = false;
         OUTER:
         for (Tree constant : assertionReader.possible_vars.variables) {
             constantReplacer.setOldConstant(constant); 
@@ -329,7 +346,7 @@ public class LoopInvariantGenerator {
                 if (lAssertionFinder.detectedForLoop != null) {
                     // attach our new invariants to the loop
                     loop.setLoopSpecs(List.of(boundary, invariant));
-        
+
                     //System.out.println("Generated specs: ");
                     //List.of(boundary, invariant).forEach(spec -> System.out.println(spec));
                 } else if (lAssertionFinder.detectedWhileLoop != null) {
@@ -339,14 +356,23 @@ public class LoopInvariantGenerator {
                     //List.of(boundary, invariant).forEach(spec -> System.out.println(spec));
                 }
                 
-                boolean verified = getEscVerificationResult(tree);
+                verified = getEscVerificationResult(tree);
                 //System.out.printf("Replaced constant %s with variable %s: %sverified\n", constant, variable, (verified ? "" : "not "));
     
                 if (verified) {
                     System.out.println(env.tree);
+                    try {
+						Files.writeString(Paths.get(outputFilename), env.tree.toString(), StandardOpenOption.CREATE);
+					} catch (Exception e) {
+						System.out.println("Error when writing output file: " + e.toString());
+					}
                     break OUTER; // early exit
                 }
             }
+        }
+
+        if (!verified) {
+            System.out.println("Could not generate valid loop invariants");
         }
         
         
