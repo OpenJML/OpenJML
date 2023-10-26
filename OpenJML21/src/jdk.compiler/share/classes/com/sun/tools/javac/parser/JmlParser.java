@@ -274,7 +274,7 @@ public class JmlParser extends JavacParser {
     			// This code sets that field in after the whole tree is parsed.
     			JmlCompilationUnit jmlcu = (JmlCompilationUnit) u;
     			if (addOrgJmlspecsLang) {
-    				JCExpression p = utils.nametree(0, 0, "org.jmlspecs.lang.*", this);
+    				var p = (JCFieldAccess)utils.nametree(0, 0, "org.jmlspecs.lang.*", this);
         			JmlImport m = jmlF.at(0).Import(p,  false);
         			storeEnd(m, 0);
         			m.isModel = true;

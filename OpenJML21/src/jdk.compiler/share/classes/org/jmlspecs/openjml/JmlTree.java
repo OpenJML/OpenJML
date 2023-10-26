@@ -450,6 +450,11 @@ public class JmlTree {
             return tree;
         }
 
+        @Override
+        public JCVariableDecl VarDef(JCModifiers mods, Name name, JCExpression vartype, JCExpression init) {
+            return VarDef(mods, name, vartype, init, false);
+        }
+
         /** Creates an expression for a JML type (such as \TYPE or \real or \bigint).*/
         @Override
         public JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt, Name id) {
@@ -480,8 +485,8 @@ public class JmlTree {
         }
         
         /** Creates a regular import, but using a JmlImport AST node */
-// TODO - was an override
-        public JmlImport Import(JCTree qualid, boolean staticImport) {
+        @Override
+        public JmlImport Import(JCFieldAccess qualid, boolean staticImport) {
             return (JmlImport)new JmlImport(qualid,staticImport,false).setPos(pos);
         }
         
@@ -507,6 +512,14 @@ public class JmlTree {
             return c;
         }
         
+        @Override
+        public JmlMethodInvocation Apply(List<JCExpression> typeargs,
+                JCExpression fn,
+                List<JCExpression> args)
+		{
+        	return new JmlMethodInvocation(pos, typeargs, fn, args);
+		}
+		        
         /** Creates a JML method invocation (e.g. for JmlTokens with arguments, such as \typeof) */
         @Override
         public JmlMethodInvocation JmlMethodInvocation(JmlTokenKind token, List<JCExpression> args) {
@@ -2393,6 +2406,15 @@ public class JmlTree {
             this.startpos = pos;
         }
         
+        protected JmlMethodInvocation(int pos, List<JCExpression> typeargs,
+                JCExpression meth,
+                List<JCExpression> args)
+		{
+		    super(typeargs, meth, args);
+		    this.pos = pos;
+            this.startpos = pos; // FIXME
+		}
+
         @Override
         public int getStartPosition() {
             return meth == null ? startpos : super.getStartPosition();

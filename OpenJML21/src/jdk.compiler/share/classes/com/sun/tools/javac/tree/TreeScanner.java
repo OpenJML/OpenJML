@@ -418,6 +418,6 @@ public class TreeScanner extends Visitor {
     }
 
     public void visitTree(JCTree tree) {
-        Assert.error();
+        Assert.error("VISIT TREE " + tree.getClass() + " " + this.getClass());
     }
 }
