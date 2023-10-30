@@ -360,9 +360,9 @@ public class LoopInvariantGenerator {
                 //System.out.printf("Replaced constant %s with variable %s: %sverified\n", constant, variable, (verified ? "" : "not "));
     
                 if (verified) {
-                    System.out.println(env.tree);
                     try {
 						Files.write(Paths.get(outputFilename), env.tree.toString().getBytes());
+                        System.out.println("Successfully determined loop invariant: " + Paths.get(outputFilename));
 					} catch (Exception e) {
 						System.out.println("Error when writing output file: " + e.toString());
 					}
