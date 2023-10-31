@@ -33,7 +33,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-/*
+/**
  * This visitor looks for a loop and assertion together (assertion after the loop).
  * If a pair is found, the boolean variable complete is marked as true and the loop invariant is generated
  * based on the assertion.
@@ -75,55 +75,55 @@ class LoopAssertionFinder extends JmlTreeScanner {
     }
 }
 
-class WhileLoopInitFinder extends TreeScanner {
+/**
+ * This visitor tries to find the initial value of a given variable.
+ */
+class VariableInitFinder extends TreeScanner {
 
-    public JCExpression initialization;
+    public JCExpression initialValue = null; // stays null if initial value wasn't found
     public JCIdent variable;
 
-    public WhileLoopInitFinder(JCIdent variable) {
-        this.initialization = null;
+    public VariableInitFinder(JCIdent variable) {
         this.variable = variable;
     }
 
     @Override
     public void visitVarDef(JCVariableDecl tree) {
         if (tree.name.toString().equals(variable.name.toString())) {
-            this.initialization = tree.init;
+            this.initialValue = tree.init;
         }
         super.visitVarDef(tree);
     }
 }
 
-/*
- * This visitor goes through the postcondition to look for variables to replace.
- * It also goes through the loop parameters to find replacement variables;
- * Potential variables (numeric, integer values) are placed into the possible_vars list.
+/**
+ * This visitor goes through the postcondition to look for potential constants to replace.
+ * It also goes through the loop parameters to find potential replacement variables;
+ * The collected variables/constants (numeric, integer values) are placed into the "collected" list.
  */
-class AssertionReader extends TreeScanner implements IJmlVisitor {
-    public Variables possible_vars;
-    private boolean loop_params = false;
+class ReplaceCandidateFinder extends TreeScanner implements IJmlVisitor {
+    // stores our collected variables/constants
+    public ListWithoutDuplicates<JCTree> collected;
 
-    public AssertionReader() {
-        possible_vars = new Variables();
-    }
+    // whether we are collecting constants for replacement, or replacement variables
+    private boolean variableMode = false;
 
-    public AssertionReader(boolean loop_params) {
-        possible_vars = new Variables();
-        this.loop_params = true;
+    public ReplaceCandidateFinder(boolean variableMode) {
+        collected = new ListWithoutDuplicates<>();
+        this.variableMode = variableMode;
     }
 
     @Override
     // Covers expressions such as arr.length
     // "Selects through packages and classes"
     public void visitSelect(JCFieldAccess tree) {
-        if (this.loop_params) return; // JCFIeldAccess will probably be a constant in the parameters of a loop
+        if (this.variableMode) return; // JCFIeldAccess will probably be a constant in the parameters of a loop
 
-        String nameString = tree.name.toString();
+        String nameOfSelectedField = tree.name.toString();
         
-        if (Util.isArrayLength(tree) || nameString.equals("size")) {
-            if (replaceable(tree.sym.type.getTag())) {
-                possible_vars.add(tree);
-            }
+        if (Util.isArrayLength(tree) || nameOfSelectedField.equals("size")) {
+            // this looks like an array length expression or a collection size expression
+            collected.add(tree);
         }
 
         super.visitSelect(tree);
@@ -131,31 +131,37 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
 
     @Override
     public void visitLiteral(JCLiteral tree) {
-        if (!replaceable(tree.typetag)) return;
-        possible_vars.add(tree);
+        // make sure the literal is of an integer value (not a string literal, etc)
+        if (isIntegerType(tree.typetag)) {
+            collected.add(tree);
+        }
     }
 
     @Override
     public void visitIdent(JCIdent tree) {
-        if (!replaceable(tree.sym.type.getTag())) return;
-        possible_vars.add(tree);
+        // make sure the identifier has an integer type
+        if (isIntegerType(tree.sym.type.getTag())) {
+            collected.add(tree);
+        }
     }
     
-    private boolean replaceable(TypeTag tag) {
+    // checks if this is an integer type
+    // for constants to replace, and for replacement variables
+    private boolean isIntegerType(TypeTag tag) {
         return tag == TypeTag.BYTE || tag == TypeTag.SHORT || tag == TypeTag.INT || tag == TypeTag.LONG;
     }
 }
 
-/*
- * This object performs the replacement.
+/**
+ * This object performs the replacement of constants with variables
  */
 class ConstantReplacer extends JmlTreeTranslator {
     Context context;
     Maker make;
     Symtab symtab;
 
-    private Tree old_constant;
-    private Tree new_variable;
+    private JCTree old_constant; // the constant we are replacing
+    private JCTree new_variable; // the variable to replace the constant with
 
     public ConstantReplacer(Context context) {
         this.context = context;
@@ -163,15 +169,15 @@ class ConstantReplacer extends JmlTreeTranslator {
         this.symtab = Symtab.instance(context);
     }
 
-    public void setOldConstant(Tree constant) {
+    public void setOldConstant(JCTree constant) {
         this.old_constant = constant;
     }
 
-    public void setNewVariable(Tree variable) {
+    public void setNewVariable(JCTree variable) {
         this.new_variable = variable;
     }
 
-    public Tree getOldConstant() {
+    public JCTree getOldConstant() {
         return this.old_constant;
     }
 
@@ -203,7 +209,7 @@ class ConstantReplacer extends JmlTreeTranslator {
     }
 
     private JCIdent makeVariableNode(JCTree tree) {
-        return (JCIdent) (((JCTree)this.new_variable).clone());
+        return (JCIdent) (this.new_variable.clone());
     }
 }
 
@@ -218,8 +224,8 @@ public class LoopInvariantGenerator {
     JmlEsc esc;
     Env<AttrContext> env;
     LoopAssertionFinder lAssertionFinder = new LoopAssertionFinder(); // used to find the loop and assertion pair
-    AssertionReader assertionReader = new AssertionReader(); // used to read the assertion
-    AssertionReader loopParamsReader = new AssertionReader(true); // used to read the loop parameters
+    ReplaceCandidateFinder constantFinder = new ReplaceCandidateFinder(false); // used to read the assertion
+    ReplaceCandidateFinder variableFinder = new ReplaceCandidateFinder(true); // used to read the loop parameters
     Log log;
 
     public LoopInvariantGenerator(Context context) {
@@ -260,30 +266,30 @@ public class LoopInvariantGenerator {
         // This block of code reads the parameters of the loop to obtain possible replacement variables
         if (lAssertionFinder.detectedForLoop == null) {
             loop = lAssertionFinder.detectedWhileLoop;
-            this.loopParamsReader.scan(lAssertionFinder.detectedWhileLoop.cond); // while loop condition
+            this.variableFinder.scan(lAssertionFinder.detectedWhileLoop.cond); // while loop condition
         } else {
             loop = lAssertionFinder.detectedForLoop;
             // for loop initialization
             if (lAssertionFinder.detectedForLoop.init != null) {
                 for (JCStatement temp : lAssertionFinder.detectedForLoop.init) {
-                    this.loopParamsReader.scan(temp);
+                    this.variableFinder.scan(temp);
                 }
             }
 
-            this.loopParamsReader.scan(lAssertionFinder.detectedForLoop.cond); // for loop condition 
+            this.variableFinder.scan(lAssertionFinder.detectedForLoop.cond); // for loop condition 
 
             // for loop post-iteration operation
             if (lAssertionFinder.detectedForLoop.step != null) {
                 for (JCExpressionStatement temp : lAssertionFinder.detectedForLoop.step) {
-                    this.loopParamsReader.scan(temp);
+                    this.variableFinder.scan(temp);
                 }
             }
         }
 
-        assertionReader.scan(lAssertionFinder.detectedAssertion.expression); // read the assertion and store the possible constants to be replaced
+        constantFinder.scan(lAssertionFinder.detectedAssertion.expression); // read the assertion and store the possible constants to be replaced
 
-        if (loopParamsReader.possible_vars.variables.size() == 0 ||
-                assertionReader.possible_vars.variables.size() == 0) {
+        if (variableFinder.collected.items.size() == 0 ||
+                constantFinder.collected.items.size() == 0) {
             reportGenerationFailure("no constants to replace, or no variables to replace with");
             return; // no constants to replace, or no variables to replace with
         }
@@ -291,15 +297,16 @@ public class LoopInvariantGenerator {
         // Replace constant with variable, trying each constant/variable combination until one works
         boolean verified = false;
         OUTER:
-        for (Tree constant : assertionReader.possible_vars.variables) {
-            constantReplacer.setOldConstant(constant); 
-       
-            for (Tree variable : loopParamsReader.possible_vars.variables) {
+        for (JCTree constant : constantFinder.collected.items) {
+            for (JCTree variable : variableFinder.collected.items) {
+
+                constantReplacer.setOldConstant(constant);
                 constantReplacer.setNewVariable(variable);
 
+                // make a boundary expression for our new variable
                 JmlStatementLoopExpr boundary = this.make.JmlStatementLoopExpr(
                         StatementExprExtensions.loopinvariantClause,
-                        getBoundaryExpression(loop, (JCIdent) variable, (JCExpression) constant));
+                        makeBoundaryExpression(loop, (JCIdent) variable, (JCExpression) constant));
              
                 // make new invariant using the postcondition
                 JmlStatementLoopExpr invariant = this.make.JmlStatementLoopExpr(
@@ -312,12 +319,13 @@ public class LoopInvariantGenerator {
                 // attach our new invariants to the loop
                 loop.setLoopSpecs(List.of(boundary, invariant));
                 
+                // check whether this constant/variable combination yielded a correct invariant
                 verified = getEscVerificationResult(tree);
     
                 if (verified) {
                     try {
 						Files.write(Paths.get(outputFilename), env.tree.toString().getBytes());
-                        log.printRawLines("Successfully determined loop invariant: " + Paths.get(outputFilename));
+                        log.printRawLines("Successfully determined loop invariants: " + Paths.get(outputFilename));
 					} catch (Exception e) {
 						log.rawError(Position.NOPOS, "Cannot write to output file: " + e.toString());
 					}
@@ -337,39 +345,40 @@ public class LoopInvariantGenerator {
 
     private boolean getEscVerificationResult(JCTree tree) {
         esc.initCounts();
-        esc.check(tree); // TODO silence console output?
+        esc.check(tree);
         return (esc.classes == esc.classesOK);
     }
 
-    /*
+    /**
      * Makes a boundary expression for a given variable.
      * lower bound is the variable's initial value if we can find it, otherwise 0.
      * upper bound is the constant that the variable is replacing.
      * 
      * Caveat: this assumes that the iteration variable increases by 1 each time
      */
-    private JmlChained getBoundaryExpression(IJmlLoop loop, JCIdent variable, JCExpression constant) {
-        JmlChained boundary_expression;
-
+    private JmlChained makeBoundaryExpression(IJmlLoop loop, JCIdent variable, JCExpression constant) {
         // try to get the initial value from the for loop's initializer
         JCExpression initialValue = getInitialValueOfVar(variable, loop);
         
-        JCBinary binary_1;
+        // make expression for the lower bound
+        JCBinary lowerBound;
         if (initialValue != null) {
-            binary_1 = treeMaker.Binary(JCTree.Tag.LE, initialValue, variable);
+            lowerBound = treeMaker.Binary(JCTree.Tag.LE, initialValue, variable);
         } else {
             // couldn't find initial value, so assume it is 0
             JCLiteral zero = treeMaker.Literal(0).setType(symtab.intType);
-            binary_1 = treeMaker.Binary(JCTree.Tag.LE, zero, variable);
+            lowerBound = treeMaker.Binary(JCTree.Tag.LE, zero, variable);
         }
-        binary_1.setType(symtab.booleanType);
+        lowerBound.setType(symtab.booleanType);
         
-        JCBinary binary_2 = treeMaker.Binary(JCTree.Tag.LE, (JCTree.JCIdent)variable, constant);
-            
-        binary_2.setType(symtab.booleanType);
+        // make expression for the upper bound
+        JCBinary upperBound = treeMaker.Binary(JCTree.Tag.LE, (JCTree.JCIdent)variable, constant);  
+        upperBound.setType(symtab.booleanType);
         
-        boundary_expression = this.make.JmlChained(List.of(binary_1, binary_2));
+        // combine the two expressions into a single JmlChained
+        JmlChained boundary_expression = this.make.JmlChained(List.of(lowerBound, upperBound));
         boundary_expression.setType(symtab.booleanType);
+
         return boundary_expression;
     }
 
@@ -378,6 +387,7 @@ public class LoopInvariantGenerator {
      */
     private JCExpression getInitialValueOfVar(JCIdent variable, IJmlLoop loop) {
         if (loop instanceof JCForLoop) {
+            // with for loops, search the init for initializations of the variable
             JCForLoop forLoop = (JCForLoop) loop;
             for (JCStatement statement : forLoop.init) {
                 if (statement instanceof JCVariableDecl) {
@@ -388,40 +398,28 @@ public class LoopInvariantGenerator {
                 }
             }
         } else if (loop instanceof JCWhileLoop) {
-            WhileLoopInitFinder finder = new WhileLoopInitFinder(variable);
+            // with while loops, search the entire AST for initializations of the variable
+            VariableInitFinder finder = new VariableInitFinder(variable);
             finder.scan(env.tree);
-            return finder.initialization;
+            return finder.initialValue;
         }
         return null; // no initialized value found
     }
 }
 
-/*
- * Stores trees in an ArrayList without duplicates.
- * Uses a tree's string representation to remove duplicates.
+/**
+ * Stores items in an ArrayList without duplicates.
+ * Uses an item's string representation to remove duplicates.
  */
-class Variables {
-    public ArrayList<Tree> variables = new ArrayList<>();
+class ListWithoutDuplicates<E> {
+    public ArrayList<E> items = new ArrayList<>();
     private HashSet<String> duplicates = new HashSet<>();
 
-    public void add(Tree tree) {
-        if (!duplicates.contains(tree.toString())) {
-            variables.add(tree);
-            duplicates.add(tree.toString());
+    public void add(E item) {
+        if (!duplicates.contains(item.toString())) {
+            items.add(item);
+            duplicates.add(item.toString());
         }
-    }
-
-    public boolean contains(Tree tree) {
-        return duplicates.contains(tree.toString());
-    }
-
-    public Tree searchByString(String str) {
-        for (Tree variable : variables) {
-            if (variable.toString().equals(str)) {
-                return variable;
-            }
-        }
-        return null;
     }
 }
 
