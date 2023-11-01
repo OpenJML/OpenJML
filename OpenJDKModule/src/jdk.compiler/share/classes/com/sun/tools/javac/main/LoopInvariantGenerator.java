@@ -29,6 +29,7 @@ import com.sun.tools.javac.util.Position;
 import com.sun.tools.javac.tree.TreeScanner;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -245,7 +246,8 @@ public class LoopInvariantGenerator {
         JCTree tree = env.tree; // the AST
         this.env = env;
 
-        final String outputFilename = "InferredInvariants.java";
+        final String inputFilename = Paths.get(log.currentSourceFile().toUri()).getFileName().toString();
+        final Path outputPath = Paths.get("_generated", inputFilename);
 
         // make this opt-in
         boolean enabled = JmlOptions.instance(context).getBoolean(JmlOption.INFER_INVARIANTS.optionName());
@@ -322,10 +324,19 @@ public class LoopInvariantGenerator {
                 // check whether this constant/variable combination yielded a correct invariant
                 verified = getEscVerificationResult(tree);
     
+                // if successful, write output to file
                 if (verified) {
                     try {
-						Files.write(Paths.get(outputFilename), env.tree.toString().getBytes());
-                        log.printRawLines("Successfully determined loop invariants: " + Paths.get(outputFilename));
+                        String output = env.tree.toString();
+
+                        // remove extra "public static" annotation from output
+                        output = output.replaceFirst("(?m)^\\s*public static $", "");
+
+                        // write output to _generated/{filename}
+                        Files.createDirectories(outputPath.getParent());
+						Files.write(outputPath, output.getBytes());
+
+                        log.printRawLines("Successfully determined loop invariants: " + outputPath);
 					} catch (Exception e) {
 						log.rawError(Position.NOPOS, "Cannot write to output file: " + e.toString());
 					}
