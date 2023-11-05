@@ -63,6 +63,7 @@ import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.util.Assert;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -336,14 +337,14 @@ public class JmlCompiler extends JavaCompiler {
     }
 
     /** Overridden in order to insert ESC and RAC (or other) processing */
+    @Override
     public Queue<Env<AttrContext>> flow(Queue<Env<AttrContext>> envs) {
-        envs = super.flow(envs);
-        ListBuffer<Env<AttrContext>> results = new ListBuffer<>();
+    	Assert.check(compilePolicy == CompilePolicy.SIMPLE); // FIXME - only works for SIMPLE at present
         if (envs.isEmpty()) {
-        	if (utils.esc) context.get(Main.IProgressListener.class).report(1,"Operation not performed because of parse or type errors");
-        	return results;
+        	context.get(Main.IProgressListener.class).report(1,"Operation not performed because of parse or type errors");
+        	return new java.util.LinkedList<Env<AttrContext>>();
         }
-        
+    	var results = super.flow(envs);
         if (utils.esc || utils.rac) {
         	JmlUseSubstitutions subst = new JmlUseSubstitutions(context);
             for (Env<AttrContext> env: envs) {
@@ -387,17 +388,6 @@ public class JmlCompiler extends JavaCompiler {
         }
     }
 
-    // FIXME _ review
-    @Override
-    protected void flow(Env<AttrContext> env, Queue<Env<AttrContext>> results) {
-//        if (env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
-////            // FIXME - not sure why this is needed for rac but causes esc tests to fail
-//            if (utils.rac) CompileStates.instance(context).put(env,CompileState.FLOW);
-//            return;
-//        }
-        super.flow(env,results);
-    }
-    
     
     @Override
     public void initProcessAnnotations(Iterable<? extends Processor> processors,

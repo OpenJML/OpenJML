@@ -408,6 +408,10 @@ public class JmlTreeUtils {
      *  @param value      The literal's value; use 0 or 1 for Boolean; use an int for char literals.
      */
     public JCLiteral makeLit(int pos, Type type, Object value) {
+//    	if (org.jmlspecs.openjml.Utils.isJML()) {
+//    		System.out.println("CONST " + type.getClass() + " " + type + " " + value);
+//    		Utils.dumpStack();
+//    	}
         return factory.at(pos).Literal(type.getTag(), value).setType(type.constType(value));
     }
     
