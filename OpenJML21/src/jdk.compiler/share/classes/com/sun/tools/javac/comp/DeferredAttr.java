@@ -513,13 +513,13 @@ public class DeferredAttr extends JCTree.Visitor {
     }
 
     // where
-        private boolean hasTypeDeclaration(JCTree tree) {
+        protected boolean hasTypeDeclaration(JCTree tree) { // OPENJML - private to protected
             TypeDeclVisitor typeDeclVisitor = new TypeDeclVisitor();
             typeDeclVisitor.scan(tree);
             return typeDeclVisitor.result;
         }
 
-        private static class TypeDeclVisitor extends TreeScanner {
+        protected static class TypeDeclVisitor extends TreeScanner {// OPENJML- private to protected
             boolean result = false;
 
             @Override

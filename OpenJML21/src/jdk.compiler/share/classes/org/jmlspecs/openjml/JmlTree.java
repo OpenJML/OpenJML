@@ -2425,6 +2425,7 @@ public class JmlTree {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlMethodInvocation(this); 
             } else {
+                System.out.println("A JmlMethodInvocation.accept expects a IJmlVIsitor, not a " + v.getClass() + " " + this.getClass());
                 v.visitTree(this);
             }
         }

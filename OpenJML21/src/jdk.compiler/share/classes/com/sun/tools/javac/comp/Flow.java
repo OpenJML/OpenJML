@@ -207,7 +207,7 @@ public class Flow {
     protected static final Context.Key<Flow> flowKey = new Context.Key<>();
 
     private final Names names;
-    private final Log log;
+    protected final Log log; // OPENJML - privet to protected
     private final Symtab syms;
     private final Types types;
     private final Check chk;
