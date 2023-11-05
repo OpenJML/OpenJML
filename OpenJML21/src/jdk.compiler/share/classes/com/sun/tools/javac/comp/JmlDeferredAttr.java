@@ -11,9 +11,11 @@ import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 import org.jmlspecs.openjml.visitors.JmlTreeCopier;
 import org.jmlspecs.openjml.visitors.IJmlVisitor;
 
+import com.sun.tools.javac.comp.DeferredAttr.TypeDeclVisitor;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeCopier;
 import com.sun.tools.javac.tree.TreeMaker;
+import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.util.Context;
@@ -50,6 +52,19 @@ public class JmlDeferredAttr extends DeferredAttr implements IJmlVisitor {
 //        dc.scan(expr);
 //        return dc.result.isPoly();
 //    }
+    
+    protected boolean hasTypeDeclaration(JCTree tree) { // OPENJML - private to protected
+        TypeDeclVisitor typeDeclVisitor = new JmlTypeDeclVisitor();
+        typeDeclVisitor.scan(tree);
+        return typeDeclVisitor.result;
+    }
+    
+    protected static class JmlTypeDeclVisitor extends TypeDeclVisitor implements IJmlVisitor {
+    	
+    	
+    }
+
+
     
     // Overridden to use a JML copier
     protected TreeCopier<Void> makeCopier(TreeMaker make) {
