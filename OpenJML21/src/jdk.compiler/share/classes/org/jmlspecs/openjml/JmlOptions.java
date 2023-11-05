@@ -29,6 +29,7 @@ import org.jmlspecs.openjml.Main.PrintProgressReporter;
 import org.jmlspecs.openjml.esc.MethodProverSMT;
 
 import com.sun.tools.javac.main.Arguments;
+import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.main.Option.OptionKind;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
@@ -128,6 +129,7 @@ public class JmlOptions extends Options {
         }
         setupOptions(); // check consistency of options so far, even though Java options are not processed yet
         options.put("compilePolicy", "simple");
+        JmlCompiler.instance(context).compilePolicy = com.sun.tools.javac.main.JavaCompiler.CompilePolicy.SIMPLE;
         // setupOptions is called to verify consistency after Java options are processed, in JmlArguments.validate
         return newargs.toArray(new String[newargs.size()]);
     }

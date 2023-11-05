@@ -171,7 +171,7 @@ public class JavaCompiler {
      * if it might be safe to process a class through its next phase because
      * it does not depend on any unrelated errors that might have occurred.
      */
-    protected static enum CompilePolicy {
+    public static enum CompilePolicy { // OPENJML - protected to public
         /**
          * Attribute everything, then do flow analysis for everything,
          * then desugar everything, and only then generate output.
@@ -210,7 +210,7 @@ public class JavaCompiler {
         }
     }
 
-    private static final CompilePolicy DEFAULT_COMPILE_POLICY = CompilePolicy.BY_TODO;
+    protected static final CompilePolicy DEFAULT_COMPILE_POLICY = CompilePolicy.BY_TODO;
 
     protected static enum ImplicitSourcePolicy {
         /** Don't generate or process implicitly read source files. */
@@ -532,7 +532,7 @@ public class JavaCompiler {
     /**
      * The policy for the order in which to perform the compilation
      */
-    protected CompilePolicy compilePolicy;
+    public CompilePolicy compilePolicy; // OPENJML - protected to public
 
     /**
      * The policy for what to do with implicitly read source files
@@ -1399,7 +1399,7 @@ public class JavaCompiler {
      * Perform dataflow checks on an attributed parse tree.
      */
     protected void flow(Env<AttrContext> env, Queue<Env<AttrContext>> results) {
-        if (compileStates.isDone(env, CompileState.FLOW)) {
+    	if (compileStates.isDone(env, CompileState.FLOW)) {
             results.add(env);
             return;
         }

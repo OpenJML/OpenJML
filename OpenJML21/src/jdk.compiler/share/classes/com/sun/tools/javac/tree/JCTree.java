@@ -1811,7 +1811,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
                                                : typeargs;
             this.meth = meth;
             this.args = args;
-            if (org.jmlspecs.openjml.Utils.isJML() && !(this instanceof org.jmlspecs.openjml.JmlTree.JmlMethodInvocation)) { System.out.println("JCMINV " + this); Thread.dumpStack(); }
+            //if (org.jmlspecs.openjml.Utils.isJML() && !(this instanceof org.jmlspecs.openjml.JmlTree.JmlMethodInvocation)) { System.out.println("JCMINV " + this); Thread.dumpStack(); }
         }
         @Override
         public void accept(Visitor v) { v.visitApply(this); }

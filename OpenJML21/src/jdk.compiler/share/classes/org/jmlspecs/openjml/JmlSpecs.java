@@ -290,12 +290,11 @@ public class JmlSpecs {
         
         // Look for specs in a file on the classpath
         // If present, use it.
-        // Otherwise look use the defauylt installation.
+        // Otherwise look use the default installation.
         
         String sp = System.getProperty("java.class.path");
         String[] ss = sp.split(java.io.File.pathSeparator);
         Dir d;
-        System.out.println("CP " + sp);
         
         
         // See if there is any jar file on the classpath that contains

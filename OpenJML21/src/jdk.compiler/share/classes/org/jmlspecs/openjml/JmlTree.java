@@ -401,7 +401,7 @@ public class JmlTree {
                     Type(mtype.getReturnType()),
                     TypeParams(mtype.getTypeArguments()),
                     null, // FIXME - receiver parameter
-                    Params(m, mtype.getParameterTypes()),
+                    m.params != null ? Params(m) : Params(m, mtype.getParameterTypes()),
                     Types(mtype.getThrownTypes()),
                     body,
                     null,
@@ -511,7 +511,7 @@ public class JmlTree {
             c.pos = pos;
             return c;
         }
-        
+       /* 
         @Override
         public JmlMethodInvocation Apply(List<JCExpression> typeargs,
                 JCExpression fn,
@@ -519,6 +519,7 @@ public class JmlTree {
 		{
         	return new JmlMethodInvocation(pos, typeargs, fn, args);
 		}
+*/
 		        
         /** Creates a JML method invocation (e.g. for JmlTokens with arguments, such as \typeof) */
         @Override
@@ -2425,7 +2426,6 @@ public class JmlTree {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlMethodInvocation(this); 
             } else {
-                System.out.println("A JmlMethodInvocation.accept expects a IJmlVIsitor, not a " + v.getClass() + " " + this.getClass());
                 v.visitTree(this);
             }
         }
