@@ -4198,7 +4198,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 localEnv = localEnv(env,enclosingClassEnv.tree);
             }
             env = localEnv;
-            
+
             if (tree.token == null) {
                 if (env.enclMethod != null)
                     jmlenv.jmlVisibility = env.enclMethod.mods.flags & Flags.AccessFlags;
@@ -5845,192 +5845,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     static boolean moreOrEqualVisibleThan(long v1, long v2) {
         return order[(int)v1] >= order[(int)v2];
     }
-    
-//    // Duplicates PostAttrScanner
-//    class JmlPostAttrAnalyzer extends JmlTreeScanner {
-//
-//        private void initTypeIfNeeded(JCTree that) {
-//            if (that.type == null) {
-//                if (that.hasTag(METHODDEF)) {
-//                    that.type = dummyMethodType((JCMethodDecl)that);
-//                } else {
-//                    that.type = syms.unknownType;
-//                }
-//            }
-//        }
-//
-//        /* Construct a dummy method type. If we have a method declaration,
-//         * and the declared return type is void, then use that return type
-//         * instead of UNKNOWN to avoid spurious error messages in lambda
-//         * bodies (see:JDK-8041704).
-//         */
-//        private Type dummyMethodType(JCMethodDecl md) {
-//            Type restype = syms.unknownType;
-//            if (md != null && md.restype != null && md.restype.hasTag(TYPEIDENT)) {
-//                JCPrimitiveTypeTree prim = (JCPrimitiveTypeTree)md.restype;
-//                if (prim.typetag == VOID)
-//                    restype = syms.voidType;
-//            }
-//            return new MethodType(List.nil(), restype,
-//                                  List.nil(), syms.methodClass);
-//        }
-//        private Type dummyMethodType() {
-//            return dummyMethodType(null);
-//        }
-//
-//        @Override
-//        public void scan(JCTree tree) {
-//            if (tree == null) return;
-//            if (tree instanceof JCExpression) {
-//                initTypeIfNeeded(tree);
-//            }
-//            super.scan(tree);
-//        }
-//
-//        @Override
-//        public void visitIdent(JCIdent that) {
-//            if (that.sym == null) {
-//                that.sym = syms.unknownSymbol;
-//            }
-//        }
-//
-//        @Override
-//        public void visitSelect(JCFieldAccess that) {
-//            if (that.sym == null) {
-//                that.sym = syms.unknownSymbol;
-//            }
-//            super.visitSelect(that);
-//        }
-//
-//        @Override
-//        public void visitClassDef(JCClassDecl that) {
-//            initTypeIfNeeded(that);
-//            if (that.sym == null) {
-//                that.sym = new ClassSymbol(0, that.name, that.type, syms.noSymbol);
-//            }
-//            super.visitClassDef(that);
-//        }
-//
-//        @Override
-//        public void visitMethodDef(JCMethodDecl that) {
-//            initTypeIfNeeded(that);
-//            if (that.sym == null) {
-//                that.sym = new MethodSymbol(0, that.name, that.type, syms.noSymbol);
-//            }
-//            super.visitMethodDef(that);
-//        }
-//
-//        @Override
-//        public void visitVarDef(JCVariableDecl that) {
-//            initTypeIfNeeded(that);
-//            if (that.sym == null) {
-//                that.sym = new VarSymbol(0, that.name, that.type, syms.noSymbol);
-//                that.sym.adr = 0;
-//            }
-//            if (that.vartype == null) {
-//                that.vartype = make.at(Position.NOPOS).Erroneous();
-//            }
-//            super.visitVarDef(that);
-//        }
-//
-//        @Override
-//        public void visitBindingPattern(JCBindingPattern that) {
-//            initTypeIfNeeded(that);
-//            initTypeIfNeeded(that.var);
-//            if (that.var.sym == null) {
-//                that.var.sym = new BindingSymbol(0, that.var.name, that.var.type, syms.noSymbol);
-//                that.var.sym.adr = 0;
-//            }
-//            super.visitBindingPattern(that);
-//        }
-//
-//        @Override
-//        public void visitNewClass(JCNewClass that) {
-//            if (that.constructor == null) {
-//                that.constructor = new MethodSymbol(0, names.init,
-//                        dummyMethodType(), syms.noSymbol);
-//            }
-//            if (that.constructorType == null) {
-//                that.constructorType = syms.unknownType;
-//            }
-//            super.visitNewClass(that);
-//        }
-//
-//        @Override
-//        public void visitAssignop(JCAssignOp that) {
-//            if (that.operator == null) {
-//                that.operator = new OperatorSymbol(names.empty, dummyMethodType(),
-//                        -1, syms.noSymbol);
-//            }
-//            super.visitAssignop(that);
-//        }
-//
-//        @Override
-//        public void visitBinary(JCBinary that) {
-//            if (that.operator == null) {
-//                that.operator = new OperatorSymbol(names.empty, dummyMethodType(),
-//                        -1, syms.noSymbol);
-//            }
-//            super.visitBinary(that);
-//        }
-//
-//        @Override
-//        public void visitUnary(JCUnary that) {
-//            if (that.operator == null) {
-//                that.operator = new OperatorSymbol(names.empty, dummyMethodType(),
-//                        -1, syms.noSymbol);
-//            }
-//            super.visitUnary(that);
-//        }
-//
-//        @Override
-//        public void visitReference(JCMemberReference that) {
-//            super.visitReference(that);
-//            if (that.sym == null) {
-//                that.sym = new MethodSymbol(0, names.empty, dummyMethodType(),
-//                        syms.noSymbol);
-//            }
-//        }
-//
-//    }
-    
-//    @Override
-//    void preFlow(JCTree tree) {
-//        attrRecover.doRecovery();
-//        new PostAttrAnalyzer() {
-//            @Override
-//            public void scan(JCTree tree) {
-//                if (tree == null ||
-//                        (tree.type != null &&
-//                        tree.type == Type.stuckType)) {
-//                    //don't touch stuck expressions!
-//                    return;
-//                }
-//                super.scan(tree);
-//            }
-//
-//            @Override
-//            public void visitClassDef(JCClassDecl that) {
-//                if (that.sym != null) {
-//                    // Method preFlow shouldn't visit class definitions
-//                    // that have not been entered and attributed.
-//                    // See JDK-8254557 and JDK-8203277 for more details.
-//                    super.visitClassDef(that);
-//                }
-//            }
-//
-//            @Override
-//            public void visitLambda(JCLambda that) {
-//                if (that.type != null) {
-//                    // Method preFlow shouldn't visit lambda expressions
-//                    // that have not been entered and attributed.
-//                    // See JDK-8254557 and JDK-8203277 for more details.
-//                    super.visitLambda(that);
-//                }
-//            }
-//        }.scan(tree);
-//    }
-//
     
     @Override
     public void visitIndexed(JCArrayAccess tree) {
@@ -8511,7 +8325,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	public static void preRegister(Context context) {
     		new JmlArgumentAttr(context);// self registers
     	}
-    	
     	
         public void visitBlock(JmlBlock tree)                          { visitTree(tree); }
         public void visitImport(JCImport tree)                         { visitTree(tree); }
