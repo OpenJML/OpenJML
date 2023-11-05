@@ -132,6 +132,8 @@ class ReplaceCandidateFinder extends TreeScanner implements IJmlVisitor {
 
     @Override
     public void visitLiteral(JCLiteral tree) {
+        if (this.variableMode) return; // since literals are always constant
+
         // make sure the literal is of an integer value (not a string literal, etc)
         if (isIntegerType(tree.typetag)) {
             collected.add(tree);
