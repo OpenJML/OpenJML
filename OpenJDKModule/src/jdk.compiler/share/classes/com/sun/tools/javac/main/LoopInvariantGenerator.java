@@ -98,14 +98,16 @@ class VariableInitFinder extends TreeScanner {
     }
 }
 
-class AssertionReader extends TreeScanner implements IJmlVisitor {
+class AssertionIteratorModifier extends TreeScanner implements IJmlVisitor {
 
     private final String ITERATOR_VAR = "iterator_var";
     private String old_iterator_name;
     private Context context;
+    private Names names;
 
-    public AssertionReader(Context context) {
+    public AssertionIteratorModifier(Context context) {
         this.context = context;
+        names = Names.instance(context);
     }
 
     @Override
@@ -114,12 +116,12 @@ class AssertionReader extends TreeScanner implements IJmlVisitor {
             if (tree instanceof JmlVariableDecl) {
                 JmlVariableDecl temp = (JmlVariableDecl) tree;
                 this.old_iterator_name = temp.getName().toString();
-                temp.name = Names.instance(context).fromString(ITERATOR_VAR);
+                temp.name = names.fromString(ITERATOR_VAR);
             } else {
                 if (tree instanceof JCIdent) {
                     JCIdent temp = (JCIdent) tree;
                     if (temp.getName().toString().equals(old_iterator_name)) {
-                        temp.name = Names.instance(context).fromString(ITERATOR_VAR);
+                        temp.name = names.fromString(ITERATOR_VAR);
                     }
                 }
             }
@@ -305,7 +307,8 @@ public class LoopInvariantGenerator {
             return;
         }
 
-        new AssertionReader(context).scan(lAssertionFinder.detectedAssertion.expression);
+        // replace the /forall variable name with "iterator_var" to avoid conflicting names
+        new AssertionIteratorModifier(context).scan(lAssertionFinder.detectedAssertion.expression);
 
         IJmlLoop loop = null;
 
