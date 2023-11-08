@@ -24,6 +24,7 @@ import com.sun.source.tree.Tree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Position;
 import com.sun.tools.javac.tree.TreeScanner;
@@ -94,6 +95,45 @@ class VariableInitFinder extends TreeScanner {
             this.initialValue = tree.init;
         }
         super.visitVarDef(tree);
+    }
+}
+
+class AssertionReader extends TreeScanner implements IJmlVisitor {
+
+    private final String ITERATOR_VAR = "iterator_var";
+    private String old_iterator_name;
+    private Context context;
+
+    public AssertionReader(Context context) {
+        this.context = context;
+    }
+
+    @Override
+    public void scan(JCTree tree) {
+        if (tree != null) {
+            if (tree instanceof JmlVariableDecl) {
+                JmlVariableDecl temp = (JmlVariableDecl) tree;
+                this.old_iterator_name = temp.getName().toString();
+                temp.name = Names.instance(context).fromString(ITERATOR_VAR);
+            } else {
+                if (tree instanceof JCIdent) {
+                    JCIdent temp = (JCIdent) tree;
+                    if (temp.getName().toString().equals(old_iterator_name)) {
+                        temp.name = Names.instance(context).fromString(ITERATOR_VAR);
+                    }
+                }
+            }
+            super.scan(tree); 
+        }
+
+    }
+
+    @Override
+    public void visitTree(JCTree tree) {
+        // Generic visit for any trees not specially handled
+        if (tree != null) {
+            super.scan(tree);
+        }
     }
 }
 
@@ -264,6 +304,8 @@ public class LoopInvariantGenerator {
             reportGenerationFailure("didn't find a loop and assertion");
             return;
         }
+
+        new AssertionReader(context).scan(lAssertionFinder.detectedAssertion.expression);
 
         IJmlLoop loop = null;
 
