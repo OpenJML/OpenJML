@@ -408,29 +408,39 @@ public class LoopInvariantGenerator {
     }
 
     /**
-     * Makes a boundary expression for a given variable.
-     * lower bound is the variable's initial value if we can find it, otherwise 0.
-     * upper bound is the constant that the variable is replacing.
+     * Makes a boundary expression for given variable.
+     * The variable is bound between its initial value and the constant it is replacing.
+     * The initial value is assumed to be 0 if we couldn't find it.
      * 
-     * Caveat: this assumes that the iteration variable increases by 1 each time
+     * Caveat: this assumes that the iteration variable changes by 1 each time
+     * (e.g. i++, i--)
      */
     private JmlChained makeBoundaryExpression(IJmlLoop loop, JCIdent variable, JCExpression constant) {
-        // try to get the initial value from the for loop's initializer
         JCExpression initialValue = getInitialValueOfVar(variable, loop);
+        JCExpression loopCond = loop instanceof JCForLoop ? ((JCForLoop)loop).cond : ((JCWhileLoop)loop).cond;
         
-        // make expression for the lower bound
+        // determine whether the iteration is increasing or decreasing (i++ or i--)
+        boolean increasing = true;
+        if (loopCond instanceof JCBinary && (loopCond.getTag() == Tag.GT || loopCond.getTag() == Tag.GE)) {
+            // if the loop condition is something like (i > 10), i is probably decreasing
+            increasing = false;
+        }
+
+        Tag comparisonTag = increasing ? Tag.LE : Tag.GE;
+        
+        // make expression for initial bound - comparing "variable" to its initial value
         JCBinary lowerBound;
         if (initialValue != null) {
-            lowerBound = treeMaker.Binary(JCTree.Tag.LE, initialValue, variable);
+            lowerBound = treeMaker.Binary(comparisonTag, initialValue, variable);
         } else {
             // couldn't find initial value, so assume it is 0
             JCLiteral zero = treeMaker.Literal(0).setType(symtab.intType);
-            lowerBound = treeMaker.Binary(JCTree.Tag.LE, zero, variable);
+            lowerBound = treeMaker.Binary(comparisonTag, zero, variable);
         }
         lowerBound.setType(symtab.booleanType);
         
-        // make expression for the upper bound
-        JCBinary upperBound = treeMaker.Binary(JCTree.Tag.LE, (JCTree.JCIdent)variable, constant);  
+        // make expression for the final bound - comparing "variable" to "constant"
+        JCBinary upperBound = treeMaker.Binary(comparisonTag, (JCTree.JCIdent)variable, constant);  
         upperBound.setType(symtab.booleanType);
         
         // combine the two expressions into a single JmlChained
