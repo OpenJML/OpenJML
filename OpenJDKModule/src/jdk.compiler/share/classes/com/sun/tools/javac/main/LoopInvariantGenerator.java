@@ -337,6 +337,43 @@ public class LoopInvariantGenerator {
 
         constantFinder.scan(lAssertionFinder.detectedAssertion.expression); // read the assertion and store the possible constants to be replaced
 
+        List<JmlStatementLoop> oldSpecs = loop.loopSpecs();
+        boolean verified = false;
+        
+        // attempt to generate invariant by deleting a conjunct
+        if (lAssertionFinder.detectedAssertion.expression instanceof JmlChained) {
+            JmlChained expression = (JmlChained) (lAssertionFinder.detectedAssertion.expression);
+
+            // for each conjunct, try deleting it and making an invariant from the other conjuncts
+            for (int i = 0; i < expression.conjuncts.length(); i++) {
+                ArrayList<JCBinary> newConjuncts = new ArrayList<>(expression.conjuncts);
+                newConjuncts.remove(i);
+
+                JmlChained expressionCopy = copier.copy(expression);
+                expressionCopy.conjuncts = List.from(newConjuncts);
+                
+                JmlStatementLoopExpr invariant = this.make.JmlStatementLoopExpr(
+                        StatementExprExtensions.loopinvariantClause,
+                        expressionCopy);
+                addSpecsToLoop(loop, List.of(invariant));
+                // System.out.println(loop);
+                
+                verified = getEscVerificationResult(tree);
+                if (verified) {
+                    break;
+                } else {
+                    // restore loop specs
+                    loop.setLoopSpecs(oldSpecs);
+                }
+            }
+        }
+
+        // if that worked, we are done. otherwise, try next strategy
+        if (verified) {
+            writeOutput(outputPath);
+            return; // done
+        }
+
         if (variableFinder.collected.items.size() == 0 ||
                 constantFinder.collected.items.size() == 0) {
             reportGenerationFailure("no constants to replace, or no variables to replace with");
@@ -344,7 +381,6 @@ public class LoopInvariantGenerator {
         }
 
         // Replace constant with variable, trying each constant/variable combination until one works
-        boolean verified = false;
         OUTER:
         for (JCTree constant : constantFinder.collected.items) {
             for (JCTree variable : variableFinder.collected.items) {
@@ -366,34 +402,49 @@ public class LoopInvariantGenerator {
                 invariant.accept(constantReplacer);
         
                 // attach our new invariants to the loop
-                loop.setLoopSpecs(List.of(boundary, invariant));
+                addSpecsToLoop(loop, List.of(boundary, invariant));
                 
                 // check whether this constant/variable combination yielded a correct invariant
                 verified = getEscVerificationResult(tree);
     
-                // if successful, write output to file
+                // if successful, write output to file - otherwise, restore loop specs for next iteration
                 if (verified) {
-                    try {
-                        String output = env.tree.toString();
-
-                        // remove extra "public static" annotation from output
-                        output = output.replaceFirst("(?m)^\\s*public static $", "");
-
-                        // write output to _generated/{filename}
-                        Files.createDirectories(outputPath.getParent());
-						Files.write(outputPath, output.getBytes());
-
-                        log.printRawLines("Successfully determined loop invariants: " + outputPath);
-					} catch (Exception e) {
-						log.rawError(Position.NOPOS, "Cannot write to output file: " + e.toString());
-					}
+                    writeOutput(outputPath);
                     break OUTER; // early exit
+                } else {
+                    loop.setLoopSpecs(oldSpecs);
                 }
             }
         }
 
         if (!verified) {
             reportGenerationFailure("no valid constant replacement found");
+        }
+    }
+
+    private void writeOutput(final Path outputPath) {
+        try {
+            String output = this.env.tree.toString();
+
+            // remove extra "public static" annotation from output
+            output = output.replaceFirst("(?m)^\\s*public static $", "");
+
+            // write output to _generated/{filename}
+            Files.createDirectories(outputPath.getParent());
+        	Files.write(outputPath, output.getBytes());
+
+            log.printRawLines("Successfully determined loop invariants: " + outputPath);
+        } catch (Exception e) {
+        	log.rawError(Position.NOPOS, "Cannot write to output file: " + e.toString());
+        }
+    }
+
+    private void addSpecsToLoop(IJmlLoop loop, List<JmlStatementLoop> specs) {
+        if (loop.loopSpecs() == null) {
+            loop.setLoopSpecs(specs);
+        } else {
+            var newSpecs = specs.appendList(loop.loopSpecs());
+            loop.setLoopSpecs(newSpecs);
         }
     }
 
