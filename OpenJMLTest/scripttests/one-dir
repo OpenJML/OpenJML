@@ -1,7 +1,7 @@
 #! /bin/bash
 
 home=$(cd $(dirname $BASH_SOURCE) && pwd )
-CMD=${home}/../../OpenJDKModule/openjml
+CMD=${home}/../../OpenJML21/openjml
 ts=$(basename $1)
 
 if [ ! -e ${home}/../test/$ts ]; then
@@ -18,10 +18,11 @@ elif [ -e rac ]; then
 else
     p=test/$ts
     if [ -e config ]; then . ./config; fi
-##    echo Testing $ts 
+    echo Testing $ts 
     cd ../..
     ## If you change the default FULLCMD, you may want to consider if the specialized versions in various test config files should be changed
     if [ -z "$FULLCMD" ]; then FULLCMD="$CMD $BASEARGS -specspath $p $ARGS -dir $p"; fi
+##    echo $FULLCMD
 ##: $FULLCMD
     $FULLCMD > $p/actual 2>&1
     stat=$?

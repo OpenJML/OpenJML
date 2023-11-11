@@ -228,6 +228,7 @@ public class JavacMessages implements Messages {
        if (msg == null) {
            msg = "compiler message file broken: key=" + key +
                " arguments={0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}";
+           Thread.dumpStack();
        }
        return MessageFormat.format(msg, args);
     }
@@ -246,6 +247,7 @@ public class JavacMessages implements Messages {
         if (msg == null) {
             msg = "compiler message file broken: key=" + diagInfo.key() +
                 " arguments={0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}";
+            Thread.dumpStack();
         }
         if (diagInfo == Errors.Error) {
             return MessageFormat.format(msg, new Object[0]);

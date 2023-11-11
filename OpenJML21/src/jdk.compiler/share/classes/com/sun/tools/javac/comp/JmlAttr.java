@@ -2193,7 +2193,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      *  @param value      The literal's value (0/1 for boolean)
      */
     protected JCLiteral makeLit(Type type, Object value) {  // FIXME - should be given a position
-        return make.Literal(type.getTag(), value).setType(type);
+        return make.Literal(type.getTag(), value).setType(litType(type.getTag()).constType(value));
     }
 
     // FIXME - is there a faster way to do this?

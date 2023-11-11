@@ -1,7 +1,7 @@
 #! /bin/bash
 
-R=/Users/davidcok/projects/OpenJMLB
-ROOT=$R/OpenJML/OpenJDKModule
+R=/Users/davidcok/projects/OpenJML21
+ROOT=$R/OpenJML/OpenJML21
 JROOT=$R/OpenJML/OpenJMLTest/libs
 JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar"
 

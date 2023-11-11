@@ -412,11 +412,13 @@ public class JmlTreeUtils {
 //    		System.out.println("CONST " + type.getClass() + " " + type + " " + value);
 //    		Utils.dumpStack();
 //    	}
-        return factory.at(pos).Literal(type.getTag(), value).setType(type.constType(value));
+    	// FIXME - not for string -- cf Attr.litType
+    	var t = syms.typeOfTag[type.getTag().ordinal()].constType(value);
+        return factory.at(pos).Literal(type.getTag(), value).setType(t);
     }
     
     public JCExpression makeBigintLit(int pos, int v) {
-        return factory.at(pos).Literal(TypeTag.INT, v).setType(syms.intType.constType(v));
+        return makeIntLiteral(pos, v);
         //return factory.TypeCast(JmlTypes.instance(context).BIGINT, e);
     }
     
@@ -448,7 +450,7 @@ public class JmlTreeUtils {
      * but with the new position. */
     public JCLiteral makeDuplicateLiteral(DiagnosticPosition pos, JCLiteral lit) {
         // Note that lit.typetag can be different from lit.type.tag - e.g for null values
-        JCLiteral r = factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+        JCLiteral r = factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type);
         if (r.getValue() == null && r.type != syms.botType) { // This check is just because null sometimes has a Object type, and that causes problems in RAC
             r.type = syms.botType;  // FIXME - ti seems a bug that this should ever be needed
         }
@@ -457,7 +459,7 @@ public class JmlTreeUtils {
     
     public JCLiteral makeDuplicateLiteral(int pos, JCLiteral lit) {
         // Note that lit.typetag can be different from lit.type.tag - e.g for null values
-        JCLiteral r = factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+        JCLiteral r = factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type);
         if (r.getValue() == null && r.type != syms.botType) { // This check is just because null sometimes has a Object type, and that causes problems in RAC
             r.type = syms.botType;  // FIXME - ti seems a bug that this should ever be needed
         }
@@ -466,12 +468,14 @@ public class JmlTreeUtils {
     
     /** Make an attributed tree representing an integer literal. */
     public JCLiteral makeIntLiteral(int pos, int value) {
-        return factory.at(pos).Literal(TypeTag.INT, value).setType(syms.intType.constType(value));
+    	var t = syms.typeOfTag[TypeTag.INT.ordinal()].constType(value);
+    	return factory.at(pos).Literal(TypeTag.INT, value).setType(t);
     }
 
     /** Make an attributed tree representing an integer literal. */
     public JCLiteral makeIntLiteral(DiagnosticPosition pos, int value) {
-        return factory.at(pos).Literal(TypeTag.INT, value).setType(syms.intType.constType(value));
+    	var t = syms.typeOfTag[TypeTag.INT.ordinal()].constType(value);
+        return factory.at(pos).Literal(TypeTag.INT, value).setType(t);
     }
 
     /** Make an attributed tree representing an long literal. */

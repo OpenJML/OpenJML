@@ -1493,7 +1493,8 @@ public class JavaCompiler {
         }
 
         if (compileStates.isDone(env, CompileState.LOWER)) {
-            results.addAll(desugaredEnvs.get(env));
+        	var t = desugaredEnvs.get(env);  // OPENJML - a bug fix?
+            if (t != null) results.addAll(t);  // OPENJML - a bug fix?
             return;
         }
 

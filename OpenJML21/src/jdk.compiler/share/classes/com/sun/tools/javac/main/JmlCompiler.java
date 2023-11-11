@@ -288,7 +288,7 @@ public class JmlCompiler extends JavaCompiler {
         org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, specCU, specFile);
         return specCU;
     }
-        
+
     /** Overridden in order to put out some progress information about stopping */
     @Override
     public  <T> List<T> stopIfError(CompileState cs, List<T> list) {
@@ -340,9 +340,10 @@ public class JmlCompiler extends JavaCompiler {
     @Override
     public Queue<Env<AttrContext>> flow(Queue<Env<AttrContext>> envs) {
     	Assert.check(compilePolicy == CompilePolicy.SIMPLE); // FIXME - only works for SIMPLE at present
+    	var noresults = new java.util.LinkedList<Env<AttrContext>>();
         if (envs.isEmpty()) {
         	context.get(Main.IProgressListener.class).report(1,"Operation not performed because of parse or type errors");
-        	return new java.util.LinkedList<Env<AttrContext>>();
+        	return noresults;
         }
     	var results = super.flow(envs);
         if (utils.esc || utils.rac) {
@@ -369,11 +370,11 @@ public class JmlCompiler extends JavaCompiler {
                 String summary = esc.reportCounts();
                 if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode && JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)) utils.note(false,summary);
         	}
-    		return results; // Empty list - Do nothing more
+    		return noresults; // Empty list - Do nothing more
         } else if (utils.infer) {
             for (Env<AttrContext> env: envs)
                 infer(env);
-            return results;
+            return noresults;
         } else if (utils.rac) {
         	for (var env: envs) {
         		var t = env.tree;
@@ -524,6 +525,9 @@ public class JmlCompiler extends JavaCompiler {
     	
         JmlEsc esc = JmlEsc.instance(context);
         esc.check(env.tree);
+        
+        shouldStopPolicyIfNoError = CompileState.TRANSTYPES;
+        shouldStopPolicyIfError = CompileState.TRANSTYPES;
 
         return;
     }

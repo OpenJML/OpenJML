@@ -22,11 +22,13 @@ cd ../OpenJMLTest
 rm -rf temp-release
 mkdir temp-release
 cd temp-release
+LOC=`pwd`/../../OpenJML21
+RLOC=../../OpenJML21
 
 if [ -z "${NOZIP+x}" ]; then
 ## if NOZIP is not set, then test a release zip
 
-  ZIP=../../OpenJDKModule/release-temp/openjml.zip
+  ZIP="$RLOC/release-temp/openjml.zip"
   if [ -e "$ZIP" ]; then
     cp $ZIP .
   else
@@ -43,9 +45,9 @@ if [ -z "${NOZIP+x}" ]; then
 elif [ -z "$NOZIP" ]; then
 ## NOZIP was set to a empty string; test the current build
 
-  OJ=`pwd`/../../OpenJDKModule/openjml
-  JV=`pwd`/../../OpenJDKModule/openjml-java
-  RT=`pwd`/../../OpenJDKModule/jmlruntime.jar
+  OJ="$LOC"/openjml
+  JV="$LOC"/openjml-java
+  RT="$LOC"/jmlruntime.jar
   echo "Testing current build at $OJ"
 
 else
@@ -53,7 +55,7 @@ else
 
   OJ="$NOZIP"
   JV="$NOZIP"-java
-  RT=`pwd`/../../OpenJDKModule/jmlruntime.jar
+  RT="$LOC/jmlruntime.jar"
   echo "Testing executable at $OJ"
 
 fi
@@ -116,13 +118,13 @@ echo "import org.jmlspecs.annotation.*; public class D { @Pure public static voi
 
 
 ## Checks a valid file using java -jar
-${RTH} testOK1 "$OJ -noPurityCheck -specspath . B.java" || RES=$(($RES+1))
+${RTH} testOK1 "$OJ --no-purity-check -specspath . B.java" || RES=$(($RES+1))
 
 ## rac
 rm -rf rac
 mkdir -p rac
-${RTH} testRac "$OJ -rac -racShowSource=line -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
-${RTH} testRac "$OJ -rac -racShowSource=line -noPurityCheck -d rac -classpath . D.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ -rac -racShowSource=line --no-purity-check -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ -rac -racShowSource=line --no-purity-check -d rac -classpath . D.java" || { RES=$(($RES+1)); }
 echo RAC-OK
 #echo java -classpath "rac${Z}${RT}" A
 java -classpath "rac${Z}${RT}" A  > racactual
@@ -139,15 +141,12 @@ tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/exp
 echo RAC-ST
 java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.racshowstack A 1 2 > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack || { RES=$(($RES+1)); }
-echo RAC-NOLIB
-java -classpath "rac" A 1 2 > racactual 2>&1
-tr -d '\r' < racactual | sed -e 'sx\\x/xg' | head -4 |  diff - ../releaseTests/testRac/expected-nolib || { RES=$(($RES+1)); }
 
 echo RAC-ST with openjml-java
 ${JV} -classpath "rac" -Dorg.jmlspecs.openjml.racshowstack A 1 2 > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack-openjml || { RES=$(($RES+1)); }
 
-${RTH} testRac "$OJ -rac -racShowSource=source -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ -rac --rac-show-source=source --no-purity-check -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
 echo RAC-SIMPLE with source
 java -classpath "rac${Z}${RT}" A 1 2  > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' | diff - ../releaseTests/testRac/expected-simple-source || { RES=$(($RES+1)); }
@@ -161,16 +160,8 @@ tr -d '\r' < racactual | sed -e 'sx\\x/xg' | diff - ../releaseTests/testRac/expe
 ## regular test suite
 if [[ "$COKENV" != "" ]] ; then
 ## Checks a valid file with jmlverbose
-${RTH} testOK3 "$OJ -noPurityCheck -specspath . B.java -jmlverbose" || RES=$(($RES+1))
+${RTH} testOK3 "$OJ --no-purity-check -specspath . B.java -jmlverbose" || RES=$(($RES+1))
 fi
-
-## Checks a valid file with no internal specs
-## FIXME - why does this work?
-${RTH} testOK4 "$OJ -specspath . B.java -noInternalSpecs" || RES=$(($RES+1))
-
-## Checks a valid file with no internal runtime library - should fail to find annotations
-## FIXME - is -noInternalRuntime still a usefule/vlid option?
-##${RTH} testRuntime1 "$OJ C.java -jmltesting -classpath . -noPurityCheck -noInternalRuntime" || RES=$(($RES+1))
 
 ## ANNOTATIONS might be an absolute or relative path.  We are currently in
 ## OpenJML/temp-release so if absolute we want ${ANNOTATIONS}, if relative we want ../${ANNOTATIONS}
@@ -179,65 +170,55 @@ ${RTH} testOK4 "$OJ -specspath . B.java -noInternalSpecs" || RES=$(($RES+1))
 ANNOTATIONS=../../../JMLAnnotations
 #fi
 
-## FIXME - uses of OpenJML/bin-runtime must change
-## Checks a valid file with an external binary runtime library - should be OK
-##${RTH} testRuntime2 "$OJ C.java -noPurityCheck -classpath ../../OpenJML/bin-runtime${Z}${ANNOTATIONS}/bin -noInternalRuntime"  || RES=$(($RES+1))
-
-## Checks a valid file with an external source runtime library - should be OK
-${RTH} testRuntime3 "$OJ C.java -noPurityCheck -classpath ../../OpenJML/runtime${Z}${ANNOTATIONS}/src -noInternalRuntime" || RES=$(($RES+1))
+## Checks a valid file with an external source runtime library - should be OK -- FIXME - can we actually turn off the internal runtime
+${RTH} testRuntime3 "$OJ C.java --no-purity-check -classpath ../../OpenJML21/src/java.base/share/classes${Z}${ANNOTATIONS}/src" || RES=$(($RES+1))
 
 ## Checks using annotations with normal use - should be OK
-${RTH} testRuntime4 "$OJ C.java -noPurityCheck " || RES=$(($RES+1))
+${RTH} testRuntime4 "$OJ C.java --no-purity-check " || RES=$(($RES+1))
 
 ## Checks using annotations with normal use - should be OK
-${RTH} testRuntime5 "$OJ D.java -noPurityCheck " || RES=$(($RES+1))
+${RTH} testRuntime5 "$OJ D.java --no-purity-check " || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc1 "$OJ -noPurityCheck -esc ../testfiles/testEsc/A.java -classpath ../testfiles/testEsc" || RES=$(($RES+1))
+${RTH} testEsc1 "$OJ --no-purity-check -esc ../testfiles/testEsc/A.java -classpath ../testfiles/testEsc" || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc2 "$OJ -noPurityCheck -esc ../testfiles/testEsc/B.java -classpath ../testfiles/testEsc" || RES=$(($RES+1))
+${RTH} testEsc2 "$OJ --no-purity-check -esc ../testfiles/testEsc/B.java -classpath ../testfiles/testEsc" || RES=$(($RES+1))
 
 
 ## Checks using no paths - fails to find super class, uses specs in java file
-${RTH} testPath1 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java " || RES=$(($RES+1))
+${RTH} testPath1 "$OJ -jmltesting --no-purity-check ../testfiles/testPath/data/TestPath.java " || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testPath2 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data" || RES=$(($RES+1))
+${RTH} testPath2 "$OJ -jmltesting --no-purity-check ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data" || RES=$(($RES+1))
 
 ## Checks using specs path - finds specs but not super class
-${RTH} testPath3 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -specspath ../testfiles/testPath/data-specs " || RES=$(($RES+1))
+${RTH} testPath3 "$OJ -jmltesting --no-purity-check ../testfiles/testPath/data/TestPath.java -specspath ../testfiles/testPath/data-specs " || RES=$(($RES+1))
 
 ## Checks using source path - finds specs but not super class
-${RTH} testPath4 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data-specs " || RES=$(($RES+1))
+${RTH} testPath4 "$OJ -jmltesting --no-purity-check ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data-specs " || RES=$(($RES+1))
 
 ## Checks using source path (specs and java) - finds specs and super class
-${RTH} testPath5 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data-specs${Z}../testfiles/testPath/data " || RES=$(($RES+1))
+${RTH} testPath5 "$OJ -jmltesting --no-purity-check ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data-specs${Z}../testfiles/testPath/data " || RES=$(($RES+1))
 
 ## Checks using source path (java then specs) - finds super class; uses jml file for specs even though it is later on the search path
-${RTH} testPath6 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data${Z}../testfiles/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath6 "$OJ -jmltesting --no-purity-check ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data${Z}../testfiles/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using source path and specs path - uses specs file, finds super class
-${RTH} testPath7 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data -specspath ../testfiles/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath7 "$OJ -jmltesting --no-purity-check ../testfiles/testPath/data/TestPath.java -sourcepath ../testfiles/testPath/data -specspath ../testfiles/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using class path (specs and java) - finds specs and super class
-${RTH} testPath8 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data-specs${Z}../testfiles/testPath/data " || RES=$(($RES+1))
+${RTH} testPath8 "$OJ -jmltesting --no-purity-check ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data-specs${Z}../testfiles/testPath/data " || RES=$(($RES+1))
 
 ## Checks using class path (java then specs) - finds super class; uses jml file for specs
-${RTH} testPath9 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data${Z}../testfiles/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath9 "$OJ -jmltesting --no-purity-check ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data${Z}../testfiles/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using class path and specs path - uses specs file, finds super class
-${RTH} testPath10 "$OJ -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data -specspath ../testfiles/testPath/data-specs" || RES=$(($RES+1))
-
-
-## FIXME - this gives an odd error message.  The presence/absence of rt.jar makes no difference
-##   adding additional spec files or removing -noInternalSpecs gets past this error, but not sure why
-##   also why would runtime be in the specs path?
-#$OJ -classpath "../bin" -sourcepath ../testfiles/testNoErrors -specs "../runtime" -noPurityCheck -noInternalSpecs ../testfiles/testNoErrors/A.java || { RES=$(($RES+1)); }
+${RTH} testPath10 "$OJ -jmltesting --no-purity-check ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data -specspath ../testfiles/testPath/data-specs" || RES=$(($RES+1))
 
 
 ## Checks an invalid file
-${RTH} testCheck1 "$OJ -jmltesting -noPurityCheck -specspath . A.java" || RES=$(($RES+1))
+${RTH} testCheck1 "$OJ -jmltesting --no-purity-check -specspath . A.java" || RES=$(($RES+1))
 
 
 ## FIXME - jmldoc & prettyprinying
@@ -249,55 +230,55 @@ export DIFFJMLDOC="diff -r "
 
 ## checks jmldoc prettyprinting
 rm -rf doc ../testfiles/prettyprint/actual
-${RTH} testJmldocPP "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp -noPurityCheck ../testfiles/prettyprint/data/PP.java " || { RES=$(($RES+1)); }
+${RTH} testJmldocPP "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp --no-purity-check ../testfiles/prettyprint/data/PP.java " || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/prettyprint/expected || { RES=$(($RES+1)); rm -rf ../testfiles/prettyprint/actual; mv doc ../testfiles/prettyprint/actual; }
 
 ## jmldoc check
 rm -rf doc ../testfiles/jmldoc1/actual
-${RTH} testJmldoc "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -notimestamp -noPurityCheck ../testfiles/jmldoc1/data/*.java " || { RES=$(($RES+1)); }
+${RTH} testJmldoc "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -notimestamp --no-purity-check ../testfiles/jmldoc1/data/*.java " || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc1/expected || { RES=$(($RES+1)); rm -rf ../testfiles/jmldoc1/actual; mv doc ../testfiles/jmldoc1/actual; }
 
 ## jmldoc - checking the -java flag; uses the jmldoc3 input data
 rm -rf doc ../testfiles/jmldoc2/actual
 export NOSTDDOCLET=1
-${RTH} testJmldoc2 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -java -d doc -public -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
+${RTH} testJmldoc2 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -java -d doc -public -notimestamp --no-purity-check ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc2/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc2/actual; }
 export NOSTDDOCLET=
 
 ## jmldoc - checking the -public flag
 rm -rf doc ../testfiles/jmldoc3/actual
-${RTH} testJmldoc3 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -public -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
+${RTH} testJmldoc3 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -public -notimestamp --no-purity-check ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc3/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc3/actual; }
 
 ## jmldoc - checking the -protected flag - purposely uses the jmldoc3 data
 rm -rf doc ../testfiles/jmldoc4/actual
-${RTH} testJmldoc4 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -protected -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
+${RTH} testJmldoc4 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -protected -notimestamp --no-purity-check ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc4/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc4/actual; }
 
 ## jmldoc - checking the -package flag - purposely uses the jmldoc3 data
 rm -rf doc ../testfiles/jmldoc5/actual
-${RTH} testJmldoc5 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -package -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
+${RTH} testJmldoc5 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -package -notimestamp --no-purity-check ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc5/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc5/actual; }
 
 ## jmldoc - checking the -private flag - purposely uses the jmldoc3 data
 rm -rf doc ../testfiles/jmldoc6/actual
-${RTH} testJmldoc6 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp -noPurityCheck ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
+${RTH} testJmldoc6 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp --no-purity-check ../testfiles/jmldoc3/data/*.java ../testfiles/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc6/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc6/actual; }
 
 
 ## jmldoc - checking the -private flag - purposely uses the jmldoc3 data
 rm -rf doc ../testfiles/jmldoc7/actual
-${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp -noPurityCheck -dir ../testfiles/jmldoc3/data -dir ../testfiles/jmldoc3/data/tp" || { RES=$(($RES+1)); }
+${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp --no-purity-check -dir ../testfiles/jmldoc3/data -dir ../testfiles/jmldoc3/data/tp" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc7/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc7/actual; }
 
 ## jmldoc - checking the -private flag - purposely uses the jmldoc3 data
 rm -rf doc ../testfiles/jmldoc7/actual
-${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp -noPurityCheck -dirs ../testfiles/jmldoc3/data ../testfiles/jmldoc3/data/tp" || { RES=$(($RES+1)); }
+${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp --no-purity-check -dirs ../testfiles/jmldoc3/data ../testfiles/jmldoc3/data/tp" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc7/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc7/actual; }
 
 ## jmldoc - checking the -private flag - purposely uses the jmldoc3 data
 rm -rf doc ../testfiles/jmldoc7/actual
-${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -noPurityCheck -dirs ../testfiles/jmldoc3/data ../testfiles/jmldoc3/data/tp  -notimestamp" || { RES=$(($RES+1)); }
+${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private --no-purity-check -dirs ../testfiles/jmldoc3/data ../testfiles/jmldoc3/data/tp  -notimestamp" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ../testfiles/jmldoc7/expected || { RES=$(($RES+1)); mv doc ../testfiles/jmldoc7/actual; }
 
 
