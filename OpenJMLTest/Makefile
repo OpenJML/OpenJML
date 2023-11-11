@@ -4,24 +4,25 @@ mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfile_dir := $(dir $(mkfile_path))
 
 ROOT=${mkfile_dir}
+D=OPENJML21
 
 ### The following is the OpenJML tests
 
 openjml-test: prep
-	make release-tests 
+	##make release-tests 
 	make tutorial-tests > log-tutorial-tests
 	( cd ${ROOT}/unittests; source ./runall  )
 	( cd ${ROOT}/scripttests; ./escfiles-sort)
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
 
 openjml-clean:
-	(cd ${ROOT}/../OpenJDKModule; make clean version openjml jmlruntime.jar )
+	(cd ${ROOT}/../$D; make clean version openjml jmlruntime.jar )
 
 openjml:
-	(cd ${ROOT}/../OpenJDKModule; make version openjml jmlruntime.jar )
+	(cd ${ROOT}/../$D; make version openjml jmlruntime.jar )
 
 release:
-	(cd ${ROOT}/../OpenJDKModule; make release)
+	(cd ${ROOT}/../$D; make release)
 
 T=temp-release
 

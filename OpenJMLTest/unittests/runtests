@@ -5,10 +5,10 @@
 ## unit test drivers in OpenJMLTest/src/org/jmlspecs/openjmltest/testcases/
 
 ## $R is the location of the directory containing this script, with
-## $R/.. expected to be OpenJMLTest, which should be a sibling of OpenJDKModule
+## $R/.. expected to be OpenJMLTest, which should be a sibling of OpenJML21
 
 R=$( cd $(dirname "$BASH_SOURCE") && pwd)
-ROOT=$R/../../OpenJDKModule
+ROOT=$R/../../OpenJML21
 JROOT=$R/../libs
 JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar"
 NJAVAC=$ROOT/build/*/jdk/bin/javac

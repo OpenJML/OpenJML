@@ -4,8 +4,8 @@ Java options:
   @<filename>                  Read options and filenames from file
   -Akey[=value]                Options to pass to annotation processors
   --add-modules <module>(,<module>)*
-        Root modules to resolve in addition to the initial modules, or all modules
-        on the module path if <module> is ALL-MODULE-PATH.
+        Root modules to resolve in addition to the initial modules,
+        or all modules on the module path if <module> is ALL-MODULE-PATH.
   --boot-class-path <path>, -bootclasspath <path>
         Override location of bootstrap class files
   --class-path <path>, -classpath <path>, -cp <path>
@@ -14,7 +14,8 @@ Java options:
   -deprecation
         Output source locations where deprecated APIs are used
   --enable-preview
-        Enable preview language features. To be used in conjunction with either -source or --release.
+        Enable preview language features.
+        To be used in conjunction with either -source or --release.
   -encoding <encoding>         Specify character encoding used by source files
   -endorseddirs <dirs>         Override location of endorsed standards path
   -extdirs <dirs>              Override location of installed extensions
@@ -26,7 +27,7 @@ Java options:
   --help, -help, -?            Print this help message
   --help-extra, -X             Print help on extra options
   -implicit:{none,class}
-        Specify whether or not to generate class files for implicitly referenced files
+        Specify whether to generate class files for implicitly referenced files
   -J<flag>                     Pass <flag> directly to the runtime system
   --limit-modules <module>(,<module>)*
         Limit the universe of observable modules
@@ -41,101 +42,107 @@ Java options:
   -nowarn                      Generate no warnings
   -parameters
         Generate metadata for reflection on method parameters
-  -proc:{none,only}
+  -proc:{none,only,full}
         Control whether annotation processing and/or compilation is done.
   -processor <class1>[,<class2>,<class3>...]
-        Names of the annotation processors to run; bypasses default discovery process
+        Names of the annotation processors to run;
+        bypasses default discovery process
   --processor-module-path <path>
         Specify a module path where to find annotation processors
   --processor-path <path>, -processorpath <path>
         Specify where to find annotation processors
   -profile <profile>
-        Check that API used is available in the specified profile
+        Check that API used is available in the specified profile.
+        This option is deprecated and may be removed in a future release.
   --release <release>
-        Compile for the specified Java SE release. Supported releases: 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
+        Compile for the specified Java SE release.
+        Supported releases: 
+            8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21
   -s <directory>               Specify where to place generated source files
   --source <release>, -source <release>
-        Provide source compatibility with the specified Java SE release. Supported releases: 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
+        Provide source compatibility with the specified Java SE release.
+        Supported releases: 
+            8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21
   --source-path <path>, -sourcepath <path>
         Specify where to find input source files
   --system <jdk>|none          Override location of system modules
   --target <release>, -target <release>
-        Generate class files suitable for the specified Java SE release. Supported releases: 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
+        Generate class files suitable for the specified Java SE release.
+        Supported releases: 
+            8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21
   --upgrade-module-path <path>
         Override location of upgradeable modules
   -verbose                     Output messages about what the compiler is doing
   --version, -version          Version information
   -Werror                      Terminate compilation if warnings occur
 JML options:
-  -dir                       Process all files, recursively, within this directory
-  -dirs                      Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)
-  --                         Terminates option processing - all remaining arguments are files
-  -keys                      Identifiers for optional JML comments
-  -command                   The command to execute (check,esc,rac,compile)
-  -check                     Does a JML syntax check [-command=check]
-  -compile                   Does a Java-only compile [-command=compile]
-  -rac                       Enables generating code instrumented with runtime assertion checks [-command=rac]
-  -esc                       Enables static checking [-command=esc]
+  --dir                      Process all files, recursively, within this directory
+  --dirs                     Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)
+  --keys                     Identifiers for optional JML comments
+  --command                  The command to execute (check,esc,rac,compile)
+  --check                    Does a JML syntax check [--command=check]
+  --compile                  Does a Java-only compile [--command=compile]
+  --rac                      Enables generating code instrumented with runtime assertion checks [--command=rac]
+  --esc                      Enables static checking [--command=esc]
   -java                      When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)
   -jml                       When on, the JML compiler is used and all JML constructs are processed; use -no-jml to use OpenJML but ignore JML annotations
-  -lang                      Set the language variant to use: jml, javelyn, or jml+ (the default)
-  -verify-exit               Exit code for verification errors
-  -extensions                Extension packages and classes (comma-separated qualified names)
-  -stopIfParseErrors         When enabled, stops after parsing if any files have parsing errors
-  -method                    Comma-separated list of method name patterns on which to run ESC
-  -exclude                   Comma-separated list of method name patterns to exclude from ESC
-  -prover                    The prover to use to check verification conditions
-  -exec                      The prover executable to use
-  -logic                     The SMT logic to use (default ALL)
-  -smt                       A file to write the smt command file to
-  -nonnullByDefault          Makes references non_null by default [-nullableByDefault=false]
-  -nullableByDefault         Makes references nullable by default
-  -code-math                 Arithmetic mode for Java code (code, safe, bigint)
-  -spec-math                 Arithmetic mode for specifications (code, safe, bigint)
-  -checkAccessible           When on (the default), JML accessible clauses are checked
-  -specspath                 Specifies the directory path to search for specification files
-  -checkSpecsPath            When on (the default), warnings for non-existent specification path directories are issued
-  -purityCheck               When on (off by default), warnings for use of impure methods from system libraries are issued
-  -internalSpecs             When on (the default), automatically appends the internal specs directory to the specification path
-  -internalRuntime           When on (the default), automatically appends the internal JML runtime library to the classpath
-  -timeout                   Number of seconds to limit any individual proof attempt (default infinite)
-  -showNotImplemented        When on (off by default), warnings about unimplemented constructs are issued
-  -showNotExecutable         When on (off by default), warnings about non-executable constructs are issued
-  -verboseness               Level of verboseness (0=quiet...4=debug)
-  -warn                      Comma-separated list of warning keys to enable or disable
-  -quiet                     Only output warnings and errors [-verboseness=0]
-  -normal                    Limited output [-verboseness=1]
-  -progress                  Shows progress through compilation phases [-verboseness=2]
-  -skipped                   Shows methods whose proofs are skipped
-  -jmlverbose                Like -verbose, but only jml information and not as much [-verboseness=3]
-  -jmldebug                  When on, the program emits lots of output (includes -progress) [-verboseness=4]
-  -showOptions               When enabled, the values of options and properties are printed, for debugging
-  -jmltesting                Only used to generate tracing information during testing
-  -trace                     ESC: Enables tracing of counterexamples
-  -show                      Show intermediate programs
-  -split                     Split proof into sections
-  -escBV                     ESC: If enabled, use bit-vector arithmetic (auto, true, false)
-  -triggers                  ESC: Enable quantifier triggers in SMT encoding (default true)
-  -escMaxWarnings            ESC: Maximum number of warnings to find per method
-  -escMaxWarningsPath        ESC: If true, find all counterexample paths to each invalid assert
-  -counterexample            ESC: Enables output of complete, raw counterexample
-  -ce                        ESC: Enables output of complete, raw counterexample [-counterexample]
-  -subexpressions            ESC: Enables tracing with subexpressions
-  -checkFeasibility          ESC: Check feasibility of assumptions
-  -benchmarks                ESC: Collects solver communications
-  -typeQuants                ESC: Introduces quantified assertions for type variables (true, false, or auto)
-  -solver-seed               ESC: Seed to initialize solver's random number generation
-  -racShowSource             RAC: Error messages will include source information (none,line,source)
-  -racCheckAssumptions       RAC: Enables runtime checking that assumptions hold
-  -racJavaChecks             RAC: Enables explicit checking of Java language checks
-  -racCompileToJavaAssert    RAC: Compiles JML checks as Java asserts
-  -racPreconditionEntry      RAC: Distinguishes Precondition failures on entry calls
-  -racMissingModelFieldRepSource RAC: action when a model field has no representation (zero,warn,skip)
-  -racMissingModelFieldRepBinary RAC: action when a model field for a binary class has no representation (zero,warn,skip)
-  -properties                Specifies the path to the properties file
-  -defaults                  Specifies various default behaviors: constructor:pure|everything
+  --lang                     Set the language variant to use (default 'openjml'): jml openjml
+  --verify-exit              Exit code for verification errors
+  --extensions               Extension packages and classes (comma-separated qualified names)
+  --stop-if-parse-errors     When enabled, stops after parsing if any files have parsing errors
+  --method                   Comma-separated list of method name patterns on which to run ESC
+  --exclude                  Comma-separated list of method name patterns to exclude from ESC
+  --prover                   The prover to use to check verification conditions
+  --exec                     The prover executable to use
+  --logic                    The SMT logic to use (default ALL)
+  --smt                      A file to write the smt command file to
+  --nonnull-by-default       Makes references non_null by default [--nullable-by-default=false]
+  --nullable-by-default      Makes references nullable by default
+  --code-math                Arithmetic mode for Java code (java, safe, bigint)
+  --spec-math                Arithmetic mode for specifications (java, safe, bigint)
+  --arithmetic-failure       Whether arithmetic warnings are hard, soft (default) or quiet
+  --check-accessible         When on (the default), JML accessible clauses are checked
+  --specs-path               Specifies the directory path to search for specification files
+  --check-specs-path         When on (the default), warnings for non-existent specification path directories are issued
+  --purity-check             When on (the default), warnings for use of impure methods from system libraries are issued
+  --new-is-pure              Allows object allocation in pure expressions
+  --timeout                  Number of seconds to limit any individual proof attempt (default infinite)
+  --show-not-implemented     When on (off by default), warnings about unimplemented constructs are issued
+  --show-not-executable      When on (off by default), warnings about non-executable constructs are issued
+  --verboseness              Level of verboseness (0=quiet...4=debug)
+  --warn                     Comma-separated list of warning keys to enable or disable
+  --silent                   Only an exit code [--verboseness=-1]
+  --quiet                    Only output warnings and errors [--verboseness=0]
+  --normal                   Limited output [--verboseness=1]
+  --progress                 Shows progress through compilation phases [--verboseness=2]
+  --show-skipped             Shows methods whose proofs are skipped
+  --show-summary             Shows summary and time information
+  --jmlverbose               Like --verbose, but only jml information and not as much [--verboseness=3]
+  --jmldebug                 When on, the program emits lots of output (includes --progress) [--verboseness=4]
+  -jmltesting                Controls output information during testing
+  --trace                    ESC: Enables tracing of counterexamples
+  --show                     Show intermediate programs
+  --split                    Split proof into sections
+  --esc-bv                   ESC: If enabled, use bit-vector arithmetic (auto, true, false)
+  --triggers                 ESC: Enable quantifier triggers in SMT encoding (default true)
+  --esc-max-warnings         ESC: Maximum number of warnings to find per method
+  --esc-max-warnings-path    ESC: If true, find all counterexample paths to each invalid assert
+  --counterexample           ESC: Enables output of complete, raw counterexample
+  --subexpressions           ESC: Enables tracing with subexpressions
+  --check-feasibility        ESC: Check feasibility of assumptions
+  --typeQuants               ESC: Introduces quantified assertions for type variables (true, false, or auto)
+  --solver-seed              ESC: Seed to initialize solver's random number generation
+  --rac-show-source          RAC: Error messages will include source information (none,line,source)
+  --rac-check-assumptions    RAC: Enables runtime checking that assumptions hold
+  --rac-java-checks          RAC: Enables explicit checking of Java language checks
+  --rac-compile-to-java-assert RAC: Compiles JML checks as Java asserts
+  --rac-precondition-entry   RAC: Distinguishes Precondition failures on entry calls
+  --rac-missing-model-field-rep-source RAC: action when a model field has no representation (zero,warn,skip)
+  --rac-missing-model-field-rep-binary RAC: action when a model field for a binary class has no representation (zero,warn,skip)
+  --properties               Specifies the path to the properties file
+  --defaults                 Specifies various default behaviors: constructor:pure|everything
   -staticInitWarning         Warns about missing static_initializer clauses
-  -determinism               Experimental: enables better determinism
-  -osname                    Name of OS to use in selecting solver executable
-  -inline-function-literal   Whether to inline function literals
-  -require-white-space       Whether white space is required after the @ in a JML comment
+  --determinism              Experimental: enables better determinism
+  --os-name                  Name of OS to use in selecting solver executable
+  --inline-function-literal  Whether to inline function literals
+  --require-white-space      Whether white space is required after the @ in a JML comment
