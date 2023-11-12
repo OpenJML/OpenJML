@@ -48,7 +48,8 @@ public class racfiles extends RacBase {
     }
     
     public void setRacngEA() {
-    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata/"+getMethodName(1),"-Dorg.jmlspecs.openjml.racexceptions=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
+    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata/"+getMethodName(1),"-Dorg.jmlspecs.openjml.:q"
+    			+ "=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
     }
 
 

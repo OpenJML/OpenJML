@@ -224,6 +224,14 @@ module jdk.compiler {
     exports com.sun.source.tree;
     exports com.sun.source.util;
     exports com.sun.tools.javac;
+//    exports com.sun.tools.javac.code;
+//    exports com.sun.tools.javac.comp;
+//    exports com.sun.tools.javac.parser;
+//    exports com.sun.tools.javac.tree;
+//    exports com.sun.tools.javac.util;
+
+//    exports org.jmlspecs.openjml;
+//    exports org.jmlspecs.openjml.visitors;
 
     exports com.sun.tools.doclint to
         jdk.javadoc;

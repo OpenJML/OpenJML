@@ -34,9 +34,9 @@ public class Utils {
     public static final String ASSERTION_FAILURE_EX = "assertionFailureE"; // Must match the method name
     public static final String REPORT_EXCEPTION = "reportException"; // must match method name
     public static final String racpropertyname = "org.jmlspecs.openjml.rac";
-    
-    
-    public static final String racpropertyvalue = System.getProperty(racpropertyname);public Utils() {
+    public static final String racpropertyvalue = System.getProperty(racpropertyname);
+
+    public Utils() {
         // TODO Auto-generated constructor stub
     }
     /** Determines whether to report assertion failures as exceptions (true)

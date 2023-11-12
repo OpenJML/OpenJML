@@ -110,12 +110,10 @@ ${RTH} testJmlBad3 "$OJ -check -java" || RES=$(($RES+1))
 #${RTH} testJmlBad "$OJ '-verboseness= '" || RES=$(($RES+1))
 
 
-
 echo "public class A { /*@ invariant 0; */ }" > A.java
 echo "public class B { /*@ invariant true; */ }" > B.java
 echo "import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }" > C.java
 echo "import org.jmlspecs.annotation.*; public class D { @Pure public static void main (@NonNull String... args) { System.out.println(\"END\");  } }" > D.java
-
 
 ## Checks a valid file using java -jar
 ${RTH} testOK1 "$OJ --no-purity-check -specspath . B.java" || RES=$(($RES+1))
@@ -123,28 +121,45 @@ ${RTH} testOK1 "$OJ --no-purity-check -specspath . B.java" || RES=$(($RES+1))
 ## rac
 rm -rf rac
 mkdir -p rac
-${RTH} testRac "$OJ -rac -racShowSource=line --no-purity-check -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
-${RTH} testRac "$OJ -rac -racShowSource=line --no-purity-check -d rac -classpath . D.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ -rac --rac-show-source=line --no-purity-check -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ -rac --rac-show-source=line --no-purity-check -d rac -classpath . D.java" || { RES=$(($RES+1)); }
 echo RAC-OK
 #echo java -classpath "rac${Z}${RT}" A
-java -classpath "rac${Z}${RT}" A  > racactual
+java -classpath "rac${Z}${RT}" A  > racactual  2> racstderr
 tr -d '\r' < racactual |  diff - ../releaseTests/testRac/expected-ok || { RES=$(($RES+1)); }
-echo RAC-SIMPLE
-java -classpath "rac${Z}${RT}" A 1 2  > racactual
+diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
+echo RAC-DEFAULT
+java -classpath "rac${Z}${RT}" A 1 2  > racactual  2> racstderr
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' | diff - ../releaseTests/testRac/expected-simple || { RES=$(($RES+1)); }
+diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
+echo RAC-STDOUT
+java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=stdout A 1 2 > racactual 2> racstderr
+tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-simple || { RES=$(($RES+1)); }
+diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
 echo RAC-EXC
-java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.racexceptions A 1 2 > racactual  2>&1
-tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-exceptions || { RES=$(($RES+1)); }
-echo RAC-BOTH
-java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.racexceptions -Dorg.jmlspecs.openjml.racshowstack A 1 2   > racactual  2>&1
-tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-exceptions || { RES=$(($RES+1)); }
+java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=exception A 1 2 > racactual  2> racstderr
+tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-start || { RES=$(($RES+1)); }
+diff racstderr ../releaseTests/testRac/expected-exceptions  || { RES=$(($RES+1)); }
+echo RAC-JA
+java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=javaassert A 1 2 > racactual  2> racstderr
+tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-javaassert || { RES=$(($RES+1)); }
+diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
+echo RAC-JA-ENABLED
+java -ea -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=javaassert A 1 2 > racactual  2> racstderr
+tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-start || { RES=$(($RES+1)); }
+diff racstderr ../releaseTests/testRac/expected-javaassertenabled  || { RES=$(($RES+1)); }
+echo RAC-AE
+java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=assertionerror A 1 2 > racactual  2> racstderr
+tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-start || { RES=$(($RES+1)); }
+diff racstderr ../releaseTests/testRac/expected-assertionerror  || { RES=$(($RES+1)); }
 echo RAC-ST
-java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.racshowstack A 1 2 > racactual
+java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=showstack A 1 2 > racactual  2> racstderr
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack || { RES=$(($RES+1)); }
-
+diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
 echo RAC-ST with openjml-java
-${JV} -classpath "rac" -Dorg.jmlspecs.openjml.racshowstack A 1 2 > racactual
+${JV} -classpath "rac" -Dorg.jmlspecs.openjml.rac=showstack A 1 2 > racactual  2> racstderr
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack-openjml || { RES=$(($RES+1)); }
+diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
 
 ${RTH} testRac "$OJ -rac --rac-show-source=source --no-purity-check -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
 echo RAC-SIMPLE with source
