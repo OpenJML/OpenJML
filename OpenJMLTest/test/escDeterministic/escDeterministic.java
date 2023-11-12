@@ -3,7 +3,7 @@
 abstract public class escDeterministic {
 
 	//@ ensures true;
-	//@ function 
+	//@ heap_free 
 	static public int comp(int a) { return 0; }
 
 	public int a;
@@ -26,7 +26,7 @@ abstract public class escDeterministic {
 	}
 
 	//@ ensures true;
-	//@ function 
+	//@ heap_free 
 	abstract public int acomp(int a);
 
 	//@ assignable \everything;

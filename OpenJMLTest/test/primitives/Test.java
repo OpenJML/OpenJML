@@ -10,17 +10,17 @@ abstract class testtype implements IJmlPrimitiveType {
     private testtype() {}
     
     //@ ensures \result == zero;
-    //@ helper function
+    //@ helper heap_free
     static public testtype testtype() {
         return zero;
     }
     
     //@ public normal_behavior
-    //@ helper function
+    //@ helper heap_free
     abstract public testtype suc();
     
     //@ public normal_behavior
-    //@ helper function
+    //@ helper heap_free
     abstract public testtype prev();
     
     //@ public normal_behavior

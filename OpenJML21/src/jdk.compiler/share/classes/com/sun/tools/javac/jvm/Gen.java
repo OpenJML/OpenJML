@@ -434,6 +434,7 @@ public class Gen extends JCTree.Visitor {
         //  - methodDefs for method definitions
         for (List<JCTree> l = defs; l.nonEmpty(); l = l.tail) {
             JCTree def = l.head;
+            if (def == null) continue; // OPENJML - FIXME - invariants can make null translated entries
             switch (def.getTag()) {
             case BLOCK:
                 JCBlock block = (JCBlock)def;
