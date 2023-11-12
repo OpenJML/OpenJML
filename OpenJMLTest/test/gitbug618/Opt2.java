@@ -11,6 +11,6 @@ public class Opt2 {
 	
 	//@ public normal_behavior
 	//@   ensures \result == (value != null);
-	//@ pure function
+	//@ pure heap_free
 	public boolean nn() { return value != null; }
 }
