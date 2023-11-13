@@ -417,27 +417,35 @@ public class MethodProverSMT {
             } else {
             	// Try the prover
             	if (verbose) log.getWriter(WriterKind.NOTICE).println("EXECUTION"); //$NON-NLS-1$
-            	String filename = JmlOption.value(context, JmlOption.SMT);
-            	if (filename != null && filename.isEmpty()) filename = "out.smt2";
-            	String name = utils.methodName(methodDecl.sym);
-            	if (filename != null) filename = filename.replace("%%",utils.qualifiedMethodSig(methodDecl.sym)).replace("%_", name);
-            	try (var fw = filename == null ? null : new java.io.FileWriter(new java.io.File(filename))) {
-            		if (fw != null) {
+            	try {
+                	String filename = JmlOption.value(context, JmlOption.SMT);
+                	if (filename != null && filename.isEmpty()) filename = "out.smt2";
+                	String name = utils.methodName(methodDecl.sym);
+                	if (filename != null) filename = filename.replace("%%",utils.qualifiedMethodSig(methodDecl.sym)).replace("%_", name);
+            		new java.io.File(filename).getParentFile().mkdirs();
+            	    try (var fw = filename == null ? null : new java.io.FileWriter(new java.io.File(filename))) {
+            		  if (fw != null) {
             			var sw = new java.io.StringWriter();
             			org.smtlib.sexpr.Printer.WithLines.write(sw,script);
             			fw.write("; Proof attempt for " + utils.qualifiedMethodSig(methodDecl.sym));
             			String s = sw.toString();
             			int i = s.lastIndexOf(')');
             			fw.write(sw.toString(),1,i-1); // Removes the enclosing parentheses
-            		}
-            		solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
+            		  }
+            	    } finally { 
+            	    	// auto close of the FileWriter
+            	    }
             	} catch (Exception e) {
-            		// Not sure there is anything to worry about, but just in case
-            		//log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
-            	    solver.exit();
-            	    solver = null;
                     JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
                     log.report(d);
+            	}
+            	try {
+            		solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
+            	} catch (Exception e) {
+                    JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
+                    log.report(d);
+            	    solver.exit();
+            	    solver = null;
             		return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
             	} finally {
                     if (aborted) {

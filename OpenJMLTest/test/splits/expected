@@ -21,7 +21,7 @@ Starting proof of Test.m1(int) with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Result of split A is UNSAT
+Result of split A is Verified
 Proof attempt for split B
 test/splits/Test.java:18: warning: The prover cannot establish an assertion (Postcondition) in method m1
             return i > 0; // ERROR
@@ -44,14 +44,14 @@ Result of split A is POSSIBLY_SAT
 Proof attempt for split B
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Result of split B is UNSAT
+Result of split B is Verified
 Composite result POSSIBLY_SAT
 Completed proof of Test.m2(int) with prover !!!! - with warnings
 Starting proof of Test.m3(int) with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Result of split A is UNSAT
+Result of split A is Verified
 Proof attempt for split B
 test/splits/Test.java:38: warning: The prover cannot establish an assertion (Postcondition) in method m3
         case 2: return i == 10; // ERROR - split B
@@ -63,11 +63,11 @@ Result of split B is POSSIBLY_SAT
 Proof attempt for split C
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Result of split C is UNSAT
+Result of split C is Verified
 Proof attempt for split D
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Result of split D is UNSAT
+Result of split D is Verified
 Composite result POSSIBLY_SAT
 Completed proof of Test.m3(int) with prover !!!! - with warnings
 Starting proof of Test.bad() with prover !!!!
@@ -82,7 +82,7 @@ Starting proof of Test.mbool(int) with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Result of split A is UNSAT
+Result of split A is Verified
 Proof attempt for split B
 test/splits/Test.java:57: warning: The prover cannot establish an assertion (Postcondition) in method mbool
         return i > 0;  // Split A OK; Split B is ERROR
@@ -97,7 +97,7 @@ Starting proof of Test.mcombined(int) with prover !!!!
 Proof attempt for split AA
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Result of split AA is UNSAT
+Result of split AA is Verified
 Proof attempt for split AB
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
@@ -108,7 +108,7 @@ Result of split AB is INFEASIBLE
 Proof attempt for split BA
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Result of split BA is UNSAT
+Result of split BA is Verified
 Proof attempt for split BB
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
@@ -119,13 +119,13 @@ Result of split BB is INFEASIBLE
 Proof attempt for split BC
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Result of split BC is UNSAT
+Result of split BC is Verified
 Composite result INFEASIBLE
 Completed proof of Test.mcombined(int) with prover !!!! - INFEASIBLE
 Starting proof of Test.splitx(int) with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
-Result of split A is UNSAT
+Result of split A is Verified
 Skipping proof attempt for split B
 Completed proof of Test.splitx(int) with prover !!!! - no warnings
 Starting proof of Test.msw(int) with prover !!!!
