@@ -37,6 +37,7 @@ public class AssignableClauseExtension extends JmlExtension {
     };
     
     static {
+        synonym("writes",assignableClauseKind);
         synonym("modifies",assignableClauseKind);
         synonym("assigns",assignableClauseKind);
         synonym("modifiable",assignableClauseKind);

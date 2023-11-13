@@ -14,7 +14,7 @@ Result of split A is INFEASIBLE
 Proof attempt for split B
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Result of split B is UNSAT
+Result of split B is Verified
 Composite result INFEASIBLE
 Completed proof of Test.whok(int) with prover !!!! - INFEASIBLE
 Starting proof of Test.wh(int) with prover !!!!
@@ -22,33 +22,33 @@ Proof attempt for split A
 test/splits2/Test.java:19: warning: The prover cannot establish an assertion (Assert) in method wh
             //@ assert i < -1; // Split A
                 ^
-Result of split A is POSSIBLY_SAT
+Result of split A is Not verified
 Proof attempt for split BAA
 test/splits2/Test.java:30: warning: The prover cannot establish an assertion (Assert) in method wh
                 //@ assert k < 0; // FAILS - BAA
                     ^
-Result of split BAA is POSSIBLY_SAT
+Result of split BAA is Not verified
 Proof attempt for split BABA
 test/splits2/Test.java:36: warning: The prover cannot establish an assertion (Assert) in method wh
                 //@ assert i < 1; // FAILS - BABA
                     ^
-Result of split BABA is POSSIBLY_SAT
+Result of split BABA is Not verified
 Proof attempt for split BABB
 test/splits2/Test.java:39: warning: The prover cannot establish an assertion (Assert) in method wh
             //@ assert i < 2; // FAILS - BABB
                 ^
-Result of split BABB is POSSIBLY_SAT
+Result of split BABB is Not verified
 Proof attempt for split BBA
 test/splits2/Test.java:42: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method wh
         //@ loop_invariant 0 <= j <= 10;
             ^
-Result of split BBA is POSSIBLY_SAT
+Result of split BBA is Not verified
 Proof attempt for split BBB
 test/splits2/Test.java:42: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method wh
         //@ loop_invariant 0 <= j <= 10;
             ^
-Result of split BBB is POSSIBLY_SAT
-Composite result POSSIBLY_SAT
+Result of split BBB is Not verified
+Composite result Not verified
 Completed proof of Test.wh(int) with prover !!!! - with warnings
 Starting proof of Test.whfor(int) with prover !!!!
 Proof attempt for split A
@@ -61,7 +61,7 @@ Result of split A is INFEASIBLE
 Proof attempt for split B
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Result of split B is UNSAT
+Result of split B is Verified
 Composite result INFEASIBLE
 Completed proof of Test.whfor(int) with prover !!!! - INFEASIBLE
 Starting proof of Test.enfor(int[]) with prover !!!!
@@ -75,7 +75,7 @@ Result of split A is INFEASIBLE
 Proof attempt for split B
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Result of split B is UNSAT
+Result of split B is Verified
 Composite result INFEASIBLE
 Completed proof of Test.enfor(int[]) with prover !!!! - INFEASIBLE
 Completed proving methods in Test

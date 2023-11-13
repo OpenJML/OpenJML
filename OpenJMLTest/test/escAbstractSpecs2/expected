@@ -1,4 +1,4 @@
-test/escAbstractSpecs2/Test.java:12: error: constructor C in class C cannot be applied to given types;
+test/escAbstractSpecs2/Test.java:12: error: constructor C in class Test.C cannot be applied to given types;
 			this(); // ERROR - no such constructor
 			^
   required: int
