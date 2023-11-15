@@ -291,7 +291,6 @@ public class JmlEsc extends JmlTreeScanner {
         
         //System.out.println("DOING " + utils.abbrevMethodSig(methodDecl.sym));
         String sig = utils.abbrevMethodSig(methodDecl.sym);
-        if (Utils.testingMode) sig = sig.replace("@Nullable ","").replace("@NonNull ","");
         utils.progress(0,1,"Starting proof of " + sig + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         long methodStart = System.currentTimeMillis();
         log.resetRecord();

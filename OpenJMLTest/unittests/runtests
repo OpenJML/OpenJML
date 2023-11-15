@@ -24,4 +24,4 @@ while ! NOJML= $NJAVAC -Xlint:unchecked -cp $CP Test.java ../src/org/jmlspecs/op
    echo Build failed for $@
    sleep 10
 done
-( cd ..; OPENJML_ROOT="$ROOT/../../Solvers" $NJAVA -cp unittests:src:$JUNIT Test $@ 2>&1 )
+( cd ..; OPENJML_ROOT="$ROOT/../../Solvers" $NJAVA -cp unittests:src:$JUNIT --add-modules jdk.compiler,java.base Test $@ 2>&1 )

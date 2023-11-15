@@ -417,26 +417,26 @@ public class MethodProverSMT {
             } else {
             	// Try the prover
             	if (verbose) log.getWriter(WriterKind.NOTICE).println("EXECUTION"); //$NON-NLS-1$
+            	String filename = JmlOption.value(context, JmlOption.SMT);
+            	if (filename != null && filename.isEmpty()) filename = "out.smt2";
             	try {
-                	String filename = JmlOption.value(context, JmlOption.SMT);
-                	if (filename != null && filename.isEmpty()) filename = "out.smt2";
                 	String name = utils.methodName(methodDecl.sym);
-                	if (filename != null) filename = filename.replace("%%",utils.qualifiedMethodSig(methodDecl.sym)).replace("%_", name);
-            		new java.io.File(filename).getParentFile().mkdirs();
-            	    try (var fw = filename == null ? null : new java.io.FileWriter(new java.io.File(filename))) {
-            		  if (fw != null) {
-            			var sw = new java.io.StringWriter();
-            			org.smtlib.sexpr.Printer.WithLines.write(sw,script);
-            			fw.write("; Proof attempt for " + utils.qualifiedMethodSig(methodDecl.sym));
-            			String s = sw.toString();
-            			int i = s.lastIndexOf(')');
-            			fw.write(sw.toString(),1,i-1); // Removes the enclosing parentheses
-            		  }
-            	    } finally { 
-            	    	// auto close of the FileWriter
+                	if (filename != null) {
+                		filename = filename.replace("%%",utils.qualifiedMethodSig(methodDecl.sym)).replace("%_", name);
+                		new java.io.File(filename).getParentFile().mkdirs();
+            	        try (var fw = new java.io.FileWriter(new java.io.File(filename))) {
+            			    var sw = new java.io.StringWriter();
+            			    org.smtlib.sexpr.Printer.WithLines.write(sw,script);
+            			    fw.write("; Proof attempt for " + utils.qualifiedMethodSig(methodDecl.sym));
+            			    String s = sw.toString();
+            			    int i = s.lastIndexOf(')');
+            			    fw.write(sw.toString(),1,i-1); // Removes the enclosing parentheses
+            		    } finally { 
+            	    	    // auto close of the FileWriter
+            		    }
             	    }
             	} catch (Exception e) {
-                    JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
+                    JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badfile", methodDecl.getName(), filename, e.toString());
                     log.report(d);
             	}
             	try {

@@ -1,7 +1,7 @@
 // written by Robert Moore 5/23/21
 
-public class Sine {
-  //@ requires Math.isFinite(a);
+public class Sin {
+  //@ requires Double.isFinite(a);
   //@ ensures \result >= -1.0 && \result <= 1.0;
   static double inBounds(double a){
     return Math.sin(a);
