@@ -60,9 +60,11 @@ import com.sun.tools.javac.comp.Resolve;
 import com.sun.tools.javac.comp.Todo;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.JavaCompiler;
+import com.sun.tools.javac.main.JavaCompiler.InitialFileParser;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.util.Abort;
 import com.sun.tools.javac.util.Assert;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
@@ -200,6 +202,18 @@ public class JmlCompiler extends JavaCompiler {
         super.compile(sourceFileObjects, classnames, processors, addModules);
     }
     
+    @Override
+    public List<JCCompilationUnit> parseFiles(Iterable<JavaFileObject> fileObjects) {
+    	try {
+    		return super.parseFiles(fileObjects);
+    	} catch (AssertionError e) {
+    		// Some parse errors cause an AssertionError. This catches it and converts it to 
+    		// the empty list, which is the usual way to communicate that the chain of compiler phases
+    		// is to be aborted.
+        	return List.<JCCompilationUnit>nil();
+    	}
+    }
+ 
     public JCTree.JCCompilationUnit parse(JavaFileObject filename) {
         JavaFileObject prev = log.useSource(filename);
         JavaFileObject specFile = null;
@@ -287,16 +301,6 @@ public class JmlCompiler extends JavaCompiler {
         specCU.sourceCU = null;
         org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, specCU, specFile);
         return specCU;
-    }
-
-    /** Overridden in order to put out some progress information about stopping */
-    @Override
-    public  <T> List<T> stopIfError(CompileState cs, List<T> list) {
-    	var result = super.stopIfError(cs, list);
-    	if (!list.isEmpty() && result.isEmpty()) {
-    		if (utils.progress()) context.get(Main.IProgressListener.class).report(1,"Stopping because of parsing errors");
-    	}
-        return result;
     }
 
     /** This is overridden to do the JML attribution (via completeTodo) */

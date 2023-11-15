@@ -1,9 +1,9 @@
 // written by Robert Moore 5/23/21
 
-public class Cosine {
+public class Cos {
 
   // requires (! Double.isNaN(a)) && (! Double.isInfinite(a));
-  //@ requires Math.isFinite(a);
+  //@ requires Double.isFinite(a);
   //@ ensures \result >= -1.0 && \result <= 1.0;
   static double inBounds(double a){
     return Math.cos(a);

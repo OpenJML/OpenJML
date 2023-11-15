@@ -71,7 +71,7 @@ REL=release-temp
 
 release: clean version-info openjml jmlruntime.jar tutorial post
 
-version:
+version: .FORCE
 	@ if [ ! -e ../version.txt ]; then echo "No version.txt file"; else echo "Building version" `cat ../version.txt`; fi
 	@ ./version.sh
 
@@ -86,15 +86,15 @@ version-info: version
 	@ cat version-info.txt
 	@ mv version-info.txt release-files
 
-tutorial:
+tutorial: .FORCE
 	rm -rf release-files/tutorial
 	mkdir release-files/tutorial
 	cp -pR ../../openjml.github.io/tutorial/*.java ../../openjml.github.io/tutorial/*.out release-files/tutorial
 
-annotation:
+annotation: .FORCE
 	cp -pR ../../JMLAnnotations/src/org  src/java.base/share/classes
 
-post:
+post: .FORCE
 	rm -rf $(REL)
 	mkdir $(REL)
 	cp -pRL jmlruntime.jar $(REL)
@@ -107,12 +107,12 @@ post:
 	chmod ugo+x $(REL)/openjml-java
 	(cd $(REL); zip -qr ./openjml.zip * )
 
-trial:
+trial: .FORCE
 	$(REL)/openjml -version
 	$(REL)/openjml -esc -progress $(REL)/demos/Max.java
 
 # Tests the most recently created release (release-temp/openjml.zip)
-release-test:
+release-test: .FORCE
 	@ $(topdir)/../OpenJMLTest/releaseTests/runtests
 
 ## Development build targets

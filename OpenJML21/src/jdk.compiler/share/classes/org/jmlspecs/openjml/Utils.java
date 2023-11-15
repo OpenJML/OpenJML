@@ -1335,7 +1335,11 @@ public class Utils {
 
     /** Returns a method signature with a fully-qualified method name, but org.jmlspecs.annotation and java.lang and org.jmlspecs.lang removed */
     public String abbrevMethodSig(MethodSymbol sym) {
-        return (classQualifiedName(sym.owner) + "." + sym).replaceAll("org.jmlspecs.annotation.([a-zA-Z_0-9]+)", "$1").replaceAll("java.lang.([a-zA-Z_0-9]+)" ,"$1").replaceAll("org.jmlspecs.lang.([a-zA-Z_0-9]+)" ,"$1");
+    	var sig = classQualifiedName(sym.owner) + "." + sym;
+        if (Utils.testingMode) sig = sig.replace("@org.jmlspecs.annotation.Nullable ","").replace("@org.jmlspecs.annotation.NonNull ","");
+        //if (Utils.testingMode) sig = sig.replace("@Nullable ","").replace("@NonNull ","");
+        var r = sig.replaceAll("org.jmlspecs.annotation.([a-zA-Z_0-9@]+)", "$1").replaceAll("java.lang.([a-zA-Z_0-9@]+)" ,"$1").replaceAll("org.jmlspecs.lang.([a-zA-Z_0-9@]+)" ,"$1");
+        return r;
     }
 
     /** Returns a fully-qualified name for a symbol, without the signature */ // FIXME - may include <init>

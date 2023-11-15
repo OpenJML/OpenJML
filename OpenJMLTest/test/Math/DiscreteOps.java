@@ -10,7 +10,7 @@ public class DiscreteOps
         //@ assert Double.NEGATIVE_INFINITY == a <==> Double.NEGATIVE_INFINITY == b;
         //@ assert Double.isFinite(a) && (a < 0) <==> a-b >= 0.0d && a-b < 1.0d;
         //@ assert Double.isFinite(a) && (a > 0) <==> a-b <= 0.0d && a-b > -1.0d;
-        //@ assert Double.isFinite(a) && (a > -1.0d && a < 0) <==> (new Double(b)).equals(-0.0d);
+        //@ assert Double.isFinite(a) && (a > -1.0d && a < 0) <==> (Double.valueOf(b)).equals(-0.0d);
 
     }
 

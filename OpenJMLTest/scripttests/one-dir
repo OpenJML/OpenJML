@@ -4,11 +4,15 @@ home=$(cd $(dirname $BASH_SOURCE) && pwd )
 CMD=${home}/../../OpenJML21/openjml
 ts=$(basename $1)
 
-if [ ! -e ${home}/../test/$ts ]; then
+cd ${home}/../test
+if [ ! -e $ts ]; then
     echo $ts : No such test
     exit 1
 fi
-cd ${home}/../test/$ts
+if [ ! -d $ts ]; then
+    exit 0;
+fi
+cd $ts
 
 
 if [ -e skip ]; then

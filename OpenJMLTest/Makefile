@@ -11,22 +11,22 @@ D=OPENJML21
 openjml-test: prep
 	##make release-tests 
 	make tutorial-tests > log-tutorial-tests
-	( cd ${ROOT}/unittests; source ./runall  )
+	make unittests-par
 	make scripttests
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
 
-openjml-clean:
+openjml-clean: .FORCE
 	(cd ${ROOT}/../$D; make clean version openjml jmlruntime.jar )
 
-openjml:
+openjml: .FORCE
 	(cd ${ROOT}/../$D; make version openjml jmlruntime.jar )
 
-release:
+release: .FORCE
 	(cd ${ROOT}/../$D; make release)
 
 T=temp-release
 
-prep:
+prep: .FORCE
 	rm -rf $T
 	mkdir $T
 	echo "public class A { /*@ invariant 0; */ }" > $T/A.java
@@ -34,13 +34,13 @@ prep:
 	echo "import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }" > $T/C.java
 	echo "import org.jmlspecs.annotation.*; public class D { @Pure int m() { return 0; } }" > $T/D.java
 
-tutorial-tests:
+tutorial-tests: .FORCE
 	@ ( echo Testing tutorial files ;\
 	    cd $(mkfile_dir)/../../openjml.github.io/tutorial; \
 	    ./test \
 	)
 
-release-tests:
+release-tests: .FORCE
 	@ echo Running release tests with current development build
 	@ NOZIP= $(ROOT)releaseTests/runtests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 
@@ -49,7 +49,7 @@ unittests-seq:
 	@ . $(ROOT)unittests/runseq
 			
 unittests-par:
-	. $(ROOT)unittests/runall
+	( cd ${ROOT}/unittests; source ./runall  )
 
 scripttests: .FORCE
 	( cd ${ROOT}/scripttests; ./escfiles-sort)
