@@ -5,7 +5,7 @@ interface A {
     /*@ immutable pure public static model class Content {
       @     public normal_behavior
       @       ensures true;
-      @     function helper
+      @     heap_free helper
       @     public boolean P(nullable Object key);
 
       @ }

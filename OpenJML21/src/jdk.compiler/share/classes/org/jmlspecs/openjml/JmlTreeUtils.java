@@ -408,13 +408,15 @@ public class JmlTreeUtils {
      *  @param value      The literal's value; use 0 or 1 for Boolean; use an int for char literals.
      */
     public JCLiteral makeLit(int pos, Type type, Object value) {
-//    	if (org.jmlspecs.openjml.Utils.isJML()) {
-//    		System.out.println("CONST " + type.getClass() + " " + type + " " + value);
-//    		Utils.dumpStack();
-//    	}
-    	// FIXME - not for string -- cf Attr.litType
-    	var t = syms.typeOfTag[type.getTag().ordinal()].constType(value);
-        return factory.at(pos).Literal(type.getTag(), value).setType(t);
+    	if (type.getTag() == TypeTag.CLASS) {
+    		type = syms.stringType;    			
+    		var t = type.constType(value);
+    		return factory.at(pos).Literal(type.getTag(), value).setType(t);
+    	} else {
+    		var t = syms.typeOfTag[type.getTag().ordinal()].constType(value);
+    		return factory.at(pos).Literal(type.getTag(), value).setType(t);
+    	}
+
     }
     
     public JCExpression makeBigintLit(int pos, int v) {

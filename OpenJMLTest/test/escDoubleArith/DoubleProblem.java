@@ -1,5 +1,5 @@
 //-@ immutable
-public /*@ pure @*/ strictfp class DoubleProblem {
+public /*@ pure @*/ class DoubleProblem {
 	
 	public static void tests() {
 		//@ assert 3.0 < 3.9;

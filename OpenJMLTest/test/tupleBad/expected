@@ -10,7 +10,7 @@ test/tupleBad/Test.java:8: error: Type java.lang.String cannot be assigned to in
 test/tupleBad/Test.java:9: error: Tuples have different sizes: 2 vs. 3
         //@ set (t,v) = (2,3,4);
                       ^
-test/tupleBad/Test.java:11: error: incompatible types: String cannot be converted to Integer
+test/tupleBad/Test.java:11: error: incompatible types: java.lang.String cannot be converted to java.lang.Integer
         //@ ghost Integer w = (1,e,4).2;
                                      ^
 test/tupleBad/Test.java:14: error: Type int cannot be assigned to java.lang.Boolean (position 2)

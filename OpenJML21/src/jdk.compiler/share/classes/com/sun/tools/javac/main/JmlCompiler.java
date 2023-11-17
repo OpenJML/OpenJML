@@ -346,7 +346,7 @@ public class JmlCompiler extends JavaCompiler {
     	Assert.check(compilePolicy == CompilePolicy.SIMPLE); // FIXME - only works for SIMPLE at present
     	var noresults = new java.util.LinkedList<Env<AttrContext>>();
         if (envs.isEmpty()) {
-        	context.get(Main.IProgressListener.class).report(1,"Operation not performed because of parse or type errors");
+        	if (!utils.check) context.get(Main.IProgressListener.class).report(1,"Operation not performed because of parse or type errors");
         	return noresults;
         }
     	var results = super.flow(envs);

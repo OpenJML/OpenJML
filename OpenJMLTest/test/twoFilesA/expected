@@ -1,4 +1,4 @@
-test/twoFilesA/B.jml:1: error: This JML field declaration conflicts with an existing field with the same name: k (owner: B)
+test/twoFilesA/B.jml:1: error: This JML field declaration conflicts with an existing field with the same name: B.k
 public class B { /*@ model int k;*/ }
                                ^
 test/twoFilesA/B.java:1: error: Associated declaration: test/twoFilesA/B.jml:1:

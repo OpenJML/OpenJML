@@ -418,6 +418,12 @@ public class TreeScanner extends Visitor {
     }
 
     public void visitTree(JCTree tree) {
-        Assert.error("VISIT TREE " + tree.getClass() + " " + this.getClass());
+    	String s = "";
+    	try {
+    		if (tree != null) s = tree.toString();
+            Assert.error("VISIT TREE " + tree.getClass() + " " + this.getClass() + " " + s);
+    	} catch (Exception e) {
+            Assert.error("VISIT TREE " + tree.getClass() + " " + this.getClass() + " " + e);
+    	}
     }
 }

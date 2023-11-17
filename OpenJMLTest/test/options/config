@@ -1,1 +1,1 @@
-ARGS+=" -normal "
+ARGS+=" --normal "
