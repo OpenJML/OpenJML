@@ -1,6 +1,3 @@
-test/gitbug463/Initializer.java:16: warning: A non-pure method is being called where it is not permitted: Initializer.Initializer(int)
-      @   ensures \result.equals(\old(new Initializer(a)));
-                                      ^
 Proving methods in Initializer
 Starting proof of Initializer.Initializer(int) with prover !!!!
 Feasibility check - end of preconditions : OK
@@ -15,4 +12,3 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Initializer.equals(Object) with prover !!!! - no warnings
 Completed proving methods in Initializer
-1 warning

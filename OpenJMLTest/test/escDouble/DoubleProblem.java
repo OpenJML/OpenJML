@@ -1,5 +1,5 @@
 //-@ immutable
-public /*@ pure @*/ strictfp class DoubleProblem {
+public /*@ pure @*/ class DoubleProblem {
 
     /** The double that is the abstract value of this object.
      */

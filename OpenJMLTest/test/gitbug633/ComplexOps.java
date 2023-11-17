@@ -27,7 +27,7 @@ package org.jmlspecs.samples.dbc;
  *  @author Gary T. Leavens with help from Abelson and Sussman's
  *          <cite>Structure and Interpretation of Computer Programs</cite>
  */
-public /*@ pure @*/ strictfp abstract class ComplexOps implements Complex {
+public /*@ pure @*/ abstract class ComplexOps implements Complex {
 
     // specification inherited
     public Complex add(Complex b) {

@@ -1,4 +1,4 @@
-test/valuetypesErr/Arr.java:7: error: illegal conversion: org.jmlspecs.lang.array<java.lang.String> to org.jmlspecs.lang.array<@org.jmlspecs.annotation.NonNull java.lang.Short>
+test/valuetypesErr/Arr.java:7: error: illegal conversion: org.jmlspecs.lang.array<java.lang.String> to org.jmlspecs.lang.array<java.lang.@org.jmlspecs.annotation.NonNull Short>
 //@ ghost array<Short> arx = args.array; // ERROR
                                  ^
 test/valuetypesErr/Arr.java:10: error: The .array suffix is permitted only for array expressions: 
@@ -8,6 +8,6 @@ test/valuetypesErr/Arr.java:13: error: cannot find symbol
 boolean b = a.array;
              ^
   symbol:   variable array
-  location: variable a of type Integer[]
+  location: variable a of type java.lang.Integer[]
 Operation not performed because of parse or type errors
 3 errors

@@ -51,14 +51,14 @@ Starting proof of Test.m5a(EEE) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.m5a(EEE) with prover !!!! - no warnings
-Starting proof of Test.m6(String) with prover !!!!
+Starting proof of Test.m6(@Nullable String) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.m6(String) with prover !!!! - no warnings
-Starting proof of Test.m6a(String) with prover !!!!
+Completed proof of Test.m6(@Nullable String) with prover !!!! - no warnings
+Starting proof of Test.m6a(@Nullable String) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.m6a(String) with prover !!!! - no warnings
+Completed proof of Test.m6a(@Nullable String) with prover !!!! - no warnings
 Starting proof of Test.m7(EEE) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

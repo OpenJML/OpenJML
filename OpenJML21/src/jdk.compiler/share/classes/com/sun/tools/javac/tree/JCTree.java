@@ -450,7 +450,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
     public String toString() {
         StringWriter s = new StringWriter();
         try {
-            new Pretty(s, false).printExpr(this);
+            Pretty.instance(s, false).printExpr(this); // OPENJML - to allow delegation to JmlPretty
         }
         catch (IOException e) {
             // should never happen, because StringWriter is defined

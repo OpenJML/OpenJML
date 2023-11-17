@@ -29,7 +29,7 @@
  * @see JMLDouble
  */
 //-RAC@ immutable
-public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
+public /*@ pure @*/ class JMLDouble implements JMLComparable {
 
     /** The double that is the abstract value of this object.
      */
@@ -94,7 +94,7 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
       @     requires Double.parseable(s);
       @     ensures Double.isFinite(theDouble);
       @     ensures Double.identical(doubleValue, Double.parseDouble(s));
-      @     ensures Double.identical(doubleValue, new Double(s).doubleValue());
+      @     ensures Double.identical(doubleValue, Double.valueOf(s).doubleValue());
       @ also public exceptional_behavior
       @     requires !Double.parseable(s);
       @     signals_only NumberFormatException;

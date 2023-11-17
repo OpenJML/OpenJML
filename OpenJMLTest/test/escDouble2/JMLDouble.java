@@ -29,7 +29,7 @@
  * @see JMLDouble
  */
 //-RAC@ immutable
-public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
+public /*@ pure @*/ class JMLDouble implements JMLComparable {
 
     /** The double that is the abstract value of this object.
      */
@@ -94,14 +94,14 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
       @     requires Double.parseable(s);
       @     ensures Double.isFinite(theDouble);
       @     ensures Double.identical(doubleValue, Double.parseDouble(s));
-      @     ensures Double.identical(doubleValue, new Double(s).doubleValue());
+      @     ensures Double.identical(doubleValue, Double.valueOf(s).doubleValue());
       @ also public exceptional_behavior
       @     requires !Double.parseable(s);
       @     signals_only NumberFormatException;
       @     signals (NumberFormatException) !Double.parseable(s);
       @*/
     public JMLDouble (/*@ non_null @*/ String s) throws NumberFormatException {
-        doubleValue = new Double(s).doubleValue();
+        doubleValue = Double.valueOf(s).doubleValue();
     }
 
     /** Tell if this object contains either positive or negative infinity.
@@ -242,7 +242,8 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
     /*@ public normal_behavior
       @   requires !isNaN();
       @   ensures \result != null;
-      @   ensures \result.equals(new JMLDouble(- theDouble));
+      @   ensures \fresh(\result);
+      @   ensures \result.theDouble == - this.theDouble;
       @*/
     public /*@ non_null @*/ JMLDouble negated() {
         return new JMLDouble(- doubleValue);
@@ -253,6 +254,7 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
     /*@ public normal_behavior
       @   requires isFinite() && d2.isFinite();
       @   ensures \result != null;
+      @   ensures \fresh(\result);
       @   ensures \result.theDouble == theDouble + d2.theDouble;
       @*/
     public /*@ non_null @*/ JMLDouble plus(/*@ non_null */ JMLDouble d2) {
@@ -263,8 +265,9 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
      */
     /*@ public normal_behavior
       @   requires isFinite() && d2.isFinite();
-      @    ensures \result != null;
-      @    ensures \result.theDouble == theDouble - d2.theDouble;
+      @   ensures \result != null;
+      @   ensures \fresh(\result);
+      @   ensures \result.theDouble == theDouble - d2.theDouble;
       @*/
     public /*@ non_null @*/ JMLDouble minus(/*@ non_null */ JMLDouble d2) {
         return new JMLDouble(doubleValue - d2.doubleValue());
@@ -274,7 +277,8 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
      */
     /*@ public normal_behavior
       @   requires isFinite() && d2.isFinite();
-      @      ensures \result.theDouble == theDouble * d2.theDouble;
+      @   ensures \fresh(\result);
+      @   ensures \result.theDouble == theDouble * d2.theDouble;
       @*/
     public /*@ non_null @*/ JMLDouble times(/*@ non_null */ JMLDouble d2) {
         return new JMLDouble(doubleValue * d2.doubleValue());
@@ -283,9 +287,10 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
     /** Return the quotient of this divided by the given argument.
      */
     /*@ public normal_behavior
-      @     requires isFinite() && d2.isFinite();
-      @      requires d2.theDouble != 0;
-      @      ensures \result.theDouble == theDouble / d2.theDouble;
+      @   requires isFinite() && d2.isFinite();
+      @   requires d2.theDouble != 0;
+      @   ensures \fresh(\result);
+      @   ensures \result.theDouble == theDouble / d2.theDouble;
       @*/
     public /*@ non_null @*/
         JMLDouble dividedBy(/*@ non_null */ JMLDouble d2) {
@@ -296,8 +301,9 @@ public /*@ pure @*/ strictfp class JMLDouble implements JMLComparable {
      */
     /*@ public normal_behavior
       @   requires isFinite() && d2.isFinite();
-      @      requires d2.theDouble != 0.0;
-      @      ensures \result.theDouble == theDouble % d2.theDouble;
+      @   requires d2.theDouble != 0.0;
+      @   ensures \fresh(\result);
+      @   ensures \result.theDouble == theDouble % d2.theDouble;
       @*/
     public /*@ non_null @*/
         JMLDouble remainderBy(/*@ non_null @*/ JMLDouble d2) {

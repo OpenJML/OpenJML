@@ -3,7 +3,7 @@ interface A {
     /*@ immutable pure public static model class Content {
       @     public normal_behavior
       @       ensures true;
-      @     function
+      @     heap_free
       @     public boolean P(nullable Object key);
 
       @ axiom (\forall Content c; (\forall Object o; c.P(o)));

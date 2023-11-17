@@ -1042,7 +1042,11 @@ public class Annotate {
             DiagnosticPosition deferPos)
     {
         Assert.checkNonNull(sym);
-        normal(() -> tree.accept(new TypeAnnotate(env, sym, deferPos)));
+        if (org.jmlspecs.openjml.Utils.isJML()) {
+        	normal(() -> tree.accept(new JmlTypeAnnotate(this, env, sym, deferPos))); // OPENJML
+        } else {
+        	normal(() -> tree.accept(new TypeAnnotate(env, sym, deferPos)));
+        }
     }
 
     /**
@@ -1130,6 +1134,7 @@ public class Annotate {
                     scan(tree.mods);
                     scan(tree.vartype);
                 }
+                if (org.jmlspecs.openjml.Utils.isJML() && tree.init != null) System.out.println("ININT " + tree.init.toString());
                 scan(tree.init);
             } finally {
                 deferPos = prevPos;

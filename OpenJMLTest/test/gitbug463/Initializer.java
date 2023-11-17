@@ -13,7 +13,7 @@ public class Initializer {
       @   requires a < 1000000; assignable a; // limit just to avoid overflow warnings
       @   ensures this.a == \old(this.a) + 1;
       @   ensures \fresh(\result);
-      @   ensures \result.equals(\old(new Initializer(a)));
+      @   ensures \result.a == \old(this.a);
       @*/
     public Initializer dupe() {
         Initializer other = new Initializer(a);

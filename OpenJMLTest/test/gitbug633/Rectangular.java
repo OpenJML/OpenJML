@@ -24,7 +24,7 @@ package org.jmlspecs.samples.dbc;
  * @author Gary T. Leavens with help from Abelson and Sussman's
  *          <cite>Structure and Interpretation of Computer Programs</cite>
  */
-public /*@ pure @*/ strictfp class Rectangular extends ComplexOps {
+public /*@ pure @*/ class Rectangular extends ComplexOps {
 
     /** The real part of this number. */
     private double re;
