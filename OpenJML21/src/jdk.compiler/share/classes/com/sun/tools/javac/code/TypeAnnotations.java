@@ -297,6 +297,10 @@ public class TypeAnnotations {
                 pop();
             }
         }
+        
+        public void visitTree(JCTree tree) { // OPENJML
+        	// silently skips JML classes
+        }
 
         /**
          * Separates type annotations from declaration annotations.

@@ -1036,8 +1036,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } else { // Nested model type declaration
             allAllowed(specsModifiers.annotations,allowedNestedModelTypeModifiers,"nested model type declaration");
         }
-        if (classSymbol.isInterface() && isImmutable(classSymbol)) {
-            utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "Interfaces may not be declared immutable: " + classSymbol);
+        if (!isImmutable(classSymbol)) {
+        	var sc = classSymbol.getSuperclass();
+        	if (sc != null && sc.tsym != null && isImmutable(sc.tsym)) {
+                utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "A class with an immutable superclass must itself be immutable: " + classSymbol);
+        	}
+        	for (var ity: classSymbol.getInterfaces()) {
+            	if (ity.tsym != null && isImmutable(ity.tsym)) {
+                    utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "A type with an immutable i must itself be immutable: " + classSymbol);
+            	}
+        	}
         }
 //        if (!classSymbol.isInterface() && classSymbol.type != syms.objectType && !isImmutable(classSymbol) && isImmutable(classSymbol.getSuperclass().tsym)) {
 //            utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "A class extending an immutable class must itself be immutable: " + classSymbol);

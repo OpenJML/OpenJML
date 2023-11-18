@@ -808,6 +808,10 @@ public class TreeInfo {
             }
             return false;
         }
+        
+        public void visitTree(JCTree tree) { // OPENJML
+        	// enables skipping JML constructs 
+        }
     }
 
     /** Find the declaration for a symbol, where

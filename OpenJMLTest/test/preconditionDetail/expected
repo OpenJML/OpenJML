@@ -3,20 +3,20 @@ Starting proof of TestAA.TestAA() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TestAA.TestAA() with prover !!!! - no warnings
-Starting proof of TestAA.m(Integer,int,Integer) with prover !!!!
+Starting proof of TestAA.m(@NonNull Integer,int,@NonNull Integer) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of TestAA.m(Integer,int,Integer) with prover !!!! - no warnings
+Completed proof of TestAA.m(@NonNull Integer,int,@NonNull Integer) with prover !!!! - no warnings
 Completed proving methods in TestAA
 Proving methods in TestB
 Starting proof of TestB.TestB() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TestB.TestB() with prover !!!! - no warnings
-Starting proof of TestB.m(Integer,int,Integer) with prover !!!!
+Starting proof of TestB.m(@NonNull Integer,int,@NonNull Integer) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of TestB.m(Integer,int,Integer) with prover !!!! - no warnings
+Completed proof of TestB.m(@NonNull Integer,int,@NonNull Integer) with prover !!!! - no warnings
 Completed proving methods in TestB
 Proving methods in TestC
 Completed proving methods in TestC
@@ -25,29 +25,29 @@ Starting proof of TestA.TestA() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TestA.TestA() with prover !!!! - no warnings
-Starting proof of TestA.m1(TestAA,Integer) with prover !!!!
-test/preconditionDetail/TestA.java:22: warning: The prover cannot establish an assertion (NullFormal) in method m1: p in m(java.lang.Integer,int,java.lang.Integer)
+Starting proof of TestA.m1(TestAA,@Nullable Integer) with prover !!!!
+test/preconditionDetail/TestA.java:22: warning: The prover cannot establish an assertion (NullFormal) in method m1: p in m(@NonNull Integer,int,@NonNull Integer)
         a.m(k,100,100);
             ^
 test/preconditionDetail/TestA.java:11: warning: Associated declaration
     public void m( /*@ non_null */Integer p, int q,  /*@ non_null */Integer r) {
-                                  ^
-Completed proof of TestA.m1(TestAA,Integer) with prover !!!! - with warnings
-Starting proof of TestA.m2(TestAA,Integer) with prover !!!!
-test/preconditionDetail/TestA.java:27: warning: The prover cannot establish an assertion (NullFormal) in method m2: r in m(java.lang.Integer,int,java.lang.Integer)
+                       ^
+Completed proof of TestA.m1(TestAA,@Nullable Integer) with prover !!!! - with warnings
+Starting proof of TestA.m2(TestAA,@Nullable Integer) with prover !!!!
+test/preconditionDetail/TestA.java:27: warning: The prover cannot establish an assertion (NullFormal) in method m2: r in m(@NonNull Integer,int,@NonNull Integer)
         a.m(100,100,kk);
                     ^
 test/preconditionDetail/TestA.java:11: warning: Associated declaration
     public void m( /*@ non_null */Integer p, int q,  /*@ non_null */Integer r) {
-                                                                    ^
-Completed proof of TestA.m2(TestAA,Integer) with prover !!!! - with warnings
-Starting proof of TestA.m3(TestAA,Integer) with prover !!!!
+                                                         ^
+Completed proof of TestA.m2(TestAA,@Nullable Integer) with prover !!!! - with warnings
+Starting proof of TestA.m3(TestAA,@NonNull Integer) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of TestA.m3(TestAA,Integer) with prover !!!! - no warnings
-Starting proof of TestA.m4(TestAA,Integer) with prover !!!!
+Completed proof of TestA.m3(TestAA,@NonNull Integer) with prover !!!! - no warnings
+Starting proof of TestA.m4(TestAA,@NonNull Integer) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of TestA.m4(TestAA,Integer) with prover !!!! - no warnings
+Completed proof of TestA.m4(TestAA,@NonNull Integer) with prover !!!! - no warnings
 Completed proving methods in TestA
 4 warnings
