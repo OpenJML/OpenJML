@@ -1,16 +1,16 @@
-test/gitbug636/Test.java:4: error: no suitable constructor found for String(String,StandardCharsets)
+test/gitbug636/Test.java:4: error: no suitable constructor found for String(java.lang.String,java.nio.charset.StandardCharsets)
     //@   requires new String(s, cs) != null;
                    ^
-    constructor String.String(byte[],int) is not applicable
-      (argument mismatch; String cannot be converted to byte[])
-    constructor String.String(byte[],String) is not applicable
-      (argument mismatch; String cannot be converted to byte[])
-    constructor String.String(byte[],Charset) is not applicable
-      (argument mismatch; String cannot be converted to byte[])
-    constructor String.String(AbstractStringBuilder,Void) is not applicable
-      (argument mismatch; String cannot be converted to AbstractStringBuilder)
-    constructor String.String(byte[],byte) is not applicable
-      (argument mismatch; String cannot be converted to byte[])
+    constructor java.lang.String.String(byte[],int) is not applicable
+      (argument mismatch; java.lang.String cannot be converted to byte[])
+    constructor java.lang.String.String(byte[],java.lang.String) is not applicable
+      (argument mismatch; java.lang.String cannot be converted to byte[])
+    constructor java.lang.String.String(byte[],java.nio.charset.Charset) is not applicable
+      (argument mismatch; java.lang.String cannot be converted to byte[])
+    constructor java.lang.String.String(java.lang.AbstractStringBuilder,java.lang.Void) is not applicable
+      (argument mismatch; java.lang.String cannot be converted to java.lang.AbstractStringBuilder)
+    constructor java.lang.String.String(byte[],byte) is not applicable
+      (argument mismatch; java.lang.String cannot be converted to byte[])
 Operation not performed because of parse or type errors
 Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
 1 error

@@ -1,4 +1,4 @@
-//-@ immutable
+//-RAC@ immutable
 public /*@ pure @*/ class DoubleProblem {
 
     /** The double that is the abstract value of this object.

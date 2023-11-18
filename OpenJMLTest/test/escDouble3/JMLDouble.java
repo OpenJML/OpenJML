@@ -242,7 +242,7 @@ public /*@ pure @*/ class JMLDouble implements JMLComparable {
     /*@ public normal_behavior
       @   requires !isNaN();
       @   ensures \result != null;
-      @   ensures \result.equals(new JMLDouble(- theDouble));
+      @   ensures \result.theDouble == - this.theDouble;
       @*/
     public /*@ non_null @*/ JMLDouble negated() {
         return new JMLDouble(- doubleValue);

@@ -2077,7 +2077,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			String extra = null;
 			for (Object o : args) {
-				extra = o == null ? extra : ((extra == null ? "" : (extra + " ")) + o.toString());
+				extra = o == null ? extra : ((extra == null ? "" : (extra + " ")) + utils.abbrev(o.toString()));
 			}
 
 			JmlStatementExpr st = treeutils.makeAssert(codepos, label,
