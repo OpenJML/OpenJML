@@ -395,18 +395,16 @@ public class JmlOptions extends Options {
         }
 
         // TODO - needs review
-        if (!Main.instance(context).progressDelegator.hasDelegate()) {
-        	if (utils.jmlverbose >= Utils.PROGRESS) {
-            	try {
-            		Main.instance(context).progressDelegator.setDelegate(Main.progressListener != null ? Main.progressListener.get() : new PrintProgressReporter(context,Main.instance(context).stdOut));
-            	} catch (Exception e) {
-            		e.printStackTrace(System.out);
-            		// FIXME - report problem
-            		// continue without installing a listener
-            	}
-            } else {
-                Main.instance(context).progressDelegator.setDelegate(null);
-            }
+        if (utils.jmlverbose >= Utils.PROGRESS) {
+        	try {
+        		Main.instance(context).progressDelegator.setDelegate(Main.progressListener != null ? Main.progressListener.get() : new PrintProgressReporter(context,Main.instance(context).stdOut));
+        	} catch (Exception e) {
+        		e.printStackTrace(System.out);
+        		// FIXME - report problem
+        		// continue without installing a listener
+        	}
+        } else {
+        	Main.instance(context).progressDelegator.setDelegate(null);
         }
 
 
