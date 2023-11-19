@@ -277,7 +277,7 @@ public abstract class JmlTestCase {
         mockFiles = new LinkedList<JavaFileObject>();
         Log.alwaysReport = true; // Always report errors (even if they would be suppressed because they are at the same position
         if (System.getenv("VERBOSE") != null) {
-        	main.addJavaOption("-verbose","true");
+        	main.addOptions("-verbose","true"); // FIXME
         	main.addOptions("-jmlverbose","3");
         }
     }

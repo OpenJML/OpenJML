@@ -17,11 +17,17 @@ NJAVA=$ROOT/build/*/jdk/bin/java
 
 cd $R
 rm -f *.class
-CP=".:../src:$JUNIT"
+CL=`echo $ROOT/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
+CP=".:../src:$JUNIT:$CL"
 
-while ! NOJML= $NJAVAC -Xlint:unchecked -cp $CP Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java  ; do
-   # Build can fail because of race conditions betweencompiles then multiple runtests are started at once
+##NOJML= $NJAVAC -Xlint:unchecked -cp $CP Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java 
+##NOJML= $NJAVAC -Xlint:unchecked -cp $CP -p /Users/davidcok/projects/OpenJML21/OpenJML/OpenJML21/build/macosx-x86_64-server-release/jdk/modules --add-modules jdk.compiler,java.base Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java 
+
+while ! NOJML= $NJAVAC -Xlint:unchecked -cp $CP Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java ; do
+
+   # Build can fail because of race conditions between compiles if so then multiple runtests are started at once
    echo Build failed for $@
    sleep 10
 done
+echo COMPILED
 ( cd ..; OPENJML_ROOT="$ROOT/../../Solvers" $NJAVA -cp unittests:src:$JUNIT --add-modules jdk.compiler,java.base Test $@ 2>&1 )

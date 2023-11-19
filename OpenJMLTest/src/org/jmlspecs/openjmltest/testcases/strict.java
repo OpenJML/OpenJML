@@ -12,7 +12,7 @@ public class strict extends TCBase {
 
     String opt = JmlOption.LANG.optionName();
     String optjml = opt + "=" + JmlOption.langJML;
-    String optjmlp = opt + "=" + JmlOption.langPlus;
+    String optjmlp = opt + "=" + JmlOption.langOpenJML;
     
     @Override
     public void setUp() throws Exception {

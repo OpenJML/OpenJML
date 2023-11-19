@@ -191,8 +191,8 @@ public abstract class EscBase extends JmlTestCase {
         ignoreNotes = false;
         print = false;
         args = new String[]{};
-        MethodProverSMT.benchmarkName = 
-                (this.getClass() + "." + testname.getMethodName()).replace("[0]", "").substring(6);
+        //MethodProverSMT.benchmarkName = 
+        //        (this.getClass() + "." + testname.getMethodName()).replace("[0]", "").substring(6);
     }
 
     public void escOnFiles(String sourceDirname, String outDir, String ... opts) {
@@ -302,7 +302,7 @@ public abstract class EscBase extends JmlTestCase {
         super.tearDown();
         specs = null;
         captureOutput = false;
-        MethodProverSMT.benchmarkName = null;
+        //MethodProverSMT.benchmarkName = null;
     }
 
     
