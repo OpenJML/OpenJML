@@ -5,6 +5,7 @@ public class Amount{
 
     //@ public invariant euros > 0 ==> cents >= 0;
     //@ public invariant euros < 0 ==> cents <= 0;
+    //@ public invariant euros != Integer.MIN_VALUE;
 
     private /*@ spec_public @*/ int cents;
 
@@ -14,10 +15,9 @@ public class Amount{
     //@ requires cents <= 100;
     //@ requires euros > 0 ==> cents >= 0;
     //@ requires euros < 0 ==> cents <= 0;
-    //@ ensures this.cents >= -100;
-    //@ ensures this.cents <= 100;
-    //@ ensures this.euros > 0 ==> cents >= 0;
-    //@ ensures this.euros < 0 ==> cents <= 0;
+    //@ requires euros != Integer.MIN_VALUE;
+    //@ ensures this.cents == cents;
+    //@ ensures this.euros == euros;
     //@ pure
     public Amount(int euros, int cents){
         this.euros = euros;
