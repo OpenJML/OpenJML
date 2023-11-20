@@ -15,14 +15,14 @@ Starting proof of JMLDouble.JMLDouble(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLDouble.JMLDouble(int) with prover !!!! - no warnings
-Starting proof of JMLDouble.JMLDouble(@NonNull Double)) with prover !!!!
+Starting proof of JMLDouble.JMLDouble(@NonNull Double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.JMLDouble(@NonNull Double)) with prover !!!! - no warnings
-Starting proof of JMLDouble.JMLDouble(@NonNull String)) with prover !!!!
+Completed proof of JMLDouble.JMLDouble(@NonNull Double) with prover !!!! - no warnings
+Starting proof of JMLDouble.JMLDouble(@NonNull String) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.JMLDouble(@NonNull String)) with prover !!!! - no warnings
+Completed proof of JMLDouble.JMLDouble(@NonNull String) with prover !!!! - no warnings
 Starting proof of JMLDouble.isInfinite() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -43,7 +43,7 @@ test/escDouble2/JMLDouble.java:163: warning: The prover cannot establish an asse
 /Users/davidcok/projects/OpenJMLA/Specs/specs/java/lang/Comparable.jml:76: warning: Associated declaration
     /*@ public normal_behavior
                ^
-Completed proof of JMLDouble.compareTo(@NonNull :: java.lang.Object)) with prover !!!! - with warnings
+Completed proof of JMLDouble.compareTo(@NonNull :: java.lang.Object) with prover !!!! - with warnings
 Starting proof of JMLDouble.isZero(double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -52,11 +52,11 @@ Starting proof of JMLDouble.isZero() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLDouble.isZero() with prover !!!! - no warnings
-Starting proof of JMLDouble.equals(@Nullable :: java.lang.Object)) with prover !!!!
+Starting proof of JMLDouble.equals(@Nullable :: java.lang.Object) with prover !!!!
 test/escDouble2/JMLDouble.java:205: warning: The prover cannot establish an assertion (Assert) in method equals
         //@ assert \invariant_for(jmld2);
             ^
-Completed proof of JMLDouble.equals(@Nullable :: java.lang.Object)) with prover !!!! - with warnings
+Completed proof of JMLDouble.equals(@Nullable :: java.lang.Object) with prover !!!! - with warnings
 Starting proof of JMLDouble.hashCode() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -73,39 +73,39 @@ Starting proof of JMLDouble.negated() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLDouble.negated() with prover !!!! - no warnings
-Starting proof of JMLDouble.plus(@NonNull :: JMLDouble)) with prover !!!!
+Starting proof of JMLDouble.plus(@NonNull JMLDouble) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.plus(@NonNull :: JMLDouble)) with prover !!!! - no warnings
-Starting proof of JMLDouble.minus(@NonNull :: JMLDouble)) with prover !!!!
+Completed proof of JMLDouble.plus(@NonNull JMLDouble) with prover !!!! - no warnings
+Starting proof of JMLDouble.minus(@NonNull JMLDouble) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.minus(@NonNull :: JMLDouble)) with prover !!!! - no warnings
-Starting proof of JMLDouble.times(@NonNull :: JMLDouble)) with prover !!!!
+Completed proof of JMLDouble.minus(@NonNull JMLDouble) with prover !!!! - no warnings
+Starting proof of JMLDouble.times(@NonNull JMLDouble) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.times(@NonNull :: JMLDouble)) with prover !!!! - no warnings
-Starting proof of JMLDouble.dividedBy(@NonNull :: JMLDouble)) with prover !!!!
+Completed proof of JMLDouble.times(@NonNull JMLDouble) with prover !!!! - no warnings
+Starting proof of JMLDouble.dividedBy(@NonNull JMLDouble) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.dividedBy(@NonNull :: JMLDouble)) with prover !!!! - no warnings
-Skipping proof of JMLDouble.remainderBy(@NonNull :: JMLDouble)) (excluded by -method)
-Starting proof of JMLDouble.greaterThan(@NonNull :: JMLDouble)) with prover !!!!
+Completed proof of JMLDouble.dividedBy(@NonNull JMLDouble) with prover !!!! - no warnings
+Skipping proof of JMLDouble.remainderBy(@NonNull JMLDouble) (excluded by -method)
+Starting proof of JMLDouble.greaterThan(@NonNull JMLDouble) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.greaterThan(@NonNull :: JMLDouble)) with prover !!!! - no warnings
-Starting proof of JMLDouble.lessThan(@NonNull :: JMLDouble)) with prover !!!!
+Completed proof of JMLDouble.greaterThan(@NonNull JMLDouble) with prover !!!! - no warnings
+Starting proof of JMLDouble.lessThan(@NonNull JMLDouble) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.lessThan(@NonNull :: JMLDouble)) with prover !!!! - no warnings
-Starting proof of JMLDouble.greaterThanOrEqualTo(@NonNull :: JMLDouble)) with prover !!!!
+Completed proof of JMLDouble.lessThan(@NonNull JMLDouble) with prover !!!! - no warnings
+Starting proof of JMLDouble.greaterThanOrEqualTo(@NonNull :: JMLDouble) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.greaterThanOrEqualTo(@NonNull :: JMLDouble)) with prover !!!! - no warnings
-Starting proof of JMLDouble.lessThanOrEqualTo(@NonNull :: JMLDouble)) with prover !!!!
+Completed proof of JMLDouble.greaterThanOrEqualTo(@NonNull JMLDouble) with prover !!!! - no warnings
+Starting proof of JMLDouble.lessThanOrEqualTo(@NonNull JMLDouble) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLDouble.lessThanOrEqualTo(@NonNull :: JMLDouble)) with prover !!!! - no warnings
+Completed proof of JMLDouble.lessThanOrEqualTo(@NonNull JMLDouble) with prover !!!! - no warnings
 Skipping proof of JMLDouble.toString() (excluded by -method)
 Starting proof of JMLDouble.withinEpsilonOf(@NonNull JMLDouble,double) with prover !!!!
 Feasibility check - end of preconditions : OK

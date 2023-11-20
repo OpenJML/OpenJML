@@ -32,7 +32,5 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of GCDCalculatorMain.GCDCalculatorMain() with prover !!!! - no warnings
 Starting proof of GCDCalculatorMain.main(String[]) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of GCDCalculatorMain.main(String[]) with prover !!!! - no warnings
 Completed proving methods in GCDCalculatorMain
