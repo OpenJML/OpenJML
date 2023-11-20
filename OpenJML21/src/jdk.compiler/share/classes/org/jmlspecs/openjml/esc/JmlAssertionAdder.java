@@ -5361,7 +5361,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Note that methodDecl.resType.type appears to be unannotated
 		Type rt = methodDecl.sym.getReturnType();
-		if (rt != null && !rt.isPrimitiveOrVoid() && resultSym != null && specs.isNonNull(methodDecl.restype.type, methodDecl.sym)) {
+		if (rt != null && !utils.isPrimitiveOrVoidType(rt) && resultSym != null && specs.isNonNull(methodDecl.restype.type, methodDecl.sym)) {
 		    //System.out.println("NN " + methodDecl.sym.owner + " " + methodDecl.restype.type + " " + methodDecl.sym + " " + specs.isNonNull(methodDecl.sym.getReturnType()) + " " + hasNullable(rt) + " " + hasNonNull(rt) );
 			currentStatements = ensuresStats;
 			addStat(comment(methodDecl.restype, "Adding null return check by callee " + methodDecl.sym, null));

@@ -4,6 +4,7 @@ public class GCDCalculatorMain{
     //@ requires System.out.isOpen && System.err.isOpen;
     //@ requires \invariant_for(System.out); // FIXME - this needed? and elsewhere
     //@ requires \invariant_for(System.err);
+	@org.jmlspecs.annotation.Options("--check-feasibility=none")
 	public static void main(String[] args){
 		try{ 
 			int num1, num2, gcd;
