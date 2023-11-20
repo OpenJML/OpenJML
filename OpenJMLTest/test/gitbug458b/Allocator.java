@@ -1,5 +1,5 @@
 public class Allocator {
-	public static byte[] alloc(int sizeABC) {
-		return new byte[sizeABC];
+	public static byte[] alloc(int sizeXYZ) {
+		return new byte[sizeXYZ];
 	}
 }

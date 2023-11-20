@@ -1,4 +1,4 @@
-test\gitbug450\ArrList.java:15: error: no suitable method found for add(int)
+test/gitbug450/ArrList.java:15: error: no suitable method found for add(int)
         theList.add(a);
                ^
     method Collection.add(String) is not applicable

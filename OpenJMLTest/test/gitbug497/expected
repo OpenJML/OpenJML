@@ -1,29 +1,27 @@
-test/gitbug497/IVec.java:15: error: ')' expected
-      @                            j <= i ==> src[j] != 0); @*/
-                                                          ^
-test/gitbug497/IVec.java:30: error: illegal start of type
-      @       && (\exists int i; 0 <= i && i < right.length; 
-              ^
-test/gitbug497/IVec.java:30: error: Token \exists is not a type
-      @       && (\exists int i; 0 <= i && i < right.length; 
-                  ^
-test/gitbug497/IVec.java:30: error: ';' expected
-      @       && (\exists int i; 0 <= i && i < right.length; 
-                         ^
-test/gitbug497/IVec.java:30: error: illegal start of type
-      @       && (\exists int i; 0 <= i && i < right.length; 
-                                 ^
-test/gitbug497/IVec.java:30: error: <identifier> expected
-      @       && (\exists int i; 0 <= i && i < right.length; 
-                                       ^
-test/gitbug497/IVec.java:30: error: > expected
-      @       && (\exists int i; 0 <= i && i < right.length; 
-                                                           ^
-test/gitbug497/IVec.java:31: error: ']' expected
-      @                           right[i] == 0); @*/
-                                        ^
-test/gitbug497/IVec.java:31: error: ';' expected
-      @                           right[i] == 0); @*/
-                                         ^
-Operation not performed because of parse or type errors
-9 errors
+Proving methods in IVec
+Starting proof of IVec.IVec() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IVec.IVec() with prover !!!! - no warnings
+Starting proof of IVec.ivec_len(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IVec.ivec_len(int[]) with prover !!!! - no warnings
+Starting proof of IVec.ivec_add(int[],int[]) with prover !!!!
+test/gitbug497/IVec.java:24: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ivec_add: overflow in int sum
+            target[i] += src[i];
+                      ^
+test/gitbug497/IVec.java:24: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ivec_add: underflow in int sum
+            target[i] += src[i];
+                      ^
+Completed proof of IVec.ivec_add(int[],int[]) with prover !!!! - with warnings
+Starting proof of IVec.min(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IVec.min(int,int) with prover !!!! - no warnings
+Starting proof of IVec.ivec_cmp(int[],int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IVec.ivec_cmp(int[],int[]) with prover !!!! - no warnings
+Completed proving methods in IVec
+2 warnings
