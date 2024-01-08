@@ -210,7 +210,7 @@ public class JavaCompiler {
         }
     }
 
-    protected static final CompilePolicy DEFAULT_COMPILE_POLICY = CompilePolicy.BY_TODO;
+    protected static final CompilePolicy DEFAULT_COMPILE_POLICY = CompilePolicy.BY_TODO; // OPENJML - private to protected
 
     protected static enum ImplicitSourcePolicy {
         /** Don't generate or process implicitly read source files. */
@@ -593,7 +593,7 @@ public class JavaCompiler {
         return log.nerrors;
     }
 
-    protected <T> Queue<T> stopIfError(CompileState cs, Queue<T> queue) {
+    protected <T> Queue<T> stopIfError(CompileState cs, Queue<T> queue) { // OPENJML - removed final
         return shouldStop(cs) ? new ListBuffer<T>() : queue;
     }
 
@@ -1399,7 +1399,7 @@ public class JavaCompiler {
      * Perform dataflow checks on an attributed parse tree.
      */
     protected void flow(Env<AttrContext> env, Queue<Env<AttrContext>> results) {
-    	if (compileStates.isDone(env, CompileState.FLOW)) {
+        if (compileStates.isDone(env, CompileState.FLOW)) {
             results.add(env);
             return;
         }
@@ -1493,7 +1493,7 @@ public class JavaCompiler {
         }
 
         if (compileStates.isDone(env, CompileState.LOWER)) {
-        	var t = desugaredEnvs.get(env);  // OPENJML - a bug fix?
+            var t = desugaredEnvs.get(env);  // OPENJML - a bug fix?
             if (t != null) results.addAll(t);  // OPENJML - a bug fix?
             return;
         }

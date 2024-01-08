@@ -3918,7 +3918,7 @@ public class JavacParser implements Parser {
         }
     }
 
-    protected JCTree checkForJmlDeclaration(boolean checkForImports) { // OPEN - added for extension
+    protected JCTree checkForJmlDeclaration(boolean checkForImports) { // OPENJML - added for extension
         return null;
     }
 
@@ -3952,7 +3952,7 @@ public class JavacParser implements Parser {
             defs.append(pd);
         }
 
-        boolean checkForImports = true;
+        boolean checkForImports = true; // OPENJML - added
         boolean firstTypeDecl = true;   // have we see a class, enum, or interface declaration yet?
         boolean isUnnamedClass = false;
         while (token.kind != EOF) {

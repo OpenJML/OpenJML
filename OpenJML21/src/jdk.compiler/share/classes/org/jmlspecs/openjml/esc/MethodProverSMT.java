@@ -423,7 +423,7 @@ public class MethodProverSMT {
                 	String name = utils.methodName(methodDecl.sym);
                 	if (filename != null) {
                 		filename = filename.replace("%%",utils.qualifiedMethodSig(methodDecl.sym)).replace("%_", name);
-                		new java.io.File(filename).getParentFile().mkdirs();
+                		new java.io.File(filename).getAbsoluteFile().getParentFile().mkdirs();
             	        try (var fw = new java.io.FileWriter(new java.io.File(filename))) {
             			    var sw = new java.io.StringWriter();
             			    org.smtlib.sexpr.Printer.WithLines.write(sw,script);

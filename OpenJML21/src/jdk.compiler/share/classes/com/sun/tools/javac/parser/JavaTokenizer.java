@@ -922,7 +922,7 @@ public class JavaTokenizer extends UnicodeReader {
         hasStringTemplateErrors = false;
         fragmentRanges = List.nil();
 
-        int pos = -1;
+        int pos = -1; // OPENJML - added initial value
         List<Comment> comments = null;
 
         try {

@@ -521,7 +521,7 @@ public class Enter extends JCTree.Visitor {
         }
 
         // Enter type parameters.
-        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ENTERING TYPE PARAMETERS " + tree.name + " " + tree.typarams);
+        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ENTERING TYPE PARAMETERS " + tree.name + " " + tree.typarams); // OPENJML
         ct.typarams_field = classEnter(tree.typarams, localEnv);
         ct.allparams_field = null;
 
@@ -531,7 +531,7 @@ public class Enter extends JCTree.Visitor {
         // Add non-local class to uncompleted, to make sure it will be
         // completed later.
         if (!c.isDirectlyOrIndirectlyLocal() && uncompleted != null) uncompleted.append(c);
-//      System.err.println("entering " + c.fullname + " in " + c.owner);//DEBUG
+//      System.err.println("entering " + c.fullname + " in " + c.owner);//DEBUG // OPENJML
 
         // Recursively enter all member classes.
         classEnter(tree.defs, localEnv);

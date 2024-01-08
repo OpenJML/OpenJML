@@ -6526,7 +6526,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        // treeMap is used to map break statements to their target statements
 	        treeMap.put(that, newswitch); // pos must also be the  JCSwitch or JCSwitchExpression
 	        pushBlock();
-		    boolean hasDefault = that.cases.stream().anyMatch(cs -> cs.labels.isEmpty());
+		    boolean hasDefault = that.cases.stream().anyMatch(cs -> cs.labels.isEmpty()|| cs.labels.head instanceof JCDefaultCaseLabel);
+		    
+		    
+		    // Since we are doing a split, then we check just one switch case
 		    int doCase = 0;
 		    if (currentSplit.isEmpty()) {
 		        adjustSplit(that.cases.size() + (hasDefault ? 0 : 1));
@@ -6539,24 +6542,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    // caseToDo == null when the original switch has no default case -- so skip everything if no case condition matches
 		    // FIXME - only works for traditional enums or ints, not strings or patterns
 		    JCExpression caseCondition = null;
-/* FIXME TODO - pats no longer a field
-		    if (caseToDo != null && !caseToDo.pats.isEmpty()) {
-		        for (var pat : caseToDo.pats) {
-		            JCExpression e = treeutils.makeEquality(pat.pos, selector, convertExpr(pat));
-		            caseCondition = caseCondition == null ? e : treeutils.makeOr(that, caseCondition, e);
+		    if (caseToDo != null && !caseToDo.labels.isEmpty()) {
+		        for (JCCaseLabel pat : caseToDo.labels) {
+	        		if (pat instanceof JCConstantCaseLabel patc) {
+	        			JCExpression e = treeutils.makeEquality(pat.pos, selector, convertExpr(patc.expr));
+	        			caseCondition = caseCondition == null ? e : treeutils.makeOr(that, caseCondition, e);
+	        		}
 		        }
 		    } else {
 		        // default
 		        for (JCCase c : that.cases) {
-		            for (var pat : c.pats) {
-		                JCExpression e = treeutils.makeEquality(pat.pos, copy(selector),
-		                    convertExpr(pat));
-		                caseCondition = caseCondition == null ? e : treeutils.makeOr(that, caseCondition, e);
+		        	for (var pat : c.labels) {
+		        		if (pat instanceof JCConstantCaseLabel patc) {
+		                    JCExpression e = treeutils.makeEquality(pat.pos, copy(selector), convertExpr(patc.expr));
+		                    caseCondition = caseCondition == null ? e : treeutils.makeOr(that, caseCondition, e);
+		        		}
 		            }
 		        }
 		        caseCondition = treeutils.makeNot(that, caseCondition);
 		    }
-*/
+
 		    if (caseCondition != null) {
 		        addAssume(that.pos(), Label.IMPLICIT_ASSUME, caseCondition);
 	            addFeasibilityCheck(caseToDo, currentStatements, Strings.feas_switch, "after case condition");

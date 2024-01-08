@@ -5576,7 +5576,6 @@ public class Attr extends JCTree.Visitor {
                 env.info.returnResult = prevReturnRes;
                 log.useSource(prev);
                 chk.setLint(prevLint);
-                //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRCLASS_OUT");
            }
 
         }

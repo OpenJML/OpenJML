@@ -147,6 +147,7 @@ public class DeferredAttr extends JCTree.Visitor {
             };
 
         // For speculative attribution, skip the class definition in <>.
+            // OPENJML - duplicated to be able to call Jml versions
         if (System.getenv("NOJML") != null) treeCopier =
             new TreeCopier<Void>(TreeMaker.instance(context)) {
                 @Override @DefinedBy(Api.COMPILER_TREE)
