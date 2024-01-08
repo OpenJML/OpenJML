@@ -419,7 +419,7 @@ public class TreeScanner extends Visitor {
 
     public void visitTree(JCTree tree) {
     	String s = "";
-    	try {
+    	try {  // OPENJML - added in debugging information
     		if (tree != null) s = tree.toString();
             Assert.error("VISIT TREE " + tree.getClass() + " " + this.getClass() + " " + s);
     	} catch (Exception e) {

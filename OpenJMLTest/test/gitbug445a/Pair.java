@@ -2,7 +2,7 @@ import java.util.ArrayList;
 public class Pair<T> {
     protected /*@ spec_public @*/ T first, second;
 
-    /*@ assignable first, second;
+    /*@ assignable \nothing;
       @ ensures first == fst && second == snd; @*/
     public Pair(T fst, T snd) { first = fst; second = snd; }
 
@@ -10,7 +10,7 @@ public class Pair<T> {
     public /*@ pure @*/ T getFirst() { return first;
     }
     /*@ ensures \result == second; @*/
-    public T getSecond() { return second;
+    public /*@ pure @*/ T getSecond() { return second;
     }
     /*@ public model_program 
       @   normal_behavior

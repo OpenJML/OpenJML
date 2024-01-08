@@ -14,8 +14,6 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     
     /*@ spec_public @*/ int count; //@ in stringLength;
     
-    /*@ spec_public @*/ int MAX_ARRAY_SIZE;
-  
     //@ public static ghost char[] nullChars = {'n', 'u', 'l', 'l'};
     //@ public ghost char[] trueChars = {'t', 'r', 'u', 'e'};
     //@ public ghost char[] falseChars = {'f', 'a', 'l', 's', 'e'};
@@ -412,12 +410,12 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     public AbstractStringBuilder insert(int dstOffset,  /*@ nullable @*/ CharSequence s); //44
     
     //@ public normal_behavior
-    //@     requires 0 <= dstoffset <= this.length && 0 <= start <= end <= s.length;
+    //@     requires 0 <= dstoffset <= this.length() && 0 <= start <= end <= s.length();
     //@     requires this.length() + (end-start) <= Integer.MAX_VALUE;
     //@     assignable modelValue, capacity;
     //@     ensures \result.length() == this.length() + (end-start);
     //@     ensures \result == this;
-    public AbstractStringBuilder insert(int dstOffset, CharSequence s, int start, int end); //45
+    public AbstractStringBuilder insert(int dstoffset, CharSequence s, int start, int end); //45
     
     public AbstractStringBuilder insert(int offset, boolean b); //46
    

@@ -14,6 +14,8 @@ public class test2 {
 //@ invariant binarr[0] ==1;
 //@ invariant binarr[0]==1 && \forall int j;0 <= j < binarr.length-2;binarr[j]==binarr[j+1]/2;
 //@ invariant \forall int j;0 <= j < binarr.length-1;binarr[j] <= binarr[j+1];
+
+        //@ writes \nothing;
 	public static void test() {
 		//@ assert binarr.length > 0 && binarr.length==31;
 		//@ assert binarr[0] == 1;

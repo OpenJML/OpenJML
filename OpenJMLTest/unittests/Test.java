@@ -47,6 +47,10 @@ public class Test {
 			}
 			args = Arrays.copyOfRange(args,1,args.length);
 		}
+                if (args.length == 0) {
+                    System.out.println("There are no arguments to run");
+                    System.exit(1);
+                }
 		eservice = Executors.newFixedThreadPool(numThreads);
 		var dir = new File(JmlTestCase.root + "/OpenJML/OpenJMLTest/src/org/jmlspecs/openjmltest/testcases");
 		var lst = args.length == 0 ? dir.list() : args;

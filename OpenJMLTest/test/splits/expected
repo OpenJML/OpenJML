@@ -29,8 +29,8 @@ test/splits/Test.java:18: warning: The prover cannot establish an assertion (Pos
 test/splits/Test.java:12: warning: Associated declaration
     //@ ensures \result;
         ^
-Result of split B is POSSIBLY_SAT
-Composite result POSSIBLY_SAT
+Result of split B is Not verified
+Composite result Not verified
 Completed proof of Test.m1(int) with prover !!!! - with warnings
 Starting proof of Test.m2(int) with prover !!!!
 Proof attempt for split A
@@ -40,12 +40,12 @@ test/splits/Test.java:26: warning: The prover cannot establish an assertion (Pos
 test/splits/Test.java:22: warning: Associated declaration
     //@ ensures \result;
         ^
-Result of split A is POSSIBLY_SAT
+Result of split A is Not verified
 Proof attempt for split B
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Result of split B is Verified
-Composite result POSSIBLY_SAT
+Composite result Not verified
 Completed proof of Test.m2(int) with prover !!!! - with warnings
 Starting proof of Test.m3(int) with prover !!!!
 Proof attempt for split A
@@ -59,16 +59,20 @@ test/splits/Test.java:38: warning: The prover cannot establish an assertion (Pos
 test/splits/Test.java:33: warning: Associated declaration
     //@ ensures \result;
         ^
-Result of split B is POSSIBLY_SAT
+Result of split B is Not verified
 Proof attempt for split C
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Result of split C is Verified
 Proof attempt for split D
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Result of split D is Verified
-Composite result POSSIBLY_SAT
+test/splits/Test.java:40: warning: The prover cannot establish an assertion (Postcondition) in method m3
+        default: return i < 0;
+                 ^
+test/splits/Test.java:33: warning: Associated declaration
+    //@ ensures \result;
+        ^
+Result of split D is Not verified
+Composite result Not verified
 Completed proof of Test.m3(int) with prover !!!! - with warnings
 Starting proof of Test.bad() with prover !!!!
 Feasibility check - end of preconditions : OK
@@ -90,8 +94,8 @@ test/splits/Test.java:57: warning: The prover cannot establish an assertion (Pos
 test/splits/Test.java:54: warning: Associated declaration
     //@ ensures \result;
         ^
-Result of split B is POSSIBLY_SAT
-Composite result POSSIBLY_SAT
+Result of split B is Not verified
+Composite result Not verified
 Completed proof of Test.mbool(int) with prover !!!! - with warnings
 Starting proof of Test.mcombined(int) with prover !!!!
 Proof attempt for split AA
@@ -117,9 +121,13 @@ test/splits/Test.java:61: warning: There is no feasible path to program point at
                    ^
 Result of split BB is INFEASIBLE
 Proof attempt for split BC
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Result of split BC is Verified
+test/splits/Test.java:71: warning: The prover cannot establish an assertion (Postcondition) in method mcombined
+            default: return i < 0;
+                     ^
+test/splits/Test.java:60: warning: Associated declaration
+    //@ ensures \result;
+        ^
+Result of split BC is Not verified
 Composite result INFEASIBLE
 Completed proof of Test.mcombined(int) with prover !!!! - INFEASIBLE
 Starting proof of Test.splitx(int) with prover !!!!
@@ -165,4 +173,4 @@ Starting proof of Test.halt3(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Completed proof of Test.halt3(int) with prover !!!! - no warnings
 Completed proving methods in Test
-19 warnings
+23 warnings

@@ -180,7 +180,7 @@ public abstract class Buffer {
     private /*@ spec_public @*/ int mark;
     private /*@ spec_public @*/ int position;
     private /*@ spec_public @*/ int limit;
-    private /*@ spec_public @*/ int capacity;
+    private /*@ spec_public @*/ final int capacity;
 
     //@ public model instance boolean isReadOnly;
     //@ public model instance boolean isDirect;
@@ -208,7 +208,7 @@ public abstract class Buffer {
       @   requires mark > pos || pos > lim || lim > cap || cap < 0;
       @   signals_only IllegalArgumentException;
       @*/
-    Buffer(int mark, int pos, int lim, int cap, jdk.internal.access.foreign.MemorySegmentProxy proxy);       // package-private
+    Buffer(int mark, int pos, int lim, int cap, java.lang.foreign.MemorySegment proxy);       // package-private
 
     /**
      * Returns this buffer's capacity. </p>

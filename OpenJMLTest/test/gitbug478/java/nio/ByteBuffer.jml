@@ -315,11 +315,11 @@ public abstract class ByteBuffer
     // backing array, and array offset
     //
     ByteBuffer(int mark, int pos, int lim, int cap,   // package-private
-                 byte[] hb, int offset, jdk.internal.access.foreign.MemorySegmentProxy proxy);
+                 byte[] hb, int offset, java.lang.foreign.MemorySegment proxy);
 
     // Creates a new buffer with the given mark, position, limit, and capacity
     //
-    ByteBuffer(int mark, int pos, int lim, int cap, jdk.internal.access.foreign.MemorySegmentProxy proxy); // package-private
+    ByteBuffer(int mark, int pos, int lim, int cap, java.lang.foreign.MemorySegment proxy); // package-private
 
     /**
      * Allocates a new direct byte buffer.
@@ -469,7 +469,7 @@ public abstract class ByteBuffer
      *
      * @return  The new byte buffer
      */
-    /*@ public normal_behavior
+    /*@ also public normal_behavior
       @   assignable \nothing;
       @   ensures \fresh(\result);
       @   ensures \result != null;
@@ -512,7 +512,7 @@ public abstract class ByteBuffer
      *
      * @return  The new byte buffer
      */
-    /*@ public normal_behavior
+    /*@ also public normal_behavior
       @   assignable \nothing;
       @   ensures \fresh(\result);
       @   ensures \result != null;

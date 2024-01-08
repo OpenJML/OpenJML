@@ -252,7 +252,7 @@ public class MemberEnter extends JCTree.Visitor {
             localEnv.info.returnResult = attr.new ResultInfo(KindSelector.VAL,
                                                              tree.sym.type.getReturnType());
         }
-        //if (org.jmlspecs.openjml.Utils.isJML() && tree.name.toString().equals("accept")) System.out.println("METHODENV " + ((tree.mods.flags & STATIC) != 0));
+        //if (org.jmlspecs.openjml.Utils.isJML() && tree.name.toString().equals("accept")) System.out.println("METHODENV " + ((tree.mods.flags & STATIC) != 0)); // OPENJML
         if ((tree.mods.flags & STATIC) != 0) localEnv.info.staticLevel++;
         localEnv.info.yieldResult = null;
         return localEnv;
