@@ -1,29 +1,21 @@
 package org.jmlspecs.openjmltest.testcases;
 
-import java.util.Collection;
-
 import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 import org.openjml.runners.ParameterizedWithNames;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class escaccessible extends EscBase {
 
-    public escaccessible(String options, String solver) {
-        super(options,solver);
-    }
-    
     @Before @Override
     public void setUp() throws Exception {
     	captureOutput = true; // FIXME - why doesn't the 'verification failures' line end up in diagnostics, like it seems the erros and warnings lines do 
     	super.setUp();
-        main.addOptions("-checkAccessible","-no-jmltesting");
+        addOptions("-checkAccessible","-no-jmltesting");
     }
  
     protected void helpTCX(String classname, String s, Object... expectedResults) {
@@ -200,7 +192,7 @@ public class escaccessible extends EscBase {
 
     @Test
     public void testAccessibleAA3() {
-    	//main.addOptions("-show","-method=m");
+    	//addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires a != null && 0 <= i && i < a.length;\n"
@@ -310,7 +302,7 @@ public class escaccessible extends EscBase {
 
     @Test
     public void testAccessibleConditional3() {
-    	//main.addOptions("-show","-method=m");
+    	//addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires b;\n"

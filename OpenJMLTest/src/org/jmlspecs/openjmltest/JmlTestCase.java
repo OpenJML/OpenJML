@@ -123,6 +123,11 @@ public abstract class JmlTestCase {
     // Set in some testcase classes to ignore Notes reported by the tool. Set the value
     // before calling super.setUp()
     public boolean ignoreNotes = true;
+    
+    public void addOptions(String ... options) {
+    	main.addOptions(options);
+    }
+   
 
     /** A Diagnostic Listener that collects the diagnostics, so that they can be compared against expected results */
     final public static class FilteredDiagnosticCollector<S> implements DiagnosticListenerX<S> {

@@ -3,8 +3,6 @@ package org.jmlspecs.openjmltest.testcases;
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 
-import com.sun.tools.javac.util.Options;
-
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class typeclauses extends TCBase {
 
@@ -301,7 +299,7 @@ public class typeclauses extends TCBase {
     @Test 
     public void testRepresents9() {
     	expectedExit = 0;
-    	main.addOptions("-lang=jml"); // Part of test
+    	addOptions("-lang=jml"); // Part of test
         helpTCF("A.java","public class A {\n //@ model int[] x; represents x[*] = 0;\n}"
                 ,"/A.java:2: warning: Strict JML does not allow the [*] syntax",34
                 );
@@ -309,7 +307,7 @@ public class typeclauses extends TCBase {
     
     @Test
     public void testRepresents9a() {
-    	main.addOptions("-lang=jml+"); // Part of test
+    	addOptions("-lang=openjml"); // Part of test
         helpTCF("A.java","public class A {\n //@ represents x[*] = 0;\n}"
                 ,"/A.java:2: error: cannot find symbol"+eol+"  symbol:   variable x"+eol+"  location: class A",17
                 ,"/A.java:2: error: Represents target with wild-card index must be an array: x[*]",17
@@ -375,6 +373,7 @@ public class typeclauses extends TCBase {
         addMockFile("$A/A.jml","public class A {\n //@ represents i = 0;\n}");
         helpTCF("A.java","public class A {\n int i; \n}"
                 ,"/$A/A.jml:2: error: The target of a represents clause must be a model field: A.i",17
+                ,"/A.java:2: Note: Associated declaration: /$A/A.jml:2:",6
                 );
     }
 

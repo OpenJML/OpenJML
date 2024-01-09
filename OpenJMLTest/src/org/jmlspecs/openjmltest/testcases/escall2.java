@@ -6,14 +6,15 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 import org.openjml.runners.ParameterizedWithNames;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
-@RunWith(ParameterizedWithNames.class)
+// @RunWith(ParameterizedWithNames.class)
 public class escall2 extends EscBase {
 
-    public escall2(String options, String solver) {
-        super(options,solver);
+    public escall2() {
+        super(null,"z3_4_3");
     }
 
 
@@ -21,8 +22,11 @@ public class escall2 extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-nullableByDefault"); // Tests were written this way
+        addOptions("-nullableByDefault"); // Tests were written this way
     }
+    
+    // @Parameters
+    static public java.util.Collection<String[]> s() { return solversOnly(); }
 
     @Test
     public void testNNParam() {
@@ -61,16 +65,16 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
-        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
         );
     }
 
     @Test
     public void testNN2Param() {
-//    	main.addOptions("-show","-method=m2");
+//    	addOptions("-show","-method=m2");
 //        Assume.assumeTrue(runLongTests);
         helpTCX("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
@@ -107,10 +111,10 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: oooo in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
-        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: oooo in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: oooo in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: oooo in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
         );
     }
 
@@ -152,15 +156,15 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"    // Line 33
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
-        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(java.lang.Object)",9
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
         ,"/tt/TestJava.java:33: warning: Associated declaration",17
         );
     }
     @Test
     public void testNN4Param() {
-        main.addOptions("-nonnullByDefault");
+        addOptions("-nonnullByDefault");
         helpTCX("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"public class TestJava { \n"
@@ -196,16 +200,16 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
-        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(java.lang.Object)",9
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
         ,"/tt/TestJava.java:33: warning: Associated declaration",17
         );
     }
 
     @Test
     public void testNN5Param() {
-        main.addOptions("-nonnullByDefault");
+        addOptions("-nonnullByDefault");
         helpTCX("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"@NullableByDefault public class TestJava { \n"
@@ -241,16 +245,16 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
-        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
         );
     }
 
     @Test
     public void testNN6Param() {
-        main.addOptions("-nonnullByDefault");
+        addOptions("-nonnullByDefault");
         helpTCX("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"@NonNullByDefault public class TestJava { \n"
@@ -286,9 +290,9 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"    // Line 33
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(java.lang.Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",26
-        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(java.lang.Object)",9
+        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
         ,"/tt/TestJava.java:33: warning: Associated declaration",17
         );
     }
@@ -297,7 +301,7 @@ public class escall2 extends EscBase {
     public void testNNAssign() {
 //        Assume.assumeTrue(runLongTests);
         // Use noInternalSpecs to help yices, which cannot handle the quantified statements in String specs
-        main.addOptions("-no-internalSpecs");
+        addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -368,7 +372,7 @@ public class escall2 extends EscBase {
     @Test
     public void testNNAssign2() {
 //        Assume.assumeTrue(runLongTests);
-        main.addOptions("-no-internalSpecs");
+        addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -443,7 +447,7 @@ public class escall2 extends EscBase {
     @Test
     public void testNNAssign3() {
 //        Assume.assumeTrue(runLongTests);
-        main.addOptions("-internalSpecs=false"); // Part of test
+        addOptions("-internalSpecs=false"); // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
@@ -663,7 +667,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantForOK() {
-    	main.addOptions("-method=m"); // Part of test - don't test constructor
+    	addOptions("-method=m"); // Part of test - don't test constructor
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
@@ -681,7 +685,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantForVisibility() {
-    	main.addOptions("-method=m"); // Part of test - don't test constructor
+    	addOptions("-method=m"); // Part of test - don't test constructor
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
@@ -699,7 +703,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantForVisibility2() {
-    	main.addOptions("-method=m"); // Part of test - don't test constructor
+    	addOptions("-method=m"); // Part of test - don't test constructor
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
@@ -717,7 +721,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantFor() {
-    	main.addOptions("-method=m"); // Part of test - don't test constructor
+    	addOptions("-method=m"); // Part of test - don't test constructor
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
@@ -737,7 +741,7 @@ public class escall2 extends EscBase {
     @Test
     public void testInvariantForSeeStatic() {
     	Assume.assumeTrue(!solver.startsWith("cvc4"));
-    	main.addOptions("-method=m"); // Part of test - don't test constructor
+    	addOptions("-method=m"); // Part of test - don't test constructor
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
@@ -756,7 +760,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantForStatic() {
-    	main.addOptions("-method=m"); // Part of test - don't test constructor
+    	addOptions("-method=m"); // Part of test - don't test constructor
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
@@ -774,7 +778,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testInvariantForStatic1() {
-    	main.addOptions("-method=m"); // Part of test - don't test constructor
+    	addOptions("-method=m"); // Part of test - don't test constructor
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
@@ -793,7 +797,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantForStatic2() {
-    	main.addOptions("-method=m"); // Part of test - don't test constructor
+    	addOptions("-method=m"); // Part of test - don't test constructor
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
@@ -815,7 +819,7 @@ public class escall2 extends EscBase {
 //        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
 //        Assume.assumeTrue(false); // SKIPPING because CVC4 does not handle integer division
 
-        main.addOptions("-logic=AUFNIRA");
+        addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -872,7 +876,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testDZero2() {
-        main.addOptions("-logic=AUFNIRA");
+        addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -895,7 +899,7 @@ public class escall2 extends EscBase {
 
     @Test  // Sometimes times out
     public void testInvariant1() {
-        main.addOptions("-code-math=java","-spec-math=java","-solver-seed=42"); // Just to avoid overflow warnings; the seed attempts to avoid timeouts
+        addOptions("-code-math=java","-spec-math=java","-solver-seed=42"); // Just to avoid overflow warnings; the seed attempts to avoid timeouts
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -952,7 +956,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testConstraint1() {
-    	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
+    	addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava {\n"

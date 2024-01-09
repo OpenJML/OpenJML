@@ -12,7 +12,6 @@ import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized.Parameters;
 import org.openjml.runners.ParameterizedWithNames;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
@@ -29,15 +28,6 @@ public class SFBugs extends EscBase {
         super.setUp();
     }
 
-    public SFBugs(String options, String solver) {
-        super(options, solver);
-    }
-    
-    @Parameters
-    static public Collection<String[]> parameters() {
-        return EscBase.parameters();
-    }
-    
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
         //Assert.fail(); // FIXME - Java8 - long running
         ArrayList<String> list = new ArrayList<String>();
