@@ -20,16 +20,16 @@ rm -f *.class
 CL=`echo $ROOT/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
 CP=".:../src:$JUNIT:$CL"
 
-NOJML= $NJAVAC -Xlint:unchecked -cp $CP Test.java ../src/org/jmlspecs/openjmltest/testcases/escall2.java 
-( cd ..; OPENJML_ROOT="$ROOT/../../Solvers" $NJAVA -cp unittests:src:$JUNIT --add-modules jdk.compiler,java.base Test $@ 2>&1 )
-exit $?
-##NOJML= $NJAVAC -Xlint:unchecked -cp $CP -p /Users/davidcok/projects/OpenJML21/OpenJML/OpenJML21/build/macosx-x86_64-server-release/jdk/modules --add-modules jdk.compiler,java.base Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java 
+OPTIONS="-Xlint:unchecked -Xdiags:verbose"
 
-while ! NOJML= $NJAVAC -Xlint:unchecked -cp $CP Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java ; do
+EXPORTS="--add-modules jdk.compiler,java.base --add-exports=jdk.compiler/org.jmlspecs.openjml=ALL-UNNAMED  --add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml.proverinterface=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml.visitors=ALL-UNNAMED"
+
+while ! NOJML= $NJAVAC $OPTIONS -cp $CP -p /Users/davidcok/projects/OpenJML21/OpenJML/OpenJML21/build/macosx-x86_64-server-release/jdk/modules $EXPORTS Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java ; do
 
    # Build can fail because of race conditions between compiles if so then multiple runtests are started at once
    echo Build failed for $@
    sleep 10
 done
-echo COMPILED
-( cd ..; OPENJML_ROOT="$ROOT/../../Solvers" $NJAVA -cp unittests:src:$JUNIT --add-modules jdk.compiler,java.base Test $@ 2>&1 )
+
+## Now run the compiled Test progam
+( cd ..; OPENJML_ROOT="$ROOT/../../Solvers" $NJAVA -cp unittests:src:$JUNIT $EXPORTS Test $@ 2>&1 )

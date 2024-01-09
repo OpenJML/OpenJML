@@ -14,8 +14,8 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="unittests"/>
-	<classpathentry kind="lib" path="/Users/davidcok/projects/OpenJMLA/OpenJML/OpenJMLTest/libs/junit-jupiter-api-5.5.2.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/JMLAnnotations"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/OpenJMLDev21"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/JMLAnnotations"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/OpenJMLDev21"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

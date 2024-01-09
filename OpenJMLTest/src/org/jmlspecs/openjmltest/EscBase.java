@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import javax.tools.JavaFileObject;
 
@@ -53,7 +54,7 @@ public abstract class EscBase extends JmlTestCase {
  //             "yices", 
  //            "simplify" 
             });
-        
+    
     static public java.util.List<String> solversWithNull;
     		{
     			solversWithNull = new LinkedList<String>();
@@ -67,7 +68,6 @@ public abstract class EscBase extends JmlTestCase {
 //            });
         
     /** The parameters must be a String[] and a String */
-    @Parameters
     static public Collection<String[]> parameters() {
         return solversOnly();
     }
@@ -144,6 +144,12 @@ public abstract class EscBase extends JmlTestCase {
     protected String options;
     protected String solver;
     protected boolean captureOutput = false;
+    
+    /** options is a comma- or space-separated list of options to be added */
+    public EscBase() {
+        this.options = null;
+        this.solver = "z3_4_3";
+    }
     
     /** options is a comma- or space-separated list of options to be added */
     public EscBase(String options, String solver) {
