@@ -146,6 +146,7 @@ jmlruntime.jar: .FORCE
 
 clean-release:
 	make clean dist-clean
+	rm -rf $(makefile_path)/html
 	rm -rf $(REL)
 
 release-image: version

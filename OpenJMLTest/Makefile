@@ -75,3 +75,8 @@ version:
 	@ STACK=X njava -cp bin Version
 
 
+coverage:
+	java -jar ${HOME}/mylib/jacoco/lib/jacococli.jar report jacoco.exec --html html \
+            --sourcefiles ../OpenJML21/src/jdk.compiler/share/classes \
+            --classfiles ../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/java.base \
+            --classfiles ../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler
