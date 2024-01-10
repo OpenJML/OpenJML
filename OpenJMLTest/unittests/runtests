@@ -32,4 +32,4 @@ while ! NOJML= $NJAVAC $OPTIONS -cp $CP -p /Users/davidcok/projects/OpenJML21/Op
 done
 
 ## Now run the compiled Test progam
-( cd ..; OPENJML_ROOT="$ROOT/../../Solvers" $NJAVA -cp unittests:src:$JUNIT $EXPORTS Test $@ 2>&1 )
+( cd ..; OPENJML_ROOT="$ROOT/../../Solvers" $NJAVA -javaagent:$HOME/mylib/jacoco/lib/jacocoagent.jar -cp unittests:src:$JUNIT $EXPORTS Test $@ 2>&1 )
