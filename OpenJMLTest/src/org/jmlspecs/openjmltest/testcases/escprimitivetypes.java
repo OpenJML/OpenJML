@@ -15,10 +15,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escprimitivetypes extends EscBase {
 
-    public escprimitivetypes(String options, String solver) {
-        super(options,solver);
-    }
-    
     @Test
     public void testIntset() {
         helpTCX("tt.TestJava","package tt; \n"

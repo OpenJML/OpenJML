@@ -10,16 +10,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escstrings extends EscBase {
     
-    public escstrings(String options, String solver) {
-        super(options,solver);
-    }
-    
-//    @Parameters
-//    static public Collection<String[]> parameters() {
-//        return EscBase.parameters();
-//    }
-    
-
     @Override
     public void setUp() throws Exception {
         super.setUp();

@@ -10,15 +10,10 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escm extends EscBase {
     
-    public escm(String options, String solver) {
-        super(options,solver);
-    }
-    
-
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        main.addOptions("-code-math=bigint");  // To avoid overflow reports and semantics
+        addOptions("-code-math=bigint");  // To avoid overflow reports and semantics
     }
     
     /** This test checks that nested, local and anonymous classes are handled */
@@ -100,8 +95,8 @@ public class escm extends EscBase {
     /** This test checks that the specs of nested, local and anonymous classes are used */
     @Test
     public void testNestedClassSpecs() {
-        main.addOptions("-checkFeasibility=precondition,exit");
-        //main.addOptions("-progress");
+        addOptions("-checkFeasibility=precondition,exit");
+        //addOptions("-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -148,7 +143,7 @@ public class escm extends EscBase {
     /** This tests that the specs of model classes and methods are checked */
     @Test
     public void testModelSpecs() {
-    	main.addOptions("-show:translated");
+    	addOptions("-show:translated");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -235,7 +230,7 @@ public class escm extends EscBase {
 
     @Test
     public void testAnonX() {
-        main.addOptions("-checkFeasibility=exit");
+        addOptions("-checkFeasibility=exit");
     	expectedExit = 1;
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"

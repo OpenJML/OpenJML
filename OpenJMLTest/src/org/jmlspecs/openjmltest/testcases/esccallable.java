@@ -14,10 +14,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class esccallable extends EscBase {
 
-    public esccallable(String options, String solver) {
-        super(options,solver);
-    }
-    
     @Test
     public void testBasicCallable() {
         helpTCX("tt.TestJava","package tt; \n"
@@ -202,7 +198,7 @@ public class esccallable extends EscBase {
                 +"  void n(int i) {}\n"
                 +"  void n(Object o) {}\n"
                 +"}\n"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Callable) in method m: tt.TestJava.n(java.lang.Object) is not callable",16
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Callable) in method m: tt.TestJava.n(Object) is not callable",16
                 ,"/tt/TestJava.java:3: warning: Associated declaration",7
                 );
     }

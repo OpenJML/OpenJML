@@ -14,10 +14,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escreadable extends EscBase {
 
-    public escreadable(String option, String solver) {
-        super(option,solver);
-    }
-        
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;

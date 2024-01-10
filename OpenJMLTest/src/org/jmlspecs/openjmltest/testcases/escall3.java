@@ -9,10 +9,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class escall3 extends EscBase {
-
-    public escall3(String option, String solver) {
-        super(option,solver);
-    }
     
     @Override
     public void setUp() throws Exception {

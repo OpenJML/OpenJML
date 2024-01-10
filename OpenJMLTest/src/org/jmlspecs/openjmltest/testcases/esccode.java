@@ -11,11 +11,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class esccode extends EscBase {
 
-    public esccode(String options, String solver) {
-        super(options,solver);
-    }
-    
-
     @Test
     public void testCode1() {
         helpTCX("tt.TestJava","package tt; \n"

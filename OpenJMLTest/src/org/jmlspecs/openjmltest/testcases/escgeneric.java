@@ -17,26 +17,15 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escgeneric extends EscBase {
 
-
-    public escgeneric(String options, String solver) {
-        super(options,solver);
-    }
-
-    @Parameters
-    static public Collection<String[]> parameters() {
-        return EscBase.parameters();
-    }
-    
-
     @Override
     public void setUp() throws Exception {
         //print = true;
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-nullableByDefault"); // Because the tests were written this way
+        addOptions("-nullableByDefault"); // Because the tests were written this way
         //JmlEsc.escdebug = false;
-        main.addOptions("-timeout=30");
-        main.addOptions("-jmltesting");
+        addOptions("-timeout=30");
+        addOptions("-jmltesting");
     }
     
     @Test
@@ -64,7 +53,7 @@ public class escgeneric extends EscBase {
     /** Tests that we can reason about the result of \\typeof */
     @Test
     public void testTypeOf() {
-    	main.addOptions("-checkFeasibility=all");  // Part of test
+    	addOptions("-checkFeasibility=all");  // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -311,7 +300,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testTypeParameter2() {
-    	//main.addOptions("-show");
+    	//addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -339,7 +328,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testUnboxing() {
-        main.addOptions("-method=m");  // Just test method m
+        addOptions("-method=m");  // Just test method m
         helpTCX("tt.TestJava"," class A { void m(/*@non_null*/ Integer ooo) { \n "
                 +"int sum = 0; \n"
                 +"{ /*@ assume ooo >= 0; */ sum += ooo; }  \n"
@@ -362,7 +351,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testForEach3c() {
-    	//main.addOptions("-show","-method=m");
+    	//addOptions("-show","-method=m");
     	// nullable by default so list might be null
         helpTCX("tt.TestJava"," class A {  /*@ spec_bigint_math */ void m(java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
@@ -417,7 +406,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testGenericThrow() {
-        main.addOptions("-method=rt"); // Just test method rt
+        addOptions("-method=rt"); // Just test method rt
         helpTCX("tt.TestJava",
         		 "public class TestJava { \n"
         	    +" //@ public exceptional_behavior \n"

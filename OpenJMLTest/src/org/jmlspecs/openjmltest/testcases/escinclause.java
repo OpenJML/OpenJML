@@ -13,18 +13,14 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escinclause extends EscBase {
 
-    public escinclause(String options, String solver) {
-        super(options,solver);
-    }
-        
-    @Override
+   @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        //main.addOptions("-jmlverbose");
-        //main.addOptions("-method",   "m2bad");
-        //main.addOptions("-jmldebug");
-        //main.addOptions("-trace");
+        //addOptions("-jmlverbose");
+        //addOptions("-method",   "m2bad");
+        //addOptions("-jmldebug");
+        //addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;

@@ -8,10 +8,6 @@ import org.junit.Test;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class escTiming extends EscBase {
 
-    public escTiming() {
-        super(null, "z3_4_3");
-    }
-    
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;

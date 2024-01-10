@@ -1061,7 +1061,7 @@ public class JmlParser extends JavacParser {
     public List<JCTree> classOrInterfaceOrRecordBodyDeclaration(JCModifiers mods, Name className, boolean isInterface, boolean isRecord) {
 
         ListBuffer<JCTree> list = new ListBuffer<JCTree>();
-        loop: while (token.ikind != TokenKind.RBRACE) {
+        loop: while (token.ikind != TokenKind.RBRACE && token.ikind != TokenKind.EOF) {
         	// Skip over any JML start tokens
             if (isStartJml(token)) {
             	nextToken();

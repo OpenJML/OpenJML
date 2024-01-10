@@ -1,0 +1,26 @@
+#! /bin/bash
+shopt -s expand_aliases
+
+cd $(dirname "$BASH_SOURCE")
+
+alias lsc="ps au | grep summary | grep -v grep | awk '{ print \$13 }' | sort -u | wc -l"
+alias lst="ps au | grep summary | grep -v grep | awk '{ print \$13 }' | sort -u"
+
+for d in access api arith assignable binaries bugs compilationUnit compiler deprecation \
+         esc1 esc2 escaccessible escall2 escall3 escArithmeticModes escArithmeticModes2 \
+         escbitvector esccallable esccode escConstantFields escconstructor escCounterexamples \
+         escDemofiles escenums escfeatures escfiles escfilesTrace escfunction escgeneric \
+         escinclause escinline escJML esclambdas esclocation escm escnew escnew2 escnew3 \
+         escnewassignable escnewBoxing escnonpublic escnowarn escoption escprimitivetypes \
+         escreadable escstrings escTiming escTrace escvisibility escvisibility1 escwebexamples \
+         expressions flow generics harnesstests internalSpecs jmldoc jmltypes lblexpression \
+         matchClasses methodspecs modelghost modifiers namelookupnowarn positions prettyprinting purity \
+         QueryPure QuerySecret racArithmeticModes racdemoexamples racfeatures racfiles racJML \
+         racnew racnew2 racnew3 racnewLoops racnewWithSpecs racnonpublic racreadable racsystem redundant \
+         scanner SFBugs Specsbase SpecsEsc SpecsRac statements strict strongarm sysclasses \
+         typechecking typecheckingJmlTypes typecheckingvisibility typeclauses \
+         ; do \
+  echo Testing $d
+  ./run-summary log-$d "0/0" $d ;\
+done
+echo Completed

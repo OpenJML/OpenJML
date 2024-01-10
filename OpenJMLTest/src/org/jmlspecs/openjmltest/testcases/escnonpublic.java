@@ -47,17 +47,8 @@ public class escnonpublic extends EscBase {
 
     boolean enableSubexpressions = false;
     
-    public escnonpublic(String options, String solver) {
-        super(options,solver);
-        Assume.assumeTrue( new File(dir).exists() );
-    }
-    
-    @Parameters
-    static public Collection<String[]> parameters() {
-        return EscBase.parameters();
-    }
-    
     public java.util.List<String> setupForFiles(String sourceDirname, String outDir, String ... opts) {
+        Assume.assumeTrue( new File(dir).exists() );
         new File(outDir).mkdirs();
         java.util.List<String> args = new LinkedList<String>();
         File source = new File(sourceDirname);

@@ -1,12 +1,10 @@
 package org.jmlspecs.openjmltest.testcases;
 
-/** This tests that extensions are prohibited by -strict. 
- *  (I suppose we should test that every non-extension is allowed by -strict, but we don't.) */
+/** This tests that appropriate warnings are issued for deprecated syntax */
 
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 
-import com.sun.tools.javac.main.Option;
 import com.sun.tools.javac.util.Options;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
@@ -57,7 +55,5 @@ public class deprecation extends TCBase {
                 ,"/A.java:2: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",4
                 );
     }
-
-
 
 }

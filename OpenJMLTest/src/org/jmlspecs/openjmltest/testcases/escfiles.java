@@ -43,12 +43,7 @@ import org.openjml.runners.ParameterizedWithNames;
 public class escfiles extends EscBase {
 
     boolean enableSubexpressions = false;
-    
-    public escfiles(String options, String solver) {
-        super(options,solver);
-    }
-    
-    
+        
     String[] rac = null;
     
     /** The command-line to use to run ESC on a program */

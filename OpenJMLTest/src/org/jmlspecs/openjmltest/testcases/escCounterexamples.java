@@ -22,10 +22,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escCounterexamples extends EscBase {
 
-    public escCounterexamples(String options, String solver) {
-        super(options,solver);
-    }
-
     @Override
     public void setUp() throws Exception {
         captureOutput = true;

@@ -14,10 +14,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escinline extends EscBase {
 
-    public escinline(String options, String solver) {
-        super(options,solver);
-    }
-    
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
@@ -29,8 +25,8 @@ public class escinline extends EscBase {
     
     @Test // basic test of inlining, checking assignable and ensures and return value
     public void testInline1() {
-        main.addOptions("-defaults=constructor:pure");
-        //main.addOptions("-show","-method=m1");
+        addOptions("-defaults=constructor:pure");
+        //addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
                 +"public class TestJava { \n"
                 
@@ -96,7 +92,7 @@ public class escinline extends EscBase {
     // This test is OK with bigint math (cf. testInline2a), but not with java math.  FIXME - problem is that m.j does not have a range restriction assumption
     @Test  // inlining from a different class (with a different 'this')
     public void testInline2() {
-        main.addOptions("-defaults=constructor:pure");
+        addOptions("-defaults=constructor:pure");
         helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
                 +" class M { \n"
                 +"  public int j;\n"
@@ -179,7 +175,7 @@ public class escinline extends EscBase {
     
     @Test // inline is an extension and should be final
     public void testInline3() {
-    	main.addOptions("-lang=jml");
+    	addOptions("-lang=jml");
         helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
                 +" class M { \n"
                 +"  public int j;\n"

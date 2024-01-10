@@ -14,15 +14,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escoption extends EscBase {
 
-    public escoption(String options, String solver) {
-        super(options,solver);
-    }
-    
-    @Parameters
-    static public Collection<String[]> parameters() {
-        return EscBase.parameters();
-    }
-    
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
