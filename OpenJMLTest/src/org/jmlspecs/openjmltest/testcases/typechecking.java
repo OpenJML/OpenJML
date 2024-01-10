@@ -60,7 +60,7 @@ public class typechecking extends TCBase {
     @Test public void testAlso1() {
     	expectedExit = 0;
         helpTC(" class B { void m() {} } class A extends B { /*@ requires true; */ void m() {} /*@ also requires true; */ void n() {}}"
-                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (B.m())",50
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())",50
                 ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",84
                 );
     }
@@ -73,7 +73,7 @@ public class typechecking extends TCBase {
     @Test public void testAlso1I() {
     	expectedExit = 0;
         helpTC(" interface B { void m(); } class A implements B { /*@ public normal_behavior requires true; */ public void m() {} /*@ also requires true; */ void n() {}}"
-                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (B.m())",62
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())",62
                 ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",119
                 );
     }
@@ -86,7 +86,7 @@ public class typechecking extends TCBase {
     @Test public void testAlso1II() {
     	expectedExit = 0;
         helpTC(" interface B { void m(); } interface A extends B { /*@ requires true; */ void m(); /*@ also requires true; */ void n();}"
-                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (B.m())",56
+                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())",56
                 ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",88
                 );
     }
@@ -100,7 +100,7 @@ public class typechecking extends TCBase {
     @Test public void testAlsoObjectBad() {
     	expectedExit = 0;
         helpTC("  interface A { /*@ public normal_behavior requires true; */ String toString();}"
-                ,"/TEST.java:1: warning: Method toString overrides parent class methods and so its specification should begin with 'also' (java.lang.Object.toString())",28
+                ,"/TEST.java:1: warning: Method toString overrides parent class methods and so its specification should begin with 'also' (A.toString() overrides java.lang.Object.toString())",28
                 );
     }
 
@@ -459,13 +459,13 @@ public class typechecking extends TCBase {
     /** Missing model or ghost modifier */
     @Test public void testJmlTypes2() {
         helpTCF("A.java","public class A {  int i; /*@  \\TYPE t; */ } ",
-                "/A.java:1: error: A JML field declaration must be marked either ghost or model: t (owner: A)",37);
+                "/A.java:1: error: A declaration within a JML annotation must be either ghost or model: A.t",37);
     }
 
     /** Wrong position model or ghost modifier */
     @Test public void testJmlTypes3() {
         helpTCF("A.java","import org.jmlspecs.annotation.*; public class A {  @Ghost int i; } ",
-                "/A.java:1: error: A Java field declaration must not be marked either ghost or model: i (owner: A)",53);
+                "/A.java:1: error: A declaration (not within a JML annotation) may not be either ghost or model: A.i",53);
     }
 
     @Test public void testJmlTypes4() {
@@ -1100,7 +1100,7 @@ public class typechecking extends TCBase {
     
     @Test public void testBadModelImport2a() {
         helpTCF("A.java","/*@ model */  public class A {\n  \n }"
-                ,"/A.java:1: error: A Java class declaration must not be marked either ghost or model: A (owner: unnamed package)",5
+                ,"/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A",5
         );
     }
     
