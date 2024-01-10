@@ -15,10 +15,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escnew2 extends EscBase {
 
-    public escnew2(String option, String solver) {
-        super(option,solver);
-    }
-    
     @Override
     public void setUp() throws Exception {
         super.setUp();

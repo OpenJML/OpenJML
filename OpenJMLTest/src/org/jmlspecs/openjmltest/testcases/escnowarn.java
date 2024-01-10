@@ -16,10 +16,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escnowarn extends EscBase {
 
-    public escnowarn(String options, String solver) {
-        super(options,solver);
-    }
-    
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();

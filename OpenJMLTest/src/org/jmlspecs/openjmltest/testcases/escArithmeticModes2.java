@@ -7,7 +7,6 @@ import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized.Parameters;
 import org.openjml.runners.ParameterizedWithNames;
 
 
@@ -17,27 +16,17 @@ public class escArithmeticModes2 extends EscBase {
 
     static boolean runLongArithmetic = runLongTests || System.getProperty("RUNLONGARITH") != null;
     
-    @Parameters
-    static public Collection<String[]> parameters() {
-        String[] options = {"-escBV=false","-escBV=true","-escBV=auto"};
-        return optionsAndSolvers(options,solvers);
-    }
-    
     static {
         if (runLongTests && !runLongArithmetic) System.out.println("Skipping long tests in escArithmeticModes2");
     }
 
 
-    public escArithmeticModes2(String options, String solver) {
-        super(options,solver);
-    }
-    
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-nullableByDefault"); // Because the tests were written this way
-        //main.addOptions("-trace");
+        addOptions("-nullableByDefault"); // Because the tests were written this way
+        //addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;
@@ -134,7 +123,7 @@ public class escArithmeticModes2 extends EscBase {
     public void testModJavaB() {
         Assume.assumeTrue(runLongArithmetic);
         Assume.assumeTrue(!options.contains("-escBV=true"));
-        //main.addOptions("-method=ma","-show","-subexpressions");
+        //addOptions("-method=ma","-show","-subexpressions");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeJavaMath @SpecJavaMath public class TestJava { \n"
                 +"  //@ requires j != 0;\n"
@@ -154,7 +143,7 @@ public class escArithmeticModes2 extends EscBase {
     @Test
     public void testModSafe() {
         Assume.assumeTrue(runLongArithmetic || !options.contains("-escBV=true"));
-        main.addOptions("-solver-seed=142");
+        addOptions("-solver-seed=142");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath @SpecSafeMath public class TestJava { \n"
                 +"  public void m() {\n"
@@ -219,7 +208,7 @@ public class escArithmeticModes2 extends EscBase {
     @Ignore // FIXME - non-linear arithmetic has bad models
     @Test
     public void testModSafeB() {
-        //main.addOptions("-show","-method=ma","-subexpressions");
+        //addOptions("-show","-method=ma","-subexpressions");
         //Assume.assumeTrue(runLongArithmetic);
         Assume.assumeTrue(!options.contains("-escBV=true")); // Very long - skip for now
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"

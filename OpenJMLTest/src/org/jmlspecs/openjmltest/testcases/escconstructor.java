@@ -19,19 +19,6 @@ import com.sun.tools.javac.util.Options;
 @RunWith(ParameterizedWithNames.class)
 public class escconstructor extends EscBase {
 
-	// public esc() {
-	// super("",isWindows?null:"cvc4");
-	// }
-
-	public escconstructor(String options, String solver) {
-		super(options, solver);
-	}
-
-	@Parameters
-	static public Collection<String[]> parameters() {
-        return EscBase.parameters();
-	}
-
 	// FIXME = significant failures in boogie
 
 	@Override

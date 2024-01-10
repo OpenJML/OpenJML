@@ -41,15 +41,6 @@ public class escDemofiles extends EscBase {
 
     boolean enableSubexpressions = false;
     
-    public escDemofiles(String options, String solver) {
-        super(options,solver);
-    }
-    
-    @Parameters
-    static public Collection<String[]> parameters() {
-        return EscBase.parameters();
-    }
-    
     String[] rac = null;
     
     /** The command-line to use to run ESC on a program */

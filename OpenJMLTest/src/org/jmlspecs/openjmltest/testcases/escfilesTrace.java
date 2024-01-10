@@ -42,10 +42,6 @@ public class escfilesTrace extends EscBase {
 
     boolean enableSubexpressions = false;
     
-    public escfilesTrace(String options, String solver) {
-        super(options,solver);
-    }
-    
     String[] rac = null;
     
     /** The command-line to use to run ESC on a program */

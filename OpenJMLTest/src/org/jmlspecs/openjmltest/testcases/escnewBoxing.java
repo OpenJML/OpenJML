@@ -14,10 +14,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escnewBoxing extends EscBase {
 
-    public escnewBoxing(String options, String solver) {
-        super(options,solver);
-    }
-    
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;

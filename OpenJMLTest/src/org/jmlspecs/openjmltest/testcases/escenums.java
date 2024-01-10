@@ -14,10 +14,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escenums extends EscBase {
 
-    public escenums(String options, String solver) {
-        super(options,solver);
-    }
-    
     @Test
     public void testBasicEnum() {
         helpTCX("tt.TestJava","package tt; \n"

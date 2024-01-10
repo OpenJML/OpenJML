@@ -184,7 +184,7 @@ public abstract class EscBase extends JmlTestCase {
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-command","esc");
         main.addOptions("-keys","NOARITH");
-        main.addOptions("-escExitInfo","-no-purityCheck");
+        main.addOptions("-escExitInfo","--no-purity-check");
 //        main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
 //        main.addOptions("-exec",JmlTestCase.root + "/Solvers/Solvers-macos/z3-4.3.1","-verbose");  // FIXME
@@ -288,12 +288,12 @@ public abstract class EscBase extends JmlTestCase {
         java.util.List<String> args = new LinkedList<String>();
         args.add("-g");
         args.add("-esc");
-        args.add("-no-purityCheck");
+        args.add("--no-purity-check");
         args.add("-jmltesting");
         args.add("-progress");
         args.add("-timeout=300");
         args.add("-code-math=java");
-        if (!new File(sourceDirOrFilename).isFile()) args.add("-dir");
+        if (!new File(sourceDirOrFilename).isFile()) args.add("--dir");
         args.add(sourceDirOrFilename);
         if (solver != null) args.add("-prover="+solver);
         addOptionsToArgs(options,args);        

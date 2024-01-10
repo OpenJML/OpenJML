@@ -16,10 +16,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escbitvector extends EscBase {
 
-    public escbitvector(String options, String solver) {
-        super(options,solver);
-    }
-    
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;

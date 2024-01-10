@@ -15,10 +15,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escnew3 extends EscBase {
 
-    public escnew3(String options, String solver) {
-        super(options,solver);
-    }
-    
     // Test well-definedness within the implicit old
     @Test @Ignore // Times out
     public void testNonNullElements3() {

@@ -44,11 +44,6 @@ public class escwebexamples extends EscBase {
 
     boolean enableSubexpressions = false;
     
-    public escwebexamples(String options, String solver) {
-        super(options,solver);
-    }
-    
-    
     String[] rac = null;
     
     /** The command-line to use to run ESC on a program */

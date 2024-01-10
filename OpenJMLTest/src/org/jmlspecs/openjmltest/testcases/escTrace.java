@@ -10,10 +10,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escTrace extends EscBase {
     
-    public escTrace(String option, String solver) {
-        super(option,solver);
-    }
-    
     @Override
     public void setUp() throws Exception {
         captureOutput = true;

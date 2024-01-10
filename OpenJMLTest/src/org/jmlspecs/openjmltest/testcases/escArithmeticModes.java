@@ -21,24 +21,13 @@ public class escArithmeticModes extends EscBase {
         if (runLongTests && !runLongArithmetic) System.out.println("Skipping long tests in escArithmeticModes");
     }
 
-
-    @Parameters
-    static public Collection<String[]> parameters() {
-        String[] options = {"-escBV=true","-escBV=false"};
-        return optionsAndSolvers(options,solvers);
-    }
-
-
-    public escArithmeticModes(String options, String solver) {
-        super(options,solver);
-    }
     
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-nullableByDefault"); // Because the tests were written this way
-        //main.addOptions("-trace");
+        addOptions("-nullableByDefault"); // Because the tests were written this way
+        //addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;

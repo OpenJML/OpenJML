@@ -23,10 +23,6 @@ public class escnewassignable extends EscBase {
     // a[i] a[i..j] a[*] a[i..*] a[*..j] a[*..*]
     // \everything \nothing 
     
-    public escnewassignable(String options, String solver) {
-        super(options,solver);
-    }
-
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;

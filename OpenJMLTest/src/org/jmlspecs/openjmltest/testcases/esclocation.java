@@ -16,19 +16,11 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class esclocation extends EscBase {
 
-    public esclocation(String options, String solver) {
-        super(options,solver);
-    }
-    
     @Override
     public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-nullableByDefault"); // Because the tests were written this way
-        //main.addOptions("-jmlverbose");
-        //main.addOptions("-jmldebug");
-        //main.addOptions("-noInternalSpecs");
-        //JmlEsc.escdebug = true;
+        addOptions("--nullable-by-default"); // Because the tests were written this way
+        addOptions("--check-feasibility=all");
     }
     
     @Test

@@ -12,24 +12,20 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escvisibility1 extends EscBase {
 
-    public escvisibility1(String options, String solver) {
-        super(options, solver);
-    }
-    
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
         String z = java.io.File.pathSeparator;
         String testspecpath = "$A"+z+"$B";
-        main.addOptions("-classpath",   testspecpath);
-        main.addOptions("-sourcepath",   testspecpath);
-        main.addOptions("-specspath",   testspecpath);
-        main.addOptions("-quiet");
+        addOptions("-classpath",   testspecpath);
+        addOptions("-sourcepath",   testspecpath);
+        addOptions("-specspath",   testspecpath);
+        addOptions("-quiet");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;
-        main.addOptions("-jmltesting");
+        addOptions("-jmltesting");
     }
 
    
@@ -182,7 +178,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testInClause() {
         expectedExit = 1;
-        main.addOptions("-check");
+        addOptions("-check");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 

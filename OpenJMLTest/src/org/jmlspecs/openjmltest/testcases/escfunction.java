@@ -17,21 +17,12 @@ import com.sun.tools.javac.util.Options;
 @RunWith(ParameterizedWithNames.class)
 public class escfunction extends EscBase {
 
-    public escfunction(String options, String solver) {
-        super(options,solver);
-    }
-    
-    @Parameters
-    static public Collection<String[]> parameters() {
-        return EscBase.parameters();
-    }
-    
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-nullableByDefault"); // Because the tests were written this way
-        //main.addOptions("-trace");
+        addOptions("-nullableByDefault"); // Because the tests were written this way
+        //addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;
@@ -98,7 +89,7 @@ public class escfunction extends EscBase {
     @Test
     public void testFunctionError3() { 
     	expectedExit = 1;
-    	main.addOptions("-check");
+    	addOptions("-check");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
                 +"public class TestJava  { \n"
                 +"  //@ normal_behavior \n"

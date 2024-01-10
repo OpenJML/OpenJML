@@ -15,10 +15,6 @@ import java.util.function.Function;
 @RunWith(ParameterizedWithNames.class)
 public class esclambdas extends EscBase {
 
-    public esclambdas(String options, String solver) {
-        super(options,solver);
-    }
-    
     @Override
     public void setUp() throws Exception {
         super.setUp();

@@ -24,10 +24,6 @@ public class escJML extends EscBase {
         super.tearDown();
     }
     
-    public escJML(String option, String solver) {
-        super(option,solver);
-    }
-    
     @Test
     public void testLBLObject() {
         helpTCX("tt.TestJava","package tt; \n"

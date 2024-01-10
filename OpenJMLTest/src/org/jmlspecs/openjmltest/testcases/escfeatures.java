@@ -42,11 +42,6 @@ public class escfeatures extends EscBase {
 
     boolean enableSubexpressions = false;
     
-    public escfeatures(String option, String solver) {
-        super(option,solver);
-    }
-    
-    
     String[] rac = null;
     
     /** The command-line to use to run ESC on a program */
@@ -83,7 +78,7 @@ public class escfeatures extends EscBase {
 
     
     public void helpFeatures(String n) {
-        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/escFeatures/"+n,"-racJavaChecks");
+        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/escFeatures/"+n,"--rac-java-checks");
     }
 
 
