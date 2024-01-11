@@ -80,6 +80,10 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
+            if (utils.isDeprecationSet() && keyword() == "\\index") {
+            	utils.warning(parser.pos(), "jml.deprecated.index");
+            }
+
             Type t = attr.syms.intType;
             if (attr.loopStack.isEmpty()) {
                 Utils.instance(attr.context).error(that.pos,"jml.outofscope", keyword());

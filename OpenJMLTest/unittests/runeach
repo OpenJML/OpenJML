@@ -20,7 +20,6 @@ for d in access api arith assignable binaries bugs compilationUnit compiler depr
          scanner SFBugs Specsbase SpecsEsc SpecsRac statements strict strongarm sysclasses \
          typechecking typecheckingJmlTypes typecheckingvisibility typeclauses \
          ; do \
-  echo Testing $d
   ./run-summary log-$d "0/0" $d ;\
 done
 echo Completed

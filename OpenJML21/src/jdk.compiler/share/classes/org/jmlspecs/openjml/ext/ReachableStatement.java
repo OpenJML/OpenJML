@@ -41,10 +41,13 @@ public class ReachableStatement extends JmlExtension {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
         // allowed forms:
+        //   unreachable
+        //   unreachable;
         //   reachable ;
         //   reachable <expr> ;
         //   reachable <expr> : <expr> ; // The first <epxr> is a String literal, used as a message or identifier
         // FIXME - string literal is not used
+        // FIXME - is a missing semicolon ever warned about? Are expressions ever used?
         @Override
         public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
