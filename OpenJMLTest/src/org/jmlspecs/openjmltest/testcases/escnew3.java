@@ -944,13 +944,15 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testPreconditionOnly() {
-        main.addOptions("-checkFeasibility=preconditionOnly");
+        addOptions("--check-feasibility=preconditionOnly");
+        // preconditionOnly just checks that the preconditions+invariants are feasible; it does not check 
+        // the body of a method
         helpTCX("tt.TestJava",
                                 "package tt; \n"
                               + "public class TestJava { \n"
                               + "  //@ requires i > -10 && i < 10;\n"
                               + "  public void m(int i) {\n"
-                              + "     //@ assert i != i;\n" // ERROR
+                              + "     //@ assert i != i;\n" // ERROR -- but not checked when using preconditionOnly
                               + "    }\n"
                               + "\n"
                               + "  //@ requires i > 0;\n"
@@ -964,7 +966,6 @@ public class escnew3 extends EscBase {
                               + "     return -i;\n"
                               + "    }\n"
                               + "}"
-                              ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m",10
                               ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.mm(int)",15
                               ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method mmm",6
                               ,"/tt/TestJava.java:14: warning: Associated declaration",7
