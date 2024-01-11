@@ -19,9 +19,9 @@ public class escoption extends EscBase {
         //noCollectDiagnostics = true;
         captureOutput = true;
         super.setUp();
-        main.addOptions("-nullableByDefault"); // Because the tests were written this way
-        main.addOptions("-quiet");
-        main.addOptions("-checkFeasibility=none","-no-require-white-space");
+        main.addOptions("--nullable-by-default"); // Because the tests were written this way
+        main.addOptions("--quiet");
+        main.addOptions("--check-feasibility=none","-no-require-white-space");
         //main.addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -31,28 +31,22 @@ public class escoption extends EscBase {
     @Test
     public void testOptionValueBoolean() {
     	collectOutput(false);
-    	Assert.assertEquals("jml+",JmlOption.value(main.context(), JmlOption.LANG));
-    	Assert.assertEquals("jml+",JmlOption.value(main.context(), JmlOption.LANG));
-    	Assert.assertEquals("jml+",JmlOption.value(main.context(), "-lang"));
-    	Assert.assertEquals("jml+",JmlOption.value(main.context(), "-lang"));
+    	Assert.assertEquals("A", "openjml",JmlOption.value(main.context(), JmlOption.LANG));
+    	Assert.assertEquals("B", "openjml",JmlOption.value(main.context(), JmlOption.LANG));
+    	Assert.assertEquals("C", "openjml",JmlOption.value(main.context(), "--lang"));
+    	Assert.assertEquals("D", "openjml",JmlOption.value(main.context(), "--lang"));
     	JmlOption.putOption(main.context(), JmlOption.LANG, "jml");
-    	Assert.assertEquals("jml",JmlOption.value(main.context(), JmlOption.LANG));
-        JmlOption.putOption(main.context(), JmlOption.LANG, "javelyn");
-        Assert.assertEquals("javelyn",JmlOption.value(main.context(), JmlOption.LANG));
-        JmlOption.putOption(main.context(), JmlOption.LANG, "jml+");
-        Assert.assertEquals("jml+",JmlOption.value(main.context(), JmlOption.LANG));
-    	main.addOptions("-lang=jml");
-    	Assert.assertEquals("jml",JmlOption.value(main.context(), JmlOption.LANG));
-        main.addOptions("-lang=javelyn");
-        Assert.assertEquals("javelyn",JmlOption.value(main.context(), JmlOption.LANG));
-        main.addOptions("-lang=jml+");
-        Assert.assertEquals("jml+",JmlOption.value(main.context(), JmlOption.LANG));
-    	JmlOption.putOption(main.context(), JmlOption.LANG, "javelyn");
-    	Assert.assertEquals("javelyn",JmlOption.value(main.context(), JmlOption.LANG));
-    	JmlOption.putOption(main.context(), JmlOption.LANG, "jml+");
-    	Assert.assertEquals("jml+",JmlOption.value(main.context(), JmlOption.LANG));
+    	Assert.assertEquals("E", "jml",JmlOption.value(main.context(), JmlOption.LANG));
+        JmlOption.putOption(main.context(), JmlOption.LANG, "openjml");
+        Assert.assertEquals("F", "openjml",JmlOption.value(main.context(), JmlOption.LANG));
+    	main.addOptions("--lang=jml");
+    	Assert.assertEquals("G", "jml",JmlOption.value(main.context(), JmlOption.LANG));
+        main.addOptions("--lang=openjml");
+        Assert.assertEquals("H", "openjml",JmlOption.value(main.context(), JmlOption.LANG));
+    	JmlOption.putOption(main.context(), JmlOption.LANG, "openjml");
+    	Assert.assertEquals("I", "openjml",JmlOption.value(main.context(), JmlOption.LANG));
         String out = output();
-        org.junit.Assert.assertEquals("",out);
+        org.junit.Assert.assertEquals("J", "",out);
     }
     
     @Test
@@ -72,7 +66,7 @@ public class escoption extends EscBase {
     
     @Test // FIXME bassert3 not printed -- quiet does not turn back to progress
     public void testOption() {
-    	main.addOptions("-quiet");
+    	main.addOptions("--quiet");
     	helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
@@ -101,7 +95,7 @@ public class escoption extends EscBase {
     @Test // FIXME bassert3 not printed -- quiet does not turn back to progress
     public void testOption2() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"  @Options({\"-progress\",\"-checkFeasibility=none\"}) "
+                +"  @Options({\"--progress\",\"--check-feasibility=none\"}) "
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
                 +"  //@ ensures true;\n"
@@ -135,7 +129,7 @@ public class escoption extends EscBase {
     @Test // FIXME bassert3 not printed -- quiet does not turn back to progress
     public void testOption3() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"  @Options({\"-progress\",\"-checkFeasibility=none\"}) "
+                +"  @Options({\"--progress\",\"--check-feasibility=none\"}) "
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
                 +"  //@ ensures true;\n"
@@ -174,7 +168,7 @@ public class escoption extends EscBase {
     
     @Test
     public void testSkipped() {
-    	main.addOptions("-progress","-skipped","-method=bassert","-exclude=tt.TestJava.bassert(boolean,boolean)","-checkFeasibility=none");
+    	main.addOptions("--progress","--show-skipped","--method=bassert","--exclude=tt.TestJava.bassert(boolean,boolean)","--check-feasibility=none");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
@@ -208,7 +202,7 @@ public class escoption extends EscBase {
     
     @Test
     public void testNoSkipped() {
-    	main.addOptions("-progress","-no-skipped","-method=bassert","-exclude=tt.TestJava.bassert(boolean,boolean)","-checkFeasibility=none");
+    	main.addOptions("-progress","--no-show-skipped","--method=bassert","--exclude=tt.TestJava.bassert(boolean,boolean)","--check-feasibility=none");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
@@ -239,7 +233,7 @@ public class escoption extends EscBase {
     
     @Test
     public void testSkippedDefault() {
-    	main.addOptions("-progress","-method=bassert","-exclude=tt.TestJava.bassert(boolean,boolean)","-checkFeasibility=none");
+    	main.addOptions("--progress","--method=bassert","--exclude=tt.TestJava.bassert(boolean,boolean)","--check-feasibility=none");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
