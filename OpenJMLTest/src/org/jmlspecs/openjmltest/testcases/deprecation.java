@@ -14,8 +14,6 @@ public class deprecation extends TCBase {
     
     @Override
     public void setUp() throws Exception {
-//        noCollectDiagnostics = true;
-//        jmldebug = true;
         super.setUp();
         expectedExit = 0;
     }
@@ -55,5 +53,26 @@ public class deprecation extends TCBase {
                 ,"/A.java:2: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",4
                 );
     }
+    
+    @Test
+    public void testIndex() {
+        helpTCF("A.java","public class A {\n" +
+                " void m(int[] a) { for (int i: a) {\n" +
+                "    //@ assert \\index == i; \n" +
+                " }}}"
+                );
+    }
+
+    @Test
+    public void testIndex2() {
+    	Options.instance(main.context()).put(dep_opt, "true");
+        helpTCF("A.java","public class A {\n" +
+                " void m(int[] a) { for (int i: a) {\n" +
+                "    //@ assert \\index == i; \n" +
+                " }}}"
+                ,"/A.java:3: warning: The \\index construct is deprecated in favor of \\count",16
+                );
+    }
+
 
 }

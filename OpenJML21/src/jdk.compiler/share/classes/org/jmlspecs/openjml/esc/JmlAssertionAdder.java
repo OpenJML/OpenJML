@@ -6842,7 +6842,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			continuation = Continuation.CONTINUE;
 			JCBlock finalizer = convertBlock(that.finalizer);
-            addFeasibilityCheck(that.finalizer, finalizer, Strings.feas_finally, "at beginning of finally block");
+			if (that.finalizer != null) addFeasibilityCheck(that.finalizer, finalizer, Strings.feas_finally, "at beginning of finally block");
 			List<JCTree> newResources = copy(that.resources);
 			// FIXME - no checks implemented on the resources
 			JCTry st = M.at(that).Try(newResources, body, catchers, finalizer);

@@ -4970,7 +4970,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         Type t = that.kind == MiscExpressions.lblanyKind ? Type.noType : syms.booleanType;
         attribExpr(that.expression, env, t);
         Type resultType = that.expression.type;
-        if (resultType.constValue() != null) resultType = resultType.constType(null);
+        //if (resultType.constValue() != null) resultType = resultType.constType(resultType.constValue());
         result = check(that, resultType, KindSelector.VAL, resultInfo);
     }
     

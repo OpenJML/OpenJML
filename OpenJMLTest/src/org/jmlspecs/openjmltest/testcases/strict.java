@@ -40,25 +40,16 @@ public class strict extends TCBase {
                 );
     }
 
+    // \count is now standard JML
     @Test
     public void testIndex() {
         helpTCF("A.java","public class A {\n" +
                 " void m(int[] a) { for (int i: a) {\n" +
                 "    //@ assert \\count == i; \n" +
                 " }}}"
-                ,"/A.java:3: warning: The \\count construct is an OpenJML extension to JML and not allowed under " + optjml,16
                 );
     }
 
-    @Test
-    public void testIndexB() {
-        main.addOptions(optjmlp);
-        helpTCF("A.java","public class A {\n" +
-                " void m(int[] a) { for (int i: a) {\n" +
-                "    //@ assert \\count == i; \n" +
-                " }}}"
-                );
-    }
 
     @Test
     public void testValues() {
