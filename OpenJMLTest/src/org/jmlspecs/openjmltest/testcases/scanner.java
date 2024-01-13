@@ -802,7 +802,7 @@ public class scanner extends JmlTestCase {
                 new ITokenKind[]{SJML,DOUBLELITERAL,IDENTIFIER,EJML,EOF},
                 null,
                 1);
-        checkMessages("/TEST.java:1: error: malformed floating point literal",5);
+        checkMessages("/TEST.java:1: error: malformed floating-point literal",5);
     }
  
     @Test public void testDotDot10() {
@@ -810,7 +810,7 @@ public class scanner extends JmlTestCase {
                 new ITokenKind[]{SJML,DOUBLELITERAL,IDENTIFIER,EJML,EOF},
                 null,
                 1);
-        checkMessages("/TEST.java:1: error: malformed floating point literal",5);
+        checkMessages("/TEST.java:1: error: malformed floating-point literal",5);
     }
  
     @Test public void testDotDot11() {
@@ -818,7 +818,7 @@ public class scanner extends JmlTestCase {
                 new ITokenKind[]{SJML,DOUBLELITERAL,IDENTIFIER,EJML,EOF},
                 null,
                 1);
-        checkMessages("/TEST.java:1: error: malformed floating point literal",5);
+        checkMessages("/TEST.java:1: error: malformed floating-point literal",5);
     }
  
     @Test public void testDotDot12() {
@@ -826,7 +826,7 @@ public class scanner extends JmlTestCase {
                 new ITokenKind[]{SJML,DOUBLELITERAL,IDENTIFIER,EJML,EOF},
                 null,
                 1);
-        checkMessages("/TEST.java:1: error: malformed floating point literal",5);
+        checkMessages("/TEST.java:1: error: malformed floating-point literal",5);
     }
  
     @Test public void testConditionalKey1() {

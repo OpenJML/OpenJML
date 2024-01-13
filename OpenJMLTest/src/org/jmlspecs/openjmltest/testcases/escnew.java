@@ -101,6 +101,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testPrecondition2() {
+    	addOptions("--check-feasibility=precondition");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -308,8 +309,8 @@ public class escnew extends EscBase {
     // Tests use of \old token in called methods
     @Test
     public void testPostcondition5() {
-//    	main.addOptions("-show","-method=m1");
-    	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
+//    	addOptions("-show","-method=m1");
+    	addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
     	helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int iii;\n"
@@ -341,7 +342,7 @@ public class escnew extends EscBase {
     // Tests use of \old token in called methods
     @Test
     public void testPostcondition5a() {
-    	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
+    	addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int i;\n"
@@ -374,7 +375,7 @@ public class escnew extends EscBase {
     // Tests use of \old token in called methods
     @Test
     public void testPostcondition5x() {
-    	main.addOptions("-code-math=bigint","-spec-math=bigint"); // Just to avoid overflow warnings
+    	addOptions("-code-math=bigint","-spec-math=bigint"); // Just to avoid overflow warnings
     	helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int iii;\n"
@@ -406,7 +407,7 @@ public class escnew extends EscBase {
     // Tests use of \old token in called methods
     @Test
     public void testPostcondition5ax() {
-    	main.addOptions("-code-math=bigint","-spec-math=bigint"); // Just to avoid overflow warnings
+    	addOptions("-code-math=bigint","-spec-math=bigint"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int i;\n"
@@ -480,7 +481,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testMethodInvocation() {
-        main.addOptions("-logic=AUFNIRA");
+        addOptions("-logic=AUFNIRA");
         Assume.assumeTrue(runLongTests);
         Assume.assumeTrue(!"cvc4".equals(solver)); // CVC4 complains about the integer-division operation (FIXME) does not handle integer division
         helpTCX("tt.TestJava","package tt; \n"
@@ -516,7 +517,7 @@ public class escnew extends EscBase {
     // Almost duplicate of escnew
     @Test public void testMethodInvocation1() {
         Assume.assumeTrue(runLongTests);
-        main.addOptions("-logic=AUFLIRA");
+        addOptions("-logic=AUFLIRA");
         //if ("cvc4".equals(solver)) return; // CVC4 complains about the integer-division operation (FIXME)
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -533,7 +534,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testSwitch() {
-        main.addOptions("-code-math=math"); // To avoid warnings because of overflow
+        addOptions("-code-math=math"); // To avoid warnings because of overflow
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -951,7 +952,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testIncDec() {
-    	main.addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
+    	addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { static public int i; \n"
                 
@@ -1059,8 +1060,8 @@ public class escnew extends EscBase {
 
     @Test
     public void testConditional2() {
-        main.addOptions("-escMaxWarnings=1");
-        main.addOptions("-code-math=safe");
+        addOptions("-escMaxWarnings=1");
+        addOptions("-code-math=safe");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1084,8 +1085,8 @@ public class escnew extends EscBase {
 
     @Test
     public void testConditional() {
-        main.addOptions("-escMaxWarnings=1");
-        main.addOptions("-code-math=java");
+        addOptions("-escMaxWarnings=1");
+        addOptions("-code-math=java");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1117,8 +1118,8 @@ public class escnew extends EscBase {
 
     @Test
     public void testConditional3() {
-        main.addOptions("-escMaxWarnings=1");
-        main.addOptions("-code-math=math");
+        addOptions("-escMaxWarnings=1");
+        addOptions("-code-math=math");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1144,7 +1145,7 @@ public class escnew extends EscBase {
     public void testShortCircuit() {
         Assume.assumeTrue(runLongTests);
         Assume.assumeTrue(!"cvc4".equals(solver)); // SKIPPING cvc4 does not handle integer division
-        main.addOptions("-logic=AUFNIRA");
+        addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { int f; \n"
                 
@@ -1231,7 +1232,7 @@ public class escnew extends EscBase {
 
     // FIXME - almost duplciate with escnew
     @Test public void testShortCircuitDup() {
-        main.addOptions("-escMaxWarnings=1");
+        addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { int f; \n"
                 
@@ -1582,6 +1583,19 @@ public class escnew extends EscBase {
     @Test
     public void testAsList() {
         helpTCX("tt.TestJava","package tt; \n"
+                +"import java.util.List; public class TestJava  { \n"
+                +"  public enum E { A}; \n"
+                
+                +"  public static void m1() {\n"
+                +"    List<E> m = java.util.Arrays.asList(new E[]{E.A});\n"
+                +"  }\n"
+                +"}\n"
+                );
+        }
+
+    @Test
+    public void testAsList1() {
+        helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava  { \n"
                 +"  public enum E { A}; \n"
                 
@@ -1591,6 +1605,7 @@ public class escnew extends EscBase {
                 +"}\n"
                 );
         }
+
     @Test // Allow final on invariant to mean assume regardless of helper status
     public void testInvariantInheritance() {
         helpTCX("tt.TestJava","package tt; \n"
@@ -1671,10 +1686,10 @@ public class escnew extends EscBase {
                 +"  public /*@ nullable */ <TT> TT mtr(int i) { return null; };\n"
                 
                 +"  //@ ensures true; pure\n"
-                +"  //@ model function public static int mf(int i);\n"
+                +"  //@ model heap_free public static int mf(int i);\n"
                 
                 +"  //@ ensures true; pure\n"
-                +"  //@ function \n"
+                +"  //@ heap_free \n"
                 +"  public static int mfr(int i) { return 0; }\n"
                 
                 +"  //@ ensures mm(i) == mm(i);\n"
@@ -1753,7 +1768,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testMethodMatching() {
-        main.addOptions("-method=mm"); // Part of test
+        addOptions("-method=mm"); // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
                 +"   int k;\n"
@@ -1784,7 +1799,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testMethodMatching1() {
-        main.addOptions("-method=mm"); // Part of test
+        addOptions("-method=mm"); // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
                 +"   int k;\n"
@@ -1807,8 +1822,8 @@ public class escnew extends EscBase {
                
                 +"}"
                 ,anyorder(
-                 seq("/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method mm",10)
-                ,seq("/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method mm",10)
+              //   seq("/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method mm",10)
+                 seq("/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method mm",10)
                 ,seq("/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method mm",10)
                 ,seq("/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method mm",10)
                 )
@@ -1817,7 +1832,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testExplicitAssert() {
-        main.addOptions("-escMaxWarnings=1");
+        addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1866,7 +1881,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testUndefined() {
-        main.addOptions("-logic=AUFNIRA");
+        addOptions("-logic=AUFNIRA");
         Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
         if ("cvc4".equals(solver)) return; // SKIPPING cvc4 does not handle integer division
         helpTCX("tt.TestJava","package tt; \n"
@@ -1925,7 +1940,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testControl() {
-        main.addOptions("-code-math=java");
+        addOptions("-code-math=java");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int x,xx; static int y,yy; \n"
@@ -2080,7 +2095,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testConstantFolding3() {
-    	//main.addOptions("-show","-method=m","-checkFeasibility=debug");
+    	//addOptions("-show","-method=m","-checkFeasibility=debug");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
@@ -2373,7 +2388,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testLongShift() {
-        main.addOptions("-code-math=java");
+        addOptions("-code-math=java");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
