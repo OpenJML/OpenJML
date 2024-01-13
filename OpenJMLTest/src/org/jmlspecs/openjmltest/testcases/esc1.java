@@ -32,10 +32,10 @@ public class esc1 extends EscBase {
     public void testCollect() {
         addOptions("-nonnullByDefault", "-method=m");
         helpTCX("tt.TestJava",
-                "package tt; \n"
+                "package tt; import java.util.*;\n"
                         + "public abstract class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
-                        + "  public String m(java.lang.Integer i, Number b) {\n"
-                        + "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n" 
+                        + "  public String m(Integer i, Number b) {\n"
+                        + "    Vector<Integer> v = new Vector<Integer>();\n" 
                         + "    return null; \n" // FAILS
                         + "  }\n" + "}\n"
                 ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method m: m", 10
@@ -46,10 +46,10 @@ public class esc1 extends EscBase {
     @Test  // version of testCollectB without the calls of getClass and v.add
     public void testCollectA() {
         addOptions("-nonnullByDefault", "-method=m"); // Keep these options
-        helpTCX("tt.TestJava", "package tt; \n"
+        helpTCX("tt.TestJava", "package tt; import java.util.*;\n"
                 + "public abstract class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
-                + "  /*@ pure */ public String m(java.lang.Integer i, Number b) {\n"
-                + "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n" 
+                + "  /*@ pure */ public String m(Integer i, Number b) {\n"
+                + "    Vector<Integer> v = new Vector<Integer>();\n" 
                 + "\n"
                 + "    boolean bb = v.elements().hasMoreElements();\n" 
                 + "    return null; \n" // FAILS
@@ -64,10 +64,10 @@ public class esc1 extends EscBase {
     public void testCollectB() {
         addOptions("-nonnullByDefault", "-timeout=300");
         helpTCX("tt.TestJava",
-                "package tt; \n"
+                "package tt; import java.util.*;\n"
                         + "public abstract class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
                         + "  public String m(java.lang.Integer i, Number b) {\n"
-                        + "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
+                        + "    Vector<Integer> v = new Vector<Integer>();\n"
                         + "    boolean bb = b instanceof Double;\n" 
                         + "    Object oo = v.getClass();\n"
                         + "    v.add(0,i);\n"
@@ -84,10 +84,10 @@ public class esc1 extends EscBase {
     public void testCollectC() {
         addOptions("-nonnullByDefault", "-timeout=300");
         helpTCX("tt.TestJava",
-                "package tt; \n"
+                "package tt; import java.util.*;\n"
                         + "public abstract class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
                         + "  public String m(java.lang.Integer i, Number b) {\n"
-                        + "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
+                        + "    Vector<Integer> v = new Vector<Integer>();\n"
                         + "    boolean bb = b instanceof Double;\n" 
                         + "    Object oo = v.getClass();\n"
                         + "    Object o = (Class<?>)v.getClass();\n" 
@@ -186,6 +186,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testForEach() {
+    	addOptions("--check-feasibility=reachable");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
 
                 + "  public void m7y() {\n" 
@@ -332,12 +333,12 @@ public class esc1 extends EscBase {
     @Test
     public void testForEach2a1() {
         addOptions("-escMaxWarnings=1");
-        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+        helpTCX("tt.TestJava", "package tt; import java.util.*; import java.util.Map.Entry; \n" 
                 + "public class TestJava { \n"
                 + "  //@ public normal_behavior  ensures true;\n" 
                 + "  public void m1() {\n"
-                + "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>();\n"
-                + "    for (Map.Entry<String,String> k: a) {\n" 
+                + "    Set<Entry<String,String>> a = new HashSet<Entry<String,String>>();\n"
+                + "    for (Entry<String,String> k: a) {\n" 
                 + "    }\n" 
                 + "  }\n"
 
@@ -354,21 +355,21 @@ public class esc1 extends EscBase {
         addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", 
                 """
-                package tt; import java.util.*;
+                package tt; import java.util.*; import java.util.Map.Entry;
                 public class TestJava {
 
                   //@ public behavior  ensures true;
                   public void m2() {
-                    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>();
+                    List<Entry<String,String>> values = new LinkedList<Entry<String,String>>();
                     //@ assume values != null; set values.containsNull = true;
-                    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>();
-                    Iterator<Map.Entry<String,String>> it = a.iterator();
-                    Map.Entry<String,String> k;
-                    //@ ghost List<Map.Entry<String,String>> v = values; // Line 10
+                    Set<Entry<String,String>> a = new HashSet<Entry<String,String>>();
+                    Iterator<Entry<String,String>> it = a.iterator();
+                    Entry<String,String> k;
+                    //@ ghost List<Entry<String,String>> v = values; // Line 10
                     //@ loop_invariant values == v;
                     for (; it.hasNext(); values.add(k) ) {
                         k = it.next();  
-                        //@ assert k != null ==> \\typeof(k) <: \\type(Map.Entry<String,String>);
+                        //@ assert k != null ==> \\typeof(k) <: \\type(Entry<String,String>);
                         //@ assert k != null;
                     }
                   }
@@ -383,17 +384,17 @@ public class esc1 extends EscBase {
         addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", 
                 """
-                package tt; import java.util.*;
+                package tt; import java.util.*; import java.util.Map.Entry;
                 public class TestJava {
 
                   //@ public behavior  ensures true;
                   public void m2a() {
-                    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); 
+                    List<Entry<String,String>> values = new LinkedList<Entry<String,String>>(); 
                     //@ set values.containsNull = false;
-                    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); 
-                    Iterator<Map.Entry<String,String>> it = a.iterator();
-                    Map.Entry<String,String> k;
-                    //@ ghost List<Map.Entry<String,String>> v = values;
+                    Set<Entry<String,String>> a = new HashSet<Entry<String,String>>(); 
+                    Iterator<Entry<String,String>> it = a.iterator();
+                    Entry<String,String> k;
+                    //@ ghost List<Entry<String,String>> v = values;
                     //@ loop_invariant values == v;
                     while (it.hasNext()) {
                         k = it.next();
@@ -404,7 +405,7 @@ public class esc1 extends EscBase {
 
                   public TestJava() {}
                 }
-                """
+              """
 
         );
     }
@@ -473,7 +474,7 @@ public class esc1 extends EscBase {
     public void testForEachBad() {
         expectedExit = 1;
         helpTCX("tt.TestJava", 
-                  "package tt; \n" 
+                  "package tt; import org.jmlspecs.lang.JMLList; \n" 
                 + "public class TestJava { \n"
 
                 + "  public void m1a() {\n" 
@@ -496,15 +497,15 @@ public class esc1 extends EscBase {
                 + "  }\n"
 
                 + "  public void v1a() {\n"
-                + "    Integer[] a = { 1,2,3,4};\n"
+                + "    Integer[] a = { 1,2,3,4};\n" // line 20
                 + "    for (Integer k: a) {\n"
                 + "    }\n"
-                + "    //@ ghost org.jmlspecs.lang.JMLList i = \\values;\n" // Out of scope
+                + "    //@ ghost JMLList i = \\values;\n" // Out of scope
                 + "  }\n"
 
                 + "  public void v2() {\n"
                 + "    long[] a = { 1,2,3,4};\n"
-                + "    //@ ghost org.jmlspecs.lang.JMLList i = \\values;\n" // Out of scope
+                + "    //@ ghost JMLList i = \\values;\n" // Out of scope
                 + "    }\n"
 
                 + "  public void v4() {\n"
@@ -516,7 +517,7 @@ public class esc1 extends EscBase {
 
                 + "  public void v10a() {\n" + "    long[] a = { 1,2,3,4};\n"
                 + "    for (long k: a) {\n"
-                + "      //@ ghost org.jmlspecs.lang.JMLList i = \\values;\n" // OK
+                + "      //@ ghost JMLList i = \\values;\n" // OK
                 + "    }\n" + "  }\n"
 
                 + "}"
@@ -526,8 +527,8 @@ public class esc1 extends EscBase {
                 ,"/tt/TestJava.java:16: error: unexpected type\n  required: variable\n  found:    value", 15
                 ,"/tt/TestJava.java:16: error: Unexpected kind of LHS in a set statement: \\count",15
                 ,"/tt/TestJava.java:16: error: The LHS in a set statement must be a ghost variable",15
-                ,"/tt/TestJava.java:23: error: A \\values token is used outside the scope of a foreach loop", 45
-                ,"/tt/TestJava.java:27: error: A \\values token is used outside the scope of a foreach loop", 45
+                ,"/tt/TestJava.java:23: error: A \\values token is used outside the scope of a foreach loop", 27
+                ,"/tt/TestJava.java:27: error: A \\values token is used outside the scope of a foreach loop", 27
                 ,"/tt/TestJava.java:32: error: unexpected type\n  required: variable\n  found:    value", 15
                 ,"/tt/TestJava.java:32: error: Unexpected kind of LHS in a set statement: \\values",15
                 ,"/tt/TestJava.java:32: error: The LHS in a set statement must be a ghost variable",15
@@ -1769,24 +1770,18 @@ public class esc1 extends EscBase {
 
     @Test
     public void testRequires() {
-        helpTCX("tt.TestJava",
-                "package tt; \n" + "public class TestJava { \n" + "  TestJava() { }\n" + "  public TestJava(int i) {}\n" // static
-                                                                                                                            // invariant
-                                                                                                                            // is
-                                                                                                                            // assumed
-                                                                                                                            // true
-                                                                                                                            // at
-                                                                                                                            // start
-                                                                                                                            // of
-                                                                                                                            // constructor,
-                                                                                                                            // remains
-                                                                                                                            // true
-                                                                                                                            // at
-                                                                                                                            // end
-                        + "  //@ requires false;\n" + "  public static boolean bf(boolean bb) { return true; }\n"
-                        + "  //@ requires true;\n" + "  public static boolean bt(boolean bb) { return true; }\n"
-                        + "  static public boolean b = true;\n" + "  //@ static public invariant b;\n"
-                        + "  //@ requires !b;\n" + "  public static boolean bq(boolean bb) { return true; }\n" + "}",
+    	addOptions("--check-feasibility=precondition");
+        helpTCX("tt.TestJava", // static invariant is assumed true at start of constructor; remains true at end
+                "package tt; \n" + 
+        		"public class TestJava { \n" + 
+                "  TestJava() { }\n" + 
+        		"  public TestJava(int i) {}\n" 
+                        
+        		+ "  //@ requires false;\n" + "  public static boolean bf(boolean bb) { return true; }\n"
+                + "  //@ requires true;\n" + "  public static boolean bt(boolean bb) { return true; }\n"
+                + "  static public boolean b = true;\n" + "  //@ static public invariant b;\n"
+                + "  //@ requires !b;\n" + "  public static boolean bq(boolean bb) { return true; }\n" + "}",
+                
                 "/tt/TestJava.java:6: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.bf(boolean)",
                 25,
                 "/tt/TestJava.java:12: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.bq(boolean)",
@@ -1795,6 +1790,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testJava() {
+    	addOptions("--check-feasibility=precondition");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  public static boolean bstatic;\n"
                 + "  public boolean binstance;\n" + "  public boolean binstance2;\n" + "  /*@ non_null */ Object o;\n"
                 + "  //@ ghost nullable Object oo;\n" + "  //@ public static invariant bstatic;\n"
@@ -1889,6 +1885,7 @@ public class esc1 extends EscBase {
 
     @Test   // FIXME - bassumeCHAIN1 times out 
     public void testAssume() {
+    	addOptions("--check-feasibility=basic");
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { public static final int z = 0; \n" 
                 + "  //@ requires bb;\n"

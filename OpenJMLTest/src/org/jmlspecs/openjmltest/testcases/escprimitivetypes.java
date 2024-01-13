@@ -76,7 +76,7 @@ public class escprimitivetypes extends EscBase {
     
     @Test
     public void testArray() {
-        main.addOptions("-method=m1");
+        addOptions("-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -97,7 +97,7 @@ public class escprimitivetypes extends EscBase {
     
     @Test
     public void testArrayPut() {
-        main.addOptions("-method=m1");
+        addOptions("-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -314,7 +314,7 @@ public class escprimitivetypes extends EscBase {
     
     @Test
     public void testX() {
-        main.addOptions("-method=m1");
+        addOptions("-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                                 +"public class TestJava { \n"
                                 

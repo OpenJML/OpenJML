@@ -618,8 +618,10 @@ public class JmlParser extends JavacParser {
     /** Overrides in order to collect and reset line annotations for this declaration */
     @Override
     public JCClassDecl classDeclaration(JCModifiers mods, Comment dc) {
+    	boolean injml = inJmlDeclaration;
         JCClassDecl cd = super.classDeclaration(mods, dc);
         ((JmlClassDecl)cd).lineAnnotations = S.lineAnnotations;
+        if (injml) utils.setJML(cd.mods);
         S.lineAnnotations = new java.util.LinkedList<>();
         ListBuffer<JCTree> newdefs = new ListBuffer<>();
         for (var d: cd.defs) {
