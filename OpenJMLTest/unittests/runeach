@@ -14,7 +14,7 @@ for d in access api arith assignable binaries bugs compilationUnit compiler depr
          escnewassignable escnewBoxing escnonpublic escnowarn escoption escprimitivetypes \
          escreadable escstrings escTiming escTrace escvisibility escvisibility1 escwebexamples \
          expressions flow generics harnesstests internalSpecs jmldoc jmltypes lblexpression \
-         matchClasses methodspecs modelghost modifiers namelookupnowarn positions prettyprinting purity \
+         matchClasses methodspecs modelghost modifiers namelookup nowarn positions prettyprinting purity \
          QueryPure QuerySecret racArithmeticModes racdemoexamples racfeatures racfiles racJML \
          racnew racnew2 racnew3 racnewLoops racnewWithSpecs racnonpublic racreadable racsystem redundant \
          scanner SFBugs Specsbase SpecsEsc SpecsRac statements strict strongarm sysclasses \
