@@ -3005,7 +3005,7 @@ public class esc2 extends EscBase {
 
     @Test
     public void testInheritedPost() {
-        addOptions("-code-math=bigint");
+        addOptions("-code-math=bigint","--check-feasibility=exit");
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" 
                 + "abstract class TestJavaA { \n"
                 + "  \n" 
@@ -3335,9 +3335,9 @@ public class esc2 extends EscBase {
                         14,
                         "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m5",
                         14,
-                        "/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m6a: a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
+                        "/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m6a: a Throwable cannot be proved to be a RuntimeException",
                         28,
-                        "/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m7a: a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
+                        "/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m7a: a Throwable cannot be proved to be a RuntimeException",
                         28));
     }
 
@@ -3420,8 +3420,8 @@ public class esc2 extends EscBase {
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3",17
                 ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m4",17
                 ,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m5",17
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m6a: a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",17
-                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m7a: a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",17
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m6a: a @Nullable Throwable cannot be proved to be a RuntimeException",17
+                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m7a: a @Nullable Throwable cannot be proved to be a RuntimeException",17
                 );
     }
 
@@ -4042,7 +4042,7 @@ public class esc2 extends EscBase {
                         + "public class TestJava  { \n" 
                         + "  //@ normal_behavior \n"
                         + "  //@ ensures \\result == (0 < i < 10);\n" 
-                        + "  //@ pure function\n"
+                        + "  //@ pure heap_free\n"
                         + "  //@ model public static boolean m(int i);\n"
 
                         + "  //@ pure\n" 
@@ -4413,7 +4413,7 @@ public class esc2 extends EscBase {
                         + "public class TestJava  { \n" 
                         + "  /*@ requires o != null; \n"
                         + "      ensures \\result == (j>=0); \n"
-                        + "     pure function */ public static boolean positive(Object o, int j) { \n"
+                        + "     pure heap_free */ public static boolean positive(Object o, int j) { \n"
                         + "         return j >= 0; }\n"
                         + "  public int j; \n"
                         + "  //@ signals (NullPointerException e) positive(null,j); \n"
@@ -4425,11 +4425,11 @@ public class esc2 extends EscBase {
                         + "}"
                         ,anyorder(seq(
                  "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
-                ,"/tt/TestJava.java:5: warning: Associated declaration",45
+                ,"/tt/TestJava.java:5: warning: Associated declaration",46
                 ,"/tt/TestJava.java:12: warning: Associated method exit",29
                 ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",18
                 ),seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",48
-                ,"/tt/TestJava.java:5: warning: Associated declaration",45
+                ,"/tt/TestJava.java:5: warning: Associated declaration",46
                 ,"/tt/TestJava.java:11: warning: Associated method exit",29
                 ,"/tt/TestJava.java:3: warning: Precondition conjunct is false: o != null",18
                 ))
@@ -4637,7 +4637,7 @@ public class esc2 extends EscBase {
                         + "     //@ show i;\n"
                         + "  }\n"
                         + "}\n"
-                        ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under -lang=jml",10
+                        ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under --lang=jml",10
                         //,"$SPECS/specs/java/util/stream/Stream.jml:$STRL: warning: The \\count construct is an OpenJML extension to JML and not allowed under -lang=jml",37
                   ); 
     }

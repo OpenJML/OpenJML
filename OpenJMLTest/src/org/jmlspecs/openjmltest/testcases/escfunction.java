@@ -8,10 +8,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 import org.openjml.runners.ParameterizedWithNames;
-
-import com.sun.tools.javac.util.Options;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
