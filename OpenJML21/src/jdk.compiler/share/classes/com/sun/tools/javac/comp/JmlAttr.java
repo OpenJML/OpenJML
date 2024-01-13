@@ -2804,13 +2804,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     
     public ModifierKind[] allowedFieldModifiers = new ModifierKind[] {
-            SPEC_PUBLIC, SPEC_PROTECTED, MODEL, GHOST, HELPER,
+            SPEC_PUBLIC, SPEC_PROTECTED, MODEL, GHOST,
             NON_NULL, NULLABLE, INSTANCE, MONITORED, SECRET,
             PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
        };
        
     public ModifierKind[] allowedGhostFieldModifiers = new ModifierKind[] {
-            GHOST, NON_NULL, NULLABLE, INSTANCE, MONITORED, SECRET, HELPER,
+            GHOST, NON_NULL, NULLABLE, INSTANCE, MONITORED, SECRET,
             PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
        };
        
@@ -2820,7 +2820,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
        };
        
     public ModifierKind[] allowedFormalParameterModifiers = new ModifierKind[] {
-            NON_NULL, NULLABLE, READONLY, REP, PEER, SECRET, HELPER,
+            NON_NULL, NULLABLE, READONLY, REP, PEER, SECRET,
        };
        
     public ModifierKind[] allowedLocalVarModifiers = new ModifierKind[] {
