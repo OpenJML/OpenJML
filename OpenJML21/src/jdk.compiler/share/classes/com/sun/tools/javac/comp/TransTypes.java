@@ -730,7 +730,7 @@ public class TransTypes extends TreeTranslator {
     }
 
     public void visitParens(JCParens tree) {
-    	tree.expr = translate(tree.expr, pt);
+        tree.expr = translate(tree.expr, pt);
         tree.type = erasure(tree.expr.type);
         result = tree;
     }
