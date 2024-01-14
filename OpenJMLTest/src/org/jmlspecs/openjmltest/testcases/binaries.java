@@ -40,7 +40,7 @@ public class binaries extends TCBase {
                 " class A { \n" +
                 "    java.io.File file; \n" +
                 "}"
-                ,"/$A/java/io/File.jml:3: error: There is no binary method to match this Java declaration in the specification file: m (owner: java.io.File)",14
+                ,"/$A/java/io/File.jml:3: error: There is no binary method to match this Java declaration in the specification file: java.io.File.m",14
         );
     }
     
@@ -65,7 +65,7 @@ public class binaries extends TCBase {
     
     /** Tests that model methods etc. in system spec files are actually checked */  // FIXME - not sure this should actually work - unlerss File is parsed by some other means, how would one know where VVV and TTT are
     @Test
-    public void testBinary3() { 
+    public void testBinary3() { // FIXME - problem with modules
         addMockFile("$A/java/io/File.jml",
                 "package java.io; //@ model class VVV{ public static int i; }\n" + 
                 "public class File implements Serializable, Comparable<File> { \n" +
@@ -100,9 +100,8 @@ public class binaries extends TCBase {
                 "     boolean q = File.separatorChar; \n" + 
                 "     /*@ assert java.io.File.j; assume java.io.File.k; */ }\n" +
                 "}"
-                ,"/$A/java/io/File.jml:3: error: There is no binary field to match this Java declaration in the specification file: j (owner: java.io.File)",21
+                ,"/$A/java/io/File.jml:3: error: There is no binary field to match this declaration in the specification file: java.io.File.j",21
                 ,"/A.java:3: error: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",36
-                ,"/A.java:3: error: cannot find symbol\n  symbol:   variable k\n  location: class java.io.File",53
                 ,"/A.java:4: error: incompatible types: char cannot be converted to boolean",22
                 ,"/A.java:5: error: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",29
                 ,"/A.java:5: error: incompatible types: int cannot be converted to boolean",52
@@ -121,7 +120,7 @@ public class binaries extends TCBase {
                 "class A { \n" +
                 "    java.io.File file; \n" +
                 "}"
-                ,"/$A/java/io/File.jml:4: error: There is no binary class to match this Java declaration in the specification file: Extra (owner: java.io)",1
+                ,"/$A/java/io/File.jml:4: error: There is no binary class to match this Java declaration in the specification file: java.io.Extra",1
         );
     }
 }

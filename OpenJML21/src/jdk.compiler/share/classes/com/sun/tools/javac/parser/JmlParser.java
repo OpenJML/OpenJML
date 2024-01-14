@@ -230,7 +230,8 @@ public class JmlParser extends JavacParser {
     	int n = 0;
     	while (true) {
     		var t = S.token(n);
-    		if (t.ikind == JmlTokenKind.STARTJMLCOMMENT || t.ikind == JmlTokenKind.ENDJMLCOMMENT || isJavaModifier(token) || isJmlModifier(t)) {
+ 			// FIXME - it is a problem that for a EOF (a Java token), the 'kind' is not set, and might be a modifier, which leads to an endless loop here
+    		if (t.ikind == JmlTokenKind.STARTJMLCOMMENT || t.ikind == JmlTokenKind.ENDJMLCOMMENT || (t.ikind != TokenKind.EOF && isJavaModifier(token)) || isJmlModifier(t)) {
     			n++;
     			continue;
     		}
@@ -315,14 +316,12 @@ public class JmlParser extends JavacParser {
     //@ nullable
     public JCTree importDeclaration(JmlModifiers mods) {
         int p = pos();
-        boolean modelImport = utils.hasMod(mods, Modifiers.MODEL);
-//        for (JCAnnotation a: mods.annotations) {
-//            if (a.annotationType.toString().equals("org.jmlspecs.annotation.Model")) { modelImport = true; }
-//            else utils.error(a.pos, "jml.no.mods.on.import"); // FIXME - source?
-//        }
-        for (var t: mods.jmlmods) {
-            if (t.jmlclausekind == Modifiers.MODEL) modelImport = true; 
-            else utils.error(t.pos, t.endPos, "jml.no.mods.on.import"); // FIXME t.source
+        boolean modelImport = false;
+        for (var t: mods.annotations) {
+        	if (t instanceof JmlAnnotation ta) {
+                if (ta.kind == Modifiers.MODEL) modelImport = true; 
+                else utils.error(ta.pos, endPos(), "jml.no.mods.on.import"); // FIXME source, endpos
+        	}
         }
         boolean importIsInJml = S.jml();
         if (!modelImport && importIsInJml) {
@@ -429,6 +428,7 @@ public class JmlParser extends JavacParser {
                     storeEnd(mods, Position.NOPOS);
                 }
                 inJmlDeclaration = true;
+                mods = modifiersOpt(mods);
             }
             int p = pos();
             if (!inJmlDeclaration || token.kind == CLASS || token.kind == INTERFACE || token.kind == ENUM || (token.kind == IDENTIFIER && token.name() == names.record)) {
@@ -449,9 +449,10 @@ public class JmlParser extends JavacParser {
                     if (cl instanceof IJmlClauseKind.ClassLikeKind) {
                         s = (JmlDatatypeDecl)cl.parse(mods,token.name().toString(),cl,this);
                     } else {
+                    	// FIXME - the identifier might be an annotation
                         int ep = endPos();
                         utils.error(p, ep,
-                                "jml.unexpected.or.misspelled.jml.token", token);
+                                "jml.unexpected.or.misspelled.jml.token", token.name());
                         setErrorEndPos(endPos());
                         //s = jmlF.at(p).Exec(jmlF.at(p).Erroneous());
                     	nextToken();

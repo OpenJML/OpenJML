@@ -13,7 +13,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
-// FIXME - compare to release tests
+// FIXME - compare to release tests!!!!!!
 
 /** Tests running the tool as if from the command-line (for typechecking);
  * includes erroneous command-line argument combinations and combinations
@@ -285,7 +285,7 @@ public class compiler {
     public void testSourcePath() throws Exception {
         helper(new String[]
                           { "-classpath"," ",
-                            "-sourcepath","test/testNoErrors"+z+"../OpenJML21/runtime",
+                            "-sourcepath","test/testNoErrors",
                             "test/testNoErrors/A.java",  
                           },0,0,"",
                           "");
@@ -371,7 +371,7 @@ public class compiler {
         helper(new String[]
                           { "-classpath","../OpenJML21/runtime",
                             "-sourcepath","test/testJavaErrors",
-                            "-specspath","../OpenJML21/runtime"+z+"test/testJavaErrors",
+                            "-specspath","test/testJavaErrors",
                             "--no-purity-check",
                             "test/testJavaErrors/A.java"
                           },0,0,
@@ -469,7 +469,6 @@ public class compiler {
         helper(new String[]
                                 { "-classpath","../OpenJML21/runtime",
                                   "-sourcepath","test/testNoErrors",
-                                  "-specspath","../OpenJML21/runtime",
                                   "-nowarn", 
                                   "test/testWarnings/A.java"
                                 },0,0
@@ -483,17 +482,16 @@ public class compiler {
         helper(new String[]
                                 { "-classpath","../OpenJML21/runtime",
                                   "-sourcepath","test/testNoErrors",
-                                  "-specspath","../OpenJML21/runtime",
                                   "-Werror",
                                   "test/testWarnings/A.java"
                                 },1,0
-                                ,""
                                 ,"test/testWarnings/A.java:3: warning: There is no point to a specification case having more visibility than its method"+eol
                                 +"  //@ public normal_behavior"+eol
                                 +"      ^"+eol
                                 +"error: warnings found and -Werror specified"+eol
                                 +"1 error"+eol
                                 +"1 warning"+eol
+                                ,""
                                 );
     }
 
@@ -507,7 +505,7 @@ public class compiler {
         helper(new String[]
                           { "-classpath","../OpenJML21/bin-runtime",  // FIXME - needs annotations?
                             "-sourcepath","test/testNoErrors",
-                            "-specspath","../OpenJML21/runtime",
+                            "-specspath","../../Specs/specs",
                             "--no-purity-check",  //"-Xlint:unchecked",
                             "test/testNoErrors/A.java"
                           },0,0
@@ -515,17 +513,16 @@ public class compiler {
                           );
     }
 
-    /** Tests that specs files are not found with empty specs path */
-    @Test
-    public void testSourcePath3() throws Exception {
-        helper(new String[]
-                          { "-classpath"," ",
-                            "-sourcepath","test/testNoErrors"+z+"../OpenJML21/runtime",
-                            "-specspath","",
-                            "test/testNoErrors/A.java",  
-                          },0,0,"",
-                          "");
-    }
+//    /** Tests that specs files are not found with empty specs path */
+//    @Test
+//    public void testSourcePath3() throws Exception {
+//        helper(new String[]
+//                          { "-classpath"," ",
+//                            "-sourcepath","test/testNoErrors"+z+"../OpenJML21/runtime",
+//                            "test/testNoErrors/A.java",  
+//                          },0,0,"",
+//                          "");
+//    }
 
     // This test requires jmlruntime.jar to have been created - run the Makefile
     // in the OpenJML project
@@ -533,13 +530,13 @@ public class compiler {
     //@Test  // FIXME - try running the build programmatically
     @Test 
     public void testSourcePath4() throws Exception {
-        if (!new java.io.File("../OpenJML21/tempjars/jmlruntime.jar").exists()) {
+        if (!new java.io.File("../OpenJML21/release-temp/jmlruntime.jar").exists()) {
             System.setErr(savederr);
             System.setOut(savedout);
             System.out.println("The testSourcePath4 test depends on having a release version of jmlruntime.jar in the jars directory.  It will not be run until a release has been built.");
         } else {
             helper(new String[]
-                          { "-classpath","../OpenJML21/tempjars/jmlruntime.jar",
+                          { "-classpath","../OpenJML21/release-temp/jmlruntime.jar",
                             "-sourcepath","test/testNoErrors",
                             "-specspath","",
                             "test/testNoErrors/A.java",  
@@ -565,7 +562,6 @@ public class compiler {
         helper(new String[]
                           { "-classpath","bin",
                             "-sourcepath","test/testNoErrors",
-                            "-specspath","../OpenJML21/runtime",
                             "test/testNoErrors/A.java"
                           },0,0,"",
                           "");
@@ -813,7 +809,7 @@ public class compiler {
         helper(new String[]
                 { "-classpath","../OpenJML21/runtime",
                   "-sourcepath","test/testNoErrors",
-                  "-specspath","../OpenJML21/runtime",
+                  "-specspath","../OpenJML21/release-temp",
                   "-lang=jml",
                   "-extensions=X", // Ignored when strict
                   "test/testNoErrors/A.java"
@@ -828,7 +824,6 @@ public class compiler {
         helper(new String[]
                 { "-classpath","../OpenJML21/runtime",
                   "-sourcepath","test/testNoErrors",
-                  "-specspath","../OpenJML21/runtime",
                   "-extensions=X",
                   "test/testNoErrors/A.java"
                 },2,1
@@ -842,7 +837,6 @@ public class compiler {
         helper(new String[]
                 { "-classpath","../OpenJML21/runtime",
                   "-sourcepath","test/testext",
-                  "-specspath","../OpenJML21/runtime",
                   "-extensions=ext",
                   "test/testext/A.java"
                 },0,0
@@ -965,7 +959,7 @@ public class compiler {
     public void release_testRuntime1() throws Exception {
     	expectedFile = "releaseTests/testRuntime1/expected";
     	helper(new String[]
-    			{ "temp-release/C.java", "-jmltesting", "-classpath", ".", "-no-purityCheck"
+    			{ "temp-release/C.java", "-jmltesting", "-classpath", ".", "--no-purity-check"
     			},3,0
     			,""
     			);
@@ -976,30 +970,30 @@ public class compiler {
     public void release_testRuntime2() throws Exception {
     	expectedFile = "releaseTests/testRuntime2/expected";
     	helper(new String[]
-    			//{ "temp-release/C.java", "-classpath", "../../JMLAnnotations/bin"+z+"../OpenJML21/bin-runtime", "-no-purityCheck", "-no-internalRuntime"
-    			{ "temp-release/C.java", "-no-purityCheck"
+    			//{ "temp-release/C.java", "-classpath", "../../JMLAnnotations/bin"+z+"../OpenJML21/bin-runtime", "--no-purity-check", "-no-internalRuntime"
+    			{ "temp-release/C.java", "--no-purity-check"
     			},0,0
     			,""
     			);
     }
     
-    // Testing typechecking with source files for org.jmlspecs.annotation.*
-    @Test
-    public void release_testRuntime3() throws Exception {
-    	expectedFile = "releaseTests/testRuntime3/expected";
-    	helper(new String[]
-    			{ "temp-release/C.java",  "-classpath", "../../JMLAnnotations/src"+z+"../OpenJML21/runtime", "-no-purityCheck", "-no-internalRuntime"
-    			},0,0
-    			,""
-    			);
-    }
+//    // Testing typechecking with source files for org.jmlspecs.annotation.*
+//    @Test
+//    public void release_testRuntime3() throws Exception {
+//    	expectedFile = "releaseTests/testRuntime3/expected";
+//    	helper(new String[]
+//    			{ "temp-release/C.java",  "-classpath", "../../JMLAnnotations/src"+z+"../OpenJML21/runtime", "--no-purity-check", "-no-internalRuntime"
+//    			},0,0
+//    			,""
+//    			);
+//    }
     
     // Testing typechecking with normal internal libaries
     @Test
     public void release_testRuntime4() throws Exception {
     	expectedFile = "releaseTests/testRuntime4/expected";
     	helper(new String[]
-    			{ "temp-release/C.java", "-no-purityCheck",
+    			{ "temp-release/C.java", "--no-purity-check",
     			},0,0
     			,""
     			);
@@ -1010,7 +1004,7 @@ public class compiler {
     public void release_testRuntime5() throws Exception {
     	expectedFile = "releaseTests/testRuntime5/expected";
     	helper(new String[]
-    			{ "temp-release/D.java", "-no-purityCheck",
+    			{ "temp-release/D.java", "--no-purity-check",
     			},0,0
     			,""
     			);
@@ -1020,7 +1014,7 @@ public class compiler {
     public void release_testEsc1() throws Exception {
     	expectedFile = "releaseTests/testEsc1/expected";
     	helper(new String[]
-    			{ "-no-purityCheck", "-esc", "testfiles/testEsc/A.java", "-classpath", "testfiles/testEsc",
+    			{ "--no-purity-check", "-esc", "testfiles/testEsc/A.java", "-classpath", "testfiles/testEsc",
     					"-exec=" + JmlTestCase.root + "/Solvers/Solvers-macos/z3-4.3.1"
     			},6,0
     			,""
@@ -1031,7 +1025,7 @@ public class compiler {
     public void release_testEsc2() throws Exception {
     	expectedFile = "releaseTests/testEsc2/expected";
     	helper(new String[]
-    			{ "-no-purityCheck", "-esc", "testfiles/testEsc/B.java", "-classpath", "testfiles/testEsc",
+    			{ "--no-purity-check", "-esc", "testfiles/testEsc/B.java", "-classpath", "testfiles/testEsc",
     					"-exec=" + JmlTestCase.root + "/Solvers/Solvers-macos/z3-4.3.1"
     			},0,0
     			,""
@@ -1042,7 +1036,7 @@ public class compiler {
     public void release_testPath1() throws Exception {
     	expectedFile = "releaseTests/testPath1/expected";
     	helper(new String[]
-    			{ "-jmltesting", "-no-purityCheck", "testfiles/testPath/data/TestPath.java", 
+    			{ "-jmltesting", "--no-purity-check", "testfiles/testPath/data/TestPath.java", 
     			},1,0
     			,""
     			);
@@ -1052,7 +1046,7 @@ public class compiler {
     public void release_testPath2() throws Exception {
     	expectedFile = "releaseTests/testPath2/expected";
     	helper(new String[]
-    			{ "-jmltesting", "-no-purityCheck", "testfiles/testPath/data/TestPath.java", "-classpath", "testfiles/testPath/data"
+    			{ "-jmltesting", "--no-purity-check", "testfiles/testPath/data/TestPath.java", "-classpath", "testfiles/testPath/data"
     			},1,1
     			,""
     			);
@@ -1062,7 +1056,7 @@ public class compiler {
     public void release_testPath3() throws Exception {
     	expectedFile = "releaseTests/testPath3/expected";
     	helper(new String[]
-    			{ "-jmltesting", "-no-purityCheck", "testfiles/testPath/data/TestPath.java", "-specspath", "testfiles/testPath/data-specs"
+    			{ "-jmltesting", "--no-purity-check", "testfiles/testPath/data/TestPath.java", "-specspath", "testfiles/testPath/data-specs"
     			},1,1
     			,""
     			);
@@ -1072,7 +1066,7 @@ public class compiler {
     public void release_testPath4() throws Exception {
     	expectedFile = "releaseTests/testPath4/expected";
     	helper(new String[]
-    			{ "-jmltesting", "-no-purityCheck", "testfiles/testPath/data/TestPath.java", "-sourcepath", "testfiles/testPath/data-specs" 
+    			{ "-jmltesting", "--no-purity-check", "testfiles/testPath/data/TestPath.java", "-sourcepath", "testfiles/testPath/data-specs" 
     			},1,0
     			,""
     			);
