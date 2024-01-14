@@ -95,7 +95,7 @@ public class escm extends EscBase {
     /** This test checks that the specs of nested, local and anonymous classes are used */
     @Test
     public void testNestedClassSpecs() {
-        addOptions("-checkFeasibility=precondition,exit");
+        addOptions("--check-feasibility=precondition,exit");
         //addOptions("-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -264,6 +264,7 @@ public class escm extends EscBase {
 
     @Test
     public void testAnonZ() {
+        addOptions("--check-feasibility=precondition,assert,exit");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { public static int i; \n"
@@ -308,6 +309,7 @@ public class escm extends EscBase {
                 
                 +"  /*@ requires i > 0; */public TestJava() {}"
                 +"}\n"
+                ,"/tt/TestJava.java:5: error: Object allocation is not permitted in specification expressions",19
                 ,"/tt/TestJava.java:5: warning: A non-pure method is being called where it is not permitted: tt.TestJava.1.()",19
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1",19
                 ,"/tt/TestJava.java:8: warning: Associated declaration",7
@@ -318,6 +320,7 @@ public class escm extends EscBase {
 
     @Test
     public void testMethodsInSpecs() {
+        addOptions("--check-feasibility=precondition,assert,exit");
         helpTCX("tt.TestJava","package tt; "
                 +" import org.jmlspecs.annotation.*; \n"
                 +" //@ code_java_math spec_java_math \n"

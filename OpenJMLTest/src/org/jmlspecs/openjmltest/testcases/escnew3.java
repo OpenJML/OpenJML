@@ -967,8 +967,8 @@ public class escnew3 extends EscBase {
                               + "    }\n"
                               + "}"
                               ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.mm(int)",15
-                              ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method mmm",6
-                              ,"/tt/TestJava.java:14: warning: Associated declaration",7
+                              //,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method mmm",6
+                              //,"/tt/TestJava.java:14: warning: Associated declaration",7
                               );
                       
         

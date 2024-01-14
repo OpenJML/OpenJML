@@ -67,10 +67,12 @@ public class escDemofiles extends EscBase {
     public java.util.List<String> setupForFiles(String sourceDirname, String outDir, String ... opts) {
         new File(outDir).mkdirs();
         java.util.List<String> args = new LinkedList<String>();
-        args.add("-esc");
+        args.add("--esc");
+        args.add("--progress");
         args.add("-jmltesting");
-        args.add("-no-purityCheck");
-        args.add("-dir");
+        args.add("--no-purity-check");
+        args.add("--check-feasibility=basic");
+        args.add("--dir");
         args.add(sourceDirname);
         addOptionsToArgs(options,args);
         args.addAll(Arrays.asList(opts));
@@ -82,40 +84,40 @@ public class escDemofiles extends EscBase {
     @Test
     public void testInvertInjection() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/InvertInjection.java","test/demoInvertInjection","-progress","-noInternalSpecs");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/InvertInjection.java","test/demoInvertInjection");
     }
 
     @Test
     public void testBinarySearch() {
         Assume.assumeTrue(runLongTests);
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/BinarySearch.java","test/demoBinarySearch","-progress","-noInternalSpecs","-logic=AUFNIRA");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/BinarySearch.java","test/demoBinarySearch");
     }
 
     @Ignore  // FIXME: Fails because of inadequate specs and use of \created
     @Test
     public void testCustomer() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/Customer.java","test/demoCustomer","-progress","-noInternalSpecs");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/Customer.java","test/demoCustomer");
     }
 
     @Test
     public void testMaxByElimination() {
         expectedExit = 0;
         ignoreNotes = true;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/MaxByElimination.java","test/demoMaxByElimination","-progress","-code-math=bigint");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/MaxByElimination.java","test/demoMaxByElimination","-code-math=bigint");
     }
 
     @Test @Ignore // FIXME: Cannot reason about \sum
     public void testSumAndMax() {
         expectedExit = 1;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/SumAndMax.java","test/demoSumAndMax","-progress");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/SumAndMax.java","test/demoSumAndMax");
     }
 
     @Test
     public void testEscTest() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/misc1/EscTest.java","test/demoEscTest","-progress","-jmltesting");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/misc1/EscTest.java","test/demoEscTest","-jmltesting");
     }
 
 

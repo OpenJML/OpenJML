@@ -1,10 +1,6 @@
 Proving methods in BubbleSort
 Starting proof of BubbleSort.BubbleSort() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of BubbleSort.BubbleSort() with prover !!!! - no warnings
 Starting proof of BubbleSort.sort(int[]) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of BubbleSort.sort(int[]) with prover !!!! - no warnings
 Completed proving methods in BubbleSort
