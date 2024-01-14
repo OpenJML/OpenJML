@@ -57,14 +57,14 @@ public class escwebexamples extends EscBase {
     }
     
     public void helpTF(String testFileroot, String ... opts) {
-        String d = "../../../openjml.github.io/examples/";
+        String d = "../../openjml.github.io/examples/";
         int extraOpts = 3;
         String[] newopts = new String[opts.length+extraOpts];
         // Fill in exactly 'extraOpts' initial elements
         newopts[0] = "-classpath";
         newopts[1] = d;
-        newopts[2] = "-solver-seed=42";
-//        newopts[2] = "-checkFeasibility=precondition,reachable,exit,spec";
+        newopts[2] = "--solver-seed=42";
+//        newopts[3] = "--check-feasibility=precondition,reachable,exit,spec";
 //        newopts[3] = "-code-math=bigint"; // Just to avoid overflow errors in these tests
 //        newopts[4] = "-spec-math=bigint"; // Just to avoid overflow errors in these tests
         System.arraycopy(opts,0,newopts,extraOpts,opts.length);

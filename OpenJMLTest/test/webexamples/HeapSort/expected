@@ -1,18 +1,10 @@
 Proving methods in HeapSort
 Starting proof of HeapSort.HeapSort() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of HeapSort.HeapSort() with prover !!!! - no warnings
 Starting proof of HeapSort.heapify((@org.jmlspecs.annotation.NonNull :: int)[],int,int) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of HeapSort.heapify((@org.jmlspecs.annotation.NonNull :: int)[],int,int) with prover !!!! - no warnings
 Starting proof of HeapSort.isGeq((@org.jmlspecs.annotation.NonNull :: int)[],int) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of HeapSort.isGeq((@org.jmlspecs.annotation.NonNull :: int)[],int) with prover !!!! - no warnings
 Starting proof of HeapSort.sort((@org.jmlspecs.annotation.NonNull :: int)[]) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of HeapSort.sort((@org.jmlspecs.annotation.NonNull :: int)[]) with prover !!!! - no warnings
 Completed proving methods in HeapSort
