@@ -91,7 +91,7 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testClassMods13c() {
-        helpTCF("A.java","import org.jmlspecs.annotation.*;\n public /*@ @Model*/ class A{}"
+        helpTCF("A.java","import org.jmlspecs.annotation.*;\n public /*@ Model*/ class A{}"
                 ,"/A.java:2: error: A Java class declaration must not be marked either ghost or model: A (owner: unnamed package)",13);
     }
     
