@@ -80,9 +80,6 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            if (utils.isDeprecationSet() && keyword() == "\\index") {
-            	utils.warning(parser.pos(), "jml.deprecated.index");
-            }
 
             Type t = attr.syms.intType;
             if (attr.loopStack.isEmpty()) {
@@ -95,6 +92,9 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public void checkParse(JmlParser parser, JmlSingleton e, String rep) {
+            if (utils.isDeprecationSet() && "\\index".equals(rep)) {
+            	utils.warning(e.pos(), "jml.deprecated.index");
+            }
         }
     };
     
