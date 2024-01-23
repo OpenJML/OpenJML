@@ -469,7 +469,7 @@ public abstract class IJmlClauseKind {
             init(parser);
             IJmlClauseKind jt = parser.jmlTokenClauseKind();
             int p = parser.pos();
-            String stringRep = parser.getScanner().chars();
+            String stringRep = keyword;
             parser.nextToken();
             if (parser.token().kind == TokenKind.LPAREN) {
                 return parser.syntaxError(p, null, "jml.no.args.allowed", jt.keyword());
