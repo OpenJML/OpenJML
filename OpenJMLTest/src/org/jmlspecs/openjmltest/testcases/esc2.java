@@ -3420,8 +3420,8 @@ public class esc2 extends EscBase {
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3",17
                 ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m4",17
                 ,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m5",17
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m6a: a @Nullable Throwable cannot be proved to be a RuntimeException",17
-                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m7a: a @Nullable Throwable cannot be proved to be a RuntimeException",17
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m6a: a Throwable cannot be proved to be a RuntimeException",17
+                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m7a: a Throwable cannot be proved to be a RuntimeException",17
                 );
     }
 

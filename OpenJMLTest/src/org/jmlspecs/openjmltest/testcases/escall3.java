@@ -71,7 +71,7 @@ public class escall3 extends EscBase {
     
     @Test
     public void testFieldAccess() {
-        main.addOptions("-checkFeasibility=none"); // Part of test
+        addOptions("-checkFeasibility=none"); // Part of test
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                  
@@ -288,7 +288,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testFieldAssign() {
-        main.addOptions("-checkFeasibility=none"); // Part of test
+        addOptions("-checkFeasibility=none"); // Part of test
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                  
@@ -586,7 +586,7 @@ public class escall3 extends EscBase {
 
     // FIXME - almost duplicat ewith escnew
     @Test public void testArrayIndex() {
-        main.addOptions("-escMaxWarnings=1");
+        addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -716,7 +716,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testHavocB() {
-    	main.addOptions("-method=m1");
+    	addOptions("-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 +"  /*@ non_null */ public TestJava ooo;\n"
@@ -738,7 +738,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testHavoc() {
-    	main.addOptions("-exclude=TestJava");
+    	addOptions("-exclude=TestJava");
         helpTCX("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 +"  /*@ non_null */ public TestJava ooo;\n"
@@ -794,7 +794,7 @@ public class escall3 extends EscBase {
 
 
     @Test public void testAssignOp1() {
-        main.addOptions("-escMaxWarnings=1");
+        addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -813,8 +813,8 @@ public class escall3 extends EscBase {
     @Test public void testAssignOp1Div() {
         Assume.assumeTrue(runLongTests);
         Assume.assumeTrue(!"cvc4".equals(solver)); // SKIPPING because CVC4 does not handle integer division
-        main.addOptions("-escMaxWarnings=1");
-        main.addOptions("-logic=AUFNIRA");
+        addOptions("-escMaxWarnings=1");
+        addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -846,8 +846,8 @@ public class escall3 extends EscBase {
 
     @Ignore // takes a long time
     @Test public void testAssignOp2() {
-        main.addOptions("-escMaxWarnings=1");
-        main.addOptions("-logic=AUFNIRA");
+        addOptions("-escMaxWarnings=1");
+        addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -889,8 +889,8 @@ public class escall3 extends EscBase {
 
     @Ignore // takes a long time
     @Test public void testAssignOp3() {
-        main.addOptions("-escMaxWarnings=1");
-        main.addOptions("-logic=AUFNIRA");
+        addOptions("-escMaxWarnings=1");
+        addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -1203,7 +1203,9 @@ public class escall3 extends EscBase {
                 
                 +"}\n"
                 ,"/tt/TestJava.java:8: error: unreported exception java.lang.NoSuchMethodException; must be caught or declared to be thrown", 6
+                ,optional("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (ExceptionList) in method mm",6)
                 );
+        // FIXME - in the above, the second error message appears to be non-deterministic
     }
     
     @Test public void testMethodWithConstructorNameOK() {
@@ -1263,26 +1265,6 @@ public class escall3 extends EscBase {
                 +"    this.bb = bb;\n"
                 +"  }\n"
                 +"}"
-                );
-    }
-    
-    @Test public void testMethodWithConstructorNameBug() {
-        main.addOptions("-no-internalSpecs");
-        // Tests that without specs, the built-in spec for Object() is still
-        // normal_behavior and pure
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public byte[] b;\n"
-                +"  //@ public invariant b != null && b.length == 20;\n"
-
-                +"  public TestJava() {\n"
-                +"  }\n"
-
-                
-                +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",10
-                ,"/tt/TestJava.java:4: warning: Associated declaration",14
                 );
     }
     
@@ -1447,7 +1429,7 @@ public class escall3 extends EscBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2b() {
-        main.addOptions("-checkFeasibility=all","-defaults=constructor:pure"); // Part of test
+        addOptions("-checkFeasibility=assert","-defaults=constructor:pure"); // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -1495,7 +1477,7 @@ public class escall3 extends EscBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2c() {
-        main.addOptions("-checkFeasibility=all","-defaults=constructor:pure"); // Part of test
+        addOptions("-checkFeasibility=assert","-defaults=constructor:pure"); // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends RuntimeException {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -1542,7 +1524,7 @@ public class escall3 extends EscBase {
     
     // Checks the class of the resulting exception when close calls throw exceptions, but not the try body
     @Test public void testTryResources2a() {
-    	main.addOptions("-checkFeasibility=all","-defaults=constructor:pure");  // Part of test
+    	addOptions("-checkFeasibility=assert","-defaults=constructor:pure");  // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"

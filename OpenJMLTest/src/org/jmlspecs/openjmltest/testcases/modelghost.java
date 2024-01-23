@@ -28,11 +28,6 @@ public class modelghost extends TCBase {
         return data;
     }
     
-    public modelghost(Boolean b) {
-    	useSystemSpecs = b;
-    }
-
-    
     @Test
     public void testClassSimple() {
     	helpTCF("A.java",
@@ -197,7 +192,6 @@ public class modelghost extends TCBase {
 
     @Test
     public void testUseJML() {
-    	if (!useSystemSpecs) return; // Irrelevant if useSystemSpecs is false
         helpTCF("A.java",
                 "import org.jmlspecs.lang.JML; public class A { \n" +
                 

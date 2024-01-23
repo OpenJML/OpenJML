@@ -25,6 +25,8 @@
 
 package com.sun.tools.javac.main;
 
+import static com.sun.tools.javac.main.Option.WERROR;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;

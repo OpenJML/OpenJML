@@ -33,18 +33,16 @@ public abstract class TCBase extends JmlTestCase {
     protected String testspecpath;
     protected String testSourcePath;
     protected int expectedExit;
-    protected boolean useSystemSpecs = false;
-
+    
     @Override
     public void setUp() throws Exception {
     	testspecpath = testspecpath1;
         testSourcePath = testspecpath1;
         super.setUp();
-        main.addOptions("-specspath",   testspecpath + (!useSystemSpecs ? "" : (z + "$SY") ));
-        main.addOptions("-sourcepath",   testSourcePath);
-        main.addOptions("-classpath",   "src" + z + testSourcePath);
-        if (!useSystemSpecs) main.addOptions("-no-internalSpecs");
-        main.addOptions(JmlOption.PURITYCHECK.optionName()+"=false");
+        addOptions("-specspath",   testspecpath + z + "$SY" );
+        addOptions("-sourcepath",   testSourcePath);
+        addOptions("-classpath",   "src" + z + testSourcePath);
+        addOptions(JmlOption.PURITYCHECK.optionName()+"=false");
         specs = JmlSpecs.instance(context);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings

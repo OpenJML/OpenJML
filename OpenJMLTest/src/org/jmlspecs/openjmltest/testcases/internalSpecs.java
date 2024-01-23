@@ -16,7 +16,6 @@ public class internalSpecs extends TCBase {
     public void setUp() throws Exception {
 //      noCollectDiagnostics = true;
 //      jmldebug = true;
-        useSystemSpecs = true;
         super.setUp();
         main.addOptions("-no-purityCheck"); // FIXME - there are too many purity problems in the specs right now
     }

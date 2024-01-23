@@ -104,7 +104,6 @@ also
  */
 
 {
-  @org.jmlspecs.annotation.Nullable
   int[] a = new int[10];
   o.f = a[i];
 }

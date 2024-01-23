@@ -21,7 +21,6 @@ public class jmltypes extends TCBase {
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
-        useSystemSpecs = true; // Needed for JML.erasure
         super.setUp();
     }
     

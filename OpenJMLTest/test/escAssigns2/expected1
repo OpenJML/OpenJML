@@ -1,0 +1,62 @@
+Proving methods in SR
+Starting proof of SR.SR() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SR.SR() with prover !!!! - no warnings
+Starting proof of SR.m1a(int[],SR) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SR.m1a(int[],SR) with prover !!!! - no warnings
+Starting proof of SR.m1b(int[],SR) with prover !!!!
+test/escAssigns2/SR.java:13: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1b
+  //@ assigns t.k;
+               ^
+Completed proof of SR.m1b(int[],SR) with prover !!!! - with warnings
+Starting proof of SR.m1c(int[],SR) with prover !!!!
+test/escAssigns2/SR.java:17: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1c
+  //@ assigns a[1] ;
+               ^
+test/escAssigns2/SR.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1c
+  //@ assigns a[1] ;
+                ^
+Completed proof of SR.m1c(int[],SR) with prover !!!! - with warnings
+Starting proof of SR.m1d(int[],SR) with prover !!!!
+test/escAssigns2/SR.java:21: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1d
+  //@ assigns  b[-1] ;
+                 ^
+Completed proof of SR.m1d(int[],SR) with prover !!!! - with warnings
+Starting proof of SR.m2a(int[],SR) with prover !!!!
+test/escAssigns2/SR.java:25: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m2a
+  //@ assigns t.*;
+               ^
+Completed proof of SR.m2a(int[],SR) with prover !!!! - with warnings
+Starting proof of SR.m2b(int[],SR) with prover !!!!
+test/escAssigns2/SR.java:29: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m2b
+  //@ assigns a[*], b[*];
+               ^
+Completed proof of SR.m2b(int[],SR) with prover !!!! - with warnings
+Starting proof of SR.m3a(int[],SR) with prover !!!!
+test/escAssigns2/SR.java:33: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m3a
+  //@ assigns t.s.* ;
+                 ^
+test/escAssigns2/SR.java:33: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m3a
+  //@ assigns t.s.* ;
+               ^
+Completed proof of SR.m3a(int[],SR) with prover !!!! - with warnings
+Starting proof of SR.m3b(int[],SR) with prover !!!!
+test/escAssigns2/SR.java:37: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3b
+  //@ assigns b[1..5] ;
+                   ^
+Completed proof of SR.m3b(int[],SR) with prover !!!! - with warnings
+Starting proof of SR.m4(int[],SR) with prover !!!!
+test/escAssigns2/SR.java:41: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m4
+  //@ assigns b[-1..50] ;
+                ^
+Completed proof of SR.m4(int[],SR) with prover !!!! - with warnings
+Starting proof of SR.m5(int[],SR) with prover !!!!
+test/escAssigns2/SR.java:45: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m5
+  //@ assigns b[1..50] ;
+                   ^
+Completed proof of SR.m5(int[],SR) with prover !!!! - with warnings
+Completed proving methods in SR
+11 warnings

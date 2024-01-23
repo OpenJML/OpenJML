@@ -10,7 +10,6 @@ public class matchClasses  extends TCBase {
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
-        useSystemSpecs = true;
         super.setUp();
         main.addOptions("-no-purityCheck");
         //main.addOptions("-jmldebug");

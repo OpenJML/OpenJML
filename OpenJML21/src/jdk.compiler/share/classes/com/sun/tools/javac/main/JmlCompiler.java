@@ -342,14 +342,14 @@ public class JmlCompiler extends JavaCompiler {
 
     /** Overridden in order to insert ESC and RAC (or other) processing */
     @Override
-    public Queue<Env<AttrContext>> flow(Queue<Env<AttrContext>> envs) {
+    public Queue<Env<AttrContext>> flow(Queue<Env<AttrContext>> envsin) {
     	Assert.check(compilePolicy == CompilePolicy.SIMPLE); // FIXME - only works for SIMPLE at present
     	var noresults = new java.util.LinkedList<Env<AttrContext>>();
-        if (envs.isEmpty()) {
+        if (envsin.isEmpty()) {
         	if (!utils.check) context.get(Main.IProgressListener.class).report(1,"Operation not performed because of parse or type errors");
         	return noresults;
         }
-    	var results = super.flow(envs);
+    	var envs = super.flow(envsin);
         if (utils.esc || utils.rac) {
         	JmlUseSubstitutions subst = new JmlUseSubstitutions(context);
             for (Env<AttrContext> env: envs) {
@@ -360,9 +360,9 @@ public class JmlCompiler extends JavaCompiler {
         	if (JmlOption.includes(context,JmlOption.SHOW,"program")) { 
         		envs.stream().forEach(e->System.out.println(e.toplevel.toString()));
         	}
-            return results; // Empty list - do nothing more
+            return noresults; // Empty list - do nothing more
         } else if (utils.doc) {
-            return results; // Empty list - do nothing more
+            return noresults; // Empty list - do nothing more
         } else if (utils.esc) {
             JmlEsc esc = JmlEsc.instance(context);
         	try {
@@ -380,6 +380,7 @@ public class JmlCompiler extends JavaCompiler {
                 infer(env);
             return noresults;
         } else if (utils.rac) {
+        	var results = new java.util.LinkedList<Env<AttrContext>>();
         	for (var env: envs) {
         		var t = env.tree;
         		if (t instanceof JmlClassDecl && ((JmlClassDecl)t).sourcefile.getKind() != JavaFileObject.Kind.SOURCE) continue;

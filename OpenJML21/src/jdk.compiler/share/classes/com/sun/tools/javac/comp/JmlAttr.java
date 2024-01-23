@@ -7499,15 +7499,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     nullness = Modifiers.NON_NULL;
                 } else if (utils.hasMod(that.mods,Modifiers.NULLABLE) || specs.isNullableNoDefault(that.sym)|| skipDefaultNullity) {
                     nullness = Modifiers.NULLABLE;
-                } else {
-                    Symbol s = (nullness == Modifiers.NON_NULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
-                    Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
-                    that.sym.appendAttributes(List.<Compound>of(a));
-                    JCAnnotation an = jmlMaker.at(that).Annotation(a);  // FIXME - needs a position and a source - we should get the NonNullByDefault if possible
-                    ((JmlTree.JmlAnnotation)an).sourcefile = that.sourcefile;
-                    ((JmlTree.JmlAnnotation)an).kind = nullness;
-                    an.type = an.annotationType.type;
-                    that.mods.annotations = that.mods.annotations.append(an);
+//                } else {
+//                    Symbol s = (nullness == Modifiers.NON_NULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
+//                    Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
+//                    that.sym.appendAttributes(List.<Compound>of(a));
+//                    JCAnnotation an = jmlMaker.at(that).Annotation(a);  // FIXME - needs a position and a source - we should get the NonNullByDefault if possible
+//                    ((JmlTree.JmlAnnotation)an).sourcefile = that.sourcefile;
+//                    ((JmlTree.JmlAnnotation)an).kind = nullness;
+//                    an.type = an.annotationType.type;
+//                    var ft = that.vartype;
+//                    while (ft instanceof JCTree.JCTypeApply ftp) ft = ftp.clazz;
+//                    if (ft instanceof JCIdent id) {
+//                        that.mods.annotations = that.mods.annotations.append(an);
+//                    } else if (ft instanceof JCFieldAccess fta) {
+//                        System.out.println("FT " + ft + " " + ft.getClass());
+//                    } else {
+//                    	// FIXME ???
+//                        that.mods.annotations = that.mods.annotations.append(an);
+//                    }
                 }
             }
             //        if (newMods != originalMods) for (JCAnnotation a: originalMods.annotations) { a.type = attribType(a,env); }

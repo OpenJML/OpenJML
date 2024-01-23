@@ -247,6 +247,7 @@ public class escArithmeticModes2 extends EscBase {
                   ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: int multiply overflow",19)
                   ,seq("/tt/TestJava.java:7: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: overflow in int divide",18)
                   ,seq("/tt/TestJava.java:7: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: int multiply overflow",22)
+                  ,seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method ma",9)
                 )
               );
     }

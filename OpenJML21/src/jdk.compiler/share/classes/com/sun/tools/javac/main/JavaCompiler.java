@@ -587,7 +587,7 @@ public class JavaCompiler {
     /** The number of errors reported so far.
      */
     public int errorCount() {
-        if (werror && log.nerrors == 0 && log.nwarnings > 0) {
+        if (log.nerrors == 0 && log.nwarnings > 0 && options.isSet(Option.WERROR)) { // OPENJML - changed because cached value of werror does not seem to be uptodate with the options
             log.error(Errors.WarningsAndWerror);
         }
         return log.nerrors;
