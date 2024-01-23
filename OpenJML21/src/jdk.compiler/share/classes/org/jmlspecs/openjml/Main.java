@@ -365,6 +365,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     String[] newargs = new String[args.length-1];
                     System.arraycopy(args,1,newargs,0,newargs.length);
                     // Pure java compile -- ignores the 'options' parameter
+                    Utils.setNoJML(true);
                     errorcode = com.sun.tools.javac.Main.compile(newargs);
                 } else {
                     // We create an instance of main through which to call the
@@ -719,6 +720,11 @@ public class Main extends com.sun.tools.javac.main.Main {
     public boolean setupOptions() {
     	if (!(Options.instance(context) instanceof JmlOptions)) return true;
         return JmlOptions.instance(context).setupOptions();
+    }
+    
+    /** Just used in sequences of tests */
+    public static void resetStatics() {
+    	org.jmlspecs.openjml.Utils.isjml = true;
     }
 
     /** An Enum type that gives a choice of various tools to be executed. */
