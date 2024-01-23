@@ -61,6 +61,8 @@ import java.util.WeakHashMap;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import org.jmlspecs.openjml.JmlOption;
+
 import com.sun.source.tree.MemberReferenceTree;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCMemberReference.OverloadKind;
@@ -148,7 +150,7 @@ public class DeferredAttr extends JCTree.Visitor {
 
         // For speculative attribution, skip the class definition in <>.
             // OPENJML - duplicated to be able to call Jml versions
-        if (System.getenv("NOJML") != null) treeCopier =
+        if (!org.jmlspecs.openjml.Utils.isJML()) treeCopier =  // OPENJML -- adding test here and alternate branch below
             new TreeCopier<Void>(TreeMaker.instance(context)) {
                 @Override @DefinedBy(Api.COMPILER_TREE)
                 public JCTree visitNewClass(NewClassTree node, Void p) {

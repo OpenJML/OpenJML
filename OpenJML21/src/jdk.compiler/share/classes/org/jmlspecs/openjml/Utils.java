@@ -1996,12 +1996,16 @@ public class Utils {
     }
     
     public static void dumpStack() {
-    	new RuntimeException().printStackTrace(System.out);
+    	new RuntimeException().printStackTrace(System.out); // or Thread.dumpStack()
     }
     
     static boolean isjml = System.getenv("NOJML")==null;
     public static boolean isJML() {
     	return isjml;
+    }
+    
+    public static void setNoJML(boolean isnojml) {
+    	isjml = !isnojml;
     }
 
     public static void dumpStack(String message) {

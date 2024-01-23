@@ -588,6 +588,7 @@ public class compiler {
                           },0,0
                           ,""
                           ,"");
+        org.jmlspecs.openjml.Main.resetStatics(); // so later tests are not polluted
         
     }
     
