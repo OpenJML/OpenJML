@@ -467,9 +467,7 @@ public class compiler {
     @Test
     public void testJML6nowarn() throws Exception {
         helper(new String[]
-                                { "-classpath","../OpenJML21/runtime",
-                                  "-sourcepath","test/testNoErrors",
-                                  "-nowarn", 
+                                { "-nowarn", 
                                   "test/testWarnings/A.java"
                                 },0,0
                                 ,""
@@ -480,18 +478,16 @@ public class compiler {
     @Test
     public void testJML6Werror() throws Exception {
         helper(new String[]
-                                { "-classpath","../OpenJML21/runtime",
-                                  "-sourcepath","test/testNoErrors",
-                                  "-Werror",
+                                { "-Werror",
                                   "test/testWarnings/A.java"
                                 },1,0
+                                ,""
                                 ,"test/testWarnings/A.java:3: warning: There is no point to a specification case having more visibility than its method"+eol
                                 +"  //@ public normal_behavior"+eol
                                 +"      ^"+eol
                                 +"error: warnings found and -Werror specified"+eol
                                 +"1 error"+eol
                                 +"1 warning"+eol
-                                ,""
                                 );
     }
 

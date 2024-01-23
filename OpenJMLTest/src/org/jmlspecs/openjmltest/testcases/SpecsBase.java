@@ -145,7 +145,6 @@ public class SpecsBase extends TCBase {
 
     @Override
     public void setUp() throws Exception {
-        useSystemSpecs = true;
         ignoreNotes = false;
         print = printDiagnostics = true; // true = various debugging output
         super.setUp();

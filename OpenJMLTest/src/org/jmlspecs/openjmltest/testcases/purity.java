@@ -13,7 +13,6 @@ public class purity extends TCBase {
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
-        useSystemSpecs = true;
         super.setUp();
         main.addOptions("-no-require-white-space");
         main.addOptions("-purityCheck=false");  // Do not warn about library calls -- everything else is warned about

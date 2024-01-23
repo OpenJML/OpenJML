@@ -304,6 +304,34 @@ public class escgeneric extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
+                +"  public void ma(TestG<Integer>./*@ non_null*/TestH i, Integer j) {\n"
+                +"    i.mm(j);\n"
+                +"  }\n"
+                +"  public void mb(TestG<Object>./*@ non_null*/TestH i, Object j) {\n"
+                +"    i.mm(j);\n"
+                +"  }\n"
+                +"  public void mc(TestG<String>./*@ non_null*/TestH i, String j) {\n"
+                +"    i.mm(j);\n"
+                +"  }\n"
+                +"}\n"
+                +"class TestG<E> {\n"
+                +"  class TestH  {\n"
+                +"    //@ requires \\type(E) != \\type(Integer);\n"
+                +"    public void mm(E t) {}\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:16: warning: Associated declaration",17
+                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
+                );
+    }
+    
+    @Test
+    public void testTypeParameter2a() {
+    	//addOptions("-show");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
                 +"  public void ma(/*@ non_null*/TestG<Integer>.TestH i, Integer j) {\n"
                 +"    i.mm(j);\n"
                 +"  }\n"
@@ -339,7 +367,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testForEach3() {
-        helpTCX("tt.TestJava"," class A {  /*@ spec_bigint_math */ void m(/*@ non_null*/ java.util.List<Integer> list) { \n "
+        helpTCX("tt.TestJava"," class A {  /*@ spec_bigint_math */ void m(java.util./*@ non_null*/ List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ assert sum == 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
@@ -366,7 +394,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testForEach3a() {
-        helpTCX("tt.TestJava"," class A { /*@ code_bigint_math spec_bigint_math */ void m(/*@ non_null*/ java.util.List</*@ non_null*/ Integer> list) { \n "
+        helpTCX("tt.TestJava"," class A { /*@ code_bigint_math spec_bigint_math */ void m(java.util./*@ non_null*/ List</*@ non_null*/ Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
                 +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
@@ -377,7 +405,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testForEach3bad() {
-        helpTCX("tt.TestJava"," class A { /*@ code_bigint_math spec_bigint_math */ void m(/*@ non_null*/ java.util.List<Integer> list) { \n "
+        helpTCX("tt.TestJava"," class A { /*@ code_bigint_math spec_bigint_math */ void m(java.util./*@ non_null*/ List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
                 +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
@@ -389,7 +417,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testElemType() {
-        helpTCX("tt.TestJava"," class A { void m(/*@ non_null */ char[] a) { \n"
+        helpTCX("tt.TestJava"," class A { void m(char/*@ non_null */ [] a) { \n"
                 +"//@ assert \\elemtype(\\typeof(a)) == \\type(char); \n"
                 +"}}"
                 );

@@ -11,10 +11,9 @@ public class typechecking extends TCBase {
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
 //        jmldebug = true; // TODO: eventually remove this?
-        useSystemSpecs = true;
         super.setUp();
-        main.addOptions("-no-purityCheck"); // TODO: eventually remove this?
-        //main.addOptions("-jmldebug"); // TODO: eventually remove this?
+        addOptions("--no-purity-check"); // TODO: eventually remove this?
+        //addOptions("-jmldebug"); // TODO: eventually remove this?
     }
 
     /** Test something very simple with no errors*/
@@ -216,7 +215,7 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testStaticInvariantFor2a() {
-    	main.addOptions("-lang=jml");
+    	addOptions("-lang=jml");
         helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\static_invariant_for(Integer,Object);\n}}"
         		,"/A.java:2: error: A \\static_invariant_for expression expects just 1 argument, not 2",33
         		);
@@ -300,7 +299,7 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testInvariantFor6() {
-    	main.addOptions("-lang=jml");
+    	addOptions("-lang=jml");
         helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for(Integer,k);\n}}"
         		,"/A.java:2: error: A \\invariant_for expression expects just 1 argument, not 2", 26
         		,"/A.java:2: error: The argument of \\invariant_for must be of reference type", 27
@@ -315,7 +314,7 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testInvariantFor7() {
-    	main.addOptions("-lang=jml");
+    	addOptions("-lang=jml");
         helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for();\n}}"
         		,"/A.java:2: error: A \\invariant_for expression expects just 1 argument, not 0", 26
         		);
@@ -465,13 +464,18 @@ public class typechecking extends TCBase {
     /** Wrong position model or ghost modifier */
     @Test public void testJmlTypes3() {
         helpTCF("A.java","import org.jmlspecs.annotation.*; public class A {\n  @Ghost int i; } ",
-                "/A.java:1: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.i",53
+                "/A.java:2: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.i",3
                 );
     }
 
     @Test public void testJmlTypes4() {
-        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A {  /*@ @Ghost int i; */ } ");  //OK
+        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A {\n  /*@ @Ghost Object i; */ } ");  //OK
     }
+
+    @Test public void testJmlTypes4a() {
+        helpTCF("A.java","import org.jmlspecs.annotation.*; public class A {\n  /*@ @Ghost int i; */ } ");  //OK
+    }
+
     @Test public void testSubtype() { // OK
         helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */Class c;\n//@ ensures t <: t;\nvoid m() {}}");
     }

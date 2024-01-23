@@ -10,7 +10,6 @@ public class typecheckingJmlTypes extends TCBase {
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
-        useSystemSpecs = true; // Needed to be able to resolve b[] = x as a .put call
         super.setUp();
     }
 
