@@ -78,7 +78,7 @@ public class escfeatures extends EscBase {
 
     
     public void helpFeatures(String n) {
-        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/escFeatures/"+n,"--rac-java-checks");
+        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/escFeatures/"+n,"--rac-java-checks","--check-feasibility=basic","--progress");
     }
 
 
