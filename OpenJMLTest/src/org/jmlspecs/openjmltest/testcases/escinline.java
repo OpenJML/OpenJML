@@ -185,7 +185,7 @@ public class escinline extends EscBase {
                 +"    return i + 1;\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The inline construct is an OpenJML extension to JML and not allowed under -lang=jml", 15
+                ,"/tt/TestJava.java:4: warning: The inline construct is an OpenJML extension to JML and not allowed under --lang=jml", 15
                 ,"/tt/TestJava.java:4: warning: Inlined methods should be final since overriding methods will be ignored: minline", 15
                 );
     }
