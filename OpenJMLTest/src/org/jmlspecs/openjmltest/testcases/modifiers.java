@@ -86,13 +86,14 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testClassMods13b() {
-        helpTCF("A.java"," \n public /*@model*/ class A{}"
-                ,"/A.java:2: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A",12);
+        helpTCF("A.java"," \n public /*@ model*/ class A{}"
+                ,"/A.java:2: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A",13
+                );
     }
     
     @Test public void testClassMods13c() {
         helpTCF("A.java","import org.jmlspecs.annotation.*;\n public /*@ Model*/ class A{}"
-                ,"/A.java:2: error: A Java class declaration must not be marked either ghost or model: A (owner: unnamed package)",13);
+                ,"/A.java:2: error: Unexpected or misspelled JML token: Model",13);
     }
     
     @Test public void testClassMods13d() { // No import, so cannot resolve Model
@@ -1230,7 +1231,8 @@ public class modifiers extends TCBase {
     // TODO - non_null, nullable must have a return type
     
     // TODO - test initializers
-    
+
+    // FIXME
     @Test public void testBinaryMods() {
         addMockFile("$A/java/lang/Object.jml",
         		"package java.lang; public class Object {\n"

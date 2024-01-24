@@ -491,6 +491,62 @@ public class compiler {
                                 );
     }
 
+    /** Checks that -Werror turns warnings into errors */
+    @Test
+    public void testJML6WerrorA() throws Exception {
+        helper(new String[]
+                                { "-Werror",
+                                  "-specspath","test/testNoErrors", // protects against spec errors in A.java
+                                  "test/testWarnings/A.java"
+                                },0,0
+                                ,""
+                                ,""
+                                );
+    }
+
+    /** Checks that -Werror turns warnings into errors */  // FIXME - not working
+    @Test
+    public void testJML6WerrorB() throws Exception {
+        helper(new String[]
+                                { "-Werror",
+                                  "-sourcepath","test/testNoErrors", // is also the spec path, so protects against spec errors in A.java
+                                  "test/testWarnings/A.java"
+                                },0,0
+                                ,""
+                                ,""
+                                );
+    }
+
+    /** Checks that -Werror turns warnings into errors */  // FIXME - not working
+    @Test
+    public void testJML6WerrorC() throws Exception {
+        helper(new String[]
+                                { "-Werror",
+                                  "-sourcepath","test/testNoErrors", // is also the spec path, so protects against spec errors in A.java
+                                  "-classpath","../OpenJML21/bin-runtime", // does not exist, but isnot part of the specs path
+                                  "test/testWarnings/A.java"
+                                },0,0
+                                ,""
+                                ,""
+                                );
+    }
+
+    /** Checks that -Werror turns warnings into errors */  // FIXME - not working
+    @Test
+    public void testJML6WerrorD() throws Exception {
+        helper(new String[]
+                                { "-Werror",
+                                  "-classpath","../OpenJML21/bin-runtime", // does not exist, but isnot part of the specs path
+                                  "test/testWarnings/A.java"
+                                },1,0
+                                ,""
+                                ,"warning: A specification path directory does not exist: ../OpenJML21/bin-runtime (/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest)"+eol
+                                +"error: warnings found and -Werror specified"+eol
+                                +"1 error"+eol
+                                +"1 warning"+eol
+                                );
+    }
+
     /** Tests using source path but including java spec files - may encounter
      * compilation warnings in the spec files as they evolve.
      * Uses bin for classpath.

@@ -1767,6 +1767,10 @@ public class Utils {
         return (flags & Flags.STATIC) != 0;
     }
     
+    public static boolean isFinal(long flags) {
+        return (flags & Flags.FINAL) != 0;
+    }
+    
     // The following are wrappers for calls to log, to output errors, warnings and notes through a 
     // common mechanism. The wrappers are handy because Log itself does not expose all the 
     // needed combinations of arguments. Note that you can use 
