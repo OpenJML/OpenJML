@@ -1444,7 +1444,7 @@ public class Resolve {
         Symbol bestSoFar = varNotFound;
         Symbol sym;
         for (Symbol s : c.members().getSymbolsByName(name)) {
-            if (s.kind == VAR && (s.flags_field & SYNTHETIC) == 0 && symbolOK(s)) {
+            if (s.kind == VAR && (s.flags_field & SYNTHETIC) == 0 && symbolOK(s)) {  // OPENJML
                 return isAccessible(env, site, s)
                     ? s : new AccessError(env, site, s);
             }
@@ -1494,7 +1494,7 @@ public class Resolve {
         while (env1.outer != null) {
             Symbol sym = null;
             for (Symbol s : env1.info.scope.getSymbolsByName(name)) {
-                if (s.kind == VAR && (s.flags_field & SYNTHETIC) == 0 && symbolOK(s)) {
+                if (s.kind == VAR && (s.flags_field & SYNTHETIC) == 0 && symbolOK(s)) {   // OPENJML
                     sym = s;
                     if (staticOnly) {
                         return new StaticError(sym);
@@ -1506,7 +1506,7 @@ public class Resolve {
             if (sym == null) {
                 sym = findField(env1, env1.enclClass.sym.type, name, env1.enclClass.sym);
             }
-            if (sym.exists() && symbolOK(sym)) {
+            if (sym.exists() && symbolOK(sym)) {  // OPENJML
                 if (staticOnly &&
                         sym.kind == VAR &&
                         sym.owner.kind == TYP &&
@@ -1531,7 +1531,7 @@ public class Resolve {
         Symbol origin = null;
         for (Scope sc : new Scope[] { env.toplevel.namedImportScope, env.toplevel.starImportScope }) {
             for (Symbol currentSymbol : sc.getSymbolsByName(name)) {
-                if (!symbolOK(currentSymbol)) continue;
+                if (!symbolOK(currentSymbol)) continue;  // OPENJML
                 if (currentSymbol.kind != VAR)
                     continue;
                 // invariant: sym.kind == Symbol.Kind.VAR
@@ -1792,7 +1792,7 @@ public class Resolve {
             boolean useVarargs,
             boolean abstractok) {
         for (Symbol s : sc.getSymbolsByName(name, new LookupFilter(abstractok))) {
-            if (!symbolOK(s)) continue;
+            if (!symbolOK(s)) continue;  // OPENJML
             bestSoFar = selectBest(env, site, argtypes, typeargtypes, s,
                     bestSoFar, allowBoxing, useVarargs);
         }
@@ -1864,7 +1864,7 @@ public class Resolve {
         InterfaceLookupPhase iphase = InterfaceLookupPhase.ABSTRACT_OK;
         boolean isInterface = site.tsym.isInterface();
         for (TypeSymbol s : isInterface ? List.of(intype.tsym) : superclasses(intype)) {
-            if (!symbolOK(s)) continue;
+            if (!symbolOK(s)) continue;   // OPENJML
             bestSoFar = findMethodInScope(env, site, name, argtypes, typeargtypes,
                     s.members(), bestSoFar, allowBoxing, useVarargs, true);
             if (name == names.init) return bestSoFar;
@@ -1883,7 +1883,7 @@ public class Resolve {
         for (InterfaceLookupPhase iphase2 : InterfaceLookupPhase.values()) {
             //keep searching for abstract methods
             for (Type itype : itypes[iphase2.ordinal()]) {
-                if (!symbolOK(itype.tsym)) continue;
+                if (!symbolOK(itype.tsym)) continue;   // OPENJML
                 if (!itype.isInterface()) continue; //skip j.l.Object (included by Types.closure())
                 if (iphase2 == InterfaceLookupPhase.DEFAULT_OK &&
                         (itype.tsym.flags() & DEFAULT) == 0) continue;
@@ -2247,7 +2247,7 @@ public class Resolve {
                                    Name name,
                                    TypeSymbol c) {
         for (Symbol sym : c.members().getSymbolsByName(name)) {
-            if (sym.kind == TYP && symbolOK(sym)) {
+            if (sym.kind == TYP && symbolOK(sym)) {  // OPENJML
                 return isAccessible(env, site, sym)
                     ? sym
                     : new AccessError(env, site, sym);
@@ -2280,7 +2280,7 @@ public class Resolve {
              bestSoFar.kind != AMBIGUOUS && l.nonEmpty();
              l = l.tail) {
             sym = findMemberType(env, site, name, l.head.tsym);
-            if (!symbolOK(sym)) continue;
+            if (!symbolOK(sym)) continue;  // OPENJML
             if (!bestSoFar.kind.isResolutionError() &&
                 !sym.kind.isResolutionError() &&
                 sym.owner != bestSoFar.owner)
@@ -2306,7 +2306,7 @@ public class Resolve {
                           TypeSymbol c) {
         Symbol sym = findImmediateMemberType(env, site, name, c);
 
-        if (sym != typeNotFound && symbolOK(sym))
+        if (sym != typeNotFound && symbolOK(sym))   // OPENJML
             return sym;
 
         return findInheritedMemberType(env, site, name, c);
@@ -2484,7 +2484,7 @@ public class Resolve {
                     !pck.exists() && !env.info.attributionMode.isSpeculative ?
                         doRecoveryLoadClass : noRecovery;
             Symbol sym = loadClass(env, fullname, recoveryLoadClass);
-            if (sym.exists() && symbolOK(sym)) {
+            if (sym.exists() && symbolOK(sym)) {  // OPENJML
                 // don't allow programs to use flatnames
                 if (name == sym.name) return sym;
             }

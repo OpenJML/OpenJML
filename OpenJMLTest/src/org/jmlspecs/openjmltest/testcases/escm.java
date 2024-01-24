@@ -133,8 +133,8 @@ public class escm extends EscBase {
                 ,"/tt/TestJava.java:14: warning: Associated declaration",29
                 ,"/tt/TestJava.java:14: warning: Invariants+Preconditions appear to be contradictory in method E.mm()",52 
                 ,"/tt/TestJava.java:15: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.2.mm()",30
-                ,"/tt/TestJava.java:7: warning: There is no feasible path to program point at program exit in method tt.TestJava.m1(tt.TestJava)",15
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (InvariantExit) in method A",17  // A
+                //,"/tt/TestJava.java:7: warning: There is no feasible path to program point at program exit in method tt.TestJava.m1(tt.TestJava)",15
                 ,"/tt/TestJava.java:18: warning: Associated declaration",17
                 ,"/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.A.m2()",18
                 );
@@ -143,7 +143,7 @@ public class escm extends EscBase {
     /** This tests that the specs of model classes and methods are checked */
     @Test
     public void testModelSpecs() {
-    	addOptions("-show:translated");
+    	addOptions("-show:translated","--check-feasibility=basic");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -222,9 +222,7 @@ public class escm extends EscBase {
                                 +"  }\n"
                                 +"}\n"
                                 ,"/tt/TestJava.java:5: error: Object allocation is not permitted in specification expressions",19
-//                                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method mm",74 // FIXME - why would this be? Seems incorrect
-//                                ,"/tt/TestJava.java:5: warning: Associated declaration",44
-
+                                // The above error messaqe is a type-checking message, so no esc checking is done
                                 );
     }
 
@@ -255,16 +253,14 @@ public class escm extends EscBase {
                 ,"/tt/TestJava.java:5: error: Object allocation is not permitted in specification expressions",19
                 ,"/tt/TestJava.java:9: error: Object allocation is not permitted in specification expressions",19
                 ,"/tt/TestJava.java:13: error: Object allocation is not permitted in specification expressions",19
-//                ,"/tt/TestJava.java:4: warning: There is no feasible path to program point at program exit in method tt.TestJava.m1(tt.TestJava)",14
-//                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m2",12
-//                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m3",12
+                // The above error messaqe is a type-checking message, so no esc checking is done
         );
     }
 
 
     @Test
     public void testAnonZ() {
-        addOptions("--check-feasibility=precondition,assert,exit");
+        addOptions("--check-feasibility=basic");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { public static int i; \n"
@@ -276,13 +272,13 @@ public class escm extends EscBase {
                 +"  }\n"
                 
                 +"  public int m2(TestJava o) {\n"
-                +"       boolean b = new TestJava() {  int i; } == null; \n"  // Line 9
+                +"       boolean b = new TestJava() {  int i; } == null; \n"  // Line 10
                 +"       //@ assert b;\n"
                 +"       return 0;\n"
                 +"  }\n"
 
                 +"  public int m3(TestJava o) {\n"
-                +"       boolean b = new TestJava() {  /*@ invariant true; */ int i; } == null; \n"  // Line 5
+                +"       boolean b = new TestJava() {  /*@ invariant true; */ int i; } == null; \n"  // Line 15
                 +"       //@ assert b;\n"
                 +"       return 0;\n"
                 +"  }\n"
@@ -303,17 +299,16 @@ public class escm extends EscBase {
                 +"@NonNullByDefault public class TestJava { public static int i; \n"
 
                 +"  public int m1(TestJava o) {\n"
-                +"       //@ assert new TestJava() {  } != null; \n"  // Line 5    // FIXME - shoudl this be considered pure or not? (used to be)
+                +"       boolean b = new TestJava() {  } != null;\n"
+                +"       //@ assert b; \n"  // Line 5
                 +"       return 0;\n"
                 +"  }\n"
                 
                 +"  /*@ requires i > 0; */public TestJava() {}"
                 +"}\n"
-                ,"/tt/TestJava.java:5: error: Object allocation is not permitted in specification expressions",19
-                ,"/tt/TestJava.java:5: warning: A non-pure method is being called where it is not permitted: tt.TestJava.1.()",19
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1",19
-                ,"/tt/TestJava.java:8: warning: Associated declaration",7
-                ,"/tt/TestJava.java:8: warning: Precondition conjunct is false: i > 0",18
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Precondition) in method m1",20
+                ,"/tt/TestJava.java:5: warning: Associated declaration",35
+                ,"/tt/TestJava.java:9: warning: Precondition conjunct is false: i > 0",18
         );
     }
 
