@@ -2237,7 +2237,7 @@ public class Flow {
         }
 
         void checkInit(DiagnosticPosition pos, VarSymbol sym, Error errkey) {
-            if ((sym.adr >= firstadr || sym.owner.kind != TYP) &&
+             if ((sym.adr >= firstadr || sym.owner.kind != TYP) &&
                 trackable(sym) &&
                 !inits.isMember(sym.adr) &&
                 (sym.flags_field & CLASH) == 0) {

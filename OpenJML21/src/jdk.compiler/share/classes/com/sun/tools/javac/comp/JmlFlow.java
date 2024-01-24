@@ -695,7 +695,9 @@ public class JmlFlow extends Flow  {
         @Override
         void checkInit(DiagnosticPosition pos, VarSymbol sym) {
         	// A static final ghost field does not need to be initialized
-            if (!Utils.instance(context).isJML(sym.flags())) super.checkInit(pos,sym);
+            if (!(Utils.instance(context).isJML(sym.flags()) && Utils.isStatic(sym.flags()) && Utils.isFinal(sym.flags()))) {
+            	super.checkInit(pos,sym);
+            }
         }
 
 
@@ -703,7 +705,7 @@ public class JmlFlow extends Flow  {
             super.visitVarDef(tree);
             if (tree.init == null) {
             	if (tree.type.toString().startsWith("org.jmlspecs.lang")) {
-            		//if (tree.type instanceof org.jmlspecs.lang.IJmlPrimitiveType) { // package does not exist is first compilation round
+            		//if (tree.type instanceof org.jmlspecs.lang.IJmlPrimitiveType) { // package does not exist in first compilation round
             		letInit(tree.pos(), tree.sym);
             	}
             }

@@ -18,6 +18,7 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.comp.Resolve.RecoveryLoadClass;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Kinds.KindSelector;
 import com.sun.tools.javac.code.JmlType;
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.tree.JCTree;

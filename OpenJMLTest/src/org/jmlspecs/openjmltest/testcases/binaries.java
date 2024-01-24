@@ -102,6 +102,7 @@ public class binaries extends TCBase {
                 "}"
                 ,"/$A/java/io/File.jml:3: error: There is no binary field to match this declaration in the specification file: java.io.File.j",21
                 ,"/A.java:3: error: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",36
+                ,"/A.java:3: error: cannot find symbol\n  symbol:   variable k\n  location: class java.io.File",53
                 ,"/A.java:4: error: incompatible types: char cannot be converted to boolean",22
                 ,"/A.java:5: error: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",29
                 ,"/A.java:5: error: incompatible types: int cannot be converted to boolean",52
