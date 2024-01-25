@@ -18,13 +18,13 @@ public class racreadable extends RacBase {
         testspecpath1 = "$A"+z+"$B"+z+"$SS";
         //noCollectDiagnostics = true; print = true;
         super.setUp();
-        //main.addOptions("-verboseness=4");
         expectedNotes = 0;
-        main.addOptions("-jmltesting");
+        addOptions("-jmltesting");
     }
 
     @Test
     public void testReadable() {
+    	addOptions("--rac-show-source=line");
         helpTCX("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public static boolean b; public boolean bb; int z; //@ readable z if bb;\n"
@@ -123,6 +123,7 @@ public class racreadable extends RacBase {
 
     @Test
     public void testWritable() {
+    	addOptions("--rac-show-source=line");
         helpTCX("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public static boolean b; public boolean bb; int z; //@ writable z if bb; \n"

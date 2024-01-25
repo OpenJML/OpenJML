@@ -17,8 +17,8 @@ public class racnew3 extends RacBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true; print = true;
         super.setUp();
-        //main.addOptions("-verboseness",   "4");
         expectedNotes = 0;
+        addOptions("--rac-show-source=line");
     }
     
     /** Tests not_modified */
@@ -41,7 +41,8 @@ public class racnew3 extends RacBase {
 
     /** Tests not_modified */
     @Test public void testNotModified2() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*;  \n" +
+        helpTCX("tt.TestJava",
+        		"package tt; import org.jmlspecs.annotation.*;  \n" +
                 "public class TestJava { \n" +
                 "    int f = 5;\n" +
                 "    public static void main(String... args) {\n" +
@@ -61,7 +62,8 @@ public class racnew3 extends RacBase {
 
     /** Tests not_modified */
     @Test public void testNotModified3() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*;  \n" +
+        helpTCX("tt.TestJava",
+        		"package tt; import org.jmlspecs.annotation.*;  \n" +
                 "public class TestJava { \n" +
                 "    int f = 5;\n" +
                 "    public static void main(String... args) {\n" +
@@ -81,7 +83,8 @@ public class racnew3 extends RacBase {
 
     /** Tests not_modified */
     @Test public void testNotModified4() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*;  \n" +
+        helpTCX("tt.TestJava",
+        		"package tt; import org.jmlspecs.annotation.*;  \n" +
                 "public class TestJava { \n" +
                 "    int f = 5;\n" +
                 "    public static void main(String... args) {\n" +
@@ -103,8 +106,9 @@ public class racnew3 extends RacBase {
     
     @Test
     public void testCast() {
-        main.addOptions("-code-math=safe","-spec-math=safe");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("-code-math=safe","-spec-math=safe");
+        helpTCX("tt.TestJava",
+        		"package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public static double d;\n"
@@ -181,7 +185,8 @@ public class racnew3 extends RacBase {
 
     @Test
     public void testCast1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX("tt.TestJava",
+        		"package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"    public static void main(String... args) {\n" 
@@ -388,7 +393,7 @@ public class racnew3 extends RacBase {
     
     // Checks that close calls execute in reverse order
     @Test public void testTryResources2() {
-    	main.addOptions("-racCheckAssumptions");
+    	addOptions("-racCheckAssumptions");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
@@ -428,7 +433,7 @@ public class racnew3 extends RacBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2b() {
-    	main.addOptions("-racCheckAssumptions");
+    	addOptions("-racCheckAssumptions");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -482,7 +487,7 @@ public class racnew3 extends RacBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2c() {
-    	main.addOptions("-racCheckAssumptions");
+    	addOptions("-racCheckAssumptions");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends RuntimeException {  /*@ public normal_behavior ensures true; */public EE() {}}\n"

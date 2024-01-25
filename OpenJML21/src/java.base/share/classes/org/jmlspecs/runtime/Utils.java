@@ -89,18 +89,18 @@ public class Utils {
      */
     // This one is declared first to minimize changes to its location 
     public static void assertionFailureL(String message, /*@ nullable */String label) {
-        countVerificationErrors();
+        countVerificationErrors(); 
         if (useExceptions) {
-            throw createException(message,label);
+            throw createException(message,label); // locB in RacBase
         } else if (showStack) { 
-        	Error e = createException(message,label);
-        	e.printStackTrace(System.out); // Keep the new expressions on line 47 or some test results will change
+        	Error e = createException(message,label); // locC in RacBase
+        	e.printStackTrace(System.out);
         } else if (useJavaException) {
             throw new java.lang.AssertionError(message);
         } else if (useJavaAssert) {
             assert false: message;
-       } else {
-        	System.out.println(message); System.out.flush();
+        } else {
+    	   System.out.println(message); System.out.flush();
         }
     }
     
@@ -124,7 +124,7 @@ public class Utils {
                 Constructor<? extends Error> cc = ((Class<? extends Error>)c).getConstructor(String.class,String.class);
                 if (cc != null) {
                     Error e = cc.newInstance(message,label);
-                    e.fillInStackTrace();
+                    e.fillInStackTrace(); // locD in RacBase
                     return e;
                 }
             } catch (ClassCastException e) {
@@ -140,7 +140,7 @@ public class Utils {
                 return new JmlAssertionError(message,label);
             }
         }
-        return new JmlAssertionError(message,label);
+        return new JmlAssertionError(message,label); // locA in RacBase
     }
     
     static public void convertPrecondition(Precondition ex) {

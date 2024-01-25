@@ -53,6 +53,7 @@ import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.code.Source.Feature;
 import com.sun.tools.javac.parser.Scanner;
+import com.sun.tools.javac.parser.JavacParser.ParensResult;
 import com.sun.tools.javac.parser.Tokens.Comment;
 import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
@@ -2495,6 +2496,7 @@ public class JmlParser extends JavacParser {
             if (t.ikind == JmlTokenKind.STARTJMLCOMMENT) {
                 t = S.token(2);
             }
+            if (t.ikind == BSTYPEUC || t.ikind == BSBIGINT || t.ikind == BSREAL) return ParensResult.CAST;
             if (t.kind == TokenKind.IDENTIFIER) {
                 if (t.name().charAt(0) == '\\') return ParensResult.PARENS;
                 IJmlClauseKind ck = Extensions.findKeyword(t);
@@ -2662,16 +2664,48 @@ public class JmlParser extends JavacParser {
             return e;
         }
         if (S.jml() && token.kind == LPAREN) {
-            // This code is copied from super.term3 in order to
+            // This code is modified from super.term3 in order to
             // parse tuples
+            JCExpression t = null;
+        	java.util.List<JCExpression> tuple;
             int pos = token.pos;
             if (inExprMode()) {
                 ParensResult pres = analyzeParens();
-                if (pres == ParensResult.PARENS) {
+                switch (pres) {
+                case CAST:
+                	
+                	// FIXME - fit in casting to intersection type  
+                    int pos0 = pos;
                     accept(LPAREN);
-                    mode = EXPR;
-                    java.util.List<JCExpression> tuple = new java.util.LinkedList<>();
-                    JCExpression t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
+                    selectTypeMode();
+                    tuple = new java.util.LinkedList<>();
+                    int pos1 = pos;
+                    List<JCExpression> targets = List.of(t = parseType());
+                    while (token.kind == AMP) {
+                        accept(AMP);
+                        targets = targets.prepend(parseType());
+                    }
+                    if (targets.length() > 1) {
+                        t = toP(F.at(pos1).TypeIntersection(targets.reverse()));
+                    }
+                    accept(RPAREN);
+                    selectExprMode();
+                    JCExpression t1 = term3();
+                    return toP(F.at(pos0).TypeCast(t, t1));
+                case IMPLICIT_LAMBDA:
+                case EXPLICIT_LAMBDA:
+                    t = lambdaExpressionOrStatement(true, pres == ParensResult.EXPLICIT_LAMBDA, pos);
+                    break;
+                case PARENS:
+//                    accept(LPAREN);
+//                    selectExprMode();
+//                    t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
+//                    accept(RPAREN);
+//                    t = toP(F.at(pos).Parens(t));
+                    accept(LPAREN);
+                    selectExprMode();
+                    tuple = new java.util.LinkedList<>();
+                    t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
                     tuple.add(t);
                     while (token.kind == COMMA) {
                         accept(COMMA);
@@ -2684,35 +2718,13 @@ public class JmlParser extends JavacParser {
                     } else {
                         t = toP(jmlF.at(pos).JmlTuple(tuple));
                     }
-                    return term3Rest(t, null);
-                } else if (pres == ParensResult.CAST) {
-                    accept(LPAREN);
-                    mode = TYPE;
-                    java.util.List<JCExpression> tuple = new java.util.LinkedList<>();
-                    JCExpression t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
-                    tuple.add(t);
-//                    while (token.kind == COMMA) {
-//                        accept(COMMA);
-//                        t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
-//                        tuple.add(t);
-//                    }
-                    accept(RPAREN);
-//                    if (tuple.size() == 1) {
-                    	if (acceptEndJML()) {
-                    		mode = EXPR;
-                    		JCExpression e = super.term3();
-                    		return toP(F.at(pos).TypeCast(t, e));
-                    	} else {
-                            selectExprMode();
-                            JCExpression e = term3();
-                    		return toP(F.at(pos).TypeCast(t, e));
-                    	}
-//                    } else {
-//                    	// FIXME - this should not happen
-//                        t = toP(jmlF.at(pos).JmlTuple(tuple));
-//                        return term3Rest(t, null);
-//                    }
+                    t = term3Rest(t, null);
+                    break;
+                default:
+                	// FIXME - unexpected character
+                    break;
                 }
+                return term3Rest(t, typeArgs);
             }
         }
         if (S.jml() && token.kind == THIS && parsingLocationList) {
