@@ -1302,6 +1302,7 @@ public class TypeAnnotations {
 
         @Override
         public void visitAnnotatedType(JCAnnotatedType tree) {
+        	if (tree.type.isErroneous()) return; // OPENJML - avoids a crash
             push(tree);
             findPosition(tree, tree, tree.annotations);
             pop();

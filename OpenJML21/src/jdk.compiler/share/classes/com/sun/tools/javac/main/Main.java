@@ -357,6 +357,7 @@ public class Main {
             org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.IllegalAccessError",iae); // OPENJML
             return Result.ABNORMAL;
         } catch (Throwable ex) {
+        	ex.printStackTrace(System.out);
             // Nasty.  If we've already reported an error, compensate
             // for buggy compiler error recovery by swallowing thrown
             // exceptions.

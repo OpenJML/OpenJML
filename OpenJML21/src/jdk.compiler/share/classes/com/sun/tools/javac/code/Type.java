@@ -390,7 +390,8 @@ public abstract class Type extends AnnoConstruct implements TypeMirror, PoolCons
      * an exception is thrown.
      */
     public Type addMetadata(TypeMetadata md) {
-        Assert.check(getMetadata(md.getClass()) == null);
+    	if (getMetadata(md.getClass()) != null) dropMetadata(md.getClass()); // OPENJML
+        //Assert.check(getMetadata(md.getClass()) == null); // OPENJML
         return cloneWithMetadata(metadata.prepend(md));
     }
 

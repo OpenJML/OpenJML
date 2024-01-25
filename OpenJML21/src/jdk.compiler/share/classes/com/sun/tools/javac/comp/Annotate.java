@@ -167,7 +167,8 @@ public class Annotate {
         ListBuffer<TypeCompound> buf = new ListBuffer<>();
         for (JCAnnotation anno : annotations) {
             Assert.checkNonNull(anno.attribute);
-            buf.append((TypeCompound) anno.attribute);
+            // OPENJML - adding the guard because the attribute is sometimes an error 
+            if (anno.attribute instanceof TypeCompound) buf.append((TypeCompound) anno.attribute);
         }
         return buf.toList();
     }

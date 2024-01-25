@@ -368,9 +368,8 @@ public class esc1 extends EscBase {
                     //@ ghost List<Entry<String,String>> v = values; // Line 10
                     //@ loop_invariant values == v;
                     for (; it.hasNext(); values.add(k) ) {
-                        k = it.next();  
+                        k = it.next();  // k might be null -- default is nullable
                         //@ assert k != null ==> \\typeof(k) <: \\type(Entry<String,String>);
-                        //@ assert k != null;
                     }
                   }
                   public TestJava() {}
@@ -379,21 +378,22 @@ public class esc1 extends EscBase {
                 """
         );
     }
+
     @Test
     public void testForEach2a2a() {
         addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava", 
                 """
-                package tt; import java.util.*; import java.util.Map.Entry;
+                package tt; import org.jmlspecs.annotation.*; import java.util.*; import java.util.Map.Entry;
                 public class TestJava {
 
                   //@ public behavior  ensures true;
                   public void m2a() {
                     List<Entry<String,String>> values = new LinkedList<Entry<String,String>>(); 
                     //@ set values.containsNull = false;
-                    Set<Entry<String,String>> a = new HashSet<Entry<String,String>>(); 
-                    Iterator<Entry<String,String>> it = a.iterator();
-                    Entry<String,String> k;
+                    Set<@NonNull Entry<String,String>> a = new HashSet<@NonNull Entry<String,String>>(); 
+                    Iterator<@NonNull Entry<String,String>> it = a.iterator();
+                    @NonNull Entry<String,String> k;
                     //@ ghost List<Entry<String,String>> v = values;
                     //@ loop_invariant values == v;
                     while (it.hasNext()) {
@@ -409,368 +409,328 @@ public class esc1 extends EscBase {
 
         );
     }
+    
+    // This example originally crashed because NonNull is not resolvable (no import of the annotations)
     @Test
-    public void testForEach2a3() {
+    public void testForEach2a2b() {
         addOptions("-escMaxWarnings=1");
-        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
-                + "public class TestJava { \n"
-
-                + "  //@ public behavior  ensures true;\n" 
-                + "  public void m3() {\n" 
-                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
-                + "    Integer k = Integer.valueOf(1);\n"
-                + "    values.add(k);\n" 
-                + "  }\n"
-
-                + "  public TestJava() {}"
-
-                + "}"
-
-        );
-    }
-    @Test
-    public void testForEach2a4() {
-        addOptions("-escMaxWarnings=1");
-        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
-                + "public class TestJava { \n"
-
-                + "  //@ public behavior  ensures true;\n"
-                + "  public void m4() {\n"
-                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = false; \n"
-                + "    Integer k = 0;\n" 
-                + "    values.add(k);\n" 
-                + "  }\n"
-
-                + "  public TestJava() {}"
-
-                + "}"
-
-        );
-    }
-    @Test
-    public void testForEach2a4b() {
-        addOptions("-escMaxWarnings=1");
-        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
-                + "public class TestJava { \n"
-
-                + "  //@ public behavior  ensures true;\n"
-                + "  public void m4() {\n"
-                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = false; \n"
-                + "    /*@ nullable */ Integer k = null;\n" 
-                + "    values.add(k);\n" 
-                + "  }\n"
-
-                + "  public TestJava() {}"
-
-                + "}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method m4",15
-                ,"$SPECS/java/util/List.jml:116: warning: Associated declaration",13
-                ,"$SPECS/java/util/Collection.jml:140: warning: Precondition conjunct is false: containsNull || o != null",33
-                ,"$SPECS/java/util/List.jml:107: warning: Precondition conjunct is false: containsNull || o != null",33
-
-        );
-    }
-    @Test
-    public void testForEachBad() {
         expectedExit = 1;
         helpTCX("tt.TestJava", 
-                  "package tt; import org.jmlspecs.lang.JMLList; \n" 
-                + "public class TestJava { \n"
+                """
+                package tt; import java.util.*; import java.util.Map.Entry;
+                public class TestJava {
 
-                + "  public void m1a() {\n" 
-                + "    long[] a = { 1,2,3,4};\n" 
-                + "    for (long k: a) {\n" 
-                + "    }\n"
-                + "    //@ ghost int i = \\count;\n" // Out of scope
-                + "  }\n"
+                  //@ public behavior  ensures true;
+                  public void m2a() {
+                    List<Entry<String,String>> values = new LinkedList<Entry<String,String>>(); 
+                    //@ set values.containsNull = false;
+                    Set<@NonNull Entry<String,String>> a = new HashSet<@NonNull Entry<String,String>>(); 
+                    Iterator<@NonNull Entry<String,String>> it = a.iterator();
+                    @NonNull Entry<String,String> k;
+                    //@ ghost List<Entry<String,String>> v = values;
+                    //@ loop_invariant values == v;
+                    while (it.hasNext()) {
+                        k = it.next();
+                        //@ assert k != null;
+                        values.add(k);
+                    }
+                  }
 
-                + "  public void m2() {\n" 
-                + "    long[] a = { 1,2,3,4};\n" 
-                + "    //@ ghost int i = \\count;\n" // Out of scope
-                + "  }\n"
-
-                + "  public void m4() {\n" 
-                + "    long[] a = { 1,2,3,4};\n" 
-                + "    for (long k: a) {\n"
-                + "      //@ set \\count = 6;\n" // Syntax error
-                + "    }\n"
-                + "  }\n"
-
-                + "  public void v1a() {\n"
-                + "    Integer[] a = { 1,2,3,4};\n" // line 20
-                + "    for (Integer k: a) {\n"
-                + "    }\n"
-                + "    //@ ghost JMLList i = \\values;\n" // Out of scope
-                + "  }\n"
-
-                + "  public void v2() {\n"
-                + "    long[] a = { 1,2,3,4};\n"
-                + "    //@ ghost JMLList i = \\values;\n" // Out of scope
-                + "    }\n"
-
-                + "  public void v4() {\n"
-                + "    Integer[] a = { 1,2,3,4};\n"
-                + "    for (Integer k: a) {\n"
-                + "      //@ set \\values = null;\n" // Syntax error
-                + "    }\n"
-                + "  }\n"
-
-                + "  public void v10a() {\n" + "    long[] a = { 1,2,3,4};\n"
-                + "    for (long k: a) {\n"
-                + "      //@ ghost JMLList i = \\values;\n" // OK
-                + "    }\n" + "  }\n"
-
-                + "}"
-
-                , "/tt/TestJava.java:7: error: A \\count token is used outside the scope of a foreach loop", 23
-                ,"/tt/TestJava.java:11: error: A \\count token is used outside the scope of a foreach loop", 23
-                ,"/tt/TestJava.java:16: error: unexpected type\n  required: variable\n  found:    value", 15
-                ,"/tt/TestJava.java:16: error: Unexpected kind of LHS in a set statement: \\count",15
-                ,"/tt/TestJava.java:16: error: The LHS in a set statement must be a ghost variable",15
-                ,"/tt/TestJava.java:23: error: A \\values token is used outside the scope of a foreach loop", 27
-                ,"/tt/TestJava.java:27: error: A \\values token is used outside the scope of a foreach loop", 27
-                ,"/tt/TestJava.java:32: error: unexpected type\n  required: variable\n  found:    value", 15
-                ,"/tt/TestJava.java:32: error: Unexpected kind of LHS in a set statement: \\values",15
-                ,"/tt/TestJava.java:32: error: The LHS in a set statement must be a ghost variable",15
-                );
+                  public TestJava() {}
+                }
+              """
+        		,"/tt/TestJava.java:8: error: cannot find symbol\n"
+        				+ "  symbol:   class NonNull\n"
+        				+ "  location: class tt.TestJava", 12
+                ,"/tt/TestJava.java:8: error: cannot find symbol\n"
+                		+ "  symbol:   class NonNull\n"
+                		+ "  location: class tt.TestJava", 59
+                ,"/tt/TestJava.java:9: error: cannot find symbol\n"
+                        + "  symbol:   class NonNull\n"
+                        + "  location: class tt.TestJava", 17
+                ,"/tt/TestJava.java:10: error: cannot find symbol\n"
+                        + "  symbol:   class NonNull\n"
+                        + "  location: class tt.TestJava", 8
+        );
     }
-
-    @Test
-    public void testNonNullElements1() {
-//        Assume.assumeTrue(runLongTests);
-        helpTCX("tt.TestJava", "package tt; \n" 
-                + "public class TestJava { \n"
-
-                + "  //@ assigns \\everything;\n" 
-                + "  public void m1x(Object[] a) {\n"
-                + "    //@ assume \\nonnullelements(a);\n" 
-                + "    //@ assume a.length > 1;\n"
-                + "    //@ assert a[0] != null;\n" // OK
-                + "  }\n"
-
-                + "  //@ assigns \\everything;\n" 
-                + "  public void m11(Object[] a) {\n"
-                + "    //@ assume \\nonnullelements(a);\n" 
-                + "    //@ assert a != null;\n" // OK
-                + "  }\n"
-
-                + "  //@ assigns \\everything;\n" 
-                + "  public void m11a(/*@ non_null */ Object[] a) {\n"
-                + "    //@ assume \\nonnullelements(a);\n" 
-                + "    //@ assert a == null;\n" // BAD
-                + "  }\n"
-
-                + "}"
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m11a", 9
-                );
-    }
-
-    @Test
-    public void testNonNullElements2a() {
-        helpTCX("tt.TestJava", "package tt; \n" 
-                + "public class TestJava { \n"
-
-                + "  //@ assigns \\everything;\n" 
-                + "  public void m1a(Object[] a) {\n"
-                + "    //@ assume a != null && a.length > 1;\n" 
-                + "    //@ assert a[0] != null;\n" // BAD
-                + "  }\n"
-
-                + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1a", 9
-                );
-    }
-
-    @Test
-    public void testNonNullElements2b() {
-//      Assume.assumeTrue(runLongTests);
-        helpTCX("tt.TestJava", "package tt; \n" 
-                + "public class TestJava { \n"
-
-                + "  //@ assigns \\everything;\n" 
-                + "  public void m2(Object[] a) {\n"
-                + "    //@ assume a != null && a.length == 0;\n" 
-                + "    //@ assert \\nonnullelements(a);\n" // OK
-                + "  }\n"
-
-                + "}"
-                );
-    }
-
-    @Test
-    public void testNonNullElements2c() {
-        helpTCX("tt.TestJava", "package tt; \n" 
-                + "public class TestJava { \n"
-
-                + "  //@ assigns \\everything;\n" 
-                + "  public void m22(Object[] a) {\n"
-                + "    //@ assume a != null && a.length == 0;\n"
-                + "    //@ assert (\\forall int i; 0<=i && i<a.length; a[i] != null);\n" // OK
-                + "  }\n"
-
-                + "}"
-                );
-    }
-
-    @Test
-    public void testNonNullElements3() {
-//        Assume.assumeTrue(runLongTests);
-        helpTCX("tt.TestJava", "package tt; \n" 
-                + "public class TestJava { \n"
-
-                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); assigns \\everything;\n"
-                + "  public void m3(Object[] a) {\n" 
-                + "    //@ assume a != null && a.length == 1;\n"
-                + "    a[0] = new Object();\n" 
-                + "    //@ assert \\nonnullelements(a);\n" // OK
-                + "  }\n"
-
-                + "  //@ assigns \\everything;\n" 
-                + "  public void m33(Object[] a) {\n"
-                + "    //@ assume a != null && a.length == 1;\n" 
-                + "    //@ assume a[0] != null;\n"
-                + "    //@ assert \\nonnullelements(a);\n" // OK
-                + "  }\n"
-
-                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); assigns \\everything;\n"
-                + "  public void m4(Object[] a) {\n" 
-                + "    //@ assume a != null && a.length == 2;\n"
-                + "    a[0] = new Object();\n" 
-                + "    a[1] = new Object();\n" 
-                + "    //@ assert \\nonnullelements(a);\n" // OK
-                + "  }\n"
-
-                + "}"
-                );
-    }
-
-    @Test
-    public void testNonNullElements4() {
-//        Assume.assumeTrue(runLongTests);
-        helpTCX("tt.TestJava", "package tt; \n" 
-                + "public class TestJava { \n"
-
-
-                + "  //@ assigns \\everything;\n" 
-                + "  public void m44(Object[] a) {\n"
-                + "    //@ assume a != null && a.length == 2;\n" 
-                + "    //@ assume a[0] != null;\n"
-                + "    //@ assume a[1] != null;\n" 
-                + "    //@ assert \\nonnullelements(a);\n" // OK
-                + "  }\n"
-
-                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); assigns \\everything;\n"
-                + "  public void m4a(Object[] a) {\n" 
-                + "    //@ assume a != null && a.length == 3;\n"
-                + "    a[0] = new Object();\n" 
-                + "    a[1] = new Object();\n" 
-                + "    //@ assert \\nonnullelements(a);\n" // BAD
-                + "  }\n"
-
-                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); assigns \\everything;\n"
-                + "  public void m5(Object[] a) {\n" 
-                + "    //@ assume \\nonnullelements(a) && a.length == 3;\n"
-                + "    a[0] = new Object();\n" 
-                + "    //@ assert \\nonnullelements(a);\n" // OK
-                + "  }\n"
-
-                + "  //@ assigns \\everything;\n" 
-                + "  public void m5a(Object[] a) {\n"
-                + "    //@ assume a != null && a.length == 3;\n" 
-                + "    a[0] = null;\n"
-                + "    //@ assert \\nonnullelements(a);\n" // BAD
-                + "  }\n"
-
-                + "}",
-                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m4a", 9,
-                "/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assert) in method m5a", 9);
-    }
-
+    
 //    @Test
-//    public void testNotModified() {
-//        helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
+//    public void testForEach2a3() {
+//        addOptions("-escMaxWarnings=1");
+//        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+//                + "public class TestJava { \n"
 //
-//                + "  //@ requires i == 5;\n" + "  //@ assigns \\everything;\n" + "  public void m1(int i) {\n"
-//                + "    i = 5;\n" + "    //@ assert \\not_modified(i);\n" // OK
+//                + "  //@ public behavior  ensures true;\n" 
+//                + "  public void m3() {\n" 
+//                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
+//                + "    Integer k = Integer.valueOf(1);\n"
+//                + "    values.add(k);\n" 
 //                + "  }\n"
 //
-//                + "  //@ assigns \\everything;\n" + "  public void m1a(int i) {\n" + "    i = 5;\n"
-//                + "    //@ assert \\not_modified(i);\n" // BAD
+//                + "  public TestJava() {}"
+//
+//                + "}"
+//
+//        );
+//    }
+//    @Test
+//    public void testForEach2a4() {
+//        addOptions("-escMaxWarnings=1");
+//        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+//                + "public class TestJava { \n"
+//
+//                + "  //@ public behavior  ensures true;\n"
+//                + "  public void m4() {\n"
+//                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = false; \n"
+//                + "    Integer k = 0;\n" 
+//                + "    values.add(k);\n" 
 //                + "  }\n"
 //
-//                + "  public int i;\n" + "  public static int si;\n" + "  //@ ghost public int gi;\n"
+//                + "  public TestJava() {}"
 //
-//                + "  //@ requires i == 5;\n" + "  //@ assigns \\everything;\n" + "  public void m2() {\n"
-//                + "    i = 5;\n" + "    //@ assert \\not_modified(i);\n" // OK
+//                + "}"
+//
+//        );
+//    }
+//    @Test
+//    public void testForEach2a4b() {
+//        addOptions("-escMaxWarnings=1");
+//        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+//                + "public class TestJava { \n"
+//
+//                + "  //@ public behavior  ensures true;\n"
+//                + "  public void m4() {\n"
+//                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = false; \n"
+//                + "    /*@ nullable */ Integer k = null;\n" 
+//                + "    values.add(k);\n" 
 //                + "  }\n"
 //
-//                + "  //@ assigns \\everything;\n" + "  public void m2a() {\n" + "    i = 5;\n"
-//                + "    //@ assert \\not_modified(i);\n" // BAD
+//                + "  public TestJava() {}"
+//
+//                + "}"
+//                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method m4",15
+//                ,"$SPECS/java/util/List.jml:116: warning: Associated declaration",13
+//                ,"$SPECS/java/util/Collection.jml:140: warning: Precondition conjunct is false: containsNull || o != null",33
+//                ,"$SPECS/java/util/List.jml:107: warning: Precondition conjunct is false: containsNull || o != null",33
+//
+//        );
+//    }
+//    @Test
+//    public void testForEachBad() {
+//        expectedExit = 1;
+//        helpTCX("tt.TestJava", 
+//                  "package tt; import org.jmlspecs.lang.JMLList; \n" 
+//                + "public class TestJava { \n"
+//
+//                + "  public void m1a() {\n" 
+//                + "    long[] a = { 1,2,3,4};\n" 
+//                + "    for (long k: a) {\n" 
+//                + "    }\n"
+//                + "    //@ ghost int i = \\count;\n" // Out of scope
 //                + "  }\n"
 //
-//                + "  //@ requires si == 5;\n" + "  //@ assigns \\everything;\n" + "  public void m3() {\n"
-//                + "    si = 5;\n" + "    //@ assert \\not_modified(si);\n" // OK
+//                + "  public void m2() {\n" 
+//                + "    long[] a = { 1,2,3,4};\n" 
+//                + "    //@ ghost int i = \\count;\n" // Out of scope
 //                + "  }\n"
 //
-//                + "  //@ assigns \\everything;\n" + "  public void m3a() {\n" + "    si = 5;\n"
-//                + "    //@ assert \\not_modified(si);\n" // BAD
+//                + "  public void m4() {\n" 
+//                + "    long[] a = { 1,2,3,4};\n" 
+//                + "    for (long k: a) {\n"
+//                + "      //@ set \\count = 6;\n" // Syntax error
+//                + "    }\n"
 //                + "  }\n"
 //
-//                + "  //@ requires gi == 5;\n" + "  //@ assigns \\everything;\n" + "  public void m4() {\n"
-//                + "    //@ set gi = 5;\n" + "    //@ assert \\not_modified(gi);\n" // OK
+//                + "  public void v1a() {\n"
+//                + "    Integer[] a = { 1,2,3,4};\n" // line 20
+//                + "    for (Integer k: a) {\n"
+//                + "    }\n"
+//                + "    //@ ghost JMLList i = \\values;\n" // Out of scope
 //                + "  }\n"
 //
-//                + "  //@ assigns \\everything;\n" + "  public void m4a() {\n" + "    //@ set gi = 5;\n"
-//                + "    //@ assert \\not_modified(gi);\n" // BAD
+//                + "  public void v2() {\n"
+//                + "    long[] a = { 1,2,3,4};\n"
+//                + "    //@ ghost JMLList i = \\values;\n" // Out of scope
+//                + "    }\n"
+//
+//                + "  public void v4() {\n"
+//                + "    Integer[] a = { 1,2,3,4};\n"
+//                + "    for (Integer k: a) {\n"
+//                + "      //@ set \\values = null;\n" // Syntax error
+//                + "    }\n"
 //                + "  }\n"
 //
-//                + "}", "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method m1a",
-//                9, "/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Assert) in method m2a", 9,
-//                "/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Assert) in method m3a", 9,
-//                "/tt/TestJava.java:48: warning: The prover cannot establish an assertion (Assert) in method m4a", 9);
+//                + "  public void v10a() {\n" + "    long[] a = { 1,2,3,4};\n"
+//                + "    for (long k: a) {\n"
+//                + "      //@ ghost JMLList i = \\values;\n" // OK
+//                + "    }\n" + "  }\n"
+//
+//                + "}"
+//
+//                , "/tt/TestJava.java:7: error: A \\count token is used outside the scope of a foreach loop", 23
+//                ,"/tt/TestJava.java:11: error: A \\count token is used outside the scope of a foreach loop", 23
+//                ,"/tt/TestJava.java:16: error: unexpected type\n  required: variable\n  found:    value", 15
+//                ,"/tt/TestJava.java:16: error: Unexpected kind of LHS in a set statement: \\count",15
+//                ,"/tt/TestJava.java:16: error: The LHS in a set statement must be a ghost variable",15
+//                ,"/tt/TestJava.java:23: error: A \\values token is used outside the scope of a foreach loop", 27
+//                ,"/tt/TestJava.java:27: error: A \\values token is used outside the scope of a foreach loop", 27
+//                ,"/tt/TestJava.java:32: error: unexpected type\n  required: variable\n  found:    value", 15
+//                ,"/tt/TestJava.java:32: error: Unexpected kind of LHS in a set statement: \\values",15
+//                ,"/tt/TestJava.java:32: error: The LHS in a set statement must be a ghost variable",15
+//                );
 //    }
 //
-//    // Test well-definedness within the implicit old
 //    @Test
-//    public void testNotModified2() {
-//        helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
+//    public void testNonNullElements1() {
+////        Assume.assumeTrue(runLongTests);
+//        helpTCX("tt.TestJava", "package tt; \n" 
+//                + "public class TestJava { \n"
 //
-//                + "  public int i;\n" 
-//                + "  public static /*@ nullable */ TestJava t;\n"
-//
-//                + "  //@ requires t != null;\n" 
 //                + "  //@ assigns \\everything;\n" 
-//                + "  public void m0() {\n"
-//                + "    //@ assert \\not_modified(t.i);\n" // OK
-//                + "  }\n"
-//
-//                + "  //@ requires t != null;\n" 
-//                + "  //@ assigns \\everything;\n" 
-//                + "  public void m1a() {\n"
-//                + "    t = null;\n" 
-//                + "    //@ assert \\not_modified(t.i) ? true: true;\n" // BAD
-//                + "  }\n"
-//
-//                + "  //@ requires t == null;\n" 
-//                + "  //@ assigns \\everything;\n" 
-//                + "  public void m1b() {\n"
-//                + "    t = new TestJava();\n" 
-//                + "    //@ assert \\not_modified(t.i) ? true: true;\n" // OK
+//                + "  public void m1x(Object[] a) {\n"
+//                + "    //@ assume \\nonnullelements(a);\n" 
+//                + "    //@ assume a.length > 1;\n"
+//                + "    //@ assert a[0] != null;\n" // OK
 //                + "  }\n"
 //
 //                + "  //@ assigns \\everything;\n" 
-//                + "  public void m1c() {\n"
-//                + "    //@ assert \\not_modified(t.i) ? true: true;\n" // BAD
+//                + "  public void m11(Object[] a) {\n"
+//                + "    //@ assume \\nonnullelements(a);\n" 
+//                + "    //@ assert a != null;\n" // OK
+//                + "  }\n"
+//
+//                + "  //@ assigns \\everything;\n" 
+//                + "  public void m11a(/*@ non_null */ Object[] a) {\n"
+//                + "    //@ assume \\nonnullelements(a);\n" 
+//                + "    //@ assert a == null;\n" // BAD
 //                + "  }\n"
 //
 //                + "}"
-//                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1a",31
-//                ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1b",31
-//                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1c",31);
+//                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m11a", 9
+//                );
 //    }
 //
-//    // TODO - test not_modified and old nested in each other; remember to test
-//    // definedness
+//    @Test
+//    public void testNonNullElements2a() {
+//        helpTCX("tt.TestJava", "package tt; \n" 
+//                + "public class TestJava { \n"
+//
+//                + "  //@ assigns \\everything;\n" 
+//                + "  public void m1a(Object[] a) {\n"
+//                + "    //@ assume a != null && a.length > 1;\n" 
+//                + "    //@ assert a[0] != null;\n" // BAD
+//                + "  }\n"
+//
+//                + "}"
+//                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1a", 9
+//                );
+//    }
+//
+//    @Test
+//    public void testNonNullElements2b() {
+////      Assume.assumeTrue(runLongTests);
+//        helpTCX("tt.TestJava", "package tt; \n" 
+//                + "public class TestJava { \n"
+//
+//                + "  //@ assigns \\everything;\n" 
+//                + "  public void m2(Object[] a) {\n"
+//                + "    //@ assume a != null && a.length == 0;\n" 
+//                + "    //@ assert \\nonnullelements(a);\n" // OK
+//                + "  }\n"
+//
+//                + "}"
+//                );
+//    }
+//
+//    @Test
+//    public void testNonNullElements2c() {
+//        helpTCX("tt.TestJava", "package tt; \n" 
+//                + "public class TestJava { \n"
+//
+//                + "  //@ assigns \\everything;\n" 
+//                + "  public void m22(Object[] a) {\n"
+//                + "    //@ assume a != null && a.length == 0;\n"
+//                + "    //@ assert (\\forall int i; 0<=i && i<a.length; a[i] != null);\n" // OK
+//                + "  }\n"
+//
+//                + "}"
+//                );
+//    }
+//
+//    @Test
+//    public void testNonNullElements3() {
+////        Assume.assumeTrue(runLongTests);
+//        helpTCX("tt.TestJava", "package tt; \n" 
+//                + "public class TestJava { \n"
+//
+//                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); assigns \\everything;\n"
+//                + "  public void m3(Object[] a) {\n" 
+//                + "    //@ assume a != null && a.length == 1;\n"
+//                + "    a[0] = new Object();\n" 
+//                + "    //@ assert \\nonnullelements(a);\n" // OK
+//                + "  }\n"
+//
+//                + "  //@ assigns \\everything;\n" 
+//                + "  public void m33(Object[] a) {\n"
+//                + "    //@ assume a != null && a.length == 1;\n" 
+//                + "    //@ assume a[0] != null;\n"
+//                + "    //@ assert \\nonnullelements(a);\n" // OK
+//                + "  }\n"
+//
+//                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); assigns \\everything;\n"
+//                + "  public void m4(Object[] a) {\n" 
+//                + "    //@ assume a != null && a.length == 2;\n"
+//                + "    a[0] = new Object();\n" 
+//                + "    a[1] = new Object();\n" 
+//                + "    //@ assert \\nonnullelements(a);\n" // OK
+//                + "  }\n"
+//
+//                + "}"
+//                );
+//    }
+//
+//    @Test
+//    public void testNonNullElements4() {
+////        Assume.assumeTrue(runLongTests);
+//        helpTCX("tt.TestJava", "package tt; \n" 
+//                + "public class TestJava { \n"
+//
+//
+//                + "  //@ assigns \\everything;\n" 
+//                + "  public void m44(Object[] a) {\n"
+//                + "    //@ assume a != null && a.length == 2;\n" 
+//                + "    //@ assume a[0] != null;\n"
+//                + "    //@ assume a[1] != null;\n" 
+//                + "    //@ assert \\nonnullelements(a);\n" // OK
+//                + "  }\n"
+//
+//                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); assigns \\everything;\n"
+//                + "  public void m4a(Object[] a) {\n" 
+//                + "    //@ assume a != null && a.length == 3;\n"
+//                + "    a[0] = new Object();\n" 
+//                + "    a[1] = new Object();\n" 
+//                + "    //@ assert \\nonnullelements(a);\n" // BAD
+//                + "  }\n"
+//
+//                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); assigns \\everything;\n"
+//                + "  public void m5(Object[] a) {\n" 
+//                + "    //@ assume \\nonnullelements(a) && a.length == 3;\n"
+//                + "    a[0] = new Object();\n" 
+//                + "    //@ assert \\nonnullelements(a);\n" // OK
+//                + "  }\n"
+//
+//                + "  //@ assigns \\everything;\n" 
+//                + "  public void m5a(Object[] a) {\n"
+//                + "    //@ assume a != null && a.length == 3;\n" 
+//                + "    a[0] = null;\n"
+//                + "    //@ assert \\nonnullelements(a);\n" // BAD
+//                + "  }\n"
+//
+//                + "}",
+//                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m4a", 9,
+//                "/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assert) in method m5a", 9);
+//    }
+
 
     @Test
     public void testFresh() {
@@ -2048,29 +2008,7 @@ public class esc1 extends EscBase {
     }
 
     
-    // TODO: Parser has trouble distinguishing an @ for \old from an @ for a type annotation. Is the complexity worth the feature?
-//    @Test 
-//    public void testAt() {
-//        expectedExit = 1;
-//        helpTCX("tt.TestJava",
-//                          "package tt; \n" 
-//                        + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" 
-//                        + "  static public int i;\n"
-//                        + "  //@ assigns i;\n" 
-//                        + "  //@ ensures i == \\old(i)+2;\n"
-//                        + "  public static void bok() { x: i = i + 1; /*@ assert i == i@x + 1 && i == (i+1)@x; */ i = i + 1;}\n" 
-//                        + "  //@ assigns i;\n"
-//                        + "  //@ ensures i == \\old(i+1);\n" 
-//                        + "  public static void bbad() { i = i - 1; /*@ assert i == i@x + 1; */ }\n" // ERROR
-//                        + "  //@ assigns i;\n" 
-//                        + "  public void bok2() { x: i = i + 1; /*@ assert i == this.i@x + 1; */ i = i + 1;}\n" 
-//                        + "  //@ requires a.length > 10 && a[0] >= 0;\n" 
-//                        + "  //@ assigns i;\n" 
-//                        + "  public static void bok3(int[] a) { x: i = i + 1; /*@ assert a[0]@x > -1; */ i = i + 1;}\n" 
-//                        + "}"
-//                ,"/tt/TestJava.java:9: error: There is no label named x", 60
-//                );
-//    }
+
 
     @Test
     public void testNewCompares() { // Just checks parsing
@@ -2571,79 +2509,6 @@ public class esc1 extends EscBase {
                                 84)));
     }
 
-//    @Test
-//    public void testWhileSpecs() {
-//        helpTCX("tt.TestJava",
-//                "package tt; import org.jmlspecs.annotation.*; \n" 
-//                        + "/*@ code_bigint_math*/ public class TestJava { \n"
-//                        + "  public void insta() { int i = 5; /*@ loop_invariant i<=5 && i>=0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
-//                        + "  public void instb() { int i = 5; /*@ loop_invariant i<=5 && i>=0; decreases i-2; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
-//                        + "  public void instc() { int i = 5; /*@ loop_invariant i<=5 && i>=0; decreases i; */ while (i>0) { i = i+1; } /*@ assert i == 0; */ }\n"
-//                        + "  public void instd() { int i = 5; /*@ loop_invariant i<=5 && i>0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
-//                        + "}"
-//                ,anyorder(
-//                seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",69)
-//                // ,"/tt/TestJava.java:4: warning: Associated declaration",69
-//                ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",69)
-//                // ,"/tt/TestJava.java:5: warning: Associated declaration",69
-//                ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopInvariant) in method instc",40)
-//                ,seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (LoopInvariant) in method instd",40)
-//                )
-//        // ,"/tt/TestJava.java:6: warning: Associated declaration",40
-//        // FIXME - adjust to have the location + associated declaration
-//        );
-//    }
-//
-//    @Test
-//    public void testWhileSpecs2() {
-//        helpTCX("tt.TestJava",
-//                "package tt; import org.jmlspecs.annotation.*; \n" 
-//              + "public class TestJava { \n"
-//              + "  public void insta() { int i = 5; /*@ loop_invariant i> 0; decreases i; */ while (--i > 0) { } /*@ assert i == 0; */ }\n"
-//              + "  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i-- > 0) { } /*@ assert i == -1; */ }\n"
-//              + "  public void instc() { int i = 5; /*@ loop_invariant i> 1; decreases i; */ while (--i > 1) { } /*@ assert i == 1; */ }\n"
-//              + "}"
-//              );
-//    }
-//
-//    @Test
-//    public void testIncDec() {
-//        helpTCX("tt.TestJava",
-//                "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
-//                        + "  public void inst1() { int i = 5; i++; /*@ assert i == 6; */ }\n"
-//                        + "  public void inst1b() { int i = 5; i++; /*@ assert i == 5; */ }\n"
-//                        + "  public void inst2() { int i = 5; i--; /*@ assert i == 4; */ }\n"
-//                        + "  public void inst2b() { int i = 5; i--; /*@ assert i == 5; */ }\n"
-//                        + "  public void inst3() { int i = 5; ++i; /*@ assert i == 6; */ }\n"
-//                        + "  public void inst3b() { int i = 5; ++i; /*@ assert i == 5; */ }\n"
-//                        + "  public void inst4() { int i = 5; --i; /*@ assert i == 4; */ }\n"
-//                        + "  public void inst4b() { int i = 5; --i; /*@ assert i == 5; */ }\n" + "}",
-//                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst1b", 46,
-//                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method inst2b", 46,
-//                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method inst3b", 46,
-//                "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method inst4b",
-//                46);
-//    }
-//
-//    @Test
-//    public void testIncDec2() {
-//        helpTCX("tt.TestJava",
-//                "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
-//                        + "  public void inst1() { int i = 5; int j = i++; /*@ assert j == 5; */ }\n"
-//                        + "  public void inst1b() { int i = 5; int j = i++; /*@ assert j == 6; */ }\n"
-//                        + "  public void inst2() { int i = 5; int j = i--; /*@ assert j == 5; */ }\n"
-//                        + "  public void inst2b() { int i = 5; int j = i--; /*@ assert j == 4; */ }\n"
-//                        + "  public void inst3() { int i = 5; int j = ++i; /*@ assert j == 6; */ }\n"
-//                        + "  public void inst3b() { int i = 5; int j = ++i; /*@ assert j == 5; */ }\n"
-//                        + "  public void inst4() { int i = 5; int j = --i; /*@ assert j == 4; */ }\n"
-//                        + "  public void inst4b() { int i = 5; int j = --i; /*@ assert j == 5; */ }\n" + "}",
-//                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst1b", 54,
-//                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method inst2b", 54,
-//                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method inst3b", 54,
-//                "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method inst4b",
-//                54);
-//    }
-
     @Test
     public void testAssignOp() {
         Assume.assumeTrue(runLongTests);
@@ -2906,6 +2771,192 @@ public class esc1 extends EscBase {
                 "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst7a",
                 242);
     }
+    
+    // THESE WERE ALL COMMENTED OUT
+
+//    // TODO: Parser has trouble distinguishing an @ for \old from an @ for a type annotation. Is the complexity worth the feature?
+//  @Test 
+//  public void testAt() {
+//      expectedExit = 1;
+//      helpTCX("tt.TestJava",
+//                        "package tt; \n" 
+//                      + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" 
+//                      + "  static public int i;\n"
+//                      + "  //@ assigns i;\n" 
+//                      + "  //@ ensures i == \\old(i)+2;\n"
+//                      + "  public static void bok() { x: i = i + 1; /*@ assert i == i@x + 1 && i == (i+1)@x; */ i = i + 1;}\n" 
+//                      + "  //@ assigns i;\n"
+//                      + "  //@ ensures i == \\old(i+1);\n" 
+//                      + "  public static void bbad() { i = i - 1; /*@ assert i == i@x + 1; */ }\n" // ERROR
+//                      + "  //@ assigns i;\n" 
+//                      + "  public void bok2() { x: i = i + 1; /*@ assert i == this.i@x + 1; */ i = i + 1;}\n" 
+//                      + "  //@ requires a.length > 10 && a[0] >= 0;\n" 
+//                      + "  //@ assigns i;\n" 
+//                      + "  public static void bok3(int[] a) { x: i = i + 1; /*@ assert a[0]@x > -1; */ i = i + 1;}\n" 
+//                      + "}"
+//              ,"/tt/TestJava.java:9: error: There is no label named x", 60
+//              );
+//  }
+//  @Test
+//  public void testWhileSpecs() {
+//      helpTCX("tt.TestJava",
+//              "package tt; import org.jmlspecs.annotation.*; \n" 
+//                      + "/*@ code_bigint_math*/ public class TestJava { \n"
+//                      + "  public void insta() { int i = 5; /*@ loop_invariant i<=5 && i>=0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
+//                      + "  public void instb() { int i = 5; /*@ loop_invariant i<=5 && i>=0; decreases i-2; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
+//                      + "  public void instc() { int i = 5; /*@ loop_invariant i<=5 && i>=0; decreases i; */ while (i>0) { i = i+1; } /*@ assert i == 0; */ }\n"
+//                      + "  public void instd() { int i = 5; /*@ loop_invariant i<=5 && i>0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
+//                      + "}"
+//              ,anyorder(
+//              seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",69)
+//              // ,"/tt/TestJava.java:4: warning: Associated declaration",69
+//              ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",69)
+//              // ,"/tt/TestJava.java:5: warning: Associated declaration",69
+//              ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopInvariant) in method instc",40)
+//              ,seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (LoopInvariant) in method instd",40)
+//              )
+//      // ,"/tt/TestJava.java:6: warning: Associated declaration",40
+//      // FIXME - adjust to have the location + associated declaration
+//      );
+//  }
+//
+//  @Test
+//  public void testWhileSpecs2() {
+//      helpTCX("tt.TestJava",
+//              "package tt; import org.jmlspecs.annotation.*; \n" 
+//            + "public class TestJava { \n"
+//            + "  public void insta() { int i = 5; /*@ loop_invariant i> 0; decreases i; */ while (--i > 0) { } /*@ assert i == 0; */ }\n"
+//            + "  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i-- > 0) { } /*@ assert i == -1; */ }\n"
+//            + "  public void instc() { int i = 5; /*@ loop_invariant i> 1; decreases i; */ while (--i > 1) { } /*@ assert i == 1; */ }\n"
+//            + "}"
+//            );
+//  }
+//
+//  @Test
+//  public void testIncDec() {
+//      helpTCX("tt.TestJava",
+//              "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
+//                      + "  public void inst1() { int i = 5; i++; /*@ assert i == 6; */ }\n"
+//                      + "  public void inst1b() { int i = 5; i++; /*@ assert i == 5; */ }\n"
+//                      + "  public void inst2() { int i = 5; i--; /*@ assert i == 4; */ }\n"
+//                      + "  public void inst2b() { int i = 5; i--; /*@ assert i == 5; */ }\n"
+//                      + "  public void inst3() { int i = 5; ++i; /*@ assert i == 6; */ }\n"
+//                      + "  public void inst3b() { int i = 5; ++i; /*@ assert i == 5; */ }\n"
+//                      + "  public void inst4() { int i = 5; --i; /*@ assert i == 4; */ }\n"
+//                      + "  public void inst4b() { int i = 5; --i; /*@ assert i == 5; */ }\n" + "}",
+//              "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst1b", 46,
+//              "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method inst2b", 46,
+//              "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method inst3b", 46,
+//              "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method inst4b",
+//              46);
+//  }
+//
+//  @Test
+//  public void testIncDec2() {
+//      helpTCX("tt.TestJava",
+//              "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
+//                      + "  public void inst1() { int i = 5; int j = i++; /*@ assert j == 5; */ }\n"
+//                      + "  public void inst1b() { int i = 5; int j = i++; /*@ assert j == 6; */ }\n"
+//                      + "  public void inst2() { int i = 5; int j = i--; /*@ assert j == 5; */ }\n"
+//                      + "  public void inst2b() { int i = 5; int j = i--; /*@ assert j == 4; */ }\n"
+//                      + "  public void inst3() { int i = 5; int j = ++i; /*@ assert j == 6; */ }\n"
+//                      + "  public void inst3b() { int i = 5; int j = ++i; /*@ assert j == 5; */ }\n"
+//                      + "  public void inst4() { int i = 5; int j = --i; /*@ assert j == 4; */ }\n"
+//                      + "  public void inst4b() { int i = 5; int j = --i; /*@ assert j == 5; */ }\n" + "}",
+//              "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst1b", 54,
+//              "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method inst2b", 54,
+//              "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method inst3b", 54,
+//              "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method inst4b",
+//              54);
+//  }
+
+
+    
+//  @Test
+//  public void testNotModified() {
+//      helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
+//
+//              + "  //@ requires i == 5;\n" + "  //@ assigns \\everything;\n" + "  public void m1(int i) {\n"
+//              + "    i = 5;\n" + "    //@ assert \\not_modified(i);\n" // OK
+//              + "  }\n"
+//
+//              + "  //@ assigns \\everything;\n" + "  public void m1a(int i) {\n" + "    i = 5;\n"
+//              + "    //@ assert \\not_modified(i);\n" // BAD
+//              + "  }\n"
+//
+//              + "  public int i;\n" + "  public static int si;\n" + "  //@ ghost public int gi;\n"
+//
+//              + "  //@ requires i == 5;\n" + "  //@ assigns \\everything;\n" + "  public void m2() {\n"
+//              + "    i = 5;\n" + "    //@ assert \\not_modified(i);\n" // OK
+//              + "  }\n"
+//
+//              + "  //@ assigns \\everything;\n" + "  public void m2a() {\n" + "    i = 5;\n"
+//              + "    //@ assert \\not_modified(i);\n" // BAD
+//              + "  }\n"
+//
+//              + "  //@ requires si == 5;\n" + "  //@ assigns \\everything;\n" + "  public void m3() {\n"
+//              + "    si = 5;\n" + "    //@ assert \\not_modified(si);\n" // OK
+//              + "  }\n"
+//
+//              + "  //@ assigns \\everything;\n" + "  public void m3a() {\n" + "    si = 5;\n"
+//              + "    //@ assert \\not_modified(si);\n" // BAD
+//              + "  }\n"
+//
+//              + "  //@ requires gi == 5;\n" + "  //@ assigns \\everything;\n" + "  public void m4() {\n"
+//              + "    //@ set gi = 5;\n" + "    //@ assert \\not_modified(gi);\n" // OK
+//              + "  }\n"
+//
+//              + "  //@ assigns \\everything;\n" + "  public void m4a() {\n" + "    //@ set gi = 5;\n"
+//              + "    //@ assert \\not_modified(gi);\n" // BAD
+//              + "  }\n"
+//
+//              + "}", "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method m1a",
+//              9, "/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Assert) in method m2a", 9,
+//              "/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Assert) in method m3a", 9,
+//              "/tt/TestJava.java:48: warning: The prover cannot establish an assertion (Assert) in method m4a", 9);
+//  }
+//
+//  // Test well-definedness within the implicit old
+//  @Test
+//  public void testNotModified2() {
+//      helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
+//
+//              + "  public int i;\n" 
+//              + "  public static /*@ nullable */ TestJava t;\n"
+//
+//              + "  //@ requires t != null;\n" 
+//              + "  //@ assigns \\everything;\n" 
+//              + "  public void m0() {\n"
+//              + "    //@ assert \\not_modified(t.i);\n" // OK
+//              + "  }\n"
+//
+//              + "  //@ requires t != null;\n" 
+//              + "  //@ assigns \\everything;\n" 
+//              + "  public void m1a() {\n"
+//              + "    t = null;\n" 
+//              + "    //@ assert \\not_modified(t.i) ? true: true;\n" // BAD
+//              + "  }\n"
+//
+//              + "  //@ requires t == null;\n" 
+//              + "  //@ assigns \\everything;\n" 
+//              + "  public void m1b() {\n"
+//              + "    t = new TestJava();\n" 
+//              + "    //@ assert \\not_modified(t.i) ? true: true;\n" // OK
+//              + "  }\n"
+//
+//              + "  //@ assigns \\everything;\n" 
+//              + "  public void m1c() {\n"
+//              + "    //@ assert \\not_modified(t.i) ? true: true;\n" // BAD
+//              + "  }\n"
+//
+//              + "}"
+//              ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1a",31
+//              ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1b",31
+//              ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1c",31);
+//  }
+//
+//  // TODO - test not_modified and old nested in each other; remember to test
+//  // definedness
 
 //    @Test
 //    public void testFields() {

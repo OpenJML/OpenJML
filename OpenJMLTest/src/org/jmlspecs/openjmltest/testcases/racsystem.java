@@ -66,16 +66,27 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2a() {
         expectedRACExit = 1;
-        main.addOptions("-racShowSource=none"); // FIXME fix comparisons so these all can be "line"
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
-                +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
-                +"System.out.println(\"END\"); } \n"
-                +"/*@ signals (Exception e) false;*/ \n"
-                +"static void m() {\n"
-                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
-                +"}"
-                +"}"
+        addOptions("-racShowSource=none"); // FIXME fix comparisons so these all can be "line"
+        helpTCX("tt.TestJava",
+        		"""
+	            package tt; 
+	            public class TestJava { 
+	                public static void main(String[] args) {
+                        org.jmlspecs.runtime.Utils.useExceptions = true;
+                        try { 
+                            m(); 
+                        } catch (Exception e) { 
+                            System.out.println("CAUGHT ASSERTION"); 
+                            e.printStackTrace(System.out);
+                        } 
+                        System.out.println(\"END\");
+                    } 
+                    /*@ signals (Exception e) false;*/ 
+                    static void m() {
+                        int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);
+                    }
+                }
+                """
                 
 //                ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:6: verify: JML signals condition is false"
 //                ,"/tt/TestJava.java:5: Associated declaration: /tt/TestJava.java:6:"
@@ -92,8 +103,7 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2pre() {
         expectedRACExit = 1;
-        main.addOptions("-no-internalSpecs");
-        main.addOptions("-racShowSource=none");
+        addOptions("-racShowSource=none");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"

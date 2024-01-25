@@ -72,7 +72,7 @@ public class escwebexamples extends EscBase {
     }
 
     public void helpTG(String ... opts) {
-        helpTF(getMethodName(1), opts);
+        helpTF(getMethodName(1));
     }
 
     

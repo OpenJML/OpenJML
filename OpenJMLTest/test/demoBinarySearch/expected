@@ -9,7 +9,7 @@ Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of BinarySearch.find(int[],int) with prover !!!! - no warnings
 Starting proof of BinarySearch.find1(int[],int) with prover !!!!
-..\..\OpenJMLDemo\src\openjml\verifythis\BinarySearch.java:42: warning: The prover cannot establish an assertion (LoopDecreases) in method find1
+../../OpenJMLDemo/src/openjml/verifythis/BinarySearch.java:42: warning: The prover cannot establish an assertion (LoopDecreases) in method find1
 		//@ decreases hi - lo;
 		    ^
 Completed proof of BinarySearch.find1(int[],int) with prover !!!! - with warnings
