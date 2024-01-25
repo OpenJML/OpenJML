@@ -39,7 +39,7 @@ public abstract class RacBase extends JmlTestCase {
     public static final String locA = "(Utils.java:130)";
     public static final String locB = "(Utils.java:84)";
 
-	public final static String OpenJMLDemoPath = "../../../OpenJMLA/OpenJMLDemo"; //"../../OpenJMLDemo";
+	public final static String OpenJMLDemoPath = "../../OpenJMLDemo"; //"../../OpenJMLDemo";
 	
     protected String testspecpath1 = "$A"+z+"$B";
     protected String testspecpath;
@@ -56,8 +56,7 @@ public abstract class RacBase extends JmlTestCase {
      * program.  The first argument is the java executable; the null argument
      * is replaced by the class name of the class containing the main method.     
      * */
-    String cp = "../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z;
-    protected String[] defrac = new String[]{jdk, "-ea", "-classpath",cp,null};
+    protected String[] defrac = new String[]{jdk, "-ea", "-classpath", "",null};
 
     /** These are actual command-line arguments, if they are set differently
      * by a subclass.
@@ -131,13 +130,13 @@ public abstract class RacBase extends JmlTestCase {
     public static String macstring = "Exception in thread \"main\" ";
 
     public void setupOutdir() {
-        outdir = System.getenv("OPENJML_ROOT") + "/../OpenJML/OpenJMLTest/testdata/" + getMethodName(2);
+        outdir = System.getenv("OPENJML_ROOT") + "/../OpenJML21/OpenJMLTest/testdata/" + getMethodName(2);
         //System.out.println("OUTDIR " + outdir);
         File d = new java.io.File(outdir);
         //if (d.exists()) d.delete();
         d.mkdir();
-        defrac[3] = cp + outdir;
-        if (rac == null) rac = new String[]{jdk, "-ea", "-classpath",cp+outdir,null};
+        defrac[3] = outdir;
+        if (rac == null) rac = new String[]{jdk, "-ea", "-classpath", outdir,null};
     }
     
     /** This method does the running of a RAC test for tests that supply with body

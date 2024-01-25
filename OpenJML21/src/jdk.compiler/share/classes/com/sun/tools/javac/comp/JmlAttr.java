@@ -6745,8 +6745,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         // FIXME - what if mspecs.mods is null
         Symbol ansym = modToAnnotationSymbol.get(kind);
-        Attribute.Compound a = new Attribute.Compound(ansym.type,List.<Pair<MethodSymbol,Attribute>>nil());
-        JmlAnnotation an = (JmlAnnotation)jmlMaker.Annotation(a);
+        // OPENJML - FIXME - wrapped the below line with TypeCompound -- not sure about the final null
+        Attribute.TypeCompound a = new Attribute.TypeCompound(new Attribute.Compound(ansym.type,List.<Pair<MethodSymbol,Attribute>>nil()), null);
+        JmlAnnotation an = (JmlAnnotation)jmlMaker.TypeAnnotation(a);
         an.type = ansym.type;
         an.kind = kind;
         mspecs.mods.annotations = mspecs.mods.annotations.append(an);
@@ -7481,9 +7482,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (!that.type.isPrimitive()) {
                 ModifierKind nullness = specs.defaultNullity(enclosingClassEnv.enclClass.sym);
                 if (that.type.tsym == datagroupClass) {
-                    nullness = Modifiers.NULLABLE;
-                    Attribute.Compound a = new Attribute.Compound(nullableAnnotationSymbol.type,List.<Pair<MethodSymbol,Attribute>>nil());
-                    JCAnnotation an = jmlMaker.at(that).Annotation(a);
+                    nullness = Modifiers.NULLABLE;                    
+                    // OPENJML - FIXME - wrapped the below line with TypeCompound -- not sure about the final null
+                    Attribute.TypeCompound a = new Attribute.TypeCompound(new Attribute.Compound(nullableAnnotationSymbol.type,List.<Pair<MethodSymbol,Attribute>>nil()), null);
+                    JCAnnotation an = jmlMaker.at(that).TypeAnnotation(a);
                     an.type = an.annotationType.type;
                     ((JmlTree.JmlAnnotation)an).sourcefile = that.sourcefile;
                     ((JmlTree.JmlAnnotation)an).kind = nullness;

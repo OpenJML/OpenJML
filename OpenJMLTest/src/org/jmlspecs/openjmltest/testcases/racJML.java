@@ -133,14 +133,18 @@ public class racJML extends RacBase {
 
     @Test
     public void testLBLdouble() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  //  @ ensures (\\lbl INPUTX i) == \\result;\n"
-                +"  //@ ensures JML.lbl(\"INPUT\",i) == \\result;\n"
-                +"  public static double m(double i) { return i; }\n"
-                +"  public static void main(String... args) { "
-                +"     //@ assert JML.lbl(\"AL\",5.0) != 0.0; }\n"
-                +"}"
+        helpTCX("tt.TestJava",
+        		"""
+                package tt;
+                public class TestJava { 
+                  //  @ ensures (\\lbl INPUTX i) == \\result;
+                  //@ ensures JML.lbl(\"INPUT\",i) == \\result;
+                  public static double m(double i) { return i; }
+                  public static void main(String... args) {
+                     //@ assert JML.lbl("AL",5.0) != 0.0;
+                  }
+                }
+                """
                 ,"LABEL AL = 5.0"
                 );
     }

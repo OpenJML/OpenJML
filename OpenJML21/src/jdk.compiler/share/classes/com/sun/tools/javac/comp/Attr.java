@@ -5288,12 +5288,21 @@ public class Attr extends JCTree.Visitor {
 
     public void visitAnnotatedType(JCAnnotatedType tree) {
         attribAnnotationTypes(tree.annotations, env);
-        Type underlyingType = attribType(tree.underlyingType, env);
-        Type annotatedType = underlyingType.preannotatedType();
+        // OPENJML - a crash results if we do not check for erroneous annotations - not sure if this is an openjdk or openjml bug
+        boolean erroneous = false;
+        for (var a: tree.annotations) if (a.type.isErroneous()) erroneous = true;
 
-        if (!env.info.isNewClass)
-            annotate.annotateTypeSecondStage(tree, tree.annotations, annotatedType);
-        result = tree.type = annotatedType;
+        Type underlyingType = attribType(tree.underlyingType, env);
+        if (erroneous) {
+        	Type t = new Type.ErrorType(underlyingType, underlyingType.tsym);
+        	result = tree.type = t;
+        } else {
+        	Type annotatedType = underlyingType.preannotatedType();
+
+        	if (!env.info.isNewClass)
+        		annotate.annotateTypeSecondStage(tree, tree.annotations, annotatedType);
+        	result = tree.type = annotatedType;
+        }
     }
 
     public void visitErroneous(JCErroneous tree) {
