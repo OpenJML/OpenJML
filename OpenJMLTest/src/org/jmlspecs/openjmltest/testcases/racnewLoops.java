@@ -17,8 +17,8 @@ public class racnewLoops extends RacBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true; print = true;
         super.setUp();
-        main.addOptions("-code-math=java","-spec-math=java");  // FIXME - errors if we use bigint sermsantics
-        //main.addOptions("-verboseness=4");
+        addOptions("--rac-show-source=line");
+        addOptions("-code-math=java","-spec-math=java");  // FIXME - errors if we use bigint sermsantics
         expectedNotes = 0;
     }
     

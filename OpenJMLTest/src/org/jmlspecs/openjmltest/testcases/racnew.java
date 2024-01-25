@@ -22,10 +22,10 @@ public class racnew extends RacBase {
         //noCollectDiagnostics = true; print = true;
         ignoreNotes = false;
         super.setUp();
-        main.addOptions("-code-math=java","-spec-math=java");  // FIXME - errors if we use bigint math
-        //main.addOptions("-verboseness=4");
         expectedNotes = 0;
-        main.addOptions("-jmltesting");
+        addOptions("-code-math=java","-spec-math=java");  // FIXME - errors if we use bigint math
+        addOptions("-jmltesting");
+        addOptions("--rac-show-source=line");
     }
 
     /** Basic Hello World test, with no RAC tests triggered */
@@ -172,7 +172,7 @@ public class racnew extends RacBase {
 //    }
     
     @Test public void testNonnullPrecondition() {
-        main.addOptions("-racShowSource=source");
+        addOptions("--rac-show-source=source");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n" + 
                 "public static void main(String[] args) { \n" +
                 " m(null,1); \n" +
@@ -1346,7 +1346,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testInvariant() { 
-        main.addOptions("-racShowSource=source");
+        addOptions("--rac-show-source=source");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ public invariant i == 0;\n"
                 +"public void m(); \n"
@@ -3158,7 +3158,7 @@ public class racnew extends RacBase {
     @Test
     public void testShowStatement() {
         expectedExit = 0;
-        main.addOptions("-code-math=bigint","-method=m");
+        addOptions("-code-math=bigint","-method=m");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 

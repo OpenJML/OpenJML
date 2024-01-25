@@ -18,8 +18,8 @@ public class racnew2 extends RacBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true; print = true;
         super.setUp();
-        main.addOptions("-code-math=java","-spec-math=java");;
-        //main.addOptions("-verboseness",   "4");
+        addOptions("-code-math=java","-spec-math=java");;
+        addOptions("--rac-show-source=line");
         expectedNotes = 0;
     }
     

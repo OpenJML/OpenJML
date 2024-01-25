@@ -36,8 +36,10 @@ import com.sun.tools.javac.util.Options;
 public abstract class RacBase extends JmlTestCase {
 	
 	// These are common strings for parts of expected output that can frequently change
-    public static final String locA = "(Utils.java:130)";
-    public static final String locB = "(Utils.java:84)";
+    public static final String locA = "(Utils.java:143)";
+    public static final String locB = "(Utils.java:94)";
+    public static final String locC = "(Utils.java:96)";
+    public static final String locD = "(Utils.java:127)";
 
 	public final static String OpenJMLDemoPath = "../../OpenJMLDemo"; //"../../OpenJMLDemo";
 	
@@ -110,10 +112,10 @@ public abstract class RacBase extends JmlTestCase {
 //                main.addOptions("-classpath",sy+"/testdata"+z+sy+"/jdkbin"+z+sy+"/bin");
 ////            }
 //        }
-        main.addOptions("-showNotImplemented");
-        main.addOptions("-no-purityCheck"); // System specs have a lot of purity errors, so turn this off for now
+        addOptions("-showNotImplemented");
+        addOptions("-no-purityCheck"); // System specs have a lot of purity errors, so turn this off for now
         //main.addOptions("-no-internalSpecs"); // Faster with this option; should work either way
-        main.addOptions("-racShowSource=none");
+        addOptions("--rac-show-source=none");
         specs = JmlSpecs.instance(context);
         expectedExit = 0;
         expectedRACExit = 0;
@@ -335,13 +337,13 @@ public abstract class RacBase extends JmlTestCase {
             //args.add("-no-jml");
             args.add("-d");
             args.add(outdir);
-            args.add("-classpath");
-            args.add(cp);
-            args.add("-rac");
+            //args.add("-classpath");
+            //args.add(cp);
+            args.add("--rac");
             args.add("-no-purityCheck");
             args.add("-code-math=java");
             args.add("-spec-math=bigint");
-            if (new File(dirname).isDirectory()) args.add("-dir");
+            if (new File(dirname).isDirectory()) args.add("--dir");
             args.add(dirname);
             args.addAll(Arrays.asList(opts));
             
