@@ -104,8 +104,8 @@ public class racsystem extends RacBase {
         addOptions("--rac-show-source=none");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
-                +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
-                +"System.out.println(\"END\"); } \n"
+                +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } finally { org.jmlspecs.runtime.Utils.useExceptions = false; } \n"
+                +"System.out.println(\"END\"); org.jmlspecs.runtime.Utils.useExceptions = false; } \n"
                 +"/*@ requires false;*/ \n"
                 +"static public void m() {\n"
                 +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
@@ -179,18 +179,24 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2e() {
         expectedRACExit = 5;
+        expectedExit = 0;
         expectedNotes = 0;
         addOptions("--rac-show-source=line");
-        rac = new String[]{jdk, "-Dorg.jmlspecs.openjml.racexitcode=5", "-esa", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata/" + getMethodName(0),null};
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"m();\n"
-                +"System.out.println(\"END\"); }\n"
-                +"static void m() {\n"
-                +"  //@ assert false;\n"
-                +"}"
-                +"}"
-                
-                ,"/tt/TestJava.java:5: verify: JML assertion is false"
+        rac = new String[]{jdk, "-Dorg.jmlspecs.openjml.racexitcode=5", "-esa", "-classpath", null, "tt.TestJava"};
+        helpTCX("tt.TestJava",
+        		"""
+                package tt;
+                public class TestJava {
+                    public static void main(String[] args) {
+                        m();
+                        System.out.println(\"END\");
+                    }
+                    static void m() {
+                        //@ assert false;
+                    }
+                }
+                """                
+                ,"/tt/TestJava.java:8: verify: JML assertion is false"
                 ,"END"
                 ,"1 verification error"
                 );
@@ -198,17 +204,30 @@ public class racsystem extends RacBase {
     
     @Test
     public void testFile3() {
-        expectedNotes =  0; // 2
+        expectedNotes = 0;
         addOptions("--rac-show-source=none");
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT EXCEPTION\"); } \n"
-                +"System.out.println(\"END\"); }\n"
-                +"//@ signals_only Exception;\n"
-                +"static void m() {\n"
-                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
-                +"}"
-                +"}"
-                ,"verify: JML formal argument may be null: arg0 in compareTo(java.io.File)"
+        helpTCX("tt.TestJava",
+        		"""
+        		package tt;
+        		public class TestJava {
+        		    public static void main(String[] args) {
+                        try {
+                            m();
+                        } catch (Exception e) {
+                            System.out.println(\"CAUGHT EXCEPTION\");
+                        }
+                        System.out.println(\"END\");
+                    }
+                    //@ signals_only Exception;
+                    static void m() {
+                        var k = (new java.io.File((String)null)); // Precondition NOT OK
+                    }
+                }
+                """
+                ,"verify: JML formal argument may be null: arg0 in File(java.lang.String)"
+                ,"verify: Associated declaration: /tt/TestJava.java:13:"
+                ,"verify: JML precondition is false"
+                ,"verify: Associated declaration: /tt/TestJava.java:13:"
                 ,"CAUGHT EXCEPTION"
                 ,"END"
                 );
