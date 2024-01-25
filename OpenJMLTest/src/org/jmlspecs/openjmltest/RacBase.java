@@ -131,14 +131,13 @@ public abstract class RacBase extends JmlTestCase {
     
     public static String macstring = "Exception in thread \"main\" ";
 
-    public void setupOutdir() {
+    public String setupOutdir() {
         outdir = System.getenv("OPENJML_ROOT") + "/../OpenJML21/OpenJMLTest/testdata/" + getMethodName(2);
-        //System.out.println("OUTDIR " + outdir);
-        File d = new java.io.File(outdir);
-        //if (d.exists()) d.delete();
-        d.mkdir();
+        var d = new java.io.File(outdir);
+        d.mkdirs();
         defrac[3] = outdir;
-        if (rac == null) rac = new String[]{jdk, "-ea", "-classpath", outdir,null};
+        if (rac == null) rac = new String[]{jdk, "-ea", "-classpath", outdir, null};
+        return outdir;
     }
     
     /** This method does the running of a RAC test for tests that supply with body
@@ -151,7 +150,12 @@ public abstract class RacBase extends JmlTestCase {
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
     public void helpTCX(String classname, String compilationUnitText, Object... list) {
-    	setupOutdir();
+    	// Source files are synthetic
+    	// Compile destination is destdir
+    	// Expected output is containted in the test code (not in a file)
+    	String destdir = setupOutdir();
+    	new java.io.File(destdir).delete(); // Make sure old builds are deleted
+    	new java.io.File(destdir).mkdir();
 
         String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
         StreamGobbler out=null,err=null;
@@ -167,7 +171,7 @@ public abstract class RacBase extends JmlTestCase {
 
             Log.instance(context).useSource(files.first());
             
-            int ex = main.compile(new String[]{"-d", outdir},files.toList()).exitCode;
+            int ex = main.compile(new String[]{"-d", destdir},files.toList()).exitCode;
             if (print) printDiagnostics();
             int observedMessages = collector.getDiagnostics().size() - expectedNotes;
             if (observedMessages < 0) observedMessages = 0;
@@ -187,6 +191,7 @@ public abstract class RacBase extends JmlTestCase {
             if (ex != 0 && !continueAnyway) return;
             
             if (rac == null) rac = defrac;
+            rac[rac.length-2] = destdir;
             rac[rac.length-1] = classname;
             Process p = Runtime.getRuntime().exec(rac);
             
@@ -324,7 +329,10 @@ public abstract class RacBase extends JmlTestCase {
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
     public void helpTCF(String dirname, String outputdir, String mainClassname, String ... opts) {
-    	setupOutdir();
+    	String destDir = setupOutdir();
+    	System.out.println("SOURCEDIR " + dirname);
+    	System.out.println("DESTDIR " + destDir);
+    	System.out.println("OUTDIR " + outputdir);
         boolean print = false;
         StreamGobbler out=null,err=null;
         try {
