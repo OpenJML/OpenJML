@@ -14900,7 +14900,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //		}
 
 		//		System.out.println("VISIT-IDENT " + that + " " + oldenv); 
-		if (utils.rac && currentEnv.stateLabel != null && utils.isExprLocal(that.sym.flags())) {
+		if (utils.rac && currentEnv.stateLabel != null && utils.isExprLocal(that.sym.flags()) && !that.toString().equals("this")) {
 			// FIXME - thiz should be allopwed if the whole qukantifier expression is in the
 			// same old context
 			String message = "quantifier variable inside a \\old or \\pre expression: " + that.toString();

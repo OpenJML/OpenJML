@@ -112,7 +112,7 @@ public class racsystem extends RacBase {
                 +"}"
                 +"}"
                 
-                ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError$Precondition: /tt/TestJava.java:3: verify: JML precondition is false"
+                ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError$Precondition: verify: JML precondition is false"
                 ,"verify: Associated declaration: /tt/TestJava.java:3:"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locD
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locB
