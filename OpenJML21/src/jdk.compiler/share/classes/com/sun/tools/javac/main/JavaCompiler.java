@@ -1570,6 +1570,9 @@ public class JavaCompiler {
                 hasPatterns |= tree.patternSwitch;
                 super.visitSwitchExpression(tree);
             }
+            @Override
+            public void visitTree(JCTree tree) { // OPENJML so that JML constructs are skipped in this scan -- FIXME - may not be the correct thing to do
+            }
         }
         ScanNested scanner = new ScanNested();
         scanner.scan(env.tree);

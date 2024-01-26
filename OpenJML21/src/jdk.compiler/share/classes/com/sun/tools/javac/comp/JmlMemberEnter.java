@@ -379,6 +379,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     			}
     		}
     	}
+    	// FIXME - this is not correct here, but we need to adjust.call addRacmethods somewhere
+//    	if (utils.rac && sourceDecl != null) addRacMethods(sourceDecl.sym, env);
     	// Expected properties:
     	//   The member list may still have duplicates; duplicates have different symbols but the same sym.type
     	//   vd.type and md.type are not set; vd.sym and md.sym are set, as are vd.sym.type and md.sym.type
