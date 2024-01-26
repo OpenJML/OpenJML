@@ -290,14 +290,14 @@ public class OutputCompare {
                     }
                     if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
                     if (sexp != null && sact == null) {
-                        diff += ("Less actual input than expected" + JmlTestCase.eol);
+                        diff += ("Less actual output than expected: " + actual + JmlTestCase.eol);
                         return diff;
                     }
                     if (sact != null && !sact.equals(sexp)) {
                         if (sact.startsWith("Note: ") && ignoreNotes) continue;
                     }
                     if (sexp == null && sact != null) {
-                        diff += ("More actual input than expected" + JmlTestCase.eol);
+                        diff += ("More actual output than expected: " + actual + JmlTestCase.eol);
                         return diff;
                     }
                     if (!sexp.equals(sact)) {

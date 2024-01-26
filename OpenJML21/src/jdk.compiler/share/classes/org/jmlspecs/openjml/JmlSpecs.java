@@ -1686,9 +1686,9 @@ public class JmlSpecs {
     	//System.out.println("NNF-A " + findAnnotation(type, Modifiers.NULLABLE) + " " + findAnnotation(type, Modifiers.NON_NULL));
     	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
     	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
-    	if (type instanceof Type.TypeVar) return false; 
+    	//if (type instanceof Type.TypeVar) return false; 
         //System.out.println("SPECS " + calleeSpecs + " # " + calleeSpecs.specDecl);
-    	if (calleeSpecs.specDecl != null) {
+    	if (!(type instanceof Type.TypeVar) && calleeSpecs.specDecl != null) {
     		var decl = (JmlVariableDecl)calleeSpecs.specDecl.params.get(i);
     		JmlModifiers mods = (JmlModifiers)decl.mods;
             //System.out.println("ARG " + i + " " + decl + " # " + decl.type + " " + mods);
