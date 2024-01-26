@@ -15,7 +15,6 @@ public class racnew3 extends RacBase {
 
     @Override
     public void setUp() throws Exception {
-        //noCollectDiagnostics = true; print = true;
         super.setUp();
         expectedNotes = 0;
         addOptions("--rac-show-source=line");
@@ -325,36 +324,38 @@ public class racnew3 extends RacBase {
     // If close exits normally, flag == 1
     // If close throws an exception, flag == 10
     @Test public void testTryResources1x() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"    static public int flag = 0;\n"
-                +"    public static class RR implements AutoCloseable {\n"
-                +"       /*@ pure */ public RR(){}\n"
-                +"       //@ also assignable TestJava.flag;\n"
-                +"       //@ ensures TestJava.flag == 1;\n"
-                +"       //@ signals (Exception e) TestJava.flag == 10;\n"
-                +"       public void close() { TestJava.flag = 1; }\n"
-                +"    }\n"
+        helpTCX("tt.TestJava",
+        		"""
+        		package tt; 
+                public class TestJava { 
+                    static public int flag = 0;
+                    public static class RR implements AutoCloseable {
+                       /*@ pure */ public RR(){}
+                       //@ also assignable TestJava.flag;
+                       //@ ensures TestJava.flag == 1;
+                       //@ signals (Exception e) TestJava.flag == 10;
+                       public void close() { TestJava.flag = 1; }
+                    }
                 
-                +"  //@ requires flag == 0;\n"
-                +"  //@ assignable flag;\n"
-                +"  public static void mmm() {\n"
-                +"    //@ assert TestJava.flag == 0;\n"
-                +"    try {\n"
-                +"    try (RR r = new RR()){\n"
-                +"       flag = 2; \n"
-                +"       //@ assert TestJava.flag == 2;\n"
-                +"    }\n"
-                +"    } catch (Exception eee) { \n"
-                +"    //@ assert (\\lbl FLAG TestJava.flag) == 0 || TestJava.flag == 1|| TestJava.flag == 10;\n"
-                +"    }\n"
-                +"  }\n"
+                   //@ requires flag == 0;
+                   //@ assignable flag;
+                   public static void mmm() {
+                       //@ assert TestJava.flag == 0;
+                       try {
+                           try (RR r = new RR()){
+                               flag = 2; 
+                              //@ assert TestJava.flag == 2;
+                           }
+                       } catch (Exception eee) { 
+                          //@ assert (\\lbl FLAG TestJava.flag) == 0 || TestJava.flag == 1|| TestJava.flag == 10;
+                       }
+                   }
 
-                +"  public static void main(String ... args) {\n"
-                +"    mmm();\n" 
-                +"  }\n"
-                 
-                +"}"
+                   public static void main(String ... args) {
+                       mmm();
+                   }
+                }
+                """
                 );
     }
     

@@ -16,7 +16,6 @@ public class racnew2 extends RacBase {
 
     @Override
     public void setUp() throws Exception {
-        //noCollectDiagnostics = true; print = true;
         super.setUp();
         addOptions("-code-math=java","-spec-math=java");;
         addOptions("--rac-show-source=line");
@@ -44,7 +43,7 @@ public class racnew2 extends RacBase {
                     public static void main(String... args) {}
                 }
                 """
-                ,"/tt/TestJava.java:3: error: annotation type not applicable to this kind of declaration",11
+                ,"/tt/TestJava.java:3: error: annotation interface not applicable to this kind of declaration",11
         );        
     }
     
@@ -223,14 +222,24 @@ public class racnew2 extends RacBase {
     /** Test synchronized statement with null lock */
     @Test public void testSynchronized2() {
         expectedRACExit = 1;
-        helpTCX("tt.A","package tt; class A { public static void main(String[] args) throws Exception { \n" +
-                "new A().m(); }\n " +
-                "public void m() throws RuntimeException { /*@ nullable*/ Object o = null; int i; \n " +
-                "synchronized (o) { i = 0; } \n}}"
-                ,"/tt/A.java:4: JML An object may be illegally null"
+        helpTCX("tt.A",
+        		"""
+        		package tt;
+        		class A {
+        		    public static void main(String[] args) throws Exception {
+        		        new A().m();
+        		    }
+                    public void m() throws RuntimeException {
+                        /*@ nullable*/ Object o = null;
+                        int i;
+                        synchronized (o) { i = 0; }
+                    }
+                }
+                """
+        		,"/tt/A.java:9: verify: JML An object may be illegally null"
                 ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot enter synchronized block because \"<local4>\" is null"
-                ,"\tat tt.A.m(A.java:4)"
-                ,"\tat tt.A.main(A.java:2)"
+                ,"\tat tt.A.m(A.java:9)"
+                ,"\tat tt.A.main(A.java:4)"
                 );
     }
 
@@ -650,7 +659,7 @@ public class racnew2 extends RacBase {
     /** Tests a bad cast */
     @Test public void testTypeCast2() {
         expectedRACExit = 1;
-        main.addOptions("-racShowSource=source");
+        addOptions("--rac-show-source=source");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean i = Boolean.TRUE; \n" +
                 "  Object o = i; \n" +
@@ -705,6 +714,7 @@ public class racnew2 extends RacBase {
     /** Test a type tests and casts in JML */
     @Test public void testTypeCast5() {
         expectedRACExit = 1;
+        addOptions("--rac-show-source=line");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean b = Boolean.TRUE; \n" +
                 "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
@@ -741,7 +751,7 @@ public class racnew2 extends RacBase {
 
     /** Tests the JML lbl lblpos and lblneg expressions */
     @Test public void testLbl() {
-        main.addOptions("-spec-math=math");
+        addOptions("-spec-math=math");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null); \n" +
                 "System.out.println(\"END\"); } \n" +
@@ -826,8 +836,9 @@ public class racnew2 extends RacBase {
     
     /** A misc early test case for lbl expressions */
     @Test public void testLabel() {
-        main.addOptions("-racShowSource=source");
-        helpTCX("tt.TestJava","package tt; public class TestJava { /*@ assignable \\everything; */ public static void main(String[] args) { \n" +
+        addOptions("--rac-show-source=source");
+        helpTCX("tt.TestJava",
+        		"package tt; public class TestJava { /*@ assignable \\everything; */ public static void main(String[] args) { \n" +
                 " m(1); m(0); \n" +
                 " System.out.println(\"END\"); } static public int k = 0; \n" +
                 " /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */ \n" +
@@ -1335,7 +1346,7 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testBoxingOnAssignmentMathMode() {
-        main.addOptions("-code-math=math");
+        addOptions("-code-math=math");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"{ Integer i; int k; i = 6;\n"
@@ -1413,8 +1424,8 @@ public class racnew2 extends RacBase {
                 ,"/tt/A.java:4: verify: JML Attempt to unbox a null object"
                 ,"/tt/A.java:8: verify: JML Attempt to unbox a null object"
                 ,"/tt/A.java:8: verify: JML Attempt to unbox a null object"
-                ,"/tt/A.java:16: verify: JML Attempt to unbox a null object"
-                ,"/tt/A.java:20: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:17: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:21: verify: JML Attempt to unbox a null object"
                 ,"END"
                 );
     }
@@ -1604,7 +1615,8 @@ public class racnew2 extends RacBase {
 
     @Test public void testStringSwitchNull() {
     	expectedRACExit = 1;
-        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+        helpTCX("tt.A",
+        		 "package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"String s = null; int k = 0;\n"
                 +"{ switch (s) {\n"
@@ -1617,7 +1629,7 @@ public class racnew2 extends RacBase {
                     +"}}"
                 ,"/tt/A.java:4: verify: JML An object may be illegally null"
                 ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local9>\" is null"
-                ,"\tat tt.A.main(A.java:1)"
+                ,"\tat tt.A.main(A.java:4)"
                 );
     }
 
@@ -1674,9 +1686,9 @@ public class racnew2 extends RacBase {
                    }
                  }
         		"""
-                ,"verify: JML An object may be illegally null"
+                ,"/tt/A.java:5: verify: JML An object may be illegally null"
                 ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local6>\" is null"
-                ,"\tat tt.A.main(A.java:1)"
+                ,"\tat tt.A.main(A.java:5)"
                 );
     }
 

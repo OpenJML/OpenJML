@@ -98,9 +98,9 @@ public abstract class RacBase extends JmlTestCase {
         super.setUp();
         
         // Setup the options
-        main.addOptions("-specspath",   testspecpath);
+        addOptions("-specspath",   testspecpath);
         //main.addJavaOption("-d", outdir); // This is where the output program goes // FIXME - for some reason this does not work here
-        main.addOptions("-rac","-racJavaChecks","-racCheckAssumptions");
+        addOptions("--rac","--rac-java-checks","--rac-check-assumptions");
 //        if (jdkrac) {
 //            String sy = System.getenv("OPENJML_ROOT") + "/../OpenJMLTest/test";
 //            System.out.println("SY " + sy);
@@ -114,7 +114,6 @@ public abstract class RacBase extends JmlTestCase {
 //        }
         addOptions("-showNotImplemented");
         addOptions("-no-purityCheck"); // System specs have a lot of purity errors, so turn this off for now
-        //main.addOptions("-no-internalSpecs"); // Faster with this option; should work either way
         addOptions("--rac-show-source=none");
         specs = JmlSpecs.instance(context);
         expectedExit = 0;
@@ -253,10 +252,10 @@ public abstract class RacBase extends JmlTestCase {
                         if (actual.startsWith(macstring) && !expected.startsWith(macstring)) actual = actual.substring(macstring.length());
                         else if (!actual.startsWith(macstring) && expected.startsWith(macstring)) expected = expected.substring(macstring.length());
                 		//System.out.println("ERR-EXP: " + expected);
-                		if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
-                			expected = expected.replaceFirst("^[^:]*:[0-9]+: ","");
-                		if (!actual.matches(".*:[0-9]+:$")) 
-                			expected = expected.replaceFirst(": [^:]*:[0-9]+:",":");
+//                		if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
+//                			expected = expected.replaceFirst("^[^:]*:[0-9]+: ","");
+//                		if (!actual.matches(".*:[0-9]+:$")) 
+//                			expected = expected.replaceFirst(": [^:]*:[0-9]+:",":");
                 		//System.out.println("ERR-EXP: " + expected);
                         if (!expected.contains("verify: ")) actual = actual.replace("verify: ", "");
                 		//System.out.println("ERR-EXP: " + expected);

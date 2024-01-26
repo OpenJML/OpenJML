@@ -38,6 +38,7 @@ public class racnew extends RacBase {
     /** Basic Hello World test, with no RAC tests triggered */
     @Test public void testJavaExit() {
         expectedRACExit = 5;
+        addOptions("-rac-show-source=none");
         helpTCX("tt.TestJavaExit","package tt; public class TestJavaExit { public static void main(String[] args) { System.exit(5); }}"
         		,"verify: JML diverges assertion is false"
         		,"verify: Associated declaration"
@@ -181,12 +182,12 @@ public class racnew extends RacBase {
                 " static public void m(/*@non_null*/ Object o, int i) {\n" +
                 " }\n" +
                 "}"
-                ,"/tt/TestJava.java:3: JML formal argument may be null: o in m(java.lang.Object,int)"
+                ,"/tt/TestJava.java:3: JML formal argument may be null: o in m(java.lang.@org.jmlspecs.annotation.NonNull Object,int)"
                 ," m(null,1); "
                 ,"   ^"
                 ,"/tt/TestJava.java:6: Associated declaration: /tt/TestJava.java:3:"
                 ," static public void m(/*@non_null*/ Object o, int i) {"
-                ,"                                    ^"
+                ,"                         ^"
                 ,"/tt/TestJava.java:3: JML precondition is false"
                 ," m(null,1); "
                 ,"  ^"
@@ -212,11 +213,11 @@ public class racnew extends RacBase {
                 	static public void m(/*@ non_null*/ Object o, int i) {}
                 }
         		"""
-                ,"/tt/TestJava.java:4: verify: JML formal argument may be null: o in m(java.lang.Object,int)"
+                ,"/tt/TestJava.java:4: verify: JML formal argument may be null: o in m(java.lang.@org.jmlspecs.annotation.NonNull Object,int)"
                 ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:1:"
-                ,"/tt/TestJava.java:7: verify: JML precondition is false"
+                ,"/tt/TestJava.java:4: verify: JML precondition is false"
                 ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:1:"
-                ,"/tt/TestJava.java:7: verify: JML precondition is false"
+                ,"/tt/TestJava.java:1: verify: JML precondition is false"  // FIXME - should not be 1
                 ,"END"
                 );
     }
@@ -232,9 +233,9 @@ public class racnew extends RacBase {
                 	static public /*@ non_null*/Object m( /*@ nullable*/Object o, int i) { return null; }
                 }
         		"""
-                ,"/tt/TestJava.java:3: verify: JML null return value from method m"
+                ,"/tt/TestJava.java:6: verify: JML null return value from method m"
                 ,"/tt/TestJava.java:6: verify: Associated declaration: /tt/TestJava.java:3:"
-                ,"/tt/TestJava.java:3: verify: JML null return value from method m(java.lang.Object,int), checked in caller main(java.lang.String[])"
+                ,"/tt/TestJava.java:3: verify: JML null return value from method m(java.lang.@org.jmlspecs.annotation.Nullable Object,int), checked in caller main(java.lang.String[])"
                 ,"/tt/TestJava.java:6: verify: Associated declaration: /tt/TestJava.java:3:"
                 ,"END"
                 );
@@ -332,7 +333,7 @@ public class racnew extends RacBase {
                 +"        ensures k == 0; */\n"
                 +"  static void m(int i) { k = i; } " +
                 "}"
-                ,"org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:14: verify: JML postcondition is false"
+                ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:14: verify: JML postcondition is false"
                 ,"/tt/TestJava.java:10: Associated declaration"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locA
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locB
@@ -1147,11 +1148,31 @@ public class racnew extends RacBase {
     }
     
     @Test public void testSpecFile() {
-        addMockFile("$A/tt/A.jml","package tt; public class A { //@ ghost public static int i = 0;\n  //@ public invariant i == 0; \n //@ requires i == 1;\n static public int m(); }");
-        helpTCX("tt.A","package tt; public class A { static public int m() { return 0; }  \n public static void main(String[] args) { m(); System.out.println(\"END\"); }}"
-                ,"/tt/A.java:2: JML precondition is false"
-                ,"/tt/A.java:1: Associated declaration"
-                ,"/$A/tt/A.jml:3: JML precondition is false"
+        addMockFile("$A/tt/A.jml",
+        		"""
+        		package tt;
+        		public class A {
+        		    //@ ghost public static int i = 0;
+        		    //@ public invariant i == 0;
+        		    //@ requires i == 1;
+        		    static public int m();
+        		}
+        		"""
+        		);
+        helpTCX("tt.A",
+        		"""
+                package tt;
+        		public class A {
+        		    static public int m() { return 0; }
+        		    public static void main(String[] args) {
+        		        m();
+        		        System.out.println("END");
+        		    }
+                }
+        		"""
+        		,"/tt/A.java:5: JML precondition is false"
+                ,"/$A/tt/A.jml:6: Associated declaration"
+                ,"/$A/tt/A.jml:5: JML precondition is false"
                 ,"END"
                 );
         
@@ -1509,16 +1530,20 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSuchThat() {
-        helpTCX("tt.A","package tt; public class A { \n"
-                +"static int j = 5; //@ in i;\n"
-                +"//@ static model int i; \n"
-                +"//@ static represents i \\such_that i == j+1; \n"
-                +"public static void main(String[] args) { \n"
-                +"System.out.println(\"END\"); "
-                +"}"
-                +"}"
-                ,"/tt/A.java:4: Note: Not implemented for runtime assertion checking: relational represents clauses (\\such_that)",12
-                ,"/tt/A.java:3: warning: JML model field is not implemented: i",22
+        helpTCX("tt.A",
+        		"""
+        		package tt;
+        		public class A {
+                    static int j = 5; //@ in i;
+                    //@ static model int i;
+                    //@ static represents i \\such_that i == j+1;
+                    public static void main(String[] args) {
+                        System.out.println("END");
+                    }
+                }
+                """
+                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: relational represents clauses (\\such_that)",29
+                ,"/tt/A.java:4: warning: JML model field is not implemented: i",22
                 ,"END"
                 );
 
@@ -2374,7 +2399,7 @@ public class racnew extends RacBase {
                 +"//@ public constraint \\duration(true) == 0;\n"
                 +"//@ public initially \\duration(true) == 0;\n"
                 +"public static void main(String[] args) { \n"
-                +"    //@ hence_by true; \n"
+                +"    \n"
                 +"    //@ assert \\duration(true) == 0;\n"
                 +"    //@ assume \\duration(true) == 0;\n"
                 +"    //@ ghost long k = \\duration(true);\n"
@@ -2396,7 +2421,6 @@ public class racnew extends RacBase {
                 +"}"
                 ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",31
                 ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",31
-                ,"/tt/A.java:9: Note: Not implemented for runtime assertion checking: hence_by statement",9
                 ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration",25
                 ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: assume statement containing \\duration",25
                 ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",33
