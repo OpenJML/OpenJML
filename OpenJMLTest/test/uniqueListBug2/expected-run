@@ -5,7 +5,13 @@ test/uniqueListBug2/UniqueListBug2.java:51: verify: JML postcondition is false
 	public int removeValue(int value) {
 	           ^
 test/uniqueListBug2/UniqueListBug2.java:46: verify: Associated declaration: test/uniqueListBug2/UniqueListBug2.java:51:
-	  @ ensures \old(values)[\result] == value;
-	    ^
+      @ ensures \old(values)[\result] == value;
+        ^
+test/uniqueListBug2/UniqueListBug2.java:97: verify: JML postcondition is false
+        list.removeValue(6);
+                        ^
+test/uniqueListBug2/UniqueListBug2.java:46: verify: Associated declaration: test/uniqueListBug2/UniqueListBug2.java:97:
+      @ ensures \old(values)[\result] == value;
+        ^
 
 ERR:

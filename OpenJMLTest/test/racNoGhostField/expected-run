@@ -5,6 +5,12 @@ test/racNoGhostField/Magic.java:10: verify: JML postcondition is false
 test/racNoGhostField/Magic.java:8: verify: Associated declaration: test/racNoGhostField/Magic.java:10:
 	  @ ensures \result == 42;
 	    ^
+test/racNoGhostField/Magic.java:4: verify: JML postcondition is false
+        System.out.println(magic());
+                                ^
+test/racNoGhostField/Magic.java:8: verify: Associated declaration: test/racNoGhostField/Magic.java:4:
+      @ ensures \result == 42;
+        ^
 0
 
 ERR:
