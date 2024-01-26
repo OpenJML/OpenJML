@@ -7553,8 +7553,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         utils.error(that, "jml.message", "Initializer does not match compiled value: " + lit + " vs. " + v);
                     }
                 }
-                if (v instanceof Double) System.out.println("NAN " + String.format("0x%16X", Double.doubleToLongBits(Double.NaN)));
-                if (v instanceof Float) System.out.println("NAN " + String.format("0x%08X", Float.floatToIntBits(Float.NaN)));
+                //if (v instanceof Double) System.out.println("NAN " + String.format("0x%16X", Double.doubleToLongBits(Double.NaN)));
+                //if (v instanceof Float) System.out.println("NAN " + String.format("0x%08X", Float.floatToIntBits(Float.NaN)));
             }
         } catch (PropagatedException e) {
         	throw e;
