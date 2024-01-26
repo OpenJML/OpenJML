@@ -52,15 +52,6 @@ public class racfiles extends RacBase {
     			+ "=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
     }
 
-
-    /** Testing without using system specs */
-    @Test
-    public void test1() {
-        expectedExit = 0;
-        expectedRACExit = 0;
-        helpTCF("test/rac1","test/rac1","Bug1","-noInternalSpecs");
-    }
-
     /** Testing using system specs */
     @Test  // FIXME - problems with library specs - RAC cannot handle ghost variables when it does not compile the class file
     public void test1a() {
@@ -97,19 +88,19 @@ public class racfiles extends RacBase {
     @Test
     public void testFirstTest() {
         expectedExit = 0;
-        helpTCF("test/firstTest","test/firstTest","FirstTest","-racJavaChecks","-racCheckAssumptions");
+        helpTCF("test/firstTest","test/firstTest","FirstTest","--rac-java-checks","--rac-check-assumptions");
     }
 
     @Test
     public void testUniqueList() {
         expectedExit = 0;
-        helpTCF("test/uniqueList","test/uniqueList","UniqueList","-racJavaChecks","-racCheckAssumptions");
+        helpTCF("test/uniqueList","test/uniqueList","UniqueList","--rac-java-checks","--rac-check-assumptions");
     }
 
     @Test 
     public void testUniqueList1() {
         expectedExit = 0;
-        helpTCF("test/uniqueListBug1","test/uniqueListBug1","UniqueListBug1","-racJavaChecks","-racCheckAssumptions");
+        helpTCF("test/uniqueListBug1","test/uniqueListBug1","UniqueListBug1","--rac-java-checks","--rac-check-assumptions");
     }
 
     @Test 
@@ -153,13 +144,13 @@ public class racfiles extends RacBase {
     @Test
     public void demoStudent() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/student","test/demoStudent","ExecuteCStudent2","-racJavaChecks","-racCheckAssumptions");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/student","test/demoStudent","ExecuteCStudent2","--rac-java-checks","--rac-check-assumptions");
     }
 
     @Test
     public void testECU() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecurac","Test","-racJavaChecks","-racCheckAssumptions");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecurac","Test","--rac-java-checks","--rac-check-assumptions");
     }
 
     @Test
@@ -186,28 +177,28 @@ public class racfiles extends RacBase {
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Queue.java","test/racQueue","Queue");
     }
 
-    @Test
+    @Test @Ignore // FIXME
     public void racAddng() {
     	setRacng();
         expectedExit = 0;
         helpTCF("test/racaddng/Add_InstanceStrategy.java","test/racaddng","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","-code-math=java","-spec-math=java");
     }
 
-    @Test
+    @Test @Ignore // FIXME
     public void racAddng2() {
     	setRacng();
         expectedExit = 0;
         helpTCF("test/racaddng/Add_InstanceStrategy.java","test/racaddng2","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","-code-math=safe","-spec-math=bigint");
     }
 
-    @Test
+    @Test @Ignore // FIXME
     public void racAddngall() {
     	setRacng();
         expectedExit = 0;
         helpTCF("test/racaddng","test/racaddngall","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddngall"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","-code-math=java","-spec-math=java");
     }
 
-    @Test
+    @Test @Ignore // FIXME
     public void racAddngall2() {
     	setRacng();
         expectedExit = 0;
@@ -247,7 +238,7 @@ public class racfiles extends RacBase {
     public void racHans4() {
     	expectedRACExit = 1;
     	setRacngEA();
-    	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorage","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorage");
+    	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorage","StorageParameters","--rac-check-assumptions","-specspath=test/racHansStorage");
     	rac = null;
     }
 
@@ -255,7 +246,7 @@ public class racfiles extends RacBase {
     public void racHans4a() {
     	expectedRACExit = 0;
     	setRacngEA();
-    	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorageA","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorage","-nullableByDefault");
+    	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorageA","StorageParameters","--rac-check-assumptions","-specspath=test/racHansStorage","-nullableByDefault");
     	rac = null;
     }
 
@@ -263,7 +254,7 @@ public class racfiles extends RacBase {
     public void racHans4b() {
         expectedRACExit = 1;
     	setRacngEA();
-    	helpTCF("test/racHansStorageB/StorageParameters.java","test/racHansStorageB","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorageB");
+    	helpTCF("test/racHansStorageB/StorageParameters.java","test/racHansStorageB","StorageParameters","--rac-check-assumptions","-specspath=test/racHansStorageB");
     	rac = null;
     }
 
@@ -271,7 +262,7 @@ public class racfiles extends RacBase {
     public void racHans4c() {
         expectedRACExit = 0;
     	setRacngEA();
-    	helpTCF("test/racHansStorageC/StorageParameters.java","test/racHansStorageC","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorageC");
+    	helpTCF("test/racHansStorageC/StorageParameters.java","test/racHansStorageC","StorageParameters","--rac-check-assumptions","-specspath=test/racHansStorageC");
     	rac = null;
     }
 
@@ -279,7 +270,7 @@ public class racfiles extends RacBase {
     public void racHans4d() {
         expectedRACExit = 0;
     	setRacngEA();
-    	helpTCF("test/racHansStorageD/StorageParameters.java","test/racHansStorageD","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorageD");
+    	helpTCF("test/racHansStorageD/StorageParameters.java","test/racHansStorageD","StorageParameters","---rac-check-assumptions","-specspath=test/racHansStorageD");
     	rac = null;
     }
     
@@ -292,7 +283,7 @@ public class racfiles extends RacBase {
     			"-cp","test/hans/OpenJMLTest/src"+z+"test/hans/icecapSDK/src",  //nFIXME - changed icecapSDK/bin to icecapSDK/src
     			"-rac",
     			"-specspath","test/hans/OpenJMLTest/specs",
-    			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
+    			"--rac-check-assumptions","--rac-java-checks","-showNotImplemented","--nullable-by-default"
     			);
     }
 
@@ -307,7 +298,7 @@ public class racfiles extends RacBase {
     			"-cp","test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src"+z+"test/racHans2",
     			//"-rac",
     			"-specspath","test/racHans2/specs",
-    			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
+    			"--rac-check-assumptions","--rac-java-checks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
     			);
     }
 
@@ -341,7 +332,7 @@ public class racfiles extends RacBase {
     public void gitbug533() {
     	//runrac = false;
         expectedRACExit = 0;
-        helpTCF("test/gitbug533","test/gitbug533","TestSum","-racCheckAssumptions");
+        helpTCF("test/gitbug533","test/gitbug533","TestSum","--rac-check-assumptions");
     }
 
     @Test

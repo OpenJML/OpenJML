@@ -43,7 +43,7 @@ public class UniqueListBug2 {
 	/*@
 	  @ requires contains(value);
 	  @ ensures !contains(value);
-	  @ ensures \old(values)[\result] == value;
+      @ ensures \old(values)[\result] == value;
 	  @ ensures \result == \old(find(value));
 	  @ ensures length == \old(length) - 1;
 	  @*/
@@ -94,6 +94,6 @@ public class UniqueListBug2 {
 		list.add(4);
 		list.add(5);
 		list.add(6);
-		list.removeValue(6);
+        list.removeValue(6);
 	}
 }

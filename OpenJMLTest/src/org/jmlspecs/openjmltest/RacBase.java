@@ -329,9 +329,9 @@ public abstract class RacBase extends JmlTestCase {
      */
     public void helpTCF(String dirname, String outputdir, String mainClassname, String ... opts) {
     	String destDir = setupOutdir();
-    	System.out.println("SOURCEDIR " + dirname);
-    	System.out.println("DESTDIR " + destDir);
-    	System.out.println("OUTDIR " + outputdir);
+//    	System.out.println("SOURCEDIR " + dirname);
+//    	System.out.println("DESTDIR " + destDir);
+//    	System.out.println("OUTDIR " + outputdir);
         boolean print = false;
         StreamGobbler out=null,err=null;
         try {
