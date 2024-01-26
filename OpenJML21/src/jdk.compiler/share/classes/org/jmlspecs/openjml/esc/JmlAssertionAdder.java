@@ -2011,8 +2011,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (rac ? racMessages.add(key) : escMessages.add(key)) {
 			utils.note(source.pos, rac ? "rac.not.implemented" : "esc.not.implemented", message);
 		}
-		if (file != null)
-			log.useSource(prev);
+		if (file != null) log.useSource(prev);
 	}
 
 	/**
@@ -5432,6 +5431,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									// signals clause
 									addAssert(true, methodDecl, Label.POSTCONDITION, convertedex, clause,
 											clause.sourcefile, null);
+								} catch (JmlNotImplementedException e) {
+									notImplemented(clause.keyword + " clause containing ", e, clause.source());
+									result = null;
 								} catch (Throwable t) {
 									utils.unexpectedException(t, "addPostConditions");
 								} finally {
@@ -19351,15 +19353,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
-		JCModifiers mods = fullTranslation ? convert(that.modifiers) : that.modifiers;
-		JCExpression expr = convertExpr(that.expression);
-		JmlTypeClauseConstraint cl = M.at(that).JmlTypeClauseConstraint(mods, expr, convert(that.sigs));
-		cl.setType(that.type);
-		cl.source = that.source;
-		cl.clauseType = that.clauseType;
-		cl.notlist = that.notlist;
-		classDefs.add(cl);
-		result = cl;
+		try {
+			if (currentStatements == null) pushBlock();
+			JCModifiers mods = fullTranslation ? convert(that.modifiers) : that.modifiers;
+			JCExpression expr = convertExpr(that.expression);
+			JmlTypeClauseConstraint cl = M.at(that).JmlTypeClauseConstraint(mods, expr, convert(that.sigs));
+			cl.setType(that.type);
+			cl.source = that.source;
+			cl.clauseType = that.clauseType;
+			cl.notlist = that.notlist;
+			classDefs.add(cl);
+			result = cl;
+		} catch (JmlNotImplementedException e) {
+			notImplemented(that.keyword + " clause containing ", e, that.source());
+			result = null;
+		} finally {
+			if (currentStatements == null) {
+				popBlock();
+			}
+		}
 	}
 
 	// OK - e.g. ghost or model declaration
@@ -19372,8 +19384,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	@Override
 	public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
 		try {
-			if (currentStatements == null)
-				pushBlock();
+			if (currentStatements == null) pushBlock();
 			JCModifiers mods = fullTranslation ? convert(that.modifiers) : that.modifiers;
 			JCExpression expr = convertJML(that.expression);
 			JmlTypeClauseExpr cl = M.at(that).JmlTypeClauseExpr(mods, that.keyword, that.clauseType, expr);
@@ -19381,12 +19392,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			cl.source = that.source;
 			// if (!rac) classDefs.add(cl);// FIXME - should we have this at all?
 			result = cl;
+		} catch (JmlNotImplementedException e) {
+			notImplemented(that.clauseType + " clause containing ", e, that.source());
+			result = null;
 		} finally {
 			if (currentStatements == null) {
-				// FIXME - for ESC - not sure why this would be called and if the result is used
-				// at all
-				// FIXME - for RAC, will eventually need to capture this block in a standalonw
-				// method for checking the invariant
 				popBlock();
 			}
 		}
@@ -19478,6 +19488,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 
 		if (rac && that.suchThat) {
+			System.out.println("REP " + that.pos + " " + that.getStartPosition() + " " + utils.locationString(that, that.source()) + " " + that);
 			notImplemented(that, "relational represents clauses (\\such_that)", that.source());
 			return;
 		}

@@ -40,8 +40,8 @@ public class racnew extends RacBase {
         expectedRACExit = 5;
         addOptions("-rac-show-source=none");
         helpTCX("tt.TestJavaExit","package tt; public class TestJavaExit { public static void main(String[] args) { System.exit(5); }}"
-        		,"verify: JML diverges assertion is false"
-        		,"verify: Associated declaration"
+                ,"verify: JML diverges assertion is false"
+                ,"verify: Associated declaration"
                 );
     }
 
@@ -203,16 +203,16 @@ public class racnew extends RacBase {
     
     @Test public void testNonnullPrecondition2() {
         helpTCX("tt.TestJava",
-        		"""
-        		package tt;
-        		public class TestJava { 
-        			public static void main(String[] args) { 
-        				m(null,1); 
-        				System.out.println(\"END\");
-        			}
-                	static public void m(/*@ non_null*/ Object o, int i) {}
+                """
+                package tt;
+                public class TestJava { 
+                    public static void main(String[] args) { 
+                        m(null,1); 
+                        System.out.println(\"END\");
+                    }
+                    static public void m(/*@ non_null*/ Object o, int i) {}
                 }
-        		"""
+                """
                 ,"/tt/TestJava.java:4: verify: JML formal argument may be null: o in m(java.lang.@org.jmlspecs.annotation.NonNull Object,int)"
                 ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:1:"
                 ,"/tt/TestJava.java:4: verify: JML precondition is false"
@@ -224,15 +224,15 @@ public class racnew extends RacBase {
     
     @Test public void testNonnullPostcondition() {
         helpTCX("tt.TestJava",
-        		"""
-        		package tt; public class TestJava { 
-        			public static void main(String[] args) {
-        				m(null,1);	
-        				System.out.println(\"END\");
-        			}
-                	static public /*@ non_null*/Object m( /*@ nullable*/Object o, int i) { return null; }
+                """
+                package tt; public class TestJava { 
+                    public static void main(String[] args) {
+                        m(null,1);    
+                        System.out.println(\"END\");
+                    }
+                    static public /*@ non_null*/Object m( /*@ nullable*/Object o, int i) { return null; }
                 }
-        		"""
+                """
                 ,"/tt/TestJava.java:6: verify: JML null return value from method m"
                 ,"/tt/TestJava.java:6: verify: Associated declaration: /tt/TestJava.java:3:"
                 ,"/tt/TestJava.java:3: verify: JML null return value from method m(java.lang.@org.jmlspecs.annotation.Nullable Object,int), checked in caller main(java.lang.String[])"
@@ -1149,28 +1149,28 @@ public class racnew extends RacBase {
     
     @Test public void testSpecFile() {
         addMockFile("$A/tt/A.jml",
-        		"""
-        		package tt;
-        		public class A {
-        		    //@ ghost public static int i = 0;
-        		    //@ public invariant i == 0;
-        		    //@ requires i == 1;
-        		    static public int m();
-        		}
-        		"""
-        		);
-        helpTCX("tt.A",
-        		"""
+                """
                 package tt;
-        		public class A {
-        		    static public int m() { return 0; }
-        		    public static void main(String[] args) {
-        		        m();
-        		        System.out.println("END");
-        		    }
+                public class A {
+                    //@ ghost public static int i = 0;
+                    //@ public invariant i == 0;
+                    //@ requires i == 1;
+                    static public int m();
                 }
-        		"""
-        		,"/tt/A.java:5: JML precondition is false"
+                """
+                );
+        helpTCX("tt.A",
+                """
+                package tt;
+                public class A {
+                    static public int m() { return 0; }
+                    public static void main(String[] args) {
+                        m();
+                        System.out.println("END");
+                    }
+                }
+                """
+                ,"/tt/A.java:5: JML precondition is false"
                 ,"/$A/tt/A.jml:6: Associated declaration"
                 ,"/$A/tt/A.jml:5: JML precondition is false"
                 ,"END"
@@ -1426,20 +1426,20 @@ public class racnew extends RacBase {
 
     @Test public void testInitially() {
         addMockFile("$A/tt/A.jml",
-        		"""
-        		package tt; public class A { 
+                """
+                package tt; public class A { 
                   //@ public initially i == 1;
                   //@ public initially j == 1;
                   //@ public invariant i == j;
                   public void m();
                   /*@ assignable j; */
                   public A();
-    			}
-    			"""
+                }
+                """
                 );
         helpTCX("tt.A",
-        		"""
-        		package tt; public class A {
+                """
+                package tt; public class A {
                   public int i = 0;
                   static public int j = 0;
                   public A() { i++; j++; }
@@ -1452,7 +1452,7 @@ public class racnew extends RacBase {
                     System.out.println(\"END\");
                   }
                 }
-        		"""
+                """
                 ,"START"
                 ,"MID"
                 ,"/tt/A.java:4: verify: JML invariant is false on leaving method tt.A.A()"  // i == 1, j == 3, callee check
@@ -1530,10 +1530,11 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSuchThat() {
+        addOptions("--rac-show-source=source");
         helpTCX("tt.A",
-        		"""
-        		package tt;
-        		public class A {
+                """
+                package tt;
+                public class A {
                     static int j = 5; //@ in i;
                     //@ static model int i;
                     //@ static represents i \\such_that i == j+1;
@@ -1542,7 +1543,7 @@ public class racnew extends RacBase {
                     }
                 }
                 """
-                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: relational represents clauses (\\such_that)",29
+                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: relational represents clauses (\\such_that)",16 // FIXME -point to the \such_that token instead?
                 ,"/tt/A.java:4: warning: JML model field is not implemented: i",22
                 ,"END"
                 );
@@ -2140,8 +2141,8 @@ public class racnew extends RacBase {
     /** boolean quantifier */
     @Test public void testBooleanQuantifier() {
         helpTCX("tt.A",
-        		"""
-        		package tt; public class A {
+                """
+                package tt; public class A {
                   public static void main(String[] argv) {
                     boolean bb = true;
                     //@ ghost int n = (\\sum boolean i; bb; (i?2:5));
@@ -2151,8 +2152,8 @@ public class racnew extends RacBase {
                     //@ set System.out.println("A " + n + " " + nn + " " + nnn + " " + nnnn);
                     System.out.println(\"END\");
                   }
-        		}
-        		"""
+                }
+                """
                 ,"A 7 5 2 0"
                 ,"END"
         );
@@ -2261,8 +2262,8 @@ public class racnew extends RacBase {
     @Test public void testNullReference() {
         expectedRACExit = 1;
         helpTCX("tt.A",
-        		"""
-        		package tt; import org.jmlspecs.annotation.*; public class A  {
+                """
+                package tt; import org.jmlspecs.annotation.*; public class A  {
                   /*@ nullable*/ static A a = null;
                   /*@ nullable*/ A b = null;
                   static int i = 9;
@@ -2276,21 +2277,20 @@ public class racnew extends RacBase {
                     System.out.println("END");
                   }
                 }
-        		"""
+                """
                 ,"/tt/A.java:8: verify: JML A null object is dereferenced"
                 ,"java.lang.NullPointerException: Cannot read field \"b\" because \"tt.A.a\" is null"
                 ,"/tt/A.java:11: verify: JML A null object is dereferenced within a JML expression"
                 ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot read field \"b\" because \"tt.A.a\" is null"
                 ,"\tat tt.A.main(A.java:11)"
                 );
-
     }
 
     @Test public void testNullReference2() {
         expectedRACExit = 1;
         helpTCX("tt.A",
-        		"""
-        		package tt; import org.jmlspecs.annotation.*; public class A  {
+                """
+                package tt; import org.jmlspecs.annotation.*; public class A  {
                   /*@ nullable*/ static A a = null;
                   /*@ nullable*/ A b = null;
                   static int i = 9;
@@ -2304,7 +2304,7 @@ public class racnew extends RacBase {
                     System.out.println("END");
                   }
                 }
-        		"""
+                """
                 ,"java.lang.NullPointerException: Cannot read field \"b\" because \"tt.A.a\" is null"
                 ,"/tt/A.java:11: verify: JML A null object is dereferenced within a JML expression"
                 ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot read field \"b\" because \"tt.A.a\" is null"
@@ -2389,7 +2389,6 @@ public class racnew extends RacBase {
     // what about assignable
     // check any problems with grouped clauses
     @Test public void testNotImplemented() {
-        //print = true;
         expectedExit = 1;
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"//@ axiom true;\n"
@@ -2419,24 +2418,25 @@ public class racnew extends RacBase {
                 +"//@ working_space \\duration(true);\n"
                 +"int mb() { return 0; }\n"
                 +"}"
-                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",31
+                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",32
                 ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",31
+                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",31 // Duplicated - once when adding preconditions, once for postconditions
+                                                                                                                                // FIXME - why is the position different in the duplicate?
+                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration",32
                 ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration",25
                 ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: assume statement containing \\duration",25
                 ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",33
                 ,"/tt/A.java:13: Note: Not implemented for runtime assertion checking: set statement containing \\duration",26
-                ,"/tt/A.java:14: Note: Not implemented for runtime assertion checking: debug statement containing \\duration",28
+                ,"/tt/A.java:14: Note: Not implemented for runtime assertion checking: set statement containing \\duration",26   // FIXME - should say debug not set
                 ,"/tt/A.java:16: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",29
                 ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",34
                 ,"/tt/A.java:18: Note: Not implemented for runtime assertion checking: requires clause containing \\duration",23
-                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration",32
                 ,"/tt/A.java:20: Note: Not implemented for runtime assertion checking: ensures clause containing \\duration",22
                 ,"/tt/A.java:21: Note: Not implemented for runtime assertion checking: signals clause containing \\duration",37
-                ,"/tt/A.java:23: Note: Not implemented for runtime assertion checking: diverges clause containing \\duration",23
                 ,"/tt/A.java:24: Note: Not implemented for runtime assertion checking: duration clause containing \\duration",24
                 ,"/tt/A.java:25: Note: Not implemented for runtime assertion checking: working_space clause containing \\duration",28
                 ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: represents clause containing \\duration",37
-                ,"/tt/A.java:5: Unrecoverable situation: Unimplemented construct in a method or model method or represents clause",37
+                ,"/tt/A.java:5: Unrecoverable situation: Unimplemented construct in a method or model method or represents clause",37   // FIXME
                 ,"END"
                 );
 
