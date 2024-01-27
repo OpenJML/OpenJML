@@ -3,7 +3,13 @@ name: Build OpenJML
 on:
   workflow_dispatch:
   push:
-    branches: [ master-21 ]
+    branches: [ dev-21 ]
+
+env:
+  ## Branch to build from (both in OpenJML and Specs). (JMLAnnotation, Solvers, openjml.github.io are fixed to be 'master')
+  BRANCH: dev-21
+  ## Name of folder containing openjml code within OpenJML repo. Ought to match the triggering branch in 'on push'.
+  FOLDER: OpenJML21
 
 jobs:
   build:
@@ -13,13 +19,13 @@ jobs:
       matrix:
         ## Note that the GitHub realease needs to be created by one job
         ## before each job can populate the release with the OpenJML build
-        ## for the corresponding OS. At present ubuntu-latest is used so
+        ## for the corresponding OS. At present ubuntu-22.04 is used so
         ## it must be in matrix.os
         ## TODO: Windows jobs fail 
         ##os: [ubuntu-latest]
         ##os: [ubuntu-latest, windows-latest, ubuntu-16.04]
         ##os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [ubuntu-latest, macos-13, ubuntu-20.04, macos-14]
+        os: [ubuntu-22.04, macos-13, ubuntu-20.04, macos-14]
 
       fail-fast: false
     steps:
@@ -51,17 +57,17 @@ jobs:
     - name: Checkout OpenJML
       run: |
         git config --global core.autocrlf input
-        git clone -b master-21 --depth 1 https://github.com/OpenJML/OpenJML
-        git clone -b master-module --depth 1 https://github.com/OpenJML/Specs
-        git clone --depth 1 https://github.com/OpenJML/Solvers
-        git clone --depth 1 https://github.com/OpenJML/JMLAnnotations
-        git clone --depth 1 https://github.com/OpenJML/openjml.github.io
+        git clone -b $BRANCH --depth 1 https://github.com/OpenJML/OpenJML
+        git clone -b $BRANCH --depth 1 https://github.com/OpenJML/Specs
+        git clone -b master --depth 1 https://github.com/OpenJML/Solvers
+        git clone -b master --depth 1 https://github.com/OpenJML/JMLAnnotations
+        git clone -b master --depth 1 https://github.com/OpenJML/openjml.github.io
     - name: Build OpenJML release on Windows
       if: runner.os == 'Windows'
       run: |
         basic() {
           cd D:/a/OpenJML/OpenJML
-          cd OpenJML/OpenJML21
+          cd OpenJML/$FOLDER
           bash ./configure
           make release 
         }
@@ -70,12 +76,12 @@ jobs:
     - name: Build OpenJML release on non-Windows
       if: runner.os != 'Windows'
       run: |
-        cd OpenJML/OpenJML21
+        cd OpenJML/$FOLDER
         bash ./configure
         make release 
     - name: Test the release
       run: |
-        make -C OpenJML/OpenJML21 release-test
+        make -C OpenJML/$FOLDER release-test
     - name: Create the GitHub release
       ## Do this for just one element of the matrix
       if: matrix.os == 'ubuntu-22.04'
@@ -86,14 +92,14 @@ jobs:
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"master-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
         echo Created release with id $id
-    - name: Load OpenJML build into GitHub release
+    - name: Copy OpenJML build into GitHub release
         # Here we get the id of the most recent release, which should have been created by now by one of the jobs
         # Race problem: if a new relesae build is started before a previous one has completed, the earlier build will get the id of the later release and
         # upload to the wrong release, causing the newer build to fail because of a duplicate asset
       run: |
         cd OpenJML
         export ver=`cat version.txt`
-        cd OpenJML21/release-temp
+        cd $FOLDER/release-temp
         export f=openjml-${{ matrix.os }}-${ver}.zip
         mv *.zip $f
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
