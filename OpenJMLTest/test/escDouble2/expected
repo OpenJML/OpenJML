@@ -40,7 +40,7 @@ Starting proof of JMLDouble.compareTo(@NonNull :: java.lang.Object)) with prover
 test/escDouble2/JMLDouble.java:163: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method compareTo
     	if (!(op2 instanceof JMLDouble)) throw new ClassCastException();
     	                                 ^
-/Users/davidcok/projects/OpenJMLA/Specs/specs/java/lang/Comparable.jml:76: warning: Associated declaration
+$SPECS/specs/java/lang/Comparable.jml:76: warning: Associated declaration
     /*@ public normal_behavior
                ^
 Completed proof of JMLDouble.compareTo(@NonNull :: java.lang.Object) with prover !!!! - with warnings

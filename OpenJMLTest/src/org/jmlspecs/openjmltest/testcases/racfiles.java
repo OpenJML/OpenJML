@@ -124,7 +124,7 @@ public class racfiles extends RacBase {
     @Test
     public void Dzmz() {
         expectedRACExit = 1;
-        helpTCF("test/Dzmz","test/Dzmz","Dzmz","-racJavaChecks");
+        helpTCF("test/Dzmz","test/Dzmz","Dzmz","--rac-java-checks");
     }
 
 
@@ -173,6 +173,7 @@ public class racfiles extends RacBase {
 
     @Test
     public void racQueue() {
+        addOptions("-show");
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Queue.java","test/racQueue","Queue");
     }
@@ -209,7 +210,7 @@ public class racfiles extends RacBase {
     public void racNoModel() {
     	setRacng();
         expectedExit = 0;
-        helpTCF("test/racNoModel","test/racNoModel","NoModelTest","-racMissingModelFieldRepSource=skip");
+        helpTCF("test/racNoModel","test/racNoModel","NoModelTest","--rac-missing-model-field-rep-source=skip");
     }
 
     @Test
@@ -318,7 +319,7 @@ public class racfiles extends RacBase {
     public void gitbug532() {
     	//runrac = false;
         expectedRACExit = 0;
-        helpTCF("test/gitbug532","test/gitbug532","Big");
+        helpTCF("test/gitbug532","test/gitbug532","Big","--no-rac-check-assumptions");
     }
 
     @Test
@@ -352,7 +353,7 @@ public class racfiles extends RacBase {
     public void gitbug536() {
         runrac = true;
         expectedRACExit = 0;
-        helpTCF("test/gitbug536","test/gitbug536","Test536","-code-math=safe","-spec-math=safe");
+        helpTCF("test/gitbug536","test/gitbug536","Test536","-code-math=safe","-spec-math=safe","--no-rac-check-assumptions");
     }
 
     @Test
@@ -492,28 +493,28 @@ public class racfiles extends RacBase {
         helpTCF("test/sfbug396","test/sfbug396","Main");
     }
 
-    @Test
+    @Test @Ignore // not a complete program; appears to be an abandoned demo
     public void racRM1() {
         expectedRACExit = 0;
-        helpTCF("test/racRM1","test/racRM1","Main","-code-math=java","-spec-math=java");
+        helpTCF("test/racRM1","test/racRM1","MaxSumArray","-code-math=java","-spec-math=java");
     }
 
-    @Test
+    @Test @Ignore // not a complete program; appears to be an abandoned demo
     public void racRM1a() {
         expectedRACExit = 0;
-        helpTCF("test/racRM1","test/racRM1","Main","-code-math=safe","-spec-math=bigint");
+        helpTCF("test/racRM1","test/racRM1","MaxSumArray","-code-math=safe","-spec-math=bigint");
     }
 
-    @Test
+    @Test @Ignore // not a complete program; appears to be an abandoned demo
     public void racRM2() {
         expectedRACExit = 0;
-        helpTCF("test/racRM2","test/racRM2","Main","-code-math=java","-spec-math=java");
+        helpTCF("test/racRM2","test/racRM2","MaxSumArray","-code-math=java","-spec-math=java");
     }
 
-    @Test
+    @Test @Ignore // not a complete program; appears to be an abandoned demo
     public void racRM2a() {
         expectedRACExit = 0;
-        helpTCF("test/racRM2","test/racRM2","Main","-code-math=safe","-spec-math=bigint");
+        helpTCF("test/racRM2","test/racRM2","MaxSumArray","-code-math=safe","-spec-math=bigint");
     }
     
     @Test @Ignore // FIXME - RAC Not yet working for programs using string

@@ -135,6 +135,7 @@ public class GCD{
 
     //@ requires n != Integer.MIN_VALUE && d != 0;
     //@ ensures mod(n,d) == 0 ==> (n/d)*d == n;
+    //@ pure helper heap_free
     public static boolean divmod(int n, int d) { return true; }
 
 }

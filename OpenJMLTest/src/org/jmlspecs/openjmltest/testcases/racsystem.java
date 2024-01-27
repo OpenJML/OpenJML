@@ -48,7 +48,7 @@ public class racsystem extends RacBase {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
                 +"try { m(); } catch (Exception e) { e.printStackTrace(System.out); } \n"
-                +"System.out.println(\"END\"); } \n"
+                +"System.out.println(\"END\"); org.jmlspecs.runtime.Utils.useExceptions = false;} \n"
                 +"static void m() {\n"
                 +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
                 +"}"
@@ -66,12 +66,13 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2a() {
         expectedRACExit = 1;
+        addOptions("-show");
         addOptions("--rac-show-source=none"); // FIXME fix comparisons so these all can be "line"
         helpTCX("tt.TestJava",
-        		"""
-	            package tt; 
-	            public class TestJava { 
-	                public static void main(String[] args) {
+                """
+                package tt; 
+                public class TestJava { 
+                    public static void main(String[] args) {
                         org.jmlspecs.runtime.Utils.useExceptions = true;
                         try { 
                             m(); 

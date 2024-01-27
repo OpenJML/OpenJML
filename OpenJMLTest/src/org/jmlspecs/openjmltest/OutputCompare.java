@@ -378,6 +378,7 @@ public class OutputCompare {
      * explanation string if they are different.
      */
     public String compareText(String expectedFile, String actual) {
+        //System.out.println("EFILE: " + new File(expectedFile).getAbsolutePath());
         String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
         BufferedReader exp = null;
         String[] lines = actual.split(term,-1); // -1 so we do not discard empty lines

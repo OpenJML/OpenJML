@@ -41,7 +41,7 @@ public abstract class RacBase extends JmlTestCase {
     public static final String locC = "(Utils.java:96)";
     public static final String locD = "(Utils.java:127)";
 
-	public final static String OpenJMLDemoPath = "../../OpenJMLDemo"; //"../../OpenJMLDemo";
+	public final static String OpenJMLDemoPath = "../../OpenJMLDemo";
 	
     protected String testspecpath1 = "$A"+z+"$B";
     protected String testspecpath;
@@ -226,7 +226,7 @@ public abstract class RacBase extends JmlTestCase {
                 	//System.out.println("ACT: " + line);
                 	if (i < list.length) {
                 		String expected = list[i].toString();
-                		expected = expected.replace("$DEMO", OpenJMLDemoPath);
+                		expected = expected.replace("#DEMO", OpenJMLDemoPath);
                 		//System.out.println("EXP: " + expected);
                 		if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
                 			expected = expected.replaceFirst("^[^:]*:[0-9]+: ","");
@@ -247,7 +247,7 @@ public abstract class RacBase extends JmlTestCase {
                 	//System.out.println("ERR-ACT: " + actual);
                 	if (i < list.length) {
                 		String expected = list[i].toString();
-                		expected = expected.replace("$DEMO", OpenJMLDemoPath);
+                		expected = expected.replace("#DEMO", OpenJMLDemoPath);
                 		//System.out.println("ERR-EXP: " + expected);
                         if (actual.startsWith(macstring) && !expected.startsWith(macstring)) actual = actual.substring(macstring.length());
                         else if (!actual.startsWith(macstring) && expected.startsWith(macstring)) expected = expected.substring(macstring.length());
@@ -417,6 +417,7 @@ public abstract class RacBase extends JmlTestCase {
                     if (diffs.isEmpty()) {
                         fail("No expected output file for runtime output");
                     } else {
+                        //System.out.println("EXP:" + outputdir + "   ACT: " + actRun + "   CUR: " + System.getProperty("user.dir") + "  DEMO: " + OpenJMLDemoPath);
                         System.out.println(diffs);
                         fail("Unexpected output: " + diffs);
                     }
