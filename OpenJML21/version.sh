@@ -1,6 +1,7 @@
 #! /bin/bash
 
 ## Creates the version resource file based on the content of version.txt
+## Used in the Makefile
 
 VFILE=src/jdk.compiler/share/classes/org/jmlspecs/openjml/version.properties
 TFILE=temp
