@@ -1,0 +1,14 @@
+#! /bin/bash
+shopt -s expand_aliases
+
+cd $(dirname "$BASH_SOURCE")
+
+alias lsc="ps au | grep summary | grep -v grep | awk '{ print \$13 }' | sort -u | wc -l"
+alias lst="ps au | grep summary | grep -v grep | awk '{ print \$13 }' | sort -u"
+
+for d in racArithmeticModes racdemoexamples racfeatures racfiles racJML \
+         racnew racnew2 racnew3 racnewLoops racnewWithSpecs racnonpublic racreadable racsystem \
+         ; do \
+  ./run-summary log-$d "0/0" $d ;\
+done
+echo Completed
