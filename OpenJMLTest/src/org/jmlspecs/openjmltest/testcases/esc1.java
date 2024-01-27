@@ -186,7 +186,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testForEach() {
-    	addOptions("--check-feasibility=reachable");
+        addOptions("--check-feasibility=reachable");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
 
                 + "  public void m7y() {\n" 
@@ -389,9 +389,9 @@ public class esc1 extends EscBase {
 
                   //@ public behavior  ensures true;
                   public void m2a() {
-                    List<Entry<String,String>> values = new LinkedList<Entry<String,String>>(); 
+                    List<Entry<String,String>> values = new LinkedList<Entry<String,String>>();
                     //@ set values.containsNull = false;
-                    Set<@NonNull Entry<String,String>> a = new HashSet<@NonNull Entry<String,String>>(); 
+                    Set<@NonNull Entry<String,String>> a = new HashSet<@NonNull Entry<String,String>>();
                     Iterator<@NonNull Entry<String,String>> it = a.iterator();
                     @NonNull Entry<String,String> k;
                     //@ ghost List<Entry<String,String>> v = values;
@@ -422,9 +422,9 @@ public class esc1 extends EscBase {
 
                   //@ public behavior  ensures true;
                   public void m2a() {
-                    List<Entry<String,String>> values = new LinkedList<Entry<String,String>>(); 
+                    List<Entry<String,String>> values = new LinkedList<Entry<String,String>>();
                     //@ set values.containsNull = false;
-                    Set<@NonNull Entry<String,String>> a = new HashSet<@NonNull Entry<String,String>>(); 
+                    Set<@NonNull Entry<String,String>> a = new HashSet<@NonNull Entry<String,String>>();
                     Iterator<@NonNull Entry<String,String>> it = a.iterator();
                     @NonNull Entry<String,String> k;
                     //@ ghost List<Entry<String,String>> v = values;
@@ -439,12 +439,12 @@ public class esc1 extends EscBase {
                   public TestJava() {}
                 }
               """
-        		,"/tt/TestJava.java:8: error: cannot find symbol\n"
-        				+ "  symbol:   class NonNull\n"
-        				+ "  location: class tt.TestJava", 12
                 ,"/tt/TestJava.java:8: error: cannot find symbol\n"
-                		+ "  symbol:   class NonNull\n"
-                		+ "  location: class tt.TestJava", 59
+                        + "  symbol:   class NonNull\n"
+                        + "  location: class tt.TestJava", 12
+                ,"/tt/TestJava.java:8: error: cannot find symbol\n"
+                        + "  symbol:   class NonNull\n"
+                        + "  location: class tt.TestJava", 59
                 ,"/tt/TestJava.java:9: error: cannot find symbol\n"
                         + "  symbol:   class NonNull\n"
                         + "  location: class tt.TestJava", 17
@@ -934,7 +934,7 @@ public class esc1 extends EscBase {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n" 
-        		+ "  public static TestJava p;\n"
+                + "  public static TestJava p;\n"
 
                 + "  //@ requires p != null && p != this;\n" 
                 + "  //@ assigns  \\everything;\n"
@@ -1372,9 +1372,9 @@ public class esc1 extends EscBase {
         addOptions("-exclude=<init>");
         helpTCX("tt.TestJava",
                 "package tt; \n"
-                		+ "public class TestJava { \n"
-                		+ "  public int k;\n"
-                		+ "  public static int sk;\n"
+                        + "public class TestJava { \n"
+                        + "  public int k;\n"
+                        + "  public static int sk;\n"
 
                         + "  //@ assigns k,sk;\n"
                         + "  public void m3() {\n"
@@ -1730,14 +1730,14 @@ public class esc1 extends EscBase {
 
     @Test
     public void testRequires() {
-    	addOptions("--check-feasibility=precondition");
+        addOptions("--check-feasibility=precondition");
         helpTCX("tt.TestJava", // static invariant is assumed true at start of constructor; remains true at end
                 "package tt; \n" + 
-        		"public class TestJava { \n" + 
+                "public class TestJava { \n" + 
                 "  TestJava() { }\n" + 
-        		"  public TestJava(int i) {}\n" 
+                "  public TestJava(int i) {}\n" 
                         
-        		+ "  //@ requires false;\n" + "  public static boolean bf(boolean bb) { return true; }\n"
+                + "  //@ requires false;\n" + "  public static boolean bf(boolean bb) { return true; }\n"
                 + "  //@ requires true;\n" + "  public static boolean bt(boolean bb) { return true; }\n"
                 + "  static public boolean b = true;\n" + "  //@ static public invariant b;\n"
                 + "  //@ requires !b;\n" + "  public static boolean bq(boolean bb) { return true; }\n" + "}",
@@ -1750,7 +1750,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testJava() {
-    	addOptions("--check-feasibility=precondition");
+        addOptions("--check-feasibility=precondition");
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  public static boolean bstatic;\n"
                 + "  public boolean binstance;\n" + "  public boolean binstance2;\n" + "  /*@ non_null */ Object o;\n"
                 + "  //@ ghost nullable Object oo;\n" + "  //@ public static invariant bstatic;\n"
@@ -1845,7 +1845,7 @@ public class esc1 extends EscBase {
 
     @Test   // FIXME - bassumeCHAIN1 times out 
     public void testAssume() {
-    	addOptions("--check-feasibility=basic");
+        addOptions("--check-feasibility=basic");
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { public static final int z = 0; \n" 
                 + "  //@ requires bb;\n"
