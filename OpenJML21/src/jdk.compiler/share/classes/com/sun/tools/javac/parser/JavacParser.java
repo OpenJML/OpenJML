@@ -3712,7 +3712,6 @@ public class JavacParser implements Parser {
         boolean declaredUsingVar = false;
         JCExpression init = null;
         type = bracketsOpt(type);
-
         if (Feature.UNNAMED_VARIABLES.allowedInSource(source) && name == names.underscore) {
             if (!localDecl) {
                 log.error(DiagnosticFlag.SYNTAX, pos, Errors.UseOfUnderscoreNotAllowed);

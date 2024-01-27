@@ -22,8 +22,19 @@ public class compilationUnit extends ParseBase {
 //        jmldebug = true;
         super.setUp();
     }
+    
+    @Test
+    public void testTemp() {
+        print = true;
+        checkCompilationUnit("package t; \nclass A{ void m(@NonNull String s) {} }",
+                JmlCompilationUnit.class,0,
+                JCPackageDecl.class, 0,
+                JCIdent.class, 8,
+                JmlClassDecl.class, 12,
+                JmlModifiers.class, -1);
+        checkMessages();
+    }
 
-  
     /** Quickie test of some pure Java code */
     @Test
     public void testSomeJava() {
@@ -174,6 +185,24 @@ public class compilationUnit extends ParseBase {
                       );
         checkMessages();
     }
+    
+    @Test
+    public void testAnnotation3() {
+        print = true;
+        checkCompilationUnit("class A { @NonNull java.lang.Class o; }"
+                );
+        checkMessages();
+    }
+  
+    @Test
+    public void testAnnotation3a() {
+        print = true;
+        checkCompilationUnit("class A { java.lang.@NonNull Class o; }"
+                );
+        checkMessages();
+    }
+  
+
     
     @Test
     public void testRefining() {

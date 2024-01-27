@@ -1445,11 +1445,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitModifiers(JCModifiers that) {
         try {
             printAnnotations(that.annotations);
-        	StringBuilder sb = new StringBuilder();
-    		for (var kk: ((JmlModifiers)that).jmlmods) {
-    			print(kk.toString());
-    			print(" ");
-    		}
+            StringBuilder sb = new StringBuilder();
+            for (var kk: ((JmlModifiers)that).jmlmods) {
+                print(kk.toString());
+                print(" ");
+            }
             printFlags(that.flags);
         } catch (IOException e) {
             throw new UncheckedIOException(e);

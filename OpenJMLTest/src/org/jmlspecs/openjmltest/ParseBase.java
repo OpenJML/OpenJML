@@ -161,7 +161,7 @@ abstract public class ParseBase extends JmlTestCase {
      */
     static public class ParseTreeScanner extends JmlTreeScanner implements IJmlVisitor {
         /** The list of nodes */
-        private List<JCTree> list = new LinkedList<JCTree>();;
+        private List<JCTree> list = new LinkedList<JCTree>();
 
         /** Constructs the visitor, but otherwise does nothing. */
         public ParseTreeScanner() {

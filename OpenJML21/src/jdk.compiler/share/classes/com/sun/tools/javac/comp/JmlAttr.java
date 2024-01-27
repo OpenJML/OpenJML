@@ -1307,7 +1307,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // that a method declaration in a spec file does not have a body
         // FIXME - what else is relaxed?  We should do the check under the right conditions?
         if (javaMethodDecl.sym == null) return; // Guards against specification method declarations that are not matched - FIXME
-
+        if (m.restype != null) m.restype = insertTypeAnnotation((JmlModifiers)m.mods, m.restype, m);
         jmlenv = jmlenv.pushCopy();
         jmlenv.enclosingMethodDecl = javaMethodDecl;
         
@@ -6511,8 +6511,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public boolean has(java.util.List<JmlToken> mods, ModifierKind ta) {
-    	for (var t: mods) if (t.jmlclausekind == ta) return true;
-    	return false;
+        for (var t: mods) if (t.jmlclausekind == ta) return true;
+        return false;
+    }
+
+    public JmlToken find(java.util.List<JmlToken> mods, ModifierKind ta) {
+        for (var t: mods) if (t.jmlclausekind == ta) return t;
+        return null;
     }
 
     //@ nullable
@@ -6524,11 +6529,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Returns true if the given symbol has non_null or does not have nullable annotation */
     public boolean isNonNull(Symbol sym, /*@ nullable */ JCModifiers mods) {
         if (mods != null) {
-        	if (has(((JmlModifiers)mods).jmlmods, Modifiers.NON_NULL)) return true;
-        	if (has(((JmlModifiers)mods).jmlmods, Modifiers.NULLABLE)) return false;
+            if (has(((JmlModifiers)mods).jmlmods, Modifiers.NON_NULL)) return true;
+            if (has(((JmlModifiers)mods).jmlmods, Modifiers.NULLABLE)) return false;
             List<JCAnnotation> list = mods.getAnnotations();
             if (list != null) for (JCAnnotation a: list) {
-            	if (a.annotationType.type == null) continue; // FIXME - need to have annotations attributed
+                if (a.annotationType.type == null) continue; // FIXME - need to have annotations attributed
                 if (a.annotationType.type.tsym == nonnullAnnotationSymbol) return true;
                 if (a.annotationType.type.tsym == nullableAnnotationSymbol) return false;
             }
@@ -6752,10 +6757,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         an.kind = kind;
         mspecs.mods.annotations = mspecs.mods.annotations.append(an);
         for (JCTree.JCAnnotation aa: mspecs.mods.annotations) {
-        	if (((JmlTree.JmlAnnotation)aa).kind == kind) return;
+            if (((JmlTree.JmlAnnotation)aa).kind == kind) return;
         }
         System.out.println("ANNOTATION NOT FOUND AFTER ADD HELPER " + symbol);
         return;
+    }
+    
+    public JCAnnotation makeTypeAnnotation(ModifierKind kind) {
+        Symbol ansym = modToAnnotationSymbol.get(kind);
+        // OPENJML - FIXME - wrapped the below line with TypeCompound -- not sure about the final null
+        Attribute.TypeCompound a = new Attribute.TypeCompound(new Attribute.Compound(ansym.type,List.<Pair<MethodSymbol,Attribute>>nil()), null);
+        JmlAnnotation an = (JmlAnnotation)jmlMaker.TypeAnnotation(a);
+        an.attribute = a;
+        an.type = ansym.type;
+        an.kind = kind;
+        return an;
     }
     
     public boolean isHeapIndependent(MethodSymbol symbol) {
@@ -7384,35 +7400,37 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-    	if (utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
-    	if (utils.verbose()) utils.note("Attributing " + that.vartype + " " + that.name + " " + that.getClass());
-    	if (env.enclMethod != null) {
-            if (that.vartype instanceof JCTypeApply) {
-            	var ft = (JCTypeApply)that.vartype;
-            	ListBuffer<JCExpression> ntypes = new ListBuffer<>();
-    			var nn = specs.defaultNullity(env.enclClass.sym);
-    			for (var t: ft.arguments) {
-    				JCAnnotatedType atype = null;
-    				if (t instanceof JCAnnotatedType) atype = (JCAnnotatedType)t;
-    				if (atype != null) {
-    					if (specs.findAnnotation(atype.annotations, Modifiers.NON_NULL) != null
-    					 || specs.findAnnotation(atype.annotations, Modifiers.NULLABLE) != null) {
-    						ntypes.add(atype);
-    						continue;
-    					}
-    				}
-    				JCAnnotation ann = utils.modToAnnotationAST(nn, that.pos, that.pos); // FIXME - better position
-    				if (atype != null) {
-    					atype.annotations = atype.annotations.append(ann);
-    					ntypes.add(atype);
-    				} else {
-    					ntypes.add(jmlMaker.at(that).AnnotatedType(List.<JCAnnotation>of(ann), t));
-    				}
-    			}
-    			ft.arguments = ntypes.toList();
+        if (utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
+        if (utils.verbose()) utils.note("Attributing " + that);
+        if (env.enclMethod != null) {
+            // FIXME - need to combine these branches
+            if (that.vartype instanceof JCTypeApply ft) {
+                ListBuffer<JCExpression> ntypes = new ListBuffer<>();
+                var nn = specs.defaultNullity(env.enclClass.sym);
+                for (var t: ft.arguments) {
+                    JCAnnotatedType atype = null;
+                    if (t instanceof JCAnnotatedType) atype = (JCAnnotatedType)t;
+                    if (atype != null) {
+                        if (specs.findAnnotation(atype.annotations, Modifiers.NON_NULL) != null
+                         || specs.findAnnotation(atype.annotations, Modifiers.NULLABLE) != null) {
+                            ntypes.add(atype);
+                            continue;
+                        }
+                    }
+                    JCAnnotation ann = utils.modToAnnotationAST(nn, that.pos, that.pos); // FIXME - better position
+                    if (atype != null) {
+                        atype.annotations = atype.annotations.append(ann);
+                        ntypes.add(atype);
+                    } else {
+                        ntypes.add(jmlMaker.at(that).AnnotatedType(List.<JCAnnotation>of(ann), t));
+                    }
+                }
+                ft.arguments = ntypes.toList();
+            } else {
+                that.vartype = insertTypeAnnotation((JmlModifiers)that.mods, that.vartype, that);
             }
-        	if (utils.verbose()) utils.note("Adjusted nullity " + that);
-    	}
+            if (utils.verbose()) utils.note("Adjusted nullity " + that);
+        }
         JavaFileObject prevSource = null;
         jmlenv = jmlenv.pushCopy();
         boolean isReplacementType = that.jmltype;
@@ -7572,6 +7590,50 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     
     boolean skipDefaultNullity = false;
+    
+    public JCExpression insertTypeAnnotation(JmlModifiers mods, JCExpression vartype, JCTree that) {
+        JCAnnotation ann = null;
+        ann = findMod(mods, Modifiers.NULLABLE);
+        if (ann == null) ann = findMod(mods, Modifiers.NON_NULL);
+        boolean fromAnnotation = ann != null;
+        if (ann == null) {
+            var tok = find(mods.jmlmods, Modifiers.NON_NULL);
+            if (tok != null) {
+                // FIXME - no position information
+                ann = makeTypeAnnotation(Modifiers.NON_NULL);
+            }
+        }
+        if (ann == null) {
+            var tok = find(mods.jmlmods, Modifiers.NULLABLE);
+            if (tok != null) {
+                ann = makeTypeAnnotation(Modifiers.NULLABLE);
+            }
+        }
+        if (ann != null && fromAnnotation) {
+            // Remove ann from mods.annotations
+            if (mods != null && mods.annotations != null) {
+                var newlist = new ListBuffer<JCAnnotation>();
+                for (var a: mods.annotations) {
+                    if (!(a instanceof JmlAnnotation aj && aj.getTag() == Tag.TYPE_ANNOTATION)) {
+                        newlist.add(a);
+                    }
+                }
+                mods.annotations = newlist.toList();
+            }
+        }
+        if (ann == null) {
+            // do nothing
+        } else if (vartype instanceof JCAnnotatedType atype) {
+            // TODO - does it matter that these will not be in textual order
+            atype.annotations = atype.annotations.append(ann);
+        } else {
+            // The position of this new annotation will not be 'within' the location that it is being placed
+            var ntype = jmlMaker.at(that).AnnotatedType(List.<JCAnnotation>of(ann), vartype);
+            ntype.type = vartype.type;
+            vartype = ntype;
+        }
+        return vartype;
+    }
     
     @Override
     public void visitLambda(final JCLambda that) {

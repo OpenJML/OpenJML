@@ -968,7 +968,10 @@ public class racnew2 extends RacBase {
     
     /** Checks generic method. */
     @Test public void testGenMethod2() {  // FIXME - this needs more investigation -- the type int seems to be used (e.g. in addImplicitCOnversion) in an expression i != null where I would expect it to have been converted to T
-        helpTCX("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
+        helpTCX("tt.TestJava",
+                "package tt; import java.util.*; "
+                + "public class TestJava { "
+                + "public static void main(String[] args) { \n" +
                 " System.out.println(m(1)); \n" +
                 " System.out.println(\"END\"); } \n" +
                 " static /*@nullable*/ <T> List<?> m(T i) { return null; } \n" +

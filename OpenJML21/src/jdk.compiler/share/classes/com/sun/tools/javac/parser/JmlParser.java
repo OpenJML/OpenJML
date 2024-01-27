@@ -627,20 +627,20 @@ public class JmlParser extends JavacParser {
         S.lineAnnotations = new java.util.LinkedList<>();
         ListBuffer<JCTree> newdefs = new ListBuffer<>();
         for (var d: cd.defs) {
-        	if (d instanceof JmlTypeClauseConditional ct) {
-        		x: { 
-        			JCIdent id = ct.identifier;
-            		for (var dd: cd.defs) {
-            			if (dd instanceof JmlVariableDecl vd && vd.name == id.name) {
-            				vd.fieldSpecs.list.add(ct);
-            				break x;
-            			}
-            		}
-            		utils.error(id, "jml.message", "The identifier must be a member of the enclosing class: " + id);
-        		}
-        	} else {
-        		newdefs.add(d);
-        	}
+            if (d instanceof JmlTypeClauseConditional ct) {
+                x: { 
+                    JCIdent id = ct.identifier;
+                    for (var dd: cd.defs) {
+                        if (dd instanceof JmlVariableDecl vd && vd.name == id.name) {
+                            vd.fieldSpecs.list.add(ct);
+                            break x;
+                        }
+                    }
+                    utils.error(id, "jml.message", "The identifier must be a member of the enclosing class: " + id);
+                }
+            } else {
+                newdefs.add(d);
+            }
         }
         cd.defs = newdefs.toList();
         return cd;
@@ -2179,69 +2179,73 @@ public class JmlParser extends JavacParser {
 
     @Override
     public JmlModifiers modifiersOpt(JCModifiers partial) {
-    	int firstpos = Position.NOPOS;
-    	//System.out.println("INITIAL " + firstpos);
-    	JmlModifiers mods = (JmlModifiers)(partial == null ? jmlF.at(Position.NOPOS).Modifiers(0L) : partial);
-    	while (true) {
-    		if (acceptStartJML()) {
-    			continue;
-    		} else if (acceptEndJML()) {
-    			continue;
-    		} else if (token.kind == TokenKind.ENUM) {
-    			// Really the beginning of a declaration, but do need to set the flag
-    			mods.flags |= Flags.ENUM;
-    			break;
-    		} else if (token.kind == TokenKind.ENUM || token.kind == TokenKind.INTERFACE) {
-    			// Really the beginning of a declaration, but do need to set the flag
-    			mods.flags |= Flags.INTERFACE;
-    			break;
-    		} else if (S.jml() && isJmlModifier(token)) {
-            	ModifierKind mk = (ModifierKind)Extensions.findKeyword(token);
-            	JmlToken jt = new JmlToken(mk, token);
-            	jt.source = Log.instance(context).currentSourceFile();
-            	mods.jmlmods.add(jt);
-            	JmlAnnotation a = JmlTreeUtils.instance(context).addAnnotation(mods, jt, this);
-            	if (a != null) {
-            		if (firstpos == Position.NOPOS) {
-            			firstpos = mods.pos = token.pos;
-            		}
-            	}
-            	if (!mk.strict && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
-            		utils.warning(jt.pos,"jml.not.strict",mk.keyword);
-            	}
-            	if (firstpos == Position.NOPOS) firstpos = token.pos;
-//    		} else if (token.kind == TokenKind.RPAREN || token.kind == TokenKind.RPAREN) {
-//    			// Unexpected -- and other closing punctuation
-//    			break;
-//    		} else if (token.kind == TokenKind.SEMI) {
-//    			// Empty statement -- should be no modifiers
-//    			break;
-//    		} else if (token.kind == TokenKind.EOF) {
-//    			// Unexpected end of file
-    		} else {
-    			var p = token.pos;
-    			boolean inJML = S.jml();
-    			var saved = mods.anyModsInJava;
-    			mods = (JmlModifiers)super.modifiersOpt(mods);
-    			//System.out.println("MODOPT " + token + " " + (p!=token.pos) + " "  + inJML + " " + S.jml() + " " + mods);
-    			if (p != token.pos) {
-    				// read something
-    				mods.anyModsInJava = saved || !inJML;
-                	if (firstpos == Position.NOPOS) firstpos = mods.pos = p;
-    				// already advanced
-    				continue;
-    			} else {
-    				mods.anyModsInJava = saved;
-    				// nothing read -- so no more modifiers of any kind
+        int firstpos = Position.NOPOS;
+        //System.out.println("INITIAL " + firstpos);
+        JmlModifiers mods = (JmlModifiers)(partial == null ? jmlF.at(Position.NOPOS).Modifiers(0L) : partial);
+        while (true) {
+            if (acceptStartJML()) {
+                continue;
+            } else if (acceptEndJML()) {
+                continue;
+            } else if (token.kind == TokenKind.ENUM) {
+                // Really the beginning of a declaration, but do need to set the flag
+                mods.flags |= Flags.ENUM;
+                break;
+            } else if (token.kind == TokenKind.ENUM || token.kind == TokenKind.INTERFACE) {
+                // Really the beginning of a declaration, but do need to set the flag
+                mods.flags |= Flags.INTERFACE;
+                break;
+            } else if (S.jml() && isJmlModifier(token)) {
+                ModifierKind mk = (ModifierKind)Extensions.findKeyword(token);
+                JmlToken jt = new JmlToken(mk, token);
+                jt.source = Log.instance(context).currentSourceFile();
+                mods.jmlmods.add(jt);
+                if (!mk.isTypeAnnotation()) {
+                    JmlAnnotation a = JmlTreeUtils.instance(context).addAnnotation(mods, jt, this);
+                    if (a != null) {
+                        if (firstpos == Position.NOPOS) {
+                            firstpos = mods.pos = token.pos;
+                        }
+                    }
+                }
+                if (!mk.strict && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+                    utils.warning(jt.pos,"jml.not.strict",mk.keyword);
+                }
+                if (firstpos == Position.NOPOS) firstpos = token.pos;
+                //    		} else if (token.kind == TokenKind.RPAREN || token.kind == TokenKind.RPAREN) {
+                //    			// Unexpected -- and other closing punctuation
+                //    			break;
+                //    		} else if (token.kind == TokenKind.SEMI) {
+                //    			// Empty statement -- should be no modifiers
+                //    			break;
+                //    		} else if (token.kind == TokenKind.EOF) {
+                //    			// Unexpected end of file
+            } else {
+                var p = token.pos;
+                boolean inJML = S.jml();
+                var saved = mods.anyModsInJava;
+                var jmods = mods.jmlmods;
+                mods = (JmlModifiers)super.modifiersOpt(mods);
+                mods.jmlmods.addAll(0,jmods);
+                //System.out.println("MODOPT " + token + " " + (p!=token.pos) + " "  + inJML + " " + S.jml() + " " + mods);
+                if (p != token.pos) {
+                    // read something
+                    mods.anyModsInJava = saved || !inJML;
+                    if (firstpos == Position.NOPOS) firstpos = mods.pos = p;
+                    // already advanced
+                    continue;
+                } else {
+                    mods.anyModsInJava = saved;
+                    // nothing read -- so no more modifiers of any kind
                     //System.out.println("MODOPT-A " + token + " " + inJML + " " + S.jml() + " " +  mods);
-    				while (acceptEndJML()) {}
+                    while (acceptEndJML()) {}
                     //System.out.println("MODOPT-B " + token + " " + inJML + " " + S.jml() + " "  + mods);
-    			    break;
-    			}
-    		}
-    		nextToken();
-    	}
-    	mods.pos = partial == null ? firstpos : partial.pos;
+                    break;
+                }
+            }
+            nextToken();
+        }
+        mods.pos = partial == null ? firstpos : partial.pos;
         storeEnd(mods, firstpos != Position.NOPOS ? S.prevToken().endPos: partial != null ? endPosTable.getEndPos(partial) : Position.NOPOS);
         //System.out.println("MODS " + token() + " " + S.token(1) + " " + startJml + " " + S.jml() + " " + mods.pos + " " + S.prevToken().endPos + " : " + mods);
         //if (token().toString().equals("class") && S.token(1).toString().equals("Object")) Utils.dumpStack();

@@ -18,8 +18,7 @@ public class esc1 extends EscBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        addOptions("-nullableByDefault"); // Because the tests were written
-                                                // this way
+        addOptions("--nullable-by-default"); // Because the tests were written this way
         addOptions("-code-math=bigint","-spec-math=bigint");
         addOptions("-no-require-white-space");
         // addOptions("-trace");
@@ -105,80 +104,80 @@ public class esc1 extends EscBase {
     // It gave trouble because the specs were missing
     @Test
     public void testGen() {
-        helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
-
-                + "  public void m1() {\n" + "    Integer a = Integer.valueOf(0);\n" + "  }\n"
-
-                + "}");
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    public void m1() {
+                        Integer a = Integer.valueOf(0);
+                     }
+                }
+                """
+                );
     }
 
     @Test
     public void testForEachA() {
-        helpTCX("tt.TestJava", "package tt; \n" 
-                + "public class TestJava { \n"
+        helpTCX("tt.TestJava", 
+                """
+                package tt;
+                public class TestJava {
+                  public void m1() {
+                    long[] a = { 1,2,3,4};
+                    for (Long k: a) {
+                      //@ assert \\count >= 0; // OK
+                      //@ assert \\count < a.length; // OK
+                    } 
+                  }
+                  public void m3() { // Line 10
+                    long[] a = { 1,2,3,4}; 
+                    for (long k: a) { 
+                      //@ assert \\count >= 1; // BAD
+                    } 
+                  }
+                  public void m4() { 
+                    long[] a = { 1}; 
+                    long[] b = { 1,2};
+                    for (long k: a) { 
+                      //@ ghost int i = \\count; // OK
+                      //@ assert \\count >= 0; // OK
+                      for (long kk: b) { 
+                         //@ assert \\count < 2; // OK
+                      } 
+                      //@ assert \\count == i; // OK
+                    } 
+                  }
+                  public void m5() { 
+                    long[] a = { 1,2,3,4}; 
+                    long[] b = { 1,2}; // Line 30
+                    for (long k: a) { 
+                       //@ assert \\count == k-1; // OK
+                    } 
+                  }
+                  public void m6() { 
+                    long[] a = { 1,2,3,4};
+                    //@ loop_invariant \\count >= 0 && \\count <= a.length; // OK
+                    //@ decreases a.length - \\count; // OK
+                    for (long k: a) { 
+                    } // Line 40
+                  }
+                  public void m6ld() { 
+                    long[] a = { 1,2,3,4};
+                    //@ loop_invariant \\count >= 0 && \\count <= a.length; // OK
+                    //@ loop_decreases a.length - \\count; // OK
+                    for (long k: a) { 
+                    } 
+                  }
+                  public void m7x() { 
+                    long[] a = { 1,2,3,4}; // Line 50
+                    //@ decreases a.length - \\count - 2; // -1 on last iteration - BAD
+                    for (long k: a) { 
+                    } 
+                  }
 
-                + "  public void m1() {\n" 
-                + "    long[] a = { 1,2,3,4};\n" 
-                + "    for (Long k: a) {\n"
-                + "      //@ assert \\count >= 0;\n" // OK
-                + "      //@ assert \\count < a.length;\n" // OK
-                + "    }\n" 
-                + "  }\n"
-
-                + "  public void m3() {\n" // Line 10
-                + "    long[] a = { 1,2,3,4};\n" 
-                + "    for (long k: a) {\n" 
-                + "      //@ assert \\count >= 1;\n" // BAD
-                + "    }\n" 
-                + "  }\n"
-
-                + "  public void m4() {\n" 
-                + "    long[] a = { 1};\n" 
-                + "    long[] b = { 1,2};\n"
-                + "    for (long k: a) {\n" 
-                + "      //@ ghost int i = \\count;\n" // OK
-                + "      //@ assert \\count >= 0;\n" // OK
-                + "      for (long kk: b) {\n" 
-                + "         //@ assert \\count < 2;\n" // OK
-                + "      }\n" 
-                + "      //@ assert \\count == i;\n" // OK
-                + "    }\n" 
-                + "  }\n"
-
-                + "  public void m5() {\n" 
-                + "    long[] a = { 1,2,3,4};\n" 
-                + "    long[] b = { 1,2};\n" // Line 30
-                + "    for (long k: a) {\n" 
-                + "       //@ assert \\count == k-1;\n" // OK
-                + "    }\n" 
-                + "  }\n"
-
-                + "  public void m6() {\n" 
-                + "    long[] a = { 1,2,3,4};\n"
-                + "    //@ loop_invariant \\count >= 0 && \\count <= a.length;\n" // OK
-                + "    //@ decreases a.length - \\count;\n" // OK
-                + "    for (long k: a) {\n" 
-                + "    }\n" // Line 40
-                + "  }\n"
-
-                + "  public void m6ld() {\n" 
-                + "    long[] a = { 1,2,3,4};\n"
-                + "    //@ loop_invariant \\count >= 0 && \\count <= a.length;\n" // OK
-                + "    //@ loop_decreases a.length - \\count;\n" // OK
-                + "    for (long k: a) {\n" 
-                + "    }\n" 
-                + "  }\n"
-
-                + "  public void m7x() {\n" 
-                + "    long[] a = { 1,2,3,4};\n" // Line 50
-                + "    //@ decreases a.length - \\count - 2;\n" // -1 on last iteration - BAD
-                + "    for (long k: a) {\n" 
-                + "    }\n" 
-                + "  }\n"
-
-                + "  public TestJava() {}\n" 
-                + "}"
-
+                  public TestJava() {}
+                }
+                """
                 , "/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m3", 11
                 , "/tt/TestJava.java:51: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method m7x", 9
                 );

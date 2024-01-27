@@ -19488,7 +19488,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 
 		if (rac && that.suchThat) {
-			System.out.println("REP " + that.pos + " " + that.getStartPosition() + " " + utils.locationString(that, that.source()) + " " + that);
 			notImplemented(that, "relational represents clauses (\\such_that)", that.source());
 			return;
 		}
