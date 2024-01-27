@@ -61,7 +61,7 @@ public class racsystem extends RacBase {
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
                 );
     }
-    
+   
     /** Testing with getting a stack trace - Exception does not catch it */
     @Test
     public void testFile2a() {
@@ -70,19 +70,19 @@ public class racsystem extends RacBase {
         addOptions("--rac-show-source=none"); // FIXME fix comparisons so these all can be "line"
         helpTCX("tt.TestJava",
                 """
-                package tt; 
-                public class TestJava { 
+                package tt;
+                public class TestJava {
                     public static void main(String[] args) {
                         org.jmlspecs.runtime.Utils.useExceptions = true;
-                        try { 
-                            m(); 
-                        } catch (Exception e) { 
-                            System.out.println("CAUGHT ASSERTION"); 
+                        try {
+                            m();
+                        } catch (Exception e) {
+                            System.out.println("CAUGHT ASSERTION");
                             e.printStackTrace(System.out);
-                        } 
+                        }
                         System.out.println("END");
-                    } 
-                    /*@ signals (Exception e) false;*/ 
+                    }
+                    /*@ signals (Exception e) false;*/
                     static void m() {
                         int i = (new java.io.File("A")).compareTo((java.io.File)null);
                     }
@@ -154,7 +154,7 @@ public class racsystem extends RacBase {
         expectedRACExit = 0;
         expectedNotes = 0;
         helpTCX("tt.TestJava",
-        		"""
+                """
                 package tt;
                 public class TestJava {
                     public static void main(String[] args) {
@@ -185,7 +185,7 @@ public class racsystem extends RacBase {
         addOptions("--rac-show-source=line");
         rac = new String[]{jdk, "-Dorg.jmlspecs.openjml.racexitcode=5", "-esa", "-classpath", null, "tt.TestJava"};
         helpTCX("tt.TestJava",
-        		"""
+                """
                 package tt;
                 public class TestJava {
                     public static void main(String[] args) {
@@ -196,7 +196,7 @@ public class racsystem extends RacBase {
                         //@ assert false;
                     }
                 }
-                """                
+                """
                 ,"/tt/TestJava.java:8: verify: JML assertion is false"
                 ,"END"
                 ,"1 verification error"
@@ -208,10 +208,10 @@ public class racsystem extends RacBase {
         expectedNotes = 0;
         addOptions("--rac-show-source=none");
         helpTCX("tt.TestJava",
-        		"""
-        		package tt;
-        		public class TestJava {
-        		    public static void main(String[] args) {
+                """
+                package tt;
+                public class TestJava {
+                    public static void main(String[] args) {
                         try {
                             m();
                         } catch (Exception e) {

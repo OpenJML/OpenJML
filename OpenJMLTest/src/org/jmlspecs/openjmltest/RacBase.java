@@ -169,7 +169,7 @@ public abstract class RacBase extends JmlTestCase {
             }
 
             Log.instance(context).useSource(files.first());
-            
+
             int ex = main.compile(new String[]{"-d", destdir},files.toList()).exitCode;
             if (print) printDiagnostics();
             int observedMessages = collector.getDiagnostics().size() - expectedNotes;

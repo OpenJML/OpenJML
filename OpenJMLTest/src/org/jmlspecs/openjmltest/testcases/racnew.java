@@ -205,9 +205,9 @@ public class racnew extends RacBase {
         helpTCX("tt.TestJava",
                 """
                 package tt;
-                public class TestJava { 
-                    public static void main(String[] args) { 
-                        m(null,1); 
+                public class TestJava {
+                    public static void main(String[] args) {
+                        m(null,1);
                         System.out.println(\"END\");
                     }
                     static public void m(/*@ non_null*/ Object o, int i) {}
@@ -225,9 +225,9 @@ public class racnew extends RacBase {
     @Test public void testNonnullPostcondition() {
         helpTCX("tt.TestJava",
                 """
-                package tt; public class TestJava { 
+                package tt; public class TestJava {
                     public static void main(String[] args) {
-                        m(null,1);    
+                        m(null,1);
                         System.out.println(\"END\");
                     }
                     static public /*@ non_null*/Object m( /*@ nullable*/Object o, int i) { return null; }
@@ -1427,7 +1427,7 @@ public class racnew extends RacBase {
     @Test public void testInitially() {
         addMockFile("$A/tt/A.jml",
                 """
-                package tt; public class A { 
+                package tt; public class A {
                   //@ public initially i == 1;
                   //@ public initially j == 1;
                   //@ public invariant i == j;
@@ -1483,7 +1483,7 @@ public class racnew extends RacBase {
 
 
     @Test public void testConstraint() {
-        addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
+        addMockFile("$A/tt/A.jml","package tt; public class A { \n"
                 +"//@ constraint i == \\old(i)+1; \n "
                 +"void m(); \n"
                 +"}"
@@ -1510,7 +1510,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testHelper() {
-        addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
+        addMockFile("$A/tt/A.jml","package tt; public class A { \n"
                 +"//@ invariant i == 0; \n "
                 +"/*@ private helper */ void m(); \n"
                 +"}"
@@ -1549,7 +1549,7 @@ public class racnew extends RacBase {
                 );
 
     }
-    
+   
     @Test public void testModelField() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; //@ in i; \n "
@@ -1569,7 +1569,7 @@ public class racnew extends RacBase {
                 );
 
     }
-    
+   
     // FIXME - this results of this test are different when run standalone
     @Test public void testModelFieldST() {
         expectedNotes = 0;
@@ -1593,7 +1593,7 @@ public class racnew extends RacBase {
                 );
 
     }
-    
+   
     /** Duplicate represents */
     @Test public void testModelField1() {
         continueAnyway = true;
@@ -1615,11 +1615,11 @@ public class racnew extends RacBase {
                 );
 
     }
-    
+   
     // TODO - the following two tests fail when the compile policy is
     // SIMPLE instead of BY_TODO - for some reason the principal class
     // file (PA or QA) does not get written.
-    
+   
     /** Represents with super model field */
     @Test public void testModelField3() {
         continueAnyway = true; // That is, even though there are compile errors
@@ -1725,7 +1725,7 @@ public class racnew extends RacBase {
                 ,"END"
         );
     }
-    
+   
     /** Forall, exists quantifier */
     @Test public void testForallQuantifier() {
         helpTCX("tt.A","package tt; public class A { \n"
@@ -1739,7 +1739,7 @@ public class racnew extends RacBase {
                 ,"END"
         );
     }
-    
+   
     /** Forall, exists quantifier */
     @Test public void testForallQuantifier2() {
         helpTCX("tt.A","package tt; public class A { \n"
@@ -1753,7 +1753,7 @@ public class racnew extends RacBase {
                 ,"END"
         );
     }
-    
+   
     /** Forall, exists quantifier */
     @Test public void testForallQuantifier3() {
         helpTCX("tt.A","package tt; public class A { \n"
@@ -1769,7 +1769,7 @@ public class racnew extends RacBase {
                 ,"END"
         );
     }
-    
+   
     @Test public void testForallQuantifier4() {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "

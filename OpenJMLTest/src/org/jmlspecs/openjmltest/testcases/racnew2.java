@@ -34,10 +34,10 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testMods2() {
-    	expectedExit = 1;
+        expectedExit = 1;
         helpTCX("tt.TestJava",
-        		"""
-        		package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*;
+                """
+                package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*;
                 public class TestJava {
                     @NonNull  protected void m() {}
                     public static void main(String... args) {}
@@ -141,7 +141,7 @@ public class racnew2 extends RacBase {
 
     /** Tests new object in JML */
     @Test public void testNewObject2() {
-    	expectedExit = 1;
+        expectedExit = 1;
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  // @ assert (new TestJava()).m(15) == 16;\n" +
                 "  //@ assert (new TestJava() { public pure int m(int i) { return i + 2; } }).m(15) == 17;\n" +
@@ -157,8 +157,8 @@ public class racnew2 extends RacBase {
 //    /** Tests new object in JML */
 //    @Test public void testNewObject3() {
 //        helpTCX("tt.TestJava",
-//        		"""
-//        		package tt; public class TestJava {
+//                """
+//                package tt; public class TestJava {
 //                  public int k;
 //                  //@requires i > 0; ensures k == i;
 //                  public /*@ pure */ TestJava(int i) { k = i < 2 ? i : 5; }
@@ -174,7 +174,7 @@ public class racnew2 extends RacBase {
 //                    System.out.println(\"END\");
 //                  }
 //                }
-//        		"""
+//                """
 //                ,"TestJava - 1"
 //                ,"TestJava - 0"
 //                ,"/tt/TestJava.java:9: JML precondition is false" // caller check -- TestJava(0)
@@ -222,13 +222,12 @@ public class racnew2 extends RacBase {
     /** Test synchronized statement with null lock */
     @Test public void testSynchronized2() {
         expectedRACExit = 1;
-        helpTCX("tt.A",
-        		"""
-        		package tt;
-        		class A {
-        		    public static void main(String[] args) throws Exception {
-        		        new A().m();
-        		    }
+        helpTCX("tt.A",                """
+                package tt;
+                class A {
+                    public static void main(String[] args) throws Exception {
+                        new A().m();
+                    }
                     public void m() throws RuntimeException {
                         /*@ nullable*/ Object o = null;
                         int i;
@@ -236,7 +235,7 @@ public class racnew2 extends RacBase {
                     }
                 }
                 """
-        		,"/tt/A.java:9: verify: JML An object may be illegally null"
+                ,"/tt/A.java:9: verify: JML An object may be illegally null"
                 ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot enter synchronized block because \"<local4>\" is null"
                 ,"\tat tt.A.m(A.java:9)"
                 ,"\tat tt.A.main(A.java:4)"
@@ -838,7 +837,7 @@ public class racnew2 extends RacBase {
     @Test public void testLabel() {
         addOptions("--rac-show-source=source");
         helpTCX("tt.TestJava",
-        		"package tt; public class TestJava { /*@ assignable \\everything; */ public static void main(String[] args) { \n" +
+                "package tt; public class TestJava { /*@ assignable \\everything; */ public static void main(String[] args) { \n" +
                 " m(1); m(0); \n" +
                 " System.out.println(\"END\"); } static public int k = 0; \n" +
                 " /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */ \n" +
@@ -1386,8 +1385,8 @@ public class racnew2 extends RacBase {
 
     @Test public void testBoxingOnAssignmentOp() {
         helpTCX("tt.A",
-        		"""
-        		package tt; /*@ nullable_by_default*/ public class A { 
+                """
+                package tt; /*@ nullable_by_default*/ public class A {
                   public static void main(String[] args) {
                     try { Integer i = null; int k = 6;
                       k += i; //@ forbid // FIXME - why duplicate messages
@@ -1418,8 +1417,8 @@ public class racnew2 extends RacBase {
 
                     System.out.println(\"END\");
                   }
-        		}
-        		"""
+                }
+                """
                 ,"/tt/A.java:4: verify: JML Attempt to unbox a null object"
                 ,"/tt/A.java:4: verify: JML Attempt to unbox a null object"
                 ,"/tt/A.java:8: verify: JML Attempt to unbox a null object"
@@ -1484,7 +1483,7 @@ public class racnew2 extends RacBase {
                 +"try { Boolean i = false;\n"
                 +"boolean k = true && i;\n"
                 +"//@ assert k == false;\n} catch (Exception e) {}\n"
-                +"try { Boolean i = null;\n" 
+                +"try { Boolean i = null;\n"
                 +"boolean k = i && true; //@ forbid \n" // Null problem
                 +"//@ assert k == i;\n} catch (Exception e) {}\n"
                 +"try { Boolean i = false;\n"
@@ -1532,7 +1531,7 @@ public class racnew2 extends RacBase {
                 +"try { Boolean b = false;\n"
                 +"int i; if (b) i = 4; else i = 5;\n"
                 +"//@ assert i == 5;\n} catch (Exception e) {}\n"
-
+                
                 +"System.out.println(\"END\"); \n"
                     +"}}"
                     ,"/tt/A.java:6: JML Attempt to unbox a null object"
@@ -1557,9 +1556,9 @@ public class racnew2 extends RacBase {
                 package tt; /*@ nullable_by_default*/ public class A {
                   public static int unbox(int i) { return i;}
                   public static Integer box(Integer i) { return i;}
-                  public static Integer i = 6; 
+                  public static Integer i = 6;
                   public static int j = i;
-                  static { //@ assert j == 6; 
+                  static { //@ assert j == 6;
                   }
                   static { Integer k = 6; int m = k; //@ assert m == 6;
                   }
@@ -1606,7 +1605,7 @@ public class racnew2 extends RacBase {
                 +"  case \"abc\": k = 2; break;\n"
                 +"  case \"def\": k = 3; break;\n"
                 +"  default: k = 4; break;\n"
-                +"}\n" 
+                +"}\n"
                 +"System.out.println(\"END \" + k); \n"
                     +"}}"
                     ,"END 2"
@@ -1614,9 +1613,9 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testStringSwitchNull() {
-    	expectedRACExit = 1;
+        expectedRACExit = 1;
         helpTCX("tt.A",
-        		 "package tt; /*@ nullable_by_default*/ public class A { \n"
+                 "package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"String s = null; int k = 0;\n"
                 +"{ switch (s) {\n"
@@ -1624,7 +1623,7 @@ public class racnew2 extends RacBase {
                 +"  case \"abc\": k = 2; break;\n"
                 +"  case \"def\": k = 3; break;\n"
                 +"  default: k = 4; break;\n"
-                +"} }\n" 
+                +"} }\n"
                 +"System.out.println(\"END \" + k); \n"
                     +"}}"
                 ,"/tt/A.java:4: verify: JML An object may be illegally null"
@@ -1659,7 +1658,7 @@ public class racnew2 extends RacBase {
                 +"  case B: k = 2; break;\n"
                 +"  case C: k = 3; break;\n"
                 +"  default: k = 4; break;\n"
-                +"}\n" 
+                +"}\n"
                 +"System.out.println(\"END \" + k); \n"
                     +"}}"
                     ,"END 2"
@@ -1668,11 +1667,11 @@ public class racnew2 extends RacBase {
 
 
     @Test public void testEnumSwitchNull() {
-    	expectedRACExit = 1;
+        expectedRACExit = 1;
         helpTCX("tt.A",
-        		"""
-        		package tt; /*@ nullable_by_default*/ public class A {
-                    enum E { A,B,C}; 
+                """
+                package tt; /*@ nullable_by_default*/ public class A {
+                    enum E { A,B,C};
                     public static void main(String[] args) {
                       E e = null; int k = 0;
                       { switch (e) {
@@ -1685,7 +1684,7 @@ public class racnew2 extends RacBase {
                       System.out.println("END " + k);
                    }
                  }
-        		"""
+                """
                 ,"/tt/A.java:5: verify: JML An object may be illegally null"
                 ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local6>\" is null"
                 ,"\tat tt.A.main(A.java:5)"
@@ -1695,9 +1694,9 @@ public class racnew2 extends RacBase {
 
     @Test public void testEnumSwitchNullCatch() {
         helpTCX("tt.A",
-        		"""
-        		package tt; /*@ nullable_by_default*/ public class A {
-                    enum E { A,B,C}; 
+                """
+                package tt; /*@ nullable_by_default*/ public class A {
+                    enum E { A,B,C};
                     public static void main(String[] args) {
                       E e = null; int k = 0;
                       try { switch (e) {
@@ -1710,7 +1709,7 @@ public class racnew2 extends RacBase {
                       System.out.println("END " + k);
                    }
                  }
-        		"""
+                """
                 ,"CAUGHT"
                 ,"END 0"
                 );

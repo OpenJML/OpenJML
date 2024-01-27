@@ -3,7 +3,7 @@ package org.jmlspecs.openjmltest.testcases;
 import org.jmlspecs.openjmltest.RacBase;
 import org.junit.Test;
 
-/** These tests exercise the RAC checking.  They compile a test class 
+/** These tests exercise the RAC checking.  They compile a test class
  * using RAC and then execute the resulting program, catching that
  * programs output.  All the tests here have valid JML - they are testing
  * whether the RAC translations work correctly.
@@ -134,9 +134,9 @@ public class racJML extends RacBase {
     @Test
     public void testLBLdouble() {
         helpTCX("tt.TestJava",
-        		"""
+                """
                 package tt;
-                public class TestJava { 
+                public class TestJava {
                   //  @ ensures (\\lbl INPUTX i) == \\result;
                   //@ ensures JML.lbl(\"INPUT\",i) == \\result;
                   public static double m(double i) { return i; }

@@ -41,7 +41,7 @@ public class racnew3 extends RacBase {
     /** Tests not_modified */
     @Test public void testNotModified2() {
         helpTCX("tt.TestJava",
-        		"package tt; import org.jmlspecs.annotation.*;  \n" +
+                "package tt; import org.jmlspecs.annotation.*;  \n" +
                 "public class TestJava { \n" +
                 "    int f = 5;\n" +
                 "    public static void main(String... args) {\n" +
@@ -62,7 +62,7 @@ public class racnew3 extends RacBase {
     /** Tests not_modified */
     @Test public void testNotModified3() {
         helpTCX("tt.TestJava",
-        		"package tt; import org.jmlspecs.annotation.*;  \n" +
+                "package tt; import org.jmlspecs.annotation.*;  \n" +
                 "public class TestJava { \n" +
                 "    int f = 5;\n" +
                 "    public static void main(String... args) {\n" +
@@ -83,7 +83,7 @@ public class racnew3 extends RacBase {
     /** Tests not_modified */
     @Test public void testNotModified4() {
         helpTCX("tt.TestJava",
-        		"package tt; import org.jmlspecs.annotation.*;  \n" +
+                "package tt; import org.jmlspecs.annotation.*;  \n" +
                 "public class TestJava { \n" +
                 "    int f = 5;\n" +
                 "    public static void main(String... args) {\n" +
@@ -107,7 +107,7 @@ public class racnew3 extends RacBase {
     public void testCast() {
         addOptions("-code-math=safe","-spec-math=safe");
         helpTCX("tt.TestJava",
-        		"package tt; \n"
+                "package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public static double d;\n"
@@ -185,7 +185,7 @@ public class racnew3 extends RacBase {
     @Test
     public void testCast1() {
         helpTCX("tt.TestJava",
-        		"package tt; \n"
+                "package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"    public static void main(String... args) {\n" 
@@ -315,7 +315,7 @@ public class racnew3 extends RacBase {
                 +"    mmm();\n" 
                 +"  }\n"
                  
-				+"}"
+                +"}"
                 );
 
     }
@@ -325,9 +325,9 @@ public class racnew3 extends RacBase {
     // If close throws an exception, flag == 10
     @Test public void testTryResources1x() {
         helpTCX("tt.TestJava",
-        		"""
-        		package tt; 
-                public class TestJava { 
+                """
+                package tt;
+                public class TestJava {
                     static public int flag = 0;
                     public static class RR implements AutoCloseable {
                        /*@ pure */ public RR(){}
@@ -343,10 +343,10 @@ public class racnew3 extends RacBase {
                        //@ assert TestJava.flag == 0;
                        try {
                            try (RR r = new RR()){
-                               flag = 2; 
+                               flag = 2;
                               //@ assert TestJava.flag == 2;
                            }
-                       } catch (Exception eee) { 
+                       } catch (Exception eee) {
                           //@ assert (\\lbl FLAG TestJava.flag) == 0 || TestJava.flag == 1|| TestJava.flag == 10;
                        }
                    }
@@ -394,7 +394,7 @@ public class racnew3 extends RacBase {
     
     // Checks that close calls execute in reverse order
     @Test public void testTryResources2() {
-    	addOptions("-racCheckAssumptions");
+        addOptions("-racCheckAssumptions");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
@@ -434,13 +434,13 @@ public class racnew3 extends RacBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2b() {
-    	addOptions("-racCheckAssumptions");
+        addOptions("-racCheckAssumptions");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-        		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
-        		+"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
-        		+"    public static class EE2 extends EE {/*@ public normal_behavior ensures true; */public EE2() {}}\n"
-        		+"    public static class EE3 extends EE {/*@ public normal_behavior ensures true; */public EE3() {}}\n"
+                +"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
+                +"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
+                +"    public static class EE2 extends EE {/*@ public normal_behavior ensures true; */public EE2() {}}\n"
+                +"    public static class EE3 extends EE {/*@ public normal_behavior ensures true; */public EE3() {}}\n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
                 +"       /*@ public normal_behavior ensures true; */ public RR() {}\n"
@@ -488,13 +488,13 @@ public class racnew3 extends RacBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2c() {
-    	addOptions("-racCheckAssumptions");
+        addOptions("-racCheckAssumptions");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-        		+"    public static class EE extends RuntimeException {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
-        		+"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
-        		+"    public static class EE2 extends EE {/*@ public normal_behavior ensures true; */public EE2() {}}\n"
-        		+"    public static class EE3 extends EE {/*@ public normal_behavior ensures true; */public EE3() {}}\n"
+                +"    public static class EE extends RuntimeException {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
+                +"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
+                +"    public static class EE2 extends EE {/*@ public normal_behavior ensures true; */public EE2() {}}\n"
+                +"    public static class EE3 extends EE {/*@ public normal_behavior ensures true; */public EE3() {}}\n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
                 +"       /*@ public normal_behavior ensures true; */ public RR() {}\n"
@@ -544,9 +544,9 @@ public class racnew3 extends RacBase {
     @Test public void testTryResources2a() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-        		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
-        		+"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
-        		+"    public static class EE2 extends EE {/*@ public normal_behavior ensures true; */public EE2() {}}\n"
+                +"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
+                +"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
+                +"    public static class EE2 extends EE {/*@ public normal_behavior ensures true; */public EE2() {}}\n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
                 +"       /*@ public normal_behavior ensures true; */ public RR() {}\n"
@@ -582,7 +582,7 @@ public class racnew3 extends RacBase {
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm();\n" 
+                +"    mmm();\n"
                 +"  }\n"
                  
                 +"}"
@@ -615,9 +615,9 @@ public class racnew3 extends RacBase {
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm();\n" 
+                +"    mmm();\n"
                 +"  }\n"
-                 
+                
                 +"}"
                 );
     }
@@ -651,7 +651,7 @@ public class racnew3 extends RacBase {
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm();\n" 
+                +"    mmm();\n"
                 +"  }\n"
                  
                 +"}"
