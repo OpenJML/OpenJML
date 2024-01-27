@@ -6137,6 +6137,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			st.pop();
 			// FIXME _ error if sts.isEmpty();
 		}
+		
+        public String toString() {
+            String s = "[ ";
+            for (var e: map.entrySet()) { s += e.getKey() + "->" + e.getValue() + " "; }
+            return s + "]";
+        }
+        
+        public String keysToString() {
+            String s = "[ ";
+            for (var e: map.entrySet()) { s += e.getKey() + " "; }
+            return s + "]";
+        }
 	}
 
 	protected LabelPropertyStore labelPropertiesStore = new LabelPropertyStore();
@@ -15900,7 +15912,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// However, for rac, we potentially modify each declaration, in order, so all
 			// declarations are scanned here.
 			for (JCTree t : that.defs) {
-				if (rac || t instanceof JmlClassDecl || t instanceof JmlMethodDecl) {
+				if (t instanceof JmlClassDecl 
+				        || t instanceof JmlMethodDecl
+				        || (rac && t instanceof JmlVariableDecl)
+				        ) {
 //                    if (org.jmlspecs.openjml.Utils.debug()) {
 //                    	System.out.println("JAA-visitJmlClassDecl-C " + that.sym + " " + t);
 //                    	if (t instanceof JmlMethodDecl) {
@@ -17518,7 +17533,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					var labelArg = that.args.size()>1?that.args.get(1):null;
 					Name evalStateLabel = normalizeLabel(labelArg, k == StateExpressions.preKind ? attr.preLabel : attr.oldLabel, that );
 					currentEnv.stateLabel = evalStateLabel;
-				//	System.out.println("LABEL " + evalStateLabel + " " + labelPropertiesStore.keySet())
 					LabelProperties lp = labelPropertiesStore.get(evalStateLabel);
 					that.labelProperties = lp;
 
@@ -18007,8 +18021,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			String s = label.toString();
 			if (Arrays.stream(attr.predefinedLabels).anyMatch(ss->ss.equals(s))) {
 				label = names.fromString("\\"+s);
-	//		} else if (s.charAt(0) == '\\') {
-	//		    // OK-- FIXME - why is this branch only needed for rac?
 			} else {
 				// This problem should have been found in JmlAttr
 				utils.error(arg!=null?arg:altpos, "jml.message", "Label " + label + " is not in scope here");
@@ -19353,29 +19365,30 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		result = null;
 	}
 
-	// OK
-	@Override
-	public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
-		try {
-			if (currentStatements == null) pushBlock();
-			JCModifiers mods = fullTranslation ? convert(that.modifiers) : that.modifiers;
-			JCExpression expr = convertExpr(that.expression);
-			JmlTypeClauseConstraint cl = M.at(that).JmlTypeClauseConstraint(mods, expr, convert(that.sigs));
-			cl.setType(that.type);
-			cl.source = that.source;
-			cl.clauseType = that.clauseType;
-			cl.notlist = that.notlist;
-			classDefs.add(cl);
-			result = cl;
-		} catch (JmlNotImplementedException e) {
-			notImplemented(that.keyword + " clause containing ", e, that.source());
-			result = null;
-		} finally {
-			if (currentStatements == null) {
-				popBlock();
-			}
-		}
-	}
+    // OK
+    @Override
+    public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) {
+        // FIXME - not sure that this should ever be called.
+        try {
+            if (currentStatements == null) pushBlock();
+            JCModifiers mods = fullTranslation ? convert(that.modifiers) : that.modifiers;
+            JCExpression expr = convertExpr(that.expression);
+            JmlTypeClauseConstraint cl = M.at(that).JmlTypeClauseConstraint(mods, expr, convert(that.sigs));
+            cl.setType(that.type);
+            cl.source = that.source;
+            cl.clauseType = that.clauseType;
+            cl.notlist = that.notlist;
+            classDefs.add(cl);
+            result = cl;
+        } catch (JmlNotImplementedException e) {
+            notImplemented(that.keyword + " clause containing ", e, that.source());
+            result = null;
+        } finally {
+            if (currentStatements == null) {
+                popBlock();
+            }
+        }
+    }
 
 	// OK - e.g. ghost or model declaration
 	@Override
