@@ -1,8 +1,8 @@
 OUT:
-$DEMO/src/openjml/purseMod/Terminal.java:111: verify: JML precondition is false
+#DEMO/src/openjml/purseMod/Terminal.java:111: verify: JML precondition is false
 		clearPin();
 		        ^
-$DEMO/src/openjml/purseMod/Terminal.java:154: verify: Associated declaration: $DEMO/src/openjml/purseMod/Terminal.java:111:
+#DEMO/src/openjml/purseMod/Terminal.java:154: verify: Associated declaration: #DEMO/src/openjml/purseMod/Terminal.java:111:
 	public void clearPin(){
 	            ^
 

@@ -84,7 +84,7 @@ public abstract class JmlTestCase {
     /** Replace aspects of expected output that depend on the local environment */
     public static String doReplacements(String s) {
         return s.replace("$ROOT",JmlTestCase.root).replace("$SPECS",specsdir).replace("$STRL", JmlTestCase.streamLine)
-        		.replaceAll("\\$DEMO", RacBase.OpenJMLDemoPath);
+        		.replaceAll("#DEMO", RacBase.OpenJMLDemoPath);
     }
     
     // FIXME - do not rely on eclipse

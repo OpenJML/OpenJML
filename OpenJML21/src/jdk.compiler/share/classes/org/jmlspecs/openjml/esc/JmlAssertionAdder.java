@@ -17518,6 +17518,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					var labelArg = that.args.size()>1?that.args.get(1):null;
 					Name evalStateLabel = normalizeLabel(labelArg, k == StateExpressions.preKind ? attr.preLabel : attr.oldLabel, that );
 					currentEnv.stateLabel = evalStateLabel;
+				//	System.out.println("LABEL " + evalStateLabel + " " + labelPropertiesStore.keySet())
 					LabelProperties lp = labelPropertiesStore.get(evalStateLabel);
 					that.labelProperties = lp;
 
@@ -18006,6 +18007,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			String s = label.toString();
 			if (Arrays.stream(attr.predefinedLabels).anyMatch(ss->ss.equals(s))) {
 				label = names.fromString("\\"+s);
+	//		} else if (s.charAt(0) == '\\') {
+	//		    // OK-- FIXME - why is this branch only needed for rac?
 			} else {
 				// This problem should have been found in JmlAttr
 				utils.error(arg!=null?arg:altpos, "jml.message", "Label " + label + " is not in scope here");

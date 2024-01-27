@@ -1,5 +1,5 @@
 OUT:
-test/sv_rac/sv_rac/Decimal.java:34: JML argument to numeric cast is out of range of the target type
+test/sv_rac/sv_rac/Decimal.java:34: verify: JML argument to numeric cast is out of range of the target type
     public static final short DECIMAL_OVERFLOW   = (short)0x9F15;
                                                    ^
 
