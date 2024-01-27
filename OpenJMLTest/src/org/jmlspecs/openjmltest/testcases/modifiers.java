@@ -1234,49 +1234,46 @@ public class modifiers extends TCBase {
 
     // FIXME
     @Test public void testBinaryMods() {
-        addMockFile("$A/java/lang/Object.jml",
-        		"package java.lang; public class Object {\n"
+        addMockFile("$A/java/lang/Math.jml",
+                "package java.lang; public final class Math {\n"
                 +"//@ spec_public spec_protected\n"
-                +"public boolean equals(Object o);}");
+                +"public int addExact(int x, int y);}");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  boolean m() { return new Object().equals(null); } }"
-                ,"/$A/java/lang/Object.jml:2: error: A declaration may not be both spec_public and spec_protected",17
-                ,"/$A/java/lang/Object.jml:2: warning: There is no point to a declaration being both public and spec_protected",17
-                ,"/$A/java/lang/Object.jml:2: warning: There is no point to a declaration being both public and spec_public",5
+                ,"/$A/java/lang/Math.jml:2: error: A declaration may not be both spec_public and spec_protected",17
+                ,"/$A/java/lang/Math.jml:2: warning: There is no point to a declaration being both public and spec_protected",17
+                ,"/$A/java/lang/Math.jml:2: warning: There is no point to a declaration being both public and spec_public",5
                 );
     }
     
     @Test public void testBinaryModsNN() {
-        addMockFile("$A/java/lang/Object.jml",
-        		"package java.lang; /*@ non_null */ public class Object {\n"
-                +"public boolean equals(Object o);}");
+        addMockFile("$A/java/lang/Math.jml",
+                "package java.lang; /*@ non_null */ public class Math {\n"
+                +"public int addExact(int x, int y);}");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
-                "  boolean m() { return new Object().equals(null); } }"
-                ,"/$A/java/lang/Object.jml:1: error: This JML modifier is not allowed for a type declaration",24
+                "  boolean m() {  int i = Math.addExact(5,6); } }"
+                ,"/$A/java/lang/Math.jml:1: error: The type java.lang.Math in the specification matches a Java type with different modifiers: final", 43
+                ,"/$A/java/lang/Math.jml:1: error: This JML modifier is not allowed for a type declaration",24
                 );
     }
     
     // Checking for missing package declaration
     @Test public void testBinaryPackage1() {
-        addMockFile("$A/java/lang/Object.jml",
-        		"public class Object {\n"
-                +"\n"
-                +"public boolean equals(Object o);}");
+        addMockFile("$A/java/lang/Math.jml",
+                "public class Math {}\n");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
-                "  boolean m() { return new Object().equals(null); } }"
-                ,"/$A/java/lang/Object.jml:1: error: Specification package does not match Java package: unnamed package vs. java.lang",2
+                "  boolean m() {  int i = Math.addExact(5,6); } }"
+                ,"/$A/java/lang/Math.jml:1: error: Specification package does not match Java package: unnamed package vs. java.lang",2
                 );
     }
     
     // Checking for incorrect package declaration
     @Test public void testBinaryPackage2() {
-        addMockFile("$A/java/lang/Object.jml",
-        		"  package java.utils; \n public class Object {\n"
-                +"//@ spec_public spec_protected\n"
-                +"public boolean equals(Object o);}");
+        addMockFile("$A/java/lang/Math.jml",
+        		"  package java.utils; \n public class Math {}\n");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
-                "  boolean m() { return new Object().equals(null); } }"
-                ,"/$A/java/lang/Object.jml:1: error: Specification package does not match Java package: java.utils vs. java.lang",3
+                "  boolean m() {  int i = Math.addExact(5,6); } }"
+                ,"/$A/java/lang/Math.jml:1: error: Specification package does not match Java package: java.utils vs. java.lang",3
                 );
     }
     
