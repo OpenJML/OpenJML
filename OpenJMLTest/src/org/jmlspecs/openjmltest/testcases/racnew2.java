@@ -1553,7 +1553,7 @@ public class racnew2 extends RacBase {
     @Test public void testBoxingClass() {
         expectedRACExit = 1;
         helpTCX("tt.A",
-        		"""
+                """
                 package tt; /*@ nullable_by_default*/ public class A {
                   public static int unbox(int i) { return i;}
                   public static Integer box(Integer i) { return i;}

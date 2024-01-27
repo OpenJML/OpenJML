@@ -28,6 +28,9 @@
 ### It also performs some sanity checks on make.
 ###
 
+### OPENJML: This file is slightly modified to craete make targets for openjml
+### See the material following the comment line below
+
 # The shell code below will be executed on /usr/bin/make on Solaris, but not in GNU Make.
 # /usr/bin/make lacks basically every other flow control mechanism.
 .TEST_FOR_NON_GNUMAKE:sh=echo You are not using GNU Make/gmake, this is a requirement. Check your path. 1>&2 && exit 1
@@ -65,17 +68,39 @@ include $(topdir)/make/Init.gmk
 
 #### Additions for building OpenJML in the GitHub actions
 
-REL=release-temp
+## This Makefile assumes that the OpenJML, JMLAnnotations, Specs, openjml.github.io, OpenJML_Demo, Solvers
+## repos are cloned into sibling folders under one common folder
+## I expect this Makefile and auxiliary scrip0ts to fail if there are spaces in folder and file paths
+
+## A temporary folder (relative to the location of the Makefile) used to stage materials in assembling a release
+TEMP=release-temp
+
+## A temporary folder (relative to the location of the Makefile) used to stage materials in assembling jmlruntime.jar
+## Must be a simple name, not a multi-segment path
+TEMPLIB=templib
+
+## A permanent folder that holds auxiliary material to be included in a release
+RELFILES=release-files
 
 ## Used in the github build.yml action
 
-release: clean version-info openjml jmlruntime.jar tutorial post
+## Builds a full release. Modify (and commit) ../version.txt to set the version number builtin to the release
+## Note that the openjml.zip file produced by a release is specific to a particular machine architecture
+release: .FORCE
+	make clean
+	make version-info
+	make openjml
+	make jmlruntime.jar
+	make tutorial
+	make post
 
-version: .FORCE
+--version: .FORCE
 	@ if [ ! -e ../version.txt ]; then echo "No version.txt file"; else echo "Building version" `cat ../version.txt`; fi
 	@ ./version.sh
 
-version-info: version
+## Creates the version-info.txt file, containing the public version number (from ../version.txt) and the commit shas
+## of the commit points compiled into the release.
+version-info: --version
 	@ rm -f version-info.txt
 	@ cat ../version.txt > version-info.txt
 	@ echo "OpenJML" `git rev-parse HEAD` >> version-info.txt
@@ -84,42 +109,51 @@ version-info: version
 	@ (cd ../../Solvers; echo Solvers `git rev-parse HEAD` ) >> version-info.txt
 	@ (cd ../../openjml.github.io; echo openjml.github.io `git rev-parse HEAD` ) >> version-info.txt
 	@ cat version-info.txt
-	@ mv version-info.txt release-files
+	@ mv version-info.txt $(RELFILES)
 
+## Updates the tutorial files into the releasex`
 tutorial: .FORCE
-	rm -rf release-files/tutorial
-	mkdir release-files/tutorial
-	cp -pR ../../openjml.github.io/tutorial/*.java ../../openjml.github.io/tutorial/*.out release-files/tutorial
+	rm -rf $(RELFILES)/tutorial
+	mkdir $(RELFILES)/tutorial
+	cp -pR ../../openjml.github.io/tutorial/*.java ../../openjml.github.io/tutorial/*.out $(RELFILES)/tutorial
 
+## Copies current annotation files into the development code
 annotation: .FORCE
 	cp -pR ../../JMLAnnotations/src/org  src/java.base/share/classes
 
+## Assembles all the components of a release into an openjml.zip file for the host OS. Presumes a build has been successful.
+## (Could delete $(TEMP) when finished, but we don't to make it easier to check the contents of the result
 post: .FORCE
-	rm -rf $(REL)
-	mkdir $(REL)
-	cp -pRL jmlruntime.jar $(REL)
-	cp -pRL build/*release/jdk $(REL)
+	rm -rf $(TEMP)
+	mkdir $(TEMP)
+	cp -pRL jmlruntime.jar $(TEMP)
+	cp -pRL build/*release/jdk $(TEMP)
 	if [ `uname` = 'Darwin' ]; then echo Mac ; export S=macos ; elif [ `uname` = 'Linux' ]; then echo Linux; export S=linux ; else echo Win; export S=windows ; fi ;\
-	cp -pR ../../Solvers/Solvers-$$S $(REL)
-	cp -pR ../../Specs/specs $(REL)
-	cp -pR release-files/* $(REL)
-	chmod ugo+x $(REL)/openjml
-	chmod ugo+x $(REL)/openjml-java
-	(cd $(REL); zip -qr ./openjml.zip * )
+	cp -pR ../../Solvers/Solvers-$$S $(TEMP)
+	cp -pR ../../Specs/specs $(TEMP)
+	cp -pR $(RELFILES)/* $(TEMP)
+	chmod ugo+x $(TEMP)/openjml
+	chmod ugo+x $(TEMP)/openjml-java
+	(cd $(TEMP); zip -qr ./openjml.zip * )
 
+## Smoke test of a newly constructed release
 trial: .FORCE
-	$(REL)/openjml -version
-	$(REL)/openjml -esc -progress $(REL)/demos/Max.java
+	$(TEMP)/openjml -version
+	$(TEMP)/openjml -esc -progress $(TEMP)/demos/Max.java
 
-# Tests the most recently created release (release-temp/openjml.zip)
+## Tests the most recently created release (release-temp/openjml.zip)
 release-test: .FORCE
 	@ $(topdir)/../OpenJMLTest/releaseTests/runtests
 
 ## Development build targets
 
+## Builds the openjml executable (without updating version, annotation and tutorial files)
 openjml: .FORCE
 	NOJML= make
 
+## Updates the smt code from the jSMTLIB repo 
+## The repo must be cloned locally and resident at ../../../jSMTLIB relative to the folder holding this Makefile
+## This action is rarely needed
 smt:
 	if [ -e $(mkfile_dir)/../../../jSMTLIB/SMT ]; then \
 	    cp -Rp $(mkfile_dir)/../../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; \
@@ -127,19 +161,20 @@ smt:
 	    cp -Rp $(mkfile_dir)/../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; \
 	fi
 
+## Builds the jmlruntime.jar, which holds classes needed for running rac
 jmlruntime.jar: .FORCE
-	@rm -rf templib
-	@mkdir templib
-	@mkdir -p templib/org/jmlspecs/runtime
-	@mkdir -p templib/org/jmlspecs/annotation
-	@cp build/*/jdk/modules/java.base/org/jmlspecs/runtime/*.class templib/org/jmlspecs/runtime
+	@rm -rf $(TEMPLIB)
+	@mkdir $(TEMPLIB)
+	@mkdir -p $(TEMPLIB)/org/jmlspecs/runtime
+	@mkdir -p $(TEMPLIB)/org/jmlspecs/annotation
+	@cp build/*/jdk/modules/java.base/org/jmlspecs/runtime/*.class $(TEMPLIB)/org/jmlspecs/runtime
 	@ ## Annotations are generally not needed at runtime, but they are included just in case one is executed in the future
-	@cp build/*/jdk/modules/java.base/org/jmlspecs/annotation/*.class templib/org/jmlspecs/annotation
-	@touch templib/JMLRUNTIME_MARKER
+	@cp build/*/jdk/modules/java.base/org/jmlspecs/annotation/*.class $(TEMPLIB)/org/jmlspecs/annotation
+	@touch $(TEMPLIB)/JMLRUNTIME_MARKER
 	@## jmlruntime.jar has bin-runtime, the annotations, and the marker file JMLRUNTIME_MARKER
 	@## If Java is incorrectly setup, the jar command fails - so we check it this first time
-	@(cd templib; jar -cf ../jmlruntime.jar . ) || exit 1
-	@rm -rf templib
+	@(cd $(TEMPLIB); jar -cf ../jmlruntime.jar . ) || exit 1
+	@rm -rf $(TEMPLIB)
 	@echo "   " jmlruntime.jar created
 
 ## Misc helpful targets
@@ -147,14 +182,16 @@ jmlruntime.jar: .FORCE
 clean-release:
 	make clean dist-clean
 	rm -rf $(makefile_path)/html
-	rm -rf $(REL)
+	rm -rf $(TEMP)
 
-release-image: version
+release-image:
+	make --version
 	bash ./configure > log-release
 	NOJML= make images > log-release-make 2>&1
 	make post
 
-release-quiet: version
+release-quiet:
+	make --version
 	bash ./configure > log-release
 	NOJML= make > log-release-make 2>&1
 	make post

@@ -1,17 +1,18 @@
 #!/bin/bash
 
 ## This is for the development environment
+## It is a convenience executable to run openjml from the build within the OpenJML21 build structure
+## openjml is the embellished versino of javac
+
+## The definition of BIN below presumes that only one development target has been built
 
 R1=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks; R1 will be the path to this file
-R2=$(dirname "$R1") # path containing this file
+R2=$(dirname "$R1") # path of the folder containing this file
 R=$( cd "$R2/../.."  && pwd) ## absolute path, still might have spaces
 
 ##OS=linux ## macosx linux windows aix
 ROOT="$R/OpenJML/OpenJML21"
 BIN=`echo $ROOT/build/*/jdk/bin/javac`
-##SP=$ROOT/src/java.base/share/classes:$ROOT/build/*-server-release/support/gensrc/java.base:$ROOT/src/java.base/$OS/classes:$ROOT/src/java.base/unix/classes
-##AM="--add-modules jdk.compiler,java.base"
 
-##$BIN "$@"
 OPENJML_ROOT="$R/Solvers" $BIN "$@"
 
