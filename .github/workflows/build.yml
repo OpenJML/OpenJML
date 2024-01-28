@@ -32,7 +32,6 @@ jobs:
 
   build:
     runs-on: ${{ matrix.os }}
-    ##needs: prepare
     strategy:
       matrix:
         ## FIXME: Figure out how to share this matrix with the upload job below
@@ -44,12 +43,6 @@ jobs:
     - name: Manually sync certs
       if: runner.os == 'Linux'
       run: cert-sync /etc/ssl/certs/ca-certificates.crt
-    - name: Wait for prepare
-      uses: yogeshlonkar/wait-for-jobs@v0
-      with:
-        gh-token: ${{ secrets.GITHUB_TOKEN }}
-        jobs: prepare 
-
     - name: MacOSX additions
       if: runner.os == 'MacOS'
       run: |
@@ -101,7 +94,15 @@ jobs:
       run: |
         make -C OpenJML/$FOLDER release-test
 
-    ## FIXME: Only need 'prepare' to have concluded by this point in the job
+    ## Only need 'prepare' to have concluded by this point in the job
+    - name: Wait for prepare
+      uses: yogeshlonkar/wait-for-jobs@v0
+      with:
+        gh-token: ${{ secrets.GITHUB_TOKEN }}
+        jobs: prepare 
+        interval: '2000'
+        ttl: '10'
+
 
     - name: Copy OpenJML build into GitHub release
       run: |
