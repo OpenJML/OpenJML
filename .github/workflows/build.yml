@@ -96,7 +96,7 @@ jobs:
 
   upload:
     runs-on: ${{ matrix.os }}
-    needs: prepare, build
+    needs: [ prepare, build ]
 
     strategy:
       matrix:
