@@ -43,6 +43,13 @@ jobs:
     - name: Manually sync certs
       if: runner.os == 'Linux'
       run: cert-sync /etc/ssl/certs/ca-certificates.crt
+    - name: Wait for prepare to conclude
+      uses: lewagon/wait-on-check-action@v1.3.1
+      with:
+        ref: master
+        check-name: prepare
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        wait-interval: 1000
     - name: MacOSX additions
       if: runner.os == 'MacOS'
       run: |
@@ -93,13 +100,8 @@ jobs:
     - name: Test the release
       run: |
         make -C OpenJML/$FOLDER release-test
-    - name: Wait for tests to succeed
-      uses: lewagon/wait-on-check-action@v1.3.1
-      with:
-        ref: master
-        check-name: prepare
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        wait-interval: 1000
+
+
     - name: Copy OpenJML build into GitHub release
       run: |
         cd OpenJML
