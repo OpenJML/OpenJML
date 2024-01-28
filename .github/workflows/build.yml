@@ -32,7 +32,7 @@ jobs:
 
   build:
     runs-on: ${{ matrix.os }}
-    needs: prepare
+    ##needs: prepare
     strategy:
       matrix:
         ## FIXME: Figure out how to share this matrix with the upload job below
@@ -94,6 +94,12 @@ jobs:
     - name: Test the release
       run: |
         make -C OpenJML/$FOLDER release-test
+
+    - name: Wait for prepare
+      uses: yogeshlonkar/wait-for-jobs@v0
+      with:
+        gh-token: ${{ secrets.GITHUB_TOKEN }}
+        jobs: prepare 
 
     ## FIXME: Only need 'prepare' to have concluded by this point in the job
 
