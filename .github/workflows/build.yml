@@ -93,18 +93,13 @@ jobs:
     - name: Test the release
       run: |
         make -C OpenJML/$FOLDER release-test
-
-  upload:
-    runs-on: ${{ matrix.os }}
-    needs: [ prepare, build ]
-
-    strategy:
-      matrix:
-        os: [macos-14, ubuntu-22.04, macos-13, ubuntu-20.04]
-
-      fail-fast: false
-
-    steps:
+    - name: Wait for tests to succeed
+      uses: lewagon/wait-on-check-action@v1.3.1
+      with:
+        ref: master
+        check-name: prepare
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        wait-interval: 1000
     - name: Copy OpenJML build into GitHub release
       run: |
         cd OpenJML
