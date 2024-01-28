@@ -10,7 +10,7 @@ fi
 R2=$(dirname "$R1")      # Gets directory holding this file
 ROOT=$( cd "$R2" && pwd) # Converts to absolute path
 
-# mac-setup is needed to fix Mac security cmplaints, though it is only
+# mac-setup is needed to fix Mac security complaints, though it is only
 # needed once
 if [ "$( uname )" = "Darwin" ] ; then 
   "${ROOT}/mac-setup" > /tmp/openjmlsetup 2>&1 ; 
