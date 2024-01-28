@@ -12,19 +12,31 @@ env:
   FOLDER: OpenJML21
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout OpenJML
+      run: |
+        git config --global core.autocrlf input
+        git clone -b $BRANCH --depth 1 https://github.com/OpenJML/OpenJML
+    - name: Create the GitHub release
+      ## Do this just once -- not for every element of the matrix
+      run: |
+        cd OpenJML
+        export ver=`cat version.txt`
+        echo Version $ver
+        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"master-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
+        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
+        echo Created release with id $id
+
   build:
     runs-on: ${{ matrix.os }}
+    needs: prepare
 
     strategy:
       matrix:
-        ## Note that the GitHub realease needs to be created by one job
-        ## before each job can populate the release with the OpenJML build
-        ## for the corresponding OS. At present ubuntu-22.04 is used so
-        ## it must be in matrix.os
-        ## TODO: Windows jobs fail 
-        ##os: [ubuntu-latest]
-        ##os: [ubuntu-latest, windows-latest, ubuntu-16.04]
-        ##os: [ubuntu-latest, windows-latest, macos-latest]
+        ## FIXME: Figure out how to share this matrix with the upload job below
+        ## Until then, keep the two in synch
         os: [ubuntu-22.04, macos-13, ubuntu-20.04, macos-14]
 
       fail-fast: false
@@ -82,16 +94,20 @@ jobs:
     - name: Test the release
       run: |
         make -C OpenJML/$FOLDER release-test
-    - name: Create the GitHub release
-      ## Do this for just one element of the matrix
-      if: matrix.os == 'ubuntu-22.04'
-      run: |
-        cd OpenJML
-        export ver=`cat version.txt`
-        echo Version $ver
-        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"master-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
-        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
-        echo Created release with id $id
+
+  upload:
+    runs-on: ${{ matrix.os }}
+    needs: prepare, build
+
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, macos-13, ubuntu-20.04, macos-14]
+
+      fail-fast: false
+    steps:
+    - name: Manually sync certs
+    needs: prepare
+    steps:
     - name: Copy OpenJML build into GitHub release
         # Here we get the id of the most recent release, which should have been created by now by one of the jobs
         # Race problem: if a new relesae build is started before a previous one has completed, the earlier build will get the id of the later release and
