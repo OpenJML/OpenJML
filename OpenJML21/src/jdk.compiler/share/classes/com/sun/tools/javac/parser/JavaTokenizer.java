@@ -1066,7 +1066,7 @@ public class JavaTokenizer extends UnicodeReader {
                         // success of accept and skipToEOLN
                         tk = null;
                         comments = appendComment(comments, processComment(pos, position(), CommentStyle.LINE));
-                        if (tk == TokenKind.CUSTOM) break loop;
+                        if (tk == TokenKind.CUSTOM) break loop;  // OPENJML
                         break;
                     } else if (accept('*')) { // (Spec. 3.7)
                         boolean isEmpty = false;
@@ -1096,7 +1096,7 @@ public class JavaTokenizer extends UnicodeReader {
 
                         if (accept('/')) {
                             comments = appendComment(comments, processComment(pos, position(), style));
-
+                            if (tk == TokenKind.CUSTOM) break loop;  // OPENJML
                             break;
                         } else {
                             lexError(pos, Errors.UnclosedComment);

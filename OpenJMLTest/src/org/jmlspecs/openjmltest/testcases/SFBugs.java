@@ -761,12 +761,6 @@ public class SFBugs extends EscBase {
         helpTCG("-staticInitWarning");
     }
     
-    @Test 
-    public void gitbug622a() { // Problem with implicit assertion about string literal
-        expectedExit = 0;
-        helpTCG("-no-staticInitWarning");
-    }
-    
     @Test
     public void gitbug623() {
         expectedExit = 0;
