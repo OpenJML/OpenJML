@@ -116,6 +116,7 @@ public class TypeEnter implements Completer {
     private final Dependencies dependencies;
     private final ParserFactory parserFactory;
     private final Preview preview;
+    private Context context; // OPENJML
 
     public static TypeEnter instance(Context context) {
         TypeEnter instance = context.get(typeEnterKey);
@@ -126,6 +127,7 @@ public class TypeEnter implements Completer {
 
     @SuppressWarnings("this-escape")
     protected TypeEnter(Context context) {
+        this.context = context; // OPENJML
         context.put(typeEnterKey, this);
         names = Names.instance(context);
         enter = Enter.instance(context);
@@ -726,7 +728,9 @@ public class TypeEnter implements Completer {
             // Determine supertype.
             Type supertype;
             JCExpression extending;
-
+            
+            var save = org.jmlspecs.openjml.Utils.isJML() && ((JmlResolve)Resolve.instance(context)).allowJML(); // OPENJML
+            if (org.jmlspecs.openjml.Utils.isJML() && org.jmlspecs.openjml.Utils.instance(context).isJML(sym.flags())) ((JmlResolve)Resolve.instance(context)).setAllowJML(true); // OPENJML
             if (tree.extending != null) {
                 extending = clearTypeParams(tree.extending);
                 supertype = attr.attribBase(extending, baseEnv, true, false, true);
@@ -772,6 +776,7 @@ public class TypeEnter implements Completer {
                 ct.all_interfaces_field = (all_interfaces == null)
                         ? ct.interfaces_field : all_interfaces.toList();
             }
+            if (org.jmlspecs.openjml.Utils.isJML()) ((JmlResolve)Resolve.instance(context)).setAllowJML(save); // OPENJML
         }
             //where:
             protected JCExpression clearTypeParams(JCExpression superType) {
