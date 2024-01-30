@@ -1333,6 +1333,10 @@ public class JmlParser extends JavacParser {
     
     List<JCAnnotation> savedTypeAnnotations = null;
 
+//    public JCExpression parseType(boolean allowVar, List<JCAnnotation> annotations) {
+//        replacementType = parseOptionalReplacementType();
+//        return super.parseType(allowVar, annotations);
+//    }
 
     public JCExpression parseOptionalReplacementType() {
         JCExpression r = null;
@@ -2180,7 +2184,6 @@ public class JmlParser extends JavacParser {
     @Override
     public JmlModifiers modifiersOpt(JCModifiers partial) {
     	int firstpos = Position.NOPOS;
-    	//System.out.println("INITIAL " + firstpos);
     	JmlModifiers mods = (JmlModifiers)(partial == null ? jmlF.at(Position.NOPOS).Modifiers(0L) : partial);
     	while (true) {
     		if (acceptStartJML()) {
@@ -2210,14 +2213,14 @@ public class JmlParser extends JavacParser {
             		utils.warning(jt.pos,"jml.not.strict",mk.keyword);
             	}
             	if (firstpos == Position.NOPOS) firstpos = token.pos;
-//    		} else if (token.kind == TokenKind.RPAREN || token.kind == TokenKind.RPAREN) {
-//    			// Unexpected -- and other closing punctuation
-//    			break;
-//    		} else if (token.kind == TokenKind.SEMI) {
-//    			// Empty statement -- should be no modifiers
-//    			break;
-//    		} else if (token.kind == TokenKind.EOF) {
-//    			// Unexpected end of file
+//    	    } else if (token.kind == TokenKind.RPAREN || token.kind == TokenKind.RPAREN) {
+//                // Unexpected -- and other closing punctuation
+//                break;
+//            } else if (token.kind == TokenKind.SEMI) {
+//                // Empty statement -- should be no modifiers
+//                break;
+//            } else if (token.kind == TokenKind.EOF) {
+//                // Unexpected end of file
             } else {
                 var p = token.pos;
                 boolean inJML = S.jml();

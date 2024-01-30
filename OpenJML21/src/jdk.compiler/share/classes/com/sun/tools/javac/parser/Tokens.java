@@ -406,6 +406,11 @@ public class Tokens {
                 return buf.toList();
             }
         }
+        
+        // OPENJML -- for debugging
+        public String toString() {
+            return kind.toString();
+        }
     }
 
     static final class NamedToken extends Token {
@@ -426,6 +431,12 @@ public class Tokens {
         @Override
         public Name name() {
             return name;
+        }
+        
+        //OPENJML - for debugging
+        @Override
+        public String toString() {
+            return name.toString();
         }
     }
 
@@ -448,7 +459,13 @@ public class Tokens {
         public String stringVal() {
             return stringVal;
         }
-    }
+
+        //OPENJML - for debugging
+        @Override
+        public String toString() {
+            return stringVal();
+        }
+}
 
     static final class NumericToken extends StringToken {
         /** The 'radix' value of this token */

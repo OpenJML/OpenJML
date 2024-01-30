@@ -704,7 +704,7 @@ public class esclambdas extends EscBase {
                 +"  }\n"
                 +"  //@ public model static interface NoException { public normal_behavior ensures true; void run(); } \n"
                 +"  //@ public normal_behavior requires true; { r.run(); } ensures true; \n"
-                +"  public void set(/*@[NoException]*/ Runnable r) {\n"
+                +"  public void set(/*@[NoException] @*/ Runnable r) {\n"
                 +"       r.run();"
                 +"  }\n"
                 +"}\n"
