@@ -44,11 +44,11 @@ public class racfiles extends RacBase {
 
     // Must be called within a test method (not in setup) in order to get the test method name correctly
     public void setRacng() {
-        rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata/"+getMethodName(1)+z+"test/racaddng/jmlunitng.jar",null};
+        rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testcompiles/"+getMethodName(1)+z+"test/racaddng/jmlunitng.jar",null};
     }
     
     public void setRacngEA() {
-    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata/"+getMethodName(1),"-Dorg.jmlspecs.openjml.:q"
+    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testcompiles/"+getMethodName(1),"-Dorg.jmlspecs.openjml.:q"
     			+ "=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
     }
 
@@ -216,7 +216,7 @@ public class racfiles extends RacBase {
     @Test
     public void racMainActivity() {
         runrac = false; // FIXME: Don't try running executable until we supply some input
-        //rac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata"+z+"test/racaddng/jmlunitng.jar",null};
+        //rac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testcompiles"+z+"test/racaddng/jmlunitng.jar",null};
         expectedExit = 0;
         helpTCF("test/racMainActivity","test/racMainActivity","MainActivity");
     }
@@ -290,7 +290,7 @@ public class racfiles extends RacBase {
 
     @Test
     public void racHans2() {
-        rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata/"+getMethodName(0)+z+"test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src",null};
+        rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testcompiles/"+getMethodName(0)+z+"test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src",null};
 
     	runrac = true;
     	helpTCF("test/racHans2/account",

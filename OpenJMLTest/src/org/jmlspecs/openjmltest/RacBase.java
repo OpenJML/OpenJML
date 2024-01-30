@@ -69,7 +69,7 @@ public abstract class RacBase extends JmlTestCase {
 
     @BeforeClass
     public static void mktempdirectory() {
-    	File f = new File("testdata");
+    	File f = new File("testcompiles");
     	if (!f.exists()) {
     		f.mkdir();
     	}
@@ -109,7 +109,7 @@ public abstract class RacBase extends JmlTestCase {
 ////            } else if (!new File(sy).exists()) {
 ////                fail("The OpenJML project location set using -D" + Strings.eclipseProjectLocation + " to " + sy + " does not exist");
 ////            } else {
-//                main.addOptions("-classpath",sy+"/testdata"+z+sy+"/jdkbin"+z+sy+"/bin");
+//                main.addOptions("-classpath",sy+"/testcompiles"+z+sy+"/jdkbin"+z+sy+"/bin");
 ////            }
 //        }
         addOptions("-showNotImplemented");
@@ -131,7 +131,7 @@ public abstract class RacBase extends JmlTestCase {
     public static String macstring = "Exception in thread \"main\" ";
 
     public String setupOutdir() {
-        outdir = System.getenv("OPENJML_ROOT") + "/../OpenJML21/OpenJMLTest/testdata/" + getMethodName(2);
+        outdir = System.getenv("OPENJML_ROOT") + "/../OpenJML21/OpenJMLTest/testcompiles/" + getMethodName(2);
         var d = new java.io.File(outdir);
         d.mkdirs();
         defrac[3] = outdir;
@@ -347,9 +347,9 @@ public abstract class RacBase extends JmlTestCase {
             //args.add("-classpath");
             //args.add(cp);
             args.add("--rac");
-            args.add("-no-purityCheck");
-            args.add("-code-math=java");
-            args.add("-spec-math=bigint");
+            args.add("--no-purity-check");
+            args.add("--code-math=java");
+            args.add("--spec-math=bigint");
             if (new File(dirname).isDirectory()) args.add("--dir");
             args.add(dirname);
             args.addAll(Arrays.asList(opts));

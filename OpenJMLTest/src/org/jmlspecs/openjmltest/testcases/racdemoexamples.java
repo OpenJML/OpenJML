@@ -47,7 +47,7 @@ public class racdemoexamples extends RacBase {
     @Test
     public void EntryPrecondition() {
     	expected_compile = "../expected_compile";
-    	helpFeature("EntryPrecondition","-racCheckAssumptions","-racPreconditionEntry");
+    	helpFeature("EntryPrecondition","--rac-check-assumptions","--rac-precondition-entry");
     }
 
 }

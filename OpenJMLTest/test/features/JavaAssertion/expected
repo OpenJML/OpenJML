@@ -9,8 +9,8 @@ Feasibility check - at program exit : OK
 Completed proof of features.JavaAssertion.main(String...) with prover !!!! - no warnings
 Starting proof of features.JavaAssertion.test(int) with prover !!!!
 ..\..\OpenJMLDemo\src\features\JavaAssertion.java:11: warning: The prover cannot establish an assertion (Assert) in method test
-		assert i >= 0;
-		^
+        assert i >= 0;
+        ^
 Completed proof of features.JavaAssertion.test(int) with prover !!!! - with warnings
 Completed proving methods in features.JavaAssertion
 1 warning

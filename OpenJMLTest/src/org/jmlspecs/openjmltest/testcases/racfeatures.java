@@ -14,19 +14,9 @@ import org.jmlspecs.openjmltest.RacBase;
 import org.junit.Before;
 import org.junit.Test;
 
-/** These tests check running RAC on files in the file system, comparing the
- * output against expected files. These tests are a bit easier to create, since 
- * the file and output do not have to be converted into Strings; however, they
- * are not as easily read, since the content is tucked away in files, rather 
- * than immediately there in the test class.
- * <P>
- * To add a new test:
- * <UL>
- * <LI> create a directory containing the test files as a subdirectory of 
- * 'test'
- * <LI> add a test to this class - typically named similarly to the folder
- * containing the source data
- * </UL>
+/** These tests run rac on the demo files in OpenJMLDemo/src/features
+ *  The expected results are in OpenJMLTest/test/features
+ *  The class files from compilation are in OpenJMLTest/testcompiles
  */
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
@@ -39,28 +29,34 @@ public class racfeatures extends RacBase {
         ignoreNotes = true;
     }
     
+    // The R version runs with --rac-java-checks (but currently no other of the supplied options)
     public void helpFeature(String n, String ... options) {
-        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/racfeatures/"+n,"features."+n, options);
-        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/racfeatures/"+n+"R","features."+n, "-racJavaChecks");
+        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/features/"+n,"features."+n, options);
+        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/features/"+n+"R","features."+n, "--rac-java-checks");
     }
+    
+    public void helpFeature() {
+        helpFeature(getMethodName(1));
+    }
+
     
     
     @Test
     public void NegativeArraySize() {
         expectedRACExit = 1;
-        helpFeature("NegativeArraySize");
+        helpFeature();
     }
 
     @Test
     public void JavaAssertion() {
         expectedRACExit = 1;
-        helpFeature("JavaAssertion");
+        helpFeature();
     }
 
     @Test
     public void ArrayStore() {
         expectedRACExit = 0;
-        helpFeature("ArrayStore");
+        helpFeature();
     }
 
 

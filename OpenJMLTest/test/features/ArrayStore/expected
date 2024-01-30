@@ -9,13 +9,13 @@ Feasibility check - at program exit : OK
 Completed proof of features.ArrayStore.main(String...) with prover !!!! - no warnings
 Starting proof of features.ArrayStore.test() with prover !!!!
 ..\..\OpenJMLDemo\src\features\ArrayStore.java:12: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method test
-		a[0] = Boolean.TRUE;
-		     ^
+        a[0] = Boolean.TRUE;
+             ^
 Completed proof of features.ArrayStore.test() with prover !!!! - with warnings
 Starting proof of features.ArrayStore.test2() with prover !!!!
 ..\..\OpenJMLDemo\src\features\ArrayStore.java:17: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method test2
-		a[0] = true;  // Requires implicit conversion, which was a bug
-		     ^
+        a[0] = true;  // Requires implicit conversion, which was a bug
+             ^
 Completed proof of features.ArrayStore.test2() with prover !!!! - with warnings
 Completed proving methods in features.ArrayStore
 2 warnings

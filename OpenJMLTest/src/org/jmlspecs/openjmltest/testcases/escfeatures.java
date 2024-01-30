@@ -78,23 +78,28 @@ public class escfeatures extends EscBase {
 
     
     public void helpFeatures(String n) {
-        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/escFeatures/"+n,"--rac-java-checks","--check-feasibility=basic","--progress");
+        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/features/"+n,"--check-feasibility=basic","--progress");
+    }
+
+    public void helpFeatures() {
+        String n = getMethodName(1);
+        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/features/"+n,"--check-feasibility=basic","--progress");
     }
 
 
     @Test
-    public void testNegativeArraySize() {
-        helpFeatures("NegativeArraySize");
+    public void NegativeArraySize() {
+        helpFeatures();
     }
 
     @Test
-    public void testArrayStore() {
-        helpFeatures("ArrayStore");
+    public void ArrayStore() {
+        helpFeatures();
     }
 
     @Test
-    public void testJavaAssertion() {
-        helpFeatures("JavaAssertion");
+    public void JavaAssertion() {
+        helpFeatures();
     }
 
 

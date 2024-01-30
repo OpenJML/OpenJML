@@ -143,7 +143,7 @@ public abstract class EscBase extends JmlTestCase {
     /** options is a comma- or space-separated list of options to be added */
     protected String options;
     protected String solver;
-    protected boolean captureOutput = false;
+    protected boolean captureOutput = false; // FIXME - why isn't true the default 
     
     /** options is a comma- or space-separated list of options to be added */
     public EscBase() {
@@ -252,7 +252,7 @@ public abstract class EscBase extends JmlTestCase {
     		PrintWriter pw = new PrintWriter(actCompile);
     		int ex = -1;
     		try {
-    			ex = compile(args);
+    			ex = compile(args); // FIXME: SMELLS BAD
     		} finally {
     			pw.close();
     		}
