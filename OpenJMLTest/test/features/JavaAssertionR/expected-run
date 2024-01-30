@@ -1,8 +1,8 @@
 OUT:
 BEFORE
-../../../OpenJMLA/OpenJMLDemo/src/features/JavaAssertion.java:11: verify: JML assertion is false
-		assert i >= 0;
-		^
+#DEMO/src/features/JavaAssertion.java:11: verify: JML assertion is false
+        assert i >= 0;
+        ^
 
 ERR:
 Exception in thread "main" java.lang.AssertionError

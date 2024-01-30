@@ -5,6 +5,6 @@ Starting proof of MergeSort.sort(int[]) with prover !!!!
 Completed proof of MergeSort.sort(int[]) with prover !!!! - no warnings
 Starting proof of MergeSort.sortRec(int[],int,int) with prover !!!!
 Completed proof of MergeSort.sortRec(int[],int,int) with prover !!!! - no warnings
-Starting proof of MergeSort.merge((@org.jmlspecs.annotation.NonNull :: int)[],int,int,int) with prover !!!!
-Completed proof of MergeSort.merge((@org.jmlspecs.annotation.NonNull :: int)[],int,int,int) with prover !!!! - no warnings
+Starting proof of MergeSort.merge(@NonNull int[],int,int,int) with prover !!!!
+Completed proof of MergeSort.merge(@NonNull int[],int,int,int) with prover !!!! - no warnings
 Completed proving methods in MergeSort

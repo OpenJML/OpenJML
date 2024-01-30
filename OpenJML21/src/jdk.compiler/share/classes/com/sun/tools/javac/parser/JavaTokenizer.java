@@ -1064,7 +1064,7 @@ public class JavaTokenizer extends UnicodeReader {
                         // OPENJML - the guard that was here prevented processing a line comment at the end of a file
                         // that had no terminating newline. The guard is unnecessary in any case, given the
                         // success of accept and skipToEOLN
-                        tk = null;
+                        tk = null; // OPENJML
                         comments = appendComment(comments, processComment(pos, position(), CommentStyle.LINE));
                         if (tk == TokenKind.CUSTOM) break loop;  // OPENJML
                         break;

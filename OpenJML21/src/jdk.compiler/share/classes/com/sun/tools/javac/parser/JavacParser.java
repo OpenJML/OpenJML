@@ -1074,7 +1074,7 @@ public class JavacParser implements Parser {
             JCExpression t1 = term();
             accept(COLON);
             JCExpression t2 = term1();
-            return F.at(pos).Conditional(t, t1, t2);
+            return toP(F.at(pos).Conditional(t, t1, t2)); // OPENJML
         } else {
             return t;
         }
@@ -1560,7 +1560,7 @@ public class JavacParser implements Parser {
                         }
 
                         List<JCAnnotation> tyannos = null;
-                        if ((mode & TYPE) != 0 /* && token.kind == MONKEYS_AT */) {//OPENJML - removed the test for @ so that JML modifiers are parsed
+                        if (isMode(TYPE) /* && token.kind == MONKEYS_AT */) {//OPENJML - removed the test for @ so that JML modifiers are parsed
                             tyannos = typeAnnotationsOpt();
                         }
                         // typeArgs saved for next loop iteration.
@@ -4601,7 +4601,7 @@ public class JavacParser implements Parser {
         }
         ListBuffer<JCTree> defs = new ListBuffer<>();
         while (token.kind != RBRACE && token.kind != EOF) {
-            defs.appendList(classOrInterfaceOrRecordBodyDeclaration(null, className, isInterface, isRecord)); // OPENJML - added a parameter mods for cases in which they are parsed before calling this method -- TODO - has this really changed
+            defs.appendList(classOrInterfaceOrRecordBodyDeclaration(null, className, isInterface, isRecord));
             if (token.pos <= endPosTable.errorEndPos) {
                // error recovery
                skip(false, true, true, false);
