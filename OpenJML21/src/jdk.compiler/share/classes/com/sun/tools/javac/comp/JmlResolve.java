@@ -127,7 +127,10 @@ public class JmlResolve extends Resolve {
      */
     @Override
     protected boolean symbolOK(Symbol e) {
-        //System.out.println("JMLRESOLVE " + e + " " + allowJML + " " + utils.isJML(e.flags_field) + " " + e.owner);
+//        if (e.toString().equals("T") || e.toString().equals("X") || e.toString().equals("ttt") || e.toString().equals("txx") || e.toString().equals("YYYY") || e.toString().equals("TTTT")) {
+//            System.out.println("JMLRESOLVE " + e + " " + allowJML + " " + utils.isJML(e.flags_field) + " " + e.owner);
+//            //org.jmlspecs.openjml.Utils.dumpStack();
+//        }
         return allowJML || !utils.isJML(e.flags_field);
     }
     

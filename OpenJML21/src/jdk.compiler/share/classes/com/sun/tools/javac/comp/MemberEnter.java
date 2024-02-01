@@ -28,6 +28,8 @@ package com.sun.tools.javac.comp;
 import java.util.EnumSet;
 import java.util.Set;
 
+import org.jmlspecs.openjml.Utils;
+
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Scope.WriteableScope;
 import com.sun.tools.javac.tree.*;
@@ -297,6 +299,7 @@ public class MemberEnter extends JCTree.Visitor {
             tree.vartype.type = atype.makeVarargs();
         }
         WriteableScope enclScope = enter.enterScope(env);
+        //if (enclScope.owner.toString().endsWith("VVV") && tree.name.toString().equals("i")) { org.jmlspecs.openjml.Utils.dumpStack("ENTERING VVV.i"); }
         Type vartype = tree.isImplicitlyTyped()
                 ? env.info.scope.owner.kind == MTH ? Type.noType : syms.errType
                 : tree.vartype.type;

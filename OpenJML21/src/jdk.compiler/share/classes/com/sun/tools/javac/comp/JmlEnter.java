@@ -699,7 +699,7 @@ public class JmlEnter extends Enter {
 
 					localSpecEnv = classEnv(specDecl, specsEnv);
 					// Put this, super and type parameters in the Spec environment
-//                    TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
+                    if (csym.type instanceof ClassType ct && ct.supertype_field != null) TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
                     ((ClassType)csym.type).typarams_field = classEnter(specDecl.typarams, localSpecEnv); // FIXME - was classTPEnter
 
 	                //					csym = syms.enterClass(powner.modle, specDecl.name, powner);
@@ -744,11 +744,14 @@ public class JmlEnter extends Enter {
 					owner.members().enter(csym);
 					specDecl.type = ct;
 					csym.flags_field = specDecl.mods.flags | Flags.UNATTRIBUTED;
-	                if (localSpecEnv == null) localSpecEnv = classEnv(specDecl, specsEnv);
-	                TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
-	                if (typeEnvs.get(csym) == null) {
-	                    ((ClassType)csym.type).typarams_field = classEnter(specDecl.typarams, localSpecEnv); // FIXME - what does this do??? -- was classTPEnter
-	                }
+	                if (localSpecEnv == null) {
+	                    localSpecEnv = classEnv(specDecl, specsEnv);
+	                    if (csym.type instanceof ClassType cty && cty.supertype_field != null) TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
+	                    ((ClassType)csym.type).typarams_field = classEnter(specDecl.typarams, localSpecEnv); // FIXME - was classTPEnter
+                    }
+//	                if (typeEnvs.get(csym) == null) {
+//	                    ((ClassType)csym.type).typarams_field = classEnter(specDecl.typarams, localSpecEnv); // FIXME - what does this do??? -- was classTPEnter
+//	                }
 				}
 			} else {
 				// owner has a binary class corresponding to specDecl, namely csym
@@ -770,12 +773,13 @@ public class JmlEnter extends Enter {
 				specDecl.specsDecl = specDecl;
 				localSpecEnv = classEnv(specDecl, specsEnv);
                 TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localSpecEnv);
-                typeEnvs.put(csym, localSpecEnv);
 				if (!checkAndEnterTypeParameters(csym,specDecl,localSpecEnv)) {
                     //recordEmptySpecs(csym); // so we don't keep trying to load it
                     //System.out.println("FAILED MATCH-B " + csym + " " + ((csym.flags_field & Flags.UNATTRIBUTED) != 0));
 				    return false;
 				}
+				if (localSpecEnv.tree instanceof JCClassDecl cd &&  csym != cd.sym) System.out.println("MISMATCHED-A " + csym);
+                typeEnvs.put(csym, localSpecEnv);
 				// FIXME - be sure that annotations are checked as well
 				if (utils.verbose()) utils.note("Matched to binary class: " + csym + " (owner: " + csym.owner +")" );
 
@@ -823,9 +827,11 @@ public class JmlEnter extends Enter {
 			    if (utils.isJML(specDecl)) {
 			        cs.complete();
 			    	//TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(cs, JmlSpecs.instance(context).getLoadedSpecs(cs).specsEnv);
+                    //specsMemberEnter(specDecl); // Enter class specDecl non-recursively
+                    //specsMembersEnter(cs, specDecl.defs); // Enter any classes in specDecl
 			    } else {
-			        specsMemberEnter(specDecl);
-			        specsMembersEnter(cs, specDecl.defs);
+			        specsMemberEnter(specDecl); // Enter class specDecl non-recursively
+			        specsMembersEnter(cs, specDecl.defs); // Enter any classes in specDecl
 			    }
 			}
 		}
@@ -845,7 +851,7 @@ public class JmlEnter extends Enter {
 		var specsEnv = tspecs.specsEnv;
 		if (specsEnv == null)
 			System.out.println("No specs ENV for " + csym + " " + specDecl.name);
-
+		//if (specDecl.name.toString().contains("Function")|| specDecl.name.toString().contains("Identity")) System.out.println("SPECSENV " + tspecs + " : " + specsEnv);
 		if (specDecl.extending != null) {
 			Type t = specDecl.extending.type = JmlAttr.instance(context).attribType(specDecl.extending, specsEnv);
 			if (!JmlTypes.instance(context).isSameType(t, csym.getSuperclass())) {
@@ -918,7 +924,8 @@ public class JmlEnter extends Enter {
 		}
 
 		JmlResolve.instance(context).setAllowJML(saved);
-        if (debugEnter) System.out.println("enter: Entered members for binary " + specDecl.sym);
+        if (debugEnter) System.out.println("enter: Entered members for binary " + specDecl.sym + " : " + 
+                Utils.join(" ",specDecl.defs,d->(d instanceof JmlVariableDecl vd ? vd.name : d instanceof JmlMethodDecl md ? md.name : "")));
 	}
 	
 
@@ -1076,7 +1083,8 @@ public class JmlEnter extends Enter {
 	public Env<AttrContext> methodEnv;
 
 	public boolean specsMethodEnter(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> specsEnv) {
-		boolean print =  false; // mdecl.name.toString().equals("charAt");
+		boolean print =  false; // csym.toString().endsWith("Identity");
+		if (print) System.out.println("SPECSMETHODENTER " + csym + " " + mdecl + " " + mdecl.sym + " " + specsEnv);
 		boolean isJML = utils.isJML(mdecl);
 		boolean isOwnerJML = utils.isJML(csym.flags());
 		boolean isModel = utils.hasMod(mdecl.mods, Modifiers.MODEL);
@@ -1092,7 +1100,7 @@ public class JmlEnter extends Enter {
 			var localEnv = MemberEnter.instance(context).methodEnv(mdecl,specsEnv); // FIXME _ do more than this?
 			ssp.javaEnv = localEnv;
 			ssp.specsEnv = localEnv;
-			//if (print) System.out.println("METHOD " + msym.owner + " " + msym + " " + msym.hashCode() + " " + mdecl.sym + " " + mdecl.sym.hashCode() + " " + localEnv + " " + (localEnv.enclMethod != null));
+			if (print) System.out.println("ASSIGNING SPECS ENV-A " + mdecl.sym.owner + " " + mdecl.sym + " " + specsEnv + " : " + localEnv );
 			specs.putSpecs(mdecl.sym, ssp);
 			return true;
 		}
@@ -1160,6 +1168,7 @@ public class JmlEnter extends Enter {
 			sp.specSym = mdecl.sym;
 			sp.javaEnv = null;
 			sp.specsEnv = localEnv;
+            if (print) System.out.println("ASSIGNING SPECS ENV-B " + mdecl.sym.owner + " " + mdecl.sym + " " + specsEnv + " : " + localEnv );
 			specs.putSpecs(msym, sp);
 			if (!isModel && mdecl.body != null) {
 				utils.error(mdecl.body, "jml.message",
@@ -1254,7 +1263,7 @@ public class JmlEnter extends Enter {
 				ssp.specSym = mdecl.sym;
 				ssp.javaEnv = null;
 				ssp.specsEnv = localEnv;
-				//if (print) System.out.println("METHOD " + msym.owner + " " + msym + " " + msym.hashCode() + " " + mdecl.sym + " " + mdecl.sym.hashCode() + " " + localEnv + " " + (localEnv.enclMethod != null));
+	            if (print) System.out.println("ASSIGNING SPECS ENV-C " + msym.owner + " " + msym + " " + specsEnv + " : " + localEnv );
 				specs.putSpecs(msym, ssp);
 				ssp.specSym = mdecl.sym;
 				specs.dupSpecs(mdecl.sym, msym); // FIXME - not sure this is needed
@@ -1273,7 +1282,7 @@ public class JmlEnter extends Enter {
 	}
 
 	public boolean specsFieldEnter(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> specsEnv) {
-		// FIXME - error messages need a sourcefile
+	    // FIXME - error messages need a sourcefile
 		boolean isJML = utils.isJML(vdecl);
 		boolean isOwnerJML = utils.isJML(csym.flags());
 		boolean isGhost = utils.hasMod(vdecl.mods, Modifiers.GHOST);

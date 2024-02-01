@@ -69,12 +69,7 @@ import com.sun.tools.javac.file.RelativePath;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.Option;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCBinary;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.ListBuffer;
@@ -907,6 +902,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the type
      */
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
+        //if (type.toString().endsWith(".Identity")) System.out.println("PUTSPECS " + type + " " + type.hashCode() + " " + spec.specsEnv + " " + spec.specsEnv.tree + " " + ((JCClassDecl)spec.specsEnv.tree).sym + " " + ((JCClassDecl)spec.specsEnv.tree).sym.hashCode());
         spec.csymbol = type;
         specsTypes.put(type,spec);
         setStatus(type, SpecsStatus.SPECS_LOADED);
@@ -1469,7 +1465,7 @@ public class JmlSpecs {
         	if (javadecl != null && javadecl.specsDecl != specdecl) throw new AssertionError("Mismatched decls");
         	if (javadecl != null && javadecl.sym != specdecl.sym) throw new AssertionError("Mismatched class symbols");
         	//if (specenv == null) throw new AssertionError("null specenv"); // specenv is null in rac
-        	if (specenv != null && specenv.tree != specdecl) throw new AssertionError("Mismatched spec tree");
+        	if (specenv != null && specenv.tree != specdecl) throw new AssertionError("Mismatched spec tree: " + specdecl.name + " " + specenv.tree);
         	//if (javadecl != null && javadecl != Enter.instance(context).getEnv(javadecl.sym).tree) throw new AssertionError("Mismatched java trees");
         	if (specenv != specdecl.specEnv) throw new AssertionError("Mismatched env");
         	this.specDecl = specdecl;

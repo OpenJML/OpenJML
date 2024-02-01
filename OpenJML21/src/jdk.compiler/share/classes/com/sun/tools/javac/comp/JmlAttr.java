@@ -379,6 +379,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return classReader.enterClass(names.fromString(fqName));
     }
     
+    protected Env<AttrContext> getAppropriateClassEnv(ClassSymbol sym) {
+        var env = super.getAppropriateClassEnv(sym);
+        if (utils.isModel(sym)) { env = specs.get(sym).specsEnv; }
+        return env;
+    }
+
+
+    
     /** Overrides the super class call in order to perform JML checks on class
      * modifiers.  (Actually, the work was moved to attribClassBody since attribClass
      * gets called multiple times for a Class).
@@ -429,7 +437,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
         	// Loading the specs makes sure that modifiers are present when nested declarations are attributed
         	JmlSpecs.instance(context).getLoadedSpecs(c);
-        	//if (c.toString().contains("Collection")) System.out.println("ATTRCLASS " + c + " " + specs.status(c) + " " + isUnattributed + " " + typeEnvs.get(c) );
         	super.attribClass(c);
 
             specs.getAttrSpecs(c); // if not yet attributed, attribute the specs // FIXME - not needed
@@ -564,6 +571,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             // The JML specs to check are are in the TypeSpecs structure
 
+            //if (env.tree instanceof JCClassDecl cdd) System.out.println("JMLATTR " + c + " " + cdd.name + " " + cdd.sym + " " + (c == cd.sym) + " " + c.hashCode() + " " + cdd.sym.hashCode() + " " + env + " " + env.hashCode());
             super.attribClassBody(env,c);
             if (cd != null && cd.lineAnnotations != null) {
                 for (ExceptionLineAnnotation a: cd.lineAnnotations) {

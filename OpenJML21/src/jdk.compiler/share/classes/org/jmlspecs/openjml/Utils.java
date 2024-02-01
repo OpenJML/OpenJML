@@ -2000,7 +2000,7 @@ public class Utils {
     }
     
     public static void dumpStack() {
-    	new RuntimeException().printStackTrace(System.out); // or Thread.dumpStack()
+    	new RuntimeException().printStackTrace(System.out); // Thread.dumpStack() goes to Stderr
     }
     
     static boolean isjml = System.getenv("NOJML")==null;

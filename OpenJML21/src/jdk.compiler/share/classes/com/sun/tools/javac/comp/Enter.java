@@ -280,6 +280,7 @@ public class Enter extends JCTree.Visitor {
      *  @param env     The environment visitor argument.
      */
     Type classEnter(JCTree tree, Env<AttrContext> env) {
+        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("Entering class " + (tree instanceof JCClassDecl cd ? cd.name : "-"));
         Env<AttrContext> prevEnv = this.env;
         try {
             this.env = env;
@@ -291,6 +292,7 @@ public class Enter extends JCTree.Visitor {
         } finally {
             annotate.unblockAnnotations();
             this.env = prevEnv;
+            //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("Entered class " + (tree instanceof JCClassDecl cd ? cd.name : "-"));
         }
     }
 

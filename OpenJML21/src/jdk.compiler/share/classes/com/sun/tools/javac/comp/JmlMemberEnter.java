@@ -176,7 +176,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 		
     	// It would be easier if we could match all the members, and then give a resolved list to super.memberEnter
     	// However, we need attributed methods in order to match them (fields can be done solely by name).
-    	super.memberEnter(trees, env); // Entering all the .java declared trees
+    	super.memberEnter(trees, sourceDecl == specsDecl ? specsDecl.specEnv : env);
     	if (specsDecl == sourceDecl) {
     	    // Simple case: source and spec file are the same (both are the .java file)
     		// Any duplicates have already been reported
