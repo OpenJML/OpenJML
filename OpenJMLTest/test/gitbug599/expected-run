@@ -8,5 +8,11 @@ public static /*@ pure helper @*/ boolean is_prime(int n){
 test/gitbug599/Prime.java:28: verify: Associated declaration: test/gitbug599/Prime.java:31:
 /*@ ensures \result == true <==>
     ^
+test/gitbug599/Prime.java:40: verify: JML postcondition is false
+	is_prime(35);
+	        ^
+test/gitbug599/Prime.java:28: verify: Associated declaration: test/gitbug599/Prime.java:40:
+/*@ ensures \result == true <==>
+    ^
 
 ERR:
