@@ -5399,6 +5399,10 @@ public class Attr extends JCTree.Visitor {
             chk.completionError(pos, ex);
         }
     }
+    
+    protected Env<AttrContext> getAppropriateClassEnv(ClassSymbol sym) { // OPENJML - added for overriding
+        return typeEnvs.get(sym);
+    }
 
     /** Attribute class definition associated with given class symbol.
      *  @param c   The class symbol whose definition will be attributed.
@@ -5432,7 +5436,7 @@ public class Attr extends JCTree.Visitor {
             c.flags_field &= ~UNATTRIBUTED;
 
             // Get environment current at the point of class definition.
-            Env<AttrContext> env = typeEnvs.get(c);
+            Env<AttrContext> env = getAppropriateClassEnv(c); // OPENJML
 
             if (c.isSealed() &&
                     !c.isEnum() &&
@@ -5667,7 +5671,8 @@ public class Attr extends JCTree.Visitor {
 
         for (List<JCTypeParameter> l = tree.typarams;
              l.nonEmpty(); l = l.tail) {
-             Assert.checkNonNull(env.info.scope.findFirst(l.head.name));
+             Assert.checkNonNull(env.info.scope.findFirst(l.head.name),
+                     "" + l.head.name + " not found in " + env + " " + env.info.scope);
         }
 
         // Check that a generic class doesn't extend Throwable
