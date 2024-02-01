@@ -2,26 +2,38 @@ OUT:
 test/gitbug536/Test536.java:29: verify: JML precondition is false
       doesNothingButRequiresSorted(array1);
                                   ^
-test/gitbug536/Test536.java:5: verify: Associated declaration: test/gitbug536a/Test536.java:15:
-  public static void doesNothingButRequiresSorted(int[] array) {
-                                                        ^
+test/gitbug536/Test536.java:5: verify: Associated declaration: test/gitbug536/Test536.java:29:
+    public static void doesNothingButRequiresSorted(int[] array) {
+                       ^
+test/gitbug536/Test536.java:4: verify: JML precondition is false
+    //@requires \forall int i; 0 <= i && i < array.length-1; array[i] <= array[i+1];
+       ^
 test/gitbug536/Test536.java:33: verify: JML precondition is false
       doesNothingButRequiresSortedC(array1);
                                    ^
 test/gitbug536/Test536.java:9: verify: Associated declaration: test/gitbug536/Test536.java:33:
     public static void doesNothingButRequiresSortedC(int[] array) {
-                                                           ^
+                       ^
+test/gitbug536/Test536.java:8: verify: JML precondition is false
+    //@requires \forall int i; (\bigint)0 <= i && i < array.length-1; array[i] <= array[i+1];
+       ^
 test/gitbug536/Test536.java:37: verify: JML precondition is false
       doesNothingButRequiresSortedInteger(array3);
                                          ^
 test/gitbug536/Test536.java:13: verify: Associated declaration: test/gitbug536/Test536.java:37:
     public static void doesNothingButRequiresSortedInteger(Integer[] array) {
-                                                                     ^
+                       ^
+test/gitbug536/Test536.java:12: verify: JML precondition is false
+    //@requires \forall Integer i; 0 <= i && i < array.length-1; array[i] <= array[i+1];
+       ^
 test/gitbug536/Test536.java:41: verify: JML precondition is false
       doesNothingButRequiresSortedInteger(array1);
                                          ^
 test/gitbug536/Test536.java:17: verify: Associated declaration: test/gitbug536/Test536.java:41:
     public static void doesNothingButRequiresSortedInteger(int[] array) {
-                                                                 ^
+                       ^
+test/gitbug536/Test536.java:16: verify: JML precondition is false
+    //@requires \forall Integer i; 0 <= i && i < array.length-1; array[i] <= array[i+1];
+       ^
 
 ERR:

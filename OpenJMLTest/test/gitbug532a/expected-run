@@ -3,11 +3,14 @@ Hello, world
 30
 48000000
 test/gitbug532a/Big.java:13: verify: JML precondition is false
-	System.out.println(safe_mult(1000000, 1000, 1000));
-	                            ^
+        System.out.println(safe_mult(1000000, 1000, 1000));
+                                    ^
 test/gitbug532a/Big.java:5: verify: Associated declaration: test/gitbug532a/Big.java:13:
     static int safe_mult(int i, int j, int k) {
                ^
+test/gitbug532a/Big.java:4: verify: JML precondition is false
+    //@ requires  i *  j *  k <  Integer.MAX_VALUE;
+        ^
 -727379968
 
 ERR:
