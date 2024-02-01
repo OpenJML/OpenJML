@@ -141,7 +141,7 @@ public class esclambdas extends EscBase {
     // FIXME - identity and identity2 need dynamic specs (f.ensures...)
     @Test
     public void testIdentity() {
-        helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"
+        helpTCX("tt.TestJava","package tt;import java.util.function.Function;\n"
                                 +"public class TestJava { \n"
                                 
                                 +"  //@ public normal_behavior\n"
@@ -151,7 +151,6 @@ public class esclambdas extends EscBase {
                                 +"    Function<Integer,Integer> f = Function.<Integer>identity();\n"
                                 +"    return f.apply(i);\n"
                                 +"  }\n"
-                                                
                                 +"}"
                                 );
                     }
@@ -182,12 +181,12 @@ public class esclambdas extends EscBase {
                                 +"  //@   public model_program {\n"
                                 +"  //@      return t;\n"
                                 +"  //@    }\n"
-                                +"  //@ pure function\n"
+                                +"  //@ pure heap_free\n"
                                 +"  public T apply(T t);\n"
                                 +"  }\n"
 
                                 +"  static /*@ immutable */ public interface Fun<T,R> {\n"
-                                +"     //@ public normal_behavior ensures true; pure function \n"
+                                +"     //@ public normal_behavior ensures true; pure heap_free \n"
                                 +"     static <T> Identity<T> identity() { return (x -> x); }\n"
                                 +"  }\n"
                                 
@@ -211,12 +210,12 @@ public class esclambdas extends EscBase {
                                 +"  public /*@ immutable */ static interface Identity<T> extends Fun<T,T> {\n"
                                 +"  //@   public normal_behavior \n"
                                 +"  //@      ensures \\result == t;\n"
-                                +"  //@ pure function\n"
+                                +"  //@ pure heap_free\n"
                                 +"  public T apply(T t);\n"
                                 +"  }\n"
 
                                 +"  static /*@ immutable */ public interface Fun<T,R> {\n"
-                                +"     //@ public normal_behavior ensures true; pure function\n"
+                                +"     //@ public normal_behavior ensures true; pure heap_free\n"
                                 +"     static <T> Identity<T> identity() { return (x->x); }\n"
                                 +"  }\n"
                                 
@@ -336,7 +335,7 @@ public class esclambdas extends EscBase {
                                 
                 +"  //@ public normal_behavior requires true;\n"
                 +"  public void m() {\n"
-                +"    //@ assert field == null || field instanceof R;"
+                +"    //@ assert field == null || field instanceof R;\n"
                 +"  }\n"
                 +"}"
                 );
@@ -357,7 +356,7 @@ public class esclambdas extends EscBase {
                                 
                 +"  //@ public normal_behavior requires true;\n"
                 +"  public void m() {\n"
-                +"    //@ assert field == null || field instanceof R;"
+                +"    //@ assert field == null || field instanceof R;\n"
                 +"  }\n"
                 +"}"
                 );
@@ -543,6 +542,7 @@ public class esclambdas extends EscBase {
         helpTCX("tt.TestJava",
                 """
                 package tt;
+                import java.util.function.Function;
                 public class TestJava {
                       public Object ppp;
 
@@ -551,12 +551,12 @@ public class esclambdas extends EscBase {
                        //@ assert b;  // Should be false
                   }
                   //@ inline
-                  final public boolean m(Object aaa, /*@ non_null */ java.util.function.Function<Object,Object> f) {
+                  final public boolean m(Object aaa, /*@ non_null */ Function<Object,Object> f) {
                        Object a = aaa; return a != f.apply(null);
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method mm",12
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method mm",12
                 );
     }
     
@@ -565,7 +565,7 @@ public class esclambdas extends EscBase {
         addOptions("--method=mm");
         addOptions("--code-math=bigint","--spec-math=bigint");
         // nullableByDefault
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX("tt.TestJava","package tt; import java.util.function.Function; \n"
                 +"public class TestJava { \n"
                 +"      public Object ppp; \n"
 
@@ -575,7 +575,7 @@ public class esclambdas extends EscBase {
                 +"       //@ assert b;\n"  // Should be true
                 +"  }\n"
                 +"  //@ inline \n"
-                +"  final public boolean m(Object aaa, /*@ non_null */ java.util.function.Function<Object,Object> f) {\n"
+                +"  final public boolean m(Object aaa, /*@ non_null */ Function<Object,Object> f) {\n"
                 +"       Object a = aaa; return a == f.apply(null);"
                 +"  }\n"
                 +"  }\n"
@@ -587,7 +587,7 @@ public class esclambdas extends EscBase {
         addOptions("-method=mm");
         addOptions("-code-math=bigint","-spec-math=bigint");
         // nullableByDefault
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX("tt.TestJava","package tt; import java.util.function.Function; \n"
                 +"public class TestJava { \n"
                 +"      public Object ppp; \n"
 
@@ -596,7 +596,7 @@ public class esclambdas extends EscBase {
                 +"       //@ assert b;\n"
                 +"  }\n"
                 +"  //@ inline \n"
-                +"  final public boolean m(Object aaa, /*@ non_null */ java.util.function.Function<Object,Object> f) {\n"
+                +"  final public boolean m(Object aaa, /*@ non_null */ Function<Object,Object> f) {\n"
                 +"       Object a = aaa; return a == f.apply(null);"
                 +"  }\n"
                 +"  }\n"
@@ -608,7 +608,7 @@ public class esclambdas extends EscBase {
         addOptions("-method=mm");
         addOptions("-code-math=bigint","-spec-math=bigint");
         // nullableByDefault
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX("tt.TestJava","package tt; import java.util.function.Function; \n"
                 +"public class TestJava { \n"
                 +"      public Object ppp; \n"
 
@@ -617,7 +617,7 @@ public class esclambdas extends EscBase {
                 +"       //@ assert b;\n"
                 +"  }\n"
                 +"  //@ inline \n"
-                +"  final public boolean m(Object aaa, /*@ non_null */ java.util.function.Function<Object,Object> f) {\n"
+                +"  final public boolean m(Object aaa, /*@ non_null */ Function<Object,Object> f) {\n"
                 +"       Object a = aaa; return a == f.apply(this.ppp);"
                 +"  }\n"
                 +"  }\n"
@@ -629,7 +629,7 @@ public class esclambdas extends EscBase {
         addOptions("-method=mm");
         addOptions("-code-math=bigint","-spec-math=bigint");
         // nullableByDefault
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"
                 +"public class TestJava { \n"
                 +"      public Object ppp; \n"
 
@@ -638,7 +638,7 @@ public class esclambdas extends EscBase {
                 +"       //@ assert b;\n"  // SHould be true
                 +"  }\n"
                 +"  //@ inline \n"
-                +"  final public boolean m(Object aaa, /*@ non_null */ java.util.function.Function<Object,Object> f) {\n"
+                +"  final public boolean m(Object aaa, /*@ non_null */ Function<Object,Object> f) {\n"
                 +"       Object a = aaa; return a == f.apply(this.ppp);"
                 +"  }\n"
                 +"  }\n"
@@ -649,7 +649,7 @@ public class esclambdas extends EscBase {
     public void testBindLambda2() {
         addOptions("-method=mm");
         addOptions("-code-math=bigint","-spec-math=bigint");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"
                 +"/*@ non_null_by_default*/ public class TestJava { \n"
                 +"      public int a = 11; \n"
 
@@ -660,7 +660,7 @@ public class esclambdas extends EscBase {
                 +"       //@ assert b == 9 + 7 + 11 + (11+9+11+100);\n"
                 +"  }\n"
                 +"  //@ inline \n"
-                +"  final public int m(int aa, int b, /*@ non_null */ java.util.function.Function<Integer,Integer> f) {\n"
+                +"  final public int m(int aa, int b, /*@ non_null */ Function<Integer,Integer> f) {\n"
                 +"       int a = 7; return a + b + f.apply(this.a);"
                 +"  }\n"
                 +"  }\n"
