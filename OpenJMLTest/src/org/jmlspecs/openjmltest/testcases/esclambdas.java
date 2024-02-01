@@ -46,7 +46,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable1b() {
-    	main.addOptions("-code-math=java");
+    	addOptions("-code-math=java");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -69,7 +69,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable2() {
-    	main.addOptions("-code-math=java"); // Just to avoid overflow errors
+    	addOptions("-code-math=java"); // Just to avoid overflow errors
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -93,7 +93,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable2b() {
-    	main.addOptions("-code-math=java"); // Just to avoid overflow errors
+    	addOptions("-code-math=java"); // Just to avoid overflow errors
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -113,7 +113,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable3() {
-        main.addOptions("-code-math=java","-spec-math=java");
+        addOptions("-code-math=java","-spec-math=java");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -536,31 +536,34 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambda() {
-        main.addOptions("-method=mm"); // Part of test
-//        main.addOptions("-show");
-        main.addOptions("-code-math=bigint","-spec-math=bigint");  // Part of test
+        addOptions("--method=mm"); // Part of test
+//        addOptions("-show");
+        addOptions("--code-math=bigint","--spec-math=bigint");  // Part of test
         // nullableByDefault
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"      public Object ppp; \n"
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                      public Object ppp;
 
-                +"  public void mm(Object ppp) {\n"
-                +"      boolean b = m(ppp, x->{return this.ppp;}); \n"
-                +"       //@ assert b;\n"  // Should be false
-                +"  }\n"
-                +"  //@ inline \n"
-                +"  final public boolean m(Object aaa, /*@ non_null */ java.util.function.Function<Object,Object> f) {\n"
-                +"       Object a = aaa; return a != f.apply(null);"
-                +"  }\n"
-                +"  }\n"
+                  public void mm(Object ppp) {
+                      boolean b = m(ppp, x->{return this.ppp;});
+                       //@ assert b;  // Should be false
+                  }
+                  //@ inline
+                  final public boolean m(Object aaa, /*@ non_null */ java.util.function.Function<Object,Object> f) {
+                       Object a = aaa; return a != f.apply(null);
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method mm",12
                 );
     }
     
     @Test
     public void testBindLambdaA() {
-        main.addOptions("-method=mm");
-        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        addOptions("--method=mm");
+        addOptions("--code-math=bigint","--spec-math=bigint");
         // nullableByDefault
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -581,8 +584,8 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambdaB() {
-        main.addOptions("-method=mm");
-        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        addOptions("-method=mm");
+        addOptions("-code-math=bigint","-spec-math=bigint");
         // nullableByDefault
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -602,8 +605,8 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambdaC() {
-        main.addOptions("-method=mm");
-        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        addOptions("-method=mm");
+        addOptions("-code-math=bigint","-spec-math=bigint");
         // nullableByDefault
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -623,8 +626,8 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambdaD() {
-        main.addOptions("-method=mm");
-        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        addOptions("-method=mm");
+        addOptions("-code-math=bigint","-spec-math=bigint");
         // nullableByDefault
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -644,8 +647,8 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambda2() {
-        main.addOptions("-method=mm");
-        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        addOptions("-method=mm");
+        addOptions("-code-math=bigint","-spec-math=bigint");
         helpTCX("tt.TestJava","package tt; \n"
                 +"/*@ non_null_by_default*/ public class TestJava { \n"
                 +"      public int a = 11; \n"
@@ -666,8 +669,8 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambda21() {
-        main.addOptions("-method=m");
-        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        addOptions("-method=m");
+        addOptions("-code-math=bigint","-spec-math=bigint");
         helpTCX("tt.TestJava",
         		 "package tt; import java.util.function.Function; \n"
                 +"/*@ non_null_by_default*/ public class TestJava { \n"
@@ -690,7 +693,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambdaByte() {
-        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        addOptions("-code-math=bigint","-spec-math=bigint");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  private /*@ spec_public nullable */ Byte aaaaaaaaaaa = null; \n"
@@ -713,7 +716,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambdaInt() {
-        main.addOptions("-code-math=bigint","-spec-math=bigint");
+        addOptions("-code-math=bigint","-spec-math=bigint");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public /*@ nullable */ Integer aaaaaaaaaaa = null; \n"
