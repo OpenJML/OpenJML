@@ -55,9 +55,9 @@ public class JmlOperators extends Operators {
     			for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
     				OperatorSymbol op = (OperatorSymbol)s;
         			var args = op.type.getParameterTypes();
-        			if (args.head == jtype.BIGINT && args.tail.head == jtype.BIGINT) {
-        				return op;
-        			}
+                    if (args.head == jtype.BIGINT && args.tail.head == jtype.BIGINT) {
+                        return op;
+                    }
     			}
     		}
     		org.jmlspecs.openjml.Utils.instance(context).error(pos, "jml.message", "No operator for " + op1 + " " + opName + " " + op2);
@@ -73,7 +73,8 @@ public class JmlOperators extends Operators {
     		for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
     			OperatorSymbol ops = (OperatorSymbol)s;
     			var args = ops.type.getParameterTypes();
-    			if (args.head == jtype.BIGINT ) return ops;
+                if (args.head == jtype.BIGINT ) return ops;
+                if (args.head == jtype.REAL ) return ops;
     		}
     		org.jmlspecs.openjml.Utils.instance(context).error(pos, "jml.message", "No operator for " + opName + " " + op);
 			return noOpSymbol;
