@@ -33,6 +33,8 @@ public class SFBugs extends EscBase {
         ArrayList<String> list = new ArrayList<String>();
         list.add("-code-math=safe");
         list.add("-spec-math=bigint");
+        list.add("--check-feasibility=precondition,reachable,exit,spec");
+        list.add("--progress");
         list.addAll(Arrays.asList(opts));
         escOnFiles(sourceDirname,outDir,list.toArray(opts));
     }
@@ -44,6 +46,8 @@ public class SFBugs extends EscBase {
         a.add(1,dir + cpathAddition);
         a.add("-code-math=safe");
         a.add("-spec-math=bigint");
+        a.add("--check-feasibility=precondition,reachable,exit,spec");
+        a.add("--progress");
         a.addAll(Arrays.asList(opts));
         escOnFiles(dir, dir, a.toArray(new String[a.size()]));
     }

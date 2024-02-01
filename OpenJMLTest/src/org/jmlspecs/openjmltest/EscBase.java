@@ -27,12 +27,12 @@ import com.sun.tools.javac.util.Log;
 
 
 public abstract class EscBase extends JmlTestCase {
-    
-	public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
-	
+
+    public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
+
     @Rule public TestName testname = new TestName();
     @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // limit on entire test, not on each proof attempt
-    
+
     protected static boolean runLongTests = System.getProperty("SKIPLONGTESTS") == null;
 
     static {
@@ -56,17 +56,12 @@ public abstract class EscBase extends JmlTestCase {
             });
     
     static public java.util.List<String> solversWithNull;
-    		{
-    			solversWithNull = new LinkedList<String>();
-    			solversWithNull.add(null);
-    			solversWithNull.addAll(solvers);
-    		}
-        
-//    static public java.util.List<String[]> minQuants = java.util.Arrays.asList(new String[][]{ 
-//            new String[]{"-minQuant"}, 
-//            new String[]{"-no-minQuant"}, 
-//            });
-        
+    {
+        solversWithNull = new LinkedList<String>();
+        solversWithNull.add(null);
+        solversWithNull.addAll(solvers);
+    }
+
     /** The parameters must be a String[] and a String */
     static public Collection<String[]> parameters() {
         return solversOnly();
@@ -132,9 +127,9 @@ public abstract class EscBase extends JmlTestCase {
     public void addOptions(String options) {
         if (options != null) {
             if (options.indexOf(',')>= 0) {
-            	main.addOptions(options.split(","));
+            	addOptions(options.split(","));
             } else {
-            	main.addOptions(options.split(","));
+            	addOptions(options.split(","));
             }
         }
     }
@@ -164,7 +159,6 @@ public abstract class EscBase extends JmlTestCase {
 
     protected static String z = java.io.File.pathSeparator;
     protected static String testspecpath1 = "$A"+z+"$B";
-    protected static String testspecpath2 = "$A"+z+"$B"+z+"$SY";
     protected static String testspecpath;
     
     // Set this field to the expected exit value. 
@@ -181,127 +175,122 @@ public abstract class EscBase extends JmlTestCase {
         testspecpath = testspecpath1;
         ignoreNotes = true;
         super.setUp(); // Uses ignoreNotes
-        main.addOptions("-specspath",   testspecpath);
-        main.addOptions("-command","esc");
-        main.addOptions("-keys","NOARITH");
-        main.addOptions("-escExitInfo","--no-purity-check");
-//        main.addOptions("-timeout=300"); // seconds
-        main.addOptions("-jmltesting");
-//        main.addOptions("-exec",JmlTestCase.root + "/Solvers/Solvers-macos/z3-4.3.1","-verbose");  // FIXME
+        addOptions("--specs-path",   testspecpath);
+        addOptions("--command","esc");
+        addOptions("-keys","NOARITH");
+        addOptions("--no-purity-check");
+        addOptions("--timeout=300"); // seconds
+        addOptions("-jmltesting");
         main.addUncheckedOption("openjml.defaultProver=z3_4");
         addOptions(options);
-        if (solver != null) main.addOptions(JmlOption.PROVER.optionName(),solver);
+        if (solver != null) addOptions(JmlOption.PROVER.optionName(),solver);
         specs = JmlSpecs.instance(context);
         expectedExit = 0;
         noAssociatedDeclaration = false;
         ignoreNotes = false;
         print = false;
         args = new String[]{};
-        //MethodProverSMT.benchmarkName = 
-        //        (this.getClass() + "." + testname.getMethodName()).replace("[0]", "").substring(6);
     }
 
     public void escOnFiles(String sourceDirname, String outDir, String ... opts) {
-    	boolean print = false;
-    	try {
-    		java.util.List<String> args = setupForFiles(sourceDirname, outDir, opts);
-    		String actCompile = outDir + "/actual";
-    		new File(actCompile).delete();
-    		PrintWriter pw = new PrintWriter(actCompile);
-    		int ex = -1;
-    		try {
-    			ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
-    			//ex = com.sun.tools.javac.Main.compile(args.toArray(new String[args.size()]),pw);
-    		} finally {
-    			pw.close();
-    		}
+        boolean print = false;
+        try {
+            java.util.List<String> args = setupForFiles(sourceDirname, outDir, opts);
+            String actCompile = outDir + "/actual";
+            new File(actCompile).delete();
+            PrintWriter pw = new PrintWriter(actCompile);
+            int ex = -1;
+            try {
+                ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
+                //ex = com.sun.tools.javac.Main.compile(args.toArray(new String[args.size()]),pw);
+            } finally {
+                pw.close();
+            }
 
-    		String diffs = outputCompare.compareFiles(outDir + "/expected", actCompile);
-    		int n = 0;
-    		while (diffs != null) {
-    			n++;
-    			String name = outDir + "/expected" + n;
-    			if (!new File(name).exists()) break;
-    			diffs = outputCompare.compareFiles(name, actCompile);
-    		}
-    		if (diffs != null) {
-    		    System.out.println("TEST DIFFERENCES: " + testname.getMethodName());
-    			System.out.println(diffs);
-    			fail("Files differ: " + diffs);
-    		}  
-    		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex);
-    		new File(actCompile).delete();
+            String diffs = outputCompare.compareFiles(outDir + "/expected", actCompile);
+            int n = 0;
+            while (diffs != null) {
+                n++;
+                String name = outDir + "/expected" + n;
+                if (!new File(name).exists()) break;
+                diffs = outputCompare.compareFiles(name, actCompile);
+            }
+            if (diffs != null) {
+                System.out.println("TEST DIFFERENCES: " + testname.getMethodName());
+                System.out.println(diffs);
+                fail("Files differ: " + diffs);
+            }  
+            if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex);
+            new File(actCompile).delete();
 
-    	} catch (Exception e) {
-    		e.printStackTrace(System.out);
-    		fail("Exception thrown while processing test: " + e);
-    	} catch (AssertionError e) {
-    		throw e;
-    	} finally {
-    		// Should close open objects
-    	}
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+            fail("Exception thrown while processing test: " + e);
+        } catch (AssertionError e) {
+            throw e;
+        } finally {
+            // Should close open objects
+        }
     }
 
-    public void escOnFile(String sourceFilename, String outDir, String ... opts) {
-    	boolean print = false;
-    	try {
-    		new File(outDir).mkdirs();
-    		java.util.List<String> args = setupForFiles(sourceFilename, outDir, opts);
-    		String actCompile = outDir + "/actual";
-    		new File(actCompile).delete();
-    		PrintWriter pw = new PrintWriter(actCompile);
-    		int ex = -1;
-    		try {
-    			ex = compile(args); // FIXME: SMELLS BAD
-    		} finally {
-    			pw.close();
-    		}
-
-    		String diffs = outputCompare.compareFiles(outDir + "/expected", actCompile);
-    		int n = 0;
-    		while (diffs != null) {
-    			n++;
-    			String name = outDir + "/expected" + n;
-    			if (!new File(name).exists()) break;
-    			diffs = outputCompare.compareFiles(name, actCompile);
-    		}
-    		if (diffs != null) {
-    		    System.out.println("TEST DIFFERENCES: " + testname.getMethodName());
-    			System.out.println(diffs);
-    			fail("Files differ: " + diffs);
-    		}  
-    		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex);
-    		new File(actCompile).delete();
-
-    	} catch (Exception e) {
-    		e.printStackTrace(System.out);
-    		fail("Exception thrown while processing test: " + e);
-    	} catch (AssertionError e) {
-    		throw e;
-    	} finally {
-    		// Should close open objects
-    	}
-    }
+//    public void escOnFile(String sourceFilename, String outDir, String ... opts) {
+//    	boolean print = false;
+//    	try {
+//    		new File(outDir).mkdirs();
+//    		java.util.List<String> args = setupForFiles(sourceFilename, outDir, opts);
+//    		String actCompile = outDir + "/actual";
+//    		new File(actCompile).delete();
+//    		PrintWriter pw = new PrintWriter(actCompile);
+//    		int ex = -1;
+//    		try {
+//    			ex = compile(args); // FIXME: SMELLS BAD
+//    		} finally {
+//    			pw.close();
+//    		}
+//
+//    		String diffs = outputCompare.compareFiles(outDir + "/expected", actCompile);
+//    		int n = 0;
+//    		while (diffs != null) {
+//    			n++;
+//    			String name = outDir + "/expected" + n;
+//    			if (!new File(name).exists()) break;
+//    			diffs = outputCompare.compareFiles(name, actCompile);
+//    		}
+//    		if (diffs != null) {
+//    		    System.out.println("TEST DIFFERENCES: " + testname.getMethodName());
+//    			System.out.println(diffs);
+//    			fail("Files differ: " + diffs);
+//    		}  
+//    		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex);
+//    		new File(actCompile).delete();
+//
+//    	} catch (Exception e) {
+//    		e.printStackTrace(System.out);
+//    		fail("Exception thrown while processing test: " + e);
+//    	} catch (AssertionError e) {
+//    		throw e;
+//    	} finally {
+//    		// Should close open objects
+//    	}
+//    }
 
     public java.util.List<String> setupForFiles(String sourceDirOrFilename, String outDir, String ... opts) {
         new File(outDir).mkdirs();
         java.util.List<String> args = new LinkedList<String>();
         args.add("-g");
-        args.add("-esc");
+        args.add("--esc");
         args.add("--no-purity-check");
         args.add("-jmltesting");
-        args.add("-progress");
-        args.add("-timeout=300");
-        args.add("-code-math=java");
+        args.add("--progress");
+        args.add("--timeout=300");
+        args.add("--code-math=java");
         if (!new File(sourceDirOrFilename).isFile()) args.add("--dir");
         args.add(sourceDirOrFilename);
-        if (solver != null) args.add("-prover="+solver);
+        if (solver != null) args.add("--prover="+solver);
         addOptionsToArgs(options,args);        
         args.addAll(Arrays.asList(opts));
         return args;
     }
-    
-    
     
     @Override
     public void tearDown() throws Exception {
@@ -311,7 +300,6 @@ public abstract class EscBase extends JmlTestCase {
         //MethodProverSMT.benchmarkName = null;
     }
 
-    
     protected void helpTCX2(String classname, String s, String classname2, String s2, Object... list) {
         try {
             String filename = classname.replace(".","/")+".java";
@@ -342,24 +330,24 @@ public abstract class EscBase extends JmlTestCase {
         try {
             int ex = main.compile(allargs, List.<JavaFileObject>of(f)).exitCode;
             if (captureOutput) collectOutput(false);
-            
-        	synchronized (System.out) { 
-        		if (print) printDiagnostics();
-        		outputCompare.compareResults(expectedResults,collector);
-                        if (expectedExit == 0) for (Object er: expectedResults) if (er.toString().contains(": verify:")) expectedExit = 6;
-        		if (ex != expectedExit) fail("Compile ended with exit code " + ex);
-        	}
+
+            synchronized (System.out) { 
+                if (print) printDiagnostics();
+                outputCompare.compareResults(expectedResults,collector);
+                if (expectedExit == 0) for (Object er: expectedResults) if (er.toString().contains(": verify:")) expectedExit = 6;
+                if (ex != expectedExit) fail("Compile ended with exit code " + ex);
+            }
         } catch (Exception e) {
-        	synchronized (System.out) { 
-        		printDiagnostics();
-        		e.printStackTrace(System.out);
-        		fail("Exception thrown while processing test: " + e);
-        	}
+            synchronized (System.out) { 
+                printDiagnostics();
+                e.printStackTrace(System.out);
+                fail("Exception thrown while processing test: " + e);
+            }
         } catch (AssertionError e) {
-        	synchronized (System.out) { 
-        		if (!print && !noExtraPrinting) printDiagnostics();
-        		throw e;
-        	}
+            synchronized (System.out) { 
+                if (!print && !noExtraPrinting) printDiagnostics();
+                throw e;
+            }
         }
     }
     
@@ -368,186 +356,5 @@ public abstract class EscBase extends JmlTestCase {
     protected Optional optional(Object ... list) { return new Optional(list); }
     protected Seq seq(Object ... list) { return new Seq(list); }
     
-
-//    protected boolean comparePair(Object[] list, int i, int j, boolean issueErrors) {
-//        int col = ((Integer)list[i+1]).intValue();
-//        if (collector.getDiagnostics().size() <= j) {
-//            failureLocation = j;
-//            failureString = null;
-//        	return false;
-//        }
-//        String act = noSource(collector.getDiagnostics().get(j));
-//        String exp = null;
-//        if (list[i] != null) exp = list[i].toString().replace("$SPECS", specsdir);
-//        long actualColumn = -1;
-//        if (!exp.equals(act) 
-//                && !exp.replace('\\','/').equals(act.replace('\\','/'))) {
-//            failureLocation = j;
-//            failureString = list[i].toString();
-//            if (issueErrors) assertEquals("Error " + j, list[i], noSource(collector.getDiagnostics().get(j)));
-//            return false;
-//        } else if (col != (actualColumn = Math.abs(collector.getDiagnostics().get(j).getColumnNumber()))) {
-//            failureLocation = j;
-//            failureString = null;
-//            failureCol = col;
-//            if (issueErrors) assertEquals("Error " + j, col, actualColumn);
-//            return false;
-//        } else {
-//            return true;
-//        }
-//    }
-//
-//    /** Compares actual diagnostics against the given list of expected results */
-//    protected int compareResults(Object[] list) {
-//    	return compareResults(list,0,false);
-//    }
-//
-//    /** Compares actual diagnostics, beginning at position j, to given list. The
-//     * returned result is either the initial value of j, if no match was made,
-//     * or the value of j advanced over all matching items. If optional is false,
-//     * then error messages are printed if no match is found.
-//     */
-//    protected int compareResults(Object list, int j, boolean optional) {
-//    	return compareResults(new Object[]{list}, j, optional);
-//    }
-//    protected int compareResults(Object[] list, int j, boolean optional) {
-//        int i = 0;
-//        while (i < list.length) {
-//            if (list[i] == null) { i+=2; continue; }
-//            if (!(list[i] instanceof Special)) {
-//                int col = ((Integer)list[i+1]).intValue();
-//                if (col < 0) {
-//                    // allowed to be optional
-//                    if (j >= collector.getDiagnostics().size()) {
-//                        // OK - just skip
-//                    } else if (list[i].equals(noSource(collector.getDiagnostics().get(j))) &&
-//                            -col == Math.abs(collector.getDiagnostics().get(j).getColumnNumber())) {
-//                        j++;
-//                    } else {
-//                        // Not equal and the expected error is optional so just skip
-//                    }
-//                } else {
-//                    if (noAssociatedDeclaration && list[i].toString().contains("Associated declaration")) {
-//                        // OK - skip
-//                    } else {
-//                        if (j < collector.getDiagnostics().size()) {
-//                        	if (!comparePair(list,i,j, !optional)) {
-//                                if (!optional) {
-//                                    assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
-//                                	assertEquals("Error " + j, list[i], noSource(collector.getDiagnostics().get(j)));
-//                                }
-//                            }
-//                        }
-//                        j++;
-//                    }
-//                }
-//                i += 2;
-//            } else if (list[i] instanceof AnyOrder) {
-//                j = compareAnyOrder(((AnyOrder)list[i]).list, j, optional);
-//                ++i;
-//            } else if (list[i] instanceof OneOf) {
-//                j = compareOneOf(((OneOf)list[i]).list, j, optional);
-//                ++i;
-//            } else if (list[i] instanceof Optional) {
-//                j = compareOptional(((Optional)list[i]).list, j);
-//                ++i;
-//            } else if (list[i] instanceof Seq) {
-//                j = compareResults(((Seq)list[i]).list, j, optional);
-//                ++i;
-//            }
-//        }
-//        return j;
-//    }
-//    
-//    protected int failureLocation;
-//    protected String failureString;
-//    protected int failureCol;
-//    
-//    protected int compareOptional(Object[] list, int j) {
-//        int i = 0;
-//        int jj = j;
-//        while (i < list.length) {
-//            if (!comparePair(list,i,j, false)) {
-//                // Comparison failed - failureLocation set
-//                return jj;
-//            }
-//            i += 2;
-//            j++;
-//        }
-//        return j;
-//    }
-//
-//    protected int compareOneOf(Object[] list, int j, boolean optional) {
-//        // None of lists[i] may be null or empty
-//        int i = 0;
-//        int jj = j;
-//        int latestFailure = -2;
-//        String latestString = null;
-//        int latestCol = 0;
-//        while (i < list.length) {
-//            int jjj = compareResults(list[i],j,true);
-//            if (jjj > j) {
-//                // Matched
-//                return jjj;
-//            }
-//            i++;
-//            if (failureLocation > latestFailure) {
-//                latestFailure = failureLocation;
-//                latestString = failureString;
-//                latestCol = failureCol;
-//            }
-//        }
-//        failureLocation = latestFailure;
-//        if (!optional) { // None matched;
-//        	assertEquals("Error " + failureLocation, latestString, noSource(collector.getDiagnostics().get(failureLocation)));
-//        	assertEquals("Error " + failureLocation, latestCol, collector.getDiagnostics().get(failureLocation).getColumnNumber());
-//        }
-//        return jj;
-//    }
-//
-//
-//    protected int compareAnyOrder(Object[] list, int j, boolean optional) {
-//        // None of lists[i] may be null or empty
-//        boolean[] used = new boolean[list.length];
-//        for (int i=0; i<used.length; ++i) used[i] = false;
-//        
-//        int latestFailure = -2;
-//        String latestString = null;
-//        int latestCol = 0;
-//        int toMatch = list.length;
-//        more: while (toMatch > 0) {
-//            for (int i = 0; i < list.length; ++i) {
-//                if (used[i]) continue;
-//                int jjj = compareResults(list[i],j,true);
-//                if (jjj > j) {
-//                    // Matched
-//                    j = jjj;
-//                    used[i] = true;
-//                    toMatch--;
-//                    continue more;
-//                } else {
-//                    if (failureLocation > latestFailure) {
-//                        latestFailure = failureLocation;
-//                        latestString = failureString;
-//                        latestCol = failureCol;
-//                    }
-//                }
-//            }
-//            // No options match
-//            break;
-//        }
-//        if (toMatch > 0) {
-//            failureLocation = latestFailure;
-//            // None matched;
-//            if (failureLocation >= collector.getDiagnostics().size()) {
-//            	fail("Less output than expected");
-//            } else {
-//            	assertEquals("Error " + failureLocation, latestString, noSource(collector.getDiagnostics().get(failureLocation)));
-//            	assertEquals("Error " + failureLocation, latestCol, collector.getDiagnostics().get(failureLocation).getColumnNumber());
-//            }
-//        }
-//        return j;
-//    }
-
 
 }
