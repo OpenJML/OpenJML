@@ -71,7 +71,7 @@ public class Operators {
     private final Names names;
     private final Log log;
     private final Symtab syms;
-    private final Types types;
+    protected final Types types; // OPENJML - private to protected
 
     /** Unary operators map. */
     private Map<Name, List<UnaryOperatorHelper>> unaryOperators = new HashMap<>(Tag.getNumberOfOperators());

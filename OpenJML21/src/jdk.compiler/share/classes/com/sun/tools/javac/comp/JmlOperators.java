@@ -48,7 +48,7 @@ public class JmlOperators extends Operators {
         			if (args.head == jtype.REAL && args.tail.head == jtype.REAL) {
         				return op;
         			}
-    			}
+    			} // FIXME - do we need to insert explicit conversions
     		}
     		if (op1 == jtype.BIGINT || op2 == jtype.BIGINT) {
     			// This allows for implicit conversions
@@ -57,7 +57,7 @@ public class JmlOperators extends Operators {
         			var args = op.type.getParameterTypes();
                     if (args.head == jtype.BIGINT && args.tail.head == jtype.BIGINT) {
                         return op;
-                    }
+                    } // FIXME - do we need to insert explicit conversions
     			}
     		}
     		org.jmlspecs.openjml.Utils.instance(context).error(pos, "jml.message", "No operator for " + op1 + " " + opName + " " + op2);
@@ -73,8 +73,7 @@ public class JmlOperators extends Operators {
     		for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
     			OperatorSymbol ops = (OperatorSymbol)s;
     			var args = ops.type.getParameterTypes();
-                if (args.head == jtype.BIGINT ) return ops;
-                if (args.head == jtype.REAL ) return ops;
+    			if (types.isSameType(args.head,op)) return ops;
     		}
     		org.jmlspecs.openjml.Utils.instance(context).error(pos, "jml.message", "No operator for " + opName + " " + op);
 			return noOpSymbol;
