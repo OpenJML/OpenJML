@@ -332,45 +332,48 @@ public class namelookup extends TCBase {
     @Test
     public void testModelClass3() {
         addMockFile("$A/A.jml",
-                "public class A {   \n" +
-                "   static class AA { \n" +
-                "      //@ model static class B { static double i; }  \n" +
-                "      //@ model static class C { static double i; }  \n" +
-                "      C b;\n" +            // Sees C
-                "      //@ ghost C bb;\n" + // Sees A.AA.C
-                "      void m(); \n" +
-                "         \n" +
-                "         \n" +
-                "      \n" +
-                "   }\n" +
-                "   static class AA {\n" + // ERROR - duplicate - LINE 12
-                "   }\n" +
-                "   static class BB {\n" + // ERROR - no match
-                "   }\n" +
-                "}\n" +
-                "class A {}\n" +  // ERROR - duplicate
-                "class B {}\n" +  // ERROR - no match
-                ""
+                """
+                public class A {
+                   static class AA {
+                      //@ model static class B { static double i; }
+                      //@ model static class C { static double i; }
+                      C b;            // Sees C
+                      //@ ghost C bb; // Sees A.AA.C
+                      void m();
+
+
+
+                   }
+                   static class AA { // ERROR - duplicate - LINE 12
+                   }
+                   static class BB { // ERROR - no match
+                   }
+                }
+                class A {}  // ERROR - duplicate
+                class B {}  // ERROR - no match
+                """
         );
         helpTCF("A.java",
-                "public class A {   \n" +
-                "   static class AA { \n" +
-                "      B b;\n" + // ERROR - AA.B visible only in specs
-                "      void m() {\n" +
-                "         boolean kk = B.i;\n" + // ERROR - AA.B visible only in specs
-                "         //@ assert B.i;\n" + // ERROR, B OK, but B.i is wrong type
-                "      }\n" +
-                "   }\n" +
-                "}\n" +
-                "class C {}\n"
+                """
+                public class A {
+                   static class AA {
+                      B b;// ERROR - AA.B visible only in specs
+                      void m() {
+                         boolean kk = B.i; // ERROR - AA.B visible only in specs
+                         //@ assert B.i; // ERROR, B OK, but B.i is wrong type
+                      }
+                   }
+                }
+                class C {}
+                """
 
+                ,"/$A/A.jml:17: error: duplicate class: A", 1
+                ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:17:", 8
+                ,"/$A/A.jml:18: error: There is no class to match this Java declaration in the specification file: B",1
+                ,"/$A/A.jml:12: error: duplicate class: AA",11
+                ,"/$A/A.jml:2: error: Associated declaration: /$A/A.jml:12:", 11
+                ,"/$A/A.jml:14: error: There is no class to match this Java declaration in the specification file: BB",11 // FIXME - should be A.BB
                 ,"/A.java:3: error: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
-                ,"/$A/A.jml:12: error: This declaration duplicates an earlier declaration",11
-                ,"/$A/A.jml:2: error: Associated declaration: /$A/A.jml:12:",11
-                ,"/$A/A.jml:14: error: There is no binary class to match this Java declaration in the specification file: BB (owner: A)",11
-                ,"/$A/A.jml:17: error: This declaration duplicates an earlier declaration",1
-                ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:17:",8
-                ,"/$A/A.jml:18: error: There is no binary class to match this Java declaration in the specification file: B (owner: unnamed package)",1
                 ,"/A.java:5: error: cannot find symbol\n  symbol:   variable B\n  location: class A.AA",23
                 ,"/A.java:6: error: incompatible types: double cannot be converted to boolean",22
         );
@@ -393,7 +396,7 @@ public class namelookup extends TCBase {
                 ""
         ,"/$A/A.jml:3: error: This JML class declaration conflicts with an existing Java class with the same name: A", 11
         ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:3:",8
-        ,"/$A/A.jml:7: error: There is no  class to match this Java declaration in the specification file: D",2
+        ,"/$A/A.jml:7: error: There is no class to match this Java declaration in the specification file: D",2
         ,"/$A/A.jml:5: error: duplicate class: B", 11  // FIXME - associated declaration?
         );
     }

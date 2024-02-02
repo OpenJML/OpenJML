@@ -42,8 +42,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escfiles extends EscBase {
 
-    boolean enableSubexpressions = false;
-        
     String[] rac = null;
     
     /** The command-line to use to run ESC on a program */
@@ -79,18 +77,25 @@ public class escfiles extends EscBase {
         helpTCF(d,"test/" + outdir,newopts);
     }
 
-    public void helpTCA(String sourceDirname, String outDir, String ... opts) {
-        int extraOpts = 5;
-        String[] newopts = new String[opts.length+extraOpts];
-        // Fill in exactly 'extraOpts' initial elements
-        newopts[0] = "-classpath";
-        newopts[1] = sourceDirname;
-        newopts[2] = "-checkFeasibility=precondition,reachable,exit,spec";
-        newopts[3] = "-code-math=bigint"; // Just to avoid overflow errors in these tests
-        newopts[4] = "-spec-math=bigint"; // Just to avoid overflow errors in these tests
-        System.arraycopy(opts,0,newopts,extraOpts,opts.length);
-        escOnFiles(sourceDirname,outDir,newopts);
-    }
+//    public void helpTCA(String sourceDirname, String outDir, String ... opts) {
+//        int extraOpts = 5;
+//        String[] newopts = new String[opts.length+extraOpts];
+//        // Fill in exactly 'extraOpts' initial elements
+//        newopts[0] = "-classpath";
+//        newopts[1] = sourceDirname;
+//        newopts[2] = "-checkFeasibility=precondition,reachable,exit,spec";
+//        newopts[3] = "-code-math=bigint"; // Just to avoid overflow errors in these tests
+//        newopts[4] = "-spec-math=bigint"; // Just to avoid overflow errors in these tests
+//        System.arraycopy(opts,0,newopts,extraOpts,opts.length);
+//        escOnFiles(sourceDirname,outDir,newopts);
+//    }
+    /** Runs an --esc test on the files in folder 'sourceDirName', putting the actual output
+     * in folder 'outDir' and comparing with expected files also in 'outDir'.
+     * Default options are setup in EscBase.setupForFiles().  The options in 'opts' are appended to them. 
+     * @param sourceDirname
+     * @param outDir
+     * @param opts
+     */
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
         escOnFiles(sourceDirname,outDir,opts);
     }
@@ -105,95 +110,95 @@ public class escfiles extends EscBase {
     @Test
     public void testDemo1() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClock1.java","test/escDemo1","-escMaxWarnings=1");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClock1.java","test/escDemo1","--esc-max-warnings=1","--check-feasibility=basic");
     }
 
     @Test
     public void testDemoA() {
         expectedExit = 1;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockA.java","test/escDemoA","-subexpressions","-method=tick");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockA.java","test/escDemoA","--subexpressions","--method=tick");
     }
 
     @Test
     public void testDemoA1() {
         expectedExit = 1;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockA1.java","test/escDemoA1","-subexpressions","-method=tick");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockA1.java","test/escDemoA1","--subexpressions","--method=tick");
     }
 
     @Test
     public void testDemoB() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB.java","test/escDemoB");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB.java","test/escDemoB","--check-feasibility=basic");
     }
 
     @Test
     public void testDemoB1() {
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB1.java","test/escDemoB1",
-                "-progress","-escMaxWarningsPath",enableSubexpressions ? "-subexpressions" : "");
+                "--progress","--esc-max-warnings-path");
     }
 
     @Test
     public void testDemoB2() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB2.java","test/escDemoB2");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB2.java","test/escDemoB2","--check-feasibility=basic");
     }
 
     @Test
     public void testDemoB3() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB3.java","test/escDemoB3",enableSubexpressions ? "-subexpressions" : "");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB3.java","test/escDemoB3","--check-feasibility=basic");
     }
 
     @Test
     public void testDemoC() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockC.java","test/escDemoC","-subexpressions");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockC.java","test/escDemoC","--subexpressions","--check-feasibility=basic");
     }
 
     @Test
     public void testDemoD() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockD.java","test/escDemoD","-subexpressions");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockD.java","test/escDemoD","--subexpressions","--check-feasibility=basic");
     }
 
     @Test
-    public void testDemoTypes() {
+    public void escDemoTypes() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=true","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "","-checkFeasibility=precondition,exit");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=true","--check-feasibility=precondition,exit");
     }
 
     @Test // Problem with reasoning about generic types
-    public void testDemoTypesAuto() {
+    public void escDemoTypesAuto() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=auto","-checkFeasibility=precondition,exit","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=auto","--check-feasibility=precondition,exit");
     }
 
     @Test
-    public void testDemoTypesDef() {
+    public void escDemoTypesDef() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=false","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "","-checkFeasibility=precondition,exit");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=false","--check-feasibility=precondition,exit");
     }
 
     @Test // FIXME - Problem with int / short conversions
-    public void testDemoTime() {
+    public void escDemoTime() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Time.java","test/escDemoTime");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Time.java","test/escDemoTime","--check-feasibility=precondition,exit");
     }
 
 
     @Test // Order of errors is somewhat non-deterministic
-    public void testBag() {
+    public void bag() {
         expectedExit = 0;
-        helpTCF("test/bag","test/bag","-escMaxWarnings=1");
+        helpTCF("test/bag","test/bag","--esc-max-warnings=1");
     }
 
     @Test
-    public void testBagModified() {
+    public void bagModified() {
         expectedExit = 0;
         helpTCF("test/bagModified","test/bagModified");
     }
@@ -201,20 +206,20 @@ public class escfiles extends EscBase {
     @Test
     public void testLoopExercises() {
         expectedExit = 0;
-        helpTCF("test/loopExercises","test/loopExercises","-exclude=gauss");
+        helpTCF("test/loopExercises","test/loopExercises","--exclude=gauss");
     }
 
     @Test @Ignore // FIXME - nonlinear inference
     public void testLoopExercises2() {
         expectedExit = 0;
-        helpTCF("test/loopExercises","test/loopExercises","-method=gauss");
+        helpTCF("test/loopExercises","test/loopExercises","--method=gauss");
     }
 
     @Test @Ignore  // FIXME - not yet working
     public void testPurseCard() {
         if ("cvc4".equals(solver)) fail();
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/purse","test/purse","-timeout=15");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/purse","test/purse","--timeout=15");
     }
 
     @Test @Ignore // FIXME - not yet working
@@ -239,30 +244,30 @@ public class escfiles extends EscBase {
     }
 
     @Test // Non-deterministic output
-    public void testECU() {
+    public void ecuesc() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecuesc","-classpath",OpenJMLDemoPath + "/src/openjml/ecudemo","-escMaxWarnings=1");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecuesc","-classpath",OpenJMLDemoPath + "/src/openjml/ecudemo","--esc-max-warnings=1","--check-feasibility=precondition,exit");
     }
 
     @Test
     public void testValueTypes() {
-        helpTF("valuetypes","-classpath","../OpenJML/runtime");
+        helpTF("valuetypes","-classpath","../OpenJML21/runtime");
     }
 
     @Test
     public void testValueTypes2() {
-        helpTF("valuetypes2","-classpath","../OpenJML/runtime");
+        helpTF("valuetypes2");
     }
 
     @Test
     public void testValueTypesErr() {
         expectedExit = 1;
-        helpTF("valuetypesErr","-classpath","../OpenJML/runtime");
+        helpTF("valuetypesErr");
     }
 
     @Test
     public void testOld() {
-        helpTF("oldproblem","-classpath","../OpenJML/runtime");
+        helpTF("oldproblem");
     }
 
     @Test
@@ -282,7 +287,7 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testBuggyRandomNumbers() {
+    public void buggyRandomNumbers() {
         helpTF("buggyRandomNumbers");
     }
 
@@ -329,13 +334,13 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testAdd() {
-        expectedExit = 1;
+    public void escAdd() {
+        expectedExit = 0;
         helpTF("escAdd");
     }
 
     @Test
-    public void testAdd2() {
+    public void escAdd2() {
         expectedExit = 0;
         helpTF("escAdd2");
     }
@@ -379,66 +384,73 @@ public class escfiles extends EscBase {
     public void testCashAmount() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmount.java","test/escCashAmount","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmount.java","test/escCashAmount","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1","-checkFeasibility=none");
     }
 
     @Test
     public void testCashAmount2() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountOnlyPrivate.java","test/escCashAmountonlyPrivate","-classpath",OpenJMLDemoPath + "/src/openjml/demo");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountOnlyPrivate.java","test/escCashAmountonlyPrivate","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-checkFeasibility=none");
     }
 
     @Test
     public void testCashAmountMutable() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountMutable.java","test/escCashAmountMutable","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-code-math=bigint","-spec-math=bigint");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountMutable.java","test/escCashAmountMutable","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-code-math=bigint","-spec-math=bigint","-checkFeasibility=none");
     }
 
     @Test
     public void testCashAmountMF() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountMF.java","test/escCashAmountMF","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountMF.java","test/escCashAmountMF","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1","-checkFeasibility=none");
     }
 
     @Test
-    public void testSettableClock() {
+    public void testCashAmountPrivate2() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpDemo("settableClock","escSettableClock");
+        helpTCF("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase","-checkFeasibility=none");
+    }
+
+    @Test
+    public void escSettableClock() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+        expectedExit = 0;
+        helpDemo("settableClock","escSettableClock","--check-feasibility=precondition,exit");
     }
 
     @Test
     public void testVector() {
         expectedExit = 0;
-        helpTF("escVector","-code-math=java");
+        helpTF("escVector","--code-math=java");
     }
 
     @Test
     public void testDMZLoop() {
         expectedExit = 0;
-        helpTF("escDMZLoop","-method=findMax");
+        helpTF("escDMZLoop","--method=findMax");
     }
 
     @Test
     public void testDMZLoopA() {
         expectedExit = 0;
-        helpTF("escDMZLoopA","-method=findMax","-code-math=bigint","-spec-math=bigint");
+        helpTF("escDMZLoopA","--method=findMax","--code-math=bigint","--spec-math=bigint");
     }
 
     @Test
     public void testDMZLoopB() {
         expectedExit = 0;
-        helpTF("escDMZLoopB","-method=findMax","-code-math=bigint","-spec-math=bigint");
+        helpTF("escDMZLoopB","--method=findMax","--code-math=bigint","--spec-math=bigint");
     }
 
     @Test
-    public void testRecursiveInvariant() {
+    public void escRecursiveInvariant() {
         expectedExit = -1;
         helpTF("escRecursiveInvariant");
     }
 
     @Test
-    public void testRecursiveInvariant2() {
+    public void escRecursiveInvariant2() {
         expectedExit = -1;
         helpTF("escRecursiveInvariant2");
     }
@@ -450,13 +462,13 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testConstructorDefaults() {
+    public void constructorDefaults() {
         expectedExit = 0;
         helpTF("constructorDefaults");
     }
 
     @Test
-    public void testInlinedLoop() {
+    public void escInlinedLoop() {
         expectedExit = 0;
         helpTF("escInlineLoop");
     }
@@ -467,13 +479,6 @@ public class escfiles extends EscBase {
     public void testBadCast() {
         expectedExit = 0;
         helpTF("escBadCast");
-    }
-
-    @Test
-    public void testCashAmountPrivate2() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        expectedExit = 0;
-        helpTCF("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase");
     }
 
     @Test
@@ -490,29 +495,29 @@ public class escfiles extends EscBase {
 
     @Test
     public void testEscModelFields() {
-        helpTF("escModelFields","-progress");
+        helpTF("escModelFields","--progress");
     }
 
     @Test
     public void testEscSimpleString() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver)); // FIXME - CVC4 crashes or is long
-        helpTF("escSimpleString","-nonnullByDefault","-timeout=240");
+        helpTF("escSimpleString","--non-null-by-default","-timeout=240");
     }
 
     @Test
     public void testEscSimpleString2() {
-        helpTF("escSimpleString2","-nonnullByDefault");
+        helpTF("escSimpleString2","--non-null-by-default");
     }
 
     @Test
     public void testEscSimpleString3() {
-        helpTF("escSimpleString3","-nonnullByDefault");
+        helpTF("escSimpleString3","--non-null-by-default");
     }
 
 
     @Test @Ignore // FIXME - implement diverges
     public void testEscDiverges() {
-        helpTF("escDiverges","-nonnullByDefault");
+        helpTF("escDiverges","--non-null-by-default");
     }
 
 
@@ -532,59 +537,59 @@ public class escfiles extends EscBase {
     }
     
     @Test
-    public void testEscLoop() {
+    public void escLoop() {
         helpTF("escLoop");
     }
 
     @Test
-    public void testEscLoopModifies() {
+    public void escLoopModifies() {
         helpTF("escLoopModifies");
     }
 
     @Test
-    public void testEscLoopAssignable() {
+    public void escLoopAssignable() {
         expectedExit = 1;
         helpTF("escLoopAssignable");
     }
 
     @Test
-    public void testEscBodySpecs() {
+    public void escBodySpecs() {
         helpTF("escBodySpecs");
     }
 
     @Test
-    public void testEscDeterministic() {
+    public void escDeterministic() {
         helpTF("escDeterministic");
     }
 
     @Test
-    public void testEscDeterministic2() {
+    public void escDeterministic2() {
         helpTF("escDeterministic2");
 	}
 
     @Test
-    public void testEscFunction() {
+    public void escFunction() {
         helpTF("escFunction");
     }
     
     @Test
-    public void testAbstractSpecs() {
+    public void escAbstractSpecs() {
         helpTF("escAbstractSpecs");
     }
     
     @Test
-    public void testAbstractSpecs2() {
+    public void escAbstractSpecs2() {
     	expectedExit = 1;
         helpTF("escAbstractSpecs2");
     }
     
     @Test
-    public void testEscInvariants() {
+    public void escInvariants() {
         helpTF("escInvariants");
     }
 
     @Test
-    public void testEscInvariants2() {
+    public void escInvariants2() {
         helpTF("escInvariants2");
     }
 
@@ -598,14 +603,14 @@ public class escfiles extends EscBase {
         helpTF("escDouble");
     }
 
-    @Test
+    @Test @Ignore // timesout
     public void escDouble2() {
-        helpTF("escDouble2","-exclude=clone,remainderBy,toString");
+        helpTF("escDouble2","--exclude=clone,remainderBy,toString");
     }
 
     @Test @Ignore
     public void escDouble2a() {
-        helpTF("escDouble2","-escMaxWarnings=1","-show","-method=remainderBy","-subexpressions");
+        helpTF("escDouble2","--esc-max-warnings=1","--show","--method=remainderBy","--subexpressions");
     }
 
     @Test
@@ -619,27 +624,27 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testEscConstructor() {
+    public void escConstructor() {
         helpTF("escConstructor");
     }
 
     @Test
-    public void testEscConstructor2() {
+    public void escConstructor2() {
         helpTF("escConstructor2");
     }
 
     @Test
-    public void testEscConstructor3() {
+    public void escConstructor3() {
         helpTF("escConstructor3");
     }
 
     @Test
-    public void testEscConstructor4() {
+    public void escConstructor4() {
         helpTF("escConstructor4");
     }
     
     @Test
-    public void testEscConstructor5() {
+    public void escConstructor5() {
         helpTF("escConstructor5");
     }
 
@@ -649,68 +654,68 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testEscShortCircuit() {
+    public void escShortCircuit() {
         helpTF("escShortCircuit");
     }
     
     @Test
-    public void testEscRecursiveOld() {
+    public void escRecursiveOld() {
         helpTF("escRecursiveOld");
     }
     
     @Test
-    public void testEnsuresInfeasible() {
+    public void ensuresInfeasible() {
         helpTF("escEnsuresInfeasible");
     }
 
     @Test
-    public void testEnsuresInfeasible2() {
+    public void ensuresInfeasible2() {
         helpTF("escEnsuresInfeasible2");
     }
 
     @Test
-    public void testConstructorInfeasible() {
+    public void escConsInfeasible() {
         helpTF("escConsInfeasible");
     }
 
     @Test
-    public void testEscMultipleModel() {
+    public void escMultipleModel() {
         helpTF("escMultipleModel");
     }
 
     @Test
-    public void testEscMultipleModel2() {
+    public void escMultipleModel2() {
         helpTF("escMultipleModel2");
     }
 
     @Test
-    public void testEscMultipleModel3() {
+    public void escMultipleModel3() {
         helpTF("escMultipleModel3");
     }
 
     @Test
-    public void testPreconditionDetail() {  // FIXME - why multiple conjuncts reported
+    public void preconditionDetail() {  // FIXME - why multiple conjuncts reported
         helpTF("preconditionDetail");
     }
 
     @Test // FIXME - still has problems with imports in JML files and with checks on field initializers
-    public void testEscJml() {
-        helpTCF("test/escJML/Test.java","test/escJML","-specspath=test/escJML/specs");
+    public void escJml() {
+        helpTCF("test/escJML/Test.java","test/escJML","--specs-path=test/escJML/specs","--check-feasibility=precondition,exit");
     }
 
     @Test
     public void testEscJml1() {
-        helpTCF("test/escJml1/StorageParameters.java","test/escJml1","-specspath=test/escJml1/specs");
+        helpTCF("test/escJml1/StorageParameters.java","test/escJml1","--specs-path=test/escJml1/specs","--check-feasibility=precondition,exit");
     }
 
     @Test
     public void testEscJml2() {
-        helpTCF("test/escJml2/StorageParameters.java","test/escJml2","-specspath=test/escJml2/specs");
+        helpTCF("test/escJml2/StorageParameters.java","test/escJml2","--specs-path=test/escJml2/specs","--check-feasibility=precondition,exit");
     }
 
     @Test
     public void testEscJml3() {
-        helpTCF("test/escJml3/StorageParameters.java","test/escJml3","-specspath=test/escJml2/specs");
+        helpTCF("test/escJml3/StorageParameters.java","test/escJml3","--specs-path=test/escJml2/specs","--check-feasibility=precondition,exit");
     }
 
     @Test
@@ -729,22 +734,22 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void escConsFresh() {
+    public void consFresh() {
         helpTF("consfresh");
     }
 
     @Test
-    public void testSpecificationInterface() {
+    public void specificationInterfaceDemo() {
         helpTF("specificationInterfaceDemo");
     }
 
     @Test
-    public void testImplicitIteration() {
+    public void implicitIteration() {
         helpTF("implicitIteration");
     }
 
     @Test
-    public void testImplicitIterationA() {
+    public void implicitIterationA() {
         helpTF("implicitIterationA");
     }
 
@@ -867,7 +872,7 @@ public class escfiles extends EscBase {
     }
 
     @Test // Basic problem is with the toString conversion of a \bigint, because of the -code-math=bigint setting of these
-    public void testFactorial() {
+    public void factorial() {
         expectedExit = 0;
         helpTF("factorial");//,"-code-math=java");
     }

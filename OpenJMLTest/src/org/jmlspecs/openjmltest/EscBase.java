@@ -114,15 +114,15 @@ public abstract class EscBase extends JmlTestCase {
         return data;
     }
     
-    static public void addOptionsToArgs(String options, java.util.List<String> args) {
-        if (options != null) {
-            if (options.indexOf(',')>= 0) {
-            	for (String o: options.split(",")) if (!o.isEmpty()) args.add(o);
-            } else {
-            	for (String o: options.split(" ")) if (!o.isEmpty()) args.add(o);
-            }
-        }
-    }
+//    static public void addOptionsToArgs(String options, java.util.List<String> args) {
+//        if (options != null) {
+//            if (options.indexOf(',')>= 0) {
+//            	for (String o: options.split(",")) if (!o.isEmpty()) args.add(o);
+//            } else {
+//            	for (String o: options.split(" ")) if (!o.isEmpty()) args.add(o);
+//            }
+//        }
+//    }
     
     public void addOptions(String options) {
         if (options != null) {
@@ -192,6 +192,10 @@ public abstract class EscBase extends JmlTestCase {
         args = new String[]{};
     }
 
+    /** Runs an --esc test on the file named in 'sourceDirOrFileName' (ofr if it is a folder, all the files in it), 
+     * putting the actual output in folder 'outDir' and comparing with expected files also in 'outDir'.
+     * Default options are setup in EscBase.setupForFiles().  The options in 'opts' are appended to them. 
+     * **/
     public void escOnFiles(String sourceDirname, String outDir, String ... opts) {
         boolean print = false;
         try {
@@ -202,10 +206,31 @@ public abstract class EscBase extends JmlTestCase {
             int ex = -1;
             try {
                 ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
-                //ex = com.sun.tools.javac.Main.compile(args.toArray(new String[args.size()]),pw);
             } finally {
                 pw.close();
             }
+//            String expected = outDir + "/expected";
+//            String exp;
+//            int n = 0;
+//            int k = 0;
+//            while (true) {
+//                exp = expected + (n==0?"":String.valueOf(n));
+//                if (!new File(exp).exists()) break;
+//                System.out.println("Comparing to " + exp);
+//                Process process = Runtime.getRuntime().exec(new String[]{"diff", "-q", actCompile, exp});
+//                System.out.println("  Result " + k);
+//                k = process.waitFor();
+//                if (k != 0) break;
+//            }
+//            if (k != 0) {
+//                Process process = Runtime.getRuntime().exec(new String[]{"diff", actCompile, exp});
+//                k = process.waitFor();
+//            } else if (exp == expected) {
+//                System.out.println("No expected file for " + sourceDirname);
+//            } else {
+//                System.out.println("Matched " + exp);
+//                new File(actCompile).delete();
+//            }
 
             String diffs = outputCompare.compareFiles(outDir + "/expected", actCompile);
             int n = 0;
@@ -219,7 +244,8 @@ public abstract class EscBase extends JmlTestCase {
                 System.out.println("TEST DIFFERENCES: " + testname.getMethodName());
                 System.out.println(diffs);
                 fail("Files differ: " + diffs);
-            }  
+            }
+            
             if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex);
             new File(actCompile).delete();
 
@@ -287,7 +313,6 @@ public abstract class EscBase extends JmlTestCase {
         if (!new File(sourceDirOrFilename).isFile()) args.add("--dir");
         args.add(sourceDirOrFilename);
         if (solver != null) args.add("--prover="+solver);
-        addOptionsToArgs(options,args);        
         args.addAll(Arrays.asList(opts));
         return args;
     }
