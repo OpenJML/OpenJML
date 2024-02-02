@@ -57,13 +57,13 @@ public class escnonpublic extends EscBase {
         else args.add(source.getParent());
         args.add("--esc");
         args.add("-jmltesting");
-        args.add("-no-purityCheck");
-        args.add("-code-math=java");
+        args.add("--no-purity-check");
+        args.add("--code-math=java");
         args.add("--check-feasibility=basic");
         if (new File(sourceDirname).isDirectory()) args.add("--dir");
         args.add(sourceDirname);
         if (solver != null) args.add("-prover="+solver);
-        addOptionsToArgs(options,args);        
+        //addOptionsToArgs(options,args);        
         args.addAll(Arrays.asList(opts));
         return args;
     }

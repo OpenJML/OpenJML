@@ -74,7 +74,7 @@ public class escDemofiles extends EscBase {
         args.add("--check-feasibility=basic");
         args.add("--dir");
         args.add(sourceDirname);
-        addOptionsToArgs(options,args);
+//        addOptionsToArgs(options,args);
         args.addAll(Arrays.asList(opts));
         return args;
     }

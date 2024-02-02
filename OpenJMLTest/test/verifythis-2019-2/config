@@ -1,1 +1,1 @@
-ARGS+=" -solver-seed=42"
+ARGS+=" --solver-seed=42 --timeout=600 "

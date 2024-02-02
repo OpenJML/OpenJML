@@ -1,34 +1,18 @@
 Proving methods in sv_esc.Bag
 Starting proof of sv_esc.Bag.Bag(int[]) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of sv_esc.Bag.Bag(int[]) with prover !!!! - no warnings
 Starting proof of sv_esc.Bag.Bag(sv_esc.Bag) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of sv_esc.Bag.Bag(sv_esc.Bag) with prover !!!! - no warnings
 Starting proof of sv_esc.Bag.removeOnce(int) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of sv_esc.Bag.removeOnce(int) with prover !!!! - no warnings
 Starting proof of sv_esc.Bag.removeAll(int) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of sv_esc.Bag.removeAll(int) with prover !!!! - no warnings
 Starting proof of sv_esc.Bag.getCount(int) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of sv_esc.Bag.getCount(int) with prover !!!! - no warnings
 Starting proof of sv_esc.Bag.add(int) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of sv_esc.Bag.add(int) with prover !!!! - no warnings
 Starting proof of sv_esc.Bag.add(sv_esc.Bag) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of sv_esc.Bag.add(sv_esc.Bag) with prover !!!! - no warnings
 Starting proof of sv_esc.Bag.arraycopy(int[],int,int[],int,int) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of sv_esc.Bag.arraycopy(int[],int,int[],int,int) with prover !!!! - no warnings
 Completed proving methods in sv_esc.Bag

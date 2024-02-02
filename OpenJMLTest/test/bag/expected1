@@ -7,8 +7,8 @@ Starting proof of sv_esc.Bag.removeOnce(int) with prover !!!!
 test/bag/Bag.java:28: warning: The prover cannot establish an assertion (InvariantExit) in method removeOnce
   void removeOnce(int elt) {
        ^
-test/bag/Bag.java:12: warning: Associated declaration
-  //@ invariant 0 <= n;
+test/bag/Bag.java:13: warning: Associated declaration
+  //@ invariant n <= contents.length;
       ^
 Completed proof of sv_esc.Bag.removeOnce(int) with prover !!!! - with warnings
 Starting proof of sv_esc.Bag.removeAll(int) with prover !!!!
