@@ -1428,10 +1428,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         saveEnvForLabel(this.preLabel, env);
         var methodSpecs = specs.getLoadedSpecs(methodSym);
         var prevAllow = jmlresolve.setAllowJML(true);
-    	var prevEnv = this.env;
-    	var prevMethodEnv = this.enclosingMethodEnv;
-    	this.env = env;
-    	this.enclosingMethodEnv = env;
+        var prevEnv = this.env;
+        var prevMethodEnv = this.enclosingMethodEnv;
+        this.env = env;
+        this.enclosingMethodEnv = env;
+        if (methodSpecs == null) {
+            if ((methodSym.flags() & Flags.SYNTHETIC) == 0) System.out.println("NO SPECS FOR " + methodSym); // FIXME - error?
+            super.attribMethodSpecsAndBody(methodSym, body, env);
+            return;
+        }
         if (methodSpecs.cases != null) { // FIXME - should we get the specs to check from JmlSpecs?
 //            // Check the also designation
 //            if (methodSpecs.cases.cases != null && methodSpecs.cases.cases.size() > 0) {

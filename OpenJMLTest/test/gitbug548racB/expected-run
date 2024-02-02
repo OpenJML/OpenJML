@@ -1,6 +1,6 @@
 OUT:
-java.lang.AbstractMethodError: Test.get(I)I
-java.lang.AbstractMethodError: Test.get(I)I
+java.lang.AbstractMethodError: Receiver class Test does not define or inherit an implementation of the resolved method 'abstract int get(int)' of interface IFace.
+java.lang.AbstractMethodError: Receiver class Test does not define or inherit an implementation of the resolved method 'abstract int get(int)' of interface IFace.
 	at Test.main(Test.java:7)
 
 ERR:
