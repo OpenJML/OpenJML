@@ -1311,7 +1311,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return null;
 		} finally {
 			if (continuation != Continuation.CONTINUE) {
-			    System.out.println("ADDING FINAL HALT");
+			    //System.out.println("ADDING FINAL HALT");
 				addStat(M.at(methodDecl).JmlExpressionStatement(ReachableStatement.haltID,
 						ReachableStatement.haltClause, null, null));
 			}
@@ -14645,7 +14645,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitSelect(JCFieldAccess that) {
-	    boolean print = false;//that.toString().contains("rep");
+	    boolean print = false; // that.toString().endsWith(".i");
         if (print) System.out.println("VISITSELECT-A " + that );
 		JCExpression selected;
 		Symbol s = convertSymbol(that.sym);
@@ -14702,7 +14702,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //			fa.sym = null;
 //			eee = fa;
 		} else if (translatingJML && (s == null || (s instanceof VarSymbol && (utils.isModel(s) || utils.isJML(s.owner.flags()))
-				&& !convertingAssignable && !reps.contains(s)))) {
+				&& !convertingAssignable))) {
 			selected = copy(trexpr);
 
 			// FIXME - why must selected be a JCIdent here and below
@@ -14730,14 +14730,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				type = ((Type.TypeVar) type).getUpperBound();
 			// result = eresult = treeutils.makeSelect(that.pos, selected, s);
 			// The following method sets result and eresult
-			if (s != null) {
+			if (s != null && !reps.contains(s)) {
 			    // copying the untranslated that.selected here because it is converted in addRepresentsAxioms and
 			    // that.selected may be wrapped in \old wrappers -- really?
 			    addRepresentsAxioms((ClassSymbol) type.tsym, s, that, selected);
 			}
 			// The tsym can be a TypeVar
-			result = eresult = newfa;
             if (print) System.out.println("VISITSELECT-M " + that + " " + trexpr + " " + eresult);
+            
+            if (rac && utils.isModel(s)) {
+                JCFieldAccess recv = M.at(that.pos).Select(trexpr, names.fromString(Strings.modelFieldMethodPrefix + that.name.toString()));
+                recv.sym = JmlMemberEnter.instance(context).modelMethods.get(s).sym;
+                recv.type = recv.sym.type;
+                result = eresult = M.at(that.pos).Apply(null,recv, List.<JCExpression>nil());
+                eresult.type = that.type;
+                //System.out.println("MODEL " + that + " " + eresult + " " + recv.sym + " " + recv.type);
+            } else {
+                result = eresult = newfa;
+            }
+            
 			return; // TODO REVIEW - why this return here - why not do the remainder of visitSelect
 		} else if (s instanceof Symbol.TypeSymbol) {
 			// This is a type name, so the tree should be copied, but without inserting
@@ -14896,7 +14907,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	// FIXME - check use of condition everywhere
 
-	java.util.List<Symbol> reps = new LinkedList<Symbol>();
+	java.util.List<Symbol> reps = new LinkedList<>();
 
 	// OK
 	@Override
@@ -15057,10 +15068,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// the corrresponding model method. We have to use model methods
 			// instead of just inlining the represents clause expression because
 			// the model field/method may be overridden in derived classes.
-
+			// FIXME - this is needed for ESC as well, not sure why
 			if (utils.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable && !reps.contains(sym)) {
 				translateModelField(currentEnv.currentReceiver, that, sym, newfa);
 //	            System.out.println("VISITIDENT-F " + that + " " + eresult);
+				// FIXME - if this is translated, then the tranlation below is not needed
+				// FIXME - if this is not trznslated, then why the return
 				return;
 			}
 
@@ -15138,6 +15151,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else if (that.name.equals(heapVarName)) {
 				result = eresult = copy(that);
 
+			} else if (rac && utils.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable) {
+			    JCExpression recv = currentEnv.currentReceiver != null ? copy(currentEnv.currentReceiver) : copy(that);
+                JCFieldAccess fcn = M.at(that.pos).Select(recv, names.fromString(Strings.modelFieldMethodPrefix + that.name.toString()));
+                fcn.sym = JmlMemberEnter.instance(context).modelMethods.get(sym).sym;
+                fcn.type = fcn.sym.type;
+                result = eresult = M.at(that.pos).Apply(null, fcn, List.<JCExpression>nil());
+                eresult.type = that.type;
+			    
 			} else if (sym instanceof Symbol.TypeSymbol) {
 				Type t = typevarValue(that.type, typevarMapping);
 				// The input id is a type, so we expand it to a FQ name
@@ -15914,7 +15935,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			for (JCTree t : that.defs) {
 				if (t instanceof JmlClassDecl 
 				        || t instanceof JmlMethodDecl
-				        || (rac && t instanceof JmlVariableDecl)
+				        || (rac && (t instanceof JmlVariableDecl || t instanceof JmlBlock))
 				        ) {
 //                    if (org.jmlspecs.openjml.Utils.debug()) {
 //                    	System.out.println("JAA-visitJmlClassDecl-C " + that.sym + " " + t);
@@ -19504,7 +19525,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 
 		if (rac && that.suchThat) {
-			System.out.println("REP " + that.pos + " " + that.getStartPosition() + " " + utils.locationString(that, that.source()) + " " + that);
+			//System.out.println("REP " + that.pos + " " + that.getStartPosition() + " " + utils.locationString(that, that.source()) + " " + that);
 			notImplemented(that, "relational represents clauses (\\such_that)", that.source());
 			return;
 		}

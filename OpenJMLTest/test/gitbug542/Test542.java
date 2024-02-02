@@ -1,15 +1,15 @@
 public class Test542 {
 
     /*@ spec_public @*/
-    private int[] vals= new int[10]; //@ in countVals;
+    private int[] vals = new int[10]; //@ in countVals;
     
     /*@
       public model int countVals;
       represents countVals = (\sum int i; 0<=i && i<vals.length; vals[i]);
       @*/
     
-    //@requires countVals > 0;
-    public void m() {       
+    //@ requires countVals > 0;
+    public void m() {
     }
     
     public static void main(String[] args) {

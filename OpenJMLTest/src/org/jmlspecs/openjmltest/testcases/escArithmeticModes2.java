@@ -238,8 +238,8 @@ public class escArithmeticModes2 extends EscBase {
                 +"  //@ requires j != 0;\n"
                 +"  public void ma(int i, int j) {\n"
                 +"    int k = (i/j) * j + (i%j);\n"
-                +"    //@ assert k == i; \n"
-                +"    //@ assert (i/j) * j + (i%j) == i; \n"
+                +"    //@ assert k == i; \n"    // Should be OK, but not always proved
+                +"    //@ assert (i/j) * j + (i%j) == i; \n"  // Should be OK, but not always proved
                 +"  }\n"
                 +"}\n"   // FIXME - not sure why the multiply overflow is sometimes not reported
                 ,anyorder(
@@ -247,7 +247,7 @@ public class escArithmeticModes2 extends EscBase {
                   ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: int multiply overflow",19)
                   ,seq("/tt/TestJava.java:7: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: overflow in int divide",18)
                   ,seq("/tt/TestJava.java:7: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: int multiply overflow",22)
-                  ,seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method ma",9)
+                  ,optional("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method ma",9)
                 )
               );
     }

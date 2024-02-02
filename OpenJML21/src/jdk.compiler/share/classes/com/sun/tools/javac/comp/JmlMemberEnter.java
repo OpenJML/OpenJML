@@ -678,13 +678,18 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         }
 
         List<JCTree> nd = newdefs.toList();
-        memberEnter(nd,env);
+        var saved = this.env;
+        this.env= env;
+        for (var mem: nd) visitMethodDef((JCMethodDecl)mem);
+        this.env = saved;
         jtree.defs = jtree.defs.appendList(nd);
         // The call to set the specs must come after the the method symbol is set, so after memberEnter
 //        for (JCTree md: nd) {  setDefaultCombinedMethodSpecs((JmlMethodDecl)md); }
 
 
     }
+    
+    public java.util.Map<Symbol, JmlMethodDecl> modelMethods = new java.util.HashMap<>();
             
     public JmlMethodDecl makeModelFieldMethod(JmlVariableDecl modelVarDecl, JmlSpecs.TypeSpecs tsp) {
         long flags = Flags.SYNTHETIC;
@@ -708,6 +713,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         tcd.source = fspecs.source();
         tcd.modifiers = mr.mods;
         tsp.modelFieldMethods.append(tcd);
+        modelMethods.put(modelVarDecl.sym, mr);
         return mr;
     }
         

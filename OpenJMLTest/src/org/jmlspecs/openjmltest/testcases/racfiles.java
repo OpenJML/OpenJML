@@ -42,14 +42,16 @@ public class racfiles extends RacBase {
         ignoreNotes = true;
     }
 
+    // No longer trying to test NG 
     // Must be called within a test method (not in setup) in order to get the test method name correctly
     public void setRacng() {
-        rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testcompiles/"+getMethodName(1)+z+"test/racaddng/jmlunitng.jar",null};
+        rac = new String[]{jdk, "-classpath","testcompiles/"+getMethodName(1)+z+"test/"+getMethodName(1),null};
     }
     
     public void setRacngEA() {
-    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testcompiles/"+getMethodName(1),"-Dorg.jmlspecs.openjml.:q"
-    			+ "=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
+    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testcompiles/"+getMethodName(1),
+    	        "-Dorg.jmlspecs.openjml.racexceptions=true",
+    			"-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
     }
 
     /** Testing using system specs */
@@ -74,15 +76,15 @@ public class racfiles extends RacBase {
     }
 
     @Test // Originally crashed because of a model method in a library class
-    public void testPoint() {
+    public void racPoint() {
         expectedExit = 0;
-        helpTCF("test/racPoint","test/racPoint","Point","-quiet");
+        helpTCF("test/racPoint","test/racPoint","Point","--quiet");
     }
 
     @Test // Originally crashed because of a model method in a library class
-    public void testPoint2() {
+    public void racPoint2() {
         expectedExit = 0;
-        helpTCF("test/racPoint2","test/racPoint2","Point");
+        helpTCF("test/racPoint2","test/racPoint2","Point","--show");
     }
 
     @Test
@@ -374,21 +376,21 @@ public class racfiles extends RacBase {
     public void gitbug542a() {
         runrac = true;
         expectedRACExit = 0;
-        helpTCF("test/gitbug542","test/gitbug542a","Test542","-spec-math=java");
+        helpTCF("test/gitbug542","test/gitbug542a","Test542","--spec-math=java");
     }
 
     @Test
     public void gitbug542b() {
         runrac = true;
         expectedRACExit = 0;
-        helpTCF("test/gitbug542","test/gitbug542b","Test542","-spec-math=safe");
+        helpTCF("test/gitbug542","test/gitbug542b","Test542","--spec-math=safe");
     }
 
     @Test
     public void gitbug542c() {
         runrac = true;
         expectedRACExit = 0;
-        helpTCF("test/gitbug542","test/gitbug542c","Test542","-spec-math=bigint");
+        helpTCF("test/gitbug542","test/gitbug542c","Test542","--spec-math=bigint");
     }
 
     @Test

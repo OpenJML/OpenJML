@@ -1148,6 +1148,10 @@ public class TypeEnter implements Completer {
                 Assert.check(tree.sym.isCompleted());
                 tree.sym.setAnnotationTypeMetadata(new AnnotationTypeMetadata(tree.sym, annotate.annotationTypeSourceCompleter()));
             }
+            // OPENJML - could use  derived class for the following block, but it would be the only reason
+            if (org.jmlspecs.openjml.Utils.isJML() && org.jmlspecs.openjml.Utils.instance(context).rac) {
+                ((JmlMemberEnter)memberEnter).addRacMethods(tree.sym, env);
+            }
         }
 
         private void addAccessor(JCVariableDecl tree, Env<AttrContext> env) {

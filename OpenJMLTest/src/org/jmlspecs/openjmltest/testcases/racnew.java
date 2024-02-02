@@ -614,12 +614,12 @@ public class racnew extends RacBase {
     @Test public void testElemtype() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" 
                 +"Object o = new String[3]; Object oo = new int[5]; Object o3 = Integer.valueOf(4);\n"
-                +"//@ ghost nullable java.lang.Class t; ghost nullable \\TYPE tt; \n"
+                +"//@ ghost nullable Class t; ghost nullable \\TYPE tt; \n"
                 +"//@ set tt = (\\lbl A \\elemtype(\\typeof(o)));\n"
                 +"//@ set tt = (\\lbl B \\elemtype(\\typeof(oo)));\n"
                 +"//@ set tt = (\\lbl C \\elemtype(\\typeof(o3)));\n"
-                +"//@ set t = (\\lbl D \\elemtype(java.lang.Class.class));\n"
-                +"//@ set t = (\\lbl E \\elemtype(java.lang.Boolean[].class));\n"
+                +"//@ set t = (\\lbl D \\elemtype(Class.class));\n"
+                +"//@ set t = (\\lbl E \\elemtype(Boolean[].class));\n"
                 +"System.out.println(\"END\"); } \n"
                 +"}"
                 ,"LABEL A = class java.lang.String"
@@ -1544,7 +1544,7 @@ public class racnew extends RacBase {
                 }
                 """
                 ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: relational represents clauses (\\such_that)",16 // FIXME -point to the \such_that token instead?
-                ,"/tt/A.java:4: warning: JML model field is not implemented: i",22
+                ,"/tt/A.java:4: warning: JML model field is not implemented: i",26
                 ,"END"
                 );
 
@@ -1670,16 +1670,24 @@ public class racnew extends RacBase {
 
     /** Using a model field in a field access */
     @Test public void testModelField1a() {
-        helpTCX("tt.PA","package tt; public class PA { \n"
-                +" static int j = 5; //@ in i;\n "
-                +"//@  model int i; represents i = j; \n"
-                +"public static void main(String[] args) { \n"
-                +"PA a = new PA();\n"
-                +"//@ set System.out.println(\"A \" + a.i); \n"
-                +"PB b = new PB();\n"
-                +"//@ set System.out.println(\"B \" + b.i); \n"
-                +"System.out.println(\"END\"); "
-                +"}} class PB { //@ model  int i; represents i = PA.j+1; \n\n}"
+        helpTCX("tt.PA",
+                """
+                package tt;
+                public class PA {
+                    static int j = 5; //@ in i;
+                    //@ model int i; represents i = j;
+                    public static void main(String[] args) {
+                        PA a = new PA();
+                        //@ set System.out.println(\"A \" + a.i);
+                        PB b = new PB();
+                        //@ set System.out.println(\"B \" + b.i);
+                        System.out.println(\"END\");
+                    }
+                }
+                class PB {
+                    //@ model int i; represents i = PA.j+1;
+                }
+                """
                 ,"A 5"
                 ,"B 6"
                 ,"END"
@@ -2420,9 +2428,6 @@ public class racnew extends RacBase {
                 +"}"
                 ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",32
                 ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",31
-                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",31 // Duplicated - once when adding preconditions, once for postconditions
-                                                                                                                                // FIXME - why is the position different in the duplicate?
-                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration",32
                 ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration",25
                 ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: assume statement containing \\duration",25
                 ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",33
@@ -2431,12 +2436,13 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:16: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",29
                 ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",34
                 ,"/tt/A.java:18: Note: Not implemented for runtime assertion checking: requires clause containing \\duration",23
+                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration",32
                 ,"/tt/A.java:20: Note: Not implemented for runtime assertion checking: ensures clause containing \\duration",22
                 ,"/tt/A.java:21: Note: Not implemented for runtime assertion checking: signals clause containing \\duration",37
                 ,"/tt/A.java:24: Note: Not implemented for runtime assertion checking: duration clause containing \\duration",24
                 ,"/tt/A.java:25: Note: Not implemented for runtime assertion checking: working_space clause containing \\duration",28
                 ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: represents clause containing \\duration",37
-                ,"/tt/A.java:5: Unrecoverable situation: Unimplemented construct in a method or model method or represents clause",37   // FIXME
+                ,"/tt/A.java:5: error: Unrecoverable situation: Unimplemented construct in a method or model method or represents clause",37   // FIXME
                 ,"END"
                 );
 

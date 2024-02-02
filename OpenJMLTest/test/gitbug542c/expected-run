@@ -1,10 +1,13 @@
 OUT:
-test/gitbug542/Test542.java:17: JML precondition is false
+test/gitbug542/Test542.java:17: verify: JML precondition is false
         t.m();
            ^
-test/gitbug542/Test542.java:12: Associated declaration: test/gitbug542/Test542.java:17:
-    public void m() {       
+test/gitbug542/Test542.java:12: verify: Associated declaration: test/gitbug542/Test542.java:17:
+    public void m() {
                 ^
+test/gitbug542/Test542.java:11: verify: JML precondition is false
+    //@ requires countVals > 0;
+        ^
 DONE
 
 ERR:
