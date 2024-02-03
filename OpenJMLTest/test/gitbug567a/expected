@@ -4,13 +4,13 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Amount.Amount(int,int) with prover !!!! - no warnings
 Starting proof of Amount.negate() with prover !!!!
-test/gitbug567a/Amount.java:28: warning: The prover cannot establish an assertion (Precondition) in method negate
+test/gitbug567/Amount.java:28: warning: The prover cannot establish an assertion (Precondition) in method negate
         return new Amount(-euros,-cents);
                ^
-test/gitbug567a/Amount.java:22: warning: Associated declaration
+test/gitbug567/Amount.java:22: warning: Associated declaration
     public Amount(int euros, int cents){
            ^
-test/gitbug567a/Amount.java:16: warning: Precondition conjunct is false: euros < 0 ==> cents <= 0
+test/gitbug567/Amount.java:16: warning: Precondition conjunct is false: euros < 0 ==> cents <= 0
     //@ requires euros < 0 ==> cents <= 0;
                            ^
 Completed proof of Amount.negate() with prover !!!! - with warnings
