@@ -20,7 +20,7 @@ import java.io.*;
 public class Test {
 
     static int numThreads = 10;
-    static int seconds = 300;
+    static int seconds = 600;
     static ExecutorService eservice;
     static boolean sequential = true;
     static boolean verbose = false;
