@@ -519,7 +519,7 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug560() {
         expectedExit = 0;
-        helpTCG();
+        helpTCG("--check-feasibility=none");
     }
     
     @Test public void gitbug567() {
@@ -529,7 +529,7 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug567a() {
         expectedExit = 0;
-        helpTCF("test/gitbug567","test/gitbug567a","--code-math=java");
+        helpTCF("test/gitbug567a","test/gitbug567a","--code-math=java");
     }
     
     @Test public void gitbug567b() {

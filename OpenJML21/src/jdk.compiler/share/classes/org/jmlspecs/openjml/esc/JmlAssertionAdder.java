@@ -9228,7 +9228,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							VarSymbol v = calleeMethodSym.params.get(i);
 							boolean nn = specs.isCheckNonNullFormal(v.type, i, calleeSpecs, calleeMethodSym);
 							if (nn) {
-							    //System.out.println("FORMAL " + calleeMethodSym + " " + i + " " + v + " " + v.type);
 							    // FIXME - why this if?
 								if (calleeSpecs.specDecl == null) {
 									// There are no specs to point to
@@ -9236,9 +9235,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)),
 											v.name + " in " + calleeMethodSym);
 								} else {
-									addAssert(trArgs.get(i), Label.NULL_FORMAL,
+								    var formal = calleeSpecs.specDecl.params.get(i);
+								    var p = utils.locMod(formal.mods, Modifiers.NON_NULL);
+								    if (p == Position.NOPOS) p = formal.getStartPosition();
+								    addAssert(trArgs.get(i), Label.NULL_FORMAL,
 											treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)),
-											calleeSpecs.specDecl.params.get(i).vartype, calleeSpecs.specDecl.sourcefile,
+											new JCDiagnostic.SimpleDiagnosticPosition(p), 
+											calleeSpecs.specDecl.sourcefile,
 											v.name + " in " + calleeMethodSym);
 								}
 							}

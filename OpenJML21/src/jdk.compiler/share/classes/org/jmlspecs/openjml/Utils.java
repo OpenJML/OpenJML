@@ -535,11 +535,22 @@ public class Utils {
 
     public JmlTree.JmlAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */IJmlClauseKind.ModifierKind ... tarr) {
         if (mods == null) return null;
-        for (JCTree.JCAnnotation a: mods.annotations) {
-        	var ja = (JmlTree.JmlAnnotation)a;
-        	for (var ta: tarr) {
-        		if (ja.kind == ta) return ja;
-        	}
+        for (var ta: tarr) {
+            for (JCTree.JCAnnotation a: mods.annotations) {
+                var ja = (JmlTree.JmlAnnotation)a;
+                if (ja.kind == ta) return ja;
+            }
+        }
+        return null;
+    }
+    
+    public JmlToken findModifier(/*@ nullable */ JCModifiers mods, /*@ non_null */IJmlClauseKind.ModifierKind ... tarr) {
+        if (mods instanceof JmlModifiers jmods) {
+            for (var ta: tarr) {
+                for (var t: jmods.jmlmods) {
+                    if (t.jmlclausekind == ta) return t;
+                }
+            }
         }
         return null;
     }
@@ -575,18 +586,17 @@ public class Utils {
     
     // FIXME - would prefer to issue a DiagnosticPosition
     public int locMod(JCModifiers mods, ModifierKind... ata) {
-    	for (var ta: ata) {
-    		if (mods instanceof JmlModifiers) {
-    			for (var t: ((JmlModifiers)mods).jmlmods) if (t.jmlclausekind == ta) {
-    				return t.pos;
-    			}
-    		}
-    		var a = findMod(mods, ta);
-    		if (a != null) return a.pos;
-    	}
-    	return com.sun.tools.javac.util.Position.NOPOS;
+        for (var ta: ata) {
+            if (mods instanceof JmlModifiers) {
+                for (var t: ((JmlModifiers)mods).jmlmods) if (t.jmlclausekind == ta) {
+                    return t.pos;
+                }
+            }
+            var a = findMod(mods, ta);
+            if (a != null) return a.pos;
+        }
+        return com.sun.tools.javac.util.Position.NOPOS;
     }
-
 
     /** Finds whether a specified annotation is present in the given modifiers,
      * returning it if it is; this method requires that the annotations have

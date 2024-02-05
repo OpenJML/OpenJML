@@ -39,6 +39,11 @@ public class JmlToken extends Token {
         this.jmlclausekind = jmlclausekind;
     }
 
+    public JmlToken(IJmlClauseKind jmlclausekind, JavaFileObject source, int pos, int endPos) {
+        this(null, jmlclausekind, TokenKind.CUSTOM, pos, endPos, null);
+        this.source = source;
+    }
+
     /** Creates a JmlTOken that just wraps a Java Token */
     public JmlToken(Token javaToken) {
         this(null, null, javaToken);
