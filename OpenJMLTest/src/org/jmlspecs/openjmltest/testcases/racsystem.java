@@ -66,7 +66,6 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2a() {
         expectedRACExit = 1;
-        addOptions("-show");
         addOptions("--rac-show-source=none"); // FIXME fix comparisons so these all can be "line"
         helpTCX("tt.TestJava",
                 """
@@ -103,18 +102,31 @@ public class racsystem extends RacBase {
     public void testFile2pre() {
         expectedRACExit = 1;
         addOptions("--rac-show-source=none");
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
-                +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } finally { org.jmlspecs.runtime.Utils.useExceptions = false; } \n"
-                +"System.out.println(\"END\"); org.jmlspecs.runtime.Utils.useExceptions = false; } \n"
-                +"/*@ requires false;*/ \n"
-                +"static public void m() {\n"
-                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
-                +"}"
-                +"}"
-                
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    public static void main(String[] args) {
+                        org.jmlspecs.runtime.Utils.useExceptions = true;
+                        try {
+                            m();
+                        } catch (Exception e) {
+                            System.out.println("CAUGHT ASSERTION");
+                            e.printStackTrace(System.out);
+                        } finally {
+                            org.jmlspecs.runtime.Utils.useExceptions = false;
+                        }
+                        System.out.println("END");
+                        org.jmlspecs.runtime.Utils.useExceptions = false;
+                    }
+                    /*@ requires false;*/
+                    static public void m() {
+                        int i = (new java.io.File("A")).compareTo((java.io.File)null);
+                    }
+                }
+                """
                 ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError$Precondition: verify: JML precondition is false"
-                ,"verify: Associated declaration: /tt/TestJava.java:3:"
+                ,"verify: Associated declaration: /tt/TestJava.java:6:"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locD
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locB
                 ,"\tat tt.TestJava.main(TestJava.java:1)"         // FIXME - should be line 3   
@@ -126,23 +138,34 @@ public class racsystem extends RacBase {
     public void testFile2c() {
         expectedRACExit = 0;
         addOptions("--rac-show-source=none");
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
-                +"try { m(); } catch (Error e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
-                +"System.out.println(\"END\"); }\n"
-                +"/*@ signals (Exception e) false;*/ \n"
-                +"static void m() {\n"
-                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
-                +"}"
-                +"}"
-                
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    public static void main(String[] args) {
+                        org.jmlspecs.runtime.Utils.useExceptions = true;
+                        try {
+                            m();
+                        } catch (Error e) {
+                            System.out.println("CAUGHT ASSERTION");
+                            e.printStackTrace(System.out);
+                        }
+                        System.out.println("END");
+                    }
+                    /*@ signals (Exception e) false;*/
+                    static void m() {
+                      var f = (new java.io.File("A"));
+                      int i = f.compareTo((java.io.File)null);  // Line 16
+                    }
+                }
+                """
                 ,"CAUGHT ASSERTION"
                 ,"org.jmlspecs.runtime.JmlAssertionError: verify: JML signals condition is false"
-                ,"Associated declaration: /tt/TestJava.java:6:"
+                ,"verify: Associated declaration: /tt/TestJava.java:14:"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locA
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locB
-                ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - nshould be line 6
-                ,"\tat tt.TestJava.main(TestJava.java:3)"
+                ,"\tat tt.TestJava.m(TestJava.java:1)"
+                ,"\tat tt.TestJava.main(TestJava.java:6)"
                 ,"END"
                 );
     }
