@@ -1,0 +1,24 @@
+#! /bin/bash
+shopt -s expand_aliases
+
+cd $(dirname "$BASH_SOURCE")
+
+alias lsc="ps au | grep summary | grep -v grep | awk '{ print \$13 }' | sort -u | wc -l"
+alias lst="ps au | grep summary | grep -v grep | awk '{ print \$13 }' | sort -u"
+
+export testlist=\
+"escm escnew escnew2 escnew3 \
+         escnewassignable escnewBoxing escnonpublic escoption escprimitivetypes \
+         escreadable escstrings escTiming escTrace escvisibility escvisibility1 escwebexamples \
+         expressions flow generics harnesstests internalSpecs jmldoc jmltypes lblexpression \
+         matchClasses methodspecs modelghost modifiers namelookup positions prettyprinting purity \
+         QueryPure QuerySecret racArithmeticModes racdemoexamples racfeatures racfiles racJML \
+         racnew racnew2 racnew3 racnewLoops racnewWithSpecs racnonpublic racreadable racsystem redundant \
+         scanner SFBugs SpecsBase SpecsEsc SpecsRac statements strict strongarm sysclasses \
+         typechecking typecheckingJmlTypes typecheckingvisibility typeclauses"
+
+for d in $testlist; do rm -f log-$d; done
+for d in $testlist; do
+  ./run-summary log-$d "0/0" $d ;\
+done
+echo Completed

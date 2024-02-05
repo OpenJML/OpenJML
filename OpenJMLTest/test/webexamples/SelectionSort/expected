@@ -1,6 +1,6 @@
 Proving methods in SelectionSort
 Starting proof of SelectionSort.SelectionSort() with prover !!!!
 Completed proof of SelectionSort.SelectionSort() with prover !!!! - no warnings
-Starting proof of SelectionSort.sort(@NonNull int[]) with prover !!!!
-Completed proof of SelectionSort.sort(@NonNull int[]) with prover !!!! - no warnings
+Starting proof of SelectionSort.sort(int[]) with prover !!!!
+Completed proof of SelectionSort.sort(int[]) with prover !!!! - no warnings
 Completed proving methods in SelectionSort
