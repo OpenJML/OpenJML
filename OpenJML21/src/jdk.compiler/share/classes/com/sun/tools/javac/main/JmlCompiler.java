@@ -30,6 +30,7 @@ import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.JmlAstPrinter;
 import org.jmlspecs.openjml.JmlCheckSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
@@ -245,6 +246,16 @@ public class JmlCompiler extends JavaCompiler {
         	if (debugParse) System.out.println("parser: Parsed " + filename + " " + specFile + " " + " Classes: " + Utils.join(" ",javaCU.defs.stream().filter(d->d instanceof JmlClassDecl).map(d->((JmlClassDecl)d).name.toString())));
             org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, javaCU, filename);
             if (specCU != null) org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, specCU, specFile);
+            if (javaCU != null && JmlOptions.instance(context).isSet(JmlOption.SHOW)) {
+                String ss = JmlOption.value(context, JmlOption.SHOW);
+                if (ss.contains("ast") && filename.toString().contains("Test.java")) { // FIXME - fix this to show user-designated file
+                    System.out.println(JmlAstPrinter.print(javaCU, context));
+                    if (specCU != null) {
+                        System.out.println(JmlAstPrinter.print(specCU, context));
+                    }
+                }
+            }
+
         	return javaCU;
         	// FIXME - are javaCU and specCU always non-null?
         	// FIXME - do we need to check/set the module and package in the specs file? (like we do in parseSpecs)

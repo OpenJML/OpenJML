@@ -292,8 +292,8 @@ public class JmlParser extends JavacParser {
     	} catch (Exception e) {
            	var S = getScanner();
            	utils.unexpectedException(e, "Exception during parsing near " + ((JmlTokenizer)S.tokenizer).getCharacters(S.tokenizer.position()-10, S.tokenizer.position()+50));
-    	}
-    	return u; // Might be null if an error happens, though prefer a partial tree
+        }
+        return u; // Might be null if an error happens, though prefer a partial tree
     }
 
     /** Recursively sets the toplevel field of class declarations */
@@ -318,6 +318,7 @@ public class JmlParser extends JavacParser {
     public JCTree importDeclaration(JmlModifiers mods) {
         int p = pos();
         boolean modelImport = false;
+        normalizeAnnotations(mods, null);
         for (var t: mods.annotations) {
         	if (t instanceof JmlAnnotation ta) {
                 if (ta.kind == Modifiers.MODEL) modelImport = true; 
@@ -378,19 +379,77 @@ public class JmlParser extends JavacParser {
         replacementType = null;
         int n = Log.instance(context).nerrors;
         JmlVariableDecl param = (JmlVariableDecl)super.formalParameter(lambdaParameter, recordComponent);
+        insertReplacementType(param,replacementType);
+        param.vartype = normalizeAnnotations((JmlModifiers)param.mods, param.vartype);
         var typeAnnotations = extractTypeAnnotations(param.mods);
         param.vartype = insertAnnotationsToMostInner(param.vartype, typeAnnotations, false);
-        //if (param.name.toString().startsWith("zo")) System.out.println("PARAM " + param.name + " " + param.mods + " # " + param.vartype);
         if (n != Log.instance(context).nerrors) {
         	skipToCommaOrParenOrSemi();
         	return param;
         }
-        insertReplacementType(param,replacementType);
         replacementType = null;
-//        if (param.vartype instanceof JCTree.JCArrayTypeTree) {
-//            param.mods.annotations = List.<JCAnnotation>nil(); // FIXME - should just remove JML type annotations
-//        }
         return param;
+    }
+    
+    @Override
+    protected JCTree methodDeclaratorRest(int pos,
+            JCModifiers mods,
+            JCExpression type,
+            Name name,
+            List<JCTypeParameter> typarams,
+            boolean isInterface, boolean isVoid,
+            boolean isRecord,
+            Comment dc) {
+        type = normalizeAnnotations(((JmlModifiers)mods), type);
+        return super.methodDeclaratorRest(pos,  mods,  type,  name, typarams, isInterface, isVoid, isRecord, dc);
+    }
+
+    // FIXME - needs to be called in casts, generic type arguments, 
+    // new object, new array, nested types?
+    
+    protected JCExpression normalizeAnnotations(JCModifiers modifiers, JCExpression vartype) {
+        if (!(modifiers instanceof JmlModifiers mods)) return vartype;
+        for (JmlToken mod: mods.jmlmods) {
+            JmlAnnotation a = JmlTreeUtils.instance(context).makeAnnotation(mod, this);
+            var ck = (ModifierKind)mod.jmlclausekind;
+            x: if (a != null) {
+                // FIXME: methodDeclarationRest and variableDeclaratorRest can be called more than once with the same modifiers
+                // resulting in duplicate annotations from the same modifier
+                for (var aa: mods.annotations) {
+                    if (aa instanceof JmlAnnotation jaa && jaa.kind == ck && jaa.pos == mod.pos) {
+                        //utils.warning(mod.pos, mod.endPos, "jml.message", "duplicating a modifier as an annotation: " + ck); Utils.dumpStack();
+                        break x;
+                    }
+                }
+                if (ck.isTypeAnnotation()) {
+                    if (vartype == null) {
+                        mods.annotations = mods.annotations.append(a);
+                    } else if (vartype instanceof JCAnnotatedType anntype) {
+                        anntype.annotations = anntype.annotations.append(a);
+                    } else if (vartype instanceof JCIdent) {
+                        vartype = jmlF.at(vartype.pos).AnnotatedType(List.<JCAnnotation>of(a), vartype);
+                    } else if (vartype instanceof JCFieldAccess fa) {
+                        vartype = jmlF.at(vartype.pos).AnnotatedType(List.<JCAnnotation>of(a), vartype);
+                    } else if (vartype instanceof JCArrayTypeTree fa) {
+                        // FIXME - needs fixing - cf insertAnnotationsToInnermost
+                        //System.out.println("ARRAY TYPE TREE: " + vartype);
+                        //System.out.println("    " + mods);
+                        mods.annotations = mods.annotations.append(a);
+                    } else if (vartype instanceof JCTypeApply fa) {
+                        fa.clazz = normalizeAnnotations(mods, fa.clazz);
+                    } else if (vartype instanceof JCPrimitiveTypeTree fa) {
+                        // Do not add the annotation -  not permitted on a primitive type
+                    } else {
+                        System.out.println("UNKNOWN KIND OF TYPE " + vartype.getClass() + " " + vartype);
+                    }
+                } else {
+                    //utils.warning(mod.pos, mod.endPos, "jml.message", "inserting a modifier as an annotation: " + ck); Utils.dumpStack();
+                    mods.annotations = mods.annotations.append(a);
+                }
+            }
+            
+        }
+        return vartype;
     }
 
     /** Overridden to increase visibility */
@@ -423,6 +482,7 @@ public class JmlParser extends JavacParser {
         boolean prevInJmlDeclaration = inJmlDeclaration;
         JCStatement s = null;
         while (true) try {
+            int p = pos();
             if (S.jml()) {
                 if (mods == null) {
                     mods = jmlF.at(Position.NOPOS).Modifiers(0);
@@ -431,12 +491,12 @@ public class JmlParser extends JavacParser {
                 inJmlDeclaration = true;
                 mods = modifiersOpt(mods);
             }
-            int p = pos();
             if (!inJmlDeclaration || token.kind == CLASS || token.kind == INTERFACE || token.kind == ENUM || (token.kind == IDENTIFIER && token.name() == names.record)) {
                 // The guard above is used because if it is false, we want to produce
                 // a better error message than we otherwise get, for misspelled
                 // JML modifiers. However, the test above replicates tests in
                 // the super method and may become obsolete.
+                normalizeAnnotations(mods, null);
                 s = super.classOrRecordOrInterfaceOrEnumDeclaration(mods, dc);
                 if (s instanceof JCExpressionStatement && ((JCExpressionStatement)s).expr instanceof JCErroneous) {
                 	var errs = ((JCErroneous)((JCExpressionStatement)s).expr).errs;
@@ -773,6 +833,7 @@ public class JmlParser extends JavacParser {
             				token.kind == CLASS ||
             				token.kind == ENUM) {
             			if (S.jml()) utils.setJML(mods); // Added this to mark declarations in JML annotations
+            			normalizeAnnotations(mods,null);
             			return List.of(super.classOrRecordOrInterfaceOrEnumDeclaration(mods, dc));
             		} else {
             			JCExpression t = parseType(true);
@@ -1111,6 +1172,7 @@ public class JmlParser extends JavacParser {
                     mods = pushBackModifiers;
                 } else if (startOfTypeSpec(token)) {
                 	// Type specs
+                    normalizeAnnotations(mods, null);
                     JCTree tc = parseTypeSpecs(mods);
                     if (((JmlModifiers)mods).anyModsInJava) {
                     	utils.error(tc.pos,  "jml.message", "A JML clause incorrectly follows non-JML modifiers");
@@ -1640,7 +1702,7 @@ public class JmlParser extends JavacParser {
      */
     public boolean isNone(JCModifiers mods) {
         return mods == null
-                || ((mods.flags & Flags.StandardFlags) == 0 && (mods.annotations == null || mods.annotations
+                || ((mods.flags & Flags.StandardFlags) == 0 && (mods instanceof JmlModifiers jm && jm.jmlmods.isEmpty()) && (mods.annotations == null || mods.annotations
                         .isEmpty()));
     }
 
@@ -1665,6 +1727,7 @@ public class JmlParser extends JavacParser {
             mods = modifiersOpt();
             ext = methodSpecKeyword();
         }
+        normalizeAnnotations(mods, null);
         boolean code = false;
         int codePos = 0;
         if (ext == feasibleBehaviorClause) return null; // FIXME - do something here?
@@ -2183,36 +2246,33 @@ public class JmlParser extends JavacParser {
 
     @Override
     public JmlModifiers modifiersOpt(JCModifiers partial) {
-    	int firstpos = Position.NOPOS;
-    	JmlModifiers mods = (JmlModifiers)(partial == null ? jmlF.at(Position.NOPOS).Modifiers(0L) : partial);
-    	while (true) {
-    		if (acceptStartJML()) {
-    			continue;
-    		} else if (acceptEndJML()) {
-    			continue;
-    		} else if (token.kind == TokenKind.ENUM) {
-    			// Really the beginning of a declaration, but do need to set the flag
-    			mods.flags |= Flags.ENUM;
-    			break;
-    		} else if (token.kind == TokenKind.ENUM || token.kind == TokenKind.INTERFACE) {
-    			// Really the beginning of a declaration, but do need to set the flag
-    			mods.flags |= Flags.INTERFACE;
-    			break;
-    		} else if (S.jml() && isJmlModifier(token)) {
-            	ModifierKind mk = (ModifierKind)Extensions.findKeyword(token);
-            	JmlToken jt = new JmlToken(mk, token);
-            	jt.source = Log.instance(context).currentSourceFile();
-            	mods.jmlmods.add(jt);
-            	JmlAnnotation a = JmlTreeUtils.instance(context).addAnnotation(mods, jt, this);
-            	if (a != null) {
-            		if (firstpos == Position.NOPOS) {
-            			firstpos = mods.pos = token.pos;
-            		}
-            	}
-            	if (!mk.strict && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
-            		utils.warning(jt.pos,"jml.not.strict",mk.keyword);
-            	}
-            	if (firstpos == Position.NOPOS) firstpos = token.pos;
+        JmlModifiers mods = (JmlModifiers)(partial == null ? jmlF.at(Position.NOPOS).Modifiers(0L) : partial);
+        while (true) {
+            if (acceptStartJML()) {
+                continue;
+            } else if (acceptEndJML()) {
+                continue;
+            } else if (token.kind == TokenKind.CLASS) { // FIXME - record?
+                break;
+            } else if (token.kind == TokenKind.ENUM) {
+                // Really the beginning of a declaration, but do need to set the flag
+                mods.flags |= Flags.ENUM;
+                break;
+            } else if (token.kind == TokenKind.INTERFACE) {
+                // Really the beginning of a declaration, but do need to set the flag
+                mods.flags |= Flags.INTERFACE;
+                break;
+            } else if (S.jml() && isJmlModifier(token)) {
+                ModifierKind mk = (ModifierKind)Extensions.findKeyword(token);
+                JmlToken jt = new JmlToken(mk, token);
+                jt.source = Log.instance(context).currentSourceFile();
+                mods.jmlmods.add(jt);
+                if (mods.pos == Position.NOPOS) {
+                    mods.pos = token.pos;
+                }
+                if (!mk.strict && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+                    utils.warning(jt.pos,"jml.not.strict",mk.keyword);
+                }
 //    	    } else if (token.kind == TokenKind.RPAREN || token.kind == TokenKind.RPAREN) {
 //                // Unexpected -- and other closing punctuation
 //                break;
@@ -2226,30 +2286,27 @@ public class JmlParser extends JavacParser {
                 boolean inJML = S.jml();
                 var saved = mods.anyModsInJava;
                 var jmods = mods.jmlmods;
+                int q = mods.pos;
                 mods = (JmlModifiers)super.modifiersOpt(mods);
+                if (mods.pos == Position.NOPOS) mods.pos = q; // If the line above read nothing, it sets the position to NOPOS
                 mods.jmlmods.addAll(0,jmods);
-                //System.out.println("MODOPT " + token + " " + (p!=token.pos) + " "  + inJML + " " + S.jml() + " " + mods);
                 if (p != token.pos) {
                     // read something
                     mods.anyModsInJava = saved || !inJML;
-                    if (firstpos == Position.NOPOS) firstpos = mods.pos = p;
+                    if (mods.pos == Position.NOPOS) mods.pos = p;
                     // already advanced
                     continue;
                 } else {
                     mods.anyModsInJava = saved;
                     // nothing read -- so no more modifiers of any kind
-                    //System.out.println("MODOPT-A " + token + " " + inJML + " " + S.jml() + " " +  mods);
                     while (acceptEndJML()) {}
-                    //System.out.println("MODOPT-B " + token + " " + inJML + " " + S.jml() + " "  + mods);
                     break;
                 }
             }
             nextToken();
         }
-        mods.pos = partial == null ? firstpos : partial.pos;
-        storeEnd(mods, firstpos != Position.NOPOS ? S.prevToken().endPos: partial != null ? endPosTable.getEndPos(partial) : Position.NOPOS);
-        //System.out.println("MODS " + token() + " " + S.token(1) + " " + startJml + " " + S.jml() + " " + mods.pos + " " + S.prevToken().endPos + " : " + mods);
-        //if (token().toString().equals("class") && S.token(1).toString().equals("Object")) Utils.dumpStack();
+        int endp = mods.pos != Position.NOPOS ? S.prevToken().endPos: partial != null ? endPosTable.getEndPos(partial) : Position.NOPOS;
+        storeEnd(mods, endp);
         return mods;
     }
 
@@ -3056,6 +3113,7 @@ public class JmlParser extends JavacParser {
         // But not ghost fields in JML -- this is checked in more detail in type
         // checking, but here we just allow no initializer
         if (S.jml()) reqInit = false;
+        type = normalizeAnnotations(mods, type);
         var r = super.variableDeclaratorsRest(pos, mods, type, name, reqInit,
                 dc, vdefs, localDecl);
         return r;

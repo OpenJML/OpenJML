@@ -1954,13 +1954,18 @@ public class JmlTreeUtils {
     }
 
     public JmlAnnotation addAnnotation(JCModifiers mods, JmlToken token, JmlParser parser) {
- 	   JmlAnnotation a = tokenToAnnotationAST(((ModifierKind)token.jmlclausekind).fullAnnotation, token.pos, token.endPos, parser);
- 	   if (a != null) {
- 	 	   a.kind = (ModifierKind)token.jmlclausekind;
- 		   mods.annotations = mods.annotations.append(a);
- 	   }
- 	   return a;
-    }
+        JmlAnnotation a = makeAnnotation(token, parser);
+        if (a != null) mods.annotations = mods.annotations.append(a);
+        return a;
+     }
+
+    public JmlAnnotation makeAnnotation(JmlToken token, JmlParser parser) {
+        JmlAnnotation a = tokenToAnnotationAST(((ModifierKind)token.jmlclausekind).fullAnnotation, token.pos, token.endPos, parser);
+        if (a != null) {
+            a.kind = (ModifierKind)token.jmlclausekind;
+        }
+        return a;
+     }
 
     public JCExpression makeLocsetUnion(DiagnosticPosition pos, List<JCExpression> locsetExprs) {
     	return makeJmlMethodInvocation(pos, LocsetExtensions.unionKind, JMLPrimitiveTypes.locsetTypeKind.getType(context), locsetExprs);

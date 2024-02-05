@@ -1715,6 +1715,8 @@ public class JmlSpecs {
     	if (attr.hasAnnotation2(msym, Modifiers.NULLABLE)) return false;
 		if (attr.hasAnnotation2(msym, Modifiers.NON_NULL)) return true;
 		var sp = specsMethods.get(msym);
+        if (utils.hasMod(sp.mods, Modifiers.NON_NULL)) return true;
+        if (utils.hasMod(sp.mods, Modifiers.NULLABLE)) return false;
 		if (sp.cases.decl != null) {
 			if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NON_NULL)) return true;
 			if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NULLABLE)) return false;

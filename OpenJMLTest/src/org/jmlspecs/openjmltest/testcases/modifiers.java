@@ -57,7 +57,8 @@ public class modifiers extends TCBase {
     
     @Test public void testClassMods9() {
         helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*; \n public /*@ pure */ @Pure class A{}",
-                "/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 21);
+                "/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 13
+                );
     }
     
     /** Testing annotations without the import */
@@ -178,14 +179,14 @@ public class modifiers extends TCBase {
     @Test public void testClassMods15d() {
         specs.setSpecsPath(new String[]{"$A","$B","$SY"});
         helpTCF("A.java","public /*@nullable_by_default non_null_by_default*/ class A{}"
-                ,"/A.java:1: error: A declaration may not be both non_null_by_default and nullable_by_default",11
+                ,"/A.java:1: error: A declaration may not be both non_null_by_default and nullable_by_default",31
                 );
     }
     
     @Test public void testClassMods15e() {
         specs.setSpecsPath(new String[]{"$A","$B","$SY"});
-        helpTCF("A.java","import org.jmlspecs.annotation.*;  \n public @NonNullByDefault @NullableByDefault class A{}"
-                ,"/A.java:2: error: A declaration may not be both non_null_by_default and nullable_by_default",27
+        helpTCF("AAA.java","import org.jmlspecs.annotation.*;  \n public @NonNullByDefault @NullableByDefault class AAA{}"
+                ,"/AAA.java:2: error: A declaration may not be both non_null_by_default and nullable_by_default",27
                 );
     }
     
@@ -258,12 +259,13 @@ public class modifiers extends TCBase {
     @Test public void testCUMods() {
         helpTCF("t/A.java","@Pure package t; import org.jmlspecs.annotation.*;  \n public /*@ pure */ @Pure class A{}",
                 "/t/A.java:1: error: package annotations should be in file package-info.java",1,
-                "/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 21);
+                "/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 13
+                );
     }
     
     @Test public void testCUMods2() {
         helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*;  \n public /*@ pure */ @Pure class A{}"
-                ,"/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface",21
+                ,"/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 13
                 );
     }
     
@@ -275,7 +277,7 @@ public class modifiers extends TCBase {
     
     @Test public void testCUMods4() {
         helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*; \n public /*@ pure */ @Pure class A{}"
-                ,"/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface",21
+                ,"/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 13
                 );
     }
     
@@ -658,8 +660,8 @@ public class modifiers extends TCBase {
     
     @Test public void testField1() {
         helpTCF("A.java","public class A{ /*@non_null nullable*/ Object o;}"
-                ,"/A.java:1: error: A declaration may not be both non_null and nullable",29
-                ,"/A.java:1: error: A type may not be declared both non_null and nullable",40  // FIXME - duplicate?
+                ,"/A.java:1: error: A declaration may not be both non_null and nullable",29  // FIXME - duplicate messages
+                ,"/A.java:1: error: A type may not be declared both non_null and nullable",40
                 );
     }
     
@@ -686,8 +688,8 @@ public class modifiers extends TCBase {
     
     @Test public void testGhostField1() {
         helpTCF("A.java","public class A{ /*@ghost non_null nullable Object o; */}"
-                ,"/A.java:1: error: A declaration may not be both non_null and nullable",35
-                ,"/A.java:1: error: A type may not be declared both non_null and nullable",44  // FIXME - duplicate?
+                ,"/A.java:1: error: A declaration may not be both non_null and nullable", 35
+                ,"/A.java:1: error: A type may not be declared both non_null and nullable", 44 // FIXME - duplicate
                 );
     }
     
@@ -724,8 +726,8 @@ public class modifiers extends TCBase {
     
     @Test public void testModelField1() {
         helpTCF("A.java","public class A{ /*@model non_null nullable Object o; */}"
-                ,"/A.java:1: error: A declaration may not be both non_null and nullable",35
-                ,"/A.java:1: error: A type may not be declared both non_null and nullable", 44 // FIXME - duplicate
+                ,"/A.java:1: error: A declaration may not be both non_null and nullable", 35
+                ,"/A.java:1: error: A type may not be declared both non_null and nullable", 44
                 );
     }
     
@@ -868,7 +870,7 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testModelMethod3() {
-        helpTCF("A.java","public class A{ /*@ model non_null nullable  Object m(){}*/ }"
+        helpTCF("A.java","public class A{ /*@ model non_null nullable  Object m(){ return null; }*/ }"
                 ,"/A.java:1: error: A declaration may not be both non_null and nullable",36
                 );
     }
@@ -927,7 +929,8 @@ public class modifiers extends TCBase {
         		"/*@ spec_public */ Object oooo) {} }"
                 ,"/A.java:6: error: org.jmlspecs.annotation.NonNull is not a repeatable annotation interface", 14
                 ,"/A.java:5: error: This JML modifier is not allowed for a formal parameter",5
-                ,"/A.java:5: error: A type may not be declared both non_null and nullable",11
+                ,"/A.java:5: error: A declaration may not be both non_null and nullable",20
+                ,"/A.java:5: error: A type may not be declared both non_null and nullable", 32 // FIXME - duplicate
                 ,"/A.java:7: error: This JML modifier is not allowed for a formal parameter",5
                 );
     }
@@ -968,7 +971,8 @@ public class modifiers extends TCBase {
     @Test public void testLocalVar5() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  void m() {\n /*@ non_null nullable */ Object o; } }"
-                ,"/A.java:3: error: A declaration may not be both non_null and nullable",15
+                ,"/A.java:3: error: A declaration may not be both non_null and nullable", 15
+                ,"/A.java:3: error: A type may not be declared both non_null and nullable", 27 // FIXME - duplicate
                 );
     }
      

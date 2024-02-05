@@ -26,11 +26,11 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TestA.TestA() with prover !!!! - no warnings
 Starting proof of TestA.m1(TestAA,@Nullable Integer) with prover !!!!
-test/preconditionDetail/TestA.java:22: warning: The prover cannot establish an assertion (NullFormal) in method m1: p in m(@NonNull Integer,int,@NonNull Integer)
+test/preconditionDetail/TestA.java:22: warning: The prover cannot establish an assertion (NullFormal) in method m1: pq in m(@NonNull Integer,int,@NonNull Integer)
         a.m(k,100,100);
             ^
 test/preconditionDetail/TestA.java:11: warning: Associated declaration
-    public void m( /*@ non_null */Integer p, int q,  /*@ non_null */Integer r) {
+    public void m( /*@ non_null */Integer pq, int q,  /*@ non_null */Integer r) {
                        ^
 Completed proof of TestA.m1(TestAA,@Nullable Integer) with prover !!!! - with warnings
 Starting proof of TestA.m2(TestAA,@Nullable Integer) with prover !!!!
@@ -38,8 +38,8 @@ test/preconditionDetail/TestA.java:27: warning: The prover cannot establish an a
         a.m(100,100,kk);
                     ^
 test/preconditionDetail/TestA.java:11: warning: Associated declaration
-    public void m( /*@ non_null */Integer p, int q,  /*@ non_null */Integer r) {
-                                                         ^
+    public void m( /*@ non_null */Integer pq, int q,  /*@ non_null */Integer r) {
+                                                          ^
 Completed proof of TestA.m2(TestAA,@Nullable Integer) with prover !!!! - with warnings
 Starting proof of TestA.m3(TestAA,@NonNull Integer) with prover !!!!
 Feasibility check - end of preconditions : OK

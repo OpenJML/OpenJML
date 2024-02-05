@@ -4,6 +4,7 @@ import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
+import org.jmlspecs.openjml.JmlTree.*;
 
 public class JmlAstPrinter extends JmlTreeScanner {
 
@@ -42,23 +43,108 @@ public class JmlAstPrinter extends JmlTreeScanner {
         return cl;
     }
     
+    public void start(JCTree tree) {
+        builder.append(indent).append(shortName(tree));
+    }
+    
     public void visitTree(JCTree tree) {
-        builder.append(indent).append(shortName(tree)).append("\n");
+        start(tree);
+        builder.append(" ?????\n");
+        in();
+//        super.visitTree(tree);
+        out();
+    }
+    
+    public void visitTopLevel(JCCompilationUnit tree) {
+        start(tree);
+        builder.append("\n");
+        in();
+        super.visitTopLevel(tree);
+        out();
+    }
+    
+    public void visitImport(JCImport tree) {
+        start(tree);
+        if (tree instanceof JmlImport i && i.isModel) builder.append(" model"); 
+        if (tree.isStatic()) builder.append(" static"); 
+        builder.append("\n");
+        in();
+        super.visitImport(tree);
+        out();
+    }
+    
+    public void visitClassDef(JCClassDecl tree) {
+        start(tree);
+        builder.append(": ").append(tree.name.toString());
+        builder.append("\n");
+        in();
+        super.visitClassDef(tree);
+        out();
+        
+    }
+    
+    public void visitMethodDef(JCMethodDecl tree) {
+        start(tree);
+        builder.append(": ").append(tree.name.toString());
+        builder.append("\n");
+        in();
+        super.visitMethodDef(tree);
+        out();
+        
+    }
+    
+    public void visitVarDef(JCVariableDecl tree) {
+        start(tree);
+        builder.append(": ").append(tree.name.toString());
+        builder.append("\n");
+        in();
+        super.visitVarDef(tree);
+        out();
+        
+    }
+    
+    public void visitAnnotatedType(JCAnnotatedType tree) {
+        start(tree);
+        builder.append("\n");
+        in();
+        super.visitAnnotatedType(tree);
+        out();
+    }
+    
+    public void visitAnnotation(JmlAnnotation tree) {
+        start(tree);
+        builder.append("\n");
+        in();
+        super.visitAnnotation(tree);
+        out();
+    }
+    
+    public void visitExpression(JCExpression tree) {
+        start(tree);
+        if (tree.type != null) builder.append(": ").append(String.valueOf(tree.type));
+        builder.append(" ").append(tree.toString());
+        builder.append("\n");
         in();
         super.visitTree(tree);
         out();
     }
     
     public void visitIdent(JCIdent tree) {
-        builder.append(indent).append(shortName(tree)).append(": ").append(tree.name.toString()).append(" ").append(String.valueOf(tree.type)).append("\n");
+        start(tree);
+        builder.append(": ").append(tree.name.toString());
+        if (tree.type != null) builder.append(" ").append(String.valueOf(tree.type));
+        builder.append("\n");
         in();
         super.visitIdent(tree);
         out();
     }
     
     public void visitSelect(JCFieldAccess tree) {
-        builder.append(indent).append(shortName(tree)).append(": ").append(tree.name.toString()).append(" ").append(String.valueOf(tree.type)).append("\n");
-        builder.append(indent).append("++ ").append(tree.selected.getClass()).append("\n");
+        start(tree);
+        builder.append(": ").append(tree.name.toString());
+        if (tree.type != null) builder.append(" ").append(String.valueOf(tree.type));
+        builder.append(" ").append(tree.toString());
+        builder.append("\n");
         in();
         super.visitSelect(tree);
         out();

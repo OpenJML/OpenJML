@@ -951,8 +951,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         Symbol owner = classSymbol.owner;
         boolean ownerIsJML = utils.isJML(owner.flags());
         boolean isLocal = !(owner instanceof ClassSymbol ||owner instanceof PackageSymbol);
-        JCModifiers specsModifiers = tspecs.modifiers;
+        JmlModifiers specsModifiers = tspecs.modifiers;
 
+        annotationsToModifiers(specsModifiers, (JCExpression)null);
         boolean inJML = utils.isJML(specsModifiers);
         boolean isModel = utils.hasMod(specsModifiers,Modifiers.MODEL);
         if (ownerIsJML && isModel) {
@@ -960,8 +961,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } else if (inJML && !isModel && !ownerIsJML) {
         	utils.error(tspecs.file,specsDecl,"jml.missing.model", classSymbol);
         } else if (!inJML && isModel) {
-        	var loc = utils.findMod(specsModifiers,Modifiers.MODEL);
-        	utils.error(tspecs.file,loc,"jml.ghost.model.on.java", classSymbol);
+            var loc = utils.findMod(specsModifiers,Modifiers.MODEL);
+            utils.error(tspecs.file,loc,"jml.ghost.model.on.java", classSymbol);
         }
         
         if (specsDecl != javaDecl && specsDecl != null) {
@@ -1644,6 +1645,37 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
+    public void annotationsToModifiers(JmlModifiers mods, JCExpression type) {
+        annotationsToModifiers(mods, mods.annotations);
+        if (type != null) typeAnnotationsToModifiers(mods, type);
+    }
+        
+    public void annotationsToModifiers(JmlModifiers mods, List<JCAnnotation> annotations) {
+        for (var a: annotations) {
+            x: if (a instanceof JmlAnnotation jmla) {
+                int p = a.pos;
+                var kind = jmla.kind;
+                //System.out.println("KIND " + kind + " " + (kind == Modifiers.NULLABLE_BY_DEFAULT));
+                JmlToken newtoken = null;
+                for (JmlToken t: mods.jmlmods) {
+                    if (t.pos == p && t.jmlclausekind == kind) break x;
+                }
+                newtoken = new JmlToken(kind, jmla.sourcefile, p, p); // FIXME - should really have the endposition
+                mods.jmlmods.add(newtoken);
+            }
+        }
+    }
+    
+    public void typeAnnotationsToModifiers(JmlModifiers mods, JCExpression type) {
+        if (type instanceof JCAnnotatedType at) {
+            annotationsToModifiers(mods, at.annotations);
+        } else if (type instanceof JCTypeApply app) {
+            typeAnnotationsToModifiers(mods, app.clazz);
+        } else {
+            // FIXME - other types of expression -- such as a array?
+        }
+    }
+    
     /** Check all the modifiers in the method specs against those of the method symbol (msym).
      * javaMethodTree may be null (if we are checking the specs of a binary method)
      * javaMethodTree is just used to give location information for error messages
@@ -1660,6 +1692,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	JmlModifiers mods = (JmlModifiers)mspecs.mods;
             if (mods == null) mods = (JmlModifiers)javaMethodTree.mods; // FIXME - this can happen for JML synthesized methods, such as are added for RAC - perhaps we should properly initialize the modifiers, but for now we just say they are OK
 
+            annotationsToModifiers(mods, mspecs.javaDecl != null ? mspecs.javaDecl.restype : mspecs.specDecl.restype);
             boolean inJML = utils.isJML(mods);
             boolean ownerInJML = utils.isJML(msym.owner.flags());
             boolean model = isModel(mods);
@@ -6473,15 +6506,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public boolean checkForConflict(JCModifiers mods, ModifierKind ta, ModifierKind tb) {
-        JCTree.JCAnnotation a,b;
-        a = utils.findMod(mods,modToAnnotationSymbol.get(ta));
-        b = utils.findMod(mods,modToAnnotationSymbol.get(tb));
+//        JCTree.JCAnnotation a,b;
+//        a = utils.findMod(mods,modToAnnotationSymbol.get(ta));
+//        b = utils.findMod(mods,modToAnnotationSymbol.get(tb));
+        var a = utils.findModifier(mods,ta);
+        var b = utils.findModifier(mods,tb);
         if (a != null && b != null) {
-            JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)b).sourcefile);
-            utils.error(b.pos(),"jml.conflicting.modifiers",ta.keyword,tb.keyword);
-            log.useSource(prev);
+            var t = a.pos <= b.pos ? b : a;
+            utils.error(t.source, t.pos,"jml.conflicting.modifiers",ta.keyword,tb.keyword);
             return true;
         }
+
         return false;
     }
     

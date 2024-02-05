@@ -1,14 +1,14 @@
  class TestAA extends TestB {
     
     //@ also
-    //@   requires p >= 0;
-    //@   requires p >= 10;
-    //@   requires p >= 20;
+    //@   requires pq >= 0;
+    //@   requires pq >= 10;
+    //@   requires pq >= 20;
     //@ also
-    //@   requires p >= 5;
-    //@   requires p >= 15;
-    //@   requires p >= 25;
-    public void m( /*@ non_null */Integer p, int q,  /*@ non_null */Integer r) {
+    //@   requires pq >= 5;
+    //@   requires pq >= 15;
+    //@   requires pq >= 25;
+    public void m( /*@ non_null */Integer pq, int q,  /*@ non_null */Integer r) {
     }
     
 }

@@ -105,10 +105,12 @@ public class esc1 extends EscBase {
     // It gave trouble because the specs were missing
     @Test
     public void testGen() {
-        helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
-
-                + "  public void m1() {\n" + "    Integer a = Integer.valueOf(0);\n" + "  }\n"
-
+        helpTCX("tt.TestJava", 
+                "package tt; \n" + 
+                "public class TestJava { \n" +
+                "  public void m1() {\n" + 
+                "    Integer a = Integer.valueOf(0);\n" + 
+                "  }\n"
                 + "}");
     }
 
