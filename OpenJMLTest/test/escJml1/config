@@ -1,1 +1,1 @@
-ARGS+=" -specspath test/escJml1/specs -nonnullByDefault "
+ARGS+=" --specs-path test/escJml1/specs --nonnull-by-default "

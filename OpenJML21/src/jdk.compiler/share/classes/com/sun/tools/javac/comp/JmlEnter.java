@@ -283,6 +283,7 @@ public class JmlEnter extends Enter {
 		} else {
 			for (var sd : specClasses) {
 				if (sd instanceof JmlClassDecl specDecl) {
+			        var fqName = (owner.isEmpty() ? "" : (owner + ".")) + specDecl.name; // Actually only partially qualified
 				    JmlClassDecl match = (JmlClassDecl) javaClasses.stream()
 							.filter(t -> (t instanceof JmlClassDecl d && d.name == specDecl.name)).findFirst().orElse(null);
 					// Check that the type parameters match because we do not want to 'enter' incorrect type parameters
@@ -303,7 +304,7 @@ public class JmlEnter extends Enter {
 						} else {
 							// unmatched non-model class in the .jml file -- an error
 							utils.error(specDecl.sourcefile, specDecl, "jml.message",
-									"There is no class to match this Java declaration in the specification file: " + specDecl.name);
+									"There is no class to match this Java declaration in the specification file: " + fqName);
 						}
 					} else {
 						// A match in the Java list with the same name
@@ -325,7 +326,7 @@ public class JmlEnter extends Enter {
 							// error - already matched - both are Java declarations
 							utils.errorAndAssociatedDeclaration(specDecl.sourcefile, specDecl,
 									match.specsDecl.sourcefile, match.specsDecl, "jml.message",
-									"duplicate class: " + specDecl.name);
+									"duplicate class: " + fqName);
 						}
 					}
 				}
@@ -371,7 +372,8 @@ public class JmlEnter extends Enter {
 			// Do the nested class matching for this class; 
 			// any JML-only (model) classes are in the output list
 			// All non-class member matching is done in JmlMemberEnter
-			sourceCD.defs = matchClasses(sourceCD.defs, sourceCD.specsDecl.defs, env.enclClass.sym.toString());
+			// Matching is done before the owner class is entered, so that we don't enter the matching classes twice
+			sourceCD.defs = matchClasses(sourceCD.defs, sourceCD.specsDecl.defs, sourceCD.name.toString());
 			log.useSource(sourceCD.sourcefile);
 			super.visitClassDef(sourceCD);
 			sourceCD.defs.forEach(d->{ if (d instanceof JmlClassDecl cd) JmlAttr.instance(context).addTodo(cd.sym); } );

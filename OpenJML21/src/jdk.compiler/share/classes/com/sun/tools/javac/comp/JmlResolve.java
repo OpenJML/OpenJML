@@ -127,7 +127,7 @@ public class JmlResolve extends Resolve {
      */
     @Override
     protected boolean symbolOK(Symbol e) {
-//        if (e.toString().equals("T") || e.toString().equals("X") || e.toString().equals("ttt") || e.toString().equals("txx") || e.toString().equals("YYYY") || e.toString().equals("TTTT")) {
+//        if (e.toString().equals("B")) {
 //            System.out.println("JMLRESOLVE " + e + " " + allowJML + " " + utils.isJML(e.flags_field) + " " + e.owner);
 //            //org.jmlspecs.openjml.Utils.dumpStack();
 //        }

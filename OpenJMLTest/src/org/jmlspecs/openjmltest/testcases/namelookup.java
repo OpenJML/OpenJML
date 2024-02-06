@@ -317,7 +317,7 @@ public class namelookup extends TCBase {
                 "      B bxyz;\n" +  // ERROR - no B
                 "      //@ ghost B bb;\n" + // OK - A.AA.B
                 "      void mxyz() {\n" +
-                "         boolean kk = B.i;\n" + // ERROR
+                "         boolean kk = B.i;\n" + // ERROR - no B
                 "         //@ assert B.i;\n" +   // ERROR - found B, B.i is wrong type
                 "      }\n" +
                 "   }\n" +
@@ -370,9 +370,9 @@ public class namelookup extends TCBase {
                 ,"/$A/A.jml:17: error: duplicate class: A", 1
                 ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:17:", 8
                 ,"/$A/A.jml:18: error: There is no class to match this Java declaration in the specification file: B",1
-                ,"/$A/A.jml:12: error: duplicate class: AA",11
+                ,"/$A/A.jml:12: error: duplicate class: A.AA",11
                 ,"/$A/A.jml:2: error: Associated declaration: /$A/A.jml:12:", 11
-                ,"/$A/A.jml:14: error: There is no class to match this Java declaration in the specification file: BB",11 // FIXME - should be A.BB
+                ,"/$A/A.jml:14: error: There is no class to match this Java declaration in the specification file: A.BB",11 // FIXME - should be A.BB
                 ,"/A.java:3: error: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
                 ,"/A.java:5: error: cannot find symbol\n  symbol:   variable B\n  location: class A.AA",23
                 ,"/A.java:6: error: incompatible types: double cannot be converted to boolean",22

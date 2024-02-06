@@ -6164,9 +6164,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
 
         boolean isSpecPublic = utils.hasMod(mods,Modifiers.SPEC_PUBLIC);
-    	if (org.jmlspecs.openjml.Main.useJML && sym instanceof VarSymbol && sym.name.toString().equals("oprdinal")) {
-    		System.out.println("ZONE-Z " + sym + " " + isSpecPublic + " " + mods);
-    	}
         if (isSpecPublic) return Flags.PUBLIC;
 
         boolean isSpecProtected = utils.hasMod(mods,Modifiers.SPEC_PROTECTED);

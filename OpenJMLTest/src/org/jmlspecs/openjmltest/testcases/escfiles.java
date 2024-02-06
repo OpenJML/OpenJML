@@ -700,12 +700,12 @@ public class escfiles extends EscBase {
 
     @Test // FIXME - still has problems with imports in JML files and with checks on field initializers
     public void escJml() {
-        helpTCF("test/escJML/Test.java","test/escJML","--specs-path=test/escJML/specs","--check-feasibility=precondition,exit");
+        helpTCF("test/escJML/Test.java","test/escJML","--specs-path=test/escJML/specs","--check-feasibility=precondition,exit","--nullable-by-default");
     }
 
     @Test
     public void testEscJml1() {
-        helpTCF("test/escJml1/StorageParameters.java","test/escJml1","--specs-path=test/escJml1/specs","--check-feasibility=precondition,exit");
+        helpTCF("test/escJml1/StorageParameters.java","test/escJml1","--specs-path=test/escJml1/specs","--check-feasibility=precondition,exit","--nonnull-by-default");
     }
 
     @Test
