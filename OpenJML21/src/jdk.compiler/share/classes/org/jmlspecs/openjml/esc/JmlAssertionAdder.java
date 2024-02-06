@@ -2065,7 +2065,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				return null;
 		}
 		String assertID = Strings.assertPrefix + (++assertCount);
-		if (assertCount == assertCountCheck) Utils.dumpStack("Assertion " + assertID);
+        if (assertCount == assertCountCheck) Utils.dumpStack("Assertion " + assertID);
 		Name assertname = names.fromString(assertID);
 		JavaFileObject dsource = log.currentSourceFile();
 		JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType, assertname,
@@ -12240,12 +12240,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					expr.type = newtype;
 				}
 				return expr;
-//            } else if (expr.type.isPrimitive() && newtype.isPrimitive() && expr.type.getTag() > newtype.getTag()) {
-//                // TODO: understand - it appears that RAC does not like unnecessary casts - e.g. short to int
-//                expr = M.at(expr).TypeCast(newtype,expr);
-//                expr.type = newtype;
-//                expr = newTemp(expr);
-//                return expr; // - need to do casts explicitly at least for op= operations
+			} else if (expr.type.isPrimitive() != newtype.isPrimitive()) {
+			    // Unboxing or boxing - put in an explicit cast
+			    expr = M.at(expr).TypeCast(newtype,expr);
+			    expr.type = newtype;
+			    expr = newTemp(expr);
+			    return expr;
+//	            } else if (expr.type.isPrimitive() && newtype.isPrimitive() && expr.type.getTag() > newtype.getTag()) {
+//              // TODO: understand - it appears that RAC does not like unnecessary casts - e.g. short to int
+//              expr = M.at(expr).TypeCast(newtype,expr);
+//              expr.type = newtype;
+//              expr = newTemp(expr);
+//              return expr; // - need to do casts explicitly at least for op= operations
 			} else {
 				return expr;// RAC handles implicit conversions implicitly
 			}

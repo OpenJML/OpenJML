@@ -541,14 +541,15 @@ public class racnew2 extends RacBase {
 
     /** Tests switch statement */
     @Test public void testSwitchByte2() {
+        addOptions("--show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  m((byte)0); m((byte)1); m((byte)2); m((byte)3); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
-                "  static void m(byte s) { Byte i = Byte.valueOf(s); \n" +
+                "  static void m(byte s) { Byte i = Byte.valueOf(s); System.out.println(\"BYTE \" + (int)i); \n" +
                 "  switch (i) { \n" +
                 "  case 0: //@ assert i == 0; \n break; \n" +
-                "  case 1: //@ assert i == 0; \n break; \n" +
+                "  case 1: System.out.println(\"CASE \" + (int)i); //@ assert i == 0; \n break; \n" +
                 "  case 2: //@ assert i == 2; \n break; \n" +
                 "  default: //@ assert i == 0; \n break; \n" +
                 "  }}\n" +
@@ -1420,8 +1421,6 @@ public class racnew2 extends RacBase {
                 }
                 """
                 ,"/tt/A.java:4: verify: JML Attempt to unbox a null object"
-                ,"/tt/A.java:4: verify: JML Attempt to unbox a null object"
-                ,"/tt/A.java:8: verify: JML Attempt to unbox a null object"
                 ,"/tt/A.java:8: verify: JML Attempt to unbox a null object"
                 ,"/tt/A.java:17: verify: JML Attempt to unbox a null object"
                 ,"/tt/A.java:21: verify: JML Attempt to unbox a null object"
