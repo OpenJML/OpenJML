@@ -7,7 +7,8 @@ alias lsc="ps au | grep summary | grep -v grep | awk '{ print \$13 }' | sort -u 
 alias lst="ps au | grep summary | grep -v grep | awk '{ print \$13 }' | sort -u"
 
 export testlist=\
-"escm escnew escnew2 escnew3 \
+"escfilesTrace escfunction escgeneric \
+         escinclause escinline escJML esclambdas esclocation escm escnew escnew2 escnew3 \
          escnewassignable escnewBoxing escnonpublic escoption escprimitivetypes \
          escreadable escstrings escTiming escTrace escvisibility escvisibility1 escwebexamples \
          expressions flow generics harnesstests internalSpecs jmldoc jmltypes lblexpression \

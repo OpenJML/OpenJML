@@ -664,7 +664,7 @@ public class Log extends AbstractLog {
      */
     @Override
     public void report(JCDiagnostic diagnostic) {
-        //if (org.jmlspecs.openjml.Utils.isJML() && diagnostic.getKind() == Diagnostic.Kind.ERROR) org.jmlspecs.openjml.Utils.dumpStack(); // OPENJML - for debugging
+        if (org.jmlspecs.openjml.Utils.isJML() && diagnostic.getKind() == Diagnostic.Kind.ERROR && System.getenv("ERROR") != null) org.jmlspecs.openjml.Utils.dumpStack(); // OPENJML - for debugging
         diagnosticHandler.report(diagnostic);
      }
 

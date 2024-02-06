@@ -9,8 +9,7 @@ alias lst="ps au | grep summary | grep -v grep | awk '{ print \$13 }' | sort -u"
 export testlist="access api arith assignable binaries bugs compilationUnit compiler deprecation \
          esc1 esc2 escaccessible escall2 escall3 escArithmeticModes escArithmeticModes2 \
          escbitvector esccallable esccode escConstantFields escconstructor escCounterexamples \
-         escDemofiles escenums escfeatures escfiles escfilesTrace escfunction escgeneric \
-         escinclause escinline escJML esclambdas esclocation \
+         escDemofiles escenums escfeatures escfiles \
          "
 
 for d in $testlist; do rm -f log-$d; done
