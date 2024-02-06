@@ -241,7 +241,7 @@ public class racfiles extends RacBase {
     public void racHans4() {
     	expectedRACExit = 1;
     	setRacngEA();
-    	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorage","StorageParameters","--rac-check-assumptions","-specspath=test/racHansStorage");
+    	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorage","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorage");
     	rac = null;
     }
 
@@ -249,7 +249,7 @@ public class racfiles extends RacBase {
     public void racHans4a() {
     	expectedRACExit = 0;
     	setRacngEA();
-    	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorageA","StorageParameters","--rac-check-assumptions","-specspath=test/racHansStorage","-nullableByDefault");
+    	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorageA","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorage","--nullable-by-default");
     	rac = null;
     }
 
@@ -257,7 +257,7 @@ public class racfiles extends RacBase {
     public void racHans4b() {
         expectedRACExit = 1;
     	setRacngEA();
-    	helpTCF("test/racHansStorageB/StorageParameters.java","test/racHansStorageB","StorageParameters","--rac-check-assumptions","-specspath=test/racHansStorageB");
+    	helpTCF("test/racHansStorageB/StorageParameters.java","test/racHansStorageB","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorageB");
     	rac = null;
     }
 
@@ -265,7 +265,7 @@ public class racfiles extends RacBase {
     public void racHans4c() {
         expectedRACExit = 0;
     	setRacngEA();
-    	helpTCF("test/racHansStorageC/StorageParameters.java","test/racHansStorageC","StorageParameters","--rac-check-assumptions","-specspath=test/racHansStorageC");
+    	helpTCF("test/racHansStorageC/StorageParameters.java","test/racHansStorageC","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorageC");
     	rac = null;
     }
 
@@ -273,7 +273,7 @@ public class racfiles extends RacBase {
     public void racHans4d() {
         expectedRACExit = 0;
     	setRacngEA();
-    	helpTCF("test/racHansStorageD/StorageParameters.java","test/racHansStorageD","StorageParameters","---rac-check-assumptions","-specspath=test/racHansStorageD");
+    	helpTCF("test/racHansStorageD/StorageParameters.java","test/racHansStorageD","StorageParameters","---rac-check-assumptions","--specs-path=test/racHansStorageD");
     	rac = null;
     }
     
@@ -284,9 +284,9 @@ public class racfiles extends RacBase {
     			"test/hans",
     			null,
     			"-cp","test/hans/OpenJMLTest/src"+z+"test/hans/icecapSDK/src",  //nFIXME - changed icecapSDK/bin to icecapSDK/src
-    			"-rac",
-    			"-specspath","test/hans/OpenJMLTest/specs",
-    			"--rac-check-assumptions","--rac-java-checks","-showNotImplemented","--nullable-by-default"
+    			"--rac",
+    			"--specs-path","test/hans/OpenJMLTest/specs",
+    			"--rac-check-assumptions","--rac-java-checks","--show-not-mplemented","--nullable-by-default"
     			);
     }
 
@@ -300,8 +300,8 @@ public class racfiles extends RacBase {
     			"account.AllTests",
     			"-cp","test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src"+z+"test/racHans2",
     			//"-rac",
-    			"-specspath","test/racHans2/specs",
-    			"--rac-check-assumptions","--rac-java-checks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
+    			"--specs-path","test/racHans2/specs",
+    			"--rac-check-assumptions","--rac-java-checks","--show-not-implemented","--nullable-by-default"
     			);
     }
 
