@@ -232,6 +232,7 @@ public class JmlSpecs {
     final protected Map<TypeSymbol,TypeSpecs> specsTypes = new HashMap<>();
     final protected Map<MethodSymbol,MethodSpecs> specsMethods = new HashMap<>();
     final protected Map<VarSymbol,FieldSpecs> specsFields = new HashMap<>();
+    final protected Map<VarSymbol,FormalSpecs> specsFormals = new HashMap<>();
     
     /** The specifications path, which is a sequence of directories in which to
      * find specification files; this is created by initializeSpecsPath().
@@ -921,9 +922,57 @@ public class JmlSpecs {
     public void putSpecs(MethodSymbol specSym, MethodSpecs spec) {
     	//if (specSym.owner.toString().equals("EEE") && specSym.toString().contains("values()")) { System.out.println("SAVE " + specSym.owner + " " + specSym + " " + spec); Utils.dumpStack();  } 
     	spec.specSym = specSym;
-        if (utils.verbose()) utils.note("            Saving method specs for " + specSym.owner + "." + specSym + " " + specSym.hashCode());
         specsMethods.put(specSym,spec);
+        int i = 0;
+        var decl = spec.specDecl == null ? spec.javaDecl : spec.specDecl;
+        if (decl != null) {
+            if (specSym.params == null) System.out.println("NULL PARAMS " + specSym);
+            var iter = specSym.params.iterator();
+            for (JCVariableDecl d: decl.params) {
+                boolean nn = isNonNullFormal(d.type, i++, spec, specSym);
+                var f = new FormalSpecs((JmlVariableDecl)d, nn, specSym);
+                var jsym = iter.next();
+                specsFormals.put(jsym, f);
+                // System.out.println("    Formal specs " + d.sym + " " + jsym.hashCode() + " " +  specSym + " " + f.isNonNull + " " + f.mods);
+            }
+        }
+        spec.returnNonNull = findNonNullReturn(specSym, decl);
+        //if (specSym.name.toString().equals("n")) System.out.println("MSPECS " + decl);
+        if (utils.verbose()) utils.note("            Saving method specs for " + specSym.owner + "." + specSym + " " + specSym.hashCode() + " " + spec.returnNonNull);
         setStatus(specSym, SpecsStatus.SPECS_LOADED);
+    }
+    
+    public boolean findNonNullReturn(MethodSymbol sym, JCMethodDecl specDecl) {
+        if (specDecl != null) {
+//            if (specDecl.name.toString().equals("n")) {
+//                System.out.println("FNNR " + specDecl.mods + " : " + specDecl.restype);
+//                System.out.println("    " + hasTypeAnnotation(specDecl.restype, Modifiers.NON_NULL) + " " +
+//                        hasTypeAnnotation(specDecl.restype, Modifiers.NULLABLE) + " " + 
+//                        findModifier(specDecl, Modifiers.NON_NULL) + " " + findModifier(specDecl, Modifiers.NON_NULL) + " " +
+//                        findAnnotation(specDecl.mods.annotations, Modifiers.NON_NULL) + " " + findAnnotation(specDecl.mods.annotations, Modifiers.NULLABLE) + " " 
+//                        + defaultNullity((ClassSymbol)sym.owner)
+//                );
+//            }
+            if (hasTypeAnnotation(specDecl.restype, Modifiers.NON_NULL)) return true;
+            if (hasTypeAnnotation(specDecl.restype, Modifiers.NULLABLE)) return false;
+            if (findModifier(specDecl, Modifiers.NON_NULL)) return true;
+            if (findModifier(specDecl, Modifiers.NULLABLE)) return false;
+            if (findAnnotation(specDecl.mods.annotations, Modifiers.NON_NULL) != null) return true;
+            if (findAnnotation(specDecl.mods.annotations, Modifiers.NULLABLE) != null) return false;
+        }
+        return defaultNullity((ClassSymbol)sym.owner) == Modifiers.NON_NULL;
+    }
+    
+    public boolean findModifier(JCMethodDecl decl, ModifierKind kind) {
+        JmlModifiers jmods = (JmlModifiers)decl.mods;
+        for (var m: jmods.jmlmods) if (m.ikind == kind) return true;
+        return false;
+    }
+    
+    public boolean findModifier(JCVariableDecl decl, ModifierKind kind) {
+        JmlModifiers jmods = (JmlModifiers)decl.mods;
+        for (var m: jmods.jmlmods) if (m.ikind == kind) return true;
+        return false;
     }
     
     public void putAttrSpecs(MethodSymbol specSym, MethodSpecs spec) {
@@ -958,10 +1007,29 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
-		specsFields.put(m, spec);
+        x: {
+            if (spec != null) {
+                spec.isNonNull = computeVarNullness(spec.decl, m.owner);
+            }
+        }
+        specsFields.put(m, spec);
         setStatus(m, SpecsStatus.SPECS_LOADED);
-    	//if (m.owner.toString().contains("Throwable")) System.out.println("            Saving field specs for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
-    	if (utils.verbose()) utils.note("            Saving field specs for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
+        //if (m.owner.toString().contains("Throwable")) System.out.println("            Saving field specs for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
+        if (utils.verbose()) utils.note("            Saving field specs for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
+    }
+    
+    public boolean computeVarNullness(JmlVariableDecl decl, Symbol owner) {
+        if (decl != null) {
+            JmlModifiers jmods = (JmlModifiers)decl.mods;
+            if (findModifier(decl, Modifiers.NON_NULL)) return true;
+            if (findModifier(decl, Modifiers.NULLABLE)) return false;
+            if (findAnnotation(jmods.annotations, Modifiers.NON_NULL)!=null) return true;
+            if (findAnnotation(jmods.annotations, Modifiers.NULLABLE)!=null) return false;
+            if (hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL)) return true;
+            if (hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE)) return false;
+        }
+        if (owner instanceof MethodSymbol m) owner = m.owner;
+        return defaultNullity((ClassSymbol)owner) == Modifiers.NON_NULL;
     }
     
     /** Retrieves the attributed specs for a given method, possibly default specs;
@@ -1356,6 +1424,11 @@ public class JmlSpecs {
     	return specsFields.get(v);
     }
     
+    public FormalSpecs getFormal(VarSymbol v) {
+        //System.out.println("   GetFormal " + v + " " + v.owner + " " + v.hashCode());
+        return specsFormals.get(v);
+    }
+    
    /** Retrieves the specs for a given field
      * @param m the VarSymbol of the field whose specs are wanted
      * @return the specs of the field, or null if none are present
@@ -1630,16 +1703,30 @@ public class JmlSpecs {
     }
 
     public boolean isNonNull(VarSymbol sym) {
-    	if (utils.isJavaOrJmlPrimitiveType(sym.type)) return false;
-    	var fspecs = getLoadedSpecs(sym);
-    	if (fspecs != null) {
-        	if (utils.hasMod(fspecs.mods, Modifiers.NULLABLE)) return false;
-    		if (utils.hasMod(fspecs.mods, Modifiers.NON_NULL)) return true;
-    	}
-    	if (attr.hasAnnotation2(sym, Modifiers.NULLABLE)) return false;
-		if (attr.hasAnnotation2(sym, Modifiers.NON_NULL)) return true;
-    	return isNonNull(sym.type, sym.enclClass());
+        if (utils.isJavaOrJmlPrimitiveType(sym.type)) return false;
+        // formal, field or local variable
+        var fsp = getFormal(sym);
+        if (fsp != null) return fsp.isNonNull;
+        
+        var fspecs = getLoadedSpecs(sym);
+        if (fspecs != null) return fspecs.isNonNull;
+        //    	if (fspecs != null) {
+        //            if (utils.hasModOrAnn(fspecs.mods, Modifiers.NULLABLE)) return false;
+        //            if (utils.hasModOrAnn(fspecs.mods, Modifiers.NON_NULL)) return true;
+        //    	}
+        //    	if (attr.hasAnnotation2(sym, Modifiers.NULLABLE)) return false;
+        //		if (attr.hasAnnotation2(sym, Modifiers.NON_NULL)) return true;
+        // Local?
+        
+        return isNonNull(sym.type, sym.enclClass());
     }
+    
+    public boolean isNonNullFormal(VarSymbol sym) {
+        var x = getFormal(sym);
+        if (x != null) return x.isNonNull;
+        return isNonNull(sym.owner.owner);
+    }
+
     
     public boolean findAnnotation(Type type, ModifierKind kind) {
     	for (var a: type.getAnnotationMirrors()) {
@@ -1658,10 +1745,10 @@ public class JmlSpecs {
 
     public JCAnnotation findAnnotation(List<JCAnnotation> annotations, ModifierKind kind) {
         for (var a: annotations) {
-        	var s = a.toString();
-        	if (s.charAt(0) == '@') s = s.substring(1);
-        	if (s.endsWith(kind.fullAnnotation)) return a;
-        	if (kind.fullAnnotation.endsWith(s)) return a;
+            //var s = a.annotationType.toString();
+            //if (s.charAt(0) == '@') s = s.substring(1);
+            //if (s.endsWith(kind.fullAnnotation)) return a;
+            if (a instanceof JmlAnnotation ja && ja.kind == kind) return a;
         }
         return null;
     }
@@ -1674,28 +1761,42 @@ public class JmlSpecs {
     }
 
     @SuppressWarnings("unchecked")
-	public boolean isNonNullFormal(Type type, int i, MethodSpecs calleeSpecs, MethodSymbol msym) {
-    	//System.out.println("NNF " + type + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
-    	if (!type.isReference()) return false;
-    	if (Types.instance(context).isSubtype(type, 
-    			Symtab.instance(context).jmlPrimitiveType)) return true;
-    	//System.out.println("NNF-A " + findAnnotation(type, Modifiers.NULLABLE) + " " + findAnnotation(type, Modifiers.NON_NULL));
-    	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
-    	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
-    	//if (type instanceof Type.TypeVar) return false; 
-        //System.out.println("SPECS " + calleeSpecs + " # " + calleeSpecs.specDecl);
-    	if (!(type instanceof Type.TypeVar) && calleeSpecs.specDecl != null) {
-    		var decl = (JmlVariableDecl)calleeSpecs.specDecl.params.get(i);
-    		JmlModifiers mods = (JmlModifiers)decl.mods;
-            //System.out.println("ARG " + i + " " + decl + " # " + decl.type + " " + mods);
-    		if (findAnnotation(decl.type, Modifiers.NULLABLE)) return false;
-        	if (findAnnotation(decl.type, Modifiers.NON_NULL)) return true;
-            //System.out.println("NNF-B " + mods + " " + utils.hasModOrAnn(mods, Modifiers.NULLABLE) + " " + utils.hasModOrAnn(mods, Modifiers.NON_NULL));
-    		if (utils.hasModOrAnn(mods, Modifiers.NULLABLE)) return false;
-        	if (utils.hasModOrAnn(mods, Modifiers.NON_NULL)) return true;
-    	}
-    	//System.out.println("NNF-C " + msym.enclClass()+ " " + defaultNullity(msym.enclClass()));
-    	return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
+    public boolean isNonNullFormal(Type type, int i, MethodSpecs calleeSpecs, MethodSymbol msym) {
+        //boolean pr = i == 0 && msym.name.toString().equals("m");
+        //if (pr) System.out.println("NNF " + type + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
+        if (!type.isReference()) return false;
+        if (Types.instance(context).isSubtype(type, 
+                Symtab.instance(context).jmlPrimitiveType)) return true;
+        //if (pr) System.out.println("NNF-A " + findAnnotation(type, Modifiers.NULLABLE) + " " + findAnnotation(type, Modifiers.NON_NULL));
+        if (findAnnotation(type, Modifiers.NULLABLE)) return false;
+        if (findAnnotation(type, Modifiers.NON_NULL)) return true;
+        //if (type instanceof Type.TypeVar) return false; 
+        //if (pr) System.out.println("SPECS " + calleeSpecs + " # " + calleeSpecs.specDecl);
+        if (!(type instanceof Type.TypeVar) && calleeSpecs.specDecl != null) {
+            var decl = (JmlVariableDecl)calleeSpecs.specDecl.params.get(i);
+            JmlModifiers mods = (JmlModifiers)decl.mods;
+            //if (pr) System.out.println("ARG " + i + " " + decl + " # " + decl.type + " " + mods + "::" + decl.vartype);
+            if (hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE)) return false;
+            if (hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL)) return true;
+            //if (pr) System.out.println("NNF-B " + mods + " " + utils.hasModOrAnn(mods, Modifiers.NULLABLE) + " " + utils.hasModOrAnn(mods, Modifiers.NON_NULL));
+            if (utils.hasModOrAnn(mods, Modifiers.NULLABLE)) return false;
+            if (utils.hasModOrAnn(mods, Modifiers.NON_NULL)) return true;
+        }
+        //if (pr) System.out.println("NNF-C " + msym.enclClass()+ " " + defaultNullity(msym.enclClass()));
+        return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
+    }
+    
+    public boolean hasTypeAnnotation(JCExpression vartype, ModifierKind kind) {
+        if (vartype instanceof JCAnnotatedType at) {
+            for (JCAnnotation a: at.annotations) if (a instanceof JmlAnnotation ja && ja.kind == kind) return true;
+            return false;
+        } else if (vartype instanceof JCArrayTypeTree att) {
+            return hasTypeAnnotation(att.elemtype, kind);
+        } else if (vartype instanceof JCTypeApply app) {
+            return hasTypeAnnotation(app.clazz, kind);
+        } else {
+            return false;
+        }
     }
     
 	public boolean isCheckNonNullReturn(Type type, MethodSymbol msym) {
@@ -1707,22 +1808,26 @@ public class JmlSpecs {
     
     @SuppressWarnings("unchecked")
 	public boolean isNonNullReturn(Type type, MethodSymbol msym) {
-    	if (!type.isReference()) return false;
-    	if (Types.instance(context).isSubtype(type, 
-    			Symtab.instance(context).jmlPrimitiveType)) return true;
-    	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
-    	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
-    	if (attr.hasAnnotation2(msym, Modifiers.NULLABLE)) return false;
-		if (attr.hasAnnotation2(msym, Modifiers.NON_NULL)) return true;
-		var sp = specsMethods.get(msym);
-        if (utils.hasMod(sp.mods, Modifiers.NON_NULL)) return true;
-        if (utils.hasMod(sp.mods, Modifiers.NULLABLE)) return false;
-		if (sp.cases.decl != null) {
-			if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NON_NULL)) return true;
-			if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NULLABLE)) return false;
-		}
-    	//if (type instanceof Type.TypeVar) return false; 
-    	return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
+        var ms = get(msym);
+        return ms.returnNonNull;
+//    	if (!type.isReference()) return false;
+//    	if (Types.instance(context).isSubtype(type, 
+//    			Symtab.instance(context).jmlPrimitiveType)) return true;
+//        if (findAnnotation(type, Modifiers.NULLABLE)) return false;
+//        if (findAnnotation(type, Modifiers.NON_NULL)) return true;
+//        if (hasTypeAnnotation(type, Modifiers.NULLABLE)) return false;
+//        if (hasTypeAnnotation(type, Modifiers.NON_NULL)) return true;
+//    	if (attr.hasAnnotation2(msym, Modifiers.NULLABLE)) return false;
+//		if (attr.hasAnnotation2(msym, Modifiers.NON_NULL)) return true;
+//		var sp = specsMethods.get(msym);
+//        if (utils.hasMod(sp.mods, Modifiers.NON_NULL)) return true;
+//        if (utils.hasMod(sp.mods, Modifiers.NULLABLE)) return false;
+//		if (sp.cases.decl != null) {
+//			if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NON_NULL)) return true;
+//			if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NULLABLE)) return false;
+//		}
+//    	//if (type instanceof Type.TypeVar) return false; 
+//    	return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
     }
     
     @SuppressWarnings("unchecked")
@@ -1945,6 +2050,7 @@ public class JmlSpecs {
         public JmlMethodSpecs cases;
         public Env<AttrContext> javaEnv;
         public Env<AttrContext> specsEnv;
+        public boolean returnNonNull;
         
         public MethodSpecs(JmlMethodDecl specsDecl) { 
             this.mods = specsDecl.mods;
@@ -1994,6 +2100,8 @@ public class JmlSpecs {
             return decl == null ? null : decl.source();
         }
         
+        public boolean isNonNull;
+        
         //@ nullable
         public JmlVariableDecl decl; // The textual origin of the field specifications, if any
         
@@ -2015,6 +2123,43 @@ public class JmlSpecs {
                 c.accept(p);
                 try { p.println(); } catch (IOException e) {} // it can't throw up, and ignore if it does
             }
+            return s.toString();
+            
+        }
+    }
+    /** An ADT to hold the specs for a formal parameter declaration */
+    public static class FormalSpecs {
+        
+        /** Modifiers pertinent to this field's specifications */
+        public JmlModifiers mods;
+        
+        public MethodSymbol owner;
+        
+        public boolean isNonNull;
+
+        public JavaFileObject source() {
+            return decl == null ? null : decl.source();
+        }
+        
+        //@ nullable
+        public JmlVariableDecl decl; // The textual origin of the field specifications, if any
+        
+        // FIXME - should this be initialized with the specsDecl? and are the clauses already present?
+        /** Creates a FieldSpecs object initialized with only the given modifiers */
+        public FormalSpecs(JmlVariableDecl decl, boolean isNN, MethodSymbol owner) { 
+            this.decl = decl;
+            this.mods = (JmlModifiers)(decl.mods);
+            this.owner = owner;
+            this.isNonNull = isNN;
+        }
+        
+        @Override
+        public String toString() {
+            StringWriter s = new StringWriter();
+            JmlPretty p = new JmlPretty(s, false);
+            mods.accept(p);
+            try { p.println(); } catch (IOException e) {} // it can't throw up, and ignore if it does
+                                // FIXME - println only if there are mods?
             return s.toString();
             
         }

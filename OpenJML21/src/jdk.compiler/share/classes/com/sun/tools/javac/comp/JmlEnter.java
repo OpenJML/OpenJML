@@ -1272,14 +1272,14 @@ public class JmlEnter extends Enter {
 				//checkMethodMatch(null, msym, mdecl, csym);
 			}
 		}
-		var iter = msym.params.iterator();
-		VarSymbol vs = null;
-		for (var v : mdecl.params) {
-			if (iter.hasNext())
-				specs.putSpecs(vs = iter.next(), new JmlSpecs.FieldSpecs((JmlVariableDecl) v));
-			specs.putSpecs(v.sym, new JmlSpecs.FieldSpecs((JmlVariableDecl) v));
-
-		}
+//		var iter = msym.params.iterator();
+//		VarSymbol vs = null;
+//		for (var v : mdecl.params) {
+//			if (iter.hasNext())
+//				specs.putSpecs(vs = iter.next(), new JmlSpecs.FormalSpecs((JmlVariableDecl) v));
+//			specs.putSpecs(v.sym, new JmlSpecs.FormalSpecs((JmlVariableDecl) v));
+//
+//		}
 		return true;
 	}
 

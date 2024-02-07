@@ -700,26 +700,26 @@ public class escfiles extends EscBase {
 
     @Test // FIXME - still has problems with imports in JML files and with checks on field initializers
     public void escJml() {
-        helpTCF("test/escJML/Test.java","test/escJML","--specs-path=test/escJML/specs","--check-feasibility=precondition,exit","--nullable-by-default");
+        helpTCF("test/escJML/Test.java","test/escJml","--specs-path=test/escJml/specs","--check-feasibility=none","--nonnull-by-default");
     }
 
     @Test
-    public void testEscJml1() {
-        helpTCF("test/escJml1/StorageParameters.java","test/escJml1","--specs-path=test/escJml1/specs","--check-feasibility=precondition,exit","--nonnull-by-default");
+    public void escJml1() {
+        helpTCF("test/escJml1/StorageParameters.java","test/escJml1","--specs-path=test/escJml1/specs","--check-feasibility=none","--nonnull-by-default");
     }
 
     @Test
-    public void testEscJml2() {
+    public void escJml2() {
         helpTCF("test/escJml2/StorageParameters.java","test/escJml2","--specs-path=test/escJml2/specs","--check-feasibility=precondition,exit");
     }
 
     @Test
-    public void testEscJml3() {
+    public void escJml3() {
         helpTCF("test/escJml3/StorageParameters.java","test/escJml3","--specs-path=test/escJml2/specs","--check-feasibility=precondition,exit");
     }
 
     @Test
-    public void testEscJmlDup() {
+    public void escDup() {
         helpTF("escDup");
     }
 

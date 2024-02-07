@@ -3639,19 +3639,39 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //		assertInvariants(thisExpr, thisExpr);
 //	}
 
-	/** Returns true iff the declaration is explicitly or implicitly non_null */
-	protected boolean addNullnessAllocationTypeCondition2(DiagnosticPosition d, Symbol sym,
-			boolean instanceBeingConstructed, JCExpression condition) {
-		boolean isNonNull = true;
-		Symbol owner = sym.owner;
-		if (owner instanceof MethodSymbol)
-			owner = owner.owner;
-		if (!sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type) && !isDataGroup(sym.type)) {
-			isNonNull = specs.isNonNull(sym);
-		}
+    /** Returns true iff the declaration is explicitly or implicitly non_null */
+    protected boolean addNullnessAllocationTypeConditionFormal(DiagnosticPosition d, VarSymbol sym,
+            boolean instanceBeingConstructed, JCExpression condition) {
+        boolean isNonNull = false;
+        Symbol owner = sym.owner;
+        var f = specs.getFormal(sym);
+        if (f != null) {
+            isNonNull =f.isNonNull;
+        } else {
+            if (owner instanceof MethodSymbol)
+                owner = owner.owner;
+            if (!sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type) && !isDataGroup(sym.type)) {
+                isNonNull = specs.isNonNullFormal(sym);
+                //System.out.println("NULLNESS " + sym + " " + sym.type + " " + isNonNull + " " + owner);
+            }
+        }
+        return addNullnessAllocationTypeCondition(d, sym, isNonNull, instanceBeingConstructed, true, condition);
+    }
 
-		return addNullnessAllocationTypeCondition(d, sym, isNonNull, instanceBeingConstructed, true, condition);
-	}
+    /** Returns true iff the declaration is explicitly or implicitly non_null */
+    protected boolean addNullnessAllocationTypeCondition2(DiagnosticPosition d, Symbol sym,
+            boolean instanceBeingConstructed, JCExpression condition) {
+        boolean isNonNull = true;
+        Symbol owner = sym.owner;
+        if (owner instanceof MethodSymbol)
+            owner = owner.owner;
+        if (!sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type) && !isDataGroup(sym.type)) {
+            isNonNull = specs.isNonNull(sym);
+            //System.out.println("NULLNESS " + sym + " " + sym.type + " " + isNonNull);
+        }
+
+        return addNullnessAllocationTypeCondition(d, sym, isNonNull, instanceBeingConstructed, true, condition);
+    }
 
 	protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym,
 			boolean instanceBeingConstructed) {
@@ -4527,7 +4547,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				boolean varargs = (methodDecl.sym.flags() & Flags.VARARGS) != 0;
 				boolean isNonNull = true;
 				for (JCVariableDecl d : methodDecl.params) {
-					isNonNull = addNullnessAllocationTypeCondition2(d, d.sym, false, null);
+					isNonNull = addNullnessAllocationTypeConditionFormal(d, d.sym, false, null);
 				}
 				if (varargs && !isNonNull) { // isNonNull is the nullness of the last parameter, so the varargs
 												// parameter
@@ -10482,8 +10502,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					ListBuffer<JCStatement> check6 = pushBlock();
 					if (esc && !utils.isJavaOrJmlPrimitiveType(retType)) {
 						boolean nnull = specs.isCheckNonNullReturn(retType, calleeMethodSym);
-						// System.out.println("RET TYPE " + calleeMethodSym + " " + calleeMethodSym.type
-						// + " " + calleeMethodSym.getReturnType() + " " + retType + " " + nnull);
+						//System.out.println("RET TYPE " + calleeMethodSym + " " + calleeMethodSym.type
+						//+ " " + calleeMethodSym.getReturnType() + " " + retType + " " + nnull);
 						addStat(comment(that, "Return is non-null: " + calleeMethodSym + " " + nnull, null));
 						if (nnull) {
 							addAssume(that, Label.IMPLICIT_ASSUME, treeutils.makeNotNull(that, resultExpr));
