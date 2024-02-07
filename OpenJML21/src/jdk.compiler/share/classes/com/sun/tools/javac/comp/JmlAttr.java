@@ -6624,9 +6624,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public boolean hasAnnotation2(Symbol symbol, ModifierKind t) {
-    	for (var a: symbol.getAnnotationMirrors()) {
-    		if (a.toString().endsWith(t.fullAnnotation)) return true; // FIXME - improve this
-    	}
+        for (var a: symbol.getAnnotationMirrors()) {
+            if (a.toString().endsWith(t.fullAnnotation)) return true; // FIXME - improve this
+        }
         return false;
     }
     
