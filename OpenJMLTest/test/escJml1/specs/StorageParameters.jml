@@ -9,11 +9,10 @@ public final class StorageParameters {
     //@ pure
     public StorageParameters(long @org.jmlspecs.annotation.Nullable [] sizes );
 
-    //@ ensures !\fresh(\result);
+    //@ ensures \result == configurationSizes;
     //@ pure
     /*@ spec_public @*/ long @org.jmlspecs.annotation.Nullable [] getConfigurationSizes();
 
-    @org.jmlspecs.annotation.SkipEsc
     public static void main(String... args);
 
 }

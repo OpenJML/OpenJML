@@ -3,16 +3,17 @@
 public final class StorageParameters {
 
     //@ spec_public
-    
+
     private  long @org.jmlspecs.annotation.Nullable [] configurationSizes;
-	
-	//@ pure
-	public StorageParameters(long @org.jmlspecs.annotation.Nullable [] sizes );
-	
-	//@ pure
-	/*@ spec_public @*/ long @org.jmlspecs.annotation.Nullable [] getConfigurationSizes();
-	
-	   @org.jmlspecs.annotation.SkipEsc
+
+    //@ pure
+    public StorageParameters(long @org.jmlspecs.annotation.Nullable [] sizes );
+
+    //@ ensures \result == configurationSizes;
+    //@ pure
+    /*@ spec_public @*/ long @org.jmlspecs.annotation.Nullable [] getConfigurationSizes();
+
+
     public static void main(String... args);
-	
+
 }

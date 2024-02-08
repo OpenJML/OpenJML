@@ -7602,7 +7602,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JCExpression initExpr = that.init;
                 if (v != null && initExpr instanceof JCLiteral lit) {
                     if (!v.equals(lit.value)) {
-                        System.out.println("INIT " + v.getClass() + " " + v + " " + lit.value.getClass() + " " + lit.value + " " + v.equals(lit.value));
+                        //System.out.println("INIT " + v.getClass() + " " + v + " " + lit.value.getClass() + " " + lit.value + " " + v.equals(lit.value));
                         utils.error(that, "jml.message", "Initializer does not match compiled value: " + lit + " vs. " + v);
                     }
                 }
@@ -7619,7 +7619,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             ((JmlResolve)rs).setAllowJML(prev);
             if (prevSource != null) log.useSource(prevSource);
             jmlenv = jmlenv.pop();
-        	if (utils.verbose()) utils.note("    Attributed " + that.sym.owner + " " + that.sym);
+            //if (utils.verbose()) utils.note("    Attributed " + that.sym.owner + " " + that.sym); // that.sym may be null
         }
     }
     
