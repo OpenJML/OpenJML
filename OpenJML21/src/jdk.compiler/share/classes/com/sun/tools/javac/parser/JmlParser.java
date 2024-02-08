@@ -446,6 +446,7 @@ public class JmlParser extends JavacParser {
                 } else if (vartype instanceof JCTypeApply fa) {
                     fa.clazz = normalizeAnnotation(mod, fa.clazz, null);
                 } else if (vartype instanceof JCPrimitiveTypeTree fa) {
+                    utils.warning(mod.pos, "jml.message", "the type modifier/annotation (" + mod + ") is not permitted on a primitive type: " + fa);
                     // Do not add the annotation -  not permitted on a primitive type
                     // FIXME - error?
                 } else {
@@ -718,8 +719,12 @@ public class JmlParser extends JavacParser {
         if (replacementType != null && tree instanceof JmlVariableDecl) {
             JmlVariableDecl d = (JmlVariableDecl) tree;
             d.originalVartype = d.vartype;
-            d.vartype = replacementType;
             d.jmltype = true;
+            if (d.vartype instanceof JCAnnotatedType at) {
+                d.vartype = jmlF.at(at.pos).AnnotatedType(at.annotations, replacementType);
+            } else {
+                d.vartype = replacementType;
+            }
         }
     }
     

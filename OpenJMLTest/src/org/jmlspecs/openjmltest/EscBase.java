@@ -184,7 +184,7 @@ public abstract class EscBase extends JmlTestCase {
         main.addUncheckedOption("openjml.defaultProver=z3_4");
         addOptions(options);
         if (solver != null) addOptions(JmlOption.PROVER.optionName(),solver);
-        specs = JmlSpecs.instance(context);
+ //       specs = JmlSpecs.instance(context);
         expectedExit = 0;
         noAssociatedDeclaration = false;
         ignoreNotes = false;
@@ -320,7 +320,6 @@ public abstract class EscBase extends JmlTestCase {
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
-        specs = null;
         captureOutput = false;
         //MethodProverSMT.benchmarkName = null;
     }

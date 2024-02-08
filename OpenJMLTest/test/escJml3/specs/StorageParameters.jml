@@ -7,7 +7,7 @@ public final class StorageParameters {
     private long[] configurationSizes;
 	
 	//@ pure
-	public StorageParameters(@org.jmlspecs.annotation.Nullable long[] sizes );
+	public StorageParameters(long @org.jmlspecs.annotation.Nullable [] sizes );
 	
 	//@ pure helper spec_public // ERROR This has duplicate annotation but has a bad error message
 	@org.jmlspecs.annotation.Nullable

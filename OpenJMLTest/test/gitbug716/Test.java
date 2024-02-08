@@ -7,7 +7,7 @@ public class Test {
 	//requires (\forall int k; m <= k && k < r;(\forall int j; k < j && j < r; arr[k] >= arr[j]));
 	//ensures \forall int k;l<= k && k < r; ( \forall int j;k < j && j < r; arr[k] >= arr[j] );
 	@*/
-	private static void merge(/*@ non_null @*/ int [] arr, final int l, final int m, final int r) {
+	private static void merge(int /*@ non_null @*/ [] arr, final int l, final int m, final int r) {
 		final int [] lCpy = Arrays.copyOfRange(arr, l, m),
 			         rCpy = Arrays.copyOfRange(arr,m, r);
 			

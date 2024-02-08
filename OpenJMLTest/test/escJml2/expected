@@ -1,11 +1,8 @@
 Proving methods in StorageParameters
 Starting proof of StorageParameters.StorageParameters(long[]) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of StorageParameters.StorageParameters(long[]) with prover !!!! - no warnings
 Starting proof of StorageParameters.getConfigurationSizes() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of StorageParameters.getConfigurationSizes() with prover !!!! - no warnings
-Skipping proof of StorageParameters.main(String...) (excluded by skipesc)
+Starting proof of StorageParameters.main(String...) with prover !!!!
+Completed proof of StorageParameters.main(String...) with prover !!!! - no warnings
 Completed proving methods in StorageParameters

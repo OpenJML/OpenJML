@@ -7524,8 +7524,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // We do the checking of in and maps clauses after all fields and methods have been attributed
             //if (fspecs != null) for (JmlTypeClause spec:  fspecs.list) spec.accept(this);
 
+            ModifierKind nullness = specs.defaultNullity(enclosingClassEnv.enclClass.sym);
             if (!that.type.isPrimitive()) {
-                ModifierKind nullness = specs.defaultNullity(enclosingClassEnv.enclClass.sym);
                 if (that.type.tsym == datagroupClass) {
                     nullness = Modifiers.NULLABLE;                    
                     // OPENJML - FIXME - wrapped the below line with TypeCompound -- not sure about the final null
@@ -7571,6 +7571,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Check the mods after the specs, because the modifier checks depend on
             // the specification clauses being attributed
 
+            if (that.sym.owner instanceof MethodSymbol ms) {
+                // vars owned by the class are fields; they have already had specs put during Entering
+                // so have formal parameters
+                var s = specs.getFormal(that.sym);
+                if (s == null) {
+                    specs.putSpecs(that.sym, that, new JmlSpecs.LocalSpecs(that, nullness == Modifiers.NON_NULL, ms));
+                }
+            }
             specs.getAttrSpecs(that.sym); // Attributing specs, if not already done // Also checks the modifiers
 
             if (that.sym.owner.isInterface()) {

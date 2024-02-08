@@ -20,6 +20,7 @@ public class racnew2 extends RacBase {
         addOptions("-code-math=java","-spec-math=java");;
         addOptions("--rac-show-source=line");
         expectedNotes = 0;
+        // Tests presume --nonnull-by-default
     }
     
     /** Tests a copying modifiers and annotations */
@@ -905,36 +906,48 @@ public class racnew2 extends RacBase {
     /** Checks select expressions. */
     @Test public void testSelect() {
         expectedRACExit = 1;
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                " //@ assert a[0] == 0; \n" +
-                " //@ assert b != null && b[0] == 0; \n" +
-                " //@ assert b[0] == 0; \n" +
-                " System.out.println(\"END\"); } \n" +
-                " static int[] a = { 0,1,2}; \n" +
-                " /*@nullable*/ static int[] b = null;\n" +
-                "}"
-                ,"/tt/TestJava.java:3: JML assertion is false"
-                ,"/tt/TestJava.java:4: JML A null object is dereferenced within a JML expression"
-                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot read the array length because \"tt.TestJava.b\" is null"
-                ,"\tat tt.TestJava.main(TestJava.java:4)"
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+                public class TestJava {
+                    public static void main(String[] args) {
+                        //@ assert a[0] == 0;
+                        //@ assert b != null && b[0] == 0;
+                        //@ assert b[0] == 0;
+                        System.out.println(\"END\");
+                    }
+                static int[] a = { 0,1,2};
+                static int /*@nullable*/[] b = null;
+            }
+            """
+            ,"/tt/TestJava.java:5: JML assertion is false"
+            ,"/tt/TestJava.java:6: JML A null object is dereferenced within a JML expression"
+            ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot read the array length because \"tt.TestJava.b\" is null"
+            ,"\tat tt.TestJava.main(TestJava.java:6)"
         );        
     }
     
     /** Checks select expressions. */
     @Test public void testSelect2() {
         expectedRACExit = 1;
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                " System.out.println(a[1]); \n" +
-                " System.out.println(b[1]); \n" +
-                " System.out.println(\"END\"); } \n" +
-                " static int[] a = { 0,1,2}; \n" +
-                " /*@nullable*/ static int[] b = null;\n" +
-                "}"
-                ,"1"
-                ,"/tt/TestJava.java:3: verify: JML A null object is dereferenced"
-                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot read the array length because \"tt.TestJava.b\" is null"
-                ,"\tat tt.TestJava.main(TestJava.java:3)"
-        );        
+        helpTCX("tt.TestJava",
+            """
+            package tt;
+            public class TestJava {
+                 public static void main(String[] args) {
+                     System.out.println(a[1]);
+                     System.out.println(b[1]);
+                     System.out.println(\"END\");
+                }
+                static int[] a = { 0,1,2};
+                static int /*@nullable*/[] b = null;
+            }
+            """
+            ,"1"
+            ,"/tt/TestJava.java:5: verify: JML A null object is dereferenced"
+            ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot read the array length because \"tt.TestJava.b\" is null"
+            ,"\tat tt.TestJava.main(TestJava.java:5)"
+        );
     }
     
     /** Checks a model class. */

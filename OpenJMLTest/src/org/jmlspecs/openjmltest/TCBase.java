@@ -43,7 +43,6 @@ public abstract class TCBase extends JmlTestCase {
         addOptions("-sourcepath",   testSourcePath);
         addOptions("-classpath",   "src" + z + testSourcePath);
         addOptions(JmlOption.PURITYCHECK.optionName()+"=false");
-        specs = JmlSpecs.instance(context);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
         //print = true;
@@ -52,7 +51,6 @@ public abstract class TCBase extends JmlTestCase {
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
-        specs = null;
     }
 
     // Used to check the test system itself

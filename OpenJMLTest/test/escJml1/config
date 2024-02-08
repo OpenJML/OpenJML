@@ -1,1 +1,1 @@
-ARGS+=" --specs-path test/escJml1/specs --nonnull-by-default "
+ARGS+=" --specs-path test/escJml1/specs --nonnull-by-default --check-feasibility=none "

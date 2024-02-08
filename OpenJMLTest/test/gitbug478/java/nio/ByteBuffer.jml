@@ -265,7 +265,7 @@ public abstract class ByteBuffer
     // the same underlying store, which is what necessitates having to specify
     // an offset within the array
 
-    //@ public model instance non_null byte[] contents;
+    //@ public model instance byte non_null [] contents;
     //@ public model instance int arrayOffset;
 
 

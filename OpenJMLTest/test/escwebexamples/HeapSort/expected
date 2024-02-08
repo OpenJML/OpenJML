@@ -1,0 +1,10 @@
+Proving methods in HeapSort
+Starting proof of HeapSort.HeapSort() with prover !!!!
+Completed proof of HeapSort.HeapSort() with prover !!!! - no warnings
+Starting proof of HeapSort.heapify(int @NonNull [],int,int) with prover !!!!
+Completed proof of HeapSort.heapify(int @NonNull [],int,int) with prover !!!! - no warnings
+Starting proof of HeapSort.isGeq(int @NonNull [],int) with prover !!!!
+Completed proof of HeapSort.isGeq(int @NonNull [],int) with prover !!!! - no warnings
+Starting proof of HeapSort.sort(int @NonNull []) with prover !!!!
+Completed proof of HeapSort.sort(int @NonNull []) with prover !!!! - no warnings
+Completed proving methods in HeapSort

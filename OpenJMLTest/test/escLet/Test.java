@@ -17,8 +17,8 @@ public class Test {
 		//@ assert cc != 0;
 	}
 
-	//@ nullable
-	int[] a;
+	
+	int /*@ nullable */ [] a;
 
 	//@ normal_behavior
 	//@   requires a != null && a.length == 10;

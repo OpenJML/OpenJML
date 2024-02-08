@@ -329,7 +329,7 @@ public class esclambdas extends EscBase {
                 +"  public static class C {};\n"
                 +"  //@ model public static class R extends C {};\n"
                 
-                +"  public /*@ nullable [R]*/C field;\n"
+                +"  public /*@ nullable [R] */C field;\n"
 
                 +"  public void set( /*@[R]*/C f) { field = f; }\n"
                                 
