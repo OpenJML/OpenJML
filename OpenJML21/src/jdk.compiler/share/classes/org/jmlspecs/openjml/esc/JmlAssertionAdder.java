@@ -5380,7 +5380,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Note that methodDecl.resType.type appears to be unannotated
 		Type rt = methodDecl.sym.getReturnType();
-		if (rt != null && !utils.isPrimitiveOrVoidType(rt) && resultSym != null && specs.isNonNull(methodDecl.restype.type, methodDecl.sym)) {
+		if (rt != null && !utils.isPrimitiveOrVoidType(rt) && resultSym != null && specs.isNonNullReturn(methodDecl.sym)) {
 		    //System.out.println("NN " + methodDecl.sym.owner + " " + methodDecl.restype.type + " " + methodDecl.sym + " " + specs.isNonNull(methodDecl.sym.getReturnType()) + " " + hasNullable(rt) + " " + hasNonNull(rt) );
 			currentStatements = ensuresStats;
 			addStat(comment(methodDecl.restype, "Adding null return check by callee " + methodDecl.sym, null));
@@ -9025,7 +9025,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //							 specs.isNonNull(that.type,(ClassSymbol)calleeMethodSym.owner) + " " +
 //							 specs.isNonNull(calleeMethodSym) + " " + nn);
 						}
-						addNullnessAllocationTypeCondition(that, resultSym, nn, false, false, null);
+						addNullnessAllocationTypeCondition(that, resultSym, false, false, false, null);
 					} else {
 						resultSym = null;
 						resultExpr = that;
@@ -10684,7 +10684,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 					if (apply != null && calleeMethodSym.getReturnType() != null
 							&& !utils.isJavaOrJmlPrimitiveOrVoidType(calleeMethodSym.getReturnType())
-							&& resultExpr != null && meth != null && specs.isNonNull(that.type, calleeMethodSym)) {
+							&& resultExpr != null && meth != null && specs.isNonNullReturn(calleeMethodSym)) {
 						JCExpression nn = treeutils.makeNotNull(that.pos, resultExpr);
 						var p = (mspecs != null && mspecs.specDecl != null) ? mspecs.specDecl.pos() : that.pos(); // FIXME - sort out cases
 																								// where specDecl is

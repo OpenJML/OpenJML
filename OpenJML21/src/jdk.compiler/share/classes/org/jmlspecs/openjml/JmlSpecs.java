@@ -937,7 +937,6 @@ public class JmlSpecs {
             }
         }
         spec.returnNonNull = findNonNullReturn(specSym, decl);
-        //if (specSym.name.toString().equals("n")) System.out.println("MSPECS " + decl);
         if (utils.verbose()) utils.note("            Saving method specs for " + specSym.owner + "." + specSym + " " + specSym.hashCode() + " " + spec.returnNonNull);
         setStatus(specSym, SpecsStatus.SPECS_LOADED);
     }
@@ -1016,15 +1015,13 @@ public class JmlSpecs {
     }
     
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
-        x: {
-            if (spec != null) {
-                spec.isNonNull = computeVarNullness(spec.decl, m.owner);
-            }
+        if (spec != null) {
+            spec.isNonNull = computeVarNullness(spec.decl, m.owner);
         }
         specsFields.put(m, spec);
         setStatus(m, SpecsStatus.SPECS_LOADED);
         //if (m.owner.toString().contains("Throwable")) System.out.println("            Saving field specs for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
-        if (utils.verbose()) utils.note("            Saving field specs for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
+        if (utils.verbose()) utils.note("            Saving field specs for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode() + " " + spec.isNonNull);
     }
     
     public boolean computeVarNullness(JmlVariableDecl decl, Symbol owner) {
@@ -1827,32 +1824,14 @@ public class JmlSpecs {
 	public boolean isCheckNonNullReturn(Type type, MethodSymbol msym) {
     	// Extension type values are always non-null, but we do not check for that
     	if (utils.isExtensionValueType(type)) return false;
-    	return isNonNullReturn(type, msym);
+    	return isNonNullReturn(msym);
     }
 		
     
     @SuppressWarnings("unchecked")
-	public boolean isNonNullReturn(Type type, MethodSymbol msym) {
+	public boolean isNonNullReturn(MethodSymbol msym) {
         var ms = get(msym);
         return ms.returnNonNull;
-//    	if (!type.isReference()) return false;
-//    	if (Types.instance(context).isSubtype(type, 
-//    			Symtab.instance(context).jmlPrimitiveType)) return true;
-//        if (findAnnotation(type, Modifiers.NULLABLE)) return false;
-//        if (findAnnotation(type, Modifiers.NON_NULL)) return true;
-//        if (hasTypeAnnotation(type, Modifiers.NULLABLE)) return false;
-//        if (hasTypeAnnotation(type, Modifiers.NON_NULL)) return true;
-//    	if (attr.hasAnnotation2(msym, Modifiers.NULLABLE)) return false;
-//		if (attr.hasAnnotation2(msym, Modifiers.NON_NULL)) return true;
-//		var sp = specsMethods.get(msym);
-//        if (utils.hasMod(sp.mods, Modifiers.NON_NULL)) return true;
-//        if (utils.hasMod(sp.mods, Modifiers.NULLABLE)) return false;
-//		if (sp.cases.decl != null) {
-//			if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NON_NULL)) return true;
-//			if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NULLABLE)) return false;
-//		}
-//    	//if (type instanceof Type.TypeVar) return false; 
-//    	return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
     }
     
     @SuppressWarnings("unchecked")

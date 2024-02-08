@@ -31,12 +31,15 @@ Completed proof of Test.q() with prover !!!! - with warnings
 Starting proof of Test.n() with prover !!!!
 Completed proof of Test.n() with prover !!!! - no warnings
 Starting proof of Test.nn() with prover !!!!
-test/escJml/Test.java:45: warning: The prover cannot establish an assertion (Postcondition) in method nn
+test/escJml/Test.java:45: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method nn: nn
     Object nn() { return f; } // Error because f is nullable but nn is not
-                  ^
+    ^
 test/escJml/Test.java:45: warning: Associated declaration
     Object nn() { return f; } // Error because f is nullable but nn is not
            ^
+test/escJml/Test.java:45: warning: Associated method exit
+    Object nn() { return f; } // Error because f is nullable but nn is not
+                  ^
 Completed proof of Test.nn() with prover !!!! - with warnings
 Starting proof of Test.t(Object) with prover !!!!
 test/escJml/Test.java:50: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method t
@@ -82,12 +85,15 @@ Completed proof of A.mf4() with prover !!!! - no warnings
 Starting proof of A.m() with prover !!!!
 Completed proof of A.m() with prover !!!! - no warnings
 Starting proof of A.mnn() with prover !!!!
-test/escJml/Test.java:127: warning: The prover cannot establish an assertion (Postcondition) in method mnn
-		return f; // Error f is nullable, mnn is non null
-		^
+test/escJml/Test.java:126: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method mnn: mnn
+	Object mnn() {
+	^
 test/escJml/Test.java:126: warning: Associated declaration
 	Object mnn() {
 	       ^
+test/escJml/Test.java:127: warning: Associated method exit
+		return f; // Error f is nullable, mnn is non null
+		^
 Completed proof of A.mnn() with prover !!!! - with warnings
 Starting proof of A.t(Object) with prover !!!!
 Completed proof of A.t(Object) with prover !!!! - no warnings
@@ -123,4 +129,4 @@ test/escJml/Test.java:172: warning: The prover cannot establish an assertion (Po
 		                ^
 Completed proof of B.v(Object) with prover !!!! - with warnings
 Completed proving methods in B
-17 warnings
+19 warnings

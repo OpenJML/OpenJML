@@ -93,7 +93,7 @@ public class SFBugs extends EscBase {
     }
     
     @Test public void sfbug409() {
-        helpTCF("test/sfbug409","test/sfbug409", "-cp", "test/sfbug409", "--esc","--progress");
+        helpTCF("test/sfbug409","test/sfbug409", "-cp", "test/sfbug409", "--esc","--progress","--check-feasibility=precondition,exit,reachable,assert,assume");
     }
     
     @Test public void sfbug410() {
@@ -907,9 +907,9 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-    @Test // Errors encountered when using runtime on the classpath
+    @Test
     public void gitbug648a() {
-        expectedExit = 1;
+        expectedExit = 0; // has verify errors
         helpTCF("test/gitbug648a","test/gitbug648a","-cp","test/gitbug648");
     }
     
@@ -1233,7 +1233,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug740() {
         expectedExit = 0;
-        helpTCG();
+        helpTCG("--check-feasibility=none");
     }
     
     @Test

@@ -710,7 +710,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void escJml1a() {
-        helpTCF("test/escJml1a/StorageParameters.java","test/escJml1a","--specs-path=test/escJml1a/specs","--check-feasibility=none","--nonnull-by-default");
+        helpTCF("test/escJml1a/StorageParameters.java","test/escJml1a","--specs-path=test/escJml1a/specs","--check-feasibility=none","--nullable-by-default");
     }
 
     @Test
