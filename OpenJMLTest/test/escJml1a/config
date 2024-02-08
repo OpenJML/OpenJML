@@ -1,1 +1,1 @@
-ARGS+=" -specspath test/escJml1a/specs -nullableByDefault "
+ARGS+=" --specs-path test/escJml1a/specs --nullable-by-default --check-feasibility=none "

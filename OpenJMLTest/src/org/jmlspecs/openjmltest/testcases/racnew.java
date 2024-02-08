@@ -622,6 +622,7 @@ public class racnew extends RacBase {
                 +"//@ set t = (\\lbl E \\elemtype(Boolean[].class));\n"
                 +"System.out.println(\"END\"); } \n"
                 +"}"
+                ,"/tt/TestJava.java:3: warning: the type modifier/annotation (nullable) is not permitted on a primitive type: \\TYPE",35
                 ,"LABEL A = class java.lang.String"
                 ,"LABEL B = int"
                 ,"LABEL C = null"

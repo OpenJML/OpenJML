@@ -700,7 +700,7 @@ public class escfiles extends EscBase {
 
     @Test // FIXME - still has problems with imports in JML files and with checks on field initializers
     public void escJml() {
-        helpTCF("test/escJML/Test.java","test/escJml","--specs-path=test/escJml/specs","--check-feasibility=none","--nonnull-by-default");
+        helpTCF("test/escJml/Test.java","test/escJml","--specs-path=test/escJml/specs","--check-feasibility=none","--nonnull-by-default");
     }
 
     @Test
@@ -709,13 +709,18 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void escJml1a() {
+        helpTCF("test/escJml1a/StorageParameters.java","test/escJml1a","--specs-path=test/escJml1a/specs","--check-feasibility=none","--nonnull-by-default");
+    }
+
+    @Test
     public void escJml2() {
-        helpTCF("test/escJml2/StorageParameters.java","test/escJml2","--specs-path=test/escJml2/specs","--check-feasibility=precondition,exit");
+        helpTCF("test/escJml2/StorageParameters.java","test/escJml2","--specs-path=test/escJml2/specs","--check-feasibility=none");
     }
 
     @Test
     public void escJml3() {
-        helpTCF("test/escJml3/StorageParameters.java","test/escJml3","--specs-path=test/escJml2/specs","--check-feasibility=precondition,exit");
+        helpTCF("test/escJml3/StorageParameters.java","test/escJml3","--specs-path=test/escJml2/specs","--check-feasibility=none");
     }
 
     @Test

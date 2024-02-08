@@ -20,7 +20,7 @@ import org.openjml.runners.ParameterizedWithNames;
 public class escwebexamples extends EscBase {
     
     final String sources = "../../openjml.github.io/examples/";
-    final String expected = "test/webexamples/";
+    final String expected = "test/escwebexamples/";
 
     @Override
     public void setUp() throws Exception {

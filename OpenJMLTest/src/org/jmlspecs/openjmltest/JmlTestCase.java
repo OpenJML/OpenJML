@@ -279,6 +279,7 @@ public abstract class JmlTestCase {
         }
         ((FilteredDiagnosticCollector<JavaFileObject>)collector).context = context;
 
+        specs = JmlSpecs.instance(context);
         mockFiles = new LinkedList<JavaFileObject>();
         Log.alwaysReport = true; // Always report errors (even if they would be suppressed because they are at the same position
         if (System.getenv("VERBOSE") != null) {

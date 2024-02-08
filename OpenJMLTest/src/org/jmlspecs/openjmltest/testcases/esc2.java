@@ -4097,7 +4097,7 @@ public class esc2 extends EscBase {
                         + "  private /*@ spec_public */ char[] o; \n"
                         + "  \n" 
                         + "  //@ assignable \\everything;\n "
-                        + "  public TestJava(final /*@ non_null */ char[] the_array) {\n"
+                        + "  public TestJava(final char /*@ non_null */ [] the_array) {\n"
                         + "      o = new char[the_array.length]; \n" 
                         + "  }\n" 
                         + "}"
@@ -4132,7 +4132,7 @@ public class esc2 extends EscBase {
                             + "  private /*@ spec_public */ int[] oo; \n" 
                             + "  \n" 
                             + "  //@ assignable \\everything;\n "
-                            + "  public TestJava(final /*@ non_null */ char[] the_array) {\n"
+                            + "  public TestJava(final char /*@ non_null */ [] the_array) {\n"
                             + "      o = the_array; \n" 
                             + "  }\n" 
                             + "}"
@@ -4817,27 +4817,29 @@ public class esc2 extends EscBase {
     public void testAllowForbid() {
         expectedExit = 1;
         helpTCX("tt.TestJava",
-                "package tt; \n" 
-                        + "public class TestJava  { \n" 
-                        + "  public int iii;\n"
-                        + "  public void m(/*@ nullable */ TestJava t) {\n"
-                        + "  int i = t.iii //@ allow NullPointerException; \n"
-                        + "  ;\n"
-                        + "\n"
-                        + "  int j = t.iii; //@ forbid NullPointerException; \n"
-                        + "  k = t.iii; //@ forbid ; \n"
-                        + "  k = t.iii; //@ forbid NullPointerException \n"
-                        + "  k = t.iii; //@ forbid NullPointerException, ArrayIndexOutOfBoundsException; \n"
-                        + "  k = t.iii; //@ forbid NullPointerException ArrayIndexOutOfBoundsException; \n"
-                        + "  k = t.iii; //@ forbid NullPointerException; allow NullPointerException \n"
-                        + "  k = t.iii; //@ ignore NullPointerException; allow NullPointerException \n"
-                        + "  k = t.iii; //@ ignore NullPointerException; forbid NullPointerException \n"
-                        + "  k = t.iii; //@ forbid java.lang.NullPointerException \n"
-                        + "  k = t.iii //@ forbid java.lang. \n"
-                        + "  ;\n"
-                        + "  }\n"
-                        + "}\n"
-                        ,"/tt/TestJava.java:17: error: Expected an identifier here in the line annotation",35
+                """
+                package tt;
+                public class TestJava {
+                  public int iii;
+                  public void m(/*@ nullable */ TestJava t) {
+                    int i = t.iii //@ allow NullPointerException;
+                    ;
+                    int j = t.iii; //@ forbid NullPointerException;
+                    k = t.iii; //@ forbid ;
+                    k = t.iii; //@ forbid NullPointerException
+                    ;
+                    k = t.iii; //@ forbid NullPointerException, ArrayIndexOutOfBoundsException;
+                    k = t.iii; //@ forbid NullPointerException ArrayIndexOutOfBoundsException;
+                    k = t.iii; //@ forbid NullPointerException; allow NullPointerException
+                    k = t.iii; //@ ignore NullPointerException; allow NullPointerException
+                    k = t.iii; //@ ignore NullPointerException; forbid NullPointerException
+                    k = t.iii; //@ forbid java.lang.NullPointerException
+                    k = t.iii //@ forbid java.lang.
+                    ;
+                  }
+                }
+                """
+                        ,"/tt/TestJava.java:17: error: Expected an identifier here in the line annotation",36
                         // When there is an error, no attribution is performed
                         );
     }

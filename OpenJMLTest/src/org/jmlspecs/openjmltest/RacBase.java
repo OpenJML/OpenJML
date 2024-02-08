@@ -98,24 +98,12 @@ public abstract class RacBase extends JmlTestCase {
         super.setUp();
         
         // Setup the options
-        addOptions("-specspath",   testspecpath);
+        addOptions("--specs-path", testspecpath);
         //main.addJavaOption("-d", outdir); // This is where the output program goes // FIXME - for some reason this does not work here
         addOptions("--rac","--rac-java-checks","--rac-check-assumptions");
-//        if (jdkrac) {
-//            String sy = System.getenv("OPENJML_ROOT") + "/../OpenJMLTest/test";
-//            System.out.println("SY " + sy);
-////            if (sy == null) {
-////                fail("The OpenJML project location should be set using -D" + Strings.eclipseProjectLocation + "=...");
-////            } else if (!new File(sy).exists()) {
-////                fail("The OpenJML project location set using -D" + Strings.eclipseProjectLocation + " to " + sy + " does not exist");
-////            } else {
-//                main.addOptions("-classpath",sy+"/testcompiles"+z+sy+"/jdkbin"+z+sy+"/bin");
-////            }
-//        }
-        addOptions("-showNotImplemented");
-        addOptions("-no-purityCheck"); // System specs have a lot of purity errors, so turn this off for now
+        addOptions("--show-not-implemented");
+        addOptions("--no-purity-check"); // System specs have a lot of purity errors, so turn this off for now
         addOptions("--rac-show-source=none");
-        specs = JmlSpecs.instance(context);
         expectedExit = 0;
         expectedRACExit = 0;
         expectedNotes = 2; // Two lines to ignore
@@ -125,7 +113,6 @@ public abstract class RacBase extends JmlTestCase {
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
-        specs = null;
     }
     
     public static String macstring = "Exception in thread \"main\" ";

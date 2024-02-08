@@ -19873,7 +19873,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					if (init != null)
 						init = addImplicitConversion(init, that.type, init);
 
-					if (init != null && !utils.isJavaOrJmlPrimitiveType(that.type) && specs.isNonNull(that.sym)) { // isNonNull
+					if (init != null && !utils.isJavaOrJmlPrimitiveType(that.type) && specs.isNonNull(that.sym, that)) { // isNonNull
 																													// returns
 																													// false
 																													// if
