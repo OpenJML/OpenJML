@@ -371,9 +371,6 @@ t *);
 
     public static void runFinalization();
 
-    /** @deprecated this is unsafe. */
-    @Deprecated public static void runFinalizersOnExit(boolean value);
-
     public static void load(/*@ non_null @*/ String filename);
 
     public static void loadLibrary(/*@ non_null @*/ String libname);

@@ -293,7 +293,7 @@ public class SFBugs extends EscBase {
     }
 
     @Test public void gitbug497() {
-        expectedExit = 1;
+        expectedExit = 0;
         helpTCG();
     }
 
@@ -479,7 +479,7 @@ public class SFBugs extends EscBase {
 
     @Test public void gitbug482() {
         expectedExit = 0;
-        helpTCF("test/gitbug482/checkers/src/main/java/checkers/*.java","test/gitbug482", "-cp", "test/gitbug482/checkers/src/main","--check"); // check only, not esc
+        helpTCF("test/gitbug482/checkers/src/main/java/checkers","test/gitbug482", "-cp", "test/gitbug482/checkers/src/main","--check"); // check only, not esc
     }
 
     @Test public void gitbug556() {
@@ -1023,7 +1023,7 @@ public class SFBugs extends EscBase {
     @Test
     public void gitbug678() {
         expectedExit = 0;
-        helpTCG("--method=DoubleAbsolute");
+        helpTCG();
     }
     
     @Test
