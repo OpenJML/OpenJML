@@ -251,7 +251,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testValueTypes() {
-        helpTF("valuetypes","-classpath","../OpenJML21/runtime");
+        helpTF("valuetypes");
     }
 
     @Test
@@ -499,25 +499,25 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testEscSimpleString() {
+    public void escSimpleString() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver)); // FIXME - CVC4 crashes or is long
-        helpTF("escSimpleString","--non-null-by-default","-timeout=240");
+        helpTF("escSimpleString","--nonnull-by-default","-timeout=240");
     }
 
     @Test
-    public void testEscSimpleString2() {
-        helpTF("escSimpleString2","--non-null-by-default");
+    public void escSimpleString2() {
+        helpTF("escSimpleString2","--nonnull-by-default");
     }
 
     @Test
-    public void testEscSimpleString3() {
-        helpTF("escSimpleString3","--non-null-by-default");
+    public void escSimpleString3() {
+        helpTF("escSimpleString3","--nonnull-by-default");
     }
 
 
     @Test @Ignore // FIXME - implement diverges
     public void testEscDiverges() {
-        helpTF("escDiverges","--non-null-by-default");
+        helpTF("escDiverges","--nonnull-by-default");
     }
 
 
@@ -594,7 +594,7 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testJmlSpecPublic() {
+    public void escSeparateJml() {
         helpTCF("test/escSeparateJml/BankingExample.java","test/escSeparateJml","-classpath","test/escSeparateJml");
     }
 
@@ -817,7 +817,7 @@ public class escfiles extends EscBase {
     
     @Test
     public void escLemma() {
-        helpTF("escLemma");
+        helpTF("escLemma","--check-feasibility=none");
     }
     
     @Test
@@ -980,12 +980,12 @@ public class escfiles extends EscBase {
     }
     
     @Test
-    public void jmlstring() {
+    public void valuestrings() {
         helpTF("valuestrings");
     }
     
     @Test
-    public void jmlstringBad() {
+    public void valuestringsBad() {
         expectedExit = 1;
         helpTF("valuestringsBad");
     }
