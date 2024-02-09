@@ -363,7 +363,9 @@ public class JmlParser extends JavacParser {
         ListBuffer<JCAnnotation> typeAnnotations = new ListBuffer<>();
         ListBuffer<JCAnnotation> otherAnnotations = new ListBuffer<>();
         for (JCAnnotation a: mods.annotations) {
-            if (a instanceof JmlAnnotation ja && ja.kind.isTypeAnnotation()) {
+            // FIXME - an true Java annotation (not a synthetic one generated from a modifier) will not have ja.kind set
+            // and consequently will not be pushed into the type properly
+            if (a instanceof JmlAnnotation ja && ja.kind != null && ja.kind.isTypeAnnotation()) {
                 typeAnnotations.add(a);
             } else {
                 otherAnnotations.add(a);

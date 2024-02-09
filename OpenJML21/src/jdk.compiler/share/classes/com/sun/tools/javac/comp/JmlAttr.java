@@ -395,6 +395,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void attribClass(ClassSymbol c) throws CompletionFailure {
+        if (c == null) return; // Defensive. Should actually not get this case, but appears to result from previous errors sometimes.
+        
 //    	if (c.type instanceof Type.IntersectionClassType) {
 //    		// FIXME - what should we do in this case?
 //    		super.attribClass(c);
