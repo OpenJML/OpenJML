@@ -1,13 +1,15 @@
 public class Test {
-	
-	public void mm() {
-//@		ghost String s = 
-//@		"""
-//@		abc
-//@		  def
-//@		ghi
+
+    public static void main(String... args) {
+//@     ghost String s = 
+//@     """
+//@     abc
+//@       def
+//@     ghi
 //@     """;
-		//@ show s.length();
-		//@ assert s.length() == 14;
-	}
+        //@ assume s.length() < 100;
+        //@ set System.out.println("#"+s+"#");
+        //@ show s.length();
+        //@ assert s.length() == -1; // ERROR - is really 14
+    }
 }
