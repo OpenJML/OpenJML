@@ -905,7 +905,7 @@ public class JmlSpecs {
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
         //if (type.toString().endsWith(".Identity")) System.out.println("PUTSPECS " + type + " " + type.hashCode() + " " + spec.specsEnv + " " + spec.specsEnv.tree + " " + ((JCClassDecl)spec.specsEnv.tree).sym + " " + ((JCClassDecl)spec.specsEnv.tree).sym.hashCode());
         spec.csymbol = type;
-        specsTypes.put(type,spec);
+        specsTypes.put(type,spec);        
         setStatus(type, SpecsStatus.SPECS_LOADED);
     	if (utils.verbose()) utils.note("      Saving class specs for " + type.flatname + (spec.specDecl == null ? " (null declaration)": " (non-null declaration)"));
     }

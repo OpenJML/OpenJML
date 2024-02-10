@@ -473,6 +473,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                }
 //        		checkClassMods(c, (JmlClassDecl)e.tree, specs.getLoadedSpecs(c), e);
             }
+            addClassInferredSpecs(c);
         } catch (Exception e) {
         	System.out.println("EXCEPTION IN attribClass-Y " + c + " " + c.type);
         	e.printStackTrace(System.out);
@@ -7367,17 +7368,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }        
 
         visitClassDef(that);
-        specs.getAttrSpecs(that.sym); // if not yet attributed, attribute the specs
+        var cspec = specs.getAttrSpecs(that.sym); // if not yet attributed, attribute the specs
         if (env.enclMethod != null && specs.status(that.sym).less(JmlSpecs.SpecsStatus.SPECS_ATTR)) {
         	utils.warning(that,"jml.message","UNEXPECTED RE-PUTTING LOCAL CLASS SPECS " + that.sym);
         	// Note: We need that.sym in order to register a local class's specs, but the local class
         	// is attributed as a method statement.
         	//((JmlEnter)enter).specsClassEnter(that.sym.owner, that, typeEnvs.get(that.sym), that);
-        	specs.putSpecs(that.sym, new JmlSpecs.TypeSpecs(that, that, typeEnvs.get(that.sym)));
+        	specs.putSpecs(that.sym, cspec = new JmlSpecs.TypeSpecs(that, that, typeEnvs.get(that.sym)));
         	specs.getAttrSpecs(that.sym);
         	//FIXME - not at all sure about correctness of this branch
         }
         jmlresolve.setAllowJML(saved);
+        
     }
 
     @Override
@@ -7397,6 +7399,54 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	} finally {
     		((JmlEnter)enter).specEnv = prevSpecEnv;
     	}
+    }
+    
+    public void addClassInferredSpecs(ClassSymbol csym) {
+        // Add inferred/default clauses
+        var cspec = specs.get(csym);
+        JCExpression[] initclauses = new JCExpression[5];
+        var M = JmlTree.Maker.instance(context);
+        var parent = csym;
+//        for (var parent: utils.parents(csym, true)) {
+            for (var sym: parent.getEnclosedElements()) {
+                if (!(sym instanceof VarSymbol vsym)) continue;
+                if (!vsym.isFinal()) continue;
+                if (!utils.isPrimitiveType(vsym.type.tsym)) continue; // FIXME - does not do constant Strings
+                Object o = vsym.getConstValue();
+                if (o == null) continue;
+                int access = (int)(vsym.flags() & Flags.AccessFlags);
+//                if (access == Flags.PRIVATE && sym != csym) continue;
+                var literal = treeutils.makeLit(Position.NOPOS, vsym.type, o);
+                if (vsym.type == syms.booleanType && o instanceof Integer i) literal = treeutils.makeBooleanLiteral(Position.NOPOS, 0 != (int)i);
+                JCBinary e = treeutils.makeEquality(Position.NOPOS, M.Ident(vsym), literal); // FIXME - should put in positions
+                e.lhs.type = vsym.type;
+                e.type = syms.booleanType;
+                int k = access;
+//                if (true || utils.locallyJMLVisible(csym, parent, k)) { // FIXME - not sure the visibility test is corrrect
+                    if (initclauses[k] == null) initclauses[k] = e;
+                    else initclauses[k] = M.Binary(JCTree.Tag.AND, initclauses[k], e);
+                    initclauses[k].type = syms.booleanType;
+//                }
+            }
+//        }
+        var id = org.jmlspecs.openjml.ext.TypeExprClauseExtension.invariantID;
+        var kind = org.jmlspecs.openjml.ext.TypeExprClauseExtension.invariantClause;
+        if (initclauses[Flags.PUBLIC] != null) {
+            var cl = M.JmlTypeClauseExpr(M.Modifiers(Flags.PUBLIC|Flags.FINAL), id, kind, initclauses[Flags.PUBLIC]);
+            cspec.clauses.add(cl);
+        }
+        if (initclauses[Flags.PRIVATE] != null) {
+            var cl = M.JmlTypeClauseExpr(M.Modifiers(Flags.PRIVATE|Flags.FINAL), id, kind, initclauses[Flags.PRIVATE]);
+            cspec.clauses.add(cl);
+        }
+        if (initclauses[Flags.PROTECTED] != null) {
+            var cl = M.JmlTypeClauseExpr(M.Modifiers(Flags.PROTECTED|Flags.FINAL), id, kind, initclauses[Flags.PROTECTED]);
+            cspec.clauses.add(cl);
+        }
+        if (initclauses[0] != null) {
+            var cl = M.JmlTypeClauseExpr(M.Modifiers(0|Flags.FINAL), id, kind, initclauses[0]);
+            cspec.clauses.add(cl);
+        }
     }
 
     @Override

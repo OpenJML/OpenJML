@@ -3331,7 +3331,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 					staticStats.add(comment(pos, (assume ? "Assume" : "Assert") + " constraints for " + csym, null));
 					for (JmlTypeClause clause : tspecs.clauses) {
-						if (!utils.visible(classDecl.sym, csym, clause.modifiers.flags/* , methodDecl.mods.flags */))
+					    if (!utils.visible(classDecl.sym, csym, clause.modifiers.flags/* , methodDecl.mods.flags */))
 							continue;
 						JmlTypeClauseExpr t;
 						DiagnosticPosition cpos = clause;
@@ -3374,10 +3374,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										t = (JmlTypeClauseExpr) clause;
 										addTraceableComment(t.expression, clause.toString());
 										JCExpression e = convertJML(t.expression);
-										if (assume)
-											addAssume(pos, Label.INITIALLY, e, cpos, clause.source);
-										else
-											addAssert(pos, Label.INITIALLY, e, cpos, clause.source);
+                                        if (assume)
+                                            addAssume(pos, Label.INITIALLY, e, cpos, clause.source);
+                                        else
+                                            addAssert(pos, Label.INITIALLY, e, cpos, clause.source);
 									} finally {
 										addStat(popBlock(cpos, ch));
 									}
@@ -10455,6 +10455,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						freshnessReferenceCount = savedCount;
 					}
 				}
+	            if (print) System.out.println("APPLYHELPER-WA " + calleeMethodSym.owner + " " + calleeMethodSym);
+
 				boolean isObjectConstructor = calleeMethodSym.isConstructor() && calleeMethodSym.owner == syms.objectType.tsym && calleeMethodSym.params.size() == 0;
 				
 				if (!isHelper(calleeMethodSym) && !isObjectConstructor) {
@@ -10462,8 +10464,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							calleeMethodSym.isConstructor(), false, isHelper(calleeMethodSym), true, true,
 							Label.INVARIANT_EXIT, msg);
 				}
+                if (print) System.out.println("APPLYHELPER-WB " + calleeMethodSym.owner + " " + calleeMethodSym);
 				addConstraintInitiallyChecks(that, calleeClass, newThisExpr, currentStatements, false,
 						calleeMethodSym.isConstructor(), false, isHelper(calleeMethodSym), true, true, null, msg);
+                if (print) System.out.println("APPLYHELPER-WC " + calleeMethodSym.owner + " " + calleeMethodSym);
 
 				if (!isHelper(calleeMethodSym) && !isObjectConstructor)
 					for (JCExpression arg : trArgs) {
