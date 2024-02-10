@@ -11,11 +11,11 @@ public class Test {
         TestA tt = new TestA() {
             //@ public invariant t != null;
             //@ also public normal_behavior
-            public TestA show(TestA aa) {
-                //@ assert aa != null;  // should be OK, but there has been a problem with it failing
+            public /*@ nullable */ TestA show(TestA aa) {
+                //@ assert aa != null;  // should be OK
                 int k = t.f;  // should not have a null-dereference error
                 k = aa.f; // should not have null dereference error either
-                return t;  // t should be non-null because the argument of m() is, but postcondition of TestA.show says it is null // ERROR
+                return null;  // t should be non-null because the argument of m() is, but postcondition of TestA.show says it is null // ERROR
             }
         };
         return TestB.wrap(tt);

@@ -1,0 +1,1 @@
+This example as is, with the method=Test.1.show, crashes. Probably because of selecting a method of an anonymous class.
