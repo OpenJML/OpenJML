@@ -374,7 +374,15 @@ public class SFBugs extends EscBase {
     }
     
     @Test public void gitbug555() {
-        helpTCG("-nullable-by-default");
+        helpTCG();
+    }
+    
+    @Test public void gitbug555a() {
+        helpTCG("--check-feasibility=none");
+    }
+    
+    @Test public void gitbug555b() {
+        helpTCG("--method=Test.1.show");
     }
     
 

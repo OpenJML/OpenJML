@@ -7411,6 +7411,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             for (var sym: parent.getEnclosedElements()) {
                 if (!(sym instanceof VarSymbol vsym)) continue;
                 if (!vsym.isFinal()) continue;
+                if (vsym.name.toString().equals("NaN")) continue; // Equality comparisons on NaN are squirrely
                 if (!utils.isPrimitiveType(vsym.type.tsym)) continue; // FIXME - does not do constant Strings
                 Object o = vsym.getConstValue();
                 if (o == null) continue;
