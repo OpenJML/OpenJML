@@ -29,6 +29,8 @@ import com.sun.tools.javac.util.DiagnosticSource;
 import com.sun.tools.javac.util.LayoutCharacters;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
+import com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition;
 
 /* NOTE: (FIXME Review this now that Tokenizer has been refactored out) 
  * - oddities in the Scanner class
@@ -562,12 +564,22 @@ public class JmlTokenizer extends JavadocTokenizer {
 
         if (jml) {
             if (jmlcommentstyle == CommentStyle.LINE) {
-                jml = false;
-                nestedBlockComment = false;
-                if (returnEndOfCommentTokens) {
-                    tk = TokenKind.CUSTOM;
-                    jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
-                    jmlTokenClauseKind = Operators.endjmlcommentKind;
+                if (!isTextBlock) {
+                    jml = false;
+                    nestedBlockComment = false;
+                    if (returnEndOfCommentTokens) {
+                        tk = TokenKind.CUSTOM;
+                        jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
+                        jmlTokenClauseKind = Operators.endjmlcommentKind;
+                    }
+                } else {
+                    while (Character.isWhitespace(get())) next();
+                    if (accept('/') && accept('/') && accept('@')) {
+                        // continue
+                    } else {
+                        log.error(pos, "jml.message", "a text block is not closed within a JML line comment");
+                        isTextBlock = false;
+                    }
                 }
             } else if (tk == Tokens.TokenKind.STRINGLITERAL) {
             	int p = position();

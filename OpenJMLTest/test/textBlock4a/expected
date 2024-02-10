@@ -1,0 +1,11 @@
+test/textBlock4a/Test.java:6: error: a text block is not closed within a JML line comment
+//@     abc
+           ^
+test/textBlock4a/Test.java:5: error: The type or expression near here is invalid (or not implemented): ( token ? in JmlParser.term3())
+//@     """
+        ^
+test/textBlock4a/Test.java:4: error: ';' expected
+//@     ghost String s = 
+                        ^
+Operation not performed because of parse or type errors
+3 errors
