@@ -205,32 +205,11 @@ public abstract class EscBase extends JmlTestCase {
             PrintWriter pw = new PrintWriter(actCompile);
             int ex = -1;
             try {
+                //System.out.println("ARGS " + args);
                 ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
             } finally {
                 pw.close();
             }
-//            String expected = outDir + "/expected";
-//            String exp;
-//            int n = 0;
-//            int k = 0;
-//            while (true) {
-//                exp = expected + (n==0?"":String.valueOf(n));
-//                if (!new File(exp).exists()) break;
-//                System.out.println("Comparing to " + exp);
-//                Process process = Runtime.getRuntime().exec(new String[]{"diff", "-q", actCompile, exp});
-//                System.out.println("  Result " + k);
-//                k = process.waitFor();
-//                if (k != 0) break;
-//            }
-//            if (k != 0) {
-//                Process process = Runtime.getRuntime().exec(new String[]{"diff", actCompile, exp});
-//                k = process.waitFor();
-//            } else if (exp == expected) {
-//                System.out.println("No expected file for " + sourceDirname);
-//            } else {
-//                System.out.println("Matched " + exp);
-//                new File(actCompile).delete();
-//            }
 
             String diffs = outputCompare.compareFiles(outDir + "/expected", actCompile);
             int n = 0;
