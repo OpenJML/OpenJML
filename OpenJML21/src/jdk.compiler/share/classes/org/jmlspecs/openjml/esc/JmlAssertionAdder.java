@@ -14672,7 +14672,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitSelect(JCFieldAccess that) {
-	    boolean print = false; // that.toString().endsWith(".i");
+	    boolean print = false; // that.toString().endsWith(".balance");
         if (print) System.out.println("VISITSELECT-A " + that );
 		JCExpression selected;
 		Symbol s = convertSymbol(that.sym);
@@ -14773,7 +14773,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 eresult.type = that.type;
                 //System.out.println("MODEL " + that + " " + eresult + " " + recv.sym + " " + recv.type);
             } else {
-                result = eresult = newfa;
+                if (currentEnv.stateLabel != null) {
+                    result = eresult = makeOld(newfa.pos, newfa, currentEnv.stateLabel);
+                } else {
+                    result = eresult = newfa;
+                }
+                if (print) System.out.println("VISITSELECT-HERE " + eresult);
             }
             
 			return; // TODO REVIEW - why this return here - why not do the remainder of visitSelect
@@ -17635,8 +17640,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							popBlock();
 						}
 					} else { // esc
-                        //System.out.println("OLD " + that + " " + currentEnv.stateLabel + " "  + that.labelProperties);
-
 						arg = convertExpr(that.args.get(0)); // convert is affected by evalStateLabel
 						// We have to wrap this in an old (even though it sometimes wraps twice)
 						// in order to get arrays properly resolved  // TODO: Is this still true?
@@ -17958,7 +17961,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// Should never get here
 				throw new JmlNotImplementedException(that, that.kind.keyword());
 			}
-		else
+		else {
 			switch (that.token) {
 
 			case SUBTYPE_OF:
@@ -17996,6 +17999,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						"Unknown token in JmlAssertionAdder: " + that.token.internedName());
 				throw new JmlNotImplementedException(that, that.token.internedName());
 			}
+		}
 		result = eresult;
 	}
 
@@ -22331,6 +22335,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	}
 
-	TranslationEnv currentEnv = new TranslationEnv();
+    TranslationEnv currentEnv = new TranslationEnv();
 
 }
