@@ -318,18 +318,18 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testNullableOld() {
+    public void nullableOld() {
         helpTF("nullableOld");
     }
 
     @Test
-    public void testStaticOld() {
+    public void staticOld() {
         expectedExit = 1;
         helpTF("staticOld");
     }
 
     @Test
-    public void testINF() {
+    public void escINF() {
         helpTF("escINF");
     }
 

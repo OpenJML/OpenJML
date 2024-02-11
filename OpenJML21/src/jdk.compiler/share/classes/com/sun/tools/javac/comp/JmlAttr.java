@@ -3855,7 +3855,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 attribAnnotationTypes(mods.annotations, env);
                 allAllowed(mods.annotations, allowedMethodSpecDeclModifiers, "method specification declaration");
-                if (utils.hasOnly(mods,flags) != 0) log.error(mods.pos,"jml.no.java.mods.allowed","method specification declaration");
+                if (utils.hasOnly(mods,flags) != 0) {
+                    log.error(mods.pos,"jml.no.java.mods.allowed","method specification declaration", TreeInfo.flagNames(utils.hasOnly(mods,flags)));
+                    mods.flags &= flags;
+                }
                 mods.flags |= flags;
                 specLocalEnv = JmlCheck.instance(context).staticOldEnv;
                 JmlCheck.instance(context).staticOldEnv = statik;
@@ -5687,7 +5690,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         localEnv.info.scope.leave();
        
-        if (utils.hasOnly(mods,0)!=0) log.error(that.pos,"jml.no.java.mods.allowed","set comprehension expression");
+        if (utils.hasOnly(mods,0)!=0) log.error(that.pos,"jml.no.java.mods.allowed","set comprehension expression", TreeInfo.flagNames(mods.flags));
         allAllowed(mods.annotations, typeModifiers, "set comprehension expression");
 
         result = check(that, that.newtype.type, KindSelector.VAL, resultInfo);
