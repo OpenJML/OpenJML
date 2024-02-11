@@ -1,34 +1,18 @@
 Proving methods in CashAmountMutable
 Starting proof of CashAmountMutable.CashAmountMutable(int,int) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of CashAmountMutable.CashAmountMutable(int,int) with prover !!!! - no warnings
 Starting proof of CashAmountMutable.negate() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of CashAmountMutable.negate() with prover !!!! - no warnings
 Starting proof of CashAmountMutable.increase(CashAmountMutable) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of CashAmountMutable.increase(CashAmountMutable) with prover !!!! - no warnings
 Starting proof of CashAmountMutable.add(CashAmountMutable) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of CashAmountMutable.add(CashAmountMutable) with prover !!!! - no warnings
 Starting proof of CashAmountMutable.decrease(CashAmountMutable) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of CashAmountMutable.decrease(CashAmountMutable) with prover !!!! - no warnings
 Starting proof of CashAmountMutable.dollars() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of CashAmountMutable.dollars() with prover !!!! - no warnings
 Starting proof of CashAmountMutable.cents() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of CashAmountMutable.cents() with prover !!!! - no warnings
 Starting proof of CashAmountMutable.equivalent(CashAmountMutable) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of CashAmountMutable.equivalent(CashAmountMutable) with prover !!!! - no warnings
 Completed proving methods in CashAmountMutable
