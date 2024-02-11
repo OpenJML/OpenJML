@@ -1101,7 +1101,7 @@ public class modifiers extends TCBase {
                 "  //@ invariant (\\exists @Nullable Object o; o == null); \n" +
                 "  //@ invariant (\\exists @Pure Object o; o == null); \n" +
                 "  }"
-                ,"/A.java:2: error: No Java modifiers are allowed in a quantified expression",26
+                ,"/A.java:2: error: No Java modifiers are allowed in a quantified expression: final",26
                 ,"/A.java:5: error: This JML modifier is not allowed for a quantified expression",26
                 );
     }
@@ -1115,7 +1115,7 @@ public class modifiers extends TCBase {
                 "  //@ invariant null != new Object { @Pure Integer i | i < 10 };\n" +
                 "  //@ invariant null != new Object { \\readonly Integer i | i < 10 }; \n" +
                 "  }"
-                ,"/A.java:2: error: No Java modifiers are allowed in a set comprehension expression",36
+                ,"/A.java:2: error: No Java modifiers are allowed in a set comprehension expression: final",36
                 ,"/A.java:4: error: This JML modifier is not allowed for a set comprehension expression",38
                 );
     }
@@ -1132,7 +1132,7 @@ public class modifiers extends TCBase {
                 "  void m() {} }"
                 ,"/A.java:6: error: This JML modifier is not allowed for a method specification declaration",11
                 ,"/A.java:7: error: This JML modifier is not allowed for a method specification declaration",11
-                ,"/A.java:8: error: No Java modifiers are allowed in a method specification declaration",11
+                ,"/A.java:8: error: No Java modifiers are allowed in a method specification declaration: final",11
                 );
     }
      
