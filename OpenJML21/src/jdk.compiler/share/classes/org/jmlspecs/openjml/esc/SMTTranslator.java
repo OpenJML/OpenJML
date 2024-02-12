@@ -731,8 +731,9 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         tcommands.add(new C_assert(F.fcn(distinctSym, javatypelist)));
         List<IExpr> jmltypelist = new LinkedList<IExpr>();
+        HashSet<String> strs = new HashSet<>();
         for (IExpr e: javaParameterizedTypes.values()) {
-            jmltypelist.add(e);
+            if (strs.add(e.toString())) jmltypelist.add(e);
         }
         tcommands.add(new C_assert(F.fcn(distinctSym, jmltypelist)));
 
@@ -1306,6 +1307,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         addType(ti);
                     }
                     if (ok) {
+                        // Caution: t.toString() may contain annotation names
                         javaParameterizedTypes.put(t.toString(),jmlTypeSymbol(t));  // FIXME - only when fully a constant and fully parameterized?
                     }
                 } else {
@@ -1319,8 +1321,8 @@ public class SMTTranslator extends JmlTreeScanner {
             } else if (utils.isExtensionValueType(t)) {
                 // skip
             } else if (t.getTag() != TypeTag.TYPEVAR && t.getTag() != TypeTag.WILDCARD) {
-                IExpr tt = F.fcn(F.symbol("_JMLT_0"),javaTypeSymbol(t));
-                javaParameterizedTypes.put(tt.toString(),tt);  // FIXME - only when fully a constant?
+                //IExpr tt = F.fcn(F.symbol("_JMLT_0"),javaTypeSymbol(t));
+                javaParameterizedTypes.put(t.toString(),jmlTypeSymbol(t));  // FIXME - only when fully a constant?
             }
         }
 //        if (t.getTag() == TypeTag.TYPEVAR && !(t instanceof Type.WildcardType)) {

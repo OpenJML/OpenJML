@@ -23,5 +23,5 @@ public final class Test {
     }
 }
 
-// This failure require TestMethod to have the B paramter and the and the xyz field call getXyz to have a result type with type argument
+// This failure requires TestMethod to have the B parameter and the xyz field call getXyz to have a result type with type argument
 // openjml --esc --check-feasibility=precondition --dir ../test/gitbug654

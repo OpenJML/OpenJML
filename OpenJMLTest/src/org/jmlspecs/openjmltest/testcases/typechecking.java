@@ -1276,7 +1276,7 @@ public class typechecking extends TCBase {
                         "    @ ghost int k = 0; */\n"+
                 "}\n"
                 ,"/Test.java:3: error: unclosed string literal",24
-                ,"/A.java:2: error: ';' expected", 29
+                ,"/Test.java:3: error: ';' expected", 29
             );
     }
     

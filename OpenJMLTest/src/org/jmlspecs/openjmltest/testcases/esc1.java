@@ -334,7 +334,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testForEach2a1() {
-        addOptions("-escMaxWarnings=1");
+        addOptions("--esc-max-warnings=1");
         helpTCX("tt.TestJava", "package tt; import java.util.*; import java.util.Map.Entry; \n" 
                 + "public class TestJava { \n"
                 + "  //@ public normal_behavior  ensures true;\n" 
@@ -354,7 +354,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testForEach2a2() {
-        addOptions("-escMaxWarnings=1");
+        addOptions("--esc-max-warnings=1");
         helpTCX("tt.TestJava", 
                 """
                 package tt; import java.util.*; import java.util.Map.Entry;
@@ -383,7 +383,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testForEach2a2a() {
-        addOptions("-escMaxWarnings=1");
+        addOptions("--esc-max-warnings=1");
         helpTCX("tt.TestJava", 
                 """
                 package tt; import org.jmlspecs.annotation.*; import java.util.*; import java.util.Map.Entry;
@@ -415,7 +415,7 @@ public class esc1 extends EscBase {
     // This example originally crashed because NonNull is not resolvable (no import of the annotations)
     @Test
     public void testForEach2a2b() {
-        addOptions("-escMaxWarnings=1");
+        addOptions("--esc-max-warnings=1");
         expectedExit = 1;
         helpTCX("tt.TestJava", 
                 """
@@ -458,7 +458,7 @@ public class esc1 extends EscBase {
     
 //    @Test
 //    public void testForEach2a3() {
-//        addOptions("-escMaxWarnings=1");
+//        addOptions("--esc-max-warnings=1");
 //        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
 //                + "public class TestJava { \n"
 //
@@ -2116,7 +2116,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testNonNull4() {
-        addOptions("-nullableByDefault=false");
+        addOptions("--nullable-by-default=false");
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
                 + "public class TestJava { \n"
                 + "  //@ requires ii == 10;\n"
@@ -2138,7 +2138,7 @@ public class esc1 extends EscBase {
     // Tests that a cast is nonnull if the argument is
     @Test
     public void testNonNull5() {
-        addOptions("-nullableByDefault=false");
+        addOptions("--nullable-by-default=false");
         helpTCX("tt.TestJava",
                 "package tt; import org.jmlspecs.annotation.*; \n"
                         + "public class TestJava { \n"
@@ -2218,7 +2218,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testNonNullParam2() {
-        addOptions("-nonnullByDefault");
+        addOptions("--nullable-by-default");
         helpTCX("tt.TestJava",
                 "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
                         + "  //@ ensures \\result != null;\n"
@@ -2258,7 +2258,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testNonNullParam4() {
-        addOptions("-nullableByDefault=false");
+        addOptions("--nullable-by-default=false");
         helpTCX("tt.TestJava",
                 "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
                         + "  //@ ensures \\result != null;\n"
