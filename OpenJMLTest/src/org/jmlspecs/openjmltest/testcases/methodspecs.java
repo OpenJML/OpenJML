@@ -13,6 +13,8 @@ public class methodspecs extends TCBase {
         super.setUp();
     }
 
+    // TODO: It is hard to distinguish a misspelled keyword from the beginning of a declaration
+    // but it would be nice to have a clear message about the misspelled keyword, here and in other BadKeyword tests
     /** Tests bad keyword */
     @Test
     public void testBadKeyword() {
@@ -24,6 +26,8 @@ public class methodspecs extends TCBase {
                 +"}"
                 ,"/TEST.java:3: error: ';' expected",14
                 ,"/TEST.java:3: error: Method specs may not precede a variable declaration",7
+                ,"/TEST.java:3: error: illegal start of type", 15
+                ,"/TEST.java:3: error: <identifier> expected", 19
                 );
     }
 
@@ -51,6 +55,8 @@ public class methodspecs extends TCBase {
                 +"int m() { return 0; }\n"
                 +"}"
                 ,"/TEST.java:2: error: ';' expected",14
+                ,"/TEST.java:2: error: illegal start of type", 15
+                ,"/TEST.java:2: error: <identifier> expected", 19
                 );
     }
     
@@ -63,7 +69,9 @@ public class methodspecs extends TCBase {
                 +"int m() { return 0; }\n"
                 +"}"
                 ,"/TEST.java:2: error: illegal start of type",5
-                ,"/TEST.java:2: error: <identifier> expected",17
+                ,"/TEST.java:2: error: ';' expected",17
+                ,"/TEST.java:2: error: illegal start of type", 18
+                ,"/TEST.java:2: error: <identifier> expected",22
                 );
     }
     

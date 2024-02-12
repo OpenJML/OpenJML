@@ -257,7 +257,7 @@ public class JmlEnter extends Enter {
 	// We call putSpecs here -- classes have symbols, although they have not yet
 	// been entered and the scope (in the env) is not complete
 	public List<JCTree> matchClasses(List<JCTree> javaClasses, List<JCTree> specClasses, String owner) {
-		var additionalDecls = new ListBuffer<JCTree>(); // Model classes not in the javaClasses list
+		var additionalDecls = new ListBuffer<JmlClassDecl>(); // Model classes not in the javaClasses list
 		var revisedDecls = new ListBuffer<JCTree>(); // The javaClasses list with errors removed
 		if (javaClasses == specClasses) {
 			// The lists are the same -- so we just match everything to itself
@@ -297,15 +297,24 @@ public class JmlEnter extends Enter {
 					}
 					if (match == null) {
 						// No match in the Java list with the same name
-						if (utils.isJML(specDecl.mods)) {
-							// OK -- it is a model (JML-only) class declaration
-							specDecl.specsDecl = specDecl;
-							additionalDecls.add(sd);
-						} else {
-							// unmatched non-model class in the .jml file -- an error
-							utils.error(specDecl.sourcefile, specDecl, "jml.message",
-									"There is no class to match this Java declaration in the specification file: " + fqName);
-						}
+					    if (utils.isJML(specDecl.mods)) {
+					        // OK -- it is a model (JML-only) class declaration
+					        specDecl.specsDecl = specDecl;
+					        JmlClassDecl found = null;
+					        for (var ad: additionalDecls) if (ad.name == specDecl.name) found = ad;
+					        if (found == null) {
+					            additionalDecls.add(specDecl);
+					        } else {
+					            utils.errorAndAssociatedDeclaration(specDecl.sourcefile, sd, found.sourcefile, found, "jml.message",
+					               "This model class declaration has the same name as a previous one: " + specDecl.name);
+		                        continue;
+					        }
+					    } else {
+					        // unmatched non-model class in the .jml file -- an error
+					        utils.error(specDecl.sourcefile, specDecl, "jml.message",
+					                "There is no class to match this Java declaration in the specification file: " + fqName);
+	                        continue;
+					    }
 					} else {
 						// A match in the Java list with the same name
 						if (utils.isJML(specDecl)) {
@@ -376,8 +385,9 @@ public class JmlEnter extends Enter {
 			sourceCD.defs = matchClasses(sourceCD.defs, sourceCD.specsDecl.defs, sourceCD.name.toString());
 			log.useSource(sourceCD.sourcefile);
 			super.visitClassDef(sourceCD);
-			sourceCD.defs.forEach(d->{ if (d instanceof JmlClassDecl cd) JmlAttr.instance(context).addTodo(cd.sym); } );
-
+			if (!(sourceCD.sym.type instanceof Type.ErrorType)) {
+	            sourceCD.defs.forEach(d->{ if (d instanceof JmlClassDecl cd) JmlAttr.instance(context).addTodo(cd.sym); } );
+			}
 		} finally {
 			if (prevSource != null) log.useSource(prevSource);
 		}

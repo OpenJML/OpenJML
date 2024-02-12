@@ -181,8 +181,10 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testMax1() {
-        helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\max;\n}}",
-                "/A.java:2: error: illegal start of type",16);
+        helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\max;\n}}"
+                ,"/A.java:2: error: illegal start of type",16
+                ,"/A.java:2: warning: Inserting missing semicolon at the end of a assert statement", 17
+                );
     }
 
     @Test public void testMax2() {
@@ -330,6 +332,8 @@ public class typechecking extends TCBase {
     @Test public void testType2() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type();\n}}"
                 ,"/A.java:2: error: illegal start of type",18
+                ,"/A.java:3: error: Incorrectly formed or terminated assert statement near here", 1
+                ,"/A.java:3: error: reached end of file while parsing", 3
                 );
     }
 
@@ -1272,6 +1276,7 @@ public class typechecking extends TCBase {
                         "    @ ghost int k = 0; */\n"+
                 "}\n"
                 ,"/Test.java:3: error: unclosed string literal",24
+                ,"/A.java:2: error: ';' expected", 29
             );
     }
     

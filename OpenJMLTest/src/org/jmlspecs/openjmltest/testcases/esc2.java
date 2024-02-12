@@ -4665,7 +4665,6 @@ public class esc2 extends EscBase {
                         ,"/tt/TestJava.java:9: error: Incorrectly formed or terminated show statement near here",17
                         ,"/tt/TestJava.java:11: error: Incorrectly formed or terminated show statement near here -- perhaps a missing semicolon",18
                         ,"/tt/TestJava.java:12: error: illegal start of expression",15
-                        ,"/tt/TestJava.java:12: error: illegal start of expression",16
                         ,"/tt/TestJava.java:13: error: Incorrectly formed or terminated show statement near here -- perhaps a missing semicolon",18
                         );
     }

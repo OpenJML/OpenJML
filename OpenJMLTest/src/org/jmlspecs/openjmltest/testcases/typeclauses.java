@@ -270,6 +270,7 @@ public class typeclauses extends TCBase {
     public void testRepresents5() {
         helpTCF("A.java","public class A {\n //@ model int j; represents j = ;\n}"
                 ,"/A.java:2: error: illegal start of expression",34
+                ,"/A.java:2: warning: Inserting missing semicolon at the end of a represents statement", 35
                 );
     }
     
@@ -577,8 +578,10 @@ public class typeclauses extends TCBase {
 
     @Test
     public void testSignalsOnly5() {
-        helpTCF("A.java","public class A {\n//@ signals_only RuntimeException,;\nvoid m() {}}",
-                "/A.java:2: error: illegal start of type",35);
+        helpTCF("A.java","public class A {\n//@ signals_only RuntimeException,;\nvoid m() {}}"
+                ,"/A.java:2: error: illegal start of type",35
+                ,"/A.java:2: error: Invalid expression or missing semicolon here", 36
+                );
     }
 
     @Test

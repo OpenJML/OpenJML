@@ -372,7 +372,7 @@ public class namelookup extends TCBase {
                 ,"/$A/A.jml:18: error: There is no class to match this Java declaration in the specification file: B",1
                 ,"/$A/A.jml:12: error: duplicate class: A.AA",11
                 ,"/$A/A.jml:2: error: Associated declaration: /$A/A.jml:12:", 11
-                ,"/$A/A.jml:14: error: There is no class to match this Java declaration in the specification file: A.BB",11 // FIXME - should be A.BB
+                ,"/$A/A.jml:14: error: There is no class to match this Java declaration in the specification file: A.BB",11 // FIXME - only prints one level of parent
                 ,"/A.java:3: error: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
                 ,"/A.java:5: error: cannot find symbol\n  symbol:   variable B\n  location: class A.AA",23
                 ,"/A.java:6: error: incompatible types: double cannot be converted to boolean",22
@@ -396,8 +396,9 @@ public class namelookup extends TCBase {
                 ""
         ,"/$A/A.jml:3: error: This JML class declaration conflicts with an existing Java class with the same name: A", 11
         ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:3:",8
+        ,"/$A/A.jml:5: error: This model class declaration has the same name as a previous one: B", 11
+        ,"/$A/A.jml:4: error: Associated declaration: /$A/A.jml:5:", 11
         ,"/$A/A.jml:7: error: There is no class to match this Java declaration in the specification file: D",2
-        ,"/$A/A.jml:5: error: duplicate class: B", 11  // FIXME - associated declaration?
         );
     }
  

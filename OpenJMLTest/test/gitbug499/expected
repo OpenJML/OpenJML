@@ -4,5 +4,15 @@ test/gitbug499/Interval.java:43: error: Expected a declaration or a JML construc
 test/gitbug499/Interval.java:64: error: illegal start of type
         //@ !contains(i); // Intentional error - used to crash
             ^
+test/gitbug499/Interval.java:64: error: <identifier> expected
+        //@ !contains(i); // Intentional error - used to crash
+                       ^
+test/gitbug499/Interval.java:67: error: unnamed classes are a preview feature and are disabled by default.
+    public /*@ pure @*/ int size() {
+                        ^
+  (use --enable-preview to enable unnamed classes)
+test/gitbug499/Interval.java:70: error: class, interface, enum, or record expected
+}
+^
 Operation not performed because of parse or type errors
-2 errors
+5 errors

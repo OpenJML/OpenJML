@@ -41,6 +41,7 @@ import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlModifiers;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.ext.Modifiers;
 //import org.jmlspecs.openjml.strongarm.JDKListUtils;
 
@@ -513,7 +514,11 @@ public class Utils {
     //@ nullable
     public JmlTree.JmlAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */Name m) {
         if (mods == null) return null;
-        for (JCTree.JCAnnotation a: mods.annotations) {
+        return findMod(mods.annotations, m);
+    }
+    //@ nullable
+    public JmlTree.JmlAnnotation findMod(List<JCAnnotation> anns, /*@ non_null */Name m) {
+        for (JCTree.JCAnnotation a: anns) {
             Type t = a.annotationType.type;
             if (t != null) {
                 // FIXME - can this be done by comparing symbols rather than strings
@@ -582,6 +587,26 @@ public class Utils {
     		if (a != null) return true;
     	}
     	return false;
+    }
+    
+    public int locNonNullAnnotation(JCTree.JCVariableDecl vd) {
+        int p = locMod(vd.mods, Modifiers.NON_NULL);
+        if (p != Position.NOPOS) return p;
+        var a = findMod(vd.mods, Modifiers.NON_NULL);
+        if (a != null) return a.pos;
+        var t = vd.vartype;
+        while (true) {
+            if (t instanceof JCTree.JCAnnotatedType at) {
+                var n = findMod(at.annotations, Names.instance(context).fromString("org.jmlspecs.annotation.NonNull"));
+                if (n != null) return n.pos;
+                return Position.NOPOS;
+            } else if (t instanceof JCTree.JCArrayTypeTree arr) {
+                t = arr.elemtype;
+                continue;
+            } else {
+                return Position.NOPOS;
+            }
+        }
     }
     
     // FIXME - would prefer to issue a DiagnosticPosition

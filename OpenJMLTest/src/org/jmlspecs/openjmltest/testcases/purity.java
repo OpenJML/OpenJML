@@ -164,7 +164,8 @@ public class purity extends TCBase {
     public void testCollection3() {
         expectedExit = 1;
         helpTC(" class A  {  public void m(java.util.Vector v) { //@ assert 0 == v.size(); }\n } " // Intentional typo
-        		,"/TEST.java:2: error: illegal start of type", 2
+                ,"/TEST.java:2: error: illegal start of type", 2
+                ,"/TEST.java:2: error: reached end of file while parsing", 3
                 );
     }
 
