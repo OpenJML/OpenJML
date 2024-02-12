@@ -19,11 +19,11 @@ public class ArrList {
         //@ assert theList.values[0].uniqueHash == ((Integer)a).uniqueHash;
         //@ assert (\exists int i; (0 <= i < theList.size()) ==> theList.values[i] == a);
         //@ assert (\forall int i; (0 <= i < theList.size()) ==> theList.values[i] == a);
-        //@ assert (\exists int i; (0 <= i < theList.size()) ==> java.util.Collection.nullequals(theList.values[i], (Integer)a));
-        //@ assert (\forall int i; (0 <= i < theList.size()) ==> java.util.Collection.nullequals(theList.values[i], (Integer)a));
         int k = theList.indexOf(a);
-        //@ show k;
-        // @ assert k == 0;
+        //@ assert java.util.Collection.nullequals((Integer)a, theList.values[0]);
+        //@ assert theList.contains((Integer)a);
+        //@ assert java.util.Objects.equals((Integer)a, theList.values[0]);
+        //@ assert k == 0;
     }
     
     public void m(Integer a) {
@@ -40,8 +40,10 @@ public class ArrList {
         //@ assert (\exists int i; (0 <= i < theList.size()) ==> java.util.Collection.nullequals(a, theList.values[i]));
         //@ assert (\forall int i; (0 <= i < theList.size()) ==> java.util.Collection.nullequals(a, theList.values[i]));
         int k = theList.indexOf(a);
-        //@ show k;
         //@ assert k == 0;
+        //@ assert java.util.Collection.nullequals(a, theList.values[0]);
+        //@ assert theList.contains(a);
+        //@ assert java.util.Objects.equals(a, theList.values[0]);
     }
     
 }
