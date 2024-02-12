@@ -65,19 +65,21 @@ public class binaries extends TCBase {
     
     /** Tests that model methods etc. in system spec files are actually checked */  // FIXME - not sure this should actually work - unlerss File is parsed by some other means, how would one know where VVV and TTT are
     @Test
-    public void testBinary3() { // FIXME - problem with modules
+    public void testBinary3() {
         addMockFile("$A/java/io/File.jml",
                 "package java.io; //@ model class VVV{ public static int i; }\n" + 
                 "public class File implements Serializable, Comparable<File> { \n" +
                 "/*@ public invariant VVV.i; public invariant TTT.j; */ \n" +
-                "//@ model static class TTT { public static int j; } \n" +
+                "//@ model public static class TTT { public static int j; } \n" +
                 "}\n ");
         helpTCF("A.java",
                 "class A { \n" +
                 "    java.io.File file; \n" +
                 " public void m() { /*@ assert java.io.VVV.i; assume java.io.File.TTT.j; */ }\n" +
                 "}"
-                ,"/A.java:3: error: incompatible types: int cannot be converted to boolean",42
+                // The duplicate of the first message is buried in OpenJDK -- we'll not try to improve it
+                ,"/A.java:3: error: java.io.VVV is not public in java.io; cannot be accessed from outside package", 38
+                ,"/A.java:3: error: java.io.VVV is not public in java.io; cannot be accessed from outside package", 38
                 ,"/A.java:3: error: incompatible types: int cannot be converted to boolean",69
                 ,"/$A/java/io/File.jml:3: error: incompatible types: int cannot be converted to boolean",25
                 ,"/$A/java/io/File.jml:3: error: incompatible types: int cannot be converted to boolean",49

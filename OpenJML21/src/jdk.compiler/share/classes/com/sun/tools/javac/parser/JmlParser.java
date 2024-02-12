@@ -2868,7 +2868,12 @@ public class JmlParser extends JavacParser {
         var saved = possibleDotStar;
         possibleDotStar = true;
         try {
+            int sp = pos();
         	JCExpression eee = toP(super.term3());
+        	if (eee instanceof JCErroneous && sp == pos()) {
+        	    // Bad expression. Advance to avoid repeating errors at the same point
+        	    nextToken();
+        	}
         	return eee;
         } finally {
         	possibleDotStar = saved;

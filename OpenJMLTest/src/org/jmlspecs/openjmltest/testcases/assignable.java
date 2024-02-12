@@ -150,6 +150,8 @@ public class assignable extends TCBase {
     public void testAssignableBad2() {
         helpTCF("A.java","public class A { int[] k; Object b; Object[] o; \n//@ assignable k[, k[*, k[i, k[], b., this., super.;\n void m(boolean b) {} }"
                 ,"/A.java:2: error: illegal start of expression",18
+                ,"/A.java:2: error: ']' expected",19
+                ,"/A.java:2: error: Missing comma or right parenthesis or otherwise ill-formed expression", 20
                 ,"/A.java:2: error: ']' expected",23
                 ,"/A.java:2: error: ']' expected",28
                 ,"/A.java:2: error: '.class' expected",33

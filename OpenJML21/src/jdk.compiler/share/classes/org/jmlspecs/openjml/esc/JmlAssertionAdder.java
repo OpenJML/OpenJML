@@ -9256,7 +9256,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											v.name + " in " + calleeMethodSym);
 								} else {
 								    var formal = calleeSpecs.specDecl.params.get(i);
-								    var p = utils.locMod(formal.mods, Modifiers.NON_NULL);
+								    var p = utils.locNonNullAnnotation(formal);
 								    if (p == Position.NOPOS) p = formal.getStartPosition();
 								    addAssert(trArgs.get(i), Label.NULL_FORMAL,
 											treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)),

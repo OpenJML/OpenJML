@@ -54,7 +54,7 @@ public class statements extends TCBase {
     @Test public void testForWithModifies6() {
         helpTCF("A.java"," class A { int k; void m() { \n //@ loop_modifies k[; \n for (int i=0; i<10; i++) {}  \n}}"
                 ,"/A.java:2: error: illegal start of expression",22
-                ,"/A.java:2: error: An invalid expression or succeeding token near here",22
+                ,"/A.java:2: error: An invalid expression or succeeding token near here",24
                 );
     }
 
@@ -134,7 +134,6 @@ public class statements extends TCBase {
     @Test public void testAssert3() {
         helpTCF("A.java"," class A { Object o; void m() { \n /*@ assume ; assert ;*/\n  \n}}"
                 ,"/A.java:2: error: illegal start of expression",13
-                ,"/A.java:2: error: illegal start of expression",22
                 );
     }
 

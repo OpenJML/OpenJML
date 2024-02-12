@@ -4,6 +4,15 @@ test/concatComment/Test.java:14: warning: Inserting missing semicolon at the end
 test/concatComment/Test.java:16: error: illegal start of type
 //@    || false;
        ^
+test/concatComment/Test.java:16: error: <identifier> expected
+//@    || false;
+         ^
+test/concatComment/Test.java:16: error: A JML declaration incorrectly follows non-JML modifiers
+//@    || false;
+          ^
+test/concatComment/Test.java:16: error: <identifier> expected
+//@    || false;
+               ^
 Operation not performed because of parse or type errors
-1 error
+4 errors
 1 warning
