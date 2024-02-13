@@ -412,7 +412,6 @@ public class JmlParser extends JavacParser {
     
     protected JCExpression normalizeAnnotations(JCModifiers modifiers, JCExpression vartype) {
         if (!(modifiers instanceof JmlModifiers mods)) return vartype;
-        boolean print = vartype != null && vartype.toString().contains("StackTraceElement");
         for (JmlToken mod: mods.jmlmods) {
             vartype = normalizeAnnotation(mod, vartype, mods);
         }

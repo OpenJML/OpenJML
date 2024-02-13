@@ -137,11 +137,13 @@ public class Annotate {
     /** Called when annotations processing needs to be postponed. */
     public void blockAnnotations() {
         blockCount++;
+        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("BLOCKING " + blockCount);
     }
 
     /** Called when annotation processing can be resumed. */
     public void unblockAnnotations() {
         blockCount--;
+        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("UNBLOCKING " + blockCount);
         if (blockCount == 0)
             flush();
     }
@@ -150,6 +152,7 @@ public class Annotate {
      * Needed by ClassReader */
     public void unblockAnnotationsNoFlush() {
         blockCount--;
+        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("UNBLOCKINGNF " + blockCount);
     }
 
     /** are we blocking annotation processing? */
@@ -188,6 +191,7 @@ public class Annotate {
         if (annotationsBlocked()) return;
         if (isFlushing()) return;
 
+        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("FLUSH " );
         startFlushing();
         try {
             while (q.nonEmpty()) {
@@ -215,7 +219,7 @@ public class Annotate {
     private void startFlushing() { flushCount++; }
     private void doneFlushing() { flushCount--; }
 
-    ListBuffer<Runnable> typesQ = new ListBuffer<>();
+    public ListBuffer<Runnable> typesQ = new ListBuffer<>();
     ListBuffer<Runnable> afterTypesQ = new ListBuffer<>();
 
 

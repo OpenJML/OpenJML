@@ -1095,7 +1095,7 @@ public class JmlEnter extends Enter {
 	public Env<AttrContext> methodEnv;
 
 	public boolean specsMethodEnter(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> specsEnv) {
-		boolean print =  false; // csym.toString().endsWith("Identity");
+		boolean print =  false; // mdecl.name.toString().contains("iterator");
 		if (print) System.out.println("SPECSMETHODENTER " + csym + " " + mdecl + " " + mdecl.sym + " " + specsEnv);
 		boolean isJML = utils.isJML(mdecl);
 		boolean isOwnerJML = utils.isJML(csym.flags());
@@ -1154,8 +1154,8 @@ public class JmlEnter extends Enter {
 			}
 			msym = findMethod(csym, mdecl, specsEnv);
 			if (print && msym != null) System.out.println("FOUND " + msym.owner + " " + msym + " " + csym);
-			if (print) System.out.println("HAVE BINARY " + msym.owner + "#" + msym + " " + System.identityHashCode(msym) + " " + msym.type + " " + msym.params.get(0));
-			if (print) System.out.println("HAVE JML " + mdecl.sym.owner + "#" + mdecl.sym + " " + System.identityHashCode(mdecl.sym) + " " + mdecl.sym.type + " " + mdecl.sym.params.get(0));
+			if (print) System.out.println("HAVE BINARY " + msym.owner + "#" + msym + " " + System.identityHashCode(msym) + " " + msym.type );
+			if (print) System.out.println("HAVE JML " + mdecl.sym.owner + "#" + mdecl.sym + " " + System.identityHashCode(mdecl.sym) + " " + mdecl.sym.type );
 		}
 		
 

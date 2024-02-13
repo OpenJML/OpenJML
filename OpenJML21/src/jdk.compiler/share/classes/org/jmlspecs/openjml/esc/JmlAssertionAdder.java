@@ -7142,8 +7142,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public Set<JCTree> knownNonNull = new HashSet<>();
 
 	public boolean isKnownNonNull(JCTree r) {
-		if (utils.isJavaOrJmlPrimitiveType(r.type))
-			return true;
+	    if (r.type == null || 
+	            utils.isJavaOrJmlPrimitiveOrVoidType(r.type)) return true;
+        //System.out.println("ISKNOWN " + r.type + " # " + r + " # " + r.getClass());
+		if (r instanceof JCMethodInvocation m) {
+            if (m.type != null && m.type.isAnnotated()) {
+                var tcl = m.type.getAnnotationMirrors();
+                boolean nullable = false;
+                for (var tc: tcl) {
+                    if (tc.toString().equals("@org.jmlspecs.annotation.Nullable")) nullable = true;
+                }
+                boolean nonnull = false;
+                for (var tc: tcl) {
+                    if (tc.toString().equals("@org.jmlspecs.annotation.NonNull")) nonnull = true;
+                }
+                //System.out.println("KNOWN " + nonnull + " " + nullable + " " + m.type + " " + 
+                //   (m.meth instanceof JCFieldAccess fa ? fa.type: null));
+                if (nonnull) return true;
+                return false; // FIXME: should we use a default?
+            }
+		}
 		if (!(r instanceof JCIdent))
 			return false;
 		if (lambdaLiterals.get(((JCIdent) r).getName().toString()) != null)
