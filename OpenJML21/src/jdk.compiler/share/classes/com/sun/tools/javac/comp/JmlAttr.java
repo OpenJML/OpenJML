@@ -1255,6 +1255,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     nonPureWarning(tree, msym);
                 }
             }
+            if (result != null) {
+                var tcl = result.getAnnotationMirrors();
+                boolean nullable = false;
+                for (var tc: tcl) {
+                    if (!tc.toString().equals("@org.jmlspecs.annotation.Nullable")) nullable = true;
+                }
+                boolean nonnull = false;
+                for (var tc: tcl) {
+                    if (!tc.toString().equals("@org.jmlspecs.annotation.NonNull")) nonnull = true;
+                }
+                //System.out.println("JMLATTR NEW " + result + " # " + nonnull + " # " + tree + " # " + tcl);
+            }
 //            Type saved = result;
 //            TypeSymbol tsym = tree.clazz.type.tsym;
 //            if (tsym instanceof ClassSymbol) {
@@ -7474,6 +7486,36 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             this.message = message;
         }
     }
+    
+    public JCExpression insertDefaultNullityInTypeArg(JCExpression arg, ModifierKind defaultNullity) {
+        var tt = arg;
+        if (tt instanceof JCTypeApply ttt) {
+            var a = insertDefaultNullityInTypeArg(ttt.clazz, defaultNullity);
+            var args = insertDefaultNullityInTypeArgs(ttt.arguments, defaultNullity);
+            return a == ttt.clazz && args == ttt.arguments ? tt : jmlMaker.at(arg).TypeApply(a, args);
+        } else if (tt instanceof JCAnnotatedType atype) {
+            if (specs.findAnnotation(atype.annotations, Modifiers.NON_NULL) != null
+                    || specs.findAnnotation(atype.annotations, Modifiers.NULLABLE) != null) return tt;
+            
+            JCAnnotation ann = utils.modToAnnotationAST(defaultNullity, arg.pos, arg.pos); // FIXME - better position
+            atype.annotations = atype.annotations.append(ann);
+            return tt;
+        } else {
+            JCAnnotation ann = utils.modToAnnotationAST(defaultNullity, arg.pos, arg.pos); // FIXME - better position
+            return jmlMaker.at(arg).AnnotatedType(List.<JCAnnotation>of(ann), arg);
+       }
+    }
+    
+    public List<JCExpression> insertDefaultNullityInTypeArgs(List<JCExpression> args, ModifierKind defaultNullity) {
+        ListBuffer<JCExpression> ntypes = new ListBuffer<>();
+        boolean change = false;
+        for (var a: args) {
+            var t = insertDefaultNullityInTypeArg(a, defaultNullity);
+            change |= (t != a);
+            ntypes.add(t);
+        }
+        return change ? ntypes.toList() : args;
+    }
 
     // FIXME - is this only ghost declarations
     // and don't the modifiers get checked twice - does the super.visitVarDef actually work?
@@ -7485,35 +7527,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-    	if (utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
-    	if (utils.verbose()) utils.note("Attributing " + that.vartype + " " + that.name + " " + that.getClass());
-    	if (env.enclMethod != null) {
-            if (that.vartype instanceof JCTypeApply) {
-            	var ft = (JCTypeApply)that.vartype;
-            	ListBuffer<JCExpression> ntypes = new ListBuffer<>();
-    			var nn = specs.defaultNullity(env.enclClass.sym);
-    			for (var t: ft.arguments) {
-    				JCAnnotatedType atype = null;
-    				if (t instanceof JCAnnotatedType) atype = (JCAnnotatedType)t;
-    				if (atype != null) {
-    					if (specs.findAnnotation(atype.annotations, Modifiers.NON_NULL) != null
-    					 || specs.findAnnotation(atype.annotations, Modifiers.NULLABLE) != null) {
-    						ntypes.add(atype);
-    						continue;
-    					}
-    				}
-    				JCAnnotation ann = utils.modToAnnotationAST(nn, that.pos, that.pos); // FIXME - better position
-    				if (atype != null) {
-    					atype.annotations = atype.annotations.append(ann);
-    					ntypes.add(atype);
-    				} else {
-    					ntypes.add(jmlMaker.at(that).AnnotatedType(List.<JCAnnotation>of(ann), t));
-    				}
-    			}
-    			ft.arguments = ntypes.toList();
+        //if (that.toString().contains("HashSet")) System.out.println("VARDEF-A " + that + " # " + that.vartype + " # " + that.mods);
+        if (utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
+        if (utils.verbose()) utils.note("Attributing " + that.vartype + " " + that.name + " " + that.getClass());
+        if (env.enclMethod != null) {
+            if (that.vartype instanceof JCTypeApply ft) {
+                var nn = specs.defaultNullity(env.enclClass.sym);
+                var nt = insertDefaultNullityInTypeArgs(ft.arguments, nn);
+                if (nt != ft.arguments) ft.arguments = nt;
             }
         	if (utils.verbose()) utils.note("Adjusted nullity " + that);
-    	}
+        }
         JavaFileObject prevSource = null;
         jmlenv = jmlenv.pushCopy();
         boolean isReplacementType = that.jmltype;
@@ -7529,13 +7553,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             // FIXME - we should not need these two lines I think, but otherwise we get NPE faults on non_null field declarations
             attribAnnotationTypes(that.mods.annotations,env); 
-            annotate.flush(); 
+            annotate.flush(); // FIXME _ this does not do anything if annotations are blocked
             for (JCAnnotation a: that.mods.annotations) a.type = a.annotationType.type;
 
             if (utils.isJML(that.mods) && jmlenv.currentClauseKind == null) {
                 jmlenv.currentClauseKind = declClause; // FIXME - could be model, if it matters
             }
-            if (that.vartype != null && that.vartype.type == null) attribType(that.vartype,env);
+            //if (that.vartype != null && that.vartype.type == null && that.toString().contains("HashSet")) System.out.println("VARDEF " + that);
+//            if (that.vartype != null && that.vartype.type == null) attribType(that.vartype,env);
             if (that.originalVartype != null && that.originalVartype.type == null) attribType(that.originalVartype,env);
             //((JmlMemberEnter)memberEnter).dojml = true;
             if (env.info.lint == null) { // FIXME: Without this we crash in Attr, but how is this handled elsewhere?
@@ -7546,6 +7571,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
 
             visitVarDef(that);
+            //if (that.vartype != null && that.vartype.type == null && that.toString().contains("HashSet")) System.out.println("VARDEF-J " + that.type);
             
 //            if (that.sym.toString().equals("k") && that.sym.owner.toString().equals("A")) {
 //                System.out.println("JAVA " + that + " " + that.sym.owner.kind);
