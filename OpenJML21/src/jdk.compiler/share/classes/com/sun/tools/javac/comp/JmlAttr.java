@@ -7559,10 +7559,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (utils.isJML(that.mods) && jmlenv.currentClauseKind == null) {
                 jmlenv.currentClauseKind = declClause; // FIXME - could be model, if it matters
             }
-            //if (that.vartype != null && that.vartype.type == null && that.toString().contains("HashSet")) System.out.println("VARDEF " + that);
-//            if (that.vartype != null && that.vartype.type == null) attribType(that.vartype,env);
             if (that.originalVartype != null && that.originalVartype.type == null) attribType(that.originalVartype,env);
-            //((JmlMemberEnter)memberEnter).dojml = true;
             if (env.info.lint == null) { // FIXME: Without this we crash in Attr, but how is this handled elsewhere?
             	Env<AttrContext> lintEnv = env;
                 while (lintEnv.info.lint == null)
@@ -7571,13 +7568,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
 
             visitVarDef(that);
-            //if (that.vartype != null && that.vartype.type == null && that.toString().contains("HashSet")) System.out.println("VARDEF-J " + that.type);
             
-//            if (that.sym.toString().equals("k") && that.sym.owner.toString().equals("A")) {
-//                System.out.println("JAVA " + that + " " + that.sym.owner.kind);
-//                var fspecs = specs.getLoadedSpecs(that.sym);
-//                System.out.println("SPEC " + fspecs.decl + " " + fspecs.decl.sym + " " + fspecs.decl.sym.owner);
-//            }
             //if (!(that.sym.owner instanceof ClassSymbol) && (jmlenv.currentClauseKind == null || jmlenv.currentClauseKind == declClause)) {
             	checkVarDecl(that);
             //}

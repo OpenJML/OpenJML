@@ -414,7 +414,6 @@ public class esc1 extends EscBase {
 
     @Test
     public void testForEach2a2a() {
-        addOptions("--method=m2a");
         addOptions("--esc-max-warnings=1");
         helpTCX("tt.TestJava", 
                 """
@@ -423,17 +422,17 @@ public class esc1 extends EscBase {
 
                   //@ public behavior  ensures true;
                   public void m2a() {
-             //       List<Entry<String,String>> values = new LinkedList<Entry<String,String>>();
-             //       //@ set values.containsNull = false;
+                    List<Entry<String,String>> values = new LinkedList<Entry<String,String>>();
+                    //@ set values.containsNull = false;
                     Set<@NonNull Entry<String,String>> azz = new HashSet<@NonNull Entry<String,String>>();
                     Iterator<@NonNull Entry<String,String>> it = azz.iterator();
                     @NonNull Entry<String,String> k;
-             //       //@ ghost List<Entry<String,String>> v = values;
-             //       //@ loop_invariant values == v;
+                    //@ ghost List<Entry<String,String>> v = values;
+                    //@ loop_invariant values == v;
                     while (it.hasNext()) {
                         k = it.next();
                         //@ assert k != null;
-             //           values.add(k);
+                        values.add(k);
                     }
                   }
 
@@ -2250,22 +2249,26 @@ public class esc1 extends EscBase {
 
     @Test
     public void testNonNullParam2() {
-        addOptions("--nullable-by-default");
+        addOptions("--nonnull-by-default");
         helpTCX("tt.TestJava",
-                "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
-                        + "  //@ ensures \\result != null;\n"
-                        + "  public /*@ nullable*/Object inst(boolean b,                Object i, /*@ nullable*/Object ii) { return i; }\n"
-                        + "  //@ ensures \\result != null;\n"
-                        + "  public /*@ nullable*/Object instbad(boolean b,                Object i, /*@ nullable*/Object ii) { return ii; }\n"
-                        + "  //@ ensures \\result != null;\n"
-                        + "  public /*@ nullable*/Object inst2(boolean b,          Object i, /*@ nullable*/Object ii) { return i; }\n"
-                        + "  //@ ensures \\result != null;\n"
-                        + "  public /*@ nullable*/Object inst2bad(boolean b,          Object i, /*@ nullable*/Object ii) { return ii; }\n"
-                        + "}",
-                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method instbad",
-                102, "/tt/TestJava.java:5: warning: Associated declaration", 7,
-                "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method inst2bad",
-                97, "/tt/TestJava.java:9: warning: Associated declaration", 7);
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                    //@ ensures \\result != null;
+                    public /*@ nullable*/Object inst(boolean b, Object i, /*@ nullable*/Object ii) { return i; }
+                    //@ ensures \\result != null;
+                    public /*@ nullable*/Object instbad(boolean b, Object i, /*@ nullable*/Object ii) { return ii; }
+                    //@ ensures \\result != null;
+                    public /*@ nullable*/Object inst2(boolean b, Object i, /*@ nullable*/Object ii) { return i; }
+                    //@ ensures \\result != null;
+                    public /*@ nullable*/Object inst2bad(boolean b, Object i, /*@ nullable*/Object ii) { return ii; }
+                }
+                """
+                , "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method instbad", 89
+                , "/tt/TestJava.java:5: warning: Associated declaration", 9
+                , "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method inst2bad",90
+                , "/tt/TestJava.java:9: warning: Associated declaration", 9
+                );
     }
 
     @Test
@@ -4561,7 +4564,7 @@ public class esc1 extends EscBase {
 //    @Test
 //    public void testExitInfo2() {
 //        expectedExit = 0;
-//        addOptions("-escExitInfo","--esc-max-warnings=10");
+//        addOptions("--esc-max-warnings=10");
 //        helpTCX("tt.TestJava",
 //                          "package tt; //@ nullable_by_default \n" 
 //                        + "public class TestJava  { \n" 
@@ -4593,7 +4596,7 @@ public class esc1 extends EscBase {
 //    @Test
 //    public void testExitInfo() {
 //        expectedExit = 0;
-//        addOptions("-escExitInfo","--esc-max-warnings=3");
+//        addOptions("--esc-max-warnings=3");
 //        helpTCX("tt.TestJava",
 //                "package tt; \n" 
 //                        + "public class TestJava  { \n" 

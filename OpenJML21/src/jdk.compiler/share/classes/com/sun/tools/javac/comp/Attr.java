@@ -2731,7 +2731,6 @@ public class Attr extends JCTree.Visitor {
             }
         }
 
-        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTR " + clazzid + " # " + annoclazzid + " # " + tree);
         JCExpression clazzid1 = clazzid; // The same in fully qualified form
 
         if (tree.encl != null) {
@@ -2920,7 +2919,6 @@ public class Attr extends JCTree.Visitor {
                 owntype = clazztype;
         }
         annotate.flush();  // OPENJML
-        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("NEW OWN " + owntype + "#" + resultInfo.pt);
         result = check(tree, owntype, KindSelector.VAL, resultInfo);
         InferenceContext inferenceContext = resultInfo.checkContext.inferenceContext();
         if (tree.constructorType != null && inferenceContext.free(tree.constructorType)) {
@@ -5081,18 +5079,13 @@ public class Attr extends JCTree.Visitor {
      *  before supertype structure is completely known
      */
     public void visitTypeApply(JCTypeApply tree) {
-        boolean print = false; // org.jmlspecs.openjml.Utils.isJML() && (tree.clazz.toString().contains("HashSet")||tree.clazz.toString().contains("Entry"));
-        if (print) System.out.println("VISIT-TA " + tree);
         Type owntype = types.createErrorType(tree.type);
 
         // Attribute functor part of application and make sure it's a class.
         Type clazztype = chk.checkClassType(tree.clazz.pos(), attribType(tree.clazz, env));
-        if (print) System.out.println("VISIT-TA0 " + clazztype);
 
         // Attribute type parameters
         List<Type> actuals = attribTypes(tree.arguments, env);
-        if (print) System.out.println("VISIT-TA1 " + tree.arguments);
-        if (print) System.out.println("VISIT-TA2 " + actuals);
 
         if (clazztype.hasTag(CLASS)) {
             List<Type> formals = clazztype.tsym.type.getTypeArguments();
@@ -5295,17 +5288,11 @@ public class Attr extends JCTree.Visitor {
     }
 
     public void visitAnnotatedType(JCAnnotatedType tree) {
-        //if (org.jmlspecs.openjml.Utils.isJML()) {
-        //    System.out.println("ANNTYPE " + tree);
-        //    if (tree.toString().contains("Nullable") && tree.toString().contains("NonNull")) org.jmlspecs.openjml.Utils.dumpStack("BOTH");
-        //}
         attribAnnotationTypes(tree.annotations, env);
         // OPENJML - a crash results if we do not check for erroneous annotations - not sure if this is an openjdk or openjml bug
         boolean erroneous = false;
         for (var a: tree.annotations) if (a.type.isErroneous()) erroneous = true;
-        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ANNTYPE-E " + erroneous);
-        //if (org.jmlspecs.openjml.Utils.isJML() &&tree.annotations.nonEmpty()) System.out.println("ANNTYPE-L " + tree.annotations);
-        //if (org.jmlspecs.openjml.Utils.isJML() &&tree.annotations.nonEmpty()) System.out.println("ANNTYPE-T " + tree.annotations.map(a->a.type.toString()));
+
         Type underlyingType = attribType(tree.underlyingType, env);
         if (erroneous) {
         	Type t = new Type.ErrorType(underlyingType, underlyingType.tsym);
@@ -5314,11 +5301,10 @@ public class Attr extends JCTree.Visitor {
         	Type annotatedType = underlyingType.preannotatedType();
             //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ANNTYPE-Q " + env.info.isNewClass);
 
-        	//if (!env.info.isNewClass)
+        	//if (!env.info.isNewClass) // OPENJML - commented out
         		annotate.annotateTypeSecondStage(tree, tree.annotations, annotatedType);
         	result = tree.type = annotatedType;
         }
-        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ANNTYPE-R " + result);
     }
 
     public void visitErroneous(JCErroneous tree) {
