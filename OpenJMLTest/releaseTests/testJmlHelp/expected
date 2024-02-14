@@ -142,7 +142,7 @@ JML options:
   --properties               Specifies the path to the properties file
   --defaults                 Specifies various default behaviors: constructor:pure|everything
   -staticInitWarning         Warns about missing static_initializer clauses
-  --determinism              Experimental: enables better determinism
-  --os-name                  Name of OS to use in selecting solver executable
-  --inline-function-literal  Whether to inline function literals
-  --require-white-space      Whether white space is required after the @ in a JML comment
+  --determinism              Experimental: enables better determinism (default is true)
+  --os-name                  Name of OS to use in selecting solver executable (default: auto detect)
+  --inline-function-literal  Whether to inline function literals (default: true)
+  --require-white-space      Whether white space is required after the @ in a JML comment (default: false)

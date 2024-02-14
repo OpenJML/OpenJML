@@ -790,13 +790,14 @@ public class Utils {
         for (JmlOption opt: JmlOption.map.values()) {
             String key = Strings.optionPropertyPrefix + opt.optionName().substring(1);
             Object defaultValue = opt.defaultValue();
-            // Options with synonyms are not true options (they are translated to their synonym)
+            // Options that are synonyms are not true options (they are translated to their synonym)
             if (opt.synonym() == null) properties.put(key, defaultValue == null ? "" : defaultValue.toString());
         }
     }
 
     
     public static void setOptionsFromProperties(Properties properties, Context context) {
+        // This does not set any Java options, just JML ones
     	for (var p: properties.entrySet()) {
     		String k = p.getKey().toString();
     		if (k.startsWith(Strings.optionPropertyPrefix)) {
