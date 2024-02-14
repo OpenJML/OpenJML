@@ -4391,16 +4391,18 @@ public class esc2 extends EscBase {
         expectedExit = 0;
         addOptions("--nonnull-by-default");
         helpTCX("tt.TestJava",
-                "package tt; \n" 
-                        + "public abstract class TestJava  { \n"
-                        + "  //@ requires i == 1;"
-                        + "  public void m0(int i, int j) {\n"
-                        + "      //@ assert (\\lbl I i) + \\lbl(J,j) != 0; \n" 
-                        + "  }\n" 
-                        + "}"
-                        ,"/tt/TestJava.java:5: warning: Label I has value 1",24
-                        ,"/tt/TestJava.java:5: warning: Label J has value ( - 1 )",36
-                        ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m0",11
+                """
+                package tt;
+                public abstract class TestJava {
+                  //@ requires i == 1;
+                  public void m0(int i, int j) {
+                      //@ assert (\\lbl I i) + \\lbl(J,j) != 0;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:5: warning: Label I has value 1",24
+                ,"/tt/TestJava.java:5: warning: Label J has value ( - 1 )",36
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m0",11
                 );
     }
 
