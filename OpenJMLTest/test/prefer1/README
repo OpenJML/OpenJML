@@ -1,0 +1,3 @@
+This test runs a script to see if -Xprefer is working in openjml.
+./runjava.sh runs openjml in -java mode, and the test works as expected.
+./run.sh runs openjml in jml mode and the tesets currently fails.
