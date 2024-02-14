@@ -4386,19 +4386,19 @@ public class esc2 extends EscBase {
                 );
     }
 
-    @Test // This test has lots of solutions, hence the assume statement
-    public void testNewLblSytax() {
+    @Test // This test has lots of solutions, hence the precondition
+    public void testNewLblSyntax() {
         expectedExit = 0;
-        addOptions("-nonnullByDefault");
+        addOptions("--nonnull-by-default");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
-                        + "public abstract class TestJava  { \n" 
+                        + "public abstract class TestJava  { \n"
+                        + "  //@ requires i == 1;"
                         + "  public void m0(int i, int j) {\n"
-                        + "      //@ assume i == 0;\n"
-                        + "      //@ assert (\\lbl I i) + \\lbl(J,j) == 0; \n" 
+                        + "      //@ assert (\\lbl I i) + \\lbl(J,j) != 0; \n" 
                         + "  }\n" 
                         + "}"
-                        ,"/tt/TestJava.java:5: warning: Label I has value 0",24
+                        ,"/tt/TestJava.java:5: warning: Label I has value 1",24
                         ,"/tt/TestJava.java:5: warning: Label J has value ( - 1 )",36
                         ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m0",11
                 );
@@ -4407,7 +4407,7 @@ public class esc2 extends EscBase {
     @Test
     public void testExitInfo2() {
         expectedExit = 0;
-        addOptions("-escExitInfo","-escMaxWarnings=10");
+        addOptions("--esc-max-warnings=10");
         helpTCX("tt.TestJava",
                           "package tt; //@ nullable_by_default \n" 
                         + "public class TestJava  { \n" 
@@ -4439,7 +4439,7 @@ public class esc2 extends EscBase {
     @Test
     public void testExitInfo() {
         expectedExit = 0;
-        addOptions("-escExitInfo","-escMaxWarnings=3");
+        addOptions("--esc-max-warnings=3");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 

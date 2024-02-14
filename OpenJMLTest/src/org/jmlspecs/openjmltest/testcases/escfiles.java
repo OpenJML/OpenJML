@@ -302,17 +302,18 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testException() {
+    public void escException() {
         helpTF("escException");
     }
 
     @Test
-    public void testPreOld() {
+    public void preold() {
         helpTF("preold");
     }
+    
 
     @Test
-    public void testPreOld2() {
+    public void preold2() {
         expectedExit = 1;
         helpTF("preold2");
     }
@@ -346,7 +347,7 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testArrayCopy() {
+    public void escArrayCopy() {
         expectedExit = 0;
         helpTF("escArrayCopy");
     }
@@ -357,13 +358,13 @@ public class escfiles extends EscBase {
         helpTF("escClone");
     }
     @Test
-    public void test2DArray() {
+    public void esc2DArray() {
         expectedExit = 0;
         helpTF("esc2DArray");
     }
 
     @Test @Ignore // FIXME - axioms for multi-dimensional arrays
-    public void test2DTranspose() {
+    public void esc2DTranspose() {
         expectedExit = 0;
         helpTF("esc2DTranspose");
     }

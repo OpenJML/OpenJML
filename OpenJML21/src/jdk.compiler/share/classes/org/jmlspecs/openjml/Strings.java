@@ -115,9 +115,6 @@ public class Strings {
     /** A property name prefix for adding new options or specifying values */
     static public final String optionPropertyPrefix = "org.openjml.option."; //$NON-NLS-1$
     
-    /** A property name prefix for adding new options or specifying values */
-    static public final String javaOptionPropertyPrefix = "org.openjml.java.option."; //$NON-NLS-1$
-    
     /** A property name prefix for specifying information about provers */
     static public final String proverPropertyPrefix = "org.openjml.prover."; //$NON-NLS-1$
     

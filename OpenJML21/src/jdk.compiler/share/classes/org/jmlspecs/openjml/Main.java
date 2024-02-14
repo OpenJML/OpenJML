@@ -96,7 +96,9 @@ public class Main extends com.sun.tools.javac.main.Main {
 	
 	/** Holds the value of an environment variable that is the absolute path to
 	 *  the installation directory for openjml. That is Main.root contains the 'specs' directory
-	 *  and Solvers-macos etc.
+	 *  and Solvers-macos etc. If the desired resources are not found in this location, then
+	 *  it is presumed that openjml is being executed in a development envirnment where the
+	 *  structure is slightly different.
 	 */
 	public static final String root = System.getenv("OPENJML_ROOT");
     

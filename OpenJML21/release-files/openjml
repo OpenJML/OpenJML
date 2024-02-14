@@ -17,5 +17,6 @@ if [ "$( uname )" = "Darwin" ] ; then
 fi
 
 # OPENJML_ROOT is used within the executable to find things like 
-# the Specs and Solvers
+# the Specs and Solvers, which are expected to be in a fixed position
+# relative to the installation folder (the value of $OPENJML_ROOT)
 OPENJML_ROOT="$ROOT" "$ROOT/jdk/bin/javac" "$@"

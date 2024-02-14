@@ -396,6 +396,8 @@ public class Utils {
         	return Main.root;
         }
 
+        // FIXME: Not sure that any of the following is still valid
+        
         String sp = System.getProperty("java.class.path");
         String[] ss = sp.split(java.io.File.pathSeparator);
                 
@@ -784,6 +786,7 @@ public class Utils {
     }
     
     public static void setPropertiesFromOptionsDefaults(Properties properties) {
+        // THis only sets JML options
         for (JmlOption opt: JmlOption.map.values()) {
             String key = Strings.optionPropertyPrefix + opt.optionName().substring(1);
             Object defaultValue = opt.defaultValue();

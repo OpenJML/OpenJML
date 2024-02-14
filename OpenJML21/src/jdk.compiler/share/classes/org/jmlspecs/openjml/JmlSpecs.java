@@ -315,9 +315,9 @@ public class JmlSpecs {
                 
         // Default for test or install environment
         if (Main.root != null) {
-            String sy = Main.root + "/specs"; 
+            String sy = Main.root + "/specs"; // expected for installation
             if (!new File(sy).exists()) {
-            	sy = Main.root + "/../Specs/specs";
+            	sy = Main.root + "/../Specs/specs"; // expected for development
             }
             try { sy = new File(sy).getCanonicalPath(); } catch (IOException e) {}
             
@@ -1346,6 +1346,7 @@ public class JmlSpecs {
         JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase(csm, false, MethodSimpleClauseExtensions.behaviorClause,null,clauses,null);
         mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
         if (decl == null) mspecs.cases.deSugared = mspecs.cases;
+        //FIXME: this sets as pure far more methods than needed, including some that are definitely not pure
         if (isPureL && !isPureA) mspecs.mods.annotations = addPureAnnotation(pos, mspecs.mods.annotations);
         return mspecs;
     }
@@ -1824,7 +1825,9 @@ public class JmlSpecs {
 	public boolean isCheckNonNullReturn(Type type, MethodSymbol msym) {
     	// Extension type values are always non-null, but we do not check for that
     	if (utils.isExtensionValueType(type)) return false;
-    	return isNonNullReturn(msym);
+    	if (isNonNullReturn(msym)) return true;
+    	if (isNonNull(type)) return true;
+    	return false;
     }
 		
     
