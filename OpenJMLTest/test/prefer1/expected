@@ -1,0 +1,24 @@
+Test.java:6: error: cannot find symbol
+    a.h = 0;
+     ^
+  symbol:   variable h
+  location: variable a of type A
+1 error
+Test.java:5: error: cannot find symbol
+    a.g = 0;
+     ^
+  symbol:   variable g
+  location: variable a of type A
+1 error
+Test.java:6: error: cannot find symbol
+    a.h = 0;
+     ^
+  symbol:   variable h
+  location: variable a of type A
+1 error
+Test.java:5: error: cannot find symbol
+    a.g = 0;
+     ^
+  symbol:   variable g
+  location: variable a of type A
+1 error

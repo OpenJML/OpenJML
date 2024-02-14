@@ -224,6 +224,14 @@ public class ClassFinder {
         cachedCompletionFailure = new CompletionFailure(null, () -> null, dcfh);
         cachedCompletionFailure.setStackTrace(new StackTraceElement[0]);
     }
+    
+    public void resetOptions(Context context) { // OPENJML
+        Options options = Options.instance(context);
+        verbose = options.isSet(Option.VERBOSE);
+        cacheCompletionFailure = options.isUnset("dev");
+        preferSource = "source".equals(options.get("-Xprefer"));
+        userPathsFirst = options.isSet(Option.XXUSERPATHSFIRST);
+    }
 
 
 /************************************************************************

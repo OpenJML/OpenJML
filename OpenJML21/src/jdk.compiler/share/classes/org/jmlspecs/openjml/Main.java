@@ -263,6 +263,8 @@ public class Main extends com.sun.tools.javac.main.Main {
         this.context = new Context();
         JmlOptions.preRegister(this.context); // Must precede JavacMessages
         JavacFileManager.preRegister(this.context);
+        // The next call creates the compiler tool chain. The problem is that some Java components cache values of options
+        // during tool creation, rather than tool use. So we have to check for and load some options before 
         register(this.context);
         utils = Utils.instance(this.context);
         Utils.setOptionsFromProperties(Utils.findProperties(this.context), this.context);
@@ -580,8 +582,11 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     public void postOptionProcessing() {
         // Handlers are created during tool registration, which in OpenJML has to be before
-        // options are read. So the handlers have to be adjusted for the options.
+        // options are read. In some cases the tools cache values of options.
+        // So they have to be adjusted for the actual values of the options.
+        // FIXME - sort out whether we can read options before constructing tools
         Check.instance(context).resetHandlers();
+        ClassFinder.instance(context).resetOptions(context);
     }
     
     public java.util.Collection<JavaFileObject> fileObjects;
