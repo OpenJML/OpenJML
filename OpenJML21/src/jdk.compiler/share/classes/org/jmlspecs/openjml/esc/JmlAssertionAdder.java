@@ -8467,7 +8467,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Helper method to do the work of visitApply and visitNewObject */
 	protected void applyHelper(JCExpression that) {
-		boolean print =  Utils.debug("trans");// || (that.toString().contains("equals")&&that.toString().contains("this")); //
+		boolean print =  Utils.debug("trans");
+        boolean printb = print ;//|| that.toString().contains("cops.id");
+        //print |= that.toString().contains("cops.id");
     	if (print) System.out.println("APPLY HELPER: " + that);
 //    	if (that instanceof JCMethodInvocation) {
 //    		JCMethodInvocation m = (JCMethodInvocation)that;
@@ -8781,24 +8783,39 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (savedParamActuals != null) pmap.putAll(savedParamActuals); // FIXME - I think we need this in the case where the current call can see out to an outer call -- but review and document the cases where this is needed
 			if (print) System.out.println("INHERTIED PA " + paramActuals_);
 			var specsIter = new SpecCaseIterator(calleeMethodSym, false);
+			//if (print) System.out.println("ITERATOR HAS NEXT " + specsIter.hasNext() + " " + calleeIsPure + " " + effectivelyPure);
 			while (specsIter.hasNext()) {
 			    var info = specsIter.next();
-			    x: if (!calleeIsPure && effectivelyPure) {
+			    x: if (!calleeIsPure) {
+			        if (print) System.out.println("SPECCASE " + info.parentMethodSymbol + " " + info.specCase);
 			        boolean hasAssignable = false;
+			        boolean isEverything = true;
 			        for (var clause: info.specCase.clauses) {
+			            if (printb) System.out.println("CLAUSE " + clause);
 			            if (clause.clauseKind == assignableClauseKind && clause instanceof JmlMethodClauseStoreRef ext) {
 			                hasAssignable = true;
 			                if (ext.list != null) {
 			                    for (var sr: ext.list) {
-	                                if (!(sr instanceof JmlSingleton s && s.kind == nothingKind)) {
-	                                    effectivelyPure = false;
-	                                    break x;
-	                                }
+			                        if (printb) System.out.println("   SR " + sr + " " + (sr instanceof JmlSingleton s && s.kind == everythingKind));
+                                    effectivelyPure &= (!(sr instanceof JmlSingleton s && s.kind == nothingKind));
+                                    isEverything &= (sr instanceof JmlSingleton s && s.kind == everythingKind);
 			                    }
 			                }
 			            }
 			        }
+			        if (printb) System.out.println("EVERYTHING? " + isEverything + " " + hasAssignable);
 			        if (!hasAssignable) effectivelyPure = false;
+			        // FIXME - enable the following when we can adjust all the tests. Also decide whether to issue the warning if the caller has assignable \everythig; also find the name of the caller
+//                    if (!hasAssignable && utils.esc) {
+//                        utils.warningAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, log.currentSourceFile(), that,
+//                                "jml.message", "Method " + calleeMethodSym + " has no assignable clause, so it is implicitly 'assignable \\everything', making its caller likely impossible to verify");
+//
+//                    }
+//                    if (hasAssignable && isEverything && utils.esc) {
+//                        utils.warningAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, log.currentSourceFile(), that,
+//                                "jml.message", "Method " + calleeMethodSym + " has 'assignable \\everything', making its caller likely impossible to verify");
+//
+//                    }
 			    }
                 if (print) System.out.println("   MAPPING " + info.decl.params + " -> " + trArgs);
                 // presuming all parameter symbols across all methods are unique

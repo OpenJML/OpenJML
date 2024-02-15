@@ -3,19 +3,14 @@
 ## Might have trouble with symbolic links
 cd $(dirname "${BASH_SOURCE[0]}")
 
-## One-off scripted tests
-for f in ../test/prefer1/test.sh ; do
-  echo Testing $f
-  $f || echo $f FAILED;
-done
-
 ## Read common configuration
 . ./config-filelist
 
 ## Select the files to do
 files="$( ls ../test | grep -v '^rac' | comm -23 - skips | sort | sed -e 'sx^x../test/x' )"
 
-## Do them
+echo $files
+## Get any options
 threads=3
 if [ $# -gt 0 ]; then
   if [ "$1" = "-t" ]; then
@@ -25,9 +20,17 @@ if [ $# -gt 0 ]; then
   fi
 fi
 
+## Do them
 if [ $# -gt 0 ]; then
+  ## Listed files
   . ./spawn "$@"
 else
+  ## One-off scripted tests
+  for f in ../test/prefer1/test.sh ; do
+    echo Testing $f
+    $f || echo $f FAILED;
+  done
+  ## All files to be tested
   . ./spawn $files
 fi
 
