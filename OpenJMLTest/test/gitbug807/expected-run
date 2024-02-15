@@ -1,0 +1,21 @@
+OUT:
+test/gitbug807/Foo.java:1: verify: JML invariant is false on leaving method Foo.Foo()
+class Foo {
+^
+test/gitbug807/Foo.java:2: verify: Associated declaration: test/gitbug807/Foo.java:1:
+  //@ invariant foo > 0;
+      ^
+test/gitbug807/Foo.java:7: verify: JML invariant is false on leaving method Foo.Foo(), returning to Foo.main(java.lang.String...)
+    new Foo();
+    ^
+test/gitbug807/Foo.java:2: verify: Associated declaration: test/gitbug807/Foo.java:7:
+  //@ invariant foo > 0;
+      ^
+test/gitbug807/Foo.java:7: verify: JML invariant is false on leaving method Foo.Foo(), returning to Foo.main(java.lang.String...)
+    new Foo();
+    ^
+test/gitbug807/Foo.java:2: verify: Associated declaration: test/gitbug807/Foo.java:7:
+  //@ invariant foo > 0;
+      ^
+
+ERR:
