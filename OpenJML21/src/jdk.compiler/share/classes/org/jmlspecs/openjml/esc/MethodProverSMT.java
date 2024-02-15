@@ -658,7 +658,7 @@ public class MethodProverSMT {
             } else b: { // Proof was not UNSAT, so there may be a counterexample
                 if (!Utils.testingMode) utils.progress(0,1,loc + " Method assertions are INVALID");
                 int count = Utils.instance(context).maxWarnings;
-                boolean byPath = JmlOption.isOption(context, JmlOption.MAXWARNINGSPATH);
+                boolean byPath = JmlOption.isOption(context, JmlOption.ESC_WARNINGS_PATH);
                 ProverResult pr = (ProverResult)factory.makeProverResult(methodDecl.sym,proverToUse,
                         solverResponse.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT,start);
                 proofResult = pr;
@@ -742,7 +742,7 @@ public class MethodProverSMT {
                     path = new ArrayList<IProverResult.Span>();
                     JCExpression pathCondition = reportInvalidAssertion(
                             program,smt,solver,methodDecl,cemap,jmap,
-                            jmlesc.assertionAdder.pathMap, basicBlocker.pathmap);
+                            jmlesc.assertionAdder.pathMap, basicBlocker.pathmap, byPath);
                     
                     //if (showTrace && pathCondition != null) log.getWriter(WriterKind.NOTICE).println("PATH CONDITION " + pathCondition.toString());
                     if (showTrace) log.getWriter(WriterKind.NOTICE).println(tracer.text());
@@ -888,6 +888,7 @@ public class MethodProverSMT {
         public BiMap<JCTree,JCExpression> jmap;
         public BiMap<JCTree,JCTree> aaPathMap;
         public BiMap<JCTree,JCTree> bbPathMap;
+        public boolean byPath;
     }
     
     /** Iterates through the basic blocks to find and report the invalid assertion
@@ -898,7 +899,7 @@ public class MethodProverSMT {
      */
     public JCExpression reportInvalidAssertion(BasicProgram program, SMT smt, ISolver solver, JCMethodDecl decl,
             Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap,
-            BiMap<JCTree,JCTree> aaPathMap, BiMap<JCTree,JCTree> bbPathMap) {
+            BiMap<JCTree,JCTree> aaPathMap, BiMap<JCTree,JCTree> bbPathMap, boolean byPath) {
         Info info = new Info();
         info.verbose = utils.jmlverbose >= Utils.JMLVERBOSE;
         info.smt = smt;
@@ -908,6 +909,7 @@ public class MethodProverSMT {
         info.jmap = jmap;
         info.aaPathMap = aaPathMap;
         info.bbPathMap = bbPathMap;
+        info.byPath = byPath;
         JCExpression pathCondition = reportInvalidAssertion2(program.startBlock(),info,0, JmlTreeUtils.instance(context).falseLit);
         if (pathCondition == null) {
         	utils.verify("jml.internal.notsobad","Could not find an invalid assertion even though the proof result was satisfiable: " + decl.sym); //$NON-NLS-1$ //$NON-NLS-2$
@@ -926,6 +928,7 @@ public class MethodProverSMT {
         blockStack.push(sblock);
         terminationStack.push(sterminationPos);
         pathConditionStack.push(spathCondition);
+        //System.out.println("Starting block " + sblock.id + " " + spathCondition);
         
         while (!blockStack.isEmpty()) {
             BasicProgram.BasicBlock block = blockStack.pop();
@@ -934,6 +937,7 @@ public class MethodProverSMT {
             
             String id = block.id.name.toString();
             Boolean value = getBoolValue(id,info.smt,info.solver);
+            //System.out.println("Loop block " + block.id + " " + value + " # " + spathCondition);
             if (value == null) {
             	utils.verify("jml.messsage", "Failed to obtain a block value " + id);
                 // FIXME - error and what to do ?
@@ -1102,6 +1106,7 @@ public class MethodProverSMT {
                     if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                     if (s.optionalExpression != null) {
                         log.getWriter(WriterKind.NOTICE).println("FOUND " + s.id);
+                        System.out.println("FOUND " + s.id + " " + pathCondition);
                         return pathCondition;
                     }
                 }
@@ -1121,7 +1126,7 @@ public class MethodProverSMT {
                     }
                     if (!value) { 
 //                        if (e instanceof JCIdent) pathCondition = treeutils.makeNot(e, e);
-                        boolean byPath = JmlOption.isOption(context, JmlOption.MAXWARNINGSPATH);
+                        boolean byPath = JmlOption.isOption(context, JmlOption.ESC_WARNINGS_PATH);
                         if (byPath) pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
                         else pathCondition = e;
                         if (terminationPos == 0) terminationPos = info.decl.pos;
@@ -1241,7 +1246,6 @@ public class MethodProverSMT {
                             }
                         }
                         // Found an invalid assertion, so we can terminate
-                        // Negate the path condition
                         return pathCondition; 
                     }
                 }
@@ -1250,6 +1254,7 @@ public class MethodProverSMT {
             // Since we have not found an invalid assertion in this block, we
             // inspect each follower. Since the blocks form a DAG, this will
             // terminate.
+            if (info.byPath) pathCondition = treeutils.makeOr(Position.NOPOS, pathCondition, block.id);
             for (BasicBlock b: block.followers()) {
                 blockStack.push(b);
                 terminationStack.push(terminationPos);
@@ -1305,6 +1310,7 @@ public class MethodProverSMT {
     public JCExpression reportInvalidAssertion(BasicProgram.BasicBlock block, Info info, int terminationPos, JCExpression pathCondition) {
         String id = block.id.name.toString();
         Boolean value = getBoolValue(id,info.smt,info.solver);
+        System.out.println("Block " + id + " is " + value );
         if (value == null) {
             // FIXME - error and what to do ?
             return null;
@@ -1318,6 +1324,7 @@ public class MethodProverSMT {
         }
         terminationPos = checkTerminationPosition(id,terminationPos);
         pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS,pathCondition,block.id);
+        System.out.println("Block " + id + " is " + value + " # " + pathCondition);
         
         //showTrace = true;
         // FIXME - would like to have a range, not just a single position point,
@@ -1486,7 +1493,7 @@ public class MethodProverSMT {
                     return pathCondition; // For when assert statements are not identifiers
                 }
                 if (!value) { 
-                    boolean byPath = JmlOption.isOption(context, JmlOption.MAXWARNINGSPATH);
+                    boolean byPath = JmlOption.isOption(context, JmlOption.ESC_WARNINGS_PATH);
                     if (byPath) pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
                     else pathCondition = e;
                     if (terminationPos == 0) terminationPos = info.decl.pos;
