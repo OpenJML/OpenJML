@@ -2,11 +2,21 @@
 
 ## Might have trouble with symbolic links
 cd $(dirname "${BASH_SOURCE[0]}")
+
+## One-off scripted tests
+for f in ../test/prefer1/test.sh ; do
+  echo Testing $f
+  $f || echo $f FAILED;
+done
+
+## Read common configuration
 . ./config-filelist
 
+## Select the files to do
 files="$( ls ../test | grep -v '^rac' | comm -23 - skips | sort | sed -e 'sx^x../test/x' )"
 
-threads=5
+## Do them
+threads=3
 if [ $# -gt 0 ]; then
   if [ "$1" = "-t" ]; then
     threads=$2
@@ -20,3 +30,4 @@ if [ $# -gt 0 ]; then
 else
   . ./spawn $files
 fi
+
