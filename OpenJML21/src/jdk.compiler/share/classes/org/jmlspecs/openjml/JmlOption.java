@@ -43,7 +43,7 @@ public class JmlOption {
     public static final JmlOption DIRS = new JmlOption("--dirs",true,null,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)",null);
     public static final JmlOption KEYS = new JmlOption("--keys",true,"","Identifiers for optional JML comments",null);
     public static final JmlOption COMMAND = new JmlOption("--command",true,"check","The command to execute (check,esc,rac,compile)",null) {
-    	public boolean check(Context context, boolean negate) {
+        public boolean check(Context context, boolean negate) {
             Cmd cmd = Cmd.CHECK; // default
             boolean ok = true;
             Utils utils = Utils.instance(context);
@@ -67,15 +67,15 @@ public class JmlOption {
     public static final JmlOption COMPILE = new JmlOption("--compile",false,null,"Does a Java-only compile","--command=compile");
     public static final JmlOption RAC = new JmlOption("--rac",false,null,"Enables generating code instrumented with runtime assertion checks","--command=rac");
     public static final JmlOption ESC = new JmlOption("--esc",false,null,"Enables static checking","--command=esc");
-//    public static final JmlOption BOOGIE = new JmlOption("-boogie",false,false,"Enables static checking with boogie",null);
+    //    public static final JmlOption BOOGIE = new JmlOption("-boogie",false,false,"Enables static checking with boogie",null);
     public static final JmlOption USEJAVACOMPILER = new JmlOption("-java",false,false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null) {
-    	public boolean check(Context context, boolean negate) {
-    		boolean b = JmlOption.isOption(context,JmlOption.USEJAVACOMPILER);
-    		if (b) {
-    			Utils.instance(context).warning("jml.message","The -java option is ignored unless it is the first command-line argument");
-    		}
-    		return true;
-    	}
+        public boolean check(Context context, boolean negate) {
+            boolean b = JmlOption.isOption(context,JmlOption.USEJAVACOMPILER);
+            if (b) {
+                Utils.instance(context).warning("jml.message","The -java option is ignored unless it is the first command-line argument");
+            }
+            return true;
+        }
     };
     public static final JmlOption JML = new JmlOption("-jml",false,true,"When on, the JML compiler is used and all JML constructs are processed; use -no-jml to use OpenJML but ignore JML annotations",null);
 
@@ -84,8 +84,8 @@ public class JmlOption {
     protected static List<String> jmlVariants = Arrays.asList(new String[]{ langJML, langOpenJML });
     public static void addVariant(String s) { jmlVariants.add(s); }
     public static final JmlOption LANG = new JmlOption("--lang",true,langOpenJML,"Set the language variant to use (default 'openjml'): " + Utils.join(" ",jmlVariants),null) {
-    	public boolean check(Context context, boolean negate) {
-    		JmlOptions options = JmlOptions.instance(context);
+        public boolean check(Context context, boolean negate) {
+            JmlOptions options = JmlOptions.instance(context);
             String val = options.get(JmlOption.LANG.optionName());
             if (val == null || val.isEmpty()) {
                 options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
@@ -142,10 +142,6 @@ public class JmlOption {
     public static final JmlOption PURITYCHECK = new JmlOption("--purity-check",false,true,"When on (the default), warnings for use of impure methods from system libraries are issued",null);
     { map.put("-purityCheck",PURITYCHECK); }
     public static final JmlOption NEWISPURE = new JmlOption("--new-is-pure",false,false,"Allows object allocation in pure expressions",null);
-//    public static final JmlOption INTERNALSPECS = new JmlOption("--internal-specs",false,true,"When on (the default), automatically appends the internal specs directory to the specification path",null);
-//    { map.put("-internalSpecs",INTERNALSPECS); }
-//    public static final JmlOption INTERNALRUNTIME = new JmlOption("--internal-runtime",false,true,"When on (the default), automatically appends the internal JML runtime library to the classpath",null);
-//    { map.put("-internalRuntime",INTERNALRUNTIME); }
     public static final JmlOption TIMEOUT = new JmlOption("--timeout",true,null,"Number of seconds to limit any individual proof attempt (default infinite)",null);
 
     public static final JmlOption SHOW_NOT_IMPLEMENTED = new JmlOption("--show-not-implemented",false,false,"When on (off by default), warnings about unimplemented constructs are issued",null);
@@ -154,7 +150,7 @@ public class JmlOption {
     { map.put("-showNotExecutable",SHOW_NOT_EXECUTABLE); }
 
     public static final JmlOption VERBOSENESS = new JmlOption("--verboseness",true,1,"Level of verboseness (0=quiet...4=debug)",null) {
-    	public boolean check(Context context, boolean negate) {
+        public boolean check(Context context, boolean negate) {
             String n = JmlOption.VERBOSENESS.optionName().trim();
             String levelstring = JmlOptions.instance(context).get(n);
             if (levelstring != null) {
@@ -171,8 +167,8 @@ public class JmlOption {
     	}
     };
     public static final JmlOption WARN = new JmlOption("--warn",true,"","Comma-separated list of warning keys to enable or disable",null) {
-    	public boolean check(Context context, boolean negate) {
-    		JmlOptions options = JmlOptions.instance(context);
+        public boolean check(Context context, boolean negate) {
+            JmlOptions options = JmlOptions.instance(context);
             String val = options.get(JmlOption.WARN.optionName());
             String[] keys = val.split(",");
             for (var k: keys) options.warningKeys.put(k,!negate);
@@ -228,7 +224,7 @@ public class JmlOption {
                     int k = Integer.parseInt(limit);
                     utils.maxWarnings = k <= 0 ? Integer.MAX_VALUE : k;
                 } catch (NumberFormatException e) {
-                    utils.error("jml.message","Expected a number or 'all' as argument for -escMaxWarnings: " + limit);
+                    utils.error("jml.message","Expected a number or 'all' as argument for --esc-max-warnings: " + limit);
                     utils.maxWarnings = Integer.MAX_VALUE;
                     return false;
                 }
@@ -237,13 +233,13 @@ public class JmlOption {
     	}
     };
     { map.put("-escMaxWarnings",ESC_MAX_WARNINGS); }
-    public static final JmlOption MAXWARNINGSPATH = new JmlOption("--esc-max-warnings-path",false,false,"ESC: If true, find all counterexample paths to each invalid assert",null);
+    public static final JmlOption ESC_WARNINGS_PATH = new JmlOption("--esc-warnings-path",false,false,"ESC: If true, find all counterexample paths to each invalid assert",null);
     public static final JmlOption COUNTEREXAMPLE = new JmlOption("--counterexample",false,false,"ESC: Enables output of complete, raw counterexample",null);
     { map.put("-ce",COUNTEREXAMPLE); }
     public static final JmlOption SUBEXPRESSIONS = new JmlOption("--subexpressions",false,false,"ESC: Enables tracing with subexpressions",null);
     public static final JmlOption FEASIBILITY = new JmlOption("--check-feasibility",true,"none","ESC: Check feasibility of assumptions",null) {
-    	public boolean check(Context context, boolean negate) {
-    		JmlOptions options = JmlOptions.instance(context);
+        public boolean check(Context context, boolean negate) {
+            JmlOptions options = JmlOptions.instance(context);
             Utils utils = Utils.instance(context);
             String check = JmlOption.value(context,JmlOption.FEASIBILITY);
             if (check == null || check.isEmpty()) {
@@ -256,11 +252,11 @@ public class JmlOption {
                 if (utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
                 int k = check.indexOf(":");
                 if (k > 0) {
-                	try {
-                		MethodProverSMT.startFeasibilityCheck = Integer.parseInt(check.substring(k+1));
-                	} catch (Exception e) {
-                		// continue
-                	}
+                    try {
+                        MethodProverSMT.startFeasibilityCheck = Integer.parseInt(check.substring(k+1));
+                    } catch (Exception e) {
+                        // continue
+                    }
                 }
             }
             String badString = Strings.isOKFeasibility(check);
@@ -278,8 +274,8 @@ public class JmlOption {
 //    public static final JmlOption MODEL_FIELD_NO_REP = new JmlOption("-modelFieldNoRep",true,"zero","RAC action when a model field has no represents clause (zero,ignore,warn)",null);
 
     public static final JmlOption RAC_SHOW_SOURCE = new JmlOption("--rac-show-source",true,"source","RAC: Error messages will include source information (none,line,source)",null) {
-    	public boolean check(Context context, boolean negate) {
-    		JmlOptions options = JmlOptions.instance(context);
+        public boolean check(Context context, boolean negate) {
+            JmlOptions options = JmlOptions.instance(context);
             String val = options.get(optionName());
             if (val == null || val.isEmpty()) {
                 options.put(optionName(),negate? "line" : (String)defaultValue());
@@ -288,10 +284,10 @@ public class JmlOption {
             } else {
                 Utils.instance(context).warning("jml.message","Command-line argument error: Expected 'none', 'line' or 'source' for --rac-show-source : " + val);
                 options.put(optionName(),(String)defaultValue());
-            	return false;
+                return false;
             }
             return true;
-    	}
+        }
     };
     public static final JmlOption RAC_CHECK_ASSUMPTIONS = new JmlOption("--rac-check-assumptions",false,true,"RAC: Enables runtime checking that assumptions hold",null);
     public static final JmlOption RAC_JAVA_CHECKS = new JmlOption("--rac-java-checks",false,false,"RAC: Enables explicit checking of Java language checks",null);
@@ -301,7 +297,6 @@ public class JmlOption {
     public static final JmlOption RAC_MISSING_MODEL_FIELD_REP_BINARY = new JmlOption("--rac-missing-model-field-rep-binary",true,"skip","RAC: action when a model field for a binary class has no representation (zero,warn,skip)",null);
 
     public static final JmlOption PROPERTIES = new JmlOption("--properties",true,null,"Specifies the path to the properties file",null);
-//    public static final JmlOption PROPERTIES_DEFAULT = new JmlOption("-properties-default",true,null,"Specifies the path to the default properties file",null);
 
     public static final JmlOption DEFAULTS = new JmlOption("--defaults",true,"","Specifies various default behaviors: constructor:pure|everything",null);
     public static final JmlOption STATIC_INIT_WARNING = new JmlOption("-staticInitWarning",false,true,"Warns about missing static_initializer clauses",null);

@@ -26,8 +26,10 @@ import com.sun.tools.javac.comp.Flow.SnippetAliveAnalyzer;
 import com.sun.tools.javac.comp.Flow.SnippetBreakToAnalyzer;
 import com.sun.tools.javac.resources.CompilerProperties.Errors;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
@@ -580,6 +582,11 @@ public class JmlFlow extends Flow  {
         public void visitLabelled(JCTree.JCLabeledStatement that) {
             scan(((JmlLabeledStatement)that).extraStatements.toList());
             super.visitLabelled(that);
+        }
+        
+        public void visitSelect(JCFieldAccess tree) {
+            if (tree.name == null) return; // this might be a x.* in a havoc statement
+            super.visitSelect(tree);
         }
         
         public void visitJmlTuple(JmlTuple that) {
