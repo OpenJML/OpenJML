@@ -34,9 +34,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        ## FIXME: Figure out how to share this matrix with the upload job below
-        ## Until then, keep the two in synch
-        os: [macos-14, ubuntu-22.04, macos-13, ubuntu-20.04]
+        ## Omitting macos-14 because the python setup fails for that runner
+        os: [ ubuntu-22.04, macos-13, ubuntu-20.04]
       fail-fast: false
 
     steps:
