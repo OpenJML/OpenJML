@@ -19196,27 +19196,74 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return list;
 	}
 
-	// OK
-	@Override
-	public void visitJmlStatementHavoc(JmlStatementHavoc that) {
-		if (translatingJML) {
-			error(that, "Unexpected call of JmlAssertionAdder.visitJmlStatementHavoc while translating JML: "
-					+ that.getClass());
-			return;
-		}
-		try {
-		    var saved = convertingAssignable;
-		    convertingAssignable = true;
-		    var stat = M.at(that).JmlHavocStatement(convertJML(that.storerefs)).setType(that.type);
-		    convertingAssignable = saved;
+    // OK
+    @Override
+    public void visitJmlStatementHavoc(JmlStatementHavoc that) {
+        if (translatingJML) {
+            error(that, "Unexpected call of JmlAssertionAdder.visitJmlStatementHavoc while translating JML: "
+                    + that.getClass());
+            return;
+        }
+        try {
+            var saved = convertingAssignable;
+            convertingAssignable = true;
+            var stat = M.at(that).JmlHavocStatement(convertJML(that.storerefs)).setType(that.type);
+            convertingAssignable = saved;
             JmlLabeledStatement sttt = markUniqueLocation(stat);
             addStat(sttt);
             changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, that.storerefs)), sttt.label);
+            for (var sr: that.storerefs) {
+                addTypeAssumption(sr);
+            }
             result = stat; // I don't think this matters
-		} catch (JmlNotImplementedException e) {
-			notImplemented("havoc statement containing ", e);
-		}
-	}
+        } catch (JmlNotImplementedException e) {
+            notImplemented("havoc statement containing ", e);
+        }
+    }
+    
+    public void addTypeAssumption(JCExpression sr) {
+        // FIXME - won't work for anything with wild-cards; also not all types here, nor explicit invariants liek nullity
+        if (types.isSameType(sr.type, syms.intType)) {
+            var pred = treeutils.makeAnd(sr, 
+                    treeutils.makeBinarySimp(sr, Tag.LE,
+                            treeutils.makeIntLiteral(sr,  Integer.MIN_VALUE), 
+                            sr),
+                    treeutils.makeBinarySimp(sr, Tag.LE,
+                            sr,
+                            treeutils.makeIntLiteral(sr,  Integer.MAX_VALUE)));
+            addAssume(sr, Label.IMPLICIT_ASSUME, pred);
+        } else if (types.isSameType(sr.type, syms.shortType)) {
+            var pred = treeutils.makeAnd(sr, 
+                    treeutils.makeBinarySimp(sr, Tag.LE,
+                            treeutils.makeIntLiteral(sr,  Short.MIN_VALUE), 
+                            sr),
+                    treeutils.makeBinarySimp(sr, Tag.LE,
+                            sr,
+                            treeutils.makeIntLiteral(sr,  Short.MAX_VALUE)));
+            addAssume(sr, Label.IMPLICIT_ASSUME, pred);
+        }
+        if (types.isSameType(sr.type, syms.longType)) {
+            var pred = treeutils.makeAnd(sr, 
+                    treeutils.makeBinarySimp(sr, Tag.LE,
+                            treeutils.makeLongLiteral(sr,  Long.MIN_VALUE), 
+                            sr),
+                    treeutils.makeBinarySimp(sr, Tag.LE,
+                            sr,
+                            treeutils.makeLongLiteral(sr,  Long.MAX_VALUE)));
+            addAssume(sr, Label.IMPLICIT_ASSUME, pred);
+        }
+        if (types.isSameType(sr.type, syms.byteType)) {
+            var pred = treeutils.makeAnd(sr, 
+                    treeutils.makeBinarySimp(sr, Tag.LE,
+                            treeutils.makeIntLiteral(sr,  Byte.MIN_VALUE), 
+                            sr),
+                    treeutils.makeBinarySimp(sr, Tag.LE,
+                            sr,
+                            treeutils.makeIntLiteral(sr,  Byte.MAX_VALUE)));
+            addAssume(sr, Label.IMPLICIT_ASSUME, pred);
+        }
+        
+    }
 
 	// OK
 	@Override
