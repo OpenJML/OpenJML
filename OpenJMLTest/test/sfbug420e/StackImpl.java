@@ -48,9 +48,11 @@ public class StackImpl implements Stack {
 	
 	public static void main(String[] args) {
 		Stack s = new StackImpl();
-		s.push(2);
-		s.push(2);
-		s.push(2);
+        var b1 = s.push(2);
+        var b2 = s.push(2);
+        var b3 = s.push(2);
+        //@ assume b1 && b2 && b3;
+        //@ assert s.count() == 3;
 		System.out.println(s.itemAt(1));
 		System.out.println(s.itemAt(2));
 		System.out.println(s.itemAt(3));

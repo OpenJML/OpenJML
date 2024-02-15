@@ -154,20 +154,34 @@ public class JmlTokenizer extends JavadocTokenizer {
             endPos -= 2; // TODO: Presumes no unicode for the comment terminator
         }
         
+        if (jml && jmlcommentstyle == CommentStyle.BLOCK && style == CommentStyle.LINE) {
+            // A line comment within a block comment.
+            // Must be sure that the line comment does not include the ending */ of the enclosing comment
+            reset(pos);
+            do {
+                int p = position();
+                char c = get();
+                char cc = next();
+                if (c == '*' && cc == '/') {
+                    endPos = p;
+                    break;
+                }
+            } while (position() < endPos);
+            reset(pos);
+        }
         if (jml && jmlcommentstyle == CommentStyle.LINE && style == CommentStyle.BLOCK) {
-        	reset(pos);
+            reset(pos);
             do {
                 char cch = next();
-                if (scannerDebug) System.out.println("CHECKING " + position() + cch);
                 if (cch == '\r' || cch == '\n') {
                     log.error(pos, "jml.message", "Embedded block comment must terminate within the JML line comment");
                     style = CommentStyle.LINE; // Pretend it ends at the line terminator
                     endPos = position();
-                	return null;
+                    return null;
                 }
             } while (position() < endPos);
-        	reset(pos);
-        	nestedBlockComment = true;
+            reset(pos);
+            nestedBlockComment = true;
         }
         
         if (jml && style == CommentStyle.JAVADOC) {
