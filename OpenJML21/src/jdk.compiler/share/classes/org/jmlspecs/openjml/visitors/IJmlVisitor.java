@@ -109,6 +109,9 @@ public interface IJmlVisitor extends IVisitor {
         }
     }
 
+    default public void visitJmlMethodClauseBehaviors(JmlMethodClauseBehaviors tree) {
+    }
+
     default public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
         scan(tree.keyword);
         scan(tree.methodSignatures);
@@ -131,6 +134,10 @@ public interface IJmlVisitor extends IVisitor {
             RecommendsClause.Node n = (RecommendsClause.Node)tree;
             scan(n.exceptionType);
         }
+    }
+
+    default public void visitJmlMethodClauseInvariants(JmlMethodClauseInvariants tree) {
+        for (var e: tree.expressions) scan(e);
     }
 
     default public void visitJmlMethodClauseGroup(JmlMethodClauseGroup tree) {

@@ -20,6 +20,7 @@ import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.IJmlClauseKind.MethodSpecClauseKind;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.IJmlClauseKind.TypeAnnotationKind;
+
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.AssignableClauseExtension;
@@ -48,6 +49,7 @@ import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.*;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.TypeInClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeMapsClauseExtension.*;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.TypeTag;
@@ -1693,6 +1695,16 @@ public class JmlParser extends JavacParser {
             }
             if (cases.size() > 0) cases.first().also = ext;
             sp.forExampleCases = cases.toList();
+        } 
+        if (ext == behaviorsClauseKind) {
+            var blist = new ListBuffer<JmlMethodClauseBehaviors>();
+            JmlMethodClauseBehaviors b;
+            while (ext == behaviorsClauseKind && (b = (JmlMethodClauseBehaviors)behaviorsClauseKind.parse(mods, behaviorsID, behaviorsClauseKind, this)) != null) {
+                blist.append(b);
+                lastPos = getEndPos(b);
+                ext = methodSpecKeyword();
+            }
+            sp.behaviors = blist.toList();
         }
         storeEnd(sp, lastPos);
         // We may have parsed some modifiers and then found out that we are not
@@ -1905,8 +1917,19 @@ public class JmlParser extends JavacParser {
         } else {
             nextToken();
         }
+//        System.out.println("TOKEN " + token);
+//        while (token.kind == TokenKind.IDENTIFIER && token.name().toString().equals(behaviorsID)) { // FIXME - alternate spelling? Use clause kind?
+//            nextToken();
+//            var id = ident();            
+//            if (java.util.Arrays.binarySearch(behaviorsCommands,id) < 0) { 
+//                utils.error(token.pos, "jml.message", "Unexpected keyword in a 'behaviors' clause: ", id);        
+//            }
+//            accept(SEMI);
+//            System.out.println("TOKEN " + token);
+//        }
         return toP(jmlF.at(p).JmlMethodClauseGroup(list.toList()));
     }
+    
 
     /**
      * Parses a method specification clause; the current token must be the token
@@ -1930,6 +1953,7 @@ public class JmlParser extends JavacParser {
         if (token().kind == IDENTIFIER) keyword = token().name().toString();
         if (keyword != null) {
             IJmlClauseKind clauseType = Extensions.findTM(keyword);
+            if (clauseType == org.jmlspecs.openjml.ext.MethodExprClauseExtensions.behaviorsClauseKind) return null; // 'behaviors' clauses not allowed in specification cases
             if (clauseType instanceof MethodSpecClauseKind) {
                 res = (JmlMethodClause)clauseType.parse(null, keyword, clauseType, this);
             } else if (clauseType instanceof IJmlClauseKind.MethodClauseKind) {

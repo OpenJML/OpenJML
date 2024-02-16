@@ -43,6 +43,8 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     //R visitLabeledStatement(LabeledStatementTree that, P p) ;
     R visitJmlLblExpression(JmlLblExpression that, P p)       ;
     R visitJmlMatchExpression(JmlMatchExpression that, P p)   ;
+    R visitJmlMethodClauseInvariants(JmlMethodClauseInvariants that, P p) ;
+    R visitJmlMethodClauseBehaviors(JmlMethodClauseBehaviors that, P p) ;
     R visitJmlMethodClauseCallable(JmlMethodClauseCallable that, P p) ;
     R visitJmlMethodClauseConditional(JmlMethodClauseConditional that, P p) ;
     R visitJmlMethodClauseDecl(JmlMethodClauseDecl that, P p) ;

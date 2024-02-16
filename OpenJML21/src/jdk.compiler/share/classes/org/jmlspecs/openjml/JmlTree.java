@@ -25,6 +25,8 @@ import static org.jmlspecs.openjml.ext.TypeInitializerClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeMapsClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeMonitorsForClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeDeclClauseExtension.*;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
+import static org.jmlspecs.openjml.ext.MethodExprListClauseExtensions.*;
 
 import com.sun.source.tree.*;
 import static com.sun.source.tree.CaseTree.*;
@@ -121,6 +123,8 @@ public class JmlTree {
         JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> cases);
         JmlMethodClauseDecl JmlMethodClauseDecl(String keyword, IJmlClauseKind t, List<JCTree.JCVariableDecl> decls);
         JmlMethodClauseExpr JmlMethodClauseExpr(String keyword, IJmlClauseKind t, JCTree.JCExpression e);
+        JmlMethodClauseBehaviors JmlMethodClauseBehaviors(String command);
+        JmlMethodClauseInvariants JmlMethodClauseInvariants(List<JCExpression> expressions);
         JmlMethodClauseCallable JmlMethodClauseCallable(JmlSingleton keyword);
         JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlMethodSig> methodSignatures);
         JmlMethodClauseConditional JmlMethodClauseConditional(String keyword, IJmlClauseKind kind, JCTree.JCExpression e, JCTree.JCExpression predicate);
@@ -879,8 +883,13 @@ public class JmlTree {
         }
         
         @Override
+        public JmlMethodClauseBehaviors JmlMethodClauseBehaviors(String command) {
+            return new JmlMethodClauseBehaviors(pos,command);
+        }
+        
+        @Override
         public JmlMethodClauseCallable JmlMethodClauseCallable(JmlSingleton keyword) {
-        	return new JmlMethodClauseCallable(pos,keyword,null);
+            return new JmlMethodClauseCallable(pos,keyword,null);
         }
         
         @Override
@@ -891,6 +900,11 @@ public class JmlTree {
         @Override
         public JmlMethodClauseConditional JmlMethodClauseConditional(String keyword, IJmlClauseKind t, JCTree.JCExpression e, JCTree.JCExpression p) {
             return new JmlMethodClauseConditional(pos,keyword,t,e,p);
+        }
+        
+        @Override
+        public JmlMethodClauseInvariants JmlMethodClauseInvariants(List<JCTree.JCExpression> e) {
+            return new JmlMethodClauseInvariants(pos,e);
         }
         
         @Override
@@ -2549,6 +2563,85 @@ public class JmlTree {
         }
     }
     
+    /** This class represents a method specification clause that has just an
+     * expression (e.g. requires, ensures).
+     */
+    public static class JmlMethodClauseBehaviors extends JmlMethodClauseExpr {
+
+        public String command;
+
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlMethodClauseBehaviors(int pos, String command) {
+            super(pos,behaviorsID,behaviorsClauseKind,null);
+            this.command = command;
+        }
+
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlMethodClauseBehaviors(this); 
+            } else {
+                //System.out.println("A visitJmlMethodClauseBehaviors expects an IJmlVisitor, not a " + v.getClass());
+                super.accept(v);
+            }
+        }
+
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseBehaviors(this, d);
+            } else {
+                System.out.println("A visitJmlMethodClauseBehaviors expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
+        
+        @Override
+        public int getStartPosition() {
+            return pos;
+        }
+    }
+    
+    /** This class represents a method specification clause that has just an
+     * expression (e.g. requires, ensures).
+     */
+    public static class JmlMethodClauseInvariants extends JmlMethodClause {
+
+        public List<JCTree.JCExpression> expressions;
+
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlMethodClauseInvariants(int pos, List<JCTree.JCExpression> expressions) {
+            super(pos,invariantsID,invariantsClauseKind);
+            this.expressions = expressions;
+        }
+
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+//                ((IJmlVisitor)v).visitList<JCTree.JCExpression>(this.expressions); 
+            } else {
+                //System.out.println("A JmlMethodClauseInvariants expects an IJmlVisitor, not a " + v.getClass());
+                super.accept(v);
+            }
+        }
+
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+//                return ((JmlTreeVisitor<R,D>)v).visitList<JCTree.JCExpression>(this, d);
+                return null;
+            } else {
+                System.out.println("A JmlMethodClauseInvariants expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
+        
+        @Override
+        public int getStartPosition() {
+            return pos;
+        }
+    }
+    
     /** This represents the sequence of method specs lists that are the sequence
      * of nested specs
      */
@@ -2708,6 +2801,9 @@ public class JmlTree {
         /** The for-example specification cases */
         public List<JmlSpecificationCase> forExampleCases;
         
+        /** The behaviors specification cases */
+        public List<JmlMethodClauseBehaviors> behaviors;
+        
         public List<JmlMethodClause> feasible;
         
         public JmlMethodSpecs deSugared = null; // FIXME - should this be here?
@@ -2720,6 +2816,7 @@ public class JmlTree {
             this.cases = cases;
             this.impliesThatCases = List.<JmlSpecificationCase>nil();
             this.forExampleCases = List.<JmlSpecificationCase>nil();
+            this.behaviors = null;
             this.feasible = null;
         }
         
@@ -2728,6 +2825,7 @@ public class JmlTree {
             this.cases = List.<JmlSpecificationCase>nil();;
             this.impliesThatCases = List.<JmlSpecificationCase>nil();
             this.forExampleCases = List.<JmlSpecificationCase>nil();
+            this.behaviors = null;
             this.feasible = null;
         }
         
