@@ -344,6 +344,15 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     @Override
+    public JCTree visitJmlMethodClauseBehaviors(JmlMethodClauseBehaviors that, Void p) {
+        JmlMethodClauseBehaviors copy= M.at(that.pos).JmlMethodClauseBehaviors(that.command);
+        copy.sourcefile = that.sourcefile;
+        copy.type = that.type;
+        copyEndPos(copy,that,copy.sourcefile);
+        return copy;
+    }
+
+    @Override
     public JCTree visitJmlMethodClauseConditional(JmlMethodClauseConditional that, Void p) {
         JmlMethodClauseConditional copy = M.at(that.pos).JmlMethodClauseConditional(
                 that.keyword,
@@ -374,6 +383,15 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 that.keyword,
                 that.clauseKind,
                 copy(that.expression,p));
+        copy.sourcefile = that.sourcefile;
+        copy.type = that.type;
+        copyEndPos(copy,that,copy.sourcefile);
+        return copy;
+    }
+
+    @Override
+    public JCTree visitJmlMethodClauseInvariants(JmlMethodClauseInvariants that, Void p) {
+        JmlMethodClauseInvariants copy = M.at(that.pos).JmlMethodClauseInvariants(copy(that.expressions));
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         copyEndPos(copy,that,copy.sourcefile);

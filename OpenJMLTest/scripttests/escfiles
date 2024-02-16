@@ -9,7 +9,6 @@ cd $(dirname "${BASH_SOURCE[0]}")
 ## Select the files to do
 files="$( ls ../test | grep -v '^rac' | comm -23 - skips | sort | sed -e 'sx^x../test/x' )"
 
-echo $files
 ## Get any options
 threads=3
 if [ $# -gt 0 ]; then

@@ -391,6 +391,24 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(that,e); }
     }
 
+    public void visitJmlMethodClauseBehaviors(JmlMethodClauseBehaviors that) {
+        try {
+            print(useCanonicalName ? that.clauseKind.keyword() : that.keyword);
+            print(" ");
+            print(that.command);
+            print("; ");
+        } catch (IOException e) { perr(that,e); }
+    }
+
+    public void visitJmlMethodClauseInvariants(JmlMethodClauseInvariants that) {
+        try {
+            print(useCanonicalName ? that.clauseKind.keyword() : that.keyword);
+            print(" :: ");
+            printExprs(that.expressions);
+            print("; ");
+        } catch (IOException e) { perr(that,e); }
+    }
+
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
         try {
             print(useCanonicalName ? that.clauseKind.keyword() : that.keyword);

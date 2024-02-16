@@ -4611,6 +4611,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			// Collect and check precondition
 
+			java.util.List<JmlSpecificationCase> prelist = new LinkedList<>();
 			JCExpression savedThis = currentEnv.currentReceiver;
 			currentEnv.currentReceiver = savedThis;
 			JCExpression combinedPrecondition = null;
@@ -4802,6 +4803,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							preident = treeutils.makeIdent(scase.pos, dx.sym);
 						}
 						//System.out.println("CALLER PUT " + preident + " " + scase + " " + scase.hashCode());
+						prelist.add(scase);
 						preconditions.put(scase, preident);
 						if (combinedPrecondition == null || preexpr == null) {
 							combinedPrecondition = preident;
@@ -4830,7 +4832,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// precondition is true and does not
 			// need to be assumed
 			if (combinedPrecondition != null) {
-				// FIXME - associated location? where?
+	            if (!rac) {
+	                var behaviors = specs.get(methodDecl.sym).cases.behaviors;
+	                if (behaviors != null) {
+	                    JmlMethodClauseBehaviors cl = null;
+	                    for (var b: behaviors) { if (b.command.equals("complete")) cl = b; };
+	                    if (cl != null) {
+	                        addAssert(cl, Label.COMPLETENESS, combinedPrecondition);
+	                    }
+	                    cl = null;
+                        for (var b: behaviors) { if (b.command.equals("disjoint")) cl = b; };
+                        if (cl != null) {
+                            for (var case1: prelist) {
+                                var pre1 = preconditions.get(case1);
+                                for (var case2: prelist) {
+                                    if (case1 == case2) break;
+                                    var pre2 = preconditions.get(case2);
+                                    JCExpression e = treeutils.makeNot(cl,
+                                            treeutils.makeAnd(cl, pre1, pre2));
+                                    var prev = log.useSource(case1.sourcefile);
+                                    addAssert(pre1, Label.DISJOINTNESS, e, pre2, case2.sourcefile);
+                                    log.useSource(prev);
+                                }
+                            }
+                        }
+	                }
+	            }
+
+			    // FIXME - associated location? where?
 				JavaFileObject prev = log.useSource(combinedPreconditionSource);
 				addAssume(combinedPrecondition, Label.PRECONDITION, combinedPrecondition);
 				log.useSource(prev);
@@ -4861,6 +4890,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					preStats.add(st);
 				}
 			}
+			
 			initialStats.appendList(preStats);
 
 		} catch (Exception e) {

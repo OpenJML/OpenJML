@@ -1,0 +1,26 @@
+Proving methods in T
+Starting proof of T.T() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.T() with prover !!!! - no warnings
+Starting proof of T.m(int) with prover !!!!
+test/behaviors2/T.java:6: warning: The prover cannot establish an assertion (CompletePreconditions) in method m
+  //@ behaviors complete;
+      ^
+Completed proof of T.m(int) with prover !!!! - with warnings
+Starting proof of T.mcomplete(int) with prover !!!!
+test/behaviors2/T.java:13: warning: The prover cannot establish an assertion (DisjointPreconditions) in method mcomplete
+  //@ requires i == 1;
+      ^
+test/behaviors2/T.java:11: warning: Associated declaration
+  //@ requires i >= 0;
+      ^
+test/behaviors2/T.java:11: warning: The prover cannot establish an assertion (DisjointPreconditions) in method mcomplete
+  //@ requires i >= 0;
+      ^
+test/behaviors2/T.java:9: warning: Associated declaration
+  //@ requires i <= 0;
+      ^
+Completed proof of T.mcomplete(int) with prover !!!! - with warnings
+Completed proving methods in T
+5 warnings

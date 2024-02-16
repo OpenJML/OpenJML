@@ -52,6 +52,10 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
             return newlist;
 //        }
     }
+    
+    public String translate(String s) {
+        return s;
+    }
 
     public <T extends JCTree> java.util.List<T> translate(java.util.List<T> trees) {
         if (trees == null) return null;
@@ -211,10 +215,10 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
-    public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
-        JmlMethodClauseCallable r = that;
+    public void visitJmlMethodClauseBehaviors(JmlMethodClauseBehaviors that) {
+        JmlMethodClauseBehaviors r = that;
         r.keyword = translate(that.keyword);
-        r.methodSignatures = translate(that.methodSignatures);
+        r.command = translate(that.command);
         result = r;
     }
 
@@ -239,6 +243,14 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
         JmlMethodClauseExpr r = that;
         r.expression = translate(that.expression);
+        result = r;
+        // Not translating: token
+    }
+
+    @Override
+    public void visitJmlMethodClauseInvariants(JmlMethodClauseInvariants that) {
+        JmlMethodClauseInvariants r = that;
+        r.expressions = translate(that.expressions);
         result = r;
         // Not translating: token
     }
