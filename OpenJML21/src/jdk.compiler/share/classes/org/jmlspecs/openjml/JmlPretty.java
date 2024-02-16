@@ -403,7 +403,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlMethodClauseInvariants(JmlMethodClauseInvariants that) {
         try {
             print(useCanonicalName ? that.clauseKind.keyword() : that.keyword);
-            print(" :: ");
+            print(" ");
             printExprs(that.expressions);
             print("; ");
         } catch (IOException e) { perr(that,e); }

@@ -13,125 +13,149 @@ Starting proof of Assigns.m1() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Assigns.m1() with prover !!!! - no warnings
-Starting proof of Assigns.m2() with prover !!!!
-test/escAssigns/Assigns.java:33: warning: The prover cannot establish an assertion (Assignable) in method m2: t2.v
+Starting proof of Assigns.m2a() with prover !!!!
+test/escAssigns/Assigns.java:31: warning: The prover cannot establish an assertion (Assignable) in method m2a: x
+    x = 0; // ERROR
+      ^
+test/escAssigns/Assigns.java:29: warning: Associated declaration
+  //@ writes t1.v;
+      ^
+Completed proof of Assigns.m2a() with prover !!!! - with warnings
+Starting proof of Assigns.m2b() with prover !!!!
+test/escAssigns/Assigns.java:38: warning: The prover cannot establish an assertion (Assignable) in method m2b: t2.v
     t2.v = 0; // ERROR
          ^
-test/escAssigns/Assigns.java:29: warning: Associated declaration
+test/escAssigns/Assigns.java:36: warning: Associated declaration
   //@ writes t1.v;
       ^
-test/escAssigns/Assigns.java:31: warning: The prover cannot establish an assertion (Assignable) in method m2: x
-    x = 0; // ERROR
-      ^
-test/escAssigns/Assigns.java:29: warning: Associated declaration
-  //@ writes t1.v;
-      ^
-test/escAssigns/Assigns.java:34: warning: The prover cannot establish an assertion (Assignable) in method m2: a[1]
+Completed proof of Assigns.m2b() with prover !!!! - with warnings
+Starting proof of Assigns.m2c() with prover !!!!
+test/escAssigns/Assigns.java:44: warning: The prover cannot establish an assertion (Assignable) in method m2c: a[1]
     a[1] = 0; // ERROR
          ^
-test/escAssigns/Assigns.java:29: warning: Associated declaration
+test/escAssigns/Assigns.java:42: warning: Associated declaration
   //@ writes t1.v;
       ^
-Completed proof of Assigns.m2() with prover !!!! - with warnings
-Starting proof of Assigns.m3() with prover !!!!
-test/escAssigns/Assigns.java:41: warning: The prover cannot establish an assertion (Assignable) in method m3: t1.v
-    t1.v = 0; // ERROR
-         ^
-test/escAssigns/Assigns.java:38: warning: Associated declaration
-  //@ writes a[1];
-      ^
-test/escAssigns/Assigns.java:40: warning: The prover cannot establish an assertion (Assignable) in method m3: x
+Completed proof of Assigns.m2c() with prover !!!! - with warnings
+Starting proof of Assigns.m3a() with prover !!!!
+test/escAssigns/Assigns.java:50: warning: The prover cannot establish an assertion (Assignable) in method m3a: x
     x = 0; // ERROR
       ^
-test/escAssigns/Assigns.java:38: warning: Associated declaration
+test/escAssigns/Assigns.java:48: warning: Associated declaration
   //@ writes a[1];
       ^
-test/escAssigns/Assigns.java:43: warning: The prover cannot establish an assertion (Assignable) in method m3: a[4]
-    a[4] = 0; // ERROR
-         ^
-test/escAssigns/Assigns.java:38: warning: Associated declaration
-  //@ writes a[1];
-      ^
-Completed proof of Assigns.m3() with prover !!!! - with warnings
-Starting proof of Assigns.m4() with prover !!!!
-test/escAssigns/Assigns.java:50: warning: The prover cannot establish an assertion (Assignable) in method m4: t1.v
+Completed proof of Assigns.m3a() with prover !!!! - with warnings
+Starting proof of Assigns.m3b() with prover !!!!
+test/escAssigns/Assigns.java:56: warning: The prover cannot establish an assertion (Assignable) in method m3b: t1.v
     t1.v = 0; // ERROR
          ^
-test/escAssigns/Assigns.java:47: warning: Associated declaration
+test/escAssigns/Assigns.java:54: warning: Associated declaration
+  //@ writes a[1];
+      ^
+Completed proof of Assigns.m3b() with prover !!!! - with warnings
+Starting proof of Assigns.m3c() with prover !!!!
+test/escAssigns/Assigns.java:63: warning: The prover cannot establish an assertion (Assignable) in method m3c: a[4]
+    a[4] = 0; // ERROR
+         ^
+test/escAssigns/Assigns.java:60: warning: Associated declaration
+  //@ writes a[1];
+      ^
+Completed proof of Assigns.m3c() with prover !!!! - with warnings
+Starting proof of Assigns.m4a() with prover !!!!
+test/escAssigns/Assigns.java:69: warning: The prover cannot establish an assertion (Assignable) in method m4a: x
+    x = 0; // ERROR
+      ^
+test/escAssigns/Assigns.java:67: warning: Associated declaration
   //@ writes a[*];
       ^
-test/escAssigns/Assigns.java:49: warning: The prover cannot establish an assertion (Assignable) in method m4: x
-    x = 0; // ERROR
-      ^
-test/escAssigns/Assigns.java:47: warning: Associated declaration
+Completed proof of Assigns.m4a() with prover !!!! - with warnings
+Starting proof of Assigns.m4b() with prover !!!!
+test/escAssigns/Assigns.java:75: warning: The prover cannot establish an assertion (Assignable) in method m4b: t1.v
+    t1.v = 0; // ERROR
+         ^
+test/escAssigns/Assigns.java:73: warning: Associated declaration
   //@ writes a[*];
       ^
-Completed proof of Assigns.m4() with prover !!!! - with warnings
-Starting proof of Assigns.m5() with prover !!!!
-test/escAssigns/Assigns.java:59: warning: The prover cannot establish an assertion (Assignable) in method m5: t1.v
+Completed proof of Assigns.m4b() with prover !!!! - with warnings
+Starting proof of Assigns.m5a() with prover !!!!
+test/escAssigns/Assigns.java:83: warning: The prover cannot establish an assertion (Assignable) in method m5a: x
+    x = 0; // ERROR
+      ^
+test/escAssigns/Assigns.java:81: warning: Associated declaration
+  //@ writes a[3..5];
+      ^
+Completed proof of Assigns.m5a() with prover !!!! - with warnings
+Starting proof of Assigns.m5b() with prover !!!!
+test/escAssigns/Assigns.java:89: warning: The prover cannot establish an assertion (Assignable) in method m5b: t1.v
     t1.v = 0; // ERROR
          ^
-test/escAssigns/Assigns.java:56: warning: Associated declaration
+test/escAssigns/Assigns.java:87: warning: Associated declaration
   //@ writes a[3..5];
       ^
-test/escAssigns/Assigns.java:58: warning: The prover cannot establish an assertion (Assignable) in method m5: x
-    x = 0; // ERROR
-      ^
-test/escAssigns/Assigns.java:56: warning: Associated declaration
-  //@ writes a[3..5];
-      ^
-test/escAssigns/Assigns.java:61: warning: The prover cannot establish an assertion (Assignable) in method m5: a[1]
+Completed proof of Assigns.m5b() with prover !!!! - with warnings
+Starting proof of Assigns.m5c() with prover !!!!
+test/escAssigns/Assigns.java:96: warning: The prover cannot establish an assertion (Assignable) in method m5c: a[1]
     a[1] = 0; // ERROR
          ^
-test/escAssigns/Assigns.java:56: warning: Associated declaration
+test/escAssigns/Assigns.java:93: warning: Associated declaration
   //@ writes a[3..5];
       ^
-Completed proof of Assigns.m5() with prover !!!! - with warnings
-Starting proof of Assigns.m6() with prover !!!!
-test/escAssigns/Assigns.java:67: warning: The prover cannot establish an assertion (Assignable) in method m6: x
+Completed proof of Assigns.m5c() with prover !!!! - with warnings
+Starting proof of Assigns.m6a() with prover !!!!
+test/escAssigns/Assigns.java:102: warning: The prover cannot establish an assertion (Assignable) in method m6a: x
     x = 0; // ERROR
       ^
-test/escAssigns/Assigns.java:65: warning: Associated declaration
+test/escAssigns/Assigns.java:100: warning: Associated declaration
   //@ writes t1.*;
       ^
-test/escAssigns/Assigns.java:70: warning: The prover cannot establish an assertion (Assignable) in method m6: a[1]
-    a[1] = 0; // ERROR
-         ^
-test/escAssigns/Assigns.java:65: warning: Associated declaration
-  //@ writes t1.*;
-      ^
-test/escAssigns/Assigns.java:69: warning: The prover cannot establish an assertion (Assignable) in method m6: a[4]
+Completed proof of Assigns.m6a() with prover !!!! - with warnings
+Starting proof of Assigns.m6b() with prover !!!!
+test/escAssigns/Assigns.java:109: warning: The prover cannot establish an assertion (Assignable) in method m6b: a[4]
     a[4] = 0; // ERROR
          ^
-test/escAssigns/Assigns.java:65: warning: Associated declaration
+test/escAssigns/Assigns.java:107: warning: Associated declaration
   //@ writes t1.*;
       ^
-Completed proof of Assigns.m6() with prover !!!! - with warnings
-Starting proof of Assigns.m7() with prover !!!!
-test/escAssigns/Assigns.java:77: warning: The prover cannot establish an assertion (Assignable) in method m7: t1.v
+Completed proof of Assigns.m6b() with prover !!!! - with warnings
+Starting proof of Assigns.m6c() with prover !!!!
+test/escAssigns/Assigns.java:115: warning: The prover cannot establish an assertion (Assignable) in method m6c: a[1]
+    a[1] = 0; // ERROR
+         ^
+test/escAssigns/Assigns.java:113: warning: Associated declaration
+  //@ writes t1.*;
+      ^
+Completed proof of Assigns.m6c() with prover !!!! - with warnings
+Starting proof of Assigns.m7a() with prover !!!!
+test/escAssigns/Assigns.java:121: warning: The prover cannot establish an assertion (Assignable) in method m7a: x
+    x = 0; // ERROR
+      ^
+test/escAssigns/Assigns.java:119: warning: Associated declaration
+  //@ writes \nothing;
+      ^
+Completed proof of Assigns.m7a() with prover !!!! - with warnings
+Starting proof of Assigns.m7b() with prover !!!!
+test/escAssigns/Assigns.java:127: warning: The prover cannot establish an assertion (Assignable) in method m7b: t1.v
     t1.v = 0; // ERROR
          ^
-test/escAssigns/Assigns.java:74: warning: Associated declaration
+test/escAssigns/Assigns.java:125: warning: Associated declaration
   //@ writes \nothing;
       ^
-test/escAssigns/Assigns.java:76: warning: The prover cannot establish an assertion (Assignable) in method m7: x
-    x = 0; // ERROR
-      ^
-test/escAssigns/Assigns.java:74: warning: Associated declaration
-  //@ writes \nothing;
-      ^
-test/escAssigns/Assigns.java:79: warning: The prover cannot establish an assertion (Assignable) in method m7: a[1]
-    a[1] = 0; // ERROR
-         ^
-test/escAssigns/Assigns.java:74: warning: Associated declaration
-  //@ writes \nothing;
-      ^
-test/escAssigns/Assigns.java:78: warning: The prover cannot establish an assertion (Assignable) in method m7: a[4]
+Completed proof of Assigns.m7b() with prover !!!! - with warnings
+Starting proof of Assigns.m7c() with prover !!!!
+test/escAssigns/Assigns.java:133: warning: The prover cannot establish an assertion (Assignable) in method m7c: a[4]
     a[4] = 0; // ERROR
          ^
-test/escAssigns/Assigns.java:74: warning: Associated declaration
+test/escAssigns/Assigns.java:131: warning: Associated declaration
   //@ writes \nothing;
       ^
-Completed proof of Assigns.m7() with prover !!!! - with warnings
+Completed proof of Assigns.m7c() with prover !!!! - with warnings
+Starting proof of Assigns.m7d() with prover !!!!
+test/escAssigns/Assigns.java:139: warning: The prover cannot establish an assertion (Assignable) in method m7d: a[1]
+    a[1] = 0; // ERROR
+         ^
+test/escAssigns/Assigns.java:137: warning: Associated declaration
+  //@ writes \nothing;
+      ^
+Completed proof of Assigns.m7d() with prover !!!! - with warnings
 Completed proving methods in Assigns
 36 warnings
