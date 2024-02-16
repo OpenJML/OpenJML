@@ -2618,7 +2618,7 @@ public class JmlTree {
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
-//                ((IJmlVisitor)v).visitList<JCTree.JCExpression>(this.expressions); 
+                ((IJmlVisitor)v).visitJmlMethodClauseInvariants(this); 
             } else {
                 //System.out.println("A JmlMethodClauseInvariants expects an IJmlVisitor, not a " + v.getClass());
                 super.accept(v);
@@ -2628,8 +2628,7 @@ public class JmlTree {
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
-//                return ((JmlTreeVisitor<R,D>)v).visitList<JCTree.JCExpression>(this, d);
-                return null;
+                return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseInvariants(this, d); 
             } else {
                 System.out.println("A JmlMethodClauseInvariants expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);

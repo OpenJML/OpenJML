@@ -37,12 +37,8 @@ public class MethodExprListClauseExtensions extends JmlExtension {
             var n = parser.parseOptionalName();
             var exprs = parser.parseExpressionList();
             JmlMethodClauseInvariants cl = parser.maker().at(pp).JmlMethodClauseInvariants(exprs);
-            System.out.println("INVS EXPRS " + exprs);
-            System.out.println("INVS CLAUSE " + cl);
-            wrapup(cl, clauseType, true, true);
             if (cl != null) cl.name = n;
-            System.out.println("INVS EXPRS " + exprs);
-            System.out.println("INVS CLAUSE " + cl);
+            wrapup(cl, clauseType, true, true);
             return cl;
         }
         

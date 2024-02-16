@@ -140,6 +140,7 @@ public class Extensions {
             MethodResourceClauseExtension.class,
             MethodDeclClauseExtension.class, 
             MethodExprClauseExtensions.class, 
+            MethodExprListClauseExtensions.class, 
             MethodSimpleClauseExtensions.class, 
             SignalsClauseExtension.class, 
             SignalsOnlyClauseExtension.class, 

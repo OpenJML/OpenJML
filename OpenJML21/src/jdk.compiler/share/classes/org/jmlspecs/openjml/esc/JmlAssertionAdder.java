@@ -45,6 +45,7 @@ import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
 import static org.jmlspecs.openjml.ext.Operators.*;
 import static org.jmlspecs.openjml.ext.LineAnnotationClauses.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
+import static org.jmlspecs.openjml.ext.MethodExprListClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
@@ -4643,6 +4644,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				for (JmlSpecificationCase scase : denestedSpecs.cases) {
 				    //System.out.println("ITER " + parentMethodSym + " " + scase);
 					if (!doSpecificationCase(methodDecl, methodDecl.sym, parentMethodSym, scase)) continue;
+					
+					for (JmlMethodClause clause: scase.clauses) {
+					    //if (clause.clauseKind == invariantsClauseKind) System.out.println("HAVE INVS CLAUSE " + ((JmlMethodClauseInvariants)clause).expressions);
+					}
                     //System.out.println("DOING " + parentMethodSym + " " + scase);
 					JavaFileObject prev = log.useSource(scase.source());
 					try {
