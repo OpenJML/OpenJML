@@ -4612,6 +4612,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// Collect and check precondition
 
 			java.util.List<JmlSpecificationCase> prelist = new LinkedList<>();
+			int start_of_local_cases = 0;
 			JCExpression savedThis = currentEnv.currentReceiver;
 			currentEnv.currentReceiver = savedThis;
 			JCExpression combinedPrecondition = null;
@@ -4620,6 +4621,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			paramActuals_ = new HashMap<>();
 			// Iterate over all methods that methodDecl overrides, collecting specs
 			for (MethodSymbol parentMethodSym : utils.parents(methodDecl.sym,true)) {
+			    if (parentMethodSym == methodDecl.sym) start_of_local_cases = prelist.size();
 				if (parentMethodSym.params == null) continue; // FIXME - we should do something better? or does this mean binary with no specs?
 				JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(parentMethodSym);
 				//System.out.println("ADDPRE " + methodDecl.sym + " " + parentMethodSym.owner + " " + parentMethodSym + " # " + denestedSpecs);
@@ -4836,16 +4838,41 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                var behaviors = specs.get(methodDecl.sym).cases.behaviors;
 	                if (behaviors != null) {
 	                    JmlMethodClauseBehaviors cl = null;
-	                    for (var b: behaviors) { if (b.command.equals("complete")) cl = b; };
-	                    if (cl != null) {
-	                        addAssert(cl, Label.COMPLETENESS, combinedPrecondition);
-	                    }
-	                    cl = null;
+                        for (var b: behaviors) { if (b.command.equals("complete")) cl = b; };
+                        if (cl != null) {
+                            addAssert(cl, Label.COMPLETENESS, combinedPrecondition);
+                        }
+                        cl = null;
+                        for (var b: behaviors) { if (b.command.equals("complete_local")) cl = b; };
+                        if (cl != null) {
+                            addAssert(cl, Label.COMPLETENESS, combinedPrecondition); // FIXME - restrict to local
+                        }
+                        cl = null;
                         for (var b: behaviors) { if (b.command.equals("disjoint")) cl = b; };
                         if (cl != null) {
                             for (var case1: prelist) {
                                 var pre1 = preconditions.get(case1);
                                 for (var case2: prelist) {
+                                    if (case1 == case2) break;
+                                    var pre2 = preconditions.get(case2);
+                                    JCExpression e = treeutils.makeNot(cl,
+                                            treeutils.makeAnd(cl, pre1, pre2));
+                                    var prev = log.useSource(case1.sourcefile);
+                                    addAssert(pre1, Label.DISJOINTNESS, e, pre2, case2.sourcefile);
+                                    log.useSource(prev);
+                                }
+                            }
+                        }
+                        cl = null;
+                        for (var b: behaviors) { if (b.command.equals("disjoint_local")) cl = b; };
+                        if (cl != null) {
+                            int n = start_of_local_cases;
+                            for (var case1: prelist) {
+                                if (n-- > 0) continue;
+                                var pre1 = preconditions.get(case1);
+                                int nn = start_of_local_cases;
+                                for (var case2: prelist) {
+                                    if (nn-- > 0) continue;
                                     if (case1 == case2) break;
                                     var pre2 = preconditions.get(case2);
                                     JCExpression e = treeutils.makeNot(cl,
