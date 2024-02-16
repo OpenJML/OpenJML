@@ -1997,11 +1997,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 * exception.
 	 */
 	protected void notImplemented(String location, JmlNotImplementedException source) {
-		String message = location + source.getMessage();
-		String key = source.pos.getPreferredPosition() + message;
-		if (rac ? !racMessages.add(key) : !escMessages.add(key))
-			return;
-		utils.note(source.pos, rac ? "rac.not.implemented" : "esc.not.implemented", message);
+		notImplemented(location, source, null);
 	}
 
 	public void notImplemented(String location, JmlNotImplementedException source, JavaFileObject file) {
@@ -2017,20 +2013,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	/**
 	 * Issues a diagnostic message (note) containing the given message.
 	 */
-	public void notImplemented(DiagnosticPosition pos, String message, JavaFileObject source) {
-		String key = pos.getPreferredPosition() + message;
-		if (rac ? !racMessages.add(key) : !escMessages.add(key))
-			return;
-		JavaFileObject prev = log.useSource(source);
-		utils.note(pos, rac ? "rac.not.implemented" : "esc.not.implemented", message);
-		log.useSource(prev);
+	public void notImplemented(DiagnosticPosition pos, String message, JavaFileObject file) {
+	    String key = pos.getPreferredPosition() + message;
+	    if (rac ? !racMessages.add(key) : !escMessages.add(key)) return;
+	    JavaFileObject prev = file == null ? null : log.useSource(file);
+	    utils.note(pos, rac ? "rac.not.implemented" : "esc.not.implemented", message);
+	    if (file != null) log.useSource(prev);
 	}
 
 	public void notImplemented(DiagnosticPosition pos, String message) {
-		String key = pos.getPreferredPosition() + message;
-		if (rac ? !racMessages.add(key) : !escMessages.add(key))
-			return;
-		utils.note(pos, rac ? "rac.not.implemented" : "esc.not.implemented", message);
+		notImplemented(pos, message, null);
 	}
 
 	/**
@@ -13961,7 +13953,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCBinary bb = M.at(b.pos).Binary(b.getTag(), lhs, rhs);
 			bb.operator = b.operator;
 			bb.type = b.type;
-			ba = ba == null ? bb : treeutils.makeBitAnd(b.pos, ba, bb);
+			ba = ba == null ? bb : utils.esc ? treeutils.makeBitAnd(b.pos, ba, bb) : treeutils.makeAnd(b.pos, ba, bb);
 			lhs = rhs;
 		}
 		result = eresult = splitExpressions ? newTemp(ba) : ba;
@@ -18356,7 +18348,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		result = eresult = treeutils.makeZeroEquivalentLit(that.pos, that.type);
 		// FIXME - should really turn splitExpressions off for these expressions.
 		try {
-
+		    var key = that.kind.keyword();
 			if (!rac) {
 				ListBuffer<JCStatement> prev = nonignoredStatements;
 				try {
@@ -18426,13 +18418,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				// The accumulator variable
 				Type t = that.type;
-				if (utils.rac && that.type instanceof JmlType)
+                if (utils.rac && that.type.isIntegral() && key == qchooseID) t = jmltypes.boxedTypeOrType(jmltypes.BIGINT); 
+                else if (utils.rac && that.type instanceof JmlType)
 					t = syms.longType; // FIXME - stopgap until RAC is working properly on quantifiers
 				Name n = names.fromString("_JML$val$$" + nextUnique());
 				// methodDecl is null if we are in a type specification clause (e.g. invariant)
 				var ownersym = methodDecl!= null  ? methodDecl.sym : classDecl.sym;
 				JCVariableDecl decl = treeutils.makeVarDef(t, n, ownersym, that.pos);
 				decl.init = treeutils.makeZeroEquivalentLit(that.pos, types.unboxedTypeOrType(t));
+				if (utils.rac && key == qchooseID) decl.init = treeutils.makeZeroEquivalentLit(that.pos, t);
 				addStat(decl);
 
 				// Label for the loop, so we can break out of it
@@ -18446,7 +18440,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								bound.decl.pos);
 						localVariables.put(bound.decl.sym, indexdef.sym);
 						JCIdent id = treeutils.makeIdent(that.pos, decl.sym); // accumulator
-						JCIdent idd = treeutils.makeIdent(that.pos, decl.sym); // another id for the accumulator
+                        JCIdent idd = treeutils.makeIdent(that.pos, decl.sym); // another id for the accumulator
 						JCStatement st;
 						JCBreak brStat = null;
 						JCBlock bl;
@@ -18456,7 +18450,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							ListBuffer<JCStatement> checkB = pushBlock(); // Start of guarded block
 							try {
 								JCExpression val = convertNoSplit(that.value);
-								switch (that.kind.keyword()) {
+								switch (key) {
 								case qforallID:
 									// if (guard) { val = convert(value); if (!val) { accumulator = false; break
 									// <label>; }}
@@ -18469,16 +18463,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									st = M.If(treeutils.makeNot(that.pos, val), bl, null);
 									break;
 
-								case qexistsID:
-									// if (guard) { val = convert(value); if (!val) { accumulator = true; break
-									// <label>; }}
+                                case qexistsID:
+                                    // if (guard) { val = convert(value); if (!val) { accumulator = true; break
+                                    // <label>; }}
 
-									ListBuffer<JCStatement> check9 = pushBlock();
-									addStat(treeutils.makeAssignStat(that.pos, id, treeutils.trueLit));
-									addStat(brStat = M.Break(label));
-									bl = popBlock(that, check9);
-									st = M.If(val, bl, null);
-									break;
+                                    ListBuffer<JCStatement> check9 = pushBlock();
+                                    addStat(treeutils.makeAssignStat(that.pos, id, treeutils.trueLit));
+                                    addStat(brStat = M.Break(label));
+                                    bl = popBlock(that, check9);
+                                    st = M.If(val, bl, null);
+                                    break;
+
+                                case qchooseID:
+                                    // if (guard) { val = convert(value); accumulator = val; break <label>; }}
+
+                                    ListBuffer<JCStatement> check9a = pushBlock();
+                                    addStat(treeutils.makeAssignStat(that.pos, idd, val));
+                                    addStat(brStat = M.Break(label));
+                                    st = popBlock(that, check9a);
+                                    break;
 
 								case qsumID:
 									// if (guard) { val = convert(value); accumulator = accumulator + val; }
@@ -18695,7 +18698,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCVariableDecl indexdef;
 		/* @nullable */ JCVariableDecl lodef;
 		/* @nullable */ JCVariableDecl hidef;
+		public String toString() {
+		    return "Bound[" + lo + (lo_equal?" <=":" <") + (hi_equal?" <= ":" < ") + hi + "]";
+		}
 	}
+	
+	protected static record Comp(JCExpression lo, JCTree.Tag tag, JCExpression hi) {}
 
 	/**
 	 * If appropriate bounds can be determined for all defined variables, the method
@@ -18753,39 +18761,107 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return null;
 
 		try {
-			// presume numeric declaration
-			JCBinary locomp = (JCBinary) ((JCBinary) range).lhs;
-			JCBinary hicomp = (JCBinary) ((JCBinary) range).rhs;
-			if (locomp.getTag() == JCTree.Tag.AND) {
-				hicomp = (JCBinary) locomp.rhs;
-				locomp = (JCBinary) locomp.lhs;
-			} else if (hicomp.getTag() == JCTree.Tag.AND) {
-				hicomp = (JCBinary) hicomp.lhs;
-			}
-			Bound b = new Bound();
-			b.decl = decls.head;
-			JCTree.Tag tag = locomp.getTag();
-			if (tag == JCTree.Tag.GE || tag == JCTree.Tag.GT)
-				b.lo = locomp.rhs;
-			else
-				b.lo = locomp.lhs;
-			// b.lo = castType(declType,b.lo);
-			b.lo_equal = tag == JCTree.Tag.LE || tag == JCTree.Tag.GE;
-
-			tag = hicomp.getTag();
-			if (tag == JCTree.Tag.GE || tag == JCTree.Tag.GT)
-				b.hi = hicomp.lhs;
-			else
-				b.hi = hicomp.rhs;
-			// b.hi = castType(declType,b.hi);
-
-			b.hi_equal = tag == JCTree.Tag.LE || tag == JCTree.Tag.GE;
-			bounds.add(0, b);
+		    java.util.List<Comp> comps = new LinkedList<>();
+		    collectComparisons(comps, range, false);
+		    sortComparisons(decls, comps, bounds);
 		} catch (Exception e) {
 			return null;
 		}
 		return range;
 	}
+	
+	public void collectComparisons(java.util.List<Comp> comps, JCExpression expr, boolean negated) {
+	    if (expr instanceof JCBinary bin) {
+	        switch (bin.getTag()) {
+            case AND:
+            case BITAND:
+                if (negated) break;
+                collectComparisons(comps, bin.lhs, negated);
+                collectComparisons(comps, bin.rhs, negated);
+                break;
+            case OR:
+            case BITOR:
+                if (!negated) break;
+                collectComparisons(comps, bin.lhs, negated);
+                collectComparisons(comps, bin.rhs, negated);
+                break;
+            case GE:
+                if (negated) comps.add(new Comp(bin.lhs, JCTree.Tag.LT, bin.rhs));
+                else comps.add(new Comp(bin.rhs, JCTree.Tag.LE, bin.lhs));
+                break;
+            case GT:
+                if (negated) comps.add(new Comp(bin.lhs, JCTree.Tag.LE, bin.rhs));
+                else comps.add(new Comp(bin.rhs, JCTree.Tag.LT, bin.lhs));
+                break;
+            case LT:
+                if (negated) comps.add(new Comp(bin.rhs, JCTree.Tag.LE, bin.lhs));
+                else comps.add(new Comp(bin.lhs, JCTree.Tag.LE, bin.rhs));
+                break;
+            case LE:
+                if (negated) comps.add(new Comp(bin.rhs, JCTree.Tag.LT, bin.lhs));
+                else comps.add(new Comp(bin.lhs, JCTree.Tag.LE, bin.rhs));
+                break;
+            case EQ:
+                if (negated) break;
+                comps.add(new Comp(bin.lhs, JCTree.Tag.LE, bin.rhs));
+                comps.add(new Comp(bin.rhs, JCTree.Tag.LE, bin.lhs));
+                break;
+            case NE:
+                if (!negated) break;
+                comps.add(new Comp(bin.lhs, JCTree.Tag.LE, bin.rhs));
+                comps.add(new Comp(bin.rhs, JCTree.Tag.LE, bin.lhs));
+                break;
+	        default:    
+	        }
+        } else if (expr instanceof JmlChained ch) {
+            if (!negated) {
+                for (var c: ch.conjuncts) collectComparisons(comps, c, negated);
+            }
+	    } else if (expr instanceof JCUnary unary) {
+	        if (unary.getTag() == JCTree.Tag.NOT) {
+                collectComparisons(comps, unary, !negated);
+	        }
+	    } else if (expr instanceof JmlBinary jb) {
+	        if (negated && jb.op.keyword() == impliesID) {
+                collectComparisons(comps, jb.lhs, false);
+                collectComparisons(comps, jb.rhs, true);
+	        }
+	    } else if (expr instanceof JCParens p) {
+	        collectComparisons(comps, p.expr, negated);
+	    }
+	    return;
+	}
+
+	// FIXME - there is no check that there is no premature use of declara
+	public void sortComparisons(List<JCVariableDecl> decls, java.util.List<Comp> comps, java.util.List<Bound> bounds) {
+	    for (var decl: decls) {
+	        JCExpression lo = null, hi = null;
+	        JCTree.Tag lotag = JCTree.Tag.EQ, hitag = JCTree.Tag.EQ; // Arbitrary value to satisfy initialization
+            for (var comp: comps) {
+                if (comp.hi instanceof JCIdent id && id.sym == decl.sym) {
+                    lo = comp.lo;
+                    lotag = comp.tag;
+                    break;
+                }
+            }
+            for (var comp: comps) {
+                if (comp.lo instanceof JCIdent id && id.sym == decl.sym) {
+                    hi = comp.hi;
+                    hitag = comp.tag;
+                    break;
+                }
+            }
+            if (lo == null || hi == null) throw new RuntimeException(); // No usable bounds
+            Bound b = new Bound();
+            b.decl = decl;
+            b.lo = lo;
+            b.lo_equal = lotag == JCTree.Tag.LE;
+            b.hi = hi;
+            b.hi_equal = hitag == JCTree.Tag.LE;
+            bounds.add(b);
+        }
+	}
+
 
 	public JCExpression castType(Type target, JCExpression arg) {
 		if (jmltypes.isSameType(arg.type, target))

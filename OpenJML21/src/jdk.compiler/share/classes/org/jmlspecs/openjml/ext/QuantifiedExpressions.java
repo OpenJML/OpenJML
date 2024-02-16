@@ -159,8 +159,8 @@ public class QuantifiedExpressions extends JmlExtension {
                         break;
 
                     case qchooseID:
-                    	valueType = syms.booleanType;
-                        resultType = that.decls.head.type;
+                    	valueType = Type.noType;
+                        resultType = that.value.type;
 //                   	
 //                    	System.out.println("LOCALENV " + localEnv);
 //                    	System.out.println("DECL " + that.decls.head + " " + that.decls.head.sym + " " + that.decls.head.sym.type + " " + that.decls.head.type);
