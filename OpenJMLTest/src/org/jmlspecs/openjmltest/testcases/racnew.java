@@ -1768,13 +1768,26 @@ public class racnew extends RacBase {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; ; i >= 0); \n "
-                +"//@ ghost boolean nn = (\\exists int i; i == 4; i >= 6); \n "
-                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"//@ set System.out.println(\"A \" + n ); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"/tt/A.java:3: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression",25
-                ,"/tt/A.java:4: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression",26
-                ,"A false false"
+                ,"A false"
+                ,"END"
+        );
+    }
+   
+    /** Forall, exists quantifier */
+    @Test public void testForallQuantifier5() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] argv) { \n "
+                +"//@ ghost boolean n = (\\exists int i; i == 4; i >= 3); \n "
+                +"//@ ghost boolean nn = (\\exists int i; !(i < 0 || i > 5); i == 3); \n "
+                +"//@ set nn &= (\\exists int i; 0 < i < 5; i == 3); \n "
+                +"//@ set System.out.println(\"A \" + n + \" \" + nn); \n"
+                +"System.out.println(\"END\"); "
+                +"}}"
+                ,"A true true"
                 ,"END"
         );
     }

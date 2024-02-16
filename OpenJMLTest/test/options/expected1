@@ -1,0 +1,9 @@
+test/options/TestOptions.java:4: warning: The prover cannot establish an assertion (Assert) in method n
+    //@ assert false;
+        ^
+Starting proof of TestOptions.m() with prover !!!!
+test/options/TestOptions.java:8: warning: Validity is unknown - time or memory limit reached: : Aborted proof: timeout
+  public void m() {
+              ^
+Completed proof of TestOptions.m() with prover !!!! - TIMEOUT
+2 warnings
