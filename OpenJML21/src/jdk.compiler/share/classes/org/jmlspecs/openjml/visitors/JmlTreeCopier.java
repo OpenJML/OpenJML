@@ -532,7 +532,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlQuantifiedExpr(JmlQuantifiedExpr that, Void p) {
-        System.out.println("COPYING QUANT " + that);
         JmlQuantifiedExpr q =  M.JmlQuantifiedExpr(
                 that.kind,
                 copy(that.decls,p),
