@@ -5307,7 +5307,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             switch (q.kind.keyword()) {
             case qforallID:
-            case qexistsID: 
+            case qexistsID:
+                break;
+            case qchooseID:
                 break;
             case qnumofID: 
             	restype = syms.longType; // FIXME - not working for bigint yet -- as this is RAC, we need to use BigInteger -- same for \sum etc.
@@ -5329,6 +5331,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 valueDecl = F.VarDef(F.Modifiers(0), names.fromString("_val$$$"), F.Type(restype), null);
                 break;
             default:
+                utils.error(q, "jml.internal", "Encountered unsupported quantifier: " + q.kind.keyword());
                 return;
             }
             if (initialDecl != null) {
@@ -5416,6 +5419,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 bodyStats.add(indexdef);
                 
             }
+            
             
             // Back to expressions that will need attributing.
 

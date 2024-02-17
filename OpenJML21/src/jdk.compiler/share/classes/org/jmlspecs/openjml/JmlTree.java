@@ -2950,6 +2950,9 @@ public class JmlTree {
         //@ nullable
         public List<JCExpression> triggers = null;
         
+        public JmlVariableDecl founddef = null; // Not part or the parsed AST -- set and used in RAC translations
+        public JCStatement failure = null; // Not part or the parsed AST -- set and used in RAC translations
+        
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlQuantifiedExpr(int pos, IJmlClauseKind kind,
                 List<JCVariableDecl> decls,

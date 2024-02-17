@@ -18479,16 +18479,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			} else {
 				java.util.List<Bound> bounds = new java.util.LinkedList<Bound>();
-				JCExpression innerexpr = determineRacBounds(that.decls, that.range, bounds);
+				JCExpression innerexpr = determineRacBounds(that.decls, that.range != null ? that.range : that.value, bounds);
 				if (innerexpr == null && rac) {
 					utils.note(that, "rac.not.implemented.quantified");
 					return;
 				}
-
 				// The accumulator variable
 				Type t = that.type;
-                if (utils.rac && that.type.isIntegral() && key == qchooseID) t = jmltypes.boxedTypeOrType(jmltypes.BIGINT); 
-                else if (utils.rac && that.type instanceof JmlType)
+                if (utils.rac && that.type instanceof JmlType  && key != qchooseID)
 					t = syms.longType; // FIXME - stopgap until RAC is working properly on quantifiers
 				Name n = names.fromString("_JML$val$$" + nextUnique());
 				// methodDecl is null if we are in a type specification clause (e.g. invariant)
@@ -18497,9 +18495,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				decl.init = treeutils.makeZeroEquivalentLit(that.pos, types.unboxedTypeOrType(t));
 				if (utils.rac && key == qchooseID) decl.init = treeutils.makeZeroEquivalentLit(that.pos, t);
 				addStat(decl);
-
+				JCBlock failureBlock = null;
+				
 				// Label for the loop, so we can break out of it
-				Name label = names.fromString("__JMLwhile_" + nextUnique());
+				Name label = names.fromString(Strings.genPrefix + "while_" + nextUnique());
 				ListBuffer<JCStatement> check = pushBlock(); // B // enclosing block, except for declaration of
 																// accumulator
 				try {
@@ -18525,7 +18524,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									// <label>; }}
 									decl.init = treeutils.trueLit;
 
-									ListBuffer<JCStatement> check8 = pushBlock(); // E
+									var check8 = pushBlock(); // E
 									addStat(treeutils.makeAssignStat(that.pos, id, treeutils.falseLit));
 									addStat(brStat = M.Break(label));
 									bl = popBlock(that, check8); // E
@@ -18536,7 +18535,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     // if (guard) { val = convert(value); if (!val) { accumulator = true; break
                                     // <label>; }}
 
-                                    ListBuffer<JCStatement> check9 = pushBlock();
+                                    var check9 = pushBlock();
                                     addStat(treeutils.makeAssignStat(that.pos, id, treeutils.trueLit));
                                     addStat(brStat = M.Break(label));
                                     bl = popBlock(that, check9);
@@ -18544,12 +18543,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     break;
 
                                 case qchooseID:
-                                    // if (guard) { val = convert(value); accumulator = val; break <label>; }}
+                                    // if (guard) { val = convert(value); if (!val) { accumulator = true; break <label>; }}
+                                    // if the range was empty, the value was used as the range
 
-                                    ListBuffer<JCStatement> check9a = pushBlock();
-                                    addStat(treeutils.makeAssignStat(that.pos, idd, val));
+                                    JCIdent index = treeutils.makeIdent(that.decls.head.pos, indexdef.sym);
+                                    var check9a = pushBlock();
+                                    addStat(treeutils.makeAssignStat(that.pos, idd, index));
+                                    addStat(st = treeutils.makeAssignStat(that.pos, 
+                                            treeutils.makeIdent(that.pos, that.founddef.sym), treeutils.trueLit));
                                     addStat(brStat = M.Break(label));
-                                    st = popBlock(that, check9a);
+                                    bl = popBlock(that, check9a);
+                                    if (that.range != null) {
+                                        st = M.If(val, bl, null);
+                                    } else {
+                                        st = bl;
+                                    }
+                                    var checkF = pushBlock();
+                                    addAssert(that, Label.CHOOSE, 
+                                            M.at(that.pos).Ident(that.founddef.sym));
+                                    failureBlock = popBlock(that,checkF);
                                     break;
 
 								case qsumID:
@@ -18707,6 +18719,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 								indexdef.init = castType(indexdef.type, convertExpr(copy(bound.lo)));
 								addStat(indexdef);
+								if (that.founddef != null) {
+								    addStat(that.founddef);
+								}
 
 								JCExpression hi = bound.hi;
 								JCExpression comp;
@@ -18738,6 +18753,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									brStat.target = st;
 								st = M.at(that.pos).JmlLabeledStatement(label, null, st);
 								addStat(st);
+								if (failureBlock != null) {
+								    addStat(failureBlock);
+								}
 							}
 						}
 
@@ -18864,7 +18882,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 break;
             case LT:
                 if (negated) comps.add(new Comp(bin.rhs, JCTree.Tag.LE, bin.lhs));
-                else comps.add(new Comp(bin.lhs, JCTree.Tag.LE, bin.rhs));
+                else comps.add(new Comp(bin.lhs, JCTree.Tag.LT, bin.rhs));
                 break;
             case LE:
                 if (negated) comps.add(new Comp(bin.rhs, JCTree.Tag.LT, bin.lhs));
@@ -18888,7 +18906,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 	    } else if (expr instanceof JCUnary unary) {
 	        if (unary.getTag() == JCTree.Tag.NOT) {
-                collectComparisons(comps, unary, !negated);
+                collectComparisons(comps, unary.arg, !negated);
 	        }
 	    } else if (expr instanceof JmlBinary jb) {
 	        if (negated && jb.op.keyword() == impliesID) {
@@ -18901,11 +18919,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    return;
 	}
 
-	// FIXME - there is no check that there is no premature use of declara
-	public void sortComparisons(List<JCVariableDecl> decls, java.util.List<Comp> comps, java.util.List<Bound> bounds) {
-	    for (var decl: decls) {
-	        JCExpression lo = null, hi = null;
-	        JCTree.Tag lotag = JCTree.Tag.EQ, hitag = JCTree.Tag.EQ; // Arbitrary value to satisfy initialization
+    // FIXME - there is no check that there is no premature use of declara
+    public void sortComparisons(List<JCVariableDecl> decls, java.util.List<Comp> comps, java.util.List<Bound> bounds) {
+        //System.out.println("COMPS"); comps.forEach(c->{System.out.println(c);});
+        for (var decl: decls) {
+            JCExpression lo = null, hi = null;
+            JCTree.Tag lotag = JCTree.Tag.EQ, hitag = JCTree.Tag.EQ; // Arbitrary value to satisfy initialization
             for (var comp: comps) {
                 if (comp.hi instanceof JCIdent id && id.sym == decl.sym) {
                     lo = comp.lo;
@@ -18929,6 +18948,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             b.hi_equal = hitag == JCTree.Tag.LE;
             bounds.add(b);
         }
+        //System.out.println("BOUNDS"); bounds.forEach(b->{System.out.println(b);});
 	}
 
 

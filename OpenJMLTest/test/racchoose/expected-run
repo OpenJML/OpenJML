@@ -1,0 +1,7 @@
+OUT:
+test/racchoose/T.java:9: verify: JML there is no value satisfying the \choose predicate
+     //@ assert (\choose int x; 10 < x < 11) == 0; // ERROR
+                 ^
+END
+
+ERR:
