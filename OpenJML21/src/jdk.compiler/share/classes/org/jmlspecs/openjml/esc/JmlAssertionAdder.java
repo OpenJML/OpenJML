@@ -4848,9 +4848,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             addAssert(cl, Label.COMPLETENESS, combinedPrecondition);
                         }
                         cl = null;
-                        for (var b: behaviors) { if (b.command.equals("complete_local")) cl = b; };
+                        for (var b: behaviors) { if (b.command.equals("local_complete")) cl = b; };
                         if (cl != null) {
-                            addAssert(cl, Label.COMPLETENESS, combinedPrecondition); // FIXME - restrict to local
+                            int n = start_of_local_cases;
+                            JCExpression e = treeutils.falseLit;
+                            for (var case1: prelist) {
+                                if (n-- > 0) continue;
+                                var pre1 = preconditions.get(case1);
+                                e = treeutils.makeOr(cl, e, pre1);
+                            }
+                            addAssert(cl, Label.COMPLETENESS, e);
                         }
                         cl = null;
                         for (var b: behaviors) { if (b.command.equals("disjoint")) cl = b; };
@@ -4869,7 +4876,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             }
                         }
                         cl = null;
-                        for (var b: behaviors) { if (b.command.equals("disjoint_local")) cl = b; };
+                        for (var b: behaviors) { if (b.command.equals("local_disjoint")) cl = b; };
                         if (cl != null) {
                             int n = start_of_local_cases;
                             for (var case1: prelist) {
