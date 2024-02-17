@@ -53,6 +53,8 @@ import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.Log.WriterKind;
 
+import javax.tools.JavaFileObject;
+
 
 /** Objects of this type represents kinds of JML clauses and statements, for example,
  *  requires clauses or the \old expression. Instances represent kinds of clauses,
@@ -147,6 +149,10 @@ public abstract class IJmlClauseKind {
      */
     public void error(DiagnosticPosition pos, String key, Object ... args) {
         utils.error(pos, key, args);
+    }
+    
+    public void error(JavaFileObject sourcefile, DiagnosticPosition pos, String key, Object ... args) {
+        utils.error(sourcefile, pos, key, args);
     }
     
     /**
