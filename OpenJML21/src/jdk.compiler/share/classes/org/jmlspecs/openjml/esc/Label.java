@@ -158,6 +158,9 @@ public class Label {
     /** Used for precondition completeness assert statements */
     /*@ non_null*/ public final static Label DISJOINTNESS = new Label("DisjointPreconditions");
     
+    /** Used for precondition completeness assert statements */
+    /*@ non_null*/ public final static Label CHOOSE = new Label("ChooseNotDefined");
+    
     /** Used for asserts generated from user-specified reachable statements */
     /*@ non_null*/ public final static Label REACHABLE = new Label("Reachable");
     

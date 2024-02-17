@@ -54,6 +54,13 @@ public class racfiles extends RacBase {
     			"-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
     }
 
+    @Test
+    public void racchoose() {
+        expectedExit = 0;
+        expectedRACExit = 0;
+        helpTCF("test/racchoose","test/racchoose","T");
+    }
+
     /** Testing using system specs */
     @Test  // FIXME - problems with library specs - RAC cannot handle ghost variables when it does not compile the class file
     public void test1a() {
