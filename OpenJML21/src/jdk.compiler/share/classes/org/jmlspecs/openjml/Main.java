@@ -323,6 +323,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         return execute(args,false);  // The boolean: true - errors to stdErr, false - errors to stdOut
     }
 
+    public static int execute(PrintWriter pw, String... args) {
+        return execute(pw, null, null, args);
+    }
+
     /** A programmatic interface to the compiler that returns the exit code, but
      * does not itself call System.exit.  [This is called execute rather than
      * compile as in com.sun.tools.javac.Main because we also have to override

@@ -1,0 +1,20 @@
+#! /bin/bash
+
+## This script runs the JUnit tests (directly, without using Eclipse)
+## It does so by running the Test.java program, after compiling all the
+## unit test drivers in OpenJMLTest/src/org/jmlspecs/openjmltest/testcases/
+
+## $R is the location of the directory containing this script, with
+## $R/.. expected to be OpenJMLTest, which should be a sibling of OpenJML21
+
+ROOT=$( cd $(dirname "$BASH_SOURCE") && pwd)
+
+CL=`echo $ROOT/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
+CP=".:$CL"
+
+OPTIONS="-Xlint:unchecked -Xdiags:verbose -Xlint:text-blocks"
+
+EXPORTS="--add-modules jdk.compiler,java.base --add-exports=jdk.compiler/org.jmlspecs.openjml=ALL-UNNAMED  --add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml.proverinterface=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml.visitors=ALL-UNNAMED"
+
+"$ROOT/openjml" -cp $CP -p /Users/davidcok/projects/OpenJML21/OpenJML/OpenJML21/build/macosx-x86_64-server-release/jdk/modules $EXPORTS "$@"
+
