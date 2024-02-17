@@ -1,4 +1,6 @@
-#!/bin/bash
+#! /bin/bash
+
+## This script runs a user program that uses OpenJML capabilities programmatically (that is, one that was compiled with 'openjml-compile')
 
 # Use quotes to accommodate paths containing spaces
 ## realpath is needed to resolve symbolic links, but is not present on all OSes
@@ -16,6 +18,6 @@ if [ "$( uname )" = "Darwin" ] ; then
   "${ROOT}/mac-setup" > /tmp/openjmlsetup 2>&1 ;
 fi
 
-BIN=`echo $ROOT/jdk/bin/java`
+## Now run the compiled progam
+OPENJML_ROOT="$ROOT" "$ROOT/openjml-java" "$@"
 
-"$BIN" "$@"

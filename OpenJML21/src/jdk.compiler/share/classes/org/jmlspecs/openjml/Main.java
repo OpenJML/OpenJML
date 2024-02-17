@@ -524,8 +524,8 @@ public class Main extends com.sun.tools.javac.main.Main {
     @Override
     public Main.Result compile(String[] args, Context context) {
         this.context = context; // FIXME - it is a problem if this changes the already stored context, as it was used for JavacFileManager and Utils
-//        register(context);
-        setProofResultListener(prl);
+        //register(context);
+        // FIXME setProofResultListener(prl);
         boolean hasArgs = args.length != 0;
     	args = JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);
     	// args is now the original 'args' without any files or JML arguments -- leaving only any Java options
