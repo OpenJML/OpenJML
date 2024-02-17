@@ -3408,18 +3408,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     /** Attributes invariant, axiom, initially clauses */
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree) {
-    	var check = jmlenv = jmlenv.pushCopy();
-    	try {
-    	jmlenv.inPureEnvironment = true;
-    	tree.clauseType.typecheck(this, tree, env);
-    	} catch (Exception e) {
-    	    utils.unexpectedException("Typechecking clause: " + tree, e);
-    	    throw e;
-    	} finally {
-    	    jmlenv = jmlenv.pop(check);
-    	}
+        var check = jmlenv = jmlenv.pushCopy();
+        try {
+            jmlenv.inPureEnvironment = true;
+            tree.clauseType.typecheck(this, tree, env);
+        } catch (Exception e) {
+            utils.unexpectedException("Typechecking clause: " + tree, e);
+            throw e;
+        } finally {
+            jmlenv = jmlenv.pop(check);
+        }
     }
-    
+
     public Name getAnnotationStringArg(JCAnnotation a) {
         // The expression is an assignment of a Literal string to an identifier
         // We only care about the literal string
@@ -3909,6 +3909,29 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * method specification clauses
      * @param tree the method specification clause being attributed
      */
+    
+    public void helperAttr(JmlAttr attr, IJmlClauseKind kind, JmlMethodClause tree, Env<AttrContext> env) {
+        try {
+            jmlenv = jmlenv.pushCopy();
+            savedMethodClauseOutputEnv = this.env;
+            jmlenv.currentClauseKind = tree.clauseKind;
+            kind.typecheck(this, tree, env);
+            savedMethodClauseOutputEnv = null;
+            jmlenv.currentClauseKind = null;
+        } catch (Exception e) {
+            utils.error(tree.sourcefile, tree.pos(), "jml.internal", "typechecking failure in " + tree);
+            e.printStackTrace();
+        } finally {
+            jmlenv = jmlenv.pop();
+        }
+    }
+    
+    public void visitJmlMethodClauseBehaviors(JmlMethodClauseBehaviors tree) {
+        helperAttr(this, tree.clauseKind, tree, env);
+    }
+    public void visitJmlMethodClauseInvariants(JmlMethodClauseInvariants tree) {
+        helperAttr(this, tree.clauseKind, tree, env);
+    }
     
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
     	try {

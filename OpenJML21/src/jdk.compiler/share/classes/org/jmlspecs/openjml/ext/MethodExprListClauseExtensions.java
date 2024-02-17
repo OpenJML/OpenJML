@@ -5,9 +5,11 @@ import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseInvariants;
 
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Kinds.KindSelector;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.comp.Attr.ResultInfo;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -26,7 +28,7 @@ public class MethodExprListClauseExtensions extends JmlExtension {
         JmlMethodClauseInvariants parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             if (mods != null) {
-                error(mods, "jml.message", "A " + keyword + " clause may not have modifiers");
+                error(mods.pos(), "jml.message", "a " + keyword + " clause may not have modifiers");
                 return null;
             }
             
@@ -46,7 +48,7 @@ public class MethodExprListClauseExtensions extends JmlExtension {
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
             // TODO Auto-generated method stub
             JmlMethodClauseInvariants cl = (JmlMethodClauseInvariants)tree;
-            for (var e: cl.expressions) attr.attribTree(cl,  env, null);
+            for (var e: cl.expressions) attr.attribTree(e, env, attr.new ResultInfo(KindSelector.VAL_TYP, Type.noType));
             return null;
         }
         
