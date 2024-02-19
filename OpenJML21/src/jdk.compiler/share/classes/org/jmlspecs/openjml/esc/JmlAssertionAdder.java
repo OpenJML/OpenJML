@@ -8822,7 +8822,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			var mspecs = specs.getAttrSpecs(calleeMethodSym);
 			if (print) System.out.println("MSPECS " + calleeMethodSym.owner + " " + calleeMethodSym + " " + mspecs);
 			boolean inliningCall = mspecs != null && mspecs.specDecl != null && mspecs.specDecl.mods != null
-					&& attr.findMod(mspecs.specDecl.mods, Modifiers.INLINE) != null;
+					&& utils.hasModifier(mspecs.specDecl.mods, Modifiers.INLINE);
 
 			// Collect all the methods overridden by the method being called, including the
 			// method itself
