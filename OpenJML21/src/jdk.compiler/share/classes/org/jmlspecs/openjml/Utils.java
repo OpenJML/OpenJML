@@ -551,6 +551,49 @@ public class Utils {
         return null;
     }
     
+    public boolean hasModifier(/*@ non_null */ Symbol sym, /*@ non_null */IJmlClauseKind.ModifierKind ... tarr) {
+        JmlModifiers mods = null;
+        if (sym instanceof Symbol.MethodSymbol m) {
+            var sp = JmlSpecs.instance(context).get(m);
+            //if (sp == null) System.out.println("NULL SPECS FOR " + sym);
+            if (sp != null) mods = (JmlModifiers)sp.mods;
+        }
+        else if (sym instanceof Symbol.ClassSymbol c) {
+            var sp = JmlSpecs.instance(context).get(c);
+            //if (sp == null) System.out.println("NULL SPECS FOR " + sym);
+            if (sp != null) mods = sp.modifiers;
+        }
+        else if (sym instanceof Symbol.VarSymbol c) {
+            var sp = JmlSpecs.instance(context).get(c);
+            //if (sp == null) System.out.println("NULL SPECS FOR " + sym);
+            if (sp != null) mods = sp.mods;
+        } else {
+            log.error(Position.NOPOS, "jml.internal", "Unknown kind of symbol in 'hasModifier': " + sym + " " + sym.getClass());
+        }
+        // else error -- FIXME
+        if (mods != null) {
+            for (var ta: tarr) {
+                for (var t: mods.jmlmods) {
+                    if (t.jmlclausekind == ta) return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    /** Has one of the listed modifiers */
+    public boolean hasModifier(/*@ nullable */ JCModifiers mods, /*@ non_null */IJmlClauseKind.ModifierKind ... tarr) {
+        if (mods instanceof JmlModifiers jmods) {
+            for (var ta: tarr) {
+                for (var t: jmods.jmlmods) {
+                    if (t.jmlclausekind == ta) return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    /** Return one of the listed modifiers or null */
     public JmlToken findModifier(/*@ nullable */ JCModifiers mods, /*@ non_null */IJmlClauseKind.ModifierKind ... tarr) {
         if (mods instanceof JmlModifiers jmods) {
             for (var ta: tarr) {

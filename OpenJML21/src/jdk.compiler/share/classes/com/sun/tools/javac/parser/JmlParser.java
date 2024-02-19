@@ -319,13 +319,17 @@ public class JmlParser extends JavacParser {
     //@ nullable
     public JCTree importDeclaration(JmlModifiers mods) {
         int p = pos();
+        int pp = Position.NOPOS;
         boolean modelImport = false;
-        normalizeAnnotations(mods, null);
-        for (var t: mods.annotations) {
+        for (var t: mods.jmlmods) {
+            if (t.jmlclausekind == Modifiers.MODEL) { modelImport = true; break; }
+            else utils.error(t.pos, t.endPos, "jml.no.mods.on.import");
+        }
+        if (!modelImport) for (var t: mods.annotations) {
         	if (t instanceof JmlAnnotation ta) {
-                if (ta.kind == Modifiers.MODEL) modelImport = true; 
-                else utils.error(ta.pos, endPos(), "jml.no.mods.on.import"); // FIXME source, endpos
-        	}
+                if (ta.kind == Modifiers.MODEL) { modelImport = true; pp = ta.pos; break; }
+                else utils.error(ta.pos, endPos(), "jml.no.mods.on.import"); // FIXME endpos
+            }
         }
         boolean importIsInJml = S.jml();
         if (!modelImport && importIsInJml) {
@@ -421,9 +425,12 @@ public class JmlParser extends JavacParser {
     }
     
     protected JCExpression normalizeAnnotation(JmlToken mod, JCExpression vartype, JmlModifiers mods) {
-        JmlAnnotation a = JmlTreeUtils.instance(context).makeAnnotation(mod, this);
         var ck = (ModifierKind)mod.jmlclausekind;
-        x: if (a != null) {
+        x: if (ck.isTypeAnnotation()) {
+            JmlAnnotation a = JmlTreeUtils.instance(context).makeAnnotation(mod, this);
+
+            if (a == null) break x;
+
             // FIXME: methodDeclarationRest and variableDeclaratorRest can be called more than once with the same modifiers
             // resulting in duplicate annotations from the same modifier
             if (mods != null) for (var aa: mods.annotations) {
@@ -432,7 +439,7 @@ public class JmlParser extends JavacParser {
                     break x;
                 }
             }
-            if (ck.isTypeAnnotation()) {
+            {
                 if (vartype == null) {
                     mods.annotations = mods.annotations.append(a);
                 } else if (vartype instanceof JCAnnotatedType anntype) {
@@ -455,9 +462,9 @@ public class JmlParser extends JavacParser {
                 } else {
                     System.out.println("UNKNOWN KIND OF TYPE " + vartype.getClass() + " " + vartype);
                 }
-            } else {
-                //utils.warning(mod.pos, mod.endPos, "jml.message", "inserting a modifier as an annotation: " + ck); Utils.dumpStack();
-                mods.annotations = mods.annotations.append(a);
+//            } else {
+//                //utils.warning(mod.pos, mod.endPos, "jml.message", "inserting a modifier as an annotation: " + ck); Utils.dumpStack();
+//                mods.annotations = mods.annotations.append(a);
             }
         }
         return vartype;
