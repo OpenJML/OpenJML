@@ -1174,7 +1174,9 @@ public class JmlSpecs {
 
 
         // FIXME - check the case of a binary generated constructor with a declaration in JML
-        if (((sym.flags() & Flags.GENERATEDCONSTR) != 0 && superSym != null && isPure(superSym)) || ( sym.owner == syms.objectType.tsym && sym.isConstructor()) || sym.owner == Symtab.instance(context).enumSym ) {
+        if (((sym.flags() & Flags.GENERATEDCONSTR) != 0 && superSym != null && attr.isPureMethod(superSym)) 
+            || ( sym.owner == syms.objectType.tsym && sym.isConstructor()) 
+            || sym.owner == Symtab.instance(context).enumSym ) {
             JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                     com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,nothingKind)));
             if (sym.isConstructor()) {
@@ -1986,38 +1988,44 @@ public class JmlSpecs {
     }
     
     /** Returns true if the given method symbol is annotated as Pure or something that implies Pure */
-    public boolean isPure(MethodSymbol symbol) {
-    	boolean print = symbol.toString().contains("identityHashCode");
-    	JmlModifiers mods = getSpecsModifiers(symbol);
-    	if (mods != null) {
-    		//if (print) System.out.println("MODS " + symbol.owner + " " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasMod(mods,  Modifiers.PURE) + " " + utils.hasMod(mods,  Modifiers.HEAP_FREE) + " " + isPure((Symbol.ClassSymbol)symbol.owner));
-    		if (utils.hasMod(mods,  Modifiers.PURE, Modifiers.HEAP_FREE)) return true; 
-    	}
-        return isPure((Symbol.ClassSymbol)symbol.owner);
+    public boolean isPureLocal(MethodSymbol symbol) {
+        boolean print = symbol.toString().contains("ok");
+        JmlModifiers mods = getSpecsModifiers(symbol);
+        if (mods != null) {
+            //if (print) System.out.println("MODS " + symbol.owner + " " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasModifier(mods,  Modifiers.PURE) + " " + utils.hasModifier(mods,  Modifiers.HEAP_FREE) + " " + isPure((Symbol.ClassSymbol)symbol.owner));
+            if (utils.hasModifier(mods,  Modifiers.PURE, Modifiers.HEAP_FREE)) return true; 
+        }
+        //if (print) System.out.println("MODS " + symbol.owner + " " + symbol + "  NULL MODS");
+        return isPureClass((ClassSymbol)symbol.owner);
     }
     
-    public boolean isPure(ClassSymbol symbol) {
-        if (utils.hasMod(getSpecsModifiers(symbol), Modifiers.PURE)) return true;
-// FIXME - unbounded recursive?        if (symbol.enclClass() != null) return isPure(symbol.enclClass());
+    public boolean isPureLocal(ClassSymbol symbol) {
+        if (utils.hasModifier(getSpecsModifiers(symbol), Modifiers.PURE)) return true;
+        return false;
+    }
+    
+    public boolean isPureClass(ClassSymbol symbol) {
+        if (isPureLocal(symbol)) return true;
+        if (symbol.owner instanceof ClassSymbol c) return isPureClass(c);
         return false;
     }
     
     /** Returns true if the given method symbol is annotated as Query */
     public boolean isQuery(MethodSymbol symbol) {
     	JmlModifiers mods = getSpecsModifiers(symbol);
-    	if (utils.hasMod(mods,  Modifiers.QUERY)) return true; 
+    	if (utils.hasModifier(mods,  Modifiers.QUERY)) return true; 
         return false;
     }
     
-    public boolean fieldSpecHasAnnotation(VarSymbol sym, ModifierKind token) {
+    public boolean fieldSpecHasModifier(VarSymbol sym, ModifierKind token) {
     	JmlModifiers mods = getSpecsModifiers(sym);
-    	return utils.hasMod(mods, token); 
+    	return utils.hasModifier(mods, token); 
     }
 
-    public boolean methodSpecHasAnnotation(MethodSymbol sym, ModifierKind token) {
-    	JmlModifiers mods = getSpecsModifiers(sym);
-    	return utils.hasMod(mods, token); 
-    }
+//    public boolean methodSpecHasAnnotation(MethodSymbol sym, ModifierKind token) {
+//    	JmlModifiers mods = getSpecsModifiers(sym);
+//    	return utils.hasMod(mods, token); 
+//    }
     
     public static class VarSpecs {
         public boolean isNonNull;

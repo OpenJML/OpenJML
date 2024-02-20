@@ -2988,7 +2988,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								if (isConstructor) {
 									if (clauseIsStatic)
 										doit = true;
-									if (utils.findMod(classDecl.mods, Modifiers.CAPTURED) != null)
+									if (utils.findModifier(classDecl.mods, Modifiers.CAPTURED) != null)
 										doit = true;
 									// FIXME - should not use erasure here, but pasrameterized dtypes do not seem to
 									// work
@@ -4594,7 +4594,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addStat(comment(v, "Adding invariants for method parameter " + vsym, null));
 				// JCIdent idd = preparams.get(vsym);
 				if (utils.isNonExtPrimitiveType(vsym.type)) continue;
-                if (utils.hasMod(v.mods,Modifiers.HELPER)) continue;
+                if (utils.hasModifier(v.mods,Modifiers.HELPER)) continue;
 				
 				JCIdent idd = treeutils.makeIdent(v.pos, v.sym);
 				// JCIdent d = preparams.get(vsym);
@@ -5333,7 +5333,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			for (JCVariableDecl v : methodDecl.params) {
 				if (utils.isJavaOrJmlPrimitiveType(v.type)) continue;
 				if (isHelper(methodDecl.sym) && v.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
-				if (utils.hasMod(v.mods,Modifiers.HELPER)) continue;
+				if (utils.hasModifier(v.mods,Modifiers.HELPER)) continue;
 
 				JCIdent id = treeutils.makeIdent(v.pos, v.sym);
 				JCExpression oldid = treeutils.makeOld(v.pos(), id, labelPropertiesStore.get(attr.preLabel));
@@ -8340,9 +8340,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (msym != null) {
 			// We add helper to avoid further recursive loops; it is unsound, but we have
 			// already given the error message
-			attr.addAnnotation(msym, Modifiers.HELPER);
+			utils.setHelper(msym);
 			if (!utils.isHelper(msym)) {
-				utils.warning("jml.message",
+				utils.warning("jml.internal",
 						"Internal problem: isHelper failed after adding HELPER annotation: " + msym);
 			}
 		}
@@ -8837,7 +8837,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (rt instanceof Type.TypeVar) rt = calleeMethodSym.owner.type;
 			java.util.List<Pair<MethodSymbol, Type>> overridden = parents(calleeMethodSym, rt);
 			
-            boolean calleeIsPure = specs.isPure(calleeMethodSym);
+            boolean calleeIsPure = attr.isPureMethod(calleeMethodSym);
+            //if (calleeMethodSym.toString().contains("ok")) System.out.println("ISPURE-Z " + calleeIsPure + " " + calleeMethodSym.owner + "." + calleeMethodSym);
             boolean effectivelyPure = true;
 			{
 			var pmap = paramActuals_ = new HashMap<Object,JCExpression>();
@@ -19942,13 +19943,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					that.type = jmltypes.repSym((JmlType) that.type).type;
 					that.sym.type = that.type;
 				}
-				if (specs.fieldSpecHasAnnotation(that.sym, Modifiers.SPEC_PUBLIC)) {
+				if (specs.fieldSpecHasModifier(that.sym, Modifiers.SPEC_PUBLIC)) {
 					that.mods.flags &= ~Flags.AccessFlags;
 					that.mods.flags |= Flags.PUBLIC;
 					that.sym.flags_field &= ~Flags.AccessFlags;
 					that.sym.flags_field |= Flags.PUBLIC;
 				}
-				if (specs.fieldSpecHasAnnotation(that.sym, Modifiers.SPEC_PROTECTED)) {
+				if (specs.fieldSpecHasModifier(that.sym, Modifiers.SPEC_PROTECTED)) {
 					that.mods.flags &= ~Flags.AccessFlags;
 					that.mods.flags |= Flags.PROTECTED;
 					that.sym.flags_field &= ~Flags.AccessFlags;

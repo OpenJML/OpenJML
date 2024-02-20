@@ -349,26 +349,32 @@ public class Utils {
      * @param symbol the symbol to check
      * @return true if there is a helper annotation
      */
+    public void setHelper(/*@non_null*/ MethodSymbol symbol) {
+        var mods = JmlSpecs.instance(context).getLoadedSpecs(symbol).mods;
+        JmlToken tok = new JmlToken(null, Modifiers.HELPER, com.sun.tools.javac.parser.Tokens.TokenKind.CUSTOM, Position.NOPOS, Position.NOPOS);
+        ((JmlModifiers)mods).jmlmods.add(tok);
+    }
+    
     public boolean isHelper(/*@non_null*/ MethodSymbol symbol) {
-    	return hasMod(JmlSpecs.instance(context).getLoadedSpecs(symbol).mods, Modifiers.HELPER);
+        return hasModifier(JmlSpecs.instance(context).getLoadedSpecs(symbol).mods, Modifiers.HELPER);
     }
     
     public boolean isModel(/*@non_null*/ ClassSymbol symbol) {
-    	return hasMod(JmlSpecs.instance(context).getLoadedSpecs(symbol).modifiers, Modifiers.MODEL);
+    	return hasModifier(JmlSpecs.instance(context).getLoadedSpecs(symbol).modifiers, Modifiers.MODEL);
     }
     
     public boolean isModel(/*@non_null*/ MethodSymbol symbol) {
-    	return hasMod(JmlSpecs.instance(context).getLoadedSpecs(symbol).mods, Modifiers.MODEL);
+    	return hasModifier(JmlSpecs.instance(context).getLoadedSpecs(symbol).mods, Modifiers.MODEL);
     }
     
     public boolean isModel(/*@non_null*/ VarSymbol symbol) {
     	var fs = JmlSpecs.instance(context).getLoadedSpecs(symbol);
-    	return fs != null && hasMod(fs.mods, Modifiers.MODEL);
+    	return fs != null && hasModifier(fs.mods, Modifiers.MODEL);
     }
     
     public boolean isGhost(/*@non_null*/ VarSymbol symbol) {
     	var fs = JmlSpecs.instance(context).getLoadedSpecs(symbol);
-    	return fs != null && hasMod(fs.mods, Modifiers.GHOST);
+    	return fs != null && hasModifier(fs.mods, Modifiers.GHOST);
     }
     
     public boolean isModel(/*@non_null*/ Symbol symbol) {
@@ -568,7 +574,9 @@ public class Utils {
             //if (sp == null) System.out.println("NULL SPECS FOR " + sym);
             if (sp != null) mods = sp.mods;
         } else {
-            log.error(Position.NOPOS, "jml.internal", "Unknown kind of symbol in 'hasModifier': " + sym + " " + sym.getClass());
+            // This can be a package symbol, or the owner of 'Array'
+            // In any case there is no modifier
+            return false;
         }
         // else error -- FIXME
         if (mods != null) {
