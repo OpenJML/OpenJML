@@ -2468,8 +2468,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     protected void addDefaultClauses(JmlMethodDecl decl, JCModifiers mods, MethodSymbol msym, JCAnnotation pure, JmlSpecificationCase cs, JCExpression nnexpr) {
-		boolean inliningCall = mods != null && findMod(mods, Modifiers.INLINE) != null;
-		if (inliningCall) return;
+//		boolean inliningCall = mods != null && utsl.hasModifier(mods, Modifiers.INLINE);
+//		if (inliningCall) return;
 		String constructorDefault = JmlOption.defaultsValue(context,"constructor","everything");
         boolean hasAssignableClause = false;
         boolean hasAccessibleClause = false;
@@ -2490,7 +2490,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         ListBuffer<JmlMethodClause> newClauseList = new ListBuffer<>();
         if (!hasAssignableClause && cs.block == null) {
             JmlMethodClause defaultClause;
-            if (findMod(mods,Modifiers.INLINE) != null) {
+            if (utils.hasModifier(mods,Modifiers.INLINE)) {
                 // If inlined, do not add any clauses
                 defaultClause = null;
             } else if (pure != null || constructorDefault.equals("pure")) {
@@ -6782,7 +6782,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    }
 
     public boolean isPureMethod(MethodSymbol symbol) {
-        boolean print = false; // symbol.toString().contains("apply(");
+        boolean print = false;//symbol.toString().contains("ok(");
         if (print) System.out.println("IPM " + symbol.owner + " " + symbol  );
         java.util.List<MethodSymbol> overrideList = Utils.instance(context).parents(symbol,true);
         java.util.ListIterator<MethodSymbol> iter = overrideList.listIterator(overrideList.size());
@@ -6794,11 +6794,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (mspecs == null) {  // FIXME - observed to happen for in gitbug498 for JMLObjectBag.insert
                 // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
                 if (msym.toString().equals("size()") && msym.owner.toString().equals(Strings.jmlSpecsPackage + ".JMLList")) return true;
-                boolean isPure =  specs.isPure((ClassSymbol)msym.owner);
+                boolean isPure =  specs.isPureClass((ClassSymbol)msym.owner);
                 if (isPure && print) System.out.println("  ISPURE-N " + symbol.owner + " " + symbol);
             	if (isPure) return true;
             } else {
-            	boolean isPure = specs.isPure(msym); // Also checks enclosing class
+            	boolean isPure = specs.isPureLocal(msym); // Also checks enclosing class
             	if (isPure && print) System.out.println("  ISPURE " + symbol.owner + " " + symbol +  " " + msym.owner + "." + msym);
             	if (isPure) return true;
             }
@@ -6840,22 +6840,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public boolean isHelper(VarSymbol symbol) {
         FieldSpecs fspecs = specs.getLoadedSpecs(symbol);
-        return fspecs != null && utils.hasMod(fspecs.mods,Modifiers.HELPER);
+        return fspecs != null && utils.hasModifier(fspecs.mods,Modifiers.HELPER);
     }
     
     public boolean isGhost(VarSymbol symbol) {
         FieldSpecs fspecs = specs.getLoadedSpecs(symbol);
-        return utils.hasMod(fspecs.mods,Modifiers.GHOST);
+        return utils.hasModifier(fspecs.mods,Modifiers.GHOST);
     }
     
     public boolean isSpecPublic(MethodSymbol symbol) {
         MethodSpecs mspecs = specs.getLoadedSpecs(symbol);
-        return utils.hasMod((JmlModifiers)mspecs.mods, Modifiers.SPEC_PUBLIC);
+        return utils.hasModifier((JmlModifiers)mspecs.mods, Modifiers.SPEC_PUBLIC);
     }
     
     public boolean isSpecProtected(MethodSymbol symbol) {
         MethodSpecs mspecs = specs.getLoadedSpecs(symbol);
-        return utils.hasMod((JmlModifiers)mspecs.mods, Modifiers.SPEC_PROTECTED);
+        return utils.hasModifier((JmlModifiers)mspecs.mods, Modifiers.SPEC_PROTECTED);
     }
     
     public void addHelper(MethodSymbol symbol) {
