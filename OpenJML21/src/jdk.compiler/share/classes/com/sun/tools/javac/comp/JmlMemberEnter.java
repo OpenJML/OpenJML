@@ -701,8 +701,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JavaFileObject p = log.useSource(modelVarDecl.sourcefile);
         int endpos = modelVarDecl.getEndPosition(log.currentSource().getEndPosTable());
         log.useSource(p);
-        specs.addModifier(modelVarDecl.pos, Modifiers.MODEL, mr.mods); // FIXME - can use endpos
-        specs.addModifier(modelVarDecl.pos, Modifiers.PURE, mr.mods); // FIXME - can use endpos
+        specs.addModifier(modelVarDecl.pos, endpos, Modifiers.MODEL, mr.mods);
+        specs.addModifier(modelVarDecl.pos, endpos, Modifiers.PURE, mr.mods);
         JmlSpecs.FieldSpecs fspecs = specs.getLoadedSpecs(modelVarDecl.sym);
         JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);
         tcd.pos = mr.pos;
