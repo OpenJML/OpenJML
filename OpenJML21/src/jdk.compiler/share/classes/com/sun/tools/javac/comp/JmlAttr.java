@@ -853,10 +853,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (tree.lhs instanceof JCFieldAccess fa) {
         	if (fa.selected.type.tsym instanceof ClassSymbol cs) {
         		var sp = specs.getAttrSpecs(cs);
-        		var m = utils.findMod(sp.modifiers, Modifiers.IMMUTABLE);
+        		var m = utils.findModifier(sp.modifiers, Modifiers.IMMUTABLE);
                 if (m != null) {
                     utils.error(tree.pos, "jml.message", "Fields of an object with immutable type may not be modified: " + tree.lhs + " (" + fa.selected.type + ")");
-        			utils.error(m.sourcefile, m, "jml.associated.decl.cf", utils.locationString(tree.pos));
+        			utils.error(m.source, m, "jml.associated.decl.cf", utils.locationString(tree.pos));
                 }
         	}
         }
@@ -1123,26 +1123,26 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
-        // FIXME - this should be done in MemberEnter, not here -- needed for JmlVariableDecl, checking class mods
-    protected boolean checkSameAnnotations(JCModifiers javaMods, JCModifiers specMods, String kind, String name) {
-        //if (javaMods == specMods) return true;
-        boolean saved1 = JmlPretty.useFullAnnotationTypeName, saved2 = JmlPretty.useJmlModifier;
-        JmlPretty.useFullAnnotationTypeName = JmlPretty.useJmlModifier = false;
-        PackageSymbol p = annotationPackageSymbol;
-        boolean r = false;
-        for (JCAnnotation a: javaMods.getAnnotations()) {
-            // if sourcefile is null, the annotation was inserted to make an implicit annotation explicit; we don't complain about those, as the default may be superseded by a different explicit annotation
-            TypeSymbol tsym = a.annotationType.type.tsym;
-            if (((JmlTree.JmlAnnotation)a).sourcefile != null && tsym.owner.equals(p) && utils.findMod(specMods,tsym) == null) {
-                JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
-                utils.warning(a.pos,"jml.java.annotation.superseded",kind,name,a); 
-                log.useSource(prev);
-                r = true;
-            }
-        }
-        JmlPretty.useFullAnnotationTypeName = saved1; JmlPretty.useJmlModifier = saved2;
-        return r;
-    }
+//        // FIXME - this should be done in MemberEnter, not here -- needed for JmlVariableDecl, checking class mods
+//    protected boolean checkSameAnnotations(JCModifiers javaMods, JCModifiers specMods, String kind, String name) {
+//        //if (javaMods == specMods) return true;
+//        boolean saved1 = JmlPretty.useFullAnnotationTypeName, saved2 = JmlPretty.useJmlModifier;
+//        JmlPretty.useFullAnnotationTypeName = JmlPretty.useJmlModifier = false;
+//        PackageSymbol p = annotationPackageSymbol;
+//        boolean r = false;
+//        for (JCAnnotation a: javaMods.getAnnotations()) {
+//            // if sourcefile is null, the annotation was inserted to make an implicit annotation explicit; we don't complain about those, as the default may be superseded by a different explicit annotation
+//            TypeSymbol tsym = a.annotationType.type.tsym;
+//            if (((JmlTree.JmlAnnotation)a).sourcefile != null && tsym.owner.equals(p) && utils.findMod(specMods,tsym) == null) {
+//                JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
+//                utils.warning(a.pos,"jml.java.annotation.superseded",kind,name,a); 
+//                log.useSource(prev);
+//                r = true;
+//            }
+//        }
+//        JmlPretty.useFullAnnotationTypeName = saved1; JmlPretty.useJmlModifier = saved2;
+//        return r;
+//    }
 
 //  /** Checks that the jml annotations match Java annotations for annotations not in org.jmlspecs.annotation
 //  * and are a superset of the Java annotations for annotations in org.jmlspecs.annotation) */
@@ -2086,93 +2086,95 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // annotation will have created it, making for a bit of an anomaly.
         // TODO: clarify what the behavior should be and implement here and in the tests
 
-        JCAnnotation query = findMod(tree.mods, Modifiers.QUERY);
+        var query = utils.findModifier(tree.mods, Modifiers.QUERY);
         VarSymbol queryDatagroup = null;
         if (query != null) {
-            List<JCExpression> args = query.getArguments();
-            Name datagroup = null;
-            int pos = 0;
-            if (args.isEmpty()) {
-                // No argument - use the name of the method
-                datagroup = tree.name;
-                pos = query.pos;
-            } else {
-                datagroup = getAnnotationStringArg(query);
-                pos = args.get(0).pos;
-            }
-            if (datagroup != null) {
-                // Find the field with that name
-                boolean prev = jmlresolve.setAllowJML(true);
-                Symbol v = rs.findField(env,env.enclClass.type,datagroup,env.enclClass.sym);  // FIXME - test that this does not look outside the class and supertypes
-                jmlresolve.setAllowJML(prev);
-                if (v instanceof VarSymbol) {
-                    //OK
-                    queryDatagroup = (VarSymbol)v;
-                    // Don't require datagroups to be model fields
-                    //                  if (!isModel(v)) {
-                    //                      // TODO - ideally would like this to point to the declaration of the VarSymbol - but it might not exist and we have to find it
-                    //                      log.error(pos,"jml.datagroup.must.be.model");
-                    //                  }
-                } else if (args.size() == 0) {
-                    // Create a default: public model secret JMLDataGroup
-                    JmlTree.Maker maker = JmlTree.Maker.instance(context);
-                    JCTree.JCModifiers nmods = maker.Modifiers(Flags.PUBLIC);
-                    JCTree.JCAnnotation a = maker.Annotation(maker.Type(modToAnnotationSymbol.get(Modifiers.MODEL).type),List.<JCExpression>nil());
-                    JCTree.JCAnnotation aa = maker.Annotation(maker.Type(modToAnnotationSymbol.get(Modifiers.SECRET).type),List.<JCExpression>nil());
-                    boolean isStatic = utils.isJMLStatic(tree.sym);
-                    if (isStatic) {
-                        nmods.flags |= Flags.STATIC;
-                        nmods.annotations = List.<JCAnnotation>of(a,aa);
-                    } else {
-                        JCTree.JCAnnotation aaa = maker.Annotation(maker.Type(modToAnnotationSymbol.get(Modifiers.INSTANCE).type),List.<JCExpression>nil());
-                        nmods.annotations = List.<JCAnnotation>of(a,aa,aaa);
-                    }
-                    JCTree.JCExpression type = maker.Type(datagroupClass.type);
-                    JCTree.JCVariableDecl vd = maker.VarDef(nmods,datagroup,type,null);
-                    JmlMemberEnter.instance(context).memberEnter(vd,enclosingClassEnv);
-                    JmlTree.JmlTypeClauseDecl td = maker.JmlTypeClauseDecl(vd);
-                    utils.setJML(vd.mods);
-                    vd.accept(this); // attribute it
-                    queryDatagroup = vd.sym;
-                    specs.get(enclosingClassEnv.enclClass.sym).clauses.append(td);
-                } else {
-                    log.error(pos,"jml.no.such.field",datagroup);
-                }
-            }
+            // FIXME
+//            List<JCExpression> args = query.getArguments();
+//            Name datagroup = null;
+//            int pos = 0;
+//            if (args.isEmpty()) {
+//                // No argument - use the name of the method
+//                datagroup = tree.name;
+//                pos = query.pos;
+//            } else {
+//                datagroup = getAnnotationStringArg(query);
+//                pos = args.get(0).pos;
+//            }
+//            if (datagroup != null) {
+//                // Find the field with that name
+//                boolean prev = jmlresolve.setAllowJML(true);
+//                Symbol v = rs.findField(env,env.enclClass.type,datagroup,env.enclClass.sym);  // FIXME - test that this does not look outside the class and supertypes
+//                jmlresolve.setAllowJML(prev);
+//                if (v instanceof VarSymbol) {
+//                    //OK
+//                    queryDatagroup = (VarSymbol)v;
+//                    // Don't require datagroups to be model fields
+//                    //                  if (!isModel(v)) {
+//                    //                      // TODO - ideally would like this to point to the declaration of the VarSymbol - but it might not exist and we have to find it
+//                    //                      log.error(pos,"jml.datagroup.must.be.model");
+//                    //                  }
+//                } else if (args.size() == 0) {
+//                    // Create a default: public model secret JMLDataGroup
+//                    JmlTree.Maker maker = JmlTree.Maker.instance(context);
+//                    JCTree.JCModifiers nmods = maker.Modifiers(Flags.PUBLIC);
+//                    JCTree.JCAnnotation a = maker.Annotation(maker.Type(modToAnnotationSymbol.get(Modifiers.MODEL).type),List.<JCExpression>nil());
+//                    JCTree.JCAnnotation aa = maker.Annotation(maker.Type(modToAnnotationSymbol.get(Modifiers.SECRET).type),List.<JCExpression>nil());
+//                    boolean isStatic = utils.isJMLStatic(tree.sym);
+//                    if (isStatic) {
+//                        nmods.flags |= Flags.STATIC;
+//                        nmods.annotations = List.<JCAnnotation>of(a,aa);
+//                    } else {
+//                        JCTree.JCAnnotation aaa = maker.Annotation(maker.Type(modToAnnotationSymbol.get(Modifiers.INSTANCE).type),List.<JCExpression>nil());
+//                        nmods.annotations = List.<JCAnnotation>of(a,aa,aaa);
+//                    }
+//                    JCTree.JCExpression type = maker.Type(datagroupClass.type);
+//                    JCTree.JCVariableDecl vd = maker.VarDef(nmods,datagroup,type,null);
+//                    JmlMemberEnter.instance(context).memberEnter(vd,enclosingClassEnv);
+//                    JmlTree.JmlTypeClauseDecl td = maker.JmlTypeClauseDecl(vd);
+//                    utils.setJML(vd.mods);
+//                    vd.accept(this); // attribute it
+//                    queryDatagroup = vd.sym;
+//                    specs.get(enclosingClassEnv.enclClass.sym).clauses.append(td);
+//                } else {
+//                    log.error(pos,"jml.no.such.field",datagroup);
+//                }
+//            }
         }
         mspecs.queryDatagroup = queryDatagroup;
         // Secret
-        JCAnnotation secret = findMod(tree.mods, Modifiers.SECRET);
+        var secret = utils.findModifier(tree.mods, Modifiers.SECRET);
         VarSymbol secretDatagroup = null;
         if (secret != null) {
-            List<JCExpression> args = secret.getArguments();
-            int pos = 0;
-            Name datagroup = null;
-            if (args.size()!=1) {
-                // No argument - error
-                utils.error(secret.pos(),"jml.secret.method.one.arg");
-                datagroup = null;
-            } else {
-                // FIXME - what if the string is a qualified name?
-                datagroup = getAnnotationStringArg(secret);
-                pos = args.get(0).pos;
-            }
-            if (datagroup != null) {
-                // Find the model field with that name
-                boolean prev = jmlresolve.setAllowJML(true);
-                Symbol v = rs.findField(env,env.enclClass.type,datagroup,env.enclClass.sym);
-                jmlresolve.setAllowJML(prev);
-                if (v instanceof VarSymbol) {
-                    secretDatagroup = (VarSymbol)v;
-                    //OK
-                    //                  if (!isModel(v)) {
-                    //                      // TODO - ideally would like this to point to the declaration of the VarSymbol - but it might not exist and we have to find it
-                    //                      log.error(pos,"jml.datagroup.must.be.model");
-                    //                  }
-                } else {
-                    log.error(pos,"jml.no.such.field",datagroup);
-                }
-            }
+            // FIXME
+//            List<JCExpression> args = secret.getArguments();
+//            int pos = 0;
+//            Name datagroup = null;
+//            if (args.size()!=1) {
+//                // No argument - error
+//                utils.error(secret.pos(),"jml.secret.method.one.arg");
+//                datagroup = null;
+//            } else {
+//                // FIXME - what if the string is a qualified name?
+//                datagroup = getAnnotationStringArg(secret);
+//                pos = args.get(0).pos;
+//            }
+//            if (datagroup != null) {
+//                // Find the model field with that name
+//                boolean prev = jmlresolve.setAllowJML(true);
+//                Symbol v = rs.findField(env,env.enclClass.type,datagroup,env.enclClass.sym);
+//                jmlresolve.setAllowJML(prev);
+//                if (v instanceof VarSymbol) {
+//                    secretDatagroup = (VarSymbol)v;
+//                    //OK
+//                    //                  if (!isModel(v)) {
+//                    //                      // TODO - ideally would like this to point to the declaration of the VarSymbol - but it might not exist and we have to find it
+//                    //                      log.error(pos,"jml.datagroup.must.be.model");
+//                    //                  }
+//                } else {
+//                    log.error(pos,"jml.no.such.field",datagroup);
+//                }
+//            }
         }
         mspecs.secretDatagroup = secretDatagroup;
         if (queryDatagroup != null && queryDatagroup.equals(secretDatagroup)) {
@@ -2390,7 +2392,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 msp.cases = jms.cases;
             }
             JmlMethodSpecs methodSpecs = msp.cases;
-            JCAnnotation pure = utils.findMod(msp.mods, Modifiers.PURE);
+            JmlToken pure = utils.findModifier(msp.mods, Modifiers.PURE);
 
             // A list in which to collect clauses
             ListBuffer<JmlMethodClause> commonClauses = new ListBuffer<JmlMethodClause>();
@@ -2467,7 +2469,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
 
-    protected void addDefaultClauses(JmlMethodDecl decl, JCModifiers mods, MethodSymbol msym, JCAnnotation pure, JmlSpecificationCase cs, JCExpression nnexpr) {
+    protected void addDefaultClauses(JmlMethodDecl decl, JCModifiers mods, MethodSymbol msym, JmlToken pure, JmlSpecificationCase cs, JCExpression nnexpr) {
 //		boolean inliningCall = mods != null && utsl.hasModifier(mods, Modifiers.INLINE);
 //		if (inliningCall) return;
 		String constructorDefault = JmlOption.defaultsValue(context,"constructor","everything");
@@ -2520,7 +2522,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (!hasAccessibleClause) {
             JmlMethodClause defaultClause;
             jmlMaker.at(cs.pos);
-            if (findMod(mods,Modifiers.INLINE) != null) {
+            if (utils.findModifier(mods,Modifiers.INLINE) != null) {
                 // If inlined, do not add any clauses
                 defaultClause = null;
             } else {
@@ -3159,9 +3161,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		checkForConflict(mods,NON_NULL,NULLABLE);
         	}
             checkForDuplicateModifiers((JmlModifiers)mods);
-            if (tree.specsDecl != null) {
-                checkSameAnnotations(tree.mods,tree.specsDecl.mods,kind,tree.name.toString());
-            }
+//            if (tree.specsDecl != null) {
+//                checkSameAnnotations(tree.mods,tree.specsDecl.mods,kind,tree.name.toString());
+//            }
             
             checkJavaFlags(javaflags, (JmlSource)tree, specflags, tree.specsDecl, tree.sym);
                  
@@ -3212,14 +3214,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         inVarDecl = tree;
         
         // Secret
-        JmlAnnotation secret = findMod(mods, Modifiers.SECRET);
+        var secret = utils.findModifier(mods, Modifiers.SECRET);
         VarSymbol secretDatagroup = null;
-        if (secret != null) {
-            List<JCExpression> args = secret.getArguments();
-            if (!args.isEmpty()) {
-                utils.error(secret.sourcefile,args.get(0).pos,"jml.no.arg.for.field.secret");
-            }
-        }
+        // FIXME
+//        if (secret != null) {
+//            List<JCExpression> args = secret.getArguments();
+//            if (!args.isEmpty()) {
+//                utils.error(secret.source,args.get(0).pos,"jml.no.arg.for.field.secret");
+//            }
+//        }
         
         // Note that method parameters, which belong to Methods, have
         // null FieldSpecs
@@ -3452,41 +3455,43 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     protected VarSymbol getSecretSymbol(JCModifiers mods) {
-        JCAnnotation secret = findMod(mods,Modifiers.SECRET);
+        var secret = utils.findModifier(mods,Modifiers.SECRET);
         if (secret == null) return null;
-        if (secret.args.size() == 0) {
-            utils.error(secret,"jml.secret.requires.arg");
-            return null;
-        }
-        Name n = getAnnotationStringArg(secret);
-        boolean prev = jmlresolve.setAllowJML(true);
-        Symbol sym = rs.resolveIdent(secret.args.get(0).pos(),env,n,KindSelector.VAR);
-        jmlresolve.setAllowJML(prev);
-        if (sym instanceof VarSymbol) return (VarSymbol)sym;
-        utils.error(secret,"jml.no.such.field",n.toString());
+        // FIXME
+//        if (secret.args.size() == 0) {
+//            utils.error(secret,"jml.secret.requires.arg");
+//            return null;
+//        }
+//        Name n = getAnnotationStringArg(secret);
+//        boolean prev = jmlresolve.setAllowJML(true);
+//        Symbol sym = rs.resolveIdent(secret.args.get(0).pos(),env,n,KindSelector.VAR);
+//        jmlresolve.setAllowJML(prev);
+//        if (sym instanceof VarSymbol) return (VarSymbol)sym;
+//        utils.error(secret,"jml.no.such.field",n.toString());
         return null;
     }
     
     protected VarSymbol getQuerySymbol(JCMethodInvocation tree, JCModifiers mods) {
-        JCAnnotation query = findMod(mods, Modifiers.QUERY);
+        var query = utils.findModifier(mods, Modifiers.QUERY);
         if (query == null) return null;
-        List<JCExpression> args = query.getArguments();
-        Name datagroup = null;
-        DiagnosticPosition pos = tree.meth.pos();
-        if (args.isEmpty()) {
-            // No argument - use the name of the method
-            if (tree.meth instanceof JCIdent) datagroup = ((JCIdent)tree.meth).name;
-            else if (tree.meth instanceof JCFieldAccess) datagroup = ((JCFieldAccess)tree.meth).name;
-            pos = query.pos();
-        } else {
-            datagroup = getAnnotationStringArg(query);
-            pos = args.get(0).pos();
-        }
-        boolean prev = jmlresolve.setAllowJML(true);
-        Symbol sym = rs.resolveIdent(pos,env,datagroup,KindSelector.VAR);
-        jmlresolve.setAllowJML(prev);
-        if (sym instanceof VarSymbol) return (VarSymbol)sym;
-        utils.error(pos,"jml.no.such.field",datagroup.toString());
+        // FIXME
+//        List<JCExpression> args = query.getArguments();
+//        Name datagroup = null;
+//        DiagnosticPosition pos = tree.meth.pos();
+//        if (args.isEmpty()) {
+//            // No argument - use the name of the method
+//            if (tree.meth instanceof JCIdent) datagroup = ((JCIdent)tree.meth).name;
+//            else if (tree.meth instanceof JCFieldAccess) datagroup = ((JCFieldAccess)tree.meth).name;
+//            pos = query.pos();
+//        } else {
+//            datagroup = getAnnotationStringArg(query);
+//            pos = args.get(0).pos();
+//        }
+//        boolean prev = jmlresolve.setAllowJML(true);
+//        Symbol sym = rs.resolveIdent(pos,env,datagroup,KindSelector.VAR);
+//        jmlresolve.setAllowJML(prev);
+//        if (sym instanceof VarSymbol) return (VarSymbol)sym;
+//        utils.error(pos,"jml.no.such.field",datagroup.toString());
         return null;
     }
     
@@ -3500,21 +3505,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (token != axiomClause) f = Flags.AccessFlags | Flags.STATIC | Flags.FINAL;
         long diff = utils.hasOnly(mods,f);
         if (diff != 0) utils.error(tree,"jml.bad.mods",Flags.toString(diff));
-        JCAnnotation a = utils.findMod(mods,modToAnnotationSymbol.get(INSTANCE));
+        var a = utils.findModifier(mods,INSTANCE);
         if (a != null && isStatic(mods) ) {
             utils.error(a,"jml.conflicting.modifiers","instance","static");
         }
         attribAnnotationTypes(mods.annotations,env);
+        annotationsToModifiers(mods); // FIXME - check that htis is not already done -- if it is then the attribution above is done as well
         switch (token.keyword()) {
             case axiomID:
                 allAllowed(mods,noAnnotations,where);
                 break;
             case invariantID:
                 allAllowed(mods,invariantAnnotations,where);
-                JmlAnnotation an = findMod(mods, Modifiers.CAPTURED);
-                if (an != null) {
+                var t = utils.findModifier(mods, Modifiers.CAPTURED);
+                if (t != null) {
                     if (!((JmlClassDecl)enclosingClassEnv.tree).sym.isAnonymous()) {
-                        utils.error(an,"jml.message","The captured modifier may only modify anaonnymous class invariants that contain only captured variables");
+                        utils.error(t,"jml.message","The captured modifier may only modify anonymous class invariants that contain only captured variables");
                     } else {
                         // FIXME - need to check that all variables are captured
                     }
@@ -3695,17 +3701,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             // FIXME check that sym and represents are both secret or both not
             attribAnnotationTypes(tree.modifiers.annotations,env);
-            JCAnnotation a = findMod(tree.modifiers,Modifiers.SECRET);
+            annotationsToModifiers(tree.modifiers);
+            var a = utils.findModifier(tree.modifiers,Modifiers.SECRET);
             boolean representsIsSecret = a != null;
-            if (a != null && a.args.size() != 0) {
-                utils.error(a.args.get(0),"jml.no.arg.for.secret.represents");
-            }
-            if (sym != null) {
-                boolean symIsSecret = sym.attribute(modToAnnotationSymbol.get(Modifiers.SECRET)) != null;
-                if (symIsSecret != representsIsSecret) {
-                    utils.error(tree,"jml.represents.does.not.match.id.secret");
-                }
-            }
+            // FIXME
+//            if (a != null && a.args.size() != 0) {
+//                utils.error(a,"jml.no.arg.for.secret.represents");
+//            }
+//            if (sym != null) {
+//                boolean symIsSecret = sym.attribute(modToAnnotationSymbol.get(Modifiers.SECRET)) != null;
+//                if (symIsSecret != representsIsSecret) {
+//                    utils.error(tree,"jml.represents.does.not.match.id.secret");
+//                }
+//            }
             
             if (representsIsSecret && sym instanceof VarSymbol) currentSecretContext = (VarSymbol)sym;
             
@@ -3873,12 +3881,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         for (JCTree.JCVariableDecl decl: tree.decls) {
             if (decl instanceof JmlVariableDecl vdecl) {
             	JCModifiers mods = vdecl.mods;
-                boolean statik = env.enclMethod.sym.isStatic();
+                boolean statik = (mods.flags & Flags.STATIC) != 0;;
                 long flags = 0;
                 if (statik) {
-                    flags |= Flags.STATIC;  // old and forall decls are implicitly static for a static method
+                    flags |= Flags.STATIC;  // old decls are implicitly static for a static method
                 }
-//                attribAnnotationTypes(mods.annotations, env);
+                attribAnnotationTypes(mods.annotations, env);
                 specLocalEnv = JmlCheck.instance(context).staticOldEnv;
                 JmlCheck.instance(context).staticOldEnv = statik;
                 var savedInJmlDeclaration = this.isInJmlDeclaration;
@@ -5865,8 +5873,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
     protected long jmlAccess(JCModifiers mods) {
         long v = mods.flags & Flags.AccessFlags;
-        if (findMod(mods,Modifiers.SPEC_PUBLIC) != null) v = Flags.PUBLIC;
-        if (findMod(mods,Modifiers.SPEC_PROTECTED) != null) v = Flags.PROTECTED;
+        if (utils.hasModifier(mods,Modifiers.SPEC_PUBLIC)) v = Flags.PUBLIC;
+        if (utils.hasModifier(mods,Modifiers.SPEC_PROTECTED)) v = Flags.PROTECTED;
         return v;
     }
     
@@ -6010,7 +6018,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (mspecs != null) {
             calledSecret = getSecretSymbol(mspecs.mods);
             calledQuery = getQuerySymbol(tree,mspecs.mods);
-            calledPure = findMod(mspecs.mods,Modifiers.PURE) != null;
+            calledPure = utils.hasModifier(mspecs.mods,Modifiers.PURE);
         }
         
         if (currentQueryContext != null) {
@@ -6063,7 +6071,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (vsym.owner instanceof MethodSymbol) return;
 
         JmlSpecs.FieldSpecs fspecs = specs.getLoadedSpecs(vsym);
-        boolean identIsSecret = fspecs != null && findMod(fspecs.mods,Modifiers.SECRET) != null;
+        boolean identIsSecret = fspecs != null && utils.hasModifier(fspecs.mods,Modifiers.SECRET);
         // Rules:
         // If method is open, then ident may not be secret
         // If method is query and we are in the method specs, then ident may not be secret
@@ -6093,7 +6101,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (vsym.owner instanceof MethodSymbol) return;
 
         JmlSpecs.FieldSpecs fspecs = specs.getAttrSpecs(vsym);
-        boolean identIsSecret = fspecs != null && findMod(fspecs.mods,Modifiers.SECRET) != null;
+        boolean identIsSecret = fspecs != null && utils.hasModifier(fspecs.mods,Modifiers.SECRET);
         // Rules:
         // If method is open, then ident may not even be read
         // If method is query, then ident must be secret for the same datagroup
@@ -6551,18 +6559,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param ta the first JML token
      * @param tb the second JML token
      */
-    public boolean checkForConflict(JCModifiers mods, JmlTokenKind ta, JmlTokenKind tb) {
-        JCTree.JCAnnotation a,b;
-        a = utils.findMod(mods,modToAnnotationSymbol.get(ta));
-        b = utils.findMod(mods,modToAnnotationSymbol.get(tb));
-        if (a != null && b != null) {
-            JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)b).sourcefile);
-            utils.error(b.pos(),"jml.conflicting.modifiers",ta.internedName(),tb.internedName());
-            log.useSource(prev);
-            return true;
-        }
-        return false;
-    }
+//    public boolean checkForConflict(JCModifiers mods, ModifierKind ta, ModifierKind tb) {
+//        JmlToken a,b;
+//        a = utils.findModifier(mods,ta);
+//        b = utils.findModifier(mods,tb);
+//        if (a != null && b != null) {
+//            JavaFileObject prev = log.useSource(b.sourcefile);
+//            utils.error(b.pos(),"jml.conflicting.modifiers",a,b);
+//            log.useSource(prev);
+//            return true;
+//        }
+//        return false;
+//    }
     
     public boolean checkForDuplicateModifiers(JmlModifiers mods) {
         if (mods == null || mods.jmlmods == null) return false;
@@ -6643,11 +6651,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	return false;
     }
 
-    //@ nullable
-    public JmlAnnotation findMod(/*@nullable*/JCModifiers mods, ModifierKind ta) {
-        if (mods == null) return null;
-        return utils.findMod(mods,modToAnnotationSymbol.get(ta));
-    }
+//    //@ nullable
+//    public JmlAnnotation findMod(/*@nullable*/JCModifiers mods, ModifierKind ta) {
+//        if (mods == null) return null;
+//        return utils.findMod(mods,modToAnnotationSymbol.get(ta));
+//    }
 
     /** Returns true if the given symbol has non_null or does not have nullable annotation */
     public boolean isNonNull(Symbol sym, /*@ nullable */ JCModifiers mods) {
@@ -6902,26 +6910,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         return utils.findModifier(mspecs.modifiers,Modifiers.IMMUTABLE) != null;
     }
-    
-    public JCAnnotation hasAnnotation(JmlVariableDecl decl, JmlTokenKind token) {
+        
+    public boolean hasAnnotation(JmlVariableDecl decl, ModifierKind token) {
         if (decl.specsDecl != null) {
-            return findMod(decl.specsDecl.mods, token);
+            return utils.hasModifier(decl.specsDecl.mods, token);
         } else {
-            return findMod(decl.mods, token);
-        }
-    }
-    
-    public JCAnnotation hasAnnotation(JmlVariableDecl decl, ModifierKind token) {
-        if (decl.specsDecl != null) {
-            return findMod(decl.specsDecl.mods, token);
-        } else {
-            return findMod(decl.mods, token);
+            return utils.hasModifier(decl.mods, token);
         }
     }
 
 
     public boolean isCaptured(JmlVariableDecl vd) {
-        return utils.findMod(vd.mods,names.fromString("org.jmlspecs.annotation.Captures")) != null;
+        return utils.findModifier(vd.mods,Modifiers.CAPTURED) != null;
         
     }
 

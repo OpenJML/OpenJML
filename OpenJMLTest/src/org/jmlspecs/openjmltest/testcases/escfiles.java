@@ -135,7 +135,7 @@ public class escfiles extends EscBase {
     public void testDemoB1() {
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB1.java","test/escDemoB1",
-                "--progress","--esc-max-warnings-path");
+                "--progress","--esc-warnings-path");
     }
 
     @Test
@@ -841,7 +841,7 @@ public class escfiles extends EscBase {
     // The following are really just typecheck problems
 
     @Test
-    public void testEscPrivate() {
+    public void escPrivate() {
         expectedExit = 0;
         helpTF("escPrivate");
     }
@@ -853,7 +853,7 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testEnums() {
+    public void enums() {
         expectedExit = 0;
         helpTF("enums");
     }
