@@ -39,10 +39,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of B.m() with prover !!!! - no warnings
 Starting proof of B.mi() with prover !!!!
-test/escPrivate/Test.java:44: warning: The prover cannot establish an assertion (Postcondition) in method mi
+test/escPrivate/Test.java:43: warning: The prover cannot establish an assertion (Postcondition) in method mi
         return 2;
         ^
-test/escPrivate/Test.java:26: warning: Associated declaration
+test/escPrivate/Test.java:25: warning: Associated declaration
     //@ public normal_behavior ensures \result == 1;
                                ^
 Completed proof of B.mi() with prover !!!! - with warnings

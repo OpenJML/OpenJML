@@ -1180,14 +1180,14 @@ public class JmlSpecs {
             JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                     com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,nothingKind)));
             if (sym.isConstructor()) {
-                JCAnnotation annotation = org.jmlspecs.openjml.Utils.instance(context).modToAnnotationAST(Modifiers.PURE, pos, pos);
-                var envv = JmlEnter.instance(context).tlenv; // Enter.instance(context).getEnv();
-                attr.attribAnnotationTypes(com.sun.tools.javac.util.List.<JCAnnotation>of(annotation), envv);
-                JCFieldAccess fa = (JCTree.JCFieldAccess)annotation.annotationType;
-                fa.sym = JmlAttr.instance(context).modToAnnotationSymbol.get(Modifiers.PURE);
-                annotation.type = fa.type = fa.sym.type;
+                //JCAnnotation annotation = org.jmlspecs.openjml.Utils.instance(context).modToAnnotationAST(Modifiers.PURE, pos, pos);
+                //var envv = JmlEnter.instance(context).tlenv; // Enter.instance(context).getEnv();
+                //attr.attribAnnotationTypes(com.sun.tools.javac.util.List.<JCAnnotation>of(annotation), envv);
+                //JCFieldAccess fa = (JCTree.JCFieldAccess)annotation.annotationType;
+                //fa.sym = JmlAttr.instance(context).modToAnnotationSymbol.get(Modifiers.PURE);
+                //annotation.type = fa.type = fa.sym.type;
                 
-                mods.annotations = mods.annotations.append(annotation);
+                addModifier(pos, Modifiers.PURE, mods);
             }
 
             JmlMethodClauseSignals sig = M.at(pos).JmlMethodClauseSignals(signalsID, signalsClauseKind, null, JmlTreeUtils.instance(context).falseLit);
@@ -1247,9 +1247,9 @@ public class JmlSpecs {
                 clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,enn,clp,clpa,sig,cval);
                 // FIXME - need to add a helper, pure annotation
                 var mdef = (JmlMethodDecl)M.at(pos).MethodDef(sym,null);
-                mdef.mods.annotations = addAnnotation(pos, Modifiers.PURE, mdef.mods.annotations);
-                mdef.mods.annotations = addAnnotation(pos, Modifiers.HELPER, mdef.mods.annotations);
-                mdef.mods.annotations = addAnnotation(pos, Modifiers.NON_NULL, mdef.mods.annotations);
+                addModifier(pos, Modifiers.PURE, mdef.mods);
+                addModifier(pos, Modifiers.HELPER, mdef.mods);
+                addModifier(pos, Modifiers.NON_NULL, mdef.mods);
                 mspecs.specDecl = mdef;
                 
             } else if (sym.name.equals(names.valueOf)) {
@@ -1275,11 +1275,11 @@ public class JmlSpecs {
                     clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,clp,clpa,sig,sigo);
                     // FIXME - Illegal argument exception? What about user supplied valueOf methods?
                     var mdef = (JmlMethodDecl)M.at(pos).MethodDef(sym,null);
-                    mdef.mods.annotations = addAnnotation(pos, Modifiers.PURE, mdef.mods.annotations);
-                    mdef.mods.annotations = addAnnotation(pos, Modifiers.HELPER, mdef.mods.annotations);
-                    mdef.mods.annotations = addAnnotation(pos, Modifiers.NON_NULL, mdef.mods.annotations);
+                    addModifier(pos, Modifiers.PURE, mdef.mods);
+                    addModifier(pos, Modifiers.HELPER, mdef.mods);
+                    addModifier(pos, Modifiers.NON_NULL, mdef.mods);
                     JCVariableDecl param = mdef.params.head;
-                    param.mods.annotations = addAnnotation(pos,Modifiers.NULLABLE,param.mods.annotations);
+                    addModifier(pos,Modifiers.NULLABLE,param.mods);
                     mspecs.specDecl = mdef;
                     
                 } else {
@@ -1303,7 +1303,7 @@ public class JmlSpecs {
             }
             JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false, MethodSimpleClauseExtensions.behaviorClause,null,clauses,null);
             mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
-            mspecs.mods.annotations = addPureAnnotation(pos, mspecs.mods.annotations);
+            addModifier(pos, Modifiers.PURE, mspecs.mods);
 //            if (sym.name.equals(names.valueOf)) {
 //            	System.out.println("VALUEOF MSPECS " + mspecs);
 //                System.out.println("VALUEOF DECL " + mspecs.specDecl);
@@ -1330,7 +1330,7 @@ public class JmlSpecs {
         }
         
         boolean libraryMethod = sym.owner instanceof ClassSymbol && sym.owner.toString().startsWith("java");
-        boolean isPureA = utils.hasMod(mspecs.mods, Modifiers.PURE, Modifiers.HEAP_FREE); // use isPure?
+        boolean isPureA = utils.hasModifier(mspecs.mods, Modifiers.PURE, Modifiers.HEAP_FREE); // use isPure?
         boolean isPureL = (libraryMethod && !JmlOption.isOption(context,JmlOption.PURITYCHECK));
         //System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
@@ -1349,8 +1349,18 @@ public class JmlSpecs {
         mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
         if (decl == null) mspecs.cases.deSugared = mspecs.cases;
         //FIXME: this sets as pure far more methods than needed, including some that are definitely not pure
-        if (isPureL && !isPureA) mspecs.mods.annotations = addPureAnnotation(pos, mspecs.mods.annotations);
+        if (isPureL && !isPureA) addModifier(pos, Modifiers.PURE, mspecs.mods);
         return mspecs;
+    }
+    
+    public void addModifier(int pos, ModifierKind m, JCModifiers mods) {
+        var tok = new com.sun.tools.javac.parser.JmlToken(m, log.currentSourceFile(), pos, pos);
+        ((JmlModifiers)mods).jmlmods.add(tok);
+    }
+    
+    public void addModifier(int pos, int endpos, ModifierKind m, JCModifiers mods) {
+        var tok = new com.sun.tools.javac.parser.JmlToken(m, log.currentSourceFile(), pos, endpos);
+        ((JmlModifiers)mods).jmlmods.add(tok);
     }
     
     protected/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlTokenKind jt,
@@ -1371,45 +1381,45 @@ public class JmlSpecs {
         return ann;
     }
 
-    public com.sun.tools.javac.util.List<JCAnnotation> addPureAnnotation(int pos, com.sun.tools.javac.util.List<JCAnnotation> annots) {
-        JmlTree.Maker F = JmlTree.Maker.instance(context);
-        JmlAnnotation pure = makePureAnnotation(pos, true, F);
-        return annots.append(pure);
-    }
-    
-    public com.sun.tools.javac.util.List<JCAnnotation> addAnnotation(int pos, ModifierKind mk, com.sun.tools.javac.util.List<JCAnnotation> annots) {
-        JmlTree.Maker F = JmlTree.Maker.instance(context);
-        JmlAnnotation a = makeAnnotation(pos, F, mk);
-        return annots.append(a);
-    }
-    
-    public JmlAnnotation makePureAnnotation(int pos, boolean withType, JmlTree.Maker F) {
-        JmlAnnotation annot = makeAnnotation(pos, F, Modifiers.PURE);
-        if (withType) annot.type = annot.annotationType.type = pureAnnotationSymbol().type;
-        return annot;
-    }
+//    public com.sun.tools.javac.util.List<JCAnnotation> addPureAnnotation(int pos, com.sun.tools.javac.util.List<JCAnnotation> annots) {
+//        JmlTree.Maker F = JmlTree.Maker.instance(context);
+//        JmlAnnotation pure = makePureAnnotation(pos, true, F);
+//        return annots.append(pure);
+//    }
+//    
+//    public com.sun.tools.javac.util.List<JCAnnotation> addAnnotation(int pos, ModifierKind mk, com.sun.tools.javac.util.List<JCAnnotation> annots) {
+//        JmlTree.Maker F = JmlTree.Maker.instance(context);
+//        JmlAnnotation a = makeAnnotation(pos, F, mk);
+//        return annots.append(a);
+//    }
+//    
+//    public JmlAnnotation makePureAnnotation(int pos, boolean withType, JmlTree.Maker F) {
+//        JmlAnnotation annot = makeAnnotation(pos, F, Modifiers.PURE);
+//        if (withType) annot.type = annot.annotationType.type = pureAnnotationSymbol().type;
+//        return annot;
+//    }
 
-    public com.sun.tools.javac.util.List<JCAnnotation> addModelAnnotation(int pos, com.sun.tools.javac.util.List<JCAnnotation> annots) {
-        JmlTree.Maker F = JmlTree.Maker.instance(context);
-        JmlAnnotation annot = makeAnnotation(pos, F, Modifiers.MODEL);
-        annot.type = annot.annotationType.type = modelAnnotationSymbol().type;
-        return annots.append(annot);
-    }
-
-    public JmlAnnotation makeAnnotation(int pos, JmlTree.Maker F, ModifierKind jt) {
-        String s = jt.fullAnnotation;
-        int k = s.lastIndexOf(".");
-        JCExpression t = (F.Ident(names.fromString("org")));
-        t = (F.Select(t, names.fromString("jmlspecs")));
-        t = (F.Select(t, names.fromString("annotation")));
-        t = (F.Select(t, names.fromString(s.substring(k+1))));
-        JmlAnnotation ann = (F.Annotation(t, com.sun.tools.javac.util.List.<JCExpression> nil()));
-        ann.kind = jt;
-//        annot.type = annot.annotationType.type = modelAnnotationSymbol().type; // FIXME - needs type
-        //((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
-        //storeEnd(ann, endpos);
-        return ann;
-    }
+//    public com.sun.tools.javac.util.List<JCAnnotation> addModelAnnotation(int pos, com.sun.tools.javac.util.List<JCAnnotation> annots) {
+//        JmlTree.Maker F = JmlTree.Maker.instance(context);
+//        JmlAnnotation annot = makeAnnotation(pos, F, Modifiers.MODEL);
+//        annot.type = annot.annotationType.type = modelAnnotationSymbol().type;
+//        return annots.append(annot);
+//    }
+//
+//    public JmlAnnotation makeAnnotation(int pos, JmlTree.Maker F, ModifierKind jt) {
+//        String s = jt.fullAnnotation;
+//        int k = s.lastIndexOf(".");
+//        JCExpression t = (F.Ident(names.fromString("org")));
+//        t = (F.Select(t, names.fromString("jmlspecs")));
+//        t = (F.Select(t, names.fromString("annotation")));
+//        t = (F.Select(t, names.fromString(s.substring(k+1))));
+//        JmlAnnotation ann = (F.Annotation(t, com.sun.tools.javac.util.List.<JCExpression> nil()));
+//        ann.kind = jt;
+////        annot.type = annot.annotationType.type = modelAnnotationSymbol().type; // FIXME - needs type
+//        //((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
+//        //storeEnd(ann, endpos);
+//        return ann;
+//    }
 
     /** Retrieves the specs for a given field
      * @param m the VarSymbol of the field whose specs are wanted
@@ -1999,16 +2009,17 @@ public class JmlSpecs {
         return isPureClass((ClassSymbol)symbol.owner);
     }
     
-    public boolean isPureLocal(ClassSymbol symbol) {
+    public boolean isPureClass(ClassSymbol symbol) {
+        // Classes do not garner purity from enclosing or superclasses
         if (utils.hasModifier(getSpecsModifiers(symbol), Modifiers.PURE)) return true;
         return false;
     }
     
-    public boolean isPureClass(ClassSymbol symbol) {
-        if (isPureLocal(symbol)) return true;
-        if (symbol.owner instanceof ClassSymbol c) return isPureClass(c);
-        return false;
-    }
+//    public boolean isPureClass(ClassSymbol symbol) {
+//        if (isPureLocal(symbol)) return true;
+//        if (symbol.owner instanceof ClassSymbol c) return isPureClass(c);
+//        return false;
+//    }
     
     /** Returns true if the given method symbol is annotated as Query */
     public boolean isQuery(MethodSymbol symbol) {

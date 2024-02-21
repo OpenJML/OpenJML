@@ -2336,8 +2336,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public JmlStatementExpr addAssume(DiagnosticPosition pos, Label label, JCExpression translatedExpr,
 			/* @nullable */ DiagnosticPosition associatedPosition, /* @nullable */ JavaFileObject associatedSource,
 			/* @nullable */ JCExpression info, Object... args) {
-		// if (translatedExpr.toString().contains("_JML__tmp118 == EE.AA"))
-		// Utils.dumpStack();
+		if (translatedExpr.toString().contains("maxTime == 0")) Utils.dumpStack();
 		JmlStatementExpr stt = null;
 		if ((infer || esc)) {
 			JmlStatementExpr st = treeutils.makeAssume(pos, label, translatedExpr);
@@ -2609,8 +2608,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Returns true if the given symbol has a Model annotation */
 	public boolean isModel(Symbol symbol) {
-		return symbol.attribute(attr.modToAnnotationSymbol.get(Modifiers.MODEL)) != null; // FIXME - need to get this
-																							// from the spec
+		return utils.hasModifier(symbol, Modifiers.MODEL);
 	}
 
 	/** Returns true if the Java static modifier is set */

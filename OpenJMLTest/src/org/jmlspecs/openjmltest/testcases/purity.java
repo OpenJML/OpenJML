@@ -137,7 +137,7 @@ public class purity extends TCBase {
                 );
     }
 
-    /** Test that pure from enclosing class does not apply */  // FIXME - this is a question for JML
+    /** Test that pure from enclosing class does not apply */
     @Test
     public void testPureClass3() {
         expectedExit = 0;
