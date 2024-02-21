@@ -1001,6 +1001,9 @@ public class Utils {
         }
     }
     
+    public boolean isSynthetic(JCModifiers mods) {
+        return (mods.flags & Flags.SYNTHETIC) != 0;   }
+    
     public boolean isPrimitiveType(TypeSymbol ct) {
         return isJavaOrJmlPrimitiveType(ct.type);
     }

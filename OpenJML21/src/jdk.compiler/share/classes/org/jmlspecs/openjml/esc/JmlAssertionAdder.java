@@ -908,7 +908,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		try {
 			enclosingMethod = pmethodDecl.sym;
 			enclosingClass = pmethodDecl.sym.owner;
-			if (isModel && (pmethodDecl.mods.flags & Flags.SYNTHETIC) != 0) {
+			if (utils.hasModifier(pmethodDecl.mods, Modifiers.MODEL) && (pmethodDecl.mods.flags & Flags.SYNTHETIC) != 0) {
 				return convertMethodBodyNoInitModel(pmethodDecl, pclassDecl);
 			}
 			feasibilityCheckCount = 0;
@@ -1444,7 +1444,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		saveMapping(tree, result);
 		return (T) result;
 	}
-
+	
 	/**
 	 * Returns a translation of a list of tree, possibly pushing additional
 	 * statements onto 'currentStatements'; the same restrictions on T apply as
@@ -2579,14 +2579,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 * annotation
 	 */
 	public boolean isHelper(MethodSymbol symbol) {
-		return attr.isHelper(symbol) || (symbol.owner.isEnum()
-				&& (symbol.name == names.values || symbol.name == names.ordinal || symbol.name == names._name)); // FIXME
-																													// -
-																													// could
-																													// declare
-																													// the
-																													// methods
-																													// helper
+		return utils.hasModifier(symbol, Modifiers.HELPER);
 	}
 
 	// Returns true if the symbol is a formal parameter of the given method,
@@ -2600,7 +2593,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return v.owner == msym;
 	}
 
-	/** Returns true if the given symbol has a pure annotation */
+	/** Returns true if the given symbol is pure (locally or globally) */
 	public boolean isPure(MethodSymbol symbol) {
 		return attr.isPureMethod(symbol);
 
@@ -4580,8 +4573,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression receiver = utils.isJMLStatic(methodDecl.sym) ? null : currentEnv.currentReceiver;
 
 			// Assuming invariants
-            addStat(comment(methodDecl, "Adding instance invariants for method receiver " + methodDecl.sym.owner + "." + methodDecl.sym, null));
-			addInvariants(methodDecl, owner.type, receiver, currentStatements, true, methodDecl.sym.isConstructor(),
+            addStat(comment(methodDecl, "Adding instance invariants for method receiver " + methodDecl.sym.owner + "." + methodDecl.sym + " helper?: " + isHelper(methodDecl.sym), null));
+            addInvariants(methodDecl, owner.type, receiver, currentStatements, true, methodDecl.sym.isConstructor(),
 					false, isHelper(methodDecl.sym), false, true, Label.INVARIANT_ENTRANCE,
 					utils.qualifiedMethodSig(methodDecl.sym));
             addStat(comment(methodDecl, "End instance invariants for method receiver " + methodDecl.sym.owner + "." + methodDecl.sym, null));
@@ -15620,6 +15613,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			JCModifiers mods = M.at(that).Modifiers(that.flags, annotations.toList());
 			result = mods;
+			((JmlModifiers)result).jmlmods = ((JmlModifiers)that).jmlmods; // FIXME - should we copy the tokens?
 		} else {
 			result = that;
 		}
@@ -16113,7 +16107,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			for (JCTree def : defs) {
 				if (def instanceof JmlMethodDecl jdef) {
 					String nm = jdef.name.toString();
-					if (nm.startsWith(Strings.modelFieldMethodPrefix) && isModel(jdef.sym)) { // FIXME - this check on isModel is not correct I think - methods for model fields are not necessarily marked model
+					if (utils.isSynthetic(jdef.mods) && attr.isModel(jdef.mods) && nm.startsWith(Strings.modelFieldMethodPrefix)) {
 						if ((jdef.mods.flags & Utils.JMLADDED) != 0) {
 							// We are presuming that all represents clauses are processed
 							// (as part of scanning the specs defs in visitJmlClassDecl)
