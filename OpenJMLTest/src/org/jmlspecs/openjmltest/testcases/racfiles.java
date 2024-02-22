@@ -555,4 +555,9 @@ public class racfiles extends RacBase {
     public void textBlock4() {
         helpTCF("test/textBlock4","test/textBlock4","Test");
     }
+    
+    @Test
+    public void textBlock4b() {
+        helpTCF("test/textBlock4b","test/textBlock4b","Test");
+    }
 }
