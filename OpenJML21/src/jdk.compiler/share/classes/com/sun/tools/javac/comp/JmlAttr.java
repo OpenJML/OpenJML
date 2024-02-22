@@ -3881,37 +3881,42 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         for (JCTree.JCVariableDecl decl: tree.decls) {
             if (decl instanceof JmlVariableDecl vdecl) {
             	JCModifiers mods = vdecl.mods;
-                boolean statik = (mods.flags & Flags.STATIC) != 0;;
+                boolean statik = (env.enclMethod.mods.flags & Flags.STATIC) != 0; // method is static; so OK if var is static
                 long flags = 0;
                 if (statik) {
                     flags |= Flags.STATIC;  // old decls are implicitly static for a static method
                 }
+                long badFlags = utils.hasOnly(mods,flags);
+                if (badFlags != 0) {
+                    log.error(mods.pos,"jml.no.java.mods.allowed","method specification declaration", TreeInfo.flagNames(badFlags));
+                    mods.flags &= ~badFlags; // Remove erroneous flags
+                }
+                jmlenv = jmlenv.pushCopy();
+                jmlenv.currentClauseKind = declClause;
                 attribAnnotationTypes(mods.annotations, env);
-                specLocalEnv = JmlCheck.instance(context).staticOldEnv;
-                JmlCheck.instance(context).staticOldEnv = statik;
+                boolean prevLocalEnv = specLocalEnv;
+                specLocalEnv = statik;
                 var savedInJmlDeclaration = this.isInJmlDeclaration;
                 this.isInJmlDeclaration = true;
                 var savedDoJML = this.attribJmlDecls;
                 try {
                 	this.attribJmlDecls = true;
+                    mods.flags &= ~flags; // Remove these flags or we will get additional complaints
                     decl.accept(this);
                     if (decl.sym == null) {
                         if (toRemove == null) toRemove = new ListBuffer<>();
                         toRemove.add(tree);
                     }
-                    annotationsToModifiers((JmlModifiers)mods);
+                    annotationsToModifiers((JmlModifiers)mods); // Requires annotations to be attributed
                     allAllowed(mods, allowedMethodSpecDeclModifiers, "method specification declaration");
-                    if (utils.hasOnly(mods,flags) != 0) {
-                        log.error(mods.pos,"jml.no.java.mods.allowed","method specification declaration", TreeInfo.flagNames(utils.hasOnly(mods,flags)));
-                        mods.flags &= flags;
-                    }
-                    mods.flags |= flags;
 
                 } finally {
+                    mods.flags |= flags; // Restore the flags
+                    jmlenv = jmlenv.pop();
                 	this.attribJmlDecls = savedDoJML;
                     this.isInJmlDeclaration = savedInJmlDeclaration;
-                    JmlCheck.instance(context).staticOldEnv = specLocalEnv;
-                    specLocalEnv = false;
+                    //JmlCheck.instance(context).staticOldEnv = specLocalEnv;
+                    specLocalEnv = prevLocalEnv;
                     if (env.enclMethod.sym.isStatic()) {
                         ((JmlVariableDecl)decl).mods.flags &= ~Flags.STATIC; // FIXME - is this necessary
                     }
@@ -7603,7 +7608,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	if (utils.verbose()) utils.note("Adjusted nullity " + that);
         }
         JavaFileObject prevSource = null;
-        jmlenv = jmlenv.pushCopy();
         boolean isReplacementType = that.jmltype;
         boolean prev = ((JmlResolve)rs).setAllowJML(utils.isJML(that.mods) || isReplacementType);
         try {
@@ -7620,9 +7624,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             annotate.flush(); // FIXME _ this does not do anything if annotations are blocked
             for (JCAnnotation a: that.mods.annotations) a.type = a.annotationType.type;
 
-            if (utils.isJML(that.mods) && jmlenv.currentClauseKind == null) {
-                jmlenv.currentClauseKind = declClause; // FIXME - could be model, if it matters
-            }
             if (that.originalVartype != null && that.originalVartype.type == null) attribType(that.originalVartype,env);
             if (env.info.lint == null) { // FIXME: Without this we crash in Attr, but how is this handled elsewhere?
             	Env<AttrContext> lintEnv = env;
@@ -7756,7 +7757,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } finally {
             ((JmlResolve)rs).setAllowJML(prev);
             if (prevSource != null) log.useSource(prevSource);
-            jmlenv = jmlenv.pop();
             //if (utils.verbose()) utils.note("    Attributed " + that.sym.owner + " " + that.sym); // that.sym may be null
         }
     }
