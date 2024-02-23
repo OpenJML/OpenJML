@@ -1,4 +1,4 @@
-test/staticOld/NullableOld.java:7: error: No Java modifiers are allowed in a method specification declaration: static
+test/staticOld/NullableOld.java:7: error: No Java modifiers are allowed in a old clause declaration: static
     //@ old static Object o = oo;
             ^
 Operation not performed because of parse or type errors

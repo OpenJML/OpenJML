@@ -18,7 +18,7 @@ public final class Test {
     
     //@ public normal_behavior
     //@   ensures true;
-    public void TestMethod(B b) {  // fails feasibility check #1 (end of preconditions)
+    public void TestMethod(B b) {  // fails feasibility check #1 (end of preconditions), but should be OK
         b.getXyz();
     }
 }

@@ -8954,7 +8954,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			boolean strictlyPure = utils.isJavaOrJmlPrimitiveType(calleeMethodSym.getReturnType());
 			boolean includeDeterminism = !rac && !calleeIsConstructor && !isSuperCall && !isThisCall
 					&& (calleeIsPure || effectivelyPure) && !isVoid;
-			//System.out.println("DET " + includeDeterminism + " " + hasTypeArgs + " " + isPure(calleeMethodSym) + " " + strictlyPure + " " + calleeMethodSym);
 			boolean details = true && !calleeMethodSym.owner.getQualifiedName().toString().equals(Strings.JMLClass);
 
 			addToCallStack(that);
@@ -9157,7 +9156,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// FIXME - what about newclass.encl
 			}
 
-			if (print) System.out.println("APPLYHELPER-I " + calleeMethodSym.owner + " " + calleeMethodSym);
+			if (print) System.out.println("APPLYHELPER-I " + calleeMethodSym.owner + " " + calleeMethodSym + " " + (!inlineSpecs) + " " + (!isVoid));
 			if (!inlineSpecs && !isVoid) {
 				if (addMethodAxioms)
 					assertCalledMethodPrecondition(that, calleeMethodSym, extendedArgs);
@@ -11454,12 +11453,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// FIXME - the check on helper here is only if callee and caller have the same
 		// receiver, or is it receivers with the same class?
-		if (applyNesting <= 1 && !(isHelper(calleeMethodSym) && apply != null && !isHeapIndependent(calleeMethodSym)
-				&& (utils.isJMLStatic(
-						apply.meth instanceof JCIdent ? ((JCIdent) apply.meth).sym : ((JCFieldAccess) apply.meth).sym)
-						|| apply.meth instanceof JCIdent))) {
+		if (applyNesting <= 1 && !methodDecl.sym.isConstructor() 
+		        && !(isHelper(calleeMethodSym) && apply != null && !isHeapIndependent(calleeMethodSym)
+                && (utils.isJMLStatic(apply.meth instanceof JCIdent ? ((JCIdent) apply.meth).sym : ((JCFieldAccess) apply.meth).sym)
+    				|| apply.meth instanceof JCIdent)
+    			)) {
 			addStat(comment(that,
-					"Checking caller invariants before calling method " + utils.qualifiedMethodSig(calleeMethodSym),
+					"Checking caller invariants of " + methodDecl.sym + " before calling method " + utils.qualifiedMethodSig(calleeMethodSym),
 					null));
 			if (!isSuperCall && !isThisCall) {
 //                    if (meth instanceof JCFieldAccess) {
