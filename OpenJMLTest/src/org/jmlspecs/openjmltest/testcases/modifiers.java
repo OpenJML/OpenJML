@@ -1126,9 +1126,9 @@ public class modifiers extends TCBase {
                 "  //@ old pure Object o6 = null; \n" +
                 "  //@ old final Object o7 = null; \n" +
                 "  void m() {} }"
-                ,"/A.java:6: error: This JML modifier is not allowed for a old variable declaration",11
-                ,"/A.java:7: error: This JML modifier is not allowed for a old variable declaration",11
-                ,"/A.java:8: error: No Java modifiers are allowed in a old variable declaration: final",11
+                ,"/A.java:6: error: This JML modifier is not allowed for a old clause declaration",11
+                ,"/A.java:7: error: This JML modifier is not allowed for a old clause declaration",11
+                ,"/A.java:8: error: No Java modifiers are allowed in a old clause declaration: final",11
                 );
     }
      

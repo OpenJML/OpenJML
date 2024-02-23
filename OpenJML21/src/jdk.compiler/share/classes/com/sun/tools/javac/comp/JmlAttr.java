@@ -2863,7 +2863,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             boolean onlyWarning) {
     	
     	boolean allowForwardRefSaved = allowForwardRef;
-    	allowForwardRef = !(jmlenv.currentClauseKind == null || jmlenv.currentClauseKind == declClause);
+    	allowForwardRef = !(jmlenv.currentClauseKind == null || jmlenv.currentClauseKind == declClause); // FIXME - is this OK for oldClause - when is it ever needed?
     	super.checkInit(tree,env,v,onlyWarning);
     	allowForwardRef = allowForwardRefSaved;
     }
@@ -2926,6 +2926,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void checkVarDecl(JmlVariableDecl javaField) {
         var fspecs = specs.getLoadedSpecs(javaField.sym);
         if (fspecs != null) {
+            annotationsToModifiers(fspecs.mods);
+            if (fspecs.mods != fspecs.decl.mods) annotationsToModifiers(fspecs.mods); // FIXME - figure out which of these we actually need
             var specField = fspecs.decl;
             // check for no initializer
             if (specField.getInitializer() != null && // There is an initializer
@@ -2937,12 +2939,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                     ) {
                 utils.error(specField.sourcefile,specField.getInitializer(),"jml.no.initializer.in.specs",specField.sym.owner+"."+specField.name);
             }
-            if (javaField != null && javaField != specField) checkAnnotations(javaField.mods, specField.mods, javaField.sym.owner);
+            //if (javaField != null && javaField != specField) checkAnnotations(javaField.mods, specField.mods, javaField.sym.owner);
+        } else {
+            // Spec fields, such as old declarations in method specs and declarations in quantifiers and the like,
+            // do not have specifications (so fspecs will be null)
+            annotationsToModifiers(javaField.mods);
         }
-
         checkVarMods(javaField);
-    	checkTypeMods(javaField);
-
+        checkTypeMods(javaField);
     }
     
     public void checkJavaFlags(long javaFlags, JmlSource javaTree, long specflags, JmlSource specTree, Symbol symForFlags) {
@@ -3066,10 +3070,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             specflags = tree.specsDecl.mods.flags;
             treeForMods = tree.specsDecl;
             prev = log.useSource(tree.specsDecl.source());
-            attribAnnotationTypes(specmods.annotations,env);
+            //attribAnnotationTypes(specmods.annotations,env);
         }
         try {
-            annotationsToModifiers(specmods);
+            //annotationsToModifiers(specmods);
             
             // The following was in JmlEnter -- FIXME - Review that it is now implemented here (or somewhere in JmlAttr)
 //            VarSymbol javaSym = match;
@@ -3143,8 +3147,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		checkForConflict(specmods,NON_NULL,NULLABLE);
 
         	} else if (jmlenv.currentClauseKind == MethodDeclClauseExtension.oldClause) {
-        		kind = "old clause declaration";
-        		// already reported
+                allAllowed(specmods, allowedMethodSpecDeclModifiers, "old clause declaration");
+
         	} else { // local declaration - there is no separate spec in this case
         		kind = "local variable declaration";
         		// Note that all annotations here are type-annotations
@@ -3888,12 +3892,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 long badFlags = utils.hasOnly(mods,flags);
                 if (badFlags != 0) {
-                    log.error(mods.pos,"jml.no.java.mods.allowed","method specification declaration", TreeInfo.flagNames(badFlags));
+                    log.error(mods.pos,"jml.no.java.mods.allowed","old clause declaration", TreeInfo.flagNames(badFlags));
                     mods.flags &= ~badFlags; // Remove erroneous flags
                 }
                 jmlenv = jmlenv.pushCopy();
-                jmlenv.currentClauseKind = declClause;
-                attribAnnotationTypes(mods.annotations, env);
+                jmlenv.currentClauseKind = oldClause;
                 boolean prevLocalEnv = specLocalEnv;
                 specLocalEnv = statik;
                 var savedInJmlDeclaration = this.isInJmlDeclaration;
@@ -3907,9 +3910,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         if (toRemove == null) toRemove = new ListBuffer<>();
                         toRemove.add(tree);
                     }
-                    annotationsToModifiers((JmlModifiers)mods); // Requires annotations to be attributed
-                    allAllowed(mods, allowedMethodSpecDeclModifiers, "method specification declaration");
-
                 } finally {
                     mods.flags |= flags; // Restore the flags
                     jmlenv = jmlenv.pop();
@@ -7634,10 +7634,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             visitVarDef(that);
             
-            if ((jmlenv.currentClauseKind == null || jmlenv.currentClauseKind == declClause)) {
-            	// old clauses are checked elsewhere, with different rules
-                checkVarDecl(that);
-            }
+            checkVarDecl(that); // FIXME - why isn't this part of visitVarDef?
 
         	if (env.enclMethod != null) {
                 if (that.vartype instanceof JCTypeApply) {

@@ -457,9 +457,9 @@ public class Utils {
             Symbol csym = sym.owner;
             if (csym != null && (csym.flags() & Flags.INTERFACE) != 0) {
                 // TODO - should cleanup this reference to JmlAttr from Utils
-                if (JmlAttr.instance(context).hasAnnotation(sym,Modifiers.INSTANCE)) return false;
+                if (Utils.instance(context).hasModifier(sym,Modifiers.INSTANCE)) return false;
             } 
-        } else if (JmlAttr.instance(context).hasAnnotation(sym,Modifiers.INSTANCE)) return false;
+        } else if (Utils.instance(context).hasModifier(sym,Modifiers.INSTANCE)) return false;
         return true;
     }
 
