@@ -2189,15 +2189,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return addAssert(true, codepos, label, expr, null, null, null, args);
 	}
 
-	public JmlStatementExpr addCheck(DiagnosticPosition codepos, Label label, JCExpression expr, Object... args) {
+    public JmlStatementExpr addCheck(DiagnosticPosition codepos, Label label, JCExpression translatedExpr, Object... args) {
+        return addCheck(codepos, label, translatedExpr, null, null, null, args);
+    }
+
+    public JmlStatementExpr addCheck(DiagnosticPosition pos, Label label, JCExpression translatedExpr,
+            /* @nullable */ DiagnosticPosition associatedPosition, /* @nullable */ JavaFileObject associatedSource,
+            /* @nullable */ JCExpression info, Object... args) {
         if (!rac) {
-            JCIdent id = newTemp(expr, syms.booleanType);
-            expr = treeutils.makeOr(expr, id, expr);
+            JCIdent id = newTemp(translatedExpr, syms.booleanType);
+            translatedExpr = treeutils.makeOr(translatedExpr, id, translatedExpr);
         }
-		JmlStatementExpr s = addAssert(true, codepos, label, expr, null, null, null, args);
-		if (s != null) s.clauseType = checkClause;
-		return s;
-	}
+        JmlStatementExpr s = addAssert(true, pos, label, translatedExpr, associatedPosition, associatedSource, info, args);
+        if (s != null) s.clauseType = checkClause;
+        return s;
+    }
 
     String[] feasibilities = null; // lazily initialized
     
@@ -4836,7 +4842,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                    JmlMethodClauseBehaviors cl = null;
                         for (var b: behaviors) { if (b.command.equals("complete")) cl = b; };
                         if (cl != null) {
-                            addAssert(cl, Label.COMPLETENESS, combinedPrecondition);
+                            addCheck(cl, Label.COMPLETENESS, combinedPrecondition);
                         }
                         cl = null;
                         for (var b: behaviors) { if (b.command.equals("local_complete")) cl = b; };
@@ -4848,7 +4854,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 var pre1 = preconditions.get(case1);
                                 e = treeutils.makeOr(cl, e, pre1);
                             }
-                            addAssert(cl, Label.COMPLETENESS, e);
+                            addCheck(cl, Label.COMPLETENESS, e);
                         }
                         cl = null;
                         for (var b: behaviors) { if (b.command.equals("disjoint")) cl = b; };
@@ -4861,7 +4867,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     JCExpression e = treeutils.makeNot(cl,
                                             treeutils.makeAnd(cl, pre1, pre2));
                                     var prev = log.useSource(case1.sourcefile);
-                                    addAssert(pre1, Label.DISJOINTNESS, e, pre2, case2.sourcefile);
+                                    addCheck(case1, Label.DISJOINTNESS, e, case2, case2.sourcefile, null);
                                     log.useSource(prev);
                                 }
                             }
@@ -4881,7 +4887,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     JCExpression e = treeutils.makeNot(cl,
                                             treeutils.makeAnd(cl, pre1, pre2));
                                     var prev = log.useSource(case1.sourcefile);
-                                    addAssert(pre1, Label.DISJOINTNESS, e, pre2, case2.sourcefile);
+                                    addCheck(case1, Label.DISJOINTNESS, e, case2, case2.sourcefile, null);
                                     log.useSource(prev);
                                 }
                             }
@@ -19243,7 +19249,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							opt = o;
 					}
 				}
-				if (that.clauseType == checkClause) {
+				if (that.clauseType == checkClause) { // FIXME - use addCheck?
 					JCIdent id = newTemp(e, syms.booleanType);
 					e = treeutils.makeOr(e, id, e);
 				}
