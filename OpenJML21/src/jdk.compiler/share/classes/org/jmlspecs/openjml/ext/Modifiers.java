@@ -40,9 +40,11 @@ public class Modifiers extends JmlExtension {
     static public final ModifierKind SKIPRAC = new IJmlClauseKind.ModifierKind("skiprac", true, "SkipRac");
     static public final ModifierKind SPEC_PROTECTED = new IJmlClauseKind.ModifierKind("spec_protected", true);
     static public final ModifierKind SPEC_PUBLIC = new IJmlClauseKind.ModifierKind("spec_public", true);
+    static public final ModifierKind SPEC_PURE = new IJmlClauseKind.ModifierKind("spec_pure", true);
     static public final ModifierKind SPEC_BIGINT_MATH = new IJmlClauseKind.ModifierKind("spec_bigint_math", true);
     static public final ModifierKind SPEC_JAVA_MATH = new IJmlClauseKind.ModifierKind("spec_java_math", true);
     static public final ModifierKind SPEC_SAFE_MATH = new IJmlClauseKind.ModifierKind("spec_safe_math", true);
+    static public final ModifierKind STRICTLY_PURE = new IJmlClauseKind.ModifierKind("strictly_pure", true);
     static public final ModifierKind UNINITIALIZED = new IJmlClauseKind.ModifierKind("uninitialized", true);
     static public final ModifierKind BSREADONLY = new IJmlClauseKind.ModifierKind("\\readonly", true, "org.jmlspecs.annotation.Readonly");
 
