@@ -15444,8 +15444,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (rac)
 			return; // FIXME - something goes wrong with duplicated literals in rac
 		boolean traceInfo = esc;
-		if (that.type == null)
-			System.out.println("NULLTYPE " + that.pos + " " + that);
+		if (that.type == null) System.out.println("NULLTYPE " + that.pos + " " + that);
 		boolean stringType = esc && types.isSameType(that.type, syms.stringType);
 		boolean makeCopy = !splitExpressions && (traceInfo || fullTranslation || stringType);
 		makeCopy = makeCopy || stringType; // FIXM - really shjould make variables in the prologue for all string values
@@ -19277,8 +19276,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 
 			} else if (that.clauseType == commentClause) {
-
-				JCExpression expr = fullTranslation ? convertJML(that.expression) : that.expression;
+			    // Do not translate, because we want to keep the string literal intact
+				JCExpression expr = that.expression;
 				{
 					JmlStatementExpr st = M.at(that).JmlExpressionStatement(that.keyword, that.clauseType, that.label,
 							expr);

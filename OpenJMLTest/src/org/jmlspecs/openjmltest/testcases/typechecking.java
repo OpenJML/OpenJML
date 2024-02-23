@@ -50,6 +50,22 @@ public class typechecking extends TCBase {
                 ,"/TEST.java:2: error: illegal start of expression",20
                 );
     }
+    
+    @Test public void testCommentStatement() {
+        helpTC( """
+                class B {
+                  void m() {
+                    //@ comment 5;
+                  }
+                  void mm() { /*@ comment "asd"+"def"; */ }  // compiler collapses to a literal
+                  void mq(int x) { /*@ comment "asd"+x; */ }
+                  void mmm() { /*@ comment "asd"; */}
+                }
+                """
+                ,"/TEST.java:3: error: incompatible types: int cannot be converted to java.lang.String", 17
+                ,"/TEST.java:6: error: A comment statement may only contain a string literal", 37
+                );
+    }
 
     @Test public void testAlso0() {
         helpTC(" class B { void m() {} } class A extends B { /*@ also requires true; */ void m() {}  /*@ requires true; */ void n() {}}"
