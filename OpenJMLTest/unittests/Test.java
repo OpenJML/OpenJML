@@ -58,7 +58,13 @@ public class Test {
         for (var d : lst) {
             if (args.length == 0 && !d.endsWith(".java")) continue;
             if (d.endsWith(".java")) d = d.substring(0,d.length()-5);
-            var clazz = (Class<JmlTestCase>)Class.forName("org.jmlspecs.openjmltest.testcases." + d);
+            Class<JmlTestCase> clazz;
+            try {
+                clazz = (Class<JmlTestCase>)Class.forName("org.jmlspecs.openjmltest.testcases." + d);
+            } catch (ClassNotFoundException e) {
+                System.out.println("Error: There is no unit test named " + d);
+                continue;
+            }
             if ((d.contains("Specs") || java.util.Arrays.binarySearch(skips,d) >= 0) && args.length == 0 ) {
                 System.out.println("Skipping " + clazz);
                 continue;

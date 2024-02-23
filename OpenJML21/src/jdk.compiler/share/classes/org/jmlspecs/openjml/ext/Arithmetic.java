@@ -9,6 +9,8 @@ import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlOptions;
+import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlTree.JmlModifiers;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.Label;
@@ -59,37 +61,39 @@ abstract public class Arithmetic extends JmlExtension {
     
     };
         
-    Symbol codeBigintMath = null;
-    Symbol codeSafeMath = null;
-    Symbol codeJavaMath = null;
-    Symbol specBigintMath = null;
-    Symbol specJavaMath = null;
-    Symbol specSafeMath = null;
+//    Symbol codeBigintMath = null;
+//    Symbol codeSafeMath = null;
+//    Symbol codeJavaMath = null;
+//    Symbol specBigintMath = null;
+//    Symbol specJavaMath = null;
+//    Symbol specSafeMath = null;
     
     Type intType;
     
     boolean javaChecks;
     
     private void initModeSymbols() {
-        if (codeBigintMath != null) return;
-        ClassReader classReader = ClassReader.instance(context);
-        Names names = Names.instance(context);
-        specSafeMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".SpecSafeMath"));
-        specJavaMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".SpecJavaMath"));
-        specBigintMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".SpecBigintMath"));
-        codeSafeMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".CodeSafeMath"));
-        codeJavaMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".CodeJavaMath"));
-        codeBigintMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".CodeBigintMath"));
+//        if (codeBigintMath != null) return;
+//        ClassReader classReader = ClassReader.instance(context);
+//        Names names = Names.instance(context);
+//        specSafeMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".SpecSafeMath"));
+//        specJavaMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".SpecJavaMath"));
+//        specBigintMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".SpecBigintMath"));
+//        codeSafeMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".CodeSafeMath"));
+//        codeJavaMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".CodeJavaMath"));
+//        codeBigintMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".CodeBigintMath"));
     }
     
     public boolean rac;
     
     public IArithmeticMode defaultArithmeticMode(Symbol sym, boolean jml) {
         initModeSymbols();
+        JmlModifiers mods = null;
+        Utils utils = Utils.instance(context);
         if (!jml) {
-            if (sym.attribute(codeBigintMath) != null) return Math.instance(context);
-            if (sym.attribute(codeSafeMath) != null) return Safe.instance(context);
-            if (sym.attribute(codeJavaMath) != null) return Java.instance(context);
+            if (utils.hasModifier(sym, Modifiers.CODE_BIGINT_MATH)) return Math.instance(context);
+            if (utils.hasModifier(sym, Modifiers.CODE_SAFE_MATH)) return Safe.instance(context);
+            if (utils.hasModifier(sym, Modifiers.CODE_JAVA_MATH)) return Java.instance(context);
             sym = sym.owner;
             if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
             String v = JmlOption.value(context,JmlOption.CODE_MATH);
@@ -97,9 +101,9 @@ abstract public class Arithmetic extends JmlExtension {
             if ("safe".equals(v)) return Safe.instance(context);
             return Math.instance(context);
         } else {
-            if (sym.attribute(specBigintMath) != null) return Math.instance(context);
-            if (sym.attribute(specSafeMath) != null) return Safe.instance(context);
-            if (sym.attribute(specJavaMath) != null) return Java.instance(context);
+            if (utils.hasModifier(sym, Modifiers.SPEC_BIGINT_MATH)) return Math.instance(context);
+            if (utils.hasModifier(sym, Modifiers.SPEC_SAFE_MATH)) return Safe.instance(context);
+            if (utils.hasModifier(sym, Modifiers.SPEC_JAVA_MATH)) return Java.instance(context);
             sym = sym.owner;
             Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
             if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
@@ -108,6 +112,28 @@ abstract public class Arithmetic extends JmlExtension {
             if ("safe".equals(v)) return Safe.instance(context);
             return Math.instance(context);
         }
+//        if (!jml) {
+//            if (sym.attribute(codeBigintMath) != null) return Math.instance(context);
+//            if (sym.attribute(codeSafeMath) != null) return Safe.instance(context);
+//            if (sym.attribute(codeJavaMath) != null) return Java.instance(context);
+//            sym = sym.owner;
+//            if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
+//            String v = JmlOption.value(context,JmlOption.CODE_MATH);
+//            if ("java".equals(v)) return Java.instance(context);
+//            if ("safe".equals(v)) return Safe.instance(context);
+//            return Math.instance(context);
+//        } else {
+//            if (sym.attribute(specBigintMath) != null) return Math.instance(context);
+//            if (sym.attribute(specSafeMath) != null) return Safe.instance(context);
+//            if (sym.attribute(specJavaMath) != null) return Java.instance(context);
+//            sym = sym.owner;
+//            Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
+//            if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
+//            String v = JmlOption.value(context,JmlOption.SPEC_MATH);
+//            if ("java".equals(v)) return Java.instance(context);
+//            if ("safe".equals(v)) return Safe.instance(context);
+//            return Math.instance(context);
+//        }
     }
     
     public Type maxtype(JmlTypes jmltypes, Type lhs, Type rhs) {

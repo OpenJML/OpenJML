@@ -9,17 +9,17 @@ test/behaviors2/T.java:6: warning: The prover cannot establish an assertion (Com
       ^
 Completed proof of T.m(int) with prover !!!! - with warnings
 Starting proof of T.mcomplete(int) with prover !!!!
-test/behaviors2/T.java:13: warning: The prover cannot establish an assertion (DisjointPreconditions) in method mcomplete
-  //@ requires i == 1; 
-      ^
-test/behaviors2/T.java:11: warning: Associated declaration
-  //@ requires i >= 0;
-      ^
 test/behaviors2/T.java:11: warning: The prover cannot establish an assertion (DisjointPreconditions) in method mcomplete
   //@ requires i >= 0;
       ^
 test/behaviors2/T.java:9: warning: Associated declaration
   //@ requires i <= 0;
+      ^
+test/behaviors2/T.java:13: warning: The prover cannot establish an assertion (DisjointPreconditions) in method mcomplete
+  //@ requires i == 1; 
+      ^
+test/behaviors2/T.java:11: warning: Associated declaration
+  //@ requires i >= 0;
       ^
 Completed proof of T.mcomplete(int) with prover !!!! - with warnings
 Starting proof of T.mlocal(int) with prover !!!!

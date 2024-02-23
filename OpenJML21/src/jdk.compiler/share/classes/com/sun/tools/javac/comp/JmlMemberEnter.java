@@ -32,6 +32,7 @@ import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlModifiers;
 import org.jmlspecs.openjml.JmlTree.JmlSource;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
@@ -605,15 +606,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         
         utils.setJML(m.mods);
         utils.setJML(ms.mods);
-        JCAnnotation a = utils.modToAnnotationAST(Modifiers.HELPER,0,1);
-        m.mods.annotations = m.mods.annotations.append(a);
-        ms.mods.annotations = ms.mods.annotations.append(a);
-        a = utils.modToAnnotationAST(Modifiers.PURE,0,1);
-        m.mods.annotations = m.mods.annotations.append(a);
-        ms.mods.annotations = ms.mods.annotations.append(a);
-        a = utils.modToAnnotationAST(Modifiers.MODEL,0,1);
-        m.mods.annotations = m.mods.annotations.append(a);
-        ms.mods.annotations = ms.mods.annotations.append(a);
+        specs.addModifier(Position.NOPOS, Modifiers.HELPER, (JmlModifiers)m.mods);
+        specs.addModifier(Position.NOPOS, Modifiers.PURE, (JmlModifiers)m.mods);
+        specs.addModifier(Position.NOPOS, Modifiers.MODEL, (JmlModifiers)m.mods);
+        specs.addModifier(Position.NOPOS, Modifiers.HELPER, (JmlModifiers)ms.mods);
+        specs.addModifier(Position.NOPOS, Modifiers.PURE, (JmlModifiers)ms.mods);
+        specs.addModifier(Position.NOPOS, Modifiers.MODEL, (JmlModifiers)ms.mods);
         
         ListBuffer<JCTree> newdefs = new ListBuffer<>();
         newdefs.add(m);
@@ -624,13 +622,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // of the OpenJDK processing, we just use the AST instead.
         JmlAttr attr = JmlAttr.instance(context);
         Map<Name,JmlVariableDecl> modelMethodNames = new HashMap<>();
-        Symbol modelSym = attr.modToAnnotationSymbol.get(Modifiers.MODEL);
+        //Symbol modelSym = attr.modToAnnotationSymbol.get(Modifiers.MODEL);
         if (specstree != null) for (JCTree decl: specstree.defs) {  // FIXME - should specstree ever be null
             if (decl instanceof JmlMethodDecl) {
                 if (!utils.rac) continue;
                 JmlMethodDecl md = (JmlMethodDecl)decl;
                 if (!md.isJML() || md.body != null) continue;
-                boolean isModel = utils.findMod(md.mods,Modifiers.MODEL)!= null;
+                boolean isModel = utils.hasModifier(md.mods,Modifiers.MODEL);
                 if (!isModel) continue;
                 if ((md.mods.flags & Flags.DEFAULT) != 0 || (md.mods.flags & Flags.ABSTRACT) == 0) {
                     JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
@@ -644,8 +642,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             }
             if (!(decl instanceof JmlVariableDecl)) continue;
             JmlVariableDecl vdecl = (JmlVariableDecl)decl;
-            JCAnnotation annotation = utils.findMod(vdecl.mods, modelSym);
-            if (annotation == null) continue;
+            if (!utils.hasModifier(vdecl.mods, Modifiers.MODEL)) continue;
             VarSymbol vsym = vdecl.sym;
             
             JCTree.JCReturn returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(vdecl.pos,vdecl.sym.type));
@@ -704,9 +701,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JavaFileObject p = log.useSource(modelVarDecl.sourcefile);
         int endpos = modelVarDecl.getEndPosition(log.currentSource().getEndPosTable());
         log.useSource(p);
-        mr.mods.annotations = List.<JCAnnotation>of(utils.modToAnnotationAST(Modifiers.MODEL,modelVarDecl.pos,endpos),
-                                                    utils.modToAnnotationAST(Modifiers.PURE,modelVarDecl.pos,endpos)
-                );
+        specs.addModifier(modelVarDecl.pos, endpos, Modifiers.MODEL, mr.mods);
+        specs.addModifier(modelVarDecl.pos, endpos, Modifiers.PURE, mr.mods);
         JmlSpecs.FieldSpecs fspecs = specs.getLoadedSpecs(modelVarDecl.sym);
         JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);
         tcd.pos = mr.pos;

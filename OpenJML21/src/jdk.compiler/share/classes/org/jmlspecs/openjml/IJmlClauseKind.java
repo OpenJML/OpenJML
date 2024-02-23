@@ -505,6 +505,10 @@ public abstract class IJmlClauseKind {
             return false;
         }
         
+        public boolean isNormalModifier() {
+            return !isTypeAnnotation();
+        }
+        
         public ModifierKind(String keyword, boolean strict) {
             super(keyword);
             this.strict = strict;
