@@ -1,0 +1,11 @@
+OUT:
+#abc
+  def
+ghi
+#
+LABEL JMLSHOW_1 = 14
+test/textBlock4b/Test.java:13: verify: JML assertion is false
+        //@ assert s.length() == -1; // ERROR - is really 14
+            ^
+
+ERR:

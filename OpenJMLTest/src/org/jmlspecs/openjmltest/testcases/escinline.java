@@ -26,7 +26,7 @@ public class escinline extends EscBase {
     @Test // basic test of inlining, checking assignable and ensures and return value
     public void testInline1() {
         addOptions("-defaults=constructor:pure");
-        //addOptions("-show","-method=m1");
+        //addOptions("--show","--method=minline");
         helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
                 +"public class TestJava { \n"
                 

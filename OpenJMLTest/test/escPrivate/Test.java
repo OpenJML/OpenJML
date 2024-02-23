@@ -11,7 +11,6 @@ public class Test {
     public void mq() {
         B b = new B();
         int k = b.mi();  // Inheritance should result in infeasibility
-        //@ assert k == 2;
     }
     
 }

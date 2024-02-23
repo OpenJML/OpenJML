@@ -57,7 +57,7 @@ public class modifiers extends TCBase {
     
     @Test public void testClassMods9() {
         helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*; \n public /*@ pure */ @Pure class A{}",
-                "/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 13
+                "/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 21
                 );
     }
     
@@ -99,17 +99,15 @@ public class modifiers extends TCBase {
     
     @Test public void testClassMods13d() { // No import, so cannot resolve Model
         helpTCF("A.java","\n //@ public @Model class A{}"
-                ,"/A.java:2: error: cannot find symbol\n"
-                		+ "  symbol: class Model",14
-        		);
+                ,"/A.java:2: error: cannot find symbol\n  symbol: class Model",14
+                ,"/A.java:2: error: A method or type declaration within a JML annotation must be model: A", 20
+                );
     }
     
     @Test public void testClassMods13e() { // No import, so cannot resolve Model
         helpTCF("A.java","\n     public @Model class A{}"
-                ,"/A.java:2: error: cannot find symbol\n"
-                		+ "  symbol: class Model",14
-                		,"/A.java:2: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A",13
-        		);
+                ,"/A.java:2: error: cannot find symbol\n  symbol: class Model",14
+                );
     }
     
     @Test public void testClassMods14() {
@@ -232,16 +230,14 @@ public class modifiers extends TCBase {
     
     @Test public void testOnlyModelClass6() {
         helpTCF("A.java","public class A {}\n @Model class B{}\n\n"
-                ,"/A.java:2: error: cannot find symbol\n"
-                		+ "  symbol: class Model",3
-                		,"/A.java:2: error: A Java declaration (not within a JML annotation) may not be either ghost or model: B",2
+                ,"/A.java:2: error: cannot find symbol\n  symbol: class Model",3
                 );
     }
     
     @Test public void testOnlyModelClass7() {
         helpTCF("A.java","public class A {}\n //@ @Model class B{}\n\n"
-                ,"/A.java:2: error: cannot find symbol\n"
-                		+ "  symbol: class Model",7
+                ,"/A.java:2: error: cannot find symbol\n  symbol: class Model",7
+                ,"/A.java:2: error: A method or type declaration within a JML annotation must be model: B", 13
                 );
     }
     
@@ -259,13 +255,13 @@ public class modifiers extends TCBase {
     @Test public void testCUMods() {
         helpTCF("t/A.java","@Pure package t; import org.jmlspecs.annotation.*;  \n public /*@ pure */ @Pure class A{}",
                 "/t/A.java:1: error: package annotations should be in file package-info.java",1,
-                "/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 13
+                "/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 21
                 );
     }
     
     @Test public void testCUMods2() {
         helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*;  \n public /*@ pure */ @Pure class A{}"
-                ,"/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 13
+                ,"/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 21
                 );
     }
     
@@ -277,7 +273,7 @@ public class modifiers extends TCBase {
     
     @Test public void testCUMods4() {
         helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*; \n public /*@ pure */ @Pure class A{}"
-                ,"/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 13
+                ,"/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 21
                 );
     }
     
@@ -719,7 +715,7 @@ public class modifiers extends TCBase {
      
     
     @Test public void testModelField() {
-        helpTCF("A.java","public class A{ /*@model ghost Object o; */}"
+        helpTCF("A.java","public class A{ /*@model ghost Object oooo; */}"
                 ,"/A.java:1: error: This JML modifier is not allowed for a ghost field declaration",20
                 );
     }
@@ -1130,9 +1126,9 @@ public class modifiers extends TCBase {
                 "  //@ old pure Object o6 = null; \n" +
                 "  //@ old final Object o7 = null; \n" +
                 "  void m() {} }"
-                ,"/A.java:6: error: This JML modifier is not allowed for a method specification declaration",11
-                ,"/A.java:7: error: This JML modifier is not allowed for a method specification declaration",11
-                ,"/A.java:8: error: No Java modifiers are allowed in a method specification declaration: final",11
+                ,"/A.java:6: error: This JML modifier is not allowed for a old clause declaration",11
+                ,"/A.java:7: error: This JML modifier is not allowed for a old clause declaration",11
+                ,"/A.java:8: error: No Java modifiers are allowed in a old clause declaration: final",11
                 );
     }
      

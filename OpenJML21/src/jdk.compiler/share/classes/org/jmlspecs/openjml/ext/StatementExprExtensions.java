@@ -25,6 +25,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
 
 public class StatementExprExtensions extends JmlExtension {
     
@@ -44,8 +45,12 @@ public class StatementExprExtensions extends JmlExtension {
     public static final IJmlClauseKind commentClause = new StatementExprType(commentID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree t, Env<AttrContext> env) {
-        	// Do nothing for a comment clause -- just contains text
-        	return null;
+            var type = super.typecheck(attr,  t,  env);
+            if (t instanceof JmlTree.JmlStatementExpr tree && !(tree.expression instanceof JCLiteral lit)) {
+                utils.error(tree.expression != null ? tree.expression : tree,
+                        "jml.message", "A comment statement may only contain a string literal");
+            }
+            return type;
         }
     };
     
@@ -142,10 +147,13 @@ public class StatementExprExtensions extends JmlExtension {
             attr.jmlenv = attr.jmlenv.pushCopy();
             attr.jmlenv.inPureEnvironment = true;
             attr.jmlenv.currentClauseKind = tree.clauseType;
-            Type expectedType = tree.clauseType == loopdecreasesClause ? JmlTypes.instance(attr.context).BIGINT : isUse ? Type.noType : attr.syms.booleanType; 
+            Type expectedType = tree.clauseType == loopdecreasesClause ? JmlTypes.instance(attr.context).BIGINT
+                : isUse ? Type.noType
+                : tree.clauseType == commentClause ? attr.syms.stringType
+                : attr.syms.booleanType; 
             if (tree.expression != null) {
-            	var ty = attr.attribExpr(tree.expression,env,expectedType);
-            	tree.expression.type = ty != attr.syms.errType ? ty : expectedType;
+                var ty = attr.attribExpr(tree.expression,env,expectedType);
+                tree.expression.type = ty != attr.syms.errType ? ty : expectedType;
             }
             if (tree.optionalExpression != null) attr.attribExpr(tree.optionalExpression,env,Type.noType);
             attr.jmlenv = attr.jmlenv.pop();
