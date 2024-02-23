@@ -15,6 +15,7 @@ import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.JmlTree.JmlModifiers;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
@@ -120,10 +121,11 @@ public class QuantifiedExpressions extends JmlExtension {
             
 //            boolean b = ((JmlMemberEnter)attr.memberEnter).setInJml(true);
             for (JCVariableDecl decl: that.decls) {
-                JCModifiers mods = decl.getModifiers();
+                JmlModifiers mods = (JmlModifiers)decl.getModifiers();
                 if (attr.utils.hasOnly(mods,0)!=0) log.error(mods.pos,"jml.no.java.mods.allowed","quantified expression", TreeInfo.flagNames(mods.flags));
                 attr.attribAnnotationTypes(mods.annotations,env);
-                attr.allAllowed(mods.annotations, attr.typeModifiers, "quantified expression");
+                attr.annotationsToModifiers(mods, mods.annotations);
+                attr.allAllowed(mods, attr.typeModifiers, "quantified expression");
                 attr.utils.setExprLocal(mods);
 //                if (utils.hasAny(mods,Flags.STATIC)) {
 //                    log.error(that.pos,

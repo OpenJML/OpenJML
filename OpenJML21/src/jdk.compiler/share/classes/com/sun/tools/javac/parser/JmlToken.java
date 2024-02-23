@@ -12,7 +12,9 @@ import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.parser.Tokens.Comment;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.tree.JCTree;
 import javax.tools.JavaFileObject;
+import com.sun.tools.javac.util.JCDiagnostic;
 
 /**
  * This class is an extension of the JDK Token class so that we can represent JML tokens
@@ -20,11 +22,25 @@ import javax.tools.JavaFileObject;
  *
  * @author David Cok
  */
-public class JmlToken extends Token {
+public class JmlToken extends Token implements JCDiagnostic.DiagnosticPosition {
 
     public JmlTokenKind jmlkind;
     public IJmlClauseKind jmlclausekind;
     public JavaFileObject source;
+    
+    @Override
+    public JCTree getTree() { return null; }
+    
+    public JCDiagnostic.DiagnosticPosition pos() { return this; }
+    
+    @Override
+    public int getStartPosition() { return pos; }
+    
+    @Override
+    public int getPreferredPosition() { return pos; }
+    
+    @Override
+    public int getEndPosition(com.sun.tools.javac.tree.EndPosTable t) { return endPos; }
 
     /** Creates a JmlToken object, as either, if jmlkind is null, a Java token in a JMLToken wrapper or,
       * if jmlkind is not null, a JMlToken object for a JML construct.

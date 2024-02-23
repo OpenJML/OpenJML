@@ -349,26 +349,32 @@ public class Utils {
      * @param symbol the symbol to check
      * @return true if there is a helper annotation
      */
+    public void setHelper(/*@non_null*/ MethodSymbol symbol) {
+        var mods = JmlSpecs.instance(context).getLoadedSpecs(symbol).mods;
+        JmlToken tok = new JmlToken(null, Modifiers.HELPER, com.sun.tools.javac.parser.Tokens.TokenKind.CUSTOM, Position.NOPOS, Position.NOPOS);
+        ((JmlModifiers)mods).jmlmods.add(tok);
+    }
+    
     public boolean isHelper(/*@non_null*/ MethodSymbol symbol) {
-    	return hasMod(JmlSpecs.instance(context).getLoadedSpecs(symbol).mods, Modifiers.HELPER);
+        return hasModifier(JmlSpecs.instance(context).getLoadedSpecs(symbol).mods, Modifiers.HELPER);
     }
     
     public boolean isModel(/*@non_null*/ ClassSymbol symbol) {
-    	return hasMod(JmlSpecs.instance(context).getLoadedSpecs(symbol).modifiers, Modifiers.MODEL);
+    	return hasModifier(JmlSpecs.instance(context).getLoadedSpecs(symbol).modifiers, Modifiers.MODEL);
     }
     
     public boolean isModel(/*@non_null*/ MethodSymbol symbol) {
-    	return hasMod(JmlSpecs.instance(context).getLoadedSpecs(symbol).mods, Modifiers.MODEL);
+    	return hasModifier(JmlSpecs.instance(context).getLoadedSpecs(symbol).mods, Modifiers.MODEL);
     }
     
     public boolean isModel(/*@non_null*/ VarSymbol symbol) {
     	var fs = JmlSpecs.instance(context).getLoadedSpecs(symbol);
-    	return fs != null && hasMod(fs.mods, Modifiers.MODEL);
+    	return fs != null && hasModifier(fs.mods, Modifiers.MODEL);
     }
     
     public boolean isGhost(/*@non_null*/ VarSymbol symbol) {
     	var fs = JmlSpecs.instance(context).getLoadedSpecs(symbol);
-    	return fs != null && hasMod(fs.mods, Modifiers.GHOST);
+    	return fs != null && hasModifier(fs.mods, Modifiers.GHOST);
     }
     
     public boolean isModel(/*@non_null*/ Symbol symbol) {
@@ -451,9 +457,9 @@ public class Utils {
             Symbol csym = sym.owner;
             if (csym != null && (csym.flags() & Flags.INTERFACE) != 0) {
                 // TODO - should cleanup this reference to JmlAttr from Utils
-                if (JmlAttr.instance(context).hasAnnotation(sym,Modifiers.INSTANCE)) return false;
+                if (Utils.instance(context).hasModifier(sym,Modifiers.INSTANCE)) return false;
             } 
-        } else if (JmlAttr.instance(context).hasAnnotation(sym,Modifiers.INSTANCE)) return false;
+        } else if (Utils.instance(context).hasModifier(sym,Modifiers.INSTANCE)) return false;
         return true;
     }
 
@@ -464,7 +470,7 @@ public class Utils {
         // JML field marked as instance.
         if ((csym.flags() & Flags.INTERFACE) != 0) {
             // TODO - should cleanup this reference to JmlAttr from Utils
-            if (JmlAttr.instance(context).findMod(mods,Modifiers.INSTANCE) != null) return false;
+            if (hasModifier(mods,Modifiers.INSTANCE)) return false;
             if ((mods.flags & STATIC) == 0 || (mods.flags & Utils.JMLINSTANCE) != 0) return false;
         } 
         return ((mods.flags & Flags.STATIC) != 0);
@@ -551,6 +557,51 @@ public class Utils {
         return null;
     }
     
+    public boolean hasModifier(/*@ non_null */ Symbol sym, /*@ non_null */IJmlClauseKind.ModifierKind ... tarr) {
+        JmlModifiers mods = null;
+        if (sym instanceof Symbol.MethodSymbol m) {
+            var sp = JmlSpecs.instance(context).get(m);
+            //if (sp == null) System.out.println("NULL SPECS FOR " + sym);
+            if (sp != null) mods = (JmlModifiers)sp.mods;
+        }
+        else if (sym instanceof Symbol.ClassSymbol c) {
+            var sp = JmlSpecs.instance(context).get(c);
+            //if (sp == null) System.out.println("NULL SPECS FOR " + sym);
+            if (sp != null) mods = sp.modifiers;
+        }
+        else if (sym instanceof Symbol.VarSymbol c) {
+            var sp = JmlSpecs.instance(context).get(c);
+            //if (sp == null) System.out.println("NULL SPECS FOR " + sym);
+            if (sp != null) mods = sp.mods;
+        } else {
+            // This can be a package symbol, or the owner of 'Array'
+            // In any case there is no modifier
+            return false;
+        }
+        // else error -- FIXME
+        if (mods != null) {
+            for (var ta: tarr) {
+                for (var t: mods.jmlmods) {
+                    if (t.jmlclausekind == ta) return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    /** Has one of the listed modifiers */
+    public boolean hasModifier(/*@ nullable */ JCModifiers mods, /*@ non_null */IJmlClauseKind.ModifierKind ... tarr) {
+        if (mods instanceof JmlModifiers jmods) {
+            for (var ta: tarr) {
+                for (var t: jmods.jmlmods) {
+                    if (t.jmlclausekind == ta) return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    /** Return one of the listed modifiers or null */
     public JmlToken findModifier(/*@ nullable */ JCModifiers mods, /*@ non_null */IJmlClauseKind.ModifierKind ... tarr) {
         if (mods instanceof JmlModifiers jmods) {
             for (var ta: tarr) {
@@ -949,6 +1000,9 @@ public class Utils {
             return false;
         }
     }
+    
+    public boolean isSynthetic(JCModifiers mods) {
+        return (mods.flags & Flags.SYNTHETIC) != 0;   }
     
     public boolean isPrimitiveType(TypeSymbol ct) {
         return isJavaOrJmlPrimitiveType(ct.type);

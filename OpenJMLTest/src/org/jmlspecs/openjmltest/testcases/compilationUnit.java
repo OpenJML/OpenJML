@@ -159,19 +159,14 @@ public class compilationUnit extends ParseBase {
         checkMessages();
     }
 
-    /** Tests parsing a traditional JML annotation */
+    /** Tests parsing a modifier */
     @Test
     public void testAnnotation2() {
-        checkCompilationUnit("/*@ pure */ class A {}",
-        JmlCompilationUnit.class, 0,0,22,
-        JmlClassDecl.class, 4,12,22,
-        JmlModifiers.class, 4,4,11, // FIXME - would like this to be 8
-        JmlAnnotation.class, 4,4,8,
-        JCFieldAccess.class, 4,4,8,
-        JCFieldAccess.class, 4,4,8,
-        JCFieldAccess.class, 4,4,8,
-        JCIdent.class, 4,4,8
-                      );
+        checkCompilationUnit("/*@ pure */ class A {}"
+        ,JmlCompilationUnit.class, 0,0,22
+        ,JmlClassDecl.class, 4,12,22
+        ,JmlModifiers.class, 4,4,11 // FIXME - would like this to be 8
+        );
         checkMessages();
     }
     

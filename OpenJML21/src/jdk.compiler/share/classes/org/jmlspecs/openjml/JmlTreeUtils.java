@@ -563,9 +563,11 @@ public class JmlTreeUtils {
                 return makeLit(pos,type,0); // Character literal requires an int value
             case LONG:
                 return makeLit(pos,type,(long)0);
-            case INT:
             case SHORT:
+                return makeLit(pos,syms.intType,0); // Boolean literal requires an int value
             case BYTE:
+                return makeLit(pos,syms.intType,0); // Boolean literal requires an int value
+            case INT:
             case BOOLEAN:
                 return makeLit(pos,type,0); // Boolean literal requires an int value
             case FLOAT:
