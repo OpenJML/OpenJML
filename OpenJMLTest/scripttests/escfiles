@@ -25,7 +25,7 @@ if [ $# -gt 0 ]; then
   . ./spawn "$@"
 else
   ## One-off scripted tests
-  for f in ../test/prefer1/test.sh ; do
+  for f in ../test/prefer1/test.sh ../test/nomodelfield/run ../test/nomodelmethod/run ; do
     echo Testing $f
     $f || echo $f FAILED;
   done

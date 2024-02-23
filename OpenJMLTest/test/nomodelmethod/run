@@ -1,0 +1,7 @@
+#! /usr/bin/env bash
+
+FILE="$BASH_SOURCE[0]"
+DIR=`dirname "$FILE"`
+cd "$DIR"
+
+./runx |& diff - RUN.out

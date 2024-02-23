@@ -1,0 +1,2 @@
+Error: LinkageError occurred while loading main class T
+	java.lang.ClassFormatError: Absent Code attribute in method that is not native or abstract in class file P
