@@ -16,6 +16,4 @@ if [ "$( uname )" = "Darwin" ] ; then
   "${ROOT}/mac-setup" > /tmp/openjmlsetup 2>&1 ;
 fi
 
-BIN=`echo $ROOT/jdk/bin/java`
-
-"$BIN" "$@"
+OPENJML_ROOT="$ROOT" "$ROOT/jdk/bin/javac" "$@"

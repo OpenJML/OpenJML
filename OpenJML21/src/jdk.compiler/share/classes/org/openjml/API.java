@@ -233,13 +233,13 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#execute(PrintWriter, DiagnosticListener<JavaFileObject>, Options, String[])
      */
     private int execute(/*@non_null*/ PrintWriter writer, /*@nullable*/ DiagnosticListener<JavaFileObject> diagListener, /*@nullable*/ Options options, /*@non_null*/ String ... args) {
-        int ret = Main.execute(args);
+        int ret = Main.execute(writer, diagListener, null, args);
         return ret;
     }
     
     @Override
     public int execute(/*@non_null*/ String ... args) {
-        return Main.execute(args);
+        return execute(null, null, null, args);
     }
 
     @Override
