@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+
+F1="$BASH_SOURCE[0]"
+F2=$(dirname "$F1")
+cd "$F2"
+
+./runx |& diff - RUN.out
+if [ $? -ne 0 ]; then echo test/apistatic FAILED ; fi

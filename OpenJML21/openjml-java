@@ -11,5 +11,5 @@ R=$( cd "$R2/../.."  && pwd) ## absolute path of the grandparent folder (that ho
 ROOT="$R/OpenJML/OpenJML21"
 BIN=`echo $ROOT/build/*/jdk/bin/java`
 
-$BIN "$@"
+OPENJML_ROOT="$R/Solvers" "$BIN" "$@"
 
