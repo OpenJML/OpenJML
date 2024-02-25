@@ -28,6 +28,7 @@ import javax.tools.JavaFileObject;
 
 //import org.eclipse.core.runtime.Platform;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
+import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.Modifiers;
@@ -41,6 +42,9 @@ import static org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.TypeInitializerClauseExtension.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
+import static org.jmlspecs.openjml.ext.Modifiers.PURE;
+import static org.jmlspecs.openjml.ext.Modifiers.SPEC_PURE;
+import static org.jmlspecs.openjml.ext.Modifiers.STRICTLY_PURE;
 import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
 //import org.osgi.framework.Bundle;
 //import org.w3c.dom.Element;
@@ -68,6 +72,7 @@ import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.file.RelativePath;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.Option;
+import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
@@ -1997,9 +2002,90 @@ public class JmlSpecs {
     	return mk.annotationSym;
     }
     
+    public boolean isPureMethod(MethodSymbol symbol) {
+        boolean print = false;//symbol.toString().contains("ok(");
+        if (print) System.out.println("IPM " + symbol.owner + " " + symbol  );
+        java.util.List<MethodSymbol> overrideList = Utils.instance(context).parents(symbol,true);
+        java.util.ListIterator<MethodSymbol> iter = overrideList.listIterator(overrideList.size());
+        while (iter.hasPrevious()) {
+            MethodSymbol msym = iter.previous();
+            if (print) System.out.println("  CHECKING " + symbol + " " + msym.owner + "." + msym);
+            MethodSpecs mspecs = getLoadedSpecs(msym); // Could be null if we are in the middle of generating defaultSpecs
+            if (print) System.out.println("  IPMA " + symbol.owner + "." + symbol + " " + msym.owner + "." + msym + " " + mspecs);
+            if (mspecs == null) {  // FIXME - observed to happen for in gitbug498 for JMLObjectBag.insert
+                // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
+                if (msym.toString().equals("size()") && msym.owner.toString().equals(Strings.jmlSpecsPackage + ".JMLList")) return true;
+                boolean isPure =  isPureClass((ClassSymbol)msym.owner);
+                if (isPure && print) System.out.println("  ISPURE-N " + symbol.owner + " " + symbol);
+                if (isPure) return true;
+            } else {
+                boolean isPure = isPureLocal(msym); // Also checks enclosing class
+                if (isPure && print) System.out.println("  ISPURE " + symbol.owner + " " + symbol +  " " + msym.owner + "." + msym);
+                if (isPure) return true;
+            }
+        }
+        if (print) System.out.println("  NOTPURE " + symbol.owner + " " + symbol);
+        return false;
+    }
+    
+    public boolean isSpecPureMethod(MethodSymbol symbol) {
+        var t = determinePurity(symbol);
+        if (t == null) return false;
+        if (t.jmlclausekind == SPEC_PURE || t.jmlclausekind == STRICTLY_PURE) return true;
+        if (t.jmlclausekind == PURE) {
+            Type ty = symbol.getReturnType();
+            if (utils.isJavaOrJmlPrimitiveOrVoidType(ty)) return true;
+        }
+        return false;  
+    }
+
+    public boolean isStrictlyPureMethod(MethodSymbol symbol) {
+        var t = determinePurity(symbol);
+        if (t.jmlclausekind == STRICTLY_PURE) return true;
+        return false;  
+    }
+
+    public JmlToken findPurityModifier(JmlModifiers mods) {
+        return utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE);
+    }
+    
+    public JmlToken determinePurity(MethodSymbol msym) {
+        JmlModifiers mods = getSpecsModifiers(msym);
+        if (mods != null) {
+            var a = utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE);
+            if (a != null) return a;
+        }
+        JmlToken best = null;
+        for (var mp: utils.parents(msym, false)) {
+            var p = determinePurity(mp);
+            if (p == null) continue;
+            if (p.jmlclausekind == Modifiers.STRICTLY_PURE) return p;
+            if (p.jmlclausekind == Modifiers.SPEC_PURE) best = p;
+            else if (best == null || best.jmlclausekind != Modifiers.SPEC_PURE) best = p;
+        }
+        if (best != null) return best;
+        if (msym.owner instanceof ClassSymbol owner) {
+            var m = determinePurity(owner);
+            if (m != null) return m;
+        }
+        return null;
+    }
+
+    public JmlToken determinePurity(ClassSymbol csym) {
+        JmlModifiers mods = getSpecsModifiers(csym);
+        if (mods != null) {
+            var a = utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE);
+            if (a != null) return a;
+        }
+        if (csym.owner instanceof ClassSymbol owner) {
+            var m = determinePurity(owner);
+            if (m != null) return m;
+        }
+        return null;
+    }
+
     /** Returns true if the given method symbol is annotated as Pure or something that implies Pure */
     public boolean isPureLocal(MethodSymbol symbol) {
-        boolean print = symbol.toString().contains("ok");
         JmlModifiers mods = getSpecsModifiers(symbol);
         if (mods != null) {
             //if (print) System.out.println("MODS " + symbol.owner + " " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasModifier(mods,  Modifiers.PURE) + " " + utils.hasModifier(mods,  Modifiers.HEAP_FREE) + " " + isPure((Symbol.ClassSymbol)symbol.owner));

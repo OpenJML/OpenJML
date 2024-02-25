@@ -2238,15 +2238,15 @@ public class JmlParser extends JavacParser {
     			if (!(mm instanceof ModifierKind m)) break;
     			//System.out.println("JML-ANNOTOPT " + m);
     			
-    			JCAnnotation t;
+    			JmlAnnotation t;
     			if (kind != Tag.TYPE_ANNOTATION) {
                     t = utils.modToAnnotationAST(m, token.pos, token.endPos);
     			} else {
     		        if (m.isTypeAnnotation()) {
                         JCExpression p = utils.nametree(token.pos, token.endPos, m.fullAnnotation, null);
-    		            t = F.at(token.pos).TypeAnnotation(p,
+    		            t = (JmlAnnotation)F.at(token.pos).TypeAnnotation(p,
     		                com.sun.tools.javac.util.List.<JCExpression> nil());
-    		            ((JmlAnnotation)t).kind = m;
+    		            t.kind = m;
     		        } else {
     		            utils.error(token.pos, "jml.message", "A " + m + " modifier is not allowed where type annotations are expected");
     		            t = null;

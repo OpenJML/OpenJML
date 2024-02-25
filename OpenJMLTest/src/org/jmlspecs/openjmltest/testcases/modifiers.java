@@ -43,8 +43,10 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testClassMods6() {
-        helpTCF("t/A.java","package t; \n /*@ pure pure */class A{}",
-                "/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 11);
+        helpTCF("t/A.java","package t; \n /*@ pure pure */class A{}"
+                ,"/t/A.java:2: error: modifier pure may not be repeated", 11
+                ,"/t/A.java:2: error: Associated declaration: /t/A.java:2:", 6
+                );
     }
     
     @Test public void testClassMods7() {
@@ -56,8 +58,9 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testClassMods9() {
-        helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*; \n public /*@ pure */ @Pure class A{}",
-                "/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 21
+        helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*; \n public /*@ pure */ @Pure class A{}"
+                ,"/t/A.java:2: error: modifier pure may not be repeated", 21
+                ,"/t/A.java:2: error: Associated declaration: /t/A.java:2:", 13
                 );
     }
     
@@ -253,15 +256,17 @@ public class modifiers extends TCBase {
     
     
     @Test public void testCUMods() {
-        helpTCF("t/A.java","@Pure package t; import org.jmlspecs.annotation.*;  \n public /*@ pure */ @Pure class A{}",
-                "/t/A.java:1: error: package annotations should be in file package-info.java",1,
-                "/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 21
+        helpTCF("t/A.java","@Pure package t; import org.jmlspecs.annotation.*;  \n public /*@ pure */ @Pure class A{}"
+                ,"/t/A.java:1: error: package annotations should be in file package-info.java",1
+                ,"/t/A.java:2: error: modifier pure may not be repeated", 21
+                ,"/t/A.java:2: error: Associated declaration: /t/A.java:2:", 13
                 );
     }
     
     @Test public void testCUMods2() {
         helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*;  \n public /*@ pure */ @Pure class A{}"
-                ,"/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 21
+                ,"/t/A.java:2: error: modifier pure may not be repeated", 21
+                ,"/t/A.java:2: error: Associated declaration: /t/A.java:2:", 13
                 );
     }
     
@@ -273,7 +278,8 @@ public class modifiers extends TCBase {
     
     @Test public void testCUMods4() {
         helpTCF("t/A.java","package t; import org.jmlspecs.annotation.*; \n public /*@ pure */ @Pure class A{}"
-                ,"/t/A.java:2: error: org.jmlspecs.annotation.Pure is not a repeatable annotation interface", 21
+                ,"/t/A.java:2: error: modifier pure may not be repeated", 21
+                ,"/t/A.java:2: error: Associated declaration: /t/A.java:2:", 13
                 );
     }
     
@@ -1099,6 +1105,97 @@ public class modifiers extends TCBase {
                 "  }"
                 ,"/A.java:2: error: No Java modifiers are allowed in a quantified expression: final",26
                 ,"/A.java:5: error: This JML modifier is not allowed for a quantified expression",26
+                );
+    }
+    
+    @Test public void testPurity() {
+        helpTCF("A.java",
+                """
+                import org.jmlspecs.annotation.*;
+                public class A{
+                  void m4() {}
+                  //@ strictly_pure
+                  void m3() {}
+                  //@ spec_pure
+                  void m2() {}
+                  //@ pure
+                  void m1() {}
+                }
+                class B extends A {
+                  //@ strictly_pure
+                  void m4() {}
+                  //@ strictly_pure
+                  void m3() {}
+                  //@ strictly_pure
+                  void m2() {}
+                  //@ strictly_pure
+                  void m1() {}
+                }
+                class C extends A {
+                  //@ spec_pure
+                  void m4() {}
+                  //@ spec_pure  // ERROR
+                  void m3() {}
+                  //@ spec_pure
+                  void m2() {}
+                  //@ spec_pure
+                  void m1() {}
+                }
+                class D extends A {
+                  //@ pure
+                  void m4() {}
+                  //@ pure
+                  void m3() {}  // ERROR
+                  //@ pure
+                  void m2() {}  // ERROR
+                  //@ pure
+                  void m1() {}
+                }
+                class E extends A {
+                  void m4() {}
+                  void m3() {}
+                  void m2() {}
+                  void m1() {}
+                }
+                """
+                ,"/A.java:24: error: A method must be at least as pure as a method it overrides: spec_pure vs. strictly_pure", 7
+                ,"/A.java:4: error: Associated declaration: /A.java:24:", 7
+                ,"/A.java:34: error: A method must be at least as pure as a method it overrides: pure vs. strictly_pure", 7
+                ,"/A.java:4: error: Associated declaration: /A.java:34:", 7
+                ,"/A.java:36: error: A method must be at least as pure as a method it overrides: pure vs. spec_pure", 7
+                ,"/A.java:6: error: Associated declaration: /A.java:36:", 7
+                );
+    }
+     
+    @Test public void testPurityConflict() {
+        helpTCF("A.java",
+                """
+                import org.jmlspecs.annotation.*;
+                public class A{
+                  void m4() {}
+                  //@ strictly_pure pure
+                  void m3() {}
+                  //@ spec_pure pure
+                  void m2() {}
+                  //@ pure spec_pure
+                  void m1() {}
+                  //@ spec_pure spec_pure
+                  void m5() {}
+                  //@ pure @SpecPure
+                  void m6() {}
+                  //@ @SpecPure @SpecPure
+                  void m7() {}
+                }
+                """
+                ,"/A.java:14: error: org.jmlspecs.annotation.SpecPure is not a repeatable annotation interface", 17 // why is this repeated later
+                ,"/A.java:4: error: A declaration may not be both strictly_pure and pure", 21
+                ,"/A.java:6: error: A declaration may not be both spec_pure and pure", 17
+                ,"/A.java:8: error: A declaration may not be both spec_pure and pure", 12
+                ,"/A.java:10: error: modifier spec_pure may not be repeated", 17
+                ,"/A.java:10: error: Associated declaration: /A.java:10:", 7
+                ,"/A.java:12: error: A declaration may not be both spec_pure and pure", 12
+                ,"/A.java:14: error: modifier spec_pure may not be repeated", 17
+                ,"/A.java:14: error: Associated declaration: /A.java:14:", 7
                 );
     }
      

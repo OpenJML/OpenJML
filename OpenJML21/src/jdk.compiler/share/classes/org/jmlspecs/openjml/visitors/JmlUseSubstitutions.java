@@ -107,7 +107,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                 JCExpression expr = exec.expr;
                 if (expr.type.getTag() == TypeTag.VOID
                     && expr instanceof JCTree.JCMethodInvocation apply
-                    && JmlAttr.instance(context).isPureMethod((Symbol.MethodSymbol)TreeInfo.symbolFor(apply.meth))) {
+                    && JmlAttr.instance(context).isSpecPureMethod((Symbol.MethodSymbol)TreeInfo.symbolFor(apply.meth))) {
                     //System.out.println("USING " + apply);
                     helper(that,expr);
                     return;

@@ -2601,7 +2601,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Returns true if the given symbol is pure (locally or globally) */
 	public boolean isPure(MethodSymbol symbol) {
-		return attr.isPureMethod(symbol);
+		return specs.isPureMethod(symbol);
 
 	}
 
@@ -8834,7 +8834,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (rt instanceof Type.TypeVar) rt = calleeMethodSym.owner.type;
 			java.util.List<Pair<MethodSymbol, Type>> overridden = parents(calleeMethodSym, rt);
 			
-            boolean calleeIsPure = attr.isPureMethod(calleeMethodSym);
+            boolean calleeIsPure = specs.isPureMethod(calleeMethodSym);
             //if (calleeMethodSym.toString().contains("ok")) System.out.println("ISPURE-Z " + calleeIsPure + " " + calleeMethodSym.owner + "." + calleeMethodSym);
             boolean effectivelyPure = true;
 			{

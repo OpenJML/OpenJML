@@ -107,8 +107,10 @@ public class Extensions {
     }
     
     public static @Nullable IJmlClauseKind.ModifierKind findModifier(String name) {
+        String dotName = name;
+        if (name.indexOf('.') == -1) dotName = "." + name;
     	for (var k: allKinds.values()) {
-    		if (k instanceof IJmlClauseKind.ModifierKind && ((IJmlClauseKind.ModifierKind)k).fullAnnotation.endsWith(name)) return (IJmlClauseKind.ModifierKind)k;
+    		if (k instanceof IJmlClauseKind.ModifierKind mk && mk.fullAnnotation.endsWith(dotName)) return mk;
     	}
     	return null;
     }

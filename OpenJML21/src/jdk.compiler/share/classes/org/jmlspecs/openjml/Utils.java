@@ -1511,21 +1511,21 @@ public class Utils {
     }
     
     // FIXME - replace calls of this by the versions in treeutils
-    public/* @ nullable */JCAnnotation modToAnnotationAST(ModifierKind jt,
+    public/* @ nullable */JmlAnnotation modToAnnotationAST(ModifierKind jt,
             int position, int endpos) {
 
         JmlTree.Maker F = JmlTree.Maker.instance(context);
         JCExpression p = nametree(position, endpos, jt.fullAnnotation, null);
-        JCAnnotation ann;
+        JmlAnnotation ann;
         if (jt instanceof TypeAnnotationKind) {
-            ann = (F.at(position).TypeAnnotation(p,
-                    com.sun.tools.javac.util.List.<JCExpression> nil()));
+            ann = F.at(position).TypeAnnotation(p,
+                    com.sun.tools.javac.util.List.<JCExpression> nil());
         } else {
-            ann = (F.at(position).Annotation(p,
-                    com.sun.tools.javac.util.List.<JCExpression> nil()));
+            ann = F.at(position).Annotation(p,
+                    com.sun.tools.javac.util.List.<JCExpression> nil());
         }
-        ((JmlTree.JmlAnnotation)ann).sourcefile = log().currentSourceFile();
-        ((JmlTree.JmlAnnotation)ann).kind = jt;
+        ann.sourcefile = log().currentSourceFile();
+        ann.kind = jt;
         
 //        ClassSymbol sym = JmlAttr.instance(context).modToAnnotationSymbol.get(jt);
 //        if (sym != null) {

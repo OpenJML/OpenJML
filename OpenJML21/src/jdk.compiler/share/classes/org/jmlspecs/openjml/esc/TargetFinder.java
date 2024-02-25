@@ -2,6 +2,7 @@ package org.jmlspecs.openjml.esc;
 
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
+import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
 
@@ -101,7 +102,7 @@ public class TargetFinder extends JmlTreeScanner {
         super.visitApply(that);
         JCExpression m = that.meth;
         Symbol sym = (m instanceof JCIdent ? ((JCIdent)m).sym : m instanceof JCFieldAccess ? ((JCFieldAccess)m).sym : null);
-        if (that.meth != null && !JmlAttr.instance(context).isPureMethod((Symbol.MethodSymbol)sym)) {
+        if (that.meth != null && !JmlSpecs.instance(context).isPureMethod((Symbol.MethodSymbol)sym)) { // FIXME - more than one kind of pure
             Utils.instance(context).warning("jml.message","Use an explicit loop_modifies clause");
         }
     }
