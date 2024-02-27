@@ -115,7 +115,7 @@ public class Test {
     }
     
     //@ ensures !\fresh(\result);
-    //@ pure
+    //@ spec_pure
     public EEE m8(int i) {
         return EEE.AA;
     }

@@ -45,6 +45,7 @@ import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.Modifiers.PURE;
 import static org.jmlspecs.openjml.ext.Modifiers.SPEC_PURE;
 import static org.jmlspecs.openjml.ext.Modifiers.STRICTLY_PURE;
+import static org.jmlspecs.openjml.ext.Modifiers.HEAP_FREE;
 import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
 //import org.osgi.framework.Bundle;
 //import org.w3c.dom.Element;
@@ -908,7 +909,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the type
      */
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
-        //if (type.toString().endsWith(".Identity")) System.out.println("PUTSPECS " + type + " " + type.hashCode() + " " + spec.specsEnv + " " + spec.specsEnv.tree + " " + ((JCClassDecl)spec.specsEnv.tree).sym + " " + ((JCClassDecl)spec.specsEnv.tree).sym.hashCode());
+        //if (type.toString().endsWith(".Object")) System.out.println("PUTSPECS " + type + " " + ((JCClassDecl)spec.specsEnv.tree).sym + " " + spec);
         spec.csymbol = type;
         specsTypes.put(type,spec);        
         setStatus(type, SpecsStatus.SPECS_LOADED);
@@ -925,7 +926,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol specSym, MethodSpecs spec) {
-    	//if (specSym.owner.toString().equals("EEE") && specSym.toString().contains("values()")) { System.out.println("SAVE " + specSym.owner + " " + specSym + " " + spec); Utils.dumpStack();  } 
+    	//if (specSym.owner.toString().contains("Object") && specSym.toString().contains("toString")) { System.out.println("SAVE " + specSym.owner + " " + specSym + " " + spec);  Utils.dumpStack(); }
     	spec.specSym = specSym;
         specsMethods.put(specSym,spec);
         int i = 0;
@@ -1073,10 +1074,13 @@ public class JmlSpecs {
      */
     //@ nullable // FIXME - really?
     public MethodSpecs getLoadedSpecs(MethodSymbol m) {
- //   	if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
-    	if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) {
+        boolean print = false; // m.owner.toString().equals("java.lang.Object") && m.toString().contains("toString");
+        if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
+    	if (print) System.out.println(" STATUS " + m.owner + " " + m + " " + status(m.owner));
+        if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) {
     		var ms = getLoadedSpecs((ClassSymbol)m.owner);
-    		if (ms == null) setStatus(m, SpecsStatus.SPECS_LOADED);
+            if (print) System.out.println(" GOT CLASS SPECS " + m.owner );
+    		if (ms == null) setStatus(m, SpecsStatus.SPECS_LOADED); // FIXME - why this?
 //        	if (ms == null) {
 //        		setStatus(m, SpecsStatus.SPECS_LOADED);// So defaultSpecs does not go into an infinite loop
 //                if (utils.verbose()||true) {
@@ -1088,6 +1092,7 @@ public class JmlSpecs {
 //        	}
     	}
     	var ms = get(m);
+        if (print) System.out.println(" GLS " + m.owner + " " + m + " " + ms);
 //        if (ms == null) System.out.println("Null specs returned from getLoadedSpecs (no default) for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
         return ms;
     }
@@ -1252,7 +1257,7 @@ public class JmlSpecs {
                 clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,enn,clp,clpa,sig,cval);
                 // FIXME - need to add a helper, pure annotation
                 var mdef = (JmlMethodDecl)M.at(pos).MethodDef(sym,null);
-                addModifier(pos, Modifiers.PURE, mdef.mods);
+                addModifier(pos, Modifiers.SPEC_PURE, mdef.mods);
                 addModifier(pos, Modifiers.HELPER, mdef.mods);
                 addModifier(pos, Modifiers.NON_NULL, mdef.mods);
                 mspecs.specDecl = mdef;
@@ -1280,11 +1285,11 @@ public class JmlSpecs {
                     clauses = com.sun.tools.javac.util.List.<JmlMethodClause>of(en,clp,clpa,sig,sigo);
                     // FIXME - Illegal argument exception? What about user supplied valueOf methods?
                     var mdef = (JmlMethodDecl)M.at(pos).MethodDef(sym,null);
-                    addModifier(pos, Modifiers.PURE, mdef.mods);
+                    addModifier(pos, Modifiers.SPEC_PURE, mdef.mods);
                     addModifier(pos, Modifiers.HELPER, mdef.mods);
-                    addModifier(pos, Modifiers.NON_NULL, mdef.mods);
+                    addModifier(pos, Modifiers.NON_NULL, mdef.mods); // FIXME - PUSH AS TYPE ANNOTATION
                     JCVariableDecl param = mdef.params.head;
-                    addModifier(pos,Modifiers.NULLABLE,param.mods);
+                    addModifier(pos,Modifiers.NULLABLE,param.mods); // FIXME - PUSH AS TYPE ANNOTATION
                     mspecs.specDecl = mdef;
                     
                 } else {
@@ -1308,7 +1313,8 @@ public class JmlSpecs {
             }
             JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false, MethodSimpleClauseExtensions.behaviorClause,null,clauses,null);
             mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
-            addModifier(pos, Modifiers.PURE, mspecs.mods);
+            //System.out.println("ADDING SPEC_PURE " + sym.owner + " " + sym + " " + (decl!=null));
+            addModifier(pos, Modifiers.SPEC_PURE, mspecs.mods);
 //            if (sym.name.equals(names.valueOf)) {
 //            	System.out.println("VALUEOF MSPECS " + mspecs);
 //                System.out.println("VALUEOF DECL " + mspecs.specDecl);
@@ -1334,10 +1340,13 @@ public class JmlSpecs {
             list.add(e);
         }
         
+        boolean print = sym.owner.toString().contains("java.util.Collection") && sym.toString().contains("size");
+        
         boolean libraryMethod = sym.owner instanceof ClassSymbol && sym.owner.toString().startsWith("java");
-        boolean isPureA = utils.hasModifier(mspecs.mods, Modifiers.PURE, Modifiers.HEAP_FREE); // use isPure?
+        boolean isPureA = determinePurity(sym) != null ;
+               // : utils.hasModifier(mspecs.mods, Modifiers.PURE, Modifiers.SPEC_PURE, MOdifiers.STRICTLY_PURE, Modifiers.HEAP_FREE); // use isPure?
         boolean isPureL = (libraryMethod && !JmlOption.isOption(context,JmlOption.PURITYCHECK));
-        //System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
+        //if (print) System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                 com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPureA||isPureL?nothingKind:everythingKind)));
         JmlMethodClause clpa = new JmlTree.JmlMethodClauseStoreRef(pos,accessibleID, accessibleClauseKind,
@@ -1354,7 +1363,9 @@ public class JmlSpecs {
         mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
         if (decl == null) mspecs.cases.deSugared = mspecs.cases;
         //FIXME: this sets as pure far more methods than needed, including some that are definitely not pure
-        if (isPureL && !isPureA) addModifier(pos, Modifiers.PURE, mspecs.mods);
+        //if (print) System.out.println("LIB-PURE " + sym.owner + " " + sym + " " + isPureA + " " + isPureL + " " + (decl!= null));
+        //if (isPureL && !isPureA && (decl==null)) addModifier(pos, Modifiers.SPEC_PURE, mspecs.mods);
+        //if (print) System.out.println("DEFAULT SPECS " + mspecs);
         return mspecs;
     }
     
@@ -2030,42 +2041,54 @@ public class JmlSpecs {
     
     public boolean isSpecPureMethod(MethodSymbol symbol) {
         var t = determinePurity(symbol);
-        if (t == null) return false;
-        if (t.jmlclausekind == SPEC_PURE || t.jmlclausekind == STRICTLY_PURE) return true;
-        if (t.jmlclausekind == PURE) {
-            Type ty = symbol.getReturnType();
-            if (utils.isJavaOrJmlPrimitiveOrVoidType(ty)) return true;
-        }
-        return false;  
+        return t != null && t.jmlclausekind == SPEC_PURE;
     }
 
     public boolean isStrictlyPureMethod(MethodSymbol symbol) {
         var t = determinePurity(symbol);
-        if (t.jmlclausekind == STRICTLY_PURE) return true;
+        return t != null && t.jmlclausekind == STRICTLY_PURE;
+    }
+    
+    public boolean isSpecOKMethod(MethodSymbol msym) {
+        var t = determinePurity(msym);
+        if (t == null) return false;
+        var k = t.jmlclausekind;
+        if (k == SPEC_PURE || k == STRICTLY_PURE || k == HEAP_FREE) return true;
+        if (k == PURE) {
+            Type ty = msym.getReturnType();
+            if (utils.isJavaOrJmlPrimitiveType(ty)) return true;
+        }
         return false;  
     }
 
     public JmlToken findPurityModifier(JmlModifiers mods) {
-        return utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE);
+        return utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.HEAP_FREE);
     }
     
     public JmlToken determinePurity(MethodSymbol msym) {
+        boolean print = false; // msym.toString().contains("add");// && msym.owner.toString().equals("java.util.Collection");
         JmlModifiers mods = getSpecsModifiers(msym);
+        if (print) System.out.println("DP_REQUEST " + msym.owner + " " + msym + " " + mods);
         if (mods != null) {
-            var a = utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE);
+            var a = utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.HEAP_FREE);
+            if (print) System.out.println("DIRECT  " + msym.owner + " " + msym + " " + a);
             if (a != null) return a;
         }
         JmlToken best = null;
         for (var mp: utils.parents(msym, false)) {
             var p = determinePurity(mp);
+            if (print) System.out.println("DET  " + msym.owner + " " + msym + " " + mp.owner + " " + mp + " " + p);
             if (p == null) continue;
-            if (p.jmlclausekind == Modifiers.STRICTLY_PURE) return p;
-            if (p.jmlclausekind == Modifiers.SPEC_PURE) best = p;
-            else if (best == null || best.jmlclausekind != Modifiers.SPEC_PURE) best = p;
+            if (p.jmlclausekind == Modifiers.HEAP_FREE) return p;
+            else if (p.jmlclausekind == Modifiers.STRICTLY_PURE) best = p;
+            else if (p.jmlclausekind == Modifiers.SPEC_PURE && (best == null || best.jmlclausekind != Modifiers.STRICTLY_PURE)) best = p;
+            else if (p.jmlclausekind == Modifiers.PURE && (best == null || best.jmlclausekind == Modifiers.PURE)) best = p;
+            if (print) System.out.println("OVER " + msym.owner + " " + msym + " " + mp.owner + " " + mp + " " + best);
         }
         if (best != null) return best;
         if (msym.owner instanceof ClassSymbol owner) {
             var m = determinePurity(owner);
+            if (print) System.out.println("TOCLASS " + msym.owner + " " + msym + " " + m);
             if (m != null) return m;
         }
         return null;
@@ -2074,17 +2097,23 @@ public class JmlSpecs {
     public JmlToken determinePurity(ClassSymbol csym) {
         JmlModifiers mods = getSpecsModifiers(csym);
         if (mods != null) {
-            var a = utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE);
+            var a = utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.HEAP_FREE);
+            //if (csym.toString().equals("java.lang.Iterable")) System.out.println("Iterable-A " + a);
+            //if (csym.toString().equals("java.util.Collection")) System.out.println("Collection-A " + a);
             if (a != null) return a;
         }
         if (csym.owner instanceof ClassSymbol owner) {
             var m = determinePurity(owner);
+            //if (csym.toString().equals("java.lang.Iterable")) System.out.println("Iterable-B " + m);
+            //if (csym.toString().equals("java.util.Collection")) System.out.println("Collection-B " + m);
             if (m != null) return m;
         }
+        //if (csym.toString().equals("java.lang.Iterable")) System.out.println("Iterable NULL");
+        //if (csym.toString().equals("java.util.Collection")) System.out.println("Collection NULL");
         return null;
     }
 
-    /** Returns true if the given method symbol is annotated as Pure or something that implies Pure */
+    /** Returns true if the given method symbol is itself annotated with some purity */
     public boolean isPureLocal(MethodSymbol symbol) {
         JmlModifiers mods = getSpecsModifiers(symbol);
         if (mods != null) {

@@ -630,8 +630,9 @@ public class JmlParser extends JavacParser {
             ListBuffer<JCTree> newdefs = new ListBuffer<>();
             JCVariableDecl vd = jmlF.VarDef(jmlF.Modifiers(Flags.PUBLIC|Flags.STATIC),names.fromString("_JMLvalues"),jmlF.TypeArray(jmlF.Ident(cd.name)),null);
             utils.setJML(vd.mods);
-            JCAnnotation a = utils.modToAnnotationAST(Modifiers.MODEL, cd.pos, cd.pos);  // FIXME -is position correct?
-            vd.mods.annotations =  vd.mods.annotations.append(a);
+//            JCAnnotation a = utils.modToAnnotationAST(Modifiers.MODEL, cd.pos, cd.pos);  // FIXME -is position correct?
+//            vd.mods.annotations =  vd.mods.annotations.append(a);
+            ((JmlModifiers)vd.mods).jmlmods.add(new JmlToken(Modifiers.MODEL, log.currentSourceFile(), cd.pos, cd.pos));
             // declare _JMLvalues as model field
             newdefs.add(vd);
             JCExpression ex = jmlF.Binary(Tag.NE, jmlF.Ident(vd.name), F.Literal(TypeTag.BOT,null));

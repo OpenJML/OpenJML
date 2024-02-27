@@ -27,6 +27,20 @@ public class purity extends TCBase {
 
     /** Test scanning something very simple */
     @Test
+    public void testSpecPure() {
+        helpTC(" class A { /*@ spec_pure */ boolean m() { return true; }  \n //@ invariant m(); \n}"
+                );
+    }
+
+    /** Test scanning something very simple */
+    @Test
+    public void testStrictlyPure() {
+        helpTC(" class A { /*@ strictly_pure */ boolean m() { return true; }  \n //@ invariant m(); \n}"
+                );
+    }
+
+    /** Test scanning something very simple */
+    @Test
     public void testPure2() {
         expectedExit = 0;
         helpTC(" class A {  boolean m() { return true; }  \n //@ invariant m(); \n}"
@@ -137,12 +151,11 @@ public class purity extends TCBase {
                 );
     }
 
-    /** Test that pure from enclosing class does not apply */
+    /** Test that pure from enclosing class does apply */
     @Test
     public void testPureClass3() {
         expectedExit = 0;
         helpTC(" /*@ pure */ class A  {  static class B { //@ invariant mm(); \n boolean mm() { return true; } }\n } "
-                ,"/TEST.java:1: warning: A non-pure method is being called where it is not permitted: A.B.mm()",59
                 );
     }
 
@@ -169,6 +182,13 @@ public class purity extends TCBase {
                 );
     }
 
+    @Test
+    public void testPureNotSpecPure() {
+        expectedExit = 0;
+        helpTC(" class A { /*@ pure */ Object m() { return new Object(); }  \n //@ invariant m() != null; \n}"
+                ,"/TEST.java:2: warning: A non-pure method is being called where it is not permitted: A.m()", 17
+                );
+    }
     
 
 }

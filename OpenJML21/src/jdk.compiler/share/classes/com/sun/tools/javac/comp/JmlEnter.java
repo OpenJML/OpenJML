@@ -851,7 +851,9 @@ public class JmlEnter extends Enter {
 	}
 
 	public void specsMemberEnter(JmlClassDecl specDecl) {
-	    if (debugEnter) System.out.println("enter: Entering members for binary " + specDecl.sym + " : " + 
+	    boolean print = false; // specDecl.name.toString().equals("Collection");
+	    if (print) System.out.println("SME " + specDecl);
+	    if (debugEnter || print) System.out.println("enter: Entering members for binary " + specDecl.sym + " : " + 
 	                            Utils.join(" ",specDecl.defs,d->(d instanceof JmlVariableDecl vd ? vd.name : d instanceof JmlMethodDecl md ? md.name : "")));
 		var saved = JmlResolve.instance(context).setAllowJML(utils.isJML(specDecl.mods));
 		ClassSymbol csym = specDecl.sym;
@@ -928,6 +930,7 @@ public class JmlEnter extends Enter {
 		// declarations
 		for (Symbol m : specDecl.sym.members().getSymbols(s -> s instanceof MethodSymbol)) {
 			MethodSymbol ms = (MethodSymbol) m;
+			if (print) System.out.println("SME METH " + ms + " " + specs.get(ms));
 			if (specs.get(ms) == null) {
 				// utils.note("Method " + specDecl.sym + "." + m + " has no specifications --
 				// using defaults");
@@ -1095,13 +1098,14 @@ public class JmlEnter extends Enter {
 	public Env<AttrContext> methodEnv;
 
 	public boolean specsMethodEnter(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> specsEnv) {
-		boolean print =  false; // mdecl.name.toString().contains("iterator");
-		if (print) System.out.println("SPECSMETHODENTER " + csym + " " + mdecl + " " + mdecl.sym + " " + specsEnv);
+		boolean print = false;// mdecl.name.toString().equals("toString") && csym.toString().equals("java.lang.Object");
+		if (print) System.out.println("SPECSMETHODENTER " + csym + " " + mdecl + " " + mdecl.sym + " " + specsEnv + " " + mdecl.specsDecl);
 		boolean isJML = utils.isJML(mdecl);
 		boolean isOwnerJML = utils.isJML(csym.flags());
-		boolean isModel = utils.hasMod(mdecl.mods, Modifiers.MODEL);
+		boolean isModel = utils.hasModifier(mdecl.mods, Modifiers.MODEL);
 		var specs = JmlSpecs.instance(context);
 		if (mdecl.sym != null) {
+	        if (print) System.out.println("  SYM EXISTS " + mdecl.sym.owner);
 			// Expect isOwnerJML==true?
 			// What if mdecl.sym.owner != csym ?
 			var ssp = new JmlSpecs.MethodSpecs(mdecl);
@@ -1117,7 +1121,6 @@ public class JmlEnter extends Enter {
 			return true;
 		}
 		
-		if (mdecl.sym != null) System.out.println("  SYM EXISTS " + mdecl.sym.owner);
 		// FIXME - move to JmlAttr
 		if (isOwnerJML && isModel) {
 			utils.error(mdecl, "jml.message",
@@ -1153,14 +1156,13 @@ public class JmlEnter extends Enter {
 				mdecl.params.get(i).type = mdecl.sym.params.get(i).type;
 			}
 			msym = findMethod(csym, mdecl, specsEnv);
-			if (print && msym != null) System.out.println("FOUND " + msym.owner + " " + msym + " " + csym);
-			if (print) System.out.println("HAVE BINARY " + msym.owner + "#" + msym + " " + System.identityHashCode(msym) + " " + msym.type );
-			if (print) System.out.println("HAVE JML " + mdecl.sym.owner + "#" + mdecl.sym + " " + System.identityHashCode(mdecl.sym) + " " + mdecl.sym.type );
+            if (print && msym != null) System.out.println("FOUND " + msym.owner + " " + msym + " " + csym);
+            if (print && msym == null) System.out.println("NOT FOUND " + csym + " " + mdecl);
 		}
 		
 
 		if (msym == null) {
-			// No corresponding Java method (and not in a model class)
+			// No corresponding Java binary method (and not in a model class)
 			if (!isJML && !isOwnerJML) {
 				String msg = "There is no binary method to match this Java declaration in the specification file: "
 						+ csym + "." + mdecl.name ;
@@ -1188,7 +1190,7 @@ public class JmlEnter extends Enter {
 			}
 			if (debugEnter) System.out.println("enter: Entered JML method: " + msym + " (owner: " + csym + ")");
 		} else {
-			// Found a matching Java method
+			// Found a matching Java binary method
 			//if (print) System.out.println("MATCHED " + msym);
 			boolean matchIsJML = utils.isJML(msym.flags());
 			JmlSpecs.MethodSpecs mspecs = JmlSpecs.instance(context).get(msym); // Raw get to see if specs are present

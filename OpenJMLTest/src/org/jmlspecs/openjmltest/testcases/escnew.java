@@ -1679,10 +1679,10 @@ public class escnew extends EscBase {
                 +"  //@ ensures true; pure\n"
                 +"  public int mmr(int i) { return 0; };\n"
                 
-                +"  //@ ensures !\\fresh(\\result); pure\n"
+                +"  //@ ensures !\\fresh(\\result); spec_pure\n"
                 +"  //@ model public <TT> TT mt(int i);\n"
                 
-                +"  //@ ensures !\\fresh(\\result); pure\n"
+                +"  //@ ensures !\\fresh(\\result); spec_pure\n"
                 +"  public /*@ nullable */ <TT> TT mtr(int i) { return null; };\n"
                 
                 +"  //@ ensures true; pure\n"
@@ -1759,6 +1759,9 @@ public class escnew extends EscBase {
                 
                
                 +"}"
+                ,"/tt/TestJava.java:11: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm(int)", 17
+                ,"/tt/TestJava.java:16: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm2(int)", 18
+                ,"/tt/TestJava.java:20: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm3(int)", 18
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method m1",7
                 ,"/tt/TestJava.java:11: warning: Associated declaration",7
                 ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Postcondition) in method m3",7

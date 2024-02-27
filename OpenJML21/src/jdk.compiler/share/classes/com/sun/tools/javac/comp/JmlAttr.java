@@ -1067,10 +1067,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             checkForRedundantSpecMod(specsModifiers);
         }
         checkForConflict(specsModifiers,NON_NULL_BY_DEFAULT,NULLABLE_BY_DEFAULT);
-        checkForConflict(specsModifiers,PURE,SPEC_PURE,STRICTLY_PURE);
-        checkForConflict(specsModifiers,PURE,QUERY);
-        checkForConflict(specsModifiers,SPEC_PURE,QUERY);
-        checkForConflict(specsModifiers,STRICTLY_PURE,QUERY);
+        checkForConflict(specsModifiers,PURE,SPEC_PURE,STRICTLY_PURE,HEAP_FREE);
+        //checkForConflict(specsModifiers,PURE,QUERY);
+        //checkForConflict(specsModifiers,SPEC_PURE,QUERY);
+        //checkForConflict(specsModifiers,STRICTLY_PURE,QUERY);
         checkForDuplicateModifiers(specsModifiers);
         {
             // FIXME - these checks are already done 
@@ -1788,17 +1788,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 checkForConflict(mods,PURE,SPEC_PURE,STRICTLY_PURE,QUERY);
                 var selfPurity = specs.determinePurity(msym);
                 var loc = selfPurity != null ? selfPurity.pos() : javaMethodTree;
+                boolean print = false; // msym.toString().contains("toString") && msym.owner.toString().contains("Locale");
+                if (print) System.out.println("OVER " + msym.owner + " " + msym + " " + selfPurity);
                 for (var ms: utils.parents(msym, false)) {
                     var parentPurity = specs.determinePurity(ms);
-                    if (parentPurity == null) continue;
-                    if (selfPurity == null) continue; // FIXME - remove this eventually - after libraries are fixed and inheritance settled
+                    if (print) System.out.println("PARENT "+ ms.owner + " " + parentPurity);
+                    if (parentPurity == null) continue; // OK for purity to become stronger
+                    if (selfPurity == null) continue; // Inherits purity
+                    
                     if (selfPurity == null ||
                             (selfPurity.jmlclausekind == PURE && parentPurity.jmlclausekind != PURE) ||
                             (parentPurity.jmlclausekind == STRICTLY_PURE && selfPurity.jmlclausekind != STRICTLY_PURE)) {
-                        utils.errorAndAssociatedDeclaration(log.currentSourceFile(), loc, parentPurity.source, parentPurity, 
-                                "jml.message", "A method must be at least as pure as a method it overrides: " + 
+                        if (parentPurity.source != null && parentPurity.pos >= 0)
+                            utils.errorAndAssociatedDeclaration(log.currentSourceFile(), loc, parentPurity.source, parentPurity, 
+                                "jml.message", "A method must be at least as pure as a method it overrides: " +
                                 (selfPurity == null ? "<no modifier>" : selfPurity.jmlclausekind.toString()) + " vs. " + parentPurity.jmlclausekind
                                 );
+                        else 
+                            utils.error(log.currentSourceFile(), loc,  
+                                    "jml.message", "A method must be at least as pure as a method it overrides (in " + ms.owner + "): " +
+                                    (selfPurity == null ? "<no modifier>" : selfPurity.jmlclausekind.toString()) + " vs. " + parentPurity.jmlclausekind
+                                    );
+                            
                     }
                 }
                 
@@ -2395,12 +2406,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         try {
             JmlTree.Maker jmlMaker = (JmlTree.Maker)make;
-            // FIXME - use a common isPure method
-            desugaringPure = utils.hasModifier(msp.mods, Modifiers.PURE, Modifiers.HEAP_FREE);
-            if (!desugaringPure) {
-            	desugaringPure = utils.hasMod(specs.getLoadedSpecs((ClassSymbol)msym.owner).modifiers,Modifiers.PURE);
-            }
-
+            desugaringPure = specs.determinePurity(msym) != null;
+            
             if (specsCompletelyEmpty) {
                 // If the local specs are completely empty, then the desugaring depends on what is inherited:
                 // If the method at hand does not override anything, then we go on to add the default specs;
@@ -2419,7 +2426,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 msp.cases = jms.cases;
             }
             JmlMethodSpecs methodSpecs = msp.cases;
-            JmlToken pure = utils.findModifier(msp.mods, Modifiers.PURE);
+            JmlToken pure = specs.determinePurity(msym);
 
             // A list in which to collect clauses
             ListBuffer<JmlMethodClause> commonClauses = new ListBuffer<JmlMethodClause>();
@@ -4602,7 +4609,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (jmlenv.inPureEnvironment && tree.meth.type != null && tree.meth.type.getTag() != TypeTag.ERROR) {
             // Check that the method being called is pure
             if (msym != null) {
-                boolean isAllowed = isPureMethod(msym) || isQueryMethod(msym);
+                boolean isAllowed = specs.isSpecOKMethod(msym);
+                isAllowed |= msym.owner.toString().startsWith("java."); // FIXME - edit libraries o avoid this
                 if (!isAllowed) {
                     nonPureWarning(tree, msym);
                 }

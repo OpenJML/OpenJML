@@ -42,28 +42,28 @@ public class Person {
     /*@ 
       @ ensures name.equals(\result);
       @*/
-    public /*@ pure */ String getName() {
+    public /*@ spec_pure */ String getName() {
         return name;
     }
 
     /*@ 
       @ ensures firstname.equals(\result);
       @*/
-    public /*@ pure */ String getFirstName() {
+    public /*@ spec_pure */ String getFirstName() {
         return firstname;
     }
 
     /*@ 
       @ ensures age == \result;
       @*/
-    public /*@ pure */ int getAge() {
+    public /*@ spec_pure */ int getAge() {
         return age;
     }
 
     /*@ 
       @ ensures weight == \result;
       @*/
-    public /*@ pure */ int getWeight() {
+    public /*@ spec_pure */ int getWeight() {
         return weight;
     }
     
