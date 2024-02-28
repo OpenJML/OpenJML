@@ -156,7 +156,7 @@ public class escfunction extends EscBase {
                 +"public class TestJava  { \n"
                 +"  //@ normal_behavior \n"
                 +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"  //@ @Pure @HeapFree  \n"
+                +"  //@ @HeapFree  \n"
                 +"  //@ static model public boolean mfunc(int i);\n"
                 
                 +"  int n; \n"

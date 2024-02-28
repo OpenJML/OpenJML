@@ -665,12 +665,12 @@ public class escfiles extends EscBase {
     }
     
     @Test
-    public void ensuresInfeasible() {
+    public void escEnsuresInfeasible() {
         helpTF("escEnsuresInfeasible");
     }
 
     @Test
-    public void ensuresInfeasible2() {
+    public void escEnsuresInfeasible2() {
         helpTF("escEnsuresInfeasible2");
     }
 

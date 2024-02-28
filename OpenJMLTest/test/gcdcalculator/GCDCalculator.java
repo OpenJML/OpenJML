@@ -7,7 +7,7 @@ public class GCDCalculator{
 
 	//@ public normal_behavior     
         //@ requires d != 0;
-        //@ pure heap_free
+        //@ heap_free
     public static int div(int n, int d) { return n%d; }
 
     //@ requires num1 != Integer.MAX_VALUE && num1 != Integer.MAX_VALUE && num1 > Integer.MIN_VALUE + 1 && num2 > Integer.MIN_VALUE + 1;

@@ -7,7 +7,7 @@ public class Test {
 	//@ public normal_behavior
 	//@   ensures \result == (i<0 ? ((long)i - Integer.MIN_VALUE - Integer.MIN_VALUE) : i);
 	//@   ensures 0 <= \result && \result <= 0xffff_ffffL;
-	//@ pure helper heap_free
+	//@ helper heap_free
 	//@ model public static long cv(int i);
 	
 	//@ public normal_behavior
@@ -22,7 +22,7 @@ public class Test {
 	
 	//@ public normal_behavior
 	//@   ensures \result == (i<0 ? ((long)i - Integer.MIN_VALUE - Integer.MIN_VALUE) : i) && 0 <= \result && \result <= 0xffff_ffffL;
-	//@ pure helper heap_free
+	//@ helper heap_free
 	//@ model public static long cv2(int i);
 	
 	//@ public normal_behavior

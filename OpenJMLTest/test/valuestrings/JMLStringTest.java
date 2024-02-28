@@ -41,7 +41,7 @@ public class JMLStringTest {
     
     //@ public normal_behavior
     //@ requires 0 <= i <= s.length;
-    //@ ensures s.add(i,'c').length == 1 + s.length;
+    //@ ensures s.insert(i,'c').length == 1 + s.length;
     //@ model public static void addBumpsSize(string s, \bigint i) {}
     
     //@ public normal_behavior
@@ -51,23 +51,23 @@ public class JMLStringTest {
     
     //@ public normal_behavior
     //@   requires 0 <= i <= s.length;
-    //@   ensures string.equals(s.add(i,'c').remove(i), s);
+    //@   ensures string.equals(s.insert(i,'c').remove(i), s);
     //@ model public static void addRemove(string s, \bigint i) { show i, s.length; }
     
     //@ public normal_behavior
     //@   requires 0 <= k < i <= s.length;
-    //@   ensures s.add(i,'c')[k] == s[k];
-    //@   ensures s.add(i,'c').get(k) == s.get(k);
+    //@   ensures s.insert(i,'c')[k] == s[k];
+    //@   ensures s.insert(i,'c').get(k) == s.get(k);
     //@ model public static void addGet1(string s, \bigint i, \bigint k) { }
     
     //@ public normal_behavior
     //@   requires 0 <= i < k <= s.length;
-    //@   ensures s.add(i,'c').get(k) == s.get(k-1);
+    //@   ensures s.insert(i,'c').get(k) == s.get(k-1);
     //@ model public static void addGet2(string s, \bigint i, \bigint k) { show i, k, s.length;  }
     
     //@ public normal_behavior
     //@   requires 0 <= i <= s.length;
-    //@   ensures s.add(i,c).get(i) == c;
+    //@   ensures s.insert(i,c).get(i) == c;
     //@ model public static void addGet(string s, \bigint i, char c) {}
     
     //@ public normal_behavior

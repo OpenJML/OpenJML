@@ -928,20 +928,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public ModifierKind[] allowedTypeModifiers = new ModifierKind[]{
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, MODEL, QUERY, SKIPRAC, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE,
+        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, HEAP_FREE, MODEL, QUERY, SKIPRAC, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE,
         SPEC_PUBLIC, SPEC_PROTECTED};
 
     public ModifierKind[] allowedNestedTypeModifiers = new ModifierKind[]{
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, MODEL, QUERY, SPEC_PUBLIC, SPEC_PROTECTED, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE};
+        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, HEAP_FREE, MODEL, QUERY, SPEC_PUBLIC, SPEC_PROTECTED, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE};
 
     public ModifierKind[] allowedNestedModelTypeModifiers = new ModifierKind[]{
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, MODEL, QUERY, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE};
+        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, HEAP_FREE, MODEL, QUERY, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE};
 
     public ModifierKind[] allowedLocalTypeModifiers = new ModifierKind[]{
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, MODEL, QUERY, IMMUTABLE};
+        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, HEAP_FREE, MODEL, QUERY, IMMUTABLE};
 
     /** This is a set of the modifiers that may be used to characterize a type. */
     public ModifierKind[] typeModifiers = new ModifierKind[]{NULLABLE,NON_NULL,BSREADONLY};
@@ -1785,7 +1785,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     }
                 }
                 checkForConflict(mods,NON_NULL,NULLABLE);
-                checkForConflict(mods,PURE,SPEC_PURE,STRICTLY_PURE,QUERY);
+                checkForConflict(mods,PURE,SPEC_PURE,STRICTLY_PURE,HEAP_FREE,QUERY);
                 var selfPurity = specs.determinePurity(msym);
                 var loc = selfPurity != null ? selfPurity.pos() : javaMethodTree;
                 boolean print = false; // msym.toString().contains("toString") && msym.owner.toString().contains("Locale");
@@ -1798,7 +1798,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     
                     if (selfPurity == null ||
                             (selfPurity.jmlclausekind == PURE && parentPurity.jmlclausekind != PURE) ||
-                            (parentPurity.jmlclausekind == STRICTLY_PURE && selfPurity.jmlclausekind != STRICTLY_PURE)) {
+                            (parentPurity.jmlclausekind == HEAP_FREE && selfPurity.jmlclausekind != HEAP_FREE) ||
+                            (parentPurity.jmlclausekind == STRICTLY_PURE && selfPurity.jmlclausekind == SPEC_PURE)) {
                         if (parentPurity.source != null && parentPurity.pos >= 0)
                             utils.errorAndAssociatedDeclaration(log.currentSourceFile(), loc, parentPurity.source, parentPurity, 
                                 "jml.message", "A method must be at least as pure as a method it overrides: " +
@@ -1845,7 +1846,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             // Check rules about helper
             if ( (t = utils.findModifier(mods,HELPER)) != null  &&
-                    !isPureMethod(msym)  && 
+                    specs.determinePurity(msym) == null  && 
                     (specDecl.mods.flags & Flags.FINAL) == 0  && 
                     (specDecl.mods.flags & Flags.STATIC) == 0  && 
                     (    (mods.flags & Flags.PRIVATE) == 0 

@@ -7,10 +7,10 @@ public class Pair<T> {
     public Pair(T fst, T snd) { first = fst; second = snd; }
 
     /*@ ensures \result == first; @*/
-    public /*@ pure @*/ T getFirst() { return first;
+    public /*@ spec_pure @*/ T getFirst() { return first;
     }
     /*@ ensures \result == second; @*/
-    public /*@ pure @*/ T getSecond() { return second;
+    public /*@ spec_pure @*/ T getSecond() { return second;
     }
     /*@ public model_program 
       @   normal_behavior

@@ -287,7 +287,7 @@ t *);
     
     //@ public normal_behavior
     //@  requires true;
-    public /*@ pure heap_free @*/ static native int identityHashCode(/*@nullable*/ Object x);
+    public /*@ spec_pure @*/ static native int identityHashCode(/*@nullable*/ Object x);
 
     //-RAC@ public model static non_null Properties systemProperties;
     //-RAC@    initially systemProperties.containsKey("java.home");
@@ -305,7 +305,7 @@ t *);
       @    ensures \result == systemProperties;
       @    //signals (SecurityException) (* if access is not permitted *);
       @*/
-    public /*@ pure heap_free @*/ static /*@ non_null @*/ Properties getProperties();
+    public /*@ spec_pure @*/ static /*@ non_null @*/ Properties getProperties();
 
     /*-RAC@ 
       @ public behavior

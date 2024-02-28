@@ -10,5 +10,5 @@ public class PMax implements Proc<Integer,Integer> {
         return x;
     }
     //@ ensures \result == maxSeen;
-    public /*@ pure @*/ Integer getMax() { return maxSeen; }
+    public /*@ spec_pure @*/ Integer getMax() { return maxSeen; }
 }
