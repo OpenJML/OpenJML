@@ -231,24 +231,31 @@ public class Extensions {
     }
     
     public static boolean registerClass(Context context, Class<?> cce) {
+        // This block catches nested classes. These do not derive from JmlExtension. But as long
+        // as they are nested within a JmlExtension, the class is accepted, but is already 
+        // static-initialized by virtue of its containing class.
         if (!JmlExtension.class.isAssignableFrom(cce)) {
-//            Utils.instance(context).note("Skipped " + cce);
+            // Utils.instance(context).note("Skipped " + cce); // debugging only
             String s = cce.toString();
             int k = s.indexOf('$');
             if (k > 0) s = s.substring(0, k);
             try { Class.forName(s); return true; } catch (ClassNotFoundException e) { 
- //           	Utils.instance(context).note("Not found " + s);
+            //Utils.instance(context).note("Not found " + s);
             }
         	return false; // Extension classes must inherit from JmlExtensionn
         }
+        
+        // Initializes extension classes that have just a default constructor or a no-argument constructor
         @SuppressWarnings("unchecked")
-        Class<? extends JmlExtension> cc = (Class<? extends JmlExtension>)cce;
+        var cc = (Class<? extends JmlExtension>)cce;
         try {
             cc.getConstructor().newInstance(); // Instance created only to perform static initialization
             //Utils.instance(context).note("Registered-A " + cc);
             return true;
         } catch (Exception e) {
         }
+        
+        // Initializes extension classes that have a constructor taking Context as an argument
         try {
             cc.getConstructor(Context.class).newInstance(context);
             //Utils.instance(context).note("Registered-B " + cc);
@@ -258,9 +265,9 @@ public class Extensions {
             int k = s.indexOf('$');
             if (k > 0) s = s.substring(0, k);
             try { 
-            	Class.forName(s);
-                Utils.instance(context).note("Registered-C " + cc);
-            	return true; 
+                Class.forName(s);
+                //Utils.instance(context).note("Registered-C " + cc);
+                return true; 
             } 
             catch (ClassNotFoundException ee) { 
 //            	Utils.instance(context).note("Not found " + s); 
@@ -276,10 +283,6 @@ public class Extensions {
     //    at least for built-in extension classes
     // 1) In the development environment, the first method of finding elements
     //    of a class works, but that does not work in an Eclipse plug-in.
-    // 2) In the plug-in, the Bundle approach works. Note though that the Extensions
-    //    class is not a part of the OpenJMLUI plug-in, thus we need to reference 
-    //    the plug-in ID as a literal; this approach won't work and may fail
-    //    catastrophically when used outside of Eclipse.
     public static java.util.List<Class<?>> findClasses(Context context, Package p) throws java.io.IOException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         assert classLoader != null;
@@ -289,7 +292,8 @@ public class Extensions {
         int methodThatWorked = -1;
         String prefix = "jar:file:";
        
-        // This approach works in the development environment
+        // This approach works in the development environment and for the released environment.
+        // It finds all the relevant classes that are compiled into the executable.
         Enumeration<URL> resources = classLoader.getResources(path);
         while (resources.hasMoreElements()) {
             URL resource = resources.nextElement();
@@ -297,6 +301,7 @@ public class Extensions {
             JarFile jar = null;
             try {
                 String n = resource.toString().replace('\\', '/').replaceAll("%20"," "); // FIXME - use toExternalForm?
+                //System.out.println("RES " + n + " " + resource.toExternalForm());
                 //System.out.println("RES " + n);
                 if (n.startsWith(prefix)) {
                     int k = n.indexOf("!");

@@ -1,0 +1,12 @@
+Proving methods in R
+Completed proving methods in R
+Proving methods in RR
+Starting proof of RR.m() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of RR.m() with prover !!!! - no warnings
+Starting proof of RR.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of RR.main(String...) with prover !!!! - no warnings
+Completed proving methods in RR

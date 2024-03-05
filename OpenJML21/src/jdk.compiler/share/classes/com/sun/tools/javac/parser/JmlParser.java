@@ -26,7 +26,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.AssignableClauseExtension;
 import org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl;
 import org.jmlspecs.openjml.ext.Refining;
-import org.jmlspecs.openjml.ext.Operators;
+import org.jmlspecs.openjml.ext.JmlOperatorKind;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
@@ -42,7 +42,7 @@ import org.jmlspecs.openjml.ext.Modifiers;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
-import static org.jmlspecs.openjml.ext.Operators.*;
+import static org.jmlspecs.openjml.ext.JmlOperatorKind.*;
 import org.jmlspecs.openjml.ext.StatementLocationsExtension;
 
 import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.*;
@@ -535,7 +535,7 @@ public class JmlParser extends JavacParser {
                         setErrorEndPos(endPos());
                         //s = jmlF.at(p).Exec(jmlF.at(p).Erroneous());
                     	nextToken();
-                        while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
+                        while (jmlTokenClauseKind() == JmlOperatorKind.endjmlcommentKind) nextToken();
                         mods = modifiersOpt(mods);
                     	continue; // ignore token and try again
                     }
@@ -555,7 +555,7 @@ public class JmlParser extends JavacParser {
 
                     setErrorEndPos(ep);
                 	nextToken();
-                    while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
+                    while (jmlTokenClauseKind() == JmlOperatorKind.endjmlcommentKind) nextToken();
                     //s = to(F.Exec(toP(F.at(p).Erroneous(List.<JCTree> nil()))));
                     mods = modifiersOpt(mods);
                     continue; // ignore token and try again
@@ -652,7 +652,7 @@ public class JmlParser extends JavacParser {
             // Any non-null enum is one of the declared values
             JCVariableDecl decl = jmlF.VarDef(jmlF.Modifiers(0),n,jmlF.Ident(jmlF.Name("Object")),null);
             ex = jmlF.JmlQuantifiedExpr(QuantifiedExpressions.qforallKind,List.<JCVariableDecl>of(decl), null,
-                    jmlF.JmlBinary(Operators.equivalenceKind, jmlF.TypeTest(jmlF.Ident(n), jmlF.Ident(cd.getSimpleName())),disj));
+                    jmlF.JmlBinary(JmlOperatorKind.equivalenceKind, jmlF.TypeTest(jmlF.Ident(n), jmlF.Ident(cd.getSimpleName())),disj));
             axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(Flags.ENUM),axiomID,axiomClause,ex);
             newdefs.add(axiom);
             decl = jmlF.VarDef(jmlF.Modifiers(0),n,jmlF.Ident(cd.name),null);
@@ -663,7 +663,7 @@ public class JmlParser extends JavacParser {
             JCExpression exists = jmlF.JmlQuantifiedExpr(QuantifiedExpressions.qexistsKind, List.<JCVariableDecl>of(decl2), ex,
                     jmlF.Binary(JCTree.Tag.EQ, jmlF.Indexed(jmlF.Ident("_JMLvalues"), jmlF.Ident("i")), jmlF.Ident(n))  );
             ex = jmlF.JmlQuantifiedExpr(QuantifiedExpressions.qforallKind,List.<JCVariableDecl>of(decl), null,
-                    jmlF.JmlBinary(Operators.impliesKind, jmlF.Binary(JCTree.Tag.NE, jmlF.Ident(n), jmlF.Literal(TypeTag.BOT,null)),exists));
+                    jmlF.JmlBinary(JmlOperatorKind.impliesKind, jmlF.Binary(JCTree.Tag.NE, jmlF.Ident(n), jmlF.Literal(TypeTag.BOT,null)),exists));
             axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(Flags.ENUM),axiomID,axiomClause,ex);
             newdefs.add(axiom);
             ex = jmlF.Select(jmlF.Ident("_JMLvalues"), names.length);
@@ -805,7 +805,7 @@ public class JmlParser extends JavacParser {
             			} else {
             				// FIXME - change this to not have to parse one loop spec first -- move to extensions
             				s = (JCStatement)ext.parse(null, id, ext, this);
-            				while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
+            				while (jmlTokenClauseKind() == JmlOperatorKind.endjmlcommentKind) nextToken();
             				//                        if (s instanceof JmlStatementLoop) {
             				//                            s = parseLoopWithSpecs((JmlStatementLoop)s, true);
             				//                        } else 
@@ -924,7 +924,7 @@ public class JmlParser extends JavacParser {
     			JmlStatementLoop t = (JmlStatementLoop)anyext.parse(null, id, anyext, this);
     			if (t != null) loopSpecs.add(t);
     		}
-    		while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken();
+    		while (jmlTokenClauseKind() == JmlOperatorKind.endjmlcommentKind) nextToken();
     	}
     	JCStatement stat = parseStatement();
     	if (stat instanceof IJmlLoop) {
@@ -2271,7 +2271,7 @@ public class JmlParser extends JavacParser {
 
     public boolean isEndJml(Token token) {
         return token.ikind == JmlTokenKind.ENDJMLCOMMENT;
-        // jmlTokenClauseKind(token) == Operators.endjmlcommentKind
+        // jmlTokenClauseKind(token) == JmlOperatorKind.endjmlcommentKind
     }
 
 
@@ -3507,7 +3507,7 @@ public class JmlParser extends JavacParser {
     	if (token.ikind != STARTJMLCOMMENT) return false;
     	nextToken();
     	return true;
-        //while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken(); // FIXME - replace using this
+        //while (jmlTokenClauseKind() == JmlOperatorKind.endjmlcommentKind) nextToken(); // FIXME - replace using this
     }
 
     /**

@@ -141,6 +141,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.toplevel = that.toplevel;
         copy.specsDecl = that.specsDecl;// FIXME - copy
         copy.typeSpecs = that.typeSpecs;// FIXME - copy
+        copy.thisSymbol = that.thisSymbol;
         copy.type = that.type;
         copy.lineAnnotations = that.lineAnnotations;
         return copy;

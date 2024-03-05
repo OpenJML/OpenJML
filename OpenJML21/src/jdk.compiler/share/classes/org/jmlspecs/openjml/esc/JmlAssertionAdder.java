@@ -42,7 +42,7 @@ import static org.jmlspecs.openjml.ext.ShowStatement.*;
 import static org.jmlspecs.openjml.ext.MiscExpressions.*;
 import static org.jmlspecs.openjml.ext.FrameExpressions.*;
 import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
-import static org.jmlspecs.openjml.ext.Operators.*;
+import static org.jmlspecs.openjml.ext.JmlOperatorKind.*;
 import static org.jmlspecs.openjml.ext.LineAnnotationClauses.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.MethodExprListClauseExtensions.*;

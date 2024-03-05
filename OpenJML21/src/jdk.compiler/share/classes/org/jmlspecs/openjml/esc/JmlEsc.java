@@ -197,6 +197,7 @@ public class JmlEsc extends JmlTreeScanner {
         }
 
         if (decl.body == null) return; // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
+        if ((decl.sym.flags() & (Flags.GENERATEDCONSTR|Flags.GENERATED_MEMBER)) != 0) return; // Don't do generated code (particularly record constructors)
         if (!(decl instanceof JmlMethodDecl)) {
             utils.warning("jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.abbrevMethodSig(decl.sym));
             return;
