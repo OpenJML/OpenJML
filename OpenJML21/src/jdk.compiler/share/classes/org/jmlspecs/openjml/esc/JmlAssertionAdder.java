@@ -42,7 +42,7 @@ import static org.jmlspecs.openjml.ext.ShowStatement.*;
 import static org.jmlspecs.openjml.ext.MiscExpressions.*;
 import static org.jmlspecs.openjml.ext.FrameExpressions.*;
 import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
-import static org.jmlspecs.openjml.ext.Operators.*;
+import static org.jmlspecs.openjml.ext.JmlOperatorKind.*;
 import static org.jmlspecs.openjml.ext.LineAnnotationClauses.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.MethodExprListClauseExtensions.*;
@@ -2436,17 +2436,30 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected String uniqueTempString() {
-		//if (uniqueCount == 164) Utils.dumpStack();
 		return Strings.tmpVarString + nextUnique();
 	}
 
 	protected JmlVariableDecl newTempDecl(DiagnosticPosition pos, Type t) {
 		return newTempDecl(pos, uniqueTempString(), t);
 	}
+	
+	protected Type toRacType(Type t) {
+        if (t == types.BIGINT) t = types.BIGINT.repSym.type;
+        else if (t == types.REAL) t = types.REAL.repSym.type;
+        else if (t == types.TYPE) t = types.TYPE.repSym.type;
+        else if (t == JMLPrimitiveTypes.locsetTypeKind.getType(context)) t = JMLPrimitiveTypes.locsetTypeKind.getRepType(context);
+        else if (t == JMLPrimitiveTypes.stringTypeKind.getType(context)) t = JMLPrimitiveTypes.stringTypeKind.getRepType(context);
+        //else if (utils.isExtensionValueType(t)) t = ((JmlType)t).getRepType(context);
+        return t;
+	}
 
 	protected JmlVariableDecl newTempDecl(DiagnosticPosition pos, String s, Type t) {
 		Name n = M.Name(s);
+		if (utils.rac) {
+		    t = toRacType(t);
+		}
 		JmlVariableDecl d = (JmlVariableDecl) treeutils.makeVarDef(t, n, esc ? null : methodDecl != null ? methodDecl.sym : classDecl.sym, // FIXME - can a class own this?
+		        
 				esc ? Position.NOPOS : pos.getPreferredPosition()); // FIXME - see note below
 		return d;
 	}
@@ -2518,6 +2531,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			Type.WildcardType wtype = (Type.WildcardType) type;
 			type = wtype.type;
 		}
+		if (utils.rac) {
+		    type = expr.type = toRacType(type);
+		}
+
 		// By having the owner be null, the BasicBlocker2 does not append any
 		// unique-ifying suffix - FIXME - does this affect RAC?
 		JmlVariableDecl d = (JmlVariableDecl) treeutils.makeVarDef(
@@ -14246,16 +14263,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			return;
 		}
-		if (rac && that.type.isPrimitive() && jmltypes.isJmlType(that.type)) {
-			if (origType.tsym == jmltypes.repSym((JmlType) that.type)) {
-				result = eresult = arg; // No-op since the representation type is the same as the argument type
-			} else if (that.type == jmltypes.BIGINT) {
-				result = eresult = treeutils.makeUtilsMethodCall(that.pos, "bigint_valueOf", arg);
-			} else if (that.type == jmltypes.REAL) {
-				result = eresult = treeutils.makeUtilsMethodCall(that.pos, "real_valueOf", arg);
-			}
-			return;
-		}
+        if (rac && argType.isPrimitive() && jmltypes.isJmlType(that.type)) {
+            if (origType.tsym == jmltypes.repSym((JmlType) that.type)) {
+                result = eresult = arg; // No-op since the representation type is the same as the argument type
+            } else if (that.type == jmltypes.BIGINT) {
+                result = eresult = treeutils.makeUtilsMethodCall(that.pos, "bigint_valueOf", arg);
+            } else if (that.type == jmltypes.REAL) {
+                result = eresult = treeutils.makeUtilsMethodCall(that.pos, "real_valueOf", arg);
+            }
+            return;
+        }
 		JCTypeCast castexpr = M.at(that).TypeCast(clazz, arg);
 		castexpr.setType(that.type); // may be superfluous
 		treeutils.copyEndPosition(castexpr, that);

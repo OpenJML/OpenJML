@@ -7,6 +7,7 @@ import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlStoreRef;
 
+import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
@@ -22,11 +23,18 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Names;
 
 public class JMLPrimitiveTypes extends JmlExtension {
+    Context context;
+    
+    public JMLPrimitiveTypes(Context context) {
+        this.context = context;
+        stringTypeKind.initType(context);
+    }
 	
 	public static class JmlTypeKind extends IJmlClauseKind {
 		public String typename; // expected to be in org.jmlspecs.lang
 		public com.sun.tools.javac.util.Name name;
 		Type type = null; // lazily filled in; depends on context; only  implemented for a single context
+		Type repType = null;
         Context context = null; // context for type -- need even though it shadows IJmlClauseKind.context
 		
 		public JmlTypeKind(String keyword, String typename) {
@@ -34,16 +42,25 @@ public class JMLPrimitiveTypes extends JmlExtension {
 			this.typename = typename;
 		}
 		
+		public void initType(Context context) { this.context = context; }
+		
 		public int numTypeArguments() { return 0; }
 		
 		public Type getType(Context context) {
 			// Caching the type (which depends on context) for general use
 			if (type == null || context != this.context) {
 				this.context = context;
-				JCExpression id = JmlTree.Maker.instance(context).QualIdent("org","jmlspecs","lang",typename);
-				type = JmlAttr.instance(context).attribType(id, JmlEnter.instance(context).tlenv); // FIXME - this should be improved (and tlenv removed)
+                JCExpression id = JmlTree.Maker.instance(context).QualIdent("org","jmlspecs","lang",typename);
+                type = JmlAttr.instance(context).attribType(id, JmlEnter.instance(context).tlenv); // FIXME - this should be improved (and tlenv removed)
+                id = JmlTree.Maker.instance(context).QualIdent("org","jmlspecs","runtime",typename);
+                repType = JmlAttr.instance(context).attribType(id, JmlEnter.instance(context).tlenv); // FIXME - this should be improved (and tlenv removed)
 			}
 			return type;
+		}
+		
+		public Type getRepType(Context context) {
+		    getType(context);
+		    return repType;
 		}
 
 		@Override
@@ -96,7 +113,18 @@ public class JMLPrimitiveTypes extends JmlExtension {
     public static final JmlTypeKind stringTypeKind = new JmlTypeKind(stringId,"string") {
         @Override
         public int numTypeArguments() { return 0; }
+
+        public Type getType(Context context) {
+            var t = super.getType(context);
+            JmlTypes.instance(context).enterBinop("+", t, t, t);
+            return t;
+        }
+//        public void initType(Context context) {
+//            Type t = getType(context);
+//            JmlTypes.instance(context).enterBinop("+", t, t, t);
+//        }
     };
+    
 
 	
 	public static final String rangeID = "\\range";

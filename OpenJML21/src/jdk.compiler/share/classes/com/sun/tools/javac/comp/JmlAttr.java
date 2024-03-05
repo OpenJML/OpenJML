@@ -79,7 +79,7 @@ import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.*;
 
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
-import static org.jmlspecs.openjml.ext.Operators.*;
+import static org.jmlspecs.openjml.ext.JmlOperatorKind.*;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
 import org.jmlspecs.openjml.ext.ArrayFieldExtension.JmlField;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
@@ -7663,6 +7663,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             visitVarDef(that);
             
             checkVarDecl(that); // FIXME - why isn't this part of visitVarDef?
+            
+            if (that.init == null && types.isSubtype(that.type, syms.jmlPrimitiveType)) {
+                String full = that.type.toString();
+                String name = full.substring(full.lastIndexOf('.')+1);
+                if (name.equals("string")) {
+                    var id = jmlMaker.at(that.pos).Ident("\\" + name);
+                    var fa = jmlMaker.at(that.pos).Select(id, names.fromString("empty"));
+                    var e = jmlMaker.at(that.pos).Apply(null, fa, List.<JCExpression>nil());
+                    that.init = e;
+                    attribExpr(e,env); // FIXME - spec env?
+                }
+            }
 
         	if (env.enclMethod != null) {
                 if (that.vartype instanceof JCTypeApply) {

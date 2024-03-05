@@ -125,7 +125,7 @@ public class Utils {
         return jmltypes;
     }
     
-    public Type interfaceForPrimitiveTypes;
+    private Type interfaceForPrimitiveTypes;
     public Type interfaceForPrimitiveTypes() {
     	try {
     		if (interfaceForPrimitiveTypes == null) {

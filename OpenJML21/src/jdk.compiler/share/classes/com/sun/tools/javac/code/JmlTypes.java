@@ -84,6 +84,7 @@ public class JmlTypes extends Types {
      * directly; adds all function symbols for operations on JML primitive types.
      * @param context
      */
+    @SuppressWarnings("this-escape")
     protected JmlTypes(Context context) {
         super(context);
         this.context = context;
@@ -316,7 +317,7 @@ public class JmlTypes extends Types {
     }
     
     /** Local method to create a binary operation on JML types */
-    private OperatorSymbol enterBinop(String name,
+    public OperatorSymbol enterBinop(String name,
             Type left, Type right, Type res) {
         OperatorSymbol opsym = new OperatorSymbol(
                 Names.instance(context).fromString(name),
@@ -330,7 +331,7 @@ public class JmlTypes extends Types {
     }
     
     /** Local method to create a unary operation on JML types */
-    private OperatorSymbol enterUnop(String name,
+    public OperatorSymbol enterUnop(String name,
             Type arg,
             Type res) {
         OperatorSymbol sym =

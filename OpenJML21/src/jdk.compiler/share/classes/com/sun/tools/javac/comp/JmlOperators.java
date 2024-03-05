@@ -31,6 +31,18 @@ public class JmlOperators extends Operators {
 
     public OperatorSymbol resolveBinary(DiagnosticPosition pos, JCTree.Tag tag, Type op1, Type op2) {
     	JmlTypes jtype = JmlTypes.instance(context);
+    	boolean b1 = org.jmlspecs.openjml.Utils.instance(context).isExtensionValueType(op1);
+    	boolean b2 = org.jmlspecs.openjml.Utils.instance(context).isExtensionValueType(op2);
+    	if (b1 && !b2) {
+    	        
+    	} else if (b2 && !b1) {
+    	    
+    	}
+    	if (b1 && b2) {
+    	    if (op1.toString().equals("org.jmlspecs.lang.string") && tag == JCTree.Tag.PLUS) {
+    	        
+    	    }
+    	}
     	if (jtype.isJmlType(op1) || jtype.isJmlType(op2)) {
     		Name opName = operatorName(tag);
     		for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {

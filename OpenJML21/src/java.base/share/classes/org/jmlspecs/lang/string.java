@@ -15,11 +15,18 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike {
     static public string string(String s) {
         return new string(s);
     }
+    
+    public static string of(String s) {
+        return new string(s);
+    }
 
     public static string empty() {
         return new string("");
     }
-
+    
+//    public java.math.BigInteger size() {
+//        return java.math.BigInteger.valueOf(racValue.length());
+//    }
     public boolean isEmpty() {
         return racValue.isEmpty();
     }

@@ -726,6 +726,10 @@ public class Utils {
         return new Real(a.doubleValue());
     }
 
+    public static BigInteger bigint_valueOf(int i) {
+        return BigInteger.valueOf(i);
+    }
+
     public static BigInteger bigint_valueOf(long i) {
         return BigInteger.valueOf(i);
     }
