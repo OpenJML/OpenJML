@@ -2512,19 +2512,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // If inlined, do not add any clauses
                 defaultClause = null;
             } else if (pure != null || constructorDefault.equals("pure")) {
-            	if (decl.sym.isConstructor()) {
+                if (msym.isConstructor()) {
                     // FIXME - or should this just be \nothing
                     JCIdent t = jmlMaker.Ident(names._this);
                     t.type = decl.sym.owner.type;
                     t.sym = decl.sym.owner;
                     defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                             List.<JCExpression>of(jmlMaker.at(cs.pos).Select(t,(Name)null)));
-            	} else {
+                } else {
                     int pos = pure != null ? pure.pos : cs.pos;
                     var kw = jmlMaker.at(pos).JmlSingleton(nothingKind);
                     defaultClause = jmlMaker.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                             List.<JCExpression>of(kw));
-            	}
+                }
             } else {
                 var kw = jmlMaker.at(cs.pos).JmlSingleton(everythingKind);
                 defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
