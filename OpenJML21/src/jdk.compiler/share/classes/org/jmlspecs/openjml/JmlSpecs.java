@@ -1206,6 +1206,64 @@ public class JmlSpecs {
             mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
             JmlSpecs.instance(context).putSpecs(sym, mspecs); // FIXME - are the specs attributed or not
             return mspecs;
+        } else if ((sym.owner.flags() & Flags.RECORD) != 0) { // Only generate default record specs for esc
+            if (utils.esc && sym.isConstructor() && (sym.flags() & Flags.GENERATEDCONSTR) != 0) {
+                ListBuffer<JmlMethodClause> clauses = new ListBuffer<>();
+                for (VarSymbol param: sym.params) { 
+                    Symbol field = sym.owner.members().findFirst(param.name, s->!(s instanceof MethodSymbol));
+                    // At this point thisSymbol is not yet available, so we can't make the expression this.x == x
+                    // Instead we make just x == x, with the lhs having the symbol of the field and the rhs the symbol
+                    // of the parameter. This appears to work OK for JmlAssertionAdder
+                    var rhs = M.at(pos).Ident(param);
+                    var fi = treeutils.makeIdent(pos, field);
+                    var eq = treeutils.makeEqObject(pos, fi, rhs);
+                    JmlMethodClause ens = M.at(pos).JmlMethodClauseExpr(ensuresID, ensuresClauseKind, eq);
+                    clauses.add(ens);
+                }
+                var csm = M.Modifiers(Flags.PUBLIC);
+                JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false, MethodSimpleClauseExtensions.normalBehaviorClause,null,clauses.toList(),null);
+                mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
+                addModifier(pos, Modifiers.PURE, mods);
+                JmlSpecs.instance(context).putSpecs(sym, mspecs);
+                return mspecs;
+            } else if (sym.name.toString().equals("toString")) {
+            } else if (sym.name.toString().equals("hashCode")) {
+            } else if (sym.name.toString().equals("equals")) {
+            } else if (sym.params.length() == 0) {
+                Symbol field = sym.owner.members().findFirst(sym.name, s->!(s instanceof MethodSymbol));
+                if (field != null) {
+                    var cspecs = getAttrSpecs((ClassSymbol)sym.owner);
+                    var thissym = cspecs.javaDecl.thisSymbol;
+                    ListBuffer<JmlMethodClause> clauses = new ListBuffer<>();
+                    if (utils.esc) { 
+                        JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
+                                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,nothingKind)));
+                        clauses.add(clp);
+                        var nm = sym.name;
+                        var res = M.at(pos).JmlSingleton(SingletonExpressions.resultKind);
+                        res.type = field.type;
+                        var id = M.at(pos).Ident(names._this);
+                        id.sym = thissym;
+                        id.type = sym.owner.type;
+                        var fa = M.at(pos).Select(id, nm);
+                        fa.type = field.type;
+                        fa.sym = field;
+                        var eq = treeutils.makeEqObject(pos, res, fa);
+                        JmlMethodClause reads = M.at(pos).JmlMethodClauseStoreRef(readsID, accessibleClauseKind, 
+                                com.sun.tools.javac.util.List.<JCExpression>of(fa));
+                        clauses.add(reads);
+                        JmlMethodClause ens = M.at(pos).JmlMethodClauseExpr(ensuresID, ensuresClauseKind, eq);
+                        clauses.add(ens);
+                    }
+                    var csm = M.Modifiers(Flags.PUBLIC|Flags.FINAL);
+                    JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false, MethodSimpleClauseExtensions.normalBehaviorClause,null,clauses.toList(),null);
+                    mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
+                    addModifier(pos, Modifiers.STRICTLY_PURE, mods);
+                    JmlSpecs.instance(context).putSpecs(sym, mspecs);
+                    return mspecs;
+
+                }
+            }
             // FIXME - this case should happen only if parent constructors are pure and have no signals clause
         } else xx: if ((sym.owner.flags() & Flags.ENUM) != 0 && !sym.isConstructor()) {
             JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef("assignable", assignableClauseKind,

@@ -167,7 +167,18 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     // env corresponds to the class that owns the list of trees
     void memberEnter(List<? extends JCTree> trees, Env<AttrContext> env) {
     	if ( trees == null || env == null) throw new AssertionError("UNEXPECTED NULLS");
-    	if ( env.enclClass.defs != trees ) throw new AssertionError("List of trees does not match the env" );
+    	if ( env.enclClass.defs != trees ) {
+    	    // The equality tested above is not true for a record class.
+    	    // FIXME - not sure why of how that will be important
+    	    if (env.enclClass.sym.isRecord()) {
+//    	        System.out.println("TREES");
+//    	        for (var t: trees) System.out.println(t);
+//    	        System.out.println("ENV");
+//    	        for (var d: env.enclClass.defs)System.out.println(d); 
+    	    } else {
+    	        throw new AssertionError("List of trees does not match the env" );
+    	    }
+    	}
     	
     	JmlClassDecl sourceDecl = (JmlClassDecl)env.enclClass;
         JmlClassDecl specsDecl = sourceDecl.specsDecl;

@@ -548,7 +548,12 @@ public class racfiles extends RacBase {
 
     @Test
     public void range() {
-    	helpTCF("test/rangeTest","test/rangeTest","R");
+        helpTCF("test/rangeTest","test/rangeTest","R");
+    }
+    
+    @Test
+    public void record1() {
+        helpTCF("test/record1","test/record1","RR");
     }
     
     @Test

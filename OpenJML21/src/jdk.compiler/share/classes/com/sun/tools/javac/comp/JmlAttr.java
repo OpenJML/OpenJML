@@ -437,42 +437,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         var check = jmlenv = jmlenv.pushCopy();
         jmlenv.inPureEnvironment = false;  //System.out.println("PUREENV SET FALSE"); Utils.dumpStack();
         try {
-        	// Loading the specs makes sure that modifiers are present when nested declarations are attributed
-        	JmlSpecs.instance(context).getLoadedSpecs(c);
+            
+            // Loading the specs makes sure that modifiers are present when nested declarations are attributed
+            JmlSpecs.instance(context).getLoadedSpecs(c);
         	super.attribClass(c);
+
+            // thisSymbol is needed in some cases (e.g. in creating default specs) before attributing the whiole class
+            Env<AttrContext> e = enter.getEnv(c);
+            if (e != null && e.tree instanceof JmlClassDecl) {
+                Symbol thissym = thisSym(e.tree.pos(),e);
+                if (thissym instanceof VarSymbol) ((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)thissym;
+            }
 
             specs.getAttrSpecs(c); // if not yet attributed, attribute the specs // FIXME - not needed
         	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-L " + c + " " + !isUnattributed);
             if (!isUnattributed) return;
         	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-M " + c);
 
-            // FIXME - do we still need this?
-            // Binary files with specs had entries put in the Env map so that the
-            // specs had environments against which to be attributed.  However, the
-            // presence of envs for non-.java files confuses later compiler phases,
-            // and we no longer need that mapping since all the specs are now
-            // attributed and entered into the JmlSpecs database.  Hence we remove
-            // the entry.
-            Env<AttrContext> e = enter.getEnv(c);
-            if (e != null) {  // SHould be non-null the first time, but subsequent calls will have e null and so we won't do duplicate checking
-                //                // FIXME - RAC should take advantage of the same stuff as ESC
-                //                if (true || !JmlOptionName.isOption(context,JmlOptionName.RAC)) {
-                //                    new JmlTranslator(context).translate(e.tree);
-                //                }
-                
-                if (e.tree != null && e.tree instanceof JmlClassDecl) {
-                    Symbol thissym = thisSym(e.tree.pos(),e);
-                    if (thissym instanceof VarSymbol) ((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)thissym;
-//                    //((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._this);
-//                    if (!((JmlClassDecl)e.tree).sym.isInterface() && c != syms.objectType.tsym) ((JmlClassDecl)e.tree).superSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._super);
-                }
-
-//                if (e.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
-//                    // If not a .java file
-//                    enter.typeEnvs.remove(c); // FIXME - after flow checking of model methods and classes for binary classes?
-//                }
-//        		checkClassMods(c, (JmlClassDecl)e.tree, specs.getLoadedSpecs(c), e);
-            }
             addClassInferredSpecs(c);
         } catch (Exception e) {
         	System.out.println("EXCEPTION IN attribClass-Y " + c + " " + c.type);
@@ -2531,19 +2512,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // If inlined, do not add any clauses
                 defaultClause = null;
             } else if (pure != null || constructorDefault.equals("pure")) {
-            	if (decl.sym.isConstructor()) {
+                if (msym.isConstructor()) {
                     // FIXME - or should this just be \nothing
                     JCIdent t = jmlMaker.Ident(names._this);
                     t.type = decl.sym.owner.type;
                     t.sym = decl.sym.owner;
                     defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                             List.<JCExpression>of(jmlMaker.at(cs.pos).Select(t,(Name)null)));
-            	} else {
+                } else {
                     int pos = pure != null ? pure.pos : cs.pos;
                     var kw = jmlMaker.at(pos).JmlSingleton(nothingKind);
                     defaultClause = jmlMaker.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                             List.<JCExpression>of(kw));
-            	}
+                }
             } else {
                 var kw = jmlMaker.at(cs.pos).JmlSingleton(everythingKind);
                 defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
@@ -3009,7 +2990,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 diffs &= ~Flags.ABSTRACT;
             }
             boolean isEnum = (javaFlags & Flags.ENUM) != 0;
-            if (isEnum) diffs &= ~Flags.FINAL;
+            boolean isRecord = (javaFlags & Flags.RECORD) != 0;
+            if (isEnum||isRecord) diffs &= ~Flags.FINAL;
+            
             key = "jml.mismatched.modifiers";
         }
         if (symForFlags instanceof VarSymbol) {
@@ -3024,6 +3007,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         if (diffs != 0) {
             boolean isEnum = (javaFlags & Flags.ENUM) != 0;
+            boolean isRecord = (javaFlags & Flags.RECORD) != 0;
             if ((Flags.NATIVE & matchf & ~specf) != 0)
                 diffs &= ~Flags.NATIVE;
             if (isEnum && symForFlags.isConstructor()) {

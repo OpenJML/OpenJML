@@ -21,7 +21,10 @@ import com.sun.tools.javac.util.ListBuffer;
 public class AssignableClauseExtension extends JmlExtension {
     
     public static final String assignableID = "assignable";
+    public static final String assignsID = "assigns";
+    public static final String writesID = "writes";
     public static final String accessibleID = "accessible";
+    public static final String readsID = "reads";
     public static final String capturesID = "captures";
     
     public static final IJmlClauseKind assignableClauseKind = new LocationSetClauseType(assignableID) {
@@ -37,11 +40,11 @@ public class AssignableClauseExtension extends JmlExtension {
     };
     
     static {
-        synonym("writes",assignableClauseKind);
+        synonym(writesID,assignableClauseKind);
         synonym("modifies",assignableClauseKind);
-        synonym("assigns",assignableClauseKind);
+        synonym(assignsID,assignableClauseKind);
         synonym("modifiable",assignableClauseKind);
-        synonym("reads",accessibleClauseKind);
+        synonym(readsID,accessibleClauseKind);
     }
     
     public static class LocationSetClauseType extends IJmlClauseKind.MethodSpecClauseKind {

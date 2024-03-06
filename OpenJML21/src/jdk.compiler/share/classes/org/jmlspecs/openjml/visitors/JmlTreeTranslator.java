@@ -122,6 +122,8 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         r.docComment = that.docComment;
         r.toplevel = that.toplevel; // FIXME - need to adjust reference
         r.typeSpecs = that.typeSpecs;
+        r.type = that.type;
+        r.thisSymbol = that.thisSymbol;
         if (that.typeSpecs != null) {
             JmlSpecs.TypeSpecs rt = r.typeSpecs;// = new JmlSpecs.TypeSpecs();
             JmlSpecs.TypeSpecs tt = that.typeSpecs;
