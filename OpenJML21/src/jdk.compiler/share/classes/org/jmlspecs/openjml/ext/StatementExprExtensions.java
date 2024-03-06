@@ -119,7 +119,7 @@ public class StatementExprExtensions extends JmlExtension {
             }
             wrapup(ste,clauseType,true, clauseType != splitClause);
             if (clauseType == splitClause && st.expression == null) {
-                while (parser.jmlTokenClauseKind() == Operators.endjmlcommentKind) parser.nextToken();
+                while (parser.jmlTokenClauseKind() == JmlOperatorKind.endjmlcommentKind) parser.nextToken();
                 JCStatement stt = parser.blockStatement().head;
                 if (stt instanceof JmlIfStatement stif) {
                     stif.split = true;

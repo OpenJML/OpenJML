@@ -155,7 +155,7 @@ public class Refining extends JmlExtension {
             if (begin != null) {
                 // Has a begin statement, so we read statement until an end
                 while (true) {
-                	if (parser.jmlTokenClauseKind() == Operators.startjmlcommentKind &&
+                	if (parser.jmlTokenClauseKind() == JmlOperatorKind.startjmlcommentKind &&
                 			parser.jmlTokenClauseKind(parser.getScanner().token(1)) == Refining.endClause) {
                 		parser.nextToken();
                 	}
