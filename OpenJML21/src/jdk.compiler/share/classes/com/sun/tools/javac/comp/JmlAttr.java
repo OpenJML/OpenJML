@@ -7694,7 +7694,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // FIXME - should this be checking for error types?
             if (that.init != null && that.init.type != null && !that.init.type.isErroneous() &&
                     utils.isExtensionValueType(that.init.type) && !utils.isExtensionValueType(that.type)) {
-                System.out.println(that.init.type + " " + utils.isExtensionValueType(that.init.type) + " " + that.type + " " + !utils.isExtensionValueType(that.type));
                 utils.error(that, "jml.message", "A JML primitive type may not be assigned or cast to a non-JML type");
             }
 
