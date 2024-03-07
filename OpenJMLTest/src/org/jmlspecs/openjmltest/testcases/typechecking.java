@@ -285,7 +285,6 @@ public class typechecking extends TCBase {
     @Test public void testStaticInvariantFor11() {
         helpTCF("A.java","public class A<T> { static int k = 0; void m() { \n//@ assume \\static_invariant_for(k);\n}}"
                 ,"/A.java:2: error: cannot find symbol\n  symbol:   class k\n  location: class A<T>",34
-                ,"/A.java:2: error: The argument of \\static_invariant_for must be a reference type name: k",34
                 );
     }
 

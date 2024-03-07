@@ -4354,7 +4354,7 @@ public class Attr extends JCTree.Visitor {
                 symEnv = symEnv.outer;
             }
         }
-
+        
         // If symbol is a variable, ...
         if (sym.kind == VAR) {
             VarSymbol v = (VarSymbol)sym;
@@ -4442,7 +4442,7 @@ public class Attr extends JCTree.Visitor {
             sitesym.name == names._super;
 
         visitSelectHelper(tree); // OPENJML
-
+        
         // Determine the symbol represented by the selection.
         env.info.pendingResolutionPhase = null;
         Symbol sym = selectSym(tree, sitesym, site, env, resultInfo);

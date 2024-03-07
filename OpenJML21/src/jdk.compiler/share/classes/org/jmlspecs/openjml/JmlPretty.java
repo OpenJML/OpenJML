@@ -937,7 +937,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-        try { print(that.token.internedName());
+        try { print(that.jmlclausekind != null ? that.jmlclausekind.toString() : that.token.internedName());
         } catch (IOException e) { perr(that,e); }
 
     }
@@ -1414,7 +1414,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     @Override
     public void visitSelect(JCFieldAccess tree) {
         try {
-            printExpr(tree.selected, TreeInfo.postfixPrec);
+            if (tree.selected == null) print("???"); // Just preventative - should not happen
+            else printExpr(tree.selected, TreeInfo.postfixPrec);
             if (tree.name == null) print(".*");
             else {
                 // This special case is here because of a bug in JDK that

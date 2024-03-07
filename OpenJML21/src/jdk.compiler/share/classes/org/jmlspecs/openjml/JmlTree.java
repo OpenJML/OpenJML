@@ -136,7 +136,7 @@ public class JmlTree {
         JmlMethodInvocation JmlMethodInvocation(String token, List<JCExpression> args);
         JmlMethodSpecs JmlMethodSpecs(List<JmlSpecificationCase> cases);
         JmlModelProgramStatement JmlModelProgramStatement(JCTree item);
-        JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt, Name id);
+        JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt, IJmlClauseKind kind, Name id);
         JmlQuantifiedExpr JmlQuantifiedExpr(IJmlClauseKind kind, List<JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression predicate);
         JmlRange JmlRange(JCExpression lo, JCExpression hi);
         JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate);
@@ -461,14 +461,14 @@ public class JmlTree {
 
         /** Creates an expression for a JML type (such as \TYPE or \real or \bigint).*/
         @Override
-        public JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt, Name id) {
-            return new JmlPrimitiveTypeTree(pos,jt,id);
+        public JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt, IJmlClauseKind kind, Name id) {
+            return new JmlPrimitiveTypeTree(pos,jt,kind,id);
         }
         
         @Override
         public JCExpression Type(Type t) {
             if (!(t instanceof JmlType)) return super.Type(t);
-            return new JmlPrimitiveTypeTree(pos,((JmlType)t).jmlTypeTag(), t.tsym.name); // FIXME - not sure this is right primitive types
+            return new JmlPrimitiveTypeTree(pos,((JmlType)t).jmlTypeTag(), null, t.tsym.name); // FIXME - not sure this is right primitive types
         }
 
         @Override
@@ -2879,16 +2879,18 @@ public class JmlTree {
     static public class JmlPrimitiveTypeTree extends JCTree.JCPrimitiveTypeTree {
         
         public JmlTokenKind token;
+        public IJmlClauseKind jmlclausekind;
         public Name typeName;
         
         /** The representation of this JML type when used in RAC */
         public JCExpression repType;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlPrimitiveTypeTree(int pos, JmlTokenKind token, Name id) {
+        protected JmlPrimitiveTypeTree(int pos, JmlTokenKind token, IJmlClauseKind kind, Name id) {
         	super(TypeTag.NONE);
             this.pos = pos;
             this.token = token;
+            this.jmlclausekind = kind;
             this.typeName = id;
         }
         

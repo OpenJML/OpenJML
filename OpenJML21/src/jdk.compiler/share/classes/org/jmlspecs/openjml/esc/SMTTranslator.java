@@ -1790,6 +1790,7 @@ public class SMTTranslator extends JmlTreeScanner {
             return refSort; // FIXME - just something
         } else if (utils.isExtensionValueType(t)) {
         	String ts = t.toString();
+        	if (ts.charAt(0) == '\\') System.out.println("CONVERTING " + ts);
         	if (ts.equals("org.jmlspecs.lang.string")) {
         		return stringSort;
         	} else if (ts.startsWith("org.jmlspecs.lang.map")) {

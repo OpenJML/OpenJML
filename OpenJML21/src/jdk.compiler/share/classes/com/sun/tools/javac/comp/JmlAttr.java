@@ -797,6 +797,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (tree.lhs instanceof JCIdent && ((JCIdent)tree.lhs).sym.owner.kind == MTH) return;
             log.error(tree.pos,"jml.no.assign.in.pure");
         }
+        if (utils.isExtensionValueType(tree.rhs.type) && !utils.isExtensionValueType(tree.lhs.type)) {
+//            System.out.println(tree.rhs + " " + tree.rhs.type + " " + tree.rhs.getClass() + " " + utils.isExtensionValueType(tree.rhs.type) + " " + tree.lhs.type + " " + !utils.isExtensionValueType(tree.lhs.type));
+//            System.out.println(tree.rhs.type.isReference() + " " + jmltypes().isSubtype(ct, interfaceForPrimitiveTypes()));
+            utils.error(tree, "jml.message", "A JML primitive type may not be assigned or cast to a non-JML type");
+        }
         // FIXME
         if (tree.lhs instanceof JCArrayAccess && jmltypes.isSubtype(((JCArrayAccess)tree.lhs).indexed.type, JMLArrayLike)) {
             JCArrayAccess aa = (JCArrayAccess)tree.lhs;
@@ -1996,10 +2001,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 					if (diffs != 0 && !(match.isConstructor() && diffs == 3)) {
 						// FIXME - hide this case for now because of default constructors in binary
 						// files
-						utils.errorAndAssociatedDeclaration(specMethodDecl.sourcefile, specMethodDecl,
+						if (javaMatch != null) {
+						    utils.errorAndAssociatedDeclaration(specMethodDecl.sourcefile, specMethodDecl,
 								javaMatch.sourcefile, javaMatch,
 								"jml.mismatched.method.modifiers", match.owner + "." + match,
 								Flags.toString(diffs));
+						} else {
+						    utils.error(specMethodDecl.sourcefile, specMethodDecl,
+	                                "jml.mismatched.method.modifiers", match.owner + "." + match,
+	                                Flags.toString(diffs));
+						}
 					}
 				}
 			}
@@ -4556,8 +4567,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    		    if (TreeInfo.symbolFor(tree.meth) != null) System.out.println("   TYPE " + ((MethodSymbol)TreeInfo.symbolFor(tree.meth)).getReturnType() + " " + TreeInfo.symbolFor(tree.meth).type + " " + TreeInfo.symbolFor(tree.meth).type.getReturnType());
 //    		}
     	} catch (Exception e) {
-    		System.out.println("VISIT APPLY EXCEPTION " + tree.type + " " + tree);
     		e.printStackTrace(System.out);
+            System.out.println("VISIT APPLY EXCEPTION " + tree.type );
+            System.out.println("VISIT APPLY EXCEPTION " + tree);
             if (result == null) System.out.println("RESULT NULL");
             if (result.isErroneous()) System.out.println("RESULT ERRONEOUS");
     	}
@@ -4824,19 +4836,25 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     /** This handles JML primitive types */
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-        JmlType type = that.token == JmlTokenKind.BSTYPEUC ? jmltypes.TYPE :
-            that.token == JmlTokenKind.BSBIGINT ? jmltypes.BIGINT :
-            that.token == JmlTokenKind.BSREAL ? jmltypes.REAL :
-                    null;
-        if (type == null) {
-            result = syms.errType;
-            log.error(that.pos,"jml.unknown.type.token",that.token.internedName(),"JmlAttr.visitJmlPrimitiveTypeTree");
-            return;
+        if (that.jmlclausekind != null) {
+            result = that.type = ((JmlTypeKind)that.jmlclausekind).getType(context);
+            that.repType = that;
+        } else {
+            JmlType type = that.token == JmlTokenKind.BSTYPEUC ? jmltypes.TYPE :
+                that.token == JmlTokenKind.BSBIGINT ? jmltypes.BIGINT :
+                    that.token == JmlTokenKind.BSREAL ? jmltypes.REAL :
+                        null;
+
+            if (type == null) {
+                result = syms.errType;
+                log.error(that.pos,"jml.unknown.type.token",that.token.internedName(),"JmlAttr.visitJmlPrimitiveTypeTree");
+                return;
+            }
+            that.type = type;
+            that.repType = jmltypes.repType(that.pos(), type);
+            attribType(that.repType,env);
+            result = type;
         }
-        that.type = type;
-        that.repType = jmltypes.repType(that.pos(), type);
-        attribType(that.repType,env);
-        result = type;
 //        if (utils.rac) {
 //            result = type.repType.type;
 //            that.type = result;
@@ -5824,10 +5842,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	Name nm = tree.name;
             var ck = Extensions.findKeyword(tree.name);
             if (ck instanceof JmlTypeKind jtk) {
-        	    tree.name = jtk.name;
-        	    super.visitIdent(tree);
-                tree.name = nm;
-//                if (jtk.numTypeArguments() != 0) {
+
+        	    result = tree.type = jtk.getType(context);
+        	    tree.sym = tree.type.tsym;
+                //                if (jtk.numTypeArguments() != 0) {
 //                    utils.error(tree,  "jml.message", "The generic JML type " + tree.name + " must have " + jtk.numTypeArguments() + " type arguments");
 //                }
             } else {
@@ -5884,6 +5902,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	}
         	result = saved;
         } catch (Exception e) {
+            System.out.println("JMLATTR EXC " + e.getMessage());
+            e.printStackTrace(System.out);
         	utils.unexpectedException(e, "JmlAttr.visitIdent: " + tree);
         } finally {
             jmlenv = jmlenv.pop();
@@ -6373,13 +6393,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (tree.clazz instanceof JmlPrimitiveTypeTree) {
             // FIXME - this needs to be expanded to include real and bigint and
             // arrays of such
-            JmlTokenKind t = ((JmlPrimitiveTypeTree)tree.clazz).token;
+            var ptt = (JmlPrimitiveTypeTree)tree.clazz;
+            JmlTokenKind t = ptt.token;
             boolean prev = jmlresolve.setAllowJML(true);  // OPENJML - should check whether the cast is within JML annotation
             Type clazztype = attribType(tree.clazz, env);
             jmlresolve.setAllowJML(prev);
+            Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
             if (t == JmlTokenKind.BSTYPEUC) {
                 chk.validate(tree.clazz, env);
-                Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
                 // Only Class objects may be cast to TYPE
                 // Compare tsym instead of just the thpe because the
                 // exprtype is likely a Class<T> and syms.classType is a Class
@@ -6390,9 +6411,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     log.error(tree.expr.pos,"jml.only.class.cast.to.type",exprtype);
                     result = tree.type = jmltypes.TYPE;
                 }
+            } else if (ptt.jmlclausekind instanceof JmlTypeKind jkind) {
+                if (types.isSameType(exprtype,syms.stringType)) { 
+                    result = tree.type = jkind.getType(context);
+                    ptt.typeName = jkind.name;
+                } else {
+                    utils.error(tree, "jml.message", "only a String may be cast to a \\string, not a " + tree.expr.type);
+                }
             } else {
                 // For now do no checking // FIXME
-                Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
                 result = tree.type = clazztype;
             }
         } else {
@@ -6400,6 +6427,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             attribType(tree.clazz, env);
             jmlresolve.setAllowJML(prev);
             super.visitTypeCast(tree);
+//            if (utils.isExtensionValueType(tree.expr.type) && !utils.isExtensionValueType(tree.clazz.type)) {
+//                utils.error(tree, "jml.message", "A JML primitive type may not be assigned or cast to a non-JML type");
+//                tree.type = tree.clazz.type; // Pretend it was OK
+//            }
+
 //            if (utils.isExtensionValueType(tree.expr.type)
 //                    != utils.isExtensionValueType(tree.type)) {
 //                if (types.isSameType(tree.type, utils.extensionValueType("string"))
@@ -7608,7 +7640,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
-        //if (that.toString().contains("oooo")) System.out.println("VARDEF-A " + that + " # " + that.vartype + " # " + that.mods);
         if (utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
         if (utils.verbose()) utils.note("Attributing " + that.vartype + " " + that.name + " " + that.getClass());
         if (env.enclMethod != null) {
@@ -7648,7 +7679,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             checkVarDecl(that); // FIXME - why isn't this part of visitVarDef?
             
-            if (that.init == null && types.isSubtype(that.type, syms.jmlPrimitiveType)) {
+            if (that.init == null && (that.sym.flags() & Flags.PARAMETER) == 0 && types.isSubtype(that.type, syms.jmlPrimitiveType)) {
                 String full = that.type.toString();
                 String name = full.substring(full.lastIndexOf('.')+1);
                 if (name.equals("string")) {
@@ -7658,6 +7689,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     that.init = e;
                     attribExpr(e,env); // FIXME - spec env?
                 }
+            }
+
+            // FIXME - should this be checking for error types?
+            if (that.init != null && that.init.type != null && !that.init.type.isErroneous() &&
+                    utils.isExtensionValueType(that.init.type) && !utils.isExtensionValueType(that.type)) {
+                System.out.println(that.init.type + " " + utils.isExtensionValueType(that.init.type) + " " + that.type + " " + !utils.isExtensionValueType(that.type));
+                utils.error(that, "jml.message", "A JML primitive type may not be assigned or cast to a non-JML type");
             }
 
         	if (env.enclMethod != null) {
@@ -7756,6 +7794,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (that.init != null && isModel(that.mods) && (that.mods.flags & Flags.FINAL) == 0) {
                 utils.warning(that.init, "jml.message", "A non-final model field may not have an initializer");
                 that.init = null;
+            }
+            
+            // that.init.type can be null if there was an error already in attributing that.init
+            if (that.init != null && that.init.type != null &&
+                    utils.isExtensionValueType(that.type) && !types.isSameType(that.type, that.init.type)) {
+                if (types.isSameType(that.type, JMLPrimitiveTypes.stringTypeKind.getType(context))) {
+                    JMLPrimitiveTypes.stringTypeKind.typecheck(this, that, env);
+                }
             }
             if (that.init != null && !utils.isJML(that.mods.flags)) {
                 Object v = that.sym.getConstValue();
@@ -8226,7 +8272,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             utils.error(tree.pos(), "jml.message",
             		"illegal conversion: " + found +
-            		" to " + resultInfo.pt);
+            		" to " + resultInfo.pt.toString().replace("org.jmlspecs.lang.","\\")); // FIXME - use a stored name somewhere
             return (tree.type = types.createErrorType(found));
         }
         return super.check(tree, found, ownkind, resultInfo);

@@ -98,11 +98,13 @@ public class JmlCheck extends Check {
                     && types.isSameType(found, Symtab.instance(context).stringType)) {
                 return req;
             }
-            basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
+            utils.error(pos, "jml.message", "A JML primitive type may not be assigned or cast to or from a non-JML type");
+            //basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
             return types.createErrorType(found);
         } else if (utils.isExtensionValueType(found) &&
                 !utils.isExtensionValueType(req)) {
-            basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
+            utils.error(pos, "jml.message", "A JML primitive type may not be assigned or cast to or from a non-JML type");
+            //basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
             return types.createErrorType(found);
         }
         return super.checkCastable(pos,found,req);

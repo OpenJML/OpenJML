@@ -528,7 +528,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that, Void p) {
-        return M.at(that.pos).JmlPrimitiveTypeTree(that.token,that.typeName).setType(that.type);
+        return M.at(that.pos).JmlPrimitiveTypeTree(that.token, that.jmlclausekind, that.typeName).setType(that.type);
     }
 
     @Override

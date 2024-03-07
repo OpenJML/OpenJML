@@ -12263,16 +12263,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		if (utils.isExtensionValueType(annotatedNewtype)) {
 			// converting to a value type
-			if (types.isSameType(annotatedNewtype, utils.extensionValueType("string"))
+            Type.ClassType stringT = utils.extensionValueType("string");
+			if (types.isSameType(annotatedNewtype, stringT)
 					&& types.isSameType(expr.type, syms.stringType)) {
-				// string.string(expr);
-				Type.ClassType t = utils.extensionValueType("string");
-				JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), t);
+				JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), stringT);
 				JCExpression e = treeutils.makeMethodInvocation(pos, ty, names.fromString("string"), expr);
-				return eresult;
+				e = convertExpr(e);
+				return e;
 			}
 			if (types.isSameType(expr.type, annotatedNewtype)) {
-				return eresult;
+				return expr;
 			}
 		}
 
@@ -13631,7 +13631,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				|| optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD;
 		boolean bit = optag == JCTree.Tag.BITAND || optag == JCTree.Tag.BITOR || optag == JCTree.Tag.BITXOR;
 
-		//System.out.println("VISIT-BINARY " + that);
+		//if (optag == JCTree.Tag.EQ) System.out.println("VISIT-BINARY " + that + " " + that.lhs.type);
 		//if (that.toString().contains("length != null")) Utils.dumpStack();
 		if (optag == JCTree.Tag.PLUS && that.type.equals(syms.stringType)) {
 			if ((infer || esc)) {
@@ -13751,6 +13751,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return;
 
 		} else if (translatingJML) {
+//		      if (translatingJML && optag == JCTree.Tag.EQ) {
+//		          System.out.println("TRANSLATING " + that + " " + that.lhs.type + " " + equality);
+//		          System.out.println("   B " + that.lhs.type + " " + types.isSameType(that.lhs.type, JMLPrimitiveTypes.stringTypeKind.getType(context)));
+//		      }
+
 //            boolean savedApplyingLambda = applyingLambda;
 //            applyingLambda = false;
 			JCExpression lhs = convertExpr(that.getLeftOperand());
@@ -13829,19 +13834,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					result = eresult = treeutils.makeBooleanLiteral(that.pos, b);
 					return;
 				}
-			} else if (equality && that.lhs.type.isNullOrReference() && that.rhs.type.isNullOrReference()) {
-				// This is a pure object comparison - no unboxing
-				if (optag == JCTree.Tag.EQ)
-					result = eresult = treeutils.makeEqObject(that.pos, lhs, rhs);
-				else
-					result = eresult = treeutils.makeNeqObject(that.pos, lhs, rhs);
-				if (splitExpressions)
-					result = eresult = newTemp(eresult);
-				return;
-
-				// FIXME - check that all the checks in makeBinaryCHecks are here - or somehow
-				// reuse that method here
-				// same for unary checks
 			} else if (equality && jmltypes.isJmlTypeOrRep(maxJmlType, jmltypes.BIGINT)) {
 				lhs = addImplicitConversion(lhs, maxJmlType, lhs);
 				rhs = addImplicitConversion(rhs, maxJmlType, rhs);
@@ -13888,8 +13880,28 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (!rac && splitExpressions)
 					result = eresult = newTemp(eresult);
 				return;
+			} else if (equality && types.isSameType(that.lhs.type, JMLPrimitiveTypes.stringTypeKind.getType(context))) {
+			    TypeSymbol csym = that.lhs.type.tsym;
+			    var msym = (MethodSymbol)csym.members().findFirst(names.fromString("eq"), s->s.isStatic());
+			    JCExpression ex = treeutils.makeMethodInvocation(that,  null,  msym, lhs, rhs);
+			    if (optag == JCTree.Tag.NE) ex = treeutils.makeNot(that.pos, ex);
+			    result = eresult = convert(ex);
+			    return;
+            } else if (equality && that.lhs.type.isNullOrReference() && that.rhs.type.isNullOrReference()) {
+                // This is a pure object comparison - no unboxing
+                if (optag == JCTree.Tag.EQ)
+                    result = eresult = treeutils.makeEqObject(that.pos, lhs, rhs);
+                else
+                    result = eresult = treeutils.makeNeqObject(that.pos, lhs, rhs);
+                if (splitExpressions)
+                    result = eresult = newTemp(eresult);
+                return;
+
+                // FIXME - check that all the checks in makeBinaryCHecks are here - or somehow
+                // reuse that method here
+                // same for unary checks
 			} else {
-				Type t = that.type;
+			    Type t = that.type;
 				if (t.getTag() == TypeTag.BOOLEAN) {
 					// Compute a max type - FIXME - need to do this for all types
 					if (lhs instanceof JCLiteral && ((JCLiteral) lhs).typetag == TypeTag.BOT) {
@@ -14246,7 +14258,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCTree newTypeTree = that.getType(); // the tree, not the Type
 		JCTree clazz = convert(newTypeTree);
 		if (types.isSameType(that.type, utils.extensionValueType("string"))) {
-			addImplicitConversion(that, that.type, that.expr);
+			var e = addImplicitConversion(that, that.type, that.expr);
+			result = eresult = convertExpr(e);
 			return;
 		}
 		if (rac && that.type.isPrimitive() && jmltypes.isJmlTypeOrRepType(argType)) {
@@ -18407,7 +18420,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-		result = eresult = M.at(that).JmlPrimitiveTypeTree(that.token, that.typeName).setType(that.type);
+	    if (that.typeName == null) System.out.println("TYPENAME IS NUL " + that);
+        var id = M.at(that).Ident(names.fromString(that.jmlclausekind.toString().substring(1)));
+        id.setType(that.type);
+        id.sym = that.type.tsym;
+        result = eresult = id;
 	}
 
 	/**

@@ -1617,6 +1617,13 @@ public class JmlParser extends JavacParser {
         	}
         }
         while (isEndJml(token)) nextToken();
+        var clausekind = Extensions.findKeyword(token);
+        if (clausekind instanceof JmlTypeKind kind) {
+            // FIXME - need to get any type parameters
+            JCExpression type = maker().at(token.pos).JmlPrimitiveTypeTree(null, clausekind, kind.name);
+            nextToken();
+            return type;
+        }
         JCExpression type = super.unannotatedType(allowVar);
         return type;
     }
@@ -2423,12 +2430,12 @@ public class JmlParser extends JavacParser {
         } else if (jt == JmlTokenKind.BSTYPEUC || jt == JmlTokenKind.BSBIGINT
                 || jt == JmlTokenKind.BSREAL) {
             JCPrimitiveTypeTree t = to(jmlF.at(pos())
-                    .JmlPrimitiveTypeTree(jt,null));
+                    .JmlPrimitiveTypeTree(jt,null,null));
             nextToken();
             return t;
         } else if (jt == JmlTokenKind.PRIMITIVE_TYPE) {
             JCPrimitiveTypeTree t = to(jmlF.at(pos())
-                    .JmlPrimitiveTypeTree(jt,ident()));
+                    .JmlPrimitiveTypeTree(jt,null,ident()));
             nextToken();
             return t;
         } else {
@@ -2605,11 +2612,10 @@ public class JmlParser extends JavacParser {
             }
             if (t.ikind == BSTYPEUC || t.ikind == BSBIGINT || t.ikind == BSREAL) return ParensResult.CAST;
             if (t.kind == TokenKind.IDENTIFIER) {
-                if (t.name().charAt(0) == '\\') return ParensResult.PARENS;
                 IJmlClauseKind ck = Extensions.findKeyword(t);
-                if (ck instanceof IJmlClauseKind.TypeAnnotationKind) {
-                    return ParensResult.CAST;
-                }
+                if (ck instanceof JmlTypeKind) return ParensResult.CAST;
+                if (ck instanceof IJmlClauseKind.TypeAnnotationKind) return ParensResult.CAST;
+                if (t.name().charAt(0) == '\\') return ParensResult.PARENS;
             }
         }
         return super.analyzeParens();
@@ -2710,7 +2716,7 @@ public class JmlParser extends JavacParser {
 
             if (isJmlTypeToken(jt)) {
                 String n = jt.internedName();
-                t = to(jmlF.at(p).JmlPrimitiveTypeTree(jt,names.fromString(n)));
+                t = to(jmlF.at(p).JmlPrimitiveTypeTree(jt, null, names.fromString(n)));
                 nextToken();
                 // Could be just a type value
                 if (token.kind == TokenKind.DOT || token.kind == TokenKind.LBRACKET) {

@@ -1025,6 +1025,7 @@ public class Utils {
     }
 
     public boolean isExtensionValueType(Type ct) {
+        if (ct.isErroneous()) return false;
         if (!ct.isReference()) return false;
         return jmltypes().isSubtype(ct, interfaceForPrimitiveTypes());
     }

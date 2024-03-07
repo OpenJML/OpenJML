@@ -6,6 +6,7 @@ import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlStoreRef;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Type;
@@ -21,6 +22,7 @@ import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Names;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 public class JMLPrimitiveTypes extends JmlExtension {
     Context context;
@@ -52,8 +54,9 @@ public class JMLPrimitiveTypes extends JmlExtension {
 				this.context = context;
                 JCExpression id = JmlTree.Maker.instance(context).QualIdent("org","jmlspecs","lang",typename);
                 type = JmlAttr.instance(context).attribType(id, JmlEnter.instance(context).tlenv); // FIXME - this should be improved (and tlenv removed)
-                id = JmlTree.Maker.instance(context).QualIdent("org","jmlspecs","runtime",typename);
+                id = JmlTree.Maker.instance(context).QualIdent("org","jmlspecs","lang",typename);
                 repType = JmlAttr.instance(context).attribType(id, JmlEnter.instance(context).tlenv); // FIXME - this should be improved (and tlenv removed)
+                this.name = Names.instance(context).fromString(typename);
 			}
 			return type;
 		}
@@ -119,6 +122,27 @@ public class JMLPrimitiveTypes extends JmlExtension {
             JmlTypes.instance(context).enterBinop("+", t, t, t);
             return t;
         }
+        
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
+            if (tree instanceof JmlTree.JmlVariableDecl vd) {
+                if (vd.init == null) test(vd.init.type, attr, tree);
+            } else if (tree instanceof JCTree.JCTypeCast tc) {
+                test(tc.expr.type, attr, tree);
+            } else if (tree instanceof JCTree.JCAssign as) {
+                test(as.rhs.type, attr, tree);
+            } else if (tree instanceof JCTree.JCAssignOp asop) {
+                test(asop.rhs.type, attr, tree);
+            }
+            return null;
+        }
+        
+        private void test(Type t, JmlAttr attr, DiagnosticPosition p) {
+            JmlTypes types = JmlTypes.instance(context);
+            if (types.isSameType(t, stringTypeKind.type) || types.isSameType(t, attr.syms.stringType)) return;
+            utils.error(p, "jml.message", "Cannot convert " + t + "to \string");
+        }
+
 //        public void initType(Context context) {
 //            Type t = getType(context);
 //            JmlTypes.instance(context).enterBinop("+", t, t, t);

@@ -640,7 +640,12 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlVariableDecl(JmlVariableDecl that) {
-            visitVarDef(that);
+            try {
+                visitVarDef(that);
+            } catch (Exception e) {
+                System.out.println("Exception flow-checking " + that);
+                e.printStackTrace(System.out);
+            }
         }
 
         @Override
@@ -684,6 +689,7 @@ public class JmlFlow extends Flow  {
         
         @Override
         public void visitIdent(JCIdent that) {
+            if (that.sym == null) System.out.println("NULL SYM FOR " + that);
 //            for (List<JCVariableDecl> list: quantDeclStack) {
 //                for (JCVariableDecl decl: list) {
 //                    if (decl.sym.equals(that.sym)) return;

@@ -385,9 +385,9 @@ public class Extensions {
                     Class<?> c = Class.forName(fullname);
                     if (Modifier.isAbstract(c.getModifiers())) continue;
                     classes.add(c);
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     // Just skip if there is any exception, such as a
-                    // Class or Method not found.
+                    // Class or Method not found
                 	Utils.instance(context).note(true,"Failed to register " + fullname);
                 }
             }
