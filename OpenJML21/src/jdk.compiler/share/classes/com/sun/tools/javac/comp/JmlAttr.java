@@ -3329,12 +3329,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public Type attribType(JCTree tree, Env<AttrContext> env) { // FIXME _ it seems this will automatically happen - why not?
     	Type result;
     	IJmlClauseKind k;
-        if (tree instanceof JCIdent && (k=Extensions.findKeyword(((JCIdent)tree).name)) instanceof JMLPrimitiveTypes.JmlTypeKind) {
+        if (tree instanceof JCIdent id && (k=Extensions.findKeyword(id.name)) instanceof JMLPrimitiveTypes.JmlTypeKind) {
             // Backslash identifier -- user added type
         	JMLPrimitiveTypes.JmlTypeKind kt = (JMLPrimitiveTypes.JmlTypeKind)k;
             JCIdent t = jmlMaker.at(tree.pos).Ident(names.fromString(kt.typename));
             result = super.attribType(t,env);
             tree.type = result;
+            id.sym = tree.type.tsym;
             if (kt.numTypeArguments() != 0) {
                 utils.error(tree,  "jml.message", "The generic JML type " + kt.keyword + " must have " + kt.numTypeArguments() + " type arguments");
             }
@@ -5817,8 +5818,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitIdent(JCIdent tree) {
-        boolean print = false;//tree.toString().contains("oldjlinks") || tree.toString().contains("oldlinks");
-        if (print) System.out.println("JML-VISITIDENT " + tree + " " + Utils.join(" ", quantifiedExprs) + " " + tree.sym);
+        boolean print = false; // tree.toString().contains("tring") && !tree.toString().contains("String");
+        if (print) System.out.println("JML-VISITIDENT " + tree + " # " + tree.name + " # " + Utils.join(" ", quantifiedExprs) + " # " + tree.sym);
     	// Attributing an ident can instigate loading of new classes
     	// Every routine is responsible for saving and restoring state
     	// However we save and restore it here even though we don't change it here, defensively
@@ -5842,9 +5843,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	Name nm = tree.name;
             var ck = Extensions.findKeyword(tree.name);
             if (ck instanceof JmlTypeKind jtk) {
-
+                // Get here when a type-name is used as the expression in a static dot-selection
+                // FIXME - I think
         	    result = tree.type = jtk.getType(context);
         	    tree.sym = tree.type.tsym;
+                if (print) System.out.println("JMLIDENT " + tree.name + " # " + ck + " # " + tree.type + " # " + tree.type.tsym + " # " + tree.sym);
                 //                if (jtk.numTypeArguments() != 0) {
 //                    utils.error(tree,  "jml.message", "The generic JML type " + tree.name + " must have " + jtk.numTypeArguments() + " type arguments");
 //                }
@@ -5901,6 +5904,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		}
         	}
         	result = saved;
+            if (print) System.out.println("JMLIDENT-Z " + ck + " # " + tree.type + " # " + tree.type.tsym + " # " + tree.sym);
         } catch (Exception e) {
             System.out.println("JMLATTR EXC " + e.getMessage());
             e.printStackTrace(System.out);

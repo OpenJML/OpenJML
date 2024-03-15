@@ -39,7 +39,7 @@ public class StrongarmBase extends EscBase {
 	args.add(sourceDirname);
 	if (solver != null)
 	    args.add("-prover=" + solver);
-	addOptionsToArgs(options, args);
+//	addOptionsToArgs(options, args);
 	args.addAll(Arrays.asList(opts));
 	return args;
     }
