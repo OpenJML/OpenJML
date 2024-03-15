@@ -7688,6 +7688,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     var e = jmlMaker.at(that.pos).Apply(null, fa, List.<JCExpression>nil());
                     that.init = e;
                     attribExpr(e,env); // FIXME - spec env?
+                } else if (full.contains("seq<")) {
+                    var id = jmlMaker.at(that.pos).Ident("\\" + name);
+                    id.type = that.type;
+                    id.sym = that.type.tsym;
+                    var fa = jmlMaker.at(that.pos).Select(id, names.fromString("empty"));
+                    var e = jmlMaker.at(that.pos).Apply(null, fa, List.<JCExpression>nil());
+                    // FIXME - do we need the method symbol?
+                    // FIXME - do we need to add the type arguments?
+                    //e.type = that.type;
+                    that.init = e;
+                    attribExpr(e,env); // FIXME - spec env?
                 }
             }
 

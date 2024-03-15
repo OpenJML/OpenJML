@@ -48,7 +48,6 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike {
         return this.racValue.equals(s.racValue);
     }
     
-    public static boolean equals(Object o, Object oo) { throw new UnsupportedOperationException(); }
     public boolean equals(Object o) { throw new UnsupportedOperationException(); }
     public int hashCode() { throw new UnsupportedOperationException(); }
 

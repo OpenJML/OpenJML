@@ -1619,9 +1619,12 @@ public class JmlParser extends JavacParser {
         while (isEndJml(token)) nextToken();
         var clausekind = Extensions.findKeyword(token);
         if (clausekind instanceof JmlTypeKind kind) {
-            // FIXME - need to get any type parameters
-            JCExpression type = maker().at(token.pos).JmlPrimitiveTypeTree(null, clausekind, kind.name);
-            nextToken();
+
+            int prevmode = mode;
+            setMode(TYPE);
+            JCExpression type = kind.parse(null, token.name().toString(), clausekind, this);
+            setLastMode(mode);
+            setMode(prevmode);
             return type;
         }
         JCExpression type = super.unannotatedType(allowVar);

@@ -18421,10 +18421,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	@Override
 	public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
 	    if (that.typeName == null) System.out.println("TYPENAME IS NUL " + that);
-        var id = M.at(that).Ident(names.fromString(that.jmlclausekind.toString().substring(1)));
-        id.setType(that.type);
-        id.sym = that.type.tsym;
-        result = eresult = id;
+	    if (that.jmlclausekind != null) {
+	        var id = M.at(that).Ident(names.fromString(that.jmlclausekind.toString().substring(1)));
+	        id.setType(that.type);
+	        id.sym = that.type.tsym;
+	        result = eresult = id;
+	    } else {
+	        result = eresult = M.at(that).JmlPrimitiveTypeTree(that.token, null, that.typeName).setType(that.type);
+	    }
 	}
 
 	/**

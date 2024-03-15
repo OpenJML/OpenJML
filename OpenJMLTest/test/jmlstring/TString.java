@@ -59,7 +59,7 @@ public class TString {
         //@ ghost \string ss = s.add('D');
         //@ assert ss.size() == 4;
         //@ assert ss.get(2) == 'C' && ss.get(3) == 'D';
-        //@ assert \string.equals(ss,\string.of("ABCD"));
+        //@ assert \string.eq(ss,\string.of("ABCD"));
     }
     
     //@ spec_pure
@@ -68,7 +68,7 @@ public class TString {
         //@ ghost \string ss = s.remove(1);
         //@ assert ss.size() == 2;
         //@ assert ss.get(0) == 'A' && ss.get(1) == 'C';
-        //@ assert \string.equals(ss,\string.of("AC"));
+        //@ assert \string.eq(ss,\string.of("AC"));
     }
     
     public static void main(String... args) {

@@ -80,8 +80,31 @@ public class JMLPrimitiveTypes extends JmlExtension {
                 parser.nextToken();
                 return null;
             } else {
-                JCExpression t = parser.typeArgumentsOpt(id);
-                return t;
+                var hasAngleBracket = parser.token().kind == TokenKind.LT;
+                var expectedNumArgs = numTypeArguments();
+                JCExpression typeExpr = parser.typeArgumentsOpt(id);
+                if (hasAngleBracket) {
+                    if (expectedNumArgs == 0) {
+                        utils.error(parser.token().pos, parser.token().endPos, "jml.message",
+                            "A " + keyword + " does not expect type arguments");
+                        typeExpr = parser.maker().at(p).Erroneous();
+                    } else if (((com.sun.tools.javac.tree.JCTree.JCTypeApply)typeExpr).arguments.size() != expectedNumArgs) {
+                        utils.error(parser.token().pos, parser.token().endPos, "jml.message",
+                                "A " + keyword + " expects " + expectedNumArgs + " type arguments");
+                        typeExpr = parser.maker().at(p).Erroneous();
+                    } else {
+                        // OK
+                    }
+                } else {
+                    if (expectedNumArgs != 0 ) {
+                        utils.error(parser.token().pos, parser.token().endPos, "jml.message",
+                            "A " + keyword + " must have type arguments");
+                        typeExpr = parser.maker().at(p).Erroneous();
+                    } else {
+                        // typeExxpr is already just equal to id
+                    }
+                }
+                return typeExpr;
             }
 		}
 		@Override
