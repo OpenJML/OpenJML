@@ -9,9 +9,9 @@ public class set<T> implements IJmlPrimitiveType, IJmlArrayLike {
     public set() { value = new HashSet<>(); }
     
     static public <T> set<T> set() { return new set<T>(); }
-/*
-    public long size();
-    
+
+    public long size() { return value.size(); }
+ /*   
     //@ public normal_behavior
     //@   ensures \result == this[x];
     //@ heap_free

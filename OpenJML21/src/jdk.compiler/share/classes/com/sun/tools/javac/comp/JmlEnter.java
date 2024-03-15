@@ -133,7 +133,6 @@ import static com.sun.tools.javac.code.TypeTag.*;
 public class JmlEnter extends Enter {
 	
 	final static boolean debugEnter = org.jmlspecs.openjml.Utils.debug("enter");
-	final static boolean debugEnter2 = org.jmlspecs.openjml.Utils.debug("enter");
 
 	/**
 	 * This registers a factory so that we do not have to prematurely create an
@@ -1757,7 +1756,7 @@ public class JmlEnter extends Enter {
 	 * @param csymbol the class whose specs are wanted
 	 */
 	public boolean requestSpecs(ClassSymbol csymbol) {
-		// Requests for nested classes are changed to a request for their outermost class
+	    // Requests for nested classes are changed to a request for their outermost class
 		while (csymbol.owner instanceof ClassSymbol)
 			csymbol = (ClassSymbol) csymbol.owner;
 
@@ -1796,12 +1795,14 @@ public class JmlEnter extends Enter {
 					if (debugSpecs) System.out.println("specs: Queueing specs request for " + csymbol + " [" + nestingLevel + "]" + " "
 								+ binaryEnterTodo.contains(csymbol) + " " + csymbol.hashCode());
 					binaryEnterTodo.prepend(csymbol);
-
-					for (Type t : csymbol.getInterfaces()) {
-						requestSpecs((ClassSymbol) t.tsym);
-					}
-					if (csymbol.getSuperclass() != Type.noType) { // Object has noType as a superclass
-						requestSpecs((ClassSymbol) csymbol.getSuperclass().tsym);
+					
+					if (!utils.isExtensionValueType(csymbol.type)) {
+					    for (Type t : csymbol.getInterfaces()) {
+					        requestSpecs((ClassSymbol) t.tsym);
+					    }
+					    if (csymbol.getSuperclass() != Type.noType) { // Object has noType as a superclass
+					        requestSpecs((ClassSymbol) csymbol.getSuperclass().tsym);
+					    }
 					}
 
 				} finally {

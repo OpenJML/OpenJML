@@ -313,7 +313,6 @@ public class JmlCompiler extends JavaCompiler {
         specCU.sourceCU = null;
         org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, specCU, specFile);
         if (debugParse) System.out.println("parser: Parsed specs " + typeSymbol + " " + specFile);
-        if (debugParse && specFile.toString().contains("Object")) { System.out.println(specCU.toString()); }
         return specCU;
     }
 
