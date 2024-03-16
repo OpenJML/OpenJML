@@ -3332,7 +3332,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (tree instanceof JCIdent id && (k=Extensions.findKeyword(id.name)) instanceof JMLPrimitiveTypes.JmlTypeKind) {
             // Backslash identifier -- user added type
         	JMLPrimitiveTypes.JmlTypeKind kt = (JMLPrimitiveTypes.JmlTypeKind)k;
-            JCIdent t = jmlMaker.at(tree.pos).Ident(names.fromString(kt.typename));
+            var t = kt.typeid;
             result = super.attribType(t,env);
             tree.type = result;
             id.sym = tree.type.tsym;
