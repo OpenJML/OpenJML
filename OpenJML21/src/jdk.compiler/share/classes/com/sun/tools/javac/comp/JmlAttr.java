@@ -204,7 +204,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Cached identifier of the org.jmlspecs.runtime.Runtime class */
     /*@non_null*/ protected JCIdent runtimeClassIdent;
     
-    /** Cached value of the JMLDataGroup class */
+    /** Cached value of the datagroup class */
     /*@non_null*/ public ClassSymbol datagroupClass;
     
     /** The JmlSpecs instance for this context */
@@ -357,8 +357,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         runtimeClassIdent = jmlMaker.Ident(runtimeClassName);
         runtimeClassIdent.type = runtimeClass.type;
         runtimeClassIdent.sym = runtimeClassIdent.type.tsym;
-
-        datagroupClass = createClass(Strings.jmlSpecsPackage + ".JMLDataGroup");
 
         JMLSetType = createClass(Strings.jmlSpecsPackage + ".JMLSetType").type;
         JMLValuesType = createClass(Strings.jmlSpecsPackage + ".JMLList").type;
@@ -2146,7 +2144,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                    //                      log.error(pos,"jml.datagroup.must.be.model");
 //                    //                  }
 //                } else if (args.size() == 0) {
-//                    // Create a default: public model secret JMLDataGroup
+//                    // Create a default: public model secret \datagroup
 //                    JmlTree.Maker maker = JmlTree.Maker.instance(context);
 //                    JCTree.JCModifiers nmods = maker.Modifiers(Flags.PUBLIC);
 //                    JCTree.JCAnnotation a = maker.Annotation(maker.Type(modToAnnotationSymbol.get(Modifiers.MODEL).type),List.<JCExpression>nil());
@@ -3327,18 +3325,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** Overridden in order to be sure that the type specs are attributed. */
     public Type attribType(JCTree tree, Env<AttrContext> env) { // FIXME _ it seems this will automatically happen - why not?
-    	Type result;
-    	IJmlClauseKind k;
-        if (tree instanceof JCIdent id && (k=Extensions.findKeyword(id.name)) instanceof JMLPrimitiveTypes.JmlTypeKind) {
+        Type result;
+        if (tree instanceof JCIdent id && Extensions.findKeyword(id.name) instanceof JMLPrimitiveTypes.JmlTypeKind kt) {
             // Backslash identifier -- user added type
-        	JMLPrimitiveTypes.JmlTypeKind kt = (JMLPrimitiveTypes.JmlTypeKind)k;
-            var t = kt.typeid;
-            result = super.attribType(t,env);
+            result = kt.getType(context);
             tree.type = result;
             id.sym = tree.type.tsym;
-            if (kt.numTypeArguments() != 0) {
-                utils.error(tree,  "jml.message", "The generic JML type " + kt.keyword + " must have " + kt.numTypeArguments() + " type arguments");
-            }
         } else {
             result = super.attribType(tree,env);
         }
@@ -7748,9 +7740,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     ((JmlTree.JmlAnnotation)an).kind = nullness;
                     that.mods.annotations = that.mods.annotations.append(an);
                     // that.mods == fspecs.mods
-                    that.mods.flags |= Flags.FINAL; // JMLDataGroup declarations are implicitly final
+                    that.mods.flags |= Flags.FINAL; // datagroup declarations are implicitly final
                     if (that.init != null) {
-                        utils.error(that.init, "jml.message", "JMLDataGroup declarations may not have initializers");
+                        utils.error(that.init, "jml.message", "\\datagroup declarations may not have initializers");
                     }
                     //that.init = jmlMaker.at(that).Literal(TypeTag.BOT,null);
                     //that.init.type = datagroupClass.type;

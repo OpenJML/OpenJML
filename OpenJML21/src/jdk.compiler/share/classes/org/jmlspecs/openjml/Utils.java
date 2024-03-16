@@ -42,6 +42,7 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlModifiers;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.ext.JMLPrimitiveTypes;
 import org.jmlspecs.openjml.ext.Modifiers;
 //import org.jmlspecs.openjml.strongarm.JDKListUtils;
 
@@ -1369,7 +1370,7 @@ public class Utils {
                 if (s.kind != Kinds.Kind.VAR) continue;
                 if (isJMLStatic(s) != forStatic) continue;
                 if ((s.flags() & Flags.FINAL) != 0) continue;
-                if (!includeDataGroups && jmltypes().isOnlyDataGroup(s.type)) continue;
+                if (!includeDataGroups && isOnlyDatagroup(s.type)) continue;
                 //System.out.println("LVF " + owner + " " + base + " " + csym + " " + s);
                 if (!jmlvisible(s,base,csym,s.flags()&Flags.AccessFlags,baseVisibility)) continue; // FIXME - jml access flags? on base and on target?
                 list.add((Symbol.VarSymbol)s);
@@ -2117,5 +2118,12 @@ public class Utils {
     		e.printStackTrace(System.out);
     	}
     }
+    
+    /** This just tests whether the type is explicitly a datagroup */
+    public boolean isOnlyDatagroup(Type type) {
+        return type == JMLPrimitiveTypes.datagroupTypeKind.getType(context);
+        //return type.toString().contains("JMLDataGroup"); // FIXME - something better than string comparison?
+    }
+
 
 }

@@ -872,7 +872,7 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testDatatypes() {
+    public void datatype() {
         expectedExit = 0;
         helpTF("datatype");
     }

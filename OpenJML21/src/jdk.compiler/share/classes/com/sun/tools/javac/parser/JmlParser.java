@@ -2511,7 +2511,7 @@ public class JmlParser extends JavacParser {
         	} else {
         	    tt = term1Cond();
         	}
-        	JMLPrimitiveTypes.rangeTypeKind.parse(null, null,JMLPrimitiveTypes.rangeTypeKind, this);
+        	JMLPrimitiveTypes.rangeTypeKind.parse(null, null, JMLPrimitiveTypes.rangeTypeKind, this);
         	return jmlF.at(dotpos).JmlRange(t,tt);
         } else {
             return t;

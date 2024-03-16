@@ -1040,7 +1040,8 @@ public class JmlSpecs {
             if (findAnnotation(jmods.annotations, Modifiers.NULLABLE)!=null) return false;
             if (hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL)) return true;
             if (hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE)) return false;
-            if (decl.vartype.toString().contains("JMLDataGroup")) return false; // A primitive type
+            if (utils.isOnlyDatagroup(decl.type)) return false;
+            //if (decl.vartype.toString().contains("JMLDataGroup")) return false; // A primitive type
         }
         if (owner instanceof MethodSymbol m) owner = m.owner;
         return defaultNullity((ClassSymbol)owner) == Modifiers.NON_NULL;

@@ -9,6 +9,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlStoreRef;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -35,9 +36,9 @@ public class JMLPrimitiveTypes extends JmlExtension {
     }
 
     public static class JmlTypeKind extends IJmlClauseKind {
-        public JCExpression typeid; // fully qualified type name, usually in org.jmlspecs.lang
         private String typename; // flat or unqualified type name
         public com.sun.tools.javac.util.Name name;
+        Symbol.ClassSymbol sym = null; // lazily filled in; depends on context; only  implemented for a single context
         Type type = null; // lazily filled in; depends on context; only  implemented for a single context
         Type repType = null;
         Context context = null; // context for type -- need even though it shadows IJmlClauseKind.context
@@ -53,20 +54,28 @@ public class JMLPrimitiveTypes extends JmlExtension {
         public int numTypeArguments() { return 0; }
 
         public Type getType(Context context) {
+            getSymbol(context);
+            return type;
+        }
+        
+        public Symbol.ClassSymbol getSymbol(Context context) {
             // Caching the type (which depends on context) for general use
             if (type == null || context != this.context) {
                 this.context = context;
+                String fqname;
                 if (typename.contains(".")) {
-                    this.typeid = JmlTree.Maker.instance(context).QualIdent(typename.split("\\.", 0));
+                    fqname = typename;
                 } else {
-                    this.typeid = JmlTree.Maker.instance(context).QualIdent("org","jmlspecs","lang",typename);
+                    fqname = "org.jmlspecs.lang." + typename;
                 }
-                type = JmlAttr.instance(context).attribType(typeid, JmlEnter.instance(context).tlenv); // FIXME - this should be improved (and tlenv removed)
-                var id = new JmlTreeCopier(context, JmlTree.Maker.instance(context)).copy(typeid);
-                repType = JmlAttr.instance(context).attribType(id, JmlEnter.instance(context).tlenv); // FIXME - this should be improved (and tlenv removed)
+                sym = JmlAttr.instance(context).createClass(fqname);
+                type = sym.type;
+                if (sym != type.tsym) System.out.println("Primitive Symbols different: " + sym + " " + type.tsym);
+                repType = type;
                 this.name = Names.instance(context).fromString(typename); // FIXME - is this OK if the name is fully-qualified?
             }
-            return type;
+            return sym;
+            
         }
 
         public Type getRepType(Context context) {
@@ -83,8 +92,7 @@ public class JMLPrimitiveTypes extends JmlExtension {
             int ep = parser.endPos();
             parser.nextToken();
             if (parser.token().kind == TokenKind.LPAREN) { 
-                utils.error(p, ep, "jml.message",
-                            "An ill-formed type");
+                utils.error(p, ep, "jml.message", "An ill-formed type");
                 parser.nextToken();
                 return null;
             } else {
@@ -187,11 +195,6 @@ public class JMLPrimitiveTypes extends JmlExtension {
     public static final JmlTypeKind datagroupTypeKind = new JmlTypeKind(datagroupID, "JMLDataGroup") {
         @Override
         public int numTypeArguments() { return 0; }
-//        @Override
-//        public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
-//            init(parser);
-//            return null;
-//        }
     };
 
     public static final String rangeID = "\\range";
@@ -258,11 +261,10 @@ public class JMLPrimitiveTypes extends JmlExtension {
 					else if (t instanceof JmlTree.JmlSingleton && ((JmlTree.JmlSingleton)t).kind instanceof LocSet) {}
 					else utils.error(t.pos(), "jml.message", "Only location expressions may be arguments to \\locset: " + t + " (" + t.getClass() + ")");
 				});
-				JCIdent id = JmlTree.Maker.instance(attr.context).Ident(Names.instance(attr.context).fromString(keyword));
-				type = attr.attribType(id, env);
 				tree.type = type;
-				((JCIdent)app.meth).sym = id.sym;
-				((JCIdent)app.meth).type = id.type; // FIXME - or should be a method type?
+				// FIXME
+//				((JCIdent)app.meth).sym = id.sym;
+//				((JCIdent)app.meth).type = id.type; // FIXME - or should be a method type?
 				System.out.println("TYPECHECKED " + tree + " AS " + type);
 				return type;
 			}

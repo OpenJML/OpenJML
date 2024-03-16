@@ -616,7 +616,7 @@ public class typeclauses extends TCBase {
     
     @Test
     public void testIn() {
-        helpTCF("A.java","public class A {\n //@ model JMLDataGroup k; \n int n; //@ in k; \n}"
+        helpTCF("A.java","public class A {\n //@ model \\datagroup k; \n int n; //@ in k; \n}"
                 );
     }
     
@@ -650,31 +650,31 @@ public class typeclauses extends TCBase {
     
     @Test
     public void testMaps() {
-        helpTCF("A.java","public class A {\n //@ model JMLDataGroup k; \n A next; //@ maps next.next \\into k; \n}"
+        helpTCF("A.java","public class A {\n //@ model \\datagroup k; \n A next; //@ maps next.next \\into k; \n}"
         );
     }
     
     @Test
     public void testMaps2() {
-        helpTCF("A.java","public class A {\n //@ model JMLDataGroup k; \n A[] next; //@ maps next[*].next \\into k; \n}"
+        helpTCF("A.java","public class A {\n //@ model \\datagroup k; \n A[] next; //@ maps next[*].next \\into k; \n}"
         );
     }
     
     @Test
     public void testMaps2b() {
-        helpTCF("A.java","public class A {\n //@ model JMLDataGroup k; \n A[] next; //@ maps next[*] \\into k; \n}"
+        helpTCF("A.java","public class A {\n //@ model \\datagroup k; \n A[] next; //@ maps next[*] \\into k; \n}"
         );
     }
     
     @Test
     public void testMaps3() {
-        helpTCF("A.java","public class A {\n //@ model JMLDataGroup k; \n A[] next; //@ maps next[2 .. 3].next \\into k,k; \n}"
+        helpTCF("A.java","public class A {\n //@ model \\datagroup k; \n A[] next; //@ maps next[2 .. 3].next \\into k,k; \n}"
         );
     }
     
     @Test
     public void testMaps4() {
-        helpTCF("A.java","public class A {\n //@ model JMLDataGroup k; \n A[] next; //@ maps next[2].next \\into this.k; \n}"
+        helpTCF("A.java","public class A {\n //@ model \\datagroup k; \n A[] next; //@ maps next[2].next \\into this.k; \n}"
         );
     }
     

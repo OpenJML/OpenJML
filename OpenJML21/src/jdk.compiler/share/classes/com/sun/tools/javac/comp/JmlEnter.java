@@ -1419,7 +1419,7 @@ public class JmlEnter extends Enter {
 				vdecl.type = vdecl.vartype.type = vsym.type;
 			}
 		} catch (Throwable t) {
-			utils.error(vdecl.sourcefile, vdecl, "Exception while entering field from jml for binary: " + csym + "." + vdecl.name);
+			utils.error(vdecl.sourcefile, vdecl, "jml.message", "Exception while entering field from jml for binary: " + csym + "." + vdecl.name);
 			t.printStackTrace(System.out);
 			ok = false;
 		} finally {

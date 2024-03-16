@@ -2435,9 +2435,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return M.at(pos).Exec(c);
 	}
 
-	protected String uniqueTempString() {
-		return Strings.tmpVarString + nextUnique();
-	}
+    protected String uniqueTempString(String root) {
+        return root + (esc ? "`" : "") + nextUnique();
+    }
+
+    protected String uniqueTempString() {
+        return uniqueTempString(Strings.tmpVarString);
+    }
 
 	protected JmlVariableDecl newTempDecl(DiagnosticPosition pos, Type t) {
 		return newTempDecl(pos, uniqueTempString(), t);
@@ -2783,7 +2787,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						continue;
 					if (!assume && isConstructor)
 						continue;
-					if (utils.isJavaOrJmlPrimitiveType(s.type) || jmltypes.isOnlyDataGroup(s.type))
+					if (utils.isJavaOrJmlPrimitiveType(s.type))
 						continue;
 					VarSymbol v = (VarSymbol) s;
 					JCExpression e;
@@ -3114,7 +3118,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					field = treeutils.makeSelect(v.pos, treeutils.makeType(v.pos, v.owner.type), v);
 				else
 					field = M.at(pos).Select(receiver, v);
-				if (!utils.isJavaOrJmlPrimitiveType(vartype) && !isDataGroup(vartype)) {
+				if (!utils.isJavaOrJmlPrimitiveType(vartype)) {
 					JCExpression e = treeutils.makeNotNull(pos.getStartPosition(), field); // FIXME - position not right
 					if (specs.isNonNull(v)) {
 						if (assume)
@@ -3197,7 +3201,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			for (Symbol s : cs.getSymbols()) {
 				if (!(s instanceof VarSymbol)) continue;
 				if (staticOnly && !utils.isJMLStatic(s)) continue;
-				if (jmltypes.isOnlyDataGroup(s.type)) continue;
+				if (isDataGroup(s.type)) continue;
 				JCExpression c = null;
 //				if (!utils.isJMLStatic(s)) {
 //				    c = treeutils.makeNotNull(currentThis,  currentThis);
@@ -3657,7 +3661,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else {
             if (owner instanceof MethodSymbol)
                 owner = owner.owner;
-            if (!sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type) && !isDataGroup(sym.type)) {
+            if (!utils.isJavaOrJmlPrimitiveType(sym.type)) {
                 isNonNull = specs.isNonNullFormal(sym);
                 //System.out.println("NULLNESS " + sym + " " + sym.type + " " + isNonNull + " " + owner);
             }
@@ -3672,7 +3676,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Symbol owner = sym.owner;
         if (owner instanceof MethodSymbol)
             owner = owner.owner;
-        if (!sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type) && !isDataGroup(sym.type)) {
+        if (!utils.isJavaOrJmlPrimitiveType(sym.type)) {
             isNonNull = specs.isNonNull(sym);
             //System.out.println("NULLNESS " + sym + " " + sym.type + " " + isNonNull);
         }
@@ -3863,7 +3867,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			boolean instanceBeingConstructed) {
 		int p = pos.getPreferredPosition();
 		boolean nnull = true;
-		if (!utils.isJavaOrJmlPrimitiveType(sym.type) && !isDataGroup(sym.type)) {
+		if (!utils.isJavaOrJmlPrimitiveType(sym.type)) {
 
 			Symbol owner = sym.owner;
 			if (owner instanceof MethodSymbol)
@@ -5017,9 +5021,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return true;
 	}
 
-	/** This just tests whether the type is explicitly a JMLDataGroup */
+	/** This just tests whether the type is explicitly a datagroup */
 	public boolean isDataGroup(Type type) {
-		return type.toString().contains("JMLDataGroup"); // FIXME - something better than string comparison?
+	    return utils.isOnlyDatagroup(type);
+	    //return type.toString().contains("JMLDataGroup"); // FIXME - something better than string comparison?
 	}
 
 	protected void assumeFieldInvariants(JCMethodDecl methodDecl, JCClassDecl classDecl) {
@@ -5032,9 +5037,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (!(dd instanceof JCVariableDecl))continue;
 			JCVariableDecl d = (JCVariableDecl) dd;
 			if (utils.isJavaOrJmlPrimitiveType(d.sym.type)) continue;
-			if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym))continue;
-			if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym)continue;
-			if (isDataGroup(d.type)) continue;
+			if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym)) continue;
+			if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
             if (attr.isHelper(d.sym)) continue;
             
 			if (dd.type.isParameterized()) {
@@ -5081,15 +5085,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JavaFileObject prevJFO = log.currentSourceFile();
 		log.useSource(cspecs.specDecl.sourcefile);
 		for (JCTree dd : cspecs.specDecl.defs) {
-			if (!(dd instanceof JCVariableDecl))
-				continue;
+			if (!(dd instanceof JCVariableDecl)) continue;
 			JCVariableDecl d = (JCVariableDecl) dd;
 			specs.getAttrSpecs(d.sym);
-			if (utils.isJavaOrJmlPrimitiveType(d.sym.type))
-				continue;
+			if (utils.isJavaOrJmlPrimitiveType(d.sym.type)) continue;
 			if (staticOnly && !utils.isJMLStatic(d.sym)) continue;
 			if (noFinal && isFinal(d.sym)) continue; // No need to repeat final invariants
-			if (isDataGroup(d.type)) continue;
 			if (attr.isHelper(d.sym)) continue;
 
 			// if (isHelper(methodDecl.sym) && d.sym.type.tsym ==
@@ -5175,7 +5176,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				continue;
 			if (!utils.isJMLStatic(sy) && staticOnly)
 				continue;
-			if (jmltypes.isOnlyDataGroup(sy.type))
+			if (isDataGroup(sy.type))  // FIXME - check all primitive types?
 				continue;
 			addNullnessAndTypeConditionsForField(csym, (VarSymbol) sy, beingConstructed);
 			// FIXME - why both of these?
@@ -5185,8 +5186,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected void addNullnessAndTypeConditionsForField(TypeSymbol csym, VarSymbol sy, boolean beingConstructed) {
-		if (isDataGroup(sy.type))
-			return;
+		if (isDataGroup(sy.type)) return; // FIXME - check all primitive types?
+		
 		// Find the declaration for the variable symbol. This is only to hzve a
 		// sensible diagnostic position for it.
 
@@ -5206,19 +5207,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		// For JML fields
 		for (JCTree dd : specs.getAttrSpecs((ClassSymbol) csym).clauses) {
-			if (!(dd instanceof JmlTypeClauseDecl))
-				continue;
+			if (!(dd instanceof JmlTypeClauseDecl)) continue;
 			JCTree t = ((JmlTypeClauseDecl) dd).decl;
-			if (!(t instanceof JCVariableDecl))
-				continue;
+			if (!(t instanceof JCVariableDecl)) continue;
 			JCVariableDecl d = (JCVariableDecl) t;
-			if (d.sym == null)
-				continue; // FIXME - model fields, at least, can have null symbols, I think
-			if (beingConstructed && !utils.isJMLStatic(d.sym))
-				continue;
-			if (isDataGroup(d.type)) {
-				continue;
-			}
+			if (d.sym == null) continue; // FIXME - model fields, at least, can have null symbols, I think
+			if (beingConstructed && !utils.isJMLStatic(d.sym)) continue;
+			if (isDataGroup(d.type)) continue;
+
 			addNullnessAllocationTypeCondition(d, sy, false);
 			return;
 		}
@@ -10733,10 +10729,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					for (Type parentType : parents(calleeMethodSym.owner.type, false)) {
 						Scope s = parentType.tsym.members();
 						for (Symbol sym : s.getSymbols()) {
-							if (!(sym instanceof VarSymbol))
-								continue;
-							if (utils.isJavaOrJmlPrimitiveType(sym.type) || jmltypes.isOnlyDataGroup(sym.type))
-								continue; // FIXME should be isJMLPrimitivie?
+							if (!(sym instanceof VarSymbol)) continue;
+							if (utils.isJavaOrJmlPrimitiveType(sym.type)) continue;
 							DiagnosticPosition pos = that; // FIXME - is this a good position?
 							JCExpression expr = treeutils.makeSelect(pos.getPreferredPosition(), currentEnv.currentReceiver, sym);
 							addInvariants(pos, sym.type, expr, currentStatements, false, false, true, false, true, true,
@@ -18473,7 +18467,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 																									// about this
 																									// default
 					value = addImplicitConversion(value, targetType, value);
-					JmlQuantifiedExpr q = M.at(that).JmlQuantifiedExpr(that.kind, dd, // convertCopy(that.decls),
+					JmlQuantifiedExpr q = M.at(that).JmlQuantifiedExpr(that.kind, dd,
 							range, value);
 					{
 						boolean saved = splitExpressions;
@@ -18484,8 +18478,40 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							splitExpressions = saved;
 						}
 					}
-					q.setType(that.type);
-					result = eresult = q;
+                    q.setType(that.type);
+					if (that.kind == qchooseKind) {
+					    // well-definedness check
+					    pushBlock();
+					    JmlQuantifiedExpr wd = M.at(that).JmlQuantifiedExpr(qexistsKind, dd,
+		                            range, value);
+					    wd.setType(syms.booleanType);
+					    addAssert(that, Label.CHOOSE, wd);
+					    var decl = dd.get(0);
+					    // value
+					    var ndecl = newTempDecl(decl, uniqueTempString(decl.name.toString()), decl.type);
+					    addStat(ndecl);
+					    JCIdent id = M.at(decl).Ident(ndecl.name);
+					    id.setType(decl.type);
+					    var expr = range == null ? value : treeutils.makeAndSimp(that, range, value);
+					    expr = new JmlTreeCopier(context,M) {
+					        public JCTree visitIdentifier(IdentifierTree node, Void p) {
+					            JCIdent n = (JCIdent)node;
+					            if (n.sym == decl.sym) {
+			                        JCIdent id = M.at(decl).Ident(ndecl.name);
+			                        id.setType(decl.type);
+			                        return id;
+					            } else {
+					                return super.visitIdentifier(node,  p);
+					            }
+					        }
+					    }.copy(expr);
+					    addAssume(that, Label.CHOOSE, expr);
+					    JCBlock bl = popBlock(that);
+					    nonignoredStatements.addAll(bl.stats);
+					    result = eresult = id;
+					} else {
+					    result = eresult = q;
+					}
 				} finally {
 					if (translatingJML) {
 						popBlock(); // A
