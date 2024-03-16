@@ -23,12 +23,12 @@ public class real {
         //@ ghost float i = (float)b;
         //@ ghost double l = (double)b;
         //@ assert b == zero;
-        //@ ghost Real bi = bb;
+        //@ ghost \real bi = bb;
         //@ ghost \real bbb = bi;
         //@ assert bbb == bb;
         //@ set bbb = prod + bi;
         //@ assert (\lbl BBB bbb) == -420;
-        //@ ghost \real x = new Real(10.30);
+        //@ ghost \real x = (\real)(10.30);
         //@ ghost \real xx = (\lbl XX x*10);
         try {
             //@ set bb = bb / zero;

@@ -14,12 +14,12 @@ public class set<T> implements IJmlPrimitiveType, IJmlArrayLike {
  /*   
     //@ public normal_behavior
     //@   ensures \result == this[x];
-    //@ heap_free
+    //@ no_state
     public boolean contains(T x);
 
     //@ public normal_behavior
     //@   ensures \result == (this.size() == 0);
-    //@ heap_free
+    //@ no_state
     public boolean isEmpty();
     
     
@@ -27,22 +27,22 @@ public class set<T> implements IJmlPrimitiveType, IJmlArrayLike {
     //@   ensures \result.size() == 1;
     //@  ensures \result.contains(t);
     //@  ensures (\forall T x; ; x != t ==> !\result.contains(x));
-    //@ heap_free
+    //@ no_state
     static public <T> set<T> set(T t);
     
     //@ public normal_behavior
     //@   ensures \result == (\forall T t;; s.contains(t) == ss.contains(t));
-    //@ heap_free
+    //@ no_state
     public static <T> boolean eq(set<T> s, set<T> ss);
     
     //@ public normal_behavior
     //@   ensures \result == (this == s || equals(this,s));
-    //@ heap_free
+    //@ no_state
     public boolean equals(set<T> s);
     
     //@ public normal_behavior
     //@   ensures \result == (\forall T t; s.contains(t) ; ss.contains(t));
-    //@ heap_free
+    //@ no_state
     public static <T> boolean isSubsetOf(set<T> s, set<T> ss);
     
     //@ public normal_behavior
@@ -50,7 +50,7 @@ public class set<T> implements IJmlPrimitiveType, IJmlArrayLike {
     //@   ensures !this.contains(x) ==> \result.size() == this.size() + 1;
     //@   ensures \result.contains(x);
     //@   ensures (\forall T t; t != x; \result.contains(t) == this.contains(t));
-    //@ heap_free
+    //@ no_state
     public set<T> add(T x);
     
     //@ public normal_behavior
@@ -58,13 +58,13 @@ public class set<T> implements IJmlPrimitiveType, IJmlArrayLike {
     //@   ensures this.contains(x) ==> \result.size() == this.size() - 1;
     //@   ensures !\result.contains(x);
     //@   ensures (\forall T t; t != x; \result.contains(t) == this.contains(t));
-    //@ heap_free
+    //@ no_state
     public set<T> remove(T x);
 
     //@ public normal_behavior
     //@   ensures \forall T j; this.contains(j);  p.apply(j) ==> \result.contains(j));
     //@   ensures \forall T j; \result.contains(j) ==> (this.contains(j) && p.apply(j);
-    //@ heap_free
+    //@ no_state
     public set<T> filter(java.util.function.Predicate<T> p);}
 */
 }

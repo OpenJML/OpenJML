@@ -722,8 +722,8 @@ public class Utils {
         return a.byteValue();
     }
 
-    public static Real bigint_toreal(BigInteger a) {
-        return new Real(a.doubleValue());
+    public static real bigint_toreal(BigInteger a) {
+        return new real(a.doubleValue());
     }
 
     public static BigInteger bigint_valueOf(int i) {
@@ -738,67 +738,67 @@ public class Utils {
         return BigInteger.valueOf(i.longValue());
     }
 
-    public static Real real_add(Real a, Real b) {
+    public static real real_add(real a, real b) {
         return a.add(b);
     }
 
-    public static Real real_sub(Real a, Real b) {
+    public static real real_sub(real a, real b) {
         return a.subtract(b);
     }
 
-    public static Real real_mul(Real a, Real b) {
+    public static real real_mul(real a, real b) {
         return a.multiply(b);
     }
 
-    public static Real real_div(Real a, Real b) {
+    public static real real_div(real a, real b) {
         return a.divide(b);
     }
 
-    public static Real real_mod(Real a, Real b) {
+    public static real real_mod(real a, real b) {
         return a.mod(b);
     }
 
-    public static Real real_neg(Real a) {
+    public static real real_neg(real a) {
         return a.neg();
     }
 
-    public static boolean real_lt(Real a, Real b) {
+    public static boolean real_lt(real a, real b) {
         return a.compareTo(b) < 0;
     }
 
-    public static boolean real_le(Real a, Real b) {
+    public static boolean real_le(real a, real b) {
         return a.compareTo(b) <= 0;
     }
 
-    public static boolean real_gt(Real a, Real b) {
+    public static boolean real_gt(real a, real b) {
         return a.compareTo(b) > 0;
     }
 
-    public static boolean real_ge(Real a, Real b) {
+    public static boolean real_ge(real a, real b) {
         return a.compareTo(b) >= 0;
     }
 
-    public static boolean real_eq(Real a, Real b) {
+    public static boolean real_eq(real a, real b) {
         return a.compareTo(b) == 0;
     }
 
-    public static boolean real_ne(Real a, Real b) {
+    public static boolean real_ne(real a, real b) {
         return a.compareTo(b) != 0;
     }
 
-    public static boolean real_nonzero(Real a) {
-        return a.compareTo(Real.ZERO) != 0;
+    public static boolean real_nonzero(real a) {
+        return a.compareTo(real.ZERO) != 0;
     }
 
-    public static Real real_valueOf(double i) {
-        return Real.valueOf(i);
+    public static real real_valueOf(double i) {
+        return real.valueOf(i);
     }
 
-    public static double real_todouble(Real a) {
+    public static double real_todouble(real a) {
         return a.doubleValue();
     }
 
-    public static float real_tofloat(Real a) {
+    public static float real_tofloat(real a) {
         return (float)a.doubleValue();
     }
 

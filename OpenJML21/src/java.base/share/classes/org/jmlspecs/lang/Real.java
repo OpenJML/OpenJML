@@ -10,39 +10,39 @@ package org.jmlspecs.lang;
  * a class different from Double, both because we want to improve on the double
  * implementation and because Double can't unbox to both double and \real.
  */
-public class Real extends Number implements Comparable<Real> {
+public class real extends Number implements Comparable<real> {
     private static final long serialVersionUID = 1L;
 
     protected double _double;
     
-    public Real(double d) { _double = d; }
+    public real(double d) { _double = d; }
     
-    public Real add(Real r) {
-        return new Real(_double + r._double);
+    public real add(real r) {
+        return new real(_double + r._double);
     }
 
-    public Real subtract(Real r) {
-        return new Real(_double + r._double);
+    public real subtract(real r) {
+        return new real(_double + r._double);
     }
 
-    public Real multiply(Real r) {
-        return new Real(_double + r._double);
+    public real multiply(real r) {
+        return new real(_double + r._double);
     }
 
-    public Real divide(Real r) {
-        return new Real(_double + r._double);
+    public real divide(real r) {
+        return new real(_double + r._double);
     }
 
-    public Real mod(Real r) {
-        return new Real(_double + r._double);
+    public real mod(real r) {
+        return new real(_double + r._double);
     }
 
-    public Real neg() {
-        return new Real(-_double);
+    public real neg() {
+        return new real(-_double);
     }
 
-    static public Real valueOf(double d) {
-        return new Real(d);
+    static public real valueOf(double d) {
+        return new real(d);
     }
 
     public double doubleValue() {
@@ -61,11 +61,11 @@ public class Real extends Number implements Comparable<Real> {
         return (int)_double;
     }
 
-    public int compareTo(Real r) {
+    public int compareTo(real r) {
         return (_double == r._double) ? 0 : (_double < r._double) ? -1 : 1;
     }
     
-    static public Real ZERO = Real.valueOf(0.0);
+    static public real ZERO = real.valueOf(0.0);
     
     public String toString() {
         return Double.toString(_double);

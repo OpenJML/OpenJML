@@ -7,7 +7,7 @@ public class Log {
  //	ensures (ii >> \result) == 1;
         ensures (1 << \result) <= ii < (1 << (\result+1));
  @*/
-public static final /*@ pure heap_free @*/ int log2(int ii) {
+public static final /*@ pure no_state @*/ int log2(int ii) {
 	int log = 0;
 	/*@
 	 decreasing ii-1;

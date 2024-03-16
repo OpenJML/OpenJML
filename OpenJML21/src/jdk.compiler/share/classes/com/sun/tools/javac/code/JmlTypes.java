@@ -51,7 +51,7 @@ public class JmlTypes extends Types {
     }
 
     /** The singleton instance for the \real JML type */
-    final public JmlType REAL = new JmlType(JmlTokenKind.BSREAL,Strings.jmlSpecsPackage + ".Real");
+    final public JmlType REAL = new JmlType(JmlTokenKind.BSREAL,Strings.jmlSpecsPackage + ".real");
     {
         jmltypes.put(JmlTokenKind.BSREAL, REAL);
     }

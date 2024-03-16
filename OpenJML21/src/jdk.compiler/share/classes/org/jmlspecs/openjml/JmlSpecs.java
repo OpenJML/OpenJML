@@ -45,7 +45,7 @@ import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.Modifiers.PURE;
 import static org.jmlspecs.openjml.ext.Modifiers.SPEC_PURE;
 import static org.jmlspecs.openjml.ext.Modifiers.STRICTLY_PURE;
-import static org.jmlspecs.openjml.ext.Modifiers.HEAP_FREE;
+import static org.jmlspecs.openjml.ext.Modifiers.NO_STATE;
 import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
 //import org.osgi.framework.Bundle;
 //import org.w3c.dom.Element;
@@ -1402,7 +1402,7 @@ public class JmlSpecs {
         
         boolean libraryMethod = sym.owner instanceof ClassSymbol && sym.owner.toString().startsWith("java");
         boolean isPureA = determinePurity(sym) != null ;
-               // : utils.hasModifier(mspecs.mods, Modifiers.PURE, Modifiers.SPEC_PURE, MOdifiers.STRICTLY_PURE, Modifiers.HEAP_FREE); // use isPure?
+               // : utils.hasModifier(mspecs.mods, Modifiers.PURE, Modifiers.SPEC_PURE, MOdifiers.STRICTLY_PURE, Modifiers.NO_STATE); // use isPure?
         boolean isPureL = (libraryMethod && !JmlOption.isOption(context,JmlOption.PURITYCHECK));
         //if (print) System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
@@ -2111,7 +2111,7 @@ public class JmlSpecs {
         var t = determinePurity(msym);
         if (t == null) return false;
         var k = t.jmlclausekind;
-        if (k == SPEC_PURE || k == STRICTLY_PURE || k == HEAP_FREE) return true;
+        if (k == SPEC_PURE || k == STRICTLY_PURE || k == NO_STATE) return true;
         if (k == PURE) {
             Type ty = msym.getReturnType();
             if (utils.isJavaOrJmlPrimitiveType(ty)) return true;
@@ -2120,7 +2120,7 @@ public class JmlSpecs {
     }
 
     public JmlToken findPurityModifier(JmlModifiers mods) {
-        return utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.HEAP_FREE);
+        return utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.NO_STATE);
     }
     
     public JmlToken determinePurity(MethodSymbol msym) {
@@ -2128,7 +2128,7 @@ public class JmlSpecs {
         JmlModifiers mods = getSpecsModifiers(msym);
         if (print) System.out.println("DP_REQUEST " + msym.owner + " " + msym + " " + mods);
         if (mods != null) {
-            var a = utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.HEAP_FREE);
+            var a = utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.NO_STATE);
             if (print) System.out.println("DIRECT  " + msym.owner + " " + msym + " " + a);
             if (a != null) return a;
         }
@@ -2137,7 +2137,7 @@ public class JmlSpecs {
             var p = determinePurity(mp);
             if (print) System.out.println("DET  " + msym.owner + " " + msym + " " + mp.owner + " " + mp + " " + p);
             if (p == null) continue;
-            if (p.jmlclausekind == Modifiers.HEAP_FREE) return p;
+            if (p.jmlclausekind == Modifiers.NO_STATE) return p;
             else if (p.jmlclausekind == Modifiers.STRICTLY_PURE) best = p;
             else if (p.jmlclausekind == Modifiers.SPEC_PURE && (best == null || best.jmlclausekind != Modifiers.STRICTLY_PURE)) best = p;
             else if (p.jmlclausekind == Modifiers.PURE && (best == null || best.jmlclausekind == Modifiers.PURE)) best = p;
@@ -2155,7 +2155,7 @@ public class JmlSpecs {
     public JmlToken determinePurity(ClassSymbol csym) {
         JmlModifiers mods = getSpecsModifiers(csym);
         if (mods != null) {
-            var a = utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.HEAP_FREE);
+            var a = utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.NO_STATE);
             //if (csym.toString().equals("java.lang.Iterable")) System.out.println("Iterable-A " + a);
             //if (csym.toString().equals("java.util.Collection")) System.out.println("Collection-A " + a);
             if (a != null) return a;
@@ -2175,8 +2175,8 @@ public class JmlSpecs {
     public boolean isPureLocal(MethodSymbol symbol) {
         JmlModifiers mods = getSpecsModifiers(symbol);
         if (mods != null) {
-            //if (print) System.out.println("MODS " + symbol.owner + " " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasModifier(mods,  Modifiers.PURE) + " " + utils.hasModifier(mods,  Modifiers.HEAP_FREE) + " " + isPure((Symbol.ClassSymbol)symbol.owner));
-            if (utils.hasModifier(mods,  Modifiers.PURE, Modifiers.HEAP_FREE)) return true; 
+            //if (print) System.out.println("MODS " + symbol.owner + " " + symbol + " " + mods + " " + mods.annotations + " " + utils.hasModifier(mods,  Modifiers.PURE) + " " + utils.hasModifier(mods,  Modifiers.NO_STATE) + " " + isPure((Symbol.ClassSymbol)symbol.owner));
+            if (utils.hasModifier(mods,  Modifiers.PURE, Modifiers.NO_STATE)) return true; 
         }
         //if (print) System.out.println("MODS " + symbol.owner + " " + symbol + "  NULL MODS");
         return isPureClass((ClassSymbol)symbol.owner);

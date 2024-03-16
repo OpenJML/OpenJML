@@ -914,20 +914,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public ModifierKind[] allowedTypeModifiers = new ModifierKind[]{
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, HEAP_FREE, MODEL, QUERY, SKIPRAC, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE,
+        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, NO_STATE, MODEL, QUERY, SKIPRAC, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE,
         SPEC_PUBLIC, SPEC_PROTECTED};
 
     public ModifierKind[] allowedNestedTypeModifiers = new ModifierKind[]{
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, HEAP_FREE, MODEL, QUERY, SPEC_PUBLIC, SPEC_PROTECTED, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE};
+        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, NO_STATE, MODEL, QUERY, SPEC_PUBLIC, SPEC_PROTECTED, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE};
 
     public ModifierKind[] allowedNestedModelTypeModifiers = new ModifierKind[]{
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, HEAP_FREE, MODEL, QUERY, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE};
+        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, NO_STATE, MODEL, QUERY, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE};
 
     public ModifierKind[] allowedLocalTypeModifiers = new ModifierKind[]{
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, HEAP_FREE, MODEL, QUERY, IMMUTABLE};
+        OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, NO_STATE, MODEL, QUERY, IMMUTABLE};
 
     /** This is a set of the modifiers that may be used to characterize a type. */
     public ModifierKind[] typeModifiers = new ModifierKind[]{NULLABLE,NON_NULL,BSREADONLY};
@@ -1053,7 +1053,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             checkForRedundantSpecMod(specsModifiers);
         }
         checkForConflict(specsModifiers,NON_NULL_BY_DEFAULT,NULLABLE_BY_DEFAULT);
-        checkForConflict(specsModifiers,PURE,SPEC_PURE,STRICTLY_PURE,HEAP_FREE);
+        checkForConflict(specsModifiers,PURE,SPEC_PURE,STRICTLY_PURE,NO_STATE);
         //checkForConflict(specsModifiers,PURE,QUERY);
         //checkForConflict(specsModifiers,SPEC_PURE,QUERY);
         //checkForConflict(specsModifiers,STRICTLY_PURE,QUERY);
@@ -1576,7 +1576,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on non-model non-constructor methods */
     public final ModifierKind[] allowedMethodAnnotations =
         new ModifierKind[] {
-        MODEL, PURE, SPEC_PURE, STRICTLY_PURE, NON_NULL, NULLABLE, OPTIONS, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT, QUERY, SECRET, HEAP_FREE,
+        MODEL, PURE, SPEC_PURE, STRICTLY_PURE, NON_NULL, NULLABLE, OPTIONS, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT, QUERY, SECRET, NO_STATE,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY, SKIPESC, SKIPRAC, INLINE // FIXME - allowing these until the rules are really implemented
 
@@ -1585,7 +1585,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on non-model non-constructor methods in interfaces */
     public final ModifierKind[] allowedInterfaceMethodAnnotations =
         new ModifierKind[] {
-        MODEL, PURE, SPEC_PURE, STRICTLY_PURE, NON_NULL, NULLABLE, OPTIONS, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, QUERY, HEAP_FREE,
+        MODEL, PURE, SPEC_PURE, STRICTLY_PURE, NON_NULL, NULLABLE, OPTIONS, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, QUERY, NO_STATE,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY, INLINE // FIXME - allowing these until the rules are really implemented
 
@@ -1594,7 +1594,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on model non-constructor methods */
     public final ModifierKind[] allowedModelMethodAnnotations =
         new ModifierKind[] {
-        MODEL, PURE, SPEC_PURE, STRICTLY_PURE, NON_NULL, NULLABLE, OPTIONS, HELPER, EXTRACT, QUERY, SECRET, HEAP_FREE,
+        MODEL, PURE, SPEC_PURE, STRICTLY_PURE, NON_NULL, NULLABLE, OPTIONS, HELPER, EXTRACT, QUERY, SECRET, NO_STATE,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY, SKIPESC, INLINE // FIXME - allowing these until the rules are really implemented
 
@@ -1603,7 +1603,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on model non-constructor interface methods */
     public final ModifierKind[] allowedInterfaceModelMethodAnnotations =
         new ModifierKind[] {
-        MODEL, PURE, SPEC_PURE, STRICTLY_PURE, NON_NULL, NULLABLE, OPTIONS, HELPER, QUERY, SECRET, HEAP_FREE,
+        MODEL, PURE, SPEC_PURE, STRICTLY_PURE, NON_NULL, NULLABLE, OPTIONS, HELPER, QUERY, SECRET, NO_STATE,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY, INLINE // FIXME - allowing these until the rules are really implemented
 
@@ -1771,7 +1771,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     }
                 }
                 checkForConflict(mods,NON_NULL,NULLABLE);
-                checkForConflict(mods,PURE,SPEC_PURE,STRICTLY_PURE,HEAP_FREE,QUERY);
+                checkForConflict(mods,PURE,SPEC_PURE,STRICTLY_PURE,NO_STATE,QUERY);
                 var selfPurity = specs.determinePurity(msym);
                 var loc = selfPurity != null ? selfPurity.pos() : javaMethodTree;
                 boolean print = false; // msym.toString().contains("toString") && msym.owner.toString().contains("Locale");
@@ -1784,7 +1784,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     
                     if (selfPurity == null ||
                             (selfPurity.jmlclausekind == PURE && parentPurity.jmlclausekind != PURE) ||
-                            (parentPurity.jmlclausekind == HEAP_FREE && selfPurity.jmlclausekind != HEAP_FREE) ||
+                            (parentPurity.jmlclausekind == NO_STATE && selfPurity.jmlclausekind != NO_STATE) ||
                             (parentPurity.jmlclausekind == STRICTLY_PURE && selfPurity.jmlclausekind == SPEC_PURE)) {
                         if (parentPurity.source != null && parentPurity.pos >= 0)
                             utils.errorAndAssociatedDeclaration(log.currentSourceFile(), loc, parentPurity.source, parentPurity, 
@@ -1815,18 +1815,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            }
 
             
-            // Check rules about heap_free
-            JmlToken t = utils.findModifier(mods,HEAP_FREE);
+            // Check rules about no_state
+            JmlToken t = utils.findModifier(mods,NO_STATE);
             // FIXME - check that all specs are 'reads \nothing'
 //            if (a != null && !utils.isJMLStatic(msym)) {
 //                if (msym.owner instanceof ClassSymbol owner && !isImmutable(owner)) {
-//                    utils.error(a,"jml.heap_free.must.have.immutable",msym.name);
+//                    utils.error(a,"jml.no_state.must.have.immutable",msym.name);
 //                }
 //            }
 //            a=utils.findMod(mods,modToAnnotationSymbol.get(FUNCTION));
 //            if (a != null && !utils.isJMLStatic(msym)) {
 //                if (msym.owner instanceof ClassSymbol owner && !isImmutable(owner)) {
-//                    utils.error(a,"jml.heap_free.must.have.immutable",msym.name);
+//                    utils.error(a,"jml.no_state.must.have.immutable",msym.name);
 //                }
 //            }
             
@@ -2812,7 +2812,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                     key.kind == nothingKind) {
                                         // OK
                         } else if (decl != null && isHeapIndependent(decl.sym)) {
-                            utils.error(asg.source(),p,"jml.heap_free.method",tt.toString());
+                            utils.error(asg.source(),p,"jml.no_state.method",tt.toString());
                         } else {
                             utils.error(asg.source(),p,"jml.pure.method", tt.toString() + " in " + msym.owner + "." + msym);
                         }
@@ -6891,7 +6891,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
             return false;
         }
-        if (utils.hasModifier((JmlModifiers)mspecs.mods, Modifiers.HELPER,  Modifiers.HEAP_FREE)) return true;
+        if (utils.hasModifier((JmlModifiers)mspecs.mods, Modifiers.HELPER,  Modifiers.NO_STATE)) return true;
         return false;
     }
     
@@ -6948,7 +6948,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
             return false;
         }
-        return utils.findModifier(mspecs.mods,Modifiers.HEAP_FREE) != null;
+        return utils.findModifier(mspecs.mods,Modifiers.NO_STATE) != null;
     }
     
     public boolean isImmutable(ClassSymbol symbol) {

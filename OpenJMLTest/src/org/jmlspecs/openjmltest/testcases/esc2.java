@@ -4042,7 +4042,7 @@ public class esc2 extends EscBase {
                         + "public class TestJava  { \n" 
                         + "  //@ normal_behavior \n"
                         + "  //@ ensures \\result == (0 < i < 10);\n" 
-                        + "  //@ heap_free\n"
+                        + "  //@ no_state\n"
                         + "  //@ model public static boolean m(int i);\n"
 
                         + "  //@ pure\n" 

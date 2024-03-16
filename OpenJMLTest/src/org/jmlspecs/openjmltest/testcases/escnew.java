@@ -1686,10 +1686,10 @@ public class escnew extends EscBase {
                 +"  public /*@ nullable */ <TT> TT mtr(int i) { return null; };\n"
                 
                 +"  //@ ensures true; pure\n"
-                +"  //@ model heap_free public static int mf(int i);\n"
+                +"  //@ model no_state public static int mf(int i);\n"
                 
                 +"  //@ ensures true; pure\n"
-                +"  //@ heap_free \n"
+                +"  //@ no_state \n"
                 +"  public static int mfr(int i) { return 0; }\n"
                 
                 +"  //@ ensures mm(i) == mm(i);\n"

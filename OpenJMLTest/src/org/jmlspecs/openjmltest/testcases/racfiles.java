@@ -145,7 +145,7 @@ public class racfiles extends RacBase {
     }
 
     @Test
-    public void testreal() {
+    public void racreal() {
         expectedExit = 0;
         helpTCF("test/racreal","test/racreal","real");
     }

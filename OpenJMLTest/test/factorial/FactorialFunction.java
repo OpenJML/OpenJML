@@ -35,7 +35,7 @@
            also
             requires n == 0;
             ensures \result == 1;
-        public static model heap_free pure long spec_factorial(int n){ 
+        public static model no_state pure long spec_factorial(int n){ 
 	    if(n == 0) {
 		 return 1; 
 	    }

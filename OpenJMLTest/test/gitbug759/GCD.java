@@ -3,7 +3,7 @@ public class GCD{
       @ requires n2 != 0;
       @ // ensures \result == n1%n2; 
       @*/
-    public /*@ pure heap_free @*/static int mod(int n1, int n2){
+    public /*@ pure no_state @*/static int mod(int n1, int n2){
         return n1 % n2;
     }
     
@@ -13,7 +13,7 @@ public class GCD{
 	  @    requires Integer.MIN_VALUE < n < 0;
 	  @    ensures \result == -n; 
       @*/
-    public /*@ pure heap_free @*/ static int abs(int n){
+    public /*@ pure no_state @*/ static int abs(int n){
         return (0 <= n) ? n : -n;
     }
 
@@ -33,7 +33,7 @@ public class GCD{
     @   requires nn1 != 0 && nn2 == 0;
     @   ensures \result == abs(nn1);
         @ |} @*/
-    public /*@ pure heap_free @*/ static int gcd(int nn1, int nn2) throws IllegalArgumentException{
+    public /*@ pure no_state @*/ static int gcd(int nn1, int nn2) throws IllegalArgumentException{
           //@ reachable
         int result = 1;
         int n1 = abs(nn1);
@@ -83,59 +83,59 @@ public class GCD{
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE && -Integer.MAX_VALUE < d < Integer.MAX_VALUE;
     //@ requires n != 0 || d != 0;
     //@ ensures \result == (GCD.gcd(n/GCD.gcd(n,d), d/GCD.gcd(n,d)) == 1);
-    //@ pure helper heap_free
+    //@ pure helper no_state
     public static boolean lemma(int n, int d) { /*@ show n, d; */  return true; }
 
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE && -Integer.MAX_VALUE < d < Integer.MAX_VALUE;
     //@ requires n != 0 || d != 0;
     //@ ensures \result == ((\lbl A GCD.gcd(n, d)) == (\lbl B GCD.gcd(-n,d)));
-    //@ pure helper heap_free
+    //@ pure helper no_state
     public static boolean lemma2(int n, int d) { /*@ show n, d; */  return true; }
 
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE && -Integer.MAX_VALUE < d < Integer.MAX_VALUE;
     //@ requires n != 0 || d != 0;
     //@ ensures \result == ((\lbl A GCD.gcd(n, d)) == (\lbl B GCD.gcd(n,-d)));
-    //@ pure helper heap_free
+    //@ pure helper no_state
     public static boolean lemma3(int n, int d) { /*@ show n, d; */ return true; }
 
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE;
     //@ ensures \result == ((\lbl A GCD.gcd(n, 1)) == 1);
-    //@ pure helper heap_free
+    //@ pure helper no_state
     public static boolean lemma4(int n) { /*@ show n; */ return true; }
 
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE;
     //@ requires n != 0;
     //@ ensures \result == ((\lbl A GCD.gcd(n, n)) == n);
-    //@ pure helper heap_free
+    //@ pure helper no_state
     public static boolean lemma5(int n) { /*@ show n; */ return true; }
 
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE;
     //@ requires n != 0;
     //@ ensures \result == ((\lbl A GCD.gcd(0, n)) == abs(n));
-    //@ pure helper heap_free
+    //@ pure helper no_state
     public static boolean lemma6(int n) { /*@ show n; */ return true; }
 
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE && -Integer.MAX_VALUE < d < Integer.MAX_VALUE;
     //@ requires n != 0 || d != 0;
     //@ ensures \result == ((\lbl A GCD.gcd(n, d)) == (\lbl B GCD.gcd(d,n)));
-    //@ pure helper heap_free
+    //@ pure helper no_state
     public static boolean lemma7(int n, int d) { /*@ show n, d; */ return true; }
 
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE && -Integer.MAX_VALUE < d < Integer.MAX_VALUE;
     //@ requires n != 0 || d != 0;
     //@ ensures \result == ((\lbl A GCD.gcd(n, d)) == (\lbl B GCD.gcd(-n, -d)));
-    //@ pure helper heap_free
+    //@ pure helper no_state
     public static boolean lemma8(int n, int d) { /*@ show n, d; */ return true; }
 
     // @ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE && k > 0 && g > 0;
     //@ requires -1000000 < n < 1000000 && k > 0 && g > 0;
     //@ ensures \result == (((\lbl A mod(n,g)) == 0 && (\lbl B mod(n/g,k)) == 0) ==> (\lbl C mod(n,k)) == 0);
-    //@ pure helper heap_free
+    //@ pure helper no_state
     public static boolean lemma9(int n, int k, int g) { /*@ show n, k, g; */ return true; }
 
     //@ requires n != Integer.MIN_VALUE && d != 0;
     //@ ensures mod(n,d) == 0 ==> (n/d)*d == n;
-    //@ pure helper heap_free
+    //@ pure helper no_state
     public static boolean divmod(int n, int d) { return true; }
 
 }

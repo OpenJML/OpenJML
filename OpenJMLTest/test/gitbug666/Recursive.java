@@ -24,7 +24,7 @@ public class Recursive {
    //@   requires y >= 0 && x >= 1;
    //@   ensures \result == (y == 0 ? 1 : y == 1 ? x : x * mpow(x,y-1));
    //@ pure
-   //@ model public static heap_free helper long mpow(long x, long y);
+   //@ model public static no_state helper long mpow(long x, long y);
 
    //@ public normal_behavior
    //@   requires x <= 10 && y <= 15;
