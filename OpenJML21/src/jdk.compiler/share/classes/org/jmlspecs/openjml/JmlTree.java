@@ -3667,7 +3667,7 @@ public class JmlTree {
     	public JavaFileObject source;
     	
     	public boolean isEverything() { return isEverything; }
-    	public boolean isNothing() { return originalStoreRef instanceof JmlSingleton sing && sing.kind == JMLPrimitiveTypes.nothingKind; }
+    	public boolean isNothing() { return originalStoreRef instanceof JmlSingleton sing && sing.kind == JmlPrimitiveTypes.nothingKind; }
     	
     	// Cases: before type attribution (type == null)
     	// isEverything=true: \everything

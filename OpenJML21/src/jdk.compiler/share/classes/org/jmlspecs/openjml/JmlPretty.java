@@ -17,7 +17,7 @@ import java.util.Iterator;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
-import org.jmlspecs.openjml.ext.JMLPrimitiveTypes;
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
 import org.jmlspecs.openjml.ext.JmlOperatorKind;
@@ -990,7 +990,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 print(")");
             } else {
                 if (that.isEverything) {
-                    print(JMLPrimitiveTypes.everythingKind.keyword);
+                    print(JmlPrimitiveTypes.everythingKind.keyword);
                 } else if (that.local != null) {
                     print(that.local.toString());
                 } else if (that.expression != null) {

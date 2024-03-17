@@ -18,7 +18,7 @@ import org.jmlspecs.openjml.Main.JmlCanceledException;
 import org.jmlspecs.openjml.Utils.JmlNotImplementedException;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.Label;
-import org.jmlspecs.openjml.ext.JMLPrimitiveTypes;
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.LocsetExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
 
@@ -1970,11 +1970,11 @@ public class JmlTreeUtils {
      }
 
     public JCExpression makeLocsetUnion(DiagnosticPosition pos, List<JCExpression> locsetExprs) {
-    	return makeJmlMethodInvocation(pos, LocsetExtensions.unionKind, JMLPrimitiveTypes.locsetTypeKind.getType(context), locsetExprs);
+    	return makeJmlMethodInvocation(pos, LocsetExtensions.unionKind, JmlPrimitiveTypes.locsetTypeKind.getType(context), locsetExprs);
     }
     
     public JCExpression makeLocset(JCExpression e) {
-    	return makeJmlMethodInvocation(e, JMLPrimitiveTypes.locsetTypeKind, JMLPrimitiveTypes.locsetTypeKind.getType(context), e);
+    	return makeJmlMethodInvocation(e, JmlPrimitiveTypes.locsetTypeKind, JmlPrimitiveTypes.locsetTypeKind.getType(context), e);
     }
     
      

@@ -31,7 +31,7 @@ import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.ReachableStatement.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.Functional.*;
-import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
+import static org.jmlspecs.openjml.ext.JmlPrimitiveTypes.*;
 import org.jmlspecs.openjml.ext.Refining;
 import org.jmlspecs.openjml.ext.JmlOperatorKind;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;

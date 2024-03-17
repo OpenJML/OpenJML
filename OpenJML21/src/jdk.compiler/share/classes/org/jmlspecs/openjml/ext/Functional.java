@@ -121,7 +121,7 @@ public class Functional extends JmlExtension {
                         }
                     }
                     if (kind == requiresExprKind || kind == ensuresExprKind) return attr.syms.booleanType;
-                    else return JMLPrimitiveTypes.locsetTypeKind.getType(attr.context);
+                    else return JmlPrimitiveTypes.locsetTypeKind.getType(attr.context);
             }
         }
     };

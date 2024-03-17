@@ -46,7 +46,7 @@ import static org.jmlspecs.openjml.ext.Modifiers.PURE;
 import static org.jmlspecs.openjml.ext.Modifiers.SPEC_PURE;
 import static org.jmlspecs.openjml.ext.Modifiers.STRICTLY_PURE;
 import static org.jmlspecs.openjml.ext.Modifiers.NO_STATE;
-import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
+import static org.jmlspecs.openjml.ext.JmlPrimitiveTypes.*;
 //import org.osgi.framework.Bundle;
 //import org.w3c.dom.Element;
 

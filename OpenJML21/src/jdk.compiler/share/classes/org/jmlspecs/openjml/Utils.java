@@ -42,7 +42,7 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlModifiers;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
-import org.jmlspecs.openjml.ext.JMLPrimitiveTypes;
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.Modifiers;
 //import org.jmlspecs.openjml.strongarm.JDKListUtils;
 
@@ -2121,7 +2121,7 @@ public class Utils {
     
     /** This just tests whether the type is explicitly a datagroup */
     public boolean isOnlyDatagroup(Type type) {
-        return type == JMLPrimitiveTypes.datagroupTypeKind.getType(context);
+        return type == JmlPrimitiveTypes.datagroupTypeKind.getType(context);
         //return type.toString().contains("JMLDataGroup"); // FIXME - something better than string comparison?
     }
 

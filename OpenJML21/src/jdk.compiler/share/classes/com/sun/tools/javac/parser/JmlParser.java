@@ -29,12 +29,12 @@ import org.jmlspecs.openjml.ext.Refining;
 import org.jmlspecs.openjml.ext.JmlOperatorKind;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
-import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
+import static org.jmlspecs.openjml.ext.JmlPrimitiveTypes.*;
 
 import static org.jmlspecs.openjml.ext.ReachableStatement.*;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
 import org.jmlspecs.openjml.ext.InlinedLoopStatement;
-import org.jmlspecs.openjml.ext.JMLPrimitiveTypes;
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.MatchExt;
 import org.jmlspecs.openjml.ext.MiscExpressions;
 import org.jmlspecs.openjml.ext.Modifiers;
@@ -2490,7 +2490,7 @@ public class JmlParser extends JavacParser {
         	int dotpos = pos();
         	nextToken();
         	if (jmlTokenKind() != JmlTokenKind.DOT_DOT) {
-        		JMLPrimitiveTypes.rangeTypeKind.parse(null, null,JMLPrimitiveTypes.rangeTypeKind, this);
+        		JmlPrimitiveTypes.rangeTypeKind.parse(null, null,JmlPrimitiveTypes.rangeTypeKind, this);
         		return jmlF.at(dotpos).JmlRange(null,null);
         	}
         } else {
@@ -2511,7 +2511,7 @@ public class JmlParser extends JavacParser {
         	} else {
         	    tt = term1Cond();
         	}
-        	JMLPrimitiveTypes.rangeTypeKind.parse(null, null, JMLPrimitiveTypes.rangeTypeKind, this);
+        	JmlPrimitiveTypes.rangeTypeKind.parse(null, null, JmlPrimitiveTypes.rangeTypeKind, this);
         	return jmlF.at(dotpos).JmlRange(t,tt);
         } else {
             return t;
@@ -2684,7 +2684,7 @@ public class JmlParser extends JavacParser {
                     return jmlF.at(p).Erroneous();
                 } else if (kind instanceof IJmlClauseKind.SingletonKind) {
                 	return (JCExpression)kind.parse(null, id, kind, this);
-                } else if (kind instanceof org.jmlspecs.openjml.ext.JMLPrimitiveTypes.JmlTypeKind tk) {
+                } else if (kind instanceof org.jmlspecs.openjml.ext.JmlPrimitiveTypes.JmlTypeKind tk) {
                     if (peekToken(t -> t == TokenKind.DOT)) {
                         JCExpression eee = toP(super.term3());
                         return eee;

@@ -173,7 +173,7 @@ public class Extensions {
             ArrayFieldExtension.class,
             
             // Types
-            JMLPrimitiveTypes.class,
+            JmlPrimitiveTypes.class,
             
             LineAnnotationClauses.class,
             MatchExt.class,
@@ -235,7 +235,7 @@ public class Extensions {
         // as they are nested within a JmlExtension, the class is accepted, but is already 
         // static-initialized by virtue of its containing class.
         if (!JmlExtension.class.isAssignableFrom(cce)) {
-            // Utils.instance(context).note("Skipped " + cce); // debugging only
+            //Utils.instance(context).note("Skipped " + cce); // debugging only
             String s = cce.toString();
             int k = s.indexOf('$');
             if (k > 0) s = s.substring(0, k);
@@ -270,9 +270,9 @@ public class Extensions {
                 return true; 
             } 
             catch (ClassNotFoundException ee) { 
-//            	Utils.instance(context).note("Not found " + s); 
+            	Utils.instance(context).note("Not found " + s); 
             }
-            Utils.instance(context).note("Failed " + cc + " " + e.getMessage());
+            //Utils.instance(context).note("Failed " + cc + " " + e.getMessage());
             return false;
         }
     }
@@ -301,8 +301,6 @@ public class Extensions {
             JarFile jar = null;
             try {
                 String n = resource.toString().replace('\\', '/').replaceAll("%20"," "); // FIXME - use toExternalForm?
-                //System.out.println("RES " + n + " " + resource.toExternalForm());
-                //System.out.println("RES " + n);
                 if (n.startsWith(prefix)) {
                     int k = n.indexOf("!");
                     if (k < 0) continue;
@@ -318,7 +316,6 @@ public class Extensions {
                             k = name.indexOf('.');
                             if (k < 0) continue;
                             name = name.substring(0,k);
-                            //System.out.println("FOUND1 " + name);
                             foundClassNames.add(name);
                         }
                     }
@@ -327,7 +324,6 @@ public class Extensions {
                 } else {
 
                     File dir = new File(resource.getFile().replaceAll("%20"," ")); // FIXME - use toExternalForm?
-                    //System.out.println("DIR " + dir);
                     File[] files = dir.listFiles();
                     if (files == null) continue;
                     for (File f: files) {
@@ -336,7 +332,6 @@ public class Extensions {
                         int k = name.indexOf('.');
                         if (k < 0) continue;
                         name = name.substring(0,k);
-                        //System.out.println("FOUND2 " + name);
                         foundClassNames.add(name);
                     }
                     methodThatWorked = 2;
@@ -371,7 +366,7 @@ public class Extensions {
         ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
         if (foundClassNames.isEmpty()) {
             // Last resort
-            Utils.instance(context).note("Last resort loading of extensions");
+            //Utils.instance(context).note("Last resort loading of extensions");
             for (Class<?> cl : extensions) {
                  classes.add(cl);
             }
@@ -388,13 +383,19 @@ public class Extensions {
                 } catch (Throwable e) {
                     // Just skip if there is any exception, such as a
                     // Class or Method not found
-                	Utils.instance(context).note(true,"Failed to register " + fullname);
+                	//Utils.instance(context).note(true,"Failed to register " + fullname);
                 }
             }
             methodThatWorked = 5;
         }
-        Utils.instance(context).note(true,"Registered extensions using technique " + methodThatWorked);
+        //Utils.instance(context).note(true,"Registered extensions using technique " + methodThatWorked);
         return classes;
     }
     
+    /** For debugging, prints out the contents of 'allKinds' */
+    public static void dump() {
+        for (var e: allKinds.entrySet()) {
+            System.out.println(e.getKey() + "\t" + e.getValue());
+        }
+    }
 }

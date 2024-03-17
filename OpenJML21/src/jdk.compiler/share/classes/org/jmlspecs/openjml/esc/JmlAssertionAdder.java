@@ -54,7 +54,7 @@ import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeInClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeRepresentsClauseExtension.*;
-import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
+import static org.jmlspecs.openjml.ext.JmlPrimitiveTypes.*;
 
 import org.jmlspecs.openjml.visitors.JmlTreeCopier;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
@@ -2451,8 +2451,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (t == types.BIGINT) t = types.BIGINT.repSym.type;
         else if (t == types.REAL) t = types.REAL.repSym.type;
         else if (t == types.TYPE) t = types.TYPE.repSym.type;
-        else if (t == JMLPrimitiveTypes.locsetTypeKind.getType(context)) t = JMLPrimitiveTypes.locsetTypeKind.getRepType(context);
-        else if (t == JMLPrimitiveTypes.stringTypeKind.getType(context)) t = JMLPrimitiveTypes.stringTypeKind.getRepType(context);
+        else if (t == JmlPrimitiveTypes.locsetTypeKind.getType(context)) t = JmlPrimitiveTypes.locsetTypeKind.getRepType(context);
+        else if (t == JmlPrimitiveTypes.stringTypeKind.getType(context)) t = JmlPrimitiveTypes.stringTypeKind.getRepType(context);
         //else if (utils.isExtensionValueType(t)) t = ((JmlType)t).getRepType(context);
         return t;
 	}
@@ -7856,7 +7856,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        return out;
 //    }
 
-	Type locsetType = JMLPrimitiveTypes.locsetTypeKind.getType(context);
+	Type locsetType = JmlPrimitiveTypes.locsetTypeKind.getType(context);
 
 	/* Makes a JmlStoreRef value from a store-ref-expression -- no expansion */
 	public List<JmlStoreRef> makeJmlStoreRef(DiagnosticPosition pos, JCExpression e, ClassSymbol baseClassSym, boolean expand) {
@@ -7946,11 +7946,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		} else if (e instanceof JmlSingleton s) {
 			// \nothing or \everything
-			if (s.kind == JMLPrimitiveTypes.everythingKind) {
+			if (s.kind == JmlPrimitiveTypes.everythingKind) {
 				sr = M.at(e.pos).JmlStoreRef(true, null, null, null, null, null, e);
 				sr.setType(locsetType);
 				list.add(sr);
-			} else if (s.kind == JMLPrimitiveTypes.nothingKind) {
+			} else if (s.kind == JmlPrimitiveTypes.nothingKind) {
 				// skip
 			} else {
 				// skip presuming an error already given
@@ -7973,7 +7973,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public JCExpression convertAssignableToLocsetExpression(JmlSource pos, List<JCExpression> list,
 			ClassSymbol baseType, JCExpression zzz) {
-		var locsetType = JMLPrimitiveTypes.locsetTypeKind.getType(context);
+		var locsetType = JmlPrimitiveTypes.locsetTypeKind.getType(context);
 		var previousSource = log.useSource(pos.source());
 		ListBuffer<JCExpression> locsets = new ListBuffer<>();
 		try {
@@ -10401,7 +10401,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 																treeutils.makeEquality(item.pos, hiXout, convertJML(item.range.hi, calleeEnv)));
 
 													JCExpression range = M.at(item.pos).JmlRange(loXout, hiXout); 
-													range.type = JMLPrimitiveTypes.rangeTypeKind.getType(context);
+													range.type = JmlPrimitiveTypes.rangeTypeKind.getType(context);
 															
 													JCExpression newloc = M.at(item.pos).Indexed(arrayXout, range);
 													//JmlBBArrayRange newloc = new JmlBBArrayAccess(null, arrayXout, loXout); // FIXME - switch to factory
@@ -13874,7 +13874,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (!rac && splitExpressions)
 					result = eresult = newTemp(eresult);
 				return;
-			} else if (equality && types.isSameType(that.lhs.type, JMLPrimitiveTypes.stringTypeKind.getType(context))) {
+			} else if (equality && types.isSameType(that.lhs.type, JmlPrimitiveTypes.stringTypeKind.getType(context))) {
 			    TypeSymbol csym = that.lhs.type.tsym;
 			    var msym = (MethodSymbol)csym.members().findFirst(names.fromString("eq"), s->s.isStatic());
 			    JCExpression ex = treeutils.makeMethodInvocation(that,  null,  msym, lhs, rhs);

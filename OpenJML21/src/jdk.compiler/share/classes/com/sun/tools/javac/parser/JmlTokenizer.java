@@ -383,6 +383,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             jmlTokenClauseKind = null;
             tk = null;
             Token t = super.readToken(); // Sets tk, May modify jmlTokenKind
+            if (scannerDebug) System.out.println("READ SUPER " + t + " " + jmlTokenKind + " " + jmlTokenClauseKind);
             pos = t.pos;
             endPos = t.endPos;
             // Note that the above may call processComment. If the comment is a JML comment, the
@@ -651,6 +652,7 @@ public class JmlTokenizer extends JavadocTokenizer {
     	super.scanOperator();
         if (!jml) return; // not in JML - so we scanned a regular Java operator
         if (tk == null && get() == '\\') {
+            if (scannerDebug) System.out.println("GOT BACKSLASH");
             // backslash identifiers get redirected here since a \ itself is an
             // error in pure Java - isSpecial does the trick
             int ep = position();
@@ -662,6 +664,12 @@ public class JmlTokenizer extends JavadocTokenizer {
                 String seq = name.toString();
                 jmlTokenKind = JmlTokenKind.backslashTokens.get(seq);
                 jmlTokenClauseKind = Extensions.allKinds.get(seq);
+                if (scannerDebug) {
+                    System.out.println("GOT BACKSLASH " + seq + " " + jmlTokenKind + " " + jmlTokenClauseKind);
+                    if (jmlTokenKind == null && jmlTokenClauseKind == null) {
+                        Extensions.dump();
+                    }
+                }
                 if (jmlTokenKind != null) {
                 	// TODO - any backslash tokens remaining in JmlToken -- they should all be moved to ext
                     tk = TokenKind.CUSTOM;

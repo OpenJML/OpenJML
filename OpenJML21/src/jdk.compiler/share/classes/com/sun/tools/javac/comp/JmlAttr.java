@@ -44,7 +44,7 @@ import static org.jmlspecs.openjml.ext.StatementLocationsExtension.*;
 import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
-import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
+import static org.jmlspecs.openjml.ext.JmlPrimitiveTypes.*;
 import static org.jmlspecs.openjml.ext.ShowStatement.*;
 import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.parser.JmlToken;
@@ -3326,7 +3326,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Overridden in order to be sure that the type specs are attributed. */
     public Type attribType(JCTree tree, Env<AttrContext> env) { // FIXME _ it seems this will automatically happen - why not?
         Type result;
-        if (tree instanceof JCIdent id && Extensions.findKeyword(id.name) instanceof JMLPrimitiveTypes.JmlTypeKind kt) {
+        if (tree instanceof JCIdent id && Extensions.findKeyword(id.name) instanceof JmlPrimitiveTypes.JmlTypeKind kt) {
             // Backslash identifier -- user added type
             result = kt.getType(context);
             tree.type = result;
@@ -4237,9 +4237,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
             } else if (e instanceof JmlSingleton s) {
                 // \nothing or \everything
-                if (s.kind == JMLPrimitiveTypes.everythingKind) {
+                if (s.kind == JmlPrimitiveTypes.everythingKind) {
                     that.isEverything = true;
-                } else if (s.kind == JMLPrimitiveTypes.nothingKind) {
+                } else if (s.kind == JmlPrimitiveTypes.nothingKind) {
                     // set nothing
                 } else {
                     // error should be already given
@@ -4255,7 +4255,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 attribExpr(that.expression, env, Type.noType);
                 // FIXME - should check that the result is locset
             }
-            result = that.type = JMLPrimitiveTypes.locsetTypeKind.getType(context);
+            result = that.type = JmlPrimitiveTypes.locsetTypeKind.getType(context);
         } catch (Exception ee) {
             ee.printStackTrace(System.out);
         }
@@ -4886,7 +4886,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			utils.error(that.hi, "jml.message", "Expected an integral type, not " + t);
     		}
     	}
-    	result = that.type = JMLPrimitiveTypes.rangeTypeKind.getType(context);
+    	result = that.type = JmlPrimitiveTypes.rangeTypeKind.getType(context);
     }
     
 //    public void visitJmlFunction(JmlFunction that) {
@@ -7805,8 +7805,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // that.init.type can be null if there was an error already in attributing that.init
             if (that.init != null && that.init.type != null &&
                     utils.isExtensionValueType(that.type) && !types.isSameType(that.type, that.init.type)) {
-                if (types.isSameType(that.type, JMLPrimitiveTypes.stringTypeKind.getType(context))) {
-                    JMLPrimitiveTypes.stringTypeKind.typecheck(this, that, env);
+                if (types.isSameType(that.type, JmlPrimitiveTypes.stringTypeKind.getType(context))) {
+                    JmlPrimitiveTypes.stringTypeKind.typecheck(this, that, env);
                 }
             }
             if (that.init != null && !utils.isJML(that.mods.flags)) {

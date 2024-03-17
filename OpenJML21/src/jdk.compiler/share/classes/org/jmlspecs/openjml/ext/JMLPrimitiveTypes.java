@@ -27,10 +27,10 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
-public class JMLPrimitiveTypes extends JmlExtension {
+public class JmlPrimitiveTypes extends JmlExtension {
     Context context;
     
-    public JMLPrimitiveTypes(Context context) {
+    public JmlPrimitiveTypes(Context context) {
         this.context = context;
         stringTypeKind.initType(context);
     }
@@ -192,7 +192,7 @@ public class JMLPrimitiveTypes extends JmlExtension {
 	
     public static final String datagroupID = "\\datagroup";
     
-    public static final JmlTypeKind datagroupTypeKind = new JmlTypeKind(datagroupID, "JMLDataGroup") {
+    public static final JmlTypeKind datagroupTypeKind = new JmlTypeKind(datagroupID, "org.jmlspecs.lang.internal.datagroup") {
         @Override
         public int numTypeArguments() { return 0; }
     };
