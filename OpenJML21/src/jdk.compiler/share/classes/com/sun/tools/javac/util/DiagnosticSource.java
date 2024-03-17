@@ -132,10 +132,8 @@ public class DiagnosticSource {
     }
 
     public void setEndPosTable(EndPosTable t) {
-        // FIXME - cf typecheckingJMLTypes.testStringType // OPENJML
-//        if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("SETTING ENDPOSTABLE " + fileObject + " " + (endPosTable != null) + " " + (endPosTable != t));
-//        if (endPosTable != null && endPosTable != t)
-//            throw new IllegalStateException("endPosTable already set: " + fileObject);
+        if (endPosTable != null && endPosTable != t)
+            throw new IllegalStateException("endPosTable already set: " + fileObject);
         endPosTable = t;
     }
 
