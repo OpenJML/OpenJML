@@ -132,6 +132,7 @@ module java.base {
     exports javax.security.cert;
     exports org.jmlspecs.annotation; // OPENJML
     exports org.jmlspecs.lang; // OPENJML
+    exports org.jmlspecs.lang.internal; // OPENJML
     exports org.jmlspecs.runtime; // OPENJML
 
 

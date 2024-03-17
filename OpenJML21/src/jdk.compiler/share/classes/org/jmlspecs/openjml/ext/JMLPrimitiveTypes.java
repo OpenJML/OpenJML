@@ -28,12 +28,11 @@ import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 public class JmlPrimitiveTypes extends JmlExtension {
-    Context context;
-    
-    public JmlPrimitiveTypes(Context context) {
-        this.context = context;
-        stringTypeKind.initType(context);
-    }
+//    Context context;
+//    
+//    public JmlPrimitiveTypes(Context context) {
+//        this.context = context;
+//    }
 
     public static class JmlTypeKind extends IJmlClauseKind {
         private String typename; // flat or unqualified type name
@@ -49,7 +48,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
             
         }
 
-        public void initType(Context context) { this.context = context; }
+//        public void initType(Context context) { this.context = context; }
 
         public int numTypeArguments() { return 0; }
 
