@@ -2730,6 +2730,30 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 hasRecommendsBlock = true;
                 continue;
             }
+            if (t == requiresClauseKind && m instanceof JmlMethodClauseExpr req && req.exception != null) {
+                ListBuffer<JmlMethodClause> nprefix = new ListBuffer<>();
+                for (var cl: prefix) if (cl.clauseKind == requiresClauseKind || cl.clauseKind == oldClause || cl.clauseKind == recommendsClauseKind) nprefix.add(cl);
+                var nreq = jmlMaker.at(m).JmlMethodClauseExpr(req.keyword,  req.clauseKind, treeutils.makeNot(req.expression, req.expression));
+                nreq.sourcefile = log.currentSourceFile();
+                nprefix.add(nreq);
+                JmlMethodClauseStoreRef asg = jmlMaker.at(m).JmlMethodClauseStoreRef(writesID,  assignableClauseKind, 
+                        List.of(jmlMaker.at(m).JmlSingleton(nothingKind)));
+                asg.sourcefile = log.currentSourceFile();
+                nprefix.add(asg);
+                nreq = jmlMaker.at(m).JmlMethodClauseExpr(ensuresID,  ensuresClauseKind, treeutils.falseLit);
+                nreq.sourcefile = log.currentSourceFile();
+                nprefix.add(nreq);
+                var cl = (jmlMaker.at(req).JmlMethodClauseSignalsOnly(signalsOnlyID, signalsOnlyClauseKind, 
+                        List.<JCExpression>of(req.exception)));
+                cl.sourcefile = log.currentSourceFile();
+                nprefix.add(cl);
+                JmlSpecificationCase sc = jmlMaker.at(parent).JmlSpecificationCase(mods, false, exceptionalBehaviorClause, null,nprefix.toList(),null);
+                sc.modifiers = parent.modifiers;
+                newlist.append(sc);
+                m = jmlMaker.at(m).JmlMethodClauseExpr(req.keyword,  req.clauseKind, req.expression); // no exception
+                m.sourcefile = log.currentSourceFile();
+           }
+
             if (exlist != null) {
                 JmlSpecificationCase scase = jmlMaker.JmlSpecificationCase(mods,false,behaviorClause,null,exlist.toList(),null);
                 newlist.append(scase);
@@ -2821,6 +2845,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         if (exlist != null) {
             JmlSpecificationCase scase = jmlMaker.JmlSpecificationCase(decl.mods,false,behaviorClause,null,exlist.toList(),null);
+            scase.callee_only = true;
             newlist.append(scase);
             exlist = null;
             signalsOnly = null;
@@ -3989,20 +4014,36 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		jmlenv = jmlenv.pushCopy();
         savedMethodClauseOutputEnv = this.env;
         jmlenv.currentClauseKind = tree.clauseKind;
+        var kw = tree.clauseKind.keyword();
+        if (tree.exception != null) {
+            if (kw.equals(requiresID) || kw.equals("recommends")) {
+                // OK
+            } else {
+                utils.error(tree.exception, "jml.message", "only requires and recommends clauses may have 'else' suffixes");
+            }
+        } else if (kw.equals("recommends")) {
+            utils.error(tree, "jml.message", "a recommends clause must have an 'else' suffix");
+        }
         Type t = null;
-        switch (tree.clauseKind.keyword()) {
+        switch (kw) {
             case "recommends":
                 t = tree.clauseKind.typecheck(this,tree,env);
                 break;
-            case "diverges":
+            case divergesID:
                 if (isPureMethod(jmlenv.enclosingMethodDecl.sym) && !treeutils.isFalseLit(tree.expression)) {
                     log.error(tree.pos, "jml.message", "pure methods must be terminating (explicitly diverges false)");
                 }
                 t = attribExpr(tree.expression, env, syms.booleanType);
                 break;
 
-            case "requires":
-            case "ensures":
+            case requiresID:
+                t = attribExpr(tree.expression, env, syms.booleanType);
+                if (tree.exception != null) {
+                    var exc = attribType(tree.exception, env, Type.noType);
+                    // FIXME - exc must be an Exception type
+                }
+                break;
+            case ensuresID:
             case "when":
             case "returns":
                 t = attribExpr(tree.expression, env, syms.booleanType);

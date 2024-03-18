@@ -380,7 +380,10 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print(useCanonicalName ? that.clauseKind.keyword() : that.keyword);
             print(" ");
             printExpr(that.expression);  // noPrec
-            if (that instanceof RecommendsClause.Node) {
+            if (that.exception != null) {
+                print(" else ");
+                printExpr(that.exception);
+            } else if (that instanceof RecommendsClause.Node) {
                 RecommendsClause.Node rc = (RecommendsClause.Node)that;
                 if (rc.exceptionType != null) {
                     print(" else ");
@@ -627,7 +630,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 }
                 modOrCodeOrBehavior = true;
             }
-            if (modOrCodeOrBehavior) {
+            if (that.callee_only) {
+                print("//@ callee_only ");
+                modOrCodeOrBehavior = true;
+            }
+            if (modOrCodeOrBeha) {
                 println();
                 align();
             }

@@ -197,6 +197,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 //
 //    public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
 //        scan(tree.expression);
+//        scan(tree.exception);
 //        if (tree instanceof RecommendsClause.Node) {
 //            RecommendsClause.Node n = (RecommendsClause.Node)tree;
 //            scan(n.exceptionType);

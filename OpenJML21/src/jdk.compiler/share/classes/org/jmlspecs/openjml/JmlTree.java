@@ -2530,6 +2530,7 @@ public class JmlTree {
     public static class JmlMethodClauseExpr extends JmlMethodClause {
 
         public JCTree.JCExpression expression;
+        public JCTree.JCExpression exception; // just for clauses with 'else' suffixes
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlMethodClauseExpr(int pos, String keyword, IJmlClauseKind clauseType, JCTree.JCExpression expression) {
@@ -3136,6 +3137,7 @@ public class JmlTree {
         public IJmlClauseKind token;
         public IJmlClauseKind also;
         public boolean code;
+        public boolean callee_only;
         public List<JmlMethodClause> clauses; // A behavior spec case has clauses but no block of statements
         public JCBlock block;  // A model program has a block (of statements) but no clauses
         public JavaFileObject sourcefile;
@@ -3146,6 +3148,7 @@ public class JmlTree {
             this.sourcefile = null;
             this.modifiers = mods;
             this.code = code;
+            this.callee_only = false;
             this.token = token;
             this.also = also;
             this.clauses = clauses;
@@ -3156,6 +3159,7 @@ public class JmlTree {
             this.pos = old.pos;
             this.modifiers = old.modifiers;
             this.code = old.code;
+            this.callee_only = false;
             this.token = old.token;
             this.also = old.also;
             this.sourcefile = old.sourcefile;

@@ -2,7 +2,7 @@
 public class Test {
     public int f;
     
-    //@ recommends x else NullPointerException;
+    //@ recommends o != null else NullPointerException;
     public void m2(Test o) {
        o.f = 1;
     }

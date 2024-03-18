@@ -4395,12 +4395,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public class SpecCaseIterable implements Iterable<Info> {
 		MethodSymbol methodSymbol;
         boolean computeParamActuals;
-		public SpecCaseIterable(MethodSymbol methodSymbol, boolean computeParamActuals) {
+        boolean forCaller;
+		public SpecCaseIterable(MethodSymbol methodSymbol, boolean computeParamActuals, boolean forCaller) {
 			this.methodSymbol = methodSymbol;
             this.computeParamActuals = computeParamActuals;
-		}
+            this.forCaller = forCaller;
+        }
 		@Override
-		public SpecCaseIterator iterator() { return new SpecCaseIterator(methodSymbol,computeParamActuals); }
+		public SpecCaseIterator iterator() { return new SpecCaseIterator(methodSymbol,computeParamActuals, forCaller); }
 	}
 	
 	public class SpecCaseIterator implements Iterator<Info> {
@@ -4415,15 +4417,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		Map<Object,JCExpression> paramActuals;
 		boolean computeParamActuals;
 		JavaFileObject previousFile;
+		boolean forCaller;
 		
-		public SpecCaseIterator(MethodSymbol methodSymbol, boolean computeParamActuals) {
+		public SpecCaseIterator(MethodSymbol methodSymbol, boolean computeParamActuals, boolean forCaller) {
 			//System.out.println("CREATING ITERATOR " + methodSymbol);
 			this.methodSymbol = methodSymbol;
 			this.computeParamActuals = computeParamActuals;
 			methodIterator = utils.parents(methodSymbol,true).iterator();
 			parentMethodSymbol = null;
 			previousFile = log.currentSourceFile();
-			//System.out.println("DONE ITERATOR " + methodSymbol);
+			this.forCaller = forCaller;	//System.out.println("DONE ITERATOR " + methodSymbol);
 		}
 		
 		public void cleanup() {
@@ -4451,7 +4454,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					continue;
 				}
 				specCase = specCaseIterator.next();
-				if (!doSpecificationCase(methodDecl, methodSymbol, parentMethodSymbol, specCase)) continue;
+				if (!doSpecificationCase(methodDecl, methodSymbol, parentMethodSymbol, specCase, forCaller)) continue;
 				log.useSource(specCase.source());
 				//System.out.println("HASNEXT-TRUE " + methodSymbol);
 				return true;
@@ -4661,7 +4664,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				elseExpression = treeutils.falseLit;
 				for (JmlSpecificationCase scase : denestedSpecs.cases) {
 				    //System.out.println("ITER " + parentMethodSym + " " + scase);
-					if (!doSpecificationCase(methodDecl, methodDecl.sym, parentMethodSym, scase)) continue;
+					if (!doSpecificationCase(methodDecl, methodDecl.sym, parentMethodSym, scase, false)) continue;
 					
 					for (JmlMethodClause clause: scase.clauses) {
 					    //if (clause.clauseKind == invariantsClauseKind) System.out.println("HAVE INVS CLAUSE " + ((JmlMethodClauseInvariants)clause).expressions);
@@ -4965,7 +4968,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// This just checks that the frame conditions are well-defined
 		pushBlock(initialStatements);
 		addStat(comment(methodDecl, "Check that assignable, accessible, captures clauses are well-defined", null));
-		SpecCaseIterable specCases = new SpecCaseIterable(methodDecl.sym, true);
+		SpecCaseIterable specCases = new SpecCaseIterable(methodDecl.sym, true, true);
 		for (var info: specCases) {
 			var parentMethodSym = info.parentMethodSymbol;
 			var scase = info.specCase();
@@ -5012,8 +5015,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// baseMethodSym - base method of which parent is a parent
 	// parentMethodSym - symbol for the method or overriding method to which spec case belongs
 	// scase - the particular specification case
-	public boolean doSpecificationCase(JCMethodDecl methodDecl, MethodSymbol baseMethodSym, MethodSymbol parentMethodSym, JmlSpecificationCase scase) {
-		if (!utils.jmlvisible(parentMethodSym, methodDecl.sym.owner, parentMethodSym.owner, scase.modifiers.flags, methodDecl.mods.flags)) return false;
+	public boolean doSpecificationCase(JCMethodDecl methodDecl, MethodSymbol baseMethodSym, MethodSymbol parentMethodSym, JmlSpecificationCase scase, boolean forCaller) {
+		if (forCaller && scase.callee_only) return false; 
+	    if (!utils.jmlvisible(parentMethodSym, methodDecl.sym.owner, parentMethodSym.owner, scase.modifiers.flags, methodDecl.mods.flags)) return false;
 		if (parentMethodSym != baseMethodSym && scase.code)  return false;
 		if (translatingJML) {
             return attr.isEffectivelyNormal(scase);
@@ -5498,7 +5502,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        	System.out.println("DENEST " + JmlSpecs.instance(context).getDenestedSpecs(msym));
 			for (JmlSpecificationCase scase : denestedSpecs.cases) {
 				sawSomeSpecs = true;
-				if (!doSpecificationCase(methodDecl, methodDecl.sym, parentMethodSym, scase)) continue;
+				if (!doSpecificationCase(methodDecl, methodDecl.sym, parentMethodSym, scase, false)) continue;
 				JCIdent preident = preconditions.get(scase);
 				if (preident == null) continue; // This happens if the precondition contains unimplemented material. But might
 								// in other situations as well.
@@ -8854,10 +8858,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			var pmap = paramActuals_ = new HashMap<Object,JCExpression>();
 			if (savedParamActuals != null) pmap.putAll(savedParamActuals); // FIXME - I think we need this in the case where the current call can see out to an outer call -- but review and document the cases where this is needed
 			if (print) System.out.println("INHERTIED PA " + paramActuals_);
-			var specsIter = new SpecCaseIterator(calleeMethodSym, false);
+			var specsIter = new SpecCaseIterator(calleeMethodSym, false, true);
 			//if (print) System.out.println("ITERATOR HAS NEXT " + specsIter.hasNext() + " " + calleeIsPure + " " + effectivelyPure);
 			while (specsIter.hasNext()) {
 			    var info = specsIter.next();
+			    if (info.specCase.callee_only) continue;
 			    x: if (!calleeIsPure) {
 			        if (print) System.out.println("SPECCASE " + info.parentMethodSymbol + " " + info.specCase);
 			        boolean hasAssignable = false;
@@ -9505,7 +9510,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					for (JmlSpecificationCase cs : calleeSpecs.cases) {
 						// System.out.println("CALCPRE-A " + mpsym.owner + " " + mpsym + " " +
 						// cs.hashCode() + " " + cs);
-                        if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs)) continue;
+					    if (cs.callee_only) continue; 
+                        if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs, true)) continue;
 //						if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags,
 //								methodDecl != null ? methodDecl.mods.flags : Flags.PUBLIC)) // FIXME - review this for when not in a method
 //							continue;
@@ -9889,7 +9895,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     currentEnv.arithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(parentSym, true);
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                         //System.out.println("   SPECCASE " + cs);
-                        if (!doSpecificationCase(methodDecl, calleeMethodSym, parentSym, cs)) continue;
+                        if (!doSpecificationCase(methodDecl, calleeMethodSym, parentSym, cs, true)) continue;
                         //if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
 
                         JavaFileObject prev = log.useSource(cs.source());
@@ -10003,7 +10009,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         currentEnv.arithmeticMode = calleeEnv.arithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(mpsym, true);
 
 						for (JmlSpecificationCase cs : calleeSpecs.cases) {
-						    if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs)) continue;
+						    if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs, true)) continue;
 							//if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags, methodDecl.mods.flags)) continue;
 							//if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
 							//if (mpsym != calleeMethodSym && cs.code) continue;
@@ -10309,7 +10315,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					for (JmlSpecificationCase cs : calleeSpecs.cases) {
 						if (print)
 							System.out.println("APPLYHELPER-V2 " + mpsym + " " + cs);
-						if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs)) continue;
+						if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs, true)) continue;
 						//if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
 
 						JCExpression precond = calleePreconditions.get(cs); // Can be null for constructors of anonymous
@@ -10817,7 +10823,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						if (print) System.out.println("APPLYHELPER-X3");
 						if (cs.block != null)
 							hasModelProgramBlocks = true;
-                        if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs)) continue; 
+                        if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs, true)) continue; 
 //						if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags,
 //								methodDecl.mods.flags))
 //							continue;
@@ -11245,7 +11251,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                treeutils.makeEquality(pos.getPreferredPosition(), e3, e4));
 	            //System.out.println("NOCHANGEINST " + newCalleeSym + " " + noChangeInstantiation);
 
-	            SpecCaseIterable specCases = new SpecCaseIterable(calleeMethodSym, false);
+	            SpecCaseIterable specCases = new SpecCaseIterable(calleeMethodSym, false, true);
 	            for (var info: specCases) {
 	                var parentMethodSym = info.parentMethodSymbol;
 	                var scase = info.specCase();
@@ -11718,7 +11724,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				LinkedList<ListBuffer<JCStatement>> temptt = markBlock();
 				for (JmlSpecificationCase cs : calleeSpecs.cases) {
-                    if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs)) continue; 
+                    if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs, true)) continue; 
 //					if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags, methodDecl.mods.flags))
 //						continue;
 //					if (translatingJML && cs.token == exceptionalBehaviorClause)
@@ -12762,7 +12768,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					try {
 						for (JmlSpecificationCase specCase : denestedSpecs.cases) {
 
-							if (!doSpecificationCase(methodDecl, methodSym, parentMethodSym, specCase)) continue; // FIXME - something different for targetENv
+							if (!doSpecificationCase(methodDecl, methodSym, parentMethodSym, specCase, true)) continue; // FIXME - something different for targetENv
 							log.useSource(specCase.source());
 							JCExpression precondition = !comparingToCallee ? preconditions.get(specCase): calleePreconditions.get(specCase); // FIXME - a hack
 							//System.out.println("SPECCASE PRE " + precondition);
@@ -21172,7 +21178,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				elseExpression = treeutils.falseLit;
 				for (JmlSpecificationCase cs : calleeSpecs.cases) {
 					//if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags, methodDecl.mods.flags)) continue;
-	                if (!doSpecificationCase(methodDecl, msym, mpsym, cs)) continue;
+	                if (!doSpecificationCase(methodDecl, msym, mpsym, cs, true)) continue;
 					// if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*,
 					// methodDecl.mods.flags*/)) continue;
 					//if (cs.token == exceptionalBehaviorClause) continue;

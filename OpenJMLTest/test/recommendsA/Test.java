@@ -7,4 +7,12 @@ public class Test {
        if (o == null) throw new NullPointerException();
     }
     
+    public void m2() {
+        m1(null);
+    }
+    
+    public void m3(/*@non_null*/ Test o) {
+        m1(o);
+    }
+    
 }

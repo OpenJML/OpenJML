@@ -25,7 +25,7 @@ Starting proof of Test.m1(Test) with prover !!!!
 
 STARTING PROOF OF Test.m1(Test)
 /*@
-  public behavior
+  public /* callee_only */ behavior
     requires true; 
     requires !(o != null); 
     signals_only NullPointerException; 
@@ -54,7 +54,7 @@ Starting proof of Test.m2(Test) with prover !!!!
 
 STARTING PROOF OF Test.m2(Test)
 /*@
-  public behavior
+  public /* callee_only */ behavior
     requires true; 
     requires !(o != null); 
     signals_only NullPointerException; 
@@ -83,7 +83,7 @@ Starting proof of Test.m3(Test,int) with prover !!!!
 
 STARTING PROOF OF Test.m3(Test,int)
 /*@
-  public behavior
+  public /* callee_only */ behavior
     requires true; 
     requires i >= 0; 
     requires !(o != null) | !(i < 10); 
@@ -110,13 +110,39 @@ also
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.m3(Test,int) with prover !!!! - no warnings
+Starting proof of Test.m3c() with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Test.m3c()
+/*@
+  public behavior
+    requires true; 
+    signals_only java.lang.RuntimeException; 
+    assignable \everything; 
+    accessible \everything; 
+ */
+
+{
+  m3(null, 0);
+}
+test/recommends/Test.java:24: warning: The prover cannot establish an assertion (Precondition) in method m3c
+        m3(null, 0);
+          ^
+test/recommends/Test.java:18: warning: Associated declaration
+    public void m3(Test o, int i) {
+                ^
+test/recommends/Test.java:16: warning: Precondition conjunct is false: o != null
+    //@ recommends o != null else NullPointerException;
+                     ^
+Completed proof of Test.m3c() with prover !!!! - with warnings
 Starting proof of Test.m4(Test,Test) with prover !!!!
 
 --------------------------------------
 
 STARTING PROOF OF Test.m4(Test,Test)
 /*@
-  public behavior
+  public /* callee_only */ behavior
     requires true; 
     requires !(o != null) | !(i != null); 
     signals_only NullPointerException, NullPointerException; 
@@ -146,7 +172,7 @@ Starting proof of Test.m5(Test,Test) with prover !!!!
 
 STARTING PROOF OF Test.m5(Test,Test)
 /*@
-  public behavior
+  public /* callee_only */ behavior
     requires true; 
     requires !(o != null) | !(i != null); 
     signals_only NullPointerException, RuntimeException; 
@@ -177,7 +203,7 @@ Starting proof of Test.m6(Test,Test) with prover !!!!
 
 STARTING PROOF OF Test.m6(Test,Test)
 /*@
-  public behavior
+  public /* callee_only */ behavior
     requires true; 
     requires !(o != null) | !(i != null); 
     signals_only RuntimeException, NullPointerException; 
@@ -208,7 +234,7 @@ Starting proof of Test.m7(Test,Test) with prover !!!!
 
 STARTING PROOF OF Test.m7(Test,Test)
 /*@
-  public behavior
+  public /* callee_only */ behavior
     requires true; 
     requires !(o != null); 
     signals_only RuntimeException; 
@@ -237,7 +263,7 @@ Starting proof of Test.m8(Test,Test) with prover !!!!
 
 STARTING PROOF OF Test.m8(Test,Test)
 /*@
-  public behavior
+  public /* callee_only */ behavior
     requires true; 
     requires !(o != null) | !(i != null); 
     signals_only RuntimeException, NullPointerException; 
@@ -293,3 +319,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.m9(Test,Test) with prover !!!! - no warnings
 Completed proving methods in Test
+3 warnings

@@ -245,6 +245,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr that) {
         JmlMethodClauseExpr r = that;
         r.expression = translate(that.expression);
+        r.exception = translate(that.exception);
         result = r;
         // Not translating: token
     }
