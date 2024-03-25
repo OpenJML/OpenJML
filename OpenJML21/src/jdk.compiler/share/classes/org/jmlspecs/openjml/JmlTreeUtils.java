@@ -549,7 +549,7 @@ public class JmlTreeUtils {
         if (type == types.BIGINT) {
             return makeLit(pos,syms.intType,0);
            
-        } else if (type == types.REAL) {
+        } else if (type == JmlPrimitiveTypes.realTypeKind.getType(context)) {
             return makeLit(pos,syms.doubleType,0.0);
             
         } else if (type == types.TYPE) {
@@ -714,14 +714,15 @@ public class JmlTreeUtils {
         // Note: getTag().ordinal() is not relaible
         TypeTag ltag = lhs.getTag();
         TypeTag rtag = rhs.getTag();
-        if (ltag == TypeTag.NONE && lhs == types.REAL) return lhs;
-        if (rtag == TypeTag.NONE && rhs == types.REAL) return rhs;
+        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        if (ltag == TypeTag.NONE && lhs == REAL) return lhs;
+        if (rtag == TypeTag.NONE && rhs == REAL) return rhs;
         if (ltag == TypeTag.NONE && lhs == types.BIGINT) {
-            if (rtag == TypeTag.DOUBLE || rtag == TypeTag.FLOAT) return types.REAL;
+            if (rtag == TypeTag.DOUBLE || rtag == TypeTag.FLOAT) return REAL;
             return lhs;
         }
         if (rtag == TypeTag.NONE && rhs == types.BIGINT) {
-            if (ltag == TypeTag.DOUBLE || ltag == TypeTag.FLOAT) return types.REAL;
+            if (ltag == TypeTag.DOUBLE || ltag == TypeTag.FLOAT) return REAL;
             return rhs;
         }
         if (ltag == TypeTag.DOUBLE) return lhs;
@@ -752,10 +753,11 @@ public class JmlTreeUtils {
         Type lhsu = unboxedType(lhs);
         Type rhsu = unboxedType(rhs);
         if (lhsu.getTag() == TypeTag.BOOLEAN) return syms.booleanType;
-        if (!lhsu.isPrimitive() || !rhsu.isPrimitive()) return syms.stringType;
-        if (lhsu == types.REAL || rhsu == types.REAL) return types.REAL;
+        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        if (lhs == REAL || rhs == REAL) return REAL;
         if (lhsu == types.BIGINT || rhsu == types.BIGINT) return types.BIGINT;
         if (lhsu == types.TYPE || rhsu == types.TYPE) return types.TYPE;
+        if (!lhsu.isPrimitive() || !rhsu.isPrimitive()) return syms.stringType;
         TypeTag ltag = lhsu.getTag();
         TypeTag rtag = rhsu.getTag();
         
@@ -884,7 +886,7 @@ public class JmlTreeUtils {
     
     public /*@ nullable */ String opname(Type t, JCTree.Tag tag) {
         JmlTypes jmltypes = JmlTypes.instance(context);
-        String prefix = jmltypes.isJmlTypeOrRep(t, jmltypes.BIGINT) ? "bigint_" : jmltypes.isJmlTypeOrRep(t, jmltypes.REAL) ? "real_" : null;
+        String prefix = jmltypes.isJmlTypeOrRep(t, jmltypes.BIGINT) ? "bigint_" : jmltypes.isJmlTypeOrRep(t, JmlPrimitiveTypes.realTypeKind.getType(context)) ? "real_" : null;
         String suffix = null;
         switch (tag) {
             case LE: suffix = "le"; break;

@@ -1685,10 +1685,10 @@ public class escnew extends EscBase {
                 +"  //@ ensures !\\fresh(\\result); spec_pure\n"
                 +"  public /*@ nullable */ <TT> TT mtr(int i) { return null; };\n"
                 
-                +"  //@ ensures true; pure\n"
+                +"  //@ ensures true;\n"
                 +"  //@ model no_state public static int mf(int i);\n"
                 
-                +"  //@ ensures true; pure\n"
+                +"  //@ ensures true;\n"
                 +"  //@ no_state \n"
                 +"  public static int mfr(int i) { return 0; }\n"
                 
@@ -1702,7 +1702,7 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"  //@ ensures mt(i) == mt(i);\n"
-                +"  public void m3(int i) {\n"
+                +"  public void m3(int i) {\n"  // Line 24
                 +"  }\n"
                 
                 +"  //@ ensures mtr(i) == \\result;\n"

@@ -1073,7 +1073,7 @@ public class JmlParser extends JavacParser {
     /** Returns true if the token is a JML type token */
     public boolean isJmlTypeToken(JmlTokenKind t) {
         return t == JmlTokenKind.BSTYPEUC || t == JmlTokenKind.BSBIGINT
-                || t == JmlTokenKind.BSREAL || t == JmlTokenKind.PRIMITIVE_TYPE;
+                || t == JmlTokenKind.PRIMITIVE_TYPE;
     }
 
     /**
@@ -2431,7 +2431,7 @@ public class JmlParser extends JavacParser {
         if (jt == null) {
             return super.basicType();
         } else if (jt == JmlTokenKind.BSTYPEUC || jt == JmlTokenKind.BSBIGINT
-                || jt == JmlTokenKind.BSREAL) {
+                ) {
             JCPrimitiveTypeTree t = to(jmlF.at(pos())
                     .JmlPrimitiveTypeTree(jt,null,null));
             nextToken();
@@ -2613,7 +2613,7 @@ public class JmlParser extends JavacParser {
             if (t.ikind == JmlTokenKind.STARTJMLCOMMENT) {
                 t = S.token(2);
             }
-            if (t.ikind == BSTYPEUC || t.ikind == BSBIGINT || t.ikind == BSREAL) return ParensResult.CAST;
+            if (t.ikind == BSTYPEUC || t.ikind == BSBIGINT) return ParensResult.CAST;
             if (t.kind == TokenKind.IDENTIFIER) {
                 IJmlClauseKind ck = Extensions.findKeyword(t);
                 if (ck instanceof JmlTypeKind) return ParensResult.CAST;
@@ -2640,23 +2640,23 @@ public class JmlParser extends JavacParser {
         }
     }
 
-    protected ParensResult analyzeParensHelper2(int lookahead, Token t, ParensResult defaultResult) {
-        if (!(t instanceof JmlToken)) return defaultResult;
-        JmlTokenKind jtk = ((JmlToken)t).jmlkind;
-        switch (jtk) {
-            case BSTYPEUC: case BSREAL: case BSBIGINT: case ENDJMLCOMMENT:
-                if (peekToken(lookahead, RPAREN)) {
-                    //Type, ')' -> cast
-                    return ParensResult.CAST;
-                } else if (peekToken(lookahead, LAX_IDENTIFIER)) {
-                    //Type, Identifier/'_'/'assert'/'enum' -> explicit lambda
-                    return ParensResult.EXPLICIT_LAMBDA;
-                }
-                return ParensResult.PARENS;
-            default:
-                return defaultResult;
-        }
-    }
+//    protected ParensResult analyzeParensHelper2(int lookahead, Token t, ParensResult defaultResult) {
+//        if (!(t instanceof JmlToken)) return defaultResult;
+//        JmlTokenKind jtk = ((JmlToken)t).jmlkind;
+//        switch (jtk) {
+//            case BSTYPEUC: case BSREAL: case BSBIGINT: case ENDJMLCOMMENT:
+//                if (peekToken(lookahead, RPAREN)) {
+//                    //Type, ')' -> cast
+//                    return ParensResult.CAST;
+//                } else if (peekToken(lookahead, LAX_IDENTIFIER)) {
+//                    //Type, Identifier/'_'/'assert'/'enum' -> explicit lambda
+//                    return ParensResult.EXPLICIT_LAMBDA;
+//                }
+//                return ParensResult.PARENS;
+//            default:
+//                return defaultResult;
+//        }
+//    }
     
     public boolean inTypeMode() {
     	return (mode & TYPE) != 0;
@@ -2689,7 +2689,14 @@ public class JmlParser extends JavacParser {
                         JCExpression eee = toP(super.term3());
                         return eee;
                     }
-                    return tk.parse(null, id, kind, this);
+                    if (!inTypeMode() && inExprMode()) {
+                        utils.error(token.pos, "jml.message", "Expected an expression here, not a type");
+                        nextToken();
+                        return jmlF.at(p).Erroneous();
+                    }
+                    var typeexpr = tk.parse(null, id, kind, this);
+                    typeexpr = bracketsSuffix(bracketsOpt(typeexpr));
+                    return typeexpr;
                 } else if (inExprMode() && kind instanceof IJmlClauseKind.ExpressionKind ek) {
                 	JCExpression tt = ek.parse(null, id, kind, this);
                 	return term3Rest(tt, typeArgs);
@@ -2713,10 +2720,12 @@ public class JmlParser extends JavacParser {
         // itself. So if someone does write type arguments for a JML function
         // the code will fall into the super.term3() call and the token will not
         // be recognized - no chance for a nice error message.
+        if (token.toString().contains("real")) {
+            System.out.println("REAL? " + token + " " + jmlTokenKind() + " " + jmlTokenClauseKind());
+        }
         if (token.kind == CUSTOM || jmlTokenKind() == JmlTokenKind.PRIMITIVE_TYPE) {
             JCExpression t;
             JmlTokenKind jt = jmlTokenKind();
-
             if (isJmlTypeToken(jt)) {
                 String n = jt.internedName();
                 t = to(jmlF.at(p).JmlPrimitiveTypeTree(jt, null, names.fromString(n)));

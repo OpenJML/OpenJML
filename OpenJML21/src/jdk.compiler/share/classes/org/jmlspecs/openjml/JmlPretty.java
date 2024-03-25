@@ -634,7 +634,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 print("//@ callee_only ");
                 modOrCodeOrBehavior = true;
             }
-            if (modOrCodeOrBeha) {
+            if (modOrCodeOrBehavior) {
                 println();
                 align();
             }

@@ -137,18 +137,19 @@ abstract public class Arithmetic extends JmlExtension {
     }
     
     public Type maxtype(JmlTypes jmltypes, Type lhs, Type rhs) {
+        Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
         if (lhs.getTag() == TypeTag.CLASS) lhs = Types.instance(context).unboxedType(lhs); 
         if (rhs.getTag() == TypeTag.CLASS) rhs = Types.instance(context).unboxedType(rhs); 
         TypeTag lt = lhs.getTag();
         TypeTag rt = rhs.getTag(); // FIOXME - is the typetag UNKNOWN or NONE
-        if (lt == TypeTag.UNKNOWN && lhs == jmltypes.REAL) return lhs;
-        if (rt == TypeTag.UNKNOWN && rhs == jmltypes.REAL) return rhs;
+        if (lt == TypeTag.UNKNOWN && lhs == REAL) return lhs;
+        if (rt == TypeTag.UNKNOWN && rhs == REAL) return rhs;
         if (lt == TypeTag.UNKNOWN && lhs == jmltypes.BIGINT) {
-            if (rt == TypeTag.DOUBLE || rt == TypeTag.FLOAT) return jmltypes.REAL;
+            if (rt == TypeTag.DOUBLE || rt == TypeTag.FLOAT) return REAL;
             return lhs;
         }
         if (rt == TypeTag.UNKNOWN && rhs == jmltypes.BIGINT) {
-            if (lt == TypeTag.DOUBLE || lt == TypeTag.FLOAT) return jmltypes.REAL;
+            if (lt == TypeTag.DOUBLE || lt == TypeTag.FLOAT) return REAL;
             return rhs;
         }
         if (lt == TypeTag.DOUBLE) return lhs;
@@ -268,7 +269,7 @@ abstract public class Arithmetic extends JmlExtension {
                 if (rewriter.jmltypes.isSameType(newtype, rewriter.jmltypes.BIGINT)) {
                     eresult = rewriter.treeutils.makeUtilsMethodCall(that.pos,"bigint_neg",rewriter.copy(arg));
                 }
-                if (rewriter.jmltypes.isSameType(newtype, rewriter.jmltypes.REAL)) {
+                if (rewriter.jmltypes.isSameType(newtype, rewriter.REAL)) {
                     eresult = rewriter.treeutils.makeUtilsMethodCall(that.pos,"real_neg",rewriter.copy(arg));
                 }
             } else if (optag == JCTree.Tag.POS) {
@@ -672,7 +673,7 @@ abstract public class Arithmetic extends JmlExtension {
             TypeTag tag = t.getTag();
             if (rewriter.jmltypes.isJmlType(t)) return t;
             if (rewriter.jmltypes.isIntegral(t)) return rewriter.jmltypes.BIGINT;
-            if (tag == TypeTag.DOUBLE || tag == TypeTag.FLOAT) return rewriter.jmltypes.REAL;
+            if (tag == TypeTag.DOUBLE || tag == TypeTag.FLOAT) return rewriter.REAL;
             return t;
         }
         

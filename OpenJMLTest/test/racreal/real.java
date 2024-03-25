@@ -22,7 +22,7 @@ public class real {
         //@ assert b * (double)0 == zero;
         //@ ghost float i = (float)b;
         //@ ghost double l = (double)b;
-        //@ assert b == zero;
+        //@ assert b == zero; // ERROR
         //@ ghost \real bi = bb;
         //@ ghost \real bbb = bi;
         //@ assert bbb == bb;
@@ -31,15 +31,11 @@ public class real {
         //@ ghost \real x = (\real)(10.30);
         //@ ghost \real xx = (\lbl XX x*10);
         try {
-            //@ set bb = bb / zero;
+            //@ set bb = bb / zero;  // ERROR
         } catch (Exception e) {
             e.printStackTrace(System.out);
         }
-        try {
-            //@ set prod /= 0;
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-        }
+        //@ set prod /= 0;     // ERROR
         //@ set i += 1;
         //@ set ++i;
         //@ set bbb += 1;

@@ -4106,7 +4106,7 @@ public class esc2 extends EscBase {
 
     @Test
     public void testNullityAndConstructors2() {
-        addOptions("-nonnullByDefault");
+        addOptions("--nonnull-by-default");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -4124,8 +4124,8 @@ public class esc2 extends EscBase {
 
     @Test 
     public void testNullityAndConstructors3() {
-            addOptions("-nonnullByDefault");
-            helpTCX("tt.TestJava",
+        addOptions("--nonnull-by-default");
+        helpTCX("tt.TestJava",
                     "package tt; \n" 
                             + "public class TestJava  { \n" 
                             + "  private /*@ spec_public */ char[] o; \n"

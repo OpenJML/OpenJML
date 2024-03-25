@@ -9,6 +9,7 @@ import static com.sun.tools.javac.tree.JCTree.Tag.APPLY;
 
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.Modifiers;
 
 import com.sun.tools.javac.code.Flags;
@@ -98,11 +99,19 @@ public class JmlCheck extends Check {
                     && types.isSameType(found, Symtab.instance(context).stringType)) {
                 return req;
             }
+            if (types.isSameType(req, JmlPrimitiveTypes.realTypeKind.getType(context))
+                    && ((JmlTypes)types).isNumeric(found)) {
+                return req;                
+            }
             utils.error(pos, "jml.message", "A JML primitive type may not be assigned or cast to or from a non-JML type");
             //basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
             return types.createErrorType(found);
         } else if (utils.isExtensionValueType(found) &&
                 !utils.isExtensionValueType(req)) {
+            if (types.isSameType(found, JmlPrimitiveTypes.realTypeKind.getType(context))
+                    && ((JmlTypes)types).isNumeric(req)) {
+                return req;                
+            }
             utils.error(pos, "jml.message", "A JML primitive type may not be assigned or cast to or from a non-JML type");
             //basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
             return types.createErrorType(found);
@@ -157,7 +166,7 @@ public class JmlCheck extends Check {
         if (found == req) return found;
         JmlTypes jmltypes = JmlTypes.instance(context);
         // FIXME - all this in isAssignable?
-        if (req == jmltypes.REAL) {
+        if (req == JmlPrimitiveTypes.realTypeKind.getType(context)) {
         	if (found.isNumeric() || found == jmltypes.BIGINT) return found;
         } else if (req == jmltypes.BIGINT) {
         	if (found.isIntegral()) return found;

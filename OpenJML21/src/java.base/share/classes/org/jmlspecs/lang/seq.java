@@ -22,6 +22,8 @@ public class seq<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
 
     static public <T> seq<T> of(T t) { var a = new seq<T>(); a.value.add(t); return a; }
     
+    static public seq<Integer> of(int[] t) { var a = new seq<Integer>(); for (int k=0; k<t.length; k++) a.value.add(t[k]); return a; }
+    
     @SuppressWarnings("unchecked")
     static public <T> seq<T> of(T ... t) { var a = new seq<T>(); a.value.addAll(java.util.Arrays.asList(t)); return a; }
     

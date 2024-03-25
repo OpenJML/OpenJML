@@ -1,5 +1,7 @@
 package com.sun.tools.javac.comp;
 
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
+
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.OperatorSymbol;
 import com.sun.tools.javac.tree.JCTree;
@@ -33,31 +35,36 @@ public class JmlOperators extends Operators {
     	JmlTypes jtype = JmlTypes.instance(context);
     	boolean b1 = org.jmlspecs.openjml.Utils.instance(context).isExtensionValueType(op1);
     	boolean b2 = org.jmlspecs.openjml.Utils.instance(context).isExtensionValueType(op2);
+    	Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+
     	if (b1 && !b2) {
+    	    if (jtype.isSameType(op1, REAL)) {
+    	        if (jtype.isNumeric(op2)) op2 = op1; // allow conversion
+    	    }
     	        
     	} else if (b2 && !b1) {
-    	    
+            if (jtype.isSameType(op2, REAL)) {
+                if (jtype.isNumeric(op1)) op1 = op2; // allow conversion
+            }
     	}
-    	if (b1 && b2) {
-    	    if (op1.toString().equals("org.jmlspecs.lang.string") && tag == JCTree.Tag.PLUS) {
-    	        
-    	    }
-    	}
-    	if (jtype.isJmlType(op1) || jtype.isJmlType(op2)) {
+    	if ((b1 || jtype.isJmlType(op1)) || (b2 || jtype.isJmlType(op2))) {
     		Name opName = operatorName(tag);
+    		Type eop1 = jtype.erasure(op1);
+    		Type eop2 = jtype.erasure(op2);
     		for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
     			OperatorSymbol op = (OperatorSymbol)s;
     			var args = op.type.getParameterTypes();
-    			if (args.tail != null && args.head == op1 && args.tail.head == op2) {
+    			if (args.tail != null && jtype.isSameType(jtype.erasure(args.head),eop1) 
+    			        && jtype.isSameType(jtype.erasure(args.tail.head), eop2)) {
     				return op;
     			}
     		}
-    		if (op1 == jtype.REAL || op2 == jtype.REAL) {
+    		if (op1 == REAL || op2 == REAL) {
     			// This allows for implicit conversions
-    			for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
+    		    for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
     				OperatorSymbol op = (OperatorSymbol)s;
         			var args = op.type.getParameterTypes();
-        			if (args.head == jtype.REAL && args.tail.head == jtype.REAL) {
+        			if (args.head == REAL && args.tail.head == REAL) {
         				return op;
         			}
     			} // FIXME - do we need to insert explicit conversions
@@ -72,6 +79,14 @@ public class JmlOperators extends Operators {
                     } // FIXME - do we need to insert explicit conversions
     			}
     		}
+    		//System.out.println("NOOP " + op1 + " " + op2 + " " + b1 + " " + b2);
+//            for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
+//                OperatorSymbol op = (OperatorSymbol)s;
+//                var args = op.type.getParameterTypes();
+//                if (args.tail == null) continue;
+//                System.out.println("COMP1 " + op1 + " " + args.head + " " + jtype.isSameType(op1,  args.head));
+//                System.out.println("COMP2 " + op2 + " " + args.tail.head + " " + jtype.isSameType(op2,  args.tail.head));
+//            }
     		org.jmlspecs.openjml.Utils.instance(context).error(pos, "jml.message", "No operator for " + op1 + " " + opName + " " + op2);
 			return noOpSymbol;
     	}
@@ -80,7 +95,7 @@ public class JmlOperators extends Operators {
     
     public OperatorSymbol resolveUnary(DiagnosticPosition pos, JCTree.Tag tag, Type op) {
     	JmlTypes jtype = JmlTypes.instance(context);
-    	if (jtype.isJmlType(op)) {
+    	if (jtype.isJmlType(op) || org.jmlspecs.openjml.Utils.instance(context).isExtensionValueType(op)) {
     		Name opName = operatorName(tag);
     		for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
     			OperatorSymbol ops = (OperatorSymbol)s;

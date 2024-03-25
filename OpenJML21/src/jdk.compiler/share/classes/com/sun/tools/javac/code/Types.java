@@ -89,7 +89,7 @@ import com.sun.tools.javac.resources.CompilerProperties.Fragments;
 public class Types {
     protected static final Context.Key<Types> typesKey = new Context.Key<>();
 
-    final Symtab syms;
+    final public Symtab syms; // OPENJML - package to public
     final JavacMessages messages;
     final Names names;
     final Check chk;

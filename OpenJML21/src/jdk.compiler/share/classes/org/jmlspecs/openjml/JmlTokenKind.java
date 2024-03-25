@@ -56,7 +56,7 @@ public enum JmlTokenKind implements ITokenKind {
     
     // These are JML type literals
     BSTYPEUC("\\TYPE"),
-    BSREAL("\\real"),
+    //BSREAL("\\real"),
     BSBIGINT("\\bigint"), // Keep this one the last of the backslash tokens
     PRIMITIVE_TYPE("\\primitive"),
     

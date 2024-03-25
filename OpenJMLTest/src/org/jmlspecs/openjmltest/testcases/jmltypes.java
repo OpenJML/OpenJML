@@ -94,11 +94,23 @@ public class jmltypes extends TCBase {
                 "public class A { \n" +
                 " void m() {\n" +
                 "  Class<?> c = Object.class; Object o = c; \n" +
-                "  //@ ghost \\TYPE t = \\real;\n" +
+                "  //@ ghost \\TYPE t = \\type(\\real);\n" +
                 "  //@ ghost boolean b = JML.typeargs(\\type(Object)).length == 0;\n" +
                 "  //@ set b = JML.typeargs(\\elemtype(t)).length == 0;\n" +
                 " }\n" +
                 "}\n"
+                );
+    }
+
+    @Test
+    public void testOK2x() {
+        helpTCF("A.java",
+                "public class A { \n" +
+                " void m() {\n" +
+                "  //@ ghost \\TYPE t = \\real;\n" + // Should be a syntax error
+                " }\n" +
+                "}\n"
+                ,"/A.java:3: error: Expected an expression here, not a type", 23
                 );
     }
 

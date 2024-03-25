@@ -723,7 +723,7 @@ public class Utils {
     }
 
     public static real bigint_toreal(BigInteger a) {
-        return new real(a.doubleValue());
+        return real.of(a.doubleValue());
     }
 
     public static BigInteger bigint_valueOf(int i) {
@@ -791,7 +791,7 @@ public class Utils {
     }
 
     public static real real_valueOf(double i) {
-        return real.valueOf(i);
+        return real.of(i);
     }
 
     public static double real_todouble(real a) {

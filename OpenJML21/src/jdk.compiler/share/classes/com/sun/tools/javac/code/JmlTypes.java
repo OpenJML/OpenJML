@@ -15,6 +15,7 @@ import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
@@ -51,10 +52,10 @@ public class JmlTypes extends Types {
     }
 
     /** The singleton instance for the \real JML type */
-    final public JmlType REAL = new JmlType(JmlTokenKind.BSREAL,Strings.jmlSpecsPackage + ".real");
-    {
-        jmltypes.put(JmlTokenKind.BSREAL, REAL);
-    }
+//    final public Type REAL;
+//    {
+//        jmltypes.put(JmlTokenKind.BSREAL, REAL);
+//    }
     
     /** The singleton instance for the \bigint JML type */
     final public JmlType BIGINT = new JmlType(JmlTokenKind.BSBIGINT,"java.math.BigInteger");
@@ -92,7 +93,9 @@ public class JmlTypes extends Types {
         Symtab syms = Symtab.instance(context);
         syms.initType(BIGINT,"\\bigint");
         syms.initType(TYPE,"\\TYPE");
-        syms.initType(REAL,"\\real");
+        //syms.initType(REAL,"\\real");
+//        REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        //REAL = new JmlType(JmlPrimitiveTypes.realTypeKind, "org.jmlspecs.lang.real");
         
         enterBinop("==", TYPE, TYPE, syms.booleanType);
         enterBinop("!=", TYPE, TYPE, syms.booleanType);
@@ -119,23 +122,24 @@ public class JmlTypes extends Types {
         enterBinop(">>", BIGINT, BIGINT, BIGINT);
         enterBinop(">>>", BIGINT, BIGINT, BIGINT);
 
-        enterBinop("==", REAL, REAL, syms.booleanType);
-        enterBinop("!=", REAL, REAL, syms.booleanType);
-        enterBinop(">", REAL, REAL, syms.booleanType);
-        enterBinop("<", REAL, REAL, syms.booleanType);
-        enterBinop("<=", REAL, REAL, syms.booleanType);
-        enterBinop(">=", REAL, REAL, syms.booleanType);
-
-        enterUnop("+++", REAL, REAL); // unary plus // These operators are those used also in Symtab
-        enterUnop("---", REAL, REAL); // unary minus
-        enterUnop("++", REAL, REAL);
-        enterUnop("--", REAL, REAL);
-
-        enterBinop("+", REAL, REAL, REAL);
-        enterBinop("-", REAL, REAL, REAL);
-        enterBinop("*", REAL, REAL, REAL);
-        enterBinop("/", REAL, REAL, REAL);
-        enterBinop("%", REAL, REAL, REAL);
+//        enterBinop("==", REAL, REAL, syms.booleanType);
+//        enterBinop("!=", REAL, REAL, syms.booleanType);
+//        enterBinop(">", REAL, REAL, syms.booleanType);
+//        enterBinop("<", REAL, REAL, syms.booleanType);
+//        enterBinop("<=", REAL, REAL, syms.booleanType);
+//        enterBinop(">=", REAL, REAL, syms.booleanType);
+//
+//        enterUnop("+++", REAL, REAL); // unary plus // These operators are those used also in Symtab
+//        enterUnop("---", REAL, REAL); // unary minus
+//        enterUnop("++", REAL, REAL);
+//        enterUnop("--", REAL, REAL);
+//
+//        enterBinop("+", REAL, REAL, REAL);
+//        enterBinop("-", REAL, REAL, REAL);
+//        enterBinop("*", REAL, REAL, REAL);
+//        enterBinop("/", REAL, REAL, REAL);
+//        enterBinop("%", REAL, REAL, REAL);
+        
     }
     
     /** Overrides Types.isSameType with functionality for JML primitive types. */
@@ -150,6 +154,7 @@ public class JmlTypes extends Types {
     public boolean isSameTypeOrRep(Type t, Type s) {
         if (t == s) return true;
         if (t instanceof JmlType && repSym(((JmlType)t)) == s.tsym) return true;
+        if (s instanceof JmlType && repSym(((JmlType)s)) == t.tsym) return true;
         if (t instanceof JmlType || s instanceof JmlType) return false;
         return super.isSameType(t, s);
     }
@@ -174,9 +179,9 @@ public class JmlTypes extends Types {
             if (repSym((JmlType)s) == t.tsym) return true;
             return false;
         }
-        if (s == REAL) {
+        if (s == JmlPrimitiveTypes.realTypeKind.getType(context)) {
             if (isNumeric(t)) return true; 
-            if (repSym((JmlType)s) == t.tsym) return true;
+            if (t == JmlPrimitiveTypes.realTypeKind.getRepType(context)) return true; // FIXME - this is old code, but not sure why it is needed
             return false;
         }
         if ((s instanceof JmlListType) != (t instanceof JmlListType)) return false;
@@ -195,7 +200,7 @@ public class JmlTypes extends Types {
     /** True if the Java tag is a numeric type (not for JML types). */
     public boolean isNumeric(Type t) {
         int i = t.getTag().ordinal();
-        return i >= TypeTag.BYTE.ordinal() && i <= TypeTag.DOUBLE.ordinal()|| t == BIGINT || t == REAL;
+        return i >= TypeTag.BYTE.ordinal() && i <= TypeTag.DOUBLE.ordinal()|| t == BIGINT || t == JmlPrimitiveTypes.realTypeKind.getType(context);
     }
     
     /** True if the Java tag is an integral type (not for JML types). */
@@ -261,8 +266,8 @@ public class JmlTypes extends Types {
         if (s instanceof JmlType) {
             if (s == BIGINT && isIntegral(t)) return true;
             if (s == BIGINT && repSym(BIGINT) == t.tsym) return true;
-            if (s == REAL && isNumeric(t)) return true;
-            if (s == REAL && repSym(REAL) == t.tsym) return true;
+            if (s == JmlPrimitiveTypes.realTypeKind.getType(context) && isNumeric(t)) return true;
+            //if (s == REAL && repSym(REAL) == t.tsym) return true;
             return false;
         }
         return super.isConvertible(t, s, warn);
@@ -272,9 +277,9 @@ public class JmlTypes extends Types {
     @Override
     public boolean isSubtypeUnchecked(Type t, Type s, Warner warn) {
         if (t == s) return true;
+        if (s == JmlPrimitiveTypes.realTypeKind.getType(context)) return isNumeric(t);
         if (s instanceof JmlType) {
             if (s == BIGINT) return isIntegral(t);
-            else if (s == REAL) return isNumeric(t);
             else return false;
         }
         return super.isSubtypeUnchecked(t, s, warn);
@@ -293,7 +298,7 @@ public class JmlTypes extends Types {
     @Override
     public Type unboxedType(Type t) {
         if (t.tsym == repSym(BIGINT)) return BIGINT;
-        if (t.tsym == repSym(REAL)) return REAL;
+//        if (t == repSym(REAL)) return REAL;
         if (t.tsym == repSym(TYPE)) return TYPE;
     	return super.unboxedType(t);
     }
@@ -360,18 +365,28 @@ public class JmlTypes extends Types {
             if (isIntegral(s)) return true;
             return false;
         }
-        if (s == REAL) {
+        if (s == JmlPrimitiveTypes.realTypeKind.getType(context)) {
             if (isNumeric(t)) return true;
             if (t == BIGINT) return true;
             return false;
         }
-        if (t == REAL) {
+        if (t == JmlPrimitiveTypes.realTypeKind.getType(context)) {
             if (isNumeric(s)) return true;
             if (s == BIGINT) return true;
             return false;
         }
         return super.isCastable(t, s, warn);
     }
+    
+    public ClassSymbol createClass(String fqName) {
+        try {
+        return ClassReader.instance(context).enterClass(Names.instance(context).fromString(fqName));
+        } catch (Throwable t) {
+            t.printStackTrace(System.out);
+            return null;
+        }
+    }
+
     
 //    /** Overrides Types.lowerBound with functionality for JML primitive types. */
 //    @Override
@@ -409,7 +424,7 @@ public class JmlTypes extends Types {
     
     /** Returns true if the given type is the representation of any JML primitive type. */
     public boolean isJmlRepType(Type t) {
-        return t.tsym == BIGINT.repSym || t.tsym == REAL.repSym || t.tsym == TYPE.repSym; // TODO - avoid having to list JML types
+        return t.tsym == BIGINT.repSym  || t.tsym == TYPE.repSym; // TODO - avoid having to list JML types
     }
     
     /** Returns true if the given type is any JML primitive type or its representation. */
@@ -418,8 +433,8 @@ public class JmlTypes extends Types {
     }
     
     /** Returns true if the given type is equal to target or its representation. */
-    public boolean isJmlTypeOrRep(Type t, JmlType target) {
-        return t == target || t.tsym == repSym(target);
+    public boolean isJmlTypeOrRep(Type t, Type target) {
+        return t == target ;//|| t.tsym == repSym(target); // FIXME
     }
     
     /** Returns true if the given token is the token for a JML primitive type. */

@@ -847,9 +847,9 @@ public class escfiles extends EscBase {
     }
 
     @Test  // FIXME - not yet working
-    public void testPrimitiveTypes() {
+    public void customPrimitiveTypes() {
         expectedExit = 0;
-        helpTF("primitives");
+        helpTF("customPrimitiveTypes");
     }
 
     @Test

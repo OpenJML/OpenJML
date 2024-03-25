@@ -320,10 +320,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected JmlAttr(Context context) {
         super(context);
         this.context = context;
+        this.names = Names.instance(context);
         this.utils = Utils.instance(context);
         this.specs = JmlSpecs.instance(context);
         this.jmlMaker = (JmlTree.Maker)super.make; // same as super.make
-        this.names = Names.instance(context);
+        //this.names = Names.instance(context);
         this.classReader = ClassReader.instance(context);
         this.jmltypes = (JmlTypes)super.types;  // same as super.types
         //this.classReader.init(syms);
@@ -374,7 +375,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
  
     /** Returns (creating if necessary) a class symbol for a given fully-qualified name */
     public ClassSymbol createClass(String fqName) {
-        return classReader.enterClass(names.fromString(fqName));
+        return classReader.enterClass(Names.instance(context).fromString(fqName));
     }
     
     protected Env<AttrContext> getAppropriateClassEnv(ClassSymbol sym) {
@@ -4876,7 +4877,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } else {
             JmlType type = that.token == JmlTokenKind.BSTYPEUC ? jmltypes.TYPE :
                 that.token == JmlTokenKind.BSBIGINT ? jmltypes.BIGINT :
-                    that.token == JmlTokenKind.BSREAL ? jmltypes.REAL :
+ //                   that.token == JmlTokenKind.BSREAL ? jmltypes.REAL :
                         null;
 
             if (type == null) {
@@ -4993,7 +4994,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     Type condType(List<DiagnosticPosition> positions, List<Type> condTypes) {
-    	if (condTypes.stream().anyMatch(t->t==jmltypes.REAL) && condTypes.stream().allMatch(t->jmltypes.isNumeric(t))) return jmltypes.REAL;
+        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+    	if (condTypes.stream().anyMatch(t->t==REAL) && condTypes.stream().allMatch(t->jmltypes.isNumeric(t))) return REAL;
     	if (condTypes.stream().anyMatch(t->t==jmltypes.BIGINT) && condTypes.stream().allMatch(t->jmltypes.isIntegral(t))) return jmltypes.BIGINT;
     	return super.condType(positions, condTypes);
     }
@@ -5003,30 +5005,31 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         super.visitConditional(that);
         // The following is primarily to handle cases like b ? 0 : bigint-expression
         // Note -- need to check both as expressions and declaration initializers
+        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
         if (that.truepart.type == jmltypes.BIGINT && jmltypes.isAnyIntegral(that.falsepart.type)) {
             result = that.type = jmltypes.BIGINT;
         } else if (that.falsepart.type == jmltypes.BIGINT && jmltypes.isAnyIntegral(that.truepart.type)) {
             result = that.type = jmltypes.BIGINT;
-        } else if (that.truepart.type == jmltypes.REAL && jmltypes.isNumeric(that.falsepart.type)) {
-            result = that.type = jmltypes.REAL;
-        } else if (that.falsepart.type == jmltypes.REAL && jmltypes.isNumeric(that.truepart.type)) {
-            result = that.type = jmltypes.REAL;
+        } else if (that.truepart.type == REAL && jmltypes.isNumeric(that.falsepart.type)) {
+            result = that.type = REAL;
+        } else if (that.falsepart.type == REAL && jmltypes.isNumeric(that.truepart.type)) {
+            result = that.type = REAL;
         } else if (that.truepart.type == jmltypes.BIGINT && jmltypes.isNumeric(that.falsepart.type)) {
-            result = that.type = jmltypes.REAL;
+            result = that.type = REAL;
         } else if (that.falsepart.type == jmltypes.BIGINT && jmltypes.isNumeric(that.truepart.type)) {
-            result = that.type = jmltypes.REAL;
+            result = that.type = REAL;
         }
     }
 
     @Override
     public void visitBinary(JCBinary that) {
     	super.visitBinary(that);
-    	if (that.getTag() != Tag.EQ && that.getTag() != Tag.NE) return;
-    	if ((utils.isExtensionValueType(that.lhs.type) || utils.isExtensionValueType(that.rhs.type))
-    			&& !jmltypes.isSameType(jmltypes.erasure(that.rhs.type),jmltypes.erasure(that.lhs.type))) { // FIXME: type parameters are not always retained for expressions (e.g. casts)
-    		utils.error(that, "jml.message", "Values of JML primitive types may only be compared to each other: "
-    				+ that.lhs.type + " vs. " + that.rhs.type);
-    	}
+//    	if (that.getTag() != Tag.EQ && that.getTag() != Tag.NE) return;
+//    	if ((utils.isExtensionValueType(that.lhs.type) || utils.isExtensionValueType(that.rhs.type))
+//    			&& !jmltypes.isSameType(jmltypes.erasure(that.rhs.type),jmltypes.erasure(that.lhs.type))) { // FIXME: type parameters are not always retained for expressions (e.g. casts)
+//    		utils.error(that, "jml.message", "Values of JML primitive types may only be compared to each other: "
+//    				+ that.lhs.type + " vs. " + that.rhs.type);
+//    	}
     }
     
     @Override
@@ -7716,7 +7719,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             checkVarDecl(that); // FIXME - why isn't this part of visitVarDef?
             
-            if (that.init == null && (that.sym.flags() & Flags.PARAMETER) == 0 && types.isSubtype(that.type, syms.jmlPrimitiveType)) {
+            if (that.init == null && (that.sym.flags() & Flags.PARAMETER) == 0 
+                    && !utils.isModel(that.sym)
+                    && types.isSubtype(that.type, syms.jmlPrimitiveType)) {
                 String full = that.type.toString();
                 String name = full.substring(full.lastIndexOf('.')+1);
                 if (name.equals("string")) {
@@ -7742,6 +7747,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // FIXME - should this be checking for error types?
             if (that.init != null && that.init.type != null && !that.init.type.isErroneous() &&
                     utils.isExtensionValueType(that.init.type) && !utils.isExtensionValueType(that.type)) {
+                System.out.println(that.init.type + " TO " + that.type + " " + that.init + " " + that.init.getClass());
                 utils.error(that, "jml.message", "A JML primitive type may not be assigned or cast to a non-JML type");
             }
 
@@ -8294,7 +8300,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (jmltypes.isAnyIntegral(cc.truepart.type) && jmltypes.isAnyIntegral(cc.falsepart.type)) return resultInfo.pt;
             }
         }
-        if (resultInfo.pt == jmltypes.REAL) {
+        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        if (resultInfo.pt == REAL || resultInfo.pt == REAL) {
             if (jmltypes.isNumeric(found)) return resultInfo.pt;
             if (tree instanceof JCConditional cc) {
                 if (jmltypes.isNumeric(cc.truepart.type) && jmltypes.isNumeric(cc.falsepart.type)) return resultInfo.pt;
