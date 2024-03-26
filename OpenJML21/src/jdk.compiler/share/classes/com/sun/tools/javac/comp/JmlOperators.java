@@ -87,6 +87,7 @@ public class JmlOperators extends Operators {
 //                System.out.println("COMP1 " + op1 + " " + args.head + " " + jtype.isSameType(op1,  args.head));
 //                System.out.println("COMP2 " + op2 + " " + args.tail.head + " " + jtype.isSameType(op2,  args.tail.head));
 //            }
+    		System.out.println("OPS " + op1.getClass() + " " + op1);
     		org.jmlspecs.openjml.Utils.instance(context).error(pos, "jml.message", "No operator for " + op1 + " " + opName + " " + op2);
 			return noOpSymbol;
     	}

@@ -271,6 +271,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     final protected Name exceptionName;
     
     final public Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+    final public Type STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
     final public Type REALREP = JmlPrimitiveTypes.realTypeKind.getRepType(context);
 
 
@@ -8855,7 +8856,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (rt instanceof Type.TypeVar) rt = calleeMethodSym.owner.type;
 			java.util.List<Pair<MethodSymbol, Type>> overridden = parents(calleeMethodSym, rt);
 			
-            boolean calleeIsPure = specs.isPureMethod(calleeMethodSym);
+            boolean calleeIsPure = specs.isAnyPurityMethod(calleeMethodSym);
             //if (calleeMethodSym.toString().contains("ok")) System.out.println("ISPURE-Z " + calleeIsPure + " " + calleeMethodSym.owner + "." + calleeMethodSym);
             boolean effectivelyPure = true;
 			{
@@ -13669,7 +13670,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	@Override
 	public void visitBinary(JCBinary that) {
 		// FIXME - check on numeric promotion, particularly shift operators
-		JCTree.Tag optag = that.getTag();
+	    JCTree.Tag optag = that.getTag();
 		boolean equality = optag == JCTree.Tag.EQ || optag == JCTree.Tag.NE;
 		boolean comp = equality || optag == JCTree.Tag.GE || optag == JCTree.Tag.LE || optag == JCTree.Tag.LT
 				|| optag == JCTree.Tag.GT;
@@ -13678,15 +13679,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				|| optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD;
 		boolean bit = optag == JCTree.Tag.BITAND || optag == JCTree.Tag.BITOR || optag == JCTree.Tag.BITXOR;
 
-		//if (optag == JCTree.Tag.EQ) System.out.println("VISIT-BINARY " + that + " " + that.lhs.type);
-		//if (that.toString().contains("length != null")) Utils.dumpStack();
-        if (utils.rac && (that.type == REAL || that.lhs.type == REAL || that.rhs.type == REAL)) {
+		if (that.type == REAL || that.lhs.type == REAL || that.rhs.type == REAL) {
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
-            //System.out.println("REAL-A " + that.type + " " + lhs.type + " " + lhs + " " + rhs + " " + rhs.type);
             lhs = addImplicitConversion(lhs, REAL, lhs);
             rhs = addImplicitConversion(rhs, REAL, rhs);
-            //System.out.println("REAL-B " + that.type + " " + lhs.type + " " + lhs + " " + rhs + " " + rhs.type);
             Name nm = names.fromString(
                     switch (optag) {
                     case EQ -> "eq";
@@ -13702,10 +13699,43 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     case LT -> "lt";
                     default -> "";
             });
-            //System.out.println("REAL " + that.type + " " + lhs.type + " " + nm + " " + rhs + " " + rhs.type);
-            JCExpression e = treeutils.makeMethodInvocation(that, lhs, nm, rhs);
-            //System.out.println("REAL-Z " + e.type + " " + e);
-            result = eresult = convertExpr(e);
+            if (utils.rac) { 
+                JCExpression e = treeutils.makeMethodInvocation(that, lhs, nm, rhs);
+                result = eresult = convertExpr(e);
+            } else {
+                result = eresult = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
+            }
+            return;
+        }
+        if (that.type == STRING  || that.lhs.type == STRING ) {
+            JCExpression lhs = convertExpr(that.getLeftOperand());
+            JCExpression rhs = convertExpr(that.getRightOperand());
+            Name nm = names.fromString(
+                    switch (optag) {
+                    case EQ -> "eq";
+                    case NE -> "ne";
+                    case PLUS -> rhs.type == STRING ? "append" : "add";
+                    default -> "";
+            });
+            if (optag == JCTree.Tag.PLUS || !utils.esc) {
+                JCExpression e = treeutils.makeMethodInvocation(that, lhs, nm, rhs);
+                result = eresult = convertExpr(e);
+            } else {
+                // built-in
+                result = eresult = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
+            }
+            return;
+        }
+        if ((optag == JCTree.Tag.EQ || optag== JCTree.Tag.NE) && (utils.isExtensionValueType(that.lhs.type) || utils.isExtensionValueType(that.rhs.type))) {
+            JCExpression lhs = convertExpr(that.getLeftOperand());
+            JCExpression rhs = convertExpr(that.getRightOperand());
+            if (utils.rac) {
+                var nm = names.fromString(optag == JCTree.Tag.EQ ? "eq" : "ne");
+                JCExpression e = treeutils.makeMethodInvocation(that, lhs, nm, rhs);
+                result = eresult = convertExpr(e);
+            } else {
+                result = eresult = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
+            }
             return;
         }
 		if (optag == JCTree.Tag.PLUS && that.type.equals(syms.stringType)) {

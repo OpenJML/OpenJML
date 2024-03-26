@@ -108,26 +108,26 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLStringTest.conversion2a(String) with prover !!!! - no warnings
 Starting proof of JMLStringTest.conversionBad1(@Nullable String,Object) with prover !!!!
-test/valuestrings/JMLStringTest.java:152: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad1: arg0 in string(String)
+test/valuestrings/JMLStringTest.java:164: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad1: arg0 in string(String)
     //@   ghost \string s1 = s; // verification error
                              ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
+$SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
     static public string string(String s);
                                 ^
 Completed proof of JMLStringTest.conversionBad1(@Nullable String,Object) with prover !!!! - with warnings
 Starting proof of JMLStringTest.conversionBad2(@Nullable String,Object) with prover !!!!
-test/valuestrings/JMLStringTest.java:156: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad2: arg0 in string(String)
+test/valuestrings/JMLStringTest.java:168: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad2: arg0 in string(String)
     //@   ghost \string s2 = (\string)s; // verification error
                                       ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
+$SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
     static public string string(String s);
                                 ^
 Completed proof of JMLStringTest.conversionBad2(@Nullable String,Object) with prover !!!! - with warnings
 Starting proof of JMLStringTest.conversionBad3(@Nullable String,Object) with prover !!!!
-test/valuestrings/JMLStringTest.java:160: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad3: arg0 in string(String)
+test/valuestrings/JMLStringTest.java:172: warning: The prover cannot establish an assertion (NullFormal) in method conversionBad3: arg0 in string(String)
     //@   ghost \string s3 = (\string)(s); // verification error
                                        ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
+$SPECS/specs/org/jmlspecs/lang/string.jml:16: warning: Associated declaration
     static public string string(String s);
                                 ^
 Completed proof of JMLStringTest.conversionBad3(@Nullable String,Object) with prover !!!! - with warnings

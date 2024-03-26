@@ -101,19 +101,19 @@ public class racfiles extends RacBase {
     }
 
     @Test
-    public void testUniqueList() {
+    public void uniqueList() {
         expectedExit = 0;
         helpTCF("test/uniqueList","test/uniqueList","UniqueList","--rac-java-checks","--rac-check-assumptions");
     }
 
     @Test 
-    public void testUniqueList1() {
+    public void uniqueListBug1() {
         expectedExit = 0;
         helpTCF("test/uniqueListBug1","test/uniqueListBug1","UniqueListBug1","--rac-java-checks","--rac-check-assumptions");
     }
 
     @Test 
-    public void testUniqueList2() {
+    public void uniqueListBug2() {
         expectedExit = 0;
         helpTCF("test/uniqueListBug2","test/uniqueListBug2","UniqueListBug2");
     }
@@ -157,7 +157,7 @@ public class racfiles extends RacBase {
     }
 
     @Test
-    public void testECU() {
+    public void ecurac() {
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecurac","Test","--rac-java-checks","--rac-check-assumptions");
     }
@@ -540,7 +540,7 @@ public class racfiles extends RacBase {
         helpTCF("test/racRM2","test/racRM2","MaxSumArray","-code-math=safe","-spec-math=bigint");
     }
     
-    @Test @Ignore // FIXME - RAC Not yet working for programs using string
+    @Test 
     public void valuestrings() {
         expectedRACExit = 1;
         helpTCF("test/valuestrings","test/valuestrings","JmlStringTest");

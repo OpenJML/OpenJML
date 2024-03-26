@@ -5023,13 +5023,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     @Override
     public void visitBinary(JCBinary that) {
-    	super.visitBinary(that);
-//    	if (that.getTag() != Tag.EQ && that.getTag() != Tag.NE) return;
-//    	if ((utils.isExtensionValueType(that.lhs.type) || utils.isExtensionValueType(that.rhs.type))
-//    			&& !jmltypes.isSameType(jmltypes.erasure(that.rhs.type),jmltypes.erasure(that.lhs.type))) { // FIXME: type parameters are not always retained for expressions (e.g. casts)
-//    		utils.error(that, "jml.message", "Values of JML primitive types may only be compared to each other: "
-//    				+ that.lhs.type + " vs. " + that.rhs.type);
-//    	}
+        super.visitBinary(that);
+    }
+    
+    @Override 
+    public Type jmlBinary(JCBinary that, OperatorSymbol operator, Type left, Type right) {
+        Type rt = operator.getReturnType();
+        if (utils.isExtensionValueType(rt) || utils.isExtensionValueType(left) ||  utils.isExtensionValueType(right)) {
+            // Treating this specially avoids attempts at unboxing for some operators
+            // FIXME - this skips any implicit conversions?
+            // FIXME - what about inferred type parameters
+            that.type = rt;
+            return rt;
+        }
+        return null;
     }
     
     @Override

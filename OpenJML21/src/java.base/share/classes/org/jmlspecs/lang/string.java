@@ -1,12 +1,11 @@
 package org.jmlspecs.lang;
 
-// All the specifications are in the .jml file. 
 // This file provides RAC implementations
 
-//@ immutable pure
+//@ immutable spec_pure
 public final class string implements IJmlPrimitiveType, IJmlIntArrayLike {
 
-    public String racValue = "";
+    private String racValue = "";
     
     private string(String s) {
         racValue = s;
@@ -75,8 +74,4 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike {
     public string substring(int start, int end) {
         return string(racValue.substring(start, end));
     }
-
-    
-    
-
 }

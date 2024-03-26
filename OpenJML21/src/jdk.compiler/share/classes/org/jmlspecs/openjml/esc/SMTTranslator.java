@@ -827,7 +827,7 @@ public class SMTTranslator extends JmlTreeScanner {
 //        c = new C_declare_fun(thisSym,emptyList, convertSort());
 //        startCommands.add(c);
         // define stringConcat: (declare-fun stringConcat (REF,REF) REF)
-        c = new C_declare_fun(F.symbol(concat),Arrays.asList(refSort,refSort), refSort);
+        c = new C_declare_fun(F.symbol(concat),Arrays.asList(stringSort,stringSort), stringSort);
         startCommands.add(c);
         {
         	// define stringLength: (declare-fun stringLength (String) Int)
@@ -2294,7 +2294,11 @@ public class SMTTranslator extends JmlTreeScanner {
                 if (isReal) {
                     result = F.fcn(F.symbol("+"), args);
                 } else if (tree.lhs.type.getTag() == TypeTag.CLASS) {
-                    result = F.fcn(F.symbol(concat), args);
+                    if (tree.rhs.type.getTag() == TypeTag.CHAR) {
+                        result = F.fcn(F.symbol("store"), lhs, F.fcn(selectSym,lengthSym,lhs), rhs);
+                    } else {
+                        result = F.fcn(F.symbol(concat), args);
+                    }
                 } else if (useBV) {
                 	result = F.fcn(F.symbol("bvadd"), args);
                 } else {
@@ -2791,7 +2795,7 @@ public class SMTTranslator extends JmlTreeScanner {
 //            	result = sel;
 //
 //            } else 
-            	if (typeString.startsWith("org.jmlspecs.lang.")) {
+            if (typeString.startsWith("org.jmlspecs.lang.")) {
             	result = F.fcn(selectSym,
             			convertExpr(aa.indexed),
             			convertExpr(aa.index)

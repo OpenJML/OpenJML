@@ -841,7 +841,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                             // Type information ? - FIXME 
                             JCIdent pold = newIdentUse(m,sym,pos);
                             JCIdent pnew = newIdentUse(newMap,sym,pos);
-                            if (pold.name != pnew.name) { 
+                            if (pold.name != pnew.name && !pnew.type.toString().contains("datagroup")) { // FIXME - cf escall3 ; but what about in constructors
                                 JCBinary eq = treeutils.makeEquality(pos,pnew,pold);
                                 addAssume(pos,Label.DSA,eq,b.statements);
                             }
@@ -1619,7 +1619,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 if (remainingStatements.get(0).toString().contains("JMLsaved")) remainingStatements.remove(0);
                 if (!remainingStatements.isEmpty()) {
 //                    // Not fatal, but does indicate a problem with the original
-//                    // program, which the compiler may have already identified
+//                    // program, )which the compiler may have already identified
 //                    log.warning(remainingStatements.get(0).pos,
 //                            "esc.internal.error", //$NON-NLS-1$
 //                            "Unexpected statements following a END statement are ignored"); //$NON-NLS-1$

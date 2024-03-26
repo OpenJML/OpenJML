@@ -277,6 +277,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
             jt.enterBinop("==", type, type, jt.syms.booleanType);
             jt.enterBinop("!=", type, type, jt.syms.booleanType);
             jt.enterBinop("+", type, type, type);
+            jt.enterBinop("+", type, jt.syms.charType, type);
         }
 
         public Type getType(Context context) {
@@ -318,6 +319,11 @@ public class JmlPrimitiveTypes extends JmlExtension {
     public static final JmlTypeKind datagroupTypeKind = new JmlTypeKind(datagroupID, "org.jmlspecs.lang.internal.datagroup") {
         @Override
         public int numTypeArguments() { return 0; }
+        
+        @Override
+        public void initOps() {
+            // intentionally no operations, not even ==
+        }
     };
 
     public static final String rangeID = "\\range";

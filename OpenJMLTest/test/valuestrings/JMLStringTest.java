@@ -32,12 +32,24 @@ public class JMLStringTest {
     }
     
     //@ public normal_behavior
+    public static void plus() {
+        //@ ghost \string s1 = "A";
+        //@ check s1.length == 1;
+        //@ ghost \string s2 = "B";
+        //@ check s2.length == 1;
+        //@ ghost \string s3 = s1 + s2;
+        //@ check s3.length == 2;
+        //@ ghost \string s4 = s1 + 'B';
+        //@ assert s3 == s4;
+    }
+    
+    //@ public normal_behavior
     //@ ensures ((\string)"abc").length == 3;
-    //@ model public static void newStringFromString() {}
+    public static void newStringFromString() {}
     
     //@ public normal_behavior
     //@ ensures ((\string)"").length == 0;
-    //@ model public static void emptyLength() {
+    public static void emptyLength() {
     //@   ghost \string s3 = "";
     //@   assert s3.length == 0;
     //@ }
@@ -159,6 +171,6 @@ public class JMLStringTest {
     //@ model public static void conversionBad3(nullable String s, Object o) {
     //@   ghost \string s3 = (\string)(s); // verification error
     //@ }
-
+/* */
 
 }

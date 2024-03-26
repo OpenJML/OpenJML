@@ -4042,6 +4042,8 @@ public class Attr extends JCTree.Visitor {
         result = check(tree, owntype, KindSelector.VAL, resultInfo);
         matchBindings = matchBindingsComputer.unary(tree, matchBindings);
     }
+    
+    public Type jmlBinary(JCBinary tree, OperatorSymbol operator, Type left, Type right) { return null; } // OPENJML: to be overridden
 
     public void visitBinary(JCBinary tree) {
         // Attribute arguments.
@@ -4082,6 +4084,7 @@ public class Attr extends JCTree.Visitor {
                 !left.isErroneous() &&
                 !right.isErroneous()) {
             owntype = operator.type.getReturnType();
+            if ((result = jmlBinary(tree, operator, left, right)) != null) return; // OPENJML
             int opc = operator.opcode;
             // If both arguments are constants, fold them.
             if (left.constValue() != null && right.constValue() != null) {

@@ -83,7 +83,7 @@ public abstract class TCBase extends JmlTestCase {
     // filename is the pseudo-filename in which content is considered to be
     // content is the test text; 
     // list are the expected messages and column numbers
-    public void helpTCX(/*@ nullable*/String filename, String content, Object[] list) {
+    public void helpTCX(/*@ nullable*/String filename, String content, Object ... list) {
         try {
             JavaFileObject f = new TestJavaFileObject(filename,content);
             if (filename != null) addMockFile("#B/" + filename,f);

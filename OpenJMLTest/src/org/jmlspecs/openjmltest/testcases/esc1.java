@@ -964,6 +964,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables4a() {
+        addOptions("--show","--method=m1");
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n" 
@@ -5001,14 +5002,70 @@ public class esc1 extends EscBase {
 //                        // When there is an error, no attribution is performed
 //                        );
 //    }
-//    
-//    @Test
-//    public void testdatagroup() {
-//        helpTCX("tt.C",
-//                "package tt; /*@ non_null_by_default */ public class C {\n"
-//                + "    //@ public model \datagroup g;\n"
-//                + "}\n"
-//                );
-//    }
+
+    // FIXME - move to typechecking?
+    
+    @Test
+    public void testdatagroup1() {
+        helpTCX("tt.C",
+                """
+                package tt; /*@ non_null_by_default */ public class C {
+                    //@ public model \\datagroup g;
+                }
+                """
+                );
+    }
+
+    @Test
+    public void testdatagroup2() {
+        expectedExit = 1;
+        helpTCX("tt.C",
+                """
+                package tt; /*@ non_null_by_default */ public class C {
+                    //@ public model \\datagroup g;
+                    public void m() {
+                        //@ assert g != null;
+                    }
+                }
+                """
+                ,"/tt/C.java:4: error: No operator for org.jmlspecs.lang.internal.datagroup != <nulltype>", 22
+                );
+    }
+
+    @Test
+    public void testdatagroup3() {
+        expectedExit = 1;
+        helpTCX("tt.C",
+                """
+                package tt; /*@ non_null_by_default */ public class C {
+                    //@ public model \\datagroup g;
+                    //@ public model \\datagroup gg;
+                    public void m() {
+                        //@ assert g == gg;
+                    }
+                }
+                """
+                ,"/tt/C.java:5: error: No operator for org.jmlspecs.lang.internal.datagroup == org.jmlspecs.lang.internal.datagroup", 22);
+    }
+
+    @Test
+    public void testdatagroup4() {
+        expectedExit = 1;
+        helpTCX("tt.C",
+                """
+                package tt; /*@ non_null_by_default */ public class C {
+                    //@ public model \\datagroup g;
+                    //@ public model \\datagroup gg;
+                    public void m() {
+                        //@ assert !g == 0;
+                        //@ assert g + gg == 0;
+                    }
+                }
+                """
+                ,"/tt/C.java:5: error: No operator for ! org.jmlspecs.lang.internal.datagroup", 20
+                ,"/tt/C.java:6: error: No operator for org.jmlspecs.lang.internal.datagroup + org.jmlspecs.lang.internal.datagroup", 22
+                );
+    }
+
 
 }

@@ -2098,6 +2098,17 @@ public class JmlSpecs {
         return false;
     }
     
+    public boolean isAnyPurityMethod(MethodSymbol symbol) {
+        var t = determinePurity(symbol);
+        if (t == null) return false;
+        var k = t.jmlclausekind;
+        if (k == NO_STATE) return true;
+        if (k == STRICTLY_PURE) return true;
+        if (k == SPEC_PURE) return true;
+        if (k == PURE) return true;
+        return false;
+    }
+
     public boolean isSpecPureMethod(MethodSymbol symbol) {
         var t = determinePurity(symbol);
         return t != null && t.jmlclausekind == SPEC_PURE;
