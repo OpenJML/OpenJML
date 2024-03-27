@@ -178,7 +178,7 @@ public class QuantifiedExpressions extends JmlExtension {
 
                     case qnumofID:
                         valueType = syms.booleanType;
-                        resultType = com.sun.tools.javac.code.JmlTypes.instance(parser.context).BIGINT;
+                        resultType = JmlPrimitiveTypes.bigintTypeKind.getType(attr.context);
                         if (utils.rac) resultType = syms.longType; // FIXME - or BigInteger
                         break;
 

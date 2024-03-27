@@ -147,7 +147,7 @@ public class StatementExprExtensions extends JmlExtension {
             attr.jmlenv = attr.jmlenv.pushCopy();
             attr.jmlenv.inPureEnvironment = true;
             attr.jmlenv.currentClauseKind = tree.clauseType;
-            Type expectedType = tree.clauseType == loopdecreasesClause ? JmlTypes.instance(attr.context).BIGINT
+            Type expectedType = tree.clauseType == loopdecreasesClause ? JmlPrimitiveTypes.bigintTypeKind.getType(attr.context)
                 : isUse ? Type.noType
                 : tree.clauseType == commentClause ? attr.syms.stringType
                 : attr.syms.booleanType; 

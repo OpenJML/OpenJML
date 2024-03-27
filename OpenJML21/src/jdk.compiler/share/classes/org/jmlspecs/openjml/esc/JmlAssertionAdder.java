@@ -270,6 +270,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** The Name used for exceptions thrown in the body of a method */
     final protected Name exceptionName;
     
+    final public Type BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
     final public Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
     final public Type STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
     final public Type TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
@@ -1023,7 +1024,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JCVariableDecl d;
 				if (rac) {
 					d = treeutils.makeVarDef(methodDecl.restype.type, resultName, methodDecl.sym,
-							treeutils.makeZeroEquivalentLit(methodDecl.pos, methodDecl.restype.type));
+							treeutils.makeZeroEquivalentLit(methodDecl, methodDecl.restype.type));
 				} else {
 					d = treeutils.makeVarDef(methodDecl.restype.type, resultName, methodDecl.sym, methodDecl.pos);
 				}
@@ -1381,7 +1382,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// initialized on every path, even in programs in which it appears
 			// obvious that it is. So we initialize it here to a null-like value.
 			JCVariableDecl d = treeutils.makeVarDef(methodDecl.restype.type, resultName, methodDecl.sym,
-					treeutils.makeZeroEquivalentLit(methodDecl.pos, methodDecl.restype.type));
+					treeutils.makeZeroEquivalentLit(methodDecl, methodDecl.restype.type));
 			resultSym = d.sym;
 			initialStatements.add(d);
 		}
@@ -2395,6 +2396,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return m;
 		}
 	}
+	
+
 
 	/**
 	 * Creates an expression AST for a call of the given static method (from
@@ -2453,12 +2456,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 	
 	protected Type toRacType(Type t) {
-        if (t == types.BIGINT) t = types.BIGINT.repSym.type;
-//        else if (t == types.REAL) t = types.REAL.repSym.type; // FIXME
-        else if (t == TYPE) t = TYPE;
-        else if (t == JmlPrimitiveTypes.locsetTypeKind.getType(context)) t = JmlPrimitiveTypes.locsetTypeKind.getRepType(context);
-        else if (t == JmlPrimitiveTypes.stringTypeKind.getType(context)) t = JmlPrimitiveTypes.stringTypeKind.getRepType(context);
-        //else if (utils.isExtensionValueType(t)) t = ((JmlType)t).getRepType(context);
         return t;
 	}
 
@@ -2591,7 +2588,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 																							// stuff at the class level
 																							// be put in an initializer
 																							// block?
-				treeutils.makeZeroEquivalentLit(pos.getPreferredPosition(), type));
+				treeutils.makeZeroEquivalentLit(pos, type));
 		d.sym.pos = Position.NOPOS;
 		currentStatements.add(d);
 		JCIdent id = treeutils.makeIdent(pos.getPreferredPosition(), d.sym);
@@ -4707,7 +4704,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
 									ListBuffer<JCStatement> check2 = pushBlock();
 									if (rac) {
-										newdecl.init = treeutils.makeZeroEquivalentLit(decl.init.pos, decl.type);
+										newdecl.init = treeutils.makeZeroEquivalentLit(decl.init, decl.type);
 									} else {
 										addNullnessTypeCondition(id, id.sym, false);
 									}
@@ -4766,7 +4763,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										// JmlAssertionAdder.
 										JCVariableDecl d = newTempDecl(ex, boxedType(ex.type));
 										// JCVariableDecl d = newTempDecl(ex,ex.type);
-										d.init = treeutils.makeZeroEquivalentLit(ex.pos, ex.type);
+										d.init = treeutils.makeZeroEquivalentLit(ex, ex.type);
 										addStat(d);
 										check2 = pushBlock();
 										JCExpression convertedEx = convertJML(ex);
@@ -5870,7 +5867,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (isModel(vd.sym) && vd.init == null) continue;
 			JCExpression field = treeutils.makeIdent(vd.pos, vd.sym);
 			field = convertJML(field);
-			JCExpression z = treeutils.makeZeroEquivalentLit(vd.pos, vd.type);
+			JCExpression z = treeutils.makeZeroEquivalentLit(vd, vd.type);
 			addAssumeEqual(vd.pos(), Label.IMPLICIT_ASSUME, field, z);
 		}
 	}
@@ -7901,7 +7898,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JmlRange r;
 			if (aa.index == null) {
 				r = M.at(aa.index).JmlRange(
-						treeutils.makeZeroEquivalentLit(aa.pos, JmlTypes.instance(context).BIGINT),
+						treeutils.makeZeroEquivalentLit(aa, BIGINT),
 						treeutils.makeLengthM1(e.pos(), aa.indexed));
 			} else if (!(aa.index instanceof JmlRange rr)) {
 				r = M.at(aa.index).JmlRange(aa.index, aa.index);
@@ -7909,8 +7906,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				r = M.at(aa.index)
 						.JmlRange(
 								rr.lo != null ? rr.lo
-										: treeutils.makeZeroEquivalentLit(rr.pos,
-												JmlTypes.instance(context).BIGINT),
+										: treeutils.makeZeroEquivalentLit(rr,BIGINT),
 								rr.hi != null ? rr.hi : treeutils.makeLengthM1(e.pos(), aa.indexed));
 			}
 			sr = M.at(e.pos).JmlStoreRef(false, null, null, aa.indexed, r, null, e);
@@ -9577,7 +9573,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
 										ListBuffer<JCStatement> check = pushBlock();
 										if (rac) {
-											newdecl.init = treeutils.makeZeroEquivalentLit(decl.init.pos, decl.type);
+											newdecl.init = treeutils.makeZeroEquivalentLit(decl.init, decl.type);
 										} else {
 											addNullnessTypeCondition(id, id.sym, false);
 										}
@@ -9662,7 +9658,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											// in JmlAssertionAdder.
 											JCVariableDecl d = newTempDecl(ex, boxedType(ex.type));
 											// JCVariableDecl d = newTempDecl(ex,(ex.type));
-											d.init = treeutils.makeZeroEquivalentLit(ex.pos, ex.type);
+											d.init = treeutils.makeZeroEquivalentLit(ex, ex.type);
 											addStat(oldStatements, d);
 											check = pushBlock();
 											convertedEx = convertJML(ex);
@@ -10386,7 +10382,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 												} else if (item.range != null && item.range.lo == item.range.hi && item.range.lo != null) {
 													Type elemtype = jmltypes.elemtype(item.receiver.type);
 													JCIdent arrayXout = newTemp(item, item.receiver.type);
-													JCIdent loXout = newTemp(item, jmltypes.BIGINT);
+													JCIdent loXout = newTemp(item, BIGINT);
 													check4 = pushBlock();
 													addAssume(item, Label.IMPLICIT_ASSUME, treeutils.makeEquality(item.pos, arrayXout, convertJML(item.receiver, calleeEnv)));
 													addAssume(item, Label.IMPLICIT_ASSUME, treeutils.makeEquality(item.pos, loXout, convertJML(item.range.lo, calleeEnv)));
@@ -10400,8 +10396,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 													// An array range: [ i .. j] [i .. ] [*]
 													Type elemtype = jmltypes.elemtype(item.receiver.type);
 													JCIdent arrayXout = newTemp(item, item.receiver.type);
-													JCIdent loXout = newTemp(item, jmltypes.BIGINT);
-													JCIdent hiXout = newTemp(item, jmltypes.BIGINT);
+													JCIdent loXout = newTemp(item, BIGINT);
+													JCIdent hiXout = newTemp(item, BIGINT);
 													check4 = pushBlock();
 													addAssume(item, Label.IMPLICIT_ASSUME, treeutils.makeEquality(item.pos, arrayXout, convertJML(item.receiver, calleeEnv)));
 													if (item.range.lo != null)
@@ -12188,7 +12184,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					}
 					if (decls.size() > 0) {
 						JCExpression q = M.at(p).JmlQuantifiedExpr(qforallKind, decls.toList(), range,
-								treeutils.makeEquality(pos, expr, treeutils.makeZeroEquivalentLit(pos, ct)));
+								treeutils.makeEquality(pos, expr, treeutils.makeZeroEquivalentLit(p, ct)));
 						q.setType(treeutils.falseLit.type);
 						addAssume(array, Label.IMPLICIT_ASSUME, q);
 					}
@@ -12202,7 +12198,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		DiagnosticPosition pos = methodDecl;
 		int p = pos.getPreferredPosition();
 		if (!(type instanceof Type.ArrayType)) {
-			return treeutils.makeZeroEquivalentLit(p, type);
+			return treeutils.makeZeroEquivalentLit(pos, type);
 		} else if (dims.head instanceof JCLiteral) {
 			Type ctype = ((Type.ArrayType) type).getComponentType();
 			int sz = (Integer) ((JCLiteral) dims.head).value; // FIXME - long?
@@ -12266,37 +12262,48 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		}
 
-		if (utils.isExtensionValueType(annotatedNewtype)) {
-		    if (types.isSameType(newtype,  origtype)) return convert(expr);
+		if (utils.isExtensionValueType(newtype)) {
+		    if (types.isSameType(newtype,  origtype)) return expr;
 			// converting to a value type
-            Type.ClassType stringT = utils.extensionValueType("string");
-            Type realT = JmlPrimitiveTypes.realTypeKind.getType(context);
-            if (types.isSameType(annotatedNewtype, stringT)
+            if (types.isSameType(annotatedNewtype, STRING)
                     && types.isSameType(expr.type, syms.stringType)) {
-                JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), stringT);
+                JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), STRING);
                 JCExpression e = treeutils.makeMethodInvocation(pos, ty, names.fromString("string"), expr);
                 e = convertExpr(e);
                 return e;
             }
-            if (types.isSameType(annotatedNewtype, stringT)
+            if (types.isSameType(annotatedNewtype, STRING)
                     && types.isSameType(expr.type, syms.stringType)) {
-                JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), stringT);
+                JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), STRING);
                 JCExpression e = treeutils.makeMethodInvocation(pos, ty, names.fromString("string"), expr);
                 e = convertExpr(e);
                 return e;
             }
-            if (types.isSameType(annotatedNewtype, realT)) {
+            if (types.isSameType(annotatedNewtype, REAL)) {
                 if (utils.rac) { 
                     // FIXME -- need the implementatino type, not realT
-                    Type realRepType = JmlPrimitiveTypes.realTypeKind.getRepType(context);
-                    JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), realRepType);
+                    JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), REAL);
                     JCExpression e = treeutils.makeMethodInvocation(pos, ty, names.fromString("of"), expr);
                     e = convertExpr(e);
                     return e;
                 } else {
-                    JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), realT);
+                    JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), REAL);
                     JCExpression e = M.at(expr).TypeCast(ty, expr);
-                    e.type = realT;
+                    e.type = REAL;
+                    return e;
+                }
+            }
+            if (types.isSameType(annotatedNewtype, BIGINT)) {
+                if (utils.rac) { 
+                    // FIXME -- need the implementatino type, not realT
+                    JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), BIGINT);
+                    JCExpression e = treeutils.makeMethodInvocation(pos, ty, names.fromString("of"), expr);
+                    e = convertExpr(e);
+                    return e;
+                } else {
+                    JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), REAL);
+                    JCExpression e = M.at(expr).TypeCast(ty, expr);
+                    e.type = REAL;
                     return e;
                 }
             }
@@ -12318,9 +12325,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			addJavaCheck(pos, e, Label.POSSIBLY_NULL_UNBOX, Label.UNDEFINED_NULL_UNBOX,
 					"java.lang.NullPointerException");
 		}
-		if (rac && origtype.tsym == jmltypes.repSym(jmltypes.BIGINT) && newIsPrim) {
+		if (rac && origtype == BIGINT && newIsPrim) {
 			// For checking reductions of \bigint to regular int in MATH mode
-			if (newtype == jmltypes.BIGINT) {
+			if (newtype == BIGINT) {
 				// continue
 			} else if (jmltypes.isIntegral(newtype)) {
 				int p = pos.getPreferredPosition();
@@ -12347,11 +12354,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        }
 
 		if (rac) {
-			if ((jmltypes.isSameType(newtype, jmltypes.BIGINT) || newtype.tsym == jmltypes.repSym(jmltypes.BIGINT))
+			if ((jmltypes.isSameType(newtype, BIGINT))
 					&& isPrim && !jmltypes.isJmlType(expr.type)) {
 				// primitive to BigInteger
 				return treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf", expr);
-			} else if (jmltypes.isSameTypeOrRep(jmltypes.BIGINT, newtype) && !isPrim
+			} else if (jmltypes.isSameTypeOrRep(BIGINT, newtype) && !isPrim
 					&& !jmltypes.isJmlType(expr.type)) {
 				// boxed primitive to BigInteger
 				if (jmltypes.isSameTypeOrRep(newtype, expr.type))
@@ -12363,8 +12370,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				expr = M.at(expr).TypeCast(newtype, expr);
 				expr.type = newtype;
 				return expr;
-			} else if (newIsPrim && jmltypes.isSameTypeOrRep(jmltypes.BIGINT, expr.type)
-					&& !jmltypes.isSameTypeOrRep(jmltypes.BIGINT, newtype) && !isPrim
+			} else if (newIsPrim && jmltypes.isSameTypeOrRep(BIGINT, expr.type)
+					&& !jmltypes.isSameTypeOrRep(BIGINT, newtype) && !isPrim
 					&& currentEnv.arithmeticMode.mode() == Arithmetic.Mode.MATH) {
 				// In BIGINT mode, we can be required to cast a bigint value back to a primitive
 				// for an assignment
@@ -13010,7 +13017,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// methodDecl.sym.owner.type, currentEnv.currentReceiver, currentEnv.currentReceiver);
 				}
 			} else if (jmltypes.isIntArray(array.type)) {
-				index = addImplicitConversion(index, jmltypes.BIGINT, index);
+				index = addImplicitConversion(index, BIGINT, index);
 			}
 
 			JCExpression rhs = convertExpr(that.rhs);
@@ -13090,6 +13097,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return;
         }
         if (types.isSameType(that.type, REAL)) {  // FIXME - does this evaluate lhs twice?
+            JCExpression rhs1 = copy(lhs);
+            JCBinary bin = treeutils.makeBinary(that.pos, op, rhs1, rhs);
+            bin.operator = that.operator;
+            JCAssign e = treeutils.makeAssign(that.pos, lhs, bin);
+            e.type = that.type;
+            visitAssign(e);
+            // TODO: Check mappings for trace and counterexample
+            return;
+        }
+        if (that.type == BIGINT) {  // FIXME - does this evaluate lhs twice?
             JCExpression rhs1 = copy(lhs);
             JCBinary bin = treeutils.makeBinary(that.pos, op, rhs1, rhs);
             bin.operator = that.operator;
@@ -13385,9 +13402,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (splitExpressions)
 				result = eresult = newTemp(eresult);
 		} else if (tag == JCTree.Tag.COMPL || tag == JCTree.Tag.POS) {
-			result = eresult = currentEnv.arithmeticMode.rewriteUnary(this, that);
-			if (splitExpressions)
-				result = eresult = newTemp(eresult);
+		    if (utils.rac && that.type == BIGINT) {
+                JCExpression arg = convertExpr(that.getExpression());
+		        result = eresult = treeutils.makeMethodInvocation(that, arg, names.fromString("comp"));
+		    } else {
+		        result = eresult = currentEnv.arithmeticMode.rewriteUnary(this, that);
+		        if (splitExpressions)
+		            result = eresult = newTemp(eresult);
+		    }
 		} else {
 			JCExpression arg = convertExpr(that.getExpression());
 			if (tag == JCTree.Tag.NOT && arg instanceof JCLiteral) {
@@ -13679,7 +13701,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				|| optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD;
 		boolean bit = optag == JCTree.Tag.BITAND || optag == JCTree.Tag.BITOR || optag == JCTree.Tag.BITXOR;
 
-		if (that.type == REAL || that.lhs.type == REAL || that.rhs.type == REAL) {
+        if (that.type == REAL || that.lhs.type == REAL || that.rhs.type == REAL) {
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
             lhs = addImplicitConversion(lhs, REAL, lhs);
@@ -13703,6 +13725,51 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCExpression e = treeutils.makeMethodInvocation(that, lhs, nm, rhs);
                 result = eresult = convertExpr(e);
             } else {
+                result = eresult = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
+            }
+            return;
+        }
+        if (that.type == BIGINT || that.lhs.type == BIGINT || that.rhs.type == BIGINT) {
+            JCExpression lhs = convertExpr(that.getLeftOperand());
+            JCExpression rhs = convertExpr(that.getRightOperand());
+            lhs = addImplicitConversion(lhs, BIGINT, lhs);
+            rhs = addImplicitConversion(rhs, BIGINT, rhs);
+            Name nm = names.fromString(
+                    switch (optag) {
+                    case EQ -> "eq";
+                    case NE -> "ne";
+                    case PLUS -> "add";
+                    case MINUS -> "subtract";
+                    case MUL -> "multiply";
+                    case DIV -> "divide";
+                    case MOD -> "mod";
+                    case GE -> "ge";
+                    case GT -> "gt";
+                    case LE -> "le";
+                    case LT -> "lt";
+                    case SL -> "shiftLeft";
+                    case SR -> "shiftRight";
+                    case BITAND -> "and";
+                    case BITOR -> "or";
+                    case BITXOR -> "xor";
+                    default -> null;
+            });
+            if (optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD) {
+                var pos = that.pos;
+                JCExpression zero = treeutils.makeZeroEquivalentLit(that, BIGINT);
+                JCExpression nonzero = treeutils.makeNot(pos, treeutils.makeEquality(pos, rhs, zero));
+                if (utils.rac) nonzero = convertExpr(nonzero);
+                addAssert(that, Label.UNDEFINED_DIV0, nonzero);
+            }
+            if (utils.rac) { 
+                if (nm == null) {
+                    log.error(that.pos, "jml.internal", "No \bigint method defined for operator " + optag);
+                    nm = names.fromString("add"); // Just use something
+                }
+                JCExpression e = treeutils.makeMethodInvocation(that, lhs, nm, rhs);
+                result = eresult = e; // No conversion because all these calls are built in in bitint.java
+            } else {
+                // No conversion because all operators are built-in in SMTTranslator
                 result = eresult = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
             }
             return;
@@ -13901,7 +13968,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			Type maxJmlType = lhs.type;
 			boolean lhsIsPrim = lhs.type.isPrimitive() && lhs.type.getTag() != TypeTag.BOT;
 			boolean rhsIsPrim = rhs.type.isPrimitive() && rhs.type.getTag() != TypeTag.BOT;
-			if (jmltypes.isJmlType(rhs.type) || jmltypes.isJmlRepType(rhs.type))
+			if (utils.isExtensionValueType(rhs.type) )
 				maxJmlType = rhs.type;
 			// The following is only valid for numeric types
 			if (lhsIsPrim && rhsIsPrim)
@@ -13940,7 +14007,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					result = eresult = treeutils.makeBooleanLiteral(that.pos, b);
 					return;
 				}
-			} else if (equality && jmltypes.isJmlTypeOrRep(maxJmlType, jmltypes.BIGINT)) {
+			} else if (equality && jmltypes.isJmlTypeOrRep(maxJmlType, BIGINT)) {
 				lhs = addImplicitConversion(lhs, maxJmlType, lhs);
 				rhs = addImplicitConversion(rhs, maxJmlType, rhs);
 				if (rac) { // FIXME && !that.lhs.type.isPrimitive() && !that.rhs.type.isPrimitive()) {
@@ -14023,7 +14090,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					} else if (rac && currentEnv.arithmeticMode.mode() == Arithmetic.Mode.MATH && maxJmlType.isPrimitive()
 							&& !comp) {
 						if (jmltypes.isIntegral(maxJmlType))
-							maxJmlType = jmltypes.BIGINT;
+							maxJmlType = BIGINT;
 						else
 							maxJmlType = REAL;
 						t = maxJmlType;
@@ -14175,21 +14242,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (value instanceof Integer && ((Integer) value).intValue() != 0)
 				return null;
 		}
-		if (rac && rhs.type == jmltypes.BIGINT) {
+		if (rac && rhs.type == BIGINT) {
 			nonzero = treeutils.makeUtilsMethodCall(that.pos, "bigint_nonzero", rhs);
 		} else if (rac && rhs.type == REAL) {
 			nonzero = treeutils.makeUtilsMethodCall(that.pos, "real_nonzero", rhs);
 		} else {
 			nonzero = treeutils.makeBinary(that.pos, JCTree.Tag.NE, rhs,
-					treeutils.makeZeroEquivalentLit(rhs.pos, rhs.type));
+					treeutils.makeZeroEquivalentLit(rhs, rhs.type));
 		}
 		return nonzero;
 	}
 
 	public JCExpression makeBin(JCTree that, JCTree.Tag tag, OperatorSymbol opSym, JCExpression lhs, JCExpression rhs,
 			Type maxJmlType) {
-		if (rac && (jmltypes.isJmlType(maxJmlType) || jmltypes.isJmlRepType(maxJmlType))) {
-			boolean bi = maxJmlType == jmltypes.BIGINT || maxJmlType.tsym == jmltypes.repSym(jmltypes.BIGINT);
+		if (rac && utils.isExtensionValueType(maxJmlType)) {
+			boolean bi = maxJmlType == BIGINT;
 			if (bi || maxJmlType == REAL ) {// FIXME|| maxJmlType.tsym == jmltypes.repSym(REAL)) {
 				String fcn;
 				switch (tag) {
@@ -14370,28 +14437,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			result = eresult = convertExpr(e);
 			return;
 		}
-		if (rac && that.type.isPrimitive() && jmltypes.isJmlTypeOrRepType(argType)) {
+		if (rac && utils.isExtensionValueType(origType)) {
 
-		    if (jmltypes.isSameTypeOrRep(that.type, origType)) {
+		    if (jmltypes.isSameType(that.type, origType)) {
 				result = eresult = arg; // No-op
-				// FIXME - will need a cast from real to bigint
 			} else {
-				// FIXME - the null here should be an error
-			    // FIXME - the teset here needs cleaning up
-				String s = (jmltypes.isJmlTypeOrRep(argType, jmltypes.BIGINT) || argType.tsym == jmltypes.repSym(jmltypes.BIGINT) ? "bigint_to"
-						: arg.type == REAL ? "real_to" : null) + newTypeTree.toString();
-				JCExpression e = treeutils.makeUtilsMethodCall(that.pos, s, arg);
-				result = eresult = e;
+				String s = newTypeTree.toString() + "Value";
+				try {
+				    JCExpression e = treeutils.makeMethodInvocation(that, arg, names.fromString(s));
+				    result = eresult = e;
+				} catch (java.util.NoSuchElementException e) {
+                    //e.printStackTrace();
+				    utils.error(that, "jml.internal", "There is no conversion to " + newTypeTree + " in the runtime implementation for " + origType);
+				    result = eresult = treeutils.makeZeroEquivalentLit(that, that.type);
+				}
 			}
 			return;
 		}
-        if (rac && argType.isPrimitive() && jmltypes.isJmlType(that.type)) {
-            if (origType.tsym == jmltypes.repSym((JmlType) that.type)) {
+        if (rac && argType.isPrimitive() && utils.isExtensionValueType(that.type)) {
+            if (origType == that.type) {
                 result = eresult = arg; // No-op since the representation type is the same as the argument type
-            } else if (that.type == jmltypes.BIGINT) {
-                result = eresult = treeutils.makeUtilsMethodCall(that.pos, "bigint_valueOf", arg);
-            } else if (that.type == REAL) {
-                result = eresult = treeutils.makeUtilsMethodCall(that.pos, "real_valueOf", arg);
+            } else  {
+                JCExpression ty = treeutils.makeType(that.getPreferredPosition(), that.type);
+                result = eresult = treeutils.makeMethodInvocation(that, ty, names.fromString("of"), arg);
             }
             return;
         }
@@ -14517,7 +14585,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					addAssume(that, Label.ARITHMETIC_CAST_RANGE, emin);
 				}
 
-			} else if (jmltypes.isSameType(origType, jmltypes.BIGINT)) {
+			} else if (jmltypes.isSameType(origType, BIGINT)) {
 				// \bigint to primitive
 				// FIXME - reducing precision - check range
 				String s = "bigint_to" + that.type.toString();
@@ -14536,7 +14604,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						"java.lang.NullPointerException");
 				newexpr = rac ? castexpr : createUnboxingExpr(arg);
 			}
-		} else if (jmltypes.isSameType(clazz.type, jmltypes.BIGINT)) {
+		} else if (jmltypes.isSameType(clazz.type, BIGINT)) {
 			if (origType.isPrimitive()) {
 				// FIXME - need assumptions about range of output
 				// Java primitive to JML \bigint - must be a numeric cast
@@ -14560,7 +14628,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							"Unexpected cast from " + origType + " via" + argType + " to " + that.type);
 					// continue using cast expression
 				}
-			} else if (jmltypes.isSameType(origType, jmltypes.BIGINT)) {
+			} else if (jmltypes.isSameType(origType, BIGINT)) {
 				// this case should not happen
 				newexpr = arg;
 			} else if (jmltypes.isSameType(origType, REAL)) {
@@ -14580,7 +14648,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JCExpression e = treeutils.makeUtilsMethodCall(that.pos, s, arg);
 				newexpr = e;
 
-			} else if (jmltypes.isSameType(origType, jmltypes.BIGINT)) {
+			} else if (jmltypes.isSameType(origType, BIGINT)) {
 				// convert \bigint to \real
 				String s = "bigint_to" + that.type.toString();
 				JCExpression e = treeutils.makeUtilsMethodCall(that.pos, s, arg);
@@ -14599,7 +14667,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// Must be primitive to object (boxing)
 				// OK for Rac
 				newexpr = rac ? castexpr : createBoxingStatsAndExpr(arg, clazz.type, false);
-			} else if (jmltypes.isSameType(origType, jmltypes.BIGINT)) {
+			} else if (jmltypes.isSameType(origType, BIGINT)) {
 				// FIXME - box a \bigint to reference
 
 			} else if (jmltypes.isSameType(origType, REAL)) {
@@ -16562,7 +16630,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				var lensym = fa.type.tsym.members().findFirst(names.length);
 				fa = M.at(that.expr).Select(fa, names.length);
 				fa.sym = lensym;
-				fa.type = jmltypes.BIGINT;
+				fa.type = BIGINT;
 				lengthExpr = convertJML(fa);
 			}
 
@@ -16600,7 +16668,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else {
 				JmlSingleton index = M.at(that.pos).JmlSingleton(countKind);
 				index.kind = countKind;
-				index.type = jmltypes.BIGINT;
+				index.type = BIGINT;
 				JCExpression ocond = treeutils.makeBinary(that.pos, JCTree.Tag.LT, index, lengthExpr);
 				JCExpression cond = convertJML(ocond);
 				addTraceableComment(ocond, ocond, "Loop test");
@@ -16662,7 +16730,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				JmlSingleton index = M.at(that.var).JmlSingleton(countKind);
 				index.kind = countKind;
-				index.type = jmltypes.BIGINT;
+				index.type = BIGINT;
 				e = M.at(that.var).Indexed(fa, index);
 				e.type = typearg;
 
@@ -17114,7 +17182,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		for (JCIdent id : decreasesIDs) {
 			TypeTag tag = id.type.getTag();
 			JCExpression z = addImplicitConversion(pos, id.type, treeutils.zero);
-			if (id.type.tsym == jmltypes.BIGINT.repSym) {
+			if (id.type == BIGINT) {
 				JCExpression compare = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "bigint_le", z, id);
 				addAssert(id, Label.LOOP_DECREASES_NEGATIVE, compare);
 			} else {
@@ -17151,7 +17219,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						JCExpression e = inv.translated ? copy : convertJML(copy);
 						JCIdent id = newTemp(e);
 
-						if (id.type.tsym == jmltypes.BIGINT.repSym) {
+						if (id.type == BIGINT) {
 							JCExpression compare = treeutils.makeUtilsMethodCall(inv.pos, "bigint_lt", id, iter.next());
 							addAssert(id, Label.LOOP_DECREASES, compare);
 						} else {
@@ -17419,7 +17487,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	@Override
 	public void visitJmlMatchExpression(JmlMatchExpression that) {
 		// FIXME - not yet implemented
-		result = treeutils.makeZeroEquivalentLit(that.pos, that.type);
+		result = treeutils.makeZeroEquivalentLit(that, that.type);
 	}
 
 	// OK
@@ -17858,7 +17926,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								String s = "_JML___old_" + nextUnique(); // FIXME - Put string in Strings
 								Name nm = names.fromString(s);
 								JCVariableDecl d = treeutils.makeVarDef(arg.type, nm, methodDecl.sym,
-										treeutils.makeZeroEquivalentLit(arg.pos, arg.type));
+										treeutils.makeZeroEquivalentLit(arg, arg.type));
 								// v.mods.flags |= Flags.FINAL; // If we use this, the sym has to be set FINAL
 								// as well.
 								ListBuffer<JCStatement> check7 = pushBlock();
@@ -18559,7 +18627,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		for (JCVariableDecl d : that.decls) {
 			localVariables.put(d.sym, d.sym);
 		}
-		result = eresult = treeutils.makeZeroEquivalentLit(that.pos, that.type);
+		result = eresult = treeutils.makeZeroEquivalentLit(that, that.type);
 		// FIXME - should really turn splitExpressions off for these expressions.
 		try {
 		    var key = that.kind.keyword();
@@ -18669,8 +18737,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// methodDecl is null if we are in a type specification clause (e.g. invariant)
 				var ownersym = methodDecl!= null  ? methodDecl.sym : classDecl.sym;
 				JCVariableDecl decl = treeutils.makeVarDef(t, n, ownersym, that.pos);
-				decl.init = treeutils.makeZeroEquivalentLit(that.pos, types.unboxedTypeOrType(t));
-				if (utils.rac && key == qchooseID) decl.init = treeutils.makeZeroEquivalentLit(that.pos, t);
+				decl.init = treeutils.makeZeroEquivalentLit(that, types.unboxedTypeOrType(t));
+				if (utils.rac && key == qchooseID) decl.init = treeutils.makeZeroEquivalentLit(that, t);
 				addStat(decl);
 				JCBlock failureBlock = null;
 				
@@ -19007,7 +19075,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				break xx;
 			if (!types.isAssignable(types.erasure(fa.selected.type), syms.iterableType))
 				break xx;
-			if (rac && declType == jmltypes.BIGINT)
+			if (rac && declType == BIGINT)
 				return null; // FIXME - IMPLEMENT THESE SOMEDAY
 			if (rac && declType == REAL)
 				return null;
@@ -19138,8 +19206,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean isNewPrim = target.isPrimitive() && !(rac && jmltypes.isJmlType(target));
 		if (isPrim && target.isPrimitive()) {
 			return treeutils.makeTypeCast(arg, target, arg);
-		} else if (jmltypes.isJmlTypeOrRep(arg.type, jmltypes.BIGINT)) {
-			if (target == jmltypes.BIGINT)
+		} else if (jmltypes.isJmlTypeOrRep(arg.type, BIGINT)) {
+			if (target == BIGINT)
 				return arg;
 			else if (isNewPrim) {
 				return treeutils.makeUtilsMethodCall(arg.pos, "bigint_to" + target.toString(), arg);
@@ -19148,8 +19216,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JCExpression e = treeutils.makeUtilsMethodCall(arg.pos, "bigint_to" + t.toString(), arg);
 				return treeutils.makeTypeCast(arg, target, e);
 			}
-		} else if (jmltypes.isJmlTypeOrRep(target, jmltypes.BIGINT)) {
-			if (arg.type == jmltypes.BIGINT)
+		} else if (jmltypes.isJmlTypeOrRep(target, BIGINT)) {
+			if (arg.type == BIGINT)
 				return arg;
 			if (isPrim) {
 				return treeutils.makeUtilsMethodCall(arg.pos, "bigint_valueof", arg);
@@ -19262,7 +19330,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} else {
 			Log.instance(context).error(that.pos, "jml.unknown.construct", that.kind.keyword(),
 					"JmlAssertionAdder.visitJmlSingleton");
-			eresult = treeutils.makeZeroEquivalentLit(that.pos, that.type); // Not sure continuation will be successful
+			eresult = treeutils.makeZeroEquivalentLit(that, that.type); // Not sure continuation will be successful
 																			// in any way
 		}
 		result = eresult;
@@ -19526,7 +19594,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			notImplemented(that.clauseType.keyword() + " statement containing ", e);
 		} catch (Exception e) {
 			utils.unexpectedException(e, "JmlAssertionAdder:visitJmlStatementExpr: " + that + " " + that.hashCode()
-					+ " " + that.expression.hashCode() + " " + that.expression.type);
+					+ " " + that.expression.hashCode() + " " + that.expression.type + " " + e.getMessage());
+			if (System.getenv("ERROR") != null) e.printStackTrace(System.out);
 		} finally {
 			checkAccessEnabled = pv;
 			assumingPostConditions = saved;
@@ -20080,7 +20149,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public Type mathType(Type type) {
 		TypeTag tag = type.getTag();
 		if (tag == TypeTag.FLOAT || tag == TypeTag.DOUBLE) return REAL;
-		if (tag == TypeTag.INT || tag == TypeTag.LONG || tag == TypeTag.SHORT || tag == TypeTag.BYTE || tag == TypeTag.CHAR) return jmltypes.BIGINT;
+		if (tag == TypeTag.INT || tag == TypeTag.LONG || tag == TypeTag.SHORT || tag == TypeTag.BYTE || tag == TypeTag.CHAR) return BIGINT;
 		return type;
 	}
 
@@ -22021,7 +22090,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JCExpression ex = null;
 				if (node.range.lo != null
 						&& !(node.range.lo instanceof JCLiteral lit && ((Number) lit.value).longValue() >= 0)) {
-					var lhs = treeutils.makeLit(node.pos, jmltypes.BIGINT, 0);
+					var lhs = treeutils.makeLit(node.pos, BIGINT, 0);
 					var rhs = node.range.lo;
 					ex = treeutils.makeBinary(node.pos, JCTree.Tag.LE, lhs, rhs);
 				}

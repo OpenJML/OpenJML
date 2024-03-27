@@ -646,7 +646,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     JCExpression expr = treeutils.makeUtilsMethodCall(md.pos, "noModelMethodImplementation",
                             treeutils.makeStringLiteral(md.pos, md.name.toString()));
                     JCStatement stat = jmlF.Exec(expr);
-                    JCStatement stat2 = jmlF.Return(treeutils.makeZeroEquivalentLit(decl.pos,md.sym.getReturnType()));
+                    JCStatement stat2 = jmlF.Return(treeutils.makeZeroEquivalentLit(decl,md.sym.getReturnType()));
                     md.body = jmlF.Block(0L, List.<JCStatement>of(stat,stat2));
                 } 
                 continue;
@@ -656,7 +656,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             if (!utils.hasModifier(vdecl.mods, Modifiers.MODEL)) continue;
             VarSymbol vsym = vdecl.sym;
             
-            JCTree.JCReturn returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(vdecl.pos,vdecl.sym.type));
+            JCTree.JCReturn returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(vdecl,vdecl.sym.type));
             JCTree.JCThrow throwStatement = jmlF.Throw(jmlF.NewClass(null, List.<JCExpression>nil(), utils.nametree(decl.pos,-1,Strings.jmlSpecsPackage + ".NoModelFieldMethod",null), List.<JCExpression>nil(), null));
             
             modelMethodNames.put(vsym.name,vdecl);
@@ -702,7 +702,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     public JmlMethodDecl makeModelFieldMethod(JmlVariableDecl modelVarDecl, JmlSpecs.TypeSpecs tsp) {
         long flags = Flags.SYNTHETIC;
         flags |= (modelVarDecl.sym.flags() & (Flags.STATIC|Flags.AccessFlags));
-        JCTree.JCReturn returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(modelVarDecl.pos,modelVarDecl.sym.type));
+        JCTree.JCReturn returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(modelVarDecl,modelVarDecl.sym.type));
         Name name = names.fromString(Strings.modelFieldMethodPrefix + modelVarDecl.name);
         JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name, jmlF.Type(modelVarDecl.sym.type),
                 List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(), jmlF.Block(0,List.<JCStatement>of(returnStatement)), null);

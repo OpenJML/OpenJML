@@ -35,7 +35,8 @@ public class JmlOperators extends Operators {
     	JmlTypes jtype = JmlTypes.instance(context);
     	boolean b1 = org.jmlspecs.openjml.Utils.instance(context).isExtensionValueType(op1);
     	boolean b2 = org.jmlspecs.openjml.Utils.instance(context).isExtensionValueType(op2);
-    	Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        Type BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
 
     	if (b1 && !b2) {
     	    if (jtype.isSameType(op1, REAL)) {
@@ -69,12 +70,12 @@ public class JmlOperators extends Operators {
         			}
     			} // FIXME - do we need to insert explicit conversions
     		}
-    		if (op1 == jtype.BIGINT || op2 == jtype.BIGINT) {
+    		if (op1 == BIGINT || op2 == BIGINT) {
     			// This allows for implicit conversions
     			for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
     				OperatorSymbol op = (OperatorSymbol)s;
         			var args = op.type.getParameterTypes();
-                    if (args.head == jtype.BIGINT && args.tail.head == jtype.BIGINT) {
+                    if (args.head == BIGINT && args.tail.head == BIGINT) {
                         return op;
                     } // FIXME - do we need to insert explicit conversions
     			}

@@ -203,6 +203,18 @@ public class real implements IJmlPrimitiveType {
         return new real(d);
     }
 
+    static public real of(long d) {
+        return new real(d);
+    }
+
+    static public real of(java.math.BigInteger d) {
+        return new real(d.doubleValue());
+    }
+
+    static public real of(org.jmlspecs.lang.internal.bigint d) {
+        return real.of(d.bigValue());
+    }
+
     public double doubleValue() {
         return _double;
     }

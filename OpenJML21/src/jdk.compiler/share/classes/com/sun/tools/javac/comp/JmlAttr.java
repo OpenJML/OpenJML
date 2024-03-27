@@ -4253,7 +4253,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JmlRange r;
                 if (aa.index == null) {
                     r = jmlMaker.at(aa.index).JmlRange(
-                        treeutils.makeZeroEquivalentLit(aa.pos, JmlTypes.instance(context).BIGINT),
+                        treeutils.makeZeroEquivalentLit(aa, JmlPrimitiveTypes.bigintTypeKind.getType(context)),
                         treeutils.makeLengthM1(e.pos(), aa.indexed));
                 } else if (!(aa.index instanceof JmlRange rr)) {
                     r = jmlMaker.at(aa.index).JmlRange(aa.index, aa.index);
@@ -4261,8 +4261,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     r = jmlMaker.at(aa.index)
                                             .JmlRange(
                                                 rr.lo != null ? rr.lo
-                                                    : treeutils.makeZeroEquivalentLit(rr.pos,
-                                                        JmlTypes.instance(context).BIGINT),
+                                                    : treeutils.makeZeroEquivalentLit(rr,
+                                                            JmlPrimitiveTypes.bigintTypeKind.getType(context)),
                                                     rr.hi != null ? rr.hi : treeutils.makeLengthM1(e.pos(), aa.indexed));
                 }
                 that.receiver = aa.indexed;
@@ -4875,20 +4875,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             result = that.type = ((JmlTypeKind)that.jmlclausekind).getType(context);
             that.repType = that;
         } else {
-            JmlType type = //that.token == JmlTokenKind.BSTYPEUC ? jmltypes.TYPE :
-                that.token == JmlTokenKind.BSBIGINT ? jmltypes.BIGINT :
- //                   that.token == JmlTokenKind.BSREAL ? jmltypes.REAL :
-                        null;
-
-            if (type == null) {
+//            JmlType type = //that.token == JmlTokenKind.BSTYPEUC ? jmltypes.TYPE :
+//                that.token == JmlTokenKind.BSBIGINT ? jmltypes.BIGINT :
+// //                   that.token == JmlTokenKind.BSREAL ? jmltypes.REAL :
+//                        null;
+//
+//            if (type == null) {
                 result = syms.errType;
                 log.error(that.pos,"jml.unknown.type.token",that.token.internedName(),"JmlAttr.visitJmlPrimitiveTypeTree");
-                return;
-            }
-            that.type = type;
-            that.repType = jmltypes.repType(that.pos(), type);
-            attribType(that.repType,env);
-            result = type;
+//                return;
+//            }
+//            that.type = type;
+//            that.repType = jmltypes.repType(that.pos(), type);
+//            attribType(that.repType,env);
+//            result = type;
         }
 //        if (utils.rac) {
 //            result = type.repType.type;
@@ -4916,15 +4916,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void visitJmlRange(JmlRange that) {
+        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
     	if (that.lo != null) {
     		Type t = attribExpr(that.lo, env, Type.noType);
-    		if (!t.isIntegral() && t != jmltypes.BIGINT) {
+    		if (!t.isIntegral() && t != BIGINT) {
     			utils.error(that.lo, "jml.message", "Expected an integral type, not " + t);
     		}
     	}
     	if (that.hi != null) {
     		Type t = attribExpr(that.hi, env, Type.noType);
-    		if (!t.isIntegral() && t != jmltypes.BIGINT) {
+    		if (!t.isIntegral() && t != BIGINT) {
     			utils.error(that.hi, "jml.message", "Expected an integral type, not " + t);
     		}
     	}
@@ -4994,9 +4995,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     Type condType(List<DiagnosticPosition> positions, List<Type> condTypes) {
+        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
         var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
-    	if (condTypes.stream().anyMatch(t->t==REAL) && condTypes.stream().allMatch(t->jmltypes.isNumeric(t))) return REAL;
-    	if (condTypes.stream().anyMatch(t->t==jmltypes.BIGINT) && condTypes.stream().allMatch(t->jmltypes.isIntegral(t))) return jmltypes.BIGINT;
+        if (condTypes.stream().anyMatch(t->t==REAL) && condTypes.stream().allMatch(t->jmltypes.isNumeric(t))) return REAL;
+        if (condTypes.stream().anyMatch(t->t==BIGINT) && condTypes.stream().anyMatch(t->jmltypes.isNumeric(t)&&!jmltypes.isIntegral(t))) return REAL;
+    	if (condTypes.stream().anyMatch(t->t==BIGINT) && condTypes.stream().allMatch(t->jmltypes.isIntegral(t))) return BIGINT;
     	return super.condType(positions, condTypes);
     }
     
@@ -5005,20 +5008,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         super.visitConditional(that);
         // The following is primarily to handle cases like b ? 0 : bigint-expression
         // Note -- need to check both as expressions and declaration initializers
-        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
-        if (that.truepart.type == jmltypes.BIGINT && jmltypes.isAnyIntegral(that.falsepart.type)) {
-            result = that.type = jmltypes.BIGINT;
-        } else if (that.falsepart.type == jmltypes.BIGINT && jmltypes.isAnyIntegral(that.truepart.type)) {
-            result = that.type = jmltypes.BIGINT;
-        } else if (that.truepart.type == REAL && jmltypes.isNumeric(that.falsepart.type)) {
-            result = that.type = REAL;
-        } else if (that.falsepart.type == REAL && jmltypes.isNumeric(that.truepart.type)) {
-            result = that.type = REAL;
-        } else if (that.truepart.type == jmltypes.BIGINT && jmltypes.isNumeric(that.falsepart.type)) {
-            result = that.type = REAL;
-        } else if (that.falsepart.type == jmltypes.BIGINT && jmltypes.isNumeric(that.truepart.type)) {
-            result = that.type = REAL;
-        }
+        result = that.type = condType(List.of(that.truepart, that.falsepart), List.of(that.truepart.type, that.falsepart.type));
+//                ;        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+//        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+//        if (that.truepart.type == BIGINT && jmltypes.isAnyIntegral(that.falsepart.type)) {
+//            result = that.type = BIGINT;
+//        } else if (that.falsepart.type == BIGINT && jmltypes.isAnyIntegral(that.truepart.type)) {
+//            result = that.type = BIGINT;
+//        } else if (that.truepart.type == REAL && jmltypes.isNumeric(that.falsepart.type)) {
+//            result = that.type = REAL;
+//        } else if (that.falsepart.type == REAL && jmltypes.isNumeric(that.truepart.type)) {
+//            result = that.type = REAL;
+//        } else if (that.truepart.type == BIGINT && jmltypes.isNumeric(that.falsepart.type)) {
+//            result = that.type = REAL;
+//        } else if (that.falsepart.type == BIGINT && jmltypes.isNumeric(that.truepart.type)) {
+//            result = that.type = REAL;
+//        }
     }
 
     @Override
@@ -5574,7 +5579,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             q.racexpr = call;
             
-            q.racexpr = treeutils.makeZeroEquivalentLit(q.pos, q.type);
+            q.racexpr = treeutils.makeZeroEquivalentLit(q, q.type);
 
             // Attribute the unattributed expression
             
@@ -8302,7 +8307,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Utils.dumpStack();
             return (tree.type = types.createErrorType(resultInfo.pt));
         }
-        if (resultInfo.pt == jmltypes.BIGINT) {
+        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+        if (resultInfo.pt == BIGINT) {
             if (jmltypes.isAnyIntegral(found)) return resultInfo.pt;
             if (tree instanceof JCConditional cc) {
                 if (jmltypes.isAnyIntegral(cc.truepart.type) && jmltypes.isAnyIntegral(cc.falsepart.type)) return resultInfo.pt;

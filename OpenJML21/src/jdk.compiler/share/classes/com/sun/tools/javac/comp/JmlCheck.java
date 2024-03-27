@@ -89,31 +89,33 @@ public class JmlCheck extends Check {
      */
     @Override
     protected Type checkCastable(DiagnosticPosition pos, Type found, Type req) {
+        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+        
         Utils utils = Utils.instance(context);
         if (found.isErroneous()) {
             // continue
-        } else if (utils.isExtensionValueType(req)) {
+        } else if (utils.isExtensionValueType(req) || utils.isExtensionValueType(found)) {
             // Checks legality of explicit casts
             if (types.isSameType(found,req)) return req;
             if (types.isSameType(req, utils.extensionValueType("string"))
                     && types.isSameType(found, Symtab.instance(context).stringType)) {
                 return req;
             }
-            if (types.isSameType(req, JmlPrimitiveTypes.realTypeKind.getType(context))
-                    && ((JmlTypes)types).isNumeric(found)) {
+            if (types.isSameType(req, REAL) && ((JmlTypes)types).isNumeric(found)) {
                 return req;                
             }
-            utils.error(pos, "jml.message", "A JML primitive type may not be assigned or cast to or from a non-JML type");
-            //basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
-            return types.createErrorType(found);
-        } else if (utils.isExtensionValueType(found) &&
-                !utils.isExtensionValueType(req)) {
-            if (types.isSameType(found, JmlPrimitiveTypes.realTypeKind.getType(context))
-                    && ((JmlTypes)types).isNumeric(req)) {
+            if (types.isSameType(found, REAL) && ((JmlTypes)types).isNumeric(req)) {
                 return req;                
             }
-            utils.error(pos, "jml.message", "A JML primitive type may not be assigned or cast to or from a non-JML type");
-            //basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
+            if (types.isSameType(found, BIGINT) && ((JmlTypes)types).isIntegral(req)) {
+                return req;                
+            }
+            if (types.isSameType(req, BIGINT) && ((JmlTypes)types).isIntegral(found)) {
+                return req;                
+            }
+            System.out.println("CAST " + types.isSameType(found, BIGINT) + " " + types.isSameType(req, BIGINT) + " " + ((JmlTypes)types).isIntegral(found) + " " + ((JmlTypes)types).isIntegral(req));
+            utils.error(pos, "jml.message", "A " + found + " may not be cast to a " + req);
             return types.createErrorType(found);
         }
         return super.checkCastable(pos,found,req);
@@ -156,6 +158,7 @@ public class JmlCheck extends Check {
     @Override
     public Type checkType(DiagnosticPosition pos, Type found, Type req, final CheckContext checkContext) {
         var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
+        Type BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
 
         if (found != null && found.getTag() == TypeTag.ARRAY && req.getTag() == TypeTag.ARRAY &&
                 ((Type.ArrayType)found).getComponentType() == TYPE &&
@@ -166,8 +169,8 @@ public class JmlCheck extends Check {
         JmlTypes jmltypes = JmlTypes.instance(context);
         // FIXME - all this in isAssignable?
         if (req == JmlPrimitiveTypes.realTypeKind.getType(context)) {
-        	if (found.isNumeric() || found == jmltypes.BIGINT) return found;
-        } else if (req == jmltypes.BIGINT) {
+        	if (found.isNumeric() || found == BIGINT) return found;
+        } else if (req == BIGINT) {
         	if (found.isIntegral()) return found;
         }
         return super.checkType(pos, found, req, checkContext);

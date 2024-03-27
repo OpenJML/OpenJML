@@ -541,18 +541,36 @@ public class JmlTreeUtils {
         return r;
     }
 
+    protected JCFieldAccess findStaticField(DiagnosticPosition pos, Type t, String fieldName) {
+        var n = names.fromString(fieldName);
+        var iter = t.tsym.members().getSymbolsByName(n).iterator();
+        if (!iter.hasNext()) {
+            log.error(pos.getPreferredPosition(), "jml.internal", "Field is not found in the OpenJML library: " + t + "." + fieldName);
+            return null; // does not return
+        } else {
+            Symbol ms = iter.next();
+            JCFieldAccess m = factory.at(pos).Select(factory.Ident(t.tsym), n);
+            m.sym = ms;
+            m.type = m.sym.type;
+            return m;
+        }
+        
+    }
+
     /** Make a zero-equivalent constant node of the given type
      * @param type the type of the node, e.g. syms.intType
      * @return the AST node
      */ 
-    public JCLiteral makeZeroEquivalentLit(int pos, Type type) {
+    public JCExpression makeZeroEquivalentLit(DiagnosticPosition dpos, Type type) {
+        int pos = dpos.getPreferredPosition();
         var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
+        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
 
-        if (type == types.BIGINT) {
-            return makeLit(pos,syms.intType,0);
+        if (type == BIGINT) {
+            return findStaticField(dpos, BIGINT, "zero");
            
         } else if (type == JmlPrimitiveTypes.realTypeKind.getType(context)) {
-            return makeLit(pos,syms.doubleType,0.0);
+            return makeLit(pos,syms.doubleType,0.0);  // FIXME - user a real 0?
             
         } else if (type == TYPE) {
             log.error(pos, "jml.message","old clause is not implemented for \\TYPE variables");
@@ -717,13 +735,14 @@ public class JmlTreeUtils {
         TypeTag ltag = lhs.getTag();
         TypeTag rtag = rhs.getTag();
         var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
         if (ltag == TypeTag.NONE && lhs == REAL) return lhs;
         if (rtag == TypeTag.NONE && rhs == REAL) return rhs;
-        if (ltag == TypeTag.NONE && lhs == types.BIGINT) {
+        if (ltag == TypeTag.NONE && lhs == BIGINT) {
             if (rtag == TypeTag.DOUBLE || rtag == TypeTag.FLOAT) return REAL;
             return lhs;
         }
-        if (rtag == TypeTag.NONE && rhs == types.BIGINT) {
+        if (rtag == TypeTag.NONE && rhs == BIGINT) {
             if (ltag == TypeTag.DOUBLE || ltag == TypeTag.FLOAT) return REAL;
             return rhs;
         }
@@ -755,10 +774,11 @@ public class JmlTreeUtils {
         Type lhsu = unboxedType(lhs);
         Type rhsu = unboxedType(rhs);
         if (lhsu.getTag() == TypeTag.BOOLEAN) return syms.booleanType;
+        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
         var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
         var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
         if (lhs == REAL || rhs == REAL) return REAL;
-        if (lhsu == types.BIGINT || rhsu == types.BIGINT) return types.BIGINT;
+        if (lhsu == BIGINT || rhsu == BIGINT) return BIGINT;
         if (lhsu == TYPE || rhsu == TYPE) return TYPE;
         if (!lhsu.isPrimitive() || !rhsu.isPrimitive()) return syms.stringType;
         TypeTag ltag = lhsu.getTag();
@@ -889,7 +909,8 @@ public class JmlTreeUtils {
     
     public /*@ nullable */ String opname(Type t, JCTree.Tag tag) {
         JmlTypes jmltypes = JmlTypes.instance(context);
-        String prefix = jmltypes.isJmlTypeOrRep(t, jmltypes.BIGINT) ? "bigint_" : jmltypes.isJmlTypeOrRep(t, JmlPrimitiveTypes.realTypeKind.getType(context)) ? "real_" : null;
+        String prefix = jmltypes.isJmlTypeOrRep(t, JmlPrimitiveTypes.bigintTypeKind.getType(context)) ? "bigint_" 
+                : jmltypes.isJmlTypeOrRep(t, JmlPrimitiveTypes.realTypeKind.getType(context)) ? "real_" : null;
         String suffix = null;
         switch (tag) {
             case LE: suffix = "le"; break;
@@ -1162,7 +1183,7 @@ public class JmlTreeUtils {
     /** Makes an attributed AST for the length operation on an array less 1. */
     public JCExpression makeLengthM1(DiagnosticPosition pos, JCExpression array) {
         JCFieldAccess fa = factory.at(pos).Select(array, syms.lengthVar);
-        fa.type = JmlTypes.instance(context).BIGINT;
+        fa.type = JmlPrimitiveTypes.bigintTypeKind.getType(context);
         return makeBinary(pos, JCTree.Tag.MINUS, fa, one); // FIXME Perhaps have to make this a BIGINT 1
     }
 
@@ -1249,7 +1270,7 @@ public class JmlTreeUtils {
     public JCVariableDecl makeVarDefZeroInit(JCExpression type, Name name, Symbol owner) {
         int flags = 0;
         JCModifiers mods = factory.at(Position.NOPOS).Modifiers(0);
-        JCExpression zeroEquiv = makeZeroEquivalentLit(Position.NOPOS,type.type);
+        JCExpression zeroEquiv = makeZeroEquivalentLit(type,type.type);
         JCVariableDecl d = factory.VarDef(mods,name,type,zeroEquiv);
         VarSymbol v =
             new VarSymbol(flags, d.name, d.vartype.type.baseType(), owner);

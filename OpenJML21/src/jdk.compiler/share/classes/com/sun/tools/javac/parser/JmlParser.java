@@ -1069,17 +1069,16 @@ public class JmlParser extends JavacParser {
         return statslist.head;
     }
 
-    // TODO - generalize this and move it out of JmlParser
-    /** Returns true if the token is a JML type token */
-    public boolean isJmlTypeToken(JmlTokenKind t) {
-        return t == JmlTokenKind.BSBIGINT
-                || t == JmlTokenKind.PRIMITIVE_TYPE;
-    }
+//    // TODO - generalize this and move it out of JmlParser
+//    /** Returns true if the token is a JML type token */
+//    public boolean isJmlTypeToken(JmlTokenKind t) {
+//        return t == JmlTokenKind.BSBIGINT
+//                || t == JmlTokenKind.PRIMITIVE_TYPE;
+//    }
     
     public boolean isJmlType(Token token) {
         var jtk = jmlTokenClauseKind();
-        var jt = jmlTokenKind();
-        return jtk instanceof JmlTypeKind || isJmlTypeToken(jt);
+        return jtk instanceof JmlTypeKind;
     }
 
     /**
@@ -2433,26 +2432,20 @@ public class JmlParser extends JavacParser {
 
     @Override
     public JCPrimitiveTypeTree basicType() {
-        JmlTokenKind jt = jmlTokenKind();
-        if (jt == null) {
+        var jtk = jmlTokenClauseKind();
+        if (jtk == null) {
             return super.basicType();
-        } else if (jt == JmlTokenKind.BSBIGINT
-                ) {
+        } else  {
             JCPrimitiveTypeTree t = to(jmlF.at(pos())
-                    .JmlPrimitiveTypeTree(jt,null,null));
+                    .JmlPrimitiveTypeTree(null, jtk,null));
             nextToken();
             return t;
-        } else if (jt == JmlTokenKind.PRIMITIVE_TYPE) {
-            JCPrimitiveTypeTree t = to(jmlF.at(pos())
-                    .JmlPrimitiveTypeTree(jt,null,ident()));
-            nextToken();
-            return t;
-        } else {
-            utils.error(pos(), endPos(), "jml.expected", "JML type token");
-            JCPrimitiveTypeTree t = to(F.at(pos()).TypeIdent(
-                    typetag(TokenKind.VOID)));
-            nextToken();
-            return t;
+//        } else {
+//            utils.error(pos(), endPos(), "jml.expected", "JML type token");
+//            JCPrimitiveTypeTree t = to(F.at(pos()).TypeIdent(
+//                    typetag(TokenKind.VOID)));
+//            nextToken();
+//            return t;
         }
     }
 
@@ -2619,7 +2612,6 @@ public class JmlParser extends JavacParser {
             if (t.ikind == JmlTokenKind.STARTJMLCOMMENT) {
                 t = S.token(2);
             }
-            if (t.ikind == BSBIGINT) return ParensResult.CAST;
             if (t.kind == TokenKind.IDENTIFIER) {
                 IJmlClauseKind ck = Extensions.findKeyword(t);
                 if (ck instanceof JmlTypeKind) return ParensResult.CAST;
@@ -2726,10 +2718,7 @@ public class JmlParser extends JavacParser {
         // itself. So if someone does write type arguments for a JML function
         // the code will fall into the super.term3() call and the token will not
         // be recognized - no chance for a nice error message.
-        if (token.toString().contains("real")) {
-            System.out.println("REAL? " + token + " " + jmlTokenKind() + " " + jmlTokenClauseKind());
-        }
-        if (token.kind == CUSTOM || jmlTokenKind() == JmlTokenKind.PRIMITIVE_TYPE) {
+        if (token.kind == CUSTOM ) {
             JCExpression t;
             JmlTokenKind jt = jmlTokenKind();
             if (isJmlType(token)) {

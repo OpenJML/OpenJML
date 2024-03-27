@@ -57,8 +57,8 @@ public enum JmlTokenKind implements ITokenKind {
     // These are JML type literals
     //BSTYPEUC("\\TYPE"),
     //BSREAL("\\real"),
-    BSBIGINT("\\bigint"), // Keep this one the last of the backslash tokens
-    PRIMITIVE_TYPE("\\primitive"),
+//    BSBIGINT("\\bigint"), // Keep this one the last of the backslash tokens
+//    PRIMITIVE_TYPE("\\primitive"),
     
     // These are JML operators (in expressions)
     // Note that the jmloperators set relies on this ordering
@@ -131,9 +131,9 @@ public enum JmlTokenKind implements ITokenKind {
     
     static {
         
-        for (JmlTokenKind t: EnumSet.range(BSPRE,BSBIGINT)) {
-            backslashTokens.put(t.internedName(),t);
-        }
+//        for (JmlTokenKind t: EnumSet.range(BSPRE,BSBIGINT)) {
+//            backslashTokens.put(t.internedName(),t);
+//        }
 //        for (JmlTokenKind t: JmlTokenKind.values()) {
 //            allTokens.put(t.internedName(),t);
 //        }

@@ -178,6 +178,42 @@ public class JmlPrimitiveTypes extends JmlExtension {
 		}
 	}
 	
+    public static final String bigintID = "\\bigint";
+
+    public static final JmlTypeKind bigintTypeKind = new JmlTypeKind(bigintID,"org.jmlspecs.lang.internal.bigint") {
+        
+        public void initOps() {
+            JmlTypes jt = JmlTypes.instance(context);
+            jt.enterBinop("==", type, type, jt.syms.booleanType);
+            jt.enterBinop("!=", type, type, jt.syms.booleanType);
+            jt.enterBinop(">", type, type, jt.syms.booleanType);
+            jt.enterBinop("<", type, type, jt.syms.booleanType);
+            jt.enterBinop("<=", type, type, jt.syms.booleanType);
+            jt.enterBinop(">=", type, type, jt.syms.booleanType);
+
+            jt.enterUnop("+++", type, type); // unary plus // These operators are those used also in Symtab
+            jt.enterUnop("---", type, type); // unary minus
+            jt.enterUnop("++", type, type);
+            jt.enterUnop("--", type, type);
+
+            jt.enterBinop("+", type, type, type);
+            jt.enterBinop("-", type, type, type);
+            jt.enterBinop("*", type, type, type);
+            jt.enterBinop("/", type, type, type);
+            jt.enterBinop("%", type, type, type);
+            jt.enterBinop("<<", type, type, type);
+            jt.enterBinop(">>", type, type, type);
+            // Assign-op operators are automatically defined based on the simple operator
+            
+            // bit operators
+            jt.enterUnop("~", type, type); // bit complement
+            jt.enterBinop("|", type, type, type);
+            jt.enterBinop("&", type, type, type);
+            jt.enterBinop("^", type, type, type);
+
+        }
+    };
+
     public static final String realId = "\\real";
 
     public static final JmlTypeKind realTypeKind = new JmlTypeKind(realId,"real") {
@@ -201,11 +237,6 @@ public class JmlPrimitiveTypes extends JmlExtension {
             jt.enterBinop("*", type, type, type);
             jt.enterBinop("/", type, type, type);
             jt.enterBinop("%", type, type, type);
-            jt.enterBinop("+=", type, type, type);
-            jt.enterBinop("-=", type, type, type);
-            jt.enterBinop("*=", type, type, type);
-            jt.enterBinop("/=", type, type, type);
-            jt.enterBinop("%=", type, type, type);
         }
     };
 

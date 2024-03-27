@@ -176,7 +176,7 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected Set<String> javaTypeSymbols = new HashSet<String>();
     
     final Type REAL;
-    //final Type BIGINT;
+    final Type BIGINT;
     final Type TYPE;
     
     /** A counter used to make String literal identifiers unique */
@@ -248,6 +248,7 @@ public class SMTTranslator extends JmlTreeScanner {
         lengthSym = F.symbol(arrayLength);
         stringLengthSym = F.symbol("stringLength");
 
+        BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
         REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
         TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
 
@@ -1790,10 +1791,10 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         TypeTag tag = t.getTag();
         if (utils.isExtensionValueType(t)) {
-        	String ts = t.toString();
+        	String ts = t.tsym.toString();
             if (t == JmlPrimitiveTypes.stringTypeKind.getType(context)) {
                 return stringSort;
-            } else if (ts.equals("org.jmlspecs.lang.bigint") || ts.equals("\\bigint")) {
+            } else if (t == BIGINT) {
                 return intSort;
             } else if (t == REAL) { // FIXME - settle on which
                 addReal();
@@ -1842,11 +1843,6 @@ public class SMTTranslator extends JmlTreeScanner {
                 return sort;
         	}
         } else if (tag == TypeTag.NONE || tag == TypeTag.UNKNOWN){
-            if (t instanceof JmlType) {
-                JmlType jt = (JmlType)t;
-                if (jt.jmlTypeTag() == JmlTokenKind.BSBIGINT) return useBV ? bv32Sort : intSort; 
-                //if (jt.jmlTypeTag() == JmlTokenKind.BSTYPEUC) return jmlTypeSort;
-            }
             return refSort; // FIXME - just something
 
         } else if (t instanceof BasicBlocker2.Array2Type) {
@@ -2538,17 +2534,17 @@ public class SMTTranslator extends JmlTreeScanner {
                     if (tree.type == REAL) {
                         if ( tree.expr.type == REAL) {
                             // \real to \real -- OK
-                        } else if (tree.expr.type instanceof JmlType jt && jt.jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                        } else if (tree.expr.type == BIGINT) {
                                 // \bigint to \real
                                 result = F.fcn(F.symbol("to_real"), result);
                         } else {
                             // FIXME - error
                         }
-                    } else if (tree.type instanceof JmlType jt && jt.jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                    } else if (tree.type == BIGINT) {
                         if ( tree.expr.type == REAL) {
                             // \real to \bigint
                             result = F.fcn(F.symbol("toward_zero"), result);
-                        } else if (tree.expr.type instanceof JmlType jtt && jtt.jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                        } else if (tree.expr.type == BIGINT) {
                                 // \bigint to \bigint -- OK
                         } else {
                             // FIXME - error
@@ -2561,7 +2557,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     if ( tree.type == REAL) {
                         // int to \real
                         result = F.fcn(F.symbol("to_real"), result);
-                    } else if (tree.type instanceof JmlType jt && jt.jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                    } else if (tree.type == BIGINT) {
                         // int to \bigint -- OK
                     } else {
                         // FIXME - error
@@ -2569,7 +2565,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else {
                     if ( tree.type == REAL) {
                         // float/double to \real -- OK
-                    } else if (tree.type instanceof JmlType jt && jt.jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                    } else if (tree.type == BIGINT) {
                         // float/double to \bigint
                         result = F.fcn(F.symbol("toward_zero"), result);
                     } else {
@@ -2581,7 +2577,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     if (tree.expr.type == REAL) {
                         // \real to int -- FIXME
                         result = F.fcn(F.symbol("toward_zero"), result);
-                    } else if (tree.expr.type instanceof JmlType jt && jt.jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                    } else if (tree.expr.type == BIGINT) {
                         // \bigint to int -- OK
                     } else {
                         // FIXME - error
@@ -2589,7 +2585,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else {
                     if (tree.expr.type == REAL) {
                         // \real to float/double -- OK
-                    } else if (tree.expr.type instanceof JmlType jt && jt.jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                    } else if (tree.expr.type == BIGINT) {
                         // \bigint to float/double -- FIXME
                         result = F.fcn(F.symbol("to_real"), result);
                     } else {

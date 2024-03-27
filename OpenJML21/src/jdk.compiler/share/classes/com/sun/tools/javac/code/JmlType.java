@@ -57,7 +57,7 @@ public class JmlType extends Type {
     // package visibility
     JmlType(JmlTokenKind token, Name id, String fullyQualifiedClassName, List<TypeMetadata> metadata) {
         super(null);
-        jmlTypeTag = JmlTokenKind.PRIMITIVE_TYPE;
+        jmlTypeTag = null;
         fqName = fullyQualifiedClassName;
         this.id = id;
     }

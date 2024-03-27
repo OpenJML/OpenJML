@@ -250,6 +250,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     final protected Set<Name> isDefined = new HashSet<Name>();
     
     protected ClassSymbol utilsClass;
+    
+    Type BIGINT;
 
     // THESE VARIABLES ARE SET (AND RESET) IN THE COURSE OF COMPUTATION
     // (so they do not need initialization)
@@ -297,6 +299,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         lengthSym = syms.lengthVar;
         lengthIdent = treeutils.makeIdent(0,lengthSym);
         
+        BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+
     }
 
     /** Helper routine to initialize the object before starting its task of
@@ -1278,7 +1282,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             JCIdent arr = getArrayIdent(syms.intType,aa.type,aa.pos);
             JCExpression ex = aa.indexed;
             JCExpression index = aa.index;
-            Type indexType = aa.indexed.type instanceof Type.ArrayType ? syms.intType : JmlTypes.instance(context).BIGINT;
+            Type indexType = aa.indexed.type instanceof Type.ArrayType ? syms.intType : BIGINT;
             if (!(index instanceof JmlRange range) || (range.lo == range.hi && range.lo != null)) {
             	// Single index -- FIXME - don't know about * in  indexed
             	JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
@@ -1390,7 +1394,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         		result = expr;
                 addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
         		
-                JCExpression lo = treeutils.makeZeroEquivalentLit(p,JmlTypes.instance(context).BIGINT);
+                JCExpression lo = treeutils.makeZeroEquivalentLit(aa,BIGINT);
                 JCVariableDecl decl = treeutils.makeVarDef(syms.intType, names.fromString("_JMLARANGE_" + (++unique)), null, p);
                 JCIdent ind = treeutils.makeIdent(p, decl.sym);
                 JCExpression comp = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,lo,ind);
