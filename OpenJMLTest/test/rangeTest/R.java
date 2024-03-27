@@ -6,5 +6,6 @@ public class R {
     //@ set var k = r.lo;
     //@ assert k == 2;
     //@ assert r.hi == 3;
+    //@ assert (2 .. 3) == (2 .. 3);
   }
 }

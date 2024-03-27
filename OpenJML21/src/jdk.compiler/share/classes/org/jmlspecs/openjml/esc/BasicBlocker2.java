@@ -34,6 +34,7 @@ import static org.jmlspecs.openjml.ext.Functional.*;
 import static org.jmlspecs.openjml.ext.JmlPrimitiveTypes.*;
 import org.jmlspecs.openjml.ext.Refining;
 import org.jmlspecs.openjml.ext.JmlOperatorKind;
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
@@ -527,7 +528,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - review and document - not used now, but should be for generics
     protected JCIdent newTypeVarIncarnation(TypeSymbol vsym, int incarnationPosition) {
         JCIdent n = factory.at(incarnationPosition).Ident(encodedTypeName(vsym,incarnationPosition));
-        n.type = JmlTypes.instance(context).TYPE;
+        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
+        n.type = TYPE;
         n.sym = vsym;
         currentMap.putSAVersion(vsym,n.name);
         return n;

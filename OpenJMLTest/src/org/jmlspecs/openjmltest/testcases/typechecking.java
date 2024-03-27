@@ -392,7 +392,7 @@ public class typechecking extends TCBase {
     @Test public void testType9() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(java.lang.Object[][]);\n}}"
                 ,"/A.java:2: error: incompatible types: \\TYPE cannot be converted to boolean",17
-                            );
+                );
     }
 
     @Test public void testType10() {

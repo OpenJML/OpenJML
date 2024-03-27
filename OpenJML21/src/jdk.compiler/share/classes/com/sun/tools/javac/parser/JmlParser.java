@@ -1072,8 +1072,14 @@ public class JmlParser extends JavacParser {
     // TODO - generalize this and move it out of JmlParser
     /** Returns true if the token is a JML type token */
     public boolean isJmlTypeToken(JmlTokenKind t) {
-        return t == JmlTokenKind.BSTYPEUC || t == JmlTokenKind.BSBIGINT
+        return t == JmlTokenKind.BSBIGINT
                 || t == JmlTokenKind.PRIMITIVE_TYPE;
+    }
+    
+    public boolean isJmlType(Token token) {
+        var jtk = jmlTokenClauseKind();
+        var jt = jmlTokenKind();
+        return jtk instanceof JmlTypeKind || isJmlTypeToken(jt);
     }
 
     /**
@@ -1169,7 +1175,7 @@ public class JmlParser extends JavacParser {
             // Get the keyword for the JML clause, if any
             int pos = pos();
             JmlTokenKind jt = jmlTokenKind();
-            if (jt != null && !isJmlTypeToken(jt) && currentMethodSpecs != null && !startOfMethodSpecs(token)) {
+            if (jt != null && !isJmlType(token) && currentMethodSpecs != null && !startOfMethodSpecs(token)) {
                 utils.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + jt.internedName() + " clause (ignored)");
                 currentMethodSpecs = null;
             }
@@ -1245,8 +1251,8 @@ public class JmlParser extends JavacParser {
 
             }
             // Possibly Java, possibly JML but then is a ghost or model declaration
-            if (jt == null || isJmlTypeToken(jt)) {
-            	// Either a Java declaration or a JML declaration that starts with a JML type
+            if (jt == null || isJmlType(token)) {
+                // Either a Java declaration or a JML declaration that starts with a JML type
                 boolean startsInJml = S.jml();
                 List<JCTree>  t;
                 if (startsInJml && !inLocalOrAnonClass) {
@@ -2430,7 +2436,7 @@ public class JmlParser extends JavacParser {
         JmlTokenKind jt = jmlTokenKind();
         if (jt == null) {
             return super.basicType();
-        } else if (jt == JmlTokenKind.BSTYPEUC || jt == JmlTokenKind.BSBIGINT
+        } else if (jt == JmlTokenKind.BSBIGINT
                 ) {
             JCPrimitiveTypeTree t = to(jmlF.at(pos())
                     .JmlPrimitiveTypeTree(jt,null,null));
@@ -2613,7 +2619,7 @@ public class JmlParser extends JavacParser {
             if (t.ikind == JmlTokenKind.STARTJMLCOMMENT) {
                 t = S.token(2);
             }
-            if (t.ikind == BSTYPEUC || t.ikind == BSBIGINT) return ParensResult.CAST;
+            if (t.ikind == BSBIGINT) return ParensResult.CAST;
             if (t.kind == TokenKind.IDENTIFIER) {
                 IJmlClauseKind ck = Extensions.findKeyword(t);
                 if (ck instanceof JmlTypeKind) return ParensResult.CAST;
@@ -2726,7 +2732,7 @@ public class JmlParser extends JavacParser {
         if (token.kind == CUSTOM || jmlTokenKind() == JmlTokenKind.PRIMITIVE_TYPE) {
             JCExpression t;
             JmlTokenKind jt = jmlTokenKind();
-            if (isJmlTypeToken(jt)) {
+            if (isJmlType(token)) {
                 String n = jt.internedName();
                 t = to(jmlF.at(p).JmlPrimitiveTypeTree(jt, null, names.fromString(n)));
                 nextToken();

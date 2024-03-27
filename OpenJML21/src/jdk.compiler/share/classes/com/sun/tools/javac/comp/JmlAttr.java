@@ -4875,7 +4875,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             result = that.type = ((JmlTypeKind)that.jmlclausekind).getType(context);
             that.repType = that;
         } else {
-            JmlType type = that.token == JmlTokenKind.BSTYPEUC ? jmltypes.TYPE :
+            JmlType type = //that.token == JmlTokenKind.BSTYPEUC ? jmltypes.TYPE :
                 that.token == JmlTokenKind.BSBIGINT ? jmltypes.BIGINT :
  //                   that.token == JmlTokenKind.BSREAL ? jmltypes.REAL :
                         null;
@@ -5041,6 +5041,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitJmlBinary(JmlBinary that) {  // FIXME - how do we handle unboxing, casting
+        Type TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
         switch (that.op.keyword()) {
             case equivalenceID:
             case inequivalenceID:
@@ -5076,7 +5077,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 Type t = that.lhs.type;
                 boolean errorAlready = false;
                 if (t.isErroneous()) errorAlready = true;
-                else if (!t.equals(jmltypes.TYPE)
+                else if (t != TYPE
                         && !t.tsym.equals(syms.classType.tsym)) {
                     errorAlready = true;
                     utils.error(that.lhs.pos(),"jml.subtype.arguments",that.lhs.type);
@@ -5084,15 +5085,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 attribExpr(that.rhs,env,Type.noType);
                 Type tt = that.rhs.type;
                 if (tt.isErroneous()) errorAlready = true;
-                else if (!tt.equals(jmltypes.TYPE)
+                else if (tt != TYPE
                         && !tt.tsym.equals(syms.classType.tsym)) {
                     errorAlready = true;
                     utils.error(that.rhs.pos(),"jml.subtype.arguments",that.rhs.type);
                 }
-                if ((t == jmltypes.TYPE) != (tt == jmltypes.TYPE) && !errorAlready) {
+                if ((t == TYPE) != (tt == TYPE) && !errorAlready) {
                     utils.error(that.rhs.pos(),"jml.subtype.arguments.same",that.rhs.type);
                 }
-                if (t != jmltypes.TYPE) that.op = jsubtypeofKind; // Java subtyping
+                if (t != TYPE) that.op = jsubtypeofKind; // Java subtyping
                 
                 result = syms.booleanType;
                 break;
@@ -6446,17 +6447,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Type clazztype = attribType(tree.clazz, env);
             jmlresolve.setAllowJML(prev);
             Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
-            if (t == JmlTokenKind.BSTYPEUC) {
+            if (ptt.jmlclausekind == JmlPrimitiveTypes.TYPETypeKind) {
                 chk.validate(tree.clazz, env);
                 // Only Class objects may be cast to TYPE
                 // Compare tsym instead of just the thpe because the
                 // exprtype is likely a Class<T> and syms.classType is a Class
                 // or Class<?>
-                if (exprtype.tsym == syms.classType.tsym || exprtype.tsym.toString().contains("IJMLTYPE")) { // FIXME - better test for IJMLTYPE here
+                if (exprtype.tsym == syms.classType.tsym || exprtype == JmlPrimitiveTypes.TYPETypeKind.getType(context)) {
                     result = check(tree, clazztype, KindSelector.VAL, resultInfo);
                 } else {
                     log.error(tree.expr.pos,"jml.only.class.cast.to.type",exprtype);
-                    result = tree.type = jmltypes.TYPE;
+                    result = tree.type = JmlPrimitiveTypes.TYPETypeKind.getType(context);
                 }
             } else if (ptt.jmlclausekind instanceof JmlTypeKind jkind) {
                 if (types.isSameType(exprtype,syms.stringType)) { 

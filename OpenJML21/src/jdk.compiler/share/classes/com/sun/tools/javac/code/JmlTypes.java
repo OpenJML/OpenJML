@@ -46,10 +46,10 @@ public class JmlTypes extends Types {
     final protected Map<JmlTokenKind,JmlType> jmltypes = new HashMap<JmlTokenKind,JmlType>();
 
     /** The singleton instance for the \TYPE JML type */
-    final public JmlType TYPE = new JmlType(JmlTokenKind.BSTYPEUC,"org.jmlspecs.runtime.IJMLTYPE");
-    {
-        jmltypes.put(JmlTokenKind.BSTYPEUC, TYPE);
-    }
+//    final public JmlType TYPE = new JmlType(JmlTokenKind.BSTYPEUC,"org.jmlspecs.runtime.IJMLTYPE");
+//    {
+//        jmltypes.put(JmlTokenKind.BSTYPEUC, TYPE);
+//    }
 
     /** The singleton instance for the \real JML type */
 //    final public Type REAL;
@@ -92,13 +92,13 @@ public class JmlTypes extends Types {
         
         Symtab syms = Symtab.instance(context);
         syms.initType(BIGINT,"\\bigint");
-        syms.initType(TYPE,"\\TYPE");
+        //syms.initType(TYPE,"\\TYPE");
         //syms.initType(REAL,"\\real");
 //        REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
         //REAL = new JmlType(JmlPrimitiveTypes.realTypeKind, "org.jmlspecs.lang.real");
         
-        enterBinop("==", TYPE, TYPE, syms.booleanType);
-        enterBinop("!=", TYPE, TYPE, syms.booleanType);
+        //enterBinop("==", TYPE, TYPE, syms.booleanType);
+        //enterBinop("!=", TYPE, TYPE, syms.booleanType);
 
         enterBinop("==", BIGINT, BIGINT, syms.booleanType);
         enterBinop("!=", BIGINT, BIGINT, syms.booleanType);
@@ -299,7 +299,8 @@ public class JmlTypes extends Types {
     public Type unboxedType(Type t) {
         if (t.tsym == repSym(BIGINT)) return BIGINT;
 //        if (t == repSym(REAL)) return REAL;
-        if (t.tsym == repSym(TYPE)) return TYPE;
+        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
+        if (t.tsym == TYPE.tsym) return TYPE;
     	return super.unboxedType(t);
     }
 
@@ -424,7 +425,7 @@ public class JmlTypes extends Types {
     
     /** Returns true if the given type is the representation of any JML primitive type. */
     public boolean isJmlRepType(Type t) {
-        return t.tsym == BIGINT.repSym  || t.tsym == TYPE.repSym; // TODO - avoid having to list JML types
+        return t.tsym == BIGINT.repSym; // TODO - avoid having to list JML types
     }
     
     /** Returns true if the given type is any JML primitive type or its representation. */

@@ -546,13 +546,15 @@ public class JmlTreeUtils {
      * @return the AST node
      */ 
     public JCLiteral makeZeroEquivalentLit(int pos, Type type) {
+        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
+
         if (type == types.BIGINT) {
             return makeLit(pos,syms.intType,0);
            
         } else if (type == JmlPrimitiveTypes.realTypeKind.getType(context)) {
             return makeLit(pos,syms.doubleType,0.0);
             
-        } else if (type == types.TYPE) {
+        } else if (type == TYPE) {
             log.error(pos, "jml.message","old clause is not implemented for \\TYPE variables");
             // FIXME - ???
             return null;//makeTypelc(null);  // FIXME _ should have a pos argument
@@ -754,9 +756,10 @@ public class JmlTreeUtils {
         Type rhsu = unboxedType(rhs);
         if (lhsu.getTag() == TypeTag.BOOLEAN) return syms.booleanType;
         var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
         if (lhs == REAL || rhs == REAL) return REAL;
         if (lhsu == types.BIGINT || rhsu == types.BIGINT) return types.BIGINT;
-        if (lhsu == types.TYPE || rhsu == types.TYPE) return types.TYPE;
+        if (lhsu == TYPE || rhsu == TYPE) return TYPE;
         if (!lhsu.isPrimitive() || !rhsu.isPrimitive()) return syms.stringType;
         TypeTag ltag = lhsu.getTag();
         TypeTag rtag = rhsu.getTag();
@@ -1552,16 +1555,18 @@ public class JmlTreeUtils {
 
     /** Makes a JML \typeof expression, with the given expression as the argument */
     public JCExpression makeTypeof(JCExpression e) {
+        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
         JmlMethodInvocation typeof = factory.at(e.pos).JmlMethodInvocation(typeofKind,e);
-        typeof.type = types.TYPE;
+        typeof.type = TYPE;
         typeof.kind = typeofKind;
         return typeof;
     }
     
     /** Makes a JML \type expression, with the given expression as the argument */
     public JCExpression makeTypelc(JCExpression e) {
+        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
         JmlMethodInvocation typeof = factory.at(e.pos).JmlMethodInvocation(typelcKind,e);
-        typeof.type = types.TYPE;
+        typeof.type = TYPE;
         return typeof;
     }
     
@@ -1574,8 +1579,9 @@ public class JmlTreeUtils {
     }
     
     public JCExpression makeElemtype(JCExpression e) {
+        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
         JmlMethodInvocation elem = factory.at(e.pos).JmlMethodInvocation(elemtypeKind,e);
-        elem.type = types.TYPE;
+        elem.type = TYPE;
         elem.kind = elemtypeKind;
         return elem;
     }
@@ -1596,7 +1602,8 @@ public class JmlTreeUtils {
         
         JCExpression lhs = makeTypeof(id);
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(typelcKind,makeType(p,type));
-        rhs.type = JmlTypes.instance(context).TYPE;
+        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
+        rhs.type = TYPE;
         JCExpression expr = makeEqObject(p,lhs,rhs);
         // FIXME - the check below just until unerased types are supported in boogie
         if (true) { // !JmlOption.isOption(context, JmlOption.BOOGIE)) {
@@ -1614,7 +1621,7 @@ public class JmlTreeUtils {
                 JmlMethodInvocation ct = factory.at(p).JmlMethodInvocation(typelcKind,makeType(p,compType));
                 JCExpression e = makeTypeof(id);
                 e = factory.at(p).JmlMethodInvocation(elemtypeKind,e);
-                e.type = ct.type = types.TYPE;
+                e.type = ct.type = TYPE;
                 e = makeEqObject(p, e, ct);
                 expr = makeAnd(p,expr,e);
             }
@@ -1639,6 +1646,7 @@ public class JmlTreeUtils {
     
     /** Returns the AST for \typeof(id) <: \type(type) && id instanceof 'erasure of type' */
     public JCExpression makeNonNullDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type) {
+        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
         if (type instanceof IntersectionClassType) {
             IntersectionClassType itype = (IntersectionClassType)type;
             List<Type> ecomp = itype.getExplicitComponents();
@@ -1654,7 +1662,7 @@ public class JmlTreeUtils {
         if (type.getKind().isPrimitive()) return trueLit;
         JCExpression lhs = makeTypeof(id); // FIXME - copy?
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(typelcKind,makeType(p,type));
-        rhs.type = JmlTypes.instance(context).TYPE;
+        rhs.type = TYPE;
         JCExpression expr = makeJmlMethodInvocation(pos,JmlTokenKind.SUBTYPE_OF,syms.booleanType,lhs,rhs);
         {
             if (type.getKind() != TypeKind.ARRAY) {
@@ -1667,7 +1675,7 @@ public class JmlTreeUtils {
                 e = makeJmlMethodInvocation(pos,elemtypeKind,e.type,e);
                 ((JmlMethodInvocation)e).kind = elemtypeKind;
                 JmlMethodInvocation tt = factory.at(p).JmlMethodInvocation(typelcKind,makeType(p,comptype));
-                tt.type = JmlTypes.instance(context).TYPE;
+                tt.type = TYPE;
                 if (comptype.isPrimitive()) e = makeEquality(p,e,tt);
                 else e = makeJmlMethodInvocation(pos,JmlTokenKind.SUBTYPE_OF,syms.booleanType,e,tt);
                 expr = makeAnd(p,expr,e);

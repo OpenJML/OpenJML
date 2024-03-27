@@ -104,6 +104,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         }
         
         public void initAll(Context context) {
+            TYPETypeKind.getSymbol(context);
             arrayTypeKind.getSymbol(context);
             datagroupTypeKind.getSymbol(context);
             intmapTypeKind.getSymbol(context);
@@ -167,6 +168,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
                         // typeExxpr is already just equal to id
                     }
                 }
+                typeExpr = parser.bracketsOpt(typeExpr);
                 return typeExpr;
             }
 		}
@@ -314,6 +316,11 @@ public class JmlPrimitiveTypes extends JmlExtension {
     
 
 	
+    public static final String TYPEID = "\\TYPE";
+    
+    public static final JmlTypeKind TYPETypeKind = new JmlTypeKind(TYPEID, "org.jmlspecs.lang.internal.TYPE") {
+    };
+
     public static final String datagroupID = "\\datagroup";
     
     public static final JmlTypeKind datagroupTypeKind = new JmlTypeKind(datagroupID, "org.jmlspecs.lang.internal.datagroup") {

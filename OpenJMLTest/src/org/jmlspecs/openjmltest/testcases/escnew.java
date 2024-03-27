@@ -1582,6 +1582,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testAsList() {
+        addOptions("--show","--method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"import java.util.List; public class TestJava  { \n"
                 +"  public enum E { A}; \n"

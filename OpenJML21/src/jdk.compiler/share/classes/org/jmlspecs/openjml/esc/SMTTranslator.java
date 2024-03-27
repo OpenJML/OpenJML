@@ -175,6 +175,10 @@ public class SMTTranslator extends JmlTreeScanner {
     /** A list that accumulates all the Java type names as used in SMT */
     final protected Set<String> javaTypeSymbols = new HashSet<String>();
     
+    final Type REAL;
+    //final Type BIGINT;
+    final Type TYPE;
+    
     /** A counter used to make String literal identifiers unique */
     int stringCount = 0;
 
@@ -243,15 +247,15 @@ public class SMTTranslator extends JmlTreeScanner {
         jmlTypeSort = F.createSortExpression(F.symbol(JMLTYPESORT));
         lengthSym = F.symbol(arrayLength);
         stringLengthSym = F.symbol("stringLength");
-        
+
+        REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
+
     }
-    
-    protected Type REAL = null;
     
     /** Adds symbols for the theory of Reals, if they are used */
     protected void addReal() {
         if (realSort == null) {
-            REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
             realSort = F.createSortExpression(F.symbol("Real")); // From SMT
             List<ISort> args = Arrays.asList(refSort); // List of one element 
             ICommand c = new C_declare_fun(F.symbol("realValue"),args, realSort);
@@ -279,7 +283,7 @@ public class SMTTranslator extends JmlTreeScanner {
         addCommand(smt,"(declare-fun "+hifcn+" ("+rangeTypeName+") Int)");
         addCommand(smt,"(assert (forall ((i Int)(j Int)) (= i ("+lofcn+" ("+rangefcn+" i j))))) ");
         addCommand(smt,"(assert (forall ((i Int)(j Int)) (= j ("+hifcn+" ("+rangefcn+" i j))))) ");
-        rangeSort = F.createSortExpression(F.symbol("|RANGE|"));
+        rangeSort = F.createSortExpression(F.symbol(rangeTypeName));
     }
     
     /** Adds all the definitions and axioms regarding the types used in the program */
@@ -1159,6 +1163,7 @@ public class SMTTranslator extends JmlTreeScanner {
         	//System.out.println("ANON " + r + t.tsym.isAnonymous() + t.tsym.flatName());
         	r = "ANON_" + t.tsym.flatName();
         }
+        System.out.println("TYPESTRING " + t + " " + t.tsym + " " + t.tsym.name + " " + r);
         return r.replace('.', '_');
     }
     
@@ -1194,7 +1199,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     // Creates an SMT sort id for extension types (or maps to a SMT native sort)
     public ISymbol sortId(Type t) {
-        return F.symbol("S_" + t.stripMetadata().toString());
+        return F.symbol("S_" + t.tsym.toString());
     }
     
     // FIXME - should really use a TYpe visitor here
@@ -1786,57 +1791,61 @@ public class SMTTranslator extends JmlTreeScanner {
         TypeTag tag = t.getTag();
         if (utils.isExtensionValueType(t)) {
         	String ts = t.toString();
-        	if (ts.charAt(0) == '\\') System.out.println("CONVERTING " + ts);
-            if (ts.equals("org.jmlspecs.lang.string")) {
+            if (t == JmlPrimitiveTypes.stringTypeKind.getType(context)) {
                 return stringSort;
-            } else if (ts.equals("org.jmlspecs.lang.bigint")) {
+            } else if (ts.equals("org.jmlspecs.lang.bigint") || ts.equals("\\bigint")) {
                 return intSort;
-            } else if (ts.equals("org.jmlspecs.lang.real")) { // FIXME - settle on which
+            } else if (t == REAL) { // FIXME - settle on which
                 addReal();
                 return realSort;
-            } else if (ts.equals("org.jmlspecs.lang.internal.real")) {
-                addReal();
-                return realSort;
-        	} else if (ts.startsWith("org.jmlspecs.lang.map")) {
-        		Type t1 = t.getTypeArguments().head;
-        		Type t2 = t.getTypeArguments().tail.head;
-        		ISort s1 = convertSort(t1);
-        		ISort s2 = convertSort(t2);
-        		return F.createSortExpression(arraySym, s1, s2);
-        	} else if (ts.startsWith("org.jmlspecs.lang.set")) {
-        		Type t1 = t.getTypeArguments().head;
-        		ISort s1 = convertSort(t1);
-        		return F.createSortExpression(arraySym, s1, boolSort);
-           	} else if (ts.startsWith("org.jmlspecs.lang.array")) {
-        		Type t1 = t.getTypeArguments().head;
-        		ISort s1 = convertSort(t1);
-        		return F.createSortExpression(arraySym, intSort, s1);
-           	} else if (ts.startsWith("org.jmlspecs.lang.seq")) {
-        		Type t1 = t.getTypeArguments().head;
-        		ISort s1 = convertSort(t1);
-        		return F.createSortExpression(arraySym, intSort, s1);
-           	} else if (ts.startsWith("org.jmlspecs.lang.intmap")) {
-        		Type t1 = t.getTypeArguments().head;
-        		ISort s1 = convertSort(t1);
-        		return F.createSortExpression(arraySym, intSort, s1);
-           	} else if (ts.equals("org.jmlspecs.lang.intset")) {
-        		return intsetSort;
-           	} else if (ts.equals("org.jmlspecs.lang.range")) {
-        		return rangeSort;
-           	} else if (t.isParameterized()) {
-           		List<ISort> args = new LinkedList<ISort>();
-           		t.getTypeArguments().forEach(tt -> args.add(convertSort(tt)));
+            } else if (t == TYPE) {
+                return jmlTypeSort;
+            } else if (ts.startsWith("org.jmlspecs.lang.map") || ts.startsWith("\\map")) {
+                Type t1 = t.getTypeArguments().head;
+                Type t2 = t.getTypeArguments().tail.head;
+                ISort s1 = convertSort(t1);
+                ISort s2 = convertSort(t2);
+                return F.createSortExpression(arraySym, s1, s2);
+            } else if (ts.startsWith("org.jmlspecs.lang.set") || ts.startsWith("\\set")) {
+                Type t1 = t.getTypeArguments().head;
+                ISort s1 = convertSort(t1);
+                return F.createSortExpression(arraySym, s1, boolSort);
+            } else if (ts.startsWith("org.jmlspecs.lang.array") || ts.startsWith("\\array")) {
+                Type t1 = t.getTypeArguments().head;
+                ISort s1 = convertSort(t1);
+                return F.createSortExpression(arraySym, intSort, s1);
+            } else if (ts.startsWith("org.jmlspecs.lang.seq") || ts.startsWith("\\seq")) {
+                Type t1 = t.getTypeArguments().head;
+                ISort s1 = convertSort(t1);
+                var sort = F.createSortExpression(arraySym, intSort, s1);
+                System.out.println("CONVERTING " + ts + " TO " + sort);
+                return sort;
+            } else if (ts.startsWith("org.jmlspecs.lang.intmap") || ts.equals("\\intmap")) {
+                Type t1 = t.getTypeArguments().head;
+                ISort s1 = convertSort(t1);
+                return F.createSortExpression(arraySym, intSort, s1);
+            } else if (ts.equals("org.jmlspecs.lang.intset") || ts.equals("\\intset")) {
+                return intsetSort;
+            } else if (t == JmlPrimitiveTypes.rangeTypeKind.getType(context)) {
+                return rangeSort;
+            } else if (t.isParameterized()) {
+                List<ISort> args = new LinkedList<ISort>();
+                t.getTypeArguments().forEach(tt -> args.add(convertSort(tt)));
                 addType(t);
-                return F.createSortExpression((ISymbol)javaTypeSymbol(t), args);
-          	} else {
-        		addSort(t);
-        		return sortSymbol(t);
+                var sort = F.createSortExpression((ISymbol)javaTypeSymbol(t), args);
+                System.out.println("CONVERTING " + ts + " TO " + sort);
+                return sort;
+            } else {
+                addSort(t);
+                var sort = sortSymbol(t);
+                System.out.println("CONVERTING " + ts + " TO " + sort);
+                return sort;
         	}
         } else if (tag == TypeTag.NONE || tag == TypeTag.UNKNOWN){
             if (t instanceof JmlType) {
                 JmlType jt = (JmlType)t;
                 if (jt.jmlTypeTag() == JmlTokenKind.BSBIGINT) return useBV ? bv32Sort : intSort; 
-                if (jt.jmlTypeTag() == JmlTokenKind.BSTYPEUC) return jmlTypeSort;
+                //if (jt.jmlTypeTag() == JmlTokenKind.BSTYPEUC) return jmlTypeSort;
             }
             return refSort; // FIXME - just something
 
@@ -2110,7 +2119,7 @@ public class SMTTranslator extends JmlTreeScanner {
         } else if (that.kind == erasureKind) {
         	if (that.args.get(0).type == com.sun.tools.javac.comp.JmlAttr.instance(context).syms.classType) {
         		result = F.fcn(F.symbol("erasure_java"), newargs);
-        	} else if (that.args.get(0).type == com.sun.tools.javac.comp.JmlAttr.instance(context).jmltypes.TYPE) {
+        	} else if (that.args.get(0).type == TYPE) {
         		result = F.fcn(F.symbol("erasure"), newargs);
         	} else {
         		log.error("jml.internal","Unexpected argument type " + that.args.get(0).type + " " + that);
@@ -2498,7 +2507,6 @@ public class SMTTranslator extends JmlTreeScanner {
 
     @Override
     public void visitTypeCast(JCTypeCast tree) {
-        Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
         TypeTag tagr = tree.type.getTag();
         TypeTag tage = tree.expr.type.getTag();
         result = convertExpr(tree.expr);
@@ -2782,7 +2790,7 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tree instanceof JmlBBArrayAccess) {
             JmlBBArrayAccess aa = (JmlBBArrayAccess)tree;
             // select(select(arraysId,a).i)
-            String typeString = aa.indexed.type.toString();
+            String typeString = typeString(aa.indexed.type);
 //            if (typeString.startsWith("org.jmlspecs.lang.array")) {
 //            	IExpr.IFcnExpr sel = F.fcn(selectSym,
 //            			convertExpr(aa.arraysId),

@@ -272,7 +272,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     final public Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
     final public Type STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
-    final public Type REALREP = JmlPrimitiveTypes.realTypeKind.getRepType(context);
+    final public Type TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
 
 
     /**
@@ -933,10 +933,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						id.sym = tp.type.tsym;
 						id.type = tp.type;
 						JmlMethodInvocation t1 = M.at(tp.pos).JmlMethodInvocation(typelcKind, id);
-						t1.type = jmltypes.TYPE;
+						t1.type = TYPE;
 						t1.kind = typelcKind;
 						JmlMethodInvocation t2 = M.at(bound.pos).JmlMethodInvocation(typelcKind, copy(bound));
-						t2.type = jmltypes.TYPE;
+						t2.type = TYPE;
 						t1.kind = typelcKind;
 						JCExpression e = M.at(tp).JmlBinary(subtypeofKind, t1, t2);
 						e.type = syms.booleanType;
@@ -2455,7 +2455,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected Type toRacType(Type t) {
         if (t == types.BIGINT) t = types.BIGINT.repSym.type;
 //        else if (t == types.REAL) t = types.REAL.repSym.type; // FIXME
-        else if (t == types.TYPE) t = types.TYPE.repSym.type;
+        else if (t == TYPE) t = TYPE;
         else if (t == JmlPrimitiveTypes.locsetTypeKind.getType(context)) t = JmlPrimitiveTypes.locsetTypeKind.getRepType(context);
         else if (t == JmlPrimitiveTypes.stringTypeKind.getType(context)) t = JmlPrimitiveTypes.stringTypeKind.getRepType(context);
         //else if (utils.isExtensionValueType(t)) t = ((JmlType)t).getRepType(context);
@@ -9226,11 +9226,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// FIXME - what about anonymous types
 				JmlMethodInvocation typeof = M.at(that).JmlMethodInvocation(typeofKind, copy(resultExpr));
 				typeof.javaType = false;
-				typeof.type = jmltypes.TYPE;
+				typeof.type = TYPE;
 				JmlMethodInvocation stype = M.at(that).JmlMethodInvocation(typelcKind,
 						treeutils.makeType(that.pos, newclass.type));
 				stype.javaType = false;
-				stype.type = jmltypes.TYPE;
+				stype.type = TYPE;
 				stype.kind = typelcKind;
 				addAssume(that, Label.IMPLICIT_ASSUME, treeutils.makeEqObject(that.pos, typeof, stype));
 
@@ -9238,10 +9238,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// FIXME - what about anonymous types
 				typeof = M.at(that).JmlMethodInvocation(typeofKind, copy(resultExpr));
 				typeof.javaType = true;
-				typeof.type = jmltypes.TYPE;
+				typeof.type = TYPE;
 				stype = M.at(that).JmlMethodInvocation(typelcKind, treeutils.makeType(that.pos, newclass.type));
 				stype.javaType = true;
-				stype.type = jmltypes.TYPE;
+				stype.type = TYPE;
 				addAssume(that, Label.IMPLICIT_ASSUME, treeutils.makeEqObject(that.pos, typeof, stype));
 
 				if (resultExpr != null && !utils.isJavaOrJmlPrimitiveType(resultExpr.type)) { // FIXME - expect this to
@@ -13029,7 +13029,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCExpression rhstype = treeutils.makeTypeof(rhs);
 					JCExpression lhselemtype;
 					if (array.type instanceof Type.ArrayType) {
-						lhselemtype = treeutils.makeJmlMethodInvocation(array, elemtypeKind, jmltypes.TYPE,
+						lhselemtype = treeutils.makeJmlMethodInvocation(array, elemtypeKind, TYPE,
 								treeutils.makeTypeof(array));
 					} else {
 						lhselemtype = treeutils
@@ -13042,7 +13042,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				} else if (rac) {
 					// FIXME - I don't think this is checkable
 //                    JCExpression rhstype = treeutils.makeTypeof(rhs);
-//                    JCExpression lhselemtype = treeutils.makeJmlMethodInvocation(array,JmlToken.BSELEMTYPE,jmltypes.TYPE, 
+//                    JCExpression lhselemtype = treeutils.makeJmlMethodInvocation(array,JmlToken.BSELEMTYPE,TYPE, 
 //                            treeutils.makeTypeof(array));
 //                    JCExpression sta = treeutils.makeJmlMethodInvocation(array,JmlToken.SUBTYPE_OF,syms.booleanType,rhstype,lhselemtype);
 //                    JCExpression rhsnull = treeutils.makeEqNull(rhs.pos, rhs);
@@ -13907,7 +13907,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (lhsIsPrim && rhsIsPrim)
 				maxJmlType = treeutils.maxType(lhs.type, rhs.type);
 
-			if (equality && jmltypes.isJmlTypeOrRep(maxJmlType, jmltypes.TYPE)) {
+			if (equality && jmltypes.isJmlTypeOrRep(maxJmlType, TYPE)) {
 				if (rac)
 					lhs = treeutils.makeUtilsMethodCall(that.pos, "isEqualTo", lhs, rhs);
 				else
@@ -13970,7 +13970,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (!rac && splitExpressions)
 					result = eresult = newTemp(eresult);
 				return;
-			} else if (equality && maxJmlType.toString().equals("org.jmlspecs.runtime.IJMLTYPE")) {
+			} else if (equality && maxJmlType == TYPE) {
 				lhs = addImplicitConversion(lhs, maxJmlType, lhs);
 				rhs = addImplicitConversion(rhs, maxJmlType, rhs);
 				if (rac) {
@@ -17949,7 +17949,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					translateElemtype(that);
 				if (esc || infer) {
 					JCExpression arg = that.args.get(0);
-					if (arg.type == jmltypes.TYPE) {
+					if (arg.type == TYPE) {
 						JCExpression t = translateType(that.args.get(0));
 						result = eresult = treeutils.makeJmlMethodInvocation(that, elemtypeKind, that.type, t);
 					} else {

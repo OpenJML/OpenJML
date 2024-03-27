@@ -964,7 +964,6 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables4a() {
-        addOptions("--show","--method=m1");
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n" 
