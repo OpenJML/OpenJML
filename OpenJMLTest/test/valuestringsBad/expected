@@ -1,19 +1,19 @@
 test/valuestringsBad/JMLStringTestBad.java:5: error: illegal conversion: java.lang.Object to \string
     //@   ghost \string s4 = o; // error
                              ^
-test/valuestringsBad/JMLStringTestBad.java:9: error: A JML primitive type may not be assigned or cast to or from a non-JML type
+test/valuestringsBad/JMLStringTestBad.java:9: error: Only String may be cast to \string, not java.lang.Object
     //@   ghost \string s4 = (\string)o; // error
                                       ^
 test/valuestringsBad/JMLStringTestBad.java:13: error: illegal conversion: <nulltype> to \string
     //@   ghost \string s5 = null; // error
                              ^
-test/valuestringsBad/JMLStringTestBad.java:17: error: A JML primitive type may not be assigned or cast to or from a non-JML type
+test/valuestringsBad/JMLStringTestBad.java:17: error: Only String may be cast to \string, not <nulltype>
     //@   ghost \string s6 = (\string)null; // error
                                       ^
 test/valuestringsBad/JMLStringTestBad.java:21: error: A JML primitive type may not be assigned or cast to a non-JML type
     //@   ghost Object o1 = s1; // error
                        ^
-test/valuestringsBad/JMLStringTestBad.java:25: error: A JML primitive type may not be assigned or cast to or from a non-JML type
+test/valuestringsBad/JMLStringTestBad.java:25: error: A \string may not be cast to a java.lang.Object
     //@   ghost Object o1 = (Object)s1; // error
                                     ^
 Operation not performed because of parse or type errors

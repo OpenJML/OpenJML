@@ -5027,7 +5027,7 @@ public class esc1 extends EscBase {
                     }
                 }
                 """
-                ,"/tt/C.java:4: error: No operator for org.jmlspecs.lang.internal.datagroup != <nulltype>", 22
+                ,"/tt/C.java:4: error: No operator for \\datagroup != <nulltype>", 22
                 );
     }
 
@@ -5044,7 +5044,7 @@ public class esc1 extends EscBase {
                     }
                 }
                 """
-                ,"/tt/C.java:5: error: No operator for org.jmlspecs.lang.internal.datagroup == org.jmlspecs.lang.internal.datagroup", 22);
+                ,"/tt/C.java:5: error: No operator for \\datagroup == \\datagroup", 22);
     }
 
     @Test
@@ -5061,8 +5061,8 @@ public class esc1 extends EscBase {
                     }
                 }
                 """
-                ,"/tt/C.java:5: error: No operator for ! org.jmlspecs.lang.internal.datagroup", 20
-                ,"/tt/C.java:6: error: No operator for org.jmlspecs.lang.internal.datagroup + org.jmlspecs.lang.internal.datagroup", 22
+                ,"/tt/C.java:5: error: No operator for ! \\datagroup", 20
+                ,"/tt/C.java:6: error: No operator for \\datagroup + \\datagroup", 22
                 );
     }
 

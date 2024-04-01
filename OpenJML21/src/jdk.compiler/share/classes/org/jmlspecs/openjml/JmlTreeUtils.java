@@ -376,6 +376,16 @@ public class JmlTreeUtils {
     public JCExpression makeType(int pos, Type type) {
         // factory.Type does produce an attributed tree - after all we start knowing the type
         JCExpression tree = factory.at(pos).Type(type);
+        tree.type = type;
+//        // Need to replace any <?> with a new type variable
+//        replaceQuestionMarks(tree);
+        return tree;
+    }
+    
+    public JCExpression makeType(DiagnosticPosition pos, Type type) {
+        // factory.Type does produce an attributed tree - after all we start knowing the type
+        JCExpression tree = factory.at(pos).Type(type);
+        tree.type = type;
 //        // Need to replace any <?> with a new type variable
 //        replaceQuestionMarks(tree);
         return tree;
@@ -408,14 +418,26 @@ public class JmlTreeUtils {
      *  @param value      The literal's value; use 0 or 1 for Boolean; use an int for char literals.
      */
     public JCLiteral makeLit(int pos, Type type, Object value) {
-    	if (type.getTag() == TypeTag.CLASS) {
-    		type = syms.stringType;    			
-    		var t = type.constType(value);
-    		return factory.at(pos).Literal(type.getTag(), value).setType(t);
-    	} else {
-    		var t = syms.typeOfTag[type.getTag().ordinal()].constType(value);
-    		return factory.at(pos).Literal(type.getTag(), value).setType(t);
-    	}
+        if (type.getTag() == TypeTag.CLASS) {
+            type = syms.stringType;             
+            var t = type.constType(value);
+            return factory.at(pos).Literal(type.getTag(), value).setType(t);
+        } else {
+            var t = syms.typeOfTag[type.getTag().ordinal()].constType(value);
+            return factory.at(pos).Literal(type.getTag(), value).setType(t);
+        }
+
+    }
+    
+    public JCLiteral makeLit(DiagnosticPosition pos, Type type, Object value) {
+        if (type.getTag() == TypeTag.CLASS) {
+            type = syms.stringType;             
+            var t = type.constType(value);
+            return factory.at(pos).Literal(type.getTag(), value).setType(t);
+        } else {
+            var t = syms.typeOfTag[type.getTag().ordinal()].constType(value);
+            return factory.at(pos).Literal(type.getTag(), value).setType(t);
+        }
 
     }
     
@@ -565,12 +587,18 @@ public class JmlTreeUtils {
         int pos = dpos.getPreferredPosition();
         var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
         var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
 
         if (type == BIGINT) {
-            return findStaticField(dpos, BIGINT, "zero");
+            JCExpression e = makeTypeCast(dpos, BIGINT, zero);
+            e.type = BIGINT;
+            return e;
            
         } else if (type == JmlPrimitiveTypes.realTypeKind.getType(context)) {
-            return makeLit(pos,syms.doubleType,0.0);  // FIXME - user a real 0?
+            JCExpression e = makeLit(pos,syms.doubleType,0.0);  // FIXME - user a real 0?
+            e = makeTypeCast(dpos, REAL, e);
+            e.type = REAL;
+            return e;
             
         } else if (type == TYPE) {
             log.error(pos, "jml.message","old clause is not implemented for \\TYPE variables");
@@ -777,10 +805,11 @@ public class JmlTreeUtils {
         var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
         var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
         var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
-        if (lhs == REAL || rhs == REAL) return REAL;
-        if (lhsu == BIGINT || rhsu == BIGINT) return BIGINT;
-        if (lhsu == TYPE || rhsu == TYPE) return TYPE;
-        if (!lhsu.isPrimitive() || !rhsu.isPrimitive()) return syms.stringType;
+        if (lhsu.tsym == syms.stringType.tsym || rhsu.tsym == syms.stringType.tsym) return syms.stringType;
+        if (lhs.tsym == REAL.tsym || rhs.tsym == REAL.tsym) return REAL;
+        if (lhsu.tsym == BIGINT.tsym || rhsu.tsym == BIGINT.tsym) return BIGINT;
+        if (lhsu.tsym == TYPE.tsym || rhsu.tsym == TYPE.tsym) return TYPE;
+        if (!lhsu.isPrimitive() || !rhsu.isPrimitive()) return syms.objectType;
         TypeTag ltag = lhsu.getTag();
         TypeTag rtag = rhsu.getTag();
         
@@ -907,25 +936,25 @@ public class JmlTreeUtils {
         return makeBinary(pos,optag,findBinOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
     }
     
-    public /*@ nullable */ String opname(Type t, JCTree.Tag tag) {
-        JmlTypes jmltypes = JmlTypes.instance(context);
-        String prefix = jmltypes.isJmlTypeOrRep(t, JmlPrimitiveTypes.bigintTypeKind.getType(context)) ? "bigint_" 
-                : jmltypes.isJmlTypeOrRep(t, JmlPrimitiveTypes.realTypeKind.getType(context)) ? "real_" : null;
-        String suffix = null;
-        switch (tag) {
-            case LE: suffix = "le"; break;
-            case LT: suffix = "lt"; break;
-            case GE: suffix = "ge"; break;
-            case GT: suffix = "gt"; break;
-            case EQ: suffix = "eq"; break;
-            case NE: suffix = "ne"; break;
-        }
-        if (prefix == null || suffix == null) {
-            return null;
-        } else {
-            return prefix + suffix;
-        }
-    }
+//    public /*@ nullable */ String opname(Type t, JCTree.Tag tag) {
+//        JmlTypes jmltypes = JmlTypes.instance(context);
+//        String prefix = t == JmlPrimitiveTypes.bigintTypeKind.getType(context)) ? "bigint_" 
+//                : jmltypes.isJmlTypeOrRep(t, JmlPrimitiveTypes.realTypeKind.getType(context)) ? "real_" : null;
+//        String suffix = null;
+//        switch (tag) {
+//            case LE: suffix = "le"; break;
+//            case LT: suffix = "lt"; break;
+//            case GE: suffix = "ge"; break;
+//            case GT: suffix = "gt"; break;
+//            case EQ: suffix = "eq"; break;
+//            case NE: suffix = "ne"; break;
+//        }
+//        if (prefix == null || suffix == null) {
+//            return null;
+//        } else {
+//            return prefix + suffix;
+//        }
+//    }
 
 
     /** Produces an Equality AST node; presumes that the lhs and rhs have the 
@@ -1481,6 +1510,10 @@ public class JmlTreeUtils {
         return makeMethodInvocation(pos, receiver, (MethodSymbol)sym, nargs);
     }
     
+    public JCMethodInvocation makeMethodInvocation(DiagnosticPosition pos, JCExpression receiver, String name, JCExpression ... nargs) {
+        return makeMethodInvocation(pos, receiver, names.fromString(name), nargs);
+    }
+    
     /** Makes a Java method invocation using the given MethodSymbol, on the given receiver,
      * with the given arguments, at the given position; no varargs, no typeargs.
      */
@@ -1622,7 +1655,7 @@ public class JmlTreeUtils {
         }
         
         JCExpression lhs = makeTypeof(id);
-        JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(typelcKind,makeType(p,type));
+        JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(typelcKind,makeType(pos,type));
         var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
         rhs.type = TYPE;
         JCExpression expr = makeEqObject(p,lhs,rhs);
@@ -1639,7 +1672,7 @@ public class JmlTreeUtils {
             }
             if (type.getTag() == TypeTag.ARRAY) {
                 Type compType = ((Type.ArrayType)type).getComponentType();
-                JmlMethodInvocation ct = factory.at(p).JmlMethodInvocation(typelcKind,makeType(p,compType));
+                JmlMethodInvocation ct = factory.at(p).JmlMethodInvocation(typelcKind,makeType(pos,compType));
                 JCExpression e = makeTypeof(id);
                 e = factory.at(p).JmlMethodInvocation(elemtypeKind,e);
                 e.type = ct.type = TYPE;
@@ -1682,7 +1715,7 @@ public class JmlTreeUtils {
         int p = pos.getPreferredPosition();
         if (type.getKind().isPrimitive()) return trueLit;
         JCExpression lhs = makeTypeof(id); // FIXME - copy?
-        JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(typelcKind,makeType(p,type));
+        JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(typelcKind,makeType(pos,type));
         rhs.type = TYPE;
         JCExpression expr = makeJmlMethodInvocation(pos,JmlTokenKind.SUBTYPE_OF,syms.booleanType,lhs,rhs);
         {
@@ -1695,7 +1728,7 @@ public class JmlTreeUtils {
                 JCExpression e = makeTypeof(id);
                 e = makeJmlMethodInvocation(pos,elemtypeKind,e.type,e);
                 ((JmlMethodInvocation)e).kind = elemtypeKind;
-                JmlMethodInvocation tt = factory.at(p).JmlMethodInvocation(typelcKind,makeType(p,comptype));
+                JmlMethodInvocation tt = factory.at(p).JmlMethodInvocation(typelcKind,makeType(pos,comptype));
                 tt.type = TYPE;
                 if (comptype.isPrimitive()) e = makeEquality(p,e,tt);
                 else e = makeJmlMethodInvocation(pos,JmlTokenKind.SUBTYPE_OF,syms.booleanType,e,tt);
@@ -1823,6 +1856,7 @@ public class JmlTreeUtils {
     // FIXME - review & document
     public JCExpression trType(int pos, JCTree type) {
         JCExpression result = null;
+        var TYPE = makeType(pos, JmlPrimitiveTypes.TYPETypeKind.getType(context));
         if (type instanceof JCTypeApply) {
             // Convert a literal generic type, e.g. Vector<String>
             // into a function that creates type objects:
@@ -1851,25 +1885,25 @@ public class JmlTreeUtils {
                 // t.type is the actual Java type of the head (e.g. java.util.Vector)
                 // What we want is a Java class literal
                 headType = makeDotClass(type.pos,headType.type);
-                result = makeUtilsMethodCall(pos,"makeTYPE0",headType);
+                result = makeMethodInvocation(type, TYPE, "of", headType);
             }
         } else if (type instanceof JCFieldAccess) {
             JCExpression headType = (JCFieldAccess)type; 
             // t.type is the actual Java type of the head (e.g. java.util.Vector)
             // What we want is a Java class literal
             headType = makeDotClass(type.pos,headType.type);
-            result = makeUtilsMethodCall(pos,"makeTYPE0",headType);
+            result = makeMethodInvocation(type, TYPE, "of", headType);
         } else if (type instanceof JCArrayTypeTree) {
             JCExpression headType = (JCArrayTypeTree)type; 
             // t.type is the actual Java type of the head (e.g. java.util.Vector)
             // What we want is a Java class literal
             headType = makeDotClass(type.pos,headType.type);
-            result = makeUtilsMethodCall(pos,"makeTYPE0",headType);
+            result = makeMethodInvocation(type, TYPE, "of", headType);
         } else if (type instanceof JCPrimitiveTypeTree) {
             // FIXME - this does not work
             JCExpression headType = (JCPrimitiveTypeTree)type;
             headType = makeDotClass(type.pos,headType.type);
-            result = makeUtilsMethodCall(pos,"makeTYPE0",headType);
+            result = makeMethodInvocation(type, TYPE, "of", headType);
         } else if (type instanceof JCWildcard) {
             result = (JCWildcard)type; // FIXME - is this right?
         } else {

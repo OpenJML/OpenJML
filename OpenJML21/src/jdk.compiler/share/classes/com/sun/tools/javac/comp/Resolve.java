@@ -2360,7 +2360,7 @@ public class Resolve {
      *  @param name      The type's name.
      */
     Symbol findType(Env<AttrContext> env, Name name) {
-        boolean deb = false; // org.jmlspecs.openjml.Utils.isJML() && name.toString().equals("XXX"); // OPENJML - for debugging
+        boolean deb =  false; // name.toString().contains("bigint"); // OPENJML - for debugging
         if (deb) System.out.println("FINDTYPE " + name + " " + env);
         if (name == names.empty)
             return typeNotFound; // do not allow inadvertent "lookup" of anonymous types
@@ -2372,8 +2372,6 @@ public class Resolve {
             final Symbol tyvar = findTypeVar(env1, name, staticOnly);
             if (isStatic(env1)) staticOnly = true;
             if (deb) System.out.println("FINDTYPE-A " + tyvar + " " + staticOnly + " " + env1.info.staticLevel + " " +  env1.outer.info.staticLevel + " " + env1); // OPENJML - for debugging
-            if (deb && tyvar.toString().contains("error")) org.jmlspecs.openjml.Utils.dumpStack();
-            if (deb && tyvar.toString().contains("XXX")) org.jmlspecs.openjml.Utils.dumpStack();
             sym = findImmediateMemberType(env1, env1.enclClass.sym.type,
                                           name, env1.enclClass.sym);
 

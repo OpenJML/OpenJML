@@ -37,11 +37,11 @@ public class JmlPrimitiveTypes extends JmlExtension {
     public JmlPrimitiveTypes(Context context) {
         // FIXME - why is this called so many times
         // And why do we have to clear a type to get it to reload its operators for a new context?
-        intmapTypeKind.clear();
-        setTypeKind.clear();
-        seqTypeKind.clear();
-        arrayTypeKind.clear();
-        realTypeKind.clear();
+//        intmapTypeKind.clear();
+//        setTypeKind.clear();
+//        seqTypeKind.clear();
+//        arrayTypeKind.clear();
+//        realTypeKind.clear();
     }
     
     public static class JmlTypeKind extends IJmlClauseKind {
@@ -49,7 +49,6 @@ public class JmlPrimitiveTypes extends JmlExtension {
         public com.sun.tools.javac.util.Name name;
         Symbol.ClassSymbol sym = null; // lazily filled in; depends on context; only  implemented for a single context
         Type type = null; // lazily filled in; depends on context; only  implemented for a single context
-        Type repType = null;
         Context context = null; // context for type -- need even though it shadows IJmlClauseKind.context
 
         public JmlTypeKind(String keyword, String typename) {
@@ -61,7 +60,6 @@ public class JmlPrimitiveTypes extends JmlExtension {
         public void clear() {
             name = null;
             type = null;
-            repType = null;
             context = null;
             sym = null;
         }
@@ -75,26 +73,33 @@ public class JmlPrimitiveTypes extends JmlExtension {
             return type;
         }
         
+        public void init(Context context) {
+            this.context = context;
+            String fqname;
+            if (typename.contains(".")) {
+                fqname = typename;
+            } else {
+                fqname = "org.jmlspecs.lang." + typename;
+            }
+            //System.out.println("GETTING " + fqname + " " + type + " " + context.hashCode());
+            var nm = Names.instance(context).fromString("java.base");
+            com.sun.tools.javac.code.Symbol.ModuleSymbol moduleSym = com.sun.tools.javac.code.ModuleFinder.instance(context).findModule(nm);
+            sym = com.sun.tools.javac.code.Symtab.instance(context).enterClass(moduleSym, Names.instance(context).fromString(fqname));
+            //sym = JmlTypes.instance(context).createClass(fqname);
+            if (sym == null) {
+                System.out.println("FAILED TO GET SYM FOR " + fqname);
+            }
+            this.type = sym.type;
+            //System.out.println("GOT " + fqname + " " + type.hashCode() + " " + sym.hashCode());
+            if (this.sym != type.tsym) System.out.println("Primitive Symbols different: " + sym + " " + type.tsym);
+            this.name = Names.instance(context).fromString(typename); // FIXME - is this OK if the name is fully-qualified?
+            initOps();
+        }
+        
         public Symbol.ClassSymbol getSymbol(Context context) {
             // Caching the type (which depends on context) for general use
             if (type == null || context != this.context) {
                 try {
-                    this.context = context;
-                    String fqname;
-                    if (typename.contains(".")) {
-                        fqname = typename;
-                    } else {
-                        fqname = "org.jmlspecs.lang." + typename;
-                    }
-                    sym = JmlTypes.instance(context).createClass(fqname);
-                    if (sym == null) {
-                        System.out.println("FAILED TO GET SYM FOR " + fqname);
-                    }
-                    type = sym.type;
-                    if (sym != type.tsym) System.out.println("Primitive Symbols different: " + sym + " " + type.tsym);
-                    repType = type;
-                    initOps();
-                    this.name = Names.instance(context).fromString(typename); // FIXME - is this OK if the name is fully-qualified?
                     initAll(context);
                 } catch (Throwable e) {
                     e.printStackTrace(System.out);
@@ -104,18 +109,20 @@ public class JmlPrimitiveTypes extends JmlExtension {
         }
         
         public void initAll(Context context) {
-            TYPETypeKind.getSymbol(context);
-            arrayTypeKind.getSymbol(context);
-            datagroupTypeKind.getSymbol(context);
-            intmapTypeKind.getSymbol(context);
-            intsetTypeKind.getSymbol(context);
-            locsetTypeKind.getSymbol(context);
-            mapTypeKind.getSymbol(context);
-            rangeTypeKind.getSymbol(context);
-            realTypeKind.getSymbol(context);
-            seqTypeKind.getSymbol(context);
-            setTypeKind.getSymbol(context);
-            stringTypeKind.getSymbol(context);
+            //System.out.println("INITING ALL " + context.hashCode());
+            TYPETypeKind.init(context);
+            bigintTypeKind.init(context);
+            arrayTypeKind.init(context);
+            datagroupTypeKind.init(context);
+            intmapTypeKind.init(context);
+            intsetTypeKind.init(context);
+            locsetTypeKind.init(context);
+            mapTypeKind.init(context);
+            rangeTypeKind.init(context);
+            realTypeKind.init(context);
+            seqTypeKind.init(context);
+            setTypeKind.init(context);
+            stringTypeKind.init(context);
         }
         
         // FIXME - this does not get called unless the tool encounters an explicit \zzz for the given type -- and then operators are not found
@@ -126,10 +133,10 @@ public class JmlPrimitiveTypes extends JmlExtension {
             jt.enterBinop("!=", type, type, jt.syms.booleanType);
         }
 
-        public Type getRepType(Context context) {
-            getSymbol(context);
-            return repType;
-        }
+//        public Type getRepType(Context context) {
+//            getSymbol(context);
+//            return repType;
+//        }
 
         @Override
         public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
@@ -203,6 +210,8 @@ public class JmlPrimitiveTypes extends JmlExtension {
             jt.enterBinop("%", type, type, type);
             jt.enterBinop("<<", type, type, type);
             jt.enterBinop(">>", type, type, type);
+            jt.enterBinop("<<", type, jt.syms.longType, type);
+            jt.enterBinop(">>", type, jt.syms.longType, type);
             // Assign-op operators are automatically defined based on the simple operator
             
             // bit operators

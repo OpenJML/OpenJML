@@ -1415,7 +1415,7 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1bad",5
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1bad",12
                 );
     }
 
@@ -1582,7 +1582,6 @@ public class escnew extends EscBase {
 
     @Test
     public void testAsList() {
-        addOptions("--show","--method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"import java.util.List; public class TestJava  { \n"
                 +"  public enum E { A}; \n"
@@ -2392,7 +2391,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testLongShift() {
-        addOptions("-code-math=java");
+        addOptions("--code-math=java");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 

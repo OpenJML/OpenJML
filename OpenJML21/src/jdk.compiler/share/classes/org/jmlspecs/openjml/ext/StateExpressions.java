@@ -71,11 +71,11 @@ public class StateExpressions extends JmlExtension {
             Type t = attr.syms.errType;
             Name label = null;
             int n = tree.args.size();
-            if (!(n == 1 || (tree.token != JmlTokenKind.BSPRE && n == 2))) {
-                if (tree.token != JmlTokenKind.BSPRE) error(tree,"jml.wrong.number.args",keyword(),
+            if (!(n == 1 || (tree.kind != preKind && n == 2))) {
+                if (tree.kind != preKind) error(tree,"jml.wrong.number.args",keyword(),
                         "1 or 2",n);
                 else error(tree,"jml.one.arg",keyword(), n);
-            } else if (tree.token == BSPRE) {
+            } else if (tree.kind == preKind) {
                 // pre
                 if (!clauseKind.preAllowed()) {
                     log.error(tree.pos+1, "jml.misplaced.old", "\\pre token", clauseKind.keyword());

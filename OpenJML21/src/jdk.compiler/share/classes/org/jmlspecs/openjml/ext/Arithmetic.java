@@ -61,34 +61,13 @@ abstract public class Arithmetic extends JmlExtension {
     
     };
         
-//    Symbol codeBigintMath = null;
-//    Symbol codeSafeMath = null;
-//    Symbol codeJavaMath = null;
-//    Symbol specBigintMath = null;
-//    Symbol specJavaMath = null;
-//    Symbol specSafeMath = null;
-    
     Type intType;
     
     boolean javaChecks;
-    
-    private void initModeSymbols() {
-//        if (codeBigintMath != null) return;
-//        ClassReader classReader = ClassReader.instance(context);
-//        Names names = Names.instance(context);
-//        specSafeMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".SpecSafeMath"));
-//        specJavaMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".SpecJavaMath"));
-//        specBigintMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".SpecBigintMath"));
-//        codeSafeMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".CodeSafeMath"));
-//        codeJavaMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".CodeJavaMath"));
-//        codeBigintMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".CodeBigintMath"));
-    }
-    
+        
     public boolean rac;
     
     public IArithmeticMode defaultArithmeticMode(Symbol sym, boolean jml) {
-        initModeSymbols();
-        JmlModifiers mods = null;
         Utils utils = Utils.instance(context);
         if (!jml) {
             if (utils.hasModifier(sym, Modifiers.CODE_BIGINT_MATH)) return Math.instance(context);
@@ -112,44 +91,22 @@ abstract public class Arithmetic extends JmlExtension {
             if ("safe".equals(v)) return Safe.instance(context);
             return Math.instance(context);
         }
-//        if (!jml) {
-//            if (sym.attribute(codeBigintMath) != null) return Math.instance(context);
-//            if (sym.attribute(codeSafeMath) != null) return Safe.instance(context);
-//            if (sym.attribute(codeJavaMath) != null) return Java.instance(context);
-//            sym = sym.owner;
-//            if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
-//            String v = JmlOption.value(context,JmlOption.CODE_MATH);
-//            if ("java".equals(v)) return Java.instance(context);
-//            if ("safe".equals(v)) return Safe.instance(context);
-//            return Math.instance(context);
-//        } else {
-//            if (sym.attribute(specBigintMath) != null) return Math.instance(context);
-//            if (sym.attribute(specSafeMath) != null) return Safe.instance(context);
-//            if (sym.attribute(specJavaMath) != null) return Java.instance(context);
-//            sym = sym.owner;
-//            Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
-//            if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
-//            String v = JmlOption.value(context,JmlOption.SPEC_MATH);
-//            if ("java".equals(v)) return Java.instance(context);
-//            if ("safe".equals(v)) return Safe.instance(context);
-//            return Math.instance(context);
-//        }
     }
     
     public Type maxtype(JmlTypes jmltypes, Type lhs, Type rhs) {
         Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
         Type BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
-        if (lhs.getTag() == TypeTag.CLASS) lhs = Types.instance(context).unboxedType(lhs); 
-        if (rhs.getTag() == TypeTag.CLASS) rhs = Types.instance(context).unboxedType(rhs); 
         TypeTag lt = lhs.getTag();
-        TypeTag rt = rhs.getTag(); // FIOXME - is the typetag UNKNOWN or NONE
-        if (lt == TypeTag.UNKNOWN && lhs == REAL) return lhs;
-        if (rt == TypeTag.UNKNOWN && rhs == REAL) return rhs;
-        if (lt == TypeTag.UNKNOWN && lhs == BIGINT) {
+        TypeTag rt = rhs.getTag();
+        if (lhs.tsym == REAL.tsym) return lhs;
+        if (rhs.tsym == REAL.tsym) return rhs;
+        if (lhs.tsym == BIGINT.tsym) {
             if (rt == TypeTag.DOUBLE || rt == TypeTag.FLOAT) return REAL;
             return lhs;
         }
-        if (rt == TypeTag.UNKNOWN && rhs == BIGINT) {
+        if (lt == TypeTag.CLASS) lhs = Types.instance(context).unboxedType(lhs); 
+        if (rt == TypeTag.CLASS) rhs = Types.instance(context).unboxedType(rhs); 
+        if (rhs.tsym == BIGINT.tsym) {
             if (lt == TypeTag.DOUBLE || lt == TypeTag.FLOAT) return REAL;
             return rhs;
         }
@@ -222,23 +179,6 @@ abstract public class Arithmetic extends JmlExtension {
         JCTree.Tag optag = that.getTag();
         TypeTag typetag = that.type.getTag();
         JCExpression eresult = null;
-//        if (arg instanceof JCLiteral) {
-//            // NEG, POS, COMPL
-//            Number n = (Number)((JCLiteral)arg).getValue();
-//            if (typetag == TypeTag.INT) {
-//                int v = n.intValue();
-//                if (v != Integer.MIN_VALUE || optag != JCTree.Tag.NEG) {
-//                    v = optag == JCTree.Tag.NEG ? -v : optag == JCTree.Tag.COMPL ? -1-v : v;
-//                    return rewriter.treeutils.makeIntLiteral(that.pos,v);
-//                }
-//            } else if (typetag == TypeTag.LONG) {
-//                long v = n.longValue();
-//                if (v != Long.MIN_VALUE || optag != JCTree.Tag.NEG) {
-//                    v = optag == JCTree.Tag.NEG ? -v : optag == JCTree.Tag.COMPL ? -1-v : v;
-//                    return rewriter.treeutils.makeLongLiteral(that.pos,v);
-//                }
-//            }
-//        }
         if (implementOverflow && !(arg instanceof JCLiteral)) {
             if (typetag == TypeTag.INT) {
                 JCExpression maxlit = rewriter.treeutils.makeIntLiteral(arg, Integer.MAX_VALUE);
@@ -266,20 +206,18 @@ abstract public class Arithmetic extends JmlExtension {
             }
         }
         if (rewriter.rac && rewriter.jmltypes.isJmlType(newtype)) {
-            if (optag == JCTree.Tag.NEG){ 
-                if (rewriter.jmltypes.isSameType(newtype, rewriter.BIGINT)) {
-                    eresult = rewriter.treeutils.makeUtilsMethodCall(that.pos,"bigint_neg",rewriter.copy(arg));
-                }
-                if (rewriter.jmltypes.isSameType(newtype, rewriter.REAL)) {
-                    eresult = rewriter.treeutils.makeUtilsMethodCall(that.pos,"real_neg",rewriter.copy(arg));
-                }
+            if (optag == JCTree.Tag.NEG) { 
+                // Both BIGINT and REAL
+                eresult = rewriter.treeutils.makeMethodInvocation(that,arg,Names.instance(context).fromString("negate"));
             } else if (optag == JCTree.Tag.POS) {
                 eresult = arg;
             } else if (optag == JCTree.Tag.COMPL) {
-                // Assumed to be a bigint (not real) operation - equivalent to -1-x
-                JCExpression e = rewriter.treeutils.makeUtilsMethodCall(that.pos,"bigint_neg",rewriter.copy(arg));
-                e = rewriter.treeutils.makeUtilsMethodCall(that.pos,"bigint_sub1",e);
-                eresult = e;
+                // Assumed to be a bigint (not real) operation - equivalent to -x-1
+                JCExpression ty = rewriter.treeutils.makeType(that.getPreferredPosition(), rewriter.BIGINT);
+                JCExpression e = rewriter.treeutils.makeMethodInvocation(that,arg,Names.instance(context).fromString("negate"));
+                eresult = rewriter.treeutils.makeMethodInvocation(that,e,Names.instance(context).fromString("subtract"),
+                        rewriter.treeutils.makeMethodInvocation(that,ty,Names.instance(context).of,
+                                rewriter.treeutils.makeIntLiteral(that, 1)));
             } else { 
                 Utils.instance(context).error(that,"jml.internal","Unknown unary operation in Arithmetic.Java for JML type: " + that);
                 eresult = arg;
@@ -505,7 +443,7 @@ abstract public class Arithmetic extends JmlExtension {
         
         // Implement the operation, correcting for overflow if needed
         
-        boolean isBigint = rewriter.jmltypes.isJmlTypeOrRepType(newtype);
+        boolean isBigint = newtype.tsym == rewriter.BIGINT.tsym;
         JCExpression bin;
         if (rewriter.rac && rewriter.jmltypes.isJmlType(newtype)) {
             bin = rewriter.makeBin(that,optag,that.getOperator(),lhs,rhs,newtype);

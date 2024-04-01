@@ -3360,10 +3360,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } else {
             result = super.attribType(tree,env);
         }
-        if (result.getTag() != TypeTag.VOID && result.isErroneous() && 
-                result.tsym instanceof ClassSymbol &&
+        if (result.getTag() != TypeTag.VOID && !result.isErroneous() && 
+                result.tsym instanceof ClassSymbol cs &&
                 !result.isPrimitive()) {
-            addTodo((ClassSymbol)result.tsym);
+            addTodo(cs);
         }
         return result;
     }
@@ -5265,7 +5265,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // FIXME - formal type should be datatype
                 ok = visitMatchConstructor((JCMethodInvocation)actual, datatype, caseEnv) && ok;
             } else {
-                utils.error(actual, "log.message", "Expected an identifier or consturctor call here");
+                utils.error(actual, "jml.message", "Expected an identifier or constructor call here");
                 ok = false;
             }
         }
@@ -6443,61 +6443,57 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitTypeCast(JCTypeCast tree) {
-        if (tree.clazz instanceof JmlPrimitiveTypeTree) {
-            // FIXME - this needs to be expanded to include real and bigint and
-            // arrays of such
-            var ptt = (JmlPrimitiveTypeTree)tree.clazz;
-            JmlTokenKind t = ptt.token;
-            boolean prev = jmlresolve.setAllowJML(true);  // OPENJML - should check whether the cast is within JML annotation
-            Type clazztype = attribType(tree.clazz, env);
-            jmlresolve.setAllowJML(prev);
+        boolean prev = jmlresolve.setAllowJML(jmlenv.currentClauseKind != null);
+        Type clazztype = attribType(tree.clazz, env);  // FIXME - this call is repeated later in super.visitTypeCast
+        chk.validate(tree.clazz, env);
+        result = tree.type = check(tree, clazztype, KindSelector.VAL, resultInfo);
+        jmlresolve.setAllowJML(prev);
+        //System.out.println("JMLATTR " + tree.clazz + " " + tree.clazz.type + " " + (tree.clazz instanceof JmlPrimitiveTypeTree) + " " + tree.clazz.getClass());
+        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
+        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        var STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
+        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
+        if (utils.isExtensionValueType(clazztype)) {
+            prev = jmlresolve.setAllowJML(jmlenv.currentClauseKind != null);
             Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
-            if (ptt.jmlclausekind == JmlPrimitiveTypes.TYPETypeKind) {
-                chk.validate(tree.clazz, env);
-                // Only Class objects may be cast to TYPE
-                // Compare tsym instead of just the thpe because the
-                // exprtype is likely a Class<T> and syms.classType is a Class
-                // or Class<?>
-                if (exprtype.tsym == syms.classType.tsym || exprtype == JmlPrimitiveTypes.TYPETypeKind.getType(context)) {
-                    result = check(tree, clazztype, KindSelector.VAL, resultInfo);
-                } else {
-                    log.error(tree.expr.pos,"jml.only.class.cast.to.type",exprtype);
-                    result = tree.type = JmlPrimitiveTypes.TYPETypeKind.getType(context);
-                }
-            } else if (ptt.jmlclausekind instanceof JmlTypeKind jkind) {
-                if (types.isSameType(exprtype,syms.stringType)) { 
-                    result = tree.type = jkind.getType(context);
-                    ptt.typeName = jkind.name;
-                } else {
-                    utils.error(tree, "jml.message", "only a String may be cast to a \\string, not a " + tree.expr.type);
-                }
-            } else {
-                // For now do no checking // FIXME
-                result = tree.type = clazztype;
-            }
-        } else {
-            boolean prev = jmlresolve.setAllowJML(true);  // OPENJML - should check whether the cast is within JML annotation
-            attribType(tree.clazz, env);
             jmlresolve.setAllowJML(prev);
-            super.visitTypeCast(tree);
-//            if (utils.isExtensionValueType(tree.expr.type) && !utils.isExtensionValueType(tree.clazz.type)) {
-//                utils.error(tree, "jml.message", "A JML primitive type may not be assigned or cast to a non-JML type");
-//                tree.type = tree.clazz.type; // Pretend it was OK
-//            }
-
-//            if (utils.isExtensionValueType(tree.expr.type)
-//                    != utils.isExtensionValueType(tree.type)) {
-//                if (types.isSameType(tree.type, utils.extensionValueType("string"))
-//                        && types.isSameType(tree.expr.type, syms.stringType)) {
-//                    // OK
-//                } else {
-//                    log.error(tree.pos(), "jml.message",
-//                            "illegal conversion: " + tree.expr.type +
-//                            " to " + tree.clazz.type);
-//                    tree.type = types.createErrorType(tree.expr.type);
-//                }
-//            }
+            result = tree.type = clazztype; // Even if there is an error or the cast is not allowed, set the result to the new type to avoid cascading errors
+            if (clazztype.tsym == tree.expr.type.tsym) return;
+            if (clazztype.tsym == BIGINT) {
+                if (tree.expr.type.isNumeric()) return;
+                if (tree.expr.type.tsym == REAL.tsym) return;
+                utils.error(tree.expr, "jml.message", "Only numeric types may be cast to \\bigint, not " + tree.expr.type);
+                return;
+            }
+            if (clazztype.tsym == REAL.tsym) {
+                if (tree.expr.type.tsym == BIGINT) return;
+                if (tree.expr.type.isNumeric()) return;
+                utils.error(tree.expr, "jml.message", "Only numeric types may be cast to \\real, not " + tree.expr.type);
+                return;
+            }
+            if (clazztype == TYPE) {
+                if (exprtype.tsym == syms.classType.tsym) return;
+                utils.error(tree.expr.pos,"jml.only.class.cast.to.type",exprtype);
+                return;
+            }
+            if (clazztype == STRING) {
+                if (jmltypes.isSameType(tree.expr.type, syms.stringType)) return;
+                utils.error(tree.expr, "jml.message", "Only String may be cast to \\string, not " + tree.expr.type);
+                return;
+            }
+            utils.error(tree.expr, "jml.message", "A " + tree.expr.type + " may not be cast to " + clazztype);
+            return;
         }
+        if (tree.clazz instanceof JmlPrimitiveTypeTree) {
+            Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
+            if (utils.isExtensionValueType(exprtype)) {
+                if (exprtype.tsym == BIGINT && clazztype.isIntegral()) return;
+                if (exprtype == REAL && clazztype.isNumeric()) return;
+                utils.error(tree, "jml.message", "May not cast a " + exprtype + " to " + clazztype);
+                return;
+            }
+        }
+        super.visitTypeCast(tree);
     }
     
     @Override
@@ -7760,7 +7756,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // FIXME - should this be checking for error types?
             if (that.init != null && that.init.type != null && !that.init.type.isErroneous() &&
                     utils.isExtensionValueType(that.init.type) && !utils.isExtensionValueType(that.type)) {
-                System.out.println(that.init.type + " TO " + that.type + " " + that.init + " " + that.init.getClass());
+                //System.out.println(that.init.type + " TO " + that.type + " " + that.init + " " + that.init.getClass());
                 utils.error(that, "jml.message", "A JML primitive type may not be assigned or cast to a non-JML type");
             }
 

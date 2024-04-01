@@ -114,7 +114,6 @@ public class JmlCheck extends Check {
             if (types.isSameType(req, BIGINT) && ((JmlTypes)types).isIntegral(found)) {
                 return req;                
             }
-            System.out.println("CAST " + types.isSameType(found, BIGINT) + " " + types.isSameType(req, BIGINT) + " " + ((JmlTypes)types).isIntegral(found) + " " + ((JmlTypes)types).isIntegral(req));
             utils.error(pos, "jml.message", "A " + found + " may not be cast to a " + req);
             return types.createErrorType(found);
         }

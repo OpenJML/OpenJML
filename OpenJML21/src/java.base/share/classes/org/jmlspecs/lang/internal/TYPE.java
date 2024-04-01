@@ -2,17 +2,21 @@ package org.jmlspecs.lang.internal;
 
 import java.util.*;
 
-import org.jmlspecs.runtime.IJMLTYPE;
-
-public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType, org.jmlspecs.runtime.IJMLTYPE {
+public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
     
     public String bsName() { return "\\TYPE"; }
 
     final private Class<?> base;
     final private TYPE[] args;
+    final static private TYPE[] noargs = new TYPE[] {};
     final private static Map<TYPE,TYPE> internSet = new HashMap<TYPE,TYPE>();
     
-    public static TYPE make(Class<?> base, TYPE[] args) {
+    public static TYPE of(Class<?> base) {
+        TYPE t = new TYPE(base, noargs);
+        return t.intern();
+    }
+    
+    public static TYPE gen(Class<?> base, TYPE ... args) {
         TYPE t = new TYPE(base,args);
         return t.intern();
     }
@@ -82,15 +86,15 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType, org.jmlspecs.r
         return null; // FIXME Runtime.getJMLComponentType(this);
     }
 
-    @Override
-    public boolean equals(IJMLTYPE t) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean isSubtypeOf(IJMLTYPE t) {
-        return isSubtypeOf((TYPE)t);
-    }
+//    @Override
+//    public boolean equals(IJMLTYPE t) {
+//        // TODO Auto-generated method stub
+//        return false;
+//    }
+//
+//    @Override
+//    public boolean isSubtypeOf(IJMLTYPE t) {
+//        return isSubtypeOf((TYPE)t);
+//    }
 
 }

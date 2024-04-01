@@ -36,7 +36,7 @@ public class JmlOperators extends Operators {
     	boolean b1 = org.jmlspecs.openjml.Utils.instance(context).isExtensionValueType(op1);
     	boolean b2 = org.jmlspecs.openjml.Utils.instance(context).isExtensionValueType(op2);
         Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
-        Type BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
 
     	if (b1 && !b2) {
     	    if (jtype.isSameType(op1, REAL)) {
@@ -70,12 +70,12 @@ public class JmlOperators extends Operators {
         			}
     			} // FIXME - do we need to insert explicit conversions
     		}
-    		if (op1 == BIGINT || op2 == BIGINT) {
+    		if (op1.tsym == BIGINT || op2.tsym == BIGINT) {
     			// This allows for implicit conversions
     			for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
     				OperatorSymbol op = (OperatorSymbol)s;
         			var args = op.type.getParameterTypes();
-                    if (args.head == BIGINT && args.tail.head == BIGINT) {
+                    if (args.head.tsym == BIGINT && args.tail.head.tsym == BIGINT) {
                         return op;
                     } // FIXME - do we need to insert explicit conversions
     			}
@@ -88,7 +88,7 @@ public class JmlOperators extends Operators {
 //                System.out.println("COMP1 " + op1 + " " + args.head + " " + jtype.isSameType(op1,  args.head));
 //                System.out.println("COMP2 " + op2 + " " + args.tail.head + " " + jtype.isSameType(op2,  args.tail.head));
 //            }
-    		System.out.println("OPS " + op1.getClass() + " " + op1);
+    		//System.out.println("OPS " + op1.getClass() + " " + op1);
     		org.jmlspecs.openjml.Utils.instance(context).error(pos, "jml.message", "No operator for " + op1 + " " + opName + " " + op2);
 			return noOpSymbol;
     	}

@@ -153,9 +153,6 @@ public class JmlTypes extends Types {
     /** Returns true if t and s are the same type or t is the repType of a JML type s */
     public boolean isSameTypeOrRep(Type t, Type s) {
         if (t == s) return true;
-        if (t instanceof JmlType && repSym(((JmlType)t)) == s.tsym) return true;
-        if (s instanceof JmlType && repSym(((JmlType)s)) == t.tsym) return true;
-        if (t instanceof JmlType || s instanceof JmlType) return false;
         return super.isSameType(t, s);
     }
     
@@ -180,7 +177,6 @@ public class JmlTypes extends Types {
         }
         if (s == JmlPrimitiveTypes.realTypeKind.getType(context)) {
             if (isNumeric(t)) return true; 
-            if (t == JmlPrimitiveTypes.realTypeKind.getRepType(context)) return true; // FIXME - this is old code, but not sure why it is needed
             return false;
         }
         if ((s instanceof JmlListType) != (t instanceof JmlListType)) return false;
@@ -278,7 +274,7 @@ public class JmlTypes extends Types {
         if (s == JmlPrimitiveTypes.realTypeKind.getType(context)) return isNumeric(t);
         if (s instanceof JmlType) {
             if (s == JmlPrimitiveTypes.bigintTypeKind.getType(context)) return isIntegral(t);
-            else return false;
+            else return false;  // FIXME - not sure about the semantics and logic here
         }
         return super.isSubtypeUnchecked(t, s, warn);
     }
@@ -286,10 +282,8 @@ public class JmlTypes extends Types {
     /** Overrides Types.boxedClass with functionality for JML primitive types. */
     @Override
     public ClassSymbol boxedClass(Type t) {
-        if (t instanceof JmlType) {
-            return repSym((JmlType)t);
-        }
-        return ClassReader.instance(context).enterClass(syms.boxedName[t.getTag().ordinal()]);
+        if (Utils.instance(context).isExtensionValueType(t)) return (ClassSymbol)t.tsym;
+        return super.boxedClass(t);
     }
 
     /** Overrides Types.unboxedType with functionality for JML primitive types. */
@@ -303,8 +297,7 @@ public class JmlTypes extends Types {
     @Override
     public boolean isSubtype(Type t, Type s, boolean capture) {
         if (t == s) return true;
-        // FIXME - don't think this is correct, e.g. int is a subtype of \bigint??
-        if (t instanceof JmlType || s instanceof JmlType) return false;
+       // if (super.isSubtype(t, Utils.instance(context).interfaceForPrimitiveTypes()) || super.isSubtype(s, Utils.instance(context).interfaceForPrimitiveTypes())) return false;
         return super.isSubtype(t, s, capture);
     }
     
@@ -312,8 +305,7 @@ public class JmlTypes extends Types {
     @Override
     public boolean containsType(Type t, Type s) {
         if (t == s) return true;
-        if (t instanceof JmlType || s instanceof JmlType) return false;
-        // FIXME - don't think this is correct, e.g. int is a subtype of \bigint??
+        if (Utils.instance(context).isExtensionValueType(t) || Utils.instance(context).isExtensionValueType(t)) return false;
         return super.containsType(t, s);
     }
     
@@ -400,41 +392,41 @@ public class JmlTypes extends Types {
 //        return super.upperBound(t);
 //    }
     
-    /** Returns an AST for the type representing the given JML primitive type */
-    public JCExpression repType(DiagnosticPosition pos, JmlType t) {
-        ClassSymbol sym = repSym(t);
-        return JmlTree.Maker.instance(context).at(pos).Type(sym.type);
-    }
-    
-    /** Returns the ClassSymbol for the RAC representation of the given JML primitive type */
-    public ClassSymbol repSym(JmlType t) {
-        if (t.repSym == null) {
-            String fqName = t.fqName;
-            t.repSym = JmlAttr.instance(context).createClass(fqName);
-        }
-        return t.repSym;
-    }
+//    /** Returns an AST for the type representing the given JML primitive type */
+//    public JCExpression repType(DiagnosticPosition pos, JmlType t) {
+//        ClassSymbol sym = repSym(t);
+//        return JmlTree.Maker.instance(context).at(pos).Type(sym.type);
+//    }
+//    
+//    /** Returns the ClassSymbol for the RAC representation of the given JML primitive type */
+//    public ClassSymbol repSym(JmlType t) {
+//        if (t.repSym == null) {
+//            String fqName = t.fqName;
+//            t.repSym = JmlAttr.instance(context).createClass(fqName);
+//        }
+//        return t.repSym;
+//    }
     
     /** Returns true if the given type is any JML primitive type. */
     public boolean isJmlType(Type t) {
-        return t.getTag() == TypeTag.NONE || t.getTag() == TypeTag.UNKNOWN;  // FIXME - needs review
+        return Utils.instance(context).isExtensionValueType(t);
     }
     
-    /** Returns true if the given type is the representation of any JML primitive type. */
-    public boolean isJmlRepType(Type t) {
-        return true;
-    }
+//    /** Returns true if the given type is the representation of any JML primitive type. */
+//    public boolean isJmlRepType(Type t) {
+//        return true;
+//    }
     
-    /** Returns true if the given type is any JML primitive type or its representation. */
-    public boolean isJmlTypeOrRepType(Type t) {
-        return isJmlType(t) || isJmlRepType(t);
-    }
+//    /** Returns true if the given type is any JML primitive type or its representation. */
+//    public boolean isJmlTypeOrRepType(Type t) {
+//        return isJmlType(t) || isJmlRepType(t);
+//    }
     
-    /** Returns true if the given type is equal to target or its representation. */
-    public boolean isJmlTypeOrRep(Type t, Type target) {
-        return t == target ;//|| t.tsym == repSym(target); // FIXME
-    }
-    
+//    /** Returns true if the given type is equal to target or its representation. */
+//    public boolean isJmlTypeOrRep(Type t, Type target) {
+//        return t == target ;//|| t.tsym == repSym(target); // FIXME
+//    }
+//    
     /** Returns true if the given token is the token for a JML primitive type. */
     public boolean isJmlTypeToken(JmlTokenKind t) {
         return jmltypes.get(t) != null;

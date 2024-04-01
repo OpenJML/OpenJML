@@ -477,7 +477,7 @@ public class escfiles extends EscBase {
 
     // FIXME - reasoning about getClass
     @Test
-    public void testBadCast() {
+    public void escBadCast() {
         expectedExit = 0;
         helpTF("escBadCast");
     }
