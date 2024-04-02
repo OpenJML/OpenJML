@@ -356,7 +356,7 @@ public class Runtime {
      * @return the value of v
      */
     public static boolean reportBoolean(String key, boolean v) {
-        report("LABEL " + key + " = " + v);System.out.flush();
+        report("LABEL " + key + " = " + v);
         return v;
     }
 
@@ -619,165 +619,165 @@ public class Runtime {
         public T value(final Object[] args);
     }
     
-    public static BigInteger bigint_add(BigInteger a, BigInteger b) {
-        return a.add(b);
-    }
-
-    public static BigInteger bigint_sub(BigInteger a, BigInteger b) {
-        return a.subtract(b);
-    }
-
-    public static BigInteger bigint_sub1(BigInteger a) {
-        return a.subtract(BigInteger.ONE);
-    }
-
-    public static BigInteger bigint_mul(BigInteger a, BigInteger b) {
-        return a.multiply(b);
-    }
-
-    public static BigInteger bigint_div(BigInteger a, BigInteger b) {
-        return a.divide(b);
-    }
-
-    public static BigInteger bigint_remainder(BigInteger a, BigInteger b) {
-        return a.remainder(b);
-    }
-
-    public static BigInteger bigint_neg(BigInteger a) {
-        return a.negate();
-    }
-
-    public static boolean bigint_lt(BigInteger a, BigInteger b) {
-        return a.compareTo(b) < 0;
-    }
-
-    public static boolean bigint_le(BigInteger a, BigInteger b) {
-        return a.compareTo(b) <= 0;
-    }
-
-    public static boolean bigint_gt(BigInteger a, BigInteger b) {
-        return a.compareTo(b) > 0;
-    }
-
-    public static boolean bigint_ge(BigInteger a, BigInteger b) {
-        return a.compareTo(b) >= 0;
-    }
-
-    public static boolean bigint_eq(BigInteger a, BigInteger b) {
-        return a.compareTo(b) == 0;
-    }
-
-    public static boolean bigint_ne(BigInteger a, BigInteger b) {
-        return a.compareTo(b) != 0;
-    }
-
-    public static boolean bigint_nonzero(BigInteger a) {
-        return a.compareTo(BigInteger.ZERO) != 0;
-    }
-
-    public static float bigint_tofloat(BigInteger a) {
-        return a.floatValue();
-    }
-
-    public static double bigint_todouble(BigInteger a) {
-        return a.doubleValue();
-    }
-
-    public static long bigint_tolong(BigInteger a) {
-        return a.longValue();
-    }
-
-    public static int bigint_toint(BigInteger a) {
-        return a.intValue();
-    }
-
-    public static char bigint_tochar(BigInteger a) {
-        return (char)a.shortValue();
-    }
-
-    public static short bigint_toshort(BigInteger a) {
-        return a.shortValue();
-    }
-
-    public static byte bigint_tobyte(BigInteger a) {
-        return a.byteValue();
-    }
-
-    public static real bigint_toreal(BigInteger a) {
-        return real.of(a.doubleValue());
-    }
-
-    public static BigInteger bigint_valueOf(long i) {
-        return BigInteger.valueOf(i);
-    }
-
-    public static BigInteger bigint_valueOfNumber(Number i) {
-        return BigInteger.valueOf(i.longValue());
-    }
-
-    public static real real_add(real a, real b) {
-        return a.add(b);
-    }
-
-    public static real real_sub(real a, real b) {
-        return a.subtract(b);
-    }
-
-    public static real real_mul(real a, real b) {
-        return a.multiply(b);
-    }
-
-    public static real real_div(real a, real b) {
-        return a.divide(b);
-    }
-
-    public static real real_mod(real a, real b) {
-        return a.mod(b);
-    }
-
-    public static real real_neg(real a) {
-        return a.neg();
-    }
-
-    public static boolean real_lt(real a, real b) {
-        return a.compareTo(b) < 0;
-    }
-
-    public static boolean real_le(real a, real b) {
-        return a.compareTo(b) <= 0;
-    }
-
-    public static boolean real_gt(real a, real b) {
-        return a.compareTo(b) > 0;
-    }
-
-    public static boolean real_ge(real a, real b) {
-        return a.compareTo(b) >= 0;
-    }
-
-    public static boolean real_eq(real a, real b) {
-        return a.compareTo(b) == 0;
-    }
-
-    public static boolean real_ne(real a, real b) {
-        return a.compareTo(b) != 0;
-    }
-
-    public static boolean real_nonzero(real a) {
-        return a.compareTo(real.ZERO) != 0;
-    }
-
-    public static real real_valueOf(double i) {
-        return real.of(i);
-    }
-
-    public static double real_todouble(real a) {
-        return a.doubleValue();
-    }
-
-    public static float real_tofloat(real a) {
-        return (float)a.doubleValue();
-    }
+//    public static BigInteger bigint_add(BigInteger a, BigInteger b) {
+//        return a.add(b);
+//    }
+//
+//    public static BigInteger bigint_sub(BigInteger a, BigInteger b) {
+//        return a.subtract(b);
+//    }
+//
+//    public static BigInteger bigint_sub1(BigInteger a) {
+//        return a.subtract(BigInteger.ONE);
+//    }
+//
+//    public static BigInteger bigint_mul(BigInteger a, BigInteger b) {
+//        return a.multiply(b);
+//    }
+//
+//    public static BigInteger bigint_div(BigInteger a, BigInteger b) {
+//        return a.divide(b);
+//    }
+//
+//    public static BigInteger bigint_remainder(BigInteger a, BigInteger b) {
+//        return a.remainder(b);
+//    }
+//
+//    public static BigInteger bigint_neg(BigInteger a) {
+//        return a.negate();
+//    }
+//
+//    public static boolean bigint_lt(BigInteger a, BigInteger b) {
+//        return a.compareTo(b) < 0;
+//    }
+//
+//    public static boolean bigint_le(BigInteger a, BigInteger b) {
+//        return a.compareTo(b) <= 0;
+//    }
+//
+//    public static boolean bigint_gt(BigInteger a, BigInteger b) {
+//        return a.compareTo(b) > 0;
+//    }
+//
+//    public static boolean bigint_ge(BigInteger a, BigInteger b) {
+//        return a.compareTo(b) >= 0;
+//    }
+//
+//    public static boolean bigint_eq(BigInteger a, BigInteger b) {
+//        return a.compareTo(b) == 0;
+//    }
+//
+//    public static boolean bigint_ne(BigInteger a, BigInteger b) {
+//        return a.compareTo(b) != 0;
+//    }
+//
+//    public static boolean bigint_nonzero(BigInteger a) {
+//        return a.compareTo(BigInteger.ZERO) != 0;
+//    }
+//
+//    public static float bigint_tofloat(BigInteger a) {
+//        return a.floatValue();
+//    }
+//
+//    public static double bigint_todouble(BigInteger a) {
+//        return a.doubleValue();
+//    }
+//
+//    public static long bigint_tolong(BigInteger a) {
+//        return a.longValue();
+//    }
+//
+//    public static int bigint_toint(BigInteger a) {
+//        return a.intValue();
+//    }
+//
+//    public static char bigint_tochar(BigInteger a) {
+//        return (char)a.shortValue();
+//    }
+//
+//    public static short bigint_toshort(BigInteger a) {
+//        return a.shortValue();
+//    }
+//
+//    public static byte bigint_tobyte(BigInteger a) {
+//        return a.byteValue();
+//    }
+//
+//    public static real bigint_toreal(BigInteger a) {
+//        return real.of(a.doubleValue());
+//    }
+//
+//    public static BigInteger bigint_valueOf(long i) {
+//        return BigInteger.valueOf(i);
+//    }
+//
+//    public static BigInteger bigint_valueOfNumber(Number i) {
+//        return BigInteger.valueOf(i.longValue());
+//    }
+//
+//    public static real real_add(real a, real b) {
+//        return a.add(b);
+//    }
+//
+//    public static real real_sub(real a, real b) {
+//        return a.subtract(b);
+//    }
+//
+//    public static real real_mul(real a, real b) {
+//        return a.multiply(b);
+//    }
+//
+//    public static real real_div(real a, real b) {
+//        return a.divide(b);
+//    }
+//
+//    public static real real_mod(real a, real b) {
+//        return a.mod(b);
+//    }
+//
+//    public static real real_neg(real a) {
+//        return a.neg();
+//    }
+//
+//    public static boolean real_lt(real a, real b) {
+//        return a.compareTo(b) < 0;
+//    }
+//
+//    public static boolean real_le(real a, real b) {
+//        return a.compareTo(b) <= 0;
+//    }
+//
+//    public static boolean real_gt(real a, real b) {
+//        return a.compareTo(b) > 0;
+//    }
+//
+//    public static boolean real_ge(real a, real b) {
+//        return a.compareTo(b) >= 0;
+//    }
+//
+//    public static boolean real_eq(real a, real b) {
+//        return a.compareTo(b) == 0;
+//    }
+//
+//    public static boolean real_ne(real a, real b) {
+//        return a.compareTo(b) != 0;
+//    }
+//
+//    public static boolean real_nonzero(real a) {
+//        return a.compareTo(real.ZERO) != 0;
+//    }
+//
+//    public static real real_valueOf(double i) {
+//        return real.of(i);
+//    }
+//
+//    public static double real_todouble(real a) {
+//        return a.doubleValue();
+//    }
+//
+//    public static float real_tofloat(real a) {
+//        return (float)a.doubleValue();
+//    }
 
     /** Makes a new copy of the argument */
     public static <T> T[] copyArray(T[] o) {

@@ -105,6 +105,7 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected IExpr.ISymbol notSym;
     final protected IExpr.ISymbol negSym;
     final protected IExpr.ISymbol arraySym;
+    final protected IExpr.ISymbol seqSym;
     final protected IExpr.ISymbol eqSym;
     final protected IExpr.ISymbol leSym;
     final protected IExpr.ISymbol impliesSym;
@@ -226,6 +227,7 @@ public class SMTTranslator extends JmlTreeScanner {
             bv8Sort = F.createSortExpression(F.id(F.symbol("BitVec"), bits));
         }
         arraySym = F.symbol("Array"); // From SMT Array theory
+        seqSym = F.symbol("SEQ");
         stringSort = F.createSortExpression(arraySym, intSort, intSort);
         intsetSort = F.createSortExpression(arraySym, intSort, boolSort);
         eqSym = F.symbol("="); // Name determined by SMT Core theory
@@ -830,6 +832,8 @@ public class SMTTranslator extends JmlTreeScanner {
         startCommands.add(c);
         c = new C_declare_fun(nullStringSym,emptyList, stringSort);
         startCommands.add(c);
+        c = command(smt, "(define-sort SEQ (E) (Array Int E))");
+        startCommands.add(c);
 //        // define THIS 
 //        c = new C_declare_fun(thisSym,emptyList, convertSort());
 //        startCommands.add(c);
@@ -1157,6 +1161,10 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Adds a command expressed as a string */
     protected void addCommand(SMT smt, String command) {
         commands.add(command(smt,command));
+    }
+    
+    protected ICommand makeCommand(SMT smt, String command) {
+        return command(smt,command);
     }
     
     /** The String that is the encoding of a given Type */
@@ -1826,7 +1834,7 @@ public class SMTTranslator extends JmlTreeScanner {
             } else if (ts.startsWith("org.jmlspecs.lang.seq") || ts.startsWith("\\seq")) {
                 Type t1 = t.getTypeArguments().head;
                 ISort s1 = convertSort(t1);
-                var sort = F.createSortExpression(arraySym, intSort, s1);
+                var sort = F.createSortExpression(seqSym, s1);
                 //System.out.println("CONVERTING " + ts + " TO " + sort);
                 return sort;
             } else if (ts.startsWith("org.jmlspecs.lang.intmap") || ts.equals("\\intmap")) {
@@ -2056,6 +2064,7 @@ public class SMTTranslator extends JmlTreeScanner {
                             );
                     result = F.fcn(eqSym, convertExpr(tree.args.get(0)),right);
                 } else {
+                    //System.out.println("BBASSIGN " + tree + " " + tree.args.get(0).type + " " + typeString(tree.args.get(0).type));
                     // [0] = store([1],[2], select([0],[2]))
                     IExpr arg0 = convertExpr(tree.args.get(0));
                     IExpr arg2 = convertExpr(tree.args.get(2));
@@ -2802,19 +2811,9 @@ public class SMTTranslator extends JmlTreeScanner {
             JmlBBArrayAccess aa = (JmlBBArrayAccess)tree;
             // select(select(arraysId,a).i)
             String typeString = typeString(aa.indexed.type);
-//            if (typeString.startsWith("org.jmlspecs.lang.array")) {
-//            	IExpr.IFcnExpr sel = F.fcn(selectSym,
-//            			convertExpr(aa.arraysId),
-//            			convertExpr(aa.indexed)
-//            			);
-//            	sel = F.fcn(selectSym,
-//            			sel,
-//            			convertExpr(aa.index)
-//            			);
-//            	result = sel;
-//
-//            } else 
-            if (typeString.startsWith("org.jmlspecs.lang.")) {
+            //System.out.println("AACCESS " + tree + " " + tree.indexed.type + " " + tree.indexed.type.getClass() + " " + typeString );
+            
+            if (typeString.startsWith("org_jmlspecs_lang_")) { // FIXME - find a way to do better than string checking
             	result = F.fcn(selectSym,
             			convertExpr(aa.indexed),
             			convertExpr(aa.index)

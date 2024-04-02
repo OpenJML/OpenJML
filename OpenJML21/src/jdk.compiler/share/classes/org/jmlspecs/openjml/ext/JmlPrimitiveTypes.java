@@ -132,6 +132,9 @@ public class JmlPrimitiveTypes extends JmlExtension {
             jt.enterBinop("==", type, type, jt.syms.booleanType);
             jt.enterBinop("!=", type, type, jt.syms.booleanType);
         }
+        
+        public String opName(JCTree.Tag optag) { return optag == JCTree.Tag.EQ ? "eq" : optag == JCTree.Tag.NE ? "ne" : ""; }
+
 
 //        public Type getRepType(Context context) {
 //            getSymbol(context);
@@ -221,6 +224,30 @@ public class JmlPrimitiveTypes extends JmlExtension {
             jt.enterBinop("^", type, type, type);
 
         }
+        
+        @Override
+        public String opName(JCTree.Tag optag) {
+            return switch (optag) {
+            case EQ -> "eq";
+            case NE -> "ne";
+            case PLUS -> "add";
+            case MINUS -> "subtract";
+            case MUL -> "multiply";
+            case DIV -> "divide";
+            case MOD -> "mod";
+            case GE -> "ge";
+            case GT -> "gt";
+            case LE -> "le";
+            case LT -> "lt";
+            case SL -> "shiftLeft";
+            case SR -> "shiftRight";
+            case BITAND -> "and";
+            case BITOR -> "or";
+            case BITXOR -> "xor";
+            default -> null;
+            };
+        }
+
     };
 
     public static final String realId = "\\real";
@@ -246,6 +273,24 @@ public class JmlPrimitiveTypes extends JmlExtension {
             jt.enterBinop("*", type, type, type);
             jt.enterBinop("/", type, type, type);
             jt.enterBinop("%", type, type, type);
+        }
+        
+        @Override
+        public String opName(JCTree.Tag optag) {
+            return switch (optag) {
+            case EQ -> "eq";
+            case NE -> "ne";
+            case PLUS -> "add";
+            case MINUS -> "subtract";
+            case MUL -> "multiply";
+            case DIV -> "divide";
+            case MOD -> "mod";
+            case GE -> "ge";
+            case GT -> "gt";
+            case LE -> "le";
+            case LT -> "lt";
+            default -> "";
+            };
         }
     };
 

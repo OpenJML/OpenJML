@@ -16,7 +16,7 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
         return t.intern();
     }
     
-    public static TYPE gen(Class<?> base, TYPE ... args) {
+    public static TYPE of(Class<?> base, TYPE ... args) {
         TYPE t = new TYPE(base,args);
         return t.intern();
     }
@@ -53,10 +53,25 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
     public TYPE[] typeargs() {
         return args;
     }
+    
+    public boolean eq(TYPE t) {
+        if (!base.equals(t.base)) return false;
+        if (args.length != t.args.length) return false;
+        int k = 0;
+        for (var a: args) {
+            if (!a.eq(t.args[k])) return false;
+            ++k;
+        }
+        return true;
+    }
+    
+    public boolean ne(TYPE t) {
+        return !this.eq(t);
+    }
 
     @Override
     public boolean equals(Object t) {
-        return true; // return isEqualTo(this,(TYPE)t);   // FIXME
+        return eq((TYPE)t);
     }
     
     @Override
@@ -83,7 +98,7 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
     // FIXME - does not work for arrays of JML types with type arguments.
     public TYPE getComponentType() {
         if (!base.isArray()) return null;
-        return null; // FIXME Runtime.getJMLComponentType(this);
+        return TYPE.of(base.getComponentType());
     }
 
 //    @Override

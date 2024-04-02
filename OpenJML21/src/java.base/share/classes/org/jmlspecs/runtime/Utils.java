@@ -375,7 +375,7 @@ public class Utils {
      * @return the value of v
      */
     public static boolean reportBoolean(String key, boolean v) {
-        report("LABEL " + key + " = " + v);System.out.flush();
+        report("LABEL " + key + " = " + v);
         return v;
     }
 

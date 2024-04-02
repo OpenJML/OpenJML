@@ -588,23 +588,40 @@ public class JmlTreeUtils {
         var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
         var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
         var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        var STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
+        var ARRAY = JmlPrimitiveTypes.arrayTypeKind.getSymbol(context);
+        var emp = names.fromString("empty"); // NOT the same as names.empty!
+        if (utils.isExtensionValueType(type)) {
+            if (type.tsym == BIGINT.tsym) {
+                JCExpression e = makeTypeCast(dpos, type, zero);
+                e.type = BIGINT;
+                return e;
 
-        if (type == BIGINT) {
-            JCExpression e = makeTypeCast(dpos, BIGINT, zero);
-            e.type = BIGINT;
-            return e;
-           
-        } else if (type == JmlPrimitiveTypes.realTypeKind.getType(context)) {
-            JCExpression e = makeLit(pos,syms.doubleType,0.0);  // FIXME - user a real 0?
-            e = makeTypeCast(dpos, REAL, e);
-            e.type = REAL;
-            return e;
-            
-        } else if (type == TYPE) {
-            log.error(pos, "jml.message","old clause is not implemented for \\TYPE variables");
-            // FIXME - ???
-            return null;//makeTypelc(null);  // FIXME _ should have a pos argument
-            
+            } else if (type == REAL) {
+                JCExpression e = makeLit(pos,syms.doubleType,0.0);  // FIXME - user a real 0?
+                e = makeTypeCast(dpos, type, e);
+                e.type = REAL;
+                return e;
+
+            } else if (type == TYPE) {
+                JCExpression ty = makeType(dpos, type);
+                return makeMethodInvocation(dpos, ty, names.of, makeDotClass(dpos.getPreferredPosition(), syms.objectType));
+
+            } else {
+                // These all call empty() 
+                var ct = (ClassType)type;
+                if (ct.getTypeArguments().size() == 0) {
+                    JCMethodInvocation call = makeMethodInvocation(dpos, makeType(dpos, type), emp);
+                    return call;
+                } else {
+                    ListBuffer<JCExpression> targs = new ListBuffer<>();
+                    for (var tt: ct.getTypeArguments()) targs.add(makeType(dpos, tt));
+                    JCMethodInvocation call = makeMethodInvocation(dpos, makeType(dpos, type), emp);
+                    call.typeargs = targs.toList();
+                    return call;
+                }
+
+            }
         } else {
         switch (type.getTag()) {
             case CHAR:
@@ -928,6 +945,19 @@ public class JmlTreeUtils {
      * @param rhs the right-hand expression
      * @return the new node
      */
+    public JCExpression makeTrBinary(DiagnosticPosition pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
+        if (utils.rac && (utils.isExtensionValueType(lhs.type) || utils.isExtensionValueType(rhs.type))) {
+            String s = "";
+            if (types.isSameType(lhs.type, JmlPrimitiveTypes.bigintTypeKind.getType(context))) s = JmlPrimitiveTypes.bigintTypeKind.opName(optag);
+            else if (types.isSameType(lhs.type, JmlPrimitiveTypes.realTypeKind.getType(context))) s = JmlPrimitiveTypes.realTypeKind.opName(optag);
+            else if (types.isSameType(rhs.type, JmlPrimitiveTypes.bigintTypeKind.getType(context))) s = JmlPrimitiveTypes.bigintTypeKind.opName(optag);
+            else if (types.isSameType(rhs.type, JmlPrimitiveTypes.realTypeKind.getType(context))) s = JmlPrimitiveTypes.realTypeKind.opName(optag);
+            return makeMethodInvocation(pos, lhs, s, rhs);
+        } else {
+            return makeBinary(pos,optag,findBinOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
+        }
+        
+    }
     public JCBinary makeBinary(DiagnosticPosition pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
         return makeBinary(pos,optag,findBinOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
     }
@@ -1506,8 +1536,29 @@ public class JmlTreeUtils {
     
     public JCMethodInvocation makeMethodInvocation(DiagnosticPosition pos, JCExpression receiver, Name name, JCExpression ... nargs) {
         Scope sc = receiver.type.tsym.members();
-        Symbol sym = sc.getSymbolsByName(name).iterator().next();
-        return makeMethodInvocation(pos, receiver, (MethodSymbol)sym, nargs);
+        String s = "\tFor " + receiver.type + " " + (nargs.length==0? "" : (nargs[0].type.toString() + " ...")) + "\n";
+        try {
+            var iter = sc.getSymbolsByName(name).iterator();
+            x: while (iter.hasNext()) {
+                Symbol sym = iter.next();
+                s += "\t\t" + sym.toString();
+                if (sym instanceof MethodSymbol ms && ms.getParameters().size() == nargs.length) {
+                    int k = 0;
+                    for (var p: ms.getParameters()) {
+                        var t1 = p.type;
+                        var t2 = nargs[k].type;
+                        ++k;
+                        if (!types.isAssignable(t2, t1)) continue x; // FIXME - this gives first match, not best match; might need an implicit conversion
+                    }
+                    return makeMethodInvocation(pos, receiver, (MethodSymbol)sym, nargs);
+                }
+            }
+        } catch (java.util.NoSuchElementException e) {
+            // fall through to error message
+        }
+        utils.error(pos, "jml.internal", "No method " + name + " with " + nargs.length + " parameters of the requested types found in type " + receiver.type + "\n" + s);
+        return null;
+
     }
     
     public JCMethodInvocation makeMethodInvocation(DiagnosticPosition pos, JCExpression receiver, String name, JCExpression ... nargs) {

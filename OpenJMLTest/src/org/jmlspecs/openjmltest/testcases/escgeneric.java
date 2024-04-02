@@ -411,7 +411,7 @@ public class escgeneric extends EscBase {
                 +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
                 +"//@ assert sum >= 0; \n"
                 +"}}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",13
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",10
                 );
     }
 

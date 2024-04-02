@@ -7730,16 +7730,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             if (that.init == null && (that.sym.flags() & Flags.PARAMETER) == 0 
                     && !utils.isModel(that.sym)
-                    && types.isSubtype(that.type, syms.jmlPrimitiveType)) {
+                    && utils.isExtensionValueType(that.type)) {
                 String full = that.type.toString();
-                String name = full.substring(full.lastIndexOf('.')+1);
+                int k = full.indexOf('<');
+                var part = (k < 0 ? full : full.substring(0, k));
+                String name = part.substring(part.lastIndexOf('.')+1);
                 if (name.equals("string")) {
                     var id = jmlMaker.at(that.pos).Ident("\\" + name);
                     var fa = jmlMaker.at(that.pos).Select(id, names.fromString("empty"));
                     var e = jmlMaker.at(that.pos).Apply(null, fa, List.<JCExpression>nil());
                     that.init = e;
                     attribExpr(e,env); // FIXME - spec env?
-                } else if (full.contains("seq<")) {
+                } else if (name.endsWith("seq") || name.endsWith("set") || name.endsWith("map")) {
+                    // FIXME - THis (and string above) should be delgated to makeZeroEquivalentLit
                     var id = jmlMaker.at(that.pos).Ident("\\" + name);
                     id.type = that.type;
                     id.sym = that.type.tsym;
@@ -7750,6 +7753,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     //e.type = that.type;
                     that.init = e;
                     attribExpr(e,env); // FIXME - spec env?
+                } else {
+                    that.init = treeutils.makeZeroEquivalentLit(that, that.type);
                 }
             }
 

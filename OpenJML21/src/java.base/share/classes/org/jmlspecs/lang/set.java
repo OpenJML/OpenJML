@@ -10,6 +10,8 @@ public class set<T> implements IJmlPrimitiveType, IJmlArrayLike {
     
     static public <T> set<T> set() { return new set<T>(); }
 
+    static public <T> set<T> empty() { return new set<T>(); }
+
     public long size() { return value.size(); }
  /*   
     //@ public normal_behavior

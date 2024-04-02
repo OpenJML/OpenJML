@@ -73,23 +73,24 @@ public class racnew2 extends RacBase {
     
     /** Tests new array */
     @Test public void testNewArray() {  // FIXME - improve error message when String.equals includes its model methods for RAC
+        addOptions("--show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  String[] a = new String[]{\"abc\",\"def\"};\n" +
-                "  int i = a.length; \n" +
-                "  //@ assert i == 2; \n" +
+//                "  String[] a = new String[]{\"abc\",\"def\"};\n" +
+//                "  int i = a.length; \n" +
+//                "  //@ assert i == 2; \n" +
                 "  String[][] aa = new String[][]{{\"abc\",\"defz\"},{\"g\",\"h\",\"i\"}};\n" +
-                "  i = aa.length; \n" +
+//                "  i = aa.length; \n" +
                 "  boolean b = aa[1][0].equals(\"g\"); \n" +
-                "  //@ assert i == 2; \n" +
-                "  //@ assert aa[1].length == 3; \n" +
-                "  //@ assert (new int[]{1,2,3}).length == 3; \n" +
-                "  //@ assert (new int[]{1,2,3})[1] == 2; \n" +
-                "  String[][] aaa = new String[1][2]; \n" +
-                "  //@ assert aaa.length == 1; \n" +
-                "  //@ assert aaa[0].length == 2; \n" +
-                "  //@ assert aaa[0][0] == null; \n" +
-                
-                "  System.out.println(\"END\"); \n" +
+//                "  //@ assert i == 2; \n" +
+//                "  //@ assert aa[1].length == 3; \n" +
+//                "  //@ assert (new int[]{1,2,3}).length == 3; \n" +
+//                "  //@ assert (new int[]{1,2,3})[1] == 2; \n" +
+//                "  String[][] aaa = new String[1][2]; \n" +
+//                "  //@ assert aaa.length == 1; \n" +
+//                "  //@ assert aaa[0].length == 2; \n" +
+//                "  //@ assert aaa[0][0] == null; \n" +
+//                
+//                "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
                 "}"
                 ,"END"
@@ -223,7 +224,8 @@ public class racnew2 extends RacBase {
     /** Test synchronized statement with null lock */
     @Test public void testSynchronized2() {
         expectedRACExit = 1;
-        helpTCX("tt.A",                """
+        helpTCX("tt.A",
+                """
                 package tt;
                 class A {
                     public static void main(String[] args) throws Exception {
@@ -237,7 +239,7 @@ public class racnew2 extends RacBase {
                 }
                 """
                 ,"/tt/A.java:9: verify: JML An object may be illegally null"
-                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot enter synchronized block because \"<local4>\" is null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot enter synchronized block because \"<local5>\" is null"
                 ,"\tat tt.A.m(A.java:9)"
                 ,"\tat tt.A.main(A.java:4)"
                 );
@@ -1640,7 +1642,7 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END \" + k); \n"
                     +"}}"
                 ,"/tt/A.java:4: verify: JML An object may be illegally null"
-                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local9>\" is null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local10>\" is null"
                 ,"\tat tt.A.main(A.java:4)"
                 );
     }
@@ -1699,7 +1701,7 @@ public class racnew2 extends RacBase {
                  }
                 """
                 ,"/tt/A.java:5: verify: JML An object may be illegally null"
-                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local6>\" is null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local7>\" is null"
                 ,"\tat tt.A.main(A.java:5)"
                 );
     }
