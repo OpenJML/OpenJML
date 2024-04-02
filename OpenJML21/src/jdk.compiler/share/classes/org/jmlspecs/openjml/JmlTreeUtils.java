@@ -597,13 +597,13 @@ public class JmlTreeUtils {
                 e.type = BIGINT;
                 return e;
 
-            } else if (type == REAL) {
+            } else if (type.tsym == REAL.tsym) {
                 JCExpression e = makeLit(pos,syms.doubleType,0.0);  // FIXME - user a real 0?
                 e = makeTypeCast(dpos, type, e);
                 e.type = REAL;
                 return e;
 
-            } else if (type == TYPE) {
+            } else if (type.tsym == TYPE.tsym) {
                 JCExpression ty = makeType(dpos, type);
                 return makeMethodInvocation(dpos, ty, names.of, makeDotClass(dpos.getPreferredPosition(), syms.objectType));
 

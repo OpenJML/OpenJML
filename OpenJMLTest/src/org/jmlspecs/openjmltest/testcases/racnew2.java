@@ -239,7 +239,7 @@ public class racnew2 extends RacBase {
                 }
                 """
                 ,"/tt/A.java:9: verify: JML An object may be illegally null"
-                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot enter synchronized block because \"<local5>\" is null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot enter synchronized block because \"<local4>\" is null"
                 ,"\tat tt.A.m(A.java:9)"
                 ,"\tat tt.A.main(A.java:4)"
                 );
@@ -814,7 +814,7 @@ public class racnew2 extends RacBase {
                 "//@ assert (\\lbl SHORT (short)(1)) != 0; \n" +
                 "//@ assert (\\lbl LONG 2L) != 0; \n" +
                 "//@ assert (\\lbl BYTE (byte)(3)) != 0; \n" +
-                "//@ assert (\\lbl FLOAT 5.0f) != 0; \n" +
+                "//@ assert (\\lbl FLOAT 5.0f) != 0; \n" + // Line 10
                 "//@ assert (\\lbl DOUBLE 6.0) != 0; \n" +
                 "//@ assert (\\lbl CHAR 'a') != 0; \n" +
                 "//@ assert (\\lbl BOOLEAN true) ; \n" +
@@ -1642,7 +1642,7 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END \" + k); \n"
                     +"}}"
                 ,"/tt/A.java:4: verify: JML An object may be illegally null"
-                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local10>\" is null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local9>\" is null"
                 ,"\tat tt.A.main(A.java:4)"
                 );
     }
@@ -1701,7 +1701,7 @@ public class racnew2 extends RacBase {
                  }
                 """
                 ,"/tt/A.java:5: verify: JML An object may be illegally null"
-                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local7>\" is null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local6>\" is null"
                 ,"\tat tt.A.main(A.java:5)"
                 );
     }
