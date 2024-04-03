@@ -1,5 +1,6 @@
 package org.jmlspecs.lang;
 
+import org.jmlspecs.lang.internal.bigint;
 // This file provides RAC implementations
 
 //@ immutable spec_pure
@@ -15,12 +16,14 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike {
         return new string(s);
     }
     
-    public char get(int i) { // FIXME - change to bigint eventually
+    public char get(bigint ii) { // FIXME - change to bigint eventually
+        int i = ii.intValue();
         if (i < 0 || i >= racValue.length()) return (char)0;
         return racValue.charAt(i);
     }
     
-    public string put(int i, char v) {
+    public string put(bigint ii, char v) {
+        int i = ii.intValue();
         return string(racValue.substring(0,i) + v + racValue.substring(i+1));
     }
     
@@ -32,8 +35,8 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike {
         return string("");
     }
     
-    public long size() {  // FIXME - change to bigint eventuallu
-        return (long)(racValue.length());
+    public bigint size() {  // FIXME - change to bigint eventuallu
+        return bigint.of(racValue.length());
     }
     public boolean isEmpty() {
         return racValue.isEmpty();
@@ -63,7 +66,8 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike {
         return concat(this,s);
     }
 
-    public string insert(int i, char v) {
+    public string insert(bigint ii, char v) {
+        int i = ii.intValue();
         return string(racValue.substring(0,i) + v + racValue.substring(i));
     }
 
@@ -71,7 +75,7 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike {
         return string(racValue.substring(0,i) + racValue.substring(i+1));
     }
 
-    public string substring(int start, int end) {
-        return string(racValue.substring(start, end));
+    public string substring(bigint start, bigint end) {
+        return string(racValue.substring(start.intValue(), end.intValue()));
     }
 }

@@ -1926,7 +1926,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         scan(that.index);
         JCExpression index = result;
         JCIdent arr = null;
-        if (indexed.type.toString().startsWith("org.jmlspecs.lang.")) {
+        if (utils.isExtensionValueType(indexed.type)) {
         	// continue;
         } else {
         	// Standard Java array
@@ -1983,24 +1983,45 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         } else if (left instanceof JCArrayAccess) {
             Type ctype = left.type;
             Type indexType = JmlTypes.instance(context).indexType(((JCArrayAccess)left).indexed.type);
-            JCIdent arr = getArrayIdent(indexType,ctype,right.pos);
             JCExpression ex = ((JCArrayAccess)left).indexed;
             JCExpression index = ((JCArrayAccess)left).index;
-            JCIdent nid = newArrayIncarnation(indexType,right.type,sp);
             
             scan(ex); ex = result;
             scan(index); index = result;
             scan(right); right = result;
             
-            //JCExpression rhs = makeStore(ex,index,right);
-            JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,right); // FIXME - implicit conversion?
-            expr.pos = pos;
-            expr.type = restype;
-            treeutils.copyEndPosition(expr, right);
+            if (utils.isExtensionValueType(ex.type)) {
+                var oldex = ((JCArrayAccess)left).indexed;
+                if (oldex instanceof JCIdent id) {
+                    JCIdent newid = newIdentIncarnation(id, sp);
+                    JCExpression expr = new JmlBBArrayAssignment(newid,ex,index,right);
+                    expr.pos = pos;
+                    expr.type = restype;
+                    treeutils.copyEndPosition(expr, right);
 
-            // FIXME - set line and source
-            newStatement = addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
-            newExpr = left;
+                    // FIXME - set line and source
+                    newStatement = addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
+                    newExpr = newIdentUse((VarSymbol)id.sym, sp);
+                } else {
+                    // Not handling an JML array-like case that is not an JCIdent
+                    newStatement = null;
+                    newExpr = null;
+                    log.error("jml.internal","Non-handled case in BasicBlocker2.doAssignment: " + left + " " + right);
+                }
+                
+            } else {
+
+                JCIdent arr = getArrayIdent(indexType,ctype,right.pos);
+                JCIdent nid = newArrayIncarnation(indexType,right.type,sp);
+                JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,right); // FIXME - implicit conversion?
+                expr.pos = pos;
+                expr.type = restype;
+                treeutils.copyEndPosition(expr, right);
+
+                // FIXME - set line and source
+                newStatement = addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
+                newExpr = left;
+            }
         } else if (left instanceof JCFieldAccess) {
             VarSymbol sym = (VarSymbol)selectorSym(left);
             if (utils.isJMLStatic(sym)) {
@@ -2040,7 +2061,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             log.error("jml.internal","Unexpected case in BasicBlocker2.doAssignment: " + left.getClass() + " " + left);
             return null;
         }
-        pathmap.put(statement,newStatement);
+        if (newStatement != null) pathmap.put(statement,newStatement);
         return newExpr;
     }
     

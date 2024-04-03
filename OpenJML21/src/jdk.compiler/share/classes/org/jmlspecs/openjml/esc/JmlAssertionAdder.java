@@ -13079,18 +13079,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			}
 
-			JCArrayAccess lhs = new JmlBBArrayAccess(null, array, index);
-			lhs.pos = aa.pos;
-			lhs.type = aa.type;
-			JCExpressionStatement st = treeutils.makeAssignStat(that.pos, lhs, rhs);
-            JmlLabeledStatement stt = markUniqueLocation(st);
-			addStat(st);
-			lastStat = st.expr;
-			saveMapping(that, st.expr);
-			var saved = newTemp(lhs);
-			saveMapping(that.lhs, eresult);
-            if (!rac) changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, List.<JCExpression>of(lhs))), stt.label);
-            result = eresult = saved;
+			if (rac) {
+			    var newrhs = treeutils.makeMethodInvocation(that, array, "put", index, rhs);
+                JCExpressionStatement st = treeutils.makeAssignStat(that.pos, array, newrhs);
+			    addStat(st);
+			    result = eresult = array;
+			    
+			} else {
+			    JCArrayAccess lhs = new JmlBBArrayAccess(null, array, index);
+			    lhs.pos = aa.pos;
+			    lhs.type = aa.type;
+			    JCExpressionStatement st = treeutils.makeAssignStat(that.pos, lhs, rhs);
+			    JmlLabeledStatement stt = markUniqueLocation(st);
+			    addStat(st);
+			    lastStat = st.expr;
+			    saveMapping(that, st.expr);
+			    lhs = new JmlBBArrayAccess(null, copy(array), index);
+                lhs.pos = aa.pos;
+                lhs.type = aa.type;
+			    var saved = newTemp(lhs);
+			    saveMapping(that.lhs, eresult);
+			    if (!rac) changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, List.<JCExpression>of(lhs))), stt.label);
+			    result = eresult = saved;
+			}
 
 		} else {
 			error(that, "An unknown kind of assignment seen in JmlAssertionAdder: " + that.lhs.getClass());
@@ -14211,13 +14222,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		for (JCBinary b : that.conjuncts) {
 			maxType = maxNumericType(maxType, b.rhs.type);
 		}
+		
+		// FIXME - change so that each conjunct is converted only as much as neceessary
 
 		lhs = convertExpr(that.conjuncts.head.lhs);
 		lhs = addImplicitConversion(lhs, maxType, lhs);
 		JCExpression ba = null;
 		for (JCBinary b : that.conjuncts) {
-			JCExpression rhs = convertExpr(b.rhs);
-			rhs = addImplicitConversion(rhs, maxType, rhs);
+			JCExpression rhsx = convertExpr(b.rhs);
+			var rhs = addImplicitConversion(rhsx, maxType, rhsx);
 			JCBinary bb = M.at(b.pos).Binary(b.getTag(), lhs, rhs);
 			bb.operator = b.operator;
 			bb.type = b.type;

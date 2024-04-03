@@ -106,6 +106,10 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected IExpr.ISymbol negSym;
     final protected IExpr.ISymbol arraySym;
     final protected IExpr.ISymbol seqSym;
+    final protected IExpr.ISymbol setSym;
+    final protected IExpr.ISymbol mapSym;
+    final protected IExpr.ISymbol stringSym;
+    final protected IExpr.ISymbol ARRAYSym;
     final protected IExpr.ISymbol eqSym;
     final protected IExpr.ISymbol leSym;
     final protected IExpr.ISymbol impliesSym;
@@ -228,7 +232,11 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         arraySym = F.symbol("Array"); // From SMT Array theory
         seqSym = F.symbol("SEQ");
-        stringSort = F.createSortExpression(arraySym, intSort, intSort);
+        setSym = F.symbol("SET");
+        mapSym = F.symbol("MAP");
+        stringSym = F.symbol("STRINGJML"); // STRING is a reserved work in SMT-LIB
+        ARRAYSym = F.symbol("ARRAY"); // for the JML \array type
+        stringSort = F.createSortExpression(stringSym);
         intsetSort = F.createSortExpression(arraySym, intSort, boolSort);
         eqSym = F.symbol("="); // Name determined by SMT Core theory
         leSym = F.symbol("<="); // Name determined by SMT Ints theory
@@ -830,9 +838,17 @@ public class SMTTranslator extends JmlTreeScanner {
         // define NULL as a REF: (declare-fun NULL () REF)
         c = new C_declare_fun(nullSym,emptyList, refSort);
         startCommands.add(c);
-        c = new C_declare_fun(nullStringSym,emptyList, stringSort);
-        startCommands.add(c);
         c = command(smt, "(define-sort SEQ (E) (Array Int E))");
+        startCommands.add(c);
+        c = command(smt, "(define-sort SET (E) (Array E Bool))");
+        startCommands.add(c);
+        c = command(smt, "(define-sort MAP (K E) (Array K E))");
+        startCommands.add(c);
+        c = command(smt, "(define-sort ARRAY (E) (Array Int E))");
+        startCommands.add(c);
+        c = command(smt, "(define-sort STRINGJML ( ) (Array Int Int))");
+        startCommands.add(c);
+        c = new C_declare_fun(nullStringSym,emptyList, stringSort);
         startCommands.add(c);
 //        // define THIS 
 //        c = new C_declare_fun(thisSym,emptyList, convertSort());
@@ -1808,7 +1824,7 @@ public class SMTTranslator extends JmlTreeScanner {
         TypeTag tag = t.getTag();
         if (utils.isExtensionValueType(t)) {
         	String ts = t.tsym.toString();
-            if (t == JmlPrimitiveTypes.stringTypeKind.getType(context)) {
+            if (t.tsym == JmlPrimitiveTypes.stringTypeKind.getSymbol(context)) {
                 return stringSort;
             } else if (t.tsym == BIGINT) {
                 return intSort;
@@ -1835,6 +1851,24 @@ public class SMTTranslator extends JmlTreeScanner {
                 Type t1 = t.getTypeArguments().head;
                 ISort s1 = convertSort(t1);
                 var sort = F.createSortExpression(seqSym, s1);
+                //System.out.println("CONVERTING " + ts + " TO " + sort);
+                return sort;
+            } else if (ts.startsWith("org.jmlspecs.lang.set") || ts.startsWith("\\set")) {
+                Type t1 = t.getTypeArguments().head;
+                ISort s1 = convertSort(t1);
+                var sort = F.createSortExpression(setSym, s1);
+                //System.out.println("CONVERTING " + ts + " TO " + sort);
+                return sort;
+            } else if (ts.startsWith("org.jmlspecs.lang.map") || ts.startsWith("\\map")) {
+                Type t1 = t.getTypeArguments().head;
+                ISort s1 = convertSort(t1);
+                var sort = F.createSortExpression(mapSym, s1);
+                //System.out.println("CONVERTING " + ts + " TO " + sort);
+                return sort;
+            } else if (ts.startsWith("org.jmlspecs.lang.array") || ts.startsWith("\\array")) {
+                Type t1 = t.getTypeArguments().head;
+                ISort s1 = convertSort(t1);
+                var sort = F.createSortExpression(ARRAYSym, s1);
                 //System.out.println("CONVERTING " + ts + " TO " + sort);
                 return sort;
             } else if (ts.startsWith("org.jmlspecs.lang.intmap") || ts.equals("\\intmap")) {
@@ -2045,7 +2079,32 @@ public class SMTTranslator extends JmlTreeScanner {
                 return;
             }
             else if (tree instanceof JmlBBArrayAssignment) {
-                if (tree.args.length() > 3) {
+                if (tree.args.length() <= 3) {
+                    // [0] = store([1],[2], select([0],[2]))
+                    IExpr arg0 = convertExpr(tree.args.get(0));
+                    IExpr arg2 = convertExpr(tree.args.get(2));
+                    IExpr.IFcnExpr sel = F.fcn(selectSym,
+                            arg0,
+                            arg2
+                            );
+
+                    IExpr.IFcnExpr newarray = F.fcn(F.symbol("store"),
+                            convertExpr(tree.args.get(1)),
+                            arg2,
+                            sel
+                            );
+                    result = F.fcn(eqSym, arg0,newarray);
+                } else if (tree.args.size() == 4) {
+                    // JML primitive array-like case
+                    // [0] = store([1], [2], [3])
+                    IExpr.IFcnExpr right = F.fcn(F.symbol("store"),
+                            convertExpr(tree.args.get(1)),
+                            convertExpr(tree.args.get(2)),
+                            convertExpr(tree.args.get(3))
+                            );
+                    result = F.fcn(eqSym, convertExpr(tree.args.get(0)),right);
+                    
+                } else {
                     // [0] = store([1],[2], store(select([1],[2]),[3],[4]))
                     IExpr.IFcnExpr sel = F.fcn(selectSym,
                             convertExpr(tree.args.get(1)),
@@ -2063,22 +2122,6 @@ public class SMTTranslator extends JmlTreeScanner {
                             newarray
                             );
                     result = F.fcn(eqSym, convertExpr(tree.args.get(0)),right);
-                } else {
-                    //System.out.println("BBASSIGN " + tree + " " + tree.args.get(0).type + " " + typeString(tree.args.get(0).type));
-                    // [0] = store([1],[2], select([0],[2]))
-                    IExpr arg0 = convertExpr(tree.args.get(0));
-                    IExpr arg2 = convertExpr(tree.args.get(2));
-                    IExpr.IFcnExpr sel = F.fcn(selectSym,
-                            arg0,
-                            arg2
-                            );
-
-                    IExpr.IFcnExpr newarray = F.fcn(F.symbol("store"),
-                            convertExpr(tree.args.get(1)),
-                            arg2,
-                            sel
-                            );
-                    result = F.fcn(eqSym, arg0,newarray);                    
                 }
                 return;
             }

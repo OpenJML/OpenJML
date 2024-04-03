@@ -4327,6 +4327,16 @@ public class JmlTree {
             args = list.toList();
         }
         
+        public JmlBBArrayAssignment(JCIdent newarrs, JCExpression arr, JCExpression index, JCExpression rhs) {
+            super(null,null,null);
+            ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
+            list.append(newarrs);
+            list.append(arr);
+            list.append(index);
+            list.append(rhs);
+            args = list.toList();
+        }
+        
         
         @Override
         public int getStartPosition() {

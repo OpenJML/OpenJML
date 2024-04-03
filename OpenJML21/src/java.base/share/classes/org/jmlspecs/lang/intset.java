@@ -1,15 +1,18 @@
 package org.jmlspecs.lang;
 
 import java.util.*;
+import org.jmlspecs.lang.internal.*;
 
 //@ immutable pure 
 public class intset implements IJmlPrimitiveType, IJmlIntArrayLike {
     
-    private Set<Integer> value = new HashSet<>();  // FIXME - change to bigint
+    private Set<bigint> value = new HashSet<>();
     
-    private intset() { value = new HashSet<Integer>(); }
+    private intset() { value = new HashSet<bigint>(); }
 
-    private intset(Set<Integer> data) { value = data; }
+    private intset(Set<bigint> data) { value = data; }
+
+    private intset copy() { return new intset(new HashSet<bigint>(value)); }
         
     public static intset empty() { return new intset(); }
     
@@ -21,43 +24,43 @@ public class intset implements IJmlPrimitiveType, IJmlIntArrayLike {
         return !eq(a);
     }
     
-    public boolean has(int k) {
+    public boolean has(bigint k) {
         return value.contains(k);
     }
     
-    public intset add(int k) {
-        var copy = new HashSet<Integer>(value);
+    public intset add(bigint k) {
+        var copy = new HashSet<bigint>(value);
         copy.add(k);
         return new intset(copy);
     }
     
-    public intset put(int k, boolean b) {
-        var copy = new HashSet<Integer>(value);
-        if (b) copy.add(k); else copy.remove(k);
-        return new intset(copy);
+    public intset put(bigint k, boolean b) {
+        var copy = copy();
+        if (b) copy.value.add(k); else copy.value.remove(k);
+        return copy;
     }
     
-    public intset remove(int k) {
-        var copy = new HashSet<Integer>(value);
-        copy.remove(k);
-        return new intset(copy);
+    public intset remove(bigint k) {
+        var copy = copy();
+        copy.value.remove(k);
+        return copy;
     }
     
     public intset union(intset a) {
-        var copy = new HashSet<Integer>(value);
-        copy.addAll(a.value);
-        return new intset(copy);
+        var copy = copy();
+        copy.value.addAll(a.value);
+        return copy;
     }
     
     public intset intersection(intset a) {
-        var copy = new HashSet<Integer>(value);
-        copy.retainAll(a.value);
-        return new intset(copy);
+        var copy = copy();
+        copy.value.retainAll(a.value);
+        return copy;
     }
     
     public intset difference(intset a) {
-        var copy = new HashSet<Integer>(value);
-        copy.removeAll(a.value);
-        return new intset(copy);
+        var copy = copy();
+        copy.value.removeAll(a.value);
+        return copy;
     }
 }

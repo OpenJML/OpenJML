@@ -802,39 +802,39 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             utils.error(tree, "jml.message", "A JML primitive type may not be assigned or cast to a non-JML type");
         }
         // FIXME
-        if (tree.lhs instanceof JCArrayAccess && jmltypes.isSubtype(((JCArrayAccess)tree.lhs).indexed.type, JMLArrayLike)) {
-            JCArrayAccess aa = (JCArrayAccess)tree.lhs;
-            JCExpression ex = ((JCArrayAccess)tree.lhs).indexed;
-            if (ex instanceof JCIdent) {
-                //Change ex[i] = v to ex = ex.put(i,v);
-                Symbol sym = null;
-                java.util.List<Symbol> sys = ex.type.tsym.getEnclosedElements();
-                for (Symbol e: sys) {
-                    if ("put".equals(e.name.toString())) { sym = e; break; }
-                }
-                if (sym == null) {
-                    log.error(tree.pos,"jml.message","Could not find a 'put' method for " + ex.type.toString());
-//                    JCExpression method = jmlMaker.Select(ex, names.fromString("put"));
+//        if (tree.lhs instanceof JCArrayAccess && jmltypes.isSubtype(((JCArrayAccess)tree.lhs).indexed.type, JMLArrayLike)) {
+//            JCArrayAccess aa = (JCArrayAccess)tree.lhs;
+//            JCExpression ex = ((JCArrayAccess)tree.lhs).indexed;
+//            if (ex instanceof JCIdent) {
+//                //Change ex[i] = v to ex = ex.put(i,v);
+//                Symbol sym = null;
+//                java.util.List<Symbol> sys = ex.type.tsym.getEnclosedElements();
+//                for (Symbol e: sys) {
+//                    if ("put".equals(e.name.toString())) { sym = e; break; }
+//                }
+//                if (sym == null) {
+//                    log.error(tree.pos,"jml.message","Could not find a 'put' method for " + ex.type.toString());
+////                    JCExpression method = jmlMaker.Select(ex, names.fromString("put"));
+////                    // TODO: DO we need method.type set?
+////                    List<JCExpression> args = List.<JCExpression>of(aa.index, tree.rhs);
+////                    JCMethodInvocation app = jmlMaker.Apply(List.<JCExpression>nil(), method, args);
+////                    attribExpr(app.meth,env);
+////                    app.type = ex.type;
+////                    tree.lhs = ex;
+////                    tree.rhs = app;
+//                } else {
+//                    JCExpression method = jmlMaker.Select(ex, sym);
 //                    // TODO: DO we need method.type set?
 //                    List<JCExpression> args = List.<JCExpression>of(aa.index, tree.rhs);
-//                    JCMethodInvocation app = jmlMaker.Apply(List.<JCExpression>nil(), method, args);
-//                    attribExpr(app.meth,env);
+//                    JCExpression app = jmlMaker.Apply(List.<JCExpression>nil(), method, args);
 //                    app.type = ex.type;
 //                    tree.lhs = ex;
 //                    tree.rhs = app;
-                } else {
-                    JCExpression method = jmlMaker.Select(ex, sym);
-                    // TODO: DO we need method.type set?
-                    List<JCExpression> args = List.<JCExpression>of(aa.index, tree.rhs);
-                    JCExpression app = jmlMaker.Apply(List.<JCExpression>nil(), method, args);
-                    app.type = ex.type;
-                    tree.lhs = ex;
-                    tree.rhs = app;
-                }
-            } else {
-                log.error(tree.pos, "jml.message", "Assignment not permitted for indexed immutable JML primitives");
-            }
-        }
+//                }
+//            } else {
+//                log.error(tree.pos, "jml.message", "Assignment not permitted for indexed immutable JML primitives");
+//            }
+//        }
         if (tree.lhs instanceof JCFieldAccess fa) {
         	if (fa.selected.type.tsym instanceof ClassSymbol cs) {
         		var sp = specs.getAttrSpecs(cs);

@@ -1,5 +1,6 @@
 package org.jmlspecs.lang;
 import java.util.*;
+import org.jmlspecs.lang.internal.*;
 
 //@ immutable pure 
 public class seq<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
@@ -10,11 +11,11 @@ public class seq<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
     
     public <T>seq<T> seq() { return new seq<T>(); }
     
-    public long size() { return value.size(); }  // FIXME - change long to \bigint eventually
+    public bigint size() { return bigint.of(value.size()); }
     
-    public long length() { return value.size(); }
+    public bigint length() { return bigint.of(value.size()); }
     
-    public T get(long i) { return value.get((int)i); }
+    public T get(bigint i) { return value.get(i.intValue()); }
 
     public boolean isEmpty() { return value.isEmpty(); }
     
@@ -29,18 +30,18 @@ public class seq<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
     
     public static <T> boolean equals(seq<T> s, seq<T> ss) {
         if (s.size() != ss.size()) return false;
-        for (long k = 0; k < s.size(); k++) if (s.get(k) != ss.get(k)) return false;
+        for (long k = 0; k < s.size().longValue(); k++) if (s.get(bigint.of(k)) != ss.get(bigint.of(k))) return false;
         return true;
     }
     
     public <T> boolean contains(T v) {
-        for (long k = 0; k < this.size(); k++) if (this.get(k) == v) return true;
+        for (long k = 0; k < this.size().longValue(); k++) if (this.get(bigint.of(k)) == v) return true;
         return false;
     }
     
     public boolean eq(seq<T> s) { return equals(this,s); }
     
-    public seq<T> insert(long j, T v) { var a = new seq<T>(); a.value.addAll(this.value.subList(0,(int)j)); a.value.add(v); a.value.addAll(this.value.subList((int)j, this.value.size())); return a; }
+    public seq<T> insert(bigint j, T v) { var a = new seq<T>(); a.value.addAll(this.value.subList(0,j.intValue())); a.value.add(v); a.value.addAll(this.value.subList(j.intValue(), this.value.size())); return a; }
 
     public seq<T> add(T v) { var a = new seq<T>(); a.value.addAll(this.value); a.value.add(v); return a; }
 
@@ -48,11 +49,11 @@ public class seq<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
 
     public seq<T> prepend(T v) { var a = new seq<T>(); a.value.add(v); a.value.addAll(this.value); return a; }
 
-    public seq<T> remove(long j) { var a = new seq<T>(); a.value.addAll(this.value.subList(0,(int)j)); a.value.addAll(this.value.subList((int)j+1,this.value.size())); return a; }
+    public seq<T> remove(bigint j) { var a = new seq<T>(); a.value.addAll(this.value.subList(0,j.intValue())); a.value.addAll(this.value.subList(j.intValue()+1,this.value.size())); return a; }
 
-    public seq<T> put(long i, T v) { var a = new seq<T>(); a.value.addAll(this.value); a.value.set((int)i, v); return a; }
+    public seq<T> put(bigint i, T v) { var a = new seq<T>(); a.value.addAll(this.value); a.value.set(i.intValue(), v); return a; }
 
-    public seq<T> sub(long i, long j) { var a = new seq<T>(); a.value.addAll(this.value.subList((int)i, (int)j)); return a; }
+    public seq<T> sub(bigint i, bigint j) { var a = new seq<T>(); a.value.addAll(this.value.subList(i.intValue(), j.intValue())); return a; }
 
     public seq<T> head(long i) { var a = new seq<T>(); a.value.addAll(this.value.subList(0, (int)i)); return a; }
 

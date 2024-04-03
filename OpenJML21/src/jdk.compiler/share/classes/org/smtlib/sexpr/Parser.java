@@ -205,6 +205,7 @@ public class Parser extends Lexer implements IParser {
 							}
 						}
 					} catch (InvocationTargetException ex) {
+                        ex.printStackTrace(System.out);
 						if (ex.getTargetException() instanceof StackOverflowError) {
 							lastError = error("Stack overflow occurred while parsing input", sym.pos());
 							throw new ParserException(null,null);
@@ -213,6 +214,7 @@ public class Parser extends Lexer implements IParser {
 							throw new ParserException(null,null);
 						} else {
 							lastError = error(ex.getTargetException().toString(),sym.pos());
+	                        ex.getTargetException().printStackTrace(System.out);
 						}
 					}
 					if (command == null) {

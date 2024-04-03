@@ -53,6 +53,16 @@ public class bigint implements IJmlPrimitiveType {
         return value.equals(v.value);
     }
     
+    @Override
+    public boolean equals(Object o) {
+        return (o instanceof bigint b && eq(b));
+    }
+    
+    @Override
+    public int hashCode() {
+        return value.hashCode();
+    }
+    
     public boolean ne(bigint v) {
         return !value.equals(v.value);
     }

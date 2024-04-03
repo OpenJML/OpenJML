@@ -779,16 +779,16 @@ public class JmlTreeUtils {
         // Note: getTag().ordinal() is not relaible
         TypeTag ltag = lhs.getTag();
         TypeTag rtag = rhs.getTag();
-        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
-        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
-        if (ltag == TypeTag.NONE && lhs == REAL) return lhs;
-        if (rtag == TypeTag.NONE && rhs == REAL) return rhs;
-        if (ltag == TypeTag.NONE && lhs == BIGINT) {
-            if (rtag == TypeTag.DOUBLE || rtag == TypeTag.FLOAT) return REAL;
+        var REAL = JmlPrimitiveTypes.realTypeKind.getSymbol(context);
+        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
+        if (lhs.tsym == REAL) return lhs;
+        if (rhs.tsym == REAL) return rhs;
+        if (lhs.tsym == BIGINT) {
+            if (rtag == TypeTag.DOUBLE || rtag == TypeTag.FLOAT) return REAL.type;
             return lhs;
         }
-        if (rtag == TypeTag.NONE && rhs == BIGINT) {
-            if (ltag == TypeTag.DOUBLE || ltag == TypeTag.FLOAT) return REAL;
+        if (rhs.tsym == BIGINT) {
+            if (ltag == TypeTag.DOUBLE || ltag == TypeTag.FLOAT) return REAL.type;
             return rhs;
         }
         if (ltag == TypeTag.DOUBLE) return lhs;
