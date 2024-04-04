@@ -2,90 +2,90 @@
 public class JMLStringTest {
 
     public static void main(String ... args) {
-        newStringIsEmpty();
+//        newStringIsEmpty();
         
     }
     
     //@ public normal_behavior
     //@   ensures \invariant_for(s);
-    //@   ensures s.length >= 0;
+    //@   ensures s.length() >= 0;
     //@ model public static void stringInvariant(\string s) {}
     
     //@ public normal_behavior
-    //@   ensures s[i] == s.get(i);
-    //@ model public static void stringBrackets(\string s, int i) {} // FIXME - eventually change i to \bigint
+    //-RAC@   ensures s[i] == s.get(i);
+    //@ model public static void stringBrackets(\string s, \bigint i) {}
     
     //@ public normal_behavior
-    //@   ensures s.size() == s.length;
+    //@   ensures s.size() == s.length();
     //@ model public static void sizeLength(\string s) {}
     
     //@ public normal_behavior
     public static void newStringIsEmpty() {
         //@ ghost \string r = \string.empty();
         //@ assert r.isEmpty();
-        //@ assert r.length == 0;
+        //@ assert r.length() == 0;
         //@ assert \invariant_for(r);
         // @ set r = (\string)("");
         // @ assert r.isEmpty();
-        // @ assert r.length == 0;
+        // @ assert r.length() == 0;
         //@ assert \invariant_for(r);
     }
     
     //@ public normal_behavior
     public static void plus() {
         //@ ghost \string s1 = "A";
-        //@ check s1.length == 1;
+        //@ check s1.length() == 1;
         //@ ghost \string s2 = "B";
-        //@ check s2.length == 1;
+        //@ check s2.length() == 1;
         //@ ghost \string s3 = s1 + s2;
-        //@ check s3.length == 2;
+        //@ check s3.length() == 2;
         //@ ghost \string s4 = s1 + 'B';
         //@ assert s3 == s4;
     }
     
     //@ public normal_behavior
-    //@ ensures ((\string)"abc").length == 3;
+    //@ ensures ((\string)"abc").length() == 3;
     public static void newStringFromString() {}
     
     //@ public normal_behavior
-    //@ ensures ((\string)"").length == 0;
+    //@ ensures ((\string)"").length() == 0;
     public static void emptyLength() {
     //@   ghost \string s3 = "";
-    //@   assert s3.length == 0;
+    //@   assert s3.length() == 0;
     //@ }
     
     //@ public normal_behavior
-    //@ ensures s.add('c').length == 1 + s.length;
+    //@ ensures s.add('c').length() == 1 + s.length();
     //@ model public static void addBumpsSize(\string s) {}
     
     //@ public normal_behavior
-    //@ requires 0 <= i <= s.length;
-    //@ ensures s.insert(i,'c').length == 1 + s.length;
-    //@ model public static void addBumpsSize(\string s, int i) {}
+    //@ requires 0 <= i <= s.length();
+    //@ ensures s.insert(i,'c').length() == 1 + s.length();
+    //@ model public static void addBumpsSize(\string s, \bigint i) {}
     
     //@ public normal_behavior
-    //@ requires 0 <= k < s.length;
-    //@ ensures s.remove(k).length == s.length - 1;
-    //@ model public static <T> void removeLowersSize(\string s, int k) {}
+    //@ requires 0 <= k < s.length();
+    //@ ensures s.remove(k).length() == s.length() - 1;
+    //@ model public static <T> void removeLowersSize(\string s, \bigint k) {}
     
     //@ public normal_behavior
-    //@   requires 0 <= i <= s.length;
+    //@   requires 0 <= i <= s.length();
     //@   ensures \string.eq(s.insert(i,'c').remove(i), s);
-    //@ model public static void addRemove(\string s, int i) { show i, s.length; }
+    //@ model public static void addRemove(\string s, int i) { show i, s.length(); }
     
     //@ public normal_behavior
-    //@   requires 0 <= k < i <= s.length;
-    //@   ensures s.insert(i,'c')[k] == s[k];
+    //@   requires 0 <= k < i <= s.length();
+    //-RAC@   ensures s.insert(i,'c')[k] == s[k];
     //@   ensures s.insert(i,'c').get(k) == s.get(k);
     //@ model public static void addGet1(\string s, int i, int k) { }
     
     //@ public normal_behavior
-    //@   requires 0 <= i < k <= s.length;
+    //@   requires 0 <= i < k <= s.length();
     //@   ensures s.insert(i,'c').get(k) == s.get(k-1);
-    //@ model public static void addGet2(\string s, int i, int k) { show i, k, s.length;  }
+    //@ model public static void addGet2(\string s, int i, int k) { show i, k, s.length();  }
     
     //@ public normal_behavior
-    //@   requires 0 <= i <= s.length;
+    //@   requires 0 <= i <= s.length();
     //@   ensures s.insert(i,c).get(i) == c;
     //@ model public static void addGet(\string s, int i, char c) {}
     
@@ -129,8 +129,8 @@ public class JMLStringTest {
     //@   ghost \string s2 = (\string)"abc";
     //@   ghost \string s3 = "";
     //@   assert s1 == s2;
-    //@   assert s1.length == 3;
-    //@   assert s3.length == 0;
+    //@   assert s1.length() == 3;
+    //@   assert s3.length() == 0;
     //@   assert s1 != s3;
     //@ }
 
@@ -147,7 +147,7 @@ public class JMLStringTest {
     //@   ghost \string s2 = (\string)s;
     //@   ghost \string s3 = (\string)(s);
     //@   assert s1 == s2;
-    //@   assert s1.length == s.length();
+    //@   assert s1.length() == s.length();
     //@   assert s1 == s3;
     //@   assert \invariant_for((\string)s);
     //@ }

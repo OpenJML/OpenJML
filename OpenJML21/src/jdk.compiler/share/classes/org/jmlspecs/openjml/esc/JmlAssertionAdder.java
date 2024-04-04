@@ -8092,9 +8092,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			checkThatMethodIsCallable(that, treeutils.getSym(that.meth));
 		if (translatingJML && rac) {
 			// FIXME - need to check definedness by testing preconditions
+		    var methsym = (MethodSymbol)treeutils.getSym(that.meth);
+		    var formals = methsym.type.asMethodType().argtypes;
 			List<JCExpression> typeargs = convertExprList(that.typeargs);
 			JCExpression meth = convertExpr(that.meth);
-			List<JCExpression> args = convertExprList(that.args);
+			//List<JCExpression> args = convertExprList(that.args);
+			List<JCExpression> args = convertArgs(that, that.args, formals, methsym.isVarArgs());
 			JCMethodInvocation app = M.at(that).Apply(typeargs, meth, args).setType(that.type);
 			app.varargsElement = that.varargsElement; // a Type
 			result = eresult = app;
@@ -12286,7 +12289,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (utils.rac) { 
                     // FIXME -- need the implementatino type, not realT
                     JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), REAL);
-                    JCExpression e = treeutils.makeMethodInvocation(pos, ty, names.fromString("of"), expr);
+                    JCExpression e = treeutils.makeMethodInvocation(pos, ty, names.of, expr);
                     return e;
                 } else {
                     JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), REAL);
@@ -12299,7 +12302,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (utils.rac) { 
                     // FIXME -- need the implementatino type, not realT
                     JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), BIGINT);
-                    JCExpression e = treeutils.makeMethodInvocation(pos, ty, names.fromString("of"), expr);
+                    JCExpression e = treeutils.makeMethodInvocation(pos, ty, names.of, expr);
                     //System.out.println("OF-C " + expr + " " + e);
                     return e;
                 } else {
@@ -13737,7 +13740,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    throw new JmlNotImplementedException(that, "bit operations on \\bigint values");
 		}
 
-        if (that.type == REAL || that.lhs.type == REAL || that.rhs.type == REAL) {
+        if (that.type.tsym == REAL.tsym || that.lhs.type.tsym == REAL.tsym || that.rhs.type.tsym == REAL.tsym) {
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
             lhs = addImplicitConversion(lhs, REAL, lhs);
@@ -13751,7 +13754,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             return;
         }
-        if (that.type == BIGINT || that.lhs.type == BIGINT || that.rhs.type == BIGINT) {
+        if (that.type.tsym == BIGINT.tsym || that.lhs.type.tsym == BIGINT.tsym || that.rhs.type.tsym == BIGINT.tsym) {
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
             lhs = addImplicitConversion(lhs, BIGINT, lhs);
@@ -13802,7 +13805,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (utils.rac) {
                 var nm = names.fromString(optag == JCTree.Tag.EQ ? "eq" : "ne");
                 JCExpression e = treeutils.makeMethodInvocation(that, lhs, nm, rhs);
-                result = eresult = convertExpr(e);
+                result = eresult = e;
             } else {
                 result = eresult = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
             }
@@ -19726,8 +19729,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				addFeasibilityCheck(that, currentStatements, Strings.feas_assert, Strings.beforeAssertFeasCheckDescription);
 				JCExpression opt = that.optionalExpression;
 				if (opt != null) {
-					if (!(opt instanceof JCLiteral))
-						opt = convertJML(opt);
+					if (!(opt instanceof JCLiteral)) opt = convertJML(opt);
 					if (rac) {
 						JCExpression o = treeutils.convertToString(opt);
 						if (o != null)

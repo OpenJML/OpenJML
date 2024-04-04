@@ -73,24 +73,23 @@ public class racnew2 extends RacBase {
     
     /** Tests new array */
     @Test public void testNewArray() {  // FIXME - improve error message when String.equals includes its model methods for RAC
-        addOptions("--show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-//                "  String[] a = new String[]{\"abc\",\"def\"};\n" +
-//                "  int i = a.length; \n" +
-//                "  //@ assert i == 2; \n" +
+                "  String[] a = new String[]{\"abc\",\"def\"};\n" +
+                "  int i = a.length; \n" +
+                "  //@ assert i == 2; \n" +
                 "  String[][] aa = new String[][]{{\"abc\",\"defz\"},{\"g\",\"h\",\"i\"}};\n" +
-//                "  i = aa.length; \n" +
+                "  i = aa.length; \n" +
                 "  boolean b = aa[1][0].equals(\"g\"); \n" +
-//                "  //@ assert i == 2; \n" +
-//                "  //@ assert aa[1].length == 3; \n" +
-//                "  //@ assert (new int[]{1,2,3}).length == 3; \n" +
-//                "  //@ assert (new int[]{1,2,3})[1] == 2; \n" +
-//                "  String[][] aaa = new String[1][2]; \n" +
-//                "  //@ assert aaa.length == 1; \n" +
-//                "  //@ assert aaa[0].length == 2; \n" +
-//                "  //@ assert aaa[0][0] == null; \n" +
-//                
-//                "  System.out.println(\"END\"); \n" +
+                "  //@ assert i == 2; \n" +
+                "  //@ assert aa[1].length == 3; \n" +
+                "  //@ assert (new int[]{1,2,3}).length == 3; \n" +
+                "  //@ assert (new int[]{1,2,3})[1] == 2; \n" +
+                "  String[][] aaa = new String[1][2]; \n" +
+                "  //@ assert aaa.length == 1; \n" +
+                "  //@ assert aaa[0].length == 2; \n" +
+                "  //@ assert aaa[0][0] == null; \n" +
+                
+                "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
                 "}"
                 ,"END"

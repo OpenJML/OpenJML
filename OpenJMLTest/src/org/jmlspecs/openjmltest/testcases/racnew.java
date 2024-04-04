@@ -760,23 +760,33 @@ public class racnew extends RacBase {
     
     // FIXME - want typeof to return a JML type with type parameter information
     @Test public void testTypeOf5() {
-        helpTCX("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
-                "m(new LinkedList<String>()); m(new LinkedList<Integer>());  m(new HashSet<Integer>()); System.out.println(\"END\"); } \n" +
-                " //@ requires (\\lbl CLS \\typeof(i)) == ( \\type(LinkedList<Integer>) ); \n" +
-                " static public void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
-                "}"
+        helpTCX("tt.TestJava",
+                """
+                package tt; import java.util.*; public class TestJava {
+                  public static void main(String[] args) {
+                    m(new LinkedList<String>());
+                    m(new LinkedList<Integer>());
+                    m(new HashSet<Integer>());
+                    System.out.println(\"END\");
+                  }
+                  //@ requires (\\lbl CLS \\typeof(i)) == ( \\type(LinkedList<Integer>) );
+                  static public void m(/*@nullable*/Object i) {
+                    System.out.println(\"CLASS \" + i.getClass());
+                  }
+                }
+                """
                 ,"LABEL CLS = class java.util.LinkedList"
-//                ,"/tt/TestJava.java:2: JML precondition is false"
-//                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"/tt/TestJava.java:9: Associated declaration"
                 ,"LABEL CLS = class java.util.LinkedList"
-//                ,"/tt/TestJava.java:3: JML precondition is false"
+                ,"/tt/TestJava.java:8: JML precondition is false"
                 ,"CLASS class java.util.LinkedList"
                 ,"LABEL CLS = class java.util.LinkedList"
                 ,"LABEL CLS = class java.util.LinkedList"
                 ,"CLASS class java.util.LinkedList"
                 ,"LABEL CLS = class java.util.HashSet"
                 ,"/tt/TestJava.java:2: JML precondition is false"
-                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:9: Associated declaration"
                 ,"LABEL CLS = class java.util.HashSet"
                 ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"CLASS class java.util.HashSet"
@@ -3149,16 +3159,28 @@ public class racnew extends RacBase {
     @Test
     public void testOldClause() {
         helpTCX("tt.TestJava",
-                  "package tt; \n"
-                + "public class TestJava { public static void main(String[] args) { m(6); k = 6; m(6); } \n"
-                + "  static public int k = 5;\n"
-                + "  //@ old int kk = k; requires i > kk; assignable k; ensures k == i+1; ensures kk == 5;\n"
-                + "  //@ also\n"
-                + "  //@ old int kkk = k+1; requires i < kkk; assignable k; ensures k == i-1; ensures kkk == 7;\n"
-                + "  static public void m(int i) {\n"
-                + "     if (i>k) k = i+1; else k = i-1;\n"
-                + "  }\n"
-                + "}"
+                  """
+                  package tt;
+                  public class TestJava {
+                    public static void main(String[] args) {
+                      k = 5;
+                      m(6);
+                      k = 6;
+                      m(6);
+                    }
+                    static public int k;
+                    //@ old int kk = k; requires i > kk; assignable k;
+                    //@ ensures k == i+1;
+                    //@ ensures kk == 5;
+                    //@ also
+                    //@ old int kkk = k+1; requires i < kkk; assignable k;
+                    //@ ensures k == i-1;
+                    //@ ensures kkk == 7;
+                    static public void m(int i) {
+                      if (i>k) k = i+1; else k = i-1;
+                    }
+                  }
+                  """
                  );
         
     }

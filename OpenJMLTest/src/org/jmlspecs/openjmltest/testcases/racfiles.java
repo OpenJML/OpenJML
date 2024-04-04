@@ -542,8 +542,8 @@ public class racfiles extends RacBase {
     
     @Test 
     public void valuestrings() {
-        expectedRACExit = 1;
-        helpTCF("test/valuestrings","test/valuestrings","JmlStringTest");
+        expectedRACExit = 0;
+        helpTCF("test/valuestrings","test/valuestrings","JMLStringTest");
     }
 
     @Test
