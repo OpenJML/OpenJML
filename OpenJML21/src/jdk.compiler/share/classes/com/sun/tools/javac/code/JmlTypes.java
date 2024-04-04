@@ -171,12 +171,13 @@ public class JmlTypes extends Types {
     @Override
     public boolean isAssignable(Type t, Type s, Warner warn) {
         if (s == t) return true;
+        if (isSameType(s,t)) return true;
         if (s.tsym == JmlPrimitiveTypes.bigintTypeKind.getSymbol(context)) {
             if (isIntegral(t) || t.tsym == s.tsym) return true;
             return false;
         }
         if (s.tsym == JmlPrimitiveTypes.realTypeKind.getSymbol(context)) {
-            if (isNumeric(t)) return true; 
+            if (isNumeric(t) || t.tsym == s.tsym) return true; 
             return false;
         }
         if ((s instanceof JmlListType) != (t instanceof JmlListType)) return false;

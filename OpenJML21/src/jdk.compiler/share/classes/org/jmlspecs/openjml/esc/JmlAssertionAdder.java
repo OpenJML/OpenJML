@@ -13079,10 +13079,32 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 
 			if (rac) {
-			    var newrhs = treeutils.makeMethodInvocation(that, array, "put", index, rhs);
-                JCExpressionStatement st = treeutils.makeAssignStat(that.pos, array, newrhs);
-			    addStat(st);
-			    result = eresult = array;
+			    if (!jmltypes.isArray(array.type)) {
+			        var newrhs = treeutils.makeMethodInvocation(that, array, "put", index, rhs);
+			        JCExpressionStatement st = treeutils.makeAssignStat(that.pos, array, newrhs);
+			        addStat(st);
+			        result = eresult = array;
+			    } else {
+			        JCArrayAccess lhs = new JmlBBArrayAccess(null, array, index);
+			        lhs.pos = aa.pos;
+			        lhs.type = aa.type;
+			        JCExpressionStatement st = treeutils.makeAssignStat(that.pos, lhs, rhs);
+			        JmlLabeledStatement stt = markUniqueLocation(st);
+			        addStat(st);
+			        lastStat = st.expr;
+			        saveMapping(that, st.expr);
+			        lhs = new JmlBBArrayAccess(null, copy(array), index);
+			        lhs.pos = aa.pos;
+			        lhs.type = aa.type;
+			        var saved = newTemp(lhs);
+			        saveMapping(that.lhs, eresult);
+			        if (!rac) changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, List.<JCExpression>of(lhs))), stt.label);
+			        result = eresult = saved;
+			    }
+//			    var newrhs = treeutils.makeMethodInvocation(that, array, "put", index, rhs);
+//                JCExpressionStatement st = treeutils.makeAssignStat(that.pos, array, newrhs);
+//			    addStat(st);
+//			    result = eresult = array;
 			    
 			} else {
 			    JCArrayAccess lhs = new JmlBBArrayAccess(null, array, index);
