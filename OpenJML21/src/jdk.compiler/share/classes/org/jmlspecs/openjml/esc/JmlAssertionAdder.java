@@ -8091,7 +8091,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (!translatingJML)
 			checkThatMethodIsCallable(that, treeutils.getSym(that.meth));
 		if (translatingJML && rac) {
-			// FIXME - need to check definedness by testing preconditions
+			// FIXME - need to check definedness by testing preconditions; check postconditions also? inline?
 		    var methsym = (MethodSymbol)treeutils.getSym(that.meth);
 		    var formals = methsym.type.asMethodType().argtypes;
 			List<JCExpression> typeargs = convertExprList(that.typeargs);
@@ -12254,7 +12254,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// literals so we can't hide them behind a cast, but FIXME: does this cause
 		// other problems, what about for MemberReferences?
 	    if (true) {
-	        //System.out.println("NEWIMPL " + expr.type + " " + annotatedNewtype + " " + expr);
 	    return addConversion(pos, annotatedNewtype, expr, false);
 	    } else {
 		Type newtype = annotatedNewtype.stripMetadata();
@@ -12266,7 +12265,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				newtype = e.type;
 			}
 		}
-		System.out.println("OLDIMPL " + origtype + " " + newtype + " " + expr);
 
 		if (utils.isExtensionValueType(newtype)) {
 		    if (types.isSameType(newtype, origtype)) return expr;
@@ -12337,8 +12335,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// FIXME - change to utils.isPrimitiveType
 		boolean isPrim = origtype.isPrimitive() && origtype.getTag() != TypeTag.BOT;
 		boolean newIsPrim = newtype.isPrimitive() && newtype.getTag() != TypeTag.BOT;
-
-	      System.out.println("OLDIMPL-A " + origtype + " " + newtype + " " + expr + " " + isPrim + " " + newIsPrim);
 
 		// If we are converting from a non-primitive to primitive type (unboxing),
 		// check that the expression is not null
@@ -14234,9 +14230,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		for (JCBinary b : that.conjuncts) {
 			JCExpression rhsx = convertExpr(b.rhs);
 			var rhs = addImplicitConversion(rhsx, maxType, rhsx);
-			JCBinary bb = M.at(b.pos).Binary(b.getTag(), lhs, rhs);
-			bb.operator = b.operator;
-			bb.type = b.type;
+            var bb = treeutils.makeTrBinary(b, b.getTag(), lhs, rhs);
 			ba = ba == null ? bb : utils.esc ? treeutils.makeBitAnd(b.pos, ba, bb) : treeutils.makeAnd(b.pos, ba, bb);
 			lhs = rhs;
 		}
@@ -17641,9 +17635,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitJmlLblExpression(JmlLblExpression that) {
-	    //System.out.println("LBL EXPRT " + that);
 		JCExpression expr = convertExpr(that.expression);
-        //System.out.println("LBL EXPR RES " + expr);
 
 		if (depth > 0) {
 			result = eresult = expr;
