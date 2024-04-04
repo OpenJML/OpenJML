@@ -593,13 +593,15 @@ public class JmlTreeUtils {
         var emp = names.fromString("empty"); // NOT the same as names.empty!
         if (utils.isExtensionValueType(type)) {
             if (type.tsym == BIGINT.tsym) {
-                JCExpression e = makeTypeCast(dpos, type, zero);
+                JCExpression e = utils.rac ? makeMethodInvocation(dpos, makeType(dpos, BIGINT), names.of, zero)
+                        : makeTypeCast(dpos, type, zero);
                 e.type = BIGINT;
                 return e;
 
             } else if (type.tsym == REAL.tsym) {
                 JCExpression e = makeLit(pos,syms.doubleType,0.0);  // FIXME - user a real 0?
-                e = makeTypeCast(dpos, type, e);
+                e = utils.rac ? makeMethodInvocation(dpos, makeType(dpos, REAL), names.of, zero)
+                        : makeTypeCast(dpos, type, e);
                 e.type = REAL;
                 return e;
 
@@ -663,7 +665,7 @@ public class JmlTreeUtils {
         id.sym = type.tsym;
         JCFieldAccess f = factory.Select(id,TYPEName);
         f.pos = Position.NOPOS;
-        f.type = syms.objectType;
+        f.type = syms.classType;
         f.sym = type.tsym.members().findFirst(TYPEName);
         return f;
     }

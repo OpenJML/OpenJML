@@ -22,17 +22,19 @@ public class intmap<V> implements IJmlPrimitiveType, IJmlIntArrayLike {
     public V get(bigint i) { return value.get(i.bigValue()); }
     public V get(BigInteger i) { return value.get(i); }
     
-    public intmap<V> put(BigInteger i, V t) {
+//    public intmap<V> put(BigInteger i, V t) {
+//        var copy = new HashMap<BigInteger,V>(value);
+//        copy.put(i, t);
+//        return new intmap<V>(copy);
+//    }
+    
+    public intmap<V> put(bigint i, V t) {
         var copy = new HashMap<BigInteger,V>(value);
-        copy.put(i, t);
+        copy.put(i.bigValue(), t);
         return new intmap<V>(copy);
     }
     
-    public intmap<V> put(bigint i, V t) {
-        return put(i.bigValue(), t);
-    }
-    
     public intmap<V> put(long i, V t) {
-        return put(BigInteger.valueOf(i), t);
+        return put(bigint.of(i), t);
     }
 }

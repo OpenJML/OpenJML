@@ -35,9 +35,14 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike {
         return string("");
     }
     
-    public bigint size() {  // FIXME - change to bigint eventuallu
+    public bigint length() {
         return bigint.of(racValue.length());
     }
+    
+    public bigint size() {
+        return bigint.of(racValue.length());
+    }
+    
     public boolean isEmpty() {
         return racValue.isEmpty();
     }
@@ -48,6 +53,10 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike {
  
     public boolean eq(string s) {
         return this.racValue.equals(s.racValue);
+    }
+    
+    public boolean ne(string s) {
+        return !eq(s);
     }
     
     public boolean equals(Object o) { throw new UnsupportedOperationException(); }
@@ -71,7 +80,8 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike {
         return string(racValue.substring(0,i) + v + racValue.substring(i));
     }
 
-    public string remove(int i) {
+    public string remove(bigint ii) {
+        int i = ii.intValue();
         return string(racValue.substring(0,i) + racValue.substring(i+1));
     }
 

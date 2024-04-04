@@ -156,20 +156,20 @@ public class JmlCheck extends Check {
     
     @Override
     public Type checkType(DiagnosticPosition pos, Type found, Type req, final CheckContext checkContext) {
-        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
-        Type BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getSymbol(context);
+        Symbol BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
 
         if (found != null && found.getTag() == TypeTag.ARRAY && req.getTag() == TypeTag.ARRAY &&
-                ((Type.ArrayType)found).getComponentType() == TYPE &&
-                ((Type.ArrayType)req).getComponentType() == TYPE) {
+                ((Type.ArrayType)found).getComponentType().tsym == TYPE &&
+                ((Type.ArrayType)req).getComponentType().tsym == TYPE) {
             return req;
         }
         if (found == req) return found;
         JmlTypes jmltypes = JmlTypes.instance(context);
         // FIXME - all this in isAssignable?
-        if (req == JmlPrimitiveTypes.realTypeKind.getType(context)) {
-        	if (found.isNumeric() || found == BIGINT) return found;
-        } else if (req == BIGINT) {
+        if (req.tsym == JmlPrimitiveTypes.realTypeKind.getSymbol(context)) {
+        	if (found.isNumeric() || found.tsym == BIGINT) return found;
+        } else if (req.tsym == BIGINT) {
         	if (found.isIntegral()) return found;
         }
         return super.checkType(pos, found, req, checkContext);
