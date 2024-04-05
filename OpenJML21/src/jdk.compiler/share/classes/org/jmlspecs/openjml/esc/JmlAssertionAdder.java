@@ -8089,7 +8089,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            notImplemented(that,msg);
 //            throw new JmlNotImplementedException(that,msg);
 //        }
-
+		
 		if (!translatingJML)
 			checkThatMethodIsCallable(that, treeutils.getSym(that.meth));
 		if (translatingJML && rac) {
@@ -8678,7 +8678,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				typeargs = convert(typeargs);
 				trArgs = convertArgs(that, untrArgs, meth.type.asMethodType().argtypes,
-						(id.sym.flags() & Flags.VARARGS) != 0);
+						((MethodSymbol)id.sym).isVarArgs());
 
 				calleeMethodSym = (MethodSymbol) id.sym;
 				newTypeVarMapping = typevarMapping = typemapping(apply, null);
@@ -9193,6 +9193,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                        calleeIsFunction, calleeSpecs,
 //                        calleeSpecs.decl != null ? calleeSpecs.decl.pos : that.pos, newParamTypes);
 				JCExpression e = makeDeterminismCall(that, calleeMethodSym, newThisExpr, extendedArgs);
+				e.type = resultType; // In case the determinism call has a typevar output
 				if (print) System.out.println("DETERMINISM CALL FOR " + includeDeterminism + " " + calleeMethodSym + " " + e);
 				if (!calleeMethodSym.isConstructor() && calleeMethodSym.getReturnType().isReference()) {
 					// makeFreshExpression()
@@ -12259,6 +12260,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// literals so we can't hide them behind a cast, but FIXME: does this cause
 		// other problems, what about for MemberReferences?
 	    if (true) {
+	        //System.out.println("IMPL " + annotatedNewtype + " " + expr.type + " " + expr);
 	    return addConversion(pos, annotatedNewtype, expr, false);
 	    } else {
 		Type newtype = annotatedNewtype.stripMetadata();
@@ -12532,7 +12534,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	protected JCExpression createUnboxingExpr(JCExpression expr) {
 		boolean useMethod = false;
-		ClassType origtype = (ClassType) convertType(expr.type);
+		Type tx = convertType(expr.type);
+		if (!(tx instanceof ClassType)) return expr; // FIXME - don't know how to do type vars, if they do not convert
+		ClassType origtype = (ClassType)tx;
 		specs.getAttrSpecs((ClassSymbol) origtype.tsym); // To ensure that model fields are loaded
 		Type unboxed = unboxedType(expr.type);
 		TypeTag tag = unboxed.getTag();
@@ -12566,7 +12570,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (origtypeString.equals("BigInteger"))
 				fieldName = "value";
 			Name id = names.fromString(fieldName);
-			Type t = expr.type;
+			Type t = expr.type; // FIXME - should it be tx
 			specs.getAttrSpecs((ClassSymbol) t.tsym);
 			VarSymbol fsym = getField(t, id);
 			if (fsym != null)
