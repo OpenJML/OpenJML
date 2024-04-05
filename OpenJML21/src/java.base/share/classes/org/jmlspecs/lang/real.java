@@ -195,7 +195,7 @@ public class real implements IJmlPrimitiveType {
         return (_double <= r._double);
     }
 
-    public real neg() {
+    public real negate() {
         return new real(-_double);
     }
 
@@ -207,12 +207,20 @@ public class real implements IJmlPrimitiveType {
         return new real(d);
     }
 
+    static public real of(int d) {
+        return new real(d);
+    }
+
+    static public real valueOf(long d) {
+        return new real(d);
+    }
+
     static public real of(java.math.BigInteger d) {
-        return new real(d.doubleValue());
+        return real.of(d.doubleValue());
     }
 
     static public real of(org.jmlspecs.lang.internal.bigint d) {
-        return real.of(d.bigValue());
+        return real.of(d.bigValue().doubleValue());
     }
 
     public double doubleValue() {

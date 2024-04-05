@@ -168,16 +168,20 @@ public class JmlTypes extends Types {
     }
     
     /** Overrides Types.isAssignable with functionality for JML primitive types. */
+    // is a t assignable to s, that is, is t a subtype of s
     @Override
     public boolean isAssignable(Type t, Type s, Warner warn) {
         if (s == t) return true;
         if (isSameType(s,t)) return true;
         if (s.tsym == JmlPrimitiveTypes.bigintTypeKind.getSymbol(context)) {
-            if (isIntegral(t) || t.tsym == s.tsym) return true;
+            if (isIntegral(t)) return true;
+            if (t.toString().contains("BigInteger")) return true;
             return false;
         }
         if (s.tsym == JmlPrimitiveTypes.realTypeKind.getSymbol(context)) {
-            if (isNumeric(t) || t.tsym == s.tsym) return true; 
+            if (isNumeric(t)) return true; 
+            if (t.tsym == JmlPrimitiveTypes.bigintTypeKind.getSymbol(context)) return true;
+            if (t.toString().contains("BigInteger")) return true;
             return false;
         }
         if ((s instanceof JmlListType) != (t instanceof JmlListType)) return false;
@@ -196,7 +200,7 @@ public class JmlTypes extends Types {
     /** True if the Java tag is a numeric type (not for JML types). */
     public boolean isNumeric(Type t) {
         int i = t.getTag().ordinal();
-        return i >= TypeTag.BYTE.ordinal() && i <= TypeTag.DOUBLE.ordinal()|| t == JmlPrimitiveTypes.bigintTypeKind.getType(context) || t == JmlPrimitiveTypes.realTypeKind.getType(context);
+        return i >= TypeTag.BYTE.ordinal() && i <= TypeTag.DOUBLE.ordinal()|| t.tsym == JmlPrimitiveTypes.bigintTypeKind.getSymbol(context) || t.tsym == JmlPrimitiveTypes.realTypeKind.getSymbol(context);
     }
     
     /** True if the Java tag is an integral type (not for JML types). */

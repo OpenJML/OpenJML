@@ -1545,14 +1545,37 @@ public class JmlTreeUtils {
                 Symbol sym = iter.next();
                 s += "\t\t" + sym.toString();
                 if (sym instanceof MethodSymbol ms && ms.getParameters().size() == nargs.length) {
+                    //System.out.println("MATCHING " + ms + java.util.Arrays.toString(nargs));
                     int k = 0;
+                    // First try for exact match
                     for (var p: ms.getParameters()) {
                         var t1 = p.type;
                         var t2 = nargs[k].type;
                         ++k;
-                        if (!types.isAssignable(t2, t1)) continue x; // FIXME - this gives first match, not best match; might need an implicit conversion
+                        //System.out.println("   COMP " + t2 + " " + t1 + " " + types.isSameType(t2, t1));
+                        if (!types.isSameType(t2, t1)) continue x;
                     }
-                    return makeMethodInvocation(pos, receiver, (MethodSymbol)sym, nargs);
+                    //System.out.println("  MATCHED " + ms);
+                    return makeMethodInvocation(pos, receiver, ms, nargs);
+                }
+            }
+            iter = sc.getSymbolsByName(name).iterator();
+            y: while (iter.hasNext()) {
+                Symbol sym = iter.next();
+                s += "\t\t" + sym.toString();
+                if (sym instanceof MethodSymbol ms && ms.getParameters().size() == nargs.length) {
+                    //System.out.println("MATCHING " + ms + java.util.Arrays.toString(nargs));
+                    int k = 0;
+                    // Then try for matches with implicit conversions
+                    for (var p: ms.getParameters()) {
+                        var t1 = p.type;
+                        var t2 = nargs[k].type;
+                        ++k;
+                        //System.out.println("   COMPX " + t2 + " " + t1+ " " + types.isAssignable(t2, t1));
+                        if (!types.isAssignable(t2, t1)) continue y; // FIXME - this is first match, not best match
+                    }
+                    //System.out.println("  MATCHED " + ms);
+                    return makeMethodInvocation(pos, receiver, ms, nargs);
                 }
             }
         } catch (java.util.NoSuchElementException e) {

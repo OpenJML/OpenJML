@@ -13452,11 +13452,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 result = eresult = convertExpr(nlit);
             } else if (utils.rac && jmltypes.isSameType(that.arg.type, REAL)) {
                 JCExpression arg = convertExpr(that.getExpression());
-                JCExpression e = treeutils.makeMethodInvocation(that, arg, names.fromString("neg"));
+                JCExpression e = treeutils.makeMethodInvocation(that, arg, names.fromString("negate"));
                 result = eresult = convertExpr(e);
 //            } else if (utils.rac && jmltypes.isSameType(that.arg.type, REALREP)) {
 //                System.out.println("NEGR " + that + " " + that.arg.type + " " + that.type);
-//                JCExpression e = treeutils.makeMethodInvocation(that, that.arg, names.fromString("neg"));
+//                JCExpression e = treeutils.makeMethodInvocation(that, that.arg, names.fromString("negate"));
 //                System.out.println("NEGR-Z " + that + " " + e.type );
 //               result = eresult = convertExpr(e);
 			} else {

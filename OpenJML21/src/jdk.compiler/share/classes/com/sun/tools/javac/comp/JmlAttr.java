@@ -6462,12 +6462,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (clazztype.tsym == BIGINT) {
                 if (tree.expr.type.isNumeric()) return;
                 if (tree.expr.type.tsym == REAL.tsym) return;
+                if (tree.expr.type.toString().contains("BigInteger")) return;
                 utils.error(tree.expr, "jml.message", "Only numeric types may be cast to \\bigint, not " + tree.expr.type);
                 return;
             }
             if (clazztype.tsym == REAL.tsym) {
                 if (tree.expr.type.tsym == BIGINT) return;
                 if (tree.expr.type.isNumeric()) return;
+                if (tree.expr.type.toString().contains("BigInteger")) return;
                 utils.error(tree.expr, "jml.message", "Only numeric types may be cast to \\real, not " + tree.expr.type);
                 return;
             }
@@ -8308,20 +8310,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Utils.dumpStack();
             return (tree.type = types.createErrorType(resultInfo.pt));
         }
-        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
-        if (resultInfo.pt == BIGINT) {
-            if (jmltypes.isAnyIntegral(found)) return resultInfo.pt;
-            if (tree instanceof JCConditional cc) {
-                if (jmltypes.isAnyIntegral(cc.truepart.type) && jmltypes.isAnyIntegral(cc.falsepart.type)) return resultInfo.pt;
-            }
-        }
-        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
-        if (resultInfo.pt == REAL || resultInfo.pt == REAL) {
-            if (jmltypes.isNumeric(found)) return resultInfo.pt;
-            if (tree instanceof JCConditional cc) {
-                if (jmltypes.isNumeric(cc.truepart.type) && jmltypes.isNumeric(cc.falsepart.type)) return resultInfo.pt;
-            }
-        }
         if (utils.isExtensionValueType(resultInfo.pt)) {
         	// We should check for conversions from found to resultInfo.pt,
         	// but currently no such implicit conversions are allowed
@@ -8331,6 +8319,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             if (types.isSameType(resultInfo.pt, found)) return found;
 
+            var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+            if (resultInfo.pt.tsym == BIGINT.tsym) {
+                if (jmltypes.isAnyIntegral(found)) return resultInfo.pt;
+                if (found.toString().contains("BigInteger")) return resultInfo.pt;
+                if (tree instanceof JCConditional cc) {
+                    if (jmltypes.isAnyIntegral(cc.truepart.type) && jmltypes.isAnyIntegral(cc.falsepart.type)) return resultInfo.pt;
+                }
+            }
+            var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+            if (resultInfo.pt.tsym == REAL.tsym) {
+                if (jmltypes.isNumeric(found)) return resultInfo.pt;
+                if (tree instanceof JCConditional cc) {
+                    if (jmltypes.isNumeric(cc.truepart.type) && jmltypes.isNumeric(cc.falsepart.type)) return resultInfo.pt;
+                }
+            }
             if (found.isParameterized() == resultInfo.pt.isParameterized()) {
             	if (found.tsym == resultInfo.pt.tsym) {
             		// There are cases where two parameterized types with type variable parameters appear equal
