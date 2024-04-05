@@ -4691,10 +4691,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									Name name = names.fromString(
 											decl.name.toString() + "__OLD_" + decl.pos + "_" + nextUnique());
 									// JCVariableDecl newdecl = convertCopy(decl);
-									JCVariableDecl newdecl = decl; // treeutils.makeDupDecl(decl, methodDecl.sym, name, clause.pos);
+									JCVariableDecl newdecl = treeutils.makeDupDecl(decl, methodDecl.sym, decl.name, clause.pos);
+									newdecl.sym = decl.sym;
+									//JCVariableDecl newdecl = decl; // treeutils.makeDupDecl(decl, methodDecl.sym, name, clause.pos);
 //									if (!rac)
 //										newdecl.mods.flags |= Flags.FINAL;
-//									addStat(initialStats, newdecl);
+									addStat(initialStats, newdecl);
 //									mapSymbols.put(decl.sym, newdecl.sym);
 									JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
 									ListBuffer<JCStatement> check2 = pushBlock();
@@ -9564,13 +9566,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 												decl.name.toString() + "__OLD_" + decl.pos + "_" + nextUnique());
 										// FIXME - does the declzaration really need to be duplicated -- it is only used
 										// once
+										JCVariableDecl newdecl = treeutils.makeDupDecl(decl, methodDecl.sym, decl.name, // name,
+                                                                                               clause.pos);
+                                        newdecl.sym = decl.sym;
 //										JCVariableDecl newdecl = treeutils.makeDupDecl(decl, methodDecl.sym, name,
 //												clause.pos);
 //										if (!rac)
 //											newdecl.mods.flags |= Flags.FINAL;
-//										addStat(oldStatements, newdecl);
+										addStat(oldStatements, newdecl);
 //										mapSymbols.put(decl.sym, newdecl.sym);
-										var newdecl = decl;
+//										var newdecl = decl;
 										JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
 										ListBuffer<JCStatement> check = pushBlock();
 										if (rac) {
