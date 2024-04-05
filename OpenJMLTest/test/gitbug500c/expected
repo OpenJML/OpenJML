@@ -1,3 +1,11 @@
 RAC-Compiling Heap
 RAC-Compiling PriorityQueue
 RAC-Compiling Test
+RAC-Compiling     Test()
+RAC-Compiling     main(java.lang.String[])
+RAC-Compiling     _JML$$$checkInvariant()
+RAC-Compiling     _JML$$$checkStaticInvariant()
+Note: Some input files use or override a deprecated API that is marked for removal.
+Note: Recompile with -Xlint:removal for details.
+Note: test/gitbug500c/Heap.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
