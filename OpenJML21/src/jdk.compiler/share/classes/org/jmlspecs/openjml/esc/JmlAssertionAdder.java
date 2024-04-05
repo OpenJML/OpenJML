@@ -14476,8 +14476,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         
-        JCTypeCast castexpr = M.at(pos).TypeCast(newtype, expr);
+        JCExpression castexpr = M.at(pos).TypeCast(newtype, expr);
         castexpr.setType(newtype); // may be superfluous
+        if (rac && (newtype.tsym == BIGINT.tsym || newtype.tsym == REAL.tsym) && expr.type.isIntegral()) {
+            var ty = treeutils.makeType(pos, newtype);
+            castexpr = treeutils.makeMethodInvocation(pos, ty, names.of, expr);
+        }
         treeutils.copyEndPosition(castexpr, expr);
         
         //if (explicitCast) System.out.println("ADDCONV " + oldtype + " " + newtype + " " + castexpr + " " + castexpr.type);
@@ -14512,6 +14516,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 if (rac) {
                     String s = newtype.toString() + "Value";
+                    if (s.contains("BigInteger")) s = "bigValue";
                     try {
                         JCExpression e = treeutils.makeMethodInvocation(pos, expr, names.fromString(s));
                         result = eresult = e;
@@ -15239,7 +15244,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCExpression eee = null;
 		if (sym != null && sym.owner instanceof ClassSymbol) {
 			if (utils.isJMLStatic(sym))
-				newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
+				newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);  // FIXME - I think sym should be that.name
 			else
 				newfa = treeutils.makeSelect(that.pos, trexpr, sym);
 		}
