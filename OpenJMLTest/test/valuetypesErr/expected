@@ -1,4 +1,4 @@
-test/valuetypesErr/Arr.java:7: error: illegal conversion: org.jmlspecs.lang.array<java.lang.String> to \array<java.lang.@org.jmlspecs.annotation.NonNull Short>
+test/valuetypesErr/Arr.java:7: error: illegal conversion: \array<java.lang.String> to \array<java.lang.@org.jmlspecs.annotation.NonNull Short>
 //@ ghost array<Short> arx = args.array; // ERROR
                                  ^
 test/valuetypesErr/Arr.java:10: error: The .array suffix is permitted only for array expressions: 

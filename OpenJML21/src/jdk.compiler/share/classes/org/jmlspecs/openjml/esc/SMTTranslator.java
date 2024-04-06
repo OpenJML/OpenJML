@@ -2011,12 +2011,13 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Adds a function with the given name and a definition if it is not already added. */
     protected void addFcn(String newname, JCMethodInvocation tree) {
         //System.out.println("ADDING FCN " + newname + " " + tree + " " + tree.type + " " + tree.meth.type + " " + TreeInfo.symbolFor(tree.meth));
-        if (fcnsDefined.add(newname)) {
+        String bnewname = makeBarEnclosedString(newname);
+        if (fcnsDefined.add(bnewname)) {
             var rt = tree.type;
             if (tree.meth.type != null) rt = tree.meth.type.getReturnType();
             if (TreeInfo.symbolFor(tree.meth) != null) rt = TreeInfo.symbolFor(tree.meth).type.getReturnType();
             // Was not already present
-            ISymbol n = F.symbol(newname);
+            ISymbol n = F.symbol(bnewname);
             ISort resultSort = convertSort(rt);
             List<ISort> argSorts = new LinkedList<ISort>();
             // Adds an argument for the receiver, if the function is not static
@@ -2033,9 +2034,10 @@ public class SMTTranslator extends JmlTreeScanner {
     }
     
     protected void addFunctionDefinition(String newname, List<JCExpression> args, JCExpression expr) {
-        if (fcnsDefined.add(newname)) {
+        String bnewname = makeBarEnclosedString(newname);
+        if (fcnsDefined.add(bnewname)) {
             // Was not already present
-            ISymbol n = F.symbol(newname);
+            ISymbol n = F.symbol(bnewname);
             ISort resultSort = convertSort(expr.type);
             List<IDeclaration> argDecls = new LinkedList<IDeclaration>();
 //            // Adds an argument for the receiver, if the function is not static - TODO: do we ever use this?
@@ -2057,7 +2059,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public void visitApply(JCMethodInvocation tree) {
         JCExpression m = tree.meth;
         if (m instanceof JCIdent) {
-            String name = ((JCIdent)m).name.toString();
+            String name = makeBarEnclosedString(((JCIdent)m).name.toString());
             String newname = name;
             addFcn(newname,tree);
             List<IExpr> newargs = new LinkedList<IExpr>();
@@ -2144,8 +2146,8 @@ public class SMTTranslator extends JmlTreeScanner {
             for (JCExpression arg: tree.args) {
                 newargs.add(convertExpr(arg));
             }
-            result = newargs.isEmpty() ? F.symbol(newname)
-                             : F.fcn(F.symbol(newname),newargs);
+            var sym = F.symbol(makeBarEnclosedString(newname));
+            result = newargs.isEmpty() ? sym : F.fcn(sym,newargs);
             
         }
     }
