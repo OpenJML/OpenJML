@@ -662,7 +662,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                 super.scanIdent();  // tk and name are set
                 // assuming that token() is Token.IDENTIFIER
                 String seq = name.toString();
-                jmlTokenKind = JmlTokenKind.backslashTokens.get(seq);
+                //jmlTokenKind = JmlTokenKind.backslashTokens.get(seq);
                 jmlTokenClauseKind = Extensions.allKinds.get(seq);
                 if (scannerDebug) {
                     System.out.println("GOT BACKSLASH " + seq + " " + jmlTokenKind + " " + jmlTokenClauseKind);

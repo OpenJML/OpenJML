@@ -32,36 +32,11 @@ public enum JmlTokenKind implements ITokenKind {
     STARTJMLCOMMENT("<JMLSTART>"),
     ENDJMLCOMMENT("<JMLEND>"),
     
-    // These are statement types
-    //REFINING("refining"),
-    //LAST("_",null), // This is a fake entry that is the end of the standard+extension modifiers list
-    
-    
-    
-//    // Other misc
-//    CONSTRUCTOR("constructor"),
-//    FIELD("field"),
-//    METHOD("method"),
-    
-    // These are various tokens related to JML expressions
-//    MATCH("match"),
-//    BSREQUIRES("\\requires"),
-//    BSREADS("\\reads"),
-//    BSWRITES("\\writes"),
-//    BSENSURES("\\ensures"),
-//    BSLET("\\let"),
-    BSPRE("\\pre"), // overloaded both \post-like and \old-like
-//    BSASSIGNS("\\assigns"),
 
+    BSPRE("\\pre"), // overloaded both \post-like and \old-like
     
-    // These are JML type literals
-    //BSTYPEUC("\\TYPE"),
-    //BSREAL("\\real"),
-//    BSBIGINT("\\bigint"), // Keep this one the last of the backslash tokens
-//    PRIMITIVE_TYPE("\\primitive"),
-    
-    // These are JML operators (in expressions)
-    // Note that the jmloperators set relies on this ordering
+//    // These are JML operators (in expressions)
+//    // Note that the jmloperators set relies on this ordering
     EQUIVALENCE("<==>"),
     INEQUIVALENCE("<=!=>"),
     IMPLIES("==>"),
@@ -74,7 +49,7 @@ public enum JmlTokenKind implements ITokenKind {
     LOCK_LE("<#="),
     WF_LT("<<<"),
     WF_LE("<<<="),
-    
+//    
     // Other special character combinations
     DOT_DOT(".."),
     LEFT_ARROW("<-"),
@@ -116,10 +91,10 @@ public enum JmlTokenKind implements ITokenKind {
         this.annotationType = annotationType;
     }
     
-    /** This is a map from string to token for backslash tokens; the input string
-     * includes the initial backslash.
-     */
-    public final static Map<String,JmlTokenKind> backslashTokens = new HashMap<String,JmlTokenKind>();
+//    /** This is a map from string to token for backslash tokens; the input string
+//     * includes the initial backslash.
+//     */
+//    public final static Map<String,JmlTokenKind> backslashTokens = new HashMap<String,JmlTokenKind>();
     
 //    /** This is a map from string to token for all of the tokens, and includes defined synonyms. */
 //    public final static Map<String,JmlTokenKind> allTokens = new HashMap<>();
@@ -129,13 +104,13 @@ public enum JmlTokenKind implements ITokenKind {
     
     
     
-    static {
-        
+//    static {
+//        
 //        for (JmlTokenKind t: EnumSet.range(BSPRE,BSBIGINT)) {
 //            backslashTokens.put(t.internedName(),t);
 //        }
 //        for (JmlTokenKind t: JmlTokenKind.values()) {
 //            allTokens.put(t.internedName(),t);
 //        }
-    }
+//    }
 }

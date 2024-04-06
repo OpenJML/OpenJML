@@ -1,18 +1,9 @@
 Proving methods in sv_esc.LoopExercises
 Starting proof of sv_esc.LoopExercises.LoopExercises() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of sv_esc.LoopExercises.LoopExercises() with prover !!!! - no warnings
 Starting proof of sv_esc.LoopExercises.isOrdered(int[]) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of sv_esc.LoopExercises.isOrdered(int[]) with prover !!!! - no warnings
-Starting proof of sv_esc.LoopExercises.gauss(int) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of sv_esc.LoopExercises.gauss(int) with prover !!!! - no warnings
+Skipping proof of sv_esc.LoopExercises.gauss(int) (excluded by -method)
 Starting proof of sv_esc.LoopExercises.max(int[]) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
 Completed proof of sv_esc.LoopExercises.max(int[]) with prover !!!! - no warnings
 Completed proving methods in sv_esc.LoopExercises

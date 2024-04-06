@@ -204,13 +204,13 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testLoopExercises() {
+    public void loopExercises() {
         expectedExit = 0;
         helpTCF("test/loopExercises","test/loopExercises","--exclude=gauss");
     }
 
     @Test @Ignore // FIXME - nonlinear inference
-    public void testLoopExercises2() {
+    public void loopExercises2() {
         expectedExit = 0;
         helpTCF("test/loopExercises","test/loopExercises","--method=gauss");
     }
@@ -926,13 +926,13 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testEscVisibilitySimple() {
+    public void visibilitySimple() {
         expectedExit = 1;
         helpTF("visibilitySimple");
     }
 
     @Test
-    public void testVisibilityB() {
+    public void visibilityB() {
         expectedExit = 1;
         helpTCF("test/visibilityB/org/apache/commons/cli/Option.java","test/visibilityB","-classpath","test/visibilityB");
     }

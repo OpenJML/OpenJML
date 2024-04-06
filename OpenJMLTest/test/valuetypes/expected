@@ -92,5 +92,3 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Set.<T>addRemoveB(\set<T>,T) with prover !!!! - no warnings
 Completed proving methods in Set
-Note: /Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/set.jml uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.

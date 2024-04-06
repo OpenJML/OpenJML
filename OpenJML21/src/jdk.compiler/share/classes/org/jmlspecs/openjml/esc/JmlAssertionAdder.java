@@ -2198,13 +2198,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public JmlStatementExpr addCheck(DiagnosticPosition pos, Label label, JCExpression translatedExpr,
             /* @nullable */ DiagnosticPosition associatedPosition, /* @nullable */ JavaFileObject associatedSource,
             /* @nullable */ JCExpression info, Object... args) {
+        translatedExpr = addCheck(translatedExpr);
+        JmlStatementExpr s = addAssert(true, pos, label, translatedExpr, associatedPosition, associatedSource, info, args);
+        if (s != null) s.clauseType = checkClause;
+        return s;
+    }
+    
+    public JCExpression addCheck(JCExpression translatedExpr) {
         if (!rac) {
             JCIdent id = newTemp(translatedExpr, syms.booleanType);
             translatedExpr = treeutils.makeOr(translatedExpr, id, translatedExpr);
         }
-        JmlStatementExpr s = addAssert(true, pos, label, translatedExpr, associatedPosition, associatedSource, info, args);
-        if (s != null) s.clauseType = checkClause;
-        return s;
+        return translatedExpr;
     }
 
     String[] feasibilities = null; // lazily initialized
@@ -14296,7 +14301,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (rac && utils.isExtensionValueType(maxJmlType)) {
 			boolean bi = maxJmlType.tsym == BIGINT.tsym;
 			if (bi || maxJmlType.tsym == REAL.tsym ) {// FIXME|| maxJmlType.tsym == jmltypes.repSym(REAL)) {
-				String fcn;
+				String fcn; // FIXME - should use the names in JmlPrimitiveTypes
 				switch (tag) {
 				case PLUS:
 					fcn = "add";
@@ -14311,7 +14316,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					fcn = "divide";
 					break;
 				case MOD:
-					fcn = "remainder";
+					fcn = "mod";
 					break;
 				case LT:
 					fcn = "lt";
@@ -19764,18 +19769,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							opt = o;
 					}
 				}
-				if (that.clauseType == checkClause) { // FIXME - use addCheck?
-					JCIdent id = newTemp(e, syms.booleanType);
-					e = treeutils.makeOr(e, id, e);
+                Label label = that.label;
+                if (label == null) label = Label.EXPLICIT_ASSERT;
+
+                if (that.clauseType == checkClause) {
+                    result = addCheck(that, label, e, null, null, opt);
+				} else {
+	                result = addAssert(false, that, label, e, null, null, opt);
 				}
-				Label label = that.label;
-				if (label == null)
-					label = Label.EXPLICIT_ASSERT;
-				JmlStatementExpr s = addAssert(false, that, label, e, null, null, opt);
-				if (that.clauseType == checkClause && !rac) {
-					s.clauseType = checkClause;
-				}
-				result = s;
 
 			} else if (that.clauseType == assumeClause) {
 

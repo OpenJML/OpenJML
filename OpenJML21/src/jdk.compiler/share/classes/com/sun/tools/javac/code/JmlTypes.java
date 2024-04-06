@@ -43,26 +43,6 @@ public class JmlTypes extends Types {
     /** The owning compilation context - not to be changed after construction */
     final protected Context context;
     
-    final protected Map<JmlTokenKind,JmlType> jmltypes = new HashMap<JmlTokenKind,JmlType>();
-
-    /** The singleton instance for the \TYPE JML type */
-//    final public JmlType TYPE = new JmlType(JmlTokenKind.BSTYPEUC,"org.jmlspecs.runtime.IJMLTYPE");
-//    {
-//        jmltypes.put(JmlTokenKind.BSTYPEUC, TYPE);
-//    }
-
-    /** The singleton instance for the \real JML type */
-//    final public Type REAL;
-//    {
-//        jmltypes.put(JmlTokenKind.BSREAL, REAL);
-//    }
-    
-//    /** The singleton instance for the \bigint JML type */
-//    final public JmlType BIGINT = new JmlType(JmlTokenKind.BSBIGINT,"java.math.BigInteger");
-//    {
-//        jmltypes.put(JmlTokenKind.BSBIGINT, BIGINT);
-//    }
-
     /** Returns the singleton instance of JmlTypes for this compilation context. */
     public static JmlTypes instance(Context context) {
         JmlTypes instance = (JmlTypes)context.get(typesKey);
@@ -85,61 +65,9 @@ public class JmlTypes extends Types {
      * directly; adds all function symbols for operations on JML primitive types.
      * @param context
      */
-    @SuppressWarnings("this-escape")
     protected JmlTypes(Context context) {
         super(context);
         this.context = context;
-        
-        Symtab syms = Symtab.instance(context);
-        //syms.initType(BIGINT,"\\bigint");
-        //syms.initType(TYPE,"\\TYPE");
-        //syms.initType(REAL,"\\real");
-//        REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
-        //REAL = new JmlType(JmlPrimitiveTypes.realTypeKind, "org.jmlspecs.lang.real");
-        
-        //enterBinop("==", TYPE, TYPE, syms.booleanType);
-        //enterBinop("!=", TYPE, TYPE, syms.booleanType);
-
-//        enterBinop("==", BIGINT, BIGINT, syms.booleanType);
-//        enterBinop("!=", BIGINT, BIGINT, syms.booleanType);
-//        enterBinop(">", BIGINT, BIGINT, syms.booleanType);
-//        enterBinop("<", BIGINT, BIGINT, syms.booleanType);
-//        enterBinop("<=", BIGINT, BIGINT, syms.booleanType);
-//        enterBinop(">=", BIGINT, BIGINT, syms.booleanType);
-//        
-//        enterUnop("+++", BIGINT, BIGINT); // unary plus // These operators are those used also in Symtab
-//        enterUnop("---", BIGINT, BIGINT); // unary minus
-//        enterUnop("++", BIGINT, BIGINT);
-//        enterUnop("--", BIGINT, BIGINT);
-//
-//        enterBinop("+", BIGINT, BIGINT, BIGINT);
-//        enterBinop("-", BIGINT, BIGINT, BIGINT);
-//        enterBinop("*", BIGINT, BIGINT, BIGINT);
-//        enterBinop("/", BIGINT, BIGINT, BIGINT);
-//        enterBinop("%", BIGINT, BIGINT, BIGINT);
-//        
-//        enterBinop("<<", BIGINT, BIGINT, BIGINT);
-//        enterBinop(">>", BIGINT, BIGINT, BIGINT);
-//        enterBinop(">>>", BIGINT, BIGINT, BIGINT);
-
-//        enterBinop("==", REAL, REAL, syms.booleanType);
-//        enterBinop("!=", REAL, REAL, syms.booleanType);
-//        enterBinop(">", REAL, REAL, syms.booleanType);
-//        enterBinop("<", REAL, REAL, syms.booleanType);
-//        enterBinop("<=", REAL, REAL, syms.booleanType);
-//        enterBinop(">=", REAL, REAL, syms.booleanType);
-//
-//        enterUnop("+++", REAL, REAL); // unary plus // These operators are those used also in Symtab
-//        enterUnop("---", REAL, REAL); // unary minus
-//        enterUnop("++", REAL, REAL);
-//        enterUnop("--", REAL, REAL);
-//
-//        enterBinop("+", REAL, REAL, REAL);
-//        enterBinop("-", REAL, REAL, REAL);
-//        enterBinop("*", REAL, REAL, REAL);
-//        enterBinop("/", REAL, REAL, REAL);
-//        enterBinop("%", REAL, REAL, REAL);
-        
     }
     
     /** Overrides Types.isSameType with functionality for JML primitive types. */
@@ -381,62 +309,18 @@ public class JmlTypes extends Types {
             return null;
         }
     }
-
-    
-//    /** Overrides Types.lowerBound with functionality for JML primitive types. */
-//    @Override
-//    public Type lowerBound(Type t) {
-//        if (t instanceof JmlType) return t;
-//        return super.lowerBound(t);
-//    }
-//
-//    /** Overrides Types.upperBound with functionality for JML primitive types. */
-//    @Override
-//    public Type upperBound(Type t) {
-//        if (t instanceof JmlType) return t;
-//        return super.upperBound(t);
-//    }
-    
-//    /** Returns an AST for the type representing the given JML primitive type */
-//    public JCExpression repType(DiagnosticPosition pos, JmlType t) {
-//        ClassSymbol sym = repSym(t);
-//        return JmlTree.Maker.instance(context).at(pos).Type(sym.type);
-//    }
-//    
-//    /** Returns the ClassSymbol for the RAC representation of the given JML primitive type */
-//    public ClassSymbol repSym(JmlType t) {
-//        if (t.repSym == null) {
-//            String fqName = t.fqName;
-//            t.repSym = JmlAttr.instance(context).createClass(fqName);
-//        }
-//        return t.repSym;
-//    }
     
     /** Returns true if the given type is any JML primitive type. */
     public boolean isJmlType(Type t) {
         return Utils.instance(context).isExtensionValueType(t);
     }
     
-//    /** Returns true if the given type is the representation of any JML primitive type. */
-//    public boolean isJmlRepType(Type t) {
-//        return true;
-//    }
-    
-//    /** Returns true if the given type is any JML primitive type or its representation. */
-//    public boolean isJmlTypeOrRepType(Type t) {
-//        return isJmlType(t) || isJmlRepType(t);
-//    }
-    
-//    /** Returns true if the given type is equal to target or its representation. */
-//    public boolean isJmlTypeOrRep(Type t, Type target) {
-//        return t == target ;//|| t.tsym == repSym(target); // FIXME
+
+//    /** Returns true if the given token is the token for a JML primitive type. */
+//    public boolean isJmlTypeToken(JmlTokenKind t) {
+//        return jmltypes.get(t) != null;
 //    }
 //    
-    /** Returns true if the given token is the token for a JML primitive type. */
-    public boolean isJmlTypeToken(JmlTokenKind t) {
-        return jmltypes.get(t) != null;
-    }
-    
     /** Returns true iff the type is a datagroup. A field that is a model field and thereby a data group does not qualify. */
     public boolean isOnlyDataGroup(Type t) {
         // Careful: t can be something like (@org.jmlspecs.annotation.NonNull :: org.jmlspecs.lang.JMLDataGroup)

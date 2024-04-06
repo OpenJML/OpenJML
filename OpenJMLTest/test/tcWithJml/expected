@@ -1,77 +1,65 @@
-test/tcWithJml/TCWithJml.jml:24: error: The field f in the specification matches a Java field TCWithJml.f with different modifiers: final
-    int f;   // Error - different modifiers
-        ^
-test/tcWithJml/TCWithJml.jml:32: error: The method m in the specification matches a Java method m(int,int,int,int) with different modifiers: public protected
-    protected static Object m( int i, final int j, int k, final int l);  // Error - different modifiers (3 places)
-                            ^
-test/tcWithJml/TCWithJml.jml:32: error: The parameter i has different modifiers in the .java and .jml files: final
-    protected static Object m( int i, final int j, int k, final int l);  // Error - different modifiers (3 places)
-                                   ^
-test/tcWithJml/TCWithJml.java:27: error: Associated declaration: test/tcWithJml/TCWithJml.jml:32: 
-	public static Object m(final int i, int j, int k, final int l) {
-	                                 ^
-test/tcWithJml/TCWithJml.jml:32: error: The parameter j has different modifiers in the .java and .jml files: final
-    protected static Object m( int i, final int j, int k, final int l);  // Error - different modifiers (3 places)
-                                                ^
-test/tcWithJml/TCWithJml.java:27: error: Associated declaration: test/tcWithJml/TCWithJml.jml:32: 
-	public static Object m(final int i, int j, int k, final int l) {
-	                                        ^
-test/tcWithJml/TCWithJml.jml:42: error: The method mm in the specification matches a Java method mm() with different modifiers: public protected
+test/tcWithJml/TCWithJml.jml:6: error: The method TCWithJml.mm() in the specification matches a Java method with different modifiers: public protected
     protected Object mm(); // Error - different modifiers
                      ^
-test/tcWithJml/TCWithJml.jml:12: error: A declaration may not be both non_null and nullable
-    @NonNull @Nullable  // Error - conflicting annotations
-             ^
-test/tcWithJml/TCWithJml.jml:15: error: A declaration may not be both non_null and nullable
+test/tcWithJml/TCWithJml.java:5: error: Associated declaration: test/tcWithJml/TCWithJml.jml:6:
+    public Object mm() { return null; }
+                  ^
+
+// Missing duplicate annotation line 14
+
+test/tcWithJml/TCWithJml.jml:17: error: A declaration may not be both non_null and nullable
     /*@ non_null nullable */ // Error - conflicting annotations
                  ^
-test/tcWithJml/TCWithJml.jml:18: error: This JML modifier is not allowed for a method declaration
+test/tcWithJml/TCWithJml.jml:20: error: This JML modifier is not allowed for a method declaration
     @Monitored // Error - modifier not allowed
     ^
-test/tcWithJml/TCWithJml.jml:21: error: This JML modifier is not allowed for a method declaration
+test/tcWithJml/TCWithJml.jml:23: error: This JML modifier is not allowed for a method declaration
     /*@ monitored */  // Error - modifier not allowed
         ^
-test/tcWithJml/TCWithJml.java:20: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field f1, annotation @NonNull
-	@NonNull Object f1;   // Warning - annotation ignored
-	^
-test/tcWithJml/TCWithJml.jml:26: error: A declaration may not be both non_null and nullable
-    @Nullable @NonNull Object f2;  // Error - duplicate annotations
-    ^
-test/tcWithJml/TCWithJml.jml:27: error: A declaration may not be both non_null and nullable
-    /*@ non_null nullable */ Object f2a;  // Error - duplicate annotations
-                 ^
-test/tcWithJml/TCWithJml.jml:28: error: This JML modifier is not allowed for a field declaration
+test/tcWithJml/TCWithJml.jml:26: error: The field TCWithJml.f in the specification matches a Java field with different modifiers: final
+    int f;   // Error - different modifiers
+        ^
+test/tcWithJml/TCWithJml.java:19: error: Associated declaration: test/tcWithJml/TCWithJml.jml:26:
+    final int f;
+              ^
+              
+// Missing duplicate annotation line 28, line 29
+
+test/tcWithJml/TCWithJml.jml:30: error: This JML modifier is not allowed for a field declaration
     @Pure Object f3;   // Error - annotation not allowed
     ^
-test/tcWithJml/TCWithJml.jml:29: error: This JML modifier is not allowed for a field declaration
+test/tcWithJml/TCWithJml.jml:31: error: This JML modifier is not allowed for a field declaration
     /*@ pure */ Object f3a;  // Error - annotation not allowed
         ^
-test/tcWithJml/TCWithJml.java:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter i, annotation @Nullable
-	public static Object p(@Nullable Integer i, Integer j, Integer k, @Nullable  Integer l) {  // Warning - annotation ignored
-	                       ^
-test/tcWithJml/TCWithJml.jml:36: error: A declaration may not be both non_null and nullable
-    public static Object q(@NonNull @Nullable Integer j);    // Error - duplicate annotation
-                                    ^
-test/tcWithJml/TCWithJml.jml:39: error: This JML modifier is not allowed for a formal parameter
-    public static Object r(@Pure Integer j);  // Error - annotation not allowed
-                           ^
-test/tcWithJml/TCWithJml.jml:37: error: A declaration may not be both non_null and nullable
-    public static Object qa(/*@ non_null nullable */ Integer j);   // Error - duplicate annotation
-                                         ^
-test/tcWithJml/TCWithJml.jml:40: error: This JML modifier is not allowed for a formal parameter
-    public static Object ra(/*@ pure */ Integer j);  // Error - annotation not allowed
-                                ^
-test/tcWithJml/TCWithJml.java:44: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: class AA, annotation @Pure
+test/tcWithJml/TCWithJml.jml:34: error: The method TCWithJml.m(int,int,int,int) in the specification matches a Java method with different modifiers: public protected
+    protected static Object m( int i, final int j, int k, final int l);  // Error - different modifiers (3 places)
+                            ^
+test/tcWithJml/TCWithJml.java:27: error: Associated declaration: test/tcWithJml/TCWithJml.jml:34:
+    public static Object m(final int i, int j, int k, final int l) {
+                         ^
+test/tcWithJml/TCWithJml.jml:34: error: The parameter i has different modifiers in the .java and .jml files: final
+    protected static Object m( int i, final int j, int k, final int l);  // Error - different modifiers (3 places)
+                                   ^
+test/tcWithJml/TCWithJml.java:27: error: Associated declaration: test/tcWithJml/TCWithJml.jml:34:
+    public static Object m(final int i, int j, int k, final int l) {
+                                     ^
+test/tcWithJml/TCWithJml.jml:34: error: The parameter j has different modifiers in the .java and .jml files: final
+    protected static Object m( int i, final int j, int k, final int l);  // Error - different modifiers (3 places)
+                                                ^
+test/tcWithJml/TCWithJml.java:27: error: Associated declaration: test/tcWithJml/TCWithJml.jml:34:
+    public static Object m(final int i, int j, int k, final int l) {
+                                            ^
+test/tcWithJml/TCWithJml.java:44: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: @org.jmlspecs.annotation.Pure on class AA
 @Pure
 ^
-test/tcWithJml/TCWithJml.jml:48: error: The type BB in the specification matches a Java type BB with different modifiers: final
+test/tcWithJml/TCWithJml.jml:48: error: The type BB in the specification matches a Java type with different modifiers: final
 class BB {} // Error - different modifiers
 ^
+test/tcWithJml/TCWithJml.java:47: error: Associated declaration: test/tcWithJml/TCWithJml.jml:48:
+final class BB {}
+      ^
 test/tcWithJml/TCWithJml.jml:52: error: A declaration may not be both non_null_by_default and nullable_by_default
 @NonNullByDefault @NullableByDefault class DD {}  // Error - duplicate annotations
                   ^
-test/tcWithJml/TCWithJml.jml:54: error: This JML modifier is not allowed for a type declaration
-@SpecPublic class EE {}   // Error - annotation not allowed
-^
-22 errors
-3 warnings
+18 errors
+1 warning
