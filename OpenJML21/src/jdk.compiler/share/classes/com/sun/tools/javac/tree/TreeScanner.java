@@ -418,6 +418,7 @@ public class TreeScanner extends Visitor {
     }
 
     public void visitTree(JCTree tree) {
-        Assert.error();
+        System.out.println("TreeScanner-visitTree - " + (tree == null ? "null" : tree.getClass().toString()));
+;        Assert.error();
     }
 }

@@ -7901,15 +7901,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (aa.index == null) {
 				r = M.at(aa.index).JmlRange(
 						treeutils.makeZeroEquivalentLit(aa, BIGINT),
-						treeutils.makeLengthM1(e.pos(), aa.indexed));
+						treeutils.makeLengthM1(e.pos(), aa.indexed), false);
 			} else if (!(aa.index instanceof JmlRange rr)) {
-				r = M.at(aa.index).JmlRange(aa.index, aa.index);
+				r = M.at(aa.index).JmlRange(aa.index, aa.index, false);
 			} else {
 				r = M.at(aa.index)
 						.JmlRange(
 								rr.lo != null ? rr.lo
 										: treeutils.makeZeroEquivalentLit(rr,BIGINT),
-								rr.hi != null ? rr.hi : treeutils.makeLengthM1(e.pos(), aa.indexed));
+								rr.hi != null ? rr.hi : treeutils.makeLengthM1(e.pos(), aa.indexed), false);
 			}
 			sr = M.at(e.pos).JmlStoreRef(false, null, null, aa.indexed, r, null, e);
 			list.add(sr);
@@ -8049,10 +8049,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            if (aa.index instanceof JmlRange range) {
                     var lo = convertJML(range.lo);
                     var hi = convertJML(range.hi);
-                    item =  new StoreRefGroup.Item(arr,M.at(range).JmlRange(lo, hi));
+                    item =  new StoreRefGroup.Item(arr,M.at(range).JmlRange(lo, hi, range.hiExclusive));
 	            } else {
 	                var index = convertJML(aa.index);
-                    item =  new StoreRefGroup.Item(arr,M.at(aa.index).JmlRange(index,index));
+                    item =  new StoreRefGroup.Item(arr,M.at(aa.index).JmlRange(index,index, false));
 	            }
 	        } else {
 	            // ERORR 
@@ -10391,7 +10391,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 														JCFieldAccess newloc = treeutils.makeSelect(item.pos, treeutils.makeType(item.pos,item.field.owner.type), item.field);
 														newlist.add(newloc);
 													}
-												} else if (item.range != null && item.range.lo == item.range.hi && item.range.lo != null) {
+												} else if (item.range != null && item.range.lo == item.range.hi && item.range.lo != null && item.range.hiExclusive == false) {
 													Type elemtype = jmltypes.elemtype(item.receiver.type);
 													JCIdent arrayXout = newTemp(item, item.receiver.type);
 													JCIdent loXout = newTemp(item, BIGINT);
@@ -10419,7 +10419,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 														addAssume(item, Label.IMPLICIT_ASSUME,
 																treeutils.makeEquality(item.pos, hiXout, convertJML(item.range.hi, calleeEnv)));
 
-													JCExpression range = M.at(item.pos).JmlRange(loXout, hiXout); 
+													JCExpression range = M.at(item.pos).JmlRange(loXout, hiXout, item.range.hiExclusive); 
 													range.type = JmlPrimitiveTypes.rangeTypeKind.getType(context);
 															
 													JCExpression newloc = M.at(item.pos).Indexed(arrayXout, range);
@@ -15155,7 +15155,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						JCExpression tl = convertExpr(range.lo);
 						result = eresult = M.at(that)
 								.Indexed(ta, M.at(that)
-										.JmlRange(tl, (range.lo == range.hi) ? tl : convertExpr(range.hi)).setType(rt))
+										.JmlRange(tl, 
+										        (range.lo == range.hi) ? tl : convertExpr(range.hi).setType(rt),
+										        (range.lo == range.hi) ? false : range.hiExclusive))
 								.setType(that.type);
 					}
 				} else {
@@ -17211,7 +17213,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// which would put the index back in range.
 					if (newtarget == null) {
 						var rt = rangeTypeKind.getType(context);
-						JCExpression range = M.at(target.pos).JmlRange(null, null).setType(rt);
+						JCExpression range = M.at(target.pos).JmlRange(null, null, false).setType(rt);
 						newtarget = M.at(target.pos).Indexed(aa.indexed, range).setType(target.type);
 					}
 				} else {
@@ -17264,7 +17266,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				allLocal = false;
 				if (item.type.isReference()) {
 					if (item instanceof JCArrayAccess aa && aa.index instanceof JmlRange r
-							&& !(r.lo == r.hi && r.lo != null)) {
+							&& !(r.lo == r.hi && r.lo != null && !r.hiExclusive)) {
 						// Need to iterate over elements of the range
 						addStat(comment(item,
 								"TODO: Skipping assuming invariants of all the havoced array elements: " + item,
@@ -19526,7 +19528,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	@Override
 	public void visitJmlRange(JmlRange that) {
-		result = eresult = M.at(that.pos).JmlRange(convert(that.lo), convert(that.hi)).setType(that.type);
+		result = eresult = M.at(that.pos).JmlRange(convert(that.lo), convert(that.hi), that.hiExclusive).setType(that.type);
 	}
 
 	// OK
@@ -20162,7 +20164,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (that.range.hi != null) {
 					var lhs = that.range.hi;
 					var rhs = treeutils.makeLength(that.range.hi.pos(), that.receiver);
-					JCExpression ex = treeutils.makeBinary(that.range.pos(), JCTree.Tag.LT, lhs, rhs);
+					JCExpression ex = treeutils.makeBinary(that.range.pos(), that.range.hiExclusive?JCTree.Tag.LE:JCTree.Tag.LT, lhs, rhs);
 					ex = convertExpr(ex);
 					var prev = log.useSource(that.source);
 					addAssert(that.range.hi, Label.UNDEFINED_TOOLARGEINDEX, ex);
@@ -21998,11 +22000,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     JCExpression wlo = witem.range.lo;
                                     if (wlo == null) wlo = treeutils.makeIntLiteral(pos.getPreferredPosition(), 0);
                                     JCExpression rhi = ritem.range.hi;
-                                    var e1 = (rhi != null) ? treeutils.makeBinary(pos, Tag.LE, wlo, rhi)
-                                                           : treeutils.makeBinary(pos, Tag.LT, wlo, treeutils.makeLength(pos,ritem.receiver));
+                                    var e1 = (rhi == null) ? treeutils.makeBinary(pos, Tag.LT, wlo, treeutils.makeLength(pos,ritem.receiver)) :
+                                             (ritem.range.hiExclusive) ? treeutils.makeBinary(pos, Tag.LT, wlo, rhi) : treeutils.makeBinary(pos, Tag.LE, wlo, rhi);
                                     JCExpression whi = witem.range.hi;
-                                    var e2 = (whi == null) ? treeutils.makeBinary(pos, Tag.LE, rlo, whi)
-                                                           : treeutils.makeBinary(pos, Tag.LT, rlo, treeutils.makeLength(pos,witem.receiver));
+                                    var e2 = (whi == null) ? treeutils.makeBinary(pos, Tag.LT, rlo, treeutils.makeLength(pos,witem.receiver)) :
+                                             (ritem.range.hiExclusive) ? treeutils.makeBinary(pos, Tag.LT, rlo, whi): treeutils.makeBinary(pos, Tag.LE, rlo, whi);
 	                                JCExpression overlap = treeutils.makeAnd(pos,e1,e2);
 	                                yield treeutils.makeAnd(pos, sameArray, overlap);
 	                            }
@@ -22235,6 +22237,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						isSmallerConverted ? range.lo : convertJML(range.lo));
 				var e3 = treeutils.makeBinary(pos, JCTree.Tag.LE, isSmallerConverted ? range.hi : convertJML(range.hi),
 						convertJML(sr.range.hi, targetEnv));
+				// FIXME - not correct if sr.hiExclusive != range.hiExclusive
 				return treeutils.makeAnd(pos, e1, treeutils.makeAnd(pos, e2, e3));
 			} else if (sr.field != null) {
 				//System.out.println("CARR " + receiver + " " + range + " " + sr + " : " + sr.modelFieldContents);

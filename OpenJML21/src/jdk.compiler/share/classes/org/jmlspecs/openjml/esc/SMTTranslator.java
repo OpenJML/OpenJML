@@ -3155,7 +3155,9 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override public void visitJmlSetComprehension(JmlSetComprehension that)   { notImpl(that); }
     @Override public void visitJmlSingleton(JmlSingleton that)                 { notImpl(that); }
     @Override public void visitJmlRange(JmlRange that) { 
-    	result = F.fcn(F.symbol(rangefcn), convertExpr(that.lo), convertExpr(that.hi));
+        var hi = convertExpr(that.hi);
+        if (that.hiExclusive) hi = F.fcn(F.symbol("-"), hi, F.numeral(1));
+    	result = F.fcn(F.symbol(rangefcn), convertExpr(that.lo), hi);
     }
 
     @Override public void visitLetExpr(LetExpr that) { 

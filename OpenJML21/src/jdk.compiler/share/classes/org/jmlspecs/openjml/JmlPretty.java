@@ -562,7 +562,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     		if (that.lo == null && that.hi == null) print("*");
     		else  {
     			if (that.lo != null) printExpr(that.lo);
-    			print(" .. ");
+    			print(that.hiExclusive?" : ":" .. ");
     			if (that.hi != null) printExpr(that.hi);
     		}
     	} catch (IOException e) { perr(that,e); }

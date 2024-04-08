@@ -372,6 +372,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     	JmlRange r = that;
     	r.lo = translate(that.lo);
     	r.hi = translate(that.hi);
+    	r.hiExclusive = that.hiExclusive;
     	result = r;
     }
 

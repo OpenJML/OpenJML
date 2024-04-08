@@ -2192,7 +2192,7 @@ public class JmlParser extends JavacParser {
                 nextToken();
                 if (token.kind == RBRACKET) {
                     nextToken();
-                    t = toP(jmlF.at(t.pos).Indexed(t, jmlF.at(t.pos).JmlRange(null,null)));
+                    t = toP(jmlF.at(t.pos).Indexed(t, jmlF.at(t.pos).JmlRange(null,null,false)));
                     continue;
                 } else {
                     utils.error(pos(), endPos(), "jml.expected.rbracket.star");
@@ -2481,21 +2481,23 @@ public class JmlParser extends JavacParser {
     @Override
     protected JCExpression term1() {
     	JCExpression t;
-    	if (inExprMode() && jmlTokenKind() == JmlTokenKind.DOT_DOT) {
+    	if (inExprMode() && (jmlTokenClauseKind() == dotdotKind || token.kind == TokenKind.COLON)) {
         	t = null;
         	nextToken();
     	} else if (inExprMode() && token.kind == TokenKind.STAR) {
     		t = null;
         	int dotpos = pos();
         	nextToken();
-        	if (jmlTokenKind() != JmlTokenKind.DOT_DOT) {
+        	if (!(jmlTokenClauseKind() == dotdotKind || token.kind == TokenKind.COLON)) {
+        	    boolean excl = token.kind == TokenKind.COLON;
         		JmlPrimitiveTypes.rangeTypeKind.parse(null, null,JmlPrimitiveTypes.rangeTypeKind, this);
-        		return jmlF.at(dotpos).JmlRange(null,null);
+        		return jmlF.at(dotpos).JmlRange(null,null, excl);
         	}
         } else {
             t = term1Cond();
         }
-        if (inExprMode() && jmlTokenKind() == JmlTokenKind.DOT_DOT) {
+        if (inExprMode() && (jmlTokenClauseKind() == dotdotKind || token.kind == TokenKind.COLON)) {
+            boolean excl = token.kind == TokenKind.COLON;
         	int dotpos = pos();
         	nextToken();
         	JCExpression tt;
@@ -2511,7 +2513,7 @@ public class JmlParser extends JavacParser {
         	    tt = term1Cond();
         	}
         	JmlPrimitiveTypes.rangeTypeKind.parse(null, null, JmlPrimitiveTypes.rangeTypeKind, this);
-        	return jmlF.at(dotpos).JmlRange(t,tt);
+        	return jmlF.at(dotpos).JmlRange(t,tt,excl);
         } else {
             return t;
         }

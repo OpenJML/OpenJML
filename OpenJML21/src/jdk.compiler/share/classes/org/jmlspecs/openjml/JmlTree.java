@@ -138,7 +138,7 @@ public class JmlTree {
         JmlModelProgramStatement JmlModelProgramStatement(JCTree item);
         JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt, IJmlClauseKind kind, Name id);
         JmlQuantifiedExpr JmlQuantifiedExpr(IJmlClauseKind kind, List<JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression predicate);
-        JmlRange JmlRange(JCExpression lo, JCExpression hi);
+        JmlRange JmlRange(JCExpression lo, JCExpression hi, boolean exclusive);
         JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate);
         JmlSingleton JmlSingleton(IJmlClauseKind jt);
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, IJmlClauseKind t, IJmlClauseKind also, List<JmlMethodClause> clauses, JCBlock block);
@@ -472,8 +472,8 @@ public class JmlTree {
         }
 
         @Override
-        public JmlRange JmlRange(JCExpression lo, JCExpression hi) {
-        	return new JmlRange(pos, lo, hi);
+        public JmlRange JmlRange(JCExpression lo, JCExpression hi, boolean exclusive) {
+        	return new JmlRange(pos, lo, hi, exclusive);
         }
         
         /** Creates JML expressions from tokens without arguments (e.g. \result)*/
@@ -3008,10 +3008,11 @@ public class JmlTree {
     	public /*@ nullable */ JCExpression hi;
     	public boolean hiExclusive = false;
     	
-    	protected JmlRange(int pos, JCExpression lo, JCExpression hi) {
+    	protected JmlRange(int pos, JCExpression lo, JCExpression hi, boolean exclusive) {
     		this.pos = pos;
     		this.lo = lo;
     		this.hi = hi;
+    		this.hiExclusive = exclusive;
     	}
     	
         @Override

@@ -4254,16 +4254,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (aa.index == null) {
                     r = jmlMaker.at(aa.index).JmlRange(
                         treeutils.makeZeroEquivalentLit(aa, JmlPrimitiveTypes.bigintTypeKind.getType(context)),
-                        treeutils.makeLengthM1(e.pos(), aa.indexed));
+                        treeutils.makeLength(e.pos(), aa.indexed), true);
                 } else if (!(aa.index instanceof JmlRange rr)) {
-                    r = jmlMaker.at(aa.index).JmlRange(aa.index, aa.index);
+                    r = jmlMaker.at(aa.index).JmlRange(aa.index, aa.index, false);
                 } else {
-                    r = jmlMaker.at(aa.index)
-                                            .JmlRange(
-                                                rr.lo != null ? rr.lo
-                                                    : treeutils.makeZeroEquivalentLit(rr,
+                    r = jmlMaker.at(aa.index).JmlRange(
+                           rr.lo != null ? rr.lo : treeutils.makeZeroEquivalentLit(rr,
                                                             JmlPrimitiveTypes.bigintTypeKind.getType(context)),
-                                                    rr.hi != null ? rr.hi : treeutils.makeLengthM1(e.pos(), aa.indexed));
+                           rr.hi != null ? rr.hi : treeutils.makeLength(e.pos(), aa.indexed),
+                           rr.hi != null ? rr.hiExclusive : true);
                 }
                 that.receiver = aa.indexed;
                 that.range = r;

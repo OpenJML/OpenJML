@@ -1283,7 +1283,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             JCExpression ex = aa.indexed;
             JCExpression index = aa.index;
             Type indexType = aa.indexed.type instanceof Type.ArrayType ? syms.intType : BIGINT;
-            if (!(index instanceof JmlRange range) || (range.lo == range.hi && range.lo != null)) {
+            if (!(index instanceof JmlRange range) || (range.lo == range.hi && range.lo != null && !range.hiExclusive)) {
             	// Single index -- FIXME - don't know about * in  indexed
             	JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
             	if (index instanceof JmlRange r) index = r.lo;
@@ -1356,7 +1356,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             		if (range.hi != null) {
             			scan(range.hi);
             			JCExpression hi = result;
-            			comp = treeutils.makeOr(p, comp, treeutils.makeBinary(p,JCTree.Tag.LT,treeutils.intltSymbol,hi,ind));
+            			comp = treeutils.makeOr(p, comp, 
+            			        treeutils.makeBinary(p,range.hiExclusive?JCTree.Tag.LE:JCTree.Tag.LT,treeutils.intltSymbol,hi,ind));
             		}
 
             		// FIXME - set line and source

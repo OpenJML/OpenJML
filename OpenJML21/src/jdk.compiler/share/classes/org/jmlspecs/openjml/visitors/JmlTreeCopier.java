@@ -549,10 +549,9 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlRange(JmlRange that, Void p) {
-        JmlRange r = M.JmlRange(copy(that.lo), copy(that.hi));
+        JmlRange r = M.JmlRange(copy(that.lo), copy(that.hi), that.hiExclusive);
         r.pos = that.pos;
         r.type = that.type;
-        r.hiExclusive = that.hiExclusive;
         return r;
     }
 
