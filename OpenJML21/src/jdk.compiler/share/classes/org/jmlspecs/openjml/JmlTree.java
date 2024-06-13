@@ -28,6 +28,7 @@ import static org.jmlspecs.openjml.ext.TypeDeclClauseExtension.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.MethodExprListClauseExtensions.*;
 
+import com.google.gson.annotations.Expose;
 import com.sun.source.tree.*;
 import static com.sun.source.tree.CaseTree.*;
 import com.sun.tools.javac.code.JmlType;
@@ -1116,6 +1117,7 @@ public class JmlTree {
         
     public static class JmlImport extends JCTree.JCImport {
 
+        @Expose
         public boolean isModel = false;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */

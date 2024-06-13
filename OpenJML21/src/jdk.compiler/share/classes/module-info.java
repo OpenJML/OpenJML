@@ -219,6 +219,7 @@ module jdk.compiler {
     requires transitive java.compiler;
     requires jdk.internal.opt;
     requires jdk.zipfs;
+    requires java.sql;
 
     exports com.sun.source.doctree;
     exports com.sun.source.tree;

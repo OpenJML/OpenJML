@@ -8,6 +8,7 @@ package com.sun.tools.javac.main;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 import static com.sun.tools.javac.main.Option.PROC;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.HashMap;
@@ -77,6 +78,11 @@ import com.sun.tools.javac.util.Pair;
 import com.sun.tools.javac.util.PropagatedException;
 
 import static com.sun.tools.javac.parser.Tokens.*;
+
+import com.google.gson.*;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 
 /**
  * This class extends the JavaCompiler class in order to find and parse
@@ -205,14 +211,35 @@ public class JmlCompiler extends JavaCompiler {
     
     @Override
     public List<JCCompilationUnit> parseFiles(Iterable<JavaFileObject> fileObjects) {
-    	try {
-    		return super.parseFiles(fileObjects);
-    	} catch (AssertionError e) {
-    		// Some parse errors cause an AssertionError. This catches it and converts it to 
-    		// the empty list, which is the usual way to communicate that the chain of compiler phases
-    		// is to be aborted.
-        	return List.<JCCompilationUnit>nil();
-    	}
+        try {
+            var compunits = super.parseFiles(fileObjects);
+            if (JmlOptions.instance(context).isSet(JmlOption.SHOW)) {
+                String ss = JmlOption.value(context, JmlOption.SHOW);
+                if (ss.contains("ast")) {
+                    for (var cu: compunits) {
+                        System.out.println(JmlAstPrinter.print(cu, context));
+//                        if (specCU != null) {
+//                            System.out.println(JmlAstPrinter.print(specCU, context));
+//                        }
+                    }
+                }
+
+                if (ss.startsWith("json")) {
+                    var json = new org.jmlspecs.openjml.JmlJson(context);
+                    for (var cu: compunits) {
+                        System.out.println("JSON FOR " + cu.sourcefile);
+                        System.out.println(json.toJson(cu));
+                    }
+                }
+
+            }
+            return compunits;
+        } catch (AssertionError e) {
+            // Some parse errors cause an AssertionError. This catches it and converts it to 
+            // the empty list, which is the usual way to communicate that the chain of compiler phases
+            // is to be aborted.
+            return List.<JCCompilationUnit>nil();
+        }
     }
  
     public JCTree.JCCompilationUnit parse(JavaFileObject filename) {
@@ -349,6 +376,19 @@ public class JmlCompiler extends JavaCompiler {
 //        		results.append(env);
 //        	}
 //        }
+
+        if (JmlOptions.instance(context).isSet(JmlOption.SHOW)) {
+            String ss = JmlOption.value(context, JmlOption.SHOW);
+            if (ss.contains("typedjson")) {
+                var json = new org.jmlspecs.openjml.JmlJson(context);
+                for (var env: results) {
+                    var cu = (JmlClassDecl)env.tree;
+                    System.out.println("JSON FOR " + cu.sourcefile);
+                    System.out.println(json.toJson(cu));
+                }
+            }
+
+        }
 
         return stopIfError(CompileState.ATTR, results);
     }
