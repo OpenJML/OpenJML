@@ -4,7 +4,7 @@ mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfile_dir := $(dir $(mkfile_path))
 
 ROOT=${mkfile_dir}
-D=OPENJML21
+D=OpenJML21
 
 ### The following is the OpenJML tests
 
@@ -49,7 +49,7 @@ unittests-seq:
 	@ . $(ROOT)unittests/runseq
 			
 unittests-par:
-	( cd ${ROOT}/unittests; source ./runall  )
+	( cd ${ROOT}/unittests; source ./runall | tee log-unittests | sort  )
 
 scripttests: .FORCE
 	( cd ${ROOT}/scripttests; ./escfiles-sort)

@@ -67,6 +67,6 @@ wt
 
 while [ $(lsc) -gt "0" ]; do
   ##echo still running: `lst`
-  sleep r230
+  sleep 30
 done
 echo Completed
