@@ -22,6 +22,7 @@ import java.io.IOException;
  *  Generate output Json text using <code>new JmlJson(context).toJson(tree)</code>.
  */
 // TODO:
+// - fix serialization of flags
 // - output only command-line files (or give a choice)
 // - documentation of --show
 // - all the rest of the adapters
