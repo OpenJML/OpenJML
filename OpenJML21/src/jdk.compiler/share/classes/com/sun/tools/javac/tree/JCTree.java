@@ -33,7 +33,6 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.type.TypeKind;
 import javax.tools.JavaFileObject;
 
-import com.google.gson.annotations.Expose;
 import com.sun.source.tree.*;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Directive.RequiresDirective;
@@ -524,7 +523,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
      */
     public static class JCCompilationUnit extends JCTree implements CompilationUnitTree {
         /** All definitions in this file (ClassDef, Import, and Skip) */
-        @Expose public List<JCTree> defs;
+        public List<JCTree> defs;
         /** The source file name. */
         public JavaFileObject sourcefile;
         /** The module to which this compilation unit belongs. */
@@ -670,10 +669,8 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
      * An import clause.
      */
     public static class JCImport extends JCTree implements ImportTree {
-        @Expose
         public boolean staticImport;
         /** The imported class(es). */
-        @Expose
         public JCFieldAccess qualid;
         public com.sun.tools.javac.code.Scope importScope;
         protected JCImport(JCFieldAccess qualid, boolean importStatic) {
@@ -780,25 +777,18 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
      */
     public static class JCClassDecl extends JCStatement implements ClassTree {
         /** the modifiers */
-        @Expose
         public JCModifiers mods;
         /** the name of the class */
-        @Expose
         public Name name;
         /** formal class parameters */
-        @Expose
         public List<JCTypeParameter> typarams;
         /** the classes this class extends */
-        @Expose
         public JCExpression extending;
         /** the interfaces implemented by this class */
-        @Expose
         public List<JCExpression> implementing;
         /** the subclasses allowed to extend this class, if sealed */
-        @Expose
         public List<JCExpression> permitting;
         /** all variables and methods defined in this class */
-        @Expose
         public List<JCTree> defs;
         /** the symbol */
         public ClassSymbol sym;
@@ -876,31 +866,22 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
      */
     public static class JCMethodDecl extends JCTree implements MethodTree {
         /** method modifiers */
-        @Expose
         public JCModifiers mods;
         /** method name */
-        @Expose
         public Name name;
         /** type of method return value */
-        @Expose
         public JCExpression restype;
         /** type parameters */
-        @Expose
         public List<JCTypeParameter> typarams;
         /** receiver parameter */
-        @Expose
         public JCVariableDecl recvparam;
         /** value parameters */
-        @Expose
         public List<JCVariableDecl> params;
         /** exceptions thrown by this method */
-        @Expose
         public List<JCExpression> thrown;
         /** statements in the method */
-        @Expose
         public JCBlock body;
         /** default value, for annotation types */
-        @Expose
         public JCExpression defaultValue;
         /** method symbol */
         public MethodSymbol sym;
@@ -978,18 +959,14 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
      */
     public static class JCVariableDecl extends JCStatement implements VariableTree {
         /** variable modifiers */
-        @Expose
         public JCModifiers mods;
         /** variable name */
-        @Expose
         public Name name;
         /** variable name expression */
         public JCExpression nameexpr;
         /** type of the variable */
-        @Expose
         public JCExpression vartype;
         /** variable's initial value */
-        @Expose
         public JCExpression init;
         /** symbol */
         public VarSymbol sym;
@@ -2755,9 +2732,9 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
      * A constant value given literally.
      */
     public static class JCLiteral extends JCExpression implements LiteralTree {
-        @Expose public TypeTag typetag;
+        public TypeTag typetag;
         /** value representation */
-        @Expose public Object value;
+        public Object value;
         protected JCLiteral(TypeTag typetag, Object value) {
             this.typetag = typetag;
             this.value = value;
@@ -3081,9 +3058,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
     }
 
     public static class JCModifiers extends JCTree implements com.sun.source.tree.ModifiersTree {
-        @Expose
         public long flags;
-        @Expose
         public List<JCAnnotation> annotations;
         protected JCModifiers(long flags, List<JCAnnotation> annotations) {
             this.flags = flags;

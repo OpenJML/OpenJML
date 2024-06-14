@@ -1117,7 +1117,6 @@ public class JmlTree {
         
     public static class JmlImport extends JCTree.JCImport {
 
-        @Expose
         public boolean isModel = false;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */

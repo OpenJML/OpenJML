@@ -227,7 +227,7 @@ public class JmlCompiler extends JavaCompiler {
                 if (ss.startsWith("json")) {
                     var json = new org.jmlspecs.openjml.JmlJson(context);
                     for (var cu: compunits) {
-                        System.out.println("JSON FOR " + cu.sourcefile);
+                        //System.out.println("JSON FOR " + cu.sourcefile);
                         System.out.println(json.toJson(cu));
                     }
                 }
