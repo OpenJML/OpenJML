@@ -1,11 +1,13 @@
 package org.jmlspecs.openjml;
 
+import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.comp.Env;
 
 import com.sun.tools.javac.tree.JCTree;
 import static com.sun.tools.javac.tree.JCTree.*;
+import org.jmlspecs.openjml.JmlTree;
+import static org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Name;
@@ -20,9 +22,25 @@ import java.io.IOException;
  *  with type information.
  *  <p>
  *  Generate output Json text using <code>new JmlJson(context).toJson(tree)</code>.
+ *  <p>
+ *  OpenJDK/OpenJML AST classes contain the information provided by parsing, but also other derived information, such as types
+ *  and symbols, and also references to containers, so that the AST has circular references within the derived information.
+ *  Also, symbol and type information refers to entities in an internal compilation context. Thus it is not possible to simple use
+ *  a default translation to JSON that finds, by reflection, and serializes all fields within an AST class. With Gson, there are
+ *  two possibilities:
+ *  <p>
+ *  A) Mark all fields that are to be written to JSON with @Expose. This permits choosing just the parsed fields, but does not allow 
+ *  customizing the output to include, for example, the AST class being translated. It also requires adding annotations to OpenJDK classes.
+ *  <P>
+ *  B) Write a custom serializer for each of the AST classes and leaf properties (such as literal values and names). This permits 
+ *  customization as needed. This is the design chosen here. 
+ *  <p>
+ *  In either case, custom deserializers must be written, if any such are ever needed.
  */
 // TODO:
-// - fix serialization of flags
+// - change unnecessary unicode to ASCII
+// - fix serializing of Name
+// - destination of output files
 // - output only command-line files (or give a choice)
 // - documentation of --show
 // - all the rest of the adapters
@@ -47,29 +65,13 @@ public class JmlJson {
         this.names = Names.instance(context);
         
         this.builder = new GsonBuilder();
-        builder.registerTypeAdapter(Name.class, new NameAdapter());
-        builder.registerTypeAdapter(Type.class, new PTypeAdapter());
-        builder.registerTypeAdapter(Symbol.class, new SymbolAdapter());
-        builder.registerTypeAdapter(Symbol.PackageSymbol.class, new SymbolAdapter());
-        builder.registerTypeAdapter(com.sun.tools.javac.util.Names.class, new NamesAdapter());
-        builder.registerTypeAdapter(com.sun.tools.javac.util.JavacMessages.class, new JavacMessagesAdapter());
-        builder.registerTypeAdapter(Type.JCVoidType.class, new JCVoidTypeAdapter());
-        builder.registerTypeAdapter(JCAnnotation.class, new JCAnnotationAdapter());
-        builder.registerTypeAdapter(Env.class, new EnvAdapter());
-        builder.registerTypeAdapter(JCPackageDecl.class, new JCPackageDeclAdapter());
-
-//        builder.registerTypeAdapter(JCBinary.class, new JCBinaryAdapter());
-//        builder.registerTypeAdapter(JCConditional.class, new JCConditionalAdapter());
-//        builder.registerTypeAdapter(JCLiteral.class, new JCLiteralAdapter());
-//        builder.registerTypeAdapter(JCParens.class, new JCParensAdapter());
-//        builder.registerTypeAdapter(JCUnary.class, new JCUnaryAdapter());
-       // builder.registerTypeAdapter(JmlCompilationUnit.class, new JmlCompilationUnitAdapter());
+        builder.registerTypeAdapter(Name.class, this.new NameAdapter());
+        builder.registerTypeAdapter(Type.class, this.new PTypeAdapter());
         
         var prefix = "com.sun.tools.javac.tree.JCTree$";
+        var prefixjml = "org.jmlspecs.openjml.JmlTree$";
         var suffix = "Adapter".length();
-        var constructors = JCBinaryAdapter.class.getDeclaredConstructors();
-        for (var constructor : constructors)
-            System.out.println("PARAMS " + java.util.Arrays.toString(constructor.getParameterTypes()));
+
         for (Class<?> nestedClass : JmlJson.class.getDeclaredClasses()) {
             var adapter = nestedClass.toString();
             var astclass = adapter.substring(adapter.indexOf('$')+1, adapter.length()-suffix);
@@ -77,14 +79,31 @@ public class JmlJson {
                 // FIXME - need to get constructor for inner class, and call with outer object
                 var cons = nestedClass.getDeclaredConstructors()[0];
                 var adap = cons.newInstance(this);
-                builder.registerTypeAdapter(Class.forName(prefix + astclass), adap);
-                System.out.println((prefix + astclass) + " " + adapter);
+                Class<?> cl = null;
+                try {
+                    cl = Class.forName(prefix + astclass);
+                } catch (ClassNotFoundException e) {
+                }
+                if (cl == null) try {
+                    cl = Class.forName(prefixjml + astclass);
+                } catch (ClassNotFoundException e) {
+                }
+                if (cl == null) try {
+                    cl = Class.forName("com.sun.tools.javac.util." + astclass);
+                } catch (ClassNotFoundException e) {
+                }
+                if (cl != null) {
+                    builder.registerTypeAdapter(cl, adap);
+//                  System.out.println("OK " + cl.toString() + " " + adapter);
+                } else {
+                    if (astclass.equals("PType")) continue;
+                  System.out.println("FAILURE " + astclass + " " + adapter);
+                }
             } catch (Exception e) {
-                System.out.println("FAILURE " + e);
-                System.out.println((prefix + astclass) + " " + adapter);
+                System.out.println("FAILURE " + astclass + " " + adapter + " " + e);
             }
         }
-        this.gson = builder.excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
+        this.gson = builder.setPrettyPrinting().create();
     }
     
     private JsonObject newgson(JCTree tree) {
@@ -104,6 +123,51 @@ public class JmlJson {
     private JsonElement str(String s) {
         return new JsonPrimitive(s);
     }
+    
+    private JsonElement name(Name n) { // FIXME - why can't we use context.serialize(n) for names
+        return str(n.toString());
+    }
+    
+    /***************************************************/
+
+    // TODO: JCAnnotatedType
+    // TODO: JmlAnnotation
+    // TODO: JCAnyPattern
+    // TODO: JCArrayAccess
+    // TODO: JCArrayTypeTree
+    
+    class JCAssertAdapter implements JsonSerializer<JCAssert> {
+        @Override
+        public JsonElement serialize(JCAssert src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("cond", context.serialize(src.cond));
+            obj.add("detail", context.serialize(src.detail));
+            return obj;
+        }
+    }
+
+    class JCAssignAdapter implements JsonSerializer<JCAssign> {
+        @Override
+        public JsonElement serialize(JCAssign src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("lhs", context.serialize(src.lhs));
+            obj.add("rhs", context.serialize(src.rhs));
+            return obj;
+        }
+    }
+
+    class JCAssignOpAdapter implements JsonSerializer<JCAssignOp> {
+        @Override
+        public JsonElement serialize(JCAssignOp src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("lhs", context.serialize(src.lhs));
+            obj.add("opcode", str(src.getTag()));
+            obj.add("rhs", context.serialize(src.rhs));
+            return obj;
+        }
+    }
+
+    // TODO?: JMLBB?
 
     class JCBinaryAdapter implements JsonSerializer<JCBinary> {
         @Override
@@ -116,6 +180,71 @@ public class JmlJson {
         }
     }
 
+    class JmlBinaryAdapter implements JsonSerializer<JmlBinary> {
+        @Override
+        public JsonElement serialize(JmlBinary src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("lhs", context.serialize(src.lhs));
+            obj.add("op", str(src.op));
+            obj.add("rhs", context.serialize(src.rhs));
+            return obj;
+        }
+    }
+    
+    // TODO: JCBindingPattern
+
+    class JmlBlockAdapter implements JsonSerializer<JmlBlock> {
+        @Override
+        public JsonElement serialize(JmlBlock src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("flags", str(Flags.toString(src.flags)));
+            obj.add("stats", context.serialize(src.stats));
+            return obj;
+        }
+    }
+    
+    class JCBreakAdapter implements JsonSerializer<JCBreak> {
+        @Override
+        public JsonElement serialize(JCBreak src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("label", name(src.label));
+            return obj;
+        }
+    }
+    
+
+    // TODO: JmlCase
+    // TODO: JCCaseLabel
+    // TODO: JCCatch
+    // TODO: JmlChained
+    // TODO: JmlChoose
+
+    class JmlClassDeclAdapter implements JsonSerializer<JmlClassDecl> {
+        @Override
+        public JsonElement serialize(JmlClassDecl src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("mods", context.serialize(src.mods));
+            obj.add("name", name(src.name));
+            obj.add("typarams", context.serialize(src.typarams));
+            obj.add("extending", context.serialize(src.extending));
+            obj.add("implementing", context.serialize(src.implementing));
+            obj.add("permitting", context.serialize(src.permitting));
+            obj.add("defs", context.serialize(src.defs));
+            return obj;
+        }
+    }
+
+    class JmlCompilationUnitAdapter implements JsonSerializer<JmlCompilationUnit> {
+        @Override
+        public JsonElement serialize(JmlCompilationUnit src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("sourcefile", str(src.sourcefile.getName()));
+            obj.add("pid", context.serialize(src.pid));
+            obj.add("defs", context.serialize(src.defs));
+            return obj;
+        }
+    }
+    
     class JCConditionalAdapter implements JsonSerializer<JCConditional> {
         @Override
         public JsonElement serialize(JCConditional src, java.lang.reflect.Type type, JsonSerializationContext context) {
@@ -126,13 +255,155 @@ public class JmlJson {
             return obj;
         }
     }
+    
+    // TODO: JCConstantCaseLabel
 
+    class JCContinueAdapter implements JsonSerializer<JCContinue> {
+        @Override
+        public JsonElement serialize(JCContinue src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("label", name(src.label));
+            return obj;
+        }
+    }
+    
+    // TODO: JCDefaultCaselabel
+    // abstract - JCDirective
+    // TODO: JmlDoWhileLoop
+    // TODO: JmlEnhancedForLoop
+    // TODO: JCErroneous
+    // TODO: JCExports
+    // abstract - JCExpression
+
+    class JCExpressionStatementAdapter implements JsonSerializer<JCExpressionStatement> {
+        @Override
+        public JsonElement serialize(JCExpressionStatement src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("expr", context.serialize(src.expr));
+            return obj;
+        }
+    }
+
+    class JCFieldAccessAdapter implements JsonSerializer<JCFieldAccess> {
+        @Override
+        public JsonElement serialize(JCFieldAccess src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("selected", context.serialize(src.selected));
+            obj.add("name", name(src.name));
+            return obj;
+        }
+    }
+    
+    // TODO: JmlForLoop
+    // TODO: JCFunctionalExpression
+    // TODO: JmlGroupName
+    
+    class JCIdentAdapter implements JsonSerializer<JCIdent> {
+        @Override
+        public JsonElement serialize(JCIdent src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("name", name(src.name));
+            return obj;
+        }
+    }
+    
+    class JmlIfStatementAdapter implements JsonSerializer<JmlIfStatement> {
+        @Override
+        public JsonElement serialize(JmlIfStatement src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("cond", context.serialize(src.cond));
+            obj.add("thenpart", context.serialize(src.thenpart));
+            obj.add("elsepart", context.serialize(src.elsepart));
+            return obj;
+        }
+    }
+
+    class JmlImportAdapter implements JsonSerializer<JmlImport> {
+        @Override
+        public JsonElement serialize(JmlImport src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("qualid", context.serialize(src.qualid));
+            obj.add("staticImport", context.serialize(src.staticImport));
+            obj.add("isModel", context.serialize(src.isModel));
+            return obj;
+        }
+    }
+    
+    // TODO: JmlInlinedLoop
+    // TODO: JCInstanceOf
+    // TODO: JmlLabeledStatement
+    // TODO: JmlLambda
+    // TODO: JmlLblExpression
+    // TODO: JmlLetExpr
+    
     class JCLiteralAdapter implements JsonSerializer<JCLiteral> {
         @Override
         public JsonElement serialize(JCLiteral src, java.lang.reflect.Type type, JsonSerializationContext context) {
             var obj = newgson(src);
             obj.add("typetag", str(src.typetag));
             obj.add("value", str(src.value));
+            return obj;
+        }
+    }
+    
+    // TODO: JmlMatchExpression
+    // TODO: JCMemberReference
+    // TODO: JmlMethodClauseBehaviors
+    // TODO: JmlMethodClauseCallable
+    // TODO: JmlMethodClauseConditional
+    // TODO: JmlMethodClauseDecl
+    // TODO: JmlMethodClauseExpr
+    // TODO: JmlMethodClauseGroup
+    // TODO: JmlMethodClauseInvariants
+    // TODO: JmlMethodClauseSignals
+    // TODO: JmlMethodClauseSignalsOnly
+    // TODO: JmlMethodClauseStoreRef
+
+    class JmlMethodDeclAdapter implements JsonSerializer<JmlMethodDecl> {
+        @Override
+        public JsonElement serialize(JmlMethodDecl src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("mods", context.serialize(src.mods));
+            obj.add("name", name(src.name));
+            obj.add("restype", context.serialize(src.restype));
+            obj.add("typarams", context.serialize(src.typarams));
+            obj.add("recvparam", context.serialize(src.recvparam));
+            obj.add("params", context.serialize(src.params));
+            obj.add("thrown", context.serialize(src.thrown));
+            obj.add("body", context.serialize(src.body));
+            obj.add("defaultValue", context.serialize(src.defaultValue));
+            return obj;
+        }
+    }
+    
+    // TODO: JmlMethodInvocation
+    // TODO: JmlMethodSig
+    // TODO: JmlMethodSpecs
+    // TODO: JmlModelProgramStatement
+
+    class JmlModifiersAdapter implements JsonSerializer<JmlModifiers> {
+        @Override
+        public JsonElement serialize(JmlModifiers src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("annotations", context.serialize(src.annotations));
+            obj.add("flags", str(Flags.toString(src.flags)));
+            obj.add("jmlmods", context.serialize(src.jmlmods));
+            return obj;
+        }
+    }
+    
+    // TODO: JCModuleDecl
+    // TODO: JCNewArray
+    // TODO: JmlNewClass
+    // TODO: JCOpens
+    // abstract - JCOperatorExpression
+    
+    class JCPackageDeclAdapter implements JsonSerializer<JCPackageDecl> {
+        @Override
+        public JsonElement serialize(JCPackageDecl src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("annotations", context.serialize(src.annotations));
+            obj.add("pid", context.serialize(src.pid));
             return obj;
         }
     }
@@ -145,6 +416,74 @@ public class JmlJson {
             return obj;
         }
     }
+    
+    // abstract JCPattern
+    // TODO: JCPatternCaseLabel
+    // TODO: JCPolyExpression
+
+    class JmlPrimitiveTypeTreeAdapter implements JsonSerializer<JmlPrimitiveTypeTree> {
+        @Override
+        public JsonElement serialize(JmlPrimitiveTypeTree src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            return str(src);
+        }
+    }
+    
+    // TODO: JCProvides
+    // TODO: JmlQuantifiedExpr
+    // TODO: JmlRange
+    // TODO: JCRecordPattern
+    // TODO: JCRequires
+    // TODO: JCReturn
+    // TODO: JmlSetComprehension
+    // TODO: JmlSingleton
+    // TODO: JCSkip
+    // TODO: JmlSpecificationCase
+    // abstract - JCStatement
+    // TODO: JmlStatementDecls
+    
+    class JmlStatementExprAdapter implements JsonSerializer<JmlStatementExpr> {
+        @Override
+        public JsonElement serialize(JmlStatementExpr src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("keyword", str(src.keyword));
+            obj.add("expression", context.serialize(src.expression));
+            obj.add("optionalExpression", context.serialize(src.optionalExpression));
+            return obj;
+        }
+    }
+    
+
+    // TODO: JmlStatementHavoc
+    // TODO: JmlStatementLoop
+    // TODO: JmlStatementLoopExpr
+    // TODO: JmlStatementLoopModifies
+    // TODO: JmlStatementShow
+    // TODO: JmlStatementSpec
+    // TODO: JmlStoreRef
+    // TODO: JmlStoreRefArrayRange
+    // TODO: JmlStoreRefKeyword
+    // TODO: JmlStoreRefListExpression
+    // TODO: JCStringTemplate
+    // TODO: JmlSwitchStatement
+    // TODO: JCSwitchExpression
+    // TODO: JCSynchronized
+    // TODO: JCThrow
+    // TODO: JCTry
+    // TODO: JmlTuple
+    // TODO: JCTypeApply
+    // TODO: JCTypeCast
+    // TODO: JmlTypeClauseConditional
+    // TODO: JmlTypeClauseConstraint
+    // TODO: JmlTypeClauseDecl
+    // TODO: JmlTypeClauseExpr
+    // TODO: JmlTypeClauseIn
+    // TODO: JmlTypeClauseInitializer
+    // TODO: JmlTypeClauseMaps
+    // TODO: JmlTypeClauseMonitorsFor
+    // TODO: JmlTypeClauseRepresents
+    // TODO: JCTypeIntersection
+    // TODO: JCTypeParameter
+    // TODO: JCTypeUnion
 
     class JCUnaryAdapter implements JsonSerializer<JCUnary> {
         @Override
@@ -155,6 +494,26 @@ public class JmlJson {
             return obj;
         }
     }
+    
+    // TODO: JCUses
+    
+    class JmlVariableDeclAdapter implements JsonSerializer<JmlVariableDecl> {
+        @Override
+        public JsonElement serialize(JmlVariableDecl src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("mods", context.serialize(src.mods));
+            obj.add("name", name(src.name));
+            obj.add("vartype", context.serialize(src.vartype));
+            obj.add("init", context.serialize(src.init));
+            return obj;
+        }
+    }
+    
+    // TODO: JmlWhileLoop
+    // TODO: JCWildcard
+    // TODO: JCYield
+    // TODO: LetExpr
+    // TODO: TypeBoundKind
     
     /**************************/
 
@@ -169,7 +528,8 @@ public class JmlJson {
             return names.fromString(json.getAsJsonPrimitive().getAsString());
         }
     }
-    static class PTypeAdapter extends TypeAdapter<Type> {
+    
+   class PTypeAdapter extends TypeAdapter<Type> {
         public Type read(JsonReader reader) throws IOException {
           if (reader.peek() == JsonToken.NULL) {
             reader.nextNull();
@@ -186,113 +546,5 @@ public class JmlJson {
           writer.value(xy);
         }
     }
-    static class JCVoidTypeAdapter extends TypeAdapter<Type.JCVoidType> {
-        public Type.JCVoidType read(JsonReader reader) throws IOException {
-          if (reader.peek() == JsonToken.NULL) {
-            reader.nextNull();
-            return null;
-          }
-          return null;
-        }
-        public void write(JsonWriter writer, Type.JCVoidType value) throws IOException {
-          if (value == null) {
-            writer.nullValue();
-            return;
-          }
-          writer.value("void");
-        }
-    }
-    static class JavacMessagesAdapter extends TypeAdapter<com.sun.tools.javac.util.JavacMessages> {
-        public com.sun.tools.javac.util.JavacMessages read(JsonReader reader) throws IOException {
-          if (reader.peek() == JsonToken.NULL) {
-            reader.nextNull();
-            return null;
-          }
-          return null;
-        }
-        public void write(JsonWriter writer, com.sun.tools.javac.util.JavacMessages value) throws IOException {
-          writer.nullValue();
-        }
-    }
-    static class SymbolAdapter extends TypeAdapter<Symbol> {
-        public Symbol read(JsonReader reader) throws IOException {
-          if (reader.peek() == JsonToken.NULL) {
-            reader.nextNull();
-            return null;
-          }
-          return null;
-        }
-        public void write(JsonWriter writer, Symbol value) throws IOException {
-          if (value == null) {
-            writer.nullValue();
-            return;
-          }
-          String xy = value.toString() ;
-          writer.value(xy);
-        }
-    }
-    static class NamesAdapter extends TypeAdapter<com.sun.tools.javac.util.Names> {
-        public com.sun.tools.javac.util.Names read(JsonReader reader) throws IOException {
-          if (reader.peek() == JsonToken.NULL) {
-            reader.nextNull();
-            return null;
-          }
-          return null;
-        }
-        public void write(JsonWriter writer, com.sun.tools.javac.util.Names value) throws IOException {
-          writer.nullValue();
-        }
-    }
-    static class JCAnnotationAdapter extends TypeAdapter<JCAnnotation> {
-        public JCAnnotation read(JsonReader reader) throws IOException {
-          if (reader.peek() == JsonToken.NULL) {
-            reader.nextNull();
-            return null;
-          }
-          return null;
-        }
-        public void write(JsonWriter writer, JCAnnotation value) throws IOException {
-          writer.value(value.toString());
-        }
-    }
-    static class EnvAdapter extends TypeAdapter<Env<com.sun.tools.javac.comp.AttrContext>> {
-        public Env<com.sun.tools.javac.comp.AttrContext> read(JsonReader reader) throws IOException {
-          if (reader.peek() == JsonToken.NULL) {
-            reader.nextNull();
-            return null;
-          }
-          return null;
-        }
-        public void write(JsonWriter writer, Env<com.sun.tools.javac.comp.AttrContext> value) throws IOException {
-          writer.nullValue();
-        }
-    }
-    static class JCPackageDeclAdapter extends TypeAdapter<JCPackageDecl> {
-        public JCPackageDecl read(JsonReader reader) throws IOException {
-          if (reader.peek() == JsonToken.NULL) {
-            reader.nextNull();
-            return null;
-          }
-          return null;
-        }
-        public void write(JsonWriter writer, JCPackageDecl value) throws IOException {
-          writer.value(value.toString());
-        }
-    }
-//    class JmlCompilationUnitAdapter extends TypeAdapter<JmlCompilationUnit> {
-//        public JmlCompilationUnit read(JsonReader reader) throws IOException {
-//          if (reader.peek() == JsonToken.NULL) {
-//            reader.nextNull();
-//            return null;
-//          }
-//          return null;
-//        }
-//        public void write(JsonWriter writer, JmlCompilationUnit value) throws IOException {
-//            for (JCTree d: value.defs) {
-//                writer.value(gson.toJson(d));
-//                
-//            }
-//        }
-//    }
 
 }
