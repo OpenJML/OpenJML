@@ -33,6 +33,7 @@ import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlAstPrinter;
 import org.jmlspecs.openjml.JmlCheckSpecs;
+import org.jmlspecs.openjml.JmlJson;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
@@ -225,11 +226,7 @@ public class JmlCompiler extends JavaCompiler {
                 }
 
                 if (ss.startsWith("json")) {
-                    var json = new org.jmlspecs.openjml.JmlJson(context);
-                    for (var cu: compunits) {
-                        //System.out.println("JSON FOR " + cu.sourcefile);
-                        System.out.println(json.toJson(cu));
-                    }
+                    writeJson(compunits);
                 }
 
             }
@@ -240,6 +237,91 @@ public class JmlCompiler extends JavaCompiler {
             // is to be aborted.
             return List.<JCCompilationUnit>nil();
         }
+    }
+    
+    public void writeJson(ListBuffer<Env<AttrContext>> results) {
+        String dest = options.get("-d");
+        if (dest != null && !dest.equals("-") && !new java.io.File(dest).mkdirs()) {
+            utils.error("jml.message", "Failed to create output directories: " + dest);
+            return;
+        }
+        var json = new org.jmlspecs.openjml.JmlJson(context);
+        for (var env: results) {
+            var cu = (JmlClassDecl)env.tree;
+            if (!cu.sourcefile.getName().endsWith(".java")) continue; // TODO - for now, because too much of Java/JML is not yet implemented
+            System.out.println("JSON FOR " + cu.sourcefile);
+            writeJson(dest, json, cu);
+        }
+    }
+    
+    public void writeJson(List<JCCompilationUnit> compunits) {
+        String dest = options.get("-d");
+        if (dest != null && !dest.equals("-") && !new java.io.File(dest).mkdirs()) {
+            utils.error("jml.message", "Failed to create output directories: " + dest);
+            return;
+        }
+
+        var json = new org.jmlspecs.openjml.JmlJson(context);
+        for (var cu: compunits) {
+            //System.out.println("JSON FOR " + cu.sourcefile);
+            writeJson(dest, json, (JmlCompilationUnit)cu);
+        }
+    }
+
+    private String writeJson(String dest, JmlJson json, JmlTree.JmlSource decl) {
+        String sourcepath = decl.source().getName();
+        String out = null;
+        try {
+            out = json.toJson((JCTree)decl);
+        } catch (Exception e) {
+            utils.error("jml.message", "Failed translate to json (" + sourcepath + "): "+ e);
+            e.printStackTrace(System.out);
+            return out;
+        }
+        if (dest == null) {
+            // Write to file as sibling of input
+            String path = sourcepath + ".json";
+            try {
+                new java.io.File(path).delete();
+                new java.io.File(path).createNewFile();
+                try ( var fw = new java.io.FileWriter(path); ) {
+                    fw.append(out);
+                    fw.append("\n");
+                } finally {}
+            } catch (java.io.IOException e) {
+                utils.error("jml.message", "Failed to delete or write to output: " + path + ": " + e);
+            }
+        } else if (dest.equals("-")) {
+            // Write all files consecutively to standard out
+            System.out.println(out);
+        } else {
+            // Write files using 'dest' as package root
+            var pdecl = ((JmlCompilationUnit)decl).pid;
+            String pid = pdecl == null ? "" : pdecl.pid.toString().replace('.','/');
+            String path = sourcepath;
+            int k = path.lastIndexOf('/');
+            path = path.substring(k);
+            var dir = dest + "/" + pid;
+            path = dir + path + ".json";
+            try {
+                new java.io.File(path).delete();
+                if (!new java.io.File(dir).mkdirs()) {
+                    utils.error("jml.message", "Failed to create output directories: " + dir);
+                    return out;
+                }
+                if (!new java.io.File(path).createNewFile()) {
+                    utils.error("jml.message", "Failed to create output file: " + path);
+                    return out;
+                }
+                try ( var fw = new java.io.FileWriter(path); ) {
+                    fw.append(out);
+                    fw.append("\n");
+                } finally {}
+            } catch (java.io.IOException e) {
+                utils.error("jml.message", "Failed to delete or write to output: " + path + ": " + e);
+            }
+        }
+        return out;
     }
  
     public JCTree.JCCompilationUnit parse(JavaFileObject filename) {
@@ -380,12 +462,7 @@ public class JmlCompiler extends JavaCompiler {
         if (JmlOptions.instance(context).isSet(JmlOption.SHOW)) {
             String ss = JmlOption.value(context, JmlOption.SHOW);
             if (ss.contains("typedjson")) {
-                var json = new org.jmlspecs.openjml.JmlJson(context);
-                for (var env: results) {
-                    var cu = (JmlClassDecl)env.tree;
-                    System.out.println("JSON FOR " + cu.sourcefile);
-                    System.out.println(json.toJson(cu));
-                }
+                writeJson(results);
             }
 
         }

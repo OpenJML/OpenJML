@@ -28,7 +28,6 @@ import static org.jmlspecs.openjml.ext.TypeDeclClauseExtension.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.MethodExprListClauseExtensions.*;
 
-import com.google.gson.annotations.Expose;
 import com.sun.source.tree.*;
 import static com.sun.source.tree.CaseTree.*;
 import com.sun.tools.javac.code.JmlType;
@@ -1040,7 +1039,7 @@ public class JmlTree {
     }
     
     /** This class adds some JML specific information to the JCCompilationUnit toplevel node. */
-    public static class JmlCompilationUnit extends JCTree.JCCompilationUnit {
+    public static class JmlCompilationUnit extends JCTree.JCCompilationUnit implements JmlSource {
         
         /** This list contains the parse tree of the specification file, if any, for this compilation unit. 
          *  This field may point to 'this' if the compilation unit is its own specs file. */
@@ -1071,6 +1070,8 @@ public class JmlTree {
         
         public boolean isSpecs() { return sourcefile.getKind() != JavaFileObject.Kind.SOURCE; }
         public boolean forBinary() { return sourceCU == null; }
+        public JavaFileObject source() { return sourcefile; }
+        public void setSource(JavaFileObject s) { sourcefile = s; }
         public JmlCompilationUnit sourceCU = null; // Set to self if a source file
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */

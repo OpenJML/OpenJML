@@ -3,6 +3,8 @@ package org.jmlspecs.openjml;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
+import static com.sun.tools.javac.code.Type.*;
+import com.sun.tools.javac.parser.JmlToken;
 
 import com.sun.tools.javac.tree.JCTree;
 import static com.sun.tools.javac.tree.JCTree.*;
@@ -39,15 +41,15 @@ import java.io.IOException;
  */
 // TODO:
 // - change unnecessary unicode to ASCII
+// - specifications
 // - fix serializing of Name
+// - symbols
 // - destination of output files
 // - output only command-line files (or give a choice)
 // - documentation of --show
 // - all the rest of the adapters
 // - a check for missing adapters
-// - remove @Expose annotations
 // - deserializers; serialize-deserialize test
-// - auto registration of adapters
 
 public class JmlJson {
     
@@ -65,8 +67,11 @@ public class JmlJson {
         this.names = Names.instance(context);
         
         this.builder = new GsonBuilder();
+        builder.registerTypeAdapter(JmlToken.class, this.new JmlTokenAdapter());
         builder.registerTypeAdapter(Name.class, this.new NameAdapter());
         builder.registerTypeAdapter(Type.class, this.new PTypeAdapter());
+        builder.registerTypeAdapter(Type.JCVoidType.class, this.new JCVoidTypeAdapter());
+        builder.registerTypeAdapter(Type.JCPrimitiveType.class, this.new JCPrimitiveTypeAdapter());
         
         var prefix = "com.sun.tools.javac.tree.JCTree$";
         var prefixjml = "org.jmlspecs.openjml.JmlTree$";
@@ -90,6 +95,10 @@ public class JmlJson {
                 }
                 if (cl == null) try {
                     cl = Class.forName("com.sun.tools.javac.util." + astclass);
+                } catch (ClassNotFoundException e) {
+                }
+                if (cl == null) try {
+                    cl = Class.forName("com.sun.tools.javac.code.Type$" + astclass);
                 } catch (ClassNotFoundException e) {
                 }
                 if (cl != null) {
@@ -376,6 +385,19 @@ public class JmlJson {
         }
     }
     
+    class JCMethodInvocationAdapter implements JsonSerializer<JCMethodInvocation> {
+        @Override
+        public JsonElement serialize(JCMethodInvocation src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("typeargs", context.serialize(src.typeargs));
+            obj.add("meth", context.serialize(src.meth));
+            obj.add("args", context.serialize(src.args));
+            obj.add("varargsElement", context.serialize(src.varargsElement));
+            //obj.add("polyKind", context.serialize(src.polyKind)); // FIXME - add this
+            return obj;
+        }
+    }
+    
     // TODO: JmlMethodInvocation
     // TODO: JmlMethodSig
     // TODO: JmlMethodSpecs
@@ -509,6 +531,20 @@ public class JmlJson {
         }
     }
     
+    class JCPrimitiveTypeAdapter implements JsonSerializer<Type.JCPrimitiveType> {
+        @Override
+        public JsonElement serialize(Type.JCPrimitiveType src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            return str(src);
+        }
+    }
+    
+    class JCVoidTypeAdapter implements JsonSerializer<Type.JCVoidType> {
+        @Override
+        public JsonElement serialize(Type.JCVoidType src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            return str(src);
+        }
+    }
+    
     // TODO: JmlWhileLoop
     // TODO: JCWildcard
     // TODO: JCYield
@@ -526,6 +562,13 @@ public class JmlJson {
         public Name deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             return names.fromString(json.getAsJsonPrimitive().getAsString());
+        }
+    }
+    
+    class JmlTokenAdapter implements JsonSerializer<JmlToken> {
+        @Override
+        public JsonElement serialize(JmlToken src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            return new JsonPrimitive(src.toString());
         }
     }
     
