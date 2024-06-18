@@ -70,8 +70,6 @@ public class JmlJson {
         builder.registerTypeAdapter(JmlToken.class, this.new JmlTokenAdapter());
         builder.registerTypeAdapter(Name.class, this.new NameAdapter());
         builder.registerTypeAdapter(Type.class, this.new PTypeAdapter());
-        builder.registerTypeAdapter(Type.JCVoidType.class, this.new JCVoidTypeAdapter());
-        builder.registerTypeAdapter(Type.JCPrimitiveType.class, this.new JCPrimitiveTypeAdapter());
         
         var prefix = "com.sun.tools.javac.tree.JCTree$";
         var prefixjml = "org.jmlspecs.openjml.JmlTree$";
@@ -106,7 +104,8 @@ public class JmlJson {
 //                  System.out.println("OK " + cl.toString() + " " + adapter);
                 } else {
                     if (astclass.equals("PType")) continue;
-                  System.out.println("FAILURE " + astclass + " " + adapter);
+                    if (astclass.equals("JmlToken")) continue;
+                    System.out.println("FAILURE " + astclass + " " + adapter);
                 }
             } catch (Exception e) {
                 System.out.println("FAILURE " + astclass + " " + adapter + " " + e);
@@ -443,6 +442,13 @@ public class JmlJson {
     // TODO: JCPatternCaseLabel
     // TODO: JCPolyExpression
 
+    class JCPrimitiveTypeTreeAdapter implements JsonSerializer<JCPrimitiveTypeTree> {
+        @Override
+        public JsonElement serialize(JCPrimitiveTypeTree src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            return str(src);
+        }
+    }
+    
     class JmlPrimitiveTypeTreeAdapter implements JsonSerializer<JmlPrimitiveTypeTree> {
         @Override
         public JsonElement serialize(JmlPrimitiveTypeTree src, java.lang.reflect.Type type, JsonSerializationContext context) {
