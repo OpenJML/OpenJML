@@ -249,7 +249,7 @@ public class JmlCompiler extends JavaCompiler {
         for (var env: results) {
             var cu = (JmlClassDecl)env.tree;
             if (!cu.sourcefile.getName().endsWith(".java")) continue; // TODO - for now, because too much of Java/JML is not yet implemented
-            System.out.println("JSON FOR " + cu.sourcefile);
+            //System.out.println("JSON FOR " + cu.sourcefile);
             writeJson(dest, json, cu);
         }
     }
