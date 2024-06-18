@@ -129,20 +129,40 @@ public class JmlJson {
     }
 
     private JsonElement str(String s) {
-        return new JsonPrimitive(s);
+        return s == null ? JsonNull.INSTANCE : new JsonPrimitive(s);
     }
     
     private JsonElement name(Name n) { // FIXME - why can't we use context.serialize(n) for names
-        return str(n.toString());
+        return n == null ? null : str(n.toString());
     }
     
     /***************************************************/
 
     // TODO: JCAnnotatedType
-    // TODO: JmlAnnotation
+    
+    class JmlAnnotationAdapter implements JsonSerializer<JmlAnnotation> {
+        @Override
+        public JsonElement serialize(JmlAnnotation src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("annotationType", str(src.annotationType));
+            obj.add("args", context.serialize(src.args));
+            return obj;
+        }
+    }
+
+
     // TODO: JCAnyPattern
     // TODO: JCArrayAccess
     // TODO: JCArrayTypeTree
+    
+    class JCArrayTypeTreeAdapter implements JsonSerializer<JCArrayTypeTree> {
+        @Override
+        public JsonElement serialize(JCArrayTypeTree src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("elemtype", context.serialize(src.elemtype));
+            return obj;
+        }
+    }
     
     class JCAssertAdapter implements JsonSerializer<JCAssert> {
         @Override
@@ -361,6 +381,17 @@ public class JmlJson {
     // TODO: JmlMethodClauseConditional
     // TODO: JmlMethodClauseDecl
     // TODO: JmlMethodClauseExpr
+    class JmlMethodClauseExprAdapter implements JsonSerializer<JmlMethodClauseExpr> {
+        @Override
+        public JsonElement serialize(JmlMethodClauseExpr src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("clauseType", str(src.clauseKind));
+            obj.add("name", name(src.name));
+            obj.add("expression", context.serialize(src.expression));
+            return obj;
+        }
+    }
+
     // TODO: JmlMethodClauseGroup
     // TODO: JmlMethodClauseInvariants
     // TODO: JmlMethodClauseSignals
@@ -378,6 +409,7 @@ public class JmlJson {
             obj.add("recvparam", context.serialize(src.recvparam));
             obj.add("params", context.serialize(src.params));
             obj.add("thrown", context.serialize(src.thrown));
+            obj.add("methodSpecs", context.serialize(src.methodSpecs));
             obj.add("body", context.serialize(src.body));
             obj.add("defaultValue", context.serialize(src.defaultValue));
             return obj;
@@ -397,10 +429,29 @@ public class JmlJson {
         }
     }
     
-    // TODO: JmlMethodInvocation
+    class JmlMethodInvocationAdapter implements JsonSerializer<JmlMethodInvocation> {
+        @Override
+        public JsonElement serialize(JmlMethodInvocation src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("name", str(src.name));
+            obj.add("kind", str(src.kind));
+            obj.add("args", context.serialize(src.args)); // FIXME - more - ?
+            return obj;
+        }
+    }
+    
     // TODO: JmlMethodSig
-    // TODO: JmlMethodSpecs
-    // TODO: JmlModelProgramStatement
+
+    class JmlMethodSpecsAdapter implements JsonSerializer<JmlMethodSpecs> {
+        @Override
+        public JsonElement serialize(JmlMethodSpecs src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("cases", context.serialize(src.cases)); // FIXME - more - both cases and behaviors?
+            return obj;
+        }
+    }
+    
+// TODO: JmlModelProgramStatement
 
     class JmlModifiersAdapter implements JsonSerializer<JmlModifiers> {
         @Override
@@ -414,8 +465,30 @@ public class JmlJson {
     }
     
     // TODO: JCModuleDecl
-    // TODO: JCNewArray
-    // TODO: JmlNewClass
+
+    class JCNewArrayAdapter implements JsonSerializer<JCNewArray> {
+        @Override
+        public JsonElement serialize(JCNewArray src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("elemtype", context.serialize(src.elemtype)); // FIXME - needs more fields
+            obj.add("dims", context.serialize(src.dims));
+            obj.add("elems", context.serialize(src.elems));
+            return obj;
+        }
+    }
+
+    class JmlNewClassAdapter implements JsonSerializer<JmlNewClass> {
+        @Override
+        public JsonElement serialize(JmlNewClass src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("encl", context.serialize(src.encl)); // FIXME - needs more fields
+            obj.add("clazz", context.serialize(src.clazz));
+            obj.add("args", context.serialize(src.args));
+            obj.add("def", context.serialize(src.def));
+            return obj;
+        }
+    }
+    
     // TODO: JCOpens
     // abstract - JCOperatorExpression
     
@@ -461,11 +534,49 @@ public class JmlJson {
     // TODO: JmlRange
     // TODO: JCRecordPattern
     // TODO: JCRequires
-    // TODO: JCReturn
+
+    class JCReturnAdapter implements JsonSerializer<JCReturn> {
+        @Override
+        public JsonElement serialize(JCReturn src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("expr", context.serialize(src.expr));
+            return obj;
+        }
+    }
+    
     // TODO: JmlSetComprehension
-    // TODO: JmlSingleton
+
+    class JmlSingletonAdapter implements JsonSerializer<JmlSingleton> {
+        @Override
+        public JsonElement serialize(JmlSingleton src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("kind", str(src.kind));
+            return obj;
+        }
+    }
+    
+
     // TODO: JCSkip
-    // TODO: JmlSpecificationCase
+    class JCSkipAdapter implements JsonSerializer<JCSkip> {
+        @Override
+        public JsonElement serialize(JCSkip src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            return obj;
+        }
+    }
+    
+
+    class JmlSpecificationCaseAdapter implements JsonSerializer<JmlSpecificationCase> {
+        @Override
+        public JsonElement serialize(JmlSpecificationCase src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("also", str(src.also));
+            //obj.add("code", str(src.code)); // FIXME - change to a token
+            obj.add("clauses", context.serialize(src.clauses));
+            return obj;
+        }
+    }
+    
     // abstract - JCStatement
     // TODO: JmlStatementDecls
     
@@ -495,15 +606,55 @@ public class JmlJson {
     // TODO: JmlSwitchStatement
     // TODO: JCSwitchExpression
     // TODO: JCSynchronized
-    // TODO: JCThrow
+
+    class JCSynchronizedAdapter implements JsonSerializer<JCSynchronized> {
+        @Override
+        public JsonElement serialize(JCSynchronized src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("lock", context.serialize(src.lock));
+            obj.add("body", context.serialize(src.body));
+            return obj;
+        }
+    }
+
+    class JCThrowAdapter implements JsonSerializer<JCThrow> {
+        @Override
+        public JsonElement serialize(JCThrow src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("expr", context.serialize(src.expr));
+            return obj;
+        }
+    }
+    
     // TODO: JCTry
     // TODO: JmlTuple
     // TODO: JCTypeApply
+
+    class JCTypeApplyAdapter implements JsonSerializer<JCTypeApply> {
+        @Override
+        public JsonElement serialize(JCTypeApply src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("clazz", str(src.clazz));
+            obj.add("arguments", context.serialize(src.arguments));
+            return obj;
+        }
+    }
+
     // TODO: JCTypeCast
     // TODO: JmlTypeClauseConditional
     // TODO: JmlTypeClauseConstraint
     // TODO: JmlTypeClauseDecl
-    // TODO: JmlTypeClauseExpr
+    
+    class JmlTypeClauseExprAdapter implements JsonSerializer<JmlTypeClauseExpr> {
+        @Override
+        public JsonElement serialize(JmlTypeClauseExpr src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("clauseType", str(src.clauseType));
+            obj.add("name", name(src.name));
+            obj.add("expression", context.serialize(src.expression));
+            return obj;
+        }
+    }
     // TODO: JmlTypeClauseIn
     // TODO: JmlTypeClauseInitializer
     // TODO: JmlTypeClauseMaps
@@ -551,8 +702,18 @@ public class JmlJson {
         }
     }
     
-    // TODO: JmlWhileLoop
-    // TODO: JCWildcard
+    class JmlWhileLoopAdapter implements JsonSerializer<JmlWhileLoop> {
+        @Override
+        public JsonElement serialize(JmlWhileLoop src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("loopSpecs", context.serialize(src.loopSpecs));
+            obj.add("cond", context.serialize(src.cond));
+            obj.add("body", context.serialize(src.body));
+            return obj;
+        }
+    }
+
+// TODO: JCWildcard
     // TODO: JCYield
     // TODO: LetExpr
     // TODO: TypeBoundKind

@@ -2270,11 +2270,11 @@ public class JmlSpecs {
         public MethodSpecs(JmlMethodDecl specsDecl) { 
             this.mods = specsDecl.mods;
             this.specDecl = specsDecl;
-            if (specsDecl.cases == null) {
+            if (specsDecl.methodSpecs == null) {
                 cases = new JmlMethodSpecs();
                 cases.pos = specsDecl.pos;
             } else {
-                cases = specsDecl.cases;
+                cases = specsDecl.methodSpecs;
             }
             cases.decl = specsDecl;
             specsEnv = null;
