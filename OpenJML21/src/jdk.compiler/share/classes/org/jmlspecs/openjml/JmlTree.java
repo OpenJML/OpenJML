@@ -1374,7 +1374,7 @@ public class JmlTree {
          * set to self in parser for methods in anonymous classes */
         public JmlSpecs.MethodSpecs methodSpecsCombined; 
 
-        public JmlMethodSpecs cases;  // FIXME - change to JmlSpecificationCase?
+        public JmlMethodSpecs methodSpecs;
 
         public String docComment = null; // FIXME - clarify why needed
         public VarSymbol _this = null; // The Symbol for 'this' inside the method, if not static;

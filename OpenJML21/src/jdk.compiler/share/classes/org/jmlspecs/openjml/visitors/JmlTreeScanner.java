@@ -234,7 +234,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 	            scan(ms.cases);
 	        }
 	        if (scanMode == AST_JML_MODE) {
-	            scan(that.cases);
+	            scan(that.methodSpecs);
 	        }
 	        visitMethodDef(that);
 		} finally {

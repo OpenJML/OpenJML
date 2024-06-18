@@ -6121,7 +6121,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		methodDecl.pos = pos.getPreferredPosition();
 		methodDecl.sourcefile = Log.instance(context).currentSourceFile();
 		methodDecl.docComment = null;
-		methodDecl.cases = null;
+		methodDecl.methodSpecs = null;
 		methodDecl.methodSpecsCombined = null;
 		methodDecl.sym = msym;
 		methodDecl.type = null;
@@ -17930,7 +17930,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				m.sourcefile = that.sourcefile;
 				// m.owner = that.owner; // FIXME - new class decl?
 				m.docComment = that.docComment;
-				m.cases = copy(that.cases);
+				m.methodSpecs = copy(that.methodSpecs);
 				m.methodSpecsCombined = that.methodSpecsCombined; // FIXME - copy?
 				m.specsDecl = that.specsDecl; // FIXME - needs new reference
 				if (classDefs != null)

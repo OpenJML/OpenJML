@@ -1311,7 +1311,7 @@ public class JmlParser extends JavacParser {
                             d.sourcefile = currentSourceFile();
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                             attach(d, dc);
-                            d.cases = currentMethodSpecs;
+                            d.methodSpecs = currentMethodSpecs;
                             if (currentMethodSpecs != null) {
                                 currentMethodSpecs.decl = d;
                                 currentMethodSpecs = null;
@@ -1356,7 +1356,7 @@ public class JmlParser extends JavacParser {
                 } else if (t.head instanceof JmlMethodDecl md) {
                     md.sourcefile = currentSourceFile();
                     attach(md, dc);
-                    md.cases = currentMethodSpecs;
+                    md.methodSpecs = currentMethodSpecs;
                     if (currentMethodSpecs != null) {
                         currentMethodSpecs.decl = md;
                         currentMethodSpecs = null;
