@@ -1,0 +1,69 @@
+{
+  "class": "$JmlCompilationUnit",
+  "sourcefile": "pck/Test1.java",
+  "pid": {
+    "class": "$JCPackageDecl",
+    "annotations": [],
+    "pid": {
+      "class": "$JCFieldAccess",
+      "type": "null",
+      "selected": {
+        "class": "$JCFieldAccess",
+        "type": "null",
+        "selected": {
+          "class": "$JCIdent",
+          "type": "null",
+          "name": "p"
+        },
+        "name": "q"
+      },
+      "name": "r"
+    }
+  },
+  "defs": [
+    {
+      "class": "$JCPackageDecl",
+      "annotations": [],
+      "pid": {
+        "class": "$JCFieldAccess",
+        "type": "null",
+        "selected": {
+          "class": "$JCFieldAccess",
+          "type": "null",
+          "selected": {
+            "class": "$JCIdent",
+            "type": "null",
+            "name": "p"
+          },
+          "name": "q"
+        },
+        "name": "r"
+      }
+    },
+    {
+      "class": "$JmlImport",
+      "qualid": {
+        "class": "$JCFieldAccess",
+        "type": "null",
+        "selected": {
+          "class": "$JCFieldAccess",
+          "type": "null",
+          "selected": {
+            "class": "$JCFieldAccess",
+            "type": "null",
+            "selected": {
+              "class": "$JCIdent",
+              "type": "null",
+              "name": "org"
+            },
+            "name": "jmlspecs"
+          },
+          "name": "lang"
+        },
+        "name": "*"
+      },
+      "staticImport": false,
+      "isModel": true
+    }
+  ]
+}

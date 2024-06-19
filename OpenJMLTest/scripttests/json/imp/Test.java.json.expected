@@ -1,0 +1,141 @@
+{
+  "class": "$JmlCompilationUnit",
+  "sourcefile": "imp/Test.java",
+  "defs": [
+    {
+      "class": "$JmlImport",
+      "qualid": {
+        "class": "$JCFieldAccess",
+        "type": "null",
+        "selected": {
+          "class": "$JCFieldAccess",
+          "type": "null",
+          "selected": {
+            "class": "$JCFieldAccess",
+            "type": "null",
+            "selected": {
+              "class": "$JCIdent",
+              "type": "null",
+              "name": "org"
+            },
+            "name": "jmlspecs"
+          },
+          "name": "lang"
+        },
+        "name": "*"
+      },
+      "staticImport": false,
+      "isModel": true
+    },
+    {
+      "class": "$JmlImport",
+      "qualid": {
+        "class": "$JCFieldAccess",
+        "type": "null",
+        "selected": {
+          "class": "$JCFieldAccess",
+          "type": "null",
+          "selected": {
+            "class": "$JCIdent",
+            "type": "null",
+            "name": "java"
+          },
+          "name": "io"
+        },
+        "name": "File"
+      },
+      "staticImport": false,
+      "isModel": false
+    },
+    {
+      "class": "$JmlImport",
+      "qualid": {
+        "class": "$JCFieldAccess",
+        "type": "null",
+        "selected": {
+          "class": "$JCFieldAccess",
+          "type": "null",
+          "selected": {
+            "class": "$JCIdent",
+            "type": "null",
+            "name": "java"
+          },
+          "name": "util"
+        },
+        "name": "*"
+      },
+      "staticImport": false,
+      "isModel": false
+    },
+    {
+      "class": "$JmlImport",
+      "qualid": {
+        "class": "$JCFieldAccess",
+        "type": "null",
+        "selected": {
+          "class": "$JCFieldAccess",
+          "type": "null",
+          "selected": {
+            "class": "$JCFieldAccess",
+            "type": "null",
+            "selected": {
+              "class": "$JCIdent",
+              "type": "null",
+              "name": "java"
+            },
+            "name": "math"
+          },
+          "name": "BigInteger"
+        },
+        "name": "*"
+      },
+      "staticImport": true,
+      "isModel": false
+    },
+    {
+      "class": "$JmlImport",
+      "qualid": {
+        "class": "$JCFieldAccess",
+        "type": "null",
+        "selected": {
+          "class": "$JCFieldAccess",
+          "type": "null",
+          "selected": {
+            "class": "$JCFieldAccess",
+            "type": "null",
+            "selected": {
+              "class": "$JCIdent",
+              "type": "null",
+              "name": "java"
+            },
+            "name": "lang"
+          },
+          "name": "Double"
+        },
+        "name": "isNaN"
+      },
+      "staticImport": true,
+      "isModel": false
+    },
+    {
+      "class": "$JmlImport",
+      "qualid": {
+        "class": "$JCFieldAccess",
+        "type": "null",
+        "selected": {
+          "class": "$JCFieldAccess",
+          "type": "null",
+          "selected": {
+            "class": "$JCIdent",
+            "type": "null",
+            "name": "java"
+          },
+          "name": "io"
+        },
+        "name": "File"
+      },
+      "staticImport": false,
+      "isModel": true
+    }
+  ]
+}

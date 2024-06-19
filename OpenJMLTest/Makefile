@@ -13,6 +13,7 @@ openjml-test: prep
 	make tutorial-tests > log-tutorial-tests
 	make unittests-par
 	make scripttests
+	make jsontests
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
 
 openjml-clean: .FORCE
@@ -54,6 +55,9 @@ unittests-par:
 scripttests: .FORCE
 	( cd ${ROOT}/scripttests; ./escfiles-sort)
 
+jsontests: .FORCE
+	./scripttests/json/run
+	./scripttests/json-loc/run
 .FORCE:
 			
 ##### The following are debugging tests

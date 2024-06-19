@@ -1,0 +1,63 @@
+{
+  "class": "$JmlCompilationUnit",
+  "sourcefile": "TestP.java",
+  "pid": {
+    "class": "$JCPackageDecl",
+    "annotations": [],
+    "pid": {
+      "class": "$JCIdent",
+      "type": "null",
+      "name": "p"
+    }
+  },
+  "defs": [
+    {
+      "class": "$JCPackageDecl",
+      "annotations": [],
+      "pid": {
+        "class": "$JCIdent",
+        "type": "null",
+        "name": "p"
+      }
+    },
+    {
+      "class": "$JmlImport",
+      "qualid": {
+        "class": "$JCFieldAccess",
+        "type": "null",
+        "selected": {
+          "class": "$JCFieldAccess",
+          "type": "null",
+          "selected": {
+            "class": "$JCFieldAccess",
+            "type": "null",
+            "selected": {
+              "class": "$JCIdent",
+              "type": "null",
+              "name": "org"
+            },
+            "name": "jmlspecs"
+          },
+          "name": "lang"
+        },
+        "name": "*"
+      },
+      "staticImport": false,
+      "isModel": true
+    },
+    {
+      "class": "$JmlClassDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": []
+      },
+      "name": "CC",
+      "typarams": [],
+      "implementing": [],
+      "permitting": [],
+      "defs": []
+    }
+  ]
+}
