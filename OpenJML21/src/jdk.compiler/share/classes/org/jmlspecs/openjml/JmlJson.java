@@ -138,8 +138,16 @@ public class JmlJson {
     
     /***************************************************/
 
-    // TODO: JCAnnotatedType
-    
+    class JCAnnotatedTypeAdapter implements JsonSerializer<JCAnnotatedType> {
+        @Override
+        public JsonElement serialize(JCAnnotatedType src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("annotations", str(src.annotations));
+            obj.add("underlyingType", context.serialize(src.underlyingType));
+            return obj;
+        }
+    }
+
     class JmlAnnotationAdapter implements JsonSerializer<JmlAnnotation> {
         @Override
         public JsonElement serialize(JmlAnnotation src, java.lang.reflect.Type type, JsonSerializationContext context) {
@@ -152,9 +160,17 @@ public class JmlJson {
 
 
     // TODO: JCAnyPattern
-    // TODO: JCArrayAccess
-    // TODO: JCArrayTypeTree
-    
+
+    class JCArrayAccessAdapter implements JsonSerializer<JCArrayAccess> {
+        @Override
+        public JsonElement serialize(JCArrayAccess src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("indexed", context.serialize(src.indexed));
+            obj.add("index", context.serialize(src.index));
+            return obj;
+        }
+    }
+
     class JCArrayTypeTreeAdapter implements JsonSerializer<JCArrayTypeTree> {
         @Override
         public JsonElement serialize(JCArrayTypeTree src, java.lang.reflect.Type type, JsonSerializationContext context) {
@@ -322,7 +338,19 @@ public class JmlJson {
         }
     }
     
-    // TODO: JmlForLoop
+    class JmlForLoopAdapter implements JsonSerializer<JmlForLoop> {
+        @Override
+        public JsonElement serialize(JmlForLoop src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+//            obj.add("loopSpecs", context.serialize(src.loopSpecs)); // TODO
+            obj.add("split", context.serialize(src.split));
+            obj.add("init", context.serialize(src.init));
+            obj.add("cond", context.serialize(src.cond));
+            obj.add("step", context.serialize(src.step));
+            obj.add("body", context.serialize(src.body));
+            return obj;
+        }
+    }
     // TODO: JCFunctionalExpression
     // TODO: JmlGroupName
     
@@ -450,7 +478,7 @@ public class JmlJson {
             return obj;
         }
     }
-    
+        
 // TODO: JmlModelProgramStatement
 
     class JmlModifiersAdapter implements JsonSerializer<JmlModifiers> {
@@ -458,7 +486,7 @@ public class JmlJson {
         public JsonElement serialize(JmlModifiers src, java.lang.reflect.Type type, JsonSerializationContext context) {
             var obj = newgson(src);
             obj.add("annotations", context.serialize(src.annotations));
-            obj.add("flags", str(Flags.toString(src.flags)));
+            obj.add("flags", str(Flags.toString(src.flags & Flags.StandardFlags)));
             obj.add("jmlmods", context.serialize(src.jmlmods));
             return obj;
         }
@@ -530,7 +558,21 @@ public class JmlJson {
     }
     
     // TODO: JCProvides
-    // TODO: JmlQuantifiedExpr
+
+    class JmlQuantifiedExprAdapter implements JsonSerializer<JmlQuantifiedExpr> {
+        @Override
+        public JsonElement serialize(JmlQuantifiedExpr src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("kind", str(src.kind));
+            obj.add("decls", context.serialize(src.decls));
+            obj.add("range", context.serialize(src.range));
+            obj.add("value", context.serialize(src.value));
+            obj.add("triggers", context.serialize(src.triggers));
+            obj.add("failure", context.serialize(src.failure)); // TODO ???
+            return obj;
+        }
+    }
+
     // TODO: JmlRange
     // TODO: JCRecordPattern
     // TODO: JCRequires
