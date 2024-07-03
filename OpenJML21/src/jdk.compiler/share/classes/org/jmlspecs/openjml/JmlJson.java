@@ -241,7 +241,7 @@ public class JmlJson {
         @Override
         public JsonElement serialize(JmlBlock src, java.lang.reflect.Type type, JsonSerializationContext context) {
             var obj = newgson(src);
-            obj.add("flags", str(Flags.toString(src.flags)));
+            obj.add("flags", str(Flags.toString(src.flags & Flags.StandardFlags)));
             obj.add("stats", context.serialize(src.stats));
             return obj;
         }
