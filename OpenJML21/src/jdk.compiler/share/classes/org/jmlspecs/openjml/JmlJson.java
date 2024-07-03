@@ -342,7 +342,7 @@ public class JmlJson {
         @Override
         public JsonElement serialize(JmlForLoop src, java.lang.reflect.Type type, JsonSerializationContext context) {
             var obj = newgson(src);
-//            obj.add("loopSpecs", context.serialize(src.loopSpecs)); // TODO
+            obj.add("loopSpecs", context.serialize(src.loopSpecs)); // TODO
             obj.add("split", context.serialize(src.split));
             obj.add("init", context.serialize(src.init));
             obj.add("cond", context.serialize(src.cond));
@@ -574,6 +574,17 @@ public class JmlJson {
     }
 
     // TODO: JmlRange
+    class JmlRangeAdapter implements JsonSerializer<JmlRange> {
+        @Override
+        public JsonElement serialize(JmlRange src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("lo", context.serialize(src.lo));
+            obj.add("hi", context.serialize(src.hi));
+            obj.add("hiExclusive", context.serialize(src.hiExclusive));
+            return obj;
+        }
+    }
+    
     // TODO: JCRecordPattern
     // TODO: JCRequires
 
@@ -632,12 +643,34 @@ public class JmlJson {
             return obj;
         }
     }
-    
 
     // TODO: JmlStatementHavoc
     // TODO: JmlStatementLoop
     // TODO: JmlStatementLoopExpr
-    // TODO: JmlStatementLoopModifies
+
+    class JmlStatementLoopExprAdapter implements JsonSerializer<JmlStatementLoopExpr> {
+        @Override
+        public JsonElement serialize(JmlStatementLoopExpr src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("name", str(src.name));
+            obj.add("clauseType", str(src.clauseType));
+            obj.add("expression", context.serialize(src.expression));
+            return obj;
+        }
+    }
+
+    class JmlStatementLoopModifiesAdapter implements JsonSerializer<JmlStatementLoopModifies> {
+        @Override
+        public JsonElement serialize(JmlStatementLoopModifies src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src);
+            obj.add("name", str(src.name));
+            obj.add("clauseType", str(src.clauseType));
+            obj.add("source", str(src.source));
+            obj.add("expression", context.serialize(src.storerefs));
+            return obj;
+        }
+    }
+// TODO: JmlStatementLoopModifies
     // TODO: JmlStatementShow
     // TODO: JmlStatementSpec
     // TODO: JmlStoreRef
