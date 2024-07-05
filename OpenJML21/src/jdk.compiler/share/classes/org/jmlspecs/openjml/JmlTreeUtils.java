@@ -21,6 +21,7 @@ import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.LocsetExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
+import org.jmlspecs.openjml.ext.JmlOperatorKind;
 
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExpressions.*;
@@ -1716,8 +1717,8 @@ public class JmlTreeUtils {
         return elem;
     }
     
-    public JCExpression makeSubtype(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
-        JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlTokenKind.SUBTYPE_OF,e1,e2);
+    public JmlMethodInvocation makeSubtype(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
+        JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlOperatorKind.subtypeofKind,e1,e2);
         e.type = syms.booleanType;
         return e;
     }
@@ -1738,7 +1739,7 @@ public class JmlTreeUtils {
         // FIXME - the check below just until unerased types are supported in boogie
         if (true) { // !JmlOption.isOption(context, JmlOption.BOOGIE)) {
             expr = makeAnd(p,expr,
-                makeJmlMethodInvocation(pos,JmlTokenKind.SUBTYPE_OF,syms.booleanType,lhs,rhs));
+                makeSubtype(pos,lhs,rhs));
             {
                 Type t = types.erasure(type);
                 if (!t.isPrimitive() && t.getKind() != TypeKind.ARRAY) {
@@ -1793,7 +1794,7 @@ public class JmlTreeUtils {
         JCExpression lhs = makeTypeof(id); // FIXME - copy?
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(typelcKind,makeType(pos,type));
         rhs.type = TYPE;
-        JCExpression expr = makeJmlMethodInvocation(pos,JmlTokenKind.SUBTYPE_OF,syms.booleanType,lhs,rhs);
+        JCExpression expr = makeSubtype(pos,lhs,rhs);
         {
             if (type.getKind() != TypeKind.ARRAY) {
                 JCTree.JCInstanceOf tt = makeInstanceOf(p,id,types.erasure(type));
@@ -1807,7 +1808,7 @@ public class JmlTreeUtils {
                 JmlMethodInvocation tt = factory.at(p).JmlMethodInvocation(typelcKind,makeType(pos,comptype));
                 tt.type = TYPE;
                 if (comptype.isPrimitive()) e = makeEquality(p,e,tt);
-                else e = makeJmlMethodInvocation(pos,JmlTokenKind.SUBTYPE_OF,syms.booleanType,e,tt);
+                else e = makeSubtype(pos,e,tt);
                 expr = makeAnd(p,expr,e);
             }
         }

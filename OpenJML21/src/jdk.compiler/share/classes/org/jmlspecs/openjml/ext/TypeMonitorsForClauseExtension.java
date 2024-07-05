@@ -43,7 +43,7 @@ public class TypeMonitorsForClauseExtension extends JmlExtension {
                 n = parser.names.asterisk; // place holder for an error situation
             } else {
                 n = parser.ident(); // Advances to next token
-                if (parser.token().kind != TokenKind.EQ && parser.jmlTokenKind() != JmlTokenKind.LEFT_ARROW) {
+                if (parser.token().kind != TokenKind.EQ && parser.jmlTokenClauseKind() != org.jmlspecs.openjml.ext.JmlOperatorKind.leftarrowKind) {
                     error(parser.pos(), parser.endPos(), "jml.expected",
                             "an = or <- token");
                 } else {

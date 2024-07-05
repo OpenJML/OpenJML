@@ -2481,21 +2481,21 @@ public class JmlParser extends JavacParser {
     @Override
     protected JCExpression term1() {
     	JCExpression t;
-    	if (inExprMode() && jmlTokenKind() == JmlTokenKind.DOT_DOT) {
+    	if (inExprMode() && jmlTokenClauseKind() == dotdotKind) {
         	t = null;
         	nextToken();
     	} else if (inExprMode() && token.kind == TokenKind.STAR) {
     		t = null;
         	int dotpos = pos();
         	nextToken();
-        	if (jmlTokenKind() != JmlTokenKind.DOT_DOT) {
+        	if (jmlTokenClauseKind() != dotdotKind) {
         		JmlPrimitiveTypes.rangeTypeKind.parse(null, null,JmlPrimitiveTypes.rangeTypeKind, this);
         		return jmlF.at(dotpos).JmlRange(null,null);
         	}
         } else {
             t = term1Cond();
         }
-        if (inExprMode() && jmlTokenKind() == JmlTokenKind.DOT_DOT) {
+        if (inExprMode() && jmlTokenClauseKind() == dotdotKind) {
         	int dotpos = pos();
         	nextToken();
         	JCExpression tt;
@@ -2534,7 +2534,7 @@ public class JmlParser extends JavacParser {
     protected JCExpression term2Equiv() {
         JCExpression t = term2Imp();
         if ((mode & EXPR) != 0
-                && (jmlTokenKind() == JmlTokenKind.EQUIVALENCE || jmlTokenKind() == JmlTokenKind.INEQUIVALENCE)) {
+                && (jmlTokenClauseKind() == equivalenceKind|| jmlTokenClauseKind() == inequivalenceKind)) {
             mode = EXPR;
             return term2EquivRest(t);
         } else {
@@ -3190,32 +3190,39 @@ public class JmlParser extends JavacParser {
     /**
      * This is overridden to assign JML operators the right precedence
      */
-    protected int prec(ITokenKind token) {
-        if (token instanceof JmlTokenKind) {
-            return jmlPrecedence((JmlTokenKind)token);
+//    protected int prec(ITokenKind token) {
+//        if (token instanceof JmlTokenKind jt) {
+//            return ((JmlOperatorKind.Operator)jt.jmlclausekind).precedence;
+//        }
+//        return precFactor*super.prec(token);
+//    }
+//
+    protected int prec(Token token) {
+        if (token instanceof JmlToken jt) {
+            return ((JmlOperatorKind.Operator)jt.jmlclausekind).precedence;
         }
         return precFactor*super.prec(token);
     }
 
     public static final int precFactor = 1;
 
-    public static int jmlPrecedence(JmlTokenKind tkind) {
-        switch (tkind) {
-            // FIXME - check all these precedences
-            case EQUIVALENCE: case INEQUIVALENCE:
-                return -2; // TreeInfo.orPrec;  // Between conditional and or
-            case IMPLIES: case REVERSE_IMPLIES:
-                return -2; // TreeInfo.orPrec;  // FBetween conditional and or
-            case SUBTYPE_OF: case JSUBTYPE_OF: case SUBTYPE_OF_EQ: case JSUBTYPE_OF_EQ: case LOCK_LT: case LOCK_LE:
-                return precFactor*TreeInfo.ordPrec;
-            case WF_LT: case WF_LE:
-                return precFactor*TreeInfo.ordPrec;
-            case DOT_DOT: case ENDJMLCOMMENT:
-                return -1000; // Forces an end to all expressions
-            default:
-                return -10000; // Lower than all other precedences - Forces an end to all expressions
-        }
-    }
+//    public static int jmlPrecedence(JmlTokenKind tkind) {
+//        switch (tkind) {
+//            // FIXME - check all these precedences
+//            case EQUIVALENCE: case INEQUIVALENCE:
+//                return -2; // TreeInfo.orPrec;  // Between conditional and or
+//            case IMPLIES: case REVERSE_IMPLIES:
+//                return -2; // TreeInfo.orPrec;  // FBetween conditional and or
+//            case SUBTYPE_OF: case JSUBTYPE_OF: case SUBTYPE_OF_EQ: case JSUBTYPE_OF_EQ: case LOCK_LT: case LOCK_LE:
+//                return precFactor*TreeInfo.ordPrec;
+//            case WF_LT: case WF_LE:
+//                return precFactor*TreeInfo.ordPrec;
+//            case DOT_DOT: case ENDJMLCOMMENT:
+//                return -1000; // Forces an end to all expressions
+//            default:
+//                return -10000; // Lower than all other precedences - Forces an end to all expressions
+//        }
+//    }
 
     public static int jmlPrecedence(IJmlClauseKind tkind) {
         switch (tkind.keyword()) {
@@ -3238,7 +3245,7 @@ public class JmlParser extends JavacParser {
     // MAINTENANCE ISSUE - (Almost) Duplicated from JavacParser.java in order to accommodate precedence of JML tokens
     JCExpression term2() {
         JCExpression t = term3();
-        if ((mode & EXPR) != 0 && prec(token.ikind) >= precFactor*TreeInfo.orPrec) {
+        if ((mode & EXPR) != 0 && prec(token) >= precFactor*TreeInfo.orPrec) {
             selectExprMode();
             return term2Rest(t, TreeInfo.orPrec);
         } else {
@@ -3257,7 +3264,7 @@ public class JmlParser extends JavacParser {
         odStack[0] = t;
         int startPos = token.pos;
         Token topOp = Tokens.DUMMY;
-        while (prec(token.ikind) >= minprec) { // OPENJML
+        while (prec(token) >= minprec) { // OPENJML
             opStack[top] = topOp;
 
             if (token.kind == INSTANCEOF) {
@@ -3305,11 +3312,11 @@ public class JmlParser extends JavacParser {
                 odStack[top] = term3();
             }
             int p;
-            while (top > 0 && (p=prec(topOp.ikind)) >= prec(token.ikind)) {  // OPENJML
+            while (top > 0 && (p=prec(topOp)) >= prec(token)) {  // OPENJML
                 odStack[top - 1] = makeOp(topOp.pos, topOp, odStack[top - 1], odStack[top]); // OPENJML
                 top--;
                 topOp = opStack[top];
-                if (p == precFactor*TreeInfo.ordPrec && prec(token.ikind) < precFactor*TreeInfo.ordPrec) {
+                if (p == precFactor*TreeInfo.ordPrec && prec(token) < precFactor*TreeInfo.ordPrec) {
                 	odStack[top] = chain(odStack[top]);
                 }
             }

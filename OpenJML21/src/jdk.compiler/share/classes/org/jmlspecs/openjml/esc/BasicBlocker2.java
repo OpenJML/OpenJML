@@ -1168,17 +1168,17 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     log.error(that.pos, "esc.internal.error", "No implementation for this kind of Jml node in BasicBlocker2: " + that.kind.keyword());
                     
             } else switch (that.token) { 
-                case SUBTYPE_OF:
-                case JSUBTYPE_OF:
-                {
-                    scan(that.args.get(0));
-                    JCExpression lhs = result;
-                    scan(that.args.get(1));
-                    JCExpression rhs = result;
-                    that.args = com.sun.tools.javac.util.List.<JCExpression>of(lhs,rhs);
-                    result = that;
-                    break;
-                } 
+//                case SUBTYPE_OF:
+//                case JSUBTYPE_OF:
+//                {
+//                    scan(that.args.get(0));
+//                    JCExpression lhs = result;
+//                    scan(that.args.get(1));
+//                    JCExpression rhs = result;
+//                    that.args = com.sun.tools.javac.util.List.<JCExpression>of(lhs,rhs);
+//                    result = that;
+//                    break;
+//                } 
                 default:
                     log.error(that.pos, "esc.internal.error", "Did not expect this kind of Jml node in BasicBlocker2: " + that.token.internedName());
                     shouldNotBeCalled(that);

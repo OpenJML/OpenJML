@@ -1086,7 +1086,7 @@ public class JavacParser implements Parser {
      */
     JCExpression term2() {
         JCExpression t = term3();
-        if (isMode(EXPR) && prec(token.kind) >= TreeInfo.orPrec) {
+        if (isMode(EXPR) && prec(token) >= TreeInfo.orPrec) {
             selectExprMode();
             return term2Rest(t, TreeInfo.orPrec);
         } else {
@@ -1117,7 +1117,7 @@ public class JavacParser implements Parser {
         odStack[0] = t;
         int startPos = token.pos;
         Token topOp = Tokens.DUMMY;
-        while (prec(token.ikind) >= minprec) { // OPENJML - changed to ikind
+        while (prec(token) >= minprec) { // OPENJML - changed to ikind
             opStack[top] = topOp;
 
             if (token.kind == INSTANCEOF) {
@@ -1164,7 +1164,7 @@ public class JavacParser implements Parser {
                 top++;
                 odStack[top] = term3();
             }
-            while (top > 0 && prec(topOp.ikind) >= prec(token.ikind)) { // OPENJML -- changed to ikind
+            while (top > 0 && prec(topOp) >= prec(token)) { // OPENJML -- changed to ikind
                 odStack[top - 1] = makeOp(topOp.pos, topOp, odStack[top - 1], odStack[top]); // OPENJML
                 top--;
                 topOp = opStack[top];
@@ -5247,8 +5247,8 @@ public class JavacParser implements Parser {
     /** Return precedence of operator represented by token,
      *  -1 if token is not a binary operator. @see TreeInfo.opPrec
      */
-    protected int prec(ITokenKind token) {  // OPENJML - changed from package to protected, removed static, changed to ITokenKind
-        JCTree.Tag oc = optag((TokenKind)token);
+    protected int prec(Token token) {  // OPENJML - changed from package to protected, removed static, changed to Token
+        JCTree.Tag oc = optag(token.kind);
         return (oc != NO_TAG) ? TreeInfo.opPrec(oc) : -1;
     }   
 

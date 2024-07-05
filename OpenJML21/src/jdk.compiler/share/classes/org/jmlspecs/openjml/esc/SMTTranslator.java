@@ -11,6 +11,7 @@ import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExpressions.*;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
+import static org.jmlspecs.openjml.ext.JmlOperatorKind.*;
 
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
@@ -2198,13 +2199,13 @@ public class SMTTranslator extends JmlTreeScanner {
             }
         } else if (that.token == null) {
             result = F.fcn(F.symbol(that.name), newargs);
-        } else if (that.token == JmlTokenKind.SUBTYPE_OF) {
+        } else if (that.kind == subtypeofKind) {
             result = F.fcn(F.symbol(JMLSUBTYPE), newargs);
-        } else if (that.token == JmlTokenKind.SUBTYPE_OF_EQ) {
+        } else if (that.kind == subtypeofeqKind) {
             result = F.fcn(F.symbol(JMLSUBTYPE), newargs);
-        } else if (that.token == JmlTokenKind.JSUBTYPE_OF) {
+        } else if (that.kind == jsubtypeofKind) {
             result = F.fcn(F.symbol(JAVASUBTYPE), newargs);
-        } else if (that.token == JmlTokenKind.JSUBTYPE_OF_EQ) {
+        } else if (that.kind == jsubtypeofeqKind) {
             result = F.fcn(F.symbol(JAVASUBTYPE), newargs);
         } else if (that.meth != null) {
             // Built-in methods
