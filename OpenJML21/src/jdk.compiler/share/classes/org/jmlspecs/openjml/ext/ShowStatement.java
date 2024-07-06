@@ -4,8 +4,6 @@
  */
 package org.jmlspecs.openjml.ext;
 
-import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
-
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlOption;
@@ -46,7 +44,7 @@ public class ShowStatement extends JmlExtension {
             parser.nextToken();
 
             ListBuffer<JCExpression> expressions = new ListBuffer<>();
-            if (parser.token().kind != TokenKind.SEMI && parser.token().ikind != JmlTokenKind.ENDJMLCOMMENT) {
+            if (parser.token().kind != TokenKind.SEMI && !parser.isEndJml()) {
             	do {
             		int n = log.nerrors;
             		JCExpression t = parser.parseExpression();

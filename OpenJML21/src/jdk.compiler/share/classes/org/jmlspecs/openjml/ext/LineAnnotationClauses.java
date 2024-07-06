@@ -47,20 +47,20 @@ public class LineAnnotationClauses extends JmlExtension {
             try {
                 int tokenPos = scanner.token().pos;
                 Token t = scanner.advance();
-                if (t.kind == TokenKind.SEMI || t.ikind == JmlTokenKind.ENDJMLCOMMENT) {
+                if (t.kind == TokenKind.SEMI || scanner.isEndJml()) {
                     // Empty list
                 	// For allow, forbid, ignore, this means RuntimeException
                 	JCExpression qid = M.Ident(Names.instance(context).fromString("RuntimeException"));
                 	qid.pos = tokenPos;
                 	exprs.add(qid);
                 } else {
-                    while (scanner.jml() && t.kind != TokenKind.SEMI && t.ikind != JmlTokenKind.ENDJMLCOMMENT) {
+                    while (scanner.jml() && t.kind != TokenKind.SEMI && !scanner.isEndJml()) {
                         if (t.kind != TokenKind.IDENTIFIER){
                             // Bad statement or missing terminating semicolon
                             scanner.jmltokenizer.jmlError(t.pos, scanner.jmltokenizer.errPos(), "jml.bad.line.annotation");
                             // expected identifier
                             // skip to semi
-                            while (scanner.token().kind != TokenKind.SEMI && scanner.token().ikind != JmlTokenKind.ENDJMLCOMMENT) scanner.advance();
+                            while (scanner.token().kind != TokenKind.SEMI && !scanner.isEndJml()) scanner.advance();
                             return;
                         }
                         Name name = t.name();
@@ -76,7 +76,7 @@ public class LineAnnotationClauses extends JmlExtension {
                                     scanner.jmltokenizer.jmlError(t.pos, scanner.jmltokenizer.errPos(), "jml.bad.line.annotation");
                                     // expected identifier
                                     // skip to semi
-                                    while (scanner.token().kind != TokenKind.SEMI && scanner.token().ikind != JmlTokenKind.ENDJMLCOMMENT) scanner.advance();
+                                    while (scanner.token().kind != TokenKind.SEMI && !scanner.isEndJml()) scanner.advance();
                                     return;
                                 }
                                 qid = M.Select(qid, t.name());
@@ -90,7 +90,7 @@ public class LineAnnotationClauses extends JmlExtension {
                         }
                     }
                 }
-                if (t.ikind == JmlTokenKind.ENDJMLCOMMENT) { 
+                if (scanner.isEndJml()) { 
                 	// allow optional semicolon without a warning
                 //    utils.warning(t.pos, "jml.line.annotation.with.no.semicolon");
                     // Here we are swallowing the end of comment - we normally 

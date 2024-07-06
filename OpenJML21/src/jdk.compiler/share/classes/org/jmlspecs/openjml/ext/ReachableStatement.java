@@ -60,7 +60,7 @@ public class ReachableStatement extends JmlExtension {
             if (!noExpression) st.expression = JmlTreeUtils.instance(parser.context).makeBooleanLiteral(pp,true);
             if (parser.token().kind == TokenKind.SEMI) {
                 parser.nextToken();
-            } else if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
+            } else if (parser.isEndJml()) {
                 if (semiWarning) utils.warning(p-1, "jml.missing.semi", keyword);
             } else if (noExpression) {
                 // continue
@@ -76,7 +76,7 @@ public class ReachableStatement extends JmlExtension {
                     st.expression = e;
                 }
 
-                if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
+                if (parser.isEndJml()) {
                     if (semiWarning) utils.warning(p-2, "jml.missing.semi", keyword);
                 } else if (parser.token().kind != TokenKind.SEMI) {
                     utils.error(p, "jml.missing.semi", keyword);

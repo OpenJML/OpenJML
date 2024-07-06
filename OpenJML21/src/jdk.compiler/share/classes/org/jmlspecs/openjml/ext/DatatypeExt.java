@@ -110,7 +110,7 @@ public class DatatypeExt extends JmlExtension {
             d.constructors = cons.toList();
             d.pos = pos;
             parser.utils.setJML(d.mods);
-            while (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) parser.nextToken();
+            while (parser.isEndJml()) parser.nextToken();
             System.out.println(d.toString());
             return d;
             

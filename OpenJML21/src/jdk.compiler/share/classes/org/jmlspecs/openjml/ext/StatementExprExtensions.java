@@ -2,7 +2,6 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.COLON;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
-import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
@@ -78,7 +77,7 @@ public class StatementExprExtensions extends JmlExtension {
             var n = parser.parseOptionalName();
 
             JCExpression t;
-            if ((parser.token().kind == SEMI || parser.token().ikind == ENDJMLCOMMENT) && clauseType == splitClause) {
+            if ((parser.token().kind == SEMI || parser.isEndJml()) && clauseType == splitClause) {
                 // expression is optional in split statement
                 t = null;
             } else {
