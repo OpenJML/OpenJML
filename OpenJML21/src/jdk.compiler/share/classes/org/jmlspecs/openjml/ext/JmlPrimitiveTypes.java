@@ -495,7 +495,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
 	};
 
 	
-    public static class LocSet extends IJmlClauseKind.SingletonKind {
+    public static class LocSet extends IJmlClauseKind.SingletonExpressionKind {
         public LocSet(String name) { super(name); }
         
         @Override

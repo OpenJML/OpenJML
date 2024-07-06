@@ -1627,7 +1627,7 @@ public class JmlParser extends JavacParser {
 
             int prevmode = mode;
             setMode(TYPE);
-            JCExpression type = kind.parse(null, token.name().toString(), clausekind, this);
+            JCExpression type = kind.parse(null, kind.toString(), clausekind, this);
             setLastMode(mode);
             setMode(prevmode);
             return type;
@@ -2617,6 +2617,8 @@ public class JmlParser extends JavacParser {
                 if (ck instanceof JmlTypeKind) return ParensResult.CAST;
                 if (ck instanceof IJmlClauseKind.TypeAnnotationKind) return ParensResult.CAST;
                 if (t.name().charAt(0) == '\\') return ParensResult.PARENS;
+            } else if (t instanceof JmlToken jt) {
+                if (jt.jmlclausekind instanceof JmlTypeKind) return ParensResult.CAST;
             }
         }
         return super.analyzeParens();

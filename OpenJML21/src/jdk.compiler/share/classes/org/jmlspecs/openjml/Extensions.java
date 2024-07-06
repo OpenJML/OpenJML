@@ -75,7 +75,7 @@ public class Extensions {
     	if (token instanceof JmlToken) {
     		JmlToken jt = (JmlToken)token;
     		if (jt.jmlclausekind == null) return jt.jmlclausekind;
-            String id = jt.jmlkind.internedName();
+            String id = jt.jmlclausekind.keyword();
             IJmlClauseKind k = allKinds.get(id);
             jt.jmlclausekind = k;
             return k;    		
