@@ -1719,6 +1719,28 @@ public class JmlTreeUtils {
     
     public JmlMethodInvocation makeSubtype(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
         JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlOperatorKind.subtypeofKind,e1,e2);
+        e.token = JmlTokenKind.SUBTYPE_OF;
+        e.type = syms.booleanType;
+        return e;
+    }
+    
+    public JmlMethodInvocation makeSubtypeEq(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
+        JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlOperatorKind.subtypeofeqKind,e1,e2);
+        e.token = JmlTokenKind.SUBTYPE_OF;
+        e.type = syms.booleanType;
+        return e;
+    }
+    
+    public JmlMethodInvocation makeJSubtype(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
+        JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlOperatorKind.jsubtypeofKind,e1,e2);
+        e.token = JmlTokenKind.JSUBTYPE_OF;
+        e.type = syms.booleanType;
+        return e;
+    }
+    
+    public JmlMethodInvocation makeJSubtypeEq(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
+        JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlOperatorKind.jsubtypeofeqKind,e1,e2);
+        e.token = JmlTokenKind.JSUBTYPE_OF;
         e.type = syms.booleanType;
         return e;
     }
@@ -1762,6 +1784,7 @@ public class JmlTreeUtils {
             JCExpression ex = makeEqNull(id.pos, id);
             expr = makeOr(p,ex,expr);
         }
+        //System.out.println("DTE " + expr);
 
         return expr;
     }
@@ -1812,6 +1835,7 @@ public class JmlTreeUtils {
                 expr = makeAnd(p,expr,e);
             }
         }
+        //System.out.println("DTNNE " + expr);
         return expr;
     }
     

@@ -37,22 +37,22 @@ public enum JmlTokenKind implements ITokenKind {
     
 //    // These are JML operators (in expressions)
 //    // Note that the jmloperators set relies on this ordering
-//    EQUIVALENCE("<==>"),
-//    INEQUIVALENCE("<=!=>"),
-//    IMPLIES("==>"),
-//    REVERSE_IMPLIES("<=="),
-//    SUBTYPE_OF("<:"), // Operands are \TYPE values
-//    SUBTYPE_OF_EQ("<:="), // Operands are \TYPE values
-//    JSUBTYPE_OF("<::"), // Operands are Class<?> values, used only internally
-//    JSUBTYPE_OF_EQ("<::="), // Operands are Class<?> values, used only internally
-//    LOCK_LT("<#"),
-//    LOCK_LE("<#="),
-//    WF_LT("<<<"),
-//    WF_LE("<<<="),
+    EQUIVALENCE("<==>"),
+    INEQUIVALENCE("<=!=>"),
+    IMPLIES("==>"),
+    REVERSE_IMPLIES("<=="),
+    SUBTYPE_OF("<:"), // Operands are \TYPE values
+    SUBTYPE_OF_EQ("<:="), // Operands are \TYPE values
+    JSUBTYPE_OF("<::"), // Operands are Class<?> values, used only internally
+    JSUBTYPE_OF_EQ("<::="), // Operands are Class<?> values, used only internally
+    LOCK_LT("<#"),
+    LOCK_LE("<#="),
+    WF_LT("<<<"),
+    WF_LE("<<<="),
 //    
     // Other special character combinations
-//    DOT_DOT(".."),
-//    LEFT_ARROW("<-"),
+    DOT_DOT(".."),
+    LEFT_ARROW("<-"),
     INFORMAL_COMMENT("(*...*)"),
     SPEC_GROUP_START("{|"),
     SPEC_GROUP_END("|}"),

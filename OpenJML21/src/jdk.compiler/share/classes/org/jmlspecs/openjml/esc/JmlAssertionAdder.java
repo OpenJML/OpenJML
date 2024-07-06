@@ -16370,7 +16370,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						c.setType(syms.booleanType);
 						eresult = splitExpressions ? newTemp(c) : c;
 					} else {
-						JmlMethodInvocation c = treeutils.makeSubtype(that, lhs, rhs);
+						JmlMethodInvocation c = treeutils.makeJSubtype(that, lhs, rhs);
 						eresult = splitExpressions ? newTemp(c) : c;
 					}
 				}
@@ -18538,19 +18538,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		else {
 			switch (that.token) {
 
-//			case SUBTYPE_OF:
-//			case SUBTYPE_OF_EQ:
-//			case JSUBTYPE_OF:
-//			case JSUBTYPE_OF_EQ: {
-//				ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
-//				for (JCExpression arg : that.args) {
-//					JCExpression ex = convertExpr(arg);
-//					newargs.add(ex);
-//				}
-//				result = eresult = M.at(that.pos).JmlMethodInvocation(that.token, newargs.toList());
-//				eresult.type = syms.booleanType;
-//				break;
-//			}
+			case SUBTYPE_OF:
+			case SUBTYPE_OF_EQ:
+			case JSUBTYPE_OF:
+			case JSUBTYPE_OF_EQ: {
+				ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+				for (JCExpression arg : that.args) {
+					JCExpression ex = convertExpr(arg);
+					newargs.add(ex);
+				}
+				result = eresult = M.at(that.pos).JmlMethodInvocation(that.token, newargs.toList());
+				eresult.type = syms.booleanType;
+				break;
+			}
 
 			// case BSMAX :
 			// case BSREACH :

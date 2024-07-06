@@ -2382,6 +2382,7 @@ public class JmlTree {
         {
             super(List.<JCExpression>nil(),null,args);
             this.token = token;
+            this.kind = null;
             this.name = null;
             this.pos = pos; // preferred position
             this.startpos = pos;

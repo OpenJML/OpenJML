@@ -31,6 +31,7 @@ import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.ReachableStatement.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.Functional.*;
+import static org.jmlspecs.openjml.ext.JmlOperatorKind.*;
 import static org.jmlspecs.openjml.ext.JmlPrimitiveTypes.*;
 import org.jmlspecs.openjml.ext.Refining;
 import org.jmlspecs.openjml.ext.JmlOperatorKind;
@@ -1070,8 +1071,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             result = that;
 
 
-        } else {
-            if (that.kind != null) switch (that.kind.keyword) {
+        } else if (that.kind != null) {
+            switch (that.kind.keyword) {
                 case oldID:
                 case preID:
                 case pastID:
@@ -1099,6 +1100,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     } finally {
                         currentMap = savedMap;
                     }
+                    // FIXME - what is result?
                     break;
                 }
                 case sameID: {
@@ -1164,27 +1166,43 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     result = that;
                     break;
                 } 
+                case subtypeofID:
+                case jsubtypeofID:
+         //       case subtypeeqofKind: // FIXME
+         //       case jsubtypeeqofKind:
+                {
+                    scan(that.args.get(0));
+                    JCExpression lhs = result;
+                    scan(that.args.get(1));
+                    JCExpression rhs = result;
+                    that.args = com.sun.tools.javac.util.List.<JCExpression>of(lhs,rhs);
+                    result = that;
+                    break;
+                } 
                 default:
                     log.error(that.pos, "esc.internal.error", "No implementation for this kind of Jml node in BasicBlocker2: " + that.kind.keyword());
-                    
-            } else switch (that.token) { 
-//                case SUBTYPE_OF:
-//                case JSUBTYPE_OF:
-//                {
-//                    scan(that.args.get(0));
-//                    JCExpression lhs = result;
-//                    scan(that.args.get(1));
-//                    JCExpression rhs = result;
-//                    that.args = com.sun.tools.javac.util.List.<JCExpression>of(lhs,rhs);
-//                    result = that;
-//                    break;
-//                } 
+            }   
+        } else {
+            switch (that.token) { 
+                case SUBTYPE_OF:
+                case JSUBTYPE_OF:
+// FIXME                case SUBTYPEEQ_OF:
+// FIXME                case JSUBTYPEEQ_OF:
+                {
+                    scan(that.args.get(0));
+                    JCExpression lhs = result;
+                    scan(that.args.get(1));
+                    JCExpression rhs = result;
+                    that.args = com.sun.tools.javac.util.List.<JCExpression>of(lhs,rhs);
+                    result = that;
+                    break;
+                } 
                 default:
                     log.error(that.pos, "esc.internal.error", "Did not expect this kind of Jml node in BasicBlocker2: " + that.token.internedName());
                     shouldNotBeCalled(that);
             }
-            return;
         }
+        return;
     }
     
     // FIXME - REVIEW and document
