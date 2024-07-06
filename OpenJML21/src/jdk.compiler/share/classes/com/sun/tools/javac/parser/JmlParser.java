@@ -1167,17 +1167,18 @@ public class JmlParser extends JavacParser {
 
             // Get any modifiers (legal or not)
             mods = modifiersOpt(mods);
+            var startToken = token;
             
             // Get type annotations?
             List<JCAnnotation> typeAnns = null; // typeAnnotationsOpt();
             
             // Get the keyword for the JML clause, if any
             int pos = pos();
-            var jt = jmlTokenKind();
-            if (jt != null && !isJmlType(token) && currentMethodSpecs != null && !startOfMethodSpecs(token)) {
-                utils.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + jt.internedName() + " clause (ignored)");
-                currentMethodSpecs = null;
-            }
+//            var jt = jmlTokenKind();
+//            if (!isJmlType(token) && currentMethodSpecs != null && !startOfMethodSpecs(token)) {
+//                utils.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + jt.internedName() + " clause (ignored)");
+//                currentMethodSpecs = null;
+//            }
             //System.out.println("CCC " + token + " " + jt + " " + jmlTokenClauseKind());
             IJmlClauseKind ct = null;
             String id = null;
@@ -1251,7 +1252,7 @@ public class JmlParser extends JavacParser {
 
             }
             // Possibly Java, possibly JML but then is a ghost or model declaration
-            if (jt == null || isJmlType(token)) {
+            if (ct == null || isJmlType(token)) {
                 // Either a Java declaration or a JML declaration that starts with a JML type
                 boolean startsInJml = S.jml();
                 List<JCTree>  t;
@@ -1402,7 +1403,7 @@ public class JmlParser extends JavacParser {
                 mods = pushBackModifiers;
             } else {
                 utils.error(pos(), endPos(),
-                        "jml.illegal.token.for.declaration", jt.internedName());
+                        "jml.illegal.token.for.declaration", startToken);
                 skipThroughSemi();
                 break;
             }
