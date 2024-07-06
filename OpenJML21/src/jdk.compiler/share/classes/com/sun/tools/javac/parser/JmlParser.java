@@ -976,7 +976,7 @@ public class JmlParser extends JavacParser {
         if (jt == Refining.refiningClause) {
             nextToken();
             IJmlClauseKind ext = methodSpecKeywordS();
-            if (ext == alsoClause) { // jmlTokenKind() == JmlTokenKind.ALSO) {
+            if (ext == alsoClause) {
                 utils.error(pos(), endPos(), "jml.invalid.also");
                 nextToken();
             }
@@ -1173,11 +1173,12 @@ public class JmlParser extends JavacParser {
             
             // Get the keyword for the JML clause, if any
             int pos = pos();
-            JmlTokenKind jt = jmlTokenKind();
+            var jt = jmlTokenKind();
             if (jt != null && !isJmlType(token) && currentMethodSpecs != null && !startOfMethodSpecs(token)) {
                 utils.error(currentMethodSpecs.pos, "jml.message", "Misplaced method specifications preceding a " + jt.internedName() + " clause (ignored)");
                 currentMethodSpecs = null;
             }
+            //System.out.println("CCC " + token + " " + jt + " " + jmlTokenClauseKind());
             IJmlClauseKind ct = null;
             String id = null;
             if (token.kind == TokenKind.SEMI && !isNone(mods)) {
@@ -1930,9 +1931,8 @@ public class JmlParser extends JavacParser {
             }
             if (isEndJml()) nextToken();
         } while (token.kind == TokenKind.IDENTIFIER && (token.name().toString().equals(alsoID) || token.name().toString().equals(elseID)));
-        //} while (jmlTokenKind() == ALSO || token.ikind == TokenKind.ELSE);
         if (isEndJml()) nextToken();
-        if (jmlTokenKind() != SPEC_GROUP_END) {
+        if (jmlTokenClauseKind() != specGroupEndClause) {
             utils.error(pos(), endPos(), "jml.invalid.spec.group.end");
             while (!isEndJml() && token.kind != EOF)
                 nextToken();
@@ -1983,19 +1983,14 @@ public class JmlParser extends JavacParser {
                 return null;
             }
         }
-        JmlTokenKind jt = jmlTokenKind();
+        var jt = jmlTokenClauseKind();
         if (jt != null && res == null)
-            switch (jt) {
+            if (jt == specGroupStartClause) {
             // FIXME - change this to work in the above loop
-                case SPEC_GROUP_START:
                     res = parseSpecificationGroup();
-                    break;
-
-                default:
-                    // For any other token we just exit this loop,
+            } else {
+                // For any other token we just exit this loop,
                     // WITHOUT HAVING CALLED nextToken()!!!!
-                    break;
-
             }
         if (res != null) res.sourcefile = currentSourceFile();
         return res;
@@ -2740,7 +2735,7 @@ public class JmlParser extends JavacParser {
                 }
                 return t;
             }
-            if (jmlTokenKind() == INFORMAL_COMMENT) {
+            if (jt == SingletonExpressions.informalCommentKind) {
                     // TODO - move to a parser
                     String content = S.chars();
                     nextToken();

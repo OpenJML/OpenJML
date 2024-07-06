@@ -375,16 +375,16 @@ public abstract class IJmlClauseKind {
         public JCExpression parse(JCModifiers mods, String name, IJmlClauseKind kind, JmlParser parser) {
             init(parser);
             int startx = parser.pos();
-            JmlTokenKind jt = parser.jmlTokenKind();
+            var jt = parser.jmlTokenClauseKind();
             parser.nextToken();
             if (parser.token().kind != TokenKind.LPAREN) {
-                return parser.syntaxError(startx, null, "jml.args.required", jt.internedName());
+                return parser.syntaxError(startx, null, "jml.args.required", jt.keyword());
             } else {
                 int preferredPos = parser.pos(); // points at the left-paren
                 List<JCExpression> args = parser.arguments();
                 JmlMethodInvocation t = toP(parser.maker().at(preferredPos).JmlMethodInvocation(this, args));
                 t.startpos = startx;
-                t.token = jt; // FIXME - replace using jt with a kind
+                t.kind = jt;
                 checkParse(parser,t);
                 return parser.primaryTrailers(t, null); // FIXME - was primarySuffix
             }

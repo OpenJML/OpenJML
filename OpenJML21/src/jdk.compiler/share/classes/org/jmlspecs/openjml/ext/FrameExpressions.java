@@ -37,7 +37,7 @@ public class FrameExpressions extends JmlExtension {
                 IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             int p = parser.pos();
-            JmlTokenKind jt = parser.jmlTokenKind();
+            var jt = parser.jmlTokenClauseKind();
             parser.nextToken();
             if (parser.token().kind != TokenKind.LPAREN) {
                 return parser.syntaxError(p, null, "jml.args.required", keyword());
@@ -80,7 +80,6 @@ public class FrameExpressions extends JmlExtension {
                 IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             int p = parser.pos();
-            JmlTokenKind jt = parser.jmlTokenKind();
             parser.nextToken();
             if (parser.token().kind != TokenKind.LPAREN) {
                 return parser.syntaxError(p, null, "jml.args.required", keyword());
