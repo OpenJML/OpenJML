@@ -24,7 +24,7 @@ import com.sun.tools.javac.util.JCDiagnostic;
  */
 public class JmlToken extends Token implements JCDiagnostic.DiagnosticPosition {
 
-    public JmlTokenKind jmlkind;
+    //public JmlTokenKind jmlkind;
     public IJmlClauseKind jmlclausekind;
     public JavaFileObject source;
     
@@ -51,7 +51,7 @@ public class JmlToken extends Token implements JCDiagnostic.DiagnosticPosition {
 
     public JmlToken(/*@ nullable */JmlTokenKind jmlkind, IJmlClauseKind jmlclausekind, TokenKind tk, int pos, int endPos, List<Comment> comments) {
         super(jmlkind != null ? jmlkind : tk, pos, endPos, comments); // FIXME - do we ever need to add in a List<Comment>
-        this.jmlkind = jmlkind;
+        //this.jmlkind = jmlkind;
         this.jmlclausekind = jmlclausekind;
     }
 
@@ -70,20 +70,19 @@ public class JmlToken extends Token implements JCDiagnostic.DiagnosticPosition {
      */
     public JmlToken(IJmlClauseKind jmlclausekind, Token javaToken) {
         super(TokenKind.CUSTOM, javaToken.pos, javaToken.endPos, javaToken.comments);
-        this.jmlkind = null;
+        //this.jmlkind = null;
         this.jmlclausekind = jmlclausekind;
     }
     
     public JmlToken(JmlTokenKind jmlkind, IJmlClauseKind jmlclausekind, Token javaToken) {
         super(jmlkind != null ? jmlkind : javaToken.kind, javaToken.pos, javaToken.endPos, javaToken.comments);
-        this.jmlkind = jmlkind;
+        //this.jmlkind = jmlkind;
         this.jmlclausekind = jmlclausekind;
     }
     
     public JmlToken copy() {
-    	JmlToken t = new JmlToken(this.jmlkind, this.jmlclausekind, this.kind, this.pos, this.endPos);
+    	JmlToken t = new JmlToken(null, this.jmlclausekind, this.kind, this.pos, this.endPos, this.comments);
     	t.source = this.source;
-    	// FIXME - copy comments?
     	return t;
     }
 
