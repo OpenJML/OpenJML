@@ -190,10 +190,10 @@ public class JmlParser extends JavacParser {
     	return m instanceof ModifierKind;
     }
 
-    public JmlTokenKind jmlTokenKind() {
-        return token.ikind instanceof JmlTokenKind ? (JmlTokenKind)token.ikind : null;
-    }
-
+//    public JmlTokenKind jmlTokenKind() {
+//        return token.ikind instanceof JmlTokenKind ? (JmlTokenKind)token.ikind : null;
+//    }
+//
 
     /** Returns the IJmlClauseKind for the current token, or null if none */
     public IJmlClauseKind jmlTokenClauseKind() {

@@ -383,7 +383,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             jmlTokenClauseKind = null;
             tk = null;
             Token t = super.readToken(); // Sets tk, May modify jmlTokenKind
-            if (scannerDebug) System.out.println("READ SUPER " + t + " " + jmlTokenKind + " " + jmlTokenClauseKind);
+            if (scannerDebug) System.out.println("READ SUPER " + t + " " + jmlTokenClauseKind);
             pos = t.pos;
             endPos = t.endPos;
             // Note that the above may call processComment. If the comment is a JML comment, the
@@ -526,6 +526,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                 endPos = position();
             }
             if (skippingTokens >= 0 && t.kind != TokenKind.EOF) continue;
+            //if ((jmlTokenKind == null) != (jmlTokenClauseKind == null)) System.out.println("DIFFTOK " + jmlTokenKind + " " + jmlTokenClauseKind);
             t = jmlTokenKind == null ? t : new JmlToken(jmlTokenKind, jmlTokenClauseKind, TokenKind.CUSTOM, pos, endPos);
             return t;
             // FIXME - source field?
@@ -665,15 +666,16 @@ public class JmlTokenizer extends JavadocTokenizer {
                 //jmlTokenKind = JmlTokenKind.backslashTokens.get(seq);
                 jmlTokenClauseKind = Extensions.allKinds.get(seq);
                 if (scannerDebug) {
-                    System.out.println("GOT BACKSLASH " + seq + " " + jmlTokenKind + " " + jmlTokenClauseKind);
-                    if (jmlTokenKind == null && jmlTokenClauseKind == null) {
+                    System.out.println("GOT BACKSLASH " + seq + " " + jmlTokenClauseKind);
+                    if (jmlTokenClauseKind == null) {
                         Extensions.dump();
                     }
                 }
+                //if ((jmlTokenKind == null) != (jmlTokenClauseKind == null)) System.out.println("DIFFTOK2 "  + jmlTokenKind + " " + jmlTokenClauseKind);
                 if (jmlTokenKind != null) {
-                	// TODO - any backslash tokens remaining in JmlToken -- they should all be moved to ext
                     tk = TokenKind.CUSTOM;
-                } else {
+                } else 
+                {
                     tk = TokenKind.IDENTIFIER;
                     if (jmlTokenClauseKind == null) {
                     	jmlError(ep, position(), "jml.bad.backslash.token", seq); // sets ERROR token
