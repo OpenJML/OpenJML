@@ -2466,7 +2466,7 @@ public class JmlParser extends JavacParser {
                 nextToken();
                 return names.error;
             } else {
-                Name name = names.fromString(((JmlToken)token).jmlkind.internedName());
+                Name name = names.fromString(((JmlToken)token).jmlclausekind.keyword());
                 token = new Tokens.NamedToken(IDENTIFIER, token.pos, token.endPos, name, token.comments);
                 return super.ident();
             }
@@ -2758,7 +2758,7 @@ public class JmlParser extends JavacParser {
                             return jmlF.at(p).Erroneous();
                         }
                     } else {
-                        String id = token instanceof JmlToken ? ((JmlToken)token).jmlkind.internedName() : token.toString();
+                        String id = token instanceof JmlToken ? ((JmlToken)token).jmlclausekind.keyword() : token.toString();
                         if ("match".equals(id)) {
                             return null; // FIXME new MatchExt(context).parse(this, typeArgs);
                         } else {
