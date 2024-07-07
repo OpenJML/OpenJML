@@ -190,16 +190,12 @@ public class JmlParser extends JavacParser {
     	return m instanceof ModifierKind;
     }
 
-//    public JmlTokenKind jmlTokenKind() {
-//        return token.ikind instanceof JmlTokenKind ? (JmlTokenKind)token.ikind : null;
-//    }
-//
-
     /** Returns the IJmlClauseKind for the current token, or null if none */
     public IJmlClauseKind jmlTokenClauseKind() {
         return jmlTokenClauseKind(token);
     }
 
+    // FIXME - do we really want the below to have a side-effect on jt.jmlclausekind
     /** Returns the IJmlClauseKind for the given token, or null if none */
     public IJmlClauseKind jmlTokenClauseKind(Token token) {
         if (token instanceof JmlToken jt && jt.jmlclausekind != null) return jt.jmlclausekind;
@@ -234,7 +230,7 @@ public class JmlParser extends JavacParser {
     	while (true) {
     		var t = S.token(n);
  			// FIXME - it is a problem that for a EOF (a Java token), the 'kind' is not set, and might be a modifier, which leads to an endless loop here
-    		if (isStartJml(t) || isEndJml(t) || (t.ikind != TokenKind.EOF && isJavaModifier(token)) || isJmlModifier(t)) {
+    		if (isStartJml(t) || isEndJml(t) || (t.kind != TokenKind.EOF && isJavaModifier(token)) || isJmlModifier(t)) {
     			n++;
     			continue;
     		}
@@ -1154,7 +1150,7 @@ public class JmlParser extends JavacParser {
     public List<JCTree> classOrInterfaceOrRecordBodyDeclaration(JCModifiers mods, Name className, boolean isInterface, boolean isRecord) {
 
         ListBuffer<JCTree> list = new ListBuffer<JCTree>();
-        loop: while (token.ikind != TokenKind.RBRACE && token.ikind != TokenKind.EOF) {
+        loop: while (token.kind != TokenKind.RBRACE && token.kind != TokenKind.EOF) {
         	// Skip over any JML start tokens
             if (isStartJml(token)) {
             	nextToken();
@@ -3508,7 +3504,7 @@ public class JmlParser extends JavacParser {
     /** Skips through an ENDJMLCOMMENT token, or up to EOF; 
      * used to recover from a parsing error in a JML comment */
     public void skipThroughEndOfJML() {
-        while (token.ikind != ENDJMLCOMMENT && token.kind != EOF)
+        while (!isEndJml() && token.kind != EOF)
             nextToken();
         S.setJml(false); // Shouldn't the scanner set this appropriately?
         inJmlDeclaration = false;

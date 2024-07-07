@@ -411,6 +411,15 @@ public class Tokens {
         public String toString() {
             return kind.toString();
         }
+        
+        // OPENJML -- for debugging
+        public String toStringPrefix() {
+            return "[" + kind.toString() + ":" + pos + ":" + endPos;
+        }
+        // OPENJML -- for debugging
+        public String toStringDetail() {
+            return toStringPrefix() + "]";
+        }
     }
 
     static final class NamedToken extends Token {
@@ -438,6 +447,10 @@ public class Tokens {
         public String toString() {
             return name.toString();
         }
+        // OPENJML -- for debugging
+        public String toStringDetail() {
+            return toStringPrefix() + ":" + name() + "]";
+        }
     }
 
     static class StringToken extends Token {
@@ -464,6 +477,10 @@ public class Tokens {
         @Override
         public String toString() {
             return stringVal();
+        }
+        // OPENJML -- for debugging
+        public String toStringDetail() {
+            return toStringPrefix() + ":" + stringVal() + "]";
         }
 }
 

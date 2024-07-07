@@ -12,6 +12,7 @@ import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
+import org.jmlspecs.openjml.ext.JmlOperatorKind;
 
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
 import com.sun.tools.javac.parser.Tokens.NamedToken;
@@ -226,11 +227,11 @@ public class JmlScanner extends Scanner {
     }
     
     public static boolean isStartJml(Token t) {
-        return t.ikind == JmlTokenKind.STARTJMLCOMMENT;
+        return (t instanceof JmlToken jt) && jt.jmlclausekind == JmlOperatorKind.startjmlcommentKind;
     }
     
     public boolean isEndJml() {
-        return token.ikind == JmlTokenKind.ENDJMLCOMMENT;
+        return (token instanceof JmlToken jt) && jt.jmlclausekind == JmlOperatorKind.endjmlcommentKind;
     }
     
     @Override
@@ -243,8 +244,8 @@ public class JmlScanner extends Scanner {
     				var saved = prevToken();
     				var t0 = token(0);
     				var t1 = token(1);
-    				if (scannerDebug) System.out.println("TOKEN AFTER ENDJML " + t0 + " :: " + savedJml.get(0) + " " + t1.pos + " " + t1 + " " + t1.kind + " " + t1.ikind + " " + isStartJml(t1));
-                    if (scannerDebug) System.out.println("LOOKAHEADS-Z " + t0 + " " + t0.kind + " :: " + savedTokens.size() + " " + savedJml.size() + " " + jmlForCurrentToken);
+    				if (scannerDebug) System.out.println("TOKEN AFTER ENDJML " + t0.toStringDetail() + " :: " + savedJml.get(0) + " " + t1.toStringDetail());
+                    if (scannerDebug) System.out.println("LOOKAHEADS-Z " + t0.toStringDetail() + " :: " + savedTokens.size() + " " + savedJml.size() + " " + jmlForCurrentToken);
     				if (!savedJml.get(0)) break;
     				if (isStartJml(t1)) {
     					if (scannerDebug) System.out.println("SKIPPING START JML");
@@ -275,7 +276,7 @@ public class JmlScanner extends Scanner {
     		}
     	}
     	if (scannerDebug) {
-    		System.out.println("TOKEN " + jmlForCurrentToken + " " + token.pos + " " + token.endPos + " " + token + " " + token.kind + " " + token.ikind);
+    		System.out.println("TOKEN " + jmlForCurrentToken + " " + token.toStringDetail());
     	}
     }
 
@@ -286,7 +287,7 @@ public class JmlScanner extends Scanner {
             for (int i = savedTokens.size() ; i < lookahead ; i ++) {
                 savedTokens.add(tokenizer.readToken());
                 savedJml.add(((JmlTokenizer)tokenizer).jml());
-                if (scannerDebug) System.out.println("LOOKAHEAD " + savedTokens.size() + " " + savedTokens.get(savedTokens.size()-1).ikind + " " + savedJml.size() + " " + savedJml.get(savedJml.size()-1));
+                if (scannerDebug) System.out.println("LOOKAHEAD " + savedTokens.size() + " " + savedTokens.get(savedTokens.size()-1).toStringDetail() + " " + savedJml.size() + " " + savedJml.get(savedJml.size()-1));
             }
             return savedTokens.get(lookahead - 1);
         }
