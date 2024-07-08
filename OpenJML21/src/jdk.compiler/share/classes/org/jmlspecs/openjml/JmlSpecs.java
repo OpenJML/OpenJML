@@ -970,13 +970,13 @@ public class JmlSpecs {
     
     public boolean findModifier(JCMethodDecl decl, ModifierKind kind) {
         JmlModifiers jmods = (JmlModifiers)decl.mods;
-        for (var m: jmods.jmlmods) if (m.ikind == kind) return true;
+        for (var m: jmods.jmlmods) if (m.jmlclausekind == kind) return true;
         return false;
     }
     
     public boolean findModifier(JCVariableDecl decl, ModifierKind kind) {
         JmlModifiers jmods = (JmlModifiers)decl.mods;
-        for (var m: jmods.jmlmods) if (m.ikind == kind) return true;
+        for (var m: jmods.jmlmods) if (m.jmlclausekind == kind) return true;
         return false;
     }
     
