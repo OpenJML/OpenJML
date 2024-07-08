@@ -1683,7 +1683,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                for (JmlToken t: mods.jmlmods) {
 //                    if (t.pos == p && t.jmlclausekind == kind) continue x;
 //                }
-                JmlToken newtoken = new JmlToken(jmla.kind, jmla.sourcefile, p, p); // FIXME - should really have the endposition
+                JmlToken newtoken = new JmlToken(jmla.kind, jmla.sourcefile, p, p, null); // FIXME - should really have the endposition
                 mods.jmlmods.add(newtoken);
             }
         }

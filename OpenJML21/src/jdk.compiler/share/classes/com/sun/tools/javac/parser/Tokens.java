@@ -325,14 +325,14 @@ public class Tokens {
             checkKind();
         }
 
-        Token(ITokenKind ikind, int pos, int endPos, List<Comment> comments) { // OPENJML - changed to ITokenKind to allow extension
-//            this.ikind = ikind;
-            this.kind = ikind instanceof TokenKind ? (TokenKind)ikind : TokenKind.CUSTOM;
-            this.pos = pos;
-            this.endPos = endPos;
-            this.comments = comments;
-            checkKind();
-        }
+//        Token(ITokenKind ikind, int pos, int endPos, List<Comment> comments) { // OPENJML - changed to ITokenKind to allow extension
+////            this.ikind = ikind;
+//            this.kind = ikind instanceof TokenKind ? (TokenKind)ikind : TokenKind.CUSTOM;
+//            this.pos = pos;
+//            this.endPos = endPos;
+//            this.comments = comments;
+//            checkKind();
+//        }
         
         Token[] split(Tokens tokens) {
             if (kind.name.length() < 2 || kind.tag != Tag.DEFAULT) {
@@ -419,6 +419,10 @@ public class Tokens {
         // OPENJML -- for debugging
         public String toStringDetail() {
             return toStringPrefix() + "]";
+        }
+        
+        public org.jmlspecs.openjml.IJmlClauseKind jmlclausekind() { // OPENJML - added for convenience
+            return null;
         }
     }
 

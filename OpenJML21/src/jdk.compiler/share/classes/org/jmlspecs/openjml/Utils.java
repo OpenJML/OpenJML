@@ -352,7 +352,7 @@ public class Utils {
      */
     public void setHelper(/*@non_null*/ MethodSymbol symbol) {
         var mods = JmlSpecs.instance(context).getLoadedSpecs(symbol).mods;
-        JmlToken tok = new JmlToken(null, Modifiers.HELPER, com.sun.tools.javac.parser.Tokens.TokenKind.CUSTOM, Position.NOPOS, Position.NOPOS);
+        JmlToken tok = new JmlToken( Modifiers.HELPER, Position.NOPOS, Position.NOPOS);
         ((JmlModifiers)mods).jmlmods.add(tok);
     }
     

@@ -383,7 +383,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             jmlTokenClauseKind = null;
             tk = null;
             Token t = super.readToken(); // Sets tk, May modify jmlTokenKind
-            if (scannerDebug) System.out.println("READ SUPER " + t + " " + jmlTokenClauseKind);
+            if (scannerDebug) System.out.println("READ SUPER " + t.toStringDetail() + " " + jmlTokenClauseKind + " " + skippingTokens + " " + tk + " " + jml);
             pos = t.pos;
             endPos = t.endPos;
             // Note that the above may call processComment. If the comment is a JML comment, the
@@ -410,7 +410,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             
             if (!jml) {
                 if (jmlTokenClauseKind == JmlOperatorKind.endjmlcommentKind) {
-                    JmlToken jmlToken = new JmlToken(jmlTokenKind, jmlTokenClauseKind, t);
+                    JmlToken jmlToken = new JmlToken(jmlTokenClauseKind, t);
                     // FIXME - source field?
                     // if initialJml == false and now the token is ENDJMLCOMMENT, then we had 
                     // an empty comment. We don't return a token in that case.
@@ -527,7 +527,8 @@ public class JmlTokenizer extends JavadocTokenizer {
             }
             if (skippingTokens >= 0 && t.kind != TokenKind.EOF) continue;
             //if ((jmlTokenKind == null) != (jmlTokenClauseKind == null)) System.out.println("DIFFTOK " + jmlTokenKind + " " + jmlTokenClauseKind);
-            t = jmlTokenKind == null ? t : new JmlToken(jmlTokenKind, jmlTokenClauseKind, TokenKind.CUSTOM, pos, endPos);
+            t = (t.kind == TokenKind.IDENTIFIER || jmlTokenClauseKind == null) ? t : new JmlToken(jmlTokenClauseKind, pos, endPos);
+            if (scannerDebug) System.out.println("TOKENIZER " + jmlTokenClauseKind + " " + t.toStringDetail());
             return t;
             // FIXME - source field?
         }

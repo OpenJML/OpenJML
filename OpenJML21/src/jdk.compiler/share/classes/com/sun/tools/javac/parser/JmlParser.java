@@ -628,7 +628,7 @@ public class JmlParser extends JavacParser {
             utils.setJML(vd.mods);
 //            JCAnnotation a = utils.modToAnnotationAST(Modifiers.MODEL, cd.pos, cd.pos);  // FIXME -is position correct?
 //            vd.mods.annotations =  vd.mods.annotations.append(a);
-            ((JmlModifiers)vd.mods).jmlmods.add(new JmlToken(Modifiers.MODEL, log.currentSourceFile(), cd.pos, cd.pos));
+            ((JmlModifiers)vd.mods).jmlmods.add(new JmlToken(Modifiers.MODEL, log.currentSourceFile(), cd.pos, cd.pos, null));
             // declare _JMLvalues as model field
             newdefs.add(vd);
             JCExpression ex = jmlF.Binary(Tag.NE, jmlF.Ident(vd.name), F.Literal(TypeTag.BOT,null));
@@ -2323,7 +2323,7 @@ public class JmlParser extends JavacParser {
                 break;
             } else if (S.jml() && isJmlModifier(token)) {
                 ModifierKind mk = (ModifierKind)Extensions.findKeyword(token);
-                JmlToken jt = new JmlToken(mk, token);
+                JmlToken jt = new JmlToken(mk, token.pos, token.endPos);
                 jt.source = Log.instance(context).currentSourceFile();
                 mods.jmlmods.add(jt);
                 if (mods.pos == Position.NOPOS) {

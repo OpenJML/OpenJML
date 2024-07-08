@@ -56,50 +56,50 @@ public class JmlToken extends Token implements JCDiagnostic.DiagnosticPosition {
     /** Creates a JmlToken object, as either, if jmlkind is null, a Java token in a JMLToken wrapper or,
       * if jmlkind is not null, a JMlToken object for a JML construct.
       */
-    public JmlToken(/*@ nullable */JmlTokenKind jmlkind, IJmlClauseKind jmlclausekind, TokenKind tk, int pos, int endPos) {
-        this(jmlkind, jmlclausekind, tk, pos, endPos, null);
+    public JmlToken(IJmlClauseKind jmlclausekind, int pos, int endPos) {
+        this(jmlclausekind, pos, endPos, null);
     }
 
-    public JmlToken(/*@ nullable */JmlTokenKind jmlkind, IJmlClauseKind jmlclausekind, TokenKind tk, int pos, int endPos, List<Comment> comments) {
-        super(jmlkind != null ? jmlkind : tk, pos, endPos, comments); // FIXME - do we ever need to add in a List<Comment>
-        //this.jmlkind = jmlkind;
+    public JmlToken(IJmlClauseKind jmlclausekind, int pos, int endPos, List<Comment> comments) {
+        this(jmlclausekind, null, pos, endPos, comments);
+    }
+
+    public JmlToken(IJmlClauseKind jmlclausekind, JavaFileObject source, int pos, int endPos, List<Comment> comments) {
+        super(TokenKind.CUSTOM, pos, endPos, comments);
         this.jmlclausekind = jmlclausekind;
-    }
-
-    public JmlToken(IJmlClauseKind jmlclausekind, JavaFileObject source, int pos, int endPos) {
-        this(null, jmlclausekind, TokenKind.CUSTOM, pos, endPos, null);
         this.source = source;
     }
 
-    /** Creates a JmlTOken that just wraps a Java Token */
-    public JmlToken(Token javaToken) {
-        this(null, null, javaToken);
-    }
+//    /** Creates a JmlToken that just wraps a Java Token */
+//    public JmlToken(Token javaToken) {
+//        this(null, null, javaToken);
+//    }
 
-    /** Creates a JmlToken object, as either, if jmlkind is null, a Java token in a JMLToken wrapper or,
-     * if jmlkind is not null, a JMlToken object for a JML construct.
+    /** Creates a JmlToken object using positions from Java token
      */
     public JmlToken(IJmlClauseKind jmlclausekind, Token javaToken) {
         super(TokenKind.CUSTOM, javaToken.pos, javaToken.endPos, javaToken.comments);
-        //this.jmlkind = null;
         this.jmlclausekind = jmlclausekind;
+        this.source = null; // FIXME
     }
-    
-    public JmlToken(JmlTokenKind jmlkind, IJmlClauseKind jmlclausekind, Token javaToken) {
-        super(jmlkind != null ? jmlkind : javaToken.kind, javaToken.pos, javaToken.endPos, javaToken.comments);
-        //this.jmlkind = jmlkind;
-        this.jmlclausekind = jmlclausekind;
-    }
+//    
+//    public JmlToken(JmlTokenKind jmlkind, IJmlClauseKind jmlclausekind, Token javaToken) {
+//        super(jmlkind != null ? jmlkind : javaToken.kind, javaToken.pos, javaToken.endPos, javaToken.comments);
+//        //this.jmlkind = jmlkind;
+//        this.jmlclausekind = jmlclausekind;
+//    }
     
     public JmlToken copy() {
-    	JmlToken t = new JmlToken(null, this.jmlclausekind, this.kind, this.pos, this.endPos, this.comments);
-    	t.source = this.source;
-    	return t;
+        return new JmlToken( this.jmlclausekind, this.source, this.pos, this.endPos, this.comments);
     }
 
     protected void checkKind() {
     }
 
+    public IJmlClauseKind jmlclausekind() {
+        return jmlclausekind;
+    }
+    
     public String toString() {
         return (jmlclausekind != null ? jmlclausekind.keyword : "?");
     }

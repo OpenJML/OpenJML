@@ -1429,12 +1429,12 @@ public class JmlSpecs {
     }
     
     public void addModifier(int pos, ModifierKind m, JCModifiers mods) {
-        var tok = new com.sun.tools.javac.parser.JmlToken(m, log.currentSourceFile(), pos, pos);
+        var tok = new com.sun.tools.javac.parser.JmlToken(m, log.currentSourceFile(), pos, pos, null);
         ((JmlModifiers)mods).jmlmods.add(tok);
     }
     
     public void addModifier(int pos, int endpos, ModifierKind m, JCModifiers mods) {
-        var tok = new com.sun.tools.javac.parser.JmlToken(m, log.currentSourceFile(), pos, endpos);
+        var tok = new com.sun.tools.javac.parser.JmlToken(m, log.currentSourceFile(), pos, endpos, null);
         ((JmlModifiers)mods).jmlmods.add(tok);
     }
     
