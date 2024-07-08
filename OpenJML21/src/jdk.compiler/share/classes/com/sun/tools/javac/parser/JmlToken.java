@@ -11,10 +11,10 @@ import org.jmlspecs.openjml.JmlTokenKind;
 import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.parser.Tokens.Comment;
-import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.tree.JCTree;
-import javax.tools.JavaFileObject;
+import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.JCDiagnostic;
+import javax.tools.JavaFileObject;
 
 /**
  * This class is an extension of the JDK Token class so that we can represent JML tokens
@@ -35,7 +35,6 @@ import com.sun.tools.javac.util.JCDiagnostic;
  */
 public class JmlToken extends Token implements JCDiagnostic.DiagnosticPosition {
 
-    //public JmlTokenKind jmlkind;
     public IJmlClauseKind jmlclausekind;
     public JavaFileObject source;
     
@@ -57,11 +56,15 @@ public class JmlToken extends Token implements JCDiagnostic.DiagnosticPosition {
       * if jmlkind is not null, a JMlToken object for a JML construct.
       */
     public JmlToken(IJmlClauseKind jmlclausekind, int pos, int endPos) {
-        this(jmlclausekind, pos, endPos, null);
+        this(jmlclausekind, null, pos, endPos, null);
     }
 
     public JmlToken(IJmlClauseKind jmlclausekind, int pos, int endPos, List<Comment> comments) {
         this(jmlclausekind, null, pos, endPos, comments);
+    }
+
+    public JmlToken(IJmlClauseKind jmlclausekind, JavaFileObject source, int pos, int endPos) {
+        this(jmlclausekind, source, pos, endPos, null);
     }
 
     public JmlToken(IJmlClauseKind jmlclausekind, JavaFileObject source, int pos, int endPos, List<Comment> comments) {
@@ -70,11 +73,6 @@ public class JmlToken extends Token implements JCDiagnostic.DiagnosticPosition {
         this.source = source;
     }
 
-//    /** Creates a JmlToken that just wraps a Java Token */
-//    public JmlToken(Token javaToken) {
-//        this(null, null, javaToken);
-//    }
-
     /** Creates a JmlToken object using positions from Java token
      */
     public JmlToken(IJmlClauseKind jmlclausekind, Token javaToken) {
@@ -82,27 +80,29 @@ public class JmlToken extends Token implements JCDiagnostic.DiagnosticPosition {
         this.jmlclausekind = jmlclausekind;
         this.source = null; // FIXME
     }
-//    
-//    public JmlToken(JmlTokenKind jmlkind, IJmlClauseKind jmlclausekind, Token javaToken) {
-//        super(jmlkind != null ? jmlkind : javaToken.kind, javaToken.pos, javaToken.endPos, javaToken.comments);
-//        //this.jmlkind = jmlkind;
-//        this.jmlclausekind = jmlclausekind;
-//    }
-    
-    public JmlToken copy() {
+
+    public JmlToken copy() { // FIXME - is this used?
         return new JmlToken( this.jmlclausekind, this.source, this.pos, this.endPos, this.comments);
     }
 
+    @Override
     protected void checkKind() {
+        if (kind != TokenKind.CUSTOM) {
+            throw new AssertionError("Bad token kind - expected " + TokenKind.CUSTOM);
+        }
     }
 
+    @Override
     public IJmlClauseKind jmlclausekind() {
         return jmlclausekind;
     }
     
+    @Override
     public String toString() {
         return (jmlclausekind != null ? jmlclausekind.keyword : "?");
     }
+
+    @Override
     public String toStringDetail() {
         return toStringPrefix() + ":" + jmlclausekind + "]";
     }
