@@ -35,12 +35,16 @@ import javax.tools.JavaFileObject;
  */
 public class JmlToken extends Token implements JCDiagnostic.DiagnosticPosition {
 
+    /** The kind of token. An IJmlClauseKind is like an enum -- a single object representing each kind of token. */
     public IJmlClauseKind jmlclausekind;
+    /** The source file containing the token */
     public JavaFileObject source;
     
+    /** a necessary override, but just returns null */
     @Override
     public JCTree getTree() { return null; }
     
+    /** Returns the source position of the token */
     public JCDiagnostic.DiagnosticPosition pos() { return this; }
     
     @Override
@@ -52,8 +56,7 @@ public class JmlToken extends Token implements JCDiagnostic.DiagnosticPosition {
     @Override
     public int getEndPosition(com.sun.tools.javac.tree.EndPosTable t) { return endPos; }
 
-    /** Creates a JmlToken object, as either, if jmlkind is null, a Java token in a JMLToken wrapper or,
-      * if jmlkind is not null, a JMlToken object for a JML construct.
+    /** Creates a JmlToken object
       */
     public JmlToken(IJmlClauseKind jmlclausekind, int pos, int endPos) {
         this(jmlclausekind, null, pos, endPos, null);
@@ -73,18 +76,20 @@ public class JmlToken extends Token implements JCDiagnostic.DiagnosticPosition {
         this.source = source;
     }
 
-    /** Creates a JmlToken object using positions from Java token
+    /** Creates a JmlToken object using positions from Java token (with no source file information)
      */
     public JmlToken(IJmlClauseKind jmlclausekind, Token javaToken) {
         super(TokenKind.CUSTOM, javaToken.pos, javaToken.endPos, javaToken.comments);
         this.jmlclausekind = jmlclausekind;
-        this.source = null; // FIXME
+        this.source = null;
     }
 
-    public JmlToken copy() { // FIXME - is this used?
+    /** Makes a copy of the token, as used in the tree copier, but only implemented for JmlTokens */
+    public JmlToken copy() {
         return new JmlToken( this.jmlclausekind, this.source, this.pos, this.endPos, this.comments);
     }
 
+    /** Called by the super constructor */
     @Override
     protected void checkKind() {
         if (kind != TokenKind.CUSTOM) {
