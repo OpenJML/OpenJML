@@ -4,8 +4,6 @@
  */
 package org.jmlspecs.openjml.ext;
 
-import static org.jmlspecs.openjml.JmlTokenKind.BSPRE;
-
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTokenKind;

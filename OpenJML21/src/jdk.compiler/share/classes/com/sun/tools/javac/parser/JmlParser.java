@@ -3193,7 +3193,13 @@ public class JmlParser extends JavacParser {
     @Override
     protected int prec(Token token) {
         if (token instanceof JmlToken jt) {
-            return ((JmlOperatorKind.Operator)jt.jmlclausekind).precedence;
+            if (jt.jmlclausekind instanceof JmlOperatorKind.Operator op) {
+                return op.precedence;
+            } else {
+                // This happens, at least, when there is a badly formatted expression, like <Integer>\old(x)
+                // This precedence value puts an end to parsing an expression.
+                return -10000;
+            }
         }
         return precFactor*super.prec(token);
     }

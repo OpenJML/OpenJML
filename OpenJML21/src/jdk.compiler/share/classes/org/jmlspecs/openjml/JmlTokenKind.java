@@ -32,7 +32,7 @@ public enum JmlTokenKind {
 //    ENDJMLCOMMENT("<JMLEND>"),
     
 
-    BSPRE("\\pre"), // overloaded both \post-like and \old-like
+//    BSPRE("\\pre"), // overloaded both \post-like and \old-like
     
 //    // These are JML operators (in expressions)
 //    // Note that the jmloperators set relies on this ordering
@@ -40,10 +40,10 @@ public enum JmlTokenKind {
 //    INEQUIVALENCE("<=!=>"),
 //    IMPLIES("==>"),
 //    REVERSE_IMPLIES("<=="),
-    SUBTYPE_OF("<:"), // Operands are \TYPE values
-    SUBTYPE_OF_EQ("<:="), // Operands are \TYPE values
-    JSUBTYPE_OF("<::"), // Operands are Class<?> values, used only internally
-    JSUBTYPE_OF_EQ("<::="), // Operands are Class<?> values, used only internally
+//    SUBTYPE_OF("<:"), // Operands are \TYPE values
+//    SUBTYPE_OF_EQ("<:="), // Operands are \TYPE values
+//    JSUBTYPE_OF("<::"), // Operands are Class<?> values, used only internally
+//    JSUBTYPE_OF_EQ("<::="), // Operands are Class<?> values, used only internally
 //    LOCK_LT("<#"),
 //    LOCK_LE("<#="),
 //    WF_LT("<<<"),

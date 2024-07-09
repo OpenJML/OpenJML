@@ -10,6 +10,7 @@ import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 import org.jmlspecs.openjml.Utils;
+import static org.jmlspecs.openjml.IJmlClauseKind.SingletonExpressionKind;
 
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Symtab;
@@ -33,7 +34,7 @@ import com.sun.tools.javac.util.Log;
 public class SingletonExpressions extends JmlExtension {
 	
     public static final String resultID ="\\result";
-    public static final IJmlClauseKind resultKind = new IJmlClauseKind.SingletonExpressionKind(resultID) {
+    public static final IJmlClauseKind resultKind = new SingletonExpressionKind(resultID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
@@ -62,7 +63,7 @@ public class SingletonExpressions extends JmlExtension {
 
     
     public static final String elseID = "\\else";
-    public static final IJmlClauseKind elseKind = new IJmlClauseKind.SingletonExpressionKind(elseID) {
+    public static final IJmlClauseKind elseKind = new SingletonExpressionKind(elseID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
@@ -76,7 +77,7 @@ public class SingletonExpressions extends JmlExtension {
     };
     
     public static final String countID = "\\count";
-    public static final IJmlClauseKind countKind = new IJmlClauseKind.SingletonExpressionKind(countID) {
+    public static final IJmlClauseKind countKind = new SingletonExpressionKind(countID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
@@ -89,19 +90,16 @@ public class SingletonExpressions extends JmlExtension {
             }
             return t;
         }
-        
-        @Override
-        public void checkParse(JmlParser parser, JmlSingleton e, String rep) {
-            if (utils.isDeprecationSet() && "\\index".equals(rep)) {
-            	utils.warning(e.pos(), "jml.deprecated.index");
-            }
-        }
     };
     
     public static final IJmlClauseKind indexKind = countKind;
+    static {
+        Extensions.allKinds.put("\\index", countKind);
+    }
+    
     
     public static final String valuesID = "\\values";
-    public static final IJmlClauseKind valuesKind = new IJmlClauseKind.SingletonExpressionKind(valuesID) {
+    public static final IJmlClauseKind valuesKind = new SingletonExpressionKind(valuesID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
@@ -126,7 +124,7 @@ public class SingletonExpressions extends JmlExtension {
     };
     
     public static final String informalCommentID = "(*...*)";
-    public static final IJmlClauseKind informalCommentKind = new IJmlClauseKind.SingletonExpressionKind(informalCommentID) {
+    public static final IJmlClauseKind informalCommentKind = new SingletonExpressionKind(informalCommentID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
@@ -140,7 +138,7 @@ public class SingletonExpressions extends JmlExtension {
     };
     
     public static final String exceptionID = "\\exception";
-    public static final IJmlClauseKind exceptionKind = new IJmlClauseKind.SingletonExpressionKind(exceptionID) {
+    public static final IJmlClauseKind exceptionKind = new SingletonExpressionKind(exceptionID) {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
@@ -163,18 +161,14 @@ public class SingletonExpressions extends JmlExtension {
     };
     
     public static final String locksetID = "\\lockset";
-    public static final IJmlClauseKind locksetKind = new IJmlClauseKind.SingletonExpressionKind(locksetID) {
+    public static final IJmlClauseKind locksetKind = new SingletonExpressionKind(locksetID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
             return attr.JMLSetType;
         }
     };
     
-    static {
-        Extensions.allKinds.put("\\index", countKind);
-    }
-    
-    public static class LabelKind extends IJmlClauseKind.SingletonExpressionKind {
+    public static class LabelKind extends SingletonExpressionKind {
     	public LabelKind(String name) { super(name); }
         @Override
         public JCTree.JCExpression parse(JCTree.JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {

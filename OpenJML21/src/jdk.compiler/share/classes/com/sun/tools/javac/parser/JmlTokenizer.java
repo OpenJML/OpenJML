@@ -19,6 +19,7 @@ import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExtensions;
 import org.jmlspecs.openjml.ext.JmlOperatorKind;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
 import com.sun.tools.javac.resources.CompilerProperties.Errors;
@@ -660,14 +661,18 @@ public class JmlTokenizer extends JavadocTokenizer {
 
                 // FIXME: tk is always an IDENTIFIER. We need backslash-typenames to be identifiers.
                 // Other kinds of backslash names can be JmlTokens.
+                // Except \nothing and \everything.  Why? Straighten it out.
                 
-                if (jmlTokenClauseKind != null && tk != TokenKind.IDENTIFIER) {
-                    tk = TokenKind.CUSTOM;
-                } else 
-                {
+                if (jmlTokenClauseKind instanceof JmlPrimitiveTypes.JmlTypeKind || jmlTokenClauseKind == JmlPrimitiveTypes.nothingKind || jmlTokenClauseKind == JmlPrimitiveTypes.everythingKind || jmlTokenClauseKind == org.jmlspecs.openjml.ext.Modifiers.BSREADONLY) {
                     tk = TokenKind.IDENTIFIER;
-                    if (jmlTokenClauseKind == null) {
-                    	jmlError(ep, position(), "jml.bad.backslash.token", seq); // sets ERROR token
+                    jmlTokenClauseKind = null;
+                } else if (jmlTokenClauseKind == null) {
+                    jmlError(ep, position(), "jml.bad.backslash.token", seq); // sets ERROR token
+                } else {
+                    tk = TokenKind.CUSTOM;
+                    // keep jmlTokenClauseKind
+                    if (Utils.instance(context).isDeprecationSet() && seq.equals("\\index")) {
+                        Utils.instance(context).warning(ep, "jml.deprecated.index");
                     }
                 }
             } else {

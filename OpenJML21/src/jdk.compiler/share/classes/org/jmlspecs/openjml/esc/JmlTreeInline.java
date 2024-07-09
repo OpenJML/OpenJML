@@ -257,7 +257,6 @@ public class JmlTreeInline extends JmlTreeCopier {
         copy.startpos = that.startpos;
         copy.labelProperties = that.labelProperties;
         copy.type = that.type;
-        copy.token = that.token;
         copy.meth = copy(that.meth,p);
         copy.typeargs = copy(that.typeargs,p);
         copy.varargsElement = that.varargsElement; // FIXME - copy?

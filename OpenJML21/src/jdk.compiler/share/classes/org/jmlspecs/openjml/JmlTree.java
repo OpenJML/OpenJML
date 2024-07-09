@@ -2366,26 +2366,14 @@ public class JmlTree {
      * note that the method expression may be null if the JML token is present. */
     public static class JmlMethodInvocation extends JCMethodInvocation {
         public int startpos;
-        public JmlTokenKind token;
         public IJmlClauseKind kind;
         public String name;
         public Object labelProperties = null; // FIXME - explain this
         public boolean javaType = false; // FIXME - this is a hack
-        
+
         /** Creates a method invocation for a JML specific construct (e.g. \typeof) -
          * no type arguments and no expression for the method name, just a token.
           - but use the factory to get new nodes, not this */
-//        protected JmlMethodInvocation(int pos,
-//                JmlTokenKind token,
-//                List<JCExpression> args)
-//        {
-//            super(List.<JCExpression>nil(),null,args);
-//            //this.token = token;
-//            this.kind = null;
-//            this.name = null;
-//            this.pos = pos; // preferred position
-//            this.startpos = pos;
-//        }
         protected JmlMethodInvocation(int pos,
                 IJmlClauseKind kind,
                 List<JCExpression> args)
@@ -2397,7 +2385,7 @@ public class JmlTree {
             this.pos = pos; // preferred position
             this.startpos = pos;
         }
-        
+
         protected JmlMethodInvocation(int pos,
                 String name,
                 List<JCExpression> args)
@@ -2408,7 +2396,7 @@ public class JmlTree {
             this.pos = pos; // preferred position
             this.startpos = pos;
         }
-        
+
         /** Creates a method invocation like a Java method invocation, except without type qualifiers */
         protected JmlMethodInvocation(int pos,
                 JCExpression method,
@@ -2420,21 +2408,21 @@ public class JmlTree {
             this.pos = pos; // preferred position
             this.startpos = pos;
         }
-        
+
         protected JmlMethodInvocation(int pos, List<JCExpression> typeargs,
                 JCExpression meth,
                 List<JCExpression> args)
-		{
-		    super(typeargs, meth, args);
-		    this.pos = pos;
+        {
+            super(typeargs, meth, args);
+            this.pos = pos;
             this.startpos = pos; // FIXME
-		}
+        }
 
         @Override
         public int getStartPosition() {
             return meth == null ? startpos : super.getStartPosition();
         }
-        
+
         @Override
         public void accept(Visitor v) { 
             if (v instanceof IJmlVisitor) {
@@ -2443,7 +2431,7 @@ public class JmlTree {
                 v.visitTree(this);
             }
         }
-    
+
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
