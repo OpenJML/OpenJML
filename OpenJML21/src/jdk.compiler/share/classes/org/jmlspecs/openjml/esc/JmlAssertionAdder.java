@@ -18409,11 +18409,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //								old = convertJML(old);
 							bin = treeutils.makeEquality(arg.pos, expr, old);
 						} else {
-							throw new JmlNotImplementedException(that, that.token.internedName());
+							throw new JmlNotImplementedException(that, that.kind.keyword());
 						}
 					} else {
 						// could be a.*, a[*], a[i..j]
-						throw new JmlNotImplementedException(that, that.token.internedName());
+						throw new JmlNotImplementedException(that, that.kind.keyword());
 					}
 					and = and == null ? bin : treeutils.makeBitAnd(that.pos, and, bin);
 				}
@@ -18467,7 +18467,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCExpression ex = convertExpr(arg);
 					newargs.add(ex);
 				}
-				result = eresult = M.at(that.pos).JmlMethodInvocation(that.token, newargs.toList());
+				result = eresult = M.at(that.pos).JmlMethodInvocation(that.kind, newargs.toList());
 				eresult.type = syms.booleanType;
 				if (splitExpressions)
 					result = eresult = newTemp(eresult);
@@ -18515,42 +18515,55 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 //System.out.println("SIMPLIFIED " + eresult);
                 break;
             }
-           case LocsetExtensions.disjointID:
-           {
-               //System.out.println("UNCONVERTED-DISJOINT " + that);
-               ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
-               that.args.stream().forEach(a -> newargs.add(convertExpr(a)));
-               //System.out.println("CONVERTED-DISJOINT " + newargs + " " + newargs.toList().get(1).getClass());
-               try {
-               eresult = simplifyNonDisjoint(newargs.first(), newargs.toList().get(1), currentEnv, true);
-               result = eresult = treeutils.makeNotSimp(eresult, eresult);
-               } catch (Exception e) {
-                   e.printStackTrace(System.out);
-               }
-               //System.out.println("SIMPLIFIED-DISJOINT " + eresult);
-               break;
-           }
+            case LocsetExtensions.disjointID:
+            {
+                //System.out.println("UNCONVERTED-DISJOINT " + that);
+                ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+                that.args.stream().forEach(a -> newargs.add(convertExpr(a)));
+                //System.out.println("CONVERTED-DISJOINT " + newargs + " " + newargs.toList().get(1).getClass());
+                try {
+                    eresult = simplifyNonDisjoint(newargs.first(), newargs.toList().get(1), currentEnv, true);
+                    result = eresult = treeutils.makeNotSimp(eresult, eresult);
+                } catch (Exception e) {
+                    e.printStackTrace(System.out);
+                }
+                //System.out.println("SIMPLIFIED-DISJOINT " + eresult);
+                break;
+            }
 
-			case keyID:
-				// Should never get here
-				throw new JmlNotImplementedException(that, that.kind.keyword());
+            case keyID:
+                // Should never get here
+                throw new JmlNotImplementedException(that, that.kind.keyword());
+
+            case subtypeofID:  // FIXME - are these functions or operators?
+            case subtypeofeqID:
+            case jsubtypeofID:
+            case jsubtypeofeqID:
+                ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+                for (JCExpression arg : that.args) {
+                    JCExpression ex = convertExpr(arg);
+                    newargs.add(ex);
+                }
+                result = eresult = M.at(that.pos).JmlMethodInvocation(that.kind, newargs.toList());
+                eresult.type = syms.booleanType;
+                break;
 			}
 		else {
-			switch (that.token) {
+//			switch (that.token) {
 
-			case SUBTYPE_OF:
-			case SUBTYPE_OF_EQ:
-			case JSUBTYPE_OF:
-			case JSUBTYPE_OF_EQ: {
-				ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
-				for (JCExpression arg : that.args) {
-					JCExpression ex = convertExpr(arg);
-					newargs.add(ex);
-				}
-				result = eresult = M.at(that.pos).JmlMethodInvocation(that.token, newargs.toList());
-				eresult.type = syms.booleanType;
-				break;
-			}
+//			case SUBTYPE_OF:
+//			case SUBTYPE_OF_EQ:
+//			case JSUBTYPE_OF:
+//			case JSUBTYPE_OF_EQ: {
+//				ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+//				for (JCExpression arg : that.args) {
+//					JCExpression ex = convertExpr(arg);
+//					newargs.add(ex);
+//				}
+//				result = eresult = M.at(that.pos).JmlMethodInvocation(that.token, newargs.toList());
+//				eresult.type = syms.booleanType;
+//				break;
+//			}
 
 			// case BSMAX :
 			// case BSREACH :
@@ -18568,11 +18581,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// FIXME - not implemented
 			// throw new JmlNotImplementedException(that,that.kind.name());
 
-			default:
+//			default:
 				Log.instance(context).error("esc.internal.error",
-						"Unknown token in JmlAssertionAdder: " + that.token.internedName());
-				throw new JmlNotImplementedException(that, that.token.internedName());
-			}
+						"Unknown token in JmlAssertionAdder: " + that.kind.keyword());
+				throw new JmlNotImplementedException(that, that.kind.keyword());
+//			}
 		}
 		result = eresult;
 	}

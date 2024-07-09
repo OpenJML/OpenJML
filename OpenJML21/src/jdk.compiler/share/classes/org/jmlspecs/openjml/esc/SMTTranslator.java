@@ -2197,7 +2197,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 // ERROR - or empty string?
                 result = null;
             }
-        } else if (that.token == null) {
+        } else if (that.kind == null) {
             result = F.fcn(F.symbol(that.name), newargs);
         } else if (that.kind == subtypeofKind) {
             result = F.fcn(F.symbol(JMLSUBTYPE), newargs);

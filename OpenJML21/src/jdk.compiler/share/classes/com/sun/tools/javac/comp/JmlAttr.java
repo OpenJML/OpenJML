@@ -4521,7 +4521,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
-        JmlTokenKind token = tree.token;
         if (tree.kind != null && tree.typeargs != null && tree.typeargs.size() != 0) {
             // At present the parser cannot produce anything with typeargs, but just in case
             // one squeaks through by some means or another

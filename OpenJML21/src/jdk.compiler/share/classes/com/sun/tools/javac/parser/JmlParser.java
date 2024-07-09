@@ -60,7 +60,6 @@ import com.sun.tools.javac.parser.Tokens.Comment;
 import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
-import com.sun.tools.javac.parser.Tokens.ITokenKind;
 import com.sun.tools.javac.resources.CompilerProperties.Errors;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.*;
@@ -2027,7 +2026,7 @@ public class JmlParser extends JavacParser {
         while (true) {
             JCExpression r = parseStoreRef(false);
             if (r != null) list.append(r);
-            ITokenKind tk = token.kind;
+            var tk = token.kind;
             if (tk == COMMA) {
                 nextToken();
                 continue;
@@ -2547,7 +2546,7 @@ public class JmlParser extends JavacParser {
             int ppos = pos(); // position of the operator
             nextToken();
             JCExpression tt = term2Imp();
-            t = toP(jmlF.at(ppos).JmlBinary(jt, t, tt));
+            t = toP(jmlF.at(ppos).JmlBinary((Operator)jt, t, tt));
             jt = jmlTokenClauseKind();
         }
         return t;
@@ -2571,7 +2570,7 @@ public class JmlParser extends JavacParser {
             int ppos = pos(); // position of the operator
             nextToken();
             JCExpression tt = term2ImpRestX();
-            t = toP(jmlF.at(ppos).JmlBinary(jt, t, tt));
+            t = toP(jmlF.at(ppos).JmlBinary(impliesKind, t, tt));
             if (jmlTokenClauseKind() == reverseimpliesKind) {
                 syntaxError(pos(), null, "jml.mixed.implies");
                 skipToSemi();
@@ -2583,7 +2582,7 @@ public class JmlParser extends JavacParser {
                 int ppos = pos(); // position of the operator
                 nextToken();
                 JCExpression tt = term2();
-                t = toP(jmlF.at(ppos).JmlBinary(jt, t, tt));
+                t = toP(jmlF.at(ppos).JmlBinary(reverseimpliesKind, t, tt));
                 jt = jmlTokenClauseKind();
             } while (jt == reverseimpliesKind);
             if (jt == impliesKind) {
@@ -2602,7 +2601,7 @@ public class JmlParser extends JavacParser {
         int ppos = pos();
         nextToken();
         JCExpression tt = term2ImpRestX();
-        return toP(jmlF.at(ppos).JmlBinary(jt, t, tt));
+        return toP(jmlF.at(ppos).JmlBinary(impliesKind, t, tt));
     }
 
     protected ParensResult analyzeParens() {
@@ -3191,13 +3190,7 @@ public class JmlParser extends JavacParser {
     /**
      * This is overridden to assign JML operators the right precedence
      */
-//    protected int prec(ITokenKind token) {
-//        if (token instanceof JmlTokenKind jt) {
-//            return ((JmlOperatorKind.Operator)jt.jmlclausekind).precedence;
-//        }
-//        return precFactor*super.prec(token);
-//    }
-//
+    @Override
     protected int prec(Token token) {
         if (token instanceof JmlToken jt) {
             return ((JmlOperatorKind.Operator)jt.jmlclausekind).precedence;
@@ -3207,41 +3200,23 @@ public class JmlParser extends JavacParser {
 
     public static final int precFactor = 1;
 
-//    public static int jmlPrecedence(JmlTokenKind tkind) {
-//        switch (tkind) {
+//    public static int jmlPrecedence(IJmlClauseKind tkind) {
+//        switch (tkind.keyword()) {
 //            // FIXME - check all these precedences
-//            case EQUIVALENCE: case INEQUIVALENCE:
+//            case equivalenceID: case inequivalenceID:
 //                return -2; // TreeInfo.orPrec;  // Between conditional and or
-//            case IMPLIES: case REVERSE_IMPLIES:
+//            case impliesID: case reverseimpliesID:
 //                return -2; // TreeInfo.orPrec;  // FBetween conditional and or
-//            case SUBTYPE_OF: case JSUBTYPE_OF: case SUBTYPE_OF_EQ: case JSUBTYPE_OF_EQ: case LOCK_LT: case LOCK_LE:
+//            case subtypeofID: case jsubtypeofID: case subtypeofeqID: case jsubtypeofeqID: case lockltID: case lockleID:
 //                return precFactor*TreeInfo.ordPrec;
-//            case WF_LT: case WF_LE:
+//            case wfltID: case wfleID:
 //                return precFactor*TreeInfo.ordPrec;
-//            case DOT_DOT: case ENDJMLCOMMENT:
-//                return -1000; // Forces an end to all expressions
+//            case dotdotID: case endjmlcommentID:
+//                return -1000;
 //            default:
-//                return -10000; // Lower than all other precedences - Forces an end to all expressions
+//                return 1000;
 //        }
 //    }
-
-    public static int jmlPrecedence(IJmlClauseKind tkind) {
-        switch (tkind.keyword()) {
-            // FIXME - check all these precedences
-            case equivalenceID: case inequivalenceID:
-                return -2; // TreeInfo.orPrec;  // Between conditional and or
-            case impliesID: case reverseimpliesID:
-                return -2; // TreeInfo.orPrec;  // FBetween conditional and or
-            case subtypeofID: case jsubtypeofID: case subtypeofeqID: case jsubtypeofeqID: case lockltID: case lockleID:
-                return precFactor*TreeInfo.ordPrec;
-            case wfltID: case wfleID:
-                return precFactor*TreeInfo.ordPrec;
-            case dotdotID: case endjmlcommentID:
-                return -1000;
-            default:
-                return 1000;
-        }
-    }
     
     // MAINTENANCE ISSUE - (Almost) Duplicated from JavacParser.java in order to accommodate precedence of JML tokens
     JCExpression term2() {
@@ -3392,7 +3367,7 @@ public class JmlParser extends JavacParser {
     {
         if (opToken.kind == CUSTOM) { // <:
             IJmlClauseKind ck = jmlTokenClauseKind(opToken);
-            JCExpression e = jmlF.at(pos).JmlBinary(ck, od1, od2);
+            JCExpression e = jmlF.at(pos).JmlBinary((Operator)ck, od1, od2);
             storeEnd(e, getEndPos(od2));
             return e;
         } else {

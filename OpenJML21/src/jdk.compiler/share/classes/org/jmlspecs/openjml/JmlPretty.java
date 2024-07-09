@@ -161,7 +161,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlBinary(JmlBinary that) {
         try {
-            int ownprec = JmlParser.jmlPrecedence(that.op); // FIXME - This needs a bit more testing
+            int ownprec = that.op.precedence;
             int p = ownprec;
             if (ownprec == -2) {
                 if (that.op == JmlOperatorKind.equivalenceKind || that.op == JmlOperatorKind.inequivalenceKind) p = TreeInfo.orPrec - 2;
@@ -214,8 +214,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 print("(");
                 printExprs(that.args);
                 print(")");
-            } else if (that.token != null) {
-                print(that.token.internedName());
+            } else if (that.kind != null) {
+                print(that.kind.keyword());
                 if (that.javaType &&
                         (that.kind == MiscExpressions.typelcKind || that.kind == FunctionLikeExpressions.typeofKind)
                         ) print("j");

@@ -1062,7 +1062,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         if (that.name != null) {
             scanList(that.args);
             result = that;
-        } else if (that.token == null && that.kind == null) {
+        } else if (that.kind == null) {
             //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
             scan(that.typeargs);
             scan(that.meth);
@@ -1168,8 +1168,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 } 
                 case subtypeofID:
                 case jsubtypeofID:
-         //       case subtypeeqofKind: // FIXME
-         //       case jsubtypeeqofKind:
+                case subtypeofeqID: // FIXME
+                case jsubtypeofeqID:
                 {
                     scan(that.args.get(0));
                     JCExpression lhs = result;
@@ -1183,24 +1183,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     log.error(that.pos, "esc.internal.error", "No implementation for this kind of Jml node in BasicBlocker2: " + that.kind.keyword());
             }   
         } else {
-            switch (that.token) { 
-                case SUBTYPE_OF:
-                case JSUBTYPE_OF:
-// FIXME                case SUBTYPEEQ_OF:
-// FIXME                case JSUBTYPEEQ_OF:
-                {
-                    scan(that.args.get(0));
-                    JCExpression lhs = result;
-                    scan(that.args.get(1));
-                    JCExpression rhs = result;
-                    that.args = com.sun.tools.javac.util.List.<JCExpression>of(lhs,rhs);
-                    result = that;
-                    break;
-                } 
-                default:
-                    log.error(that.pos, "esc.internal.error", "Did not expect this kind of Jml node in BasicBlocker2: " + that.token.internedName());
-                    shouldNotBeCalled(that);
-            }
+            log.error(that.pos, "esc.internal.error", "Did not expect a JmlMethodInvocation node in BasicBlocker2 with a null 'kind'");
+            shouldNotBeCalled(that);
         }
         return;
     }

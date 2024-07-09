@@ -282,7 +282,7 @@ public class FunctionLikeExpressions extends JmlExtension {
             super.typecheck(attr, tree, localEnv);
             if (!attr.postClauses.contains(attr.jmlenv.currentClauseKind)) {
                 JmlMethodInvocation expr = (JmlMethodInvocation)tree;
-                log.error(tree.pos, "jml.misplaced.token", expr.kind != null ? expr.kind.keyword() : expr.token.internedName(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.keyword());
+                log.error(tree.pos, "jml.misplaced.token", expr.kind != null ? expr.kind.keyword() : "?", attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.keyword());
             }
             return attr.syms.booleanType;
         }

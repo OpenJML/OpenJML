@@ -78,10 +78,6 @@ public class JmlTokenizer extends JavadocTokenizer {
     /** true when inside a block comment that is in an enclosing comment */
     boolean nestedBlockComment = false;
 
-    /** Valid after nextToken() and contains token it read if it is a JML token
-     * and null if the next token is a Java token */
-    // /*@nullable*/ public JmlTokenKind   jmlTokenKind;
-
     /** Valid after nextToken() and contains the token it read */
 	/*@nullable*/ public IJmlClauseKind jmlTokenClauseKind;
 
@@ -309,7 +305,6 @@ public class JmlTokenizer extends JavadocTokenizer {
         
         if (!jml) {
             tk = TokenKind.CUSTOM;
-            //jmlTokenKind = JmlTokenKind.STARTJMLCOMMENT;
             jmlTokenClauseKind = JmlOperatorKind.startjmlcommentKind;
 
             // We initialize state and proceed to process the comment as JML text
@@ -379,7 +374,6 @@ public class JmlTokenizer extends JavadocTokenizer {
         boolean initialJml = jml;
         int pos, endPos;
         while (true) { // The loop is just so we can easily skip a token and scan the next one with a 'continue' 
-            //jmlTokenKind = null;
             jmlTokenClauseKind = null;
             tk = null;
             Token t = super.readToken(); // Sets tk, May modify jmlTokenClauseKind
@@ -390,14 +384,14 @@ public class JmlTokenizer extends JavadocTokenizer {
             
             // Note that the above may call processComment. If the comment is a JML comment, the
             // reader and tokenizer will be repointed to tokenize within the JML comment. This
-            // may result in a CUSTOM Java token being produced with jmlTokenKind set, for example,
+            // may result in a CUSTOM Java token being produced with jmlTokenClauseKind set, for example,
             // by calls down to methods such as scanOperator and scanIdent in this class.
             // So now we can produce a replacement token.
 
             // Possible situations at this point
-            // a) jmlToken.kind != CUSTOM, jmlTokenKind == null (a Java token)
-            // b) jmlToken.kind == CUSTOM, jmlTokenKind != null (a JML token)
-            // c) jmlToken.kind == MONKEYS_AT, jmlTokenKind = ENDJMLCOMMENT, jml = false (leaving a JML comment)
+            // a) jmlToken.kind != CUSTOM, jmlTokenClauseKind == null (a Java token)
+            // b) jmlToken.kind == CUSTOM, jmlTokenClauseKind != null (a JML token)
+            // c) jmlToken.kind == MONKEYS_AT, jmlTokenClauseKind == endjmlcommentKind, jml == false (leaving a JML comment)
             // jml may have changed (and will for case c), meaning that we have entered or are leaving a JML comment
             // No special token is issued for starting a JML comment.
             // There is a mode that determines whether ENDJMLCOMMENT tokens are returned.
@@ -421,8 +415,8 @@ public class JmlTokenizer extends JavadocTokenizer {
                     return jmlToken;
                 } else {
                     if (skippingTokens >= 0) {
-                    	if (t.kind != TokenKind.EOF) continue; // skip the token
-                    	Utils.instance(context).warning(skippingTokens, "jml.message", "//#- block is not closed at the end of file");
+                        if (t.kind != TokenKind.EOF) continue; // skip the token
+                        Utils.instance(context).warning(skippingTokens, "jml.message", "//#- block is not closed at the end of file");
                     }
                     return t; // A Java token
                 }
@@ -441,7 +435,6 @@ public class JmlTokenizer extends JavadocTokenizer {
                     if (scannerDebug) System.out.println("RESETTING EBC " + position() + " " + endBlockComment + " " + length());
                     endBlockComment = length();
                 }
-                //jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
                 jmlTokenClauseKind = JmlOperatorKind.endjmlcommentKind;
                 if (!returnEndOfCommentTokens || !initialJml) continue;
             } else if (tk == TokenKind.MONKEYS_AT) {
@@ -467,7 +460,6 @@ public class JmlTokenizer extends JavadocTokenizer {
                         }
                     }
                     tk = TokenKind.CUSTOM;
-                    //jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
                     jmlTokenClauseKind = JmlOperatorKind.endjmlcommentKind;
                     jml = false;
                     endPos = position();
@@ -508,23 +500,19 @@ public class JmlTokenizer extends JavadocTokenizer {
                 accept(')') ;
                 endPos = position();
                 tk = TokenKind.CUSTOM;
-                //jmlTokenKind = JmlTokenKind.INFORMAL_COMMENT;
-                jmlTokenClauseKind = SingletonExpressions.informalCommentKind;
+                jmlTokenClauseKind = SingletonExpressions.informalCommentKind; // (* ... *)
             } else if (tk == TokenKind.LBRACE && get() == '|') {
                 tk = TokenKind.CUSTOM;
-                //jmlTokenKind = JmlTokenKind.SPEC_GROUP_START;
-                jmlTokenClauseKind = MethodSimpleClauseExtensions.specGroupStartClause;
+                jmlTokenClauseKind = MethodSimpleClauseExtensions.specGroupStartClause; // {|
                 next(); // skip the '|'
                 endPos = position();
             } else if (tk == TokenKind.BAR && get() == '}') {
                 tk = TokenKind.CUSTOM;
-                //jmlTokenKind = JmlTokenKind.SPEC_GROUP_END;
-                jmlTokenClauseKind = MethodSimpleClauseExtensions.specGroupEndClause;
+                jmlTokenClauseKind = MethodSimpleClauseExtensions.specGroupEndClause; // |}
                 next();
                 endPos = position();
             } else if (tk == TokenKind.ERROR && sb.length() == 2 && sb.charAt(0) == '.' && sb.charAt(1) == '.') {
-                //jmlTokenKind = JmlTokenKind.DOT_DOT;
-                jmlTokenClauseKind = JmlOperatorKind.dotdotKind;
+                jmlTokenClauseKind = JmlOperatorKind.dotdotKind; // ..
                 endPos = position();
             }
             if (skippingTokens >= 0 && t.kind != TokenKind.EOF) continue;
@@ -587,7 +575,6 @@ public class JmlTokenizer extends JavadocTokenizer {
                     nestedBlockComment = false;
                     if (returnEndOfCommentTokens) {
                         tk = TokenKind.CUSTOM;
-                        //jmlTokenKind = JmlTokenKind.ENDJMLCOMMENT;
                         jmlTokenClauseKind = JmlOperatorKind.endjmlcommentKind;
                     }
                 } else {
@@ -627,7 +614,6 @@ public class JmlTokenizer extends JavadocTokenizer {
     @Override
     protected void scanIdent() {
         super.scanIdent(); // Sets tk and name
-        //jmlTokenKind = null;
         jmlTokenClauseKind = null;
         if (!jml) {
             return;
@@ -655,7 +641,6 @@ public class JmlTokenizer extends JavadocTokenizer {
     	super.scanOperator();
         if (!jml) return; // not in JML - so we scanned a regular Java operator
         if (tk == null && get() == '\\') {
-            if (scannerDebug) System.out.println("GOT BACKSLASH");
             // backslash identifiers get redirected here since a \ itself is an
             // error in pure Java - isSpecial does the trick
             int ep = position();
@@ -665,7 +650,6 @@ public class JmlTokenizer extends JavadocTokenizer {
                 super.scanIdent();  // tk and name are set
                 // assuming that token() is Token.IDENTIFIER
                 String seq = name.toString();
-                //jmlTokenKind = JmlTokenKind.backslashTokens.get(seq);
                 jmlTokenClauseKind = Extensions.allKinds.get(seq);
                 if (scannerDebug) {
                     System.out.println("GOT BACKSLASH " + seq + " " + jmlTokenClauseKind);
@@ -673,7 +657,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                         Extensions.dump();
                     }
                 }
-                //if ((jmlTokenKind == null) != (jmlTokenClauseKind == null)) System.out.println("DIFFTOK2 "  + jmlTokenKind + " " + jmlTokenClauseKind);
+
                 // FIXME: tk is always an IDENTIFIER. We need backslash-typenames to be identifiers.
                 // Other kinds of backslash names can be JmlTokens.
                 
@@ -699,11 +683,9 @@ public class JmlTokenizer extends JavadocTokenizer {
         // Now check if there is a longer JML operator
         // Presumes that all JML operators have a prefix that is a Java operator
         TokenKind t = tk;
-        //jmlTokenKind = null;
         if (tk == TokenKind.EQEQ) {
             if (accept('>')) {
                 tk = TokenKind.CUSTOM;
-                //jmlTokenKind = JmlTokenKind.IMPLIES; // ==>
                 jmlTokenClauseKind = JmlOperatorKind.impliesKind; // ==>
             }
         } else if (t == TokenKind.LTEQ) {
@@ -712,18 +694,15 @@ public class JmlTokenizer extends JavadocTokenizer {
                 // At the last = of <==
                 if (accept('>')) {
                     tk = TokenKind.CUSTOM;
-                    //jmlTokenKind = JmlTokenKind.EQUIVALENCE; // <==>
                     jmlTokenClauseKind = JmlOperatorKind.equivalenceKind;
                 } else {
                     tk = TokenKind.CUSTOM;
-                    //jmlTokenKind = JmlTokenKind.REVERSE_IMPLIES; // <==
                     jmlTokenClauseKind = JmlOperatorKind.reverseimpliesKind;
                 }
             } else if (accept('!')) {
                 if (accept('=')) {
                     if (accept('>')) {
                         tk = TokenKind.CUSTOM;
-                        //jmlTokenKind = JmlTokenKind.INEQUIVALENCE; // <=!=>
                         jmlTokenClauseKind = JmlOperatorKind.inequivalenceKind;
                     } else { // reset to the !
                         reset(k);
@@ -735,34 +714,27 @@ public class JmlTokenizer extends JavadocTokenizer {
         } else if (t == TokenKind.LT) {
             if (accept(':')) {
                 tk = TokenKind.CUSTOM;
-                //jmlTokenKind = JmlTokenKind.SUBTYPE_OF; // <:
                 jmlTokenClauseKind = JmlOperatorKind.subtypeofKind;
                 if (accept('=')) {
                     tk = TokenKind.CUSTOM;
-                    //jmlTokenKind = JmlTokenKind.SUBTYPE_OF_EQ; // <:=
-                    jmlTokenClauseKind = JmlOperatorKind.subtypeofeqKind;
+                    jmlTokenClauseKind = JmlOperatorKind.subtypeofeqKind; // <:=
                 }
             } else if (accept('-')) {
                 tk = TokenKind.CUSTOM;
-                //jmlTokenKind = JmlTokenKind.LEFT_ARROW; // <-
-                jmlTokenClauseKind = JmlOperatorKind.leftarrowKind;
+                jmlTokenClauseKind = JmlOperatorKind.leftarrowKind; // <-
             } else if (accept('#')) {
                 tk = TokenKind.CUSTOM;
-                //jmlTokenKind = JmlTokenKind.LOCK_LT; // <#
                 jmlTokenClauseKind = JmlOperatorKind.lockltKind;
                 if (accept('=')){
-                    //jmlTokenKind = JmlTokenKind.LOCK_LE; // <#=
                     jmlTokenClauseKind = JmlOperatorKind.lockleKind; // <#=
                 }
             }
         } else if (t == TokenKind.LTLT) {
             if (accept('<')) {
                 tk = TokenKind.CUSTOM;
-                //jmlTokenKind = JmlTokenKind.WF_LT; // <<<
-                jmlTokenClauseKind = JmlOperatorKind.wfltKind;
+                jmlTokenClauseKind = JmlOperatorKind.wfltKind; // <<<
                 if (accept('=')){
                     tk = TokenKind.CUSTOM;
-                    //jmlTokenKind = JmlTokenKind.WF_LE; // <<<=
                     jmlTokenClauseKind = JmlOperatorKind.wfleKind; // <<<=
                 }
             }
@@ -791,7 +763,6 @@ public class JmlTokenizer extends JavadocTokenizer {
     		super.lexError(pos,  key);
     	} else {
     		tk = TokenKind.CUSTOM;
-    		//jmlTokenKind = JmlTokenKind.DOT_DOT;
     		jmlTokenClauseKind = JmlOperatorKind.dotdotKind;
     	}
     }
@@ -802,7 +773,6 @@ public class JmlTokenizer extends JavadocTokenizer {
     protected void jmlError(int pos, String key, Object... args) {
         Utils.instance(context).error(pos, pos+1, key, args);
         tk = TokenKind.ERROR;
-        //jmlTokenKind = null;
         jmlTokenClauseKind = null;
         errPos(pos);
     }

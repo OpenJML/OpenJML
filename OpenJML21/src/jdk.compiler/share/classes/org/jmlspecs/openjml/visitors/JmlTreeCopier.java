@@ -490,8 +490,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 			JmlMethodInvocation m;
 			if (that.kind != null) {
 				m = M.at(that).JmlMethodInvocation(that.kind, copy(that.args,p));
-			} else if (that.token != null) {
-				m = M.at(that).JmlMethodInvocation(that.token, copy(that.args,p));
 			} else if (that.name != null) {
 				m = M.at(that).JmlMethodInvocation(that.name, copy(that.args,p));
 			} else {

@@ -1013,7 +1013,7 @@ public class JmlTreeUtils {
      * @param rhs the right-hand expression
      * @return the new node
      */
-    public JmlBinary makeJmlBinary(int pos, IJmlClauseKind op, JCExpression lhs, JCExpression rhs) {
+    public JmlBinary makeJmlBinary(int pos, JmlOperatorKind.Operator op, JCExpression lhs, JCExpression rhs) {
         JmlBinary e = factory.at(pos).JmlBinary(op,lhs,rhs);
         e.type = syms.booleanType;
         copyEndPosition(e,rhs);
@@ -1594,16 +1594,16 @@ public class JmlTreeUtils {
     /** Makes a Java method invocation using the given MethodSymbol, on the given receiver,
      * with the given arguments, at the given position; no varargs, no typeargs.
      */
-    public JmlMethodInvocation makeJmlMethodInvocation(DiagnosticPosition pos, JmlTokenKind token, Type type, JCExpression ... args) {
-        ListBuffer<JCExpression> a = new ListBuffer<JCExpression>();
-        a.appendArray(args);
-        JmlMethodInvocation call = factory.at(pos).JmlMethodInvocation(token, a.toList());
-        call.type = type;
-        call.meth = null;
-        call.typeargs = null;
-        call.varargsElement = null;
-        return call;
-    }
+//    public JmlMethodInvocation makeJmlMethodInvocation(DiagnosticPosition pos, JmlTokenKind token, Type type, JCExpression ... args) {
+//        ListBuffer<JCExpression> a = new ListBuffer<JCExpression>();
+//        a.appendArray(args);
+//        JmlMethodInvocation call = factory.at(pos).JmlMethodInvocation(token, a.toList());
+//        call.type = type;
+//        call.meth = null;
+//        call.typeargs = null;
+//        call.varargsElement = null;
+//        return call;
+//    }
     
     public JmlMethodInvocation makeJmlMethodInvocation(DiagnosticPosition pos, IJmlClauseKind token, Type type, JCExpression ... args) {
         ListBuffer<JCExpression> a = new ListBuffer<JCExpression>();
@@ -1719,28 +1719,28 @@ public class JmlTreeUtils {
     
     public JmlMethodInvocation makeSubtype(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
         JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlOperatorKind.subtypeofKind,e1,e2);
-        e.token = JmlTokenKind.SUBTYPE_OF;
+        //e.token = JmlTokenKind.SUBTYPE_OF;
         e.type = syms.booleanType;
         return e;
     }
     
     public JmlMethodInvocation makeSubtypeEq(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
         JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlOperatorKind.subtypeofeqKind,e1,e2);
-        e.token = JmlTokenKind.SUBTYPE_OF;
+        //e.token = JmlTokenKind.SUBTYPE_OF;
         e.type = syms.booleanType;
         return e;
     }
     
     public JmlMethodInvocation makeJSubtype(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
         JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlOperatorKind.jsubtypeofKind,e1,e2);
-        e.token = JmlTokenKind.JSUBTYPE_OF;
+        //e.token = JmlTokenKind.JSUBTYPE_OF;
         e.type = syms.booleanType;
         return e;
     }
     
     public JmlMethodInvocation makeJSubtypeEq(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
         JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlOperatorKind.jsubtypeofeqKind,e1,e2);
-        e.token = JmlTokenKind.JSUBTYPE_OF;
+        //e.token = JmlTokenKind.JSUBTYPE_OF;
         e.type = syms.booleanType;
         return e;
     }

@@ -45,10 +45,6 @@ import com.sun.tools.javac.util.*;
  */
 public class Tokens {
 
-    public static interface ITokenKind { // OPENJML - added this interface to be able to extend it
-        String name();
-    }
-
     private final Names names;
 
     /**
@@ -96,7 +92,7 @@ public class Tokens {
      * This enum defines all tokens used by the javac scanner. A token is
      * optionally associated with a name.
      */
-    public enum TokenKind implements Formattable, Predicate<TokenKind>, ITokenKind { // OPENJML - added ITokenKind
+    public enum TokenKind implements Formattable, Predicate<TokenKind> {
         EOF(),
         ERROR(),
         IDENTIFIER(Tag.NAMED),

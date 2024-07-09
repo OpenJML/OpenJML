@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.tools.javac.parser.Tokens.ITokenKind;
 import com.sun.tools.javac.tree.JCTree;
 //import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 //import static org.jmlspecs.openjml.ext.AssignableClauseExtension.*;
@@ -28,34 +27,34 @@ import com.sun.tools.javac.tree.JCTree;
 // although Enums are nice, they are not extensible. That is how Token is
 // implemented, and we could not extend that.
 // TODO - we should think about how to re-design JmlToken so that it is extensible.
-public enum JmlTokenKind implements ITokenKind {
-    STARTJMLCOMMENT("<JMLSTART>"),
-    ENDJMLCOMMENT("<JMLEND>"),
+public enum JmlTokenKind {
+//    STARTJMLCOMMENT("<JMLSTART>"),
+//    ENDJMLCOMMENT("<JMLEND>"),
     
 
     BSPRE("\\pre"), // overloaded both \post-like and \old-like
     
 //    // These are JML operators (in expressions)
 //    // Note that the jmloperators set relies on this ordering
-    EQUIVALENCE("<==>"),
-    INEQUIVALENCE("<=!=>"),
-    IMPLIES("==>"),
-    REVERSE_IMPLIES("<=="),
+//    EQUIVALENCE("<==>"),
+//    INEQUIVALENCE("<=!=>"),
+//    IMPLIES("==>"),
+//    REVERSE_IMPLIES("<=="),
     SUBTYPE_OF("<:"), // Operands are \TYPE values
     SUBTYPE_OF_EQ("<:="), // Operands are \TYPE values
     JSUBTYPE_OF("<::"), // Operands are Class<?> values, used only internally
     JSUBTYPE_OF_EQ("<::="), // Operands are Class<?> values, used only internally
-    LOCK_LT("<#"),
-    LOCK_LE("<#="),
-    WF_LT("<<<"),
-    WF_LE("<<<="),
+//    LOCK_LT("<#"),
+//    LOCK_LE("<#="),
+//    WF_LT("<<<"),
+//    WF_LE("<<<="),
 //    
-    // Other special character combinations
-    DOT_DOT(".."),
-    LEFT_ARROW("<-"),
-    INFORMAL_COMMENT("(*...*)"),
-    SPEC_GROUP_START("{|"),
-    SPEC_GROUP_END("|}"),
+//    // Other special character combinations
+//    DOT_DOT(".."),
+//    LEFT_ARROW("<-"),
+//    INFORMAL_COMMENT("(*...*)"),
+//    SPEC_GROUP_START("{|"),
+//    SPEC_GROUP_END("|}"),
     
     ;
     

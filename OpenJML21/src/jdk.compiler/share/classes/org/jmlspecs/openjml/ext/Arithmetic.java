@@ -126,7 +126,7 @@ abstract public class Arithmetic extends JmlExtension {
     
     public void checkOneArg(JmlParser parser, JmlMethodInvocation e) {
     	if (e.args.size() != 1) {
-    		org.jmlspecs.openjml.Utils.instance(context).error(e.pos, parser.getEndPos(e), "jml.one.arg", e.token.internedName());
+    		org.jmlspecs.openjml.Utils.instance(context).error(e.pos, parser.getEndPos(e), "jml.one.arg", e.kind.keyword());
     	}
     }
 
@@ -148,7 +148,6 @@ abstract public class Arithmetic extends JmlExtension {
     public Type typecheck(JmlAttr attr, JCExpression expr,
             Env<AttrContext> env) {
         JmlMethodInvocation tree = (JmlMethodInvocation)expr;
-        JmlTokenKind token = tree.token;
         
         // Expect one argument of any type, result type is the same type
         // The argument expression may contain JML constructs
@@ -157,7 +156,7 @@ abstract public class Arithmetic extends JmlExtension {
         //attr.attribTypes(tree.typeargs, env);
         int n = tree.args.size();
         if (n != 1) {
-            Utils.instance(context).error(tree.pos,"jml.one.arg",token.internedName(),n);
+            Utils.instance(context).error(tree.pos,"jml.one.arg",tree.kind.keyword(),n);
         }
         Type t = Symtab.instance(context).errType;
         if (n > 0) {
