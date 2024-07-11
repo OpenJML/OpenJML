@@ -9,7 +9,8 @@ public class Container {
 
     /*@ public normal_behavior
       @   assignable \nothing;
-      @   ensures \result.a == 127; 
+      @   ensures \result.a == 127;
+      @   ensures \fresh(\result);
       @*/
     public static /*@ pure @*/ Container allocate() {
         Container c = new Container();
@@ -36,11 +37,9 @@ public class Container {
 
         /*@ public normal_behavior
           @   assignable \nothing;
-          @   //ensures Container.allocate() instanceof Container;
-          @   ensures \result.c.equals(Container.allocate());
-          @   // edit: turning this around into "Container.allocate().equals(\result.c)" does
-          @   // establish that \result.c is an instance of Container, but the type system and
-          @   // fact that \result.c != null should already establish this
+          @   ensures \result.c instanceof Container;
+          @   ensures \result.c.a == 127;
+          @   ensures \fresh(\result.c);
           @*/
         public static ContainerUser allocate() {
             ContainerUser user = new ContainerUser();
@@ -54,7 +53,7 @@ public class Container {
             //@ assert user instanceof ContainerUser; // passes
             //@ assert cont instanceof Container;     // passes
             //@ assert user.c.a == 127;               // passes
-            //@ assert user.c instanceof Container;   // fails - fixed
+            //@ assert user.c instanceof Container;   // passes
         }
     }
 } 
