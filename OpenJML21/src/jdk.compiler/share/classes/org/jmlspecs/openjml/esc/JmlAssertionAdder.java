@@ -8103,7 +8103,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    var formals = methsym.type.asMethodType().argtypes;
 			List<JCExpression> typeargs = convertExprList(that.typeargs);
 			JCExpression meth = convertExpr(that.meth);
-			//List<JCExpression> args = convertExprList(that.args);
 			List<JCExpression> args = convertArgs(that, that.args, formals, methsym.isVarArgs());
 			JCMethodInvocation app = M.at(that).Apply(typeargs, meth, args).setType(that.type);
 			app.varargsElement = that.varargsElement; // a Type
@@ -14524,27 +14523,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     eresult = castexpr;
                 }
             } else {
-                //System.out.println("ADDCONV " + newtype + " " + oldtype);
                 if (types.isSameType(oldtype, BIGINT) && newtype.isPrimitive()) {
                     addRangeConstraints(pos, true, newtype, expr);
                 }
                 if (rac) {
-                    String s = newtype.toString() + "Value";
-                    if (s.contains("BigInteger")) s = "bigValue";
-                    try {
-                        JCExpression e = treeutils.makeMethodInvocation(pos, expr, names.fromString(s));
-                        result = eresult = e;
-                    } catch (java.util.NoSuchElementException e) {
-                        //e.printStackTrace();
-                        utils.error(pos, "jml.internal", "There is no conversion to " + newtype + " in the runtime implementation for " + oldtype);
-                        result = eresult = treeutils.makeZeroEquivalentLit(pos, newtype);
+                    if (newtype.tsym == syms.objectType.tsym) {
+                        // FIXME - do this if oldtype implicitly converts to newtype?
+                        result = eresult = expr;
+                    } else {
+                        String s = newtype.toString() + "Value";
+                        if (s.contains("BigInteger")) s = "bigValue";
+                        try {
+                            JCExpression e = treeutils.makeMethodInvocation(pos, expr, names.fromString(s));
+                            result = eresult = e;
+                        } catch (java.util.NoSuchElementException e) {
+                            utils.error(pos, "jml.internal", "There is no conversion to " + newtype + " in the runtime implementation for " + oldtype);
+                            result = eresult = treeutils.makeZeroEquivalentLit(pos, newtype);
+                        }
                     }
                 } else if (esc) {
                     // Do any conversion in SMTTranslator
                     eresult = castexpr;
                 }
             }
-
 
         } else if (utils.isExtensionValueType(newtype)) {
             // oldtype must be non-JML
@@ -14607,7 +14608,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else if (!newtype.isPrimitive() && oldtype.isPrimitive()) {
             // boxing
             eresult = rac ? expr : createBoxingStatsAndExpr(expr, newtype, false);
-            
         } else if (newtype.isPrimitive() && oldtype.isPrimitive()) {
             // numeric conversion
             // Java primitive to Java primitive - must be a numeric cast
@@ -15339,6 +15339,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             if (rac && utils.isModel(s)) {
                 JCFieldAccess recv = M.at(that.pos).Select(trexpr, names.fromString(Strings.modelFieldMethodPrefix + that.name.toString()));
+                System.out.println("MODEL " + s + " " + JmlMemberEnter.instance(context).modelMethods);
                 recv.sym = JmlMemberEnter.instance(context).modelMethods.get(s).sym;
                 recv.type = recv.sym.type;
                 result = eresult = M.at(that.pos).Apply(null,recv, List.<JCExpression>nil());
