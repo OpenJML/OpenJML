@@ -25,7 +25,7 @@ Starting proof of Test.m1(Test) with prover !!!!
 
 STARTING PROOF OF Test.m1(Test)
 /*@
-  public /* callee_only */ behavior
+  public behavior // callee_only 
     requires true; 
     requires !(o != null); 
     signals_only NullPointerException; 
@@ -54,7 +54,7 @@ Starting proof of Test.m2(Test) with prover !!!!
 
 STARTING PROOF OF Test.m2(Test)
 /*@
-  public /* callee_only */ behavior
+  public behavior // callee_only 
     requires true; 
     requires !(o != null); 
     signals_only NullPointerException; 
@@ -83,7 +83,7 @@ Starting proof of Test.m3(Test,int) with prover !!!!
 
 STARTING PROOF OF Test.m3(Test,int)
 /*@
-  public /* callee_only */ behavior
+  public behavior // callee_only 
     requires true; 
     requires i >= 0; 
     requires !(o != null) | !(i < 10); 
@@ -142,7 +142,7 @@ Starting proof of Test.m4(Test,Test) with prover !!!!
 
 STARTING PROOF OF Test.m4(Test,Test)
 /*@
-  public /* callee_only */ behavior
+  public behavior // callee_only 
     requires true; 
     requires !(o != null) | !(i != null); 
     signals_only NullPointerException, NullPointerException; 
@@ -172,7 +172,7 @@ Starting proof of Test.m5(Test,Test) with prover !!!!
 
 STARTING PROOF OF Test.m5(Test,Test)
 /*@
-  public /* callee_only */ behavior
+  public behavior // callee_only 
     requires true; 
     requires !(o != null) | !(i != null); 
     signals_only NullPointerException, RuntimeException; 
@@ -203,7 +203,7 @@ Starting proof of Test.m6(Test,Test) with prover !!!!
 
 STARTING PROOF OF Test.m6(Test,Test)
 /*@
-  public /* callee_only */ behavior
+  public behavior // callee_only 
     requires true; 
     requires !(o != null) | !(i != null); 
     signals_only RuntimeException, NullPointerException; 
@@ -234,7 +234,7 @@ Starting proof of Test.m7(Test,Test) with prover !!!!
 
 STARTING PROOF OF Test.m7(Test,Test)
 /*@
-  public /* callee_only */ behavior
+  public behavior // callee_only 
     requires true; 
     requires !(o != null); 
     signals_only RuntimeException; 
@@ -263,7 +263,7 @@ Starting proof of Test.m8(Test,Test) with prover !!!!
 
 STARTING PROOF OF Test.m8(Test,Test)
 /*@
-  public /* callee_only */ behavior
+  public behavior // callee_only 
     requires true; 
     requires !(o != null) | !(i != null); 
     signals_only RuntimeException, NullPointerException; 

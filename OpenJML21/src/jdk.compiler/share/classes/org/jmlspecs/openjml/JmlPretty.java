@@ -631,7 +631,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 modOrCodeOrBehavior = true;
             }
             if (that.callee_only) {
-                print("//@ callee_only ");
+                print(" // callee_only ");
                 modOrCodeOrBehavior = true;
             }
             if (modOrCodeOrBehavior) {

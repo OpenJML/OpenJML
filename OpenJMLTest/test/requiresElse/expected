@@ -1,99 +1,13 @@
 Proving methods in Test
 Starting proof of Test.Test() with prover !!!!
-
---------------------------------------
-
-STARTING PROOF OF Test.Test()
-/*@
-  public behavior
-    requires true; 
-    assignable \nothing; 
-    signals () false; 
-    signals_only \nothing; 
-    accessible \everything; 
- */
-
-{
-  super();
-}
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test.mtest(int) with prover !!!!
-
---------------------------------------
-
-STARTING PROOF OF Test.mtest(int)
-/*@
-  public exceptional_behavior
-    requires true; 
-    requires !(i >= 0); 
-    assignable \nothing; 
-    ensures false; 
-    signals_only IllegalArgumentException; 
-    accessible \everything; 
-also
-  public normal_behavior
-    requires true; 
-    signals () false; 
-    requires i >= 0; 
-    ensures \result == 0; 
-    signals_only \nothing; 
-    assignable \everything; 
-    accessible \everything; 
- */
-
-{
-  if (i < 0) throw new IllegalArgumentException();
-  return 0;
-}
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.mtest(int) with prover !!!! - no warnings
 Starting proof of Test.mtest2(int) with prover !!!!
-
---------------------------------------
-
-STARTING PROOF OF Test.mtest2(int)
-/*@
-  public exceptional_behavior
-    requires true; 
-    requires !(i < 10); 
-    assignable \nothing; 
-    ensures false; 
-    signals_only IllegalArgumentException; 
-    accessible \everything; 
-also
-  public 
-    requires true; 
-    requires i < 10; 
-    ensures \result >= 0; 
-    signals_only java.lang.RuntimeException; 
-    assignable \everything; 
-    accessible \everything; 
-also
-  public exceptional_behavior
-    requires true; 
-    requires !(i >= 0); 
-    assignable \nothing; 
-    ensures false; 
-    signals_only IllegalArgumentException; 
-    accessible \everything; 
-also
-  public 
-    requires true; 
-    ensures \result == 0; 
-    requires i >= 0; 
-    signals_only java.lang.RuntimeException; 
-    assignable \everything; 
-    accessible \everything; 
- */
-
-{
-  if (i >= 10) throw new IllegalArgumentException();
-  if (i < 0) throw new IllegalArgumentException();
-  return 0;
-}
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.mtest2(int) with prover !!!! - no warnings
