@@ -1043,15 +1043,17 @@ public class JmlTreeUtils {
 
     /** Makes an attributed AST for a short-circuit boolean AND expression, simplifying literal true or false */
     public JCExpression makeAndSimp(int pos, JCExpression lhs, JCExpression rhs) {
-        if (isTrueLit(rhs) || isFalseLit(lhs)) return lhs;
+        if (lhs == null) return rhs;
+        if (rhs == null || isTrueLit(rhs) || isFalseLit(lhs)) return lhs;
         if (isTrueLit(lhs) || isFalseLit(rhs)) return rhs;
         return makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,rhs);
     }
 
     /** Makes an attributed AST for a short-circuit boolean AND expression, simplifying literal true or false */
     public JCExpression makeAndSimp(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
-        if (isTrueLit(rhs) || isFalseLit(lhs)) return lhs;
-        if (isTrueLit(lhs) || isFalseLit(rhs)) return rhs;
+        if (lhs == null || isTrueLit(lhs)) return rhs;
+        if (rhs == null || isTrueLit(rhs) || isFalseLit(lhs)) return lhs;
+        if (isFalseLit(rhs)) return rhs;
         return makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,rhs);
     }
 

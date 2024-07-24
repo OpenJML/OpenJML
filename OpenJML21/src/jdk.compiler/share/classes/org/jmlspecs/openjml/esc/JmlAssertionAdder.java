@@ -21474,6 +21474,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		splitExpressions = false;
 		ListBuffer<JCStatement> check = pushBlock();
 		ListBuffer<JCStatement> savedForAxioms = currentStatements;
+		
+		TypeSpecs typeSpecs = specs.get((ClassSymbol)msym.owner);
+		JCExpression invs = treeutils.trueLit;
+		if (!isHelper(msym)) for (var cl: typeSpecs.clauses) {
+		    if (cl instanceof JmlTypeClauseExpr clex && cl.clauseType == invariantClause) {
+		        invs = treeutils.makeAndSimp(invs, invs, clex.expression);
+		    }
+		}
 
 		JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(msym);
 		// FIXME - we get calleeSpecs == null when using -no-internalSpecs - shoudl we?
@@ -21643,9 +21651,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// FIXME - will need to add OLD and FORALL clauses in here
 					//if (cs.code && mpsym.owner != msym.owner) continue;
 
-					JCExpression pre = qthisnn != null ? qthisnn : treeutils.trueLit;
+	                JCExpression invsc = convertNoSplit(invs);
+					JCExpression pre = treeutils.makeAnd(qthisnn != null ? qthisnn : treeutils.trueLit, invsc);
 					if (isPrimitiveType) {
-						pre = treeutils.trueLit;
+						pre = invsc;
 					} else if (qthisid != null && classType != syms.objectType) {
 						// FIXME - not sure this is needed and it makes valid assertions harder to prove
 						if (true || !types.isSubtype(receiverType, classType)) {
@@ -21653,6 +21662,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							pre = copy(pre);
 						}
 						pre = treeutils.makeAnd(cs.pos, treeutils.makeNotNull(cs.pos, copy(qthisid)), pre);
+						pre = treeutils.makeAndSimp(pre, pre, invsc);
 					} else {
 						pre = copy(pre);
 						pre.pos = cs.pos;

@@ -4,24 +4,24 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Types.Types() with prover !!!! - no warnings
 Starting proof of Types.types3(java.util.List<Integer>) with prover !!!!
-..\..\OpenJMLDemo\src\openjml\demo\Types.java:9: warning: The prover cannot establish an assertion (Assert) in method types3
+../../OpenJMLDemo/src/openjml/demo/Types.java:9: warning: The prover cannot establish an assertion (Assert) in method types3
 		//@ assert false; // ERROR should be reported, since a.get(0) should return an Integer
 		    ^
 Completed proof of Types.types3(java.util.List<Integer>) with prover !!!! - with warnings
 Starting proof of Types.types2(java.util.List<Integer>) with prover !!!!
-..\..\OpenJMLDemo\src\openjml\demo\Types.java:13: warning: Label A has value true
+../../OpenJMLDemo/src/openjml/demo/Types.java:13: warning: Label A has value true
 		//@ ghost boolean b1 = (\lbl A \type(Integer) <: \type(Number));// true
 		                             ^
-..\..\OpenJMLDemo\src\openjml\demo\Types.java:14: warning: Label B has value true
+../../OpenJMLDemo/src/openjml/demo/Types.java:14: warning: Label B has value true
 		//@ ghost boolean b2 = (\lbl B \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Integer>)); // true
 		                             ^
-..\..\OpenJMLDemo\src\openjml\demo\Types.java:15: warning: Label C has value false
+../../OpenJMLDemo/src/openjml/demo/Types.java:15: warning: Label C has value false
 		//@ ghost boolean b3 = (\lbl C \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Number>)); // false
 		                             ^
-..\..\OpenJMLDemo\src\openjml\demo\Types.java:16: warning: Label E has value true
-		//@ ghost boolean b5 = (\lbl E \erasure(\type(java.util.ArrayList)) <: \erasure(\type(java.util.List))); // true
+../../OpenJMLDemo/src/openjml/demo/Types.java:16: warning: Label E has value true
+		//@ ghost boolean b5 = (\lbl E \erasure(\type(java.util.ArrayList<Integer>)) <: \erasure(\type(java.util.List<Integer>))); // true
 		                             ^
-..\..\OpenJMLDemo\src\openjml\demo\Types.java:18: warning: The prover cannot establish an assertion (Assert) in method types2
+../../OpenJMLDemo/src/openjml/demo/Types.java:18: warning: The prover cannot establish an assertion (Assert) in method types2
 		//@ assert false; // To be sure of feasibility and so that labels are printed
 		    ^
 Completed proof of Types.types2(java.util.List<Integer>) with prover !!!! - with warnings
@@ -50,12 +50,12 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Types.<T>typesz(java.util.List<T>) with prover !!!! - no warnings
 Starting proof of Types.<T>types4e(java.util.List<T>) with prover !!!!
-..\..\OpenJMLDemo\src\openjml\demo\Types.java:52: warning: The prover cannot establish an assertion (PossiblyBadCast) in method <T>types4e:  a T cannot be proved to be a Integer
+../../OpenJMLDemo/src/openjml/demo/Types.java:52: warning: The prover cannot establish an assertion (PossiblyBadCast) in method <T>types4e:  a T cannot be proved to be a Integer
 		/*@ nullable */ Integer i = (Integer)a.get(0); // Expect ERROR
 		                            ^
 Completed proof of Types.<T>types4e(java.util.List<T>) with prover !!!! - with warnings
 Starting proof of Types.types1e(java.util.List<?>) with prover !!!!
-..\..\OpenJMLDemo\src\openjml\demo\Types.java:56: warning: The prover cannot establish an assertion (PossiblyBadCast) in method types1e:  a Object cannot be proved to be a Integer
+../../OpenJMLDemo/src/openjml/demo/Types.java:56: warning: The prover cannot establish an assertion (PossiblyBadCast) in method types1e:  a Object cannot be proved to be a Integer
 		/*@ nullable */ Integer i = (Integer)a.get(0); // Should fail to prove
 		                            ^
 Completed proof of Types.types1e(java.util.List<?>) with prover !!!! - with warnings

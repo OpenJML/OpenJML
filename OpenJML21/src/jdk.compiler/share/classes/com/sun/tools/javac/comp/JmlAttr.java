@@ -7599,7 +7599,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 int k = access;
 //                if (true || utils.locallyJMLVisible(csym, parent, k)) { // FIXME - not sure the visibility test is corrrect
                     if (initclauses[k] == null) initclauses[k] = e;
-                    else initclauses[k] = M.Binary(JCTree.Tag.AND, initclauses[k], e);
+                    else initclauses[k] = treeutils.makeAnd(initclauses[k], initclauses[k], e);
                     initclauses[k].type = syms.booleanType;
 //                }
             }

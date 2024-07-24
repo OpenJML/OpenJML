@@ -166,7 +166,7 @@ public class escfiles extends EscBase {
     public void escDemoTypes() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=true","--check-feasibility=precondition,exit");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=true","--method=types1","--show","--check-feasibility=precondition,exit");
     }
 
     @Test // Problem with reasoning about generic types
@@ -943,12 +943,12 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testTuple() {
+    public void tuple() {
         helpTF("tuple");
     }
 
     @Test
-    public void testTupleBad() {
+    public void tupleBad() {
         expectedExit = 1;
         helpTF("tupleBad");
     }
