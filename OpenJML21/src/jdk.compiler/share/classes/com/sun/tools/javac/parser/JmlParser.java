@@ -2487,7 +2487,7 @@ public class JmlParser extends JavacParser {
         	int dotpos = pos();
         	nextToken();
         	if (jmlTokenClauseKind() != dotdotKind) {
-        		JmlPrimitiveTypes.rangeTypeKind.parse(null, null,JmlPrimitiveTypes.rangeTypeKind, this);
+        		//JmlPrimitiveTypes.rangeTypeKind.parse(null, null,JmlPrimitiveTypes.rangeTypeKind, this);
         		return jmlF.at(dotpos).JmlRange(null,null);
         	}
         } else {
@@ -2508,7 +2508,7 @@ public class JmlParser extends JavacParser {
         	} else {
         	    tt = term1Cond();
         	}
-        	JmlPrimitiveTypes.rangeTypeKind.parse(null, null, JmlPrimitiveTypes.rangeTypeKind, this);
+        	//JmlPrimitiveTypes.rangeTypeKind.parse(null, null, JmlPrimitiveTypes.rangeTypeKind, this);
         	return jmlF.at(dotpos).JmlRange(t,tt);
         } else {
             return t;

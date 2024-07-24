@@ -206,7 +206,7 @@ public class escfiles extends EscBase {
     @Test
     public void loopExercises() {
         expectedExit = 0;
-        helpTCF("test/loopExercises","test/loopExercises","--exclude=gauss");
+        helpTCF("test/loopExercises","test/loopExercises","--exclude=gauss","--check-feasibility=basic");
     }
 
     @Test @Ignore // FIXME - nonlinear inference

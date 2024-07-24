@@ -2494,8 +2494,12 @@ public class SMTTranslator extends JmlTreeScanner {
             case SL:
             	if (useBV) {
             		result = F.fcn(F.symbol("bvshl"), args);
-            	} else if (tree.rhs instanceof JCLiteral) {
-            	    long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
+                } else if (tree.rhs instanceof JCLiteral || (tree.rhs instanceof JCTypeCast cast && cast.expr instanceof JCLiteral)) {
+                    // FIXME - if the cast actually changes the value of the RHS, the code below is incorrect
+                    JCLiteral lit = null;
+                    if (tree.rhs instanceof JCLiteral) lit = (JCLiteral)tree.rhs;
+                    if (tree.rhs instanceof JCTypeCast cast) lit = (JCLiteral)cast.expr;
+                    long i = ((Number)lit.getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     args.add(lhs);
                     if (tree.lhs.type == syms.intType) {
@@ -2514,8 +2518,11 @@ public class SMTTranslator extends JmlTreeScanner {
             case SR:
                 if (useBV) {
                     result = F.fcn(F.symbol("bvashr"), args);
-                } else if (tree.rhs instanceof JCLiteral) {
-                    long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
+                } else if (tree.rhs instanceof JCLiteral || (tree.rhs instanceof JCTypeCast cast && cast.expr instanceof JCLiteral)) {
+                    JCLiteral lit = null;
+                    if (tree.rhs instanceof JCLiteral) lit = (JCLiteral)tree.rhs;
+                    if (tree.rhs instanceof JCTypeCast cast) lit = (JCLiteral)cast.expr;
+                    long i = ((Number)lit.getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     args.add(lhs);
                     if (tree.lhs.type == syms.intType) {
@@ -2534,8 +2541,11 @@ public class SMTTranslator extends JmlTreeScanner {
             case USR:
                 if (useBV) {
                     result = F.fcn(F.symbol("bvlshr"), args);
-                } else if (tree.rhs instanceof JCLiteral) {
-                    long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
+                } else if (tree.rhs instanceof JCLiteral || (tree.rhs instanceof JCTypeCast cast && cast.expr instanceof JCLiteral)) {
+                    JCLiteral lit = null;
+                    if (tree.rhs instanceof JCLiteral) lit = (JCLiteral)tree.rhs;
+                    if (tree.rhs instanceof JCTypeCast cast) lit = (JCLiteral)cast.expr;
+                    long i = ((Number)lit.getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     List<IExpr> args2 = new LinkedList<IExpr>();
                     if (tree.lhs.type == syms.intType) {
