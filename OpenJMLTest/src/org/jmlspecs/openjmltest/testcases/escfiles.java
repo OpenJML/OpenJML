@@ -928,7 +928,7 @@ public class escfiles extends EscBase {
     @Test
     public void visibilitySimple() {
         expectedExit = 1;
-        helpTF("visibilitySimple");
+        helpTF("visibilitySimple","--normal");
     }
 
     @Test
