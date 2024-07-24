@@ -6419,14 +6419,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     @Override // This is called after tree.selected is attributed, but before the name is sought
-    protected void visitSelectHelper(JCFieldAccess tree) {
+    protected boolean visitSelectHelper(JCFieldAccess tree) {
     	if (tree.selected.type instanceof JmlListType) {
     		utils.error(tree, "jml.message", "A " + tree.selected.type.toString() + " value may not be dereferenced");
-    		return;
+    		return false;
     	}
     	// Need to be sure that the specs are loaded for the receiver -- otherwise any JML fields mightnot be known
     	TypeSymbol s = tree.selected.type.tsym; // might be a PackageSymbol; also might be int.class
     	if (s instanceof ClassSymbol && s.type.isReference()) specs.getLoadedSpecs((ClassSymbol)s);
+    	return true;
     }
 
     

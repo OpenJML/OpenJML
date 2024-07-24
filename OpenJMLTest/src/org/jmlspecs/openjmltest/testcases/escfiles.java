@@ -250,12 +250,12 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testValueTypes() {
+    public void valuetypes() {
         helpTF("valuetypes");
     }
 
     @Test
-    public void testValueTypes2() {
+    public void valuetypes2() {
         helpTF("valuetypes2");
     }
 

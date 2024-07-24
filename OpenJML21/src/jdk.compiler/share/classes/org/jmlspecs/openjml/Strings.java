@@ -299,6 +299,7 @@ public class Strings {
     static final public String feas_loopexit = "loopexit";
     static final public String feas_loopcontinue = "loopcontinue";
     static final public String feas_loopbreak = "loopbreak";
+    static final public String feas_methodaxioms = "methodaxioms";
     
     static final public String feas_all = "all";
     static final public String feas_debug = "debug";
@@ -309,7 +310,7 @@ public class Strings {
     
     static final public String[] feasibilities_alone = new String[]{ feas_none, feas_preOnly, feas_debug, feas_all};
     static final public String[] feasibilities = new String[]{feas_pre, feas_if, feas_halt, feas_switch, feas_catch, feas_finally, feas_return, feas_throw, feas_call, feas_summary, feas_exit, feas_reachable, feas_assume, feas_assert, 
-                                                              feas_loopcondition, feas_loopcontinue, feas_loopexit, feas_loopbreak, feas_basic};
+                                                              feas_loopcondition, feas_loopcontinue, feas_loopexit, feas_loopbreak, feas_methodaxioms, feas_basic};
     static final public String feas_alls = Utils.join(",", feasibilities);
 
     // Returns null if OK, returns the bad string if one is not allowed

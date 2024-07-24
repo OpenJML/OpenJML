@@ -10,7 +10,7 @@ test/behaviors/T.java:24: error: illegal start of expression
 test/behaviors/T.java:24: warning: Inserting missing semicolon at the end of a behaviors statement
   //@ behaviors ;
                  ^
-test/behaviors/T.java:28: error: The type or expression near here is invalid (or not implemented): ( token ? in JmlParser.term3())
+test/behaviors/T.java:28: error: Token @*/ does not introduce an expression
   //@ behaviors 
                 ^
 test/behaviors/T.java:28: warning: Inserting missing semicolon at the end of a behaviors statement

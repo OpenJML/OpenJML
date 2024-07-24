@@ -2232,7 +2232,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 
     /** Creates a statement at which we can check feasibility, if enabled */
-    protected void addFeasibilityCheck(JCTree item, ListBuffer<JCStatement> list, String key, String description) {
+    protected void addFeasibilityCheck(DiagnosticPosition item, ListBuffer<JCStatement> list, String key, String description) {
         if (feasibilityContains(key)) {
             addFeasibilityCheck(item, list, description);
         }
@@ -2249,7 +2249,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public static boolean useAssertCount = true;
 
 	/** Creates a statement at which we can check feasibility */
-	protected void addFeasibilityCheck(JCTree item, ListBuffer<JCStatement> list, String description) {
+	protected void addFeasibilityCheck(DiagnosticPosition item, ListBuffer<JCStatement> list, String description) {
 		if (!esc) return;
 		// We create feasibility check points by adding assertions of the
 		// form feasCheckVar != n, for different values of n > 0.
@@ -2262,9 +2262,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		//System.out.println("ADDING FEAS CHECK " + feasibilityCheckCount + " " + description);
 		java.util.List<JmlStatementExpr> descs = getFeasibilityChecks(methodDecl, originalSplit);
 		if (useAssertCount) {
-			JCIdent id = treeutils.makeIdent(item.pos, feasCheckSym);
-			JCExpression bin = treeutils.makeBinary(item.pos, JCTree.Tag.NE, treeutils.intneqSymbol, id,
-					treeutils.makeIntLiteral(item.pos, feasibilityCheckCount));
+			JCIdent id = treeutils.makeIdent(item, feasCheckSym);
+			JCExpression bin = treeutils.makeBinary(item, JCTree.Tag.NE, treeutils.intneqSymbol, id,
+					treeutils.makeIntLiteral(item, feasibilityCheckCount));
 			ListBuffer<JCStatement> prev = currentStatements;
 			currentStatements = list;
 			JmlStatementExpr a = addAssert(item, Label.FEASIBILITY_CHECK, bin);
@@ -21770,6 +21770,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					}
 				}
 				//paramActuals = null;
+				addFeasibilityCheck(callLocation, currentStatements, "methodaxioms", "end of axioms for " + msym);
 				elseExpression = savedElseExpression;
 			}
 			if (falses != null) {
