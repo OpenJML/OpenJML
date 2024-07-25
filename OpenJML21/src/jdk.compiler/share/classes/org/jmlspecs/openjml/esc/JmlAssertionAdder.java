@@ -15588,9 +15588,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (utils.isJMLStatic(sym)) {
 					newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
 					newfa.type = that.type;
-				} else {
+				} else if (currentEnv.currentReceiver != null) {
 					newfa = treeutils.makeSelect(that.pos, currentEnv.currentReceiver, sym);
 					newfa.type = that.type;
+				} else {
+                    newfa = treeutils.makeSelect(that.pos, explicitThisId, sym); // FIXME - why would this not be in currentReceiver
+                    newfa.type = that.type;
 				}
 			}
 		}
@@ -21478,7 +21481,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		TypeSpecs typeSpecs = specs.get((ClassSymbol)msym.owner);
 		JCExpression invs = treeutils.trueLit;
 		if (!isHelper(msym)) for (var cl: typeSpecs.clauses) {
-		    if (cl instanceof JmlTypeClauseExpr clex && cl.clauseType == invariantClause) {
+		    if (cl instanceof JmlTypeClauseExpr clex && cl.clauseType == invariantClause && (!isStatic || hasStatic(clex.modifiers))) {
 		        invs = treeutils.makeAndSimp(invs, invs, clex.expression);
 		    }
 		}
@@ -21491,7 +21494,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JavaFileObject calleeDeclSource = calleeSpecs != null && calleeSpecs.decl != null ? calleeSpecs.decl.sourcefile
 				: methodDecl.sourcefile;
 
-		addStat(comment(callLocation, "Axioms for method " + utils.qualifiedMethodSig(msym), null));
+        addStat(comment(callLocation, "Axioms for method " + utils.qualifiedMethodSig(msym), null));
 		JCExpression combinedPre = null;
 		JCExpression falses = null;
 
@@ -21651,7 +21654,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// FIXME - will need to add OLD and FORALL clauses in here
 					//if (cs.code && mpsym.owner != msym.owner) continue;
 
+//	                JCExpression recvSaved = currentEnv.currentReceiver;
+//                    if (recvSaved == null && !msym.isStatic()) currentEnv.currentReceiver = explicitThisId;
 	                JCExpression invsc = convertNoSplit(invs);
+//	                currentEnv.currentReceiver = recvSaved;
 					JCExpression pre = treeutils.makeAnd(qthisnn != null ? qthisnn : treeutils.trueLit, invsc);
 					if (isPrimitiveType) {
 						pre = invsc;

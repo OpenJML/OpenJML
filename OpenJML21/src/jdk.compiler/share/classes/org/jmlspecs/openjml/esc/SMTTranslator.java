@@ -2319,7 +2319,6 @@ public class SMTTranslator extends JmlTreeScanner {
         switch (op) {
             case EQ:
                 result = F.fcn(eqSym, args);
-                if (result.toString().equals("(= java.lang.Short_TYPE JMLT_short)")) Utils.stop();
                 break;
             case NE:
                 result = F.fcn(distinctSym, args);
@@ -2597,6 +2596,11 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = makeRealValue(d);
                     return;
                 }
+            }
+            if (tree.type.tsym == BIGINT) {
+                var k = ((Number)lit.getValue()).longValue();
+                result = numeral(k);
+                return;
             }
         }
         if (result instanceof Numeral) {
