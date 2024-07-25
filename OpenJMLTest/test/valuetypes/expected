@@ -7,14 +7,14 @@ Starting proof of Map.<K,V>newMapIsEmpty(K) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Map.<K,V>newMapIsEmpty(K) with prover !!!! - no warnings
-Starting proof of Map.<K,V>putGet(map<K,V>,K,V) with prover !!!!
+Starting proof of Map.<K,V>putGet(\map<K,V>,K,V) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Map.<K,V>putGet(map<K,V>,K,V) with prover !!!! - no warnings
-Starting proof of Map.<K,V>putGet2(map<K,V>,K,V,K) with prover !!!!
+Completed proof of Map.<K,V>putGet(\map<K,V>,K,V) with prover !!!! - no warnings
+Starting proof of Map.<K,V>putGet2(\map<K,V>,K,V,K) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Map.<K,V>putGet2(map<K,V>,K,V,K) with prover !!!! - no warnings
+Completed proof of Map.<K,V>putGet2(\map<K,V>,K,V,K) with prover !!!! - no warnings
 Completed proving methods in Map
 Proving methods in Seq
 Starting proof of Seq.Seq() with prover !!!!
@@ -25,34 +25,34 @@ Starting proof of Seq.<T>newSeqIsEmpty() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Seq.<T>newSeqIsEmpty() with prover !!!! - no warnings
-Starting proof of Seq.<T>addBumpsSize(seq<T>,T) with prover !!!!
+Starting proof of Seq.<T>addBumpsSize(\seq<T>,T) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Seq.<T>addBumpsSize(seq<T>,T) with prover !!!! - no warnings
-Starting proof of Seq.<T>addBumpsSize1(seq<T>,T) with prover !!!!
+Completed proof of Seq.<T>addBumpsSize(\seq<T>,T) with prover !!!! - no warnings
+Starting proof of Seq.<T>addBumpsSize1(\seq<T>,T) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Seq.<T>addBumpsSize1(seq<T>,T) with prover !!!! - no warnings
-Starting proof of Seq.<T>addBumpsSize2(seq<T>,T,\bigint) with prover !!!!
+Completed proof of Seq.<T>addBumpsSize1(\seq<T>,T) with prover !!!! - no warnings
+Starting proof of Seq.<T>addBumpsSize2(\seq<T>,T,\bigint) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Seq.<T>addBumpsSize2(seq<T>,T,\bigint) with prover !!!! - no warnings
-Starting proof of Seq.<T>removeLowersSize(seq<T>,int) with prover !!!!
+Completed proof of Seq.<T>addBumpsSize2(\seq<T>,T,\bigint) with prover !!!! - no warnings
+Starting proof of Seq.<T>removeLowersSize(\seq<T>,int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Seq.<T>removeLowersSize(seq<T>,int) with prover !!!! - no warnings
-Starting proof of Seq.<T>addRemove(seq<T>,T,\bigint) with prover !!!!
+Completed proof of Seq.<T>removeLowersSize(\seq<T>,int) with prover !!!! - no warnings
+Starting proof of Seq.<T>addRemove(\seq<T>,T,\bigint) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Seq.<T>addRemove(seq<T>,T,\bigint) with prover !!!! - no warnings
-Starting proof of Seq.<T>addNotEqual(seq<T>,T) with prover !!!!
+Completed proof of Seq.<T>addRemove(\seq<T>,T,\bigint) with prover !!!! - no warnings
+Starting proof of Seq.<T>addNotEqual(\seq<T>,T) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Seq.<T>addNotEqual(seq<T>,T) with prover !!!! - no warnings
-Starting proof of Seq.<T>addNotEqual1(seq<T>,T,\bigint) with prover !!!!
+Completed proof of Seq.<T>addNotEqual(\seq<T>,T) with prover !!!! - no warnings
+Starting proof of Seq.<T>addNotEqual1(\seq<T>,T,\bigint) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Seq.<T>addNotEqual1(seq<T>,T,\bigint) with prover !!!! - no warnings
+Completed proof of Seq.<T>addNotEqual1(\seq<T>,T,\bigint) with prover !!!! - no warnings
 Completed proving methods in Seq
 Proving methods in Set
 Starting proof of Set.Set() with prover !!!!
@@ -67,28 +67,28 @@ Starting proof of Set.<T>singleton(T) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Set.<T>singleton(T) with prover !!!! - no warnings
-Starting proof of Set.<T>addBumpsSetSize(set<T>,T) with prover !!!!
+Starting proof of Set.<T>addBumpsSetSize(\set<T>,T) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Set.<T>addBumpsSetSize(set<T>,T) with prover !!!! - no warnings
-Starting proof of Set.<T>addDoesNotChangeSize(set<T>,T) with prover !!!!
+Completed proof of Set.<T>addBumpsSetSize(\set<T>,T) with prover !!!! - no warnings
+Starting proof of Set.<T>addDoesNotChangeSize(\set<T>,T) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Set.<T>addDoesNotChangeSize(set<T>,T) with prover !!!! - no warnings
-Starting proof of Set.<T>addRemove(set<T>,T) with prover !!!!
+Completed proof of Set.<T>addDoesNotChangeSize(\set<T>,T) with prover !!!! - no warnings
+Starting proof of Set.<T>addRemove(\set<T>,T) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Set.<T>addRemove(set<T>,T) with prover !!!! - no warnings
-Starting proof of Set.<T>addNoChange(set<T>,T) with prover !!!!
+Completed proof of Set.<T>addRemove(\set<T>,T) with prover !!!! - no warnings
+Starting proof of Set.<T>addNoChange(\set<T>,T) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Set.<T>addNoChange(set<T>,T) with prover !!!! - no warnings
-Starting proof of Set.<T>addRemoveA(set<T>,T) with prover !!!!
+Completed proof of Set.<T>addNoChange(\set<T>,T) with prover !!!! - no warnings
+Starting proof of Set.<T>addRemoveA(\set<T>,T) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Set.<T>addRemoveA(set<T>,T) with prover !!!! - no warnings
-Starting proof of Set.<T>addRemoveB(set<T>,T) with prover !!!!
+Completed proof of Set.<T>addRemoveA(\set<T>,T) with prover !!!! - no warnings
+Starting proof of Set.<T>addRemoveB(\set<T>,T) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Set.<T>addRemoveB(set<T>,T) with prover !!!! - no warnings
+Completed proof of Set.<T>addRemoveB(\set<T>,T) with prover !!!! - no warnings
 Completed proving methods in Set

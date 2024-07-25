@@ -12,7 +12,6 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.Tokens.ITokenKind;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -37,13 +36,13 @@ public class TypeMonitorsForClauseExtension extends JmlExtension {
             List<JCExpression> elist = List.<JCExpression>nil();
             Name n;
             int identPos = parser.pos();
-            ITokenKind tk = parser.token().kind;
+            TokenKind tk = parser.token().kind;
             if (tk != IDENTIFIER) {
                 error(parser.pos(), parser.endPos(), "jml.expected", "an identifier");
                 n = parser.names.asterisk; // place holder for an error situation
             } else {
                 n = parser.ident(); // Advances to next token
-                if (parser.token().kind != TokenKind.EQ && parser.jmlTokenKind() != JmlTokenKind.LEFT_ARROW) {
+                if (parser.token().kind != TokenKind.EQ && parser.jmlTokenClauseKind() != org.jmlspecs.openjml.ext.JmlOperatorKind.leftarrowKind) {
                     error(parser.pos(), parser.endPos(), "jml.expected",
                             "an = or <- token");
                 } else {

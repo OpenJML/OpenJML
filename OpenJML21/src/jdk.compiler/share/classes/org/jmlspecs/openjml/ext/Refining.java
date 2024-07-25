@@ -107,7 +107,7 @@ public class Refining extends JmlExtension {
                     utils.error(parser.pos(), parser.endPos(), "jml.invalid.also");
                     parser.nextToken();
                 }
-                if (ext == elseClause) { //token.ikind == TokenKind.ELSE) {
+                if (ext == elseClause) {
                     utils.error(parser.pos(), parser.endPos(), "jml.invalid.also"); // FIXME - should warn about else
                     parser.nextToken();
                 }
@@ -155,7 +155,7 @@ public class Refining extends JmlExtension {
             if (begin != null) {
                 // Has a begin statement, so we read statement until an end
                 while (true) {
-                	if (parser.jmlTokenClauseKind() == Operators.startjmlcommentKind &&
+                	if (parser.jmlTokenClauseKind() == JmlOperatorKind.startjmlcommentKind &&
                 			parser.jmlTokenClauseKind(parser.getScanner().token(1)) == Refining.endClause) {
                 		parser.nextToken();
                 	}

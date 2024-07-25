@@ -1,0 +1,10 @@
+Proving methods in T
+Starting proof of T.T() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : infeasible
+test/gitbug493/T.java:4: warning: There is no feasible path to program point at program exit in method T.T()
+public T() {
+       ^
+Completed proof of T.T() with prover !!!! - INFEASIBLE
+Completed proving methods in T
+1 warning

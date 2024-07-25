@@ -1,7 +1,6 @@
 package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
-import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
@@ -21,7 +20,10 @@ import com.sun.tools.javac.util.ListBuffer;
 public class AssignableClauseExtension extends JmlExtension {
     
     public static final String assignableID = "assignable";
+    public static final String assignsID = "assigns";
+    public static final String writesID = "writes";
     public static final String accessibleID = "accessible";
+    public static final String readsID = "reads";
     public static final String capturesID = "captures";
     
     public static final IJmlClauseKind assignableClauseKind = new LocationSetClauseType(assignableID) {
@@ -37,11 +39,11 @@ public class AssignableClauseExtension extends JmlExtension {
     };
     
     static {
-        synonym("writes",assignableClauseKind);
+        synonym(writesID,assignableClauseKind);
         synonym("modifies",assignableClauseKind);
-        synonym("assigns",assignableClauseKind);
+        synonym(assignsID,assignableClauseKind);
         synonym("modifiable",assignableClauseKind);
-        synonym("reads",accessibleClauseKind);
+        synonym(readsID,accessibleClauseKind);
     }
     
     public static class LocationSetClauseType extends IJmlClauseKind.MethodSpecClauseKind {
@@ -68,10 +70,10 @@ public class AssignableClauseExtension extends JmlExtension {
                 parser.syntaxError(parser.pos(), null, "jml.use.nothing.assignable"); // FIXME - fix to use keyword
                 parser.nextToken(); // skip over the SEMI
             } else {
-                try { list = parser.parseLocationList(); } catch (Exception e) { System.out.println("EXC " + e); }
+                try { list = parser.parseLocationList(); } catch (Exception e) { System.out.println("EXC " + e); e.printStackTrace(System.out); }
                 if (parser.token().kind == SEMI) {
                     // OK, go on
-                } else if (parser.jmlTokenKind() == ENDJMLCOMMENT) {
+                } else if (parser.isEndJml()) {
                     parser.syntaxError(parser.pos(), null, "jml.missing.semi");
                 }
                 if (parser.token().kind != SEMI) {

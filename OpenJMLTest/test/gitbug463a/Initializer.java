@@ -9,6 +9,7 @@ public class Initializer {
     }
     
     //@ ensures \result.a == a;
+    //@ ensures \fresh(\result);
     //@ pure
     public static Initializer init(int a) {
     	return new Initializer(a);
@@ -18,7 +19,7 @@ public class Initializer {
       @   requires a < 1000000; assignable a; // limit just to avoid overflow warnings
       @   ensures this.a == \old(this.a) + 1;
       @   ensures \fresh(\result);
-      @   ensures \result.equals(Initializer.init(\old(a)));
+      @   ensures \result.a == \old(this.a);
       @*/
     public Initializer dupe() {
         Initializer other = new Initializer(a);

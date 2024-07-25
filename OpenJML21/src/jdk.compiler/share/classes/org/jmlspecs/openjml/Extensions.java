@@ -75,7 +75,7 @@ public class Extensions {
     	if (token instanceof JmlToken) {
     		JmlToken jt = (JmlToken)token;
     		if (jt.jmlclausekind == null) return jt.jmlclausekind;
-            String id = jt.jmlkind.internedName();
+            String id = jt.jmlclausekind.keyword();
             IJmlClauseKind k = allKinds.get(id);
             jt.jmlclausekind = k;
             return k;    		
@@ -107,8 +107,10 @@ public class Extensions {
     }
     
     public static @Nullable IJmlClauseKind.ModifierKind findModifier(String name) {
+        String dotName = name;
+        if (name.indexOf('.') == -1) dotName = "." + name;
     	for (var k: allKinds.values()) {
-    		if (k instanceof IJmlClauseKind.ModifierKind && ((IJmlClauseKind.ModifierKind)k).fullAnnotation.endsWith(name)) return (IJmlClauseKind.ModifierKind)k;
+    		if (k instanceof IJmlClauseKind.ModifierKind mk && mk.fullAnnotation.endsWith(dotName)) return mk;
     	}
     	return null;
     }
@@ -140,6 +142,7 @@ public class Extensions {
             MethodResourceClauseExtension.class,
             MethodDeclClauseExtension.class, 
             MethodExprClauseExtensions.class, 
+            MethodExprListClauseExtensions.class, 
             MethodSimpleClauseExtensions.class, 
             SignalsClauseExtension.class, 
             SignalsOnlyClauseExtension.class, 
@@ -170,7 +173,7 @@ public class Extensions {
             ArrayFieldExtension.class,
             
             // Types
-            JMLPrimitiveTypes.class,
+            JmlPrimitiveTypes.class,
             
             LineAnnotationClauses.class,
             MatchExt.class,
@@ -228,24 +231,31 @@ public class Extensions {
     }
     
     public static boolean registerClass(Context context, Class<?> cce) {
+        // This block catches nested classes. These do not derive from JmlExtension. But as long
+        // as they are nested within a JmlExtension, the class is accepted, but is already 
+        // static-initialized by virtue of its containing class.
         if (!JmlExtension.class.isAssignableFrom(cce)) {
-//            Utils.instance(context).note("Skipped " + cce);
+            //Utils.instance(context).note("Skipped " + cce); // debugging only
             String s = cce.toString();
             int k = s.indexOf('$');
             if (k > 0) s = s.substring(0, k);
             try { Class.forName(s); return true; } catch (ClassNotFoundException e) { 
- //           	Utils.instance(context).note("Not found " + s);
+            //Utils.instance(context).note("Not found " + s);
             }
         	return false; // Extension classes must inherit from JmlExtensionn
         }
+        
+        // Initializes extension classes that have just a default constructor or a no-argument constructor
         @SuppressWarnings("unchecked")
-        Class<? extends JmlExtension> cc = (Class<? extends JmlExtension>)cce;
+        var cc = (Class<? extends JmlExtension>)cce;
         try {
             cc.getConstructor().newInstance(); // Instance created only to perform static initialization
             //Utils.instance(context).note("Registered-A " + cc);
             return true;
         } catch (Exception e) {
         }
+        
+        // Initializes extension classes that have a constructor taking Context as an argument
         try {
             cc.getConstructor(Context.class).newInstance(context);
             //Utils.instance(context).note("Registered-B " + cc);
@@ -255,14 +265,14 @@ public class Extensions {
             int k = s.indexOf('$');
             if (k > 0) s = s.substring(0, k);
             try { 
-            	Class.forName(s);
-                Utils.instance(context).note("Registered-C " + cc);
-            	return true; 
+                Class.forName(s);
+                //Utils.instance(context).note("Registered-C " + cc);
+                return true; 
             } 
             catch (ClassNotFoundException ee) { 
-//            	Utils.instance(context).note("Not found " + s); 
+            	Utils.instance(context).note("Not found " + s); 
             }
-            Utils.instance(context).note("Failed " + cc + " " + e.getMessage());
+            //Utils.instance(context).note("Failed " + cc + " " + e.getMessage());
             return false;
         }
     }
@@ -273,10 +283,6 @@ public class Extensions {
     //    at least for built-in extension classes
     // 1) In the development environment, the first method of finding elements
     //    of a class works, but that does not work in an Eclipse plug-in.
-    // 2) In the plug-in, the Bundle approach works. Note though that the Extensions
-    //    class is not a part of the OpenJMLUI plug-in, thus we need to reference 
-    //    the plug-in ID as a literal; this approach won't work and may fail
-    //    catastrophically when used outside of Eclipse.
     public static java.util.List<Class<?>> findClasses(Context context, Package p) throws java.io.IOException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         assert classLoader != null;
@@ -286,7 +292,8 @@ public class Extensions {
         int methodThatWorked = -1;
         String prefix = "jar:file:";
        
-        // This approach works in the development environment
+        // This approach works in the development environment and for the released environment.
+        // It finds all the relevant classes that are compiled into the executable.
         Enumeration<URL> resources = classLoader.getResources(path);
         while (resources.hasMoreElements()) {
             URL resource = resources.nextElement();
@@ -294,7 +301,6 @@ public class Extensions {
             JarFile jar = null;
             try {
                 String n = resource.toString().replace('\\', '/').replaceAll("%20"," "); // FIXME - use toExternalForm?
-                //System.out.println("RES " + n);
                 if (n.startsWith(prefix)) {
                     int k = n.indexOf("!");
                     if (k < 0) continue;
@@ -310,7 +316,6 @@ public class Extensions {
                             k = name.indexOf('.');
                             if (k < 0) continue;
                             name = name.substring(0,k);
-                            //System.out.println("FOUND1 " + name);
                             foundClassNames.add(name);
                         }
                     }
@@ -319,7 +324,6 @@ public class Extensions {
                 } else {
 
                     File dir = new File(resource.getFile().replaceAll("%20"," ")); // FIXME - use toExternalForm?
-                    //System.out.println("DIR " + dir);
                     File[] files = dir.listFiles();
                     if (files == null) continue;
                     for (File f: files) {
@@ -328,7 +332,6 @@ public class Extensions {
                         int k = name.indexOf('.');
                         if (k < 0) continue;
                         name = name.substring(0,k);
-                        //System.out.println("FOUND2 " + name);
                         foundClassNames.add(name);
                     }
                     methodThatWorked = 2;
@@ -363,7 +366,7 @@ public class Extensions {
         ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
         if (foundClassNames.isEmpty()) {
             // Last resort
-            Utils.instance(context).note("Last resort loading of extensions");
+            //Utils.instance(context).note("Last resort loading of extensions");
             for (Class<?> cl : extensions) {
                  classes.add(cl);
             }
@@ -377,16 +380,22 @@ public class Extensions {
                     Class<?> c = Class.forName(fullname);
                     if (Modifier.isAbstract(c.getModifiers())) continue;
                     classes.add(c);
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     // Just skip if there is any exception, such as a
-                    // Class or Method not found.
-                	Utils.instance(context).note(true,"Failed to register " + fullname);
+                    // Class or Method not found
+                	//Utils.instance(context).note(true,"Failed to register " + fullname);
                 }
             }
             methodThatWorked = 5;
         }
-        Utils.instance(context).note(true,"Registered extensions using technique " + methodThatWorked);
+        //Utils.instance(context).note(true,"Registered extensions using technique " + methodThatWorked);
         return classes;
     }
     
+    /** For debugging, prints out the contents of 'allKinds' */
+    public static void dump() {
+        for (var e: allKinds.entrySet()) {
+            System.out.println(e.getKey() + "\t" + e.getValue());
+        }
+    }
 }

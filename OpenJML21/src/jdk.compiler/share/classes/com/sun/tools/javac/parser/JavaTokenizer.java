@@ -1245,7 +1245,7 @@ public class JavaTokenizer extends UnicodeReader {
                     System.out.println("nextToken(" + pos
                                        + "," + endPos + ")=|" +
                                        getRawString(pos, endPos)
-                                       + "|");
+                                       + "|" + " " + tk.tag + " " + tk);
             }
         }
     }

@@ -275,7 +275,11 @@ public abstract class JmlTestCase {
             context = main.context = new Context();
             JavacFileManager.preRegister(context); // can't create it until Log has been set up
         } else {
+            try {
         	context = main.initialize(collector);
+            } catch (Exception e) {
+                e.printStackTrace(System.out);
+            }
         }
         ((FilteredDiagnosticCollector<JavaFileObject>)collector).context = context;
 

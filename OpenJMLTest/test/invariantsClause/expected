@@ -1,0 +1,7 @@
+test/invariantsClause/T.java:7: error: cannot find symbol
+  //@ invariants x, T;
+                 ^
+  symbol:   variable x
+  location: class T
+Operation not performed because of parse or type errors
+1 error

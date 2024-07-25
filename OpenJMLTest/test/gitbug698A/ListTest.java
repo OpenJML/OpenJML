@@ -5,7 +5,7 @@ public class ListTest {
     private final /*@ spec_public  @*/ ArrayList<String> mylist;
 
     //@ ensures \result == mylist;
-    public /*@ pure @*/ ArrayList<String> getMylist() {
+    public /*@ spec_pure @*/ ArrayList<String> getMylist() {
         return mylist;
     }
 

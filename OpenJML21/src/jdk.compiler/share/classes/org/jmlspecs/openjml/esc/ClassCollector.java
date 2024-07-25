@@ -200,7 +200,7 @@ class ClassCollector extends JmlTreeScanner {
                 JCExpression expr = exec.expr;
                 if (expr.type.getTag() == TypeTag.VOID
                     && expr instanceof JCTree.JCMethodInvocation apply
-                    && JmlAttr.instance(context).isPureMethod((Symbol.MethodSymbol)TreeInfo.symbolFor(apply.meth))) {
+                    && JmlSpecs.instance(context).isSpecOKMethod((Symbol.MethodSymbol)TreeInfo.symbolFor(apply.meth))) {
                     // skip
                     return;
                 }

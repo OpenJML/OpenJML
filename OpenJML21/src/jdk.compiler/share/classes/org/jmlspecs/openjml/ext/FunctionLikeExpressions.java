@@ -43,6 +43,7 @@ public class FunctionLikeExpressions extends JmlExtension {
 
         @Override
         public Type typecheck(JmlAttr attr, JCTree tr, Env<AttrContext> localEnv) {
+            var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(attr.context);
             JmlMethodInvocation tree = (JmlMethodInvocation)tr;
             int n = tree.args.size();
             if (n != 1) {
@@ -56,13 +57,13 @@ public class FunctionLikeExpressions extends JmlExtension {
                 	System.out.println("NULLTYPE - Unexpected null type in \\elemtype");
                 } else if (tt.isErroneous()) {
                 	t = tt;
-                } else if (tt == JmlTypes.instance(attr.context).TYPE) {
+                } else if (tt == TYPE) {
                     t = tt;
                 } else if (tt.tsym == attr.syms.classType.tsym) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
                     t = attr.syms.classType;
                 } else {
                     error(tree.args.get(0).pos(),"jml.elemtype.expects.classtype",tt.toString());
-                    t = JmlTypes.instance(attr.context).TYPE;
+                    t = TYPE;
                 }
             }
             tree.type = t;
@@ -81,7 +82,8 @@ public class FunctionLikeExpressions extends JmlExtension {
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             JmlMethodInvocation tree = (JmlMethodInvocation)expr;
         	typecheckHelper(attr, tree.args, localEnv);
-            expr.type = JmlTypes.instance(attr.context).TYPE;
+            var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(attr.context);
+            expr.type = TYPE;
             return expr.type;
         }
 
@@ -280,7 +282,7 @@ public class FunctionLikeExpressions extends JmlExtension {
             super.typecheck(attr, tree, localEnv);
             if (!attr.postClauses.contains(attr.jmlenv.currentClauseKind)) {
                 JmlMethodInvocation expr = (JmlMethodInvocation)tree;
-                log.error(tree.pos, "jml.misplaced.token", expr.kind != null ? expr.kind.keyword() : expr.token.internedName(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.keyword());
+                log.error(tree.pos, "jml.misplaced.token", expr.kind != null ? expr.kind.keyword() : "?", attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.keyword());
             }
             return attr.syms.booleanType;
         }
@@ -320,7 +322,8 @@ public class FunctionLikeExpressions extends JmlExtension {
                     ((JmlMethodInvocation)e).type = attr.syms.classType;
                 }
                 Type tt = tree.args.get(0).type;
-                if (tt == attr.jmltypes.TYPE || tt == attr.syms.classType) t = attr.syms.classType; 
+                var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(attr.context);
+                if (tt == TYPE || tt == attr.syms.classType) t = attr.syms.classType; 
             }
             return t;
         }

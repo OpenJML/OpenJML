@@ -6,7 +6,7 @@ public interface Stack{
 	  @public invariant count()>=0;
 	  @*/
 
-	//-RAC@ model instance public JMLDataGroup state;
+	//-RAC@ model instance public \datagroup state;
 	//-RAC@ public instance model int max;
 	//-RAC@ public instance model int count; //@ in state;
 	

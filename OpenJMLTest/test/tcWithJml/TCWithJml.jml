@@ -3,6 +3,8 @@
 import org.jmlspecs.annotation.*;
 public class TCWithJml {
 
+    protected Object mm(); // Error - different modifiers
+    
     @NonNull
     public Object m2() ;
     
@@ -23,8 +25,8 @@ public class TCWithJml {
     
     int f;   // Error - different modifiers
     @Nullable Object f1;
-    @Nullable @NonNull Object f2;  // Error - duplicate annotations
-    /*@ non_null nullable */ Object f2a;  // Error - duplicate annotations
+    @Nullable @Nullable Object f2;  // Error - duplicate annotations
+    /*@ non_null non_null */ Object f2a;  // Error - duplicate annotations
     @Pure Object f3;   // Error - annotation not allowed
     /*@ pure */ Object f3a;  // Error - annotation not allowed
     @Nullable Object fok;
@@ -39,8 +41,6 @@ public class TCWithJml {
     public static Object r(@Pure Integer j);  // Error - annotation not allowed
     public static Object ra(/*@ pure */ Integer j);  // Error - annotation not allowed
 
-    protected Object mm(); // Error - different modifiers
-    
 }
 
 class AA {} // Error - different annotations
@@ -49,6 +49,6 @@ class BB {} // Error - different modifiers
 
 @Pure final class CC {}
 
-@NonNullByDefault @NullableByDefault class DD {}  // Error - duplicate annotations
+@NonNullByDefault @NullableByDefault class DD {}  // Error - conflicting annotations
 
-@SpecPublic class EE {}   // Error - annotation not allowed
+@SpecPublic class EE {}

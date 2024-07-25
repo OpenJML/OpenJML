@@ -4042,6 +4042,8 @@ public class Attr extends JCTree.Visitor {
         result = check(tree, owntype, KindSelector.VAL, resultInfo);
         matchBindings = matchBindingsComputer.unary(tree, matchBindings);
     }
+    
+    public Type jmlBinary(JCBinary tree, OperatorSymbol operator, Type left, Type right) { return null; } // OPENJML: to be overridden
 
     public void visitBinary(JCBinary tree) {
         // Attribute arguments.
@@ -4082,6 +4084,7 @@ public class Attr extends JCTree.Visitor {
                 !left.isErroneous() &&
                 !right.isErroneous()) {
             owntype = operator.type.getReturnType();
+            if ((result = jmlBinary(tree, operator, left, right)) != null) return; // OPENJML
             int opc = operator.opcode;
             // If both arguments are constants, fold them.
             if (left.constValue() != null && right.constValue() != null) {
@@ -4354,7 +4357,7 @@ public class Attr extends JCTree.Visitor {
                 symEnv = symEnv.outer;
             }
         }
-
+        
         // If symbol is a variable, ...
         if (sym.kind == VAR) {
             VarSymbol v = (VarSymbol)sym;
@@ -4396,7 +4399,7 @@ public class Attr extends JCTree.Visitor {
         result = checkId(tree, env1.enclClass.sym.type, sym, env, resultInfo);
     }
 
-    protected void visitSelectHelper(JCFieldAccess tree) {} // OPENJML - added for overriding
+    protected boolean visitSelectHelper(JCFieldAccess tree) { return true; } // OPENJML - added for overriding
 
     public void visitSelect(JCFieldAccess tree) {
         // Determine the expected kind of the qualifier expression.
@@ -4441,8 +4444,8 @@ public class Attr extends JCTree.Visitor {
             sitesym != null &&
             sitesym.name == names._super;
 
-        visitSelectHelper(tree); // OPENJML
-
+        if (!visitSelectHelper(tree)) return; // OPENJML
+        
         // Determine the symbol represented by the selection.
         env.info.pendingResolutionPhase = null;
         Symbol sym = selectSym(tree, sitesym, site, env, resultInfo);

@@ -23,7 +23,7 @@ public class bigint {
         //@ ghost int i = (int)b;
         //@ ghost long l = (long)b;
         //@ assert b == zero;
-        //@ ghost BigInteger bi = bb;
+        //@ ghost BigInteger bi = bb.bigValue();
         //@ ghost \bigint bbb = bi;
         //@ assert bbb == bb;
         //@ set bbb = prod + bi;

@@ -18,7 +18,7 @@ public class typechecking extends TCBase {
 
     /** Test something very simple with no errors*/
     @Test public void testSomeJava() {
-        helpTC("import org.jmlspecs.lang.JMLDataGroup; class A { public A(){} }");
+        helpTC("class A { public A(){} }");
     }
 
     /** Test something very simple with no errors*/
@@ -48,6 +48,22 @@ public class typechecking extends TCBase {
     @Test public void testTypeArgs() {
         helpTC(" class A { int k; boolean b; <T> int mm() {} void m() { int t = this.<Integer>mm(); \n//@ assert <Object>\\old(k);\n}}"
                 ,"/TEST.java:2: error: illegal start of expression",20
+                );
+    }
+    
+    @Test public void testCommentStatement() {
+        helpTC( """
+                class B {
+                  void m() {
+                    //@ comment 5;
+                  }
+                  void mm() { /*@ comment "asd"+"def"; */ }  // compiler collapses to a literal
+                  void mq(int x) { /*@ comment "asd"+x; */ }
+                  void mmm() { /*@ comment "asd"; */}
+                }
+                """
+                ,"/TEST.java:3: error: incompatible types: int cannot be converted to java.lang.String", 17
+                ,"/TEST.java:6: error: A comment statement may only contain a string literal", 37
                 );
     }
 
@@ -269,7 +285,6 @@ public class typechecking extends TCBase {
     @Test public void testStaticInvariantFor11() {
         helpTCF("A.java","public class A<T> { static int k = 0; void m() { \n//@ assume \\static_invariant_for(k);\n}}"
                 ,"/A.java:2: error: cannot find symbol\n  symbol:   class k\n  location: class A<T>",34
-                ,"/A.java:2: error: The argument of \\static_invariant_for must be a reference type name: k",34
                 );
     }
 
@@ -377,7 +392,7 @@ public class typechecking extends TCBase {
     @Test public void testType9() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(java.lang.Object[][]);\n}}"
                 ,"/A.java:2: error: incompatible types: \\TYPE cannot be converted to boolean",17
-                            );
+                );
     }
 
     @Test public void testType10() {

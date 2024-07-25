@@ -14,7 +14,7 @@ public class Seq<T> {
     //@ model public static <T> void addBumpsSize1(seq<T> s, T k) {}
     
     //@ requires 0 <= i <= s.size();
-    //@ ensures s.add(i,k).size() == 1 + s.size();
+    //@ ensures s.insert(i,k).size() == 1 + s.size();
     //@ model public static <T> void addBumpsSize2(seq<T> s, T k, \bigint i) {}
     
     //@ requires 0 <= k < s.size();
@@ -23,7 +23,7 @@ public class Seq<T> {
     
     //@ public normal_behavior
     //@   requires 0 <= i <= s.size();
-    //@   ensures seq.equals(s.add(i,t).remove(i), s);
+    //@   ensures seq.equals(s.insert(i,t).remove(i), s);
     //@ model public static <T> void addRemove(seq<T> s, T t, \bigint i) {}
     
     //@ public normal_behavior
@@ -32,7 +32,7 @@ public class Seq<T> {
     
     //@ public normal_behavior
     //@   requires 0 <= i <= s.size();
-    //@   ensures !seq.equals(s.add(i,t), s);
+    //@   ensures !seq.equals(s.insert(i,t), s);
     //@ model public static <T> void addNotEqual1(seq<T> s, T t, \bigint i) {}
     
 }

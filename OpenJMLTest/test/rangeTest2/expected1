@@ -1,11 +1,11 @@
 test/rangeTest2/R.java:5: error: Index ranges are implemented only for explicit range expressions (using ..)
 	//@ writes a[r];
 	             ^
-test/rangeTest2/R.java:9: error: Fields of an object with immutable type may not be modified: r.lo (org.jmlspecs.lang.range)
+test/rangeTest2/R.java:9: error: Fields of an object with immutable type may not be modified: r.lo (\range)
 		//@ set r.lo = 5;
 		             ^
 $SPECS/org/jmlspecs/lang/range.jml:3: error: Associated declaration: test/rangeTest2/R.java:9:
-//@ immutable pure 
+//@ immutable no_state 
     ^
 Operation not performed because of parse or type errors
 3 errors

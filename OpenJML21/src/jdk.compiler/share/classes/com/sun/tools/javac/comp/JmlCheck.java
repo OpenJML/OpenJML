@@ -9,6 +9,7 @@ import static com.sun.tools.javac.tree.JCTree.Tag.APPLY;
 
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.Modifiers;
 
 import com.sun.tools.javac.code.Flags;
@@ -72,7 +73,7 @@ public class JmlCheck extends Check {
     }
     
     /** Set externally in order to control errors about old variables needing to be static. */
-    public boolean staticOldEnv = false;
+//    public boolean staticOldEnv = false;
     
     /** Set by setInJml in order to avoid errors about generic casts.*/
     protected boolean isInJml = false;
@@ -88,21 +89,32 @@ public class JmlCheck extends Check {
      */
     @Override
     protected Type checkCastable(DiagnosticPosition pos, Type found, Type req) {
+        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+        
         Utils utils = Utils.instance(context);
         if (found.isErroneous()) {
             // continue
-        } else if (utils.isExtensionValueType(req)) {
+        } else if (utils.isExtensionValueType(req) || utils.isExtensionValueType(found)) {
             // Checks legality of explicit casts
             if (types.isSameType(found,req)) return req;
             if (types.isSameType(req, utils.extensionValueType("string"))
                     && types.isSameType(found, Symtab.instance(context).stringType)) {
                 return req;
             }
-            basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
-            return types.createErrorType(found);
-        } else if (utils.isExtensionValueType(found) &&
-                !utils.isExtensionValueType(req)) {
-            basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
+            if (types.isSameType(req, REAL) && ((JmlTypes)types).isNumeric(found)) {
+                return req;                
+            }
+            if (types.isSameType(found, REAL) && ((JmlTypes)types).isNumeric(req)) {
+                return req;                
+            }
+            if (types.isSameType(found, BIGINT) && ((JmlTypes)types).isIntegral(req)) {
+                return req;                
+            }
+            if (types.isSameType(req, BIGINT) && ((JmlTypes)types).isIntegral(found)) {
+                return req;                
+            }
+            utils.error(pos, "jml.message", "A " + found + " may not be cast to a " + req);
             return types.createErrorType(found);
         }
         return super.checkCastable(pos,found,req);
@@ -114,10 +126,10 @@ public class JmlCheck extends Check {
     @Override
     long checkFlags(DiagnosticPosition pos, long flags, Symbol sym, JCTree tree) {
         if (sym.kind == Kinds.Kind.ERR) return flags;
-        if (staticOldEnv) flags &= ~Flags.STATIC;
+        //if (staticOldEnv) flags &= ~Flags.STATIC;
         long wasFinal = flags & Flags.FINAL;
         long k = super.checkFlags(pos,flags,sym,tree);
-        if (staticOldEnv) { k |= Flags.STATIC; }
+        //if (staticOldEnv) { k |= Flags.STATIC; }
         if (sym.kind == Kinds.Kind.VAR) {
             JCTree.JCVariableDecl d =(JCTree.JCVariableDecl) tree;
             boolean isInInterface = sym.owner.isInterface();
@@ -144,20 +156,20 @@ public class JmlCheck extends Check {
     
     @Override
     public Type checkType(DiagnosticPosition pos, Type found, Type req, final CheckContext checkContext) {
+        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getSymbol(context);
+        Symbol BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
+
         if (found != null && found.getTag() == TypeTag.ARRAY && req.getTag() == TypeTag.ARRAY &&
-                found.toString().equals("org.jmlspecs.runtime.IJMLTYPE[]") &&
-                req.toString().equals("\\TYPE[]")) {
-            // FIXME - can we do the above without converting to String
-            // We need this for the implementation of JML.typeargs, but
-            // does it cause problems elsewhere?
+                ((Type.ArrayType)found).getComponentType().tsym == TYPE &&
+                ((Type.ArrayType)req).getComponentType().tsym == TYPE) {
             return req;
         }
         if (found == req) return found;
         JmlTypes jmltypes = JmlTypes.instance(context);
         // FIXME - all this in isAssignable?
-        if (req == jmltypes.REAL) {
-        	if (found.isNumeric() || found == jmltypes.BIGINT) return found;
-        } else if (req == jmltypes.BIGINT) {
+        if (req.tsym == JmlPrimitiveTypes.realTypeKind.getSymbol(context)) {
+        	if (found.isNumeric() || found.tsym == BIGINT) return found;
+        } else if (req.tsym == BIGINT) {
         	if (found.isIntegral()) return found;
         }
         return super.checkType(pos, found, req, checkContext);

@@ -12,9 +12,13 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.JmlTree.JmlModifiers;
 
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -74,7 +78,7 @@ public class QuantifiedExpressions extends JmlExtension {
             if (parser.token().kind == SEMI) {
                 // type id ; ; predicate
                 // two consecutive semicolons is allowed, and means the
-                // range is null - continue
+                // range is 'true' - continue
                 parser.nextToken();
                 pred = parser.parseExpression();
             } else {
@@ -117,10 +121,11 @@ public class QuantifiedExpressions extends JmlExtension {
             
 //            boolean b = ((JmlMemberEnter)attr.memberEnter).setInJml(true);
             for (JCVariableDecl decl: that.decls) {
-                JCModifiers mods = decl.getModifiers();
+                JmlModifiers mods = (JmlModifiers)decl.getModifiers();
                 if (attr.utils.hasOnly(mods,0)!=0) log.error(mods.pos,"jml.no.java.mods.allowed","quantified expression", TreeInfo.flagNames(mods.flags));
                 attr.attribAnnotationTypes(mods.annotations,env);
-                attr.allAllowed(mods.annotations, attr.typeModifiers, "quantified expression");
+                attr.annotationsToModifiers(mods, mods.annotations);
+                attr.allAllowed(mods, attr.typeModifiers, "quantified expression");
                 attr.utils.setExprLocal(mods);
 //                if (utils.hasAny(mods,Flags.STATIC)) {
 //                    log.error(that.pos,
@@ -144,6 +149,7 @@ public class QuantifiedExpressions extends JmlExtension {
             }
             Type resultType = syms.errType;
             Type valueType = null;
+            var M = attr.jmlMaker;
             try {
                 
                 if (that.range != null) {
@@ -161,21 +167,18 @@ public class QuantifiedExpressions extends JmlExtension {
                     case qchooseID:
                     	valueType = syms.booleanType;
                         resultType = that.decls.head.type;
-//                   	
-//                    	System.out.println("LOCALENV " + localEnv);
-//                    	System.out.println("DECL " + that.decls.head + " " + that.decls.head.sym + " " + that.decls.head.sym.type + " " + that.decls.head.type);
-//                    	System.out.println("VALUE " + that.value + " " + that.value.getClass());
-//                    	if (that.value instanceof JCTree.JCIdent id) System.out.println("SYM " + id.sym + " " + (id.sym==null?syms.errType:id.sym.type));
-//                        attr.attribExpr(that.value, localEnv, syms.booleanType);
-//                        attr.check(that.value, that.value.type, KindSelector.VAL, attr.new ResultInfo(KindSelector.VAL, syms.booleanType));
-//                        System.out.println("VALUE " + that.value + " " + that.value.getClass());
-//                    	if (that.value instanceof JCTree.JCIdent id) System.out.println("SYM " + id.sym + " " + (id.sym==null?syms.errType:id.sym.type));
-//                        System.out.println("CHOOSE " + that.value + " " + that.value.type + " " + that.decls.head.type);
+                        if (that.decls.tail.nonEmpty()) {
+                            error(that.decls.tail.head, "jml.message", "A \\choose quantifier may have only one variable declaration");
+                        }
+                        String tmpname = Strings.genPrefix + "found$" + that.pos;
+                        that.founddef = (JmlVariableDecl)M.at(that).VarDef(M.at(that).Modifiers(0),attr.names.fromString(tmpname), 
+                                    M.at(that).TypeIdent(TypeTag.BOOLEAN), attr.treeutils.falseLit);
+                        attr.attribStat(that.founddef, localEnv);
                         break;
 
                     case qnumofID:
                         valueType = syms.booleanType;
-                        resultType = com.sun.tools.javac.code.JmlTypes.instance(parser.context).BIGINT;
+                        resultType = JmlPrimitiveTypes.bigintTypeKind.getType(attr.context);
                         if (utils.rac) resultType = syms.longType; // FIXME - or BigInteger
                         break;
 
@@ -200,13 +203,15 @@ public class QuantifiedExpressions extends JmlExtension {
                         error(that,"jml.unknown.construct", this.keyword(),"JmlAttr.visitJmlQuantifiedExpr");
                         break;
                 }
-                attr.attribExpr(that.value, localEnv, valueType);
-                if (valueType == Type.noType) resultType = that.value.type;
-                attr.check(that.value, that.value.type, KindSelector.VAL, attr.new ResultInfo(KindSelector.VAL, valueType));
-                if (keyword().equals(qsumID) || keyword().equals(qproductID)) {
-                    if (!attr.jmltypes.isNumeric(attr.jmltypes.unboxedTypeOrType(resultType))) {
-                        error(that.value,"jml.bad.quantifer.expression", resultType.toString());
-                        resultType = attr.jmltypes.createErrorType(resultType);
+                if (that.value != null) {
+                    attr.attribExpr(that.value, localEnv, valueType);
+                    if (valueType == Type.noType) resultType = that.value.type;
+                    attr.check(that.value, that.value.type, KindSelector.VAL, attr.new ResultInfo(KindSelector.VAL, valueType));
+                    if (keyword().equals(qsumID) || keyword().equals(qproductID)) {
+                        if (!attr.jmltypes.isNumeric(attr.jmltypes.unboxedTypeOrType(resultType))) {
+                            error(that.value,"jml.bad.quantifer.expression", resultType.toString());
+                            resultType = attr.jmltypes.createErrorType(resultType);
+                        }
                     }
                 }
 

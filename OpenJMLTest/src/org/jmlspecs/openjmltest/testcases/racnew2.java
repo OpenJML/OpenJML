@@ -223,7 +223,8 @@ public class racnew2 extends RacBase {
     /** Test synchronized statement with null lock */
     @Test public void testSynchronized2() {
         expectedRACExit = 1;
-        helpTCX("tt.A",                """
+        helpTCX("tt.A",
+                """
                 package tt;
                 class A {
                     public static void main(String[] args) throws Exception {
@@ -812,7 +813,7 @@ public class racnew2 extends RacBase {
                 "//@ assert (\\lbl SHORT (short)(1)) != 0; \n" +
                 "//@ assert (\\lbl LONG 2L) != 0; \n" +
                 "//@ assert (\\lbl BYTE (byte)(3)) != 0; \n" +
-                "//@ assert (\\lbl FLOAT 5.0f) != 0; \n" +
+                "//@ assert (\\lbl FLOAT 5.0f) != 0; \n" + // Line 10
                 "//@ assert (\\lbl DOUBLE 6.0) != 0; \n" +
                 "//@ assert (\\lbl CHAR 'a') != 0; \n" +
                 "//@ assert (\\lbl BOOLEAN true) ; \n" +

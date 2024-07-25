@@ -6,6 +6,7 @@
 package com.sun.tools.javac.code;
 
 import org.jmlspecs.openjml.JmlTokenKind;
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes.JmlTypeKind;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
@@ -19,6 +20,7 @@ public class JmlType extends Type {
      * is immutable after construction.
      */
     final protected JmlTokenKind jmlTypeTag;
+    protected JmlTypeKind jmlClauseKind = null;
     
     final protected Name id;
     
@@ -42,12 +44,20 @@ public class JmlType extends Type {
         this.id = null;
     }
     
+    JmlType(JmlTypeKind kind, String fullyQualifiedClassName) {
+        super(null);
+        jmlTypeTag = null;
+        jmlClauseKind = kind;
+        fqName = fullyQualifiedClassName;
+        this.id = null;
+    }
+    
     /** Creates a new primitive type with the given name - should be a 
      * singleton for each new JML type */
     // package visibility
     JmlType(JmlTokenKind token, Name id, String fullyQualifiedClassName, List<TypeMetadata> metadata) {
         super(null);
-        jmlTypeTag = JmlTokenKind.PRIMITIVE_TYPE;
+        jmlTypeTag = null;
         fqName = fullyQualifiedClassName;
         this.id = id;
     }

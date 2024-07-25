@@ -10,7 +10,7 @@ public final class StorageParameters {
     public StorageParameters(long @org.jmlspecs.annotation.Nullable [] sizes );
 
     //@ ensures \result == configurationSizes;
-    //@ pure
+    //@ spec_pure
     /*@ spec_public @*/ long @org.jmlspecs.annotation.Nullable [] getConfigurationSizes();
 
 

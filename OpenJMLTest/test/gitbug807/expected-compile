@@ -1,0 +1,2 @@
+Note: test/gitbug807/Foo.java uses or overrides a deprecated API that is marked for removal.
+Note: Recompile with -Xlint:removal for details.

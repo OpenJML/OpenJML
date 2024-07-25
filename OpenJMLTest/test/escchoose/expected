@@ -1,0 +1,36 @@
+Proving methods in T
+Starting proof of T.T() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.T() with prover !!!! - no warnings
+Starting proof of T.m(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.m(int) with prover !!!! - no warnings
+Starting proof of T.mbad() with prover !!!!
+test/escchoose/T.java:10: warning: The prover cannot establish an assertion (Assert) in method mbad
+     //@ assert (\choose int x; x >= 0) == -1; // FALSE
+         ^
+Completed proof of T.mbad() with prover !!!! - with warnings
+Starting proof of T.mbad2() with prover !!!!
+test/escchoose/T.java:14: warning: The prover cannot establish an assertion (Assert) in method mbad2
+     //@ assert (\choose int x; x >= 0) == 1; // FALSE
+         ^
+Completed proof of T.mbad2() with prover !!!! - with warnings
+Starting proof of T.bad0() with prover !!!!
+test/escchoose/T.java:18: warning: The prover cannot establish an assertion (ChooseNotDefined) in method bad0
+    //@ assert (\choose int x;; x < 0 && x > 0) == 0; // Not well-defined
+                ^
+Completed proof of T.bad0() with prover !!!! - with warnings
+Starting proof of T.bad1() with prover !!!!
+test/escchoose/T.java:22: warning: The prover cannot establish an assertion (ChooseNotDefined) in method bad1
+    //@ assert (\choose int x; x < 0 && x > 0) == 0; // Not well-defined
+                ^
+Completed proof of T.bad1() with prover !!!! - with warnings
+Starting proof of T.bad2() with prover !!!!
+test/escchoose/T.java:26: warning: The prover cannot establish an assertion (ChooseNotDefined) in method bad2
+    //@ assert (\choose int x; x < 0; x > 0) == 0; // Not well-defined
+                ^
+Completed proof of T.bad2() with prover !!!! - with warnings
+Completed proving methods in T
+5 warnings

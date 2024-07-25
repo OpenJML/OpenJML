@@ -1095,7 +1095,10 @@ public abstract class Type extends AnnoConstruct implements TypeMirror, PoolCons
                 buf.append(getTypeArguments().toString());
                 buf.append(">");
             }
-            return buf.toString();
+            var s = buf.toString();
+            s = s.replace("org.jmlspecs.lang.internal.", "\\"); // OPENJML -- should have a better way to go back to JML token; also does not work with annotations
+            s = s.replace("org.jmlspecs.lang.", "\\"); // OPENJML -- should have a better way to go back to JML token
+            return s;
         }
 //where
             private String className(Symbol sym, boolean longform) {

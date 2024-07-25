@@ -24,12 +24,12 @@ public class escprimitivetypes extends EscBase {
                 +"  public void m1(int i) {\n"
                 +"    //@ ghost \\bigint ii = i; set ii = ii*2;\n"
                 +"    //@ ghost intset a;\n"
-                +"    //@ set a[ii] = false;\n"
+                +"    //@ set a[ii] = false;\n"  // Line 7
                 +"    //@ ghost intset b = a;\n"
                 +"    //@ set a[ii] = true;\n"
-                +"    //@ assert a[ii+1] == b[ii+1];\n"
-                +"    //@ assert a[ii] == true;\n"
-                +"    //@ assert b[ii] == false;\n"
+                +"    //@ assert a[ii+1] == b[ii+1];\n" // OK // Line 10
+                +"    //@ assert a[ii] == true;\n"      // OK
+                +"    //@ assert b[ii] == false;\n"     // OK
                 +"  }\n"
                 +"}"
                 );
@@ -76,16 +76,16 @@ public class escprimitivetypes extends EscBase {
     
     @Test
     public void testArray() {
-        addOptions("-method=m1");
+        addOptions("--method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i, Object o, Object oo) {\n"
                 +"    //@ assume o != oo;\n"
                 +"    //@ ghost \\bigint ii = i; set ii = ii*2;\n"
-                +"    //@ ghost array<Object> a; \n"
+                +"    //@ ghost \\array<Object> a; \n"
                 +"    //@ set a[ii] = oo;\n"
-                +"    //@ ghost array<Object> b = a;\n"
+                +"    //@ ghost \\array<Object> b = a;\n"
                 +"    //@ set a[ii] = o;\n"
                 +"    //@ assert a[ii+1] == b[ii+1];\n"
                 +"    //@ assert a[ii] == o;\n"
@@ -97,16 +97,16 @@ public class escprimitivetypes extends EscBase {
     
     @Test
     public void testArrayPut() {
-        addOptions("-method=m1");
+        addOptions("--method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i, Object o, Object oo) {\n"
                 +"    //@ assume o != oo;\n"
                 +"    //@ ghost \\bigint ii = i; set ii = ii*2;\n"
-                +"    //@ ghost array<Object> a; \n"
+                +"    //@ ghost \\array<Object> a; \n"
                 +"    //@ set a = a.put(ii,oo);\n"
-                +"    //@ ghost array<Object> b = a;\n"
+                +"    //@ ghost \\array<Object> b = a;\n"
                 +"    //@ set a = a.put(ii,o);\n"
                 +"    //@ assert a[ii+1] == b[ii+1];\n"
                 +"    //@ assert a[ii] == o;\n"
@@ -203,9 +203,9 @@ public class escprimitivetypes extends EscBase {
                 +"  public void m1(int i, char c, char cc) {\n"
                 +"    //@ assume c != cc; \n"
                 +"    //@ ghost \\bigint ii = i; set ii = ii*2; assume ii >= 0; \n"
-                +"    //@ ghost string a;\n"
+                +"    //@ ghost \\string a;\n"
                 +"    //@ set a[ii] = cc;\n"
-                +"    //@ ghost string b = a;\n"
+                +"    //@ ghost \\string b = a;\n"
                 +"    //@ set a[ii] = c;\n"
                 +"    //@ assert a[ii+1] == b[ii+1];\n"
                 +"    //@ assert a[ii] == c;\n"
@@ -223,9 +223,9 @@ public class escprimitivetypes extends EscBase {
                 +"  public void m1(int i, char c, char cc) {\n"
                 +"    //@ assume c != cc; \n"
                 +"    //@ ghost \\bigint ii = i; set ii = ii*2; assume ii >= 0; \n"
-                +"    //@ ghost string a;\n"
+                +"    //@ ghost \\string a;\n"
                 +"    //@ set a = a.put(ii,cc);\n"
-                +"    //@ ghost string b = a;\n"
+                +"    //@ ghost \\string b = a;\n"
                 +"    //@ set a = a.put(ii,c);\n"
                 +"    //@ assert a[ii+1] == b[ii+1];\n"
                 +"    //@ assert a[ii] == c;\n"
@@ -275,7 +275,7 @@ public class escprimitivetypes extends EscBase {
                 
                 +"  public void m1(int i, boolean[] a) {\n"
                 +"    //@ ghost \\bigint ii = i; set ii = ii*2; \n"
-                +"    //@ assume 0 <= ii;\n"
+                +"    //@ assume 0 <= ii < 1000;\n"
                 +"    //@ ghost boolean b = a[ii];\n"
                 +"  }\n"
                 +"}"

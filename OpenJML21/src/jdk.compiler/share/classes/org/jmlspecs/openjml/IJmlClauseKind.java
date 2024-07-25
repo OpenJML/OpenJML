@@ -10,7 +10,6 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.STAR;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SUPER;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.THIS;
-import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import com.sun.tools.javac.parser.*;
 import java.lang.reflect.Constructor;
@@ -52,6 +51,8 @@ import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.Log.WriterKind;
+
+import javax.tools.JavaFileObject;
 
 
 /** Objects of this type represents kinds of JML clauses and statements, for example,
@@ -149,6 +150,10 @@ public abstract class IJmlClauseKind {
         utils.error(pos, key, args);
     }
     
+    public void error(JavaFileObject sourcefile, DiagnosticPosition pos, String key, Object ... args) {
+        utils.error(sourcefile, pos, key, args);
+    }
+    
     /**
      * Creates an error message for which the source is a range of characters,
      * from begin up to and not including end; the identified line is that of
@@ -233,7 +238,7 @@ public abstract class IJmlClauseKind {
             // parsed it or because the statement does not end with one,
             // then the scanner has already scanned the next symbol --
         	// either the end-of-jml or the start of the next JML clause/statement
-        } else if (parser.token().ikind == ENDJMLCOMMENT) {
+        } else if (parser.isEndJml()) {
             // FIXME - was -2 here, why?
             if (requireSemicolon) warning(parser.pos(), parser.endPos(), "jml.missing.semi", clauseType.keyword());
         } else if (parser.token().kind != SEMI && parser.token().kind == TokenKind.IDENTIFIER && Extensions.findKeyword(parser.token().name()) != null) {
@@ -370,16 +375,16 @@ public abstract class IJmlClauseKind {
         public JCExpression parse(JCModifiers mods, String name, IJmlClauseKind kind, JmlParser parser) {
             init(parser);
             int startx = parser.pos();
-            JmlTokenKind jt = parser.jmlTokenKind();
+            var jt = parser.jmlTokenClauseKind();
             parser.nextToken();
             if (parser.token().kind != TokenKind.LPAREN) {
-                return parser.syntaxError(startx, null, "jml.args.required", jt.internedName());
+                return parser.syntaxError(startx, null, "jml.args.required", jt.keyword());
             } else {
                 int preferredPos = parser.pos(); // points at the left-paren
                 List<JCExpression> args = parser.arguments();
                 JmlMethodInvocation t = toP(parser.maker().at(preferredPos).JmlMethodInvocation(this, args));
                 t.startpos = startx;
-                t.token = jt; // FIXME - replace using jt with a kind
+                t.kind = jt;
                 checkParse(parser,t);
                 return parser.primaryTrailers(t, null); // FIXME - was primarySuffix
             }
@@ -499,6 +504,10 @@ public abstract class IJmlClauseKind {
             return false;
         }
         
+        public boolean isNormalModifier() {
+            return !isTypeAnnotation();
+        }
+        
         public ModifierKind(String keyword, boolean strict) {
             super(keyword);
             this.strict = strict;
@@ -508,7 +517,7 @@ public abstract class IJmlClauseKind {
                 if (i < 0 || i >= annotation.length()-1) break;
                 char c = annotation.charAt(i+1);
                 char uc = Character.toUpperCase(c);
-                annotation = annotation.replace(annotation.substring(i,i+2), String.valueOf(uc));
+                annotation = annotation.substring(0,i) + String.valueOf(uc) + annotation.substring(i+2);
             }
             char c = annotation.charAt(0);
             this.fullAnnotation = "org.jmlspecs.annotation." + Character.toUpperCase(c) + annotation.substring(1);

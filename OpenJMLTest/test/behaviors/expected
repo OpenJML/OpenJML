@@ -1,0 +1,21 @@
+test/behaviors/T.java:16: error: this word is not a recognized 'behaviors' option: zzz
+  //@ behaviors zzz;
+                ^
+test/behaviors/T.java:20: warning: Inserting missing semicolon at the end of a behaviors statement
+  //@ behaviors disjoint  // no semicolon
+                                         ^
+test/behaviors/T.java:24: error: illegal start of expression
+  //@ behaviors ;
+                ^
+test/behaviors/T.java:24: warning: Inserting missing semicolon at the end of a behaviors statement
+  //@ behaviors ;
+                 ^
+test/behaviors/T.java:28: error: Token @*/ does not introduce an expression
+  //@ behaviors 
+                ^
+test/behaviors/T.java:28: warning: Inserting missing semicolon at the end of a behaviors statement
+  //@ behaviors 
+                ^
+Operation not performed because of parse or type errors
+3 errors
+3 warnings

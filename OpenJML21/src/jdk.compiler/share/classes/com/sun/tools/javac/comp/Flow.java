@@ -3118,6 +3118,7 @@ public class Flow {
         }
 
         public void visitIdent(JCIdent tree) {
+            if (tree.sym == null) System.out.println("FLOW " + tree);
             if (tree.sym.kind == VAR) {
                 checkInit(tree.pos(), (VarSymbol)tree.sym);
                 referenced(tree.sym);

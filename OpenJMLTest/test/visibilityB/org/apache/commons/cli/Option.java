@@ -20,6 +20,7 @@ package org.apache.commons.cli;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import org.jmlspecs.annotation.*;
 
 /**
  * Describes a single command-line option.  It maintains

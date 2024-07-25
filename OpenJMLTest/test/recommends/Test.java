@@ -20,6 +20,10 @@ public class Test {
         o.f = a[i];
     }
     
+    public void m3c() {
+        m3(null, 0);
+    }
+    
     //@ recommends o != null else NullPointerException;
     //@ recommends i != null else NullPointerException;
     public void m4(Test o, Test i) {
@@ -57,5 +61,4 @@ public class Test {
     public int m9(Test o, Test i) {
         return o.f + i.f;
     }
-    
 }

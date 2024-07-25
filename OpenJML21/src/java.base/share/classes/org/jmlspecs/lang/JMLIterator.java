@@ -33,7 +33,7 @@ package org.jmlspecs.lang;
 
 public interface JMLIterator<E> {
 
-    //@ public model instance JMLDataGroup position;
+    //@ public model instance \datagroup position;
     
     /** Return a clone of this iterator.
      * This declaration makes the method public.

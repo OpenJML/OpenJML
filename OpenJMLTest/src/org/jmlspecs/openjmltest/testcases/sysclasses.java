@@ -17,9 +17,9 @@ public class sysclasses extends TCBase {
         super.setUp();
     }
 
-    /** Tests using JMLDataGroup*/
+    /** Tests using datagroup*/
     @Test public void testDataGroup() {
-        helpTCF("A.java"," class A { //@ public model JMLDataGroup streamState;\n}"
+        helpTCF("A.java"," class A { //@ public model \\datagroup streamState;\n}"
                 ); // Gives a symbol not found error if the org.jmlspecs.lang package is not loaded
     }
     

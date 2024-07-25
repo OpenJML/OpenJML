@@ -1,7 +1,6 @@
-//@ model import org.jmlspecs.lang.JMLDataGroup;
 
 public interface IntSet {
-    //@ public instance model JMLDataGroup state;
+    //@ public instance model \datagroup state;
     
     public /*@ pure @*/ boolean contains(int i);
 

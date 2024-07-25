@@ -88,7 +88,8 @@ public class MiscExpressions extends JmlExtension {
                 }
                 if (!expr.javaType) attr.checkForWildcards(arg,arg);
             }
-            Type t = attr.jmltypes.TYPE;
+            var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(attr.context);
+            Type t = TYPE;
             if (expr.javaType) t = attr.syms.classType;
             attr.addTodo(attr.runtimeClass);
             return t;

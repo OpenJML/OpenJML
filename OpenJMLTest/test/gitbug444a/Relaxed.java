@@ -36,7 +36,7 @@ public class Relaxed {
 	//@ ensures 0 <= \result && \result <= pat.length; 
 	//@ ensures (\forall int i; 0 <= i && i < \result; pat[i] == a[i]);
 	//@ ensures (pat.length > \result) && (a.length > \result) ==> pat[\result] != a[\result];
-	public /*@ pure heap_free @*/ static int diffIndex(int[] pat, int[] a)
+	public /*@ spec_pure @*/ static int diffIndex(int[] pat, int[] a)
 	{
 	  int index = 0;
 	  //@ maintaining 0 <= index && index <= pat.length && index <= a.length;

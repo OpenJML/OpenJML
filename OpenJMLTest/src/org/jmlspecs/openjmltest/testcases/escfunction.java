@@ -71,7 +71,7 @@ public class escfunction extends EscBase {
                 +"public @Immutable class TestJava  { \n"
                 +"  //@ normal_behavior \n"
                 +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"  //@ @HeapFree  \n"
+                +"  //@ @NoState  \n"
                 +"  //@ model public boolean mfunc(int i);\n"
                 
                 +"  int n; \n"
@@ -92,7 +92,7 @@ public class escfunction extends EscBase {
                 +"  //@ normal_behavior \n"
                 +"  //@ assignable n; \n"
                 +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"  //@ @HeapFree  \n"
+                +"  //@ @NoState  \n"
                 +"  //@ model public boolean mfunc(int i);\n"
                 
                 +"  int n; \n"
@@ -102,7 +102,7 @@ public class escfunction extends EscBase {
                 +"  }\n"
                 +"}"
                 //,"/tt/TestJava.java:6: error: A non-static function method must be a member of a Immutable class", 7
-                ,"/tt/TestJava.java:4: error: heap_free methods are implicitly pure and may not assign to any fields: n",18
+                ,"/tt/TestJava.java:4: error: no_state methods are implicitly pure and may not assign to any fields: n",18
         		);
     }
 
@@ -114,7 +114,7 @@ public class escfunction extends EscBase {
                 +"  //@ normal_behavior \n"
                 +"  //@ assignable n; \n"
                 +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"  //@ @HeapFree  \n"
+                +"  //@ @NoState  \n"
                 +"  //@ model public boolean mfunc(int i);\n"
                 
                 +"  int n; \n"
@@ -123,7 +123,7 @@ public class escfunction extends EscBase {
                 +"  //@ assert !mfunc(0);\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: error: heap_free methods are implicitly pure and may not assign to any fields: n",18
+                ,"/tt/TestJava.java:4: error: no_state methods are implicitly pure and may not assign to any fields: n",18
                 );
     }
 
@@ -136,7 +136,7 @@ public class escfunction extends EscBase {
                 +"  //@ assignable n; \n"
                 +"  //@ ensures \\result == (i > 0 && i < 10);\n"
                 +"   \n"
-                +"  //@ model heap_free public boolean mfunc(int i);\n"
+                +"  //@ model no_state public boolean mfunc(int i);\n"
                 
                 +"  int n; \n"
                 +"  public void mm() {\n"
@@ -145,7 +145,7 @@ public class escfunction extends EscBase {
                 +"  //@ assert !mfunc(n);\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: error: heap_free methods are implicitly pure and may not assign to any fields: n",18
+                ,"/tt/TestJava.java:4: error: no_state methods are implicitly pure and may not assign to any fields: n",18
                 );
     }
 
@@ -156,7 +156,7 @@ public class escfunction extends EscBase {
                 +"public class TestJava  { \n"
                 +"  //@ normal_behavior \n"
                 +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"  //@ @Pure @HeapFree  \n"
+                +"  //@ @NoState  \n"
                 +"  //@ static model public boolean mfunc(int i);\n"
                 
                 +"  int n; \n"

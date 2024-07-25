@@ -2,7 +2,7 @@
 public class escDeterministic2 {
 
 	//@ ensures true;
-	//@ heap_free 
+	//@ no_state 
 	//@ model static public int comp(int a);
 
 	//@ ghost public int a;

@@ -27,7 +27,7 @@ public class generics extends TCBase {
     @Test
     public void testBinaryGeneric() {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
-        addMockFile("$A/java/util/Collection.jml","package java.util; public interface Collection<E> extends java.lang.Iterable<E> { public boolean add(E t); }");
+        addMockFile("$A/java/util/Collection.jml","package java.util; public interface Collection<E> extends java.lang.Iterable<E> { /*@ public behavior requires true; */ public boolean add(E t);  /*@ public behavior requires true; */ <T> T[] toArray(T[] a) throws NullPointerException;}");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t() { return null; }}");
     }
 

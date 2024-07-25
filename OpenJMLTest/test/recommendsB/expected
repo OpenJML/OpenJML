@@ -1,0 +1,5 @@
+test/recommendsB/Test.java:14: error: Only one block of recommends clauses is permitted
+    //@ recommends o != null else NullPointerException;
+        ^
+Operation not performed because of parse or type errors
+1 error

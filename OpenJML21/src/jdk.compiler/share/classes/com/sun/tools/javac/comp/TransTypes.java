@@ -676,8 +676,8 @@ public class TransTypes extends TreeTranslator {
             tree.varargsElement = types.erasure(tree.varargsElement);
         else
             if (tree.args.length() != argtypes.length()) {
-                Assert.error(String.format("Incorrect number of arguments; expected %d, found %d",
-                        tree.args.length(), argtypes.length()));
+                Assert.error(String.format("Incorrect number of arguments; expected %d, found %d, in %s",
+                        tree.args.length(), argtypes.length(), tree.toString())); // OPENJML - more information
             }
         tree.args = translateArgs(tree.args, argtypes, tree.varargsElement);
 

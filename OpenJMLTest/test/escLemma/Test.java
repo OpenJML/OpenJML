@@ -3,7 +3,7 @@ public class Test {
 	//@ public normal_behavior
 	//@   requires p >= 0;
 	//@   ensures (p&1) ==  p%2;
-	//@ pure
+	//@ spec_pure
 	public void lemma(int p) {}
 	
 	//@ requires k >= 0;

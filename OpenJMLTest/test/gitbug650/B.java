@@ -3,7 +3,7 @@ interface A {
     /*@ immutable pure public static model class Content {
       @     public normal_behavior
       @       ensures true;
-      @     heap_free
+      @     no_state
       @     public boolean P(nullable Object key);
 
       @ }
