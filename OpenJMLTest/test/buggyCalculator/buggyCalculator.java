@@ -199,7 +199,7 @@ public class buggyCalculator {
           //@ |}
 
           //@ also
-          //@ requires operator != '+' && operator != '-' && operator != '*' && operator != '/';
+          //@ requires operator != '-' && operator != '*' && operator != '/' && operator != '%';
           //@ ensures \result == -1;
 
 
