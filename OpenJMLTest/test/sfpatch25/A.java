@@ -10,6 +10,6 @@ private void test17a(){
     test17Helper1(a,b,b); // Compiler crash
 }
 
-private void test17Helper1(/*@ non_null */ int a, int /*@ non_null */ ...other){}
+private void test17Helper1(int a, int /*@ non_null */ ...other){}
 
 }

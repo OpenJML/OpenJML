@@ -41,11 +41,11 @@ public class MatchExt extends JmlExtension {
                 parser.accept(TokenKind.CASE);
                 // Can't just parse an expression, because then the -> looks like part of a lambda expression
                 // Must start with an identifier
-                boolean saved = parser.underscoreOK;
-                parser.underscoreOK = true;
+//                boolean saved = parser.underscoreOK;
+//                parser.underscoreOK = true;
                 JCExpression id = toP(parser.jmlF.at(parser.token().pos).Ident(parser.ident())); // FIXME -  - is the position OK
-                JCExpression caseExpression = parser.primaryTrailers(id,List.<JCExpression>nil()); // FIXME was primaraySuffix
-                parser.underscoreOK = saved;
+                JCExpression caseExpression = parser.primaryTrailers(id,null); // FIXME was primaraySuffix
+//                parser.underscoreOK = saved;
                 parser.accept(TokenKind.ARROW);
                 JCExpression value = parser.parseExpression();
                 parser.accept(TokenKind.SEMI);

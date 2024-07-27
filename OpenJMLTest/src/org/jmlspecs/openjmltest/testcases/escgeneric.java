@@ -434,10 +434,19 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testElemType3() {
+        expectedExit = 1;
         helpTCX("tt.TestJava"," class A { void m(/*@ non_null */ char[] a) { \n"
                 +"//@ assert \\elemtype(\\typeof(a)) == \\type(int); \n"
                 +"}}"
-                ,"/tt/TestJava.java:1: warning: the type modifier/annotation (non_null) is not permitted on a primitive type: char", 23
+                ,"/tt/TestJava.java:1: error: the type modifier/annotation (non_null) is not permitted on a primitive type: char", 23
+                );
+    }
+
+    @Test
+    public void testElemType4() {
+        helpTCX("tt.TestJava"," class A { void m(char /*@ non_null */ [] a) { \n"
+                +"//@ assert \\elemtype(\\typeof(a)) == \\type(int); \n"
+                +"}}"
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Assert) in method m",5
                 );
     }
