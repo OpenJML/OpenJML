@@ -442,8 +442,13 @@ public class JmlParser extends JavacParser {
                     if (vartype instanceof JCAnnotatedType avt) {
                         avt.annotations = anntype.annotations.appendList(avt.annotations);
                     }
-                } else if (vartype instanceof JCIdent) {
-                    vartype = jmlF.at(vartype.pos).AnnotatedType(List.<JCAnnotation>of(a), vartype);
+                } else if (vartype instanceof JCIdent id) {
+                    if (Extensions.findKeyword(id.toString()) != null) {
+                        utils.error(mod.pos, "jml.message", "the type modifier/annotation (" + mod + ") is not permitted on a primitive type: " + vartype);
+                        // Do not add the annotation -  not permitted on a primitive type
+                    } else {
+                        vartype = jmlF.at(vartype.pos).AnnotatedType(List.<JCAnnotation>of(a), vartype);
+                    }
                 } else if (vartype instanceof JCFieldAccess fa) {
                     vartype = jmlF.at(vartype.pos).AnnotatedType(List.<JCAnnotation>of(a), vartype);
                 } else if (vartype instanceof JCArrayTypeTree fa) {
@@ -451,9 +456,8 @@ public class JmlParser extends JavacParser {
                 } else if (vartype instanceof JCTypeApply fa) {
                     fa.clazz = normalizeAnnotation(mod, fa.clazz, null);
                 } else if (vartype instanceof JCPrimitiveTypeTree fa) {
-                    utils.warning(mod.pos, "jml.message", "the type modifier/annotation (" + mod + ") is not permitted on a primitive type: " + fa);
+                    utils.error(mod.pos, "jml.message", "the type modifier/annotation (" + mod + ") is not permitted on a primitive type: " + fa);
                     // Do not add the annotation -  not permitted on a primitive type
-                    // FIXME - error?
                 } else {
                     System.out.println("UNKNOWN KIND OF TYPE " + vartype.getClass() + " " + vartype);
                 }
@@ -2447,8 +2451,6 @@ public class JmlParser extends JavacParser {
         }
     }
 
-    public boolean underscoreOK = false;
-
     @Override
     public Name ident() {
     	if (possibleDotStar && token.kind == TokenKind.STAR) {
@@ -2465,12 +2467,22 @@ public class JmlParser extends JavacParser {
                 token = new Tokens.NamedToken(IDENTIFIER, token.pos, token.endPos, name, token.comments);
                 return super.ident();
             }
-        } else if (underscoreOK && token.kind == UNDERSCORE) {
+        } else {
+            return super.ident();
+        }
+    }
+
+    @Override
+    protected Name ident(boolean allowClass, boolean asVariable) {
+        if (token.kind == UNDERSCORE && asVariable) {
+            if (peekToken(LBRACKET)) {
+                log.error(DiagnosticFlag.SYNTAX, token.pos, Errors.UseOfUnderscoreNotAllowedWithBrackets);
+            }
             Name name = token.name();
             nextToken();
             return name;
         } else {
-            return super.ident();
+            return super.ident(allowClass, asVariable);
         }
     }
 

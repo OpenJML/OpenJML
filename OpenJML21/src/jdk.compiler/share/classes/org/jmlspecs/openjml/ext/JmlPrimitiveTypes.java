@@ -133,7 +133,11 @@ public class JmlPrimitiveTypes extends JmlExtension {
             jt.enterBinop("!=", type, type, jt.syms.booleanType);
         }
         
-        public String opName(JCTree.Tag optag) { return optag == JCTree.Tag.EQ ? "eq" : optag == JCTree.Tag.NE ? "ne" : ""; }
+        public String opName(JCTree.Tag optag) { 
+            return optag == JCTree.Tag.EQ ? "eq" : 
+                   optag == JCTree.Tag.NE ? "ne" : 
+                                            "";
+        }
 
 
 //        public Type getRepType(Context context) {
@@ -404,6 +408,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
     public static final String TYPEID = "\\TYPE";
     
     public static final JmlTypeKind TYPETypeKind = new JmlTypeKind(TYPEID, "org.jmlspecs.lang.internal.TYPE") {
+        
     };
 
     public static final String datagroupID = "\\datagroup";

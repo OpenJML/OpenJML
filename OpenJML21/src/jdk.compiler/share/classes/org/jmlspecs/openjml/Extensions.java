@@ -92,6 +92,11 @@ public class Extensions {
         return allKinds.get(id);
     }
     
+    /** Finds the clause kind for the given keyword, if any */
+    public static @Nullable IJmlClauseKind findKeyword(String name) {
+        return allKinds.get(name);
+    }
+    
     /** Finds a type or method clause kind for the given keyword, if any */
     public static @Nullable IJmlClauseKind findTM(String keyword) {
         IJmlClauseKind ext = allKinds.get(keyword);

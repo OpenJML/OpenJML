@@ -56,7 +56,16 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
     
     public boolean eq(TYPE t) {
         if (!base.equals(t.base)) return false;
-        if (args.length != t.args.length) return false;
+        if (args.length != t.args.length) {
+            if (args.length == 0) {
+                System.out.println("Warning: runtime type information has no type arguments: " + this);
+                return true;
+            } else if (t.args.length == 0) {
+                System.out.println("Warning: runtime type information has no type arguments: " + t);
+                return true;
+            }
+            return false;
+        }
         int k = 0;
         for (var a: args) {
             if (!a.eq(t.args[k])) return false;

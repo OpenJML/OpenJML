@@ -91,7 +91,7 @@ public class racfiles extends RacBase {
     @Test // Originally crashed because of a model method in a library class
     public void racPoint2() {
         expectedExit = 0;
-        helpTCF("test/racPoint2","test/racPoint2","Point","--show");
+        helpTCF("test/racPoint2","test/racPoint2","Point");
     }
 
     @Test

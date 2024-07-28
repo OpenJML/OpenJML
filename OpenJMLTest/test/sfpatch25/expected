@@ -1,10 +1,7 @@
-test/sfpatch25/A.java:13: warning: the type modifier/annotation (non_null) is not permitted on a primitive type: int
-private void test17Helper1(/*@ non_null */ int a, int /*@ non_null */ ...other){}
-                               ^
 test/sfpatch25/A.java:4: warning: The prover cannot establish an assertion (Postcondition) in method test17a
 private void test17a(){
              ^
 test/sfpatch25/A.java:3: warning: Associated declaration
 	//@ ensures false;
 	    ^
-3 warnings
+2 warnings

@@ -6488,7 +6488,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		JCBlock b = popBlock(pos, checkInline);
 		labeled.body = b;
-		if (treeutils.isTrueLit(pre)) {
+		if (pre == null || treeutils.isTrueLit(pre)) {
 			addStat(labeled);
 		} else {
 			b = M.Block(0L, List.<JCStatement>of(labeled));
@@ -8100,18 +8100,38 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (translatingJML && rac) {
 			// FIXME - need to check definedness by testing preconditions; check postconditions also? inline?
 		    var methsym = (MethodSymbol)treeutils.getSym(that.meth);
-		    var formals = methsym.type.asMethodType().argtypes;
-			List<JCExpression> typeargs = convertExprList(that.typeargs);
-			JCExpression meth = convertExpr(that.meth);
-			List<JCExpression> args = convertArgs(that, that.args, formals, methsym.isVarArgs());
-			JCMethodInvocation app = M.at(that).Apply(typeargs, meth, args).setType(that.type);
-			app.varargsElement = that.varargsElement; // a Type
-			result = eresult = app;
-			if (rac && splitExpressions && app.type != null && app.type != syms.voidType) {
-				JCIdent id = newTemp(app);
-				result = eresult = id;
-			}
-			return;
+		    boolean inline = utils.hasModifier(methsym, Modifiers.INLINE);
+            var formals = methsym.type.asMethodType().argtypes;
+            List<JCExpression> typeargs = convertExprList(that.typeargs);
+            JCExpression meth = convertExpr(that.meth);
+            List<JCExpression> args = convertArgs(that, that.args, formals, methsym.isVarArgs());
+		    if (!inline) {
+		        JCMethodInvocation app = M.at(that).Apply(typeargs, meth, args).setType(that.type);
+		        app.varargsElement = that.varargsElement; // a Type
+		        result = eresult = app;
+		        if (splitExpressions && app.type != null && app.type != syms.voidType) {
+		            JCIdent id = newTemp(app);
+		            result = eresult = id;
+		        }
+	            return;
+		    } else {
+		        var mspecs = specs.get(methsym);
+		        if (mspecs.modelBody == null) {
+		            System.out.println("MODEL BODY NULL FOR RAC INLINING " + methsym);
+		        } else {
+                    //for (int i = 0; i<args.size(); i++) System.out.println("  ARG " + mspecs.specDecl.params.get(i) + " :: " + args.get(i));
+		            addStat(comment(that, "Inlining for rac: " + methsym, null));
+		            JCExpression savedRecv = currentEnv.currentReceiver;
+		            if (meth instanceof JCFieldAccess fa) currentEnv.currentReceiver = fa.selected;
+                    for (int i = 0; i<args.size(); i++) paramActuals_.put(mspecs.specDecl.params.get(i).sym, args.get(i));
+                    result = eresult = inlineConvertBlock(mspecs.modelBody, paramActuals_, that.type);
+                    for (int i = 0; i<args.size(); i++) paramActuals_.remove(mspecs.specDecl.params.get(i).sym);
+		            currentEnv.currentReceiver = savedRecv;
+		            
+		            // if (!splitExpressions) ... PROBLEM FIXME, also model methods
+		        }
+		        return;
+		    }
 		}
 		Symbol sym = treeutils.getSym(that.meth);
 		if (sym instanceof MethodSymbol && ((MethodSymbol) sym).isVarArgs()) {
@@ -8844,7 +8864,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (print) System.out.println("MSPECS " + calleeMethodSym.owner + " " + calleeMethodSym + " " + mspecs);
 			boolean inliningCall = mspecs != null && mspecs.specDecl != null && mspecs.specDecl.mods != null
 					&& utils.hasModifier(mspecs.specDecl.mods, Modifiers.INLINE);
-
+			if (inliningCall) System.out.println("INLINING " + calleeMethodSym);
+			
 			// Collect all the methods overridden by the method being called, including the
 			// method itself
 			Type rt = dynamicTypes.get(convertedReceiver);
@@ -11709,6 +11730,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			Map<JmlSpecificationCase, JCExpression> preExpressions, MethodSymbol calleeMethodSym,
 			List<JCExpression> typeargs, JCExpression meth, boolean inliningCall,
 			java.util.List<Pair<MethodSymbol, Type>> overridden) {
+        if (inliningCall) System.out.println("INLINING " + calleeMethodSym + " " + that + " " + mapParamActuals);
 		JCIdent localResult = null;
 		JCExpression savedResultExpr = resultExpr;
 		try {

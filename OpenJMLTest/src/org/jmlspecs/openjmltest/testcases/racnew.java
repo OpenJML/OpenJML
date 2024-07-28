@@ -612,6 +612,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testElemtype() {
+        expectedExit = 1;
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" 
                 +"Object o = new String[3]; Object oo = new int[5]; Object o3 = Integer.valueOf(4);\n"
                 +"//@ ghost nullable Class t; ghost nullable \\TYPE tt; \n"
@@ -622,7 +623,22 @@ public class racnew extends RacBase {
                 +"//@ set t = (\\lbl E \\elemtype(Boolean[].class));\n"
                 +"System.out.println(\"END\"); } \n"
                 +"}"
-                ,"/tt/TestJava.java:3: warning: the type modifier/annotation (nullable) is not permitted on a primitive type: \\TYPE",35
+                ,"/tt/TestJava.java:3: error: the type modifier/annotation (nullable) is not permitted on a primitive type: \\TYPE",35
+                );
+        
+    }
+    
+    @Test public void testElemtype1() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" 
+                +"Object o = new String[3]; Object oo = new int[5]; Object o3 = Integer.valueOf(4);\n"
+                +"//@ ghost nullable Class t; ghost \\TYPE tt; \n"
+                +"//@ set tt = (\\lbl A \\elemtype(\\typeof(o)));\n"
+                +"//@ set tt = (\\lbl B \\elemtype(\\typeof(oo)));\n"
+                +"//@ set tt = (\\lbl C \\elemtype(\\typeof(o3)));\n"
+                +"//@ set t = (\\lbl D \\elemtype(Class.class));\n"
+                +"//@ set t = (\\lbl E \\elemtype(Boolean[].class));\n"
+                +"System.out.println(\"END\"); } \n"
+                +"}"
                 ,"LABEL A = class java.lang.String"
                 ,"LABEL B = int"
                 ,"LABEL C = null"
@@ -731,32 +747,28 @@ public class racnew extends RacBase {
         
     }
 
-    // FIXME - want typeof to return a JML type with type parameter information
     @Test public void testTypeOf4() {
-        helpTCX("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
-                "m(new LinkedList<String>()); m(new LinkedList<Integer>());  m(new HashSet<Integer>()); System.out.println(\"END\"); } \n" +
-                " //@ requires (\\lbl CLS \\typeof(i)) == ( \\type(LinkedList<Integer>) ); \n" +
-                " static public void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
-                "}"
-                ,"LABEL CLS = class java.util.LinkedList"
-//                ,"/tt/TestJava.java:2: JML precondition is false"
-//                ,"/tt/TestJava.java:3: Associated declaration"
-                ,"LABEL CLS = class java.util.LinkedList"
-//                ,"/tt/TestJava.java:3: JML precondition is false"
-                ,"CLASS class java.util.LinkedList"
-                ,"LABEL CLS = class java.util.LinkedList"
-                ,"LABEL CLS = class java.util.LinkedList"
-                ,"CLASS class java.util.LinkedList"
-                ,"LABEL CLS = class java.util.HashSet"
-                ,"/tt/TestJava.java:2: JML precondition is false"
-                ,"/tt/TestJava.java:4: Associated declaration"
-                ,"LABEL CLS = class java.util.HashSet"
-                ,"/tt/TestJava.java:3: JML precondition is false"
-                ,"CLASS class java.util.HashSet"
+        helpTCX("tt.TestJava",
+                """
+                package tt; import java.util.*; public class TestJava {
+                  public static void main(String[] args) {
+                    //@ set System.out.println("COMPARE " + ( \\type(LinkedList<String>) == \\type(LinkedList<Integer>)));
+                    //@ set System.out.println("COMPARE " + ( \\type(HashSet<Integer>) == \\type(LinkedList<Integer>)));
+                    //@ set System.out.println("COMPARE " + ( \\type(LinkedList<Integer>) == \\type(LinkedList<Integer>)));
+                    //@ set System.out.println("COMPARE " + ( \\type(LinkedList) == \\type(LinkedList)));
+                    System.out.println("END");
+                  }
+                }
+                """
+                ,"COMPARE false"
+                ,"COMPARE true"
+                ,"COMPARE false"
+                ,"COMPARE true"
                 ,"END"
                 );
         
     }
+
     
     // FIXME - want typeof to return a JML type with type parameter information
     @Test public void testTypeOf5() {
@@ -776,47 +788,29 @@ public class racnew extends RacBase {
                 }
                 """
                 ,"LABEL CLS = class java.util.LinkedList"
-                ,"/tt/TestJava.java:2: JML precondition is false"
-                ,"/tt/TestJava.java:9: Associated declaration"
+                ,"Warning: runtime type information has no type arguments: class java.util.LinkedList"
+//                ,"/tt/TestJava.java:3: JML precondition is false"
+//                ,"/tt/TestJava.java:9: Associated declaration"
                 ,"LABEL CLS = class java.util.LinkedList"
+                ,"Warning: runtime type information has no type arguments: class java.util.LinkedList"
+//                ,"/tt/TestJava.java:8: JML precondition is false"
+                ,"CLASS class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.LinkedList"
+                ,"Warning: runtime type information has no type arguments: class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.LinkedList"
+                ,"Warning: runtime type information has no type arguments: class java.util.LinkedList"
+                ,"CLASS class java.util.LinkedList"
+                ,"LABEL CLS = class java.util.HashSet"
+                ,"/tt/TestJava.java:5: JML precondition is false"
+                ,"/tt/TestJava.java:9: Associated declaration"
+                ,"LABEL CLS = class java.util.HashSet"
                 ,"/tt/TestJava.java:8: JML precondition is false"
-                ,"CLASS class java.util.LinkedList"
-                ,"LABEL CLS = class java.util.LinkedList"
-                ,"LABEL CLS = class java.util.LinkedList"
-                ,"CLASS class java.util.LinkedList"
-                ,"LABEL CLS = class java.util.HashSet"
-                ,"/tt/TestJava.java:2: JML precondition is false"
-                ,"/tt/TestJava.java:9: Associated declaration"
-                ,"LABEL CLS = class java.util.HashSet"
-                ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"CLASS class java.util.HashSet"
                 ,"END"
                 );
         
     }
     
-    // FIXME - want typeof to return a JML type with type parameter information
-    @Test public void testTypeOf6() {
-        helpTCX("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
-                "m(new LinkedList<String>());  m(new HashSet<Integer>()); System.out.println(\"END\"); } \n" +
-                " //@ requires (\\lbl CLS \\typeof(i)) != ( \\type(LinkedList<Integer>) ); \n" +
-                " static public void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
-                "}"
-                ,"LABEL CLS = class java.util.LinkedList"
-                ,"/tt/TestJava.java:2: JML precondition is false"
-                ,"/tt/TestJava.java:4: Associated declaration"
-                ,"LABEL CLS = class java.util.LinkedList"
-                ,"/tt/TestJava.java:3: JML precondition is false"
-                ,"CLASS class java.util.LinkedList"
-                ,"LABEL CLS = class java.util.HashSet"
-                ,"LABEL CLS = class java.util.HashSet"
-                ,"CLASS class java.util.HashSet"
-                ,"END"
-                );
-        
-    }
-    
-
     @Test public void testNonnullelement() {
         expectedRACExit = 1;
         helpTCX("tt.TestJava","package tt; public class TestJava { static int z = 0; public static void main(String[] args) { \n" +
