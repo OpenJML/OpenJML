@@ -1154,6 +1154,7 @@ public class JmlSpecs {
         JCTree.JCModifiers mods = M.at(pos).Modifiers(sym.flags() & Flags.AccessFlags);
         if (decl != null) mods = decl.mods; // Caution -- these are now aliased
         MethodSpecs mspecs = new MethodSpecs(mods,ms); // FIXME - empty instead of null modifiers?
+        if (decl != null) mspecs.modelBody = decl.body;
         
         List<MethodSymbol> parents = utils.parents(sym,true);
         
@@ -2266,6 +2267,7 @@ public class JmlSpecs {
         public Env<AttrContext> javaEnv;
         public Env<AttrContext> specsEnv;
         public boolean returnNonNull;
+        public JCBlock modelBody;
         
         public MethodSpecs(JmlMethodDecl specsDecl) { 
             this.mods = specsDecl.mods;
@@ -2278,6 +2280,7 @@ public class JmlSpecs {
             }
             cases.decl = specsDecl;
             specsEnv = null;
+            modelBody = specsDecl.body;
         }
         
         public MethodSpecs(JCTree.JCModifiers mods, JmlMethodSpecs methodSpecs) { 

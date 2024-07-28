@@ -1,9 +1,3 @@
 OUT:
-test/racPoint/Point.java:145: verify: JML precondition is false
-    return Math.sqrt(my_x * my_x + my_y * my_y);
-                    ^
-$SPECS/java/lang/Math.jml:274: verify: Associated declaration: test/racPoint/Point.java:145:
-    public static /*@ pure @*/ double sqrt(double a);
-                                      ^
 
 ERR:
