@@ -6,7 +6,6 @@ package com.sun.tools.javac.parser;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.*;
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
-import static org.jmlspecs.openjml.JmlTokenKind.*;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -26,7 +25,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.AssignableClauseExtension;
 import org.jmlspecs.openjml.ext.DatatypeExt.JmlDatatypeDecl;
 import org.jmlspecs.openjml.ext.Refining;
-import org.jmlspecs.openjml.ext.JmlOperatorKind;
+import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 import static org.jmlspecs.openjml.ext.JmlPrimitiveTypes.*;
@@ -42,7 +41,7 @@ import org.jmlspecs.openjml.ext.Modifiers;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
-import static org.jmlspecs.openjml.ext.JmlOperatorKind.*;
+import static org.jmlspecs.openjml.ext.Operators.*;
 import org.jmlspecs.openjml.ext.StatementLocationsExtension;
 
 import static org.jmlspecs.openjml.ext.TypeExprClauseExtension.*;
@@ -651,7 +650,7 @@ public class JmlParser extends JavacParser {
             // Any non-null enum is one of the declared values
             JCVariableDecl decl = jmlF.VarDef(jmlF.Modifiers(0),n,jmlF.Ident(jmlF.Name("Object")),null);
             ex = jmlF.JmlQuantifiedExpr(QuantifiedExpressions.qforallKind,List.<JCVariableDecl>of(decl), null,
-                    jmlF.JmlBinary(JmlOperatorKind.equivalenceKind, jmlF.TypeTest(jmlF.Ident(n), jmlF.Ident(cd.getSimpleName())),disj));
+                    jmlF.JmlBinary(Operators.equivalenceKind, jmlF.TypeTest(jmlF.Ident(n), jmlF.Ident(cd.getSimpleName())),disj));
             axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(Flags.ENUM),axiomID,axiomClause,ex);
             newdefs.add(axiom);
             decl = jmlF.VarDef(jmlF.Modifiers(0),n,jmlF.Ident(cd.name),null);
@@ -662,7 +661,7 @@ public class JmlParser extends JavacParser {
             JCExpression exists = jmlF.JmlQuantifiedExpr(QuantifiedExpressions.qexistsKind, List.<JCVariableDecl>of(decl2), ex,
                     jmlF.Binary(JCTree.Tag.EQ, jmlF.Indexed(jmlF.Ident("_JMLvalues"), jmlF.Ident("i")), jmlF.Ident(n))  );
             ex = jmlF.JmlQuantifiedExpr(QuantifiedExpressions.qforallKind,List.<JCVariableDecl>of(decl), null,
-                    jmlF.JmlBinary(JmlOperatorKind.impliesKind, jmlF.Binary(JCTree.Tag.NE, jmlF.Ident(n), jmlF.Literal(TypeTag.BOT,null)),exists));
+                    jmlF.JmlBinary(Operators.impliesKind, jmlF.Binary(JCTree.Tag.NE, jmlF.Ident(n), jmlF.Literal(TypeTag.BOT,null)),exists));
             axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(Flags.ENUM),axiomID,axiomClause,ex);
             newdefs.add(axiom);
             ex = jmlF.Select(jmlF.Ident("_JMLvalues"), names.length);
@@ -2276,7 +2275,7 @@ public class JmlParser extends JavacParser {
     }
     
     public boolean isStartJml(Token token) {
-        return (token instanceof JmlToken jt) ? jt.jmlclausekind == JmlOperatorKind.startjmlcommentKind: false;
+        return (token instanceof JmlToken jt) ? jt.jmlclausekind == Operators.startjmlcommentKind: false;
     }
 
     public final boolean isStartJml() {
@@ -2284,7 +2283,7 @@ public class JmlParser extends JavacParser {
     }
 
     public boolean isEndJml(Token token) {
-        return (token instanceof JmlToken jt) ? jt.jmlclausekind == JmlOperatorKind.endjmlcommentKind: false;
+        return (token instanceof JmlToken jt) ? jt.jmlclausekind == Operators.endjmlcommentKind: false;
     }
 
     public final boolean isEndJml() {
@@ -2439,7 +2438,7 @@ public class JmlParser extends JavacParser {
             return super.basicType();
         } else  {
             JCPrimitiveTypeTree t = to(jmlF.at(pos())
-                    .JmlPrimitiveTypeTree(null, jtk,null));
+                    .JmlPrimitiveTypeTree(jtk, null));
             nextToken();
             return t;
 //        } else {
@@ -2735,7 +2734,7 @@ public class JmlParser extends JavacParser {
             var jt = jmlTokenClauseKind();
             if (isJmlType(token)) {
                 String n = jt.keyword();
-                t = to(jmlF.at(p).JmlPrimitiveTypeTree(null, jt, names.fromString(n)));
+                t = to(jmlF.at(p).JmlPrimitiveTypeTree(jt, names.fromString(n)));
                 nextToken();
                 // Could be just a type value
                 if (token.kind == TokenKind.DOT || token.kind == TokenKind.LBRACKET) {
@@ -3205,7 +3204,7 @@ public class JmlParser extends JavacParser {
     @Override
     protected int prec(Token token) {
         if (token instanceof JmlToken jt) {
-            if (jt.jmlclausekind instanceof JmlOperatorKind.Operator op) {
+            if (jt.jmlclausekind instanceof Operators.Operator op) {
                 return op.precedence;
             } else {
                 // This happens, at least, when there is a badly formatted expression, like <Integer>\old(x)
@@ -3521,7 +3520,7 @@ public class JmlParser extends JavacParser {
     	if (!isStartJml()) return false;
     	nextToken();
     	return true;
-        //while (jmlTokenClauseKind() == JmlOperatorKind.endjmlcommentKind) nextToken(); // FIXME - replace using this
+        //while (jmlTokenClauseKind() == Operators.endjmlcommentKind) nextToken(); // FIXME - replace using this
     }
 
     /**

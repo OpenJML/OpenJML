@@ -4,7 +4,6 @@ import java.lang.reflect.Constructor;
 
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.IArithmeticMode;
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlOption;

@@ -2,11 +2,9 @@ package org.jmlspecs.openjmltest.testcases;
 
 import static com.sun.tools.javac.parser.Tokens.*;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.*;
-//import static org.jmlspecs.openjml.JmlTokenKind.*;
-import static org.jmlspecs.openjml.ext.JmlOperatorKind.*;
+import static org.jmlspecs.openjml.ext.Operators.*;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-//import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjmltest.JmlTestCase;
 import org.jmlspecs.openjmltest.TestJavaFileObject;

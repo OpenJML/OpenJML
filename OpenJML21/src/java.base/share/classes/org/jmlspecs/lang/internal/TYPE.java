@@ -8,7 +8,7 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
 
     final private Class<?> base;
     final private TYPE[] args;
-    final static private TYPE[] noargs = new TYPE[] {};
+    final static public TYPE[] noargs = new TYPE[] {};
     final private static Map<TYPE,TYPE> internSet = new HashMap<TYPE,TYPE>();
     
     public static TYPE of(Class<?> base) {

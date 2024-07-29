@@ -79,7 +79,7 @@ import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.*;
 
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
-import static org.jmlspecs.openjml.ext.JmlOperatorKind.*;
+import static org.jmlspecs.openjml.ext.Operators.*;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
 import org.jmlspecs.openjml.ext.ArrayFieldExtension.JmlField;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
@@ -4216,7 +4216,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             attribExpr(t,env,Type.noType);
         }
         if (!postClauses.contains(jmlenv.currentClauseKind)) {
-            log.error(that.pos+1, "jml.misplaced.token", that.token.internedName(), jmlenv.currentClauseKind == null ? "jml declaration" : jmlenv.currentClauseKind.keyword());
+            log.error(that.pos+1, "jml.misplaced.token", that.token, jmlenv.currentClauseKind == null ? "jml declaration" : jmlenv.currentClauseKind.keyword());
         }
         result = check(that, syms.booleanType, KindSelector.VAL, resultInfo);
     }
@@ -4881,7 +4881,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //
 //            if (type == null) {
                 result = syms.errType;
-                log.error(that.pos,"jml.unknown.type.token",that.token.internedName(),"JmlAttr.visitJmlPrimitiveTypeTree");
+                log.error(that.pos,"jml.unknown.type.token",that.jmlclausekind,"JmlAttr.visitJmlPrimitiveTypeTree");
 //                return;
 //            }
 //            that.type = type;
@@ -6559,7 +6559,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * (i.e. array) lookup.  The Names are the fully-qualified name of the type
      * of the annotation that represents the given modifier token.
      */
-    public EnumMap<JmlTokenKind,Name> tokenToAnnotationName = new EnumMap<JmlTokenKind,Name>(JmlTokenKind.class);
+//    public EnumMap<JmlTokenKind,Name> tokenToAnnotationName = new EnumMap<JmlTokenKind,Name>(JmlTokenKind.class);
     
     /** A map from token to ClassSymbol, valid for tokens that have annotation equivalents. */
     //public EnumMap<JmlTokenKind,ClassSymbol> tokenToAnnotationSymbol = new EnumMap<JmlTokenKind,ClassSymbol>(JmlTokenKind.class);
@@ -6749,11 +6749,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param ta the token to look for
      * @return a reference to the annotation AST node, or null if not found
      */
-    //@ nullable
-    public JmlAnnotation findMod(/*@nullable*/JCModifiers mods, JmlTokenKind ta) {
-        if (mods == null) return null;
-        return utils.findMod(mods,modToAnnotationSymbol.get(ta));
-    }
+//    //@ nullable
+//    public JmlAnnotation findMod(/*@nullable*/JCModifiers mods, JmlTokenKind ta) {
+//        if (mods == null) return null;
+//        return utils.findMod(mods,modToAnnotationSymbol.get(ta));
+//    }
     
     public boolean has(java.util.List<JmlToken> mods, ModifierKind ta) {
         for (var t: mods) if (t.jmlclausekind == ta) return true;
@@ -6814,10 +6814,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param symbol the symbol to check
      * @return true if the symbol has a given annotation, false otherwise
      */
-    public boolean hasAnnotation(Symbol symbol, JmlTokenKind t) {
-        return symbol.attribute(modToAnnotationSymbol.get(t)) != null;
-
-    }
+//    public boolean hasAnnotation(Symbol symbol, JmlTokenKind t) {
+//        return symbol.attribute(modToAnnotationSymbol.get(t)) != null;
+//
+//    }
     
     public boolean hasAnnotation(Symbol symbol, ModifierKind t) {
         return symbol.attribute(modToAnnotationSymbol.get(t)) != null;
@@ -6854,9 +6854,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param symbol the symbol to check
      * @return true if the symbol has a given annotation, false otherwise
      */
-    public Attribute.Compound findAnnotation(Symbol symbol, JmlTokenKind t) {
-        return symbol.attribute(modToAnnotationSymbol.get(t));
-    }
+//    public Attribute.Compound findAnnotation(Symbol symbol, JmlTokenKind t) {
+//        return symbol.attribute(modToAnnotationSymbol.get(t));
+//    }
     public Attribute.Compound findAnnotation(Symbol symbol, ModifierKind t) {
         return symbol.attribute(modToAnnotationSymbol.get(t));
     }

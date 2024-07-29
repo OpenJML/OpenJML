@@ -500,7 +500,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.feasible = copy(that.feasible,p);
         copy.type = that.type;
         // FIXME - decl desugared
-        // FICXME - endpos?
+        // FIXME - endpos?
         return copy;
     }
 
@@ -513,7 +513,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that, Void p) {
-        return M.at(that.pos).JmlPrimitiveTypeTree(that.token, that.jmlclausekind, that.typeName).setType(that.type);
+        return M.at(that.pos).JmlPrimitiveTypeTree(that.jmlclausekind, that.typeName).setType(that.type);
     }
 
     @Override
