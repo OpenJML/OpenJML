@@ -4,7 +4,6 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.IDENTIFIER;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 
 import com.sun.tools.javac.code.Type;
@@ -42,7 +41,7 @@ public class TypeMonitorsForClauseExtension extends JmlExtension {
                 n = parser.names.asterisk; // place holder for an error situation
             } else {
                 n = parser.ident(); // Advances to next token
-                if (parser.token().kind != TokenKind.EQ && parser.jmlTokenClauseKind() != org.jmlspecs.openjml.ext.JmlOperatorKind.leftarrowKind) {
+                if (parser.token().kind != TokenKind.EQ && parser.jmlTokenClauseKind() != org.jmlspecs.openjml.ext.Operators.leftarrowKind) {
                     error(parser.pos(), parser.endPos(), "jml.expected",
                             "an = or <- token");
                 } else {

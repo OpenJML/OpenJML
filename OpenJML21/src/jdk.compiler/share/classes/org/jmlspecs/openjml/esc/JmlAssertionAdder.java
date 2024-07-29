@@ -42,7 +42,7 @@ import static org.jmlspecs.openjml.ext.ShowStatement.*;
 import static org.jmlspecs.openjml.ext.MiscExpressions.*;
 import static org.jmlspecs.openjml.ext.FrameExpressions.*;
 import static org.jmlspecs.openjml.ext.QuantifiedExpressions.*;
-import static org.jmlspecs.openjml.ext.JmlOperatorKind.*;
+import static org.jmlspecs.openjml.ext.Operators.*;
 import static org.jmlspecs.openjml.ext.LineAnnotationClauses.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.MethodExprListClauseExtensions.*;
@@ -18915,7 +18915,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        id.sym = that.type.tsym;
 	        result = eresult = id;
 	    } else {
-	        result = eresult = M.at(that).JmlPrimitiveTypeTree(that.token, null, that.typeName).setType(that.type);
+	        result = eresult = M.at(that).JmlPrimitiveTypeTree(that.jmlclausekind, that.typeName).setType(that.type);
 	    }
 	}
 
@@ -20158,12 +20158,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
-		switch (that.token) {
-
-		default:
-			result = eresult = M.at(that).JmlStoreRefListExpression(that.token, convert(that.list)).setType(that.type);
-
-		}
+		result = eresult = M.at(that).JmlStoreRefListExpression(that.token, convert(that.list)).setType(that.type);
 	}
 
 	// OK

@@ -382,32 +382,32 @@ public class escfiles extends EscBase {
     }
 
     @Test 
-    public void testCashAmount() {
+    public void escCashAmount() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmount.java","test/escCashAmount","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1","-checkFeasibility=none");
     }
 
     @Test
-    public void testCashAmount2() {
+    public void escCashAmountonlyPrivate() {
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountOnlyPrivate.java","test/escCashAmountonlyPrivate","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-checkFeasibility=none");
     }
 
     @Test
-    public void testCashAmountMutable() {
+    public void escCashAmountMutable() {
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountMutable.java","test/escCashAmountMutable","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-code-math=bigint","-spec-math=bigint","-checkFeasibility=none");
     }
 
     @Test
-    public void testCashAmountMF() {
+    public void escCashAmountMF() {
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountMF.java","test/escCashAmountMF","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1","-checkFeasibility=none");
     }
 
     @Test
-    public void testCashAmountPrivate2() {
+    public void escCashAmountPrivate2() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpTCF("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase","-checkFeasibility=none");
@@ -421,25 +421,25 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testVector() {
+    public void escVector() {
         expectedExit = 0;
         helpTF("escVector","--code-math=java");
     }
 
     @Test
-    public void testDMZLoop() {
+    public void escDMZLoop() {
         expectedExit = 0;
         helpTF("escDMZLoop","--method=findMax");
     }
 
     @Test
-    public void testDMZLoopA() {
+    public void escDMZLoopA() {
         expectedExit = 0;
         helpTF("escDMZLoopA","--method=findMax","--code-math=bigint","--spec-math=bigint");
     }
 
     @Test
-    public void testDMZLoopB() {
+    public void escDMZLoopB() {
         expectedExit = 0;
         helpTF("escDMZLoopB","--method=findMax","--code-math=bigint","--spec-math=bigint");
     }

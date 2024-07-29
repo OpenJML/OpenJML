@@ -26,7 +26,6 @@ import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;

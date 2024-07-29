@@ -9,10 +9,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.LineAnnotationClauses.ExceptionLineAnnotation;
-import org.jmlspecs.openjml.ext.JmlOperatorKind;
+import org.jmlspecs.openjml.ext.Operators;
 
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
 import com.sun.tools.javac.parser.Tokens.NamedToken;
@@ -227,11 +226,11 @@ public class JmlScanner extends Scanner {
     }
     
     public static boolean isStartJml(Token t) {
-        return (t instanceof JmlToken jt) && jt.jmlclausekind == JmlOperatorKind.startjmlcommentKind;
+        return (t instanceof JmlToken jt) && jt.jmlclausekind == Operators.startjmlcommentKind;
     }
     
     public boolean isEndJml() {
-        return (token instanceof JmlToken jt) && jt.jmlclausekind == JmlOperatorKind.endjmlcommentKind;
+        return (token instanceof JmlToken jt) && jt.jmlclausekind == Operators.endjmlcommentKind;
     }
     
     @Override

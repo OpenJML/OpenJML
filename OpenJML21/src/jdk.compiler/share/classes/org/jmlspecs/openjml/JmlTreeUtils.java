@@ -21,7 +21,7 @@ import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.LocsetExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
-import org.jmlspecs.openjml.ext.JmlOperatorKind;
+import org.jmlspecs.openjml.ext.Operators;
 
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExpressions.*;
@@ -42,7 +42,6 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlResolve;
-import com.sun.tools.javac.comp.Operators;
 import com.sun.tools.javac.comp.JmlOperators;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.JmlParser;
@@ -97,6 +96,8 @@ public class JmlTreeUtils {
     
     /** The qualified name of the Utils class that contains runtime utility methods */
     /*@non_null*/ final public static String utilsClassQualifiedName = "org.jmlspecs.runtime.Utils";
+    /*@non_null*/ final public static String runtimeClassQualifiedName = "org.jmlspecs.runtime.Runtime";
+    /*@non_null*/ final public static String TYPEClassQualifiedName = "org.jmlspecs.runtime.internal.TYPE";
 
     /** The Context in which this object was constructed */ 
     //@ non_null
@@ -241,26 +242,47 @@ public class JmlTreeUtils {
     }
     
     JCIdent utilsClassIdent() {
-    	if (utilsClassIdent == null) {
+        if (utilsClassIdent == null) {
 
             Name utilsName = names.fromString(utilsClassQualifiedName); // flatname
             utilsClassIdent = factory.Ident(utilsName);  // FIXME - should this be some sort of Qualified Ident - a simple Ident seems to work
             utilsClassIdent.type = utilsClass().type; // ident containing flatname
             utilsClassIdent.sym = utilsClassIdent.type.tsym;
-    		
-    	}
-    	return utilsClassIdent;
+            
+        }
+        return utilsClassIdent;
+    }
+    
+    JCIdent runtimeClassIdent(String qname) {
+        {
+
+            Name utilsName = names.fromString(qname); // flatname
+            utilsClassIdent = factory.Ident(utilsName);  // FIXME - should this be some sort of Qualified Ident - a simple Ident seems to work
+            utilsClassIdent.type = utilsClass().type; // ident containing flatname
+            utilsClassIdent.sym = utilsClassIdent.type.tsym;
+            return utilsClassIdent;
+        }
     }
     
     ClassSymbol utilsClass() {
-    	if (utilsClass == null) {
+        if (utilsClass == null) {
             ClassReader reader = ClassReader.instance(context);
 
             Name utilsName = names.fromString(utilsClassQualifiedName); // flatname
             utilsClass = reader.enterClass(utilsName);
-    		
-    	}
-    	return utilsClass;
+            
+        }
+        return utilsClass;
+    }
+    
+    ClassSymbol runtimeClass(String qname) {
+        {
+            ClassReader reader = ClassReader.instance(context);
+
+            Name utilsName = names.fromString(qname); // flatname
+            return reader.enterClass(utilsName);
+            
+        }
     }
     
     /** This sets the end position of newnode to be the same as that of srcnode;
@@ -326,19 +348,41 @@ public class JmlTreeUtils {
         // Presumes there is just one method with the given name - no overloading
         // by argument type
         try {
-        	Symbol ms = utilsClass().members().findFirst(n);
-        	if (ms == null) {
-        		throw new JmlInternalError("Method " + methodName + " not found in Utils");
-        	}
-        	JCFieldAccess m = factory.Select(utilsClassIdent(),n);
-        	m.pos = pos;
-        	m.sym = ms;
-        	m.type = m.sym.type;
+            Symbol ms = utilsClass().members().findFirst(n);
+            if (ms == null) {
+                throw new JmlInternalError("Method " + methodName + " not found in Utils");
+            }
+            JCFieldAccess m = factory.Select(utilsClassIdent(),n);
+            m.pos = pos;
+            m.sym = ms;
+            m.type = m.sym.type;
             return m;
         } catch (Exception e) {
-        	utils.error("jml.internal", "Exception on forming a call to " + methodName);
-        	e.printStackTrace(System.out);
-        	return null;
+            utils.error("jml.internal", "Exception on forming a call to " + methodName);
+            e.printStackTrace(System.out);
+            return null;
+        }
+    }
+    
+    /** Returns an attributed AST for "org.jmlspecs.runtime.Utils.<methodName>" */
+    public JCFieldAccess findRuntimeMethod(int pos, String methodName) {
+        Name n = names.fromString(methodName);
+        // Presumes there is just one method with the given name - no overloading
+        // by argument type
+        try {
+            Symbol ms = runtimeClass("org.jmlspecs.runtime.internal.TYPE").members().findFirst(n);
+            if (ms == null) {
+                throw new JmlInternalError("Method " + methodName + " not found in runtime");
+            }
+            JCFieldAccess m = factory.Select(runtimeClassIdent("org.jmlspecs.runtime.internal.TYPE"),n);
+            m.pos = pos;
+            m.sym = ms;
+            m.type = m.sym.type;
+            return m;
+        } catch (Exception e) {
+            utils.error("jml.internal", "Exception on forming a call to " + methodName);
+            e.printStackTrace(System.out);
+            return null;
         }
     }
     
@@ -1013,7 +1057,7 @@ public class JmlTreeUtils {
      * @param rhs the right-hand expression
      * @return the new node
      */
-    public JmlBinary makeJmlBinary(int pos, JmlOperatorKind.Operator op, JCExpression lhs, JCExpression rhs) {
+    public JmlBinary makeJmlBinary(int pos, org.jmlspecs.openjml.ext.Operators.Operator op, JCExpression lhs, JCExpression rhs) {
         JmlBinary e = factory.at(pos).JmlBinary(op,lhs,rhs);
         e.type = syms.booleanType;
         copyEndPosition(e,rhs);
@@ -1720,28 +1764,28 @@ public class JmlTreeUtils {
     }
     
     public JmlMethodInvocation makeSubtype(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
-        JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlOperatorKind.subtypeofKind,e1,e2);
+        JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(Operators.subtypeofKind,e1,e2);
         //e.token = JmlTokenKind.SUBTYPE_OF;
         e.type = syms.booleanType;
         return e;
     }
     
     public JmlMethodInvocation makeSubtypeEq(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
-        JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlOperatorKind.subtypeofeqKind,e1,e2);
+        JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(Operators.subtypeofeqKind,e1,e2);
         //e.token = JmlTokenKind.SUBTYPE_OF;
         e.type = syms.booleanType;
         return e;
     }
     
     public JmlMethodInvocation makeJSubtype(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
-        JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlOperatorKind.jsubtypeofKind,e1,e2);
+        JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(Operators.jsubtypeofKind,e1,e2);
         //e.token = JmlTokenKind.JSUBTYPE_OF;
         e.type = syms.booleanType;
         return e;
     }
     
     public JmlMethodInvocation makeJSubtypeEq(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
-        JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(JmlOperatorKind.jsubtypeofeqKind,e1,e2);
+        JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(Operators.jsubtypeofeqKind,e1,e2);
         //e.token = JmlTokenKind.JSUBTYPE_OF;
         e.type = syms.booleanType;
         return e;
@@ -1849,6 +1893,16 @@ public class JmlTreeUtils {
      * @return the resulting AST
      */
     public JCMethodInvocation makeUtilsMethodCall(int pos, String methodName, List<JCExpression> args) {
+        // presumes the arguments are all properly attributed
+        JCFieldAccess meth = findUtilsMethod(pos,methodName);
+        ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
+        list.addAll(args);
+        JCMethodInvocation call = factory.at(pos).Apply(List.<JCExpression>nil(),meth,list.toList());
+        call.type = ((MethodType)meth.type).getReturnType();
+        return call;
+    }
+
+    public JCMethodInvocation makeRuntimeMethodCall(int pos, String methodName, List<JCExpression> args) {
         // presumes the arguments are all properly attributed
         JCFieldAccess meth = findUtilsMethod(pos,methodName);
         ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
@@ -1972,11 +2026,11 @@ public class JmlTreeUtils {
             args.append(headType);
             for (JCExpression tt: ((JCTypeApply)type).arguments) args.append(trType(tt.pos,tt));
             int n = args.size()-1;
-            if (n <= 2) {
-                result = makeUtilsMethodCall(pos,"makeTYPE"+n,args.toList());
+            if (n <= 0) {
+                result = makeRuntimeMethodCall(pos,"of",args.toList());
             } else {
                 // FIXME - we need to make an array argument here.
-                result = makeUtilsMethodCall(pos,"makeTYPE",args.toList());
+                result = makeRuntimeMethodCall(pos,"of",args.toList());
             }
         } else if (type instanceof JCIdent) {
             if (type.type instanceof TypeVar) {

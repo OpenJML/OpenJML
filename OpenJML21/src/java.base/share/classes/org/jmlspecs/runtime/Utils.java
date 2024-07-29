@@ -17,7 +17,7 @@ import org.jmlspecs.lang.*;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.runtime.JmlAssertionError.Precondition;
-
+import org.jmlspecs.lang.internal.TYPE;
 
 /** 
  * This class contains utility methods used in internal translations for both
@@ -753,5 +753,10 @@ public class Utils {
             java.lang.Runtime.getRuntime().addShutdownHook(t);
         }
         numVerificationErrors++;
+    }
+    
+    // FIXME - get rid of this and use TYPE.of in JmlTreeUtils
+    public TYPE makeTYPE0(Class<?> clazz) {
+        return TYPE.of(clazz, TYPE.noargs);
     }
 }

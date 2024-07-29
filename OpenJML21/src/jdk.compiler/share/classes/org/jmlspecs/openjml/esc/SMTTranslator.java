@@ -11,7 +11,7 @@ import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExpressions.*;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
-import static org.jmlspecs.openjml.ext.JmlOperatorKind.*;
+import static org.jmlspecs.openjml.ext.Operators.*;
 
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;

@@ -20,7 +20,7 @@ import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
 import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
-import org.jmlspecs.openjml.ext.JmlOperatorKind;
+import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.RecommendsClause;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 import org.jmlspecs.openjml.visitors.IJmlVisitor;
@@ -164,7 +164,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             int ownprec = that.op.precedence;
             int p = ownprec;
             if (ownprec == -2) {
-                if (that.op == JmlOperatorKind.equivalenceKind || that.op == JmlOperatorKind.inequivalenceKind) p = TreeInfo.orPrec - 2;
+                if (that.op == Operators.equivalenceKind || that.op == Operators.inequivalenceKind) p = TreeInfo.orPrec - 2;
                 else p = TreeInfo.orPrec - 1;
             }
             open(prec, p);
@@ -944,9 +944,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-        try { print(that.jmlclausekind != null ? that.jmlclausekind.toString() : that.token.internedName());
+        try {
+            print(that.typeName.toString());
         } catch (IOException e) { perr(that,e); }
-
     }
 
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
@@ -977,7 +977,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
         try {
-            print(that.token.internedName());
+            print(that.token.keyword());
             print('(');
             boolean first = true;
             for (JCTree expr : that.list) {
@@ -1060,12 +1060,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 //                for (IJmlClauseKind k : Extensions.allKinds.values()) {
 //                    if (k instanceof ModifierKind && ((ModifierKind)k).fullAnnotation.equals(s)) {
 //                        print("/*@ " + ((ModifierKind)k).keyword + " */");
-//                        return;
-//                    }
-//                }
-//                for (JmlTokenKind t: JmlTokenKind.values()) {
-//                    if (t.annotationType != null && t.annotationType.toString().substring("interface ".length()).equals(s)) {
-//                        print("/*@ " + t.internedName() + " */");
 //                        return;
 //                    }
 //                }

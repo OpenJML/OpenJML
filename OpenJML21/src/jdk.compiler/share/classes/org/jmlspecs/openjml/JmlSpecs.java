@@ -1439,23 +1439,23 @@ public class JmlSpecs {
         ((JmlModifiers)mods).jmlmods.add(tok);
     }
     
-    protected/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlTokenKind jt,
-            int position, int endpos) {
-        JmlTree.Maker M = JmlTree.Maker.instance(context);
-        Symtab syms = Symtab.instance(context);
-        JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
-        Class<?> c = jt.annotationType;
-        if (c == null) return null;
-        JCExpression t = (M.at(position).Ident(names.fromString("org")));
-        t = (M.at(position).Select(t, names.fromString("jmlspecs")));
-        t = (M.at(position).Select(t, names.fromString("annotation")));
-        t = (M.at(position).Select(t, names.fromString(c.getSimpleName())));
-        JCAnnotation ann = (M.at(position).Annotation(t,
-                com.sun.tools.javac.util.List.<JCExpression> nil()));
-        ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
-        //storeEnd(ann, endpos);
-        return ann;
-    }
+//    protected/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlTokenKind jt,
+//            int position, int endpos) {
+//        JmlTree.Maker M = JmlTree.Maker.instance(context);
+//        Symtab syms = Symtab.instance(context);
+//        JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
+//        Class<?> c = jt.annotationType;
+//        if (c == null) return null;
+//        JCExpression t = (M.at(position).Ident(names.fromString("org")));
+//        t = (M.at(position).Select(t, names.fromString("jmlspecs")));
+//        t = (M.at(position).Select(t, names.fromString("annotation")));
+//        t = (M.at(position).Select(t, names.fromString(c.getSimpleName())));
+//        JCAnnotation ann = (M.at(position).Annotation(t,
+//                com.sun.tools.javac.util.List.<JCExpression> nil()));
+//        ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
+//        //storeEnd(ann, endpos);
+//        return ann;
+//    }
 
 //    public com.sun.tools.javac.util.List<JCAnnotation> addPureAnnotation(int pos, com.sun.tools.javac.util.List<JCAnnotation> annots) {
 //        JmlTree.Maker F = JmlTree.Maker.instance(context);
