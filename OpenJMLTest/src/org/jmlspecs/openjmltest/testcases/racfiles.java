@@ -121,7 +121,7 @@ public class racfiles extends RacBase {
     @Test
     public void testDecimal() {
         expectedExit = 0;
-        helpTCF("test/sv_rac","test/sv_rac","sv_rac/Decimal");
+        helpTCF("test/sv_rac","test/sv_rac","sv_rac.Decimal");
     }
 
     @Test
@@ -182,7 +182,6 @@ public class racfiles extends RacBase {
 
     @Test
     public void racQueue() {
-        addOptions("-show");
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Queue.java","test/racQueue","Queue");
     }
@@ -459,7 +458,7 @@ public class racfiles extends RacBase {
     public void gitbug688racA() {
         runrac = true;
         expectedRACExit = 0;
-        helpTCF("test/gitbug688","test/gitbug688racA","DayTimeMain","-spec-math=bigint");
+        helpTCF("test/gitbug688","test/gitbug688racA","DayTimeMain","-spec-math=bigint","--show");
     }
 
     @Test
@@ -547,7 +546,7 @@ public class racfiles extends RacBase {
     }
 
     @Test
-    public void range() {
+    public void rangeTest() {
         helpTCF("test/rangeTest","test/rangeTest","R");
     }
     

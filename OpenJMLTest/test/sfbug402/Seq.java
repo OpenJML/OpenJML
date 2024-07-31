@@ -24,21 +24,20 @@ public interface Seq<E extends Object> {
       @   requires !_pastEnd;
       @   ensures \result == _pos;
       @*/
-    /*@ pure non_null @*/ Integer pos();
+    /*@ spec_pure non_null @*/ Integer pos();
 
     /*@
       @ requires !_pastEnd;
       @*/
-    /*@ non_null @*/ E current();
+    /*@ spec_pure non_null @*/ E current();
 
     /*@ public normal_behavior
-      @ ensures \result != null;
-      @ ensures \result == _length;
+      @ ensures \result.theInteger == _length;
       @ ensures 0 <= \result;
       @*/
-    /*@ pure non_null helper @*/ Integer length();
+    /*@ spec_pure non_null helper @*/ Integer length();
 
     //@ public normal_behavior
     //@   ensures \result == _pastEnd;
-    /*@ pure non_null @*/ Boolean pastEnd();
+    /*@ spec_pure non_null @*/ Boolean pastEnd();
 }

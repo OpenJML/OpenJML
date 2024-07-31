@@ -2999,6 +2999,10 @@ public class JmlTree {
     		this.hi = hi;
     	}
     	
+    	public boolean isDefaultRange() {
+    	    return lo == null && hi == null;
+    	}
+    	
         @Override
         public int getEndPosition(EndPosTable endPosTable) {
             return hi == null ? pos : hi.getEndPosition(endPosTable);

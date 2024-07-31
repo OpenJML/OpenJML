@@ -10,10 +10,10 @@ public class test2 {
 	0x1000000,0x2000000,0x4000000,0x8000000,
 	0x10000000,0x20000000,0x40000000
 };
-//@ invariant binarr.length > 0 && binarr.length==31;
-//@ invariant binarr[0] ==1;
-//@ invariant binarr[0]==1 && \forall int j;0 <= j < binarr.length-2;binarr[j]==binarr[j+1]/2;
-//@ invariant \forall int j;0 <= j < binarr.length-1;binarr[j] <= binarr[j+1];
+//@ static invariant binarr.length > 0 && binarr.length==31;
+//@ static invariant binarr[0] ==1;
+//@ static invariant binarr[0]==1 && \forall int j;0 <= j < binarr.length-2;binarr[j]==binarr[j+1]/2;
+//@ static invariant \forall int j;0 <= j < binarr.length-1;binarr[j] <= binarr[j+1];
 
         //@ writes \nothing;
 	public static void test() {

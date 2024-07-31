@@ -4,35 +4,5 @@ test/gitbug718x2/test2.java:3: error: An initializer clause may not have annotat
 test/gitbug718x2/test2.java:3: error: Invalid modifiers for an initializer clause: static final
 	public /* static_initializer @*/ static final /*@ readonly static_initializer @*/ int /*@ non_null */ [] binarr = new int[]
 	^
-test/gitbug718x2/test2.java:18: error: non-static variable binarr cannot be referenced from a static context
-		//@ assert binarr.length > 0 && binarr.length==31;
-		           ^
-test/gitbug718x2/test2.java:18: error: non-static variable binarr cannot be referenced from a static context
-		//@ assert binarr.length > 0 && binarr.length==31;
-		                                ^
-test/gitbug718x2/test2.java:19: error: non-static variable binarr cannot be referenced from a static context
-		//@ assert binarr[0] == 1;
-		           ^
-test/gitbug718x2/test2.java:20: error: non-static variable binarr cannot be referenced from a static context
-		//@ assert binarr[0]==1 && \forall int j;0 <= j < binarr.length-2;binarr[j]==binarr[j+1]/2;
-		           ^
-test/gitbug718x2/test2.java:20: error: non-static variable binarr cannot be referenced from a static context
-		//@ assert binarr[0]==1 && \forall int j;0 <= j < binarr.length-2;binarr[j]==binarr[j+1]/2;
-		                                                  ^
-test/gitbug718x2/test2.java:20: error: non-static variable binarr cannot be referenced from a static context
-		//@ assert binarr[0]==1 && \forall int j;0 <= j < binarr.length-2;binarr[j]==binarr[j+1]/2;
-		                                                                  ^
-test/gitbug718x2/test2.java:20: error: non-static variable binarr cannot be referenced from a static context
-		//@ assert binarr[0]==1 && \forall int j;0 <= j < binarr.length-2;binarr[j]==binarr[j+1]/2;
-		                                                                             ^
-test/gitbug718x2/test2.java:21: error: non-static variable binarr cannot be referenced from a static context
-		//@ assert \forall int j;0 <= j < binarr.length-1;binarr[j] <= binarr[j+1];
-		                                  ^
-test/gitbug718x2/test2.java:21: error: non-static variable binarr cannot be referenced from a static context
-		//@ assert \forall int j;0 <= j < binarr.length-1;binarr[j] <= binarr[j+1];
-		                                                  ^
-test/gitbug718x2/test2.java:21: error: non-static variable binarr cannot be referenced from a static context
-		//@ assert \forall int j;0 <= j < binarr.length-1;binarr[j] <= binarr[j+1];
-		                                                               ^
 Operation not performed because of parse or type errors
 12 errors

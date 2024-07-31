@@ -1,7 +1,7 @@
-test/gitbug718x1/test1.java:13: error: non-static variable binarr cannot be referenced from a static context
+test/gitbug718x1/test1.java:13: error: An identifier with package visibility may not be used in a invariant clause with public visibility
 //@ public static invariant binarr.length > 0 && binarr.length==31;
                             ^
-test/gitbug718x1/test1.java:13: error: non-static variable binarr cannot be referenced from a static context
+test/gitbug718x1/test1.java:13: error: An identifier with package visibility may not be used in a invariant clause with public visibility
 //@ public static invariant binarr.length > 0 && binarr.length==31;
                                                  ^
 test/gitbug718x1/test1.java:14: error: An identifier with package visibility may not be used in a invariant clause with public visibility

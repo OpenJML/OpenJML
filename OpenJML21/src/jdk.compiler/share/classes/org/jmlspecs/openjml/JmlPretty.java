@@ -559,7 +559,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     
     public void visitJmlRange(JmlRange that) {
     	try {
-    		if (that.lo == null && that.hi == null) print("*");
+    		if (that.isDefaultRange()) print("*");
     		else  {
     			if (that.lo != null) printExpr(that.lo);
     			print(" .. ");

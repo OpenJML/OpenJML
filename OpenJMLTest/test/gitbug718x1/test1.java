@@ -1,6 +1,6 @@
 
 public class test1 {
-	public static final /*@ readonly @*/ int /*@ non_null */ [] binarr = new int[]
+	static final /*@ readonly @*/ int /*@ non_null */ [] binarr = new int[]
 	{0x1,0x2,0x4,0x8,
 	0x10,0x20,0x40,0x80,
 	0x100,0x200,0x400,0x800,

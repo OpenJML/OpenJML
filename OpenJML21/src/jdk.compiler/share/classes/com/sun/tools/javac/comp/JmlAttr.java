@@ -5831,10 +5831,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         Env<AttrContext> localEnv = envForExpr(that,env);
         JCModifiers mods = that.variable.mods;
-        utils.setExprLocal(mods);
 
         memberEnter.memberEnter(that.variable, localEnv);
+        localVariables.add(that.variable.sym);
         attribExpr(that.predicate,localEnv,syms.booleanType);
+        localVariables.remove(that.variable.sym);
 
         localEnv.info.scope.leave();
        
@@ -5876,6 +5877,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        jmlenv.representsHead = null; // To avoid datagroup containment checks if checkSecretReadable attribs in clauses
 
         try {
+            
         	// First check quantified variables. If we are an old environment, they will not necessarily be in the
         	// environment scope.
         	for (var q: quantifiedExprs) {
@@ -6001,13 +6003,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // An ident used in an invariant must have the same visibility as the invariant clause - no more, no less
                 // Is the symbol more visible? OK if the symbol is not a modifiable variable
                 if (jmlVisibility != v && moreOrEqualVisibleThan(v,jmlVisibility) 
-                        && sym instanceof VarSymbol && !utils.isExprLocal(sym.flags()) && !special(v,sym)
+                        && sym instanceof VarSymbol && !localVariables.contains(sym) && !special(v,sym)
                         && (sym.flags() & Flags.FINAL)==0 ) { 
                     utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.keyword());
                 }
                 // Is the symbol less visible? not OK
                 if (jmlVisibility != v && !moreOrEqualVisibleThan(v,jmlVisibility)
-                        && !utils.isExprLocal(sym.flags()) && !special(v,sym)) { 
+                        && !localVariables.contains(sym) && !special(v,sym)) { 
                     utils.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), jmlenv.currentClauseKind.keyword());
                 }
             } else if (jmlenv.currentClauseKind == representsClause) {
@@ -7576,7 +7578,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	}
     }
     
-    public void addClassInferredSpecs(ClassSymbol csym) {
+    public void addClassInferredSpecs(ClassSymbol csym) { // FIXME - should this really be in JmlAttr?
         // Add inferred/default clauses
         var cspec = specs.get(csym);
         JCExpression[] initclauses = new JCExpression[5];
@@ -8735,6 +8737,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public JmlEnv jmlenv = new JmlEnv();
+    
+    public Set<Symbol> localVariables = new HashSet<>();
     
     public class JmlEnv {
     	public JmlEnv previous;
