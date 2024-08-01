@@ -1,6 +1,6 @@
 
 public class test1 {
-	static final /*@ readonly @*/ int /*@ non_null */ [] binarr = new int[]
+	public static final /*@ readonly @*/ int /*@ non_null */ [] binarr = new int[]
 	{0x1,0x2,0x4,0x8,
 	0x10,0x20,0x40,0x80,
 	0x100,0x200,0x400,0x800,
@@ -10,7 +10,7 @@ public class test1 {
 	0x1000000,0x2000000,0x4000000,0x8000000,
 	0x10000000,0x20000000,0x40000000
 };
-//@ public static invariant binarr.length > 0 && binarr.length==31;
-//@ public invariant binarr[0]==1 && \forall int j;0 <= j < binarr.length-2;binarr[j]==binarr[j+1]/2;
+//@ public invariant binarr.length > 0 && binarr.length==31;
+//@ public invariant binarr[0]==1 && \forall int j;0 <= j < binarr.length-2;binarr[j]+binarr[j]==binarr[j+1];
 //@ public invariant \forall int j;0 <= j < binarr.length-1;binarr[j] <= binarr[j+1];
 }

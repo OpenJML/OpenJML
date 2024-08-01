@@ -4089,7 +4089,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						&& (convertedfa.sym.flags() & Flags.PRIVATE) == 0) {
 					utils.warning(convertedfa, "jml.message",
 							"Use a static_initializer clause to specify the values of static final fields: "
-									+ utils.qualifiedName(convertedfa.sym));
+									+ utils.qualifiedName(convertedfa.sym)
+									+ " (translating " + enclosingClass + "." + enclosingMethod +")");
 					if (utils.jmlverbose >= Utils.JMLVERBOSE)
 						utils.note(convertedfa, "jml.message",
 								"Warned about a non-constant initialized static final field: " + st.toString());
@@ -4176,9 +4177,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					continue;
 
 				if (utils.isJMLStatic(vd.mods, decl.sym) && isFinal(vd.sym)) {
-					alreadyDiscoveredFields.add(vd.sym);
 					Symbol sym = vd.sym;
-					if (sym.owner instanceof ClassSymbol) {
+					if (alreadyDiscoveredFields.add(sym) && sym.owner instanceof ClassSymbol) {
 						JCFieldAccess newfa = treeutils.makeSelect(def.pos, treeutils.makeType(def.pos, sym.owner.type),
 								sym);
 						addFinalStaticField(newfa);
@@ -4236,8 +4236,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (!utils.jmlvisible(null, methodDecl.sym.owner, csym, t.modifiers.flags, methodDecl.mods.flags))
 					continue;
 				addAssume(methodDecl, Label.INVARIANT_ENTRANCE,
-						convertJML(copy((JmlTypeClauseExpr) t).expression), // FIXME - really need the
-																					// convertCopy?
+						convertJML(((JmlTypeClauseExpr) t).expression),
 						t, t.source(), utils.qualifiedMethodSig(methodDecl.sym));
 			}
 		} finally {
@@ -15638,8 +15637,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		if (!rac && sym != null && alreadyDiscoveredFields.add(sym)) { // true if s was NOT in the set already
 			if (utils.isJMLStatic(sym) && isFinal(sym)) {
-				if (newfa != null)
+				if (newfa != null) {
 					addFinalStaticField(newfa);
+				}
 			} else if (sym.kind == Kinds.Kind.VAR && sym.owner != null && sym.owner.kind == Kinds.Kind.MTH
 					&& splitExpressions && !localVariables.containsKey(sym)
 					&& !isFormal(sym, (MethodSymbol) sym.owner)) {
@@ -15649,10 +15649,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		}
 		
-		if (rac && currentEnv.localsForbidden && localVariables.containsKey(sym)) {
-		    utils.error(that, "jml.message", "Local variable forbiddent in argument list of a state-dependent method call with a quantified expression");
-		}
-
         if (!translatingLHS)
             checkRW(readableClause, that.sym, currentEnv.currentReceiver, that);
 //        System.out.println("VISITIDENT-D " + that + " " + oldenv + " " + eresult + " " + translatingJML);

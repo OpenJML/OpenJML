@@ -1,8 +1,17 @@
-test/gitbug718x2/test2.java:3: error: An initializer clause may not have annotations
-	public /* static_initializer @*/ static final /*@ readonly static_initializer @*/ int /*@ non_null */ [] binarr = new int[]
-	                                                  ^
-test/gitbug718x2/test2.java:3: error: Invalid modifiers for an initializer clause: static final
-	public /* static_initializer @*/ static final /*@ readonly static_initializer @*/ int /*@ non_null */ [] binarr = new int[]
-	^
-Operation not performed because of parse or type errors
-12 errors
+test/gitbug718x2/test2.java:13: warning: Use a static_initializer clause to specify the values of static final fields: test2.binarr (translating test2.test2())
+    //@ static invariant binarr.length > 0 && binarr.length==31;
+                         ^
+test/gitbug718x2/test2.java:13: warning: Use a static_initializer clause to specify the values of static final fields: test2.binarr (translating test2.test())
+    //@ static invariant binarr.length > 0 && binarr.length==31;
+                         ^
+Proving methods in test2
+Starting proof of test2.test2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of test2.test2() with prover !!!! - no warnings
+Starting proof of test2.test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of test2.test() with prover !!!! - no warnings
+Completed proving methods in test2
+2 warnings
