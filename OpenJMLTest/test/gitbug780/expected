@@ -1,0 +1,10 @@
+Proving methods in Det
+Starting proof of Det.Det() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Det.Det() with prover !!!! - no warnings
+Starting proof of Det.m() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Det.m() with prover !!!! - no warnings
+Completed proving methods in Det

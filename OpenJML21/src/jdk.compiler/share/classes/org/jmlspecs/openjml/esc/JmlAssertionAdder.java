@@ -8872,7 +8872,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (print) System.out.println("MSPECS " + calleeMethodSym.owner + " " + calleeMethodSym + " " + mspecs);
 			boolean inliningCall = mspecs != null && mspecs.specDecl != null && mspecs.specDecl.mods != null
 					&& utils.hasModifier(mspecs.specDecl.mods, Modifiers.INLINE);
-			if (inliningCall) System.out.println("INLINING " + calleeMethodSym);
+			if (print && inliningCall) System.out.println("INLINING " + calleeMethodSym);
 			
 			// Collect all the methods overridden by the method being called, including the
 			// method itself
@@ -8899,13 +8899,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			while (specsIter.hasNext()) {
 			    var info = specsIter.next();
 			    if (info.specCase.callee_only) continue;
-			    x: if (!calleeIsPure) {
+			    x: if (!calleeIsPure && JmlOptions.instance(context).allowed(JmlOptions.IMPLICIT_EVERYTHING)) {
 			        if (print) System.out.println("SPECCASE " + info.parentMethodSymbol + " " + info.specCase);
 			        boolean hasAssignable = false;
 			        boolean isEverything = true;
 			        for (var clause: info.specCase.clauses) {
-			            if (printb) System.out.println("CLAUSE " + clause);
 			            if (clause.clauseKind == assignableClauseKind && clause instanceof JmlMethodClauseStoreRef ext) {
+	                        if (printb) System.out.println("CLAUSE " + clause + " " + info.parentMethodSymbol.owner + "." + info.parentMethodSymbol);
 			                hasAssignable = true;
 			                if (ext.list != null) {
 			                    for (var sr: ext.list) {
@@ -8916,19 +8916,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			                }
 			            }
 			        }
-			        if (printb) System.out.println("EVERYTHING? " + isEverything + " " + hasAssignable);
+			        if (printb) System.out.println("EVERYTHING? " + isEverything + " " + hasAssignable + " " + info.parentMethodSymbol.owner + "." + info.parentMethodSymbol);
 			        if (!hasAssignable) effectivelyPure = false;
 			        // FIXME - enable the following when we can adjust all the tests. Also decide whether to issue the warning if the caller has assignable \everythig; also find the name of the caller
-//                    if (!hasAssignable && utils.esc) {
-//                        utils.warningAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, log.currentSourceFile(), that,
-//                                "jml.message", "Method " + calleeMethodSym + " has no assignable clause, so it is implicitly 'assignable \\everything', making its caller likely impossible to verify");
-//
-//                    }
-//                    if (hasAssignable && isEverything && utils.esc) {
-//                        utils.warningAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, log.currentSourceFile(), that,
-//                                "jml.message", "Method " + calleeMethodSym + " has 'assignable \\everything', making its caller likely impossible to verify");
-//
-//                    }
+                    if (!hasAssignable && utils.esc && !calleeMethodSym.isConstructor()) {
+                        utils.warningAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, log.currentSourceFile(), that,
+                                "jml.message", "Method " + calleeMethodSym + " has no assignable clause, so it is implicitly 'assignable \\everything', making its caller likely impossible to verify");
+
+                    }
+                    if (hasAssignable && isEverything && utils.esc) {
+                        utils.warningAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, log.currentSourceFile(), that,
+                                "jml.message", "Method " + calleeMethodSym + 
+                                " has 'assignable \\everything', making its caller likely impossible to verify");
+
+                    }
 			    }
                 if (print) System.out.println("   MAPPING " + info.decl.params + " -> " + trArgs);
                 // presuming all parameter symbols across all methods are unique
@@ -11738,7 +11739,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			Map<JmlSpecificationCase, JCExpression> preExpressions, MethodSymbol calleeMethodSym,
 			List<JCExpression> typeargs, JCExpression meth, boolean inliningCall,
 			java.util.List<Pair<MethodSymbol, Type>> overridden) {
-        if (inliningCall) System.out.println("INLINING " + calleeMethodSym + " " + that + " " + mapParamActuals);
+        //if (inliningCall) System.out.println("INLINING " + calleeMethodSym + " " + that + " " + mapParamActuals);
 		JCIdent localResult = null;
 		JCExpression savedResultExpr = resultExpr;
 		try {

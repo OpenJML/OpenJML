@@ -181,6 +181,7 @@ public abstract class EscBase extends JmlTestCase {
         addOptions("--no-purity-check");
         addOptions("--timeout=300"); // seconds
         addOptions("-jmltesting");
+        addOptions("--no-warn=implicit-everything"); // Because too many tests would issue warnings if enabled
         main.addUncheckedOption("openjml.defaultProver=z3_4");
         addOptions(options);
         if (solver != null) addOptions(JmlOption.PROVER.optionName(),solver);
@@ -238,47 +239,6 @@ public abstract class EscBase extends JmlTestCase {
         }
     }
 
-//    public void escOnFile(String sourceFilename, String outDir, String ... opts) {
-//    	boolean print = false;
-//    	try {
-//    		new File(outDir).mkdirs();
-//    		java.util.List<String> args = setupForFiles(sourceFilename, outDir, opts);
-//    		String actCompile = outDir + "/actual";
-//    		new File(actCompile).delete();
-//    		PrintWriter pw = new PrintWriter(actCompile);
-//    		int ex = -1;
-//    		try {
-//    			ex = compile(args); // FIXME: SMELLS BAD
-//    		} finally {
-//    			pw.close();
-//    		}
-//
-//    		String diffs = outputCompare.compareFiles(outDir + "/expected", actCompile);
-//    		int n = 0;
-//    		while (diffs != null) {
-//    			n++;
-//    			String name = outDir + "/expected" + n;
-//    			if (!new File(name).exists()) break;
-//    			diffs = outputCompare.compareFiles(name, actCompile);
-//    		}
-//    		if (diffs != null) {
-//    		    System.out.println("TEST DIFFERENCES: " + testname.getMethodName());
-//    			System.out.println(diffs);
-//    			fail("Files differ: " + diffs);
-//    		}  
-//    		if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex);
-//    		new File(actCompile).delete();
-//
-//    	} catch (Exception e) {
-//    		e.printStackTrace(System.out);
-//    		fail("Exception thrown while processing test: " + e);
-//    	} catch (AssertionError e) {
-//    		throw e;
-//    	} finally {
-//    		// Should close open objects
-//    	}
-//    }
-
     public java.util.List<String> setupForFiles(String sourceDirOrFilename, String outDir, String ... opts) {
         new File(outDir).mkdirs();
         java.util.List<String> args = new LinkedList<String>();
@@ -289,6 +249,7 @@ public abstract class EscBase extends JmlTestCase {
         args.add("--progress");
         args.add("--timeout=300");
         args.add("--code-math=java");
+        args.add("--no-warn=implicit-everything"); // Because too many tests would issue warnings if enabled
         if (!new File(sourceDirOrFilename).isFile()) args.add("--dir");
         args.add(sourceDirOrFilename);
         if (solver != null) args.add("--prover="+solver);

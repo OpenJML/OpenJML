@@ -41,7 +41,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 +"class TestG<E> {\n"
-                +"  //@ requires \\type(E) != \\type(Integer) ;\n"
+                +"  //@ requires \\type(E) != \\type(Integer) ; pure\n"
                 +"  public TestG(E i) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method mx",17
@@ -201,7 +201,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 +"class TestG {\n"
-                +"  //@ requires \\type(E) != \\type(Integer) ;\n"
+                +"  //@ requires \\type(E) != \\type(Integer) ; pure \n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",22
@@ -223,7 +223,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 +"class TestG {\n"
-                +"  //@ requires \\type(E) != \\type(Integer) ;\n"
+                +"  //@ requires \\type(E) != \\type(Integer) ; pure\n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",13
@@ -245,7 +245,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 +"class TestG {\n"
-                +"  //@ requires \\type(E) == \\type(Integer) ;\n"
+                +"  //@ requires \\type(E) == \\type(Integer) ; pure\n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",21
@@ -267,7 +267,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 +"class TestG {\n"
-                +"  //@ requires \\type(E) == \\type(Integer) ;\n"
+                +"  //@ requires \\type(E) == \\type(Integer) ; pure\n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",13
@@ -289,7 +289,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 +"class TestG<E> {\n"
-                +"    //@ requires \\type(E) != \\type(Integer);\n"
+                +"    //@ requires \\type(E) != \\type(Integer); pure\n"
                 +"    public void mm(E t) {}\n"
                 +"}\n"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
@@ -316,7 +316,7 @@ public class escgeneric extends EscBase {
                 +"}\n"
                 +"class TestG<E> {\n"
                 +"  class TestH  {\n"
-                +"    //@ requires \\type(E) != \\type(Integer);\n"
+                +"    //@ requires \\type(E) != \\type(Integer); pure\n"
                 +"    public void mm(E t) {}\n"
                 +"  }\n"
                 +"}\n"
@@ -344,7 +344,7 @@ public class escgeneric extends EscBase {
                 +"}\n"
                 +"class TestG<E> {\n"
                 +"  class TestH  {\n"
-                +"    //@ requires \\type(E) != \\type(Integer);\n"
+                +"    //@ requires \\type(E) != \\type(Integer); pure\n"
                 +"    public void mm(E t) {}\n"
                 +"  }\n"
                 +"}\n"

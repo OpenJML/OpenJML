@@ -170,8 +170,15 @@ public class JmlOption {
         public boolean check(Context context, boolean negate) {
             JmlOptions options = JmlOptions.instance(context);
             String val = options.get(JmlOption.WARN.optionName());
-            String[] keys = val.split(",");
-            for (var k: keys) options.warningKeys.put(k,!negate);
+            // CAUTION: check is called with an empty-string argument as part of initialization (because loadDefault() calls check for each option).
+            // Consequently the warning will fail because "jml.message" is not yet loaded.
+            if (val != null && !val.isEmpty()) {
+                String[] keys = val.split(",");
+                for (var k: keys) {
+                    if (options.warningKeys.containsKey(k)) options.warningKeys.put(k,!negate);
+                    else Utils.instance(context).warning("jml.message", "In --(no)-warn, '" + k + "' is not a valid warning key; see --help=warn");
+                }
+            }
             return true;
     	}
     };

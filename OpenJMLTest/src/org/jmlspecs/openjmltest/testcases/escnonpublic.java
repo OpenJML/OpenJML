@@ -55,11 +55,12 @@ public class escnonpublic extends EscBase {
         args.add("-cp");
         if (source.isDirectory()) args.add(sourceDirname);
         else args.add(source.getParent());
-        args.add("--esc");
+        args.add("--esc"); // FIXME - merge this with what is in EscBase
         args.add("-jmltesting");
         args.add("--no-purity-check");
         args.add("--code-math=java");
         args.add("--check-feasibility=basic");
+        args.add("--no-warn=implicit-everything");
         if (new File(sourceDirname).isDirectory()) args.add("--dir");
         args.add(sourceDirname);
         if (solver != null) args.add("-prover="+solver);
