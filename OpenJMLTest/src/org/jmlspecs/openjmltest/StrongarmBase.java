@@ -24,6 +24,7 @@ public class StrongarmBase extends EscBase {
     
     //-infer -infer-debug  -progress -verbose 
 
+/*
     public java.util.List<String> setupForFiles(String sourceDirname, String outDir, String... opts) {
 	new File(outDir).mkdirs();
 	java.util.List<String> args = new LinkedList<String>();
@@ -180,5 +181,5 @@ public class StrongarmBase extends EscBase {
 	    // Should close open objects
 	}
     }
-
+*/
 }
