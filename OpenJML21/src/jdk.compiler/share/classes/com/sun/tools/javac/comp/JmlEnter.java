@@ -571,62 +571,50 @@ public class JmlEnter extends Enter {
 	// Recurses through the compilation unit to match all non-local class declarations to binary classes
 	// Declarations that do not match are entered as model classes
 	public void specsEnter(JmlCompilationUnit speccu) {
-    	if (debugEnter) System.out.println("enter: Entering declarations from specification file " + speccu.sourcefile);
-    	if (debugEnter) System.out.println("enter:                           Linked to Java file " + (speccu.sourceCU == null ? "<null>" : speccu.sourceCU.sourcefile.toString()));
-    	var prev = log.useSource(speccu.sourcefile);
-    	var specs = JmlSpecs.instance(context);
-		try {
-		    //Modules.instance(context).initModules(List.<JCCompilationUnit>of(speccu));
+	    if (debugEnter) System.out.println("enter: Entering declarations from specification file " + speccu.sourcefile);
+	    if (debugEnter) System.out.println("enter:                           Linked to Java file " + (speccu.sourceCU == null ? "<null>" : speccu.sourceCU.sourcefile.toString()));
+	    var prev = log.useSource(speccu.sourcefile);
+	    var specs = JmlSpecs.instance(context);
+	    try {
 
-//			String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
-//			Name packageName = names.fromString(flatPackageName);
-//			var iter = syms.getPackagesForName(packageName).iterator();
-//			PackageSymbol p;
-//			if (!iter.hasNext()) {
-//			    // No packages with this name
-//	            p = syms.getPackage(syms.unnamedModule,packageName);
-//			} else {
-//			    p = iter.next();
-//			    if (iter.hasNext()) {
-//			        java.util.List<PackageSymbol> list = new ArrayList<PackageSymbol>();
-//			        iter.forEachRemaining(list::add);
-//			        utils.warning(speccu.sourcefile, speccu.pid, "jml.message",
-//			            "Multiple modules contain package " + speccu.pid.pid + ": " + p.modle + " " + utils.join(" ", list, e->e.modle));
-//			    }
-//			}
-//			// FIXME - what about other modules, or user modules
-//			if (p == null) {
-//				utils.warning(speccu.pid, "jml.message", "Creating new package in unnamed module: " + flatPackageName); // FIXME - figure out haw to create it
-//				p = syms.enterPackage(syms.unnamedModule, packageName);
-//			}
-		    
-		    String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
-		    Name packageName = names.fromString(flatPackageName);
-		    // Most spec file for binary files will be for the system library packages in java.base, so try that first
-		    PackageSymbol p = syms.getPackage(syms.java_base,packageName);
-		    if (p == null) {
-		        // Otherwise try the unnamed module
+	        String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
+	        Name packageName = names.fromString(flatPackageName);
+	        // Most spec file for binary files will be for the system library packages in java.base, so try that first
+	        PackageSymbol p = syms.getPackage(syms.java_base,packageName);
+	        if (p == null) {
+	            // Otherwise try the unnamed module
 	            p = syms.getPackage(syms.unnamedModule,packageName);
-		    }
-            //System.out.println("PACKAGE " + packageName + " IS IN " + (p==null?"NULL":p.modle));
-            if (p == null) { // FIXME Document when this is needed
-                utils.warning(speccu.pid, "jml.message", "Creating new package in unnamed module: " + flatPackageName);
-                p = syms.enterPackage(syms.unnamedModule, packageName);
-            }
-            
-            // TODO: Not implementing other modules for now
+	        }
+	        if (p == null) {
+	            Collection<ModuleSymbol> mods = syms.listPackageModules(packageName);
+	            if (mods.size() == 1) {
+	                p = syms.getPackage(mods.iterator().next(),packageName);
+	                //System.out.println("PACKAGE " + packageName + " IS IN " + (p==null?"NULL":p.modle) + " " + mods.iterator().next());
+	            } else if (mods.isEmpty()) {
+	                // fall through
+	            } else {
+	                String xtr = "Package exists in multiple modules: " + flatPackageName + " in";
+	                for (var m: mods) xtr += " " + m;
+	                utils.warning(speccu.pid, "jml.message", xtr);
+	            }
+	        }
+	        //System.out.println("PACKAGE " + packageName + " IS IN " + (p==null?"NULL":p.modle));
+	        if (p == null) { // FIXME Document when this is needed
+	            utils.warning(speccu.pid, "jml.message", "Creating new package in unnamed module: " + flatPackageName);
+	            p = syms.enterPackage(syms.unnamedModule, packageName);
+	        }
 
-            var owner = speccu.packge = p;
-			speccu.modle = p.modle;
-			Env<AttrContext> specEnv = topLevelEnv(speccu);
-            TypeEnter.instance(context).completeClass.resolveImports(speccu, specEnv);
+	        var owner = speccu.packge = p;
+	        speccu.modle = p.modle;
+	        Env<AttrContext> specEnv = topLevelEnv(speccu);
+	        TypeEnter.instance(context).completeClass.resolveImports(speccu, specEnv);
 
-			speccu.defs = specsListEnter(owner, speccu.defs, specEnv);
-			speccu.defs = specsMembersEnter(owner, speccu.defs);
-		} finally {
-			log.useSource(prev);
-		}
-    }
+	        speccu.defs = specsListEnter(owner, speccu.defs, specEnv);
+	        speccu.defs = specsMembersEnter(owner, speccu.defs);
+	    } finally {
+	        log.useSource(prev);
+	    }
+	}
 	
 	// owner is the owner of all the defs (which are specification declarations)
 	// specsEnv corresponds to the owner
