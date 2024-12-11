@@ -48,6 +48,7 @@ public class RecommendsClause extends JmlExtension {
                 parser.skipToSemi();
             }
             Node cl = new Node(pp, e, ex);
+            cl.exception = ex;
             wrapup(cl, clauseType, true, true);
             return cl;
         }

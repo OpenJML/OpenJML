@@ -239,7 +239,9 @@ public abstract class Printer implements Type.Visitor<String, Locale>, Symbol.Vi
             buf.append(visitTypes(t.getTypeArguments(), locale));
             buf.append('>');
         }
-        return buf.toString();
+        var s = buf.toString();
+        s = s.replace("org.jmlspecs.lang.internal.","\\"); // OPENJML _ should do better than string replacement
+        return s;
     }
 
     @Override

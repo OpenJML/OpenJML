@@ -47,11 +47,11 @@ public class typecheckingJmlTypes extends TCBase {
     }
 
     @Test public void testSeqType() {
-        helpTC(" class A { void m() { //@ ghost seq<Object> b ; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}");
+        helpTC(" class A { void m() { //@ ghost \\seq<Object> b ; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}");
     }
 
     @Test public void testMapType() {
-        helpTC(" class A { void m() {  //@ ghost map<string,string> b ;   ghost string o ; set b[o] = o; ghost string bb = b[o]; \n}}");
+        helpTC(" class A { void m() {  //@ ghost map<\\string,\\string> b ;   ghost \\string o ; set b[o] = o; ghost \\string bb = b[o]; \n}}");
     }
 
     @Test public void testMap2Type() {
@@ -59,13 +59,15 @@ public class typecheckingJmlTypes extends TCBase {
     }
 
     @Test public void testSetType() {
-        helpTC(" class A { void m() {  //@ ghost set<Object> b ; ghost Object o = new Object(); set b[o] = true; ghost boolean bb = b[o]; \n}}");
+        helpTC(" class A { void m() {  //@ ghost \\set<Object> b ; ghost Object o = new Object(); set b[o] = true; ghost boolean bb = b[o]; \n}}");
     }
 
     @Test public void testStringType() {
-        helpTC(" class A { void m() {  //@ ghost string b; ghost char c = 'a'; set b[c] = 'b'; ghost char bb = b[c]; \n}}");
+        helpTC(" class A { void m() {  //@ ghost \\string b; ghost char c = 'a'; set b[c] = 'b'; ghost char bb = b[c]; \n}}");
     }
 
     // FIXME - need to be able to initialize JML types
+    
+
     
 }

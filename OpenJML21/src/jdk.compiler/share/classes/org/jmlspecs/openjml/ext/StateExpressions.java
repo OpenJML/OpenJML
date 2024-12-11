@@ -4,11 +4,8 @@
  */
 package org.jmlspecs.openjml.ext;
 
-import static org.jmlspecs.openjml.JmlTokenKind.BSPRE;
-
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import com.sun.tools.javac.code.Scope;
@@ -48,7 +45,7 @@ public class StateExpressions extends JmlExtension {
                 IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
             int p = parser.pos();
-            JmlTokenKind jt = parser.jmlTokenKind();
+            var jt = parser.jmlTokenClauseKind();
             parser.nextToken();
             if (parser.token().kind != TokenKind.LPAREN) {
                 return parser.syntaxError(p, null, "jml.args.required", keyword());
@@ -59,7 +56,7 @@ public class StateExpressions extends JmlExtension {
             List<JCExpression> args = parser.arguments();
             JmlMethodInvocation t = toP(parser.maker().at(pp).JmlMethodInvocation(this, args));
             t.startpos = p;
-            t.token = jt;
+            t.kind = jt;
             return parser.primaryTrailers(t, null); // FIXME - was primarySuffix
         }
 
@@ -71,11 +68,11 @@ public class StateExpressions extends JmlExtension {
             Type t = attr.syms.errType;
             Name label = null;
             int n = tree.args.size();
-            if (!(n == 1 || (tree.token != JmlTokenKind.BSPRE && n == 2))) {
-                if (tree.token != JmlTokenKind.BSPRE) error(tree,"jml.wrong.number.args",keyword(),
+            if (!(n == 1 || (tree.kind != preKind && n == 2))) {
+                if (tree.kind != preKind) error(tree,"jml.wrong.number.args",keyword(),
                         "1 or 2",n);
                 else error(tree,"jml.one.arg",keyword(), n);
-            } else if (tree.token == BSPRE) {
+            } else if (tree.kind == preKind) {
                 // pre
                 if (!clauseKind.preAllowed()) {
                     log.error(tree.pos+1, "jml.misplaced.old", "\\pre token", clauseKind.keyword());

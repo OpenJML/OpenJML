@@ -53,7 +53,7 @@ public class jmltypes extends TCBase {
                 "import java.util.Vector; public class A { \n" +
                 " void m() {\n" +
                 "  Class<?> c = Object.class; Object o = c; \n" +
-                "  //@ ghost \\TYPE t;\n" +
+                "  //@ ghost \\TYPE t;\n" + // initialized with some arbitrary v alue
                 "  //@ ghost \\TYPE tt = \\type(Object);\n" +
                 "  //@ set tt = \\type(int);\n" +
                 "  //@ set tt = \\type(Vector<Integer>);\n" +
@@ -65,7 +65,7 @@ public class jmltypes extends TCBase {
                 "  //@ set b = tt <: ttt;\n" +
                 " }\n" +
                 "}\n"
-                ,"/A.java:11: error: variable t might not have been initialized",27
+                //,"/A.java:11: error: variable t might not have been initialized",27
                 );
     }
 
@@ -94,11 +94,23 @@ public class jmltypes extends TCBase {
                 "public class A { \n" +
                 " void m() {\n" +
                 "  Class<?> c = Object.class; Object o = c; \n" +
-                "  //@ ghost \\TYPE t = \\real;\n" +
+                "  //@ ghost \\TYPE t = \\type(\\real);\n" +
                 "  //@ ghost boolean b = JML.typeargs(\\type(Object)).length == 0;\n" +
                 "  //@ set b = JML.typeargs(\\elemtype(t)).length == 0;\n" +
                 " }\n" +
                 "}\n"
+                );
+    }
+
+    @Test
+    public void testOK2x() {
+        helpTCF("A.java",
+                "public class A { \n" +
+                " void m() {\n" +
+                "  //@ ghost \\TYPE t = \\real;\n" + // Should be a syntax error
+                " }\n" +
+                "}\n"
+                ,"/A.java:3: error: Expected an expression here, not a type", 23
                 );
     }
 
@@ -140,7 +152,7 @@ public class jmltypes extends TCBase {
                 "  //@ ghost \\TYPE t = Object.class;\n" + // NO mixing
                 "  //@ ghost Class<?> cc = t;\n" + // NO mixing
                 "  //@ ghost boolean b = \\type(Object) == Object.class;\n" + // No mixing
-                "  //@ ghost Object oo = \\type(Object);\n" +  // \TYPE will box
+                "  //@ ghost Object oo = \\type(Object);\n" +  // \TYPE does not convert
                 "  //@ set b = t <: Object.class;\n" +  // No mixing
                 "  //@ set b = Object.class <: t;\n" +  // No mixing 
                 "  //@ set b = c instanceof \\type(Object);\n" +  // No mixing
@@ -148,13 +160,14 @@ public class jmltypes extends TCBase {
                 "  //@ set t = (\\TYPE)0;\n" + // No casts of ints
                 "  //@ set t = (\\TYPE)o;\n" + // No casts of Object
                 "}}\n"
-                ,"/A.java:4: error: incompatible types: java.lang.Class<java.lang.Object> cannot be converted to \\TYPE",29
+                ,"/A.java:4: error: illegal conversion: java.lang.Class<java.lang.Object> to \\TYPE",29
                 ,"/A.java:5: error: incompatible types: \\TYPE cannot be converted to java.lang.Class<?>",27
                 ,"/A.java:6: error: No operator for \\TYPE == java.lang.Class<java.lang.Object>",39
+                ,"/A.java:7: error: A JML primitive type may not be assigned or cast to a non-JML type", 20
                 ,"/A.java:8: error: The arguments to <: must both be \\TYPE or both be Class",26
                 ,"/A.java:9: error: The arguments to <: must both be \\TYPE or both be Class",31
                 ,"/A.java:10: error: unexpected type\n  required: class\n  found:    value",33
-                ,"/A.java:11: error: unexpected type\n  required: reference\n  found:    \\TYPE",15
+                ,"/A.java:11: error: A \\TYPE may not be cast to a java.lang.Object",15
                 ,"/A.java:12: error: A cast to \\TYPE may be applied only to expressions of type Class, not int",22
                 ,"/A.java:13: error: A cast to \\TYPE may be applied only to expressions of type Class, not java.lang.Object",22
 

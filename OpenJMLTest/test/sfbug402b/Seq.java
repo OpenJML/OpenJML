@@ -1,7 +1,7 @@
 
 public interface Seq<E extends Object> {
 	
-	//@ model public instance JMLDataGroup state;
+	//@ model public instance \datagroup state;
 	//@ model public instance boolean _pastEnd; //@ in state;
 	//@ model public instance int _pos; //@ in _pastEnd;
 	//@ model public instance int _length; //@ in _pastEnd;

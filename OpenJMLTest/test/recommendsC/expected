@@ -1,0 +1,26 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m1(Test) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m1(Test) with prover !!!! - no warnings
+Starting proof of Test.m2() with prover !!!!
+test/recommendsC/Test.java:11: warning: The prover cannot establish an assertion (Precondition) in method m2
+        m1(null);
+          ^
+test/recommendsC/Test.java:6: warning: Associated declaration
+    public void m1(Test o) {
+                ^
+test/recommendsC/Test.java:5: warning: Precondition conjunct is false: o != null
+    //@ recommends o != null else NullPointerException;
+                     ^
+Completed proof of Test.m2() with prover !!!! - with warnings
+Starting proof of Test.m3(@NonNull Test) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m3(@NonNull Test) with prover !!!! - no warnings
+Completed proving methods in Test
+3 warnings

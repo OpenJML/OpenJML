@@ -14,5 +14,5 @@ R=$( cd "$R2/../.."  && pwd) ## absolute path, still might have spaces
 ROOT="$R/OpenJML/OpenJML21"
 BIN=`echo $ROOT/build/*/jdk/bin/javac`
 
-OPENJML_ROOT="$R/Solvers" $BIN "$@"
+OPENJML_ROOT="$R/Solvers" "$BIN" "$@"
 

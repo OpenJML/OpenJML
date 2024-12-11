@@ -3,7 +3,6 @@ package org.jmlspecs.openjml.ext;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.visitors.JmlTreeCopier;
 
@@ -102,7 +101,7 @@ public class DatatypeExt extends JmlExtension {
             //mods.flags |= Flags.STATIC; // Implicitly static
             mods.flags |= Flags.ABSTRACT; // Implicitly abstract -- FIXME doe sit need to be if it is model?
             // Implicitly model
-            mods.annotations = JmlSpecs.instance(parser.context).addModelAnnotation(pos, mods.annotations);
+            JmlSpecs.instance(parser.context).addModifier(pos, Modifiers.MODEL, mods);
             // FIXME - make this a novel primitive type
             Type at = utils.createClassSymbol(com.sun.tools.javac.code.Symtab.instance(parser.context).java_base, "org.jmlspecs.lang.IJmlDatatype").type;
             JCExpression dtype = parser.jmlF.at(pos).Type(at);
@@ -110,7 +109,7 @@ public class DatatypeExt extends JmlExtension {
             d.constructors = cons.toList();
             d.pos = pos;
             parser.utils.setJML(d.mods);
-            while (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) parser.nextToken();
+            while (parser.isEndJml()) parser.nextToken();
             System.out.println(d.toString());
             return d;
             

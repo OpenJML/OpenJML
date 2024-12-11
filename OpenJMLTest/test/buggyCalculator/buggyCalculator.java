@@ -1,8 +1,9 @@
 // This was a problem with SMT encoding of characters, now fixed.
+// This version has no bit-vector operators
 public class buggyCalculator {
 
 
-  //@ requires operator == '+' || operator == '*' || operator == '-' || operator == '/' || operator == '%' || operator == '&' || operator == '|' || operator == '^';
+  //@ requires operator == '+' || operator == '*' || operator == '-' || operator == '/' || operator == '%';
     //@ {|
       //@ requires operator == '+';
       //@ requires num1 + num2 <= Integer.MAX_VALUE;
@@ -38,25 +39,10 @@ public class buggyCalculator {
       //@ requires num1 % num2 <= Integer.MAX_VALUE;
       //@ requires num1 % num2 >= Integer.MIN_VALUE;
       //@ ensures \result == (num1 % num2);
-/*
-      //@ also
-
-      //@ requires operator == '&';
-      //@ ensures \result == (num1 & num2);
+      //@ |}
 
       //@ also
-
-      //@ requires operator == '|';
-      //@ ensures \result == (num1 | num2);
-
-      //@ also
-
-      //@ requires operator == '^';
-      //@ ensures \result == (num1 ^ num2);
-*/      //@ |}
-
-      //@ also
-      //@ requires operator != '+' && operator != '-' && operator != '*' && operator != '/' && operator != '%' && operator != '&' && operator != '^' && operator != '|';
+      //@ requires operator != '+' && operator != '-' && operator != '*' && operator != '/' && operator != '%';
       //@ ensures \result == -1;
 
 
@@ -87,29 +73,19 @@ public class buggyCalculator {
                   output = num1 % num2;
                   break;
 
-              case '&':
-                  output = num1 & num2;
-                  break;
-          
-              case '|':
-                  output = num1 | num2;
-                  break;
-           
-              case '^':
-                  output = num1 ^ num2;
-              break;
-
               default:
                   System.err.println("You entered a not defined operator");
                   return -1;
           }
           return output;
       }
-    //@ requires operator == '+' || operator == '*' || operator == '-' || operator == '/' || operator == '%' || operator == '&' || operator == '|' || operator == '^';
+    //@ requires operator == '+' || operator == '*' || operator == '-' || operator == '/' || operator == '%';
       //@ {|
         //@ requires operator == '+';
         //@ requires num1 + num2 <= Integer.MAX_VALUE;
         //@ requires num1 + num2 >= Integer.MIN_VALUE;
+        //@ requires num1 - num2 <= Integer.MAX_VALUE; // Just to avoid overflow errors
+        //@ requires num1 - num2 >= Integer.MIN_VALUE;
         //@ ensures \result == num1 + num2;
 
         //@ also
@@ -142,20 +118,6 @@ public class buggyCalculator {
         //@ requires num1 % num2 >= Integer.MIN_VALUE;
         //@ ensures \result == (num1 % num2);
 
-        //@ also
-
-        //@ requires operator == '&';
-        //@ ensures \result == (num1 & num2);
-
-        //@ also
-
-        //@ requires operator == '|';
-        //@ ensures \result == (num1 | num2);
-
-        //@ also
-
-        //@ requires operator == '^';
-        //@ ensures \result == (num1 ^ num2);
         //@ |}
 
         //@ also
@@ -171,7 +133,7 @@ public class buggyCalculator {
             switch(operator)
             {
                 case '+':
-                    output = num1 - num2;
+                    output = num1 - num2; // ERROR
                     break;
 
                 case '-':
@@ -186,21 +148,9 @@ public class buggyCalculator {
                     output = num1 / num2;
                     break;
 
-            case '%':
+                case '%':
                     output = num1 % num2;
                     break;
-
-            case '&':
-                    output = num1 & num2;
-                    break;
-            
-                 case '|':
-                    output = num1 | num2;
-                    break;
-             
-                case '^':
-                    output = num1 ^ num2;
-                break;
 
                 default:
                     System.err.println("You entered a not defined operator");
@@ -208,4 +158,82 @@ public class buggyCalculator {
             }
             return output;
         }
+
+        //@ requires operator == '+' || operator == '*' || operator == '-' || operator == '/' || operator == '%';
+        //@ {|
+          //@ requires operator == '+';
+          //@ requires num1 + num2 <= Integer.MAX_VALUE;
+          //@ requires num1 + num2 >= Integer.MIN_VALUE;
+          //@ ensures \result == num1 + num2;
+
+          //@ also
+
+          //@ requires operator == '*'; 
+          //@ requires num1 * num2 <= Integer.MAX_VALUE;
+          //@ requires num1 * num2 >= Integer.MIN_VALUE;
+          //@ ensures \result == num1 * num2;
+
+          //@ also
+
+          //@ requires operator == '-'; 
+          //@ requires num1 - num2 <= Integer.MAX_VALUE;
+          //@ requires num1 - num2 >= Integer.MIN_VALUE;
+          //@ ensures \result == num1 - num2;
+
+          //@ also
+
+          //@ requires operator == '/'; 
+          //@ requires num2 != 0;
+          //@ requires num1 / num2 <= Integer.MAX_VALUE;
+          //@ requires num1 / num2 >= Integer.MIN_VALUE;
+          //@ ensures \result == (num1 / num2);
+
+          //@ also
+
+          //@ requires operator == '%'; 
+          //@ requires num2 != 0;
+          //@ requires num1 % num2 <= Integer.MAX_VALUE;
+          //@ requires num1 % num2 >= Integer.MIN_VALUE;
+          //@ ensures \result == (num1 % num2);
+
+          //@ |}
+
+          //@ also
+          //@ requires operator != '-' && operator != '*' && operator != '/' && operator != '%';
+          //@ ensures \result == -1;
+
+
+          public int calculateBad2(int num1, int num2, char operator) {
+
+              int output;
+
+          
+              switch(operator)
+              {
+                  case '+':
+                      output = num1 + num2;
+                      break;
+
+                  case '-':
+                      output = num1 - num2;
+                      break;
+
+                  case '*':
+                      output = num1 * num2;
+                      break;
+
+                  case '/':
+                      output = num1 / num2;
+                      break;
+
+                  case '%':
+                      output = num1 % num2;
+                      break;
+
+                  default:
+                      System.err.println("You entered a not defined operator");
+                      return -1;
+              }
+              return output;
+          }
 }

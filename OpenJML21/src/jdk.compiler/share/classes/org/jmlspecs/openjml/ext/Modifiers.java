@@ -13,7 +13,7 @@ public class Modifiers extends JmlExtension {
     static public final ModifierKind CODE_JAVA_MATH = new IJmlClauseKind.ModifierKind("code_java_math", true);
     static public final ModifierKind CODE_SAFE_MATH = new IJmlClauseKind.ModifierKind("code_safe_math", true);
     static public final ModifierKind EXTRACT = new IJmlClauseKind.ModifierKind("extract", true);
-    static public final ModifierKind HEAP_FREE = new IJmlClauseKind.ModifierKind("heap_free", true);
+    static public final ModifierKind NO_STATE = new IJmlClauseKind.ModifierKind("no_state", true);
     static public final ModifierKind HELPER = new IJmlClauseKind.ModifierKind("helper", true);
     static public final ModifierKind IMMUTABLE = new IJmlClauseKind.ModifierKind("immutable", true); // Need to change specs if this is set properly to false
     static public final ModifierKind INLINE = new IJmlClauseKind.ModifierKind("inline", false);
@@ -25,7 +25,11 @@ public class Modifiers extends JmlExtension {
     static public final ModifierKind NULLABLE = new IJmlClauseKind.TypeAnnotationKind("nullable", true);
     static public final ModifierKind NULLABLE_BY_DEFAULT = new IJmlClauseKind.ModifierKind("nullable_by_default", true);
     //static public final ModifierKind NULLABLE_ELEMENTS = new IJmlClauseKind.ModifierKind("nullable_elements", true);
-    static public final ModifierKind OPTIONS = new IJmlClauseKind.ModifierKind("options", false);
+    static public final ModifierKind OPTIONS = new IJmlClauseKind.ModifierKind("options", false) {
+        @Override public boolean isNormalModifier() {
+            return false;
+        }
+    };
     static public final ModifierKind PEER = new IJmlClauseKind.ModifierKind("peer", true);
     static public final ModifierKind PURE = new IJmlClauseKind.ModifierKind("pure", true);
     static public final ModifierKind QUERY = new IJmlClauseKind.ModifierKind("query", false);
@@ -36,9 +40,11 @@ public class Modifiers extends JmlExtension {
     static public final ModifierKind SKIPRAC = new IJmlClauseKind.ModifierKind("skiprac", true, "SkipRac");
     static public final ModifierKind SPEC_PROTECTED = new IJmlClauseKind.ModifierKind("spec_protected", true);
     static public final ModifierKind SPEC_PUBLIC = new IJmlClauseKind.ModifierKind("spec_public", true);
+    static public final ModifierKind SPEC_PURE = new IJmlClauseKind.ModifierKind("spec_pure", true);
     static public final ModifierKind SPEC_BIGINT_MATH = new IJmlClauseKind.ModifierKind("spec_bigint_math", true);
     static public final ModifierKind SPEC_JAVA_MATH = new IJmlClauseKind.ModifierKind("spec_java_math", true);
     static public final ModifierKind SPEC_SAFE_MATH = new IJmlClauseKind.ModifierKind("spec_safe_math", true);
+    static public final ModifierKind STRICTLY_PURE = new IJmlClauseKind.ModifierKind("strictly_pure", true);
     static public final ModifierKind UNINITIALIZED = new IJmlClauseKind.ModifierKind("uninitialized", true);
     static public final ModifierKind BSREADONLY = new IJmlClauseKind.ModifierKind("\\readonly", true, "org.jmlspecs.annotation.Readonly");
 

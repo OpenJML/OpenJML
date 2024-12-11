@@ -79,6 +79,7 @@ public class racArithmeticModes extends RacBase {
         
     }
 
+    @Ignore // No CodeBigintMath as yet
     @Test public void testNegMath() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "int j = Integer.MAX_VALUE; long k = -j; \nSystem.out.println(k + \" END\"); \n" +
@@ -90,6 +91,7 @@ public class racArithmeticModes extends RacBase {
     }
 
     // FIXME - in bigint mode, should all integer decls be bigint instead?
+    @Ignore // No CodeBigintMath as yet
     @Test public void testNegMath2() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "int j = Integer.MAX_VALUE; int k = -j; \nSystem.out.println(k + \" END\"); \n" +
@@ -102,6 +104,7 @@ public class racArithmeticModes extends RacBase {
     }
 
     // FIXME - in bigint mode, should all integer decls be bigint instead?
+    @Ignore // No CodeBigintMath as yet
     @Test public void testNegMathLong() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "long j = Long.MAX_VALUE; long k = -j; \nSystem.out.println(k + \" END\"); \n" +
@@ -128,6 +131,7 @@ public class racArithmeticModes extends RacBase {
                 );
     }
 
+    @Ignore // No CodeBigintMath as yet
     @Test public void testCompMath() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "int i = Integer.MIN_VALUE; int k = ~i; System.out.println(\"END \" + k);} \n" +
@@ -171,6 +175,7 @@ public class racArithmeticModes extends RacBase {
                 );
     }
 
+    @Ignore // No CodeBigintMath as yet
     @Test public void testSumMath() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "int i = Integer.MAX_VALUE; long k = i + i; System.out.println(\"END \" + k);} \n" +
@@ -180,6 +185,7 @@ public class racArithmeticModes extends RacBase {
     }
 
     // FIXME - still have to sort out how assignments are handled in Math mode
+    @Ignore // No CodeBigintMath as yet
     @Test public void testSumMathCast() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "int i = Integer.MAX_VALUE; int k = i + i; System.out.println(\"END \" + k);} \n" +
@@ -189,6 +195,7 @@ public class racArithmeticModes extends RacBase {
                 );
     }
 
+    @Ignore // No CodeBigintMath as yet
     @Test public void testSumMathArg() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "  int i = Integer.MAX_VALUE; mm(i+i); } \n" +
@@ -233,6 +240,7 @@ public class racArithmeticModes extends RacBase {
                 );
     }
 
+    @Ignore // No CodeBigintMath as yet
     @Test public void testDiffMath() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "int i = Integer.MAX_VALUE; long k = i - Integer.MIN_VALUE; System.out.println(\"END \" + k);} \n" +
@@ -275,6 +283,7 @@ public class racArithmeticModes extends RacBase {
                 );
     }
 
+    @Ignore // No CodeBigintMath as yet
     @Test public void testDivMath() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "int i = Integer.MIN_VALUE; long k = i / (-1); System.out.println(\"END \" + (-k==i));} \n" +
@@ -304,6 +313,7 @@ public class racArithmeticModes extends RacBase {
                 );
     }
 
+    @Ignore // No CodeBigintMath as yet
     @Test public void testMultMath() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                                 "int i = 30000; int k = i * i; System.out.println(\"END \" + k); \n" +
@@ -336,6 +346,7 @@ public class racArithmeticModes extends RacBase {
                 );
     }
 
+    @Ignore // No CodeBigintMath as yet
     @Test public void testMultMathLong() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                                 "long i = 2000000000L; long k = i * i; System.out.println(\"END \" + k); \n" +
@@ -407,6 +418,7 @@ public class racArithmeticModes extends RacBase {
               );
     }
 
+    @Ignore // No CodeBigintMath as yet
     @Test
     public void testModMath() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"

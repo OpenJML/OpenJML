@@ -11,9 +11,11 @@ import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExpressions.*;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
+import static org.jmlspecs.openjml.ext.Operators.*;
 
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.smtlib.ICommand;
@@ -104,6 +106,11 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected IExpr.ISymbol notSym;
     final protected IExpr.ISymbol negSym;
     final protected IExpr.ISymbol arraySym;
+    final protected IExpr.ISymbol seqSym;
+    final protected IExpr.ISymbol setSym;
+    final protected IExpr.ISymbol mapSym;
+    final protected IExpr.ISymbol stringSym;
+    final protected IExpr.ISymbol ARRAYSym;
     final protected IExpr.ISymbol eqSym;
     final protected IExpr.ISymbol leSym;
     final protected IExpr.ISymbol impliesSym;
@@ -174,6 +181,11 @@ public class SMTTranslator extends JmlTreeScanner {
     /** A list that accumulates all the Java type names as used in SMT */
     final protected Set<String> javaTypeSymbols = new HashSet<String>();
     
+    final Symbol REAL;
+    final Symbol BIGINT;
+    final Symbol STRING;
+    final Symbol TYPE;
+    
     /** A counter used to make String literal identifiers unique */
     int stringCount = 0;
 
@@ -220,7 +232,12 @@ public class SMTTranslator extends JmlTreeScanner {
             bv8Sort = F.createSortExpression(F.id(F.symbol("BitVec"), bits));
         }
         arraySym = F.symbol("Array"); // From SMT Array theory
-        stringSort = F.createSortExpression(arraySym, intSort, intSort);
+        seqSym = F.symbol("SEQ");
+        setSym = F.symbol("SET");
+        mapSym = F.symbol("MAP");
+        stringSym = F.symbol("STRINGJML"); // STRING is a reserved work in SMT-LIB
+        ARRAYSym = F.symbol("ARRAY"); // for the JML \array type
+        stringSort = F.createSortExpression(stringSym);
         intsetSort = F.createSortExpression(arraySym, intSort, boolSort);
         eqSym = F.symbol("="); // Name determined by SMT Core theory
         leSym = F.symbol("<="); // Name determined by SMT Ints theory
@@ -242,7 +259,12 @@ public class SMTTranslator extends JmlTreeScanner {
         jmlTypeSort = F.createSortExpression(F.symbol(JMLTYPESORT));
         lengthSym = F.symbol(arrayLength);
         stringLengthSym = F.symbol("stringLength");
-        
+
+        STRING = JmlPrimitiveTypes.stringTypeKind.getSymbol(context);
+        BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
+        REAL = JmlPrimitiveTypes.realTypeKind.getSymbol(context);
+        TYPE = JmlPrimitiveTypes.TYPETypeKind.getSymbol(context);
+
     }
     
     /** Adds symbols for the theory of Reals, if they are used */
@@ -275,7 +297,7 @@ public class SMTTranslator extends JmlTreeScanner {
         addCommand(smt,"(declare-fun "+hifcn+" ("+rangeTypeName+") Int)");
         addCommand(smt,"(assert (forall ((i Int)(j Int)) (= i ("+lofcn+" ("+rangefcn+" i j))))) ");
         addCommand(smt,"(assert (forall ((i Int)(j Int)) (= j ("+hifcn+" ("+rangefcn+" i j))))) ");
-        rangeSort = F.createSortExpression(F.symbol("|RANGE|"));
+        rangeSort = F.createSortExpression(F.symbol(rangeTypeName));
     }
     
     /** Adds all the definitions and axioms regarding the types used in the program */
@@ -817,13 +839,23 @@ public class SMTTranslator extends JmlTreeScanner {
         // define NULL as a REF: (declare-fun NULL () REF)
         c = new C_declare_fun(nullSym,emptyList, refSort);
         startCommands.add(c);
+        c = command(smt, "(define-sort SEQ (E) (Array Int E))");
+        startCommands.add(c);
+        c = command(smt, "(define-sort SET (E) (Array E Bool))");
+        startCommands.add(c);
+        c = command(smt, "(define-sort MAP (K E) (Array K E))");
+        startCommands.add(c);
+        c = command(smt, "(define-sort ARRAY (E) (Array Int E))");
+        startCommands.add(c);
+        c = command(smt, "(define-sort STRINGJML ( ) (Array Int Int))");
+        startCommands.add(c);
         c = new C_declare_fun(nullStringSym,emptyList, stringSort);
         startCommands.add(c);
 //        // define THIS 
 //        c = new C_declare_fun(thisSym,emptyList, convertSort());
 //        startCommands.add(c);
         // define stringConcat: (declare-fun stringConcat (REF,REF) REF)
-        c = new C_declare_fun(F.symbol(concat),Arrays.asList(refSort,refSort), refSort);
+        c = new C_declare_fun(F.symbol(concat),Arrays.asList(stringSort,stringSort), stringSort);
         startCommands.add(c);
         {
         	// define stringLength: (declare-fun stringLength (String) Int)
@@ -986,6 +1018,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
         // Add the rest that are recorded in the basic block program
         for (JCIdent id: program.declarations) {
+            //System.out.println("PDECL " + id);
             addConstant(id);
 //            if (defined.add(id.name)) {
 //                try {
@@ -1084,6 +1117,11 @@ public class SMTTranslator extends JmlTreeScanner {
     }
     
     protected void addConstant(JCIdent id) {
+        if (id.toString().contains("internal")) {
+            Type t = id.type;
+            //System.out.println("ADDCONST " + id + " " + t);
+            //System.out.println("  ADDCTYEPES " + (t==BIGINT.type) + " " + (t.tsym == BIGINT) + " " + BIGINT + " " + t.hashCode() + " " + BIGINT.hashCode());
+        }
         String nm = makePQBarEnclosedString(id);
 
         //String nm = makeBarEnclosedString(id.name.toString());
@@ -1142,6 +1180,10 @@ public class SMTTranslator extends JmlTreeScanner {
         commands.add(command(smt,command));
     }
     
+    protected ICommand makeCommand(SMT smt, String command) {
+        return command(smt,command);
+    }
+    
     /** The String that is the encoding of a given Type */
     // Note: Various SMT solvers do not yet handle special characters 
     // properly - some do not like the vertical bar quotes and some don't like
@@ -1155,6 +1197,7 @@ public class SMTTranslator extends JmlTreeScanner {
         	//System.out.println("ANON " + r + t.tsym.isAnonymous() + t.tsym.flatName());
         	r = "ANON_" + t.tsym.flatName();
         }
+        //System.out.println("TYPESTRING " + t + " " + t.tsym + " " + t.tsym.name + " " + r);
         return r.replace('.', '_');
     }
     
@@ -1190,7 +1233,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     // Creates an SMT sort id for extension types (or maps to a SMT native sort)
     public ISymbol sortId(Type t) {
-        return F.symbol("S_" + t.stripMetadata().toString());
+        return F.symbol("S_" + t.tsym.toString());
     }
     
     // FIXME - should really use a TYpe visitor here
@@ -1780,53 +1823,78 @@ public class SMTTranslator extends JmlTreeScanner {
             throw new RuntimeException();
         }
         TypeTag tag = t.getTag();
-        if (tag == TypeTag.NONE || tag == TypeTag.UNKNOWN){ // Do these first because they are also primitive types
-            if (t instanceof JmlType) {
-                JmlType jt = (JmlType)t;
-                if (jt.jmlTypeTag() == JmlTokenKind.BSBIGINT) return useBV ? bv32Sort : intSort; 
-                if (jt.jmlTypeTag() == JmlTokenKind.BSREAL) { addReal(); return realSort; }
-                if (jt.jmlTypeTag() == JmlTokenKind.BSTYPEUC) return jmlTypeSort;
-            }
-            return refSort; // FIXME - just something
-        } else if (utils.isExtensionValueType(t)) {
-        	String ts = t.toString();
-        	if (ts.equals("org.jmlspecs.lang.string")) {
-        		return stringSort;
-        	} else if (ts.startsWith("org.jmlspecs.lang.map")) {
-        		Type t1 = t.getTypeArguments().head;
-        		Type t2 = t.getTypeArguments().tail.head;
-        		ISort s1 = convertSort(t1);
-        		ISort s2 = convertSort(t2);
-        		return F.createSortExpression(arraySym, s1, s2);
-        	} else if (ts.startsWith("org.jmlspecs.lang.set")) {
-        		Type t1 = t.getTypeArguments().head;
-        		ISort s1 = convertSort(t1);
-        		return F.createSortExpression(arraySym, s1, boolSort);
-           	} else if (ts.startsWith("org.jmlspecs.lang.array")) {
-        		Type t1 = t.getTypeArguments().head;
-        		ISort s1 = convertSort(t1);
-        		return F.createSortExpression(arraySym, intSort, s1);
-           	} else if (ts.startsWith("org.jmlspecs.lang.seq")) {
-        		Type t1 = t.getTypeArguments().head;
-        		ISort s1 = convertSort(t1);
-        		return F.createSortExpression(arraySym, intSort, s1);
-           	} else if (ts.startsWith("org.jmlspecs.lang.intmap")) {
-        		Type t1 = t.getTypeArguments().head;
-        		ISort s1 = convertSort(t1);
-        		return F.createSortExpression(arraySym, intSort, s1);
-           	} else if (ts.equals("org.jmlspecs.lang.intset")) {
-        		return intsetSort;
-           	} else if (ts.equals("org.jmlspecs.lang.range")) {
-        		return rangeSort;
-           	} else if (t.isParameterized()) {
-           		List<ISort> args = new LinkedList<ISort>();
-           		t.getTypeArguments().forEach(tt -> args.add(convertSort(tt)));
+        if (utils.isExtensionValueType(t)) {
+        	String ts = t.tsym.toString();
+            if (t.tsym == JmlPrimitiveTypes.stringTypeKind.getSymbol(context)) {
+                return stringSort;
+            } else if (t.tsym == BIGINT) {
+                return intSort;
+            } else if (t.tsym == REAL) { // FIXME - settle on which
+                addReal();
+                return realSort;
+            } else if (t.tsym == TYPE) {
+                return jmlTypeSort;
+            } else if (ts.startsWith("org.jmlspecs.lang.map") || ts.startsWith("\\map")) {
+                Type t1 = t.getTypeArguments().head;
+                Type t2 = t.getTypeArguments().tail.head;
+                ISort s1 = convertSort(t1);
+                ISort s2 = convertSort(t2);
+                return F.createSortExpression(arraySym, s1, s2);
+            } else if (ts.startsWith("org.jmlspecs.lang.set") || ts.startsWith("\\set")) {
+                Type t1 = t.getTypeArguments().head;
+                ISort s1 = convertSort(t1);
+                return F.createSortExpression(arraySym, s1, boolSort);
+            } else if (ts.startsWith("org.jmlspecs.lang.array") || ts.startsWith("\\array")) {
+                Type t1 = t.getTypeArguments().head;
+                ISort s1 = convertSort(t1);
+                return F.createSortExpression(arraySym, intSort, s1);
+            } else if (ts.startsWith("org.jmlspecs.lang.seq") || ts.startsWith("\\seq")) {
+                Type t1 = t.getTypeArguments().head;
+                ISort s1 = convertSort(t1);
+                var sort = F.createSortExpression(seqSym, s1);
+                //System.out.println("CONVERTING " + ts + " TO " + sort);
+                return sort;
+            } else if (ts.startsWith("org.jmlspecs.lang.set") || ts.startsWith("\\set")) {
+                Type t1 = t.getTypeArguments().head;
+                ISort s1 = convertSort(t1);
+                var sort = F.createSortExpression(setSym, s1);
+                //System.out.println("CONVERTING " + ts + " TO " + sort);
+                return sort;
+            } else if (ts.startsWith("org.jmlspecs.lang.map") || ts.startsWith("\\map")) {
+                Type t1 = t.getTypeArguments().head;
+                ISort s1 = convertSort(t1);
+                var sort = F.createSortExpression(mapSym, s1);
+                //System.out.println("CONVERTING " + ts + " TO " + sort);
+                return sort;
+            } else if (ts.startsWith("org.jmlspecs.lang.array") || ts.startsWith("\\array")) {
+                Type t1 = t.getTypeArguments().head;
+                ISort s1 = convertSort(t1);
+                var sort = F.createSortExpression(ARRAYSym, s1);
+                //System.out.println("CONVERTING " + ts + " TO " + sort);
+                return sort;
+            } else if (ts.startsWith("org.jmlspecs.lang.intmap") || ts.equals("\\intmap")) {
+                Type t1 = t.getTypeArguments().head;
+                ISort s1 = convertSort(t1);
+                return F.createSortExpression(arraySym, intSort, s1);
+            } else if (ts.equals("org.jmlspecs.lang.intset") || ts.equals("\\intset")) {
+                return intsetSort;
+            } else if (t == JmlPrimitiveTypes.rangeTypeKind.getType(context)) {
+                return rangeSort;
+            } else if (t.isParameterized()) {
+                List<ISort> args = new LinkedList<ISort>();
+                t.getTypeArguments().forEach(tt -> args.add(convertSort(tt)));
                 addType(t);
-                return F.createSortExpression((ISymbol)javaTypeSymbol(t), args);
-          	} else {
-        		addSort(t);
-        		return sortSymbol(t);
+                var sort = F.createSortExpression((ISymbol)javaTypeSymbol(t), args);
+                //System.out.println("CONVERTING " + ts + " TO " + sort);
+                return sort;
+            } else {
+                addSort(t);
+                var sort = sortSymbol(t);
+                return sort;
         	}
+        } else if (tag == TypeTag.NONE || tag == TypeTag.UNKNOWN){
+            return refSort; // FIXME - just something
+
         } else if (t instanceof BasicBlocker2.Array2Type) {
             return refSort;
         } else if (jmltypes.isArray(t) && !(t instanceof Type.ArrayType)) {
@@ -1846,6 +1914,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 ISymbol sss = (ISymbol)jmlTypeSymbol(t);
                 return F.createSortExpression( sss, sorts);
             } else {
+                System.out.println("ADDING TYPE " + t);
                 addType(t);
 //                return F.createSortExpression((ISymbol)jmlTypeSymbol(t));
                 return F.createSortExpression((ISymbol)javaTypeSymbol(t));            }
@@ -1943,12 +2012,13 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Adds a function with the given name and a definition if it is not already added. */
     protected void addFcn(String newname, JCMethodInvocation tree) {
         //System.out.println("ADDING FCN " + newname + " " + tree + " " + tree.type + " " + tree.meth.type + " " + TreeInfo.symbolFor(tree.meth));
-        if (fcnsDefined.add(newname)) {
+        String bnewname = makeBarEnclosedString(newname);
+        if (fcnsDefined.add(bnewname)) {
             var rt = tree.type;
             if (tree.meth.type != null) rt = tree.meth.type.getReturnType();
             if (TreeInfo.symbolFor(tree.meth) != null) rt = TreeInfo.symbolFor(tree.meth).type.getReturnType();
             // Was not already present
-            ISymbol n = F.symbol(newname);
+            ISymbol n = F.symbol(bnewname);
             ISort resultSort = convertSort(rt);
             List<ISort> argSorts = new LinkedList<ISort>();
             // Adds an argument for the receiver, if the function is not static
@@ -1965,9 +2035,10 @@ public class SMTTranslator extends JmlTreeScanner {
     }
     
     protected void addFunctionDefinition(String newname, List<JCExpression> args, JCExpression expr) {
-        if (fcnsDefined.add(newname)) {
+        String bnewname = makeBarEnclosedString(newname);
+        if (fcnsDefined.add(bnewname)) {
             // Was not already present
-            ISymbol n = F.symbol(newname);
+            ISymbol n = F.symbol(bnewname);
             ISort resultSort = convertSort(expr.type);
             List<IDeclaration> argDecls = new LinkedList<IDeclaration>();
 //            // Adds an argument for the receiver, if the function is not static - TODO: do we ever use this?
@@ -1989,7 +2060,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public void visitApply(JCMethodInvocation tree) {
         JCExpression m = tree.meth;
         if (m instanceof JCIdent) {
-            String name = ((JCIdent)m).name.toString();
+            String name = makeBarEnclosedString(((JCIdent)m).name.toString());
             String newname = name;
             addFcn(newname,tree);
             List<IExpr> newargs = new LinkedList<IExpr>();
@@ -2011,7 +2082,32 @@ public class SMTTranslator extends JmlTreeScanner {
                 return;
             }
             else if (tree instanceof JmlBBArrayAssignment) {
-                if (tree.args.length() > 3) {
+                if (tree.args.length() <= 3) {
+                    // [0] = store([1],[2], select([0],[2]))
+                    IExpr arg0 = convertExpr(tree.args.get(0));
+                    IExpr arg2 = convertExpr(tree.args.get(2));
+                    IExpr.IFcnExpr sel = F.fcn(selectSym,
+                            arg0,
+                            arg2
+                            );
+
+                    IExpr.IFcnExpr newarray = F.fcn(F.symbol("store"),
+                            convertExpr(tree.args.get(1)),
+                            arg2,
+                            sel
+                            );
+                    result = F.fcn(eqSym, arg0,newarray);
+                } else if (tree.args.size() == 4) {
+                    // JML primitive array-like case
+                    // [0] = store([1], [2], [3])
+                    IExpr.IFcnExpr right = F.fcn(F.symbol("store"),
+                            convertExpr(tree.args.get(1)),
+                            convertExpr(tree.args.get(2)),
+                            convertExpr(tree.args.get(3))
+                            );
+                    result = F.fcn(eqSym, convertExpr(tree.args.get(0)),right);
+                    
+                } else {
                     // [0] = store([1],[2], store(select([1],[2]),[3],[4]))
                     IExpr.IFcnExpr sel = F.fcn(selectSym,
                             convertExpr(tree.args.get(1)),
@@ -2029,21 +2125,6 @@ public class SMTTranslator extends JmlTreeScanner {
                             newarray
                             );
                     result = F.fcn(eqSym, convertExpr(tree.args.get(0)),right);
-                } else {
-                    // [0] = store([1],[2], select([0],[2]))
-                    IExpr arg0 = convertExpr(tree.args.get(0));
-                    IExpr arg2 = convertExpr(tree.args.get(2));
-                    IExpr.IFcnExpr sel = F.fcn(selectSym,
-                            arg0,
-                            arg2
-                            );
-
-                    IExpr.IFcnExpr newarray = F.fcn(F.symbol("store"),
-                            convertExpr(tree.args.get(1)),
-                            arg2,
-                            sel
-                            );
-                    result = F.fcn(eqSym, arg0,newarray);                    
                 }
                 return;
             }
@@ -2066,8 +2147,8 @@ public class SMTTranslator extends JmlTreeScanner {
             for (JCExpression arg: tree.args) {
                 newargs.add(convertExpr(arg));
             }
-            result = newargs.isEmpty() ? F.symbol(newname)
-                             : F.fcn(F.symbol(newname),newargs);
+            var sym = F.symbol(makeBarEnclosedString(newname));
+            result = newargs.isEmpty() ? sym : F.fcn(sym,newargs);
             
         }
     }
@@ -2097,7 +2178,7 @@ public class SMTTranslator extends JmlTreeScanner {
         } else if (that.kind == erasureKind) {
         	if (that.args.get(0).type == com.sun.tools.javac.comp.JmlAttr.instance(context).syms.classType) {
         		result = F.fcn(F.symbol("erasure_java"), newargs);
-        	} else if (that.args.get(0).type == com.sun.tools.javac.comp.JmlAttr.instance(context).jmltypes.TYPE) {
+        	} else if (that.args.get(0).type.tsym == TYPE) {
         		result = F.fcn(F.symbol("erasure"), newargs);
         	} else {
         		log.error("jml.internal","Unexpected argument type " + that.args.get(0).type + " " + that);
@@ -2116,15 +2197,15 @@ public class SMTTranslator extends JmlTreeScanner {
                 // ERROR - or empty string?
                 result = null;
             }
-        } else if (that.token == null) {
+        } else if (that.kind == null) {
             result = F.fcn(F.symbol(that.name), newargs);
-        } else if (that.token == JmlTokenKind.SUBTYPE_OF) {
+        } else if (that.kind == subtypeofKind) {
             result = F.fcn(F.symbol(JMLSUBTYPE), newargs);
-        } else if (that.token == JmlTokenKind.SUBTYPE_OF_EQ) {
+        } else if (that.kind == subtypeofeqKind) {
             result = F.fcn(F.symbol(JMLSUBTYPE), newargs);
-        } else if (that.token == JmlTokenKind.JSUBTYPE_OF) {
+        } else if (that.kind == jsubtypeofKind) {
             result = F.fcn(F.symbol(JAVASUBTYPE), newargs);
-        } else if (that.token == JmlTokenKind.JSUBTYPE_OF_EQ) {
+        } else if (that.kind == jsubtypeofeqKind) {
             result = F.fcn(F.symbol(JAVASUBTYPE), newargs);
         } else if (that.meth != null) {
             // Built-in methods
@@ -2210,8 +2291,12 @@ public class SMTTranslator extends JmlTreeScanner {
         TypeTag tlhs = tree.lhs.type.getTag();
         TypeTag trhs = tree.rhs.type.getTag();
         boolean isReal = false;
-        if (tree.lhs.type == jmltypes.REAL || tree.rhs.type == jmltypes.REAL) {
+        boolean isInt = false;
+        boolean isString = tree.lhs.type.tsym == STRING || tree.rhs.type.tsym == STRING;
+        if (tree.lhs.type.tsym == REAL || tree.rhs.type.tsym == REAL) {
             isReal = true;
+        } else if (tree.lhs.type.tsym == BIGINT || tree.rhs.type.tsym == BIGINT) {
+            isInt = true;
         } else if (tlhs == TypeTag.DOUBLE || trhs == TypeTag.DOUBLE ||
                 tlhs == TypeTag.FLOAT || trhs == TypeTag.FLOAT) {
             isReal = true;
@@ -2234,7 +2319,6 @@ public class SMTTranslator extends JmlTreeScanner {
         switch (op) {
             case EQ:
                 result = F.fcn(eqSym, args);
-                if (result.toString().equals("(= java.lang.Short_TYPE JMLT_short)")) Utils.stop();
                 break;
             case NE:
                 result = F.fcn(distinctSym, args);
@@ -2280,10 +2364,16 @@ public class SMTTranslator extends JmlTreeScanner {
             case PLUS:
                 if (isReal) {
                     result = F.fcn(F.symbol("+"), args);
-                } else if (tree.lhs.type.getTag() == TypeTag.CLASS) {
-                    result = F.fcn(F.symbol(concat), args);
                 } else if (useBV) {
-                	result = F.fcn(F.symbol("bvadd"), args);
+                    result = F.fcn(F.symbol("bvadd"), args);
+                } else if (isInt) {
+                    result = F.fcn(F.symbol("+"), args);
+                } else if (isString) {
+                    if (tree.rhs.type.getTag() == TypeTag.CHAR) {
+                        result = F.fcn(F.symbol("store"), lhs, F.fcn(selectSym,lengthSym,lhs), rhs);
+                    } else {
+                        result = F.fcn(F.symbol(concat), args);
+                    }
                 } else {
                     result = F.fcn(F.symbol("+"), args);
                 }
@@ -2403,8 +2493,12 @@ public class SMTTranslator extends JmlTreeScanner {
             case SL:
             	if (useBV) {
             		result = F.fcn(F.symbol("bvshl"), args);
-            	} else if (tree.rhs instanceof JCLiteral) {
-            	    long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
+                } else if (tree.rhs instanceof JCLiteral || (tree.rhs instanceof JCTypeCast cast && cast.expr instanceof JCLiteral)) {
+                    // FIXME - if the cast actually changes the value of the RHS, the code below is incorrect
+                    JCLiteral lit = null;
+                    if (tree.rhs instanceof JCLiteral) lit = (JCLiteral)tree.rhs;
+                    if (tree.rhs instanceof JCTypeCast cast) lit = (JCLiteral)cast.expr;
+                    long i = ((Number)lit.getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     args.add(lhs);
                     if (tree.lhs.type == syms.intType) {
@@ -2423,8 +2517,11 @@ public class SMTTranslator extends JmlTreeScanner {
             case SR:
                 if (useBV) {
                     result = F.fcn(F.symbol("bvashr"), args);
-                } else if (tree.rhs instanceof JCLiteral) {
-                    long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
+                } else if (tree.rhs instanceof JCLiteral || (tree.rhs instanceof JCTypeCast cast && cast.expr instanceof JCLiteral)) {
+                    JCLiteral lit = null;
+                    if (tree.rhs instanceof JCLiteral) lit = (JCLiteral)tree.rhs;
+                    if (tree.rhs instanceof JCTypeCast cast) lit = (JCLiteral)cast.expr;
+                    long i = ((Number)lit.getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     args.add(lhs);
                     if (tree.lhs.type == syms.intType) {
@@ -2443,8 +2540,11 @@ public class SMTTranslator extends JmlTreeScanner {
             case USR:
                 if (useBV) {
                     result = F.fcn(F.symbol("bvlshr"), args);
-                } else if (tree.rhs instanceof JCLiteral) {
-                    long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
+                } else if (tree.rhs instanceof JCLiteral || (tree.rhs instanceof JCTypeCast cast && cast.expr instanceof JCLiteral)) {
+                    JCLiteral lit = null;
+                    if (tree.rhs instanceof JCLiteral) lit = (JCLiteral)tree.rhs;
+                    if (tree.rhs instanceof JCTypeCast cast) lit = (JCLiteral)cast.expr;
+                    long i = ((Number)lit.getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     List<IExpr> args2 = new LinkedList<IExpr>();
                     if (tree.lhs.type == syms.intType) {
@@ -2484,44 +2584,52 @@ public class SMTTranslator extends JmlTreeScanner {
         TypeTag tagr = tree.type.getTag();
         TypeTag tage = tree.expr.type.getTag();
         result = convertExpr(tree.expr);
+        boolean exprIsPrim = utils.isJavaOrJmlPrimitiveType(tree.expr.type);
+        boolean treeIsPrim = utils.isJavaOrJmlPrimitiveType(tree.type);
+        //System.out.println("TYPECAST " + tree.expr.type + " TO " + tree.type + " " + exprIsPrim + " " + treeIsPrim);
         Number value = null;
         if (tree.expr instanceof JCLiteral) {
             JCLiteral lit = (JCLiteral)tree.expr;
             if (lit.getValue() instanceof Number) {
-                if (tagr == TypeTag.DOUBLE || tagr == TypeTag.FLOAT || ((tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) && ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL)) {
+                if (tagr == TypeTag.DOUBLE || tagr == TypeTag.FLOAT || ((tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) && tree.type.tsym == REAL)) {
                     double d = ((Number)lit.getValue()).doubleValue();
                     result = makeRealValue(d);
                     return;
                 }
             }
+            if (tree.type.tsym == BIGINT) {
+                var k = ((Number)lit.getValue()).longValue();
+                result = numeral(k);
+                return;
+            }
         }
         if (result instanceof Numeral) {
-            if ((tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) && ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
-                if ((tage == TypeTag.NONE || tage == TypeTag.UNKNOWN) && ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) return;
+            if (tree.type.tsym == REAL) {
+                if (tree.expr.type.tsym == REAL) return;
                 java.math.BigInteger b = ((Numeral)result).value();
                 double d = b.doubleValue(); // FIXME - this may not be in range
                 result = makeRealValue(d);
                 return;
             }
         }
-        if (tree.type.isPrimitive() == tree.expr.type.isPrimitive()) {
-            if (tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) { 
-                if (tage == TypeTag.NONE || tage == TypeTag.UNKNOWN) { 
-                    if (((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
-                        if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
-                            // \bigint to \bigint -- OK
-                        } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
-                            // \real to \bigint
-                            result = F.fcn(F.symbol("toward_zero"), result);
+        if (treeIsPrim == exprIsPrim) {
+            if (utils.isExtensionValueType(tree.type)) { 
+                if (utils.isExtensionValueType(tree.expr.type)) { 
+                    if (tree.type.tsym == REAL) {
+                        if ( tree.expr.type.tsym == REAL) {
+                            // \real to \real -- OK
+                        } else if (tree.expr.type.tsym == BIGINT) {
+                                // \bigint to \real
+                                result = F.fcn(F.symbol("to_real"), result);
                         } else {
                             // FIXME - error
                         }
-                    } else if ( ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
-                        if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
-                            // \bigint to \real
-                            result = F.fcn(F.symbol("to_real"), result);
-                        } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
-                            // \real to \real -- OK
+                    } else if (tree.type.tsym == BIGINT) {
+                        if ( tree.expr.type.tsym == REAL) {
+                            // \real to \bigint
+                            result = F.fcn(F.symbol("toward_zero"), result);
+                        } else if (tree.expr.type.tsym == BIGINT) {
+                                // \bigint to \bigint -- OK
                         } else {
                             // FIXME - error
                         }
@@ -2530,45 +2638,45 @@ public class SMTTranslator extends JmlTreeScanner {
                     }
                     
                 } else if (treeutils.isIntegral(tage)) {
-                    if (((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
-                        // int to \bigint -- OK
-                    } else if ( ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                    if ( tree.type.tsym == REAL) {
                         // int to \real
                         result = F.fcn(F.symbol("to_real"), result);
+                    } else if (tree.type.tsym == BIGINT) {
+                        // int to \bigint -- OK
                     } else {
                         // FIXME - error
                     }
                 } else {
-                    if (((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                    if ( tree.type.tsym == REAL) {
+                        // float/double to \real -- OK
+                    } else if (tree.type.tsym == BIGINT) {
                         // float/double to \bigint
                         result = F.fcn(F.symbol("toward_zero"), result);
-                    } else if ( ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
-                        // float/double to \real -- OK
                     } else {
                         // FIXME - error
                     }
                 }
-            } else if (tage == TypeTag.NONE || tage == TypeTag.UNKNOWN) { 
+            } else if (utils.isExtensionValueType(tree.expr.type)) { 
                 if (treeutils.isIntegral(tagr)) {
-                    if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
-                        // \bigint to int -- OK
-                    } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                    if (tree.expr.type.tsym == REAL) {
                         // \real to int -- FIXME
                         result = F.fcn(F.symbol("toward_zero"), result);
+                    } else if (tree.expr.type.tsym == BIGINT) {
+                        // \bigint to int -- OK
                     } else {
                         // FIXME - error
                     }
                 } else {
-                    if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                    if (tree.expr.type.tsym == REAL) {
+                        // \real to float/double -- OK
+                    } else if (tree.expr.type.tsym == BIGINT) {
                         // \bigint to float/double -- FIXME
                         result = F.fcn(F.symbol("to_real"), result);
-                    } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
-                        // \real to float/double -- OK
                     } else {
                         // FIXME - error
                     }
                 }
-            } else if (!tree.type.isPrimitive()) {
+            } else if (!treeIsPrim) {
                 // This is a cast from reference type to reference type, we can ignore it
             } else if (tree.expr instanceof JCLiteral) {
                 // Cast from one primitive literal to a another primitive type
@@ -2637,7 +2745,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     // no change in result
                 }
             }
-        } else if (!tree.type.isPrimitive()) {
+        } else if (!treeIsPrim) {
             // Cast from primitive to object
         	utils.error(tree,"jml.internal","Do not expect casts to reference type in expressions: " + JmlPretty.write(tree));
         } else {
@@ -2762,20 +2870,10 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tree instanceof JmlBBArrayAccess) {
             JmlBBArrayAccess aa = (JmlBBArrayAccess)tree;
             // select(select(arraysId,a).i)
-            String typeString = aa.indexed.type.toString();
-//            if (typeString.startsWith("org.jmlspecs.lang.array")) {
-//            	IExpr.IFcnExpr sel = F.fcn(selectSym,
-//            			convertExpr(aa.arraysId),
-//            			convertExpr(aa.indexed)
-//            			);
-//            	sel = F.fcn(selectSym,
-//            			sel,
-//            			convertExpr(aa.index)
-//            			);
-//            	result = sel;
-//
-//            } else 
-            	if (typeString.startsWith("org.jmlspecs.lang.")) {
+            String typeString = typeString(aa.indexed.type);
+            //System.out.println("AACCESS " + tree + " " + tree.indexed.type + " " + tree.indexed.type.getClass() + " " + typeString );
+            
+            if (typeString.startsWith("org_jmlspecs_lang_")) { // FIXME - find a way to do better than string checking
             	result = F.fcn(selectSym,
             			convertExpr(aa.indexed),
             			convertExpr(aa.index)

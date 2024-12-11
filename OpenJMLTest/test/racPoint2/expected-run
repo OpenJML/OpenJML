@@ -1,11 +1,3 @@
 OUT:
-Skipping a specification clause because it contains an uncompiled model method: java.lang.Math.isPositiveZero
-Skipping a specification clause because it contains an uncompiled model method: java.lang.Math.isNegativeZero
-test/racPoint2/Point.java:145: verify: JML precondition is false
-    return Math.sqrt(my_x * my_x + my_y * my_y);
-                    ^
-$SPECS/java/lang/Math.jml:264: verify: Associated declaration: test/racPoint2/Point.java:145:
-    public static /*@ pure @*/ double sqrt(double a);
-                                      ^
 
 ERR:

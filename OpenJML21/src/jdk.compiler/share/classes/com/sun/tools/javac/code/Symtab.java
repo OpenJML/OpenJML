@@ -92,6 +92,8 @@ public class Symtab {
             instance = new Symtab(context);
         return instance;
     }
+    
+    Context context;
 
     /** Builtin types.
      */
@@ -404,6 +406,7 @@ public class Symtab {
      */
     @SuppressWarnings("this-escape")
     protected Symtab(Context context) throws CompletionFailure {
+        this.context = context;
         context.put(symtabKey, this);
 
         names = Names.instance(context);
@@ -799,9 +802,11 @@ public class Symtab {
         Assert.checkNonNull(ps);
         Assert.checkNonNull(ps.modle);
         ClassSymbol c = getClass(ps.modle, flatname);
+        //if (flatname.toString().contains("bigint")) { System.out.println("ECLASS " + context.hashCode() + " " + flatname + " " + msym + " " + (c==null ? 0 : c.hashCode())); org.jmlspecs.openjml.Utils.dumpStack(); }
         if (c == null) {
             c = defineClass(Convert.shortName(flatname), ps);
             doEnterClass(ps.modle, c);
+            //if (flatname.toString().contains("bigint")) { System.out.println("ECLASS-DEF " + flatname + " " + msym + " " + (c==null ? 0 : c.hashCode())); org.jmlspecs.openjml.Utils.dumpStack(); }
             return c;
         } else
             return c;

@@ -133,7 +133,7 @@ public class DiagnosticSource {
 
     public void setEndPosTable(EndPosTable t) {
         if (endPosTable != null && endPosTable != t)
-            throw new IllegalStateException("endPosTable already set");
+            throw new IllegalStateException("endPosTable already set: " + fileObject);
         endPosTable = t;
     }
 

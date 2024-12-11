@@ -2,7 +2,6 @@ package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
 
@@ -24,7 +23,7 @@ public class LocsetExtensions extends JmlExtension {
             var t = (JmlMethodInvocation)tree;
             super.typecheck(attr, tree, localEnv);
             //System.out.println("UNION " + t);
-            Type locsetType = JMLPrimitiveTypes.locsetTypeKind.getType(attr.context);
+            Type locsetType = JmlPrimitiveTypes.locsetTypeKind.getType(attr.context);
             for (JCExpression e: ((JmlMethodInvocation)tree).args) {
                 //System.out.println("  UNION ARG " + e + " " + e.type);
                 if (!(attr.jmltypes.isSameType(e.type, locsetType))) {
@@ -42,7 +41,7 @@ public class LocsetExtensions extends JmlExtension {
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             var t = ((JmlMethodInvocation)tree);
             super.typecheck(attr, tree, localEnv);
-            Type locsetType = JMLPrimitiveTypes.locsetTypeKind.getType(attr.context);
+            Type locsetType = JmlPrimitiveTypes.locsetTypeKind.getType(attr.context);
             for (JCExpression e: t.args) {
                 if (!(attr.jmltypes.isSameType(e.type, locsetType))) {
                     utils.error(e.pos, "jml.message", "The arguments of \\subset must have type locset, not " + e.type);
@@ -59,7 +58,7 @@ public class LocsetExtensions extends JmlExtension {
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
             super.typecheck(attr, tree, localEnv);
-            Type locsetType = JMLPrimitiveTypes.locsetTypeKind.getType(attr.context);
+            Type locsetType = JmlPrimitiveTypes.locsetTypeKind.getType(attr.context);
             var t = ((JmlMethodInvocation)tree);
             for (JCExpression e: t.args) {
                 if (!(attr.jmltypes.isSameType(e.type, locsetType))) {

@@ -151,7 +151,7 @@ public class MemberEnter extends JCTree.Visitor {
                                     syms.methodClass);
         mtype.recvtype = recvtype;
 
-        return tvars.isEmpty() ? mtype : new ForAll(tvars, mtype);
+        return (tvars == null || tvars.isEmpty()) ? mtype : new ForAll(tvars, mtype); // OPENJML - tvars should not be null
     }
 
 /* ********************************************************************

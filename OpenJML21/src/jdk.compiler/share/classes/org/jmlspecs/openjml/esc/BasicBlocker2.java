@@ -31,9 +31,11 @@ import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.ReachableStatement.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.Functional.*;
-import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
+import static org.jmlspecs.openjml.ext.Operators.*;
+import static org.jmlspecs.openjml.ext.JmlPrimitiveTypes.*;
 import org.jmlspecs.openjml.ext.Refining;
 import org.jmlspecs.openjml.ext.Operators;
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
@@ -249,6 +251,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     final protected Set<Name> isDefined = new HashSet<Name>();
     
     protected ClassSymbol utilsClass;
+    
+    Type BIGINT;
 
     // THESE VARIABLES ARE SET (AND RESET) IN THE COURSE OF COMPUTATION
     // (so they do not need initialization)
@@ -296,6 +300,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         lengthSym = syms.lengthVar;
         lengthIdent = treeutils.makeIdent(0,lengthSym);
         
+        BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+
     }
 
     /** Helper routine to initialize the object before starting its task of
@@ -527,7 +533,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - review and document - not used now, but should be for generics
     protected JCIdent newTypeVarIncarnation(TypeSymbol vsym, int incarnationPosition) {
         JCIdent n = factory.at(incarnationPosition).Ident(encodedTypeName(vsym,incarnationPosition));
-        n.type = JmlTypes.instance(context).TYPE;
+        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
+        n.type = TYPE;
         n.sym = vsym;
         currentMap.putSAVersion(vsym,n.name);
         return n;
@@ -841,7 +848,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                             // Type information ? - FIXME 
                             JCIdent pold = newIdentUse(m,sym,pos);
                             JCIdent pnew = newIdentUse(newMap,sym,pos);
-                            if (pold.name != pnew.name) { 
+                            if (pold.name != pnew.name && !pnew.type.toString().contains("datagroup")) { // FIXME - cf escall3 ; but what about in constructors
                                 JCBinary eq = treeutils.makeEquality(pos,pnew,pold);
                                 addAssume(pos,Label.DSA,eq,b.statements);
                             }
@@ -1055,7 +1062,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         if (that.name != null) {
             scanList(that.args);
             result = that;
-        } else if (that.token == null && that.kind == null) {
+        } else if (that.kind == null) {
             //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
             scan(that.typeargs);
             scan(that.meth);
@@ -1064,8 +1071,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             result = that;
 
 
-        } else {
-            if (that.kind != null) switch (that.kind.keyword) {
+        } else if (that.kind != null) {
+            switch (that.kind.keyword) {
                 case oldID:
                 case preID:
                 case pastID:
@@ -1093,6 +1100,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     } finally {
                         currentMap = savedMap;
                     }
+                    // FIXME - what is result?
                     break;
                 }
                 case sameID: {
@@ -1158,12 +1166,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     result = that;
                     break;
                 } 
-                default:
-                    log.error(that.pos, "esc.internal.error", "No implementation for this kind of Jml node in BasicBlocker2: " + that.kind.keyword());
-                    
-            } else switch (that.token) { 
-                case SUBTYPE_OF:
-                case JSUBTYPE_OF:
+                case subtypeofID:
+                case jsubtypeofID:
+                case subtypeofeqID: // FIXME
+                case jsubtypeofeqID:
                 {
                     scan(that.args.get(0));
                     JCExpression lhs = result;
@@ -1174,11 +1180,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     break;
                 } 
                 default:
-                    log.error(that.pos, "esc.internal.error", "Did not expect this kind of Jml node in BasicBlocker2: " + that.token.internedName());
-                    shouldNotBeCalled(that);
-            }
-            return;
+                    log.error(that.pos, "esc.internal.error", "No implementation for this kind of Jml node in BasicBlocker2: " + that.kind.keyword());
+            }   
+        } else {
+            log.error(that.pos, "esc.internal.error", "Did not expect a JmlMethodInvocation node in BasicBlocker2 with a null 'kind'");
+            shouldNotBeCalled(that);
         }
+        return;
     }
     
     // FIXME - REVIEW and document
@@ -1276,7 +1284,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             JCIdent arr = getArrayIdent(syms.intType,aa.type,aa.pos);
             JCExpression ex = aa.indexed;
             JCExpression index = aa.index;
-            Type indexType = aa.indexed.type instanceof Type.ArrayType ? syms.intType : JmlTypes.instance(context).BIGINT;
+            Type indexType = aa.indexed.type instanceof Type.ArrayType ? syms.intType : BIGINT;
             if (!(index instanceof JmlRange range) || (range.lo == range.hi && range.lo != null)) {
             	// Single index -- FIXME - don't know about * in  indexed
             	JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
@@ -1388,7 +1396,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         		result = expr;
                 addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
         		
-                JCExpression lo = treeutils.makeZeroEquivalentLit(p,JmlTypes.instance(context).BIGINT);
+                JCExpression lo = treeutils.makeZeroEquivalentLit(aa,BIGINT);
                 JCVariableDecl decl = treeutils.makeVarDef(syms.intType, names.fromString("_JMLARANGE_" + (++unique)), null, p);
                 JCIdent ind = treeutils.makeIdent(p, decl.sym);
                 JCExpression comp = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,lo,ind);
@@ -1619,7 +1627,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 if (remainingStatements.get(0).toString().contains("JMLsaved")) remainingStatements.remove(0);
                 if (!remainingStatements.isEmpty()) {
 //                    // Not fatal, but does indicate a problem with the original
-//                    // program, which the compiler may have already identified
+//                    // program, )which the compiler may have already identified
 //                    log.warning(remainingStatements.get(0).pos,
 //                            "esc.internal.error", //$NON-NLS-1$
 //                            "Unexpected statements following a END statement are ignored"); //$NON-NLS-1$
@@ -1920,7 +1928,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         scan(that.index);
         JCExpression index = result;
         JCIdent arr = null;
-        if (indexed.type.toString().startsWith("org.jmlspecs.lang.")) {
+        if (utils.isExtensionValueType(indexed.type)) {
         	// continue;
         } else {
         	// Standard Java array
@@ -1977,24 +1985,45 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         } else if (left instanceof JCArrayAccess) {
             Type ctype = left.type;
             Type indexType = JmlTypes.instance(context).indexType(((JCArrayAccess)left).indexed.type);
-            JCIdent arr = getArrayIdent(indexType,ctype,right.pos);
             JCExpression ex = ((JCArrayAccess)left).indexed;
             JCExpression index = ((JCArrayAccess)left).index;
-            JCIdent nid = newArrayIncarnation(indexType,right.type,sp);
             
             scan(ex); ex = result;
             scan(index); index = result;
             scan(right); right = result;
             
-            //JCExpression rhs = makeStore(ex,index,right);
-            JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,right); // FIXME - implicit conversion?
-            expr.pos = pos;
-            expr.type = restype;
-            treeutils.copyEndPosition(expr, right);
+            if (utils.isExtensionValueType(ex.type)) {
+                var oldex = ((JCArrayAccess)left).indexed;
+                if (oldex instanceof JCIdent id) {
+                    JCIdent newid = newIdentIncarnation(id, sp);
+                    JCExpression expr = new JmlBBArrayAssignment(newid,ex,index,right);
+                    expr.pos = pos;
+                    expr.type = restype;
+                    treeutils.copyEndPosition(expr, right);
 
-            // FIXME - set line and source
-            newStatement = addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
-            newExpr = left;
+                    // FIXME - set line and source
+                    newStatement = addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
+                    newExpr = newIdentUse((VarSymbol)id.sym, sp);
+                } else {
+                    // Not handling an JML array-like case that is not an JCIdent
+                    newStatement = null;
+                    newExpr = null;
+                    log.error("jml.internal","Non-handled case in BasicBlocker2.doAssignment: " + left + " " + right);
+                }
+                
+            } else {
+
+                JCIdent arr = getArrayIdent(indexType,ctype,right.pos);
+                JCIdent nid = newArrayIncarnation(indexType,right.type,sp);
+                JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,right); // FIXME - implicit conversion?
+                expr.pos = pos;
+                expr.type = restype;
+                treeutils.copyEndPosition(expr, right);
+
+                // FIXME - set line and source
+                newStatement = addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
+                newExpr = left;
+            }
         } else if (left instanceof JCFieldAccess) {
             VarSymbol sym = (VarSymbol)selectorSym(left);
             if (utils.isJMLStatic(sym)) {
@@ -2034,7 +2063,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             log.error("jml.internal","Unexpected case in BasicBlocker2.doAssignment: " + left.getClass() + " " + left);
             return null;
         }
-        pathmap.put(statement,newStatement);
+        if (newStatement != null) pathmap.put(statement,newStatement);
         return newExpr;
     }
     

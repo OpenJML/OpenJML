@@ -206,7 +206,7 @@ public class QueryPure extends TCBase {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
-                "  //@ secret public model JMLDataGroup value;\n" +
+                "  //@ secret public model \\datagroup value;\n" +
                 "  @Secret protected Integer cache = null; //@ in value; \n" + 
                 "  @Pure public int compute() { return 0; }\n" +
                 "  //@ ensures \\result == compute();\n" +

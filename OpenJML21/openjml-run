@@ -1,0 +1,10 @@
+#! /bin/bash
+
+
+ROOT=$( cd $(dirname "$BASH_SOURCE") && pwd)
+
+EXPORTS="--add-modules jdk.compiler,java.base --add-exports=jdk.compiler/org.jmlspecs.openjml=ALL-UNNAMED  --add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml.proverinterface=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml.visitors=ALL-UNNAMED"
+
+## Now run the compiled Test progam
+OPENJML_ROOT="$ROOT/../../Solvers" "$ROOT/openjml-java" "$@"
+

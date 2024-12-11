@@ -2,7 +2,7 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.BANG;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.FOR;
-import static org.jmlspecs.openjml.ext.JMLPrimitiveTypes.*;
+import static org.jmlspecs.openjml.ext.JmlPrimitiveTypes.*;
 
 import javax.tools.JavaFileObject;
 
@@ -136,22 +136,23 @@ public class TypeExprClauseExtension extends JmlExtension {
                 if (clause.clauseType == invariantClause) {
                 	attr.jmlenv.jmlVisibility = -1;
                 	attr.attribAnnotationTypes(clause.modifiers.annotations,env); // Is this needed?
-                    JCAnnotation a = attr.findMod(clause.modifiers,Modifiers.SECRET);
+                    var a = utils.findModifier(clause.modifiers,Modifiers.SECRET);
                     attr.jmlenv.jmlVisibility = clause.modifiers.flags & Flags.AccessFlags;
                     if (a != null) {
-                        if (a.args.size() != 1) {
-                        	utils.error(clause.pos(),"jml.secret.invariant.one.arg");
-                        } else {
-                            Name datagroup = attr.getAnnotationStringArg(a);
-                            if (datagroup != null) {
-                                //Symbol v = rs.findField(env,env.enclClass.type,datagroup,env.enclClass.sym);
-                                Symbol v = JmlResolve.instance(attr.context).resolveIdent(a.args.get(0).pos(),env,datagroup,KindSelector.VAR);
-                                if (v instanceof VarSymbol) attr.currentSecretContext = (VarSymbol)v;
-                                else if (v instanceof PackageSymbol) {
-                                	utils.error(a.args.get(0).pos(),"jml.annotation.arg.not.a.field",v.getQualifiedName());
-                                }
-                            }
-                        }
+                        // FIXME
+//                        if (a.args.size() != 1) {
+//                        	utils.error(clause.pos(),"jml.secret.invariant.one.arg");
+//                        } else {
+//                            Name datagroup = attr.getAnnotationStringArg(a);
+//                            if (datagroup != null) {
+//                                //Symbol v = rs.findField(env,env.enclClass.type,datagroup,env.enclClass.sym);
+//                                Symbol v = JmlResolve.instance(attr.context).resolveIdent(a.args.get(0).pos(),env,datagroup,KindSelector.VAR);
+//                                if (v instanceof VarSymbol) attr.currentSecretContext = (VarSymbol)v;
+//                                else if (v instanceof PackageSymbol) {
+//                                	utils.error(a.args.get(0).pos(),"jml.annotation.arg.not.a.field",v.getQualifiedName());
+//                                }
+//                            }
+//                        }
                     }
                 }
                 attr.attribExpr(clause.expression, localEnv, attr.syms.booleanType);

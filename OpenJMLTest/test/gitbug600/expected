@@ -1,1 +1,5 @@
 RAC-Compiling IntDiv
+RAC-Compiling     IntDiv()
+RAC-Compiling     IntDiv(int,int)
+RAC-Compiling     _JML$$$checkInvariant()
+RAC-Compiling     _JML$$$checkStaticInvariant()

@@ -1,0 +1,17 @@
+A.java:6: verify: Show statement expression x has value false
+//@ show x;
+         ^
+A.java:7: verify: The prover cannot establish an assertion (Assert) in method main
+//@ assert false;
+    ^
+2 verification failures
+EXIT: 6
+B.java:1: error: class A is public, should be declared in a file named A.java
+public class A {
+       ^
+1 error
+EXIT: 1
+B.java:1: error: class A is public, should be declared in a file named A.java
+public class A {
+       ^
+1 error

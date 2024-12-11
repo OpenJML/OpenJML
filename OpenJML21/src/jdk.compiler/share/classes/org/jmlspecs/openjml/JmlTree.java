@@ -25,6 +25,8 @@ import static org.jmlspecs.openjml.ext.TypeInitializerClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeMapsClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeMonitorsForClauseExtension.*;
 import static org.jmlspecs.openjml.ext.TypeDeclClauseExtension.*;
+import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
+import static org.jmlspecs.openjml.ext.MethodExprListClauseExtensions.*;
 
 import com.sun.source.tree.*;
 import static com.sun.source.tree.CaseTree.*;
@@ -43,7 +45,6 @@ import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.parser.JmlToken;
-import com.sun.tools.javac.parser.Tokens.ITokenKind;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.tree.JCTree.JCOperatorExpression.OperandPos;
@@ -100,7 +101,7 @@ public class JmlTree {
     public interface JmlFactory extends JCTree.Factory {
         JmlAnnotation Annotation(JCTree type, List<JCExpression> args);
         JmlAnnotation TypeAnnotation(JCTree annotationType, List<JCExpression> args);
-        JmlBinary JmlBinary(IJmlClauseKind t, JCTree.JCExpression left, JCTree.JCExpression right);
+        JmlBinary JmlBinary(Operators.Operator t, JCTree.JCExpression left, JCTree.JCExpression right);
         JmlBlock Block(long flags, List<JCStatement> stats);
         JmlChained JmlChained(List<JCBinary> conjuncts);
         JmlChoose JmlChoose(String keyword, IJmlClauseKind clauseType, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
@@ -121,18 +122,19 @@ public class JmlTree {
         JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> cases);
         JmlMethodClauseDecl JmlMethodClauseDecl(String keyword, IJmlClauseKind t, List<JCTree.JCVariableDecl> decls);
         JmlMethodClauseExpr JmlMethodClauseExpr(String keyword, IJmlClauseKind t, JCTree.JCExpression e);
+        JmlMethodClauseBehaviors JmlMethodClauseBehaviors(String command);
+        JmlMethodClauseInvariants JmlMethodClauseInvariants(List<JCExpression> expressions);
         JmlMethodClauseCallable JmlMethodClauseCallable(JmlSingleton keyword);
         JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlMethodSig> methodSignatures);
         JmlMethodClauseConditional JmlMethodClauseConditional(String keyword, IJmlClauseKind kind, JCTree.JCExpression e, JCTree.JCExpression predicate);
         JmlMethodClauseSignals JmlMethodClauseSignals(String keyword, IJmlClauseKind kind, JCTree.JCVariableDecl var, JCTree.JCExpression e);
         JmlMethodClauseSignalsOnly JmlMethodClauseSignalsOnly(String keyword, IJmlClauseKind kind, List<JCTree.JCExpression> e);
         JmlMethodClause JmlMethodClauseStoreRef(String keyword, IJmlClauseKind kind, List<JCExpression> list);
-        JmlMethodInvocation JmlMethodInvocation(JmlTokenKind token, List<JCExpression> args);
         JmlMethodInvocation JmlMethodInvocation(IJmlClauseKind kind, List<JCExpression> args);
         JmlMethodInvocation JmlMethodInvocation(String token, List<JCExpression> args);
         JmlMethodSpecs JmlMethodSpecs(List<JmlSpecificationCase> cases);
         JmlModelProgramStatement JmlModelProgramStatement(JCTree item);
-        JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt, Name id);
+        JmlPrimitiveTypeTree JmlPrimitiveTypeTree(IJmlClauseKind kind, Name id);
         JmlQuantifiedExpr JmlQuantifiedExpr(IJmlClauseKind kind, List<JCVariableDecl> decls, JCTree.JCExpression range, JCTree.JCExpression predicate);
         JmlRange JmlRange(JCExpression lo, JCExpression hi);
         JmlSetComprehension JmlSetComprehension(JCTree.JCExpression type, JCTree.JCVariableDecl v, JCTree.JCExpression predicate);
@@ -147,7 +149,7 @@ public class JmlTree {
         JmlStatementSpec JmlStatementSpec(JmlMethodSpecs specs);
 //        JmlStoreRefArrayRange JmlStoreRefArrayRange(JCExpression expr, JCExpression lo, JCExpression hi);
 //        JmlStoreRefKeyword JmlStoreRefKeyword(IJmlClauseKind t);
-        JmlStoreRefListExpression JmlStoreRefListExpression(JmlTokenKind t, List<JCExpression> list);
+        JmlStoreRefListExpression JmlStoreRefListExpression(IJmlClauseKind token, List<JCExpression> list);
         JmlStoreRef JmlStoreRef(boolean isEverything, Symbol local, JCExpression expression, JCExpression receiver, JmlRange range, VarSymbol field, JCExpression originalStoreRef);
 
         JmlTuple JmlTuple(java.util.List<JCExpression> list);
@@ -457,14 +459,14 @@ public class JmlTree {
 
         /** Creates an expression for a JML type (such as \TYPE or \real or \bigint).*/
         @Override
-        public JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlTokenKind jt, Name id) {
-            return new JmlPrimitiveTypeTree(pos,jt,id);
+        public JmlPrimitiveTypeTree JmlPrimitiveTypeTree(IJmlClauseKind kind, Name id) {
+            return new JmlPrimitiveTypeTree(pos,kind,id);
         }
         
         @Override
         public JCExpression Type(Type t) {
             if (!(t instanceof JmlType)) return super.Type(t);
-            return new JmlPrimitiveTypeTree(pos,((JmlType)t).jmlTypeTag(), t.tsym.name); // FIXME - not sure this is right primitive types
+            return new JmlPrimitiveTypeTree(pos,((JmlType)t).jmlClauseKind(), t.tsym.name); // FIXME - not sure this is right primitive types
         }
 
         @Override
@@ -500,7 +502,7 @@ public class JmlTree {
         
         /** Creates a JML binary operation */
         @Override
-        public JmlBinary JmlBinary(IJmlClauseKind t, JCTree.JCExpression left, JCTree.JCExpression right) {
+        public JmlBinary JmlBinary(Operators.Operator t, JCTree.JCExpression left, JCTree.JCExpression right) {
             return new JmlBinary(pos,t,left,right);
         }
         
@@ -522,11 +524,11 @@ public class JmlTree {
 */
 		        
         /** Creates a JML method invocation (e.g. for JmlTokens with arguments, such as \typeof) */
-        @Override
-        public JmlMethodInvocation JmlMethodInvocation(JmlTokenKind token, List<JCExpression> args) {
-            return new JmlMethodInvocation(pos,token,args);
-        }
-        
+//        @Override
+//        public JmlMethodInvocation JmlMethodInvocation(IJmlClauseKind kind, List<JCExpression> args) {
+//            return new JmlMethodInvocation(pos,kind,args);
+//        }
+//        
         @Override
         public JmlMethodInvocation JmlMethodInvocation(String token, List<JCExpression> args) {
             return new JmlMethodInvocation(pos,token,args);
@@ -537,15 +539,15 @@ public class JmlTree {
             return new JmlMethodInvocation(pos,method,args);
         }
         
-        /** Creates a JML method invocation for the special case of one argument (e.g. for JmlTokens with arguments, such as \typeof) */
-        public JmlMethodInvocation JmlMethodInvocation(JmlTokenKind token, JCExpression arg) {
-            return new JmlMethodInvocation(pos,token,List.<JCExpression>of(arg));
-        }
-        
-        /** Creates a JML method invocation for the special case of two arguments */
-        public JmlMethodInvocation JmlMethodInvocation(JmlTokenKind token, JCExpression arg, JCExpression arg2) {
-            return new JmlMethodInvocation(pos,token,List.<JCExpression>of(arg,arg2));
-        }
+//        /** Creates a JML method invocation for the special case of one argument (e.g. for JmlTokens with arguments, such as \typeof) */
+//        public JmlMethodInvocation JmlMethodInvocation(JmlTokenKind token, JCExpression arg) {
+//            return new JmlMethodInvocation(pos,token,List.<JCExpression>of(arg));
+//        }
+//        
+//        /** Creates a JML method invocation for the special case of two arguments */
+//        public JmlMethodInvocation JmlMethodInvocation(IJmlClauseKind token, JCExpression arg, JCExpression arg2) {
+//            return new JmlMethodInvocation(pos,token,List.<JCExpression>of(arg,arg2));
+//        }
         
         /** Creates a JML method invocation for the special case of one argument (e.g. for JmlTokens with arguments, such as \typeof) */
         public JmlMethodInvocation JmlMethodInvocation(IJmlClauseKind kind, JCExpression arg) {
@@ -771,7 +773,7 @@ public class JmlTree {
         }
 
         @Override
-        public JmlStoreRefListExpression JmlStoreRefListExpression(JmlTokenKind t, List<JCExpression> list) {
+        public JmlStoreRefListExpression JmlStoreRefListExpression(IJmlClauseKind t, List<JCExpression> list) {
             return new JmlStoreRefListExpression(pos,t,list);
         }
 
@@ -879,8 +881,13 @@ public class JmlTree {
         }
         
         @Override
+        public JmlMethodClauseBehaviors JmlMethodClauseBehaviors(String command) {
+            return new JmlMethodClauseBehaviors(pos,command);
+        }
+        
+        @Override
         public JmlMethodClauseCallable JmlMethodClauseCallable(JmlSingleton keyword) {
-        	return new JmlMethodClauseCallable(pos,keyword,null);
+            return new JmlMethodClauseCallable(pos,keyword,null);
         }
         
         @Override
@@ -891,6 +898,11 @@ public class JmlTree {
         @Override
         public JmlMethodClauseConditional JmlMethodClauseConditional(String keyword, IJmlClauseKind t, JCTree.JCExpression e, JCTree.JCExpression p) {
             return new JmlMethodClauseConditional(pos,keyword,t,e,p);
+        }
+        
+        @Override
+        public JmlMethodClauseInvariants JmlMethodClauseInvariants(List<JCTree.JCExpression> e) {
+            return new JmlMethodClauseInvariants(pos,e);
         }
         
         @Override
@@ -1626,7 +1638,7 @@ public class JmlTree {
 
     /** This class represents binary expressions with JML operators */
     public static class JmlBinary extends JmlExpression {
-        public IJmlClauseKind op;
+        public Operators.Operator op;
         public JCExpression lhs;
         public JCExpression rhs;
         
@@ -1638,7 +1650,7 @@ public class JmlTree {
 
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlBinary(int pos, IJmlClauseKind op,
+        protected JmlBinary(int pos, Operators.Operator op,
                 JCExpression lhs,
                 JCExpression rhs) {
             this.pos = pos;
@@ -2353,74 +2365,63 @@ public class JmlTree {
      * note that the method expression may be null if the JML token is present. */
     public static class JmlMethodInvocation extends JCMethodInvocation {
         public int startpos;
-        public JmlTokenKind token;
         public IJmlClauseKind kind;
         public String name;
         public Object labelProperties = null; // FIXME - explain this
         public boolean javaType = false; // FIXME - this is a hack
-        
+
         /** Creates a method invocation for a JML specific construct (e.g. \typeof) -
          * no type arguments and no expression for the method name, just a token.
           - but use the factory to get new nodes, not this */
-        protected JmlMethodInvocation(int pos,
-                JmlTokenKind token,
-                List<JCExpression> args)
-        {
-            super(List.<JCExpression>nil(),null,args);
-            this.token = token;
-            this.name = null;
-            this.pos = pos; // preferred position
-            this.startpos = pos;
-        }
         protected JmlMethodInvocation(int pos,
                 IJmlClauseKind kind,
                 List<JCExpression> args)
         {
             super(List.<JCExpression>nil(),null,args);
-            this.token = null;
+            //this.token = null;
             this.kind = kind;
             this.name = null;
             this.pos = pos; // preferred position
             this.startpos = pos;
         }
-        
+
         protected JmlMethodInvocation(int pos,
                 String name,
                 List<JCExpression> args)
         {
             super(List.<JCExpression>nil(),null,args);
-            this.token = null;
+            //this.token = null;
             this.name = name;
             this.pos = pos; // preferred position
             this.startpos = pos;
         }
-        
+
         /** Creates a method invocation like a Java method invocation, except without type qualifiers */
         protected JmlMethodInvocation(int pos,
                 JCExpression method,
                 List<JCExpression> args)
         {
             super(List.<JCExpression>nil(),method,args);
-            this.token = null;
+            //this.token = null;
             this.name = null;
             this.pos = pos; // preferred position
             this.startpos = pos;
         }
-        
+
         protected JmlMethodInvocation(int pos, List<JCExpression> typeargs,
                 JCExpression meth,
                 List<JCExpression> args)
-		{
-		    super(typeargs, meth, args);
-		    this.pos = pos;
+        {
+            super(typeargs, meth, args);
+            this.pos = pos;
             this.startpos = pos; // FIXME
-		}
+        }
 
         @Override
         public int getStartPosition() {
             return meth == null ? startpos : super.getStartPosition();
         }
-        
+
         @Override
         public void accept(Visitor v) { 
             if (v instanceof IJmlVisitor) {
@@ -2429,7 +2430,7 @@ public class JmlTree {
                 v.visitTree(this);
             }
         }
-    
+
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
@@ -2516,6 +2517,7 @@ public class JmlTree {
     public static class JmlMethodClauseExpr extends JmlMethodClause {
 
         public JCTree.JCExpression expression;
+        public JCTree.JCExpression exception; // just for clauses with 'else' suffixes
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlMethodClauseExpr(int pos, String keyword, IJmlClauseKind clauseType, JCTree.JCExpression expression) {
@@ -2539,6 +2541,84 @@ public class JmlTree {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseExpr(this, d);
             } else {
                 System.out.println("A JmlMethodClauseExpr expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
+        
+        @Override
+        public int getStartPosition() {
+            return pos;
+        }
+    }
+    
+    /** This class represents a method specification clause that has just an
+     * expression (e.g. requires, ensures).
+     */
+    public static class JmlMethodClauseBehaviors extends JmlMethodClauseExpr {
+
+        public String command;
+
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlMethodClauseBehaviors(int pos, String command) {
+            super(pos,behaviorsID,behaviorsClauseKind,null);
+            this.command = command;
+        }
+
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlMethodClauseBehaviors(this); 
+            } else {
+                //System.out.println("A visitJmlMethodClauseBehaviors expects an IJmlVisitor, not a " + v.getClass());
+                super.accept(v);
+            }
+        }
+
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseBehaviors(this, d);
+            } else {
+                System.out.println("A visitJmlMethodClauseBehaviors expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
+        
+        @Override
+        public int getStartPosition() {
+            return pos;
+        }
+    }
+    
+    /** This class represents a method specification clause that has just an
+     * expression (e.g. requires, ensures).
+     */
+    public static class JmlMethodClauseInvariants extends JmlMethodClause {
+
+        public List<JCTree.JCExpression> expressions;
+
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlMethodClauseInvariants(int pos, List<JCTree.JCExpression> expressions) {
+            super(pos,invariantsID,invariantsClauseKind);
+            this.expressions = expressions;
+        }
+
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlMethodClauseInvariants(this); 
+            } else {
+                //System.out.println("A JmlMethodClauseInvariants expects an IJmlVisitor, not a " + v.getClass());
+                super.accept(v);
+            }
+        }
+
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseInvariants(this, d); 
+            } else {
+                System.out.println("A JmlMethodClauseInvariants expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);
             }
         }
@@ -2708,6 +2788,9 @@ public class JmlTree {
         /** The for-example specification cases */
         public List<JmlSpecificationCase> forExampleCases;
         
+        /** The behaviors specification cases */
+        public List<JmlMethodClauseBehaviors> behaviors;
+        
         public List<JmlMethodClause> feasible;
         
         public JmlMethodSpecs deSugared = null; // FIXME - should this be here?
@@ -2720,6 +2803,7 @@ public class JmlTree {
             this.cases = cases;
             this.impliesThatCases = List.<JmlSpecificationCase>nil();
             this.forExampleCases = List.<JmlSpecificationCase>nil();
+            this.behaviors = null;
             this.feasible = null;
         }
         
@@ -2728,6 +2812,7 @@ public class JmlTree {
             this.cases = List.<JmlSpecificationCase>nil();;
             this.impliesThatCases = List.<JmlSpecificationCase>nil();
             this.forExampleCases = List.<JmlSpecificationCase>nil();
+            this.behaviors = null;
             this.feasible = null;
         }
         
@@ -2781,23 +2866,23 @@ public class JmlTree {
     /** This class represents JML primitive types */
     static public class JmlPrimitiveTypeTree extends JCTree.JCPrimitiveTypeTree {
         
-        public JmlTokenKind token;
+        public IJmlClauseKind jmlclausekind;
         public Name typeName;
         
         /** The representation of this JML type when used in RAC */
         public JCExpression repType;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlPrimitiveTypeTree(int pos, JmlTokenKind token, Name id) {
+        protected JmlPrimitiveTypeTree(int pos, IJmlClauseKind kind, Name id) {
         	super(TypeTag.NONE);
             this.pos = pos;
-            this.token = token;
+            this.jmlclausekind = kind;
             this.typeName = id;
         }
         
         @Override
         public String toString() {
-            return token != null ? token.internedName() : super.toString();
+            return typeName.toString();
         }
     
         @Override
@@ -2852,6 +2937,9 @@ public class JmlTree {
         /** The user-specified triggers for the quantification */
         //@ nullable
         public List<JCExpression> triggers = null;
+        
+        public JmlVariableDecl founddef = null; // Not part or the parsed AST -- set and used in RAC translations
+        public JCStatement failure = null; // Not part or the parsed AST -- set and used in RAC translations
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlQuantifiedExpr(int pos, IJmlClauseKind kind,
@@ -3034,6 +3122,7 @@ public class JmlTree {
         public IJmlClauseKind token;
         public IJmlClauseKind also;
         public boolean code;
+        public boolean callee_only;
         public List<JmlMethodClause> clauses; // A behavior spec case has clauses but no block of statements
         public JCBlock block;  // A model program has a block (of statements) but no clauses
         public JavaFileObject sourcefile;
@@ -3044,6 +3133,7 @@ public class JmlTree {
             this.sourcefile = null;
             this.modifiers = mods;
             this.code = code;
+            this.callee_only = false;
             this.token = token;
             this.also = also;
             this.clauses = clauses;
@@ -3054,6 +3144,7 @@ public class JmlTree {
             this.pos = old.pos;
             this.modifiers = old.modifiers;
             this.code = old.code;
+            this.callee_only = false;
             this.token = old.token;
             this.also = old.also;
             this.sourcefile = old.sourcefile;
@@ -3565,7 +3656,7 @@ public class JmlTree {
     	public JavaFileObject source;
     	
     	public boolean isEverything() { return isEverything; }
-    	public boolean isNothing() { return originalStoreRef instanceof JmlSingleton sing && sing.kind == JMLPrimitiveTypes.nothingKind; }
+    	public boolean isNothing() { return originalStoreRef instanceof JmlSingleton sing && sing.kind == JmlPrimitiveTypes.nothingKind; }
     	
     	// Cases: before type attribution (type == null)
     	// isEverything=true: \everything
@@ -3647,11 +3738,11 @@ public class JmlTree {
 
     /** This class represents JML functions that take a list of store-refs as arguments. */
     public static class JmlStoreRefListExpression extends JmlExpression {
-        public JmlTokenKind token;
+        public IJmlClauseKind token;
         public List<JCExpression> list;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlStoreRefListExpression(int pos, JmlTokenKind token, List<JCExpression> list) {
+        protected JmlStoreRefListExpression(int pos, IJmlClauseKind token, List<JCExpression> list) {
             this.pos = pos;
             this.token = token;
             this.list = list;
@@ -4218,6 +4309,16 @@ public class JmlTree {
             list.append(arr);
             if (index != null) list.append(index);
             if (rhs != null) list.append(rhs);
+            args = list.toList();
+        }
+        
+        public JmlBBArrayAssignment(JCIdent newarrs, JCExpression arr, JCExpression index, JCExpression rhs) {
+            super(null,null,null);
+            ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
+            list.append(newarrs);
+            list.append(arr);
+            list.append(index);
+            list.append(rhs);
             args = list.toList();
         }
         

@@ -1415,7 +1415,7 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1bad",5
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1bad",12
                 );
     }
 
@@ -1679,17 +1679,17 @@ public class escnew extends EscBase {
                 +"  //@ ensures true; pure\n"
                 +"  public int mmr(int i) { return 0; };\n"
                 
-                +"  //@ ensures !\\fresh(\\result); pure\n"
+                +"  //@ ensures !\\fresh(\\result); spec_pure\n"
                 +"  //@ model public <TT> TT mt(int i);\n"
                 
-                +"  //@ ensures !\\fresh(\\result); pure\n"
+                +"  //@ ensures !\\fresh(\\result); spec_pure\n"
                 +"  public /*@ nullable */ <TT> TT mtr(int i) { return null; };\n"
                 
-                +"  //@ ensures true; pure\n"
-                +"  //@ model heap_free public static int mf(int i);\n"
+                +"  //@ ensures true;\n"
+                +"  //@ model no_state public static int mf(int i);\n"
                 
-                +"  //@ ensures true; pure\n"
-                +"  //@ heap_free \n"
+                +"  //@ ensures true;\n"
+                +"  //@ no_state \n"
                 +"  public static int mfr(int i) { return 0; }\n"
                 
                 +"  //@ ensures mm(i) == mm(i);\n"
@@ -1702,7 +1702,7 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"  //@ ensures mt(i) == mt(i);\n"
-                +"  public void m3(int i) {\n"
+                +"  public void m3(int i) {\n"  // Line 24
                 +"  }\n"
                 
                 +"  //@ ensures mtr(i) == \\result;\n"
@@ -1759,6 +1759,9 @@ public class escnew extends EscBase {
                 
                
                 +"}"
+                ,"/tt/TestJava.java:11: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm(int)", 17
+                ,"/tt/TestJava.java:16: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm2(int)", 18
+                ,"/tt/TestJava.java:20: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm3(int)", 18
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method m1",7
                 ,"/tt/TestJava.java:11: warning: Associated declaration",7
                 ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Postcondition) in method m3",7
@@ -2388,7 +2391,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testLongShift() {
-        addOptions("-code-math=java");
+        addOptions("--code-math=java");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 

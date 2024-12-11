@@ -17,7 +17,7 @@ import org.jmlspecs.lang.*;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.runtime.JmlAssertionError.Precondition;
-
+import org.jmlspecs.lang.internal.TYPE;
 
 /** 
  * This class contains utility methods used in internal translations for both
@@ -375,7 +375,7 @@ public class Utils {
      * @return the value of v
      */
     public static boolean reportBoolean(String key, boolean v) {
-        report("LABEL " + key + " = " + v);System.out.flush();
+        report("LABEL " + key + " = " + v);
         return v;
     }
 
@@ -426,64 +426,64 @@ public class Utils {
         }
     }
     
-    public static boolean equalTYPE(IJMLTYPE t1, IJMLTYPE t2) {
-        if (t1 == t2) return true;
-        if (t1 == null || t2 == null) return false;
-        return t1.equals(t2);
-    }
-    
-
-    // TODO - document - this and following
-    public static @NonNull IJMLTYPE makeTYPE(@NonNull Class<?> base, @NonNull IJMLTYPE... args) {
-        return JmlTypeRac.make(base,args);
-    }
-    
-    public static  IJMLTYPE makeTYPEN(Class<?> base) {
-        return JmlTypeRac.make(base,null);
-    }
-    
-    public static  IJMLTYPE makeTYPEQ() {
-        return JmlTypeRac.make(null,null);
-    }
-    
-    public static final IJMLTYPE[] emptyArgs = {};
-    
-    public static @NonNull IJMLTYPE makeTYPE0(@NonNull Class<?> base) {
-        if (base == null) return null;
-        return JmlTypeRac.make(base,emptyArgs);
-    }
-    
-    public static @NonNull IJMLTYPE makeTYPE1(@NonNull Class<?> base, @NonNull IJMLTYPE a0) {
-        if (base == null) return null;
-        return JmlTypeRac.make(base,new IJMLTYPE[]{a0});
-    }
-    
-    public static @NonNull IJMLTYPE makeTYPE2(@NonNull Class<?> base, @NonNull IJMLTYPE a0, @NonNull IJMLTYPE a1) {
-        if (base == null) return null;
-        return JmlTypeRac.make(base,new IJMLTYPE[]{a0,a1});
-    }
-    
-    public static  Class<?> erasure(IJMLTYPE t) {
-        return t.erasure();
-    }
-    
-    public static IJMLTYPE[] typeargs(IJMLTYPE t) {
-        return t.typeargs();
-    }
-    
-    public static boolean isArray(IJMLTYPE t) {
-        return t.erasure().isArray();
-    }
-    
-    public static Class<?> getJavaComponentType(Class<?> t) {
-        return (t.getComponentType());
-    }
-    
-    public static IJMLTYPE getJMLComponentType(IJMLTYPE t) {
-        return makeTYPE0(t.erasure().getComponentType());
-    }
-    
-    
+//    public static boolean equalTYPE(IJMLTYPE t1, IJMLTYPE t2) {
+//        if (t1 == t2) return true;
+//        if (t1 == null || t2 == null) return false;
+//        return t1.equals(t2);
+//    }
+//    
+//
+//    // TODO - document - this and following
+//    public static @NonNull IJMLTYPE makeTYPE(@NonNull Class<?> base, @NonNull IJMLTYPE... args) {
+//        return JmlTypeRac.make(base,args);
+//    }
+//    
+//    public static  IJMLTYPE makeTYPEN(Class<?> base) {
+//        return JmlTypeRac.make(base,null);
+//    }
+//    
+//    public static  IJMLTYPE makeTYPEQ() {
+//        return JmlTypeRac.make(null,null);
+//    }
+//    
+//    public static final IJMLTYPE[] emptyArgs = {};
+//    
+//    public static @NonNull IJMLTYPE makeTYPE0(@NonNull Class<?> base) {
+//        if (base == null) return null;
+//        return JmlTypeRac.make(base,emptyArgs);
+//    }
+//    
+//    public static @NonNull IJMLTYPE makeTYPE1(@NonNull Class<?> base, @NonNull IJMLTYPE a0) {
+//        if (base == null) return null;
+//        return JmlTypeRac.make(base,new IJMLTYPE[]{a0});
+//    }
+//    
+//    public static @NonNull IJMLTYPE makeTYPE2(@NonNull Class<?> base, @NonNull IJMLTYPE a0, @NonNull IJMLTYPE a1) {
+//        if (base == null) return null;
+//        return JmlTypeRac.make(base,new IJMLTYPE[]{a0,a1});
+//    }
+//    
+//    public static  Class<?> erasure(IJMLTYPE t) {
+//        return t.erasure();
+//    }
+//    
+//    public static IJMLTYPE[] typeargs(IJMLTYPE t) {
+//        return t.typeargs();
+//    }
+//    
+//    public static boolean isArray(IJMLTYPE t) {
+//        return t.erasure().isArray();
+//    }
+//    
+//    public static Class<?> getJavaComponentType(Class<?> t) {
+//        return (t.getComponentType());
+//    }
+//    
+//    public static IJMLTYPE getJMLComponentType(IJMLTYPE t) {
+//        return makeTYPE0(t.erasure().getComponentType());
+//    }
+//    
+//    
     public static String getClassName(Object o) {
         return o.getClass().getName();
     }
@@ -491,21 +491,21 @@ public class Utils {
     public static String concat(String s1, String s2) {
         return s1 + s2;
     }
-    
-    public static boolean isSubTypeOf(IJMLTYPE t, IJMLTYPE tt) {
-        try {
-            return tt.erasure().isAssignableFrom(t.erasure());
-        } catch (java.lang.IncompatibleClassChangeError e) {
-            System.err.println("ISTO: " + t.erasure() + " " + tt.erasure());
-            return false;
-        }
-    }
-    
-    public static boolean isEqualTo(IJMLTYPE t, IJMLTYPE tt) {
-        if (t == tt) return true;
-        if (t == null || tt == null) return false;
-        return tt.erasure() == t.erasure();
-    }
+//    
+//    public static boolean isSubTypeOf(IJMLTYPE t, IJMLTYPE tt) {
+//        try {
+//            return tt.erasure().isAssignableFrom(t.erasure());
+//        } catch (java.lang.IncompatibleClassChangeError e) {
+//            System.err.println("ISTO: " + t.erasure() + " " + tt.erasure());
+//            return false;
+//        }
+//    }
+//    
+//    public static boolean isEqualTo(IJMLTYPE t, IJMLTYPE tt) {
+//        if (t == tt) return true;
+//        if (t == null || tt == null) return false;
+//        return tt.erasure() == t.erasure();
+//    }
     
     public static <T> Iterator<T> iterator(Iterable<T> iterable) {
         return iterable.iterator();
@@ -519,88 +519,88 @@ public class Utils {
         return iterable.hasNext();
     }
     
-    // TODO - document this and following
-    private static class JmlTypeRac implements IJMLTYPE {
-
-        final private Class<?> base;
-        final private IJMLTYPE[] args;
-        final private static Map<IJMLTYPE,IJMLTYPE> internSet = new HashMap<IJMLTYPE,IJMLTYPE>();
-        
-        public static IJMLTYPE make(Class<?> base, IJMLTYPE[] args) {
-            JmlTypeRac t = new JmlTypeRac(base,args);
-            return t.intern();
-        }
-        
-        public String toString() {
-            if (base == null) return "?"; // FIXME - really this is just unknown, not a wildcard
-            String s = base.toString();
-            if (args != null && args.length > 0) {
-                s = s + "<";
-                boolean first = true;
-                for (IJMLTYPE t: args) {
-                    if (first) first = false; else s = s + ",";
-                    s = s + t.toString();
-                }
-                s = s + ">";
-            }
-            return s;
-        }
-        
-        private IJMLTYPE intern() {
-            IJMLTYPE tt = internSet.get(this);
-            if (tt == null) {
-                tt = this;
-                internSet.put(this,this);
-            }
-            return tt;
-        }
-        
-        private JmlTypeRac(Class<?> base, IJMLTYPE... args) {
-            this.base = base;
-            this.args = args;
-        }
-
-        @Override
-        public IJMLTYPE[] typeargs() {
-            return args;
-        }
-
-        @Override
-        public boolean equals(IJMLTYPE t) {
-            return isEqualTo(this,t);
-        }
-        
-        //JAVA16  @Override
-        public int hashCode() {
-            if (base == null) return 0;
-            int i = base.hashCode();
-            int k = 0;
-            for (IJMLTYPE t: args) i = i + (t.hashCode()<< (++k));
-            return i;
-        }
-
-        @Override
-        public Class<?> erasure() {
-            return base;
-        }
-
-        @Override
-        public boolean isArray() {
-            return base.isArray();
-        }
-
-        @Override
-        public boolean isSubtypeOf(IJMLTYPE t) {
-            return t.erasure().isAssignableFrom(this.base);
-        }
-        
-        @Override  // FIXME - does not work for arrays of JML types with type arguments.
-        public IJMLTYPE getComponentType() {
-            if (!base.isArray()) return null;
-            return Utils.getJMLComponentType(this);
-        }
-
-    }
+//    // TODO - document this and following
+//    private static class JmlTypeRac implements IJMLTYPE {
+//
+//        final private Class<?> base;
+//        final private IJMLTYPE[] args;
+//        final private static Map<IJMLTYPE,IJMLTYPE> internSet = new HashMap<IJMLTYPE,IJMLTYPE>();
+//        
+//        public static IJMLTYPE make(Class<?> base, IJMLTYPE[] args) {
+//            JmlTypeRac t = new JmlTypeRac(base,args);
+//            return t.intern();
+//        }
+//        
+//        public String toString() {
+//            if (base == null) return "?"; // FIXME - really this is just unknown, not a wildcard
+//            String s = base.toString();
+//            if (args != null && args.length > 0) {
+//                s = s + "<";
+//                boolean first = true;
+//                for (IJMLTYPE t: args) {
+//                    if (first) first = false; else s = s + ",";
+//                    s = s + t.toString();
+//                }
+//                s = s + ">";
+//            }
+//            return s;
+//        }
+//        
+//        private IJMLTYPE intern() {
+//            IJMLTYPE tt = internSet.get(this);
+//            if (tt == null) {
+//                tt = this;
+//                internSet.put(this,this);
+//            }
+//            return tt;
+//        }
+//        
+//        private JmlTypeRac(Class<?> base, IJMLTYPE... args) {
+//            this.base = base;
+//            this.args = args;
+//        }
+//
+//        @Override
+//        public IJMLTYPE[] typeargs() {
+//            return args;
+//        }
+//
+//        @Override
+//        public boolean equals(IJMLTYPE t) {
+//            return isEqualTo(this,t);
+//        }
+//        
+//        //JAVA16  @Override
+//        public int hashCode() {
+//            if (base == null) return 0;
+//            int i = base.hashCode();
+//            int k = 0;
+//            for (IJMLTYPE t: args) i = i + (t.hashCode()<< (++k));
+//            return i;
+//        }
+//
+//        @Override
+//        public Class<?> erasure() {
+//            return base;
+//        }
+//
+//        @Override
+//        public boolean isArray() {
+//            return base.isArray();
+//        }
+//
+//        @Override
+//        public boolean isSubtypeOf(IJMLTYPE t) {
+//            return t.erasure().isAssignableFrom(this.base);
+//        }
+//        
+//        @Override  // FIXME - does not work for arrays of JML types with type arguments.
+//        public IJMLTYPE getComponentType() {
+//            if (!base.isArray()) return null;
+//            return Utils.getJMLComponentType(this);
+//        }
+//
+//    }
     
     public static interface ValueBool {
         public boolean value(final Object[] args);
@@ -638,165 +638,6 @@ public class Utils {
         public T value(final Object[] args);
     }
     
-    public static BigInteger bigint_add(BigInteger a, BigInteger b) {
-        return a.add(b);
-    }
-
-    public static BigInteger bigint_sub(BigInteger a, BigInteger b) {
-        return a.subtract(b);
-    }
-
-    public static BigInteger bigint_sub1(BigInteger a) {
-        return a.subtract(BigInteger.ONE);
-    }
-
-    public static BigInteger bigint_mul(BigInteger a, BigInteger b) {
-        return a.multiply(b);
-    }
-
-    public static BigInteger bigint_div(BigInteger a, BigInteger b) {
-        return a.divide(b);
-    }
-
-    public static BigInteger bigint_remainder(BigInteger a, BigInteger b) {
-        return a.remainder(b);
-    }
-
-    public static BigInteger bigint_neg(BigInteger a) {
-        return a.negate();
-    }
-
-    public static boolean bigint_lt(BigInteger a, BigInteger b) {
-        return a.compareTo(b) < 0;
-    }
-
-    public static boolean bigint_le(BigInteger a, BigInteger b) {
-        return a.compareTo(b) <= 0;
-    }
-
-    public static boolean bigint_gt(BigInteger a, BigInteger b) {
-        return a.compareTo(b) > 0;
-    }
-
-    public static boolean bigint_ge(BigInteger a, BigInteger b) {
-        return a.compareTo(b) >= 0;
-    }
-
-    public static boolean bigint_eq(BigInteger a, BigInteger b) {
-        return a.compareTo(b) == 0;
-    }
-
-    public static boolean bigint_ne(BigInteger a, BigInteger b) {
-        return a.compareTo(b) != 0;
-    }
-
-    public static boolean bigint_nonzero(BigInteger a) {
-        return a.compareTo(BigInteger.ZERO) != 0;
-    }
-
-    public static float bigint_tofloat(BigInteger a) {
-        return a.floatValue();
-    }
-
-    public static double bigint_todouble(BigInteger a) {
-        return a.doubleValue();
-    }
-
-    public static long bigint_tolong(BigInteger a) {
-        return a.longValue();
-    }
-
-    public static int bigint_toint(BigInteger a) {
-        return a.intValue();
-    }
-
-    public static char bigint_tochar(BigInteger a) {
-        return (char)a.shortValue();
-    }
-
-    public static short bigint_toshort(BigInteger a) {
-        return a.shortValue();
-    }
-
-    public static byte bigint_tobyte(BigInteger a) {
-        return a.byteValue();
-    }
-
-    public static Real bigint_toreal(BigInteger a) {
-        return new Real(a.doubleValue());
-    }
-
-    public static BigInteger bigint_valueOf(long i) {
-        return BigInteger.valueOf(i);
-    }
-
-    public static BigInteger bigint_valueOfNumber(Number i) {
-        return BigInteger.valueOf(i.longValue());
-    }
-
-    public static Real real_add(Real a, Real b) {
-        return a.add(b);
-    }
-
-    public static Real real_sub(Real a, Real b) {
-        return a.subtract(b);
-    }
-
-    public static Real real_mul(Real a, Real b) {
-        return a.multiply(b);
-    }
-
-    public static Real real_div(Real a, Real b) {
-        return a.divide(b);
-    }
-
-    public static Real real_mod(Real a, Real b) {
-        return a.mod(b);
-    }
-
-    public static Real real_neg(Real a) {
-        return a.neg();
-    }
-
-    public static boolean real_lt(Real a, Real b) {
-        return a.compareTo(b) < 0;
-    }
-
-    public static boolean real_le(Real a, Real b) {
-        return a.compareTo(b) <= 0;
-    }
-
-    public static boolean real_gt(Real a, Real b) {
-        return a.compareTo(b) > 0;
-    }
-
-    public static boolean real_ge(Real a, Real b) {
-        return a.compareTo(b) >= 0;
-    }
-
-    public static boolean real_eq(Real a, Real b) {
-        return a.compareTo(b) == 0;
-    }
-
-    public static boolean real_ne(Real a, Real b) {
-        return a.compareTo(b) != 0;
-    }
-
-    public static boolean real_nonzero(Real a) {
-        return a.compareTo(Real.ZERO) != 0;
-    }
-
-    public static Real real_valueOf(double i) {
-        return Real.valueOf(i);
-    }
-
-    public static double real_todouble(Real a) {
-        return a.doubleValue();
-    }
-
-    public static float real_tofloat(Real a) {
-        return (float)a.doubleValue();
-    }
 
     /** Makes a new copy of the argument */
     public static <T> T[] copyArray(T[] o) {
@@ -912,5 +753,10 @@ public class Utils {
             java.lang.Runtime.getRuntime().addShutdownHook(t);
         }
         numVerificationErrors++;
+    }
+    
+    // FIXME - get rid of this and use TYPE.of in JmlTreeUtils
+    public TYPE makeTYPE0(Class<?> clazz) {
+        return TYPE.of(clazz, TYPE.noargs);
     }
 }

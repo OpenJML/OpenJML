@@ -44,7 +44,7 @@ public class racnewWithSpecs extends RacBase {
                            System.out.println("END"); // FIXME - crash with using new String() with no argument
                       }
                    
-                      //@ requires JML.informal("asd") && (\\lbl CLS JML.erasure(\\typeof(i))) == Object.class;
+                      //@ requires JML.informal("asd") && (\\lbl CLS (\\typeof(i)).erasure()) == Object.class;
                       static public void m(/*@nullable*/Object i) {
                           System.out.println("CLASS " + i.getClass());
                       }

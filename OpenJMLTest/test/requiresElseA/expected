@@ -1,5 +1,0 @@
-test/requiresElseA/Test.java:5: error: A recommends clause must include an exception (recommends <expr> else <exception>;
-    //@ recommends o != null ;
-                             ^
-Operation not performed because of parse or type errors
-1 error

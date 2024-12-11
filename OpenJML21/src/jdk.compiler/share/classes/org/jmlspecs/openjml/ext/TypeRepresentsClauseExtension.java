@@ -5,7 +5,6 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.EQ;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
 import org.jmlspecs.openjml.JmlTree.Maker;
 
@@ -41,7 +40,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
                 suchThat = false;
                 parser.nextToken();
                 e = parser.parseExpression();
-            } else if (parser.jmlTokenKind() == JmlTokenKind.LEFT_ARROW) {
+            } else if (parser.jmlTokenClauseKind() == org.jmlspecs.openjml.ext.Operators.leftarrowKind) {
                 if (utils.isDeprecationSet() && ! strict) {
                 	utils.warning(parser.pos(), "jml.deprecated.left.arrow.in.represents");
                 }

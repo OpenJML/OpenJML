@@ -41,7 +41,13 @@ public class MethodClauseExprType extends IJmlClauseKind.MethodSpecClauseKind {
         parser.nextToken();
         var n = parser.parseOptionalName();
         JCExpression e = parser.parseExpression();
+        JCExpression exception = null;
+        if (parser.token().kind == com.sun.tools.javac.parser.Tokens.TokenKind.ELSE) {
+            parser.nextToken();
+            exception = parser.parseQualifiedIdent(false);
+        }
         JmlMethodClauseExpr cl = parser.maker().at(pp).JmlMethodClauseExpr(keyword, clauseType, e);
+        cl.exception = exception;
         wrapup(cl, clauseType, true, true);
         cl.name = n;
         return cl;
@@ -52,5 +58,5 @@ public class MethodClauseExprType extends IJmlClauseKind.MethodSpecClauseKind {
         // TODO Auto-generated method stub
         return null;
     }
-    
+        
 }

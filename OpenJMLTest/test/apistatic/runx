@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+
+F1="$BASH_SOURCE[0]"
+F2=$(dirname "$F1")
+cd "$F2"
+R="../../../OpenJML21"
+
+"$R/openjml" --compile Run.java
+"$R/openjml-java" Run

@@ -2,7 +2,6 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.COLON;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
-import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
@@ -25,6 +24,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
 
 public class StatementExprExtensions extends JmlExtension {
     
@@ -44,8 +44,12 @@ public class StatementExprExtensions extends JmlExtension {
     public static final IJmlClauseKind commentClause = new StatementExprType(commentID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree t, Env<AttrContext> env) {
-        	// Do nothing for a comment clause -- just contains text
-        	return null;
+            var type = super.typecheck(attr,  t,  env);
+            if (t instanceof JmlTree.JmlStatementExpr tree && !(tree.expression instanceof JCLiteral lit)) {
+                utils.error(tree.expression != null ? tree.expression : tree,
+                        "jml.message", "A comment statement may only contain a string literal");
+            }
+            return type;
         }
     };
     
@@ -73,7 +77,7 @@ public class StatementExprExtensions extends JmlExtension {
             var n = parser.parseOptionalName();
 
             JCExpression t;
-            if ((parser.token().kind == SEMI || parser.token().ikind == ENDJMLCOMMENT) && clauseType == splitClause) {
+            if ((parser.token().kind == SEMI || parser.isEndJml()) && clauseType == splitClause) {
                 // expression is optional in split statement
                 t = null;
             } else {
@@ -142,10 +146,13 @@ public class StatementExprExtensions extends JmlExtension {
             attr.jmlenv = attr.jmlenv.pushCopy();
             attr.jmlenv.inPureEnvironment = true;
             attr.jmlenv.currentClauseKind = tree.clauseType;
-            Type expectedType = tree.clauseType == loopdecreasesClause ? JmlTypes.instance(attr.context).BIGINT : isUse ? Type.noType : attr.syms.booleanType; 
+            Type expectedType = tree.clauseType == loopdecreasesClause ? JmlPrimitiveTypes.bigintTypeKind.getType(attr.context)
+                : isUse ? Type.noType
+                : tree.clauseType == commentClause ? attr.syms.stringType
+                : attr.syms.booleanType; 
             if (tree.expression != null) {
-            	var ty = attr.attribExpr(tree.expression,env,expectedType);
-            	tree.expression.type = ty != attr.syms.errType ? ty : expectedType;
+                var ty = attr.attribExpr(tree.expression,env,expectedType);
+                tree.expression.type = ty != attr.syms.errType ? ty : expectedType;
             }
             if (tree.optionalExpression != null) attr.attribExpr(tree.optionalExpression,env,Type.noType);
             attr.jmlenv = attr.jmlenv.pop();

@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry exported="true" kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="lib" path="libs/hamcrest-junit-2.0.0.0.jar"/>
 	<classpathentry kind="lib" path="libs/java-hamcrest-2.0.0.0.jar"/>
 	<classpathentry kind="src" path="src">
@@ -14,7 +9,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="unittests"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/JMLAnnotations"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/OpenJMLDev21"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>

@@ -5,7 +5,7 @@
  */
 package com.sun.tools.javac.code;
 
-import org.jmlspecs.openjml.JmlTokenKind;
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes.JmlTypeKind;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
@@ -18,7 +18,7 @@ public class JmlType extends Type {
     /** The token defining the primitive type - 
      * is immutable after construction.
      */
-    final protected JmlTokenKind jmlTypeTag;
+    protected JmlTypeKind jmlClauseKind = null;
     
     final protected Name id;
     
@@ -35,9 +35,9 @@ public class JmlType extends Type {
     /** Creates a new primitive type with the given token - should be a 
      * singleton for each new JML type */
     // package visibility
-    JmlType(JmlTokenKind token, String fullyQualifiedClassName) {
+    JmlType(JmlTypeKind kind, String fullyQualifiedClassName) {
         super(null);
-        jmlTypeTag = token;
+        jmlClauseKind = kind;
         fqName = fullyQualifiedClassName;
         this.id = null;
     }
@@ -45,26 +45,26 @@ public class JmlType extends Type {
     /** Creates a new primitive type with the given name - should be a 
      * singleton for each new JML type */
     // package visibility
-    JmlType(JmlTokenKind token, Name id, String fullyQualifiedClassName, List<TypeMetadata> metadata) {
+    JmlType(JmlTypeKind kind, Name id, String fullyQualifiedClassName, List<TypeMetadata> metadata) {
         super(null);
-        jmlTypeTag = JmlTokenKind.PRIMITIVE_TYPE;
+        jmlClauseKind = kind;
         fqName = fullyQualifiedClassName;
         this.id = id;
     }
     
-    JmlType(JmlTokenKind token, Name id, String fullyQualifiedClassName) {
+    JmlType(JmlTypeKind token, Name id, String fullyQualifiedClassName) {
     	this(token, id, fullyQualifiedClassName, null);
     }
 
     
     /** The JmlToken that designates this type */
-    public JmlTokenKind jmlTypeTag() {
-        return jmlTypeTag;
+    public JmlTypeKind jmlClauseKind() {
+        return jmlClauseKind;
     }
     
     /** Returns the public name of the type token */
     @Override public String toString() {
-        return jmlTypeTag.internedName();
+        return jmlClauseKind.toString();
     }
     
     // returns true for these new JML primitive types
@@ -92,7 +92,7 @@ public class JmlType extends Type {
 
     @Override
     public JmlType cloneWithMetadata(List<TypeMetadata> metadata) {
-    	JmlType t = new JmlType(jmlTypeTag, id, fqName, metadata);
+    	JmlType t = new JmlType(jmlClauseKind, id, fqName, metadata);
     	t.tsym = this.tsym;
     	return t;
     }

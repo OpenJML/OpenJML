@@ -1,10 +1,14 @@
 #!/bin/bash
 
-## This is for the development environment
-
-R1=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks; R1 will be the path to this file
-R2=$(dirname "$R1") # path containing this file, namely the installation folder
-R=$( cd "$R2"  && pwd) ## absolute path, still might have spaces
+# Use quotes to accommodate paths containing spaces
+## realpath is needed to resolve symbolic links, but is not present on all OSes
+## e.g. on Macs it must be installed (brew install coreutils)
+if [ -n "`which realpath`" ] ; then
+     R1=$(realpath "$BASH_SOURCE")
+else R1="$BASH_SOURCE"
+fi
+R2=$(dirname "$R1")      # Gets directory holding this file
+ROOT=$( cd "$R2" && pwd) # Converts to absolute path
 
 # mac-setup is needed to fix Mac security complaints, though it is only
 # needed once
@@ -12,6 +16,4 @@ if [ "$( uname )" = "Darwin" ] ; then
   "${ROOT}/mac-setup" > /tmp/openjmlsetup 2>&1 ;
 fi
 
-BIN=`echo $R/jdk/bin/java`
-
-$BIN "$@"
+OPENJML_ROOT="$ROOT" "$ROOT/jdk/bin/javac" "$@"

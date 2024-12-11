@@ -270,6 +270,8 @@ module jdk.compiler {
         jdk.jshell;
     exports jdk.internal.shellsupport.doc to
         jdk.jshell;
+    
+    exports org.openjml;
 
     uses javax.annotation.processing.Processor;
     uses com.sun.source.util.Plugin;

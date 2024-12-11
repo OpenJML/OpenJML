@@ -54,6 +54,13 @@ public class racfiles extends RacBase {
     			"-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
     }
 
+    @Test
+    public void racchoose() {
+        expectedExit = 0;
+        expectedRACExit = 0;
+        helpTCF("test/racchoose","test/racchoose","T");
+    }
+
     /** Testing using system specs */
     @Test  // FIXME - problems with library specs - RAC cannot handle ghost variables when it does not compile the class file
     public void test1a() {
@@ -84,7 +91,7 @@ public class racfiles extends RacBase {
     @Test // Originally crashed because of a model method in a library class
     public void racPoint2() {
         expectedExit = 0;
-        helpTCF("test/racPoint2","test/racPoint2","Point","--show");
+        helpTCF("test/racPoint2","test/racPoint2","Point");
     }
 
     @Test
@@ -94,19 +101,19 @@ public class racfiles extends RacBase {
     }
 
     @Test
-    public void testUniqueList() {
+    public void uniqueList() {
         expectedExit = 0;
         helpTCF("test/uniqueList","test/uniqueList","UniqueList","--rac-java-checks","--rac-check-assumptions");
     }
 
     @Test 
-    public void testUniqueList1() {
+    public void uniqueListBug1() {
         expectedExit = 0;
         helpTCF("test/uniqueListBug1","test/uniqueListBug1","UniqueListBug1","--rac-java-checks","--rac-check-assumptions");
     }
 
     @Test 
-    public void testUniqueList2() {
+    public void uniqueListBug2() {
         expectedExit = 0;
         helpTCF("test/uniqueListBug2","test/uniqueListBug2","UniqueListBug2");
     }
@@ -132,13 +139,13 @@ public class racfiles extends RacBase {
 
 
     @Test
-    public void testbigint() {
+    public void racbigint() {
         expectedExit = 0;
         helpTCF("test/racbigint","test/racbigint","bigint");
     }
 
     @Test
-    public void testreal() {
+    public void racreal() {
         expectedExit = 0;
         helpTCF("test/racreal","test/racreal","real");
     }
@@ -150,7 +157,7 @@ public class racfiles extends RacBase {
     }
 
     @Test
-    public void testECU() {
+    public void ecurac() {
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecurac","Test","--rac-java-checks","--rac-check-assumptions");
     }
@@ -470,6 +477,20 @@ public class racfiles extends RacBase {
     }
 
     @Test
+    public void gitbug807() {
+        runrac = true;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug807","test/gitbug807","Foo");
+    }
+
+    @Test
+    public void gitbug809() {
+        runrac = false;
+        expectedRACExit = 0;
+        helpTCF("test/gitbug809","test/gitbug809","Parent");
+    }
+
+    @Test
     public void sfbug413() {
         expectedRACExit = 0;
         helpTCF("test/sfbug413","test/sfbug413","Main");
@@ -519,19 +540,29 @@ public class racfiles extends RacBase {
         helpTCF("test/racRM2","test/racRM2","MaxSumArray","-code-math=safe","-spec-math=bigint");
     }
     
-    @Test @Ignore // FIXME - RAC Not yet working for programs using string
+    @Test 
     public void valuestrings() {
-        expectedRACExit = 1;
-        helpTCF("test/valuestrings","test/valuestrings","JmlStringTest");
+        expectedRACExit = 0;
+        helpTCF("test/valuestrings","test/valuestrings","JMLStringTest");
     }
 
     @Test
     public void range() {
-    	helpTCF("test/rangeTest","test/rangeTest","R");
+        helpTCF("test/rangeTest","test/rangeTest","R");
+    }
+    
+    @Test
+    public void record1() {
+        helpTCF("test/record1","test/record1","RR");
     }
     
     @Test
     public void textBlock4() {
         helpTCF("test/textBlock4","test/textBlock4","Test");
+    }
+    
+    @Test
+    public void textBlock4b() {
+        helpTCF("test/textBlock4b","test/textBlock4b","Test");
     }
 }

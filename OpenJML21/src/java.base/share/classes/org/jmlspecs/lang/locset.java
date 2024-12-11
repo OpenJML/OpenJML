@@ -1,28 +1,21 @@
 package org.jmlspecs.lang;
 
 //@ immutable pure 
-public class locset implements IJmlPrimitiveType {
+public abstract class locset implements IJmlPrimitiveType {
 	
 	private locset() {}
 	
-//	public static class Item extends locset {
-//		public JMLStoreRefExpression loc;
-//		public Item(JmlStoreRefExpression loc) {
-//			this.loc = loc;
-//		}
-//	}
-//	
-//	public static class List extends locset {
-//		public java.util.List<locset> list;
-//		public List() {
-//			this.list = new java.util.List<locset>();
-//		}
-//		public List(java.util.List<locset> list) {
-//			this.list = list;
-//		}
-//		public void add(locset) {
-//			list.add(locset);
-//		}
-//	}
+    abstract public boolean contains(locset x);
+
+    public static boolean empty() { return false; }
     
+//    static public locset locset() { return new locset(); }
+        
+    public static boolean eq(locset s, locset ss) { return s.equals(ss); }
+    
+    abstract public boolean eq(locset s);
+    
+    abstract public locset add(locset x);
+    
+    abstract public locset remove(location x);    
 }

@@ -1,6 +1,6 @@
 public class Test {
 	
-	//@ model public JMLDataGroup d;
+	//@ model public \datagroup d;
 	
 	public int[] a = new int[10];
 	public boolean b; //@ in d;

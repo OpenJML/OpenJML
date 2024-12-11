@@ -2,7 +2,7 @@ public class ModelFunctions {
     /*@ public normal_behavior
       @   assignable \nothing;
       @   ensures true;
-      @ public heap_free static model pure int chomp(int i);
+      @ public no_state static model int chomp(int i);
       @*/
 
     //@ axiom \forall int i, j; 489 <= i && i < 526 && 0 <= j && j < 10; i == j ==> chomp(i) == chomp(j);
