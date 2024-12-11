@@ -575,29 +575,6 @@ public class JmlEnter extends Enter {
     	var prev = log.useSource(speccu.sourcefile);
     	var specs = JmlSpecs.instance(context);
 		try {
-		    //Modules.instance(context).initModules(List.<JCCompilationUnit>of(speccu));
-
-//			String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
-//			Name packageName = names.fromString(flatPackageName);
-//			var iter = syms.getPackagesForName(packageName).iterator();
-//			PackageSymbol p;
-//			if (!iter.hasNext()) {
-//			    // No packages with this name
-//	            p = syms.getPackage(syms.unnamedModule,packageName);
-//			} else {
-//			    p = iter.next();
-//			    if (iter.hasNext()) {
-//			        java.util.List<PackageSymbol> list = new ArrayList<PackageSymbol>();
-//			        iter.forEachRemaining(list::add);
-//			        utils.warning(speccu.sourcefile, speccu.pid, "jml.message",
-//			            "Multiple modules contain package " + speccu.pid.pid + ": " + p.modle + " " + utils.join(" ", list, e->e.modle));
-//			    }
-//			}
-//			// FIXME - what about other modules, or user modules
-//			if (p == null) {
-//				utils.warning(speccu.pid, "jml.message", "Creating new package in unnamed module: " + flatPackageName); // FIXME - figure out haw to create it
-//				p = syms.enterPackage(syms.unnamedModule, packageName);
-//			}
 		    
 		    String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
 		    Name packageName = names.fromString(flatPackageName);
