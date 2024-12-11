@@ -565,7 +565,7 @@ public class JmlEnter extends Enter {
 			specEnv = prevSpecEnv;
 		}
 	}
-
+	
 	// This is for entering matching specifications with a binary class (no source file)
 	// Recurses through the compilation unit to match all non-local class declarations to binary classes
 	// Declarations that do not match are entered as model classes
@@ -607,14 +607,25 @@ public class JmlEnter extends Enter {
 		        // Otherwise try the unnamed module
 	            p = syms.getPackage(syms.unnamedModule,packageName);
 		    }
+		    if (p == null) {
+		        Collection<ModuleSymbol> mods = syms.listPackageModules(packageName);
+		        if (mods.size() == 1) {
+		            p = syms.getPackage(mods.iterator().next(),packageName);
+		            //System.out.println("PACKAGE " + packageName + " IS IN " + (p==null?"NULL":p.modle) + " " + mods.iterator().next());
+		        } else if (mods.isEmpty()) {
+		            // fall through
+		        } else {
+		            String xtr = "Package exists in multiple modules: " + flatPackageName + " in";
+		            for (var m: mods) xtr += " " + m;
+	                utils.warning(speccu.pid, "jml.message", xtr);
+		        }
+		    }
             //System.out.println("PACKAGE " + packageName + " IS IN " + (p==null?"NULL":p.modle));
             if (p == null) { // FIXME Document when this is needed
                 utils.warning(speccu.pid, "jml.message", "Creating new package in unnamed module: " + flatPackageName);
                 p = syms.enterPackage(syms.unnamedModule, packageName);
             }
             
-            // TODO: Not implementing other modules for now
-
             var owner = speccu.packge = p;
 			speccu.modle = p.modle;
 			Env<AttrContext> specEnv = topLevelEnv(speccu);
