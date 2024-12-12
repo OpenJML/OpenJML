@@ -12,10 +12,6 @@ env:
   FOLDER: OpenJML21
 
 jobs:
-  init:
-    runs-on: ubuntu-latest
-    steps:
-
   prepare:
     runs-on: ubuntu-latest
 
