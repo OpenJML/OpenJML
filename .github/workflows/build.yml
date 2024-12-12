@@ -17,9 +17,9 @@ jobs:
     steps:
     - name: Set BRANCH
       run: |
-        echo "BRANCH=$GITHUB_REF_NAME >> "i$GITHUB_ENV"
+        echo "BRANCH=$GITHUB_REF_NAME >> "$GITHUB_ENV"
         cat "$GITHUB_ENV"
-`
+
   prepare:
     runs-on: ubuntu-latest
 
