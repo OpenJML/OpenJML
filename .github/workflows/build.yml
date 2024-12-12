@@ -8,7 +8,7 @@ on:
 env:
   ## Branch to build from (both in OpenJML and Specs). (JMLAnnotation, Solvers, openjml.github.io are fixed to be 'master')
   ## The github branch being used is contained in GITHUB_REF_NAME
-  BRANCH: ${{ GITHUB_REF_NAME }}
+  BRANCH: ${{ github.ref_name }}
   ## Name of folder containing openjml code within OpenJML repo. Ought to match the triggering branch in 'on push'.
   FOLDER: OpenJML21
 
