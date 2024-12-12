@@ -2,12 +2,11 @@ name: Build OpenJML
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ master-21, dev-21 ]
+  push:  branches: [ master-21, dev-21 ]
 
 env:
   ## Branch to build from (both in OpenJML and Specs). (JMLAnnotation, Solvers, openjml.github.io are fixed to be 'master')
-  ## BRANCH: dev-21
+  ## The github branch being used is contained in GITHUB_REF_NAME
   ## Name of folder containing openjml code within OpenJML repo. Ought to match the triggering branch in 'on push'.
   FOLDER: OpenJML21
 
@@ -15,10 +14,6 @@ jobs:
   init:
     runs-on: ubuntu-latest
     steps:
-    - name: Set BRANCH
-      run: |
-        echo "BRANCH=$GITHUB_REF_NAME" >> "$GITHUB_ENV"
-        cat "$GITHUB_ENV"
 
   prepare:
     runs-on: ubuntu-latest
@@ -27,7 +22,7 @@ jobs:
     - name: Checkout OpenJML
       run: |
         git config --global core.autocrlf input
-        git clone -b $BRANCH --depth 1 https://github.com/OpenJML/OpenJML
+        git clone -b $GITHUB_REF_NAME --depth 1 https://github.com/OpenJML/OpenJML
     - name: Create the GitHub release
       ## Do this just once -- not for every element of the matrix
       run: |
@@ -75,8 +70,8 @@ jobs:
     - name: Checkout OpenJML
       run: |
         git config --global core.autocrlf input
-        git clone -b $BRANCH --depth 1 https://github.com/OpenJML/OpenJML
-        git clone -b $BRANCH --depth 1 https://github.com/OpenJML/Specs
+        git clone -b $GITHUB_REF_NAME --depth 1 https://github.com/OpenJML/OpenJML
+        git clone -b $GITHUB_REF_NAME --depth 1 https://github.com/OpenJML/Specs
         git clone -b master --depth 1 https://github.com/OpenJML/Solvers
         git clone -b master --depth 1 https://github.com/OpenJML/JMLAnnotations
         git clone -b master --depth 1 https://github.com/OpenJML/openjml.github.io
