@@ -20,16 +20,14 @@ jobs:
     - name: Checkout OpenJML
       run: |
         git config --global core.autocrlf input
-        echo "BRANCH:" $GITHUB_REF_NAME ":" $BRANCH
         git clone -b $BRANCH --depth 1 https://github.com/OpenJML/OpenJML
     - name: Create the GitHub release
       ## Do this just once -- not for every element of the matrix
       run: |
         cd OpenJML
         export ver=`cat version.txt`
-        echo Version $ver
+        echo Version $ver from branch $BRANCH
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"$BRANCH\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
-        curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' 
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
         echo Created release with id $id
 

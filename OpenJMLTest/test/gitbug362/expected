@@ -1,0 +1,8 @@
+test/gitbug362/Test.java:3: error: This field participates in a circular datagroup inclusion chain: x -> y -> x
+  //@ model public int x; //@ in y;
+                       ^
+test/gitbug362/Test.java:4: error: This field participates in a circular datagroup inclusion chain: y -> x -> y
+  //@ model public int y; //@ in x;;
+                       ^
+Operation not performed because of parse or type errors
+2 errors

@@ -15380,7 +15380,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             if (rac && utils.isModel(s)) {
                 JCFieldAccess recv = M.at(that.pos).Select(trexpr, names.fromString(Strings.modelFieldMethodPrefix + that.name.toString()));
-                System.out.println("MODEL " + s + " " + s.owner + " " + JmlMemberEnter.instance(context).modelMethods);
+                //System.out.println("MODEL " + s + " " + s.owner + " " + JmlMemberEnter.instance(context).modelMethods);
                 recv.sym = JmlMemberEnter.instance(context).modelMethods.get(s).sym;
                 recv.type = recv.sym.type;
                 result = eresult = M.at(that.pos).Apply(null,recv, List.<JCExpression>nil());
