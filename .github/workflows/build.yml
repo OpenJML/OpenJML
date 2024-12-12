@@ -7,7 +7,7 @@ on:
 
 env:
   ## Branch to build from (both in OpenJML and Specs). (JMLAnnotation, Solvers, openjml.github.io are fixed to be 'master')
-  ## The github branch being used is contained in GITHUB_REF_NAME
+  ## The github branch that was pushed
   BRANCH: ${{ github.ref_name }}
   ## Name of folder containing openjml code within OpenJML repo. Ought to match the triggering branch in 'on push'.
   FOLDER: OpenJML21
@@ -21,14 +21,14 @@ jobs:
       run: |
         git config --global core.autocrlf input
         echo "BRANCH:" $GITHUB_REF_NAME ":" $BRANCH
-        git clone -b $GITHUB_REF_NAME --depth 1 https://github.com/OpenJML/OpenJML
+        git clone -b $BRANCH --depth 1 https://github.com/OpenJML/OpenJML
     - name: Create the GitHub release
       ## Do this just once -- not for every element of the matrix
       run: |
         cd OpenJML
         export ver=`cat version.txt`
         echo Version $ver
-        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"$GITHUB_REF_NAME\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
+        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"$BRANCH\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
         curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' 
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
         echo Created release with id $id
@@ -70,8 +70,8 @@ jobs:
     - name: Checkout OpenJML
       run: |
         git config --global core.autocrlf input
-        git clone -b $GITHUB_REF_NAME --depth 1 https://github.com/OpenJML/OpenJML
-        git clone -b $GITHUB_REF_NAME --depth 1 https://github.com/OpenJML/Specs
+        git clone -b $BRANCH --depth 1 https://github.com/OpenJML/OpenJML
+        git clone -b $BRANCH --depth 1 https://github.com/OpenJML/Specs
         git clone -b master --depth 1 https://github.com/OpenJML/Solvers
         git clone -b master --depth 1 https://github.com/OpenJML/JMLAnnotations
         git clone -b master --depth 1 https://github.com/OpenJML/openjml.github.io
