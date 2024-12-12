@@ -7,11 +7,19 @@ on:
 
 env:
   ## Branch to build from (both in OpenJML and Specs). (JMLAnnotation, Solvers, openjml.github.io are fixed to be 'master')
-  BRANCH: dev-21
+  ## BRANCH: dev-21
   ## Name of folder containing openjml code within OpenJML repo. Ought to match the triggering branch in 'on push'.
   FOLDER: OpenJML21
 
 jobs:
+  init:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set BRANCH
+      run: |
+        echo "BRANCH=$GITHUB_REF_NAME >> "i$GITHUB_ENV"
+        cat "$GITHUB_ENV"
+`
   prepare:
     runs-on: ubuntu-latest
 
@@ -35,7 +43,7 @@ jobs:
     strategy:
       matrix:
         ## Omitting macos-14 because the python setup fails for that runner
-        os: [ ubuntu-22.04, macos-13, macos-14, ubuntu-20.04, ubuntu-24.04]
+        os: [ ubuntu-22.04, macos-13, ubuntu-20.04 ]
       fail-fast: false
 
     steps:
