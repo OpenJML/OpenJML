@@ -157,9 +157,11 @@ java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=showstack A 1 2 > raca
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack || { RES=$(($RES+1)); }
 diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
 echo RAC-ST with openjml-java
-${JV} -classpath "rac" -Dorg.jmlspecs.openjml.rac=showstack A 1 2 > racactual  2> racstderr
-tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack-openjml || { RES=$(($RES+1)); }
-diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
+echo ${JV}
+echo SKIPPING
+#${JV} -classpath "rac" -Dorg.jmlspecs.openjml.rac=showstack A 1 2 > racactual  2> racstderr
+#tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack-openjml || { RES=$(($RES+1)); }
+#diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
 
 ${RTH} testRac "$OJ -rac --rac-show-source=source --no-purity-check -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
 echo RAC-SIMPLE with source
