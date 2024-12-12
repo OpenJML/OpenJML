@@ -8,7 +8,7 @@ on:
 env:
   ## Branch to build from (both in OpenJML and Specs). (JMLAnnotation, Solvers, openjml.github.io are fixed to be 'master')
   ## The github branch being used is contained in GITHUB_REF_NAME
-  BRANCH: $GITHUB_REF_NAME
+  BRANCH: ${{ GITHUB_REF_NAME }}
   ## Name of folder containing openjml code within OpenJML repo. Ought to match the triggering branch in 'on push'.
   FOLDER: OpenJML21
 
@@ -19,8 +19,8 @@ jobs:
     steps:
     - name: Checkout OpenJML
       run: |
-        echo BRANCH: $GITHUB_REF_NAME $BRANCH
         git config --global core.autocrlf input
+        echo "BRANCH:" $GITHUB_REF_NAME ":" $BRANCH
         git clone -b $GITHUB_REF_NAME --depth 1 https://github.com/OpenJML/OpenJML
     - name: Create the GitHub release
       ## Do this just once -- not for every element of the matrix
@@ -100,7 +100,7 @@ jobs:
     - name: Wait for prepare
       uses: yogeshlonkar/wait-for-jobs@v0
       with:
-        g/testRac/expected-stackh-token: ${{ secrets.GITHUB_TOKEN }}
+        gh-token: ${{ secrets.GITHUB_TOKEN }}
         jobs: prepare 
         interval: '2000'
         ttl: '10'
