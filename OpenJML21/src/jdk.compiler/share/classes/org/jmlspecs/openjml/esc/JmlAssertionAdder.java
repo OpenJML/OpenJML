@@ -4089,7 +4089,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						&& (convertedfa.sym.flags() & Flags.PRIVATE) == 0) {
 					utils.warning(convertedfa, "jml.message",
 							"Use a static_initializer clause to specify the values of static final fields: "
-									+ utils.qualifiedName(convertedfa.sym));
+									+ utils.qualifiedName(convertedfa.sym)
+									+ " (translating " + enclosingClass + "." + enclosingMethod +")");
 					if (utils.jmlverbose >= Utils.JMLVERBOSE)
 						utils.note(convertedfa, "jml.message",
 								"Warned about a non-constant initialized static final field: " + st.toString());
@@ -4176,9 +4177,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					continue;
 
 				if (utils.isJMLStatic(vd.mods, decl.sym) && isFinal(vd.sym)) {
-					alreadyDiscoveredFields.add(vd.sym);
 					Symbol sym = vd.sym;
-					if (sym.owner instanceof ClassSymbol) {
+					if (alreadyDiscoveredFields.add(sym) && sym.owner instanceof ClassSymbol) {
 						JCFieldAccess newfa = treeutils.makeSelect(def.pos, treeutils.makeType(def.pos, sym.owner.type),
 								sym);
 						addFinalStaticField(newfa);
@@ -4236,8 +4236,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (!utils.jmlvisible(null, methodDecl.sym.owner, csym, t.modifiers.flags, methodDecl.mods.flags))
 					continue;
 				addAssume(methodDecl, Label.INVARIANT_ENTRANCE,
-						convertJML(copy((JmlTypeClauseExpr) t).expression), // FIXME - really need the
-																					// convertCopy?
+						convertJML(((JmlTypeClauseExpr) t).expression),
 						t, t.source(), utils.qualifiedMethodSig(methodDecl.sym));
 			}
 		} finally {
@@ -4706,6 +4705,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
 									ListBuffer<JCStatement> check2 = pushBlock();
 									if (rac) {
+									    newdecl.mods.flags &= ~Utils.JMLBIT;
 										newdecl.init = treeutils.makeZeroEquivalentLit(decl.init, decl.type);
 									} else {
 										addNullnessTypeCondition(id, id.sym, false);
@@ -8099,12 +8099,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			checkThatMethodIsCallable(that, treeutils.getSym(that.meth));
 		if (translatingJML && rac) {
 			// FIXME - need to check definedness by testing preconditions; check postconditions also? inline?
-		    var methsym = (MethodSymbol)treeutils.getSym(that.meth);
+            var methsym = (MethodSymbol)treeutils.getSym(that.meth);
+            currentEnv = currentEnv.pushEnvCopy();
+		    if (currentEnv.stateLabel != null) {
+		        if (!utils.hasModifier(methsym, Modifiers.NO_STATE)) {
+		            currentEnv.localsForbidden = true;
+	                System.out.println("APPLY-IN-OLD " + currentEnv.stateLabel + " " + currentEnv);
+		        }
+		    }
 		    boolean inline = utils.hasModifier(methsym, Modifiers.INLINE);
             var formals = methsym.type.asMethodType().argtypes;
             List<JCExpression> typeargs = convertExprList(that.typeargs);
             JCExpression meth = convertExpr(that.meth);
             List<JCExpression> args = convertArgs(that, that.args, formals, methsym.isVarArgs());
+            currentEnv = currentEnv.popEnv();
 		    if (!inline) {
 		        JCMethodInvocation app = M.at(that).Apply(typeargs, meth, args).setType(that.type);
 		        app.varargsElement = that.varargsElement; // a Type
@@ -8864,7 +8872,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (print) System.out.println("MSPECS " + calleeMethodSym.owner + " " + calleeMethodSym + " " + mspecs);
 			boolean inliningCall = mspecs != null && mspecs.specDecl != null && mspecs.specDecl.mods != null
 					&& utils.hasModifier(mspecs.specDecl.mods, Modifiers.INLINE);
-			if (inliningCall) System.out.println("INLINING " + calleeMethodSym);
+			if (print && inliningCall) System.out.println("INLINING " + calleeMethodSym);
 			
 			// Collect all the methods overridden by the method being called, including the
 			// method itself
@@ -8891,13 +8899,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			while (specsIter.hasNext()) {
 			    var info = specsIter.next();
 			    if (info.specCase.callee_only) continue;
-			    x: if (!calleeIsPure) {
+			    x: if (!calleeIsPure && JmlOptions.instance(context).allowed(JmlOptions.IMPLICIT_EVERYTHING)) {
 			        if (print) System.out.println("SPECCASE " + info.parentMethodSymbol + " " + info.specCase);
 			        boolean hasAssignable = false;
 			        boolean isEverything = true;
 			        for (var clause: info.specCase.clauses) {
-			            if (printb) System.out.println("CLAUSE " + clause);
 			            if (clause.clauseKind == assignableClauseKind && clause instanceof JmlMethodClauseStoreRef ext) {
+	                        if (printb) System.out.println("CLAUSE " + clause + " " + info.parentMethodSymbol.owner + "." + info.parentMethodSymbol);
 			                hasAssignable = true;
 			                if (ext.list != null) {
 			                    for (var sr: ext.list) {
@@ -8908,19 +8916,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			                }
 			            }
 			        }
-			        if (printb) System.out.println("EVERYTHING? " + isEverything + " " + hasAssignable);
+			        if (printb) System.out.println("EVERYTHING? " + isEverything + " " + hasAssignable + " " + info.parentMethodSymbol.owner + "." + info.parentMethodSymbol);
 			        if (!hasAssignable) effectivelyPure = false;
 			        // FIXME - enable the following when we can adjust all the tests. Also decide whether to issue the warning if the caller has assignable \everythig; also find the name of the caller
-//                    if (!hasAssignable && utils.esc) {
-//                        utils.warningAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, log.currentSourceFile(), that,
-//                                "jml.message", "Method " + calleeMethodSym + " has no assignable clause, so it is implicitly 'assignable \\everything', making its caller likely impossible to verify");
-//
-//                    }
-//                    if (hasAssignable && isEverything && utils.esc) {
-//                        utils.warningAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, log.currentSourceFile(), that,
-//                                "jml.message", "Method " + calleeMethodSym + " has 'assignable \\everything', making its caller likely impossible to verify");
-//
-//                    }
+                    if (!hasAssignable && utils.esc && !calleeMethodSym.isConstructor()) {
+                        utils.warningAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, log.currentSourceFile(), that,
+                                "jml.message", "Method " + calleeMethodSym + " has no assignable clause, so it is implicitly 'assignable \\everything', making its caller likely impossible to verify");
+
+                    }
+                    if (hasAssignable && isEverything && utils.esc) {
+                        utils.warningAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, log.currentSourceFile(), that,
+                                "jml.message", "Method " + calleeMethodSym + 
+                                " has 'assignable \\everything', making its caller likely impossible to verify");
+
+                    }
 			    }
                 if (print) System.out.println("   MAPPING " + info.decl.params + " -> " + trArgs);
                 // presuming all parameter symbols across all methods are unique
@@ -11730,7 +11739,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			Map<JmlSpecificationCase, JCExpression> preExpressions, MethodSymbol calleeMethodSym,
 			List<JCExpression> typeargs, JCExpression meth, boolean inliningCall,
 			java.util.List<Pair<MethodSymbol, Type>> overridden) {
-        if (inliningCall) System.out.println("INLINING " + calleeMethodSym + " " + that + " " + mapParamActuals);
+        //if (inliningCall) System.out.println("INLINING " + calleeMethodSym + " " + that + " " + mapParamActuals);
 		JCIdent localResult = null;
 		JCExpression savedResultExpr = resultExpr;
 		try {
@@ -12287,7 +12296,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// other problems, what about for MemberReferences?
 	    if (true) {
 	        //System.out.println("IMPL " + annotatedNewtype + " " + expr.type + " " + expr);
-	    return addConversion(pos, annotatedNewtype, expr, false);
+	    return addConversion(pos, annotatedNewtype, expr, false, true);
 	    } else {
 		Type newtype = annotatedNewtype.stripMetadata();
 		Type origtype = convertType(expr.type); // Substitutes type variables
@@ -14492,14 +14501,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     // Inputs 'expr' and 'newtypeExpr' are already converted
     // Expects only combinations of types that are allowed by typechecking
-    public JCExpression addConversion(DiagnosticPosition pos, Type newtype, JCExpression expr, boolean explicitCast) {
+    public JCExpression addConversion(DiagnosticPosition pos, Type newtype, JCExpression expr, boolean explicitCast, boolean check) {
         JCExpression typeexpr = treeutils.makeType(pos, newtype);
-        return addConversion(pos, newtype, typeexpr, expr, explicitCast);
+        return addConversion(pos, newtype, typeexpr, expr, explicitCast, check);
     }
-    public JCExpression addConversion(DiagnosticPosition pos, JCExpression newtypeExpr, JCExpression expr, boolean explicitCast) {
-        return addConversion(pos, newtypeExpr.type, newtypeExpr, expr, explicitCast);
+    public JCExpression addConversion(DiagnosticPosition pos, JCExpression newtypeExpr, JCExpression expr, boolean explicitCast, boolean check) {
+        return addConversion(pos, newtypeExpr.type, newtypeExpr, expr, explicitCast, check);
     }
-    public JCExpression addConversion(DiagnosticPosition pos, Type newtypex, JCExpression newtypeExpr, JCExpression expr, boolean explicitCast) {
+    public JCExpression addConversion(DiagnosticPosition pos, Type newtypex, JCExpression newtypeExpr, JCExpression expr, boolean explicitCast, boolean checkRange) {
         var oldtype = convertType(expr.type); // Substitutes type variables
         var newtype = newtypex.stripMetadata();
         JCExpression eresult = expr;
@@ -14545,7 +14554,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     eresult = castexpr;
                 }
             } else {
-                if (types.isSameType(oldtype, BIGINT) && newtype.isPrimitive()) {
+                if (types.isSameType(oldtype, BIGINT) && newtype.isPrimitive() && checkRange) {
                     addRangeConstraints(pos, true, newtype, expr);
                 }
                 if (rac) {
@@ -14646,7 +14655,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // lower precision so we check the range of the argument
                 TypeTag otag = oldtype.getTag();
                 JCExpression emax, emin;
-                switch (otag) {
+                if (checkRange) switch (otag) {
                 case LONG:
                     addRangeConstraints(pos, true, newtype, expr);
                     break;
@@ -14671,7 +14680,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // So we can assume that the range of the value in the new type is the smaller
                 // range appropriate to the original type
 
-                switch (oldtype.getTag()) {
+                if (checkRange) switch (oldtype.getTag()) {
                 case LONG:
                 case INT:
                 case SHORT:
@@ -14698,10 +14707,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     public void addRangeConstraints(DiagnosticPosition pos, boolean isAssert, Type rangeType, JCExpression expr) {
         if (currentEnv.arithmeticMode  instanceof Arithmetic.Java) return;
-        var hi = treeutils.makeLit(pos, syms.longType, Long.valueOf(maxValue(pos, rangeType.getTag())));
-        var lo = treeutils.makeLit(pos, syms.longType, Long.valueOf(minValue(pos, rangeType.getTag())));
-        JCExpression emax = treeutils.makeTrBinary(pos, JCTree.Tag.LE, expr, addConversion(pos, expr.type, hi, true));
-        JCExpression emin = treeutils.makeTrBinary(pos, JCTree.Tag.LE, addConversion(pos, expr.type, lo, true), expr);
+        var hival = Long.valueOf(maxValue(pos, rangeType.getTag()));
+        var loval = Long.valueOf(minValue(pos, rangeType.getTag()));
+        var hi = treeutils.makeLit(pos, syms.longType, hival);
+        var lo = treeutils.makeLit(pos, syms.longType, loval);
+        JCExpression emax = treeutils.makeTrBinary(pos, JCTree.Tag.LE, expr, addConversion(pos, expr.type, hi, true, false));
+        JCExpression emin = treeutils.makeTrBinary(pos, JCTree.Tag.LE, addConversion(pos, expr.type, lo, true, false), expr);
+        if (expr instanceof JCLiteral lit && lit.value instanceof Number num) {
+            var val = num.longValue();
+            if (loval <= val && val <= hival) {
+                addStat(comment(pos, "Literal is in range: " + loval + " <= " + val + " <= " + hival, null));
+                return;
+//            } else {
+//                error(pos, "jml.message", )
+            }
+        }
         if (isAssert) {
             addAssert(pos, Label.ARITHMETIC_CAST_RANGE, emax);
             addAssert(pos, Label.ARITHMETIC_CAST_RANGE, emin);
@@ -14709,7 +14729,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emax);
             addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emin);
         }
-
     }
 
 	@Override
@@ -14721,7 +14740,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		Type argType = arg.type;
 		JCTree newTypeTree = that.getType(); // the tree, not the Type
 		JCTree clazz = convert(newTypeTree);
-		JCExpression newexpr = addConversion(that, (JCExpression)clazz, arg, true);
+		JCExpression newexpr = addConversion(that, (JCExpression)clazz, arg, true, true);
 
 		//		if (types.isSameType(that.type, STRING)) {
 //			var e = addImplicitConversion(that, that.type, that.expr);
@@ -15361,7 +15380,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             if (rac && utils.isModel(s)) {
                 JCFieldAccess recv = M.at(that.pos).Select(trexpr, names.fromString(Strings.modelFieldMethodPrefix + that.name.toString()));
-                System.out.println("MODEL " + s + " " + JmlMemberEnter.instance(context).modelMethods);
+                //System.out.println("MODEL " + s + " " + s.owner + " " + JmlMemberEnter.instance(context).modelMethods);
                 recv.sym = JmlMemberEnter.instance(context).modelMethods.get(s).sym;
                 recv.type = recv.sym.type;
                 result = eresult = M.at(that.pos).Apply(null,recv, List.<JCExpression>nil());
@@ -15550,10 +15569,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean print = false; // that.name.toString().equals("k");
 		if (print) { System.out.println("VISIT IDENT " + that + " " + that.type + " " + that.sym + " " + that.sym.type); Utils.dumpStack(); }
 
-		//		System.out.println("VISIT-IDENT " + that + " " + oldenv); 
-		if (utils.rac && currentEnv.stateLabel != null && utils.isExprLocal(that.sym.flags()) && !that.toString().equals("this")) {
-			// FIXME - thiz should be allopwed if the whole qukantifier expression is in the
-			// same old context
+		//if (localVariables.containsKey(that.sym)) System.out.println("VISIT-IDENT " + that + " " + rac + " " + currentEnv.stateLabel + " " + localVariables.containsKey(that.sym) + " " + localVariables); 
+		if (utils.rac && currentEnv.localsForbidden && localVariables.containsKey(that.sym)) {
 			String message = "quantifier variable inside a \\old or \\pre expression: " + that.toString();
 			throw new JmlNotImplementedException.Quantifier(that, message);
 		}
@@ -15621,8 +15638,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		if (!rac && sym != null && alreadyDiscoveredFields.add(sym)) { // true if s was NOT in the set already
 			if (utils.isJMLStatic(sym) && isFinal(sym)) {
-				if (newfa != null)
+				if (newfa != null) {
 					addFinalStaticField(newfa);
+				}
 			} else if (sym.kind == Kinds.Kind.VAR && sym.owner != null && sym.owner.kind == Kinds.Kind.MTH
 					&& splitExpressions && !localVariables.containsKey(sym)
 					&& !isFormal(sym, (MethodSymbol) sym.owner)) {
@@ -15631,7 +15649,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				utils.note(true, "No invariants created for " + that);
 			}
 		}
-
+		
         if (!translatingLHS)
             checkRW(readableClause, that.sym, currentEnv.currentReceiver, that);
 //        System.out.println("VISITIDENT-D " + that + " " + oldenv + " " + eresult + " " + translatingJML);
@@ -18190,7 +18208,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					that.labelProperties = lp;
 
 					JCExpression arg = that.args.get(0);
-                    //System.out.println("OLDEXPR " + evalStateLabel + " " + arg);
+                    //System.out.println("OLDEXPR " + evalStateLabel + " " + currentEnv.stateLabel + " " + arg);
 					if (evalStateLabel == null) {
 						eresult = convertExpr(arg);
 					} else if (rac) {
@@ -18220,6 +18238,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								// The above call sets result and eresult
 
 							} else {
+							    currentEnv.localsForbidden = true;
 								arg = convertExpr(arg); // into label extra statements
 								String s = "_JML___old_" + nextUnique(); // FIXME - Put string in Strings
 								Name nm = names.fromString(s);
@@ -20179,12 +20198,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				log.useSource(prevv);
 				that.receiver = rcv;
 			}
-			if (that.range != null) {
+			if (that.range != null && !(that.originalStoreRef instanceof JCArrayAccess arr && arr.index instanceof JmlRange range && range.isDefaultRange())) {
 				if (that.range.lo != null
 						&& !(that.range.lo instanceof JCLiteral lit && ((Number) lit.value).longValue() >= 0)) {
-					JCExpression lhs = treeutils.makeLit(that.pos, syms.intType, 0); // FIXME - should this be bigint?
+					JCExpression lhs = treeutils.makeLit(that.pos, syms.intType, 0);
 					JCExpression rhs = that.range.lo;
-					lhs = addConversion(lhs, rhs.type, lhs, true);
+					lhs = addConversion(lhs, rhs.type, lhs, true, false);
 					JCExpression ex = treeutils.makeBinary(that.pos, JCTree.Tag.LE, lhs, rhs);
 					ex = convertExpr(ex);
 					var prev = log.useSource(that.source);
@@ -23095,6 +23114,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         /** Where to store yield values; null if we are not in a switch */
         public JCIdent yieldIdent = null;
+        
+        public boolean localsForbidden = false;
 
         /** Current arithmetic mode */
         public IArithmeticMode arithmeticMode = null;

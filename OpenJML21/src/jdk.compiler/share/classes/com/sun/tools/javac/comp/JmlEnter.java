@@ -565,7 +565,7 @@ public class JmlEnter extends Enter {
 			specEnv = prevSpecEnv;
 		}
 	}
-
+	
 	// This is for entering matching specifications with a binary class (no source file)
 	// Recurses through the compilation unit to match all non-local class declarations to binary classes
 	// Declarations that do not match are entered as model classes

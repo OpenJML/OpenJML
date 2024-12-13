@@ -7,7 +7,8 @@ on:
 
 env:
   ## Branch to build from (both in OpenJML and Specs). (JMLAnnotation, Solvers, openjml.github.io are fixed to be 'master')
-  BRANCH: master-21
+  ## The github branch that was pushed
+  BRANCH: ${{ github.ref_name }}
   ## Name of folder containing openjml code within OpenJML repo. Ought to match the triggering branch in 'on push'.
   FOLDER: OpenJML21
 
@@ -25,9 +26,9 @@ jobs:
       run: |
         cd OpenJML
         export ver=`cat version.txt`
-        echo Version $ver
-        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"master-module\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
-        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
+        echo Version $ver from branch $BRANCH
+        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"$BRANCH\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
+        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
         echo Created release with id $id
 
   build:
@@ -35,7 +36,7 @@ jobs:
     strategy:
       matrix:
         ## Omitting macos-14 because the python setup fails for that runner
-        os: [ ubuntu-22.04, macos-13, ubuntu-20.04]
+        os: [ ubuntu-22.04, macos-13, ubuntu-20.04 ]
       fail-fast: false
 
     steps:
@@ -110,7 +111,7 @@ jobs:
         cd $FOLDER/release-temp
         export f=openjml-${{ matrix.os }}-${ver}.zip
         mv *.zip $f
-        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' |grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
+        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
         echo Uploading $f to id $id at url $upload_url
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f" 
@@ -118,7 +119,7 @@ jobs:
       run: |
         cd OpenJML
         export ver=`cat version.txt`
-        export tag=$var
+        export tag=$ver
         export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep tag_name | head -1 | sed -e 's/.*: \"//' -e 's/\",//'`
         echo $ver $tag
-        test "$ver" = "$tag" || echo Version $ver is not the current release, which is $tag
+        test "$ver" = "$tag" || echo "Version $ver from version.txt does not match the release tag, which is $tag"

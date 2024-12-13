@@ -463,27 +463,31 @@ public class JmlTreeUtils {
      *  @param value      The literal's value; use 0 or 1 for Boolean; use an int for char literals.
      */
     public JCLiteral makeLit(int pos, Type type, Object value) {
-        if (type.getTag() == TypeTag.CLASS) {
+        var tag = type.getTag();
+        if (tag == TypeTag.BYTE || tag == TypeTag.SHORT) tag = TypeTag.INT;
+        if (tag == TypeTag.CLASS) {
             type = syms.stringType;             
             var t = type.constType(value);
-            return factory.at(pos).Literal(type.getTag(), value).setType(t);
+            return factory.at(pos).Literal(tag, value).setType(t);
         } else {
-            var t = syms.typeOfTag[type.getTag().ordinal()].constType(value);
-            return factory.at(pos).Literal(type.getTag(), value).setType(t);
+            var t = syms.typeOfTag[tag.ordinal()].constType(value);
+            var lit = factory.at(pos).Literal(tag, value).setType(t);
+            return lit;
         }
-
     }
     
     public JCLiteral makeLit(DiagnosticPosition pos, Type type, Object value) {
-        if (type.getTag() == TypeTag.CLASS) {
+        var tag = type.getTag();
+        if (tag == TypeTag.BYTE || tag == TypeTag.SHORT) tag = TypeTag.INT;
+        if (tag == TypeTag.CLASS) {
             type = syms.stringType;             
             var t = type.constType(value);
-            return factory.at(pos).Literal(type.getTag(), value).setType(t);
+            return factory.at(pos).Literal(tag, value).setType(t);
         } else {
-            var t = syms.typeOfTag[type.getTag().ordinal()].constType(value);
-            return factory.at(pos).Literal(type.getTag(), value).setType(t);
+            var t = syms.typeOfTag[tag.ordinal()].constType(value);
+            var lit = factory.at(pos).Literal(tag, value).setType(t);
+            return lit;
         }
-
     }
     
     public JCExpression makeBigintLit(int pos, int v) {
@@ -1291,7 +1295,8 @@ public class JmlTreeUtils {
     /** Makes an attributed AST for the length operation on an array less 1. */
     public JCExpression makeLengthM1(DiagnosticPosition pos, JCExpression array) {
         JCFieldAccess fa = factory.at(pos).Select(array, syms.lengthVar);
-        fa.type = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+        if (utils.rac) fa.type = syms.intType;
+        else fa.type = JmlPrimitiveTypes.bigintTypeKind.getType(context);
         return makeBinary(pos, JCTree.Tag.MINUS, fa, one); // FIXME Perhaps have to make this a BIGINT 1
     }
 

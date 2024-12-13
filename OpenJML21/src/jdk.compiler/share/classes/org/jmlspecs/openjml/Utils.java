@@ -295,21 +295,21 @@ public class Utils {
         mods.flags |= JMLINSTRUMENTED;
     }
 
-    // IS this flag used for anything?  FIXME
-    /** Returns true if the modifiers is marked as local to a JML expression */
-    public boolean isExprLocal(/*@ non_null */ JCModifiers mods) {
-        return (mods.flags & JMLEXPRLOCAL) != 0;
-    }
-
-    /** Returns true if the modifiers is marked as local to a JML expression */
-    public boolean isExprLocal(long flags) {
-        return (flags & JMLEXPRLOCAL) != 0;
-    }
-
-    /** Sets the modifiers as local to a JML expression */
-    public void setExprLocal(/*@ non_null */ JCModifiers mods) {
-        mods.flags |= JMLEXPRLOCAL;
-    }
+//    // IS this flag used for anything?  FIXME
+//    /** Returns true if the modifiers is marked as local to a JML expression */
+//    public boolean isExprLocal(/*@ non_null */ JCModifiers mods) {
+//        return (mods.flags & JMLEXPRLOCAL) != 0;
+//    }
+//
+//    /** Returns true if the modifiers is marked as local to a JML expression */
+//    public boolean isExprLocal(long flags) {
+//        return (flags & JMLEXPRLOCAL) != 0;
+//    }
+//
+//    /** Sets the modifiers as local to a JML expression */
+//    public void setExprLocal(/*@ non_null */ JCModifiers mods) {
+//        mods.flags |= JMLEXPRLOCAL;
+//    }
 
     /** Returns true if the flags indicate this is a generated default constructorn */
     public boolean isGeneratedConstructor(MethodSymbol methodSym) {

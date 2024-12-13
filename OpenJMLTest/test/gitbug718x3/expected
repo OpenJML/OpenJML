@@ -1,5 +1,5 @@
 test/gitbug718x3/test3.java:29: error: Quantifier bodies may not contain constructors: test3()
-		//@ assert \exists int j; 0 <= j < test.binarr.length; k/(new test3()).binarr[j]==1;
-		                                                          ^
+        //@ assert \exists int j; 0 <= j < test.binarr.length; k/(new test3()).binarr[j]==1;
+                                                                  ^
 Operation not performed because of parse or type errors
 1 error

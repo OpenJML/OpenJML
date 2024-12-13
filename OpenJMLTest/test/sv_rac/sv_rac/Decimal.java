@@ -31,6 +31,7 @@ package sv_rac;
     /**
      *	Nombre � virgule trop grand
      */
+    static { System.out.println("STATIC INIT"); }
     public static final short DECIMAL_OVERFLOW   = (short)0x9F15;
     public static final short MAX_DECIMAL_NUMBER = (short)32767;
     
@@ -509,7 +510,7 @@ package sv_rac;
       requires true;
       ensures \result == intPart;
       //exsures (RuntimeException)false
-    */
+    */ //@ helper spec_pure
     public short getIntPart(){
 	return intPart;
     }
@@ -522,7 +523,7 @@ package sv_rac;
       requires true ;
       ensures \result == decPart;
       //exsures (RuntimeException)false
-    */
+    */ //@ helper spec_pure
         public short getDecPart(){
             return decPart;
         }
@@ -753,10 +754,13 @@ package sv_rac;
     }
     
     public static void main(String[] args) throws ISOException, DecimalException {
+        System.out.println("START");
     	Decimal d = new Decimal((short)10, (short)5);
+        System.out.println("MID");
     	d.add(d);
     	d.sub(d);
-    	
+        System.out.println("STOP");
+
     	
     }
 }

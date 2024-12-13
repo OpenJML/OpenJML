@@ -126,7 +126,6 @@ public class QuantifiedExpressions extends JmlExtension {
                 attr.attribAnnotationTypes(mods.annotations,env);
                 attr.annotationsToModifiers(mods, mods.annotations);
                 attr.allAllowed(mods, attr.typeModifiers, "quantified expression");
-                attr.utils.setExprLocal(mods);
 //                if (utils.hasAny(mods,Flags.STATIC)) {
 //                    log.error(that.pos,
 //                            "mod.not.allowed.here", asFlagSet(Flags.STATIC));
@@ -134,6 +133,7 @@ public class QuantifiedExpressions extends JmlExtension {
 //                //if (Resolve.isStatic(env)) mods.flags |= Flags.STATIC;  // FIXME - this is needed for variables declared in quantified expressions in invariants - will need to ignore this when pretty printing?
                 attr.memberEnter.memberEnter(decl, localEnv);
                 decl.type = decl.vartype.type; // FIXME not sure this is needed
+                attr.localVariables.add(decl.sym);
             }
 //            ((JmlMemberEnter)attr.memberEnter).setInJml(b);
             attr.quantifiedExprs.add(that);
@@ -228,6 +228,10 @@ public class QuantifiedExpressions extends JmlExtension {
             } finally {
                 attr.quantifiedExprs.remove(attr.quantifiedExprs.size()-1);
                 localEnv.info.scope().leave();
+                for (JCVariableDecl decl: that.decls) {
+                    attr.localVariables.remove(decl.sym);
+                }
+
             }
             if (that.range != null && that.range.type.isErroneous()) resultType = that.type = that.range.type;
             return resultType;

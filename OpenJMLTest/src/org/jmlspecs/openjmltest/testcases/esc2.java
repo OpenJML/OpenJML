@@ -4529,8 +4529,8 @@ public class esc2 extends EscBase {
                         + "  //@ public normal_behavior ensures \\result == 10 + 9; pure\n"
                         + "  public static int mm() { return 19; }"
                         + "}"
-                        ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.ii",27
-                        ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.ii",27
+                        ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.ii (translating tt.TestJava.TestJava())",27
+                        ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.ii (translating tt.TestJava.mm())",27
 //                        ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",8
 //                        ,"/tt/TestJava.java:4: warning: Associated declaration",20
                                 );

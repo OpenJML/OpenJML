@@ -1,0 +1,7 @@
+test/gitbug517/Test.java:6: warning: There is no point to a specification case having more visibility than its method
+  //@ public normal_behavior
+      ^
+test/gitbug517/Test.java:10: warning: There is no point to a specification case having more visibility than its method
+  //@ normal_behavior
+      ^
+2 warnings

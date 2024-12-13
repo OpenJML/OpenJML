@@ -1,7 +1,7 @@
 ## This just used to replace $SPECS in expected files, in check-result
 export SPECS=`cd ../../../Specs/specs && pwd`
 ## Default options for these tests, augmented by test-specific ARGS
-export BASEARGS="--esc --progress -staticInitWarning -jmltesting --timeout=300 --check-feasibility=precondition,reachable,exit,spec --smt=smt/%%.smt "
+export BASEARGS="--esc --progress -staticInitWarning -jmltesting --timeout=300 --check-feasibility=precondition,reachable,exit,spec --smt=smt/%%.smt --no-warn=implicit-everything "
 ## Default exit value, replaced where needed by test-specific config file
 export EXIT=0
 
