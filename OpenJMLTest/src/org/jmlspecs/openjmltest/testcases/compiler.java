@@ -35,7 +35,7 @@ public class compiler {
     String projHome;
     {
     String h = System.getProperty("openjml.eclipseProjectLocation");
-    if (h == null) h = JmlTestCase.root + "/OpenJML21/OpenJMLTest";
+    if (h == null) h = JmlTestCase.root + "/OpenJML21B/OpenJMLTest";
     projHome = h.replace("C:","").replace("\\","/");
     }
     String specsHome;
@@ -299,7 +299,7 @@ public class compiler {
     @Test
     public void testSourcePathX() throws Exception {
         helper(new String[]
-                          { "-classpath","../OpenJML21/runtime",
+                          { "-classpath",JmlTestCase.runtime,
                             "-sourcepath","test/testNoErrors",
                             "--no-purity-check",  //"-Xlint:unchecked",
                             "test/testNoErrors/A.java"
@@ -314,7 +314,7 @@ public class compiler {
     @Test
     public void testJML() throws Exception {
         helper(new String[]
-                          { "-classpath","../OpenJML21/runtime",
+                          { "-classpath",JmlTestCase.runtime,
                             "-sourcepath","test/testNoErrors",
                             "--no-purity-check",
                             "test/testNoErrors/A.jml"
@@ -332,7 +332,7 @@ public class compiler {
     public void testJML1() throws Exception {
         //print = true;
         helper(new String[]
-                          { "-classpath","../OpenJML21/runtime",
+                          { "-classpath",JmlTestCase.runtime,
                             "-sourcepath","test/testJavaErrors2",
                             "-specspath","test/testJavaErrors2",
                             "--no-purity-check",
@@ -349,7 +349,7 @@ public class compiler {
     @Test
     public void testJML1A() throws Exception {
         helper(new String[]
-                          { "-classpath","../OpenJML21/runtime",
+                          { "-classpath",JmlTestCase.runtime,
                             "-sourcepath","test/testJavaParseErrors",
                             "-specspath","test/testJavaParseErrors",
                             "--no-purity-check",
@@ -369,7 +369,7 @@ public class compiler {
     @Test
     public void testJML1B() throws Exception {
         helper(new String[]
-                          { "-classpath","../OpenJML21/runtime",
+                          { "-classpath",JmlTestCase.runtime,
                             "-sourcepath","test/testJavaErrors",
                             "-specspath","test/testJavaErrors",
                             "--no-purity-check",
@@ -385,9 +385,9 @@ public class compiler {
     @Test
     public void testJML2() throws Exception {
         helper(new String[]
-                          { "-classpath","../OpenJML21/runtime",
+                          { "-classpath",JmlTestCase.runtime,
                             "-sourcepath","test/testNoSource",
-                            "-specspath","../OpenJML21/runtime",
+                            "-specspath",JmlTestCase.runtime,
                             "--no-purity-check",
                             "test/testNoSource/A.jml"
                           },2,1
@@ -403,9 +403,9 @@ public class compiler {
     @Test
     public void testJML3() throws Exception {
         helper(new String[]
-                          { "-classpath","../OpenJML21/runtime",
+                          { "-classpath",JmlTestCase.runtime,
                             "-sourcepath"," ",
-                            "-specspath","../OpenJML21/runtime",
+                            "-specspath",JmlTestCase.runtime,
                             "--no-purity-check",
                             "test/testNoErrors/A.jml"
                           },2,1
@@ -418,9 +418,9 @@ public class compiler {
     @Test
     public void testJML4() throws Exception {
         helper(new String[]
-                          { "-classpath","../OpenJML21/runtime",
+                          { "-classpath",JmlTestCase.runtime,
                             "-sourcepath"," ",
-                            "-specspath","../OpenJML21/runtime",
+                            "-specspath",JmlTestCase.runtime,
                             "--no-purity-check",
                             "test/testNoSourceParseError/A.jml"
                           },2,1
@@ -436,9 +436,9 @@ public class compiler {
     @Test
     public void testJML5() throws Exception {
         helper(new String[]
-                          { "-classpath","../OpenJML21/runtime",
+                          { "-classpath",JmlTestCase.runtime,
                             "-sourcepath"," ",
-                            "-specspath","../OpenJML21/runtime",
+                            "-specspath",JmlTestCase.runtime,
                             "--no-purity-check",
                             "test/testNoSourceTypeError/A.jml"
                           },2,1
@@ -452,9 +452,9 @@ public class compiler {
     @Test
     public void testJML6() throws Exception {
         helper(new String[]
-                          { "-classpath","../OpenJML21/runtime"+z+"test/testNoSourceWithClass",
+                          { "-classpath", JmlTestCase.runtime +z+"test/testNoSourceWithClass",
                             "-sourcepath"," ",
-                            "-specspath","../OpenJML21/runtime"+z+"test/testNoSourceWithClass",
+                            "-specspath", JmlTestCase.runtime +z+"test/testNoSourceWithClass",
                             "--no-purity-check",
                             "test/testNoSourceWithClass/A.jml"
                           },2,1
@@ -523,7 +523,7 @@ public class compiler {
         helper(new String[]
                                 { "-Werror",
                                   "-sourcepath","test/testNoErrors", // is also the spec path, so protects against spec errors in A.java
-                                  "-classpath","../OpenJML21/bin-runtime", // does not exist, but isnot part of the specs path
+                                  "-classpath",JmlTestCase.bruntime, // does not exist, but isnot part of the specs path
                                   "test/testWarnings/A.java"
                                 },0,0
                                 ,""
@@ -536,11 +536,11 @@ public class compiler {
     public void testJML6WerrorD() throws Exception {
         helper(new String[]
                                 { "-Werror",
-                                  "-classpath","../OpenJML21/bin-runtime", // does not exist, but isnot part of the specs path
+                                  "-classpath", JmlTestCase.bruntime, // does not exist, but isnot part of the specs path
                                   "test/testWarnings/A.java"
                                 },1,0
                                 ,""
-                                ,"warning: A specification path directory does not exist: ../OpenJML21/bin-runtime (/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest)"+eol
+                                ,"warning: A specification path directory does not exist: " + JmlTestCase.bruntime + " (/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest)"+eol
                                 +"error: warnings found and -Werror specified"+eol
                                 +"1 error"+eol
                                 +"1 warning"+eol
@@ -555,7 +555,7 @@ public class compiler {
     @Test
     public void testSourcePathXB() throws Exception {
         helper(new String[]
-                          { "-classpath","../OpenJML21/bin-runtime",  // FIXME - needs annotations?
+                          { "-classpath", JmlTestCase.bruntime,  // FIXME - needs annotations?
                             "-sourcepath","test/testNoErrors",
                             "-specspath","../../Specs/specs",
                             "--no-purity-check",  //"-Xlint:unchecked",
@@ -570,7 +570,7 @@ public class compiler {
 //    public void testSourcePath3() throws Exception {
 //        helper(new String[]
 //                          { "-classpath"," ",
-//                            "-sourcepath","test/testNoErrors"+z+"../OpenJML21/runtime",
+//                            "-sourcepath","test/testNoErrors"+z+runtime,
 //                            "test/testNoErrors/A.java",  
 //                          },0,0,"",
 //                          "");
