@@ -3709,8 +3709,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             jmlenv.jmlVisibility = tree.modifiers.flags & Flags.AccessFlags;
             Symbol sym = null;
             Type type = null;
-            if (tree.ident instanceof JCIdent) {
-                JCIdent id = (JCIdent)tree.ident;
+            if (tree.ident instanceof JCIdent id) {
                 type = attribExpr(id, env, Type.noType);
                 sym = id.sym;
             } else if (tree.ident instanceof JCArrayAccess aa) {
@@ -3730,23 +3729,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             		utils.error(tree.ident, "jml.message", "Array elements are not permitted in a represents clause");
             	}
                 return;
-//            } else if (tree.ident instanceof JmlStoreRefArrayRange) {
-//            	var aa = (JmlStoreRefArrayRange)tree.ident;
-//            	if (aa.hi != null || aa.lo != null) {
-//                    utils.error(tree.ident, "jml.message", "Array ranges are not permitted in a represents clause");
-//            	}
-//            	Type t = attribExpr(aa.expression,env,Type.noType);
-//            	if (!(t instanceof ArrayType)) {
-//            		utils.error(aa, "jml.message", "Represents target with wild-card index must be an array: " + tree.ident);
-//            		type = types.createErrorType(t);
-//            	} else {
-//            		type = ((ArrayType)t).elemtype;
-//            	}
-//            	// FIXME - sym?
             } else if (tree.ident instanceof JCFieldAccess fa) {
-            	type = attribExpr(fa,env,Type.noType);
-                utils.error(tree.ident, "jml.message", "Field accesses are not permitted in a represents clause");
-                return;
+                if (fa.selected instanceof JCIdent idd && idd.name == names._super) {
+                    type = attribExpr(fa, env, Type.noType);
+                    sym = fa.sym;
+                } else {
+                    type = attribExpr(fa,env,Type.noType);
+                    utils.error(tree.ident, "jml.message", "Field accesses are not permitted in a represents clause");
+                    return;
+                }
             } else {
                 utils.error(tree.ident, "jml.message", "Unknown kind of represents target: " + tree.ident + " (" + tree.ident.getClass() + ")");
                 return;

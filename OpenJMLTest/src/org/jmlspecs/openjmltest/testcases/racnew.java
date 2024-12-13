@@ -1659,10 +1659,10 @@ public class racnew extends RacBase {
                 +"//@ set System.out.println(\"B \" + b.i); \n"
                 +"System.out.println(\"END\");\n"
                 +"}}\n"
-                +"class PB { //@ model  int i; \n}"
+                +"class PB { //@ model  int i;  represents i = 100; \n}"
                 ,"/tt/PA.java:13: warning: JML model field is not implemented: i",27
                 ,"A 6"
-                ,"B 0"
+                ,"B 100"
                 ,"B 6"
                 ,"END"
                 );
@@ -1682,14 +1682,12 @@ public class racnew extends RacBase {
                 +"b = new PA();\n"
                 +"//@ set System.out.println(\"B \" + b.i); \n"
                 +"System.out.println(\"END\"); \n"
-                +"}} class PB { //@ model protected int i; }\n"
-                ,"/tt/PA.java:12: warning: JML model field is not implemented: i",39
+                +"}} class PB { //@ model protected int i; represents i = 100; }\n"
                 ,"A 6"
-                ,"B 0"
+                ,"B 100"
                 ,"B 6"
                 ,"END"
                 );
-
     }
 
     /** Using a model field in a field access */
