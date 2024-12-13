@@ -70,6 +70,7 @@ jobs:
         git config --global core.autocrlf input
         git clone -b $BRANCH --depth 1 https://github.com/OpenJML/OpenJML
         git clone -b $BRANCH --depth 1 https://github.com/OpenJML/Specs
+        git clone -b $BRANCH --depth 1 https://github.com/OpenJML/OpenJMLDemo
         git clone -b master --depth 1 https://github.com/OpenJML/Solvers
         git clone -b master --depth 1 https://github.com/OpenJML/JMLAnnotations
         git clone -b master --depth 1 https://github.com/OpenJML/openjml.github.io
