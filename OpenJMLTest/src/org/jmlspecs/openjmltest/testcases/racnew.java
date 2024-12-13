@@ -755,15 +755,34 @@ public class racnew extends RacBase {
                     //@ set System.out.println("COMPARE " + ( \\type(LinkedList<String>) == \\type(LinkedList<Integer>)));
                     //@ set System.out.println("COMPARE " + ( \\type(HashSet<Integer>) == \\type(LinkedList<Integer>)));
                     //@ set System.out.println("COMPARE " + ( \\type(LinkedList<Integer>) == \\type(LinkedList<Integer>)));
-                    //@ set System.out.println("COMPARE " + ( \\type(LinkedList) == \\type(LinkedList)));
                     System.out.println("END");
                   }
                 }
                 """
                 ,"COMPARE false"
-                ,"COMPARE true"
                 ,"COMPARE false"
                 ,"COMPARE true"
+                ,"END"
+                );
+        
+    }
+
+    @Test public void testTypeOf4a() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava",
+                """
+                package tt; import java.util.*; public class TestJava {
+                  public static void main(String[] args) {
+                    //@ set System.out.println("COMPARE " + ( \\type(LinkedList) == \\type(LinkedList)));
+                    //@ set System.out.println("COMPARE " + ( \\type(LinkedList<?>) == \\type(LinkedList<?>)));
+                    System.out.println("END");
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:3: error: The argument of a \\type construct must be a fully parameterized type: LinkedList", 52
+                ,"/tt/TestJava.java:3: error: The argument of a \\type construct must be a fully parameterized type: LinkedList", 73
+                ,"/tt/TestJava.java:4: error: Wildcards are not allowed within \\type expressions: LinkedList<?>", 64
+                ,"/tt/TestJava.java:4: error: Wildcards are not allowed within \\type expressions: LinkedList<?>", 88
                 ,"END"
                 );
         
