@@ -1787,7 +1787,7 @@ public class JavacParser implements Parser {
                     t = stringTemplate(t);
                 } else {
                     List<JCAnnotation> tyannos = null;
-                    if (isMode(TYPE) && token.kind == MONKEYS_AT) {
+                    if (isMode(TYPE)) {  // OPENJML - removed the test for @ so that JML modifiers are parsed
                         // is the mode check needed?
                         tyannos = typeAnnotationsOpt();
                     }
