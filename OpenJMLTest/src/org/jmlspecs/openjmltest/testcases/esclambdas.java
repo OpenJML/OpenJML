@@ -509,12 +509,12 @@ public class esclambdas extends EscBase {
 
                 +"  //@ public behavior ensures true; pure\n" 
                 +"  public static /*@[PureSupplier] */ java.util.function.Supplier<Integer> m() {\n"
-                +"      return  /*@ ( PureSupplier ) @*/ ()->1;\n"
+                +"      return /*@{PureSupplier}@*/ ()->1;\n"
                 +"  }\n"
                 
                 +"  //@ public behavior ensures true; pure\n" 
                 +"  public static /*@[PureSupplier]*/ java.util.function.Supplier<Integer> mm() {\n"
-                +"      return ()->1;\n"  // Also OK because the lambda expression conforms to PureSupplier as a functional interface
+                +"      return ()->1;\n"  // OK because the lambda expression conforms to PureSupplier as a functional interface
                 +"  }\n"
                 
                 +"}"
