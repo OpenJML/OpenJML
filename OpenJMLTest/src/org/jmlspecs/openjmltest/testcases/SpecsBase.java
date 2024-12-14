@@ -114,12 +114,12 @@ public class SpecsBase extends TCBase {
     private static boolean verbose = false;
 
     @Parameters
-    static public  Collection<String[]> datax() {
-        if (!dotests) return new ArrayList<String[]>(0);
-        Collection<String[]> data = new ArrayList<String[]>(1000);
+    static public java.util.Collection<Object[]> datax() {
+        if (!dotests) return new ArrayList<Object[]>(0);
+        java.util.Collection<Object[]> data = new ArrayList<Object[]>(1000);
         for (String f: findAllFiles(null)) {
         	if (f.contains("org.jmlspecs.models")) continue; // FIXME - eventually support or delete these
-            data.add(new String[]{ f});
+            data.add(new Object[]{ f});
         }
 //        data.add(new String[] { "org.hamcrest.Matcher" });
 //        counts.put("org.hamcrest.Matcher", 0);
@@ -136,8 +136,12 @@ public class SpecsBase extends TCBase {
      * execute the test on a given class name.
      * @param classname the fully qualified class to test
      */
-    public SpecsBase(String classname) {
-        this.classname = classname;
+//    public SpecsBase(String classname) {
+//        this.classname = classname;
+//    }
+
+    public SpecsBase() {
+        this.classname = null;
     }
 
     java.util.List<String> jars;
@@ -198,7 +202,7 @@ public class SpecsBase extends TCBase {
     }
 
     /** This test tests the file that is named as classname by the constructor */
-    @Test
+//    @Test
     public void testSpecificationFile() {
     	if (classname.startsWith("Array")) return;
     	if (classname.startsWith("java.awt")) return;
@@ -325,6 +329,7 @@ public class SpecsBase extends TCBase {
      * @param className the name of the class to test
      */
     public void checkClass(String className, int n) {
+        System.out.println("CHECKING " + className);
         String program = "public class AJDK { "+ className + typeargs[n] + " o; }";
         // Do these  because the classes are not public
         if (className.equals("java.lang.AbstractStringBuilder")) program = "package java.lang; " + program;
@@ -341,6 +346,14 @@ public class SpecsBase extends TCBase {
     // @Test
     public void testFileTemp() {
         checkClass("java.util.LinkedList", 1);
+    }
+
+    @Test
+    public void testFiles() {
+        var classes = datax();
+        for (var c: classes) {
+            checkClass((String)c[0], 0);
+        }
     }
 
 }
