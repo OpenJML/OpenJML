@@ -310,6 +310,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             // We initialize state and proceed to process the comment as JML text
             jmlcommentstyle = style;
             jml = true;
+            if (scannerDebug) System.out.println("ENTERING JML " + p);
             nestedBlockComment = false;
             if (style == CommentStyle.BLOCK) {
             	if (scannerDebug) System.out.println("SETTING EBC " + p + " " + (endPos-2) + " " + length());
@@ -431,6 +432,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                     nestedBlockComment = false;
                 } else {
                     jml = false;
+                    if (scannerDebug) System.out.println("LEAVING JML ");
                     endPos = position();
                     if (scannerDebug) System.out.println("RESETTING EBC " + position() + " " + endBlockComment + " " + length());
                     endBlockComment = length();
@@ -462,6 +464,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                     tk = TokenKind.CUSTOM;
                     jmlTokenClauseKind = Operators.endjmlcommentKind;
                     jml = false;
+                    if (scannerDebug) System.out.println("LEAVING JML-B " + position());
                     endPos = position();
                 	if (scannerDebug) System.out.println("RESETTING EBC@ " + position() + " " + endBlockComment + " " + length());
                     endBlockComment = length();
@@ -572,6 +575,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             if (jmlcommentstyle == CommentStyle.LINE) {
                 if (!isTextBlock) {
                     jml = false;
+                    if (scannerDebug) System.out.println("LEAVING JML-C " + pos + " " + endPos);
                     nestedBlockComment = false;
                     if (returnEndOfCommentTokens) {
                         tk = TokenKind.CUSTOM;
