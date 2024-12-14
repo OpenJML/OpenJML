@@ -15380,12 +15380,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             if (rac && utils.isModel(s)) {
                 JCFieldAccess recv = M.at(that.pos).Select(trexpr, names.fromString(Strings.modelFieldMethodPrefix + that.name.toString()));
-                //System.out.println("MODEL " + s + " " + s.owner + " " + JmlMemberEnter.instance(context).modelMethods);
-                recv.sym = JmlMemberEnter.instance(context).modelMethods.get(s).sym;
-                recv.type = recv.sym.type;
-                result = eresult = M.at(that.pos).Apply(null,recv, List.<JCExpression>nil());
-                eresult.type = that.type;
-                //System.out.println("MODEL " + that + " " + eresult + " " + recv.sym + " " + recv.type);
+                var mm = JmlMemberEnter.instance(context).modelMethods.get(s);
+                if (mm == null) {
+                    throw new JmlNotImplementedException(that, "method being rac-ed that contains an uncompiled model field: " + that);
+
+                } else {
+                    if (print) System.out.println("MODEL-A " + that + " " + s + " " + s.owner + " " + JmlMemberEnter.instance(context).modelMethods);
+                    recv.sym = JmlMemberEnter.instance(context).modelMethods.get(s).sym;
+                    recv.type = recv.sym.type;
+                    result = eresult = M.at(that.pos).Apply(null,recv, List.<JCExpression>nil());
+                    eresult.type = that.type;
+                    //System.out.println("MODEL " + that + " " + eresult + " " + recv.sym + " " + recv.type);
+                }
             } else {
                 if (currentEnv.stateLabel != null) {
                     result = eresult = makeOld(newfa.pos, newfa, currentEnv.stateLabel);

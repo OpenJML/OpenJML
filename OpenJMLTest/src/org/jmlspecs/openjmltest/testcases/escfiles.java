@@ -650,7 +650,7 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testEscConstructor6() {
+    public void escConstructor6() {
         helpTF("escConstructor6");
     }
 
@@ -934,7 +934,7 @@ public class escfiles extends EscBase {
     @Test
     public void visibilityB() {
         expectedExit = 1;
-        helpTCF("test/visibilityB/org/apache/commons/cli/Option.java","test/visibilityB","-classpath","test/visibilityB");
+        helpTCF("test/visibilityBug/org/apache/commons/cli/Option.java","test/visibilityB","-classpath","test/visibilityBug");
     }
 
     @Test

@@ -1,0 +1,6 @@
+test/sfbug402/Seq.java:35: Note: Not implemented for runtime assertion checking: ensures clause containing method being rac-ed that contains an uncompiled model field: \result.theInteger
+      @ ensures \result.theInteger == _length;
+                       ^
+test/sfbug402/ListSeq.java:57: Note: Not implemented for runtime assertion checking: ensures clause containing method being rac-ed that contains an uncompiled model field: \result.theInteger
+    //@   ensures \result.theInteger == _length;
+                         ^
