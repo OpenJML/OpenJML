@@ -2484,16 +2484,20 @@ public class JmlParser extends JavacParser {
             return super.ident(allowClass, asVariable);
         }
     }
-
+    
     // Have to replicate this method because we cannot just add the JML
     // operators into the token set for the Java operators.
     @Override
     protected JCExpression term1() {
     	JCExpression t;
-    	if (inExprMode() && jmlTokenClauseKind() == dotdotKind) {
-        	t = null;
-        	nextToken();
-    	} else if (inExprMode() && token.kind == TokenKind.STAR) {
+    	Token op = token;
+        if (inExprMode() && jmlTokenClauseKind() == dotdotKind) {
+            t = null;
+            nextToken();
+        } else if (inExprMode() && token.kind == TokenKind.COLON) {
+            t = null;
+            nextToken();
+        } else if (inExprMode() && token.kind == TokenKind.STAR) {
     		t = null;
         	int dotpos = pos();
         	nextToken();
@@ -2501,10 +2505,12 @@ public class JmlParser extends JavacParser {
         		//JmlPrimitiveTypes.rangeTypeKind.parse(null, null,JmlPrimitiveTypes.rangeTypeKind, this);
         		return jmlF.at(dotpos).JmlRange(null,null);
         	}
+        	op = token;
         } else {
+            op = null;
             t = term1Cond();
         }
-        if (inExprMode() && jmlTokenClauseKind() == dotdotKind) {
+        if (inExprMode() && (jmlTokenClauseKind() == dotdotKind || token.kind == TokenKind.COLON)) {
             System.out.println("TERM1-DOTDOT " + t);
         	int dotpos = pos();
         	nextToken();
@@ -2615,29 +2621,6 @@ public class JmlParser extends JavacParser {
         nextToken();
         JCExpression tt = term2ImpRestX();
         return toP(jmlF.at(ppos).JmlBinary(impliesKind, t, tt));
-    }
-
-    protected JCExpression term2DotDot() {
-        JCExpression t = term2();
-        if ((mode & EXPR) != 0
-                && jmlTokenClauseKind() == dotdotKind) {
-            mode = EXPR;
-            return term2DotDotRest(t);
-        } else {
-            return t;
-        }
-    }
-    
-    protected JCExpression term2DotDotRest(JCExpression t) {
-        IJmlClauseKind jt = jmlTokenClauseKind();
-        if (jt == dotdotKind) {
-            int ppos = pos(); // position of the operator
-            nextToken();
-            JCExpression tt = term2();
-            t = toP(jmlF.at(ppos).JmlRange(t, tt));
-            jt = jmlTokenClauseKind();
-        }
-        return t;
     }
 
     protected ParensResult analyzeParens() {
@@ -2861,26 +2844,22 @@ public class JmlParser extends JavacParser {
                     accept(LPAREN);
                     selectExprMode();
                     tuple = new java.util.LinkedList<>();
-                    t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
+                    //t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
+                    t = term(); // TODO - why does Java use the expression above
                     tuple.add(t);
-                    if (jmlTokenClauseKind() == dotdotKind) {
-                        t = term2DotDotRest(tuple.get(0));
-                        accept(RPAREN);
-                    } else {
-                        while (token.kind == COMMA) {
-                            accept(COMMA);
-                            t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
-                            tuple.add(t);
-                        }
-                    
-                        accept(RPAREN);
-                        if (tuple.size() == 1) {
-                            t = toP(F.at(pos).Parens(t));
-                        } else {
-                            t = toP(jmlF.at(pos).JmlTuple(tuple));
-                        }
-                        t = term3Rest(t, null);
+                    while (token.kind == COMMA) {
+                        accept(COMMA);
+                        t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
+                        tuple.add(t);
                     }
+
+                    accept(RPAREN);
+                    if (tuple.size() == 1) {
+                        t = toP(F.at(pos).Parens(t));
+                    } else {
+                        t = toP(jmlF.at(pos).JmlTuple(tuple));
+                    }
+                    t = term3Rest(t, null);
                     break;
                 default:
                 	// FIXME - unexpected character
