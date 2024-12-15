@@ -1,0 +1,10 @@
+Proving methods in M
+Starting proof of M.M() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.M() with prover !!!! - no warnings
+Starting proof of M.test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.test() with prover !!!! - no warnings
+Completed proving methods in M
