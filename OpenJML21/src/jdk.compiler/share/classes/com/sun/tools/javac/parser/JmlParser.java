@@ -2494,9 +2494,9 @@ public class JmlParser extends JavacParser {
         if (inExprMode() && jmlTokenClauseKind() == dotdotKind) {
             t = null;
             nextToken();
-        } else if (inExprMode() && token.kind == TokenKind.COLON) {
-            t = null;
-            nextToken();
+//        } else if (inExprMode() && token.kind == TokenKind.COLON) {
+//            t = null;
+//            nextToken();
         } else if (inExprMode() && token.kind == TokenKind.STAR) {
     		t = null;
         	int dotpos = pos();
@@ -2510,8 +2510,7 @@ public class JmlParser extends JavacParser {
             op = null;
             t = term1Cond();
         }
-        if (inExprMode() && (jmlTokenClauseKind() == dotdotKind || token.kind == TokenKind.COLON)) {
-            System.out.println("TERM1-DOTDOT " + t);
+        if (inExprMode() && (jmlTokenClauseKind() == dotdotKind /*|| token.kind == TokenKind.COLON*/)) {
         	int dotpos = pos();
         	nextToken();
         	JCExpression tt;
@@ -2525,7 +2524,9 @@ public class JmlParser extends JavacParser {
         		tt = null;
         	} else {
         	    tt = term1Cond();
-                System.out.println("TERM1-DOTDOT-Z " + tt);
+        	    if (jmlTokenClauseKind() == dotdotKind) {
+        	        utils.error(token.pos,"jml.message","Range operators (..) do not chain and have the lowest precedence; perhaps parentheses are needed");
+        	    }
         	}
         	//JmlPrimitiveTypes.rangeTypeKind.parse(null, null, JmlPrimitiveTypes.rangeTypeKind, this);
         	return jmlF.at(dotpos).JmlRange(t,tt);
@@ -2572,7 +2573,7 @@ public class JmlParser extends JavacParser {
     }
 
     protected JCExpression term2Imp() {
-        JCExpression t = term2DotDot();
+        JCExpression t = term2();
         if ((mode & EXPR) != 0
                 && (jmlTokenClauseKind() == impliesKind || jmlTokenClauseKind() == reverseimpliesKind)) {
             mode = EXPR;
@@ -2600,7 +2601,7 @@ public class JmlParser extends JavacParser {
             do {
                 int ppos = pos(); // position of the operator
                 nextToken();
-                JCExpression tt = term2DotDot();
+                JCExpression tt = term2();
                 t = toP(jmlF.at(ppos).JmlBinary(reverseimpliesKind, t, tt));
                 jt = jmlTokenClauseKind();
             } while (jt == reverseimpliesKind);
@@ -2852,7 +2853,6 @@ public class JmlParser extends JavacParser {
                         t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
                         tuple.add(t);
                     }
-
                     accept(RPAREN);
                     if (tuple.size() == 1) {
                         t = toP(F.at(pos).Parens(t));

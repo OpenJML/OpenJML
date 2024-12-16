@@ -13861,16 +13861,28 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             return;
         }
-        if ((optag == JCTree.Tag.EQ || optag== JCTree.Tag.NE) && (utils.isExtensionValueType(that.lhs.type) || utils.isExtensionValueType(that.rhs.type))) {
+        if ((optag == JCTree.Tag.EQ || optag == JCTree.Tag.NE) && (utils.isExtensionValueType(that.lhs.type) || utils.isExtensionValueType(that.rhs.type))) {
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
-            if (utils.rac) {
-                var nm = names.fromString(optag == JCTree.Tag.EQ ? "eq" : "ne");
-                JCExpression e = treeutils.makeMethodInvocation(that, lhs, nm, rhs);
-                result = eresult = e;
+            JCExpression e;
+            if (lhs.type == rhs.type && lhs.type == JmlPrimitiveTypes.rangeTypeKind.getType(context)) {
+                if (lhs instanceof JCParens p) lhs = p.expr;
+                if (rhs instanceof JCParens p) rhs = p.expr;
+                if (lhs instanceof JmlRange rlhs && rhs instanceof JmlRange rrhs ) {
+                    var e1 = treeutils.makeEquality(that.pos, rlhs.lo, rrhs.lo);
+                    var e2 = treeutils.makeEquality(that.pos, rlhs.hi, rrhs.hi); // FIXME -- check nulls, exclusivity
+                    e = treeutils.makeAnd(that.pos, e1, e2);
+                    if (optag == JCTree.Tag.NE) e = treeutils.makeNot(that.pos, e);
+                } else {
+                    throw new JmlNotImplementedException(that, "equality of non-explicit range expressions");
+                }
+            } else if (!utils.rac) {
+                e = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
             } else {
-                result = eresult = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
+                var nm = names.fromString(optag == JCTree.Tag.EQ ? "eq" : "ne");
+                e = treeutils.makeMethodInvocation(that, lhs, nm, rhs);
             }
+            result = eresult = e;
             return;
         }
 		if (optag == JCTree.Tag.PLUS && that.type.equals(syms.stringType)) {
@@ -19820,6 +19832,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (that.clauseType == assertClause || that.clauseType == checkClause) {
 				addTraceableComment(that);
 				JCExpression e = convertJML(that.expression);
+                System.out.println("JSE " + that.expression + " : " + that.expression.type);
+                System.out.println("JSE2 " +  e );
+                if (e != null) System.out.println("JSE2 " + e.type);
 				e = addImplicitConversion(that, syms.booleanType, e);
 				addFeasibilityCheck(that, currentStatements, Strings.feas_assert, Strings.beforeAssertFeasCheckDescription);
 				JCExpression opt = that.optionalExpression;
