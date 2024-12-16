@@ -19832,9 +19832,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (that.clauseType == assertClause || that.clauseType == checkClause) {
 				addTraceableComment(that);
 				JCExpression e = convertJML(that.expression);
-                System.out.println("JSE " + that.expression + " : " + that.expression.type);
-                System.out.println("JSE2 " +  e );
-                if (e != null) System.out.println("JSE2 " + e.type);
 				e = addImplicitConversion(that, syms.booleanType, e);
 				addFeasibilityCheck(that, currentStatements, Strings.feas_assert, Strings.beforeAssertFeasCheckDescription);
 				JCExpression opt = that.optionalExpression;
