@@ -2307,7 +2307,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //            }
 //        }
         that.lhs = convertExpr(that.lhs);
-        if (that.rhs instanceof JmlRange) System.out.println("RANGE? " + that);
         that.rhs = convertExpr(that.rhs);
         result = that; 
     }

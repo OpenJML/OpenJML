@@ -2484,16 +2484,20 @@ public class JmlParser extends JavacParser {
             return super.ident(allowClass, asVariable);
         }
     }
-
+    
     // Have to replicate this method because we cannot just add the JML
     // operators into the token set for the Java operators.
     @Override
     protected JCExpression term1() {
     	JCExpression t;
-    	if (inExprMode() && jmlTokenClauseKind() == dotdotKind) {
-        	t = null;
-        	nextToken();
-    	} else if (inExprMode() && token.kind == TokenKind.STAR) {
+    	Token op = token;
+        if (inExprMode() && jmlTokenClauseKind() == dotdotKind) {
+            t = null;
+            nextToken();
+//        } else if (inExprMode() && token.kind == TokenKind.COLON) {
+//            t = null;
+//            nextToken();
+        } else if (inExprMode() && token.kind == TokenKind.STAR) {
     		t = null;
         	int dotpos = pos();
         	nextToken();
@@ -2501,10 +2505,12 @@ public class JmlParser extends JavacParser {
         		//JmlPrimitiveTypes.rangeTypeKind.parse(null, null,JmlPrimitiveTypes.rangeTypeKind, this);
         		return jmlF.at(dotpos).JmlRange(null,null);
         	}
+        	op = token;
         } else {
+            op = null;
             t = term1Cond();
         }
-        if (inExprMode() && jmlTokenClauseKind() == dotdotKind) {
+        if (inExprMode() && (jmlTokenClauseKind() == dotdotKind /*|| token.kind == TokenKind.COLON*/)) {
         	int dotpos = pos();
         	nextToken();
         	JCExpression tt;
@@ -2518,6 +2524,9 @@ public class JmlParser extends JavacParser {
         		tt = null;
         	} else {
         	    tt = term1Cond();
+        	    if (jmlTokenClauseKind() == dotdotKind) {
+        	        utils.error(token.pos,"jml.message","Range operators (..) do not chain and have the lowest precedence; perhaps parentheses are needed");
+        	    }
         	}
         	//JmlPrimitiveTypes.rangeTypeKind.parse(null, null, JmlPrimitiveTypes.rangeTypeKind, this);
         	return jmlF.at(dotpos).JmlRange(t,tt);
@@ -2836,7 +2845,8 @@ public class JmlParser extends JavacParser {
                     accept(LPAREN);
                     selectExprMode();
                     tuple = new java.util.LinkedList<>();
-                    t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
+                    //t = termRest(term1Rest(term2Rest(term3(), TreeInfo.orPrec)));
+                    t = term(); // TODO - why does Java use the expression above
                     tuple.add(t);
                     while (token.kind == COMMA) {
                         accept(COMMA);
