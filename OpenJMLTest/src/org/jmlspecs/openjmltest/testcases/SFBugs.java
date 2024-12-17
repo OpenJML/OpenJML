@@ -542,12 +542,12 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug567b() {
         expectedExit = 0;
-        helpTCF("test/gitbug567","test/gitbug567b","--code-math=safe");
+        helpTCF("test/gitbug567b","test/gitbug567b","--code-math=safe");
     }
     
     @Test public void gitbug567c() {
         expectedExit = 0;
-        helpTCF("test/gitbug567","test/gitbug567c","--code-math=bigint");
+        helpTCF("test/gitbug567c","test/gitbug567c","--code-math=bigint");
     }
     
     @Test public void gitbug572() {
