@@ -532,7 +532,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // FIXME setProofResultListener(prl);
         boolean hasArgs = args.length != 0;
     	args = JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);
-    	// args is now the original 'args' without any files or JML arguments -- leaving only any Java options
+    	// args is now the original 'args' without JML arguments -- leaving  any Java options and files
     	if (JmlOptions.instance(context).get("-?") != null) return Result.OK;
     	if (args.length == 0 && fileObjects == null) {
     		if (hasArgs) {

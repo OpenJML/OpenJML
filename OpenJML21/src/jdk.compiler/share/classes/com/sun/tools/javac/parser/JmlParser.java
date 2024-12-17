@@ -2245,7 +2245,9 @@ public class JmlParser extends JavacParser {
     		while (S.jml()) {
     			if (isStartJml(token)) { nextToken(); continue; }
     			var mm = Extensions.findKeyword(token);
-    			if (!(mm instanceof ModifierKind m)) break;
+    			if (!(mm instanceof ModifierKind m)) {
+    			    break;
+    			}
     			//System.out.println("JML-ANNOTOPT " + m);
     			
     			JmlAnnotation t;
@@ -2262,15 +2264,18 @@ public class JmlParser extends JavacParser {
     		            t = null;
     		        }
     			}
-    			if (t != null) annos.append(t);
+    			if (t != null) {
+    			    annos.append(t);
+    			}
     			nextToken();
     			acceptEndJML();
                 //System.out.println("READ ANNOT " + token + " " + annos);
     		}
     		var lst = super.annotationsOpt(kind);
-    		if (lst.isEmpty()) return annos.toList();
+    		if (lst.isEmpty()) {
+    		    return annos.toList();
+    		}
     		annos.appendList(lst);
-            //System.out.println("JAVA ANNOT " + token + " " + annos); Utils.dumpStack();
     	}
     }
     

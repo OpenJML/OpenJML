@@ -1,1 +1,2 @@
+EXIT=0
 ARGS+=" --warn=implicit-everything "

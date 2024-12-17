@@ -137,6 +137,7 @@ public class JmlOptions extends Options {
             String s = iter.next();
             if (s.endsWith(Strings.specsSuffix) && (f=new File(s)).exists()) {
                 if (jmlfiles != null) jmlfiles.add(f);
+                else Utils.instance(context).warning("jml.message", ".jml files on the command-line are ignored: " + s);
                 iter.remove();
             }
         }
@@ -170,7 +171,7 @@ public class JmlOptions extends Options {
                 }
             } else if (file.isFile()) {
                 String ss = file.toString();
-                if (utils.hasJavaSuffix(ss)) files.add(ss); // FIXME - if we allow .jml files on the command line, we have to guard against parsing them twice
+                if (utils.hasJavaSuffix(ss)) files.add(ss); // The compiler does not handle anything but .java files (any .jml files are loaded implicitly, not explictly)
             } else {
                 Utils.instance(context).warning("jml.message", "Ignoring " + file + " (not a file or folder)");
             }
