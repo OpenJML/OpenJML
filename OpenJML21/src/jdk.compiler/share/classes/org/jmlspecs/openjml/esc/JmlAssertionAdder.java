@@ -9597,20 +9597,28 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										addTraceableComment(decl, clause.toString());
 										// Name name = names.fromString(decl.name.toString() + "__OLD_" + decl.pos);
 										// JCVariableDecl newdecl = convertCopy(decl);
-										Name name = names.fromString(
-												decl.name.toString() + "__OLD_" + decl.pos + "_" + nextUnique());
 										// FIXME - does the declzaration really need to be duplicated -- it is only used
 										// once
-										JCVariableDecl newdecl = treeutils.makeDupDecl(decl, methodDecl.sym, decl.name, // name,
-                                                                                               clause.pos);
-                                        newdecl.sym = decl.sym;
-//										JCVariableDecl newdecl = treeutils.makeDupDecl(decl, methodDecl.sym, name,
-//												clause.pos);
-//										if (!rac)
-//											newdecl.mods.flags |= Flags.FINAL;
+										JCVariableDecl newdecl;
+										if (rac) {
+										    // If the spec case has multiple behaviors, one can have old declarations with the
+										    // same name in different variables. In this translaation, those declarations end up
+										    // in the same scope, so we have to rename them for rac. For esc, they get different
+										    // names when creating the SSA translation. cf. also convertSymbol in visitIdent.
+	                                        Name name = names.fromString(
+	                                                decl.name.toString() + "__OLD_" + decl.pos + "_" + nextUnique());
+										    newdecl = treeutils.makeDupDecl(decl, methodDecl.sym, name, clause.pos);
+	                                        if (print) System.out.println("MAPPING " + decl.name + " " + newdecl.name + " " + decl.sym + " " + newdecl.sym);
+	                                        mapSymbols.put(decl.sym, newdecl.sym);
+										} else {
+										    newdecl = treeutils.makeDupDecl(decl, methodDecl.sym, decl.name, clause.pos);
+	                                        newdecl.sym = decl.sym;
+	                                        //newdecl.mods.flags |= Flags.FINAL;
+										}
+										// TODO: It might be better to keep each spec case behavior in separate blocks,
+										// even though that would mean replicating the call of the callee. One would need to wrap
+										// that call of the callee with the checks for callee invariants.
 										addStat(oldStatements, newdecl);
-//										mapSymbols.put(decl.sym, newdecl.sym);
-//										var newdecl = decl;
 										JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
 										ListBuffer<JCStatement> check = pushBlock();
 										if (rac) {
@@ -15594,7 +15602,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		//System.out.println("VISITIDENT " + that + " " + oldenv + " " + translatingJML);
 		var sym = that.sym;
-//		Symbol sym = convertSymbol(that.sym);
+		if (rac) sym = convertSymbol(that.sym);
 //		if (sym.type.tsym != that.sym.type.tsym && esc) {
 //            addRangeConstraints(that, false, that.sym.type, that);
 //		}

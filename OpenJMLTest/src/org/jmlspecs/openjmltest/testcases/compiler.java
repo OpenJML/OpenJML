@@ -320,7 +320,8 @@ public class compiler {
                             "test/testNoErrors/A.jml"
                           },2,0
                           ,""
-                          ,"error: no source files" + eol
+                          ,"warning: .jml files on the command-line are ignored: test/testNoErrors/A.jml" + eol +
+                           "error: no source files" + eol
                           );
     }
 
