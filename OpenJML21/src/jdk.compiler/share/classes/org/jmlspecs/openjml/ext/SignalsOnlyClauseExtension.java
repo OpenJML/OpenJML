@@ -2,7 +2,6 @@ package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.COMMA;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
-import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
@@ -17,7 +16,6 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.Tokens.ITokenKind;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCErroneous;
@@ -74,7 +72,7 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
                     } else if (tk == COMMA) {
                         parser.nextToken();
                         continue;
-                    } else if (!parser.getScanner().jml() || parser.jmlTokenKind() == ENDJMLCOMMENT) {  // FIXME - change to get JML status from parser
+                    } else if (!parser.getScanner().jml() || parser.isEndJml()) {  // FIXME - change to get JML status from parser
                         parser.syntaxError(parser.pos(), null, "jml.missing.semi");
                         parser.skipThroughEndOfJML();
                         break;

@@ -31,9 +31,10 @@ import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.ReachableStatement.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.Functional.*;
+import static org.jmlspecs.openjml.ext.Operators.*;
 import static org.jmlspecs.openjml.ext.JmlPrimitiveTypes.*;
 import org.jmlspecs.openjml.ext.Refining;
-import org.jmlspecs.openjml.ext.JmlOperatorKind;
+import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.QuantifiedExpressions;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
@@ -933,7 +934,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     protected JCExpression makeNNInstanceof(JCExpression e, int epos, Type type, int typepos) {
         JCExpression e1 = treeutils.makeTypeof(e);
         JCExpression e2 = makeTypeLiteral(type,typepos);
-        JCExpression ee = treeutils.makeJmlBinary(epos,JmlOperatorKind.subtypeofKind,e1,e2);
+        JCExpression ee = treeutils.makeJmlBinary(epos,Operators.subtypeofKind,e1,e2);
         return ee;
     }
     
@@ -1061,7 +1062,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         if (that.name != null) {
             scanList(that.args);
             result = that;
-        } else if (that.token == null && that.kind == null) {
+        } else if (that.kind == null) {
             //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
             scan(that.typeargs);
             scan(that.meth);
@@ -1070,8 +1071,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             result = that;
 
 
-        } else {
-            if (that.kind != null) switch (that.kind.keyword) {
+        } else if (that.kind != null) {
+            switch (that.kind.keyword) {
                 case oldID:
                 case preID:
                 case pastID:
@@ -1099,6 +1100,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     } finally {
                         currentMap = savedMap;
                     }
+                    // FIXME - what is result?
                     break;
                 }
                 case sameID: {
@@ -1164,12 +1166,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     result = that;
                     break;
                 } 
-                default:
-                    log.error(that.pos, "esc.internal.error", "No implementation for this kind of Jml node in BasicBlocker2: " + that.kind.keyword());
-                    
-            } else switch (that.token) { 
-                case SUBTYPE_OF:
-                case JSUBTYPE_OF:
+                case subtypeofID:
+                case jsubtypeofID:
+                case subtypeofeqID: // FIXME
+                case jsubtypeofeqID:
                 {
                     scan(that.args.get(0));
                     JCExpression lhs = result;
@@ -1180,11 +1180,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     break;
                 } 
                 default:
-                    log.error(that.pos, "esc.internal.error", "Did not expect this kind of Jml node in BasicBlocker2: " + that.token.internedName());
-                    shouldNotBeCalled(that);
-            }
-            return;
+                    log.error(that.pos, "esc.internal.error", "No implementation for this kind of Jml node in BasicBlocker2: " + that.kind.keyword());
+            }   
+        } else {
+            log.error(that.pos, "esc.internal.error", "Did not expect a JmlMethodInvocation node in BasicBlocker2 with a null 'kind'");
+            shouldNotBeCalled(that);
         }
+        return;
     }
     
     // FIXME - REVIEW and document
@@ -2305,7 +2307,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //            }
 //        }
         that.lhs = convertExpr(that.lhs);
-        if (that.rhs instanceof JmlRange) System.out.println("RANGE? " + that);
         that.rhs = convertExpr(that.rhs);
         result = that; 
     }

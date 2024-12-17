@@ -10,7 +10,6 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.STAR;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SUPER;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.THIS;
-import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import com.sun.tools.javac.parser.*;
 import java.lang.reflect.Constructor;
@@ -239,7 +238,7 @@ public abstract class IJmlClauseKind {
             // parsed it or because the statement does not end with one,
             // then the scanner has already scanned the next symbol --
         	// either the end-of-jml or the start of the next JML clause/statement
-        } else if (parser.token().ikind == ENDJMLCOMMENT) {
+        } else if (parser.isEndJml()) {
             // FIXME - was -2 here, why?
             if (requireSemicolon) warning(parser.pos(), parser.endPos(), "jml.missing.semi", clauseType.keyword());
         } else if (parser.token().kind != SEMI && parser.token().kind == TokenKind.IDENTIFIER && Extensions.findKeyword(parser.token().name()) != null) {
@@ -376,16 +375,16 @@ public abstract class IJmlClauseKind {
         public JCExpression parse(JCModifiers mods, String name, IJmlClauseKind kind, JmlParser parser) {
             init(parser);
             int startx = parser.pos();
-            JmlTokenKind jt = parser.jmlTokenKind();
+            var jt = parser.jmlTokenClauseKind();
             parser.nextToken();
             if (parser.token().kind != TokenKind.LPAREN) {
-                return parser.syntaxError(startx, null, "jml.args.required", jt.internedName());
+                return parser.syntaxError(startx, null, "jml.args.required", jt.keyword());
             } else {
                 int preferredPos = parser.pos(); // points at the left-paren
                 List<JCExpression> args = parser.arguments();
                 JmlMethodInvocation t = toP(parser.maker().at(preferredPos).JmlMethodInvocation(this, args));
                 t.startpos = startx;
-                t.token = jt; // FIXME - replace using jt with a kind
+                t.kind = jt;
                 checkParse(parser,t);
                 return parser.primaryTrailers(t, null); // FIXME - was primarySuffix
             }

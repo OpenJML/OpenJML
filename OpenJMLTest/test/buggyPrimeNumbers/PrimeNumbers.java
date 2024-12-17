@@ -5,7 +5,7 @@
         //@ public normal_behavior     
         //@ requires d != 0;
 	// ensures \result == true ==> n%d == 0;        // this post condition is time consuming.
-        //@ pure no_state
+        //@ no_state
         public static boolean div(int n, int d) { return n%d == 0; }
 
         private /*@ spec_public nullable @*/ int primeArray[];

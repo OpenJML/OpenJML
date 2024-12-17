@@ -16,16 +16,16 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of openjml.clock.TickTockClockB2.getSecond() with prover !!!! - no warnings
 Starting proof of openjml.clock.TickTockClockB2.tick() with prover !!!!
-..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB2.java:66: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method tick
+../../OpenJMLDemo/src/openjml/clock/TickTockClockB2.java:66: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method tick: (Caller: openjml.clock.TickTockClockB2.tick(), Callee: openjml.clock.TickTockClockB2.getSecond())
 		if (second == 60) { minute++; /*@ ghost int s = (\lbl SECOND getSecond()); */   }
 		                                                                      ^
-..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB2.java:26: warning: Associated declaration
+../../OpenJMLDemo/src/openjml/clock/TickTockClockB2.java:26: warning: Associated declaration
 	//@ public invariant 0 <= second && second <= 59;
 	           ^
-..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB2.java:66: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method tick
+../../OpenJMLDemo/src/openjml/clock/TickTockClockB2.java:66: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method tick: (Caller: openjml.clock.TickTockClockB2.tick(), Callee: openjml.clock.TickTockClockB2.getSecond())
 		if (second == 60) { minute++; /*@ ghost int s = (\lbl SECOND getSecond()); */   }
 		                                                                      ^
-..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB2.java:23: warning: Associated declaration
+../../OpenJMLDemo/src/openjml/clock/TickTockClockB2.java:23: warning: Associated declaration
 	//@ public invariant 0 <= minute && minute <= 59;
 	           ^
 Completed proof of openjml.clock.TickTockClockB2.tick() with prover !!!! - with warnings

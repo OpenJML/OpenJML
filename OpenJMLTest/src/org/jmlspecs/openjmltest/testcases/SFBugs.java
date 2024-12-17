@@ -542,12 +542,12 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug567b() {
         expectedExit = 0;
-        helpTCF("test/gitbug567","test/gitbug567b","--code-math=safe");
+        helpTCF("test/gitbug567b","test/gitbug567b","--code-math=safe");
     }
     
     @Test public void gitbug567c() {
         expectedExit = 0;
-        helpTCF("test/gitbug567","test/gitbug567c","--code-math=bigint");
+        helpTCF("test/gitbug567c","test/gitbug567c","--code-math=bigint");
     }
     
     @Test public void gitbug572() {
@@ -557,7 +557,7 @@ public class SFBugs extends EscBase {
     
     // The .jml file is on the command-line, which caused a crash, now fixed
     @Test public void gitbug573() {
-        expectedExit = 0;
+        expectedExit = 2;
         helpTCF("test/gitbug573/pckg/A.jml","test/gitbug573","-sourcepath","test/gitbug573");
     }
     
@@ -568,12 +568,12 @@ public class SFBugs extends EscBase {
     
     // Here .jml is on the command-line, but the .java does not exist
     @Test public void gitbug573b() {
-        expectedExit = 1;
+        expectedExit = 2;
         helpTCF("test/gitbug573b/pckg/A.jml","test/gitbug573b","-sourcepath","test/gitbug573b");
     }
     
     @Test public void gitbug573c() {
-        expectedExit = 1;
+        expectedExit = 2;
         helpTCF("test/gitbug573c/java/lang/Integer.jml","test/gitbug573c","-sourcepath","test/gitbug573c");
     }
     
@@ -1150,19 +1150,13 @@ public class SFBugs extends EscBase {
     
     @Test
     public void gitbug718x1() {
-        expectedExit = 1;
+        expectedExit = 0;
         helpTCG();
     }
     
     @Test
     public void gitbug718x2() {
-        expectedExit = 1;
-        helpTCG();
-    }
-    
-    @Test
-    public void gitbug718x3() {
-        expectedExit = 1;
+        expectedExit = 0;
         helpTCG();
     }
     

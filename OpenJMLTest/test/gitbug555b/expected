@@ -1,0 +1,20 @@
+Proving methods in Test
+Skipping proof of Test.Test() (excluded by -method)
+Proving methods in Test.1
+Starting proof of Test.1.show(TestA) with prover !!!!
+test/gitbug555b/Test.java:14: warning: To check a specific method of an anonymous class, you must also check any containing methods
+            public /*@ nullable */ TestA show(TestA aa) {
+                                         ^
+Completed proof of Test.1.show(TestA) with prover !!!! - SKIPPED
+Completed proving methods in Test.1
+Skipping proof of Test.m(TestA) (excluded by -method)
+Completed proving methods in Test
+Proving methods in TestA
+Skipping proof of TestA.show(TestA) (excluded by -method)
+Skipping proof of TestA.TestA() (excluded by -method)
+Completed proving methods in TestA
+Proving methods in TestB
+Skipping proof of TestB.TestB(TestA) (excluded by -method)
+Skipping proof of TestB.wrap(TestA) (excluded by -method)
+Completed proving methods in TestB
+1 warning

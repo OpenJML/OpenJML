@@ -4,22 +4,26 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of BinarySearch.BinarySearch() with prover !!!! - no warnings
 Starting proof of BinarySearch.find(int[],int) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - before explicit assert statement : OK
-Feasibility check - at program exit : OK
-Completed proof of BinarySearch.find(int[],int) with prover !!!! - no warnings
+../../OpenJMLDemo/src/openjml/verifythis/BinarySearch.java:16: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method find: overflow in int sum
+            int mid = (lo + hi)/ 2;
+                          ^
+../../OpenJMLDemo/src/openjml/verifythis/BinarySearch.java:17: warning: The prover cannot establish an assertion (Assert) in method find
+            //@ assert lo <= mid < hi; // Just checking the prover can do this arithmetic
+                ^
+Completed proof of BinarySearch.find(int[],int) with prover !!!! - with warnings
 Starting proof of BinarySearch.find1(int[],int) with prover !!!!
-../../OpenJMLDemo/src/openjml/verifythis/BinarySearch.java:42: warning: The prover cannot establish an assertion (LoopDecreases) in method find1
-		//@ decreases hi - lo;
-		    ^
+../../OpenJMLDemo/src/openjml/verifythis/BinarySearch.java:44: warning: The prover cannot establish an assertion (LoopDecreases) in method find1
+        //@ decreases hi - lo;
+            ^
 Completed proof of BinarySearch.find1(int[],int) with prover !!!! - with warnings
 Starting proof of BinarySearch.find2(int[],int) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of BinarySearch.find2(int[],int) with prover !!!! - no warnings
+../../OpenJMLDemo/src/openjml/verifythis/BinarySearch.java:68: warning: The prover cannot establish an assertion (LoopInvariant) in method find2
+        //@ loop_invariant 0 <= lo <= hi < a.length && a[lo] <= value <= a[hi];
+            ^
+Completed proof of BinarySearch.find2(int[],int) with prover !!!! - with warnings
 Starting proof of BinarySearch.find3(int[],int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of BinarySearch.find3(int[],int) with prover !!!! - no warnings
 Completed proving methods in BinarySearch
-1 warning
+4 warnings

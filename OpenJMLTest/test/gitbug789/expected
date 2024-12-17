@@ -1,0 +1,89 @@
+test/gitbug789/CircleOperations.java:1: warning: Method id(int) has 'assignable \everything', making its caller likely impossible to verify
+public class CircleOperations {
+ ^
+test/gitbug789/CircleOperations.java:31: warning: Associated declaration: test/gitbug789/CircleOperations.java:1:
+        System.out.println(cops.id(79));
+                                  ^
+test/gitbug789/CircleOperations.java:19: warning: Method ide(int) has 'assignable \everything', making its caller likely impossible to verify
+    //@ assignable \everything;
+        ^
+test/gitbug789/CircleOperations.java:46: warning: Associated declaration: test/gitbug789/CircleOperations.java:19:
+        System.out.println(cops.ide(79));
+                                   ^
+Proving methods in CircleOperations
+Starting proof of CircleOperations.CircleOperations() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CircleOperations.CircleOperations() with prover !!!! - no warnings
+Starting proof of CircleOperations.id(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CircleOperations.id(int) with prover !!!! - no warnings
+Starting proof of CircleOperations.idp(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CircleOperations.idp(int) with prover !!!! - no warnings
+Starting proof of CircleOperations.idn(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CircleOperations.idn(int) with prover !!!! - no warnings
+Starting proof of CircleOperations.ide(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CircleOperations.ide(int) with prover !!!! - no warnings
+Starting proof of CircleOperations.idee(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CircleOperations.idee(int) with prover !!!! - no warnings
+Starting proof of CircleOperations.main(String[]) with prover !!!!
+test/gitbug789/CircleOperations.java:31: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method main: (Caller: CircleOperations.main(String[]), Callee: java.io.PrintStream.println(int))
+        System.out.println(cops.id(79));
+                          ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/PrintStream.jml:42: warning: Associated declaration
+    //-RAC@ public invariant outputText != null && \invariant_for(outputText);
+                   ^
+test/gitbug789/CircleOperations.java:31: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method main: (Caller: CircleOperations.main(String[]), Callee: java.io.PrintStream.println(int))
+        System.out.println(cops.id(79));
+                          ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/PrintStream.jml:35: warning: Associated declaration
+    //-RAC@ public static invariant \invariant_for(eol) && eol.length() > 0;
+                          ^
+Completed proof of CircleOperations.main(String[]) with prover !!!! - with warnings
+Starting proof of CircleOperations.mn(String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CircleOperations.mn(String[]) with prover !!!! - no warnings
+Starting proof of CircleOperations.mp(String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CircleOperations.mp(String[]) with prover !!!! - no warnings
+Starting proof of CircleOperations.me(String[]) with prover !!!!
+test/gitbug789/CircleOperations.java:46: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method me: (Caller: CircleOperations.me(String[]), Callee: java.io.PrintStream.println(int))
+        System.out.println(cops.ide(79));
+                          ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/PrintStream.jml:42: warning: Associated declaration
+    //-RAC@ public invariant outputText != null && \invariant_for(outputText);
+                   ^
+test/gitbug789/CircleOperations.java:46: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method me: (Caller: CircleOperations.me(String[]), Callee: java.io.PrintStream.println(int))
+        System.out.println(cops.ide(79));
+                          ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/PrintStream.jml:35: warning: Associated declaration
+    //-RAC@ public static invariant \invariant_for(eol) && eol.length() > 0;
+                          ^
+Completed proof of CircleOperations.me(String[]) with prover !!!! - with warnings
+Starting proof of CircleOperations.mee(String[]) with prover !!!!
+test/gitbug789/CircleOperations.java:51: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method mee: (Caller: CircleOperations.mee(String[]), Callee: java.io.PrintStream.println(int))
+        System.out.println(cops.idee(79));
+                          ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/PrintStream.jml:42: warning: Associated declaration
+    //-RAC@ public invariant outputText != null && \invariant_for(outputText);
+                   ^
+test/gitbug789/CircleOperations.java:51: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method mee: (Caller: CircleOperations.mee(String[]), Callee: java.io.PrintStream.println(int))
+        System.out.println(cops.idee(79));
+                          ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/PrintStream.jml:35: warning: Associated declaration
+    //-RAC@ public static invariant \invariant_for(eol) && eol.length() > 0;
+                          ^
+Completed proof of CircleOperations.mee(String[]) with prover !!!! - with warnings
+Completed proving methods in CircleOperations
+16 warnings

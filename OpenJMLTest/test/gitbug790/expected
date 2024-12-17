@@ -1,0 +1,20 @@
+Proving methods in ca.ClassA
+Starting proof of ca.ClassA.ClassA() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ca.ClassA.ClassA() with prover !!!! - no warnings
+Starting proof of ca.ClassA.test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ca.ClassA.test() with prover !!!! - no warnings
+Completed proving methods in ca.ClassA
+Proving methods in ca.ClassB
+Starting proof of ca.ClassB.ClassB() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ca.ClassB.ClassB() with prover !!!! - no warnings
+Starting proof of ca.ClassB.functionReturn() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ca.ClassB.functionReturn() with prover !!!! - no warnings
+Completed proving methods in ca.ClassB

@@ -75,7 +75,7 @@ public class Extensions {
     	if (token instanceof JmlToken) {
     		JmlToken jt = (JmlToken)token;
     		if (jt.jmlclausekind == null) return jt.jmlclausekind;
-            String id = jt.jmlkind.internedName();
+            String id = jt.jmlclausekind.keyword();
             IJmlClauseKind k = allKinds.get(id);
             jt.jmlclausekind = k;
             return k;    		
@@ -90,6 +90,11 @@ public class Extensions {
     public static @Nullable IJmlClauseKind findKeyword(Name name) {
         String id = name.toString();
         return allKinds.get(id);
+    }
+    
+    /** Finds the clause kind for the given keyword, if any */
+    public static @Nullable IJmlClauseKind findKeyword(String name) {
+        return allKinds.get(name);
     }
     
     /** Finds a type or method clause kind for the given keyword, if any */

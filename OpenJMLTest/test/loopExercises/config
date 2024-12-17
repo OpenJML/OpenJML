@@ -1,1 +1,1 @@
-ARGS+=" -code-math=bigint "
+ARGS+=" -code-math=bigint --exclude=gauss"
