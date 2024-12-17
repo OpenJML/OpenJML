@@ -226,7 +226,7 @@ public abstract class EscBase extends JmlTestCase {
                 fail("Files differ: " + diffs);
             }
             
-            if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex);
+            if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex + " (expected " + expectedExit + ")");
             new File(actCompile).delete();
 
         } catch (Exception e) {
