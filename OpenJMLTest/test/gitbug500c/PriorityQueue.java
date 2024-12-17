@@ -19,6 +19,6 @@ public interface PriorityQueue {
     /*@ public normal_behavior
       @  ensures \result == (size == 0);
       @*/
-    public /*@pure@*/ boolean isEmpty();
+    public /*@ spec_pure @*/ boolean isEmpty();
     
 }

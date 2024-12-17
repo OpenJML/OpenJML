@@ -458,7 +458,7 @@ public class racfiles extends RacBase {
     public void gitbug688racA() {
         runrac = true;
         expectedRACExit = 0;
-        helpTCF("test/gitbug688","test/gitbug688racA","DayTimeMain","-spec-math=bigint","--show");
+        helpTCF("test/gitbug688","test/gitbug688racA","DayTimeMain","-spec-math=bigint");
     }
 
     @Test

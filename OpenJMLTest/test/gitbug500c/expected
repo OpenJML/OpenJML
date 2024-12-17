@@ -1,4 +1,11 @@
 RAC-Compiling Heap
+RAC-Compiling     Heap()
+RAC-Compiling     grow()
+RAC-Compiling     enqueue(java.lang.Comparable)
+RAC-Compiling     removeFirst()
+RAC-Compiling     isEmpty()
+RAC-Compiling     _JML$$$checkInvariant()
+RAC-Compiling     _JML$$$checkStaticInvariant()
 RAC-Compiling PriorityQueue
 RAC-Compiling Test
 RAC-Compiling     Test()
