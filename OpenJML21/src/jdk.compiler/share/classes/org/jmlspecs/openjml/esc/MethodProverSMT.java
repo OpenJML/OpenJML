@@ -282,6 +282,10 @@ public class MethodProverSMT {
         String[] splits = splitlist.split(",");
         int skips = 0;
         Translations translations = jmlesc.assertionAdder.methodBiMap.getf(methodDecl);
+        if (translations == null) {
+            utils.warning(methodDecl, "jml.message", "To check a specific method of an anonymous class, you must also check any containing methods");
+            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.SKIPPED,null);
+        }
         for (String splitkey: translations.keys()) {
 //        if (splitkey.equals(Strings.feas_preOnly)) {
 //            if (proofResultAccumulated.isSat()) continue;
