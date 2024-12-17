@@ -1,0 +1,6 @@
+Proving methods in OpenJMLTest
+Starting proof of OpenJMLTest.OpenJMLTest() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of OpenJMLTest.OpenJMLTest() with prover !!!! - no warnings
+Completed proving methods in OpenJMLTest

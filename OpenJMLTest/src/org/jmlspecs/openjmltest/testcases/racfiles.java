@@ -91,7 +91,7 @@ public class racfiles extends RacBase {
     @Test // Originally crashed because of a model method in a library class
     public void racPoint2() {
         expectedExit = 0;
-        helpTCF("test/racPoint2","test/racPoint2","Point","--show");
+        helpTCF("test/racPoint2","test/racPoint2","Point");
     }
 
     @Test
@@ -121,7 +121,7 @@ public class racfiles extends RacBase {
     @Test
     public void testDecimal() {
         expectedExit = 0;
-        helpTCF("test/sv_rac","test/sv_rac","sv_rac/Decimal");
+        helpTCF("test/sv_rac","test/sv_rac","sv_rac.Decimal");
     }
 
     @Test
@@ -182,7 +182,6 @@ public class racfiles extends RacBase {
 
     @Test
     public void racQueue() {
-        addOptions("-show");
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Queue.java","test/racQueue","Queue");
     }
@@ -547,8 +546,13 @@ public class racfiles extends RacBase {
     }
 
     @Test
-    public void range() {
+    public void rangeTest() {
         helpTCF("test/rangeTest","test/rangeTest","R");
+    }
+    
+    @Test
+    public void rangeTest1() {
+        helpTCF("test/rangeTest1","test/rangeTest1","R");
     }
     
     @Test

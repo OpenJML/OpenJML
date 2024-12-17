@@ -4399,7 +4399,7 @@ public class Attr extends JCTree.Visitor {
         result = checkId(tree, env1.enclClass.sym.type, sym, env, resultInfo);
     }
 
-    protected void visitSelectHelper(JCFieldAccess tree) {} // OPENJML - added for overriding
+    protected boolean visitSelectHelper(JCFieldAccess tree) { return true; } // OPENJML - added for overriding
 
     public void visitSelect(JCFieldAccess tree) {
         // Determine the expected kind of the qualifier expression.
@@ -4444,7 +4444,7 @@ public class Attr extends JCTree.Visitor {
             sitesym != null &&
             sitesym.name == names._super;
 
-        visitSelectHelper(tree); // OPENJML
+        if (!visitSelectHelper(tree)) return; // OPENJML
         
         // Determine the symbol represented by the selection.
         env.info.pendingResolutionPhase = null;

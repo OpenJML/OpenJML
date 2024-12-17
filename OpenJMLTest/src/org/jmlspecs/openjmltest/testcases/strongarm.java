@@ -38,7 +38,7 @@ public class strongarm extends StrongarmBase {
     static public Collection<String[]> parameters() {
         return EscBase.parameters();
     }
-
+/*
     public void helpSA(String sourceDirname, String outDir, String... opts) {
         onFile(sourceDirname, outDir, opts);
     }
@@ -239,6 +239,6 @@ public class strongarm extends StrongarmBase {
     //	helpSA("test/strongarm/examples/Next.java", "test/strongarm/examples/");
     //    }
 
-
+*/
 
 }

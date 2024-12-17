@@ -40,7 +40,7 @@ public class escm extends EscBase {
                 +"     }\n"
                 +"  }\n"
                 
-                +"  public TestJava() { t = new TestJava(); }\n"
+                +"  /*@ pure */ public TestJava() { t = new TestJava(); }\n"
                 
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",33
@@ -76,7 +76,7 @@ public class escm extends EscBase {
                 +"     }\n"
                 +"  }\n"
                 
-                +"  public TestJava() { t = new TestJava(); }\n"
+                +"  /*@ pure */ public TestJava() { t = new TestJava(); }\n"
                 
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method mc",45
@@ -122,7 +122,7 @@ public class escm extends EscBase {
                 +"     }\n"
                 +"  }\n"
                 
-                +"  public TestJava() { t = new TestJava(); }\n"
+                +"  /*@ pure */ public TestJava() { t = new TestJava(); }\n"
                 
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (InvariantExit) in method C",8  // C.<init>
@@ -155,57 +155,57 @@ public class escm extends EscBase {
                 +"  public int m1(TestJava o) {\n"
                 +"       /*@ model class C {  \n"  // Invariant is false on exit
                 +"           invariant false;\n" 
-                +"           void mc() {  }};*/ \n"  // Line 10  // Invariants are not satisfiable on entry
+                +"           pure void mc() {  }};*/ \n"  // Line 10  // Invariants are not satisfiable on entry
                 +"       /*@ model class D {  \n"
-                +"           ensures false;\n" 
+                +"           ensures false; pure\n" 
                 +"           void md() {  }};*/ \n"   // Postcondition is false on exit
                 +"       /*@ model class E {  \n"
-                +"           void me() {  assert false; }};*/ \n" // Assertion is false
+                +"           pure void me() {  assert false; }};*/ \n" // Assertion is false
                 +"       //@ ghost E e;\n"
                 +"       return 0;\n"
                 +"  }\n"
 
-                +"  /*@ ensures false;\n"
+                +"  /*@ ensures false; pure\n"
                 +"      model void mm() {}*/\n"  // Line 20  // Postcondition is false
 
-                +"  /*@ model void mn() {  assert false;  }*/\n"  // Assertion is false
+                +"  /*@ pure model void mn() {  assert false;  }*/\n"  // Assertion is false
 
                 +"  /*@ model public static class A {\n"  // Invariant is false on exit
                 +"     invariant false;\n"
-                +"     public void m2() {\n"  // Invariant is not satisfiable on entrance
+                +"     pure public void m2() {\n"  // Invariant is not satisfiable on entrance
                 +"     }*/\n"
                 +"  }"
-                +"  public TestJava() { t = new TestJava(); }\n"
+                +"  /*@ pure */ public TestJava() { t = new TestJava(); }\n"
                 +"}"
                 +"  /*@ model class B {\n" // Invariant is false on exit
-                +"     public invariant false;\n"
-                +"     public void mb() {\n"  // Invariant is not satisfiable on entrance
+                +"     public invariant false; \n"
+                +"     pure public void mb() {\n"  // Invariant is not satisfiable on entrance
                 +"     }*/\n"
                 +"  }\n"
 
                 +"  /*@ model class BB {\n"
                 +"     ensures false;\n"
-                +"     public void mbb() {\n" // Postcondition is false
+                +"     pure public void mbb() {\n" // Postcondition is false
                 +"     }*/\n"
                 +"  }\n"
 
 
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (InvariantExit) in method C",18
                 ,"/tt/TestJava.java:9: warning: Associated declaration",12
-                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method C.mc()",17
+                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method C.mc()",22
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method md",17
                 ,"/tt/TestJava.java:12: warning: Associated declaration",12
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method me",25
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method me",30
                 ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (Postcondition) in method mm",18
                 ,"/tt/TestJava.java:19: warning: Associated declaration",7
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method mn",26
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method mn",31
                 ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (InvariantExit) in method A", 27
                 ,"/tt/TestJava.java:23: warning: Associated declaration", 6
-                ,"/tt/TestJava.java:24: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.A.m2()", 18
+                ,"/tt/TestJava.java:24: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.A.m2()", 23
                 ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (InvariantExit) in method B",14
                 ,"/tt/TestJava.java:28: warning: Associated declaration",13
-                ,"/tt/TestJava.java:29: warning: Invariants+Preconditions appear to be contradictory in method tt.B.mb()",18
-                ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (Postcondition) in method mbb",18
+                ,"/tt/TestJava.java:29: warning: Invariants+Preconditions appear to be contradictory in method tt.B.mb()",23
+                ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (Postcondition) in method mbb",23
                 ,"/tt/TestJava.java:33: warning: Associated declaration",6
         );
     }
@@ -304,10 +304,10 @@ public class escm extends EscBase {
                 +"       return 0;\n"
                 +"  }\n"
                 
-                +"  /*@ requires i > 0; */public TestJava() {}"
+                +"  /*@ requires i > 0; pure */public TestJava() {}"
                 +"}\n"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Precondition) in method m1",20
-                ,"/tt/TestJava.java:5: warning: Associated declaration",35
+                ,"/tt/TestJava.java:9: warning: Associated declaration",7
                 ,"/tt/TestJava.java:9: warning: Precondition conjunct is false: i > 0",18
         );
     }

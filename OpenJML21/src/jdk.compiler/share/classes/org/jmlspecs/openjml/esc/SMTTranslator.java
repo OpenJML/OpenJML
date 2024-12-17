@@ -11,6 +11,7 @@ import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExpressions.*;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
+import static org.jmlspecs.openjml.ext.Operators.*;
 
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.*;
@@ -2196,15 +2197,15 @@ public class SMTTranslator extends JmlTreeScanner {
                 // ERROR - or empty string?
                 result = null;
             }
-        } else if (that.token == null) {
+        } else if (that.kind == null) {
             result = F.fcn(F.symbol(that.name), newargs);
-        } else if (that.token == JmlTokenKind.SUBTYPE_OF) {
+        } else if (that.kind == subtypeofKind) {
             result = F.fcn(F.symbol(JMLSUBTYPE), newargs);
-        } else if (that.token == JmlTokenKind.SUBTYPE_OF_EQ) {
+        } else if (that.kind == subtypeofeqKind) {
             result = F.fcn(F.symbol(JMLSUBTYPE), newargs);
-        } else if (that.token == JmlTokenKind.JSUBTYPE_OF) {
+        } else if (that.kind == jsubtypeofKind) {
             result = F.fcn(F.symbol(JAVASUBTYPE), newargs);
-        } else if (that.token == JmlTokenKind.JSUBTYPE_OF_EQ) {
+        } else if (that.kind == jsubtypeofeqKind) {
             result = F.fcn(F.symbol(JAVASUBTYPE), newargs);
         } else if (that.meth != null) {
             // Built-in methods
@@ -2318,7 +2319,6 @@ public class SMTTranslator extends JmlTreeScanner {
         switch (op) {
             case EQ:
                 result = F.fcn(eqSym, args);
-                if (result.toString().equals("(= java.lang.Short_TYPE JMLT_short)")) Utils.stop();
                 break;
             case NE:
                 result = F.fcn(distinctSym, args);
@@ -2493,8 +2493,12 @@ public class SMTTranslator extends JmlTreeScanner {
             case SL:
             	if (useBV) {
             		result = F.fcn(F.symbol("bvshl"), args);
-            	} else if (tree.rhs instanceof JCLiteral) {
-            	    long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
+                } else if (tree.rhs instanceof JCLiteral || (tree.rhs instanceof JCTypeCast cast && cast.expr instanceof JCLiteral)) {
+                    // FIXME - if the cast actually changes the value of the RHS, the code below is incorrect
+                    JCLiteral lit = null;
+                    if (tree.rhs instanceof JCLiteral) lit = (JCLiteral)tree.rhs;
+                    if (tree.rhs instanceof JCTypeCast cast) lit = (JCLiteral)cast.expr;
+                    long i = ((Number)lit.getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     args.add(lhs);
                     if (tree.lhs.type == syms.intType) {
@@ -2513,8 +2517,11 @@ public class SMTTranslator extends JmlTreeScanner {
             case SR:
                 if (useBV) {
                     result = F.fcn(F.symbol("bvashr"), args);
-                } else if (tree.rhs instanceof JCLiteral) {
-                    long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
+                } else if (tree.rhs instanceof JCLiteral || (tree.rhs instanceof JCTypeCast cast && cast.expr instanceof JCLiteral)) {
+                    JCLiteral lit = null;
+                    if (tree.rhs instanceof JCLiteral) lit = (JCLiteral)tree.rhs;
+                    if (tree.rhs instanceof JCTypeCast cast) lit = (JCLiteral)cast.expr;
+                    long i = ((Number)lit.getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     args.add(lhs);
                     if (tree.lhs.type == syms.intType) {
@@ -2533,8 +2540,11 @@ public class SMTTranslator extends JmlTreeScanner {
             case USR:
                 if (useBV) {
                     result = F.fcn(F.symbol("bvlshr"), args);
-                } else if (tree.rhs instanceof JCLiteral) {
-                    long i = ((Number)((JCLiteral)tree.rhs).getValue()).longValue();
+                } else if (tree.rhs instanceof JCLiteral || (tree.rhs instanceof JCTypeCast cast && cast.expr instanceof JCLiteral)) {
+                    JCLiteral lit = null;
+                    if (tree.rhs instanceof JCLiteral) lit = (JCLiteral)tree.rhs;
+                    if (tree.rhs instanceof JCTypeCast cast) lit = (JCLiteral)cast.expr;
+                    long i = ((Number)lit.getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     List<IExpr> args2 = new LinkedList<IExpr>();
                     if (tree.lhs.type == syms.intType) {
@@ -2586,6 +2596,11 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = makeRealValue(d);
                     return;
                 }
+            }
+            if (tree.type.tsym == BIGINT) {
+                var k = ((Number)lit.getValue()).longValue();
+                result = numeral(k);
+                return;
             }
         }
         if (result instanceof Numeral) {

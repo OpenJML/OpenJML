@@ -234,10 +234,9 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
         // nodes.
         // CAUTION: if JCMethodInvocation adds fields, they have to be added here
         JmlMethodInvocation copy = M.at(that.pos).JmlMethodInvocation(
-                that.token,
+                that.kind,
                 copy(that.args,p));
         copy.name = that.name;
-        copy.kind = that.kind;
         copy.startpos = that.startpos;
         copy.labelProperties = that.labelProperties;
         copy.type = that.type;

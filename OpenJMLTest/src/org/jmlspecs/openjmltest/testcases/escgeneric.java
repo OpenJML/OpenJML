@@ -41,7 +41,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 +"class TestG<E> {\n"
-                +"  //@ requires \\type(E) != \\type(Integer) ;\n"
+                +"  //@ requires \\type(E) != \\type(Integer) ; pure\n"
                 +"  public TestG(E i) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method mx",17
@@ -201,7 +201,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 +"class TestG {\n"
-                +"  //@ requires \\type(E) != \\type(Integer) ;\n"
+                +"  //@ requires \\type(E) != \\type(Integer) ; pure \n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",22
@@ -223,7 +223,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 +"class TestG {\n"
-                +"  //@ requires \\type(E) != \\type(Integer) ;\n"
+                +"  //@ requires \\type(E) != \\type(Integer) ; pure\n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",13
@@ -245,7 +245,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 +"class TestG {\n"
-                +"  //@ requires \\type(E) == \\type(Integer) ;\n"
+                +"  //@ requires \\type(E) == \\type(Integer) ; pure\n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",21
@@ -267,7 +267,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 +"class TestG {\n"
-                +"  //@ requires \\type(E) == \\type(Integer) ;\n"
+                +"  //@ requires \\type(E) == \\type(Integer) ; pure\n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",13
@@ -289,7 +289,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 +"class TestG<E> {\n"
-                +"    //@ requires \\type(E) != \\type(Integer);\n"
+                +"    //@ requires \\type(E) != \\type(Integer); pure\n"
                 +"    public void mm(E t) {}\n"
                 +"}\n"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
@@ -299,8 +299,7 @@ public class escgeneric extends EscBase {
     }
     
     @Test
-    public void testTypeParameter2() {
-    	//addOptions("-show");
+    public void testTypeParameter2a() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -316,7 +315,7 @@ public class escgeneric extends EscBase {
                 +"}\n"
                 +"class TestG<E> {\n"
                 +"  class TestH  {\n"
-                +"    //@ requires \\type(E) != \\type(Integer);\n"
+                +"    //@ requires \\type(E) != \\type(Integer); pure\n"
                 +"    public void mm(E t) {}\n"
                 +"  }\n"
                 +"}\n"
@@ -327,8 +326,34 @@ public class escgeneric extends EscBase {
     }
     
     @Test
-    public void testTypeParameter2a() {
-    	//addOptions("-show");
+    public void testTypeParameter2b() {
+        helpTCX("tt.TestJava","package tt;import org.jmlspecs.annotation.*;\n"
+                +"public class TestJava { \n"
+                
+                +"  public void ma(TestG<Integer>.@NonNull TestH i, Integer j) {\n"
+                +"    i.mm(j);\n"
+                +"  }\n"
+                +"  public void mb(TestG<Object>.@NonNull TestH i, Object j) {\n"
+                +"    i.mm(j);\n"
+                +"  }\n"
+                +"  public void mc(TestG<String>.@NonNull TestH i, String j) {\n"
+                +"    i.mm(j);\n"
+                +"  }\n"
+                +"}\n"
+                +"class TestG<E> {\n"
+                +"  class TestH  {\n"
+                +"    //@ requires \\type(E) != \\type(Integer); pure\n"
+                +"    public void mm(E t) {}\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:16: warning: Associated declaration",17
+                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
+                );
+    }
+    
+    @Test
+    public void testTypeParameter2c() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -344,7 +369,58 @@ public class escgeneric extends EscBase {
                 +"}\n"
                 +"class TestG<E> {\n"
                 +"  class TestH  {\n"
-                +"    //@ requires \\type(E) != \\type(Integer);\n"
+                +"    //@ requires \\type(E) != \\type(Integer); pure\n"
+                +"    public void mm(E t) {}\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:16: warning: Associated declaration",17
+                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
+                );
+    }
+    
+    @Test
+    public void testTypeParameter2d() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void ma(@NonNull TestG<Integer>.TestH i, Integer j) {\n"
+                +"    i.mm(j);\n"
+                +"  }\n"
+                +"  public void mb(@NonNull TestG<Object>.TestH i, Object j) {\n"
+                +"    i.mm(j);\n"
+                +"  }\n"
+                +"  public void mc(@NonNull TestG<String>.TestH i, String j) {\n"
+                +"    i.mm(j);\n"
+                +"  }\n"
+                +"}\n"
+                +"class TestG<E> {\n"
+                +"  class TestH  {\n"
+                +"    //@ requires \\type(E) != \\type(Integer); pure\n"
+                +"    public void mm(E t) {}\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:16: warning: Associated declaration",17
+                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method ma",6
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mb",6
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mc",6
+                );
+    }
+        
+    @Test
+    public void testTypeParameter2e() {  // FIXME - needs clearer error message
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void ma(TestG<Integer>./*@ qqq*/TestH i, Integer j) {\n"
+                +"    i.mm(j);\n"
+                +"  }\n"
+                +"}\n"
+                +"class TestG<E> {\n"
+                +"  class TestH  {\n"
+                +"    //@ requires \\type(E) != \\type(Integer); pure\n"
                 +"    public void mm(E t) {}\n"
                 +"  }\n"
                 +"}\n"
@@ -434,10 +510,19 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testElemType3() {
+        expectedExit = 1;
         helpTCX("tt.TestJava"," class A { void m(/*@ non_null */ char[] a) { \n"
                 +"//@ assert \\elemtype(\\typeof(a)) == \\type(int); \n"
                 +"}}"
-                ,"/tt/TestJava.java:1: warning: the type modifier/annotation (non_null) is not permitted on a primitive type: char", 23
+                ,"/tt/TestJava.java:1: error: the type modifier/annotation (non_null) is not permitted on a primitive type: char", 23
+                );
+    }
+
+    @Test
+    public void testElemType4() {
+        helpTCX("tt.TestJava"," class A { void m(char /*@ non_null */ [] a) { \n"
+                +"//@ assert \\elemtype(\\typeof(a)) == \\type(int); \n"
+                +"}}"
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Assert) in method m",5
                 );
     }

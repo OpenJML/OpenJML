@@ -1,3 +1,6 @@
+test/gitbug480/Bug.java:11: warning: A non-pure method is being called where it is not permitted: Crypto.encrypt(java.lang.Object)
+  ensures  Crypto.encrypt(this.Na).equals(\result);  pure // - won't be provable in this simplified example
+                         ^
 Proving methods in xATransport
 Starting proof of xATransport.xATransport() with prover !!!!
 Feasibility check - end of preconditions : OK
@@ -22,4 +25,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Crypto.encrypt(Object) with prover !!!! - no warnings
 Completed proving methods in Crypto
-2 warnings
+3 warnings

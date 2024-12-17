@@ -12,7 +12,7 @@ import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
-import org.jmlspecs.openjml.ext.JmlOperatorKind;
+import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.SetStatement;
 
 import static org.jmlspecs.openjml.ext.RecommendsClause.*;
@@ -127,7 +127,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
     }
     
     public void helper(JCTree that, JCExpression expr) {
-            if (expr instanceof JmlBinary imp && imp.op == JmlOperatorKind.impliesKind) {
+            if (expr instanceof JmlBinary imp && imp.op == Operators.impliesKind) {
                 if (!(imp.rhs instanceof JCBinary && ((JCBinary)imp.rhs).getTag() == JCTree.Tag.EQ)) {
                     utils.error(expr, "jml.message", "Invalid kind of expression for a use statement; should be a lemma call, implication, or equality");
                     return;
@@ -137,7 +137,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                     exprHead = eq.lhs;
                     exprTail = eq.rhs;
                 }
-            } else if (expr instanceof JmlBinary bin && bin.op == JmlOperatorKind.equivalenceKind) {
+            } else if (expr instanceof JmlBinary bin && bin.op == Operators.equivalenceKind) {
                 exprPrecondition = treeutils.trueLit;
                 exprHead = bin.lhs;
                 exprTail = bin.rhs;
@@ -201,7 +201,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                                 subst.replacements = replacements;
                                 exprHead = subst.copy(bin.lhs);
                                 exprTail = subst.copy(bin.rhs);
-                            } else if (expr instanceof JmlBinary && ((JmlBinary)expr).op == JmlOperatorKind.impliesKind) {
+                            } else if (expr instanceof JmlBinary && ((JmlBinary)expr).op == Operators.impliesKind) {
                                 JmlBinary bin = (JmlBinary)expr;
                                 subst.replacements = replacements;
                                 exprHead = subst.copy(bin.lhs);

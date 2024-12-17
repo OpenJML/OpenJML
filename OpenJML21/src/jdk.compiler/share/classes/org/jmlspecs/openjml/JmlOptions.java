@@ -51,6 +51,9 @@ import com.sun.tools.javac.util.Log.WriterKind;
  * option name (with the initial -) to string value, in the Options superclass.
  */
 public class JmlOptions extends Options {
+    
+    // Warning-keys
+    public static final String IMPLICIT_EVERYTHING = "implicit-everything";
 
     protected Context context;
 
@@ -61,6 +64,16 @@ public class JmlOptions extends Options {
     public Set<String> commentKeys = new HashSet<String>();
     
     public Map<String,Boolean> warningKeys = new java.util.HashMap<>();
+    {
+        warningKeys.put(IMPLICIT_EVERYTHING, true);
+    }
+    
+    public boolean allowed(String key) {
+        Boolean b = warningKeys.get(key);
+        if (b != null) return b;
+        Utils.instance(context).error("jml.internal.not.so.bad","Invalid warning key: " + key);
+        return true;
+    }
 
     protected JmlOptions(Context context) {
         super(context);
@@ -124,6 +137,7 @@ public class JmlOptions extends Options {
             String s = iter.next();
             if (s.endsWith(Strings.specsSuffix) && (f=new File(s)).exists()) {
                 if (jmlfiles != null) jmlfiles.add(f);
+                else Utils.instance(context).warning("jml.message", ".jml files on the command-line are ignored: " + s);
                 iter.remove();
             }
         }
@@ -157,7 +171,7 @@ public class JmlOptions extends Options {
                 }
             } else if (file.isFile()) {
                 String ss = file.toString();
-                if (utils.hasJavaSuffix(ss)) files.add(ss); // FIXME - if we allow .jml files on the command line, we have to guard against parsing them twice
+                if (utils.hasJavaSuffix(ss)) files.add(ss); // The compiler does not handle anything but .java files (any .jml files are loaded implicitly, not explictly)
             } else {
                 Utils.instance(context).warning("jml.message", "Ignoring " + file + " (not a file or folder)");
             }
@@ -219,7 +233,16 @@ public class JmlOptions extends Options {
                 res = s.substring(k+1,s.length());
                 s = s.substring(0,k);
                 o = JmlOption.find(s);
-                if (o == null) {
+                if (!res.isEmpty() && s.equals("--help")) {
+                    switch (res) {
+                    case "warn":
+                        System.out.println("Implemented warning keys: " + warningKeys.keySet());
+                        break;
+                    default:
+                        Utils.instance(context).warning("jml.message", "No detailed help available for '" + res + "'");
+                    }
+                    return;
+                } else if (o == null) {
                     // This is not a JML option. Might be misspelled or it might
                     // be a JDK option with an =, which JDK does not support.
                     // But can't warn about it because in this design we are filtering out
@@ -233,7 +256,7 @@ public class JmlOptions extends Options {
                     Object def = o.defaultValue();
                     res = def == null ? null : def.toString();
 
-                } else {
+                } else  {
                     if (o.hasArg()) {}
                     else if ("false".equals(res)) negate = true;
                     else if ("true".equals(res)) res = "";
@@ -289,8 +312,8 @@ public class JmlOptions extends Options {
         if (s == null) {
         } else if (o == null) {
             if (s.equals("-help") || s.equals("-?") || s.equals("--help")) {
-            	allHelp(true);
-            	options.put("-?", "");
+                allHelp(true);
+                options.put("-?", "");
             } else {
                 remainingArgs.add(s);
             }

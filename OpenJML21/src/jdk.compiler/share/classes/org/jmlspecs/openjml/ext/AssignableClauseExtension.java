@@ -1,7 +1,6 @@
 package org.jmlspecs.openjml.ext;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
-import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
@@ -74,7 +73,7 @@ public class AssignableClauseExtension extends JmlExtension {
                 try { list = parser.parseLocationList(); } catch (Exception e) { System.out.println("EXC " + e); e.printStackTrace(System.out); }
                 if (parser.token().kind == SEMI) {
                     // OK, go on
-                } else if (parser.jmlTokenKind() == ENDJMLCOMMENT) {
+                } else if (parser.isEndJml()) {
                     parser.syntaxError(parser.pos(), null, "jml.missing.semi");
                 }
                 if (parser.token().kind != SEMI) {

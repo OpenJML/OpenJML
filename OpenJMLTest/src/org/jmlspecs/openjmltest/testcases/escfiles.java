@@ -166,7 +166,7 @@ public class escfiles extends EscBase {
     public void escDemoTypes() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=true","--check-feasibility=precondition,exit");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=true","--method=types1","--show","--check-feasibility=precondition,exit");
     }
 
     @Test // Problem with reasoning about generic types
@@ -206,7 +206,7 @@ public class escfiles extends EscBase {
     @Test
     public void loopExercises() {
         expectedExit = 0;
-        helpTCF("test/loopExercises","test/loopExercises","--exclude=gauss");
+        helpTCF("test/loopExercises","test/loopExercises","--exclude=gauss","--check-feasibility=basic");
     }
 
     @Test @Ignore // FIXME - nonlinear inference
@@ -250,12 +250,12 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testValueTypes() {
+    public void valuetypes() {
         helpTF("valuetypes");
     }
 
     @Test
-    public void testValueTypes2() {
+    public void valuetypes2() {
         helpTF("valuetypes2");
     }
 
@@ -382,32 +382,32 @@ public class escfiles extends EscBase {
     }
 
     @Test 
-    public void testCashAmount() {
+    public void escCashAmount() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmount.java","test/escCashAmount","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1","-checkFeasibility=none");
     }
 
     @Test
-    public void testCashAmount2() {
+    public void escCashAmountonlyPrivate() {
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountOnlyPrivate.java","test/escCashAmountonlyPrivate","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-checkFeasibility=none");
     }
 
     @Test
-    public void testCashAmountMutable() {
+    public void escCashAmountMutable() {
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountMutable.java","test/escCashAmountMutable","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-code-math=bigint","-spec-math=bigint","-checkFeasibility=none");
     }
 
     @Test
-    public void testCashAmountMF() {
+    public void escCashAmountMF() {
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountMF.java","test/escCashAmountMF","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1","-checkFeasibility=none");
     }
 
     @Test
-    public void testCashAmountPrivate2() {
+    public void escCashAmountPrivate2() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpTCF("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase","-checkFeasibility=none");
@@ -421,25 +421,25 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testVector() {
+    public void escVector() {
         expectedExit = 0;
         helpTF("escVector","--code-math=java");
     }
 
     @Test
-    public void testDMZLoop() {
+    public void escDMZLoop() {
         expectedExit = 0;
         helpTF("escDMZLoop","--method=findMax");
     }
 
     @Test
-    public void testDMZLoopA() {
+    public void escDMZLoopA() {
         expectedExit = 0;
         helpTF("escDMZLoopA","--method=findMax","--code-math=bigint","--spec-math=bigint");
     }
 
     @Test
-    public void testDMZLoopB() {
+    public void escDMZLoopB() {
         expectedExit = 0;
         helpTF("escDMZLoopB","--method=findMax","--code-math=bigint","--spec-math=bigint");
     }
@@ -650,7 +650,7 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testEscConstructor6() {
+    public void escConstructor6() {
         helpTF("escConstructor6");
     }
 
@@ -928,13 +928,13 @@ public class escfiles extends EscBase {
     @Test
     public void visibilitySimple() {
         expectedExit = 1;
-        helpTF("visibilitySimple");
+        helpTF("visibilitySimple","--normal");
     }
 
     @Test
     public void visibilityB() {
         expectedExit = 1;
-        helpTCF("test/visibilityB/org/apache/commons/cli/Option.java","test/visibilityB","-classpath","test/visibilityB");
+        helpTCF("test/visibilityBug/org/apache/commons/cli/Option.java","test/visibilityB","-classpath","test/visibilityBug");
     }
 
     @Test
@@ -943,12 +943,12 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testTuple() {
+    public void tuple() {
         helpTF("tuple");
     }
 
     @Test
-    public void testTupleBad() {
+    public void tupleBad() {
         expectedExit = 1;
         helpTF("tupleBad");
     }

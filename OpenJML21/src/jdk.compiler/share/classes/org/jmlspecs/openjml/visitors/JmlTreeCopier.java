@@ -456,56 +456,40 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         // JCMethodInvocation nodes.  Normal method calls are JCMethodInvocations;
         // only special JML functions (e.g. \\nonnullelements) are JmlMethodInvocation
         // nodes.
-        // CAUTION: if JCMethodInvocation adds fields, they have to be added here
-//        JmlMethodInvocation copy = M.at(that.pos).JmlMethodInvocation(
-//                that.kind,
-//                copy(that.args,p));
-//        copy.name = that.name;
-//        copy.token = that.token;
-//        copy.startpos = that.startpos;
-//        copy.labelProperties = that.labelProperties;
-//        copy.type = that.type;
-//        copy.meth = copy(that.meth,p);
-//        copy.typeargs = copy(that.typeargs,p);
-//        copy.varargsElement = that.varargsElement; // FIXME - copy?
-		if (that.kind == oldKind || that.kind == pastKind || that.kind == preKind || that.kind == freshKind
-				|| that.kind == allocKind) {
-			JCExpression arg0 = copy(that.args.get(0),p);
-			JmlMethodInvocation m;
-			if (that.args.size() > 1) {
-				JCExpression arg1 = that.args.get(1);
-				arg1 = M.at(arg1).Ident(((JCIdent) arg1).name);
-				m = M.at(that).JmlMethodInvocation(that.kind, List.<JCExpression>of(arg0, arg1));
-			} else {
-				m = M.at(that).JmlMethodInvocation(that.kind, List.<JCExpression>of(arg0));
-			}
-			m.setType(that.type);
-			m.token = that.token;
-			m.labelProperties = that.labelProperties;
-			m.startpos = that.startpos;
-			m.varargsElement = that.varargsElement;
-			// typeargs and meth are always null for a JML operation
-			return m;
-		} else {
-			JmlMethodInvocation m;
-			if (that.kind != null) {
-				m = M.at(that).JmlMethodInvocation(that.kind, copy(that.args,p));
-			} else if (that.token != null) {
-				m = M.at(that).JmlMethodInvocation(that.token, copy(that.args,p));
-			} else if (that.name != null) {
-				m = M.at(that).JmlMethodInvocation(that.name, copy(that.args,p));
-			} else {
-				m = M.at(that).JmlMethodInvocation(copy(that.meth, p), copy(that.args,p));
-			}
-			m.setType(that.type);
-			m.labelProperties = that.labelProperties;
-			m.javaType = that.javaType;
-			m.startpos = that.startpos;
-			m.token = that.token;
-			m.varargsElement = that.varargsElement;
-			// typeargs and meth are always null for a
-			return m;
-		}
+        if (that.kind == oldKind || that.kind == pastKind || that.kind == preKind || that.kind == freshKind
+                || that.kind == allocKind) {
+            JCExpression arg0 = copy(that.args.get(0),p);
+            JmlMethodInvocation m;
+            if (that.args.size() > 1) {
+                JCExpression arg1 = that.args.get(1);
+                arg1 = M.at(arg1).Ident(((JCIdent) arg1).name);
+                m = M.at(that).JmlMethodInvocation(that.kind, List.<JCExpression>of(arg0, arg1));
+            } else {
+                m = M.at(that).JmlMethodInvocation(that.kind, List.<JCExpression>of(arg0));
+            }
+            m.setType(that.type);
+            m.labelProperties = that.labelProperties;
+            m.startpos = that.startpos;
+            m.varargsElement = that.varargsElement;
+            // typeargs and meth are always null for a JML operation
+            return m;
+        } else {
+            JmlMethodInvocation m;
+            if (that.kind != null) {
+                m = M.at(that).JmlMethodInvocation(that.kind, copy(that.args,p));
+            } else if (that.name != null) {
+                m = M.at(that).JmlMethodInvocation(that.name, copy(that.args,p));
+            } else {
+                m = M.at(that).JmlMethodInvocation(copy(that.meth, p), copy(that.args,p));
+            }
+            m.setType(that.type);
+            m.labelProperties = that.labelProperties;
+            m.javaType = that.javaType;
+            m.startpos = that.startpos;
+            m.varargsElement = that.varargsElement;
+            // typeargs and meth are always null for a JML operation
+            return m;
+        }
     }
 
     @Override
@@ -516,7 +500,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.feasible = copy(that.feasible,p);
         copy.type = that.type;
         // FIXME - decl desugared
-        // FICXME - endpos?
+        // FIXME - endpos?
         return copy;
     }
 
@@ -529,7 +513,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that, Void p) {
-        return M.at(that.pos).JmlPrimitiveTypeTree(that.token, that.jmlclausekind, that.typeName).setType(that.type);
+        return M.at(that.pos).JmlPrimitiveTypeTree(that.jmlclausekind, that.typeName).setType(that.type);
     }
 
     @Override

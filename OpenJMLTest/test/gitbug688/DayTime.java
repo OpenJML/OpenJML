@@ -44,8 +44,8 @@ public class DayTime {
     }
  	
 
-    //@ old int diff = secondCalulation(this) - secondCalulation(stop);
-    //@ old int _final = (diff < 0) ? (-diff) : (diff);
+    //@ old int diffx = secondCalulation(this) - secondCalulation(stop);
+    //@ old int _final = (diffx < 0) ? (-diffx) : (diffx);
     //@ ensures \result == _final;
     public /*@ pure @*/ int diffSeconds(DayTime stop){
 	int diff = secondCalulation(this) - secondCalulation(stop);

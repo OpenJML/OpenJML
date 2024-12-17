@@ -87,7 +87,7 @@ RELFILES=release-files
 ## Builds a full release. Modify (and commit) ../version.txt to set the version number builtin to the release
 ## Note that the openjml.zip file produced by a release is specific to a particular machine architecture
 release: .FORCE
-	make clean
+	-make clean
 	make version-info
 	make openjml
 	make jmlruntime.jar

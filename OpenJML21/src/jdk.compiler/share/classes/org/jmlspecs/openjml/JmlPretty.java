@@ -20,7 +20,7 @@ import org.jmlspecs.openjml.ext.FunctionLikeExpressions;
 import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
-import org.jmlspecs.openjml.ext.JmlOperatorKind;
+import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.RecommendsClause;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
 import org.jmlspecs.openjml.visitors.IJmlVisitor;
@@ -161,10 +161,10 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlBinary(JmlBinary that) {
         try {
-            int ownprec = JmlParser.jmlPrecedence(that.op); // FIXME - This needs a bit more testing
+            int ownprec = that.op.precedence;
             int p = ownprec;
             if (ownprec == -2) {
-                if (that.op == JmlOperatorKind.equivalenceKind || that.op == JmlOperatorKind.inequivalenceKind) p = TreeInfo.orPrec - 2;
+                if (that.op == Operators.equivalenceKind || that.op == Operators.inequivalenceKind) p = TreeInfo.orPrec - 2;
                 else p = TreeInfo.orPrec - 1;
             }
             open(prec, p);
@@ -214,8 +214,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 print("(");
                 printExprs(that.args);
                 print(")");
-            } else if (that.token != null) {
-                print(that.token.internedName());
+            } else if (that.kind != null) {
+                print(that.kind.keyword());
                 if (that.javaType &&
                         (that.kind == MiscExpressions.typelcKind || that.kind == FunctionLikeExpressions.typeofKind)
                         ) print("j");
@@ -559,7 +559,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     
     public void visitJmlRange(JmlRange that) {
     	try {
-    		if (that.lo == null && that.hi == null) print("*");
+    		if (that.isDefaultRange()) print("*");
     		else  {
     			if (that.lo != null) printExpr(that.lo);
     			print(" .. ");
@@ -631,7 +631,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 modOrCodeOrBehavior = true;
             }
             if (that.callee_only) {
-                print("//@ callee_only ");
+                print(" // callee_only ");
                 modOrCodeOrBehavior = true;
             }
             if (modOrCodeOrBehavior) {
@@ -944,9 +944,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-        try { print(that.jmlclausekind != null ? that.jmlclausekind.toString() : that.token.internedName());
+        try {
+            print(that.typeName.toString());
         } catch (IOException e) { perr(that,e); }
-
     }
 
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
@@ -977,7 +977,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
         try {
-            print(that.token.internedName());
+            print(that.token.keyword());
             print('(');
             boolean first = true;
             for (JCTree expr : that.list) {
@@ -1060,12 +1060,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 //                for (IJmlClauseKind k : Extensions.allKinds.values()) {
 //                    if (k instanceof ModifierKind && ((ModifierKind)k).fullAnnotation.equals(s)) {
 //                        print("/*@ " + ((ModifierKind)k).keyword + " */");
-//                        return;
-//                    }
-//                }
-//                for (JmlTokenKind t: JmlTokenKind.values()) {
-//                    if (t.annotationType != null && t.annotationType.toString().substring("interface ".length()).equals(s)) {
-//                        print("/*@ " + t.internedName() + " */");
 //                        return;
 //                    }
 //                }

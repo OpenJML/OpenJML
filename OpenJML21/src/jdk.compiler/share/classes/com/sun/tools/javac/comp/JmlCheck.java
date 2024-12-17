@@ -7,7 +7,6 @@ package com.sun.tools.javac.comp;
 
 import static com.sun.tools.javac.tree.JCTree.Tag.APPLY;
 
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.Modifiers;

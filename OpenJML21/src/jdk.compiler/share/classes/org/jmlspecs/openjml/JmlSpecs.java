@@ -970,13 +970,13 @@ public class JmlSpecs {
     
     public boolean findModifier(JCMethodDecl decl, ModifierKind kind) {
         JmlModifiers jmods = (JmlModifiers)decl.mods;
-        for (var m: jmods.jmlmods) if (m.ikind == kind) return true;
+        for (var m: jmods.jmlmods) if (m.jmlclausekind == kind) return true;
         return false;
     }
     
     public boolean findModifier(JCVariableDecl decl, ModifierKind kind) {
         JmlModifiers jmods = (JmlModifiers)decl.mods;
-        for (var m: jmods.jmlmods) if (m.ikind == kind) return true;
+        for (var m: jmods.jmlmods) if (m.jmlclausekind == kind) return true;
         return false;
     }
     
@@ -1154,6 +1154,7 @@ public class JmlSpecs {
         JCTree.JCModifiers mods = M.at(pos).Modifiers(sym.flags() & Flags.AccessFlags);
         if (decl != null) mods = decl.mods; // Caution -- these are now aliased
         MethodSpecs mspecs = new MethodSpecs(mods,ms); // FIXME - empty instead of null modifiers?
+        if (decl != null) mspecs.modelBody = decl.body;
         
         List<MethodSymbol> parents = utils.parents(sym,true);
         
@@ -1429,32 +1430,32 @@ public class JmlSpecs {
     }
     
     public void addModifier(int pos, ModifierKind m, JCModifiers mods) {
-        var tok = new com.sun.tools.javac.parser.JmlToken(m, log.currentSourceFile(), pos, pos);
+        var tok = new com.sun.tools.javac.parser.JmlToken(m, log.currentSourceFile(), pos, pos, null);
         ((JmlModifiers)mods).jmlmods.add(tok);
     }
     
     public void addModifier(int pos, int endpos, ModifierKind m, JCModifiers mods) {
-        var tok = new com.sun.tools.javac.parser.JmlToken(m, log.currentSourceFile(), pos, endpos);
+        var tok = new com.sun.tools.javac.parser.JmlToken(m, log.currentSourceFile(), pos, endpos, null);
         ((JmlModifiers)mods).jmlmods.add(tok);
     }
     
-    protected/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlTokenKind jt,
-            int position, int endpos) {
-        JmlTree.Maker M = JmlTree.Maker.instance(context);
-        Symtab syms = Symtab.instance(context);
-        JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
-        Class<?> c = jt.annotationType;
-        if (c == null) return null;
-        JCExpression t = (M.at(position).Ident(names.fromString("org")));
-        t = (M.at(position).Select(t, names.fromString("jmlspecs")));
-        t = (M.at(position).Select(t, names.fromString("annotation")));
-        t = (M.at(position).Select(t, names.fromString(c.getSimpleName())));
-        JCAnnotation ann = (M.at(position).Annotation(t,
-                com.sun.tools.javac.util.List.<JCExpression> nil()));
-        ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
-        //storeEnd(ann, endpos);
-        return ann;
-    }
+//    protected/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlTokenKind jt,
+//            int position, int endpos) {
+//        JmlTree.Maker M = JmlTree.Maker.instance(context);
+//        Symtab syms = Symtab.instance(context);
+//        JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
+//        Class<?> c = jt.annotationType;
+//        if (c == null) return null;
+//        JCExpression t = (M.at(position).Ident(names.fromString("org")));
+//        t = (M.at(position).Select(t, names.fromString("jmlspecs")));
+//        t = (M.at(position).Select(t, names.fromString("annotation")));
+//        t = (M.at(position).Select(t, names.fromString(c.getSimpleName())));
+//        JCAnnotation ann = (M.at(position).Annotation(t,
+//                com.sun.tools.javac.util.List.<JCExpression> nil()));
+//        ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
+//        //storeEnd(ann, endpos);
+//        return ann;
+//    }
 
 //    public com.sun.tools.javac.util.List<JCAnnotation> addPureAnnotation(int pos, com.sun.tools.javac.util.List<JCAnnotation> annots) {
 //        JmlTree.Maker F = JmlTree.Maker.instance(context);
@@ -2266,6 +2267,7 @@ public class JmlSpecs {
         public Env<AttrContext> javaEnv;
         public Env<AttrContext> specsEnv;
         public boolean returnNonNull;
+        public JCBlock modelBody;
         
         public MethodSpecs(JmlMethodDecl specsDecl) { 
             this.mods = specsDecl.mods;
@@ -2278,6 +2280,7 @@ public class JmlSpecs {
             }
             cases.decl = specsDecl;
             specsEnv = null;
+            modelBody = specsDecl.body;
         }
         
         public MethodSpecs(JCTree.JCModifiers mods, JmlMethodSpecs methodSpecs) { 

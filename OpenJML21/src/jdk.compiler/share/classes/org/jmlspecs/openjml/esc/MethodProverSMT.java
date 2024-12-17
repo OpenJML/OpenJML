@@ -20,7 +20,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.ext.MethodExprClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExpressions;
-import org.jmlspecs.openjml.ext.JmlOperatorKind;
+import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.SignalsClauseExtension;
 import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
@@ -282,6 +282,10 @@ public class MethodProverSMT {
         String[] splits = splitlist.split(",");
         int skips = 0;
         Translations translations = jmlesc.assertionAdder.methodBiMap.getf(methodDecl);
+        if (translations == null) {
+            utils.warning(methodDecl, "jml.message", "To check a specific method of an anonymous class, you must also check any containing methods");
+            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.SKIPPED,null);
+        }
         for (String splitkey: translations.keys()) {
 //        if (splitkey.equals(Strings.feas_preOnly)) {
 //            if (proofResultAccumulated.isSat()) continue;
@@ -1905,11 +1909,11 @@ public class MethodProverSMT {
         @Override
         public void visitJmlBinary(JmlBinary tree) {
             // Special handling of short-circuit cases
-            if (tree.op == JmlOperatorKind.impliesKind) {
+            if (tree.op == Operators.impliesKind) {
                 scan(tree.lhs);
                 String v = cemap.get(tree.lhs);
                 if ("true".equals(v)) scan(tree.rhs);
-            } else if (tree.op == JmlOperatorKind.reverseimpliesKind) {
+            } else if (tree.op == Operators.reverseimpliesKind) {
                 scan(tree.lhs);
                 String v = cemap.get(tree.lhs);
                 if ("false".equals(v)) scan(tree.rhs);

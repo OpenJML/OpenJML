@@ -936,7 +936,9 @@ public class Gen extends JCTree.Visitor {
         this.pt = tree.sym.erasure(types).getReturnType();
 
         checkDimension(tree.pos(), tree.sym.erasure(types));
+        try {
         genMethod(tree, localEnv, false);
+        } catch (Exception e) { System.out.println(tree.sym); throw e; }
     }
 //where
         /** Generate code for a method.
@@ -1917,13 +1919,15 @@ public class Gen extends JCTree.Visitor {
  *************************************************************************/
 
     public void visitApply(JCMethodInvocation tree) {
+        MethodSymbol ms = null;
+        try {
         setTypeAnnotationPositions(tree.pos);
         // Generate code for method.
         Item m = genExpr(tree.meth, methodType);
         // Generate code for all arguments, where the expected types are
         // the parameters of the method's external type (that is, any implicit
         // outer instance of a super(...) call appears as first parameter).
-        MethodSymbol msym = (MethodSymbol)TreeInfo.symbol(tree.meth);
+        MethodSymbol msym = ms = (MethodSymbol)TreeInfo.symbol(tree.meth);
         genArgs(tree.args,
                 msym.externalType(types).getParameterTypes());
         if (!msym.isDynamic()) {
@@ -1936,6 +1940,8 @@ public class Gen extends JCTree.Visitor {
         } else {
             result = m.invoke();
         }
+    } catch (Error e) { System.out.println("GEN-APPLY " + tree + " " + ms.owner); throw e; }
+
     }
 
     public void visitConditional(JCConditional tree) {

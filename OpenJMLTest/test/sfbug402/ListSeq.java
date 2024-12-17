@@ -42,31 +42,30 @@ public class ListSeq<E extends Object> implements Seq<E> {
     //@   ensures \result == pos;
     //@ also public exceptional_behavior
     //@   requires pastEnd();
-    @Override //@ pure
+    @Override //@ spec_pure
     public /*@ non_null */ Integer pos() {
         if (pastEnd()) throw new IndexOutOfBoundsException("There is no position past the end of the sequence.");
         return pos;
     }
 
-    @Override //@ pure
+    @Override //@ spec_pure
     public  /*@ non_null */ E current() {
         return list.get(pos-1);
     }
 
     //@ also public normal_behavior
     //@   ensures \result.theInteger == _length;
-    //@ pure helper
+    //@ spec_pure helper
     @Override 
     public  /*@ non_null */ Integer length() {
         Integer r = list.size();
         return r;
     }
 
-    //@ pure
+    //@ spec_pure
     @Override 
     public  /*@ non_null */ Boolean pastEnd() {
         //return pos.equals(length()+1);
-        Boolean b = pos == (length()+1);
-        return b;
+        return Boolean.valueOf(pos == (length()+1));
     }
 }
