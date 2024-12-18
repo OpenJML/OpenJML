@@ -37,6 +37,7 @@ prep: .FORCE
 
 tutorial-tests: .FORCE
 	@ ( echo Testing tutorial files ;\
+            alias openjml=$(mkfile_dir)/../OpenJML21/openjml ; \
 	    cd $(mkfile_dir)/../../openjml.github.io/tutorial; \
 	    ./test \
 	)
