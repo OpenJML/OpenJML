@@ -10,7 +10,7 @@ ERR=0
 rm -rf *.json
 openjml --show=json *.java
 for f in *.java ; do
-  diff $f.json $f.json.expected || ERR=1
+  if ! diff $f.json $f.json.expected ; then ERR=1 ; echo $f.json differs from expected; fi; 
 done
 
 rm -rf *.json
@@ -19,9 +19,9 @@ cat Test*.json.expected | diff - out
 
 rm -rf *.json out xx
 openjml --show=json -d xx/yy *.java
-diff xx/yy/Test.java.json Test.java.json.expected || ERR=1
-diff xx/yy/p/TestP.java.json TestP.java.json.expected || ERR=1
-diff xx/yy/q/r/TestPP.java.json TestPP.java.json.expected || ERR=1
+if ! diff xx/yy/Test.java.json Test.java.json.expected ; then ERR=1 ; echo xx/yy/Test.java.json differs from expected ; fi;
+if ! diff xx/yy/p/TestP.java.json TestP.java.json.expected ; then ERR=1 ; echo xx/yy/p/TestP.java.json differs from expected; fi;
+if ! diff xx/yy/q/r/TestPP.java.json TestPP.java.json.expected ; then ERR=1 ; echo xx/yy/q/r/TestPP.java.json differs from expected ; fi;
 echo "xxx" >> xx/yy/Test.java.json
 # repeat without deleting files
 openjml --show=json -d xx/yy *.java
@@ -33,28 +33,27 @@ diff xx/yy/q/r/TestPP.java.json TestPP.java.json.expected || ERR=1
 
 rm -rf *.json
 openjml --show=typedjson *.java
-diff A.json A.json.expected || ERR=1
-diff C.json C.json.expected || ERR=1
-diff CC.json CC.json.expected || ERR=1
-diff CCC.json CCC.json.expected || ERR=1
-
+for f in A.json C.json CC.json CCC.json ; do
+if ! diff $f $f.expected ; then ERR=1 ; echo $f differs from expected ;  fi;
+done
+exit $ERR
 rm -rf *.json
 openjml --show=typedjson -d - *.java > out
-( cat [AC]*.expected | diff - out ) || ERR=1
+if ! ( cat [AC]*.expected | diff - out ) ; then ERR=1 ; echo 'AC* differs from expected' ; fi;
 
 rm -rf *.json out xx
 openjml --show=typedjson -d xx/yy *.java
-diff xx/yy/A.json A.json.expected || ERR=1
-diff xx/yy/C.json C.json.expected || ERR=1
-diff xx/yy/p/CC.json CC.json.expected || ERR=1
-diff xx/yy/q/r/CCC.json CCC.json.expected || ERR=1
+if ! diff xx/yy/A.json A.json.expected ; then ERR=1 ; echo zz/yy/A.json differs from expected ; fi;
+if ! diff xx/yy/C.json C.json.expected ; then ERR=1 ; echo zz/yy/C.json differs from expected ; fi;
+if ! diff xx/yy/p/CC.json CC.json.expected ; then ERR=1 ; echo zz/yy/p/CC.json differs from expected ; fi;
+if ! diff xx/yy/q/r/CCC.json CCC.json.expected ; then ERR=1 ; echo zz/yy/q/r/CCC.json differs from expected ; fi;
 echo "xxx" >> xx/yy/Test.java.json
 # repeat without deleting files
 openjml --show=typedjson -d xx/yy *.java
-diff xx/yy/A.json A.json.expected || ERR=1
-diff xx/yy/C.json C.json.expected || ERR=1
-diff xx/yy/p/CC.json CC.json.expected || ERR=1
-diff xx/yy/q/r/CCC.json CCC.json.expected || ERR=1
+if ! diff xx/yy/A.json A.json.expected ; then ERR=1 ; echo zz/yy/A.json differs from expected ; fi;
+if ! diff xx/yy/C.json C.json.expected ; then ERR=1 ; echo zz/yy/C.json differs from expected ; fi;
+if ! diff xx/yy/p/CC.json CC.json.expected ; then ERR=1 ; echo zz/yy/p/CC.json differs from expected ; fi;
+if ! diff xx/yy/q/r/CCC.json CCC.json.expected ; then ERR=1 ; echo zz/yy/q/r/CCC.json differs from expected ; fi;
 
 if [ $ERR == 1 ]; then echo "JSON LOCATION TESTS FAILED "; fi
 exit $ERR

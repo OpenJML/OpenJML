@@ -16,7 +16,7 @@
       "mods": {
         "class": "$JmlModifiers",
         "annotations": [],
-        "flags": "generatedconstr",
+        "flags": "",
         "jmlmods": [
           "pure"
         ]
