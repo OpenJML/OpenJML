@@ -8916,7 +8916,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			                }
 			            }
 			        }
-			        if (printb) System.out.println("EVERYTHING? " + isEverything + " " + hasAssignable + " " + info.parentMethodSymbol.owner + "." + info.parentMethodSymbol);
+			        if (printb) System.out.println("EVERYTHING? " + calleeMethodSym + " " + isEverything + " " + hasAssignable + " " + info.parentMethodSymbol.owner + "." + info.parentMethodSymbol);
 			        if (!hasAssignable) effectivelyPure = false;
 			        // FIXME - enable the following when we can adjust all the tests. Also decide whether to issue the warning if the caller has assignable \everythig; also find the name of the caller
                     if (!hasAssignable && utils.esc && !calleeMethodSym.isConstructor()) {
