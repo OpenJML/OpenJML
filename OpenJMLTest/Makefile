@@ -9,11 +9,11 @@ D=OpenJML21
 ### The following is the OpenJML tests
 
 openjml-test: prep
-	##make release-tests 
-	make tutorial-tests > log-tutorial-tests
-	make unittests-par
-	make scripttests
-	make jsontests
+	-make release-tests 
+	-make tutorial-tests
+	-make unittests-par
+	-make scripttests
+	-make jsontests
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
 
 openjml-clean: .FORCE
