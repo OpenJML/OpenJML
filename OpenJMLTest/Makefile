@@ -9,10 +9,10 @@ D=OpenJML21
 ### The following is the OpenJML tests
 
 openjml-test: prep
-	-make release-tests 
-	-make tutorial-tests
-	-make unittests-par
+	-time make unittests-par
+	-time make unittests-seq
 	-make scripttests
+	-make tutorial-tests
 	-make jsontests
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
 
@@ -47,11 +47,10 @@ release-tests: .FORCE
 	@ NOZIP= $(ROOT)releaseTests/runtests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 
 unittests-seq:
-	@ grep -v sleep ${ROOT}unittests/runall | tr -d '&' > ${ROOT}unittests/runseq
 	@ . $(ROOT)unittests/runseq
 			
 unittests-par:
-	( cd ${ROOT}/unittests; source ./runall | tee log-unittests | sort  )
+	( cd ${ROOT}/unittests; source ./runpar | tee log-unittests | sort  )
 
 scripttests: .FORCE
 	( cd ${ROOT}/scripttests; ./escfiles-sort)

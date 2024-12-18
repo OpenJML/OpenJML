@@ -21,6 +21,12 @@ jobs:
       run: |
         git config --global core.autocrlf input
         git clone -b $BRANCH --depth 1 https://github.com/OpenJML/OpenJML
+    - name: Check most recent release
+      run: |
+        export nm=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep '"name":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
+        echo OLD $nm NEW OpenJML $ver
+        if [ "$nm" == "OpenJML $ver" ] ; then echo  Replicating version $ver ; fi
+
     - name: Create the GitHub release
       ## Do this just once -- not for every element of the matrix
       run: |
