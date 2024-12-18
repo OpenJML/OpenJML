@@ -21,7 +21,7 @@ public class StackImpl implements Stack {
 	}
 	
 	//@ also ensures \result == stackCounter;
-	//@ pure
+	//@ strictly_pure
 	//@ helper
 	public int count() {
 		return stackCounter;
@@ -29,12 +29,12 @@ public class StackImpl implements Stack {
 
 	//@ also requires 1 <= i <= count();
     //@ ensures \result == internalStack[i-1];
-	//@ pure
+	//@ strictly_pure
 	public int itemAt(int i) {
 		return internalStack[i-1];
 	}
 
-	//@ pure
+	//@ strictly_pure
 	public boolean isEmpty() {
 		return stackCounter == 0;
 	}
@@ -63,17 +63,15 @@ public class StackImpl implements Stack {
 	}
 	
 	public static void main(String[] args) {
-		Stack s = new StackImpl(); // OK if s is a StackImpl
+		Stack s = new StackImpl(); // Here s is typed as Stack so we only know the specs of Stack.push
 		//@ assert s.count == 0;
-		//@ show s.count, ((StackImpl)s).maxSize, ((StackImpl)s).stackCounter;
 		boolean b1 = s.push(2);
-		//@ show b1, s.count, ((StackImpl)s).maxSize, ((StackImpl)s).stackCounter;
+        //@ assert b1 ==> s.count == 1;
 		boolean b2 = s.push(2);
+        //@ assert b2 ==> s.count == 2;
 		boolean b3 = s.push(2);
-		//@ show b1, b2, b3, ((StackImpl)s).maxSize, ((StackImpl)s).stackCounter;
-		//@ assert b1 && b2 && b3;
-//		if (!(b1 && b2 && b3)) return;
-		//@ assert s.count() == 3;
+        //@ assert b3 ==> s.count() == 3;
+		if (!(b1 && b2 && b3)) return;
 		//@ assert s.count == 3;
 //		System.out.println(s.itemAt(1));
 //		System.out.println(s.itemAt(2));
@@ -81,7 +79,7 @@ public class StackImpl implements Stack {
 	}
 
 	public static void main1(String[] args) {
-		StackImpl s = new StackImpl();
+		StackImpl s = new StackImpl(); // Here s is a StackImpl and we know the StackImpl specs of push
 		//@ assert s.count == 0;
 		boolean b1 = s.push(2);
 		//@ assert b1 && s.count == 1;
@@ -91,7 +89,6 @@ public class StackImpl implements Stack {
 		//@ assert b3 && s.count == 3;
 		//@ show b1, b2, b3, s.maxSize, s.stackCounter;
 		//@ assert b1 && b2 && b3;
-//		if (!(b1 && b2 && b3)) return;
 		//@ assert s.count() == 3;
 		//@ assert s.count == 3;
 		//@ assert s.stackCounter == 3;
