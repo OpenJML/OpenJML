@@ -3,7 +3,7 @@ package stack;
 public class StackImpl implements Stack {
 		
 	/*@ spec_public */ private int maxSize = 50;
-	private int[] internalStack;
+	private int[] internalStack; //-RAC@ maps internalStack[*] \into count;
 	/*@ spec_public */ private int stackCounter; //-RAC@ in count;
 
 	@SuppressWarnings("unchecked")
