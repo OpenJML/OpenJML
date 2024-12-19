@@ -134,7 +134,7 @@ pure @*/
     }
 
     /*@ requires a <= b;
-      @ //ensures Set.of(\result).equals(this.keySet().subSet(a,false,b,false)); // FIXME - remove //
+      @ ensures Set.of(\result).equals(this.keySet().subSet(a,false,b,false));
         pure */
     public int[] between(int a, int b) {
         return btw(root, a, b);
@@ -145,8 +145,7 @@ pure @*/
         return Node.ks(n).subSet(a,false,b,false).toArray(new Integer[0]);
     }
     /*@ requires a <= b;
-      @ //ensures Set.of(\result).equals(Node.ks(n).subSet(a,false,b,false));
-        ensures Node.ks(n) != null;
+      @ ensures Set.of(\result).equals(Node.ks(n).subSet(a,false,b,false));
         spec_pure @*/
     int[] btw(Node n, int a, int b) {
         if (n == null) return new int[0];
