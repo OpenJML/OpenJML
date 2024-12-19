@@ -1,0 +1,19 @@
+#! /bin/bash
+shopt -s expand_aliases
+
+cd $(dirname "$BASH_SOURCE")
+
+#alias lsc="ps au | grep summary | grep -v grep | awk '{ print \$13 }' | sort -u | wc -l"
+alias lsc="jobs | wc -l"
+alias wtv="while [ \$(lsc) -gt 5 ]; do echo Waiting \$(lsc); sleep 30; done; echo proceeding \$(lsc)"
+alias wt="while [ \$(lsc) -gt 5 ]; do sleep 30; done"
+
+export testlist=`(cd ../src/org/jmlspecs/openjmltest/testcases ; ls *.java | sed -e 's/.java//')`
+
+for d in $testlist; do rm -f log-$d; done
+for d in $testlist; do
+   ./run-summary log-$d "0/0" $d & 
+   wtv
+done
+wait
+echo Completed
