@@ -22,4 +22,7 @@ test/gitbug518/Test.java:40: error: variable k is already defined in method q(in
 test/gitbug518/Test.java:46: error: variable k is already defined in method r()
             int k;
                 ^
-8 errors
+test/gitbug518/Test.java:54: error: variable e is already defined in method t()
+        } catch (Exception e) {
+                           ^
+9 errors

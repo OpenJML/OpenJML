@@ -46,5 +46,13 @@ public class Test {
             int k;
         }
     }
+    
+    void t() {
+        int e;
+        try {
+            r();
+        } catch (Exception e) {
+        }
+    }
      
 }
