@@ -3,7 +3,7 @@ abstract public class Det {
   //@ pure
   abstract int theInt();
 
-  //@ pure
+  //@ strictly_pure
   abstract int[] theInt2();
 
   public void m() {
@@ -28,7 +28,7 @@ abstract public class Det {
   //@ model public int nullable[] myIntArray;
 
   //@ ensures java.util.Arrays.equals(\result, myIntArray);
-  //@ pure
+  //@ spec_pure
   abstract int[] theInt3();
 
   public void mmodel() {
@@ -40,7 +40,7 @@ abstract public class Det {
   }
  
   //@ ensures \result == myIntArray;
-  //@ pure
+  //@ spec_pure
   abstract int[] theInt4();
 
   public void mmodel2() {
