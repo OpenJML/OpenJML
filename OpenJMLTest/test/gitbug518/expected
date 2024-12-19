@@ -13,4 +13,13 @@ test/gitbug518/Test.java:27: error: variable eeeee is already defined in method 
 test/gitbug518/Test.java:28: error: incomparable types: boolean and int
         //@ ensures eeeee==0;
                          ^
-5 errors
+test/gitbug518/Test.java:36: error: variable k is already defined in method p()
+    //@ signals (Exception k) true;
+                 ^
+test/gitbug518/Test.java:40: error: variable k is already defined in method q(int)
+        int k = 0;
+            ^
+test/gitbug518/Test.java:46: error: variable k is already defined in method r()
+            int k;
+                ^
+8 errors
