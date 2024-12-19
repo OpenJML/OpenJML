@@ -26,7 +26,7 @@ jobs:
         export ver=`cat OpenJML/version.txt`
         export nm=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep '"name":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
         echo OLD $nm NEW OpenJML $ver
-        if [ "$nm" == "OpenJML $ver" ] ; then echo  Replicating version $ver ; fi
+        if [ "$nm" == "\"OpenJML $ver\"" ] ; then echo  Replicating version $ver ; exit 1; fi
 
     - name: Create the GitHub release
       ## Do this just once -- not for every element of the matrix
