@@ -1,0 +1,276 @@
+{
+  "class": "$JmlClassDecl",
+  "mods": {
+    "class": "$JmlModifiers",
+    "annotations": [],
+    "flags": "",
+    "jmlmods": []
+  },
+  "name": "Test",
+  "typarams": [],
+  "implementing": [],
+  "permitting": [],
+  "defs": [
+    {
+      "class": "$JmlMethodDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "generatedconstr",
+        "jmlmods": [
+          "pure"
+        ]
+      },
+      "name": "\u003cinit\u003e",
+      "restype": "void",
+      "typarams": [],
+      "params": [],
+      "thrown": [],
+      "body": {
+        "class": "$JmlBlock",
+        "flags": "",
+        "stats": [
+          {
+            "class": "$JCExpressionStatement",
+            "expr": {
+              "class": "$JCMethodInvocation",
+              "type": "void",
+              "typeargs": [],
+              "meth": {
+                "class": "$JCIdent",
+                "type": "()void",
+                "name": "super"
+              },
+              "args": []
+            }
+          }
+        ]
+      }
+    },
+    {
+      "class": "$JmlVariableDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": []
+      },
+      "name": "i1",
+      "vartype": "int",
+      "init": {
+        "class": "$JCLiteral",
+        "type": "int",
+        "typetag": "INT",
+        "value": "5"
+      }
+    },
+    {
+      "class": "$JmlVariableDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": []
+      },
+      "name": "i2",
+      "vartype": "long",
+      "init": {
+        "class": "$JCLiteral",
+        "type": "long",
+        "typetag": "LONG",
+        "value": "6"
+      }
+    },
+    {
+      "class": "$JmlVariableDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": []
+      },
+      "name": "i3",
+      "vartype": "char",
+      "init": {
+        "class": "$JCLiteral",
+        "type": "char",
+        "typetag": "CHAR",
+        "value": "99"
+      }
+    },
+    {
+      "class": "$JmlVariableDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": []
+      },
+      "name": "i4",
+      "vartype": {
+        "class": "$JCIdent",
+        "type": "java.lang.String",
+        "name": "String"
+      },
+      "init": {
+        "class": "$JCLiteral",
+        "type": "java.lang.String",
+        "typetag": "CLASS",
+        "value": "123"
+      }
+    },
+    {
+      "class": "$JmlVariableDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": []
+      },
+      "name": "i5",
+      "vartype": "float",
+      "init": {
+        "class": "$JCLiteral",
+        "type": "float",
+        "typetag": "FLOAT",
+        "value": "8.0"
+      }
+    },
+    {
+      "class": "$JmlVariableDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": []
+      },
+      "name": "i6",
+      "vartype": "double",
+      "init": {
+        "class": "$JCLiteral",
+        "type": "double",
+        "typetag": "DOUBLE",
+        "value": "9.0"
+      }
+    },
+    {
+      "class": "$JmlVariableDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": []
+      },
+      "name": "i7",
+      "vartype": "boolean",
+      "init": {
+        "class": "$JCLiteral",
+        "type": "boolean",
+        "typetag": "BOOLEAN",
+        "value": "0"
+      }
+    },
+    {
+      "class": "$JmlVariableDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": []
+      },
+      "name": "i8",
+      "vartype": "boolean",
+      "init": {
+        "class": "$JCLiteral",
+        "type": "boolean",
+        "typetag": "BOOLEAN",
+        "value": "1"
+      }
+    },
+    {
+      "class": "$JmlVariableDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": []
+      },
+      "name": "i9",
+      "vartype": "int",
+      "init": {
+        "class": "$JCLiteral",
+        "type": "int",
+        "typetag": "INT",
+        "value": "485"
+      }
+    },
+    {
+      "class": "$JmlVariableDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": []
+      },
+      "name": "i10",
+      "vartype": "int",
+      "init": {
+        "class": "$JCLiteral",
+        "type": "int",
+        "typetag": "INT",
+        "value": "57005"
+      }
+    },
+    {
+      "class": "$JmlVariableDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": []
+      },
+      "name": "i11",
+      "vartype": "int",
+      "init": {
+        "class": "$JCLiteral",
+        "type": "int",
+        "typetag": "INT",
+        "value": "11"
+      }
+    },
+    {
+      "class": "$JmlVariableDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": []
+      },
+      "name": "b",
+      "vartype": "byte",
+      "init": {
+        "class": "$JCLiteral",
+        "type": "int",
+        "typetag": "INT",
+        "value": "23"
+      }
+    },
+    {
+      "class": "$JmlVariableDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": []
+      },
+      "name": "s",
+      "vartype": "short",
+      "init": {
+        "class": "$JCLiteral",
+        "type": "int",
+        "typetag": "INT",
+        "value": "34"
+      }
+    }
+  ]
+}
