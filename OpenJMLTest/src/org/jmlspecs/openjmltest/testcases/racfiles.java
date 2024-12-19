@@ -244,6 +244,21 @@ public class racfiles extends RacBase {
     }
     
     @Test
+    public void racHans2() {
+        rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testcompiles/"+getMethodName(0)+z+"test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src",null};
+
+        runrac = true;
+        helpTCF("test/racHans2/account",
+                "test/racHans2",
+                "account.AllTests",
+                "-cp","test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src"+z+"test/racHans2",
+                //"-rac",
+                "--specs-path","test/racHans2/specs",
+                "--rac-check-assumptions","--rac-java-checks","--show-not-implemented","--nullable-by-default"
+                );
+    }
+
+    @Test
     public void racHans4() {
     	expectedRACExit = 1;
     	setRacngEA();
@@ -279,35 +294,20 @@ public class racfiles extends RacBase {
     public void racHans4d() {
         expectedRACExit = 0;
     	setRacngEA();
-    	helpTCF("test/racHansStorageD/StorageParameters.java","test/racHansStorageD","StorageParameters","---rac-check-assumptions","--specs-path=test/racHansStorageD");
+    	helpTCF("test/racHansStorageD/StorageParameters.java","test/racHansStorageD","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorageD");
     	rac = null;
     }
     
     @Test
     public void racHansE() {
     	runrac = false;
-    	helpTCF("test/hans/OpenJMLTest/src/javax/safetycritical/test/safelet/TckTestSafelet2.java",
+    	helpTCF("test/hans/icecapSDK/src/javax/safetycritical/test/safelet/TckTestSafelet2.java",
     			"test/hans",
     			null,
-    			"-cp","test/hans/OpenJMLTest/src"+z+"test/hans/icecapSDK/src",  //nFIXME - changed icecapSDK/bin to icecapSDK/src
+    			"-cp","test/hans/icecapSDK/src",  //nFIXME - changed icecapSDK/bin to icecapSDK/src
     			"--rac",
     			"--specs-path","test/hans/OpenJMLTest/specs",
     			"--rac-check-assumptions","--rac-java-checks","--show-not-mplemented","--nullable-by-default"
-    			);
-    }
-
-    @Test
-    public void racHans2() {
-        rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testcompiles/"+getMethodName(0)+z+"test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src",null};
-
-    	runrac = true;
-    	helpTCF("test/racHans2/account",
-    			"test/racHans2",
-    			"account.AllTests",
-    			"-cp","test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src"+z+"test/racHans2",
-    			//"-rac",
-    			"--specs-path","test/racHans2/specs",
-    			"--rac-check-assumptions","--rac-java-checks","--show-not-implemented","--nullable-by-default"
     			);
     }
 

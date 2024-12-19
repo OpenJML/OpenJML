@@ -4,7 +4,7 @@ import java.util.Enumeration;
 
 //import javax.scj.util.Const;
 
-import org.jmlspecs.utils.JmlAssertionError;
+import org.jmlspecs.runtime.JmlAssertionError;
 
 import unitTest.TestCase;
 import unitTest.TestFailure;
