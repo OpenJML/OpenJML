@@ -420,6 +420,11 @@ public class racfiles extends RacBase {
         helpTCF("test/gitbug548racB","test/gitbug548racB","Test");
     }
 
+    @Test
+    public void gitbug578() {
+        helpTCF("test/gitbug578","test/gitbug578","Test");
+    }
+
     @Test @Ignore // FIXME - Class encoding error in RAC
     public void gitbug584() {
         helpTCF("test/gitbug584","test/gitbug584","AClass");
