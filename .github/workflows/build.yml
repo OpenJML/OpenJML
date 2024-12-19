@@ -24,7 +24,7 @@ jobs:
     - name: Check most recent release
       run: |
         export ver=`cat OpenJML/version.txt`
-        export nm=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep '"name":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
+        export nm=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep -m 1 '"name":' | sed -e 's/.*: //' -e 's/,//'`
         echo OLD $nm NEW OpenJML $ver
         if [ "$nm" == "\"OpenJML $ver\"" ] ; then echo  Replicating version $ver ; exit 1; fi
 
@@ -35,7 +35,7 @@ jobs:
         export ver=`cat version.txt`
         echo Version $ver from branch $BRANCH
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"$BRANCH\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
-        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
+        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep -m 1'"id":' | sed -e 's/.*: //' -e 's/,//'`
         echo Created release with id $id
 
   build:
@@ -119,7 +119,7 @@ jobs:
         cd $FOLDER/release-temp
         export f=openjml-${{ matrix.os }}-${ver}.zip
         mv *.zip $f
-        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
+        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep -m 1 '"id":' | sed -e 's/.*: //' -e 's/,//'`
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
         echo Uploading $f to id $id at url $upload_url
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f" 
@@ -128,6 +128,6 @@ jobs:
         cd OpenJML
         export ver=`cat version.txt`
         export tag=$ver
-        export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep tag_name | head -1 | sed -e 's/.*: \"//' -e 's/\",//'`
+        export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep -m 1 tag_name | sed -e 's/.*: \"//' -e 's/\",//'`
         echo $ver $tag
         test "$ver" = "$tag" || echo "Version $ver from version.txt does not match the release tag, which is $tag"
