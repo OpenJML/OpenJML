@@ -26,7 +26,7 @@ jobs:
         export ver=`cat OpenJML/version.txt`
         export nm=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep --max-count 1 '"name":' | sed -e 's/.*: //' -e 's/,//'`
         echo OLD $nm NEW OpenJML $ver
-        if [ "$nm" == "\"OpenJML $ver\"" ] ; then echo  Replicating version $ver ; exit 1; fi
+        if [ "$nm" == "\"OpenJML $ver\"" ] ; then echo "Replicating version $ver" ; exit 1; fi
 
     - name: Create the GitHub release
       ## Do this just once -- not for every element of the matrix
@@ -125,9 +125,7 @@ jobs:
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f" 
     - name: Check current GitHub release number against version.txt
       run: |
-        cd OpenJML
-        export ver=`cat version.txt`
-        export tag=$ver
+        export ver=`cat OpenJML/version.txt`
         export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep --max-count 1 tag_name | sed -e 's/.*: \"//' -e 's/\",//'`
         echo $ver $tag
         test "$ver" = "$tag" || echo "Version $ver from version.txt does not match the release tag, which is $tag"
