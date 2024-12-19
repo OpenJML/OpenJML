@@ -13,7 +13,7 @@ export testlist=`(cd ../src/org/jmlspecs/openjmltest/testcases ; ls *.java | sed
 for d in $testlist; do rm -f log-$d; done
 for d in $testlist; do
    ./run-summary log-$d "0/0" $d & 
-   wtv
+   wt
 done
 wait
 echo Completed
