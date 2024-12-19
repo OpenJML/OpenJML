@@ -31,5 +31,20 @@ public class Test {
             f = 1;
         }
      }
+    
+    //@ old int k = 0;
+    //@ signals (Exception k) true;
+    void p() {}
+    
+    void q(int k) {
+        int k = 0;
+    }
+    
+    void r() {
+        int k;
+        {
+            int k;
+        }
+    }
      
 }

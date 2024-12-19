@@ -325,28 +325,24 @@ public class racfiles extends RacBase {
 
     @Test
     public void gitbug532() {
-    	//runrac = false;
         expectedRACExit = 0;
         helpTCF("test/gitbug532","test/gitbug532","Big","--no-rac-check-assumptions");
     }
 
     @Test
     public void gitbug532a() {
-    	//runrac = false;
         expectedRACExit = 0;
         helpTCF("test/gitbug532a","test/gitbug532a","Big");
     }
 
     @Test
     public void gitbug533() {
-    	//runrac = false;
         expectedRACExit = 0;
         helpTCF("test/gitbug533","test/gitbug533","TestSum","--rac-check-assumptions");
     }
 
     @Test
     public void gitbug533a() {
-    	//runrac = false;
         expectedRACExit = 0;
         helpTCF("test/gitbug533a","test/gitbug533a","TestSum");
     }
