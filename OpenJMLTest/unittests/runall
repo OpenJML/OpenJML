@@ -18,14 +18,13 @@ alias wt="while [ \$(lsc) -gt 5 ]; do sleep 30; done"
 ## The sleeps are inserted so we don't try to run all of the tasks at once
 
 ./run-summary log-racmost       "101/0"	racArithmeticModes racdemoexamples racfeatures racJML racnew3 racnewLoops racnewWithSpecs racsystem &
-./run-summary log-racfiles     	"26/41" racfiles  &
-./run-summary log-racnew       	"127/14" racnew  &
+./run-summary log-racfiles     	"51/15" racfiles  &
+./run-summary log-racnew       	"144/0" racnew  &
 ./run-summary log-racnew2      	"69/0"	racnew2 &
 ./run-summary log-racreadable	"2/0"	racreadable & 
-
-./run-summary log-access+  	"155/0" access arith assignable compilationUnit compiler deprecation  &
+./run-summary log-access+  	"155/0" access api arith assignable compilationUnit compiler deprecation  &
 wt
-./run-summary log-binaries 	"5/1"	binaries  &
+./run-summary log-binaries 	"6/0"	binaries  &
 ./run-summary log-bugs     	"23/0"	bugs  &
 ./run-summary log-esc1     	"93/0"  esc1  &
 wt
@@ -34,6 +33,7 @@ wt
 ./run-summary log-escbv     	"12/0"  escbitvector  &
 ./run-summary log-escConst+ 	"68/0"  escConstantFields escCounterexamples escaccessible esccode escconstructor  &
 wt
+## escDemoFiles
 ./run-summary log-escall2   	"30/0"  escall2   &
 ./run-summary log-escall3   	"55/0"  escall3   &
 ./run-summary log-esccallable	"29/0"  esccallable   &
@@ -42,21 +42,21 @@ wt
 ./run-summary log-escinclau+	"91/0" escinclause escinline esclocation escnewBoxing escnewassignable escoption escprimitivetypes escreadable escstrings  &
 ./run-summary log-escvis  	"59/0"  escvisibility escvisibility1  &
 wt
-./run-summary log-escnew   	"64/1"  escnew &
+./run-summary log-escnew   	"66/0"  escnew &
 ./run-summary log-escnew2   	"35/0"  escnew2 &
-./run-summary log-escnew3   	"63/1"  escnew3 &
+./run-summary log-escnew3   	"64/0"  escnew3 &
 wt
 ./run-summary log-esclambdas   	"25/3"  esclambdas  &
 ./run-summary log-escm         	"13/0"  escm   &
 ./run-summary log-expr+        	"64/0"  expressions escJML flow  &
 wt
-./run-summary log-generics     	"14/1"  generics   &
+./run-summary log-generics     	"15/0"  generics   &
 ./run-summary log-harness	"5/0"	harnesstests &
 ./run-summary log-inter+       	"140/0"	internalSpecs jmltypes lblexpression methodspecs modelghost namelookup positions prettyprinting purity  &
 wt
 ./run-summary log-matchClass	"52/0"  matchClasses  &
 ./run-summary log-modifiers    	"191/0" modifiers  &
-./run-summary log-redundant+   	"105/1"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
+./run-summary log-redundant+   	"105/0"	escenums redundant statements strict sysclasses typecheckingJmlTypes typecheckingvisibility &
 ./run-summary log-scanner      	"91/0"	scanner  &
 wt
 ./run-summary log-typecheck	"207/0"	typechecking &
