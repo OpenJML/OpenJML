@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RulesChecker.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.report</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.report.check</a> &gt; <span class="el_source">RulesChecker.java</span></div><h1>RulesChecker.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.report.check;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.jacoco.core.analysis.IBundleCoverage;
+import org.jacoco.core.data.ExecutionData;
+import org.jacoco.core.data.SessionInfo;
+import org.jacoco.report.ILanguageNames;
+import org.jacoco.report.IReportGroupVisitor;
+import org.jacoco.report.IReportVisitor;
+import org.jacoco.report.ISourceFileLocator;
+import org.jacoco.report.JavaNames;
+
+/**
+ * Formatter which checks a set of given rules and reports violations to a
+ * {@link IViolationsOutput} instance.
+ */
+public class RulesChecker {
+
+	private List&lt;Rule&gt; rules;
+	private ILanguageNames languageNames;
+
+	/**
+	 * New formatter instance.
+	 */
+<span class="fc" id="L41">	public RulesChecker() {</span>
+<span class="fc" id="L42">		this.rules = new ArrayList&lt;Rule&gt;();</span>
+<span class="fc" id="L43">		this.setLanguageNames(new JavaNames());</span>
+<span class="fc" id="L44">	}</span>
+
+	/**
+	 * Sets the rules to check by this formatter.
+	 *
+	 * @param rules
+	 *            rules to check
+	 */
+	public void setRules(final List&lt;Rule&gt; rules) {
+<span class="fc" id="L53">		this.rules = rules;</span>
+<span class="fc" id="L54">	}</span>
+
+	/**
+	 * Sets the implementation for language name display for message formatting.
+	 * Java language names are defined by default.
+	 *
+	 * @param languageNames
+	 *            converter for language specific names
+	 */
+	public void setLanguageNames(final ILanguageNames languageNames) {
+<span class="fc" id="L64">		this.languageNames = languageNames;</span>
+<span class="fc" id="L65">	}</span>
+
+	/**
+	 * Creates a new visitor to process the configured checks.
+	 *
+	 * @param output
+	 *            call-back to report violations to
+	 * @return visitor to emit the report data to
+	 */
+	public IReportVisitor createVisitor(final IViolationsOutput output) {
+<span class="fc" id="L75">		final BundleChecker bundleChecker = new BundleChecker(rules,</span>
+				languageNames, output);
+<span class="fc" id="L77">		return new IReportVisitor() {</span>
+
+			public IReportGroupVisitor visitGroup(final String name)
+					throws IOException {
+<span class="fc" id="L81">				return this;</span>
+			}
+
+			public void visitBundle(final IBundleCoverage bundle,
+					final ISourceFileLocator locator) throws IOException {
+<span class="fc" id="L86">				bundleChecker.checkBundle(bundle);</span>
+<span class="fc" id="L87">			}</span>
+
+			public void visitInfo(final List&lt;SessionInfo&gt; sessionInfos,
+					final Collection&lt;ExecutionData&gt; executionData)
+					throws IOException {
+<span class="fc" id="L92">			}</span>
+
+<span class="fc" id="L94">			public void visitEnd() throws IOException {</span>
+<span class="fc" id="L95">			}</span>
+		};
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

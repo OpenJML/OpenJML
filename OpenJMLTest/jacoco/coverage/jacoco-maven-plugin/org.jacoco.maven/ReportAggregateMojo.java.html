@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ReportAggregateMojo.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">jacoco-maven-plugin</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.maven</a> &gt; <span class="el_source">ReportAggregateMojo.java</span></div><h1>ReportAggregateMojo.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    John Oliver, Marc R. Hoffmann, Jan Wloka - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.maven;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException;
+import org.apache.maven.artifact.versioning.VersionRange;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
+import org.jacoco.report.IReportGroupVisitor;
+
+/**
+ * &lt;p&gt;
+ * Creates a structured code coverage report (HTML, XML, and CSV) from multiple
+ * projects within reactor. The report is created from all modules this project
+ * depends on, and optionally this project itself. From those projects class and
+ * source files as well as JaCoCo execution data files will be collected. In
+ * addition execution data is collected from the project itself. This also
+ * allows to create coverage reports when tests are in separate projects than
+ * the code under test, for example in case of integration tests.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * Using the dependency scope allows to distinguish projects which contribute
+ * execution data but should not become part of the report:
+ * &lt;/p&gt;
+ *
+ * &lt;ul&gt;
+ * &lt;li&gt;&lt;code&gt;compile&lt;/code&gt;, &lt;code&gt;runtime&lt;/code&gt;, &lt;code&gt;provided&lt;/code&gt;:
+ * Project source and execution data is included in the report.&lt;/li&gt;
+ * &lt;li&gt;&lt;code&gt;test&lt;/code&gt;: Only execution data is considered for the report.&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * @since 0.7.7
+ */
+@Mojo(name = &quot;report-aggregate&quot;, threadSafe = true)
+<span class="fc" id="L57">public class ReportAggregateMojo extends AbstractReportMojo {</span>
+
+	/**
+	 * A list of execution data files to include in the report from each
+	 * project. May use wildcard characters (* and ?). When not specified all
+	 * *.exec files from the target folder will be included.
+	 */
+	@Parameter
+	List&lt;String&gt; dataFileIncludes;
+
+	/**
+	 * A list of execution data files to exclude from the report. May use
+	 * wildcard characters (* and ?). When not specified nothing will be
+	 * excluded.
+	 */
+	@Parameter
+	List&lt;String&gt; dataFileExcludes;
+
+	/**
+	 * Output directory for the reports. Note that this parameter is only
+	 * relevant if the goal is run from the command line or from the default
+	 * build lifecycle. If the goal is run indirectly as part of a site
+	 * generation, the output directory configured in the Maven Site Plugin is
+	 * used instead.
+	 */
+	@Parameter(defaultValue = &quot;${project.reporting.outputDirectory}/jacoco-aggregate&quot;)
+	private File outputDirectory;
+
+	/**
+	 * Include this project in the report. If true then this projects class and
+	 * source files as well as JaCoCo execution data files will be collected.
+	 *
+	 * @since 0.8.9
+	 */
+	@Parameter(defaultValue = &quot;false&quot;)
+	private boolean includeCurrentProject;
+
+	/**
+	 * The projects in the reactor.
+	 */
+	@Parameter(property = &quot;reactorProjects&quot;, readonly = true)
+	private List&lt;MavenProject&gt; reactorProjects;
+
+	@Override
+	boolean canGenerateReportRegardingDataFiles() {
+<span class="fc" id="L102">		return true;</span>
+	}
+
+	@Override
+	boolean canGenerateReportRegardingClassesDirectory() {
+<span class="fc" id="L107">		return true;</span>
+	}
+
+	@Override
+	void loadExecutionData(final ReportSupport support) throws IOException {
+		// https://issues.apache.org/jira/browse/MNG-5440
+<span class="fc bfc" id="L113" title="All 2 branches covered.">		if (dataFileIncludes == null) {</span>
+<span class="fc" id="L114">			dataFileIncludes = Arrays.asList(&quot;target/*.exec&quot;);</span>
+		}
+
+<span class="fc" id="L117">		final FileFilter filter = new FileFilter(dataFileIncludes,</span>
+				dataFileExcludes);
+<span class="fc" id="L119">		loadExecutionData(support, filter, project.getBasedir());</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">		for (final MavenProject dependency : findDependencies(</span>
+				Artifact.SCOPE_COMPILE, Artifact.SCOPE_RUNTIME,
+				Artifact.SCOPE_PROVIDED, Artifact.SCOPE_TEST)) {
+<span class="fc" id="L123">			loadExecutionData(support, filter, dependency.getBasedir());</span>
+<span class="fc" id="L124">		}</span>
+<span class="fc" id="L125">	}</span>
+
+	private void loadExecutionData(final ReportSupport support,
+			final FileFilter filter, final File basedir) throws IOException {
+<span class="fc bfc" id="L129" title="All 2 branches covered.">		for (final File execFile : filter.getFiles(basedir)) {</span>
+<span class="fc" id="L130">			support.loadExecutionData(execFile);</span>
+<span class="fc" id="L131">		}</span>
+<span class="fc" id="L132">	}</span>
+
+	@Override
+	File getOutputDirectory() {
+<span class="fc" id="L136">		return outputDirectory;</span>
+	}
+
+	@Override
+	void createReport(final IReportGroupVisitor visitor,
+			final ReportSupport support) throws IOException {
+<span class="fc" id="L142">		final IReportGroupVisitor group = visitor.visitGroup(title);</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">		if (includeCurrentProject) {</span>
+<span class="fc" id="L144">			processProject(support, group, project);</span>
+		}
+<span class="fc bfc" id="L146" title="All 2 branches covered.">		for (final MavenProject dependency : findDependencies(</span>
+				Artifact.SCOPE_COMPILE, Artifact.SCOPE_RUNTIME,
+				Artifact.SCOPE_PROVIDED)) {
+<span class="fc" id="L149">			processProject(support, group, dependency);</span>
+<span class="fc" id="L150">		}</span>
+<span class="fc" id="L151">	}</span>
+
+	private void processProject(final ReportSupport support,
+			final IReportGroupVisitor group, final MavenProject project)
+			throws IOException {
+<span class="fc" id="L156">		support.processProject(group, project.getArtifactId(), project,</span>
+<span class="fc" id="L157">				getIncludes(), getExcludes(), sourceEncoding);</span>
+<span class="fc" id="L158">	}</span>
+
+	public File getReportOutputDirectory() {
+<span class="nc" id="L161">		return outputDirectory;</span>
+	}
+
+	public void setReportOutputDirectory(final File reportOutputDirectory) {
+<span class="pc bpc" id="L165" title="1 of 2 branches missed.">		if (reportOutputDirectory != null &amp;&amp; !reportOutputDirectory</span>
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">				.getAbsolutePath().endsWith(&quot;jacoco-aggregate&quot;)) {</span>
+<span class="fc" id="L167">			outputDirectory = new File(reportOutputDirectory,</span>
+					&quot;jacoco-aggregate&quot;);
+		} else {
+<span class="nc" id="L170">			outputDirectory = reportOutputDirectory;</span>
+		}
+<span class="fc" id="L172">	}</span>
+
+	public String getOutputName() {
+<span class="fc" id="L175">		return &quot;jacoco-aggregate/index&quot;;</span>
+	}
+
+	public String getName(final Locale locale) {
+<span class="fc" id="L179">		return &quot;JaCoCo Aggregate&quot;;</span>
+	}
+
+	private List&lt;MavenProject&gt; findDependencies(final String... scopes) {
+<span class="fc" id="L183">		final List&lt;MavenProject&gt; result = new ArrayList&lt;MavenProject&gt;();</span>
+<span class="fc" id="L184">		final List&lt;String&gt; scopeList = Arrays.asList(scopes);</span>
+<span class="fc bfc" id="L185" title="All 2 branches covered.">		for (final Object dependencyObject : project.getDependencies()) {</span>
+<span class="fc" id="L186">			final Dependency dependency = (Dependency) dependencyObject;</span>
+<span class="fc bfc" id="L187" title="All 2 branches covered.">			if (scopeList.contains(dependency.getScope())) {</span>
+<span class="fc" id="L188">				final MavenProject project = findProjectFromReactor(dependency);</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">				if (project != null) {</span>
+<span class="fc" id="L190">					result.add(project);</span>
+				}
+			}
+<span class="fc" id="L193">		}</span>
+<span class="fc" id="L194">		return result;</span>
+	}
+
+	/**
+	 * Note that if dependency specified using version range and reactor
+	 * contains multiple modules with same artifactId and groupId but of
+	 * different versions, then first dependency which matches range will be
+	 * selected. For example in case of range &lt;code&gt;[0,2]&lt;/code&gt; if version 1 is
+	 * before version 2 in reactor, then version 1 will be selected.
+	 */
+	private MavenProject findProjectFromReactor(final Dependency d) {
+		final VersionRange depVersionAsRange;
+		try {
+<span class="fc" id="L207">			depVersionAsRange = VersionRange</span>
+<span class="fc" id="L208">					.createFromVersionSpec(d.getVersion());</span>
+<span class="nc" id="L209">		} catch (final InvalidVersionSpecificationException e) {</span>
+<span class="nc" id="L210">			throw new AssertionError(e);</span>
+<span class="fc" id="L211">		}</span>
+
+<span class="fc bfc" id="L213" title="All 2 branches covered.">		for (final MavenProject p : reactorProjects) {</span>
+<span class="fc" id="L214">			final DefaultArtifactVersion pv = new DefaultArtifactVersion(</span>
+<span class="fc" id="L215">					p.getVersion());</span>
+<span class="fc bfc" id="L216" title="All 2 branches covered.">			if (p.getGroupId().equals(d.getGroupId())</span>
+<span class="fc bfc" id="L217" title="All 2 branches covered.">					&amp;&amp; p.getArtifactId().equals(d.getArtifactId())</span>
+<span class="fc bfc" id="L218" title="All 2 branches covered.">					&amp;&amp; depVersionAsRange.containsVersion(pv)) {</span>
+<span class="fc" id="L219">				return p;</span>
+			}
+<span class="fc" id="L221">		}</span>
+<span class="fc" id="L222">		return null;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

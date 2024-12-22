@@ -1,0 +1,686 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" href="resources/doc.css" charset="UTF-8" type="text/css" />
+        <link rel="shortcut icon" href="resources/report.gif" type="image/gif" />
+        <title>
+					JaCoCo -
+					jacoco:report</title>
+    </head>
+    <body>
+        <div class="breadcrumb">
+            <a href="../index.html" class="el_report">JaCoCo</a>
+            					&gt;
+					
+            <a href="index.html" class="el_group">Documentation</a>
+            					&gt;
+					
+            <a href="maven.html" class="el_group">Maven</a>
+            					&gt;
+					
+            <span class="el_source">jacoco:report</span>
+        </div>
+        <div id="content">
+                
+            <h1>jacoco:report</h1>
+                  
+            <p>
+                <b>Note</b>
+                :This goal should be used as a Maven report.
+            </p>
+                  
+            <p>
+                <b>Full name</b>
+                :
+            </p>
+                  
+            <p>org.jacoco:jacoco-maven-plugin:0.8.11:report</p>
+                  
+            <p>
+                <b>Description</b>
+                :
+            </p>
+                  
+            <div>Creates a code coverage report for tests of a single project in
+multiple formats (HTML, XML, and CSV).</div>
+                  
+            <p>
+                <b>Attributes</b>
+                :
+            </p>
+                  
+            <ul>
+                        
+                <li>Requires a Maven project to be executed.</li>
+                        
+                <li>
+                    Since version: 
+                    <code>0.5.3</code>
+                    .
+                </li>
+                        
+                <li>
+                    Binds by default to the 
+                    <a href="http://maven.apache.org/ref/current/maven-core/lifecycles.html">lifecycle phase</a>
+                    : 
+                    <code>verify</code>
+                    .
+                </li>
+                      
+            </ul>
+                  
+            <h2>Optional Parameters</h2>
+                    
+            <table class="coverage">
+                <thead>
+                    <tr>
+                        <td>Name</td>
+                        <td>Type</td>
+                        <td>Since</td>
+                        <td>Description</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#dataFile">&lt;dataFile&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>File</code>
+                        </td>
+                        <td>
+                            <code>0.5.3</code>
+                        </td>
+                        <td>
+                            File with execution data.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>${project.build.directory}/jacoco.exec</code>
+                            .
+                            <br />
+                            <b>User property is</b>
+                            : 
+                            <code>jacoco.dataFile</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#excludes">&lt;excludes&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>List</code>
+                        </td>
+                        <td>
+                            <code>0.5.3</code>
+                        </td>
+                        <td>
+                            A list of class files to exclude from the report. May use wildcard
+characters (* and ?). When not specified nothing will be excluded.
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#footer">&lt;footer&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>String</code>
+                        </td>
+                        <td>
+                            <code>0.7.7</code>
+                        </td>
+                        <td>
+                            Footer text used in HTML report pages.
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#formats">&lt;formats&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>List</code>
+                        </td>
+                        <td>
+                            <code>0.8.7</code>
+                        </td>
+                        <td>
+                            A list of report formats to generate. Supported formats are HTML,
+XML and CSV. Defaults to all formats if no values are given.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>HTML,XML,CSV</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#includes">&lt;includes&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>List</code>
+                        </td>
+                        <td>
+                            <code>0.5.3</code>
+                        </td>
+                        <td>
+                            A list of class files to include in the report. May use wildcard
+characters (* and ?). When not specified everything will be
+included.
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#outputDirectory">&lt;outputDirectory&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>File</code>
+                        </td>
+                        <td>
+                            <code>0.5.3</code>
+                        </td>
+                        <td>
+                            Output directory for the reports. Note that this parameter is only
+relevant if the goal is run from the command line or from the
+default build lifecycle. If the goal is run indirectly as part of a
+site generation, the output directory configured in the Maven Site
+Plugin is used instead.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>${project.reporting.outputDirectory}/jacoco</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#outputEncoding">&lt;outputEncoding&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>String</code>
+                        </td>
+                        <td>
+                            <code>0.5.3</code>
+                        </td>
+                        <td>
+                            Encoding of the generated reports.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>UTF-8</code>
+                            .
+                            <br />
+                            <b>User property is</b>
+                            : 
+                            <code>project.reporting.outputEncoding</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#skip">&lt;skip&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>boolean</code>
+                        </td>
+                        <td>
+                            <code>0.5.3</code>
+                        </td>
+                        <td>
+                            Flag used to suppress execution.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>false</code>
+                            .
+                            <br />
+                            <b>User property is</b>
+                            : 
+                            <code>jacoco.skip</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#sourceEncoding">&lt;sourceEncoding&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>String</code>
+                        </td>
+                        <td>
+                            <code>0.5.3</code>
+                        </td>
+                        <td>
+                            Encoding of the source files.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>UTF-8</code>
+                            .
+                            <br />
+                            <b>User property is</b>
+                            : 
+                            <code>project.build.sourceEncoding</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#title">&lt;title&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>String</code>
+                        </td>
+                        <td>
+                            <code>0.7.7</code>
+                        </td>
+                        <td>
+                            Name of the root node HTML report pages.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>${project.name}</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+                  
+      
+            <h2>Parameter Details</h2>
+                    
+            <b>
+                <a name="dataFile">&lt;dataFile&gt;</a>
+            </b>
+                    
+            <div>File with execution data.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>java.io.File</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.5.3</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>User Property</b>
+                    : 
+                    <code>jacoco.dataFile</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>${project.build.directory}/jacoco.exec</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="excludes">&lt;excludes&gt;</a>
+            </b>
+                    
+            <div>A list of class files to exclude from the report. May use wildcard
+characters (* and ?). When not specified nothing will be excluded.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>java.util.List</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.5.3</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="footer">&lt;footer&gt;</a>
+            </b>
+                    
+            <div>Footer text used in HTML report pages.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>java.lang.String</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.7.7</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="formats">&lt;formats&gt;</a>
+            </b>
+                    
+            <div>A list of report formats to generate. Supported formats are HTML,
+XML and CSV. Defaults to all formats if no values are given.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>java.util.List</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.8.7</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>HTML,XML,CSV</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="includes">&lt;includes&gt;</a>
+            </b>
+                    
+            <div>A list of class files to include in the report. May use wildcard
+characters (* and ?). When not specified everything will be
+included.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>java.util.List</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.5.3</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="outputDirectory">&lt;outputDirectory&gt;</a>
+            </b>
+                    
+            <div>Output directory for the reports. Note that this parameter is only
+relevant if the goal is run from the command line or from the
+default build lifecycle. If the goal is run indirectly as part of a
+site generation, the output directory configured in the Maven Site
+Plugin is used instead.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>java.io.File</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.5.3</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>${project.reporting.outputDirectory}/jacoco</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="outputEncoding">&lt;outputEncoding&gt;</a>
+            </b>
+                    
+            <div>Encoding of the generated reports.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>java.lang.String</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.5.3</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>User Property</b>
+                    : 
+                    <code>project.reporting.outputEncoding</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>UTF-8</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="skip">&lt;skip&gt;</a>
+            </b>
+                    
+            <div>Flag used to suppress execution.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>boolean</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.5.3</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>User Property</b>
+                    : 
+                    <code>jacoco.skip</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>false</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="sourceEncoding">&lt;sourceEncoding&gt;</a>
+            </b>
+                    
+            <div>Encoding of the source files.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>java.lang.String</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.5.3</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>User Property</b>
+                    : 
+                    <code>project.build.sourceEncoding</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>UTF-8</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="title">&lt;title&gt;</a>
+            </b>
+                    
+            <div>Name of the root node HTML report pages.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>java.lang.String</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.7.7</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>${project.name}</code>
+                </li>
+                        
+            </ul>
+                  
+    
+  
+        </div>
+        <div class="footer">
+            <span class="right">
+                <a href="http://www.jacoco.org/jacoco">JaCoCo</a>
+                						 
+						0.8.11.202310140853
+            </span>
+            <a href="../doc/license.html">Copyright</a>
+            					©
+					2009, 2023
+					Mountainminds GmbH &amp; Co. KG and Contributors
+				
+        </div>
+    </body>
+</html>

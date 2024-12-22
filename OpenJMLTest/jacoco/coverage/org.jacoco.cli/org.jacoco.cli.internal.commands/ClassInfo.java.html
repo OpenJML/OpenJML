@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ClassInfo.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.cli</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.cli.internal.commands</a> &gt; <span class="el_source">ClassInfo.java</span></div><h1>ClassInfo.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.cli.internal.commands;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.jacoco.cli.internal.Command;
+import org.jacoco.core.analysis.Analyzer;
+import org.jacoco.core.analysis.IClassCoverage;
+import org.jacoco.core.analysis.ICounter;
+import org.jacoco.core.analysis.ICoverageNode;
+import org.jacoco.core.analysis.ICoverageVisitor;
+import org.jacoco.core.analysis.ILine;
+import org.jacoco.core.analysis.IMethodCoverage;
+import org.jacoco.core.data.ExecutionDataStore;
+import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.Option;
+
+/**
+ * The &lt;code&gt;classinfo&lt;/code&gt; command.
+ */
+<span class="fc" id="L37">public class ClassInfo extends Command {</span>
+
+	@Argument(usage = &quot;location of Java class files&quot;, metaVar = &quot;&lt;classlocations&gt;&quot;)
+<span class="fc" id="L40">	List&lt;File&gt; classfiles = new ArrayList&lt;File&gt;();</span>
+
+	@Option(name = &quot;--verbose&quot;, usage = &quot;show method and line number details&quot;)
+<span class="fc" id="L43">	boolean verbose = false;</span>
+
+	@Override
+	public String description() {
+<span class="fc" id="L47">		return &quot;Print information about Java class files at the provided location.&quot;;</span>
+	}
+
+	@Override
+	public int execute(final PrintWriter out, final PrintWriter err)
+			throws IOException {
+<span class="fc bfc" id="L53" title="All 2 branches covered.">		if (classfiles.isEmpty()) {</span>
+<span class="fc" id="L54">			out.println(&quot;[WARN] No class files provided.&quot;);</span>
+		} else {
+<span class="fc" id="L56">			final Analyzer analyzer = new Analyzer(new ExecutionDataStore(),</span>
+					new Printer(out));
+<span class="fc bfc" id="L58" title="All 2 branches covered.">			for (final File file : classfiles) {</span>
+<span class="fc" id="L59">				analyzer.analyzeAll(file);</span>
+			}
+		}
+<span class="fc" id="L62">		return 0;</span>
+	}
+
+<span class="fc" id="L65">	private class Printer implements ICoverageVisitor {</span>
+
+		private final PrintWriter out;
+
+<span class="fc" id="L69">		Printer(final PrintWriter out) {</span>
+<span class="fc" id="L70">			this.out = out;</span>
+<span class="fc" id="L71">			out.println(&quot;  INST   BRAN   LINE   METH   CXTY   ELEMENT&quot;);</span>
+<span class="fc" id="L72">		}</span>
+
+		public void visitCoverage(final IClassCoverage coverage) {
+<span class="fc" id="L75">			final String desc = String.format(&quot;class 0x%016x %s&quot;,</span>
+					Long.valueOf(coverage.getId()), coverage.getName());
+<span class="fc" id="L77">			printDetails(desc, coverage);</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">			if (verbose) {</span>
+<span class="fc" id="L79">				for (final Iterator&lt;IMethodCoverage&gt; i = coverage.getMethods()</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">						.iterator(); i.hasNext();) {</span>
+<span class="fc" id="L81">					printMethod(i.next(), i.hasNext());</span>
+				}
+			}
+<span class="fc" id="L84">		}</span>
+
+		private void printMethod(final IMethodCoverage method,
+				final boolean more) {
+<span class="fc" id="L88">			final String desc = String.format(&quot;+- method %s%s&quot;,</span>
+					method.getName(), method.getDesc());
+<span class="fc" id="L90">			printDetails(desc, method);</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">			for (int nr = method.getFirstLine(); nr &lt;= method</span>
+<span class="fc" id="L92">					.getLastLine(); nr++) {</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">				printLine(method.getLine(nr), nr, more ? &quot;| &quot; : &quot;  &quot;);</span>
+			}
+<span class="fc" id="L95">		}</span>
+
+		private void printLine(final ILine line, final int nr,
+				final String indent) {
+<span class="fc bfc" id="L99" title="All 2 branches covered.">			if (line.getStatus() != ICounter.EMPTY) {</span>
+<span class="fc" id="L100">				out.printf(&quot;%6s %6s                        %s +- line %s%n&quot;,</span>
+						total(line.getInstructionCounter()),
+						total(line.getBranchCounter()), indent,
+						Integer.valueOf(nr));
+			}
+<span class="fc" id="L105">		}</span>
+
+		private void printDetails(final String description,
+				final ICoverageNode coverage) {
+<span class="fc" id="L109">			out.printf(&quot;%6s %6s %6s %6s %6s   %s%n&quot;,</span>
+					total(coverage.getInstructionCounter()),
+					total(coverage.getBranchCounter()),
+					total(coverage.getLineCounter()),
+					total(coverage.getMethodCounter()),
+					total(coverage.getComplexityCounter()), description);
+<span class="fc" id="L115">		}</span>
+
+		private String total(final ICounter counter) {
+<span class="fc" id="L118">			return String.valueOf(counter.getTotalCount());</span>
+		}
+
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

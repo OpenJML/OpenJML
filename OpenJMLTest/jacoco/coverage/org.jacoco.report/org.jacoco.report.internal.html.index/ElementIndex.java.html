@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ElementIndex.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.report</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.report.internal.html.index</a> &gt; <span class="el_source">ElementIndex.java</span></div><h1>ElementIndex.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.report.internal.html.index;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.jacoco.report.internal.ReportOutputFolder;
+import org.jacoco.report.internal.html.ILinkable;
+
+/**
+ * An index over all report pages that allows queries according to certain
+ * criteria.
+ */
+public class ElementIndex implements IIndexUpdate {
+
+	private final ReportOutputFolder baseFolder;
+
+<span class="fc" id="L29">	private final Map&lt;Long, String&gt; allClasses = new HashMap&lt;Long, String&gt;();</span>
+
+	/**
+	 * Creates a new empty index for a HTML report.
+	 *
+	 * @param baseFolder
+	 *            base folder where all links are calculated relative to
+	 */
+<span class="fc" id="L37">	public ElementIndex(final ReportOutputFolder baseFolder) {</span>
+<span class="fc" id="L38">		this.baseFolder = baseFolder;</span>
+<span class="fc" id="L39">	}</span>
+
+	/**
+	 * Returns the link to the class with the given identifier if a
+	 * corresponding page exists.
+	 *
+	 * @param classid
+	 *            class identifier
+	 * @return Link or null
+	 */
+	public String getLinkToClass(final long classid) {
+<span class="fc" id="L50">		return allClasses.get(Long.valueOf(classid));</span>
+	}
+
+	// === IIndexUpdater ===
+
+	public void addClass(final ILinkable link, final long classid) {
+<span class="fc" id="L56">		allClasses.put(Long.valueOf(classid), link.getLink(baseFolder));</span>
+<span class="fc" id="L57">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

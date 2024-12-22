@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CRC64.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.data</a> &gt; <span class="el_source">CRC64.java</span></div><h1>CRC64.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.data;
+
+import org.objectweb.asm.Opcodes;
+
+/**
+ * CRC64 checksum calculator based on the polynom specified in ISO 3309. The
+ * implementation is based on the following publications:
+ *
+ * &lt;ul&gt;
+ * &lt;li&gt;http://en.wikipedia.org/wiki/Cyclic_redundancy_check&lt;/li&gt;
+ * &lt;li&gt;http://www.geocities.com/SiliconValley/Pines/8659/crc.htm&lt;/li&gt;
+ * &lt;/ul&gt;
+ */
+public final class CRC64 {
+
+	private static final long POLY64REV = 0xd800000000000000L;
+
+	private static final long[] LOOKUPTABLE;
+
+	static {
+<span class="fc" id="L33">		LOOKUPTABLE = new long[0x100];</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">		for (int i = 0; i &lt; 0x100; i++) {</span>
+<span class="fc" id="L35">			long v = i;</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">			for (int j = 0; j &lt; 8; j++) {</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">				if ((v &amp; 1) == 1) {</span>
+<span class="fc" id="L38">					v = (v &gt;&gt;&gt; 1) ^ POLY64REV;</span>
+				} else {
+<span class="fc" id="L40">					v = (v &gt;&gt;&gt; 1);</span>
+				}
+			}
+<span class="fc" id="L43">			LOOKUPTABLE[i] = v;</span>
+		}
+<span class="fc" id="L45">	}</span>
+
+	/**
+	 * Updates given checksum by given byte.
+	 *
+	 * @param sum
+	 *            initial checksum value
+	 * @param b
+	 *            byte to update the checksum with
+	 * @return updated checksum value
+	 */
+	private static long update(final long sum, final byte b) {
+<span class="fc" id="L57">		final int lookupidx = ((int) sum ^ b) &amp; 0xff;</span>
+<span class="fc" id="L58">		return (sum &gt;&gt;&gt; 8) ^ LOOKUPTABLE[lookupidx];</span>
+	}
+
+	/**
+	 * Updates given checksum by bytes from given array.
+	 *
+	 * @param sum
+	 *            initial checksum value
+	 * @param bytes
+	 *            byte array to update the checksum with
+	 * @param fromIndexInclusive
+	 *            start index in array, inclusive
+	 * @param toIndexExclusive
+	 *            end index in array, exclusive
+	 * @return updated checksum value
+	 */
+	private static long update(long sum, final byte[] bytes,
+			final int fromIndexInclusive, final int toIndexExclusive) {
+<span class="fc bfc" id="L76" title="All 2 branches covered.">		for (int i = fromIndexInclusive; i &lt; toIndexExclusive; i++) {</span>
+<span class="fc" id="L77">			sum = update(sum, bytes[i]);</span>
+		}
+<span class="fc" id="L79">		return sum;</span>
+	}
+
+	/**
+	 * Calculates class identifier for the given class bytes.
+	 *
+	 * @param bytes
+	 *            class bytes
+	 * @return class identifier
+	 */
+	public static long classId(final byte[] bytes) {
+<span class="fc bfc" id="L90" title="All 6 branches covered.">		if (bytes.length &gt; 7 &amp;&amp; bytes[6] == 0x00 &amp;&amp; bytes[7] == Opcodes.V9) {</span>
+			// To support early versions of Java 9 we did a trick - change of
+			// Java 9 class files version on Java 8. Unfortunately this also
+			// affected class identifiers.
+<span class="fc" id="L94">			long sum = update(0, bytes, 0, 7);</span>
+<span class="fc" id="L95">			sum = update(sum, (byte) Opcodes.V1_8);</span>
+<span class="fc" id="L96">			return update(sum, bytes, 8, bytes.length);</span>
+		}
+<span class="fc" id="L98">		return update(0, bytes, 0, bytes.length);</span>
+	}
+
+	private CRC64() {
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

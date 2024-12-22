@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>LineImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis</a> &gt; <span class="el_source">LineImpl.java</span></div><h1>LineImpl.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis;
+
+import org.jacoco.core.analysis.ICounter;
+import org.jacoco.core.analysis.ILine;
+
+/**
+ * Implementation of {@link ILine}.
+ */
+public abstract class LineImpl implements ILine {
+
+	/** Max instruction counter value for which singletons are created */
+	private static final int SINGLETON_INS_LIMIT = 8;
+
+	/** Max branch counter value for which singletons are created */
+	private static final int SINGLETON_BRA_LIMIT = 4;
+
+<span class="fc" id="L29">	private static final LineImpl[][][][] SINGLETONS = new LineImpl[SINGLETON_INS_LIMIT</span>
+			+ 1][][][];
+
+	static {
+<span class="fc bfc" id="L33" title="All 2 branches covered.">		for (int i = 0; i &lt;= SINGLETON_INS_LIMIT; i++) {</span>
+<span class="fc" id="L34">			SINGLETONS[i] = new LineImpl[SINGLETON_INS_LIMIT + 1][][];</span>
+<span class="fc bfc" id="L35" title="All 2 branches covered.">			for (int j = 0; j &lt;= SINGLETON_INS_LIMIT; j++) {</span>
+<span class="fc" id="L36">				SINGLETONS[i][j] = new LineImpl[SINGLETON_BRA_LIMIT + 1][];</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">				for (int k = 0; k &lt;= SINGLETON_BRA_LIMIT; k++) {</span>
+<span class="fc" id="L38">					SINGLETONS[i][j][k] = new LineImpl[SINGLETON_BRA_LIMIT + 1];</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">					for (int l = 0; l &lt;= SINGLETON_BRA_LIMIT; l++) {</span>
+<span class="fc" id="L40">						SINGLETONS[i][j][k][l] = new Fix(i, j, k, l);</span>
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Empty line without instructions or branches.
+	 */
+<span class="fc" id="L50">	public static final LineImpl EMPTY = SINGLETONS[0][0][0][0];</span>
+
+	private static LineImpl getInstance(final CounterImpl instructions,
+			final CounterImpl branches) {
+<span class="fc" id="L54">		final int im = instructions.getMissedCount();</span>
+<span class="fc" id="L55">		final int ic = instructions.getCoveredCount();</span>
+<span class="fc" id="L56">		final int bm = branches.getMissedCount();</span>
+<span class="fc" id="L57">		final int bc = branches.getCoveredCount();</span>
+<span class="fc bfc" id="L58" title="All 8 branches covered.">		if (im &lt;= SINGLETON_INS_LIMIT &amp;&amp; ic &lt;= SINGLETON_INS_LIMIT</span>
+				&amp;&amp; bm &lt;= SINGLETON_BRA_LIMIT &amp;&amp; bc &lt;= SINGLETON_BRA_LIMIT) {
+<span class="fc" id="L60">			return SINGLETONS[im][ic][bm][bc];</span>
+		}
+<span class="fc" id="L62">		return new Var(instructions, branches);</span>
+	}
+
+	/**
+	 * Mutable version.
+	 */
+	private static final class Var extends LineImpl {
+		Var(final CounterImpl instructions, final CounterImpl branches) {
+<span class="fc" id="L70">			super(instructions, branches);</span>
+<span class="fc" id="L71">		}</span>
+
+		@Override
+		public LineImpl increment(final ICounter instructions,
+				final ICounter branches) {
+<span class="fc" id="L76">			this.instructions = this.instructions.increment(instructions);</span>
+<span class="fc" id="L77">			this.branches = this.branches.increment(branches);</span>
+<span class="fc" id="L78">			return this;</span>
+		}
+	}
+
+	/**
+	 * Immutable version.
+	 */
+	private static final class Fix extends LineImpl {
+		public Fix(final int im, final int ic, final int bm, final int bc) {
+<span class="fc" id="L87">			super(CounterImpl.getInstance(im, ic),</span>
+					CounterImpl.getInstance(bm, bc));
+<span class="fc" id="L89">		}</span>
+
+		@Override
+		public LineImpl increment(final ICounter instructions,
+				final ICounter branches) {
+<span class="fc" id="L94">			return getInstance(this.instructions.increment(instructions),</span>
+					this.branches.increment(branches));
+		}
+	}
+
+	/** instruction counter */
+	protected CounterImpl instructions;
+
+	/** branch counter */
+	protected CounterImpl branches;
+
+	private LineImpl(final CounterImpl instructions,
+<span class="fc" id="L106">			final CounterImpl branches) {</span>
+<span class="fc" id="L107">		this.instructions = instructions;</span>
+<span class="fc" id="L108">		this.branches = branches;</span>
+<span class="fc" id="L109">	}</span>
+
+	/**
+	 * Adds the given counters to this line.
+	 *
+	 * @param instructions
+	 *            instructions to add
+	 * @param branches
+	 *            branches to add
+	 * @return instance with new counter values
+	 */
+	public abstract LineImpl increment(final ICounter instructions,
+			final ICounter branches);
+
+	// === ILine implementation ===
+
+	public int getStatus() {
+<span class="fc" id="L126">		return instructions.getStatus() | branches.getStatus();</span>
+	}
+
+	public ICounter getInstructionCounter() {
+<span class="fc" id="L130">		return instructions;</span>
+	}
+
+	public ICounter getBranchCounter() {
+<span class="fc" id="L134">		return branches;</span>
+	}
+
+	@Override
+	public int hashCode() {
+<span class="fc" id="L139">		return 23 * instructions.hashCode() ^ branches.hashCode();</span>
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+<span class="fc bfc" id="L144" title="All 2 branches covered.">		if (obj instanceof ILine) {</span>
+<span class="fc" id="L145">			final ILine that = (ILine) obj;</span>
+<span class="fc bfc" id="L146" title="All 4 branches covered.">			return this.instructions.equals(that.getInstructionCounter())</span>
+					&amp;&amp; this.branches.equals(that.getBranchCounter());
+		}
+<span class="fc" id="L149">		return false;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

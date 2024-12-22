@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MethodProbesAdapter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.flow</a> &gt; <span class="el_source">MethodProbesAdapter.java</span></div><h1>MethodProbesAdapter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.flow;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.jacoco.core.internal.instr.InstrSupport;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.AnalyzerAdapter;
+
+/**
+ * Adapter that creates additional visitor events for probes to be inserted into
+ * a method.
+ */
+public final class MethodProbesAdapter extends MethodVisitor {
+
+	private final MethodProbesVisitor probesVisitor;
+
+	private final IProbeIdGenerator idGenerator;
+
+	private AnalyzerAdapter analyzer;
+
+	private final Map&lt;Label, Label&gt; tryCatchProbeLabels;
+
+	/**
+	 * Create a new adapter instance.
+	 *
+	 * @param probesVisitor
+	 *            visitor to delegate to
+	 * @param idGenerator
+	 *            generator for unique probe ids
+	 */
+	public MethodProbesAdapter(final MethodProbesVisitor probesVisitor,
+			final IProbeIdGenerator idGenerator) {
+<span class="fc" id="L48">		super(InstrSupport.ASM_API_VERSION, probesVisitor);</span>
+<span class="fc" id="L49">		this.probesVisitor = probesVisitor;</span>
+<span class="fc" id="L50">		this.idGenerator = idGenerator;</span>
+<span class="fc" id="L51">		this.tryCatchProbeLabels = new HashMap&lt;Label, Label&gt;();</span>
+<span class="fc" id="L52">	}</span>
+
+	/**
+	 * If an analyzer is set {@link IFrame} handles are calculated and emitted
+	 * to the probes methods.
+	 *
+	 * @param analyzer
+	 *            optional analyzer to set
+	 */
+	public void setAnalyzer(final AnalyzerAdapter analyzer) {
+<span class="fc" id="L62">		this.analyzer = analyzer;</span>
+<span class="fc" id="L63">	}</span>
+
+	@Override
+	public void visitTryCatchBlock(final Label start, final Label end,
+			final Label handler, final String type) {
+<span class="fc" id="L68">		probesVisitor.visitTryCatchBlock(getTryCatchLabel(start),</span>
+				getTryCatchLabel(end), handler, type);
+<span class="fc" id="L70">	}</span>
+
+	private Label getTryCatchLabel(Label label) {
+<span class="fc bfc" id="L73" title="All 2 branches covered.">		if (tryCatchProbeLabels.containsKey(label)) {</span>
+<span class="fc" id="L74">			label = tryCatchProbeLabels.get(label);</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">		} else if (LabelInfo.needsProbe(label)) {</span>
+			// If a probe will be inserted before the label, we'll need to use a
+			// different label to define the range of the try-catch block.
+<span class="fc" id="L78">			final Label probeLabel = new Label();</span>
+<span class="fc" id="L79">			LabelInfo.setSuccessor(probeLabel);</span>
+<span class="fc" id="L80">			tryCatchProbeLabels.put(label, probeLabel);</span>
+<span class="fc" id="L81">			label = probeLabel;</span>
+		}
+<span class="fc" id="L83">		return label;</span>
+	}
+
+	@Override
+	public void visitLabel(final Label label) {
+<span class="fc bfc" id="L88" title="All 2 branches covered.">		if (LabelInfo.needsProbe(label)) {</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">			if (tryCatchProbeLabels.containsKey(label)) {</span>
+<span class="fc" id="L90">				probesVisitor.visitLabel(tryCatchProbeLabels.get(label));</span>
+			}
+<span class="fc" id="L92">			probesVisitor.visitProbe(idGenerator.nextId());</span>
+		}
+<span class="fc" id="L94">		probesVisitor.visitLabel(label);</span>
+<span class="fc" id="L95">	}</span>
+
+	@Override
+	public void visitInsn(final int opcode) {
+<span class="fc bfc" id="L99" title="All 2 branches covered.">		switch (opcode) {</span>
+		case Opcodes.IRETURN:
+		case Opcodes.LRETURN:
+		case Opcodes.FRETURN:
+		case Opcodes.DRETURN:
+		case Opcodes.ARETURN:
+		case Opcodes.RETURN:
+		case Opcodes.ATHROW:
+<span class="fc" id="L107">			probesVisitor.visitInsnWithProbe(opcode, idGenerator.nextId());</span>
+<span class="fc" id="L108">			break;</span>
+		default:
+<span class="fc" id="L110">			probesVisitor.visitInsn(opcode);</span>
+			break;
+		}
+<span class="fc" id="L113">	}</span>
+
+	@Override
+	public void visitJumpInsn(final int opcode, final Label label) {
+<span class="fc bfc" id="L117" title="All 2 branches covered.">		if (LabelInfo.isMultiTarget(label)) {</span>
+<span class="fc" id="L118">			probesVisitor.visitJumpInsnWithProbe(opcode, label,</span>
+					idGenerator.nextId(), frame(jumpPopCount(opcode)));
+		} else {
+<span class="fc" id="L121">			probesVisitor.visitJumpInsn(opcode, label);</span>
+		}
+<span class="fc" id="L123">	}</span>
+
+	private int jumpPopCount(final int opcode) {
+<span class="fc bfc" id="L126" title="All 3 branches covered.">		switch (opcode) {</span>
+		case Opcodes.GOTO:
+<span class="fc" id="L128">			return 0;</span>
+		case Opcodes.IFEQ:
+		case Opcodes.IFNE:
+		case Opcodes.IFLT:
+		case Opcodes.IFGE:
+		case Opcodes.IFGT:
+		case Opcodes.IFLE:
+		case Opcodes.IFNULL:
+		case Opcodes.IFNONNULL:
+<span class="fc" id="L137">			return 1;</span>
+		default: // IF_CMPxx and IF_ACMPxx
+<span class="fc" id="L139">			return 2;</span>
+		}
+	}
+
+	@Override
+	public void visitLookupSwitchInsn(final Label dflt, final int[] keys,
+			final Label[] labels) {
+<span class="fc bfc" id="L146" title="All 2 branches covered.">		if (markLabels(dflt, labels)) {</span>
+<span class="fc" id="L147">			probesVisitor.visitLookupSwitchInsnWithProbes(dflt, keys, labels,</span>
+					frame(1));
+		} else {
+<span class="fc" id="L150">			probesVisitor.visitLookupSwitchInsn(dflt, keys, labels);</span>
+		}
+<span class="fc" id="L152">	}</span>
+
+	@Override
+	public void visitTableSwitchInsn(final int min, final int max,
+			final Label dflt, final Label... labels) {
+<span class="fc bfc" id="L157" title="All 2 branches covered.">		if (markLabels(dflt, labels)) {</span>
+<span class="fc" id="L158">			probesVisitor.visitTableSwitchInsnWithProbes(min, max, dflt, labels,</span>
+					frame(1));
+		} else {
+<span class="fc" id="L161">			probesVisitor.visitTableSwitchInsn(min, max, dflt, labels);</span>
+		}
+<span class="fc" id="L163">	}</span>
+
+	private boolean markLabels(final Label dflt, final Label[] labels) {
+<span class="fc" id="L166">		boolean probe = false;</span>
+<span class="fc" id="L167">		LabelInfo.resetDone(labels);</span>
+<span class="fc bfc" id="L168" title="All 2 branches covered.">		if (LabelInfo.isMultiTarget(dflt)) {</span>
+<span class="fc" id="L169">			LabelInfo.setProbeId(dflt, idGenerator.nextId());</span>
+<span class="fc" id="L170">			probe = true;</span>
+		}
+<span class="fc" id="L172">		LabelInfo.setDone(dflt);</span>
+<span class="fc bfc" id="L173" title="All 2 branches covered.">		for (final Label l : labels) {</span>
+<span class="fc bfc" id="L174" title="All 4 branches covered.">			if (LabelInfo.isMultiTarget(l) &amp;&amp; !LabelInfo.isDone(l)) {</span>
+<span class="fc" id="L175">				LabelInfo.setProbeId(l, idGenerator.nextId());</span>
+<span class="fc" id="L176">				probe = true;</span>
+			}
+<span class="fc" id="L178">			LabelInfo.setDone(l);</span>
+		}
+<span class="fc" id="L180">		return probe;</span>
+	}
+
+	private IFrame frame(final int popCount) {
+<span class="fc" id="L184">		return FrameSnapshot.create(analyzer, popCount);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

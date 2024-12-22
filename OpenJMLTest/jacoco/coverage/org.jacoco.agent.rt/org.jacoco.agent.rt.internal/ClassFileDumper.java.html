@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ClassFileDumper.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.agent.rt</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.agent.rt.internal</a> &gt; <span class="el_source">ClassFileDumper.java</span></div><h1>ClassFileDumper.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.agent.rt.internal;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import org.jacoco.core.internal.data.CRC64;
+
+/**
+ * Internal dumper for class files.
+ */
+class ClassFileDumper {
+
+	private final File location;
+
+	/**
+	 * Create a new dumper for the given location.
+	 *
+	 * @param location
+	 *            relative path to dump directory. &lt;code&gt;null&lt;/code&gt; if no dumps
+	 *            should be written
+	 */
+<span class="fc" id="L36">	ClassFileDumper(final String location) {</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">		if (location == null) {</span>
+<span class="fc" id="L38">			this.location = null;</span>
+		} else {
+<span class="fc" id="L40">			this.location = new File(location);</span>
+		}
+<span class="fc" id="L42">	}</span>
+
+	/**
+	 * Dumps the given binary content under the given name if a non-
+	 * &lt;code&gt;null&lt;/code&gt; location has been specified.
+	 *
+	 * @param name
+	 *            qualified class name in VM notation
+	 * @param contents
+	 *            binary contents
+	 * @throws IOException
+	 *             in case of problems while dumping the file
+	 */
+	void dump(final String name, final byte[] contents) throws IOException {
+<span class="fc bfc" id="L56" title="All 2 branches covered.">		if (location != null) {</span>
+			final File outputdir;
+			final String localname;
+<span class="fc" id="L59">			final int pkgpos = name.lastIndexOf('/');</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">			if (pkgpos != -1) {</span>
+<span class="fc" id="L61">				outputdir = new File(location, name.substring(0, pkgpos));</span>
+<span class="fc" id="L62">				localname = name.substring(pkgpos + 1);</span>
+			} else {
+<span class="fc" id="L64">				outputdir = location;</span>
+<span class="fc" id="L65">				localname = name;</span>
+			}
+<span class="fc" id="L67">			outputdir.mkdirs();</span>
+<span class="fc" id="L68">			final Long id = Long.valueOf(CRC64.classId(contents));</span>
+<span class="fc" id="L69">			final File file = new File(outputdir,</span>
+					String.format(&quot;%s.%016x.class&quot;, localname, id));
+<span class="fc" id="L71">			final OutputStream out = new FileOutputStream(file);</span>
+<span class="fc" id="L72">			out.write(contents);</span>
+<span class="fc" id="L73">			out.close();</span>
+		}
+<span class="fc" id="L75">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SyntheticFilter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis.filter</a> &gt; <span class="el_source">SyntheticFilter.java</span></div><h1>SyntheticFilter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis.filter;
+
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.MethodNode;
+
+/**
+ * Filters synthetic methods unless they represent bodies of lambda expressions.
+ */
+<span class="fc" id="L21">public final class SyntheticFilter implements IFilter {</span>
+
+	private static boolean isScalaClass(final IFilterContext context) {
+<span class="fc bfc" id="L24" title="All 4 branches covered.">		return context.getClassAttributes().contains(&quot;ScalaSig&quot;)</span>
+				|| context.getClassAttributes().contains(&quot;Scala&quot;);
+	}
+
+	public void filter(final MethodNode methodNode,
+			final IFilterContext context, final IFilterOutput output) {
+<span class="fc bfc" id="L30" title="All 2 branches covered.">		if ((methodNode.access &amp; Opcodes.ACC_SYNTHETIC) == 0) {</span>
+<span class="fc" id="L31">			return;</span>
+		}
+
+<span class="fc bfc" id="L34" title="All 2 branches covered.">		if (methodNode.name.startsWith(&quot;lambda$&quot;)) {</span>
+<span class="fc" id="L35">			return;</span>
+		}
+
+<span class="fc bfc" id="L38" title="All 2 branches covered.">		if (isScalaClass(context)) {</span>
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">			if (methodNode.name.startsWith(&quot;$anonfun$&quot;)) {</span>
+<span class="fc" id="L40">				return;</span>
+			}
+		}
+
+<span class="fc bfc" id="L44" title="All 2 branches covered.">		if (KotlinGeneratedFilter.isKotlinClass(context)) {</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">			if (KotlinDefaultArgumentsFilter</span>
+					.isDefaultArgumentsMethod(methodNode)) {
+<span class="fc" id="L47">				return;</span>
+			}
+
+<span class="fc bfc" id="L50" title="All 2 branches covered.">			if (KotlinDefaultArgumentsFilter</span>
+					.isDefaultArgumentsConstructor(methodNode)) {
+<span class="fc" id="L52">				return;</span>
+			}
+
+<span class="fc bfc" id="L55" title="All 2 branches covered.">			if (KotlinCoroutineFilter</span>
+					.isImplementationOfSuspendFunction(methodNode)) {
+<span class="fc" id="L57">				return;</span>
+			}
+		}
+
+<span class="fc" id="L61">		output.ignore(methodNode.instructions.getFirst(),</span>
+				methodNode.instructions.getLast());
+<span class="fc" id="L63">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

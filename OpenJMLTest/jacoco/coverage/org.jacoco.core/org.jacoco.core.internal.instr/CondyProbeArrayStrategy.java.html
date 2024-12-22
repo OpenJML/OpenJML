@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CondyProbeArrayStrategy.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.instr</a> &gt; <span class="el_source">CondyProbeArrayStrategy.java</span></div><h1>CondyProbeArrayStrategy.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.instr;
+
+import org.jacoco.core.runtime.IExecutionDataAccessorGenerator;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ConstantDynamic;
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+
+/**
+ * This strategy for Java 11+ class files uses {@link ConstantDynamic} to hold
+ * the probe array and adds bootstrap method requesting the probe array from the
+ * runtime.
+ */
+public class CondyProbeArrayStrategy implements IProbeArrayStrategy {
+
+	/**
+	 * Descriptor of the bootstrap method.
+	 */
+	public static final String B_DESC = &quot;(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/Class;)[Z&quot;;
+
+	private final String className;
+
+	private final boolean isInterface;
+
+	private final long classId;
+
+	private final IExecutionDataAccessorGenerator accessorGenerator;
+
+	CondyProbeArrayStrategy(final String className, final boolean isInterface,
+			final long classId,
+<span class="fc" id="L44">			final IExecutionDataAccessorGenerator accessorGenerator) {</span>
+<span class="fc" id="L45">		this.className = className;</span>
+<span class="fc" id="L46">		this.isInterface = isInterface;</span>
+<span class="fc" id="L47">		this.classId = classId;</span>
+<span class="fc" id="L48">		this.accessorGenerator = accessorGenerator;</span>
+<span class="fc" id="L49">	}</span>
+
+	public int storeInstance(final MethodVisitor mv, final boolean clinit,
+			final int variable) {
+<span class="fc" id="L53">		final Handle bootstrapMethod = new Handle(Opcodes.H_INVOKESTATIC,</span>
+				className, InstrSupport.INITMETHOD_NAME, B_DESC, isInterface);
+		// As a workaround for https://bugs.openjdk.java.net/browse/JDK-8216970
+		// constant should have type Object
+<span class="fc" id="L57">		mv.visitLdcInsn(new ConstantDynamic(InstrSupport.DATAFIELD_NAME,</span>
+				&quot;Ljava/lang/Object;&quot;, bootstrapMethod));
+<span class="fc" id="L59">		mv.visitTypeInsn(Opcodes.CHECKCAST, &quot;[Z&quot;);</span>
+<span class="fc" id="L60">		mv.visitVarInsn(Opcodes.ASTORE, variable);</span>
+<span class="fc" id="L61">		return 1;</span>
+	}
+
+	public void addMembers(final ClassVisitor cv, final int probeCount) {
+<span class="fc" id="L65">		final MethodVisitor mv = cv.visitMethod(InstrSupport.INITMETHOD_ACC,</span>
+				InstrSupport.INITMETHOD_NAME, B_DESC, null, null);
+<span class="fc" id="L67">		final int maxStack = accessorGenerator.generateDataAccessor(classId,</span>
+				className, probeCount, mv);
+<span class="fc" id="L69">		mv.visitInsn(Opcodes.ARETURN);</span>
+<span class="fc" id="L70">		mv.visitMaxs(maxStack, 3);</span>
+<span class="fc" id="L71">		mv.visitEnd();</span>
+<span class="fc" id="L72">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

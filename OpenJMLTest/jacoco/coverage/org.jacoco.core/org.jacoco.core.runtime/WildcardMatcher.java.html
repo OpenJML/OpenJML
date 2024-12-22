@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>WildcardMatcher.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.runtime</a> &gt; <span class="el_source">WildcardMatcher.java</span></div><h1>WildcardMatcher.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.runtime;
+
+import java.util.regex.Pattern;
+
+/**
+ * Matches strings against glob like wildcard expressions where &lt;code&gt;?&lt;/code&gt;
+ * matches any single character and &lt;code&gt;*&lt;/code&gt; matches any number of any
+ * character. Multiple expressions can be separated with a colon (:). In this
+ * case the expression matches if at least one part matches.
+ */
+public class WildcardMatcher {
+
+	private final Pattern pattern;
+
+	/**
+	 * Creates a new matcher with the given expression.
+	 *
+	 * @param expression
+	 *            wildcard expressions
+	 */
+<span class="fc" id="L33">	public WildcardMatcher(final String expression) {</span>
+<span class="fc" id="L34">		final String[] parts = expression.split(&quot;\\:&quot;);</span>
+<span class="fc" id="L35">		final StringBuilder regex = new StringBuilder(expression.length() * 2);</span>
+<span class="fc" id="L36">		boolean next = false;</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">		for (final String part : parts) {</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">			if (next) {</span>
+<span class="fc" id="L39">				regex.append('|');</span>
+			}
+<span class="fc" id="L41">			regex.append('(').append(toRegex(part)).append(')');</span>
+<span class="fc" id="L42">			next = true;</span>
+		}
+<span class="fc" id="L44">		pattern = Pattern.compile(regex.toString());</span>
+<span class="fc" id="L45">	}</span>
+
+	private static CharSequence toRegex(final String expression) {
+<span class="fc" id="L48">		final StringBuilder regex = new StringBuilder(expression.length() * 2);</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">		for (final char c : expression.toCharArray()) {</span>
+<span class="fc bfc" id="L50" title="All 3 branches covered.">			switch (c) {</span>
+			case '?':
+<span class="fc" id="L52">				regex.append(&quot;.&quot;);</span>
+<span class="fc" id="L53">				break;</span>
+			case '*':
+<span class="fc" id="L55">				regex.append(&quot;.*&quot;);</span>
+<span class="fc" id="L56">				break;</span>
+			default:
+<span class="fc" id="L58">				regex.append(Pattern.quote(String.valueOf(c)));</span>
+				break;
+			}
+		}
+<span class="fc" id="L62">		return regex;</span>
+	}
+
+	/**
+	 * Matches the given string against the expressions of this matcher.
+	 *
+	 * @param s
+	 *            string to test
+	 * @return &lt;code&gt;true&lt;/code&gt;, if the expression matches
+	 */
+	public boolean matches(final String s) {
+<span class="fc" id="L73">		return pattern.matcher(s).matches();</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

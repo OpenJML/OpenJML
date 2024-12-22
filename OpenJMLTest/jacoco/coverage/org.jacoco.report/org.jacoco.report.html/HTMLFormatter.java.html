@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>HTMLFormatter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.report</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.report.html</a> &gt; <span class="el_source">HTMLFormatter.java</span></div><h1>HTMLFormatter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.report.html;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+
+import org.jacoco.core.analysis.IBundleCoverage;
+import org.jacoco.core.analysis.ICoverageNode.CounterEntity;
+import org.jacoco.core.data.ExecutionData;
+import org.jacoco.core.data.SessionInfo;
+import org.jacoco.report.ILanguageNames;
+import org.jacoco.report.IMultiReportOutput;
+import org.jacoco.report.IReportGroupVisitor;
+import org.jacoco.report.IReportVisitor;
+import org.jacoco.report.ISourceFileLocator;
+import org.jacoco.report.JavaNames;
+import org.jacoco.report.internal.ReportOutputFolder;
+import org.jacoco.report.internal.html.HTMLGroupVisitor;
+import org.jacoco.report.internal.html.IHTMLReportContext;
+import org.jacoco.report.internal.html.ILinkable;
+import org.jacoco.report.internal.html.index.ElementIndex;
+import org.jacoco.report.internal.html.index.IIndexUpdate;
+import org.jacoco.report.internal.html.page.BundlePage;
+import org.jacoco.report.internal.html.page.ReportPage;
+import org.jacoco.report.internal.html.page.SessionsPage;
+import org.jacoco.report.internal.html.resources.Resources;
+import org.jacoco.report.internal.html.resources.Styles;
+import org.jacoco.report.internal.html.table.BarColumn;
+import org.jacoco.report.internal.html.table.CounterColumn;
+import org.jacoco.report.internal.html.table.LabelColumn;
+import org.jacoco.report.internal.html.table.PercentageColumn;
+import org.jacoco.report.internal.html.table.Table;
+
+/**
+ * Formatter for coverage reports in multiple HTML pages.
+ */
+public class HTMLFormatter implements IHTMLReportContext {
+
+<span class="fc" id="L52">	private ILanguageNames languageNames = new JavaNames();</span>
+
+<span class="fc" id="L54">	private Locale locale = Locale.getDefault();</span>
+
+<span class="fc" id="L56">	private String footerText = &quot;&quot;;</span>
+
+<span class="fc" id="L58">	private String outputEncoding = &quot;UTF-8&quot;;</span>
+
+	private Resources resources;
+
+	private ElementIndex index;
+
+	private SessionsPage sessionsPage;
+
+	private Table table;
+
+	/**
+	 * New instance with default settings.
+	 */
+<span class="fc" id="L71">	public HTMLFormatter() {</span>
+<span class="fc" id="L72">	}</span>
+
+	/**
+	 * Sets the implementation for language name display. Java language names
+	 * are defined by default.
+	 *
+	 * @param languageNames
+	 *            converter for language specific names
+	 */
+	public void setLanguageNames(final ILanguageNames languageNames) {
+<span class="fc" id="L82">		this.languageNames = languageNames;</span>
+<span class="fc" id="L83">	}</span>
+
+	/**
+	 * Sets the locale used for report rendering. The current default locale is
+	 * used by default.
+	 *
+	 * @param locale
+	 *            locale used for report rendering
+	 */
+	public void setLocale(final Locale locale) {
+<span class="fc" id="L93">		this.locale = locale;</span>
+<span class="fc" id="L94">	}</span>
+
+	/**
+	 * Sets the optional text that should be included in every footer page.
+	 *
+	 * @param footerText
+	 *            footer text
+	 */
+	public void setFooterText(final String footerText) {
+<span class="fc" id="L103">		this.footerText = footerText;</span>
+<span class="fc" id="L104">	}</span>
+
+	/**
+	 * Sets the encoding used for generated HTML pages. Default is UTF-8.
+	 *
+	 * @param outputEncoding
+	 *            HTML output encoding
+	 */
+	public void setOutputEncoding(final String outputEncoding) {
+<span class="fc" id="L113">		this.outputEncoding = outputEncoding;</span>
+<span class="fc" id="L114">	}</span>
+
+	// === IHTMLReportContext ===
+
+	public ILanguageNames getLanguageNames() {
+<span class="fc" id="L119">		return languageNames;</span>
+	}
+
+	public Resources getResources() {
+<span class="fc" id="L123">		return resources;</span>
+	}
+
+	public Table getTable() {
+<span class="fc bfc" id="L127" title="All 2 branches covered.">		if (table == null) {</span>
+<span class="fc" id="L128">			table = createTable();</span>
+		}
+<span class="fc" id="L130">		return table;</span>
+	}
+
+	private Table createTable() {
+<span class="fc" id="L134">		final Table t = new Table();</span>
+<span class="fc" id="L135">		t.add(&quot;Element&quot;, null, new LabelColumn(), false);</span>
+<span class="fc" id="L136">		t.add(&quot;Missed Instructions&quot;, Styles.BAR,</span>
+				new BarColumn(CounterEntity.INSTRUCTION, locale), true);
+<span class="fc" id="L138">		t.add(&quot;Cov.&quot;, Styles.CTR2,</span>
+				new PercentageColumn(CounterEntity.INSTRUCTION, locale), false);
+<span class="fc" id="L140">		t.add(&quot;Missed Branches&quot;, Styles.BAR,</span>
+				new BarColumn(CounterEntity.BRANCH, locale), false);
+<span class="fc" id="L142">		t.add(&quot;Cov.&quot;, Styles.CTR2,</span>
+				new PercentageColumn(CounterEntity.BRANCH, locale), false);
+<span class="fc" id="L144">		addMissedTotalColumns(t, &quot;Cxty&quot;, CounterEntity.COMPLEXITY);</span>
+<span class="fc" id="L145">		addMissedTotalColumns(t, &quot;Lines&quot;, CounterEntity.LINE);</span>
+<span class="fc" id="L146">		addMissedTotalColumns(t, &quot;Methods&quot;, CounterEntity.METHOD);</span>
+<span class="fc" id="L147">		addMissedTotalColumns(t, &quot;Classes&quot;, CounterEntity.CLASS);</span>
+<span class="fc" id="L148">		return t;</span>
+	}
+
+	private void addMissedTotalColumns(final Table table, final String label,
+			final CounterEntity entity) {
+<span class="fc" id="L153">		table.add(&quot;Missed&quot;, Styles.CTR1,</span>
+				CounterColumn.newMissed(entity, locale), false);
+<span class="fc" id="L155">		table.add(label, Styles.CTR2, CounterColumn.newTotal(entity, locale),</span>
+				false);
+<span class="fc" id="L157">	}</span>
+
+	public String getFooterText() {
+<span class="fc" id="L160">		return footerText;</span>
+	}
+
+	public ILinkable getSessionsPage() {
+<span class="fc" id="L164">		return sessionsPage;</span>
+	}
+
+	public String getOutputEncoding() {
+<span class="fc" id="L168">		return outputEncoding;</span>
+	}
+
+	public IIndexUpdate getIndexUpdate() {
+<span class="fc" id="L172">		return index;</span>
+	}
+
+	public Locale getLocale() {
+<span class="fc" id="L176">		return locale;</span>
+	}
+
+	/**
+	 * Creates a new visitor to write a report to the given output.
+	 *
+	 * @param output
+	 *            output to write the report to
+	 * @return visitor to emit the report data to
+	 * @throws IOException
+	 *             in case of problems with the output stream
+	 */
+	public IReportVisitor createVisitor(final IMultiReportOutput output)
+			throws IOException {
+<span class="fc" id="L190">		final ReportOutputFolder root = new ReportOutputFolder(output);</span>
+<span class="fc" id="L191">		resources = new Resources(root);</span>
+<span class="fc" id="L192">		resources.copyResources();</span>
+<span class="fc" id="L193">		index = new ElementIndex(root);</span>
+<span class="fc" id="L194">		return new IReportVisitor() {</span>
+
+			private List&lt;SessionInfo&gt; sessionInfos;
+			private Collection&lt;ExecutionData&gt; executionData;
+
+			private HTMLGroupVisitor groupHandler;
+
+			public void visitInfo(final List&lt;SessionInfo&gt; sessionInfos,
+					final Collection&lt;ExecutionData&gt; executionData)
+					throws IOException {
+<span class="fc" id="L204">				this.sessionInfos = sessionInfos;</span>
+<span class="fc" id="L205">				this.executionData = executionData;</span>
+<span class="fc" id="L206">			}</span>
+
+			public void visitBundle(final IBundleCoverage bundle,
+					final ISourceFileLocator locator) throws IOException {
+<span class="fc" id="L210">				final BundlePage page = new BundlePage(bundle, null, locator,</span>
+						root, HTMLFormatter.this);
+<span class="fc" id="L212">				createSessionsPage(page);</span>
+<span class="fc" id="L213">				page.render();</span>
+<span class="fc" id="L214">			}</span>
+
+			public IReportGroupVisitor visitGroup(final String name)
+					throws IOException {
+<span class="fc" id="L218">				groupHandler = new HTMLGroupVisitor(null, root,</span>
+						HTMLFormatter.this, name);
+<span class="fc" id="L220">				createSessionsPage(groupHandler.getPage());</span>
+<span class="fc" id="L221">				return groupHandler;</span>
+
+			}
+
+			private void createSessionsPage(final ReportPage rootpage) {
+<span class="fc" id="L226">				sessionsPage = new SessionsPage(sessionInfos, executionData,</span>
+						index, rootpage, root, HTMLFormatter.this);
+<span class="fc" id="L228">			}</span>
+
+<span class="fc" id="L230">			public void visitEnd() throws IOException {</span>
+<span class="fc bfc" id="L231" title="All 2 branches covered.">				if (groupHandler != null) {</span>
+<span class="fc" id="L232">					groupHandler.visitEnd();</span>
+				}
+<span class="fc" id="L234">				sessionsPage.render();</span>
+<span class="fc" id="L235">				output.close();</span>
+<span class="fc" id="L236">			}</span>
+		};
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

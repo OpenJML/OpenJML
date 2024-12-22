@@ -79,8 +79,22 @@ version:
 	@ STACK=X njava -cp bin Version
 
 
-coverage:
-	java -jar ${HOME}/mylib/jacoco/lib/jacococli.jar report jacoco.exec --html html \
+
+cov-clean:
+	rm -rf $(ROOT)/cov
+	mkdir $(ROOT)/cov
+
+cov-test:
+	COV= ./runpar
+
+cov-report:
+	@rm -rf $(ROOT)/cov/html
+	@( cd $(ROOT); rm -f cov/combined.exec; java -jar ./jacoco/lib/jacococli.jar merge --quiet cov/*.exec --destfile cov/combined.exec )
+	@( cd $(ROOT); java -jar ./jacoco/lib/jacococli.jar report cov/combined.exec --html cov/html --quiet \
             --sourcefiles ../OpenJML21/src/jdk.compiler/share/classes \
             --classfiles ../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/java.base \
-            --classfiles ../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler
+            --classfiles ../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler )
+	@make cov-show
+
+cov-show:
+	@open $(ROOT)/cov/html/index.html
