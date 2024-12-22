@@ -18,7 +18,7 @@ NJAVA=$ROOT/build/*/jdk/bin/java
 AGENT=
 if [ "${COV+set}" = set ]; then
     # set, but may be empty
-    mkdir $RT/cov
+    mkdir -p $RT/cov
     AGENT=-javaagent:$RT/jacoco/lib/jacocoagent.jar=destfile=$RT/cov/unit-$1.exec
 fi
 
