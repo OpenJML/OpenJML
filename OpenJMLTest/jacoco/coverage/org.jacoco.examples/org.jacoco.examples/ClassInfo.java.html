@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ClassInfo.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.examples</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.examples</a> &gt; <span class="el_source">ClassInfo.java</span></div><h1>ClassInfo.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.examples;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+
+import org.jacoco.core.analysis.Analyzer;
+import org.jacoco.core.analysis.IClassCoverage;
+import org.jacoco.core.analysis.ICoverageVisitor;
+import org.jacoco.core.data.ExecutionDataStore;
+
+/**
+ * This example reads Java class files, directories or JARs given as program
+ * arguments and dumps information about the classes.
+ */
+public final class ClassInfo implements ICoverageVisitor {
+
+	private final PrintStream out;
+	private final Analyzer analyzer;
+
+	/**
+	 * Creates a new example instance printing to the given stream.
+	 *
+	 * @param out
+	 *            stream for outputs
+	 */
+<span class="fc" id="L39">	public ClassInfo(final PrintStream out) {</span>
+<span class="fc" id="L40">		this.out = out;</span>
+<span class="fc" id="L41">		analyzer = new Analyzer(new ExecutionDataStore(), this);</span>
+<span class="fc" id="L42">	}</span>
+
+	/**
+	 * Run this example with the given parameters.
+	 *
+	 * @param args
+	 *            command line parameters
+	 * @throws IOException
+	 *             in case of error reading a input file
+	 */
+	public void execute(final String[] args) throws IOException {
+<span class="fc bfc" id="L53" title="All 2 branches covered.">		for (final String file : args) {</span>
+<span class="fc" id="L54">			analyzer.analyzeAll(new File(file));</span>
+		}
+<span class="fc" id="L56">	}</span>
+
+	public void visitCoverage(final IClassCoverage coverage) {
+<span class="fc" id="L59">		out.printf(&quot;class name:   %s%n&quot;, coverage.getName());</span>
+<span class="fc" id="L60">		out.printf(&quot;class id:     %016x%n&quot;, Long.valueOf(coverage.getId()));</span>
+<span class="fc" id="L61">		out.printf(&quot;instructions: %s%n&quot;, Integer</span>
+				.valueOf(coverage.getInstructionCounter().getTotalCount()));
+<span class="fc" id="L63">		out.printf(&quot;branches:     %s%n&quot;,</span>
+				Integer.valueOf(coverage.getBranchCounter().getTotalCount()));
+<span class="fc" id="L65">		out.printf(&quot;lines:        %s%n&quot;,</span>
+				Integer.valueOf(coverage.getLineCounter().getTotalCount()));
+<span class="fc" id="L67">		out.printf(&quot;methods:      %s%n&quot;,</span>
+				Integer.valueOf(coverage.getMethodCounter().getTotalCount()));
+<span class="fc" id="L69">		out.printf(&quot;complexity:   %s%n%n&quot;, Integer</span>
+				.valueOf(coverage.getComplexityCounter().getTotalCount()));
+<span class="fc" id="L71">	}</span>
+
+	/**
+	 * Entry point to run this examples as a Java application.
+	 *
+	 * @param args
+	 *            list of program arguments
+	 * @throws IOException
+	 *             in case of errors executing the example
+	 */
+	public static void main(final String[] args) throws IOException {
+<span class="nc" id="L82">		new ClassInfo(System.out).execute(args);</span>
+<span class="nc" id="L83">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ReportElement.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.report</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.report.internal.xml</a> &gt; <span class="el_source">ReportElement.java</span></div><h1>ReportElement.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.report.internal.xml;
+
+import java.io.IOException;
+import java.io.OutputStream;
+
+import org.jacoco.core.analysis.IClassCoverage;
+import org.jacoco.core.analysis.ICounter;
+import org.jacoco.core.analysis.ICoverageNode.CounterEntity;
+import org.jacoco.core.analysis.ILine;
+import org.jacoco.core.analysis.IMethodCoverage;
+import org.jacoco.core.data.SessionInfo;
+
+/**
+ * A {@link XMLElement} with utility methods to create JaCoCo XML reports.
+ */
+public class ReportElement extends XMLElement {
+
+	private static final String PUBID = &quot;-//JACOCO//DTD Report 1.1//EN&quot;;
+
+	private static final String SYSTEM = &quot;report.dtd&quot;;
+
+	/**
+	 * Creates a &lt;code&gt;report&lt;/code&gt; root element for a XML report.
+	 *
+	 * @param name
+	 *            value for the name attribute
+	 * @param encoding
+	 *            character encoding used for output
+	 * @param output
+	 *            output stream will be closed if the root element is closed
+	 * @throws IOException
+	 *             in case of problems with the underlying output
+	 */
+	public ReportElement(final String name, final OutputStream output,
+			final String encoding) throws IOException {
+<span class="fc" id="L48">		super(&quot;report&quot;, PUBID, SYSTEM, true, encoding, output);</span>
+<span class="fc" id="L49">		attr(&quot;name&quot;, name);</span>
+<span class="fc" id="L50">	}</span>
+
+	private ReportElement(final String name, final ReportElement parent)
+			throws IOException {
+<span class="fc" id="L54">		super(name, parent);</span>
+<span class="fc" id="L55">	}</span>
+
+	@Override
+	public ReportElement element(final String name) throws IOException {
+<span class="fc" id="L59">		return new ReportElement(name, this);</span>
+	}
+
+	private ReportElement namedElement(final String elementName,
+			final String name) throws IOException {
+<span class="fc" id="L64">		final ReportElement element = element(elementName);</span>
+<span class="fc" id="L65">		element.attr(&quot;name&quot;, name);</span>
+<span class="fc" id="L66">		return element;</span>
+	}
+
+	/**
+	 * Creates a 'sessioninfo' element.
+	 *
+	 * @param info
+	 *            info object to write out
+	 * @throws IOException
+	 *             in case of problems with the underlying output
+	 */
+	public void sessioninfo(final SessionInfo info) throws IOException {
+<span class="fc" id="L78">		final ReportElement sessioninfo = element(&quot;sessioninfo&quot;);</span>
+<span class="fc" id="L79">		sessioninfo.attr(&quot;id&quot;, info.getId());</span>
+<span class="fc" id="L80">		sessioninfo.attr(&quot;start&quot;, info.getStartTimeStamp());</span>
+<span class="fc" id="L81">		sessioninfo.attr(&quot;dump&quot;, info.getDumpTimeStamp());</span>
+<span class="fc" id="L82">	}</span>
+
+	/**
+	 * Creates a 'group' element.
+	 *
+	 * @param name
+	 *            value for the name attribute
+	 * @return 'group' element
+	 * @throws IOException
+	 *             in case of problems with the underlying output
+	 */
+	public ReportElement group(final String name) throws IOException {
+<span class="fc" id="L94">		return namedElement(&quot;group&quot;, name);</span>
+	}
+
+	/**
+	 * Creates a 'package' element.
+	 *
+	 * @param name
+	 *            value for the name attribute
+	 * @return 'package' element
+	 * @throws IOException
+	 *             in case of problems with the underlying output
+	 */
+	public ReportElement packageElement(final String name) throws IOException {
+<span class="fc" id="L107">		return namedElement(&quot;package&quot;, name);</span>
+	}
+
+	/**
+	 * Creates a 'class' element.
+	 *
+	 * @param coverage
+	 *            class coverage node to write out
+	 * @return 'class' element
+	 * @throws IOException
+	 *             in case of problems with the underlying output
+	 */
+	public ReportElement classElement(final IClassCoverage coverage)
+			throws IOException {
+<span class="fc" id="L121">		final ReportElement element = namedElement(&quot;class&quot;, coverage.getName());</span>
+<span class="fc" id="L122">		element.attr(&quot;sourcefilename&quot;, coverage.getSourceFileName());</span>
+<span class="fc" id="L123">		return element;</span>
+	}
+
+	/**
+	 * Creates a 'method' element.
+	 *
+	 * @param coverage
+	 *            method coverage node to write out
+	 * @return 'method' element
+	 * @throws IOException
+	 *             in case of problems with the underlying output
+	 */
+	public ReportElement method(final IMethodCoverage coverage)
+			throws IOException {
+<span class="fc" id="L137">		final ReportElement element = namedElement(&quot;method&quot;,</span>
+				coverage.getName());
+<span class="fc" id="L139">		element.attr(&quot;desc&quot;, coverage.getDesc());</span>
+<span class="fc" id="L140">		final int line = coverage.getFirstLine();</span>
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">		if (line != -1) {</span>
+<span class="fc" id="L142">			element.attr(&quot;line&quot;, line);</span>
+		}
+<span class="fc" id="L144">		return element;</span>
+	}
+
+	/**
+	 * Creates a 'sourcefile' element.
+	 *
+	 * @param name
+	 *            value for the name attribute
+	 * @return 'sourcefile' element
+	 * @throws IOException
+	 *             in case of problems with the underlying output
+	 */
+	public ReportElement sourcefile(final String name) throws IOException {
+<span class="fc" id="L157">		return namedElement(&quot;sourcefile&quot;, name);</span>
+	}
+
+	/**
+	 * Creates a 'line' element.
+	 *
+	 * @param nr
+	 *            line number
+	 * @param line
+	 *            line object to write out
+	 *
+	 * @throws IOException
+	 *             in case of problems with the underlying output
+	 */
+	public void line(final int nr, final ILine line) throws IOException {
+<span class="fc" id="L172">		final ReportElement element = element(&quot;line&quot;);</span>
+<span class="fc" id="L173">		element.attr(&quot;nr&quot;, nr);</span>
+<span class="fc" id="L174">		counterAttributes(element, &quot;mi&quot;, &quot;ci&quot;, line.getInstructionCounter());</span>
+<span class="fc" id="L175">		counterAttributes(element, &quot;mb&quot;, &quot;cb&quot;, line.getBranchCounter());</span>
+<span class="fc" id="L176">	}</span>
+
+	/**
+	 * Creates a 'counter' element.
+	 *
+	 * @param counterEntity
+	 *            entity of this counter
+	 *
+	 * @param counter
+	 *            counter object to write out
+	 *
+	 * @throws IOException
+	 *             in case of problems with the underlying output
+	 */
+	public void counter(final CounterEntity counterEntity,
+			final ICounter counter) throws IOException {
+<span class="fc" id="L192">		final ReportElement counterNode = element(&quot;counter&quot;);</span>
+<span class="fc" id="L193">		counterNode.attr(&quot;type&quot;, counterEntity.name());</span>
+<span class="fc" id="L194">		counterAttributes(counterNode, &quot;missed&quot;, &quot;covered&quot;, counter);</span>
+<span class="fc" id="L195">	}</span>
+
+	private static void counterAttributes(final XMLElement element,
+			final String missedattr, final String coveredattr,
+			final ICounter counter) throws IOException {
+<span class="fc" id="L200">		element.attr(missedattr, counter.getMissedCount());</span>
+<span class="fc" id="L201">		element.attr(coveredattr, counter.getCoveredCount());</span>
+<span class="fc" id="L202">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

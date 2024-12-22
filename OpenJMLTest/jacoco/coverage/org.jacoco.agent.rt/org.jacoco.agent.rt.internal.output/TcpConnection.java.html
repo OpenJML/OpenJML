@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TcpConnection.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.agent.rt</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.agent.rt.internal.output</a> &gt; <span class="el_source">TcpConnection.java</span></div><h1>TcpConnection.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.agent.rt.internal.output;
+
+import java.io.IOException;
+import java.net.Socket;
+import java.net.SocketException;
+
+import org.jacoco.core.runtime.IRemoteCommandVisitor;
+import org.jacoco.core.runtime.RemoteControlReader;
+import org.jacoco.core.runtime.RemoteControlWriter;
+import org.jacoco.core.runtime.RuntimeData;
+
+/**
+ * Handler for a single socket based remote connection.
+ */
+class TcpConnection implements IRemoteCommandVisitor {
+
+	private final RuntimeData data;
+
+	private final Socket socket;
+
+	private RemoteControlWriter writer;
+
+	private RemoteControlReader reader;
+
+	private boolean initialized;
+
+<span class="fc" id="L39">	public TcpConnection(final Socket socket, final RuntimeData data) {</span>
+<span class="fc" id="L40">		this.socket = socket;</span>
+<span class="fc" id="L41">		this.data = data;</span>
+<span class="fc" id="L42">		this.initialized = false;</span>
+<span class="fc" id="L43">	}</span>
+
+	public void init() throws IOException {
+<span class="fc" id="L46">		this.writer = new RemoteControlWriter(socket.getOutputStream());</span>
+<span class="fc" id="L47">		this.reader = new RemoteControlReader(socket.getInputStream());</span>
+<span class="fc" id="L48">		this.reader.setRemoteCommandVisitor(this);</span>
+<span class="fc" id="L49">		this.initialized = true;</span>
+<span class="fc" id="L50">	}</span>
+
+	/**
+	 * Processes all requests for this session until the socket is closed.
+	 *
+	 * @throws IOException
+	 *             in case of problems whith the connection
+	 */
+	public void run() throws IOException {
+		try {
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">			while (reader.read()) {</span>
+			}
+<span class="fc" id="L62">		} catch (final SocketException e) {</span>
+			// If the local socket is closed while polling for commands the
+			// SocketException is expected.
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">			if (!socket.isClosed()) {</span>
+<span class="nc" id="L66">				throw e;</span>
+			}
+		} finally {
+<span class="fc" id="L69">			close();</span>
+		}
+<span class="fc" id="L71">	}</span>
+
+	/**
+	 * Dumps the current execution data if the connection is already initialized
+	 * and the underlying socket is still open.
+	 *
+	 * @param reset
+	 *            if &lt;code&gt;true&lt;/code&gt; execution data is cleared afterwards
+	 * @throws IOException
+	 */
+	public void writeExecutionData(final boolean reset) throws IOException {
+<span class="pc bpc" id="L82" title="1 of 4 branches missed.">		if (initialized &amp;&amp; !socket.isClosed()) {</span>
+<span class="fc" id="L83">			visitDumpCommand(true, reset);</span>
+		}
+<span class="fc" id="L85">	}</span>
+
+	/**
+	 * Closes the underlying socket if not closed yet.
+	 *
+	 * @throws IOException
+	 */
+	public void close() throws IOException {
+<span class="fc bfc" id="L93" title="All 2 branches covered.">		if (!socket.isClosed()) {</span>
+<span class="fc" id="L94">			socket.close();</span>
+		}
+<span class="fc" id="L96">	}</span>
+
+	// === IRemoteCommandVisitor ===
+
+	public void visitDumpCommand(final boolean dump, final boolean reset)
+			throws IOException {
+<span class="fc bfc" id="L102" title="All 2 branches covered.">		if (dump) {</span>
+<span class="fc" id="L103">			data.collect(writer, writer, reset);</span>
+		} else {
+<span class="fc bfc" id="L105" title="All 2 branches covered.">			if (reset) {</span>
+<span class="fc" id="L106">				data.reset();</span>
+			}
+		}
+<span class="fc" id="L109">		writer.sendCmdOk();</span>
+<span class="fc" id="L110">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

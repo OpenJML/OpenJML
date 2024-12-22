@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" href="resources/doc.css" charset="UTF-8" type="text/css" />
+        <link rel="shortcut icon" href="resources/report.gif" type="image/gif" />
+        <title>
+					JaCoCo -
+					jacoco:merge</title>
+    </head>
+    <body>
+        <div class="breadcrumb">
+            <a href="../index.html" class="el_report">JaCoCo</a>
+            					&gt;
+					
+            <a href="index.html" class="el_group">Documentation</a>
+            					&gt;
+					
+            <a href="maven.html" class="el_group">Maven</a>
+            					&gt;
+					
+            <span class="el_source">jacoco:merge</span>
+        </div>
+        <div id="content">
+                
+            <h1>jacoco:merge</h1>
+                  
+            <p>
+                <b>Full name</b>
+                :
+            </p>
+                  
+            <p>org.jacoco:jacoco-maven-plugin:0.8.11:merge</p>
+                  
+            <p>
+                <b>Description</b>
+                :
+            </p>
+                  
+            <div>Mojo for merging a set of execution data files (*.exec) into a
+single file</div>
+                  
+            <p>
+                <b>Attributes</b>
+                :
+            </p>
+                  
+            <ul>
+                        
+                <li>Requires a Maven project to be executed.</li>
+                        
+                <li>
+                    Since version: 
+                    <code>0.6.4</code>
+                    .
+                </li>
+                        
+                <li>
+                    Binds by default to the 
+                    <a href="http://maven.apache.org/ref/current/maven-core/lifecycles.html">lifecycle phase</a>
+                    : 
+                    <code>generate-resources</code>
+                    .
+                </li>
+                      
+            </ul>
+                  
+            <h2>Required Parameters</h2>
+                    
+            <table class="coverage">
+                <thead>
+                    <tr>
+                        <td>Name</td>
+                        <td>Type</td>
+                        <td>Since</td>
+                        <td>Description</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#fileSets">&lt;fileSets&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>List</code>
+                        </td>
+                        <td>
+                            <code>0.6.4</code>
+                        </td>
+                        <td>
+                            This mojo accepts any number of execution data file sets. 
+
+                            <pre>
+                                
+                                <code>
+&lt;fileSets&gt;
+  &lt;fileSet&gt;
+    &lt;directory&gt;${project.build.directory}&lt;/directory&gt;
+    &lt;includes&gt;
+      &lt;include&gt;*.exec&lt;/include&gt;
+    &lt;/includes&gt;
+  &lt;/fileSet&gt;
+&lt;/fileSets&gt;
+</code>
+                                
+                            </pre>
+                            <br />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+                  
+      
+            <h2>Optional Parameters</h2>
+                    
+            <table class="coverage">
+                <thead>
+                    <tr>
+                        <td>Name</td>
+                        <td>Type</td>
+                        <td>Since</td>
+                        <td>Description</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#destFile">&lt;destFile&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>File</code>
+                        </td>
+                        <td>
+                            <code>0.6.4</code>
+                        </td>
+                        <td>
+                            Path to the output file for execution data.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>${project.build.directory}/jacoco.exec</code>
+                            .
+                            <br />
+                            <b>User property is</b>
+                            : 
+                            <code>jacoco.destFile</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#skip">&lt;skip&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>boolean</code>
+                        </td>
+                        <td>
+                            <code>0.6.4</code>
+                        </td>
+                        <td>
+                            Flag used to suppress execution.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>false</code>
+                            .
+                            <br />
+                            <b>User property is</b>
+                            : 
+                            <code>jacoco.skip</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+                  
+      
+            <h2>Parameter Details</h2>
+                    
+            <b>
+                <a name="destFile">&lt;destFile&gt;</a>
+            </b>
+                    
+            <div>Path to the output file for execution data.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>java.io.File</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.6.4</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>User Property</b>
+                    : 
+                    <code>jacoco.destFile</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>${project.build.directory}/jacoco.exec</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="fileSets">&lt;fileSets&gt;</a>
+            </b>
+                    
+            <div>
+                This mojo accepts any number of execution data file sets. 
+
+                <pre>
+                    
+                    <code>
+&lt;fileSets&gt;
+  &lt;fileSet&gt;
+    &lt;directory&gt;${project.build.directory}&lt;/directory&gt;
+    &lt;includes&gt;
+      &lt;include&gt;*.exec&lt;/include&gt;
+    &lt;/includes&gt;
+  &lt;/fileSet&gt;
+&lt;/fileSets&gt;
+</code>
+                    
+                </pre>
+            </div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>java.util.List</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.6.4</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>Yes</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="skip">&lt;skip&gt;</a>
+            </b>
+                    
+            <div>Flag used to suppress execution.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>boolean</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.6.4</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>User Property</b>
+                    : 
+                    <code>jacoco.skip</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>false</code>
+                </li>
+                        
+            </ul>
+                  
+    
+  
+        </div>
+        <div class="footer">
+            <span class="right">
+                <a href="http://www.jacoco.org/jacoco">JaCoCo</a>
+                						 
+						0.8.11.202310140853
+            </span>
+            <a href="../doc/license.html">Copyright</a>
+            					©
+					2009, 2023
+					Mountainminds GmbH &amp; Co. KG and Contributors
+				
+        </div>
+    </body>
+</html>

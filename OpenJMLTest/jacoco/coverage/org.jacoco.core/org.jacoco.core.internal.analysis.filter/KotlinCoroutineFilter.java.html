@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>KotlinCoroutineFilter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis.filter</a> &gt; <span class="el_source">KotlinCoroutineFilter.java</span></div><h1>KotlinCoroutineFilter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis.filter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TableSwitchInsnNode;
+
+/**
+ * Filters branches that Kotlin compiler generates for coroutines.
+ */
+<span class="fc" id="L30">public final class KotlinCoroutineFilter implements IFilter {</span>
+
+	static boolean isImplementationOfSuspendFunction(
+			final MethodNode methodNode) {
+<span class="fc bfc" id="L34" title="All 2 branches covered.">		if (methodNode.name.startsWith(&quot;access$&quot;)) {</span>
+<span class="fc" id="L35">			return false;</span>
+		}
+<span class="fc" id="L37">		final Type methodType = Type.getMethodType(methodNode.desc);</span>
+<span class="fc" id="L38">		final int lastArgument = methodType.getArgumentTypes().length - 1;</span>
+<span class="pc bpc" id="L39" title="2 of 4 branches missed.">		return lastArgument &gt;= 0 &amp;&amp; &quot;kotlin.coroutines.Continuation&quot;.equals(</span>
+				methodType.getArgumentTypes()[lastArgument].getClassName());
+	}
+
+	public void filter(final MethodNode methodNode,
+			final IFilterContext context, final IFilterOutput output) {
+
+<span class="fc bfc" id="L46" title="All 2 branches covered.">		if (!KotlinGeneratedFilter.isKotlinClass(context)) {</span>
+<span class="fc" id="L47">			return;</span>
+		}
+
+<span class="fc" id="L50">		new Matcher().match(methodNode, output);</span>
+<span class="fc" id="L51">		new Matcher().matchOptimizedTailCall(methodNode, output);</span>
+<span class="fc" id="L52">	}</span>
+
+<span class="fc" id="L54">	private static class Matcher extends AbstractMatcher {</span>
+
+		private void matchOptimizedTailCall(final MethodNode methodNode,
+				final IFilterOutput output) {
+<span class="fc bfc" id="L58" title="All 2 branches covered.">			for (final AbstractInsnNode i : methodNode.instructions) {</span>
+<span class="fc" id="L59">				cursor = i;</span>
+<span class="fc" id="L60">				nextIs(Opcodes.DUP);</span>
+<span class="fc" id="L61">				nextIsInvoke(Opcodes.INVOKESTATIC,</span>
+						&quot;kotlin/coroutines/intrinsics/IntrinsicsKt&quot;,
+						&quot;getCOROUTINE_SUSPENDED&quot;, &quot;()Ljava/lang/Object;&quot;);
+<span class="fc" id="L64">				nextIs(Opcodes.IF_ACMPNE);</span>
+<span class="fc" id="L65">				nextIs(Opcodes.ARETURN);</span>
+<span class="fc" id="L66">				nextIs(Opcodes.POP);</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">				if (cursor != null) {</span>
+<span class="fc" id="L68">					output.ignore(i.getNext(), cursor);</span>
+				}
+			}
+<span class="fc" id="L71">		}</span>
+
+		private void match(final MethodNode methodNode,
+				final IFilterOutput output) {
+<span class="fc" id="L75">			cursor = skipNonOpcodes(methodNode.instructions.getFirst());</span>
+<span class="pc bpc" id="L76" title="1 of 4 branches missed.">			if (cursor == null || cursor.getOpcode() != Opcodes.INVOKESTATIC) {</span>
+<span class="fc" id="L77">				cursor = null;</span>
+			} else {
+<span class="fc" id="L79">				final MethodInsnNode m = (MethodInsnNode) cursor;</span>
+<span class="pc bpc" id="L80" title="3 of 6 branches missed.">				if (!&quot;kotlin/coroutines/intrinsics/IntrinsicsKt&quot;.equals(m.owner)</span>
+						|| !&quot;getCOROUTINE_SUSPENDED&quot;.equals(m.name)
+						|| !&quot;()Ljava/lang/Object;&quot;.equals(m.desc)) {
+<span class="nc" id="L83">					cursor = null;</span>
+				}
+			}
+
+<span class="fc bfc" id="L87" title="All 2 branches covered.">			if (cursor == null) {</span>
+<span class="fc" id="L88">				cursor = skipNonOpcodes(methodNode.instructions.getFirst());</span>
+
+<span class="fc" id="L90">				nextIsCreateStateInstance();</span>
+
+<span class="fc" id="L92">				nextIsInvoke(Opcodes.INVOKESTATIC,</span>
+						&quot;kotlin/coroutines/intrinsics/IntrinsicsKt&quot;,
+						&quot;getCOROUTINE_SUSPENDED&quot;, &quot;()Ljava/lang/Object;&quot;);
+			}
+
+<span class="fc" id="L97">			nextIsVar(Opcodes.ASTORE, &quot;COROUTINE_SUSPENDED&quot;);</span>
+<span class="fc" id="L98">			nextIsVar(Opcodes.ALOAD, &quot;this&quot;);</span>
+<span class="fc" id="L99">			nextIs(Opcodes.GETFIELD);</span>
+<span class="fc" id="L100">			nextIs(Opcodes.TABLESWITCH);</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">			if (cursor == null) {</span>
+<span class="fc" id="L102">				return;</span>
+			}
+<span class="fc" id="L104">			final TableSwitchInsnNode s = (TableSwitchInsnNode) cursor;</span>
+<span class="fc" id="L105">			final List&lt;AbstractInsnNode&gt; ignore = new ArrayList&lt;AbstractInsnNode&gt;(</span>
+					s.labels.size() * 2);
+
+<span class="fc" id="L108">			nextIs(Opcodes.ALOAD);</span>
+<span class="fc" id="L109">			nextIsThrowOnFailure();</span>
+
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">			if (cursor == null) {</span>
+<span class="nc" id="L112">				return;</span>
+			}
+<span class="fc" id="L114">			ignore.add(methodNode.instructions.getFirst());</span>
+<span class="fc" id="L115">			ignore.add(cursor);</span>
+
+<span class="fc" id="L117">			int suspensionPoint = 1;</span>
+<span class="fc" id="L118">			for (AbstractInsnNode i = cursor; i != null</span>
+<span class="pc bpc" id="L119" title="1 of 4 branches missed.">					&amp;&amp; suspensionPoint &lt; s.labels.size(); i = i.getNext()) {</span>
+<span class="fc" id="L120">				cursor = i;</span>
+<span class="fc" id="L121">				nextIsVar(Opcodes.ALOAD, &quot;COROUTINE_SUSPENDED&quot;);</span>
+<span class="fc" id="L122">				nextIs(Opcodes.IF_ACMPNE);</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">				if (cursor == null) {</span>
+<span class="fc" id="L124">					continue;</span>
+				}
+<span class="fc" id="L126">				final AbstractInsnNode continuationAfterLoadedResult = skipNonOpcodes(</span>
+						((JumpInsnNode) cursor).label);
+<span class="fc" id="L128">				nextIsVar(Opcodes.ALOAD, &quot;COROUTINE_SUSPENDED&quot;);</span>
+<span class="fc" id="L129">				nextIs(Opcodes.ARETURN);</span>
+<span class="pc bpc" id="L130" title="2 of 4 branches missed.">				if (cursor == null</span>
+						|| skipNonOpcodes(cursor.getNext()) != skipNonOpcodes(
+								s.labels.get(suspensionPoint))) {
+<span class="nc" id="L133">					continue;</span>
+				}
+
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">				for (AbstractInsnNode j = i; j != null; j = j.getNext()) {</span>
+<span class="fc" id="L137">					cursor = j;</span>
+<span class="fc" id="L138">					nextIs(Opcodes.ALOAD);</span>
+<span class="fc" id="L139">					nextIsThrowOnFailure();</span>
+
+<span class="fc" id="L141">					nextIs(Opcodes.ALOAD);</span>
+<span class="pc bpc" id="L142" title="1 of 4 branches missed.">					if (cursor != null &amp;&amp; skipNonOpcodes(cursor</span>
+							.getNext()) == continuationAfterLoadedResult) {
+<span class="fc" id="L144">						ignore.add(i);</span>
+<span class="fc" id="L145">						ignore.add(cursor);</span>
+<span class="fc" id="L146">						suspensionPoint++;</span>
+<span class="fc" id="L147">						break;</span>
+					}
+				}
+			}
+
+<span class="fc" id="L152">			cursor = s.dflt;</span>
+<span class="fc" id="L153">			nextIsType(Opcodes.NEW, &quot;java/lang/IllegalStateException&quot;);</span>
+<span class="fc" id="L154">			nextIs(Opcodes.DUP);</span>
+<span class="fc" id="L155">			nextIs(Opcodes.LDC);</span>
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">			if (cursor == null) {</span>
+<span class="nc" id="L157">				return;</span>
+			}
+<span class="pc bpc" id="L159" title="1 of 2 branches missed.">			if (!((LdcInsnNode) cursor).cst.equals(</span>
+					&quot;call to 'resume' before 'invoke' with coroutine&quot;)) {
+<span class="nc" id="L161">				return;</span>
+			}
+<span class="fc" id="L163">			nextIsInvoke(Opcodes.INVOKESPECIAL,</span>
+					&quot;java/lang/IllegalStateException&quot;, &quot;&lt;init&gt;&quot;,
+					&quot;(Ljava/lang/String;)V&quot;);
+<span class="fc" id="L166">			nextIs(Opcodes.ATHROW);</span>
+<span class="pc bpc" id="L167" title="1 of 2 branches missed.">			if (cursor == null) {</span>
+<span class="nc" id="L168">				return;</span>
+			}
+
+<span class="fc" id="L171">			output.ignore(s.dflt, cursor);</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">			for (int i = 0; i &lt; ignore.size(); i += 2) {</span>
+<span class="fc" id="L173">				output.ignore(ignore.get(i), ignore.get(i + 1));</span>
+			}
+<span class="fc" id="L175">		}</span>
+
+		private void nextIsThrowOnFailure() {
+<span class="fc" id="L178">			final AbstractInsnNode c = cursor;</span>
+<span class="fc" id="L179">			nextIsInvoke(Opcodes.INVOKESTATIC, &quot;kotlin/ResultKt&quot;,</span>
+					&quot;throwOnFailure&quot;, &quot;(Ljava/lang/Object;)V&quot;);
+<span class="fc bfc" id="L181" title="All 2 branches covered.">			if (cursor == null) {</span>
+<span class="fc" id="L182">				cursor = c;</span>
+				// Before resolution of
+				// https://youtrack.jetbrains.com/issue/KT-28015 in
+				// Kotlin 1.3.30
+<span class="fc" id="L186">				nextIs(Opcodes.DUP);</span>
+<span class="fc" id="L187">				nextIsType(Opcodes.INSTANCEOF, &quot;kotlin/Result$Failure&quot;);</span>
+<span class="fc" id="L188">				nextIs(Opcodes.IFEQ);</span>
+<span class="fc" id="L189">				nextIsType(Opcodes.CHECKCAST, &quot;kotlin/Result$Failure&quot;);</span>
+<span class="fc" id="L190">				nextIs(Opcodes.GETFIELD);</span>
+<span class="fc" id="L191">				nextIs(Opcodes.ATHROW);</span>
+<span class="fc" id="L192">				nextIs(Opcodes.POP);</span>
+			}
+<span class="fc" id="L194">		}</span>
+
+		private void nextIsCreateStateInstance() {
+<span class="fc" id="L197">			nextIs(Opcodes.INSTANCEOF);</span>
+
+<span class="fc" id="L199">			nextIs(Opcodes.IFEQ);</span>
+<span class="fc bfc" id="L200" title="All 2 branches covered.">			if (cursor == null) {</span>
+<span class="fc" id="L201">				return;</span>
+			}
+<span class="fc" id="L203">			final AbstractInsnNode createStateInstance = skipNonOpcodes(</span>
+					((JumpInsnNode) cursor).label);
+
+<span class="fc" id="L206">			nextIs(Opcodes.ALOAD);</span>
+<span class="fc" id="L207">			nextIs(Opcodes.CHECKCAST);</span>
+<span class="fc" id="L208">			nextIs(Opcodes.ASTORE);</span>
+
+<span class="fc" id="L210">			nextIs(Opcodes.ALOAD);</span>
+<span class="fc" id="L211">			nextIs(Opcodes.GETFIELD);</span>
+
+<span class="fc" id="L213">			nextIs(Opcodes.LDC);</span>
+<span class="fc" id="L214">			nextIs(Opcodes.IAND);</span>
+<span class="fc" id="L215">			nextIs(Opcodes.IFEQ);</span>
+<span class="pc bpc" id="L216" title="2 of 4 branches missed.">			if (cursor == null || skipNonOpcodes(</span>
+					((JumpInsnNode) cursor).label) != createStateInstance) {
+<span class="nc" id="L218">				return;</span>
+			}
+
+<span class="fc" id="L221">			nextIs(Opcodes.ALOAD);</span>
+<span class="fc" id="L222">			nextIs(Opcodes.DUP);</span>
+<span class="fc" id="L223">			nextIs(Opcodes.GETFIELD);</span>
+
+<span class="fc" id="L225">			nextIs(Opcodes.LDC);</span>
+<span class="fc" id="L226">			nextIs(Opcodes.ISUB);</span>
+<span class="fc" id="L227">			nextIs(Opcodes.PUTFIELD);</span>
+
+<span class="fc" id="L229">			nextIs(Opcodes.GOTO);</span>
+<span class="pc bpc" id="L230" title="1 of 2 branches missed.">			if (cursor == null) {</span>
+<span class="nc" id="L231">				return;</span>
+			}
+<span class="fc" id="L233">			final AbstractInsnNode afterCoroutineStateCreated = skipNonOpcodes(</span>
+					((JumpInsnNode) cursor).label);
+
+<span class="pc bpc" id="L236" title="1 of 2 branches missed.">			if (skipNonOpcodes(cursor.getNext()) != createStateInstance) {</span>
+<span class="nc" id="L237">				return;</span>
+			}
+
+<span class="fc" id="L240">			cursor = afterCoroutineStateCreated;</span>
+<span class="fc" id="L241">			nextIs(Opcodes.GETFIELD);</span>
+<span class="fc" id="L242">			nextIs(Opcodes.ASTORE);</span>
+<span class="fc" id="L243">		}</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

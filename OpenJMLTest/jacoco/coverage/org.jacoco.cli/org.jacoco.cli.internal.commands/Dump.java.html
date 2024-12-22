@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Dump.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.cli</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.cli.internal.commands</a> &gt; <span class="el_source">Dump.java</span></div><h1>Dump.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.cli.internal.commands;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.InetAddress;
+
+import org.jacoco.cli.internal.Command;
+import org.jacoco.core.runtime.AgentOptions;
+import org.jacoco.core.tools.ExecDumpClient;
+import org.jacoco.core.tools.ExecFileLoader;
+import org.kohsuke.args4j.Option;
+
+/**
+ * The &lt;code&gt;dump&lt;/code&gt; command.
+ */
+<span class="fc" id="L29">public class Dump extends Command {</span>
+
+	@Option(name = &quot;--address&quot;, usage = &quot;host name or ip address to connect to (default localhost)&quot;, metaVar = &quot;&lt;address&gt;&quot;)
+<span class="fc" id="L32">	String address = AgentOptions.DEFAULT_ADDRESS;</span>
+
+	@Option(name = &quot;--port&quot;, usage = &quot;the port to connect to (default 6300)&quot;, metaVar = &quot;&lt;port&gt;&quot;)
+<span class="fc" id="L35">	int port = AgentOptions.DEFAULT_PORT;</span>
+
+	@Option(name = &quot;--destfile&quot;, usage = &quot;file to write execution data to&quot;, metaVar = &quot;&lt;path&gt;&quot;, required = true)
+	File destfile;
+
+	@Option(name = &quot;--reset&quot;, usage = &quot;reset execution data on test target after dump&quot;)
+<span class="fc" id="L41">	boolean reset = false;</span>
+
+	@Option(name = &quot;--retry&quot;, usage = &quot;number of retries (default 10)&quot;, metaVar = &quot;&lt;count&gt;&quot;)
+<span class="fc" id="L44">	int retrycount = 10;</span>
+
+	@Override
+	public String description() {
+<span class="fc" id="L48">		return &quot;Request execution data from a JaCoCo agent running in 'tcpserver' output mode.&quot;;</span>
+	}
+
+	@Override
+	public int execute(final PrintWriter out, final PrintWriter err)
+			throws Exception {
+<span class="fc" id="L54">		final ExecDumpClient client = new ExecDumpClient() {</span>
+			@Override
+			protected void onConnecting(final InetAddress address,
+					final int port) {
+<span class="fc" id="L58">				out.printf(&quot;[INFO] Connecting to %s:%s.%n&quot;, address,</span>
+						Integer.valueOf(port));
+<span class="fc" id="L60">			}</span>
+
+			@Override
+<span class="fc" id="L63">			protected void onConnectionFailure(final IOException exception) {</span>
+<span class="fc" id="L64">				err.printf(&quot;[WARN] %s.%n&quot;, exception.getMessage());</span>
+<span class="fc" id="L65">			}</span>
+		};
+<span class="fc" id="L67">		client.setReset(reset);</span>
+<span class="fc" id="L68">		client.setRetryCount(retrycount);</span>
+
+<span class="fc" id="L70">		final ExecFileLoader loader = client.dump(address, port);</span>
+<span class="fc" id="L71">		out.printf(&quot;[INFO] Writing execution data to %s.%n&quot;,</span>
+				destfile.getAbsolutePath());
+<span class="fc" id="L73">		loader.save(destfile, true);</span>
+
+<span class="fc" id="L75">		return 0;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

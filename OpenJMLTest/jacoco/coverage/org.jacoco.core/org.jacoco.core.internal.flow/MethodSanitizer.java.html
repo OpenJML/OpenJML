@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MethodSanitizer.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.flow</a> &gt; <span class="el_source">MethodSanitizer.java</span></div><h1>MethodSanitizer.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.flow;
+
+import org.jacoco.core.internal.instr.InstrSupport;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.commons.JSRInlinerAdapter;
+
+/**
+ * This method visitor fixes two potential issues with Java byte code:
+ *
+ * &lt;ul&gt;
+ * &lt;li&gt;Remove JSR/RET instructions by inlining subroutines which are deprecated
+ * since Java 6. The RET statement complicates control flow analysis as the jump
+ * target is not explicitly given.&lt;/li&gt;
+ * &lt;li&gt;Remove code attributes line number and local variable name if they point
+ * to invalid offsets which some tools create. When writing out such invalid
+ * labels with ASM class files do not verify any more.&lt;/li&gt;
+ * &lt;/ul&gt;
+ */
+class MethodSanitizer extends JSRInlinerAdapter {
+
+	MethodSanitizer(final MethodVisitor mv, final int access, final String name,
+			final String desc, final String signature,
+			final String[] exceptions) {
+<span class="fc" id="L37">		super(InstrSupport.ASM_API_VERSION, mv, access, name, desc, signature,</span>
+				exceptions);
+<span class="fc" id="L39">	}</span>
+
+	@Override
+	public void visitLocalVariable(final String name, final String desc,
+			final String signature, final Label start, final Label end,
+			final int index) {
+		// Here we rely on the usage of the info fields by the tree API. If the
+		// labels have been properly used before the info field contains a
+		// reference to the LabelNode, otherwise null.
+<span class="fc bfc" id="L48" title="All 4 branches covered.">		if (start.info != null &amp;&amp; end.info != null) {</span>
+<span class="fc" id="L49">			super.visitLocalVariable(name, desc, signature, start, end, index);</span>
+		}
+<span class="fc" id="L51">	}</span>
+
+	@Override
+	public void visitLineNumber(final int line, final Label start) {
+		// Here we rely on the usage of the info fields by the tree API. If the
+		// labels have been properly used before the info field contains a
+		// reference to the LabelNode, otherwise null.
+<span class="fc bfc" id="L58" title="All 2 branches covered.">		if (start.info != null) {</span>
+<span class="fc" id="L59">			super.visitLineNumber(line, start);</span>
+		}
+<span class="fc" id="L61">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

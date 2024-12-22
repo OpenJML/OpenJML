@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>JavaNames.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.report</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.report</a> &gt; <span class="el_source">JavaNames.java</span></div><h1>JavaNames.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.report;
+
+import org.objectweb.asm.Type;
+
+/**
+ * Names for the Java language.
+ */
+<span class="fc" id="L20">public class JavaNames implements ILanguageNames {</span>
+
+	public String getPackageName(final String vmname) {
+<span class="fc bfc" id="L23" title="All 2 branches covered.">		if (vmname.length() == 0) {</span>
+<span class="fc" id="L24">			return &quot;default&quot;;</span>
+		}
+<span class="fc" id="L26">		return vmname.replace('/', '.');</span>
+	}
+
+	private String getClassName(final String vmname) {
+<span class="fc" id="L30">		final int pos = vmname.lastIndexOf('/');</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">		final String name = pos == -1 ? vmname : vmname.substring(pos + 1);</span>
+<span class="fc" id="L32">		return name.replace('$', '.');</span>
+	}
+
+	private boolean isAnonymous(final String vmname) {
+<span class="fc" id="L36">		final int dollarPosition = vmname.lastIndexOf('$');</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">		if (dollarPosition == -1) {</span>
+<span class="fc" id="L38">			return false;</span>
+		}
+<span class="fc" id="L40">		final int internalPosition = dollarPosition + 1;</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">		if (internalPosition == vmname.length()) {</span>
+			// shouldn't happen for classes compiled from Java source
+<span class="fc" id="L43">			return false;</span>
+		}
+		// assume non-identifier start character for anonymous classes
+<span class="fc" id="L46">		final char start = vmname.charAt(internalPosition);</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">		return !Character.isJavaIdentifierStart(start);</span>
+	}
+
+	public String getClassName(final String vmname, final String vmsignature,
+			final String vmsuperclass, final String[] vminterfaces) {
+<span class="fc bfc" id="L52" title="All 2 branches covered.">		if (isAnonymous(vmname)) {</span>
+			final String vmsupertype;
+<span class="fc bfc" id="L54" title="All 4 branches covered.">			if (vminterfaces != null &amp;&amp; vminterfaces.length &gt; 0) {</span>
+<span class="fc" id="L55">				vmsupertype = vminterfaces[0];</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">			} else if (vmsuperclass != null) {</span>
+<span class="fc" id="L57">				vmsupertype = vmsuperclass;</span>
+			} else {
+<span class="fc" id="L59">				vmsupertype = null;</span>
+			}
+			// append Eclipse style label, e.g. &quot;Foo.new Bar() {...}&quot;
+<span class="fc bfc" id="L62" title="All 2 branches covered.">			if (vmsupertype != null) {</span>
+<span class="fc" id="L63">				final StringBuilder builder = new StringBuilder();</span>
+<span class="fc" id="L64">				final String vmenclosing = vmname.substring(0,</span>
+						vmname.lastIndexOf('$'));
+<span class="fc" id="L66">				builder.append(getClassName(vmenclosing)).append(&quot;.new &quot;)</span>
+						.append(getClassName(vmsupertype)).append(&quot;() {...}&quot;);
+<span class="fc" id="L68">				return builder.toString();</span>
+			}
+		}
+<span class="fc" id="L71">		return getClassName(vmname);</span>
+	}
+
+	public String getQualifiedClassName(final String vmname) {
+<span class="fc" id="L75">		return vmname.replace('/', '.').replace('$', '.');</span>
+	}
+
+	public String getMethodName(final String vmclassname,
+			final String vmmethodname, final String vmdesc,
+			final String vmsignature) {
+<span class="fc" id="L81">		return getMethodName(vmclassname, vmmethodname, vmdesc, false);</span>
+	}
+
+	public String getQualifiedMethodName(final String vmclassname,
+			final String vmmethodname, final String vmdesc,
+			final String vmsignature) {
+<span class="fc" id="L87">		return getQualifiedClassName(vmclassname) + &quot;.&quot;</span>
+				+ getMethodName(vmclassname, vmmethodname, vmdesc, true);
+	}
+
+	private String getMethodName(final String vmclassname,
+			final String vmmethodname, final String vmdesc,
+			final boolean qualifiedParams) {
+<span class="fc bfc" id="L94" title="All 2 branches covered.">		if (&quot;&lt;clinit&gt;&quot;.equals(vmmethodname)) {</span>
+<span class="fc" id="L95">			return &quot;static {...}&quot;;</span>
+		}
+<span class="fc" id="L97">		final StringBuilder result = new StringBuilder();</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">		if (&quot;&lt;init&gt;&quot;.equals(vmmethodname)) {</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">			if (isAnonymous(vmclassname)) {</span>
+<span class="fc" id="L100">				return &quot;{...}&quot;;</span>
+			} else {
+<span class="fc" id="L102">				result.append(getClassName(vmclassname));</span>
+			}
+		} else {
+<span class="fc" id="L105">			result.append(vmmethodname);</span>
+		}
+<span class="fc" id="L107">		result.append('(');</span>
+<span class="fc" id="L108">		final Type[] arguments = Type.getArgumentTypes(vmdesc);</span>
+<span class="fc" id="L109">		boolean comma = false;</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">		for (final Type arg : arguments) {</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">			if (comma) {</span>
+<span class="fc" id="L112">				result.append(&quot;, &quot;);</span>
+			} else {
+<span class="fc" id="L114">				comma = true;</span>
+			}
+<span class="fc bfc" id="L116" title="All 2 branches covered.">			if (qualifiedParams) {</span>
+<span class="fc" id="L117">				result.append(getQualifiedClassName(arg.getClassName()));</span>
+			} else {
+<span class="fc" id="L119">				result.append(getShortTypeName(arg));</span>
+			}
+		}
+<span class="fc" id="L122">		result.append(')');</span>
+<span class="fc" id="L123">		return result.toString();</span>
+	}
+
+	private String getShortTypeName(final Type type) {
+<span class="fc" id="L127">		final String name = type.getClassName();</span>
+<span class="fc" id="L128">		final int pos = name.lastIndexOf('.');</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">		final String shortName = pos == -1 ? name : name.substring(pos + 1);</span>
+<span class="fc" id="L130">		return shortName.replace('$', '.');</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

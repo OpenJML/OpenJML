@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ReportSupport.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">jacoco-maven-plugin</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.maven</a> &gt; <span class="el_source">ReportSupport.java</span></div><h1>ReportSupport.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *    Kyle Lieber - implementation of CheckMojo
+ *
+ *******************************************************************************/
+package org.jacoco.maven;
+
+import static java.lang.String.format;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
+import org.jacoco.core.analysis.Analyzer;
+import org.jacoco.core.analysis.CoverageBuilder;
+import org.jacoco.core.analysis.IBundleCoverage;
+import org.jacoco.core.analysis.IClassCoverage;
+import org.jacoco.core.tools.ExecFileLoader;
+import org.jacoco.report.IReportGroupVisitor;
+import org.jacoco.report.IReportVisitor;
+import org.jacoco.report.ISourceFileLocator;
+import org.jacoco.report.MultiReportVisitor;
+import org.jacoco.report.check.IViolationsOutput;
+import org.jacoco.report.check.Rule;
+import org.jacoco.report.check.RulesChecker;
+
+/**
+ * Encapsulates the tasks to create reports for Maven projects. Instances are
+ * supposed to be used in the following sequence:
+ *
+ * &lt;ol&gt;
+ * &lt;li&gt;Create an instance&lt;/li&gt;
+ * &lt;li&gt;Load one or multiple exec files with
+ * &lt;code&gt;loadExecutionData()&lt;/code&gt;&lt;/li&gt;
+ * &lt;li&gt;Add one or multiple formatters with &lt;code&gt;addXXX()&lt;/code&gt; methods&lt;/li&gt;
+ * &lt;li&gt;Create the root visitor with &lt;code&gt;initRootVisitor()&lt;/code&gt;&lt;/li&gt;
+ * &lt;li&gt;Process one or multiple projects with &lt;code&gt;processProject()&lt;/code&gt;&lt;/li&gt;
+ * &lt;/ol&gt;
+ */
+final class ReportSupport {
+
+	private final Log log;
+	private final ExecFileLoader loader;
+	private final List&lt;IReportVisitor&gt; formatters;
+
+	/**
+	 * Construct a new instance with the given log output.
+	 *
+	 * @param log
+	 *            for log output
+	 */
+<span class="fc" id="L67">	public ReportSupport(final Log log) {</span>
+<span class="fc" id="L68">		this.log = log;</span>
+<span class="fc" id="L69">		this.loader = new ExecFileLoader();</span>
+<span class="fc" id="L70">		this.formatters = new ArrayList&lt;IReportVisitor&gt;();</span>
+<span class="fc" id="L71">	}</span>
+
+	/**
+	 * Loads the given execution data file.
+	 *
+	 * @param execFile
+	 *            execution data file to load
+	 * @throws IOException
+	 *             if the file can't be loaded
+	 */
+	public void loadExecutionData(final File execFile) throws IOException {
+<span class="fc" id="L82">		log.info(&quot;Loading execution data file &quot; + execFile);</span>
+<span class="fc" id="L83">		loader.load(execFile);</span>
+<span class="fc" id="L84">	}</span>
+
+	public void addVisitor(final IReportVisitor visitor) {
+<span class="fc" id="L87">		formatters.add(visitor);</span>
+<span class="fc" id="L88">	}</span>
+
+	public void addRulesChecker(final List&lt;Rule&gt; rules,
+			final IViolationsOutput output) {
+<span class="fc" id="L92">		final RulesChecker checker = new RulesChecker();</span>
+<span class="fc" id="L93">		checker.setRules(rules);</span>
+<span class="fc" id="L94">		formatters.add(checker.createVisitor(output));</span>
+<span class="fc" id="L95">	}</span>
+
+	public IReportVisitor initRootVisitor() throws IOException {
+<span class="fc" id="L98">		final IReportVisitor visitor = new MultiReportVisitor(formatters);</span>
+<span class="fc" id="L99">		visitor.visitInfo(loader.getSessionInfoStore().getInfos(),</span>
+<span class="fc" id="L100">				loader.getExecutionDataStore().getContents());</span>
+<span class="fc" id="L101">		return visitor;</span>
+	}
+
+	/**
+	 * Calculates coverage for the given project and emits it to the report
+	 * group without source references
+	 *
+	 * @param visitor
+	 *            group visitor to emit the project's coverage to
+	 * @param project
+	 *            the MavenProject
+	 * @param includes
+	 *            list of includes patterns
+	 * @param excludes
+	 *            list of excludes patterns
+	 * @throws IOException
+	 *             if class files can't be read
+	 */
+	public void processProject(final IReportGroupVisitor visitor,
+			final MavenProject project, final List&lt;String&gt; includes,
+			final List&lt;String&gt; excludes) throws IOException {
+<span class="fc" id="L122">		processProject(visitor, project.getArtifactId(), project, includes,</span>
+				excludes, new NoSourceLocator());
+<span class="fc" id="L124">	}</span>
+
+	/**
+	 * Calculates coverage for the given project and emits it to the report
+	 * group including source references
+	 *
+	 * @param visitor
+	 *            group visitor to emit the project's coverage to
+	 * @param bundleName
+	 *            name for this project in the report
+	 * @param project
+	 *            the MavenProject
+	 * @param includes
+	 *            list of includes patterns
+	 * @param excludes
+	 *            list of excludes patterns
+	 * @param srcEncoding
+	 *            encoding of the source files within this project
+	 * @throws IOException
+	 *             if class files can't be read
+	 */
+	public void processProject(final IReportGroupVisitor visitor,
+			final String bundleName, final MavenProject project,
+			final List&lt;String&gt; includes, final List&lt;String&gt; excludes,
+			final String srcEncoding) throws IOException {
+<span class="fc" id="L149">		processProject(visitor, bundleName, project, includes, excludes,</span>
+				new SourceFileCollection(project, srcEncoding));
+<span class="fc" id="L151">	}</span>
+
+	private void processProject(final IReportGroupVisitor visitor,
+			final String bundleName, final MavenProject project,
+			final List&lt;String&gt; includes, final List&lt;String&gt; excludes,
+			final ISourceFileLocator locator) throws IOException {
+<span class="fc" id="L157">		final CoverageBuilder builder = new CoverageBuilder();</span>
+<span class="fc" id="L158">		final File classesDir = new File(</span>
+<span class="fc" id="L159">				project.getBuild().getOutputDirectory());</span>
+
+<span class="fc bfc" id="L161" title="All 2 branches covered.">		if (classesDir.isDirectory()) {</span>
+<span class="fc" id="L162">			final Analyzer analyzer = new Analyzer(</span>
+<span class="fc" id="L163">					loader.getExecutionDataStore(), builder);</span>
+<span class="fc" id="L164">			final FileFilter filter = new FileFilter(includes, excludes);</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">			for (final File file : filter.getFiles(classesDir)) {</span>
+<span class="fc" id="L166">				analyzer.analyzeAll(file);</span>
+<span class="fc" id="L167">			}</span>
+		}
+
+<span class="fc" id="L170">		final IBundleCoverage bundle = builder.getBundle(bundleName);</span>
+<span class="fc" id="L171">		logBundleInfo(bundle, builder.getNoMatchClasses());</span>
+
+<span class="fc" id="L173">		visitor.visitBundle(bundle, locator);</span>
+<span class="fc" id="L174">	}</span>
+
+	private void logBundleInfo(final IBundleCoverage bundle,
+			final Collection&lt;IClassCoverage&gt; nomatch) {
+<span class="fc" id="L178">		log.info(format(&quot;Analyzed bundle '%s' with %s classes&quot;,</span>
+<span class="fc" id="L179">				bundle.getName(),</span>
+<span class="fc" id="L180">				Integer.valueOf(bundle.getClassCounter().getTotalCount())));</span>
+<span class="fc bfc" id="L181" title="All 2 branches covered.">		if (!nomatch.isEmpty()) {</span>
+<span class="fc" id="L182">			log.warn(format(</span>
+					&quot;Classes in bundle '%s' do not match with execution data. &quot;
+							+ &quot;For report generation the same class files must be used as at runtime.&quot;,
+<span class="fc" id="L185">					bundle.getName()));</span>
+<span class="fc bfc" id="L186" title="All 2 branches covered.">			for (final IClassCoverage c : nomatch) {</span>
+<span class="fc" id="L187">				log.warn(format(&quot;Execution data for class %s does not match.&quot;,</span>
+<span class="fc" id="L188">						c.getName()));</span>
+<span class="fc" id="L189">			}</span>
+		}
+<span class="fc bfc" id="L191" title="All 2 branches covered.">		if (bundle.containsCode()</span>
+<span class="fc bfc" id="L192" title="All 2 branches covered.">				&amp;&amp; bundle.getLineCounter().getTotalCount() == 0) {</span>
+<span class="fc" id="L193">			log.warn(</span>
+					&quot;To enable source code annotation class files have to be compiled with debug information.&quot;);
+		}
+<span class="fc" id="L196">	}</span>
+
+<span class="fc" id="L198">	private class NoSourceLocator implements ISourceFileLocator {</span>
+
+		public Reader getSourceFile(final String packageName,
+				final String fileName) {
+<span class="nc" id="L202">			return null;</span>
+		}
+
+		public int getTabWidth() {
+<span class="nc" id="L206">			return 0;</span>
+		}
+	}
+
+	private class SourceFileCollection implements ISourceFileLocator {
+
+		private final List&lt;File&gt; sourceRoots;
+		private final String encoding;
+
+		public SourceFileCollection(final MavenProject project,
+<span class="fc" id="L216">				final String encoding) {</span>
+<span class="fc" id="L217">			this.sourceRoots = getCompileSourceRoots(project);</span>
+<span class="fc" id="L218">			this.encoding = encoding;</span>
+<span class="fc" id="L219">		}</span>
+
+		public Reader getSourceFile(final String packageName,
+				final String fileName) throws IOException {
+			final String r;
+<span class="fc bfc" id="L224" title="All 2 branches covered.">			if (packageName.length() &gt; 0) {</span>
+<span class="fc" id="L225">				r = packageName + '/' + fileName;</span>
+			} else {
+<span class="fc" id="L227">				r = fileName;</span>
+			}
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">			for (final File sourceRoot : sourceRoots) {</span>
+<span class="fc" id="L230">				final File file = new File(sourceRoot, r);</span>
+<span class="pc bpc" id="L231" title="2 of 4 branches missed.">				if (file.exists() &amp;&amp; file.isFile()) {</span>
+<span class="fc" id="L232">					return new InputStreamReader(new FileInputStream(file),</span>
+							encoding);
+				}
+<span class="nc" id="L235">			}</span>
+<span class="nc" id="L236">			return null;</span>
+		}
+
+		public int getTabWidth() {
+<span class="fc" id="L240">			return 4;</span>
+		}
+	}
+
+	private static List&lt;File&gt; getCompileSourceRoots(
+			final MavenProject project) {
+<span class="fc" id="L246">		final List&lt;File&gt; result = new ArrayList&lt;File&gt;();</span>
+<span class="fc bfc" id="L247" title="All 2 branches covered.">		for (final Object path : project.getCompileSourceRoots()) {</span>
+<span class="fc" id="L248">			result.add(resolvePath(project, (String) path));</span>
+<span class="fc" id="L249">		}</span>
+<span class="fc" id="L250">		return result;</span>
+	}
+
+	private static File resolvePath(final MavenProject project,
+			final String path) {
+<span class="fc" id="L255">		File file = new File(path);</span>
+<span class="pc bpc" id="L256" title="1 of 2 branches missed.">		if (!file.isAbsolute()) {</span>
+<span class="nc" id="L257">			file = new File(project.getBasedir(), path);</span>
+		}
+<span class="fc" id="L259">		return file;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

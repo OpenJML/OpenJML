@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>XmlDocumentation.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.cli</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.cli.internal</a> &gt; <span class="el_source">XmlDocumentation.java</span></div><h1>XmlDocumentation.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.cli.internal;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.List;
+
+import org.jacoco.cli.internal.commands.AllCommands;
+import org.jacoco.report.internal.xml.XMLElement;
+import org.kohsuke.args4j.spi.OptionHandler;
+
+/**
+ * Internal utility to dump all command descriptions as XML.
+ */
+public final class XmlDocumentation {
+
+	private XmlDocumentation() {
+	}
+
+	private static void writeCommand(final Command command,
+			final XMLElement parent) throws IOException {
+<span class="fc" id="L34">		final CommandParser parser = new CommandParser(command);</span>
+<span class="fc" id="L35">		final XMLElement element = parent.element(&quot;command&quot;);</span>
+<span class="fc" id="L36">		element.attr(&quot;name&quot;, command.name());</span>
+<span class="fc" id="L37">		element.element(&quot;usage&quot;).text(command.usage(parser));</span>
+<span class="fc" id="L38">		element.element(&quot;description&quot;).text(command.description());</span>
+<span class="fc" id="L39">		writeOptions(element, parser.getArguments());</span>
+<span class="fc" id="L40">		writeOptions(element, parser.getOptions());</span>
+<span class="fc" id="L41">	}</span>
+
+	private static void writeOptions(final XMLElement parent,
+			@SuppressWarnings(&quot;rawtypes&quot;) final List&lt;OptionHandler&gt; list)
+			throws IOException {
+<span class="fc bfc" id="L46" title="All 2 branches covered.">		for (final OptionHandler&lt;?&gt; o : list) {</span>
+<span class="fc" id="L47">			final XMLElement optionNode = parent.element(&quot;option&quot;);</span>
+<span class="fc" id="L48">			optionNode.attr(&quot;required&quot;, String.valueOf(o.option.required()));</span>
+<span class="fc" id="L49">			optionNode.attr(&quot;multiple&quot;,</span>
+					String.valueOf(o.setter.isMultiValued()));
+<span class="fc" id="L51">			optionNode.element(&quot;usage&quot;).text(o.getNameAndMeta(null));</span>
+<span class="fc" id="L52">			optionNode.element(&quot;description&quot;).text(o.option.usage());</span>
+<span class="fc" id="L53">		}</span>
+<span class="fc" id="L54">	}</span>
+
+	/**
+	 * Called during the build process.
+	 *
+	 * @param args
+	 *            exactly one argument expected with the target location
+	 * @throws IOException
+	 *             if XML document cannot be written
+	 */
+	public static void main(final String... args) throws IOException {
+<span class="fc" id="L65">		final File file = new File(args[0]);</span>
+<span class="fc" id="L66">		file.getParentFile().mkdirs();</span>
+
+<span class="fc" id="L68">		final XMLElement root = new XMLElement(&quot;documentation&quot;, null, null,</span>
+				true, &quot;UTF-8&quot;, new FileOutputStream(file));
+
+<span class="fc bfc" id="L71" title="All 2 branches covered.">		for (final Command c : AllCommands.get()) {</span>
+<span class="fc" id="L72">			writeCommand(c, root);</span>
+		}
+
+<span class="fc" id="L75">		root.close();</span>
+<span class="fc" id="L76">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

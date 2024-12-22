@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" href="resources/doc.css" charset="UTF-8" type="text/css" />
+        <link rel="shortcut icon" href="resources/report.gif" type="image/gif" />
+        <title>
+					JaCoCo - Command Line Interface
+				</title>
+    </head>
+    <body>
+        <div class="breadcrumb">
+            <a href="../index.html" class="el_report">JaCoCo</a>
+             &gt;
+					
+            <a href="index.html" class="el_group">Documentation</a>
+             &gt;
+					
+            <span class="el_source">Command Line Interface</span>
+        </div>
+        <div id="content">
+            <h1>Command Line Interface</h1>
+            <p>
+                					  JaCoCo comes with a command line interface to perform
+					  basic operations from the command line. The command line
+					  tools with all dependencies are packaged in
+					  
+                <code>jacococli.jar</code>
+                 and are available with the
+					  JaCoCo download. Java 1.5 or greater is required for
+					  execution.
+					
+            </p>
+            <p>
+                					  For more sophisticated usage especially with larger
+					  projects please use our
+					  
+                <a href="integrations.html">integrations</a>
+                 with various
+					  build tools.
+					
+            </p>
+            <p>
+					  The following commands are available. Each command has a
+					  list of optional and required parameters. Some parameters
+					  can be specified multiple times to provide multiple values.
+					</p>
+            <p class="hint">
+                <b>Warning:</b>
+                 Although a 
+                <code>instrument</code>
+                 command
+					  is provided the preferred way for code coverage analysis
+					  with JaCoCo is on-the-fly instrumentation with the
+					  
+                <a href="agent.html">JaCoCo agent</a>
+                . Offline
+					  instrumentation has several drawbacks and should only be
+					  used if a specific scenario explicitly requires this mode.
+					  Please consult 
+                <a href="offline.html">documentation</a>
+                					  about offline instrumentation before using this mode.
+					
+            </p>
+            <h2>dump</h2>
+            <pre class="source" style="white-space: pre-wrap">java -jar jacococli.jar dump [--address &lt;address&gt;] --destfile &lt;path&gt; [--help] [--port &lt;port&gt;] [--quiet] [--reset] [--retry &lt;count&gt;]</pre>
+            <p>Request execution data from a JaCoCo agent running in 'tcpserver' output mode.</p>
+            <table class="coverage">
+                <thead>
+                    <tr>
+                        <td>Option</td>
+                        <td>Description</td>
+                        <td>Required</td>
+                        <td>Multiple</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>--address &lt;address&gt;</code>
+                        </td>
+                        <td>host name or ip address to connect to (default localhost)</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--destfile &lt;path&gt;</code>
+                        </td>
+                        <td>file to write execution data to</td>
+                        <td style="text-align:center">◼</td>
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--help</code>
+                        </td>
+                        <td>show help</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--port &lt;port&gt;</code>
+                        </td>
+                        <td>the port to connect to (default 6300)</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--quiet</code>
+                        </td>
+                        <td>suppress all output on stdout</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--reset</code>
+                        </td>
+                        <td>reset execution data on test target after dump</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--retry &lt;count&gt;</code>
+                        </td>
+                        <td>number of retries (default 10)</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                </tbody>
+            </table>
+            <h2>instrument</h2>
+            <pre class="source" style="white-space: pre-wrap">java -jar jacococli.jar instrument [&lt;sourcefiles&gt; ...] --dest &lt;dir&gt; [--help] [--quiet]</pre>
+            <p>Off-line instrumentation of Java class files and JAR files.</p>
+            <table class="coverage">
+                <thead>
+                    <tr>
+                        <td>Option</td>
+                        <td>Description</td>
+                        <td>Required</td>
+                        <td>Multiple</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>&lt;sourcefiles&gt;</code>
+                        </td>
+                        <td>list of folder or files to instrument recusively</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center">◼</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--dest &lt;dir&gt;</code>
+                        </td>
+                        <td>path to write instrumented Java classes to</td>
+                        <td style="text-align:center">◼</td>
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--help</code>
+                        </td>
+                        <td>show help</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--quiet</code>
+                        </td>
+                        <td>suppress all output on stdout</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                </tbody>
+            </table>
+            <h2>merge</h2>
+            <pre class="source" style="white-space: pre-wrap">java -jar jacococli.jar merge [&lt;execfiles&gt; ...] --destfile &lt;path&gt; [--help] [--quiet]</pre>
+            <p>Merges multiple exec files into a new one.</p>
+            <table class="coverage">
+                <thead>
+                    <tr>
+                        <td>Option</td>
+                        <td>Description</td>
+                        <td>Required</td>
+                        <td>Multiple</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>&lt;execfiles&gt;</code>
+                        </td>
+                        <td>list of JaCoCo *.exec files to read</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center">◼</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--destfile &lt;path&gt;</code>
+                        </td>
+                        <td>file to write merged execution data to</td>
+                        <td style="text-align:center">◼</td>
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--help</code>
+                        </td>
+                        <td>show help</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--quiet</code>
+                        </td>
+                        <td>suppress all output on stdout</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                </tbody>
+            </table>
+            <h2>report</h2>
+            <pre class="source" style="white-space: pre-wrap">java -jar jacococli.jar report [&lt;execfiles&gt; ...] --classfiles &lt;path&gt; [--csv &lt;file&gt;] [--encoding &lt;charset&gt;] [--help] [--html &lt;dir&gt;] [--name &lt;name&gt;] [--quiet] [--sourcefiles &lt;path&gt;] [--tabwith &lt;n&gt;] [--xml &lt;file&gt;]</pre>
+            <p>Generate reports in different formats by reading exec and Java class files.</p>
+            <table class="coverage">
+                <thead>
+                    <tr>
+                        <td>Option</td>
+                        <td>Description</td>
+                        <td>Required</td>
+                        <td>Multiple</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>&lt;execfiles&gt;</code>
+                        </td>
+                        <td>list of JaCoCo *.exec files to read</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center">◼</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--classfiles &lt;path&gt;</code>
+                        </td>
+                        <td>location of Java class files</td>
+                        <td style="text-align:center">◼</td>
+                        <td style="text-align:center">◼</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--csv &lt;file&gt;</code>
+                        </td>
+                        <td>output file for the CSV report</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--encoding &lt;charset&gt;</code>
+                        </td>
+                        <td>source file encoding (by default platform encoding is used)</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--help</code>
+                        </td>
+                        <td>show help</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--html &lt;dir&gt;</code>
+                        </td>
+                        <td>output directory for the HTML report</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--name &lt;name&gt;</code>
+                        </td>
+                        <td>name used for this report</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--quiet</code>
+                        </td>
+                        <td>suppress all output on stdout</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--sourcefiles &lt;path&gt;</code>
+                        </td>
+                        <td>location of the source files</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center">◼</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--tabwith &lt;n&gt;</code>
+                        </td>
+                        <td>tab stop width for the source pages (default 4)</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--xml &lt;file&gt;</code>
+                        </td>
+                        <td>output file for the XML report</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                </tbody>
+            </table>
+            <h2>classinfo</h2>
+            <pre class="source" style="white-space: pre-wrap">java -jar jacococli.jar classinfo [&lt;classlocations&gt; ...] [--help] [--quiet] [--verbose]</pre>
+            <p>Print information about Java class files at the provided location.</p>
+            <table class="coverage">
+                <thead>
+                    <tr>
+                        <td>Option</td>
+                        <td>Description</td>
+                        <td>Required</td>
+                        <td>Multiple</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>&lt;classlocations&gt;</code>
+                        </td>
+                        <td>location of Java class files</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center">◼</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--help</code>
+                        </td>
+                        <td>show help</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--quiet</code>
+                        </td>
+                        <td>suppress all output on stdout</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--verbose</code>
+                        </td>
+                        <td>show method and line number details</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                </tbody>
+            </table>
+            <h2>execinfo</h2>
+            <pre class="source" style="white-space: pre-wrap">java -jar jacococli.jar execinfo [&lt;execfiles&gt; ...] [--help] [--quiet]</pre>
+            <p>Print exec file content in human readable format.</p>
+            <table class="coverage">
+                <thead>
+                    <tr>
+                        <td>Option</td>
+                        <td>Description</td>
+                        <td>Required</td>
+                        <td>Multiple</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>&lt;execfiles&gt;</code>
+                        </td>
+                        <td>list of JaCoCo *.exec files to read</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center">◼</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--help</code>
+                        </td>
+                        <td>show help</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--quiet</code>
+                        </td>
+                        <td>suppress all output on stdout</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                </tbody>
+            </table>
+            <h2>version</h2>
+            <pre class="source" style="white-space: pre-wrap">java -jar jacococli.jar version [--help] [--quiet]</pre>
+            <p>Print JaCoCo version information.</p>
+            <table class="coverage">
+                <thead>
+                    <tr>
+                        <td>Option</td>
+                        <td>Description</td>
+                        <td>Required</td>
+                        <td>Multiple</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>--help</code>
+                        </td>
+                        <td>show help</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>--quiet</code>
+                        </td>
+                        <td>suppress all output on stdout</td>
+                        <td style="text-align:center" />
+                        <td style="text-align:center" />
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="footer">
+            <span class="right">
+                <a href="http://www.jacoco.org/jacoco">JaCoCo</a>
+                						 
+						0.8.11.202310140853
+            </span>
+            <a href="../doc/license.html">Copyright</a>
+            					©
+					2009, 2023
+					Mountainminds GmbH &amp; Co. KG and Contributors
+				
+        </div>
+    </body>
+</html>

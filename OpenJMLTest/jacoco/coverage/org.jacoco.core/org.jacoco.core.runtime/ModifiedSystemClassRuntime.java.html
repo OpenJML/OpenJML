@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ModifiedSystemClassRuntime.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.runtime</a> &gt; <span class="el_source">ModifiedSystemClassRuntime.java</span></div><h1>ModifiedSystemClassRuntime.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.runtime;
+
+import static java.lang.String.format;
+
+import java.lang.instrument.ClassFileTransformer;
+import java.lang.instrument.IllegalClassFormatException;
+import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Field;
+import java.security.ProtectionDomain;
+
+import org.jacoco.core.internal.instr.InstrSupport;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+
+/**
+ * This {@link IRuntime} implementation works with a modified system class. A
+ * new static field is added to a bootstrap class that will be used by
+ * instrumented classes. As the system class itself needs to be instrumented
+ * this runtime requires a Java agent.
+ */
+public class ModifiedSystemClassRuntime extends AbstractRuntime {
+
+	private static final String ACCESS_FIELD_TYPE = &quot;Ljava/lang/Object;&quot;;
+
+	private final Class&lt;?&gt; systemClass;
+
+	private final String systemClassName;
+
+	private final String accessFieldName;
+
+	/**
+	 * Creates a new runtime based on the given class and members.
+	 *
+	 * @param systemClass
+	 *            system class that contains the execution data
+	 * @param accessFieldName
+	 *            name of the public static runtime access field
+	 *
+	 */
+	public ModifiedSystemClassRuntime(final Class&lt;?&gt; systemClass,
+			final String accessFieldName) {
+<span class="fc" id="L57">		super();</span>
+<span class="fc" id="L58">		this.systemClass = systemClass;</span>
+<span class="fc" id="L59">		this.systemClassName = systemClass.getName().replace('.', '/');</span>
+<span class="fc" id="L60">		this.accessFieldName = accessFieldName;</span>
+<span class="fc" id="L61">	}</span>
+
+	@Override
+	public void startup(final RuntimeData data) throws Exception {
+<span class="fc" id="L65">		super.startup(data);</span>
+<span class="fc" id="L66">		final Field field = systemClass.getField(accessFieldName);</span>
+<span class="fc" id="L67">		field.set(null, data);</span>
+<span class="fc" id="L68">	}</span>
+
+	public void shutdown() {
+		// nothing to do
+<span class="fc" id="L72">	}</span>
+
+	public int generateDataAccessor(final long classid, final String classname,
+			final int probecount, final MethodVisitor mv) {
+
+<span class="fc" id="L77">		mv.visitFieldInsn(Opcodes.GETSTATIC, systemClassName, accessFieldName,</span>
+				ACCESS_FIELD_TYPE);
+
+<span class="fc" id="L80">		RuntimeData.generateAccessCall(classid, classname, probecount, mv);</span>
+
+<span class="fc" id="L82">		return 6;</span>
+	}
+
+	/**
+	 * Creates a new {@link ModifiedSystemClassRuntime} using the given class as
+	 * the data container. Member is created with internal default name. The
+	 * given class must not have been loaded before by the agent.
+	 *
+	 * @param inst
+	 *            instrumentation interface
+	 * @param className
+	 *            VM name of the class to use
+	 * @return new runtime instance
+	 *
+	 * @throws ClassNotFoundException
+	 *             id the given class can not be found
+	 */
+	public static IRuntime createFor(final Instrumentation inst,
+			final String className) throws ClassNotFoundException {
+<span class="nc" id="L101">		return createFor(inst, className, &quot;$jacocoAccess&quot;);</span>
+	}
+
+	/**
+	 * Creates a new {@link ModifiedSystemClassRuntime} using the given class as
+	 * the data container. The given class must not have been loaded before by
+	 * the agent.
+	 *
+	 * @param inst
+	 *            instrumentation interface
+	 * @param className
+	 *            VM name of the class to use
+	 * @param accessFieldName
+	 *            name of the added runtime access field
+	 * @return new runtime instance
+	 *
+	 * @throws ClassNotFoundException
+	 *             if the given class can not be found
+	 */
+	public static IRuntime createFor(final Instrumentation inst,
+			final String className, final String accessFieldName)
+			throws ClassNotFoundException {
+<span class="fc" id="L123">		final ClassFileTransformer transformer = new ClassFileTransformer() {</span>
+<span class="fc" id="L124">			public byte[] transform(final ClassLoader loader, final String name,</span>
+					final Class&lt;?&gt; classBeingRedefined,
+					final ProtectionDomain protectionDomain,
+					final byte[] source) throws IllegalClassFormatException {
+<span class="fc bfc" id="L128" title="All 2 branches covered.">				if (name.equals(className)) {</span>
+<span class="fc" id="L129">					return instrument(source, accessFieldName);</span>
+				}
+<span class="fc" id="L131">				return null;</span>
+			}
+		};
+<span class="fc" id="L134">		inst.addTransformer(transformer);</span>
+<span class="fc" id="L135">		final Class&lt;?&gt; clazz = Class.forName(className.replace('/', '.'));</span>
+<span class="fc" id="L136">		inst.removeTransformer(transformer);</span>
+		try {
+<span class="nc" id="L138">			clazz.getField(accessFieldName);</span>
+<span class="fc" id="L139">		} catch (final NoSuchFieldException e) {</span>
+<span class="fc" id="L140">			throw new RuntimeException(</span>
+					format(&quot;Class %s could not be instrumented.&quot;, className),
+					e);
+<span class="nc" id="L143">		}</span>
+<span class="nc" id="L144">		return new ModifiedSystemClassRuntime(clazz, accessFieldName);</span>
+	}
+
+	/**
+	 * Adds the static data field to the given class definition.
+	 *
+	 * @param source
+	 *            class definition source
+	 * @param accessFieldName
+	 *            name of the runtime access field
+	 * @return instrumented version with added members
+	 */
+	public static byte[] instrument(final byte[] source,
+			final String accessFieldName) {
+<span class="fc" id="L158">		final ClassReader reader = InstrSupport.classReaderFor(source);</span>
+<span class="fc" id="L159">		final ClassWriter writer = new ClassWriter(reader, 0);</span>
+<span class="fc" id="L160">		reader.accept(new ClassVisitor(InstrSupport.ASM_API_VERSION, writer) {</span>
+
+			@Override
+<span class="fc" id="L163">			public void visitEnd() {</span>
+<span class="fc" id="L164">				createDataField(cv, accessFieldName);</span>
+<span class="fc" id="L165">				super.visitEnd();</span>
+<span class="fc" id="L166">			}</span>
+
+		}, ClassReader.EXPAND_FRAMES);
+<span class="fc" id="L169">		return writer.toByteArray();</span>
+	}
+
+	private static void createDataField(final ClassVisitor visitor,
+			final String dataField) {
+<span class="fc" id="L174">		visitor.visitField(</span>
+				Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC
+						| Opcodes.ACC_TRANSIENT,
+				dataField, ACCESS_FIELD_TYPE, null, null);
+<span class="fc" id="L178">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>
