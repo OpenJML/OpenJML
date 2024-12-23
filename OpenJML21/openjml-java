@@ -1,16 +1,15 @@
 #!/bin/bash
 
-## This is for the development environment
 ## It is a convenience script to run the version of 'java' embellished with openjml's runtime libraries
+## and perhaps also with the coverage agent
 
 R1=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks; R1 will be the path to this file
-R2=$(dirname "$R1") # path of the folder containing this file
-R=$( cd "$R2/../.."  && pwd) ## absolute path of the grandparent folder (that holds clones of all the relevant repos), still might have spaces
+SRC=$(dirname "$R1") # path of the folder containing this file, which should be either .../OpenJML21 or the release folder
 
-##OS=linux ## macosx linux windows aix
-ROOT="$R/OpenJML/OpenJML21"
-BIN=`echo $ROOT/build/*/jdk/bin/java`
+BIN=`echo $SRC/build/*/jdk/bin/java`
 
-##echo "$BIN" $AGENT "$@"
-OPENJML_ROOT="$R/Solvers" "$BIN" $AGENT "$@"
+. $SRC/setup-exports
+
+##echo "$BIN" $AGENT $EXPORTS "$@"
+OPENJML_ROOT="$SRC/../../Solvers" "$BIN" $AGENT $EXPORTS "$@"
 

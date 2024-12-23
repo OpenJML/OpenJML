@@ -1,7 +1,8 @@
 #! /bin/bash 
 
+LOCAL=$(dirname $BASH_SOURCE[0])
 # Go to OpenJMLTest
-cd $(dirname "$BASH_SOURCE")/..
+cd $LOCAL/..
 
 ## This file tests a release of the OpenJML tool
 ## This is just a quick "smoke" test to make sure that 
@@ -9,15 +10,13 @@ cd $(dirname "$BASH_SOURCE")/..
 ## It is intended to be run with the OpenJML project directory as its 
 ## current working directory, but does its work in a temporary subdirectory
 
-## Name of folder holding releaseBuilds (within OpenJML)
-
-
 Z=:
 if [[ "$COMSPEC" != "" ]] ; then
 Z=';'
 fi
 
-cd ../OpenJMLTest
+## Source the file that sets AGENT and OJA, if requested because COV is set
+. setup-coverage releasetests
 
 rm -rf temp-release
 mkdir temp-release
@@ -57,6 +56,7 @@ else
   JV="$NOZIP"-java
   RT="$LOC/jmlruntime.jar"
   echo "Testing executable at $OJ"
+  ## FIXME - is RT set properly?
 
 fi
 
@@ -67,6 +67,7 @@ if [ ! -e "$OJ" ]; then
    exit 1
 fi
 
+## Currently in .../OpenJML/temp-release possibly with an unzipped release
 export RTH=../releaseTests/releaseTestHelper
 RES=0
 

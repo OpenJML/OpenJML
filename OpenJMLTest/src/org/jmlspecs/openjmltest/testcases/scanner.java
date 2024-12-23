@@ -112,7 +112,8 @@ public class scanner extends JmlTestCase {
                 Object o = e.kind;
                 if (e instanceof JmlToken jmlt) o = jmlt.jmlclausekind;
                 if (o != list[i]) {
-                    fail("Unexpected token at position " + i + " expected: " + list[i] + " actual: " + o );
+                    fail("Unexpected token at position " + i + " expected: " + list[i] + " actual: " + o 
+                            + (" " + e.pos + " " + e.endPos));
                 }
                 if (positions != null && 2*i+1 < positions.length) {
                     assertEquals("pos for token " + i, positions[2*i], e.pos);
@@ -218,19 +219,19 @@ public class scanner extends JmlTestCase {
     
     /** This tests that the test harness records if too many tokens are listed */
     @Test public void testHarness2() {
-        helpFailure("Unexpected token at position 1 expected: token.identifier actual: token.end-of-input",
+        helpFailure("Unexpected token at position 1 expected: token.identifier actual: token.end-of-input 1 1",
                 "A",new Object[]{IDENTIFIER,IDENTIFIER},null,0);
     }
     
     /** This tests that the test harness records if a wrong token is listed */
     @Test public void testHarness3() {
-        helpFailure("Unexpected token at position 0 expected: public actual: token.identifier",
+        helpFailure("Unexpected token at position 0 expected: public actual: token.identifier 0 1",
                 "A",new Object[]{PUBLIC},null,0);
     }
 
     /** This tests that the test harness records if too many tokens are listed */
     @Test public void testHarness4() {
-        helpFailure("Unexpected token at position 2 expected: token.identifier actual: token.end-of-input",
+        helpFailure("Unexpected token at position 2 expected: token.identifier actual: token.end-of-input 1 1",
                 "A",new Object[]{IDENTIFIER,EOF,IDENTIFIER},null,0);
     }
     
@@ -386,6 +387,63 @@ public class scanner extends JmlTestCase {
         checkMessages("/TEST.java:1: error: A backslash in a JML comment expects to be followed by a valid identifier",5);
     }
     
+    /** Test for empty character literal */
+    @Test public void testEmptyCharLiteral() {
+        helpScanner("''",
+                new Object[]{ERROR,EOF},
+                new int[] {0,2,2,2},
+                1);
+        checkMessages("/TEST.java:1: error: empty character literal",1);
+    }
+    
+
+    /** Test for unclosed character literal */
+    @Test public void testUnclosedCharLiteral() {
+        helpScanner("'",
+                new Object[]{ERROR,EOF},
+                new int[] {0,1,1,1},
+                1);
+        checkMessages("/TEST.java:1: error: unclosed character literal",1);
+    }
+
+    /** Test for unclosed character literal */
+    @Test public void testUnclosedCharLiteral2() {
+        helpScanner("'\n",
+                new Object[]{ERROR,EOF},
+                new int[] {0,2,2,2},
+                2);
+        checkMessages("/TEST.java:1: error: illegal line end in character literal",1,
+                "/TEST.java:1: error: unclosed character literal",1);
+    }
+    
+    /** Test for unclosed character literal */
+    @Test public void testIllegalOctal() {
+        helpScanner("0_x",
+                new Object[]{INTLITERAL,IDENTIFIER,EOF},
+                new int[] {0,2,2,3,3,3},
+                2);
+        checkMessages("/TEST.java:1: error: illegal underscore",2,
+                "/TEST.java:1: error: illegal underscore",2);
+    }
+    
+    /** Test for unclosed character literal */
+    @Test public void testLegalUnderscore() {
+        helpScanner("0_5",
+                new Object[]{INTLITERAL,EOF},
+                new int[] {0,3,3,3},
+                0);
+    }
+    
+    /** Test for unclosed character literal */
+    @Test public void testIllegalUnderscore() {
+        helpScanner("0__5",
+                new Object[]{INTLITERAL,EOF},
+                new int[] {0,4,4,4}, // FIXME - expect an error
+                0);
+//        checkMessages("/TEST.java:1: error: illegal underscore",2,
+//                "/TEST.java:1: error: illegal underscore",2);
+    }
+    
 
     /** Test an empty Java line comment */
     @Test public void testEmptyJavaComment() {
@@ -408,6 +466,13 @@ public class scanner extends JmlTestCase {
                 null);
     }
 
+    @Test public void testEmptyComment2() {
+        helpScanner("/**/",
+                new Object[]{EOF},
+                new int[] {4,4},
+                0);
+    }
+    
     /** Test an embedded JML comment */
     @Test public void testEmbeddedJMLComment() {
         helpScanner("//@requires //@ requires",
@@ -894,11 +959,12 @@ public class scanner extends JmlTestCase {
 
     @Test public void testConditionalKey9() {
     	Options.instance(context).put("-Xlint:deprecation","true");
-        helpScanner("//+@ requires\n  /*+@ requires */",
-                new Object[]{EOF},
-                null,2);
-        checkMessages("/TEST.java:1: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",3
-                ,"/TEST.java:2: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",5);
+        helpScanner("//+@ requires\n x  /*+@ requires */",
+                new Object[]{SJML, IDENTIFIER, EJML, IDENTIFIER, SJML, IDENTIFIER, EJML, EOF},
+                new int[] { 0,4, 5,13, 13,14, 15,16, 18,22, 23,31, 32,34, 34,34},
+                2);
+        checkMessages("/TEST.java:1: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",3
+                ,"/TEST.java:2: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",7);
     }
 
     @Test public void testConditionalKey10() {
@@ -907,8 +973,8 @@ public class scanner extends JmlTestCase {
                 new Object[]{EOF},
                 null,
                 2);
-        checkMessages("/TEST.java:1: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",3
-        		,"/TEST.java:2: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",5);
+        checkMessages("/TEST.java:1: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",3
+        		,"/TEST.java:2: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",5);
     }
 
     @Test public void testLeadingPosition() {
@@ -921,6 +987,58 @@ public class scanner extends JmlTestCase {
         helpScanner(" int /*@@@@@ requires @@*/",
                 new Object[]{INT,SJML,IDENTIFIER,EJML},
                 new int[] {1,4,5,12,13,21,22,26});
+    }
+    
+    @Test public void testUnexpectedAt() { // FIXME - no message?
+        helpScanner("/*@ @ @*/",
+                new Object[]{SJML,MONKEYS_AT,EJML},
+                new int[] {0,3,4,5,6,9});
+        checkMessages();
+    }
+    
+    @Test public void testIllegalJavadoc() {
+        helpScanner("/*@ /**  */ @*/",
+                new Object[]{SJML,EJML,EOF},
+                new int[] {0,3,12,15,15,15},
+                1);
+        checkMessages("/TEST.java:1: error: Javadoc comments are not permitted within JML comments", 5);
+    }
+    
+    @Test public void testIgnoredInvalidComment() {
+        helpScanner("/*5@ @*/",
+                new Object[]{EOF},
+                new int[] {8,8},
+                0);
+    }
+    
+    @Test public void testIgnoredInvalidComment2() {
+        helpScanner("/*+5@ @*/",
+                new Object[]{EOF},
+                new int[] {9,9},
+                0);
+    }
+    
+    @Test public void testEndingAts() {
+        helpScanner("/*@ requires @@@@@@*/",
+                new Object[]{SJML,IDENTIFIER, EJML,EOF},
+                new int[] {0,3,4,12, 13,21, 21,21},
+                0);
+    }
+    
+    @Test public void testEndingBadAts() {
+        helpScanner("/*@ requires @@@@@@ */",
+                new Object[]{SJML,IDENTIFIER, EJML, EOF},
+                new int[] {0,3, 4,12, 20,22, 22,22},
+                1);
+        checkMessages("/TEST.java:1: error: These @ symbols are illegal here", 15); // FIXME expected 14 instead of 15
+    }
+    
+    @Test public void testEndingNoSlash() {
+        helpScanner("/*@ requires @@@@@@* */",
+                new Object[]{SJML, IDENTIFIER, EJML, EOF},
+                new int[] {0,3, 4,12, 21,23, 23,23},
+                1);
+        checkMessages("/TEST.java:1: error: A sequence of @ symbols followed by a * is expected to be followed by a / to end the JML comment", 15); // FIXME expected 14 instead of 15
     }
     
 }

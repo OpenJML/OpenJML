@@ -87,7 +87,7 @@ RELFILES=release-files
 ## Builds a full release. Modify (and commit) ../version.txt to set the version number builtin to the release
 ## Note that the openjml.zip file produced by a release is specific to a particular machine architecture
 release: .FORCE
-	-make clean
+	##-make clean
 	make version-info
 	make openjml
 	make jmlruntime.jar
@@ -111,7 +111,7 @@ version-info: --version
 	@ cat version-info.txt
 	@ mv version-info.txt $(RELFILES)
 
-## Updates the tutorial files into the releasex`
+## Updates the tutorial files into the release`
 tutorial: .FORCE
 	rm -rf $(RELFILES)/tutorial
 	mkdir $(RELFILES)/tutorial
@@ -143,6 +143,7 @@ trial: .FORCE
 
 ## Tests the most recently created release (release-temp/openjml.zip)
 release-test: .FORCE
+	@ echo Running release tests on newly created trial release
 	@ $(topdir)/../OpenJMLTest/releaseTests/runtests
 
 ## Development build targets
