@@ -1,0 +1,16 @@
+## Source this file
+
+## Absolute path to the folder containing this file, which should be .../OpenJMLTest
+TEST=$( cd $(dirname "$BASH_SOURCE") && pwd)
+
+if [ ! -e $TEST/Run.class ]; then make -C $TEST Run.java; fi
+
+export AGENT=
+export OJA=openjml
+if [ -n "${COV+set}" ]; then
+    # COV set, but may be empty
+    mkdir -p $TEST/cov
+    export AGENT=-javaagent:$TEST/jacoco/lib/jacocoagent.jar=destfile=$TEST/cov/$1.exec
+    export OJA="$TEST/../OpenJML21/openjml-java -cp $TEST Run"
+fi
+

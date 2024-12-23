@@ -5,22 +5,17 @@
 ## unit test drivers in OpenJMLTest/src/org/jmlspecs/openjmltest/testcases/
 
 ## $R is the location of the directory containing this script, with
-## $R/.. expected to be OpenJMLTest, which should be a sibling of OpenJML21
+## $R/../.. expected to be OpenJMLTest, which should be a sibling of OpenJML21
 
 R=$( cd $(dirname "$BASH_SOURCE") && pwd)
 ROOT=$R/../../OpenJML21
-RT=$R/../../OpenJMLTest
+TEST=$R/../../OpenJMLTest
 JROOT=$R/../libs
 JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar"
 NJAVAC=$ROOT/build/*/jdk/bin/javac
 NJAVA=$ROOT/build/*/jdk/bin/java
 
-AGENT=
-if [ "${COV+set}" = set ]; then
-    # set, but may be empty
-    mkdir -p $RT/cov
-    AGENT=-javaagent:$RT/jacoco/lib/jacocoagent.jar=destfile=$RT/cov/unit-$1.exec
-fi
+. $TEST/setup-coverage unit-$1
 
 
 cd $R
@@ -30,7 +25,7 @@ CP=".:../src:$JUNIT:$CL"
 
 OPTIONS="-Xlint:unchecked -Xdiags:verbose -Xlint:text-blocks"
 
-EXPORTS="--add-modules jdk.compiler,java.base --add-exports=jdk.compiler/org.jmlspecs.openjml=ALL-UNNAMED  --add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml.proverinterface=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml.visitors=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml.ext=ALL-UNNAMED"
+. $ROOT/setup-exports
 
 while ! NOJML= $NJAVAC $OPTIONS -cp $CP -p $ROOT/build/macosx-x86_64-server-release/jdk/modules $EXPORTS Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java ; do
 
