@@ -281,18 +281,13 @@ public class JmlTokenizer extends JavadocTokenizer {
             return super.processComment(pos, endPos, style);
         }
         if (!(isOneOf(' ','\t','{') || (style == CommentStyle.BLOCK && isOneOf('\n','\r','{')))
-        		&& JmlOptions.instance(context).getBoolean(JmlOption.REQUIRE_WS.optionName())) {
-        	if (isOneOf('+','-')) {
-                Utils.instance(context).warning(position(),
-                		"Annotation comments beginning with @+ or @- are no longer supported; use keys instead");
-
-        	}
-        	// Not a valid JML comment if there is not whitespace after the @.
-        	// This is to avoid processing commented out Annotations, like //@Injected or //@line
-        	reset(endPos);
+                && JmlOptions.instance(context).getBoolean(JmlOption.REQUIRE_WS.optionName())) {
+            // Not a valid JML comment if there is not whitespace after the @.
+            // This is to avoid processing commented out Annotations, like //@Injected or //@line
+            reset(endPos);
             return super.processComment(pos, endPos, style);
         }
-        
+
         if (!jml) {
             tk = TokenKind.CUSTOM;
             jmlTokenClauseKind = Operators.startjmlcommentKind;
@@ -315,24 +310,14 @@ public class JmlTokenizer extends JavadocTokenizer {
             
             // do nothing
         }
-        return null; // Tell the caller to ignore the comment - that is, to not consider it a regular comment
+        return null; // Tell the caller to ignore the comment - that is, to not consider it a regular Java comment
     }
     
     @SuppressWarnings("this-escape")
     public int endBlockComment = length();
     
-    /** Checks comment nesting and resets to position after the comment; only call this for
-     * valid JML comments, whether processed or not */
+    /** Fixes position when comment processing is aborted */
     protected void cleanup(int commentStart, int endPos, CommentStyle style) {
-//        if (jml && jmlcommentstyle == CommentStyle.LINE && style == CommentStyle.BLOCK) {
-//            do {
-//                char cch = next();
-//                if (cch == '\r' || cch == '\n') {
-//                    log.error(commentStart, "jml.message", "Java block comment must terminate within the JML line comment");
-//                    break;
-//                }
-//            } while (position() < endPos);
-//        }
     	if (endPos != position()) reset(endPos); // Needed if we abort a comment before completing it
     }
     
