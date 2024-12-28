@@ -61,7 +61,6 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
-import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Position;
 
 import org.jmlspecs.openjml.Main;
@@ -232,22 +231,22 @@ public class API implements IAPI {
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.IAPI#execute(PrintWriter, DiagnosticListener<JavaFileObject>, Options, String[])
      */
-    private int execute(/*@non_null*/ PrintWriter writer, /*@nullable*/ DiagnosticListener<JavaFileObject> diagListener, /*@nullable*/ Options options, /*@non_null*/ String ... args) {
+    public int execute(/*@non_null*/ PrintWriter writer, /*@nullable*/ DiagnosticListener<JavaFileObject> diagListener, /*@non_null*/ String ... args) {
         int ret = Main.execute(writer, diagListener, null, args);
         return ret;
     }
     
-    @Override
-    public int execute(/*@non_null*/ String ... args) {
-        return execute(null, null, null, args);
-    }
-
-    @Override
-    public int execute(
-            /*@non_null*/ PrintWriter writer, 
-            /*@non_null*/ String ... args) {
-        return execute(writer, null, null, args);
-    }
+//    @Override
+//    public int execute(/*@non_null*/ String ... args) {
+//        return execute(null, null, null, args);
+//    }
+//
+//    @Override
+//    public int execute(
+//            /*@non_null*/ PrintWriter writer, 
+//            /*@non_null*/ String ... args) {
+//        return execute(writer, null, null, args);
+//    }
 
     
 //    /* (non-Javadoc)

@@ -1,21 +1,25 @@
 #! /bin/bash
 
-## This script runs the JUnit tests (directly, without using Eclipse)
-## It does so by running the Test.java program, after compiling all the
-## unit test drivers in OpenJMLTest/src/org/jmlspecs/openjmltest/testcases/
-
-## $R is the location of the directory containing this script, with
-## $R/.. expected to be OpenJMLTest, which should be a sibling of OpenJML21
+## This script may be executed within the development environment or in a release
 
 ## Directory containing this file, which should be either .../OpenJML21 or the release folder
-ROOT=$( cd $(dirname "$BASH_SOURCE") && pwd)
+LOCAL=$( cd $(dirname "$BASH_SOURCE") && pwd)
 
-CL=`echo $ROOT/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
+if [ -e "$LOCAL/version-info.txt" ]; then
+  ## In a release
+  CL=`echo $LOCAL/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
+  MODULES=$LOCAL/jdk/modules
+else
+  ## In development environment
+  CL=`echo $LOCAL/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
+  MODULES=$LOCAL/build/*release/jdk/modules
+fi
+
 CP=".:$CL"
 
 OPTIONS="-Xlint:unchecked -Xdiags:verbose -Xlint:text-blocks"
 
-. $ROOT/setup-exports
+. $LOCAL/setup-exports
 
-"$ROOT/openjml" -cp $CP -p /Users/davidcok/projects/OpenJML21/OpenJML/OpenJML21/build/macosx-x86_64-server-release/jdk/modules $EXPORTS --compile "$@"
+"$LOCAL/openjml" -cp $CP -p $MODULES $EXPORTS --compile "$@"
 

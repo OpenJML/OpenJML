@@ -473,6 +473,13 @@ public class scanner extends JmlTestCase {
                 0);
     }
     
+    @Test public void testEmptyJavdocComment() { // FIXME - why does this not execute line 1556 in JavaTokenizer
+        helpScanner("/***********/",
+                new Object[]{EOF},
+                new int[] {13,13},
+                0);
+    }
+    
     /** Test an embedded JML comment */
     @Test public void testEmbeddedJMLComment() {
         helpScanner("//@requires //@ requires",
@@ -1015,6 +1022,14 @@ public class scanner extends JmlTestCase {
         helpScanner("/*+5@ @*/",
                 new Object[]{EOF},
                 new int[] {9,9},
+                0);
+    }
+    
+    @Test public void testRequireWhiteSpace() {
+        main.addOptions("--require-white-space");
+        helpScanner("/*@requires@*/",
+                new Object[]{EOF},
+                new int[] {14,14},
                 0);
     }
     

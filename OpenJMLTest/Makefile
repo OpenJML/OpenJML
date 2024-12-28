@@ -7,11 +7,16 @@ mkfile_dir := $(dir $(mkfile_path))
 TEST=${mkfile_dir}
 
 ## The folder containing the source and builds, namely (currently) .../OpenJML21
-D=OpenJML21
+SRC=${TEST}/../OpenJML21
+
+## Location of a folder in which to put test files (relative to the folder holding this makefile)
+T=temp-release
 
 ### The following is the OpenJML tests
 
+### FIXME - not sure we need prep, even without release-tests
 openjml-test: prep
+	make release-tests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 	-make jsontests
 	-make unittests-par
 	-make scripttests
@@ -19,15 +24,14 @@ openjml-test: prep
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
 
 openjml-clean: .FORCE
-	(cd ${TEST}/../$D; make clean version openjml jmlruntime.jar )
+	make -C ${SRC} clean; make openjml
 
 openjml: .FORCE
-	(cd ${TEST}/../$D; make version openjml jmlruntime.jar )
+	(cd ${SRC}; make version; make openjml; make jmlruntime.jar )
 
 release: .FORCE
-	(cd ${TEST}/../$D; make release)
+	make -C ${SRC} release
 
-T=temp-release
 
 prep: .FORCE
 	rm -rf $T
@@ -47,7 +51,7 @@ tutorial-tests: Run.class .FORCE
 
 release-tests: Run.class .FORCE
 	@ echo Running release tests with current development build
-	@ NOZIP= $(TEST)releaseTests/runtests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
+	@ $(TEST)releaseTests/runtests
 
 unittests-seq: Run.class .FORCE
 	@ $(TEST)unittests/runseq
@@ -66,10 +70,6 @@ Run.class:
 	$(TEST)/../OpenJML21/openjml-compile Run.java
 
 .FORCE:
-			
-version:
-	@ NOJML= njavac -d bin Version.java
-	@ STACK=X njava -cp bin Version
 
 ##### The following are debugging tests
 

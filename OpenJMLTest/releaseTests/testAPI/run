@@ -1,0 +1,9 @@
+#! /bin/bash
+
+cd $(dirname $BASH_SOURCE[0])
+
+"$OJBIN/openjml-compile" Run.java
+"$OJBIN/openjml-run" Run --esc A.java
+"$OJBIN/openjml-run" Run --rac A.java
+"$OJBIN/openjml-java" A
+exit 0

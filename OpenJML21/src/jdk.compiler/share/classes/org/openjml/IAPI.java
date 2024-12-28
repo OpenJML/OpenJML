@@ -148,28 +148,21 @@ public interface IAPI {
      * @param args the command-line arguments
      * @return the exit code (0 is success; other values are various kinds of errors)
      */
-//    public int execute(
-//            /*@non_null*/ PrintWriter writer, 
-//            /*@nullable*/ DiagnosticListener<JavaFileObject> diagListener, 
-//            /*@nullable*/ Options options, 
-//            /*@non_null*/ String ... args);
-
-    default int execute(
-            /*@non_null*/ String ... args) {
-        return execute(args);
-    }
-    
-    default int execute(
+    public int execute(
             /*@non_null*/ PrintWriter writer, 
+            /*@nullable*/ DiagnosticListener<JavaFileObject> diagListener, 
+            /*@non_null*/ String ... args);
+
+    default public int execute(
             /*@non_null*/ String ... args) {
-        return execute(writer, args);
+        return execute(System.out, args);
     }
     
-    default int execute(
+    default public int execute(
             /*@non_null*/ PrintStream writer, 
             /*@non_null*/ String ... args) {
         try (var pw = new PrintWriter(writer); ) {
-            return execute(pw, args);
+            return execute(pw, null, args);
         } finally {
         }
     }

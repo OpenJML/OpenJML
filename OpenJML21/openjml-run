@@ -1,8 +1,10 @@
 #! /bin/bash
 
 ## The directory containing this file, which should be either .../OpenJML21 or the release folder
-ROOT=$( cd $(dirname "$BASH_SOURCE") && pwd)
+LOCAL=$( cd $(dirname "$BASH_SOURCE") && pwd)
+
+. $LOCAL/setup-exports
 
 ## Now run the compiled Test program
-OPENJML_ROOT="$ROOT/../../Solvers" "$ROOT/openjml-java" "$@"
+"$LOCAL/openjml-java" $EXPORTS "$@"
 
