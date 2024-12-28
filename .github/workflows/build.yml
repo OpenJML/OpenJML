@@ -24,10 +24,8 @@ jobs:
     - name: Check most recent release
       run: |
         export ver=`cat OpenJML/version.txt`
-        curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep "\"name\": \"OpenJML $ver\""
-        if [ 0 = `curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep "\"name\": \"OpenJML $ver\""` ] ; then echo "Version $ver already exists" ; exit 1; fi
-	echo "No match found " $ver
-	exit 1
+        ( curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep "\"name\": \"OpenJML $ver\"" ) && echo "Version $ver already exists" && false
+        echo "No prior release found for version " $ver
 
     - name: Create the GitHub release
       ## Do this just once -- not for every element of the matrix
