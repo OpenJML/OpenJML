@@ -36,6 +36,8 @@ import com.sun.tools.javac.util.Options;
 public interface IAPI {
     
     public static IAPI make() { return new API(); }
+    
+//    public Context context();
      
 //    //@ public model boolean isOpen; private represents isOpen = main != null;
 //
@@ -161,10 +163,18 @@ public interface IAPI {
     default public int execute(
             /*@non_null*/ PrintStream writer, 
             /*@non_null*/ String ... args) {
-        try (var pw = new PrintWriter(writer); ) {
+        var pw = new PrintWriter(writer);
+        try {
             return execute(pw, null, args);
         } finally {
+            pw.flush();
+            if (writer != System.out) pw.close();
         }
+    }
+    
+    static public int openjml(String ... args) {
+        //return make().execute(args);
+        return org.jmlspecs.openjml.Main.execute(args);
     }
             
 //    /** Executes the jmldoc tool on the given command-line arguments. This is 
@@ -272,8 +282,7 @@ public interface IAPI {
 //    //@ ensures files.length == \result.size();
 //    //@ ensures (* output elements are non-null *);
 //    public /*@ non_null */
-//    java.util.List<JmlCompilationUnit> parseFiles(
-//            /*@non_null*/ File... files);
+//    java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ File... files);
 //
 //    /** Parses each java file and its specs returning a list of the ASTs for corresponding
 //     * java files; the spec files are automatically found according to JML rules; 
@@ -313,8 +322,8 @@ public interface IAPI {
 //     */
 //    //@ requires isOpen;
 //    //@ ensures isOpen;
-//    public /*@non_null*/
-//    JmlCompilationUnit parseSingleFile(/*@non_null*/ String filename);
+//    default public /*@non_null*/
+//    JmlCompilationUnit parseSingleFile(/*@non_null*/ String filename) { return null; }
 //    
 //    /** Produces a parse tree for the given text; the text must represent a
 //     * compilation unit for a .java file or a specification file.  The name 
@@ -392,12 +401,15 @@ public interface IAPI {
 //     */ // FIXME - comment on whether the package path is needed
 //    public JavaFileObject makeJFOfromString(String name, String content) throws Exception;
 //    
-//    /** Creates a JavaFileObject instance from a real file, by name
-//     * @param filepath the path to the file, either absolute or relative to the current working directory
-//     * @return the resulting JavaFileObject
-//     */
-//    public JavaFileObject makeJFOfromFilename(String filepath);
-//    
+    /** Creates a JavaFileObject instance from a real file, by name
+     * @param filepath the path to the file, either absolute or relative to the current working directory
+     * @return the resulting JavaFileObject
+     */
+//    default public JavaFileObject makeJFOfromFilename(String filepath) {
+//        JavacFileManager dfm = (JavacFileManager)context().get(JavaFileManager.class);
+//        return dfm.getFileForInput(filepath);
+//    }
+
 //    /** Creates a JavaFileObject instance from a File object
 //     * @param file the file to wrap
 //     * @return the resulting JavaFileObject
