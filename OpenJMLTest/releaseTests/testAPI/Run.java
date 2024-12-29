@@ -14,7 +14,7 @@ public class Run {
        System.out.println(String.join(" ", combined));
     }
     API api = (API)IAPI.make();
-    int x = api.execute(combined);
+    int x = IAPI.make().execute(combined);
     System.exit(x);
   }
 }

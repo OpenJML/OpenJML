@@ -88,7 +88,7 @@ import org.jmlspecs.openjml.Main;
  * @author David Cok
  */
 public class API implements IAPI {
-
+    
     /** The encapsulated org.jmlspecs.openjml.Main object */
     private Main main = null;
 //    //@ initially main != null;
@@ -109,12 +109,21 @@ public class API implements IAPI {
      */
     //@ ensures isOpen;
     protected API()  {
-//        try {
-//            main = new org.jmlspecs.openjml.Main("openjml", new PrintWriter(System.out));
-//        } catch (Exception e) {
-//            // FAILURE
-//        }
+        // CAUTION: Do not close pw, if it is wrapping System.out (as System.out will be closed and any writes to System.out will not work)
+        var pw = new PrintWriter(System.out);
+        try {
+            main = new org.jmlspecs.openjml.Main("openjml", pw);
+            main.context = main.initialize(null);
+        } catch (Exception e) {
+            System.out.println("API X " + e);
+           // FAILURE - FIXME - error message
+            System.exit(4);
+        }
+        pw.flush();
     }
+    
+//    @Override
+//    public Context context() { return main.context; } 
 //    
 //    /** Creates an API that will send informational output to the
 //     * given PrintWriter and diagnostic output to the given listener; no
@@ -232,21 +241,10 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#execute(PrintWriter, DiagnosticListener<JavaFileObject>, Options, String[])
      */
     public int execute(/*@non_null*/ PrintWriter writer, /*@nullable*/ DiagnosticListener<JavaFileObject> diagListener, /*@non_null*/ String ... args) {
-        int ret = Main.execute(writer, diagListener, null, args);
-        return ret;
+        int x = main.compile(args, main.context).exitCode;
+        return x;
     }
     
-//    @Override
-//    public int execute(/*@non_null*/ String ... args) {
-//        return execute(null, null, null, args);
-//    }
-//
-//    @Override
-//    public int execute(
-//            /*@non_null*/ PrintWriter writer, 
-//            /*@non_null*/ String ... args) {
-//        return execute(writer, null, null, args);
-//    }
 
     
 //    /* (non-Javadoc)
@@ -342,9 +340,9 @@ public class API implements IAPI {
 //        return errs;
 //    }
 //
-//    /* (non-Javadoc)
-//     * @see org.jmlspecs.openjml.IAPI#parseFiles(java.io.File[])
-//     */
+    /* (non-Javadoc)
+     * @see org.jmlspecs.openjml.IAPI#parseFiles(java.io.File[])
+     */
 //    @Override
 //    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ File... files) {
 //        JmlCompiler c = JmlCompiler.instance(context());
@@ -364,7 +362,7 @@ public class API implements IAPI {
 //    /* (non-Javadoc)
 //     * @see org.jmlspecs.openjml.IAPI#parseFiles(String[])
 //     */
-//    @Override
+////    @Override
 //    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ String... filenames) {
 //        File[] files = new File[filenames.length];
 //        for (int i=0; i<filenames.length; i++) {
@@ -376,7 +374,7 @@ public class API implements IAPI {
 //    /* (non-Javadoc)
 //     * @see org.jmlspecs.openjml.IAPI#parseFiles(javax.tools.JavaFileObject[])
 //     */
-//    @Override
+////    @Override
 //    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ JavaFileObject... inputs) {
 //        JmlCompiler c = JmlCompiler.instance(context());
 //        ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
@@ -388,7 +386,7 @@ public class API implements IAPI {
 //    /* (non-Javadoc)
 //     * @see org.jmlspecs.openjml.IAPI#parseFiles(java.util.Collection)
 //     */
-//    @Override
+////    @Override
 //    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ Collection<? extends JavaFileObject> inputs) {
 //        JmlCompiler c = JmlCompiler.instance(context());
 //        ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
@@ -409,9 +407,9 @@ public class API implements IAPI {
 //    /* (non-Javadoc)
 //     * @see org.jmlspecs.openjml.IAPI#parseSingleFile(java.io.File)
 //     */
-//    @Override
+////    @Override
 //    public /*@non_null*/ JmlCompilationUnit parseSingleFile(/*@non_null*/ JavaFileObject jfo) {
-//        JmlCompiler c = JmlCompiler.instance(context());
+//        JmlCompiler c = JmlCompiler.instance(main.context);
 //        JmlCompilationUnit specscu = (JmlCompilationUnit)c.parse(jfo);
 //        return specscu;
 //    }
@@ -486,16 +484,6 @@ public class API implements IAPI {
 //        return new StringJavaFileObject(name,content);
 //    }
 //    
-//    /** Creates a JavaFileObject instance from a real file, by name
-//     * @param filepath the path to the file, either absolute or relative to the current working directory
-//     * @return the resulting JavaFileObject
-//     */
-//    @Override
-//    public JavaFileObject makeJFOfromFilename(String filepath) {
-////        JavacFileManager dfm = (JavacFileManager)context().get(JavaFileManager.class);
-////        return dfm.getFileForInput(filepath);
-//    	return null; // FIXME
-//    }
 //    
 //    /** Creates a JavaFileObject instance from a File object
 //     * @param file the file to wrap

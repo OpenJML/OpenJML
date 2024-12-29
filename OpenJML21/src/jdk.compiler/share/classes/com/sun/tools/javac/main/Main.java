@@ -333,7 +333,6 @@ public class Main {
                     return Result.ERROR;
                 }
             }
-
             return (comp.errorCount() == 0) ? Result.OK : Result.ERROR;
 
         } catch (OutOfMemoryError | StackOverflowError ex) {
